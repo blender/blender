@@ -1355,6 +1355,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
+    denoising_neighbor_frames: IntProperty(
+        name="Neighbor Frames",
+        description="Number of neighboring frames to use for denoising animations (more frames produce smoother results at the cost of performance)",
+        min=0, max=7,
+        default=0,
+    )
     use_pass_crypto_object: BoolProperty(
         name="Cryptomatte Object",
         description="Render cryptomatte object pass, for isolating objects in compositing",

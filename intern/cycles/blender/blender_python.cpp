@@ -18,8 +18,11 @@
 
 #include "blender/CCL_api.h"
 
+#include "blender/blender_device.h"
 #include "blender/blender_sync.h"
 #include "blender/blender_session.h"
+
+#include "render/denoising.h"
 
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
@@ -203,10 +206,10 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 
 static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 {
-	PyObject *pyengine, *pyuserpref, *pydata, *pyregion, *pyv3d, *pyrv3d;
+	PyObject *pyengine, *pypreferences, *pydata, *pyregion, *pyv3d, *pyrv3d;
 	int preview_osl;
 
-	if(!PyArg_ParseTuple(args, "OOOOOOi", &pyengine, &pyuserpref, &pydata,
+	if(!PyArg_ParseTuple(args, "OOOOOOi", &pyengine, &pypreferences, &pydata,
 	                     &pyregion, &pyv3d, &pyrv3d, &preview_osl))
 	{
 		return NULL;
@@ -217,9 +220,9 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 	RNA_pointer_create(NULL, &RNA_RenderEngine, (void*)PyLong_AsVoidPtr(pyengine), &engineptr);
 	BL::RenderEngine engine(engineptr);
 
-	PointerRNA userprefptr;
-	RNA_pointer_create(NULL, &RNA_Preferences, (void*)PyLong_AsVoidPtr(pyuserpref), &userprefptr);
-	BL::Preferences userpref(userprefptr);
+	PointerRNA preferencesptr;
+	RNA_pointer_create(NULL, &RNA_Preferences, (void*)PyLong_AsVoidPtr(pypreferences), &preferencesptr);
+	BL::Preferences preferences(preferencesptr);
 
 	PointerRNA dataptr;
 	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);
@@ -245,11 +248,11 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 		int width = region.width();
 		int height = region.height();
 
-		session = new BlenderSession(engine, userpref, data, v3d, rv3d, width, height);
+		session = new BlenderSession(engine, preferences, data, v3d, rv3d, width, height);
 	}
 	else {
 		/* offline session or preview render */
-		session = new BlenderSession(engine, userpref, data, preview_osl);
+		session = new BlenderSession(engine, preferences, data, preview_osl);
 	}
 
 	return PyLong_FromVoidPtr(session);
@@ -627,6 +630,121 @@ static PyObject *opencl_disable_func(PyObject * /*self*/, PyObject * /*value*/)
 }
 #endif
 
+static bool denoise_parse_filepaths(PyObject *pyfilepaths, vector<string>& filepaths)
+{
+
+	if(PyUnicode_Check(pyfilepaths)) {
+		const char *filepath = PyUnicode_AsUTF8(pyfilepaths);
+		filepaths.push_back(filepath);
+		return true;
+	}
+
+	PyObject *sequence = PySequence_Fast(pyfilepaths, "File paths must be a string or sequence of strings");
+	if(sequence == NULL) {
+		return false;
+	}
+
+	for(Py_ssize_t i = 0; i < PySequence_Fast_GET_SIZE(sequence); i++) {
+		PyObject *item = PySequence_Fast_GET_ITEM(sequence, i);
+		const char *filepath = PyUnicode_AsUTF8(item);
+		if(filepath == NULL) {
+			PyErr_SetString(PyExc_ValueError, "File paths must be a string or sequence of strings.");
+			Py_DECREF(sequence);
+			return false;
+		}
+		filepaths.push_back(filepath);
+	}
+	Py_DECREF(sequence);
+
+	return true;
+}
+
+static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *keywords)
+{
+	static const char *keyword_list[] = {"preferences", "scene", "view_layer",
+	                                     "input", "output",
+	                                     "tile_size", "samples", NULL};
+	PyObject *pypreferences, *pyscene, *pyviewlayer;
+	PyObject *pyinput, *pyoutput = NULL;
+	int tile_size = 0, samples = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "OOOO|Oii", (char**)keyword_list,
+	                                 &pypreferences, &pyscene, &pyviewlayer,
+									 &pyinput, &pyoutput,
+	                                 &tile_size, &samples)) {
+		return NULL;
+	}
+
+	/* Get device specification from preferences and scene. */
+	PointerRNA preferencesptr;
+	RNA_pointer_create(NULL, &RNA_Preferences, (void*)PyLong_AsVoidPtr(pypreferences), &preferencesptr);
+	BL::Preferences b_preferences(preferencesptr);
+
+	PointerRNA sceneptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
+	BL::Scene b_scene(sceneptr);
+
+	DeviceInfo device = blender_device_info(b_preferences, b_scene, true);
+
+	/* Get denoising parameters from view layer. */
+	PointerRNA viewlayerptr;
+	RNA_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer), &viewlayerptr);
+	PointerRNA cviewlayer = RNA_pointer_get(&viewlayerptr, "cycles");
+
+	DenoiseParams params;
+	params.radius = get_int(cviewlayer, "denoising_radius");
+	params.strength = get_float(cviewlayer, "denoising_strength");
+	params.feature_strength = get_float(cviewlayer, "denoising_feature_strength");
+	params.relative_pca = get_boolean(cviewlayer, "denoising_relative_pca");
+	params.neighbor_frames = get_int(cviewlayer, "denoising_neighbor_frames");
+
+	/* Parse file paths list. */
+	vector<string> input, output;
+
+	if(!denoise_parse_filepaths(pyinput, input)) {
+		return NULL;
+	}
+
+	if(pyoutput) {
+		if(!denoise_parse_filepaths(pyoutput, output)) {
+			return NULL;
+		}
+	}
+	else {
+		output = input;
+	}
+
+	if(input.empty()) {
+		PyErr_SetString(PyExc_ValueError, "No input file paths specified.");
+		return NULL;
+	}
+	if(input.size() != output.size()) {
+		PyErr_SetString(PyExc_ValueError, "Number of input and output file paths does not match.");
+		return NULL;
+	}
+
+	/* Create denoiser. */
+	Denoiser denoiser(device);
+	denoiser.params = params;
+	denoiser.input = input;
+	denoiser.output = output;
+
+	if (tile_size > 0) {
+		denoiser.tile_size = make_int2(tile_size, tile_size);
+	}
+	if (samples > 0) {
+		denoiser.samples_override = samples;
+	}
+
+	/* Run denoiser. */
+	if(!denoiser.run()) {
+		PyErr_SetString(PyExc_ValueError, denoiser.error.c_str());
+		return NULL;
+	}
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
 {
 	PyObject *pyscene;
@@ -786,6 +904,9 @@ static PyMethodDef methods[] = {
 #ifdef WITH_OPENCL
 	{"opencl_disable", opencl_disable_func, METH_NOARGS, ""},
 #endif
+
+	/* Standalone denoising */
+	{"denoise", (PyCFunction)denoise_func, METH_VARARGS|METH_KEYWORDS, ""},
 
 	/* Debugging routines */
 	{"debug_flags_update", debug_flags_update_func, METH_VARARGS, ""},

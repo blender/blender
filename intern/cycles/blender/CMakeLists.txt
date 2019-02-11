@@ -17,6 +17,7 @@ set(INC_SYS
 
 set(SRC
 	blender_camera.cpp
+	blender_device.cpp
 	blender_mesh.cpp
 	blender_object.cpp
 	blender_object_cull.cpp
@@ -40,6 +41,7 @@ set(SRC
 set(ADDON_FILES
 	addon/__init__.py
 	addon/engine.py
+	addon/operators.py
 	addon/osl.py
 	addon/presets.py
 	addon/properties.py

@@ -37,6 +37,8 @@ if "bpy" in locals():
         importlib.reload(version_update)
     if "ui" in locals():
         importlib.reload(ui)
+    if "operators" in locals():
+        importlib.reload(operators)
     if "properties" in locals():
         importlib.reload(properties)
     if "presets" in locals():
@@ -119,6 +121,7 @@ classes = (
 def register():
     from bpy.utils import register_class
     from . import ui
+    from . import operators
     from . import properties
     from . import presets
     import atexit
@@ -131,6 +134,7 @@ def register():
 
     properties.register()
     ui.register()
+    operators.register()
     presets.register()
 
     for cls in classes:
@@ -142,6 +146,7 @@ def register():
 def unregister():
     from bpy.utils import unregister_class
     from . import ui
+    from . import operators
     from . import properties
     from . import presets
     import atexit
@@ -149,6 +154,7 @@ def unregister():
     bpy.app.handlers.version_update.remove(version_update.do_versions)
 
     ui.unregister()
+    operators.unregister()
     properties.unregister()
     presets.unregister()
 

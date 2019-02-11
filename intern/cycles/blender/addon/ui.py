@@ -19,12 +19,8 @@
 import bpy
 from bpy_extras.node_utils import find_node_input
 from bl_operators.presets import PresetMenu
-import _cycles
 
-from bpy.types import (
-    Panel,
-    Operator,
-)
+from bpy.types import Panel
 
 
 class CYCLES_PT_sampling_presets(PresetMenu):
@@ -636,6 +632,8 @@ class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Pa
     bl_parent_id = "CYCLES_RENDER_PT_performance"
 
     def draw(self, context):
+        import _cycles
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -1275,27 +1273,6 @@ class CYCLES_OBJECT_PT_cycles_settings_performance(CyclesButtonsPanel, Panel):
         col = flow.column()
         col.active = scene.render.use_simplify and cscene.use_distance_cull
         col.prop(cob, "use_distance_cull")
-
-
-class CYCLES_OT_use_shading_nodes(Operator):
-    """Enable nodes on a material, world or light"""
-    bl_idname = "cycles.use_shading_nodes"
-    bl_label = "Use Nodes"
-
-    @classmethod
-    def poll(cls, context):
-        return (getattr(context, "material", False) or getattr(context, "world", False) or
-                getattr(context, "light", False))
-
-    def execute(self, context):
-        if context.material:
-            context.material.use_nodes = True
-        elif context.world:
-            context.world.use_nodes = True
-        elif context.light:
-            context.light.use_nodes = True
-
-        return {'FINISHED'}
 
 
 def panel_node_draw(layout, id_data, output_type, input_name):
@@ -2136,7 +2113,6 @@ classes = (
     CYCLES_OBJECT_PT_cycles_settings,
     CYCLES_OBJECT_PT_cycles_settings_ray_visibility,
     CYCLES_OBJECT_PT_cycles_settings_performance,
-    CYCLES_OT_use_shading_nodes,
     CYCLES_LIGHT_PT_preview,
     CYCLES_LIGHT_PT_light,
     CYCLES_LIGHT_PT_nodes,

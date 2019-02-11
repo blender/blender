@@ -29,6 +29,7 @@
 
 #include "device/device.h"
 
+#include "blender/blender_device.h"
 #include "blender/blender_sync.h"
 #include "blender/blender_session.h"
 #include "blender/blender_util.h"
@@ -716,7 +717,7 @@ bool BlenderSync::get_session_pause(BL::Scene& b_scene, bool background)
 }
 
 SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
-                                              BL::Preferences& b_userpref,
+                                              BL::Preferences& b_preferences,
                                               BL::Scene& b_scene,
                                               bool background)
 {
@@ -726,84 +727,12 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	/* feature set */
 	params.experimental = (get_enum(cscene, "feature_set") != 0);
 
-	/* threads */
-	BL::RenderSettings b_r = b_scene.render();
-	if(b_r.threads_mode() == BL::RenderSettings::threads_mode_FIXED)
-		params.threads = b_r.threads();
-	else
-		params.threads = 0;
-
 	/* Background */
 	params.background = background;
 
-	/* Default to CPU device. */
-	params.device = Device::available_devices(DEVICE_MASK_CPU).front();
-
-	if(get_enum(cscene, "device") == 2) {
-		/* Find network device. */
-		vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK_NETWORK);
-		if(!devices.empty()) {
-			params.device = devices.front();
-		}
-	}
-	else if(get_enum(cscene, "device") == 1) {
-		/* Find cycles preferences. */
-		PointerRNA b_preferences;
-
-		BL::Preferences::addons_iterator b_addon_iter;
-		for(b_userpref.addons.begin(b_addon_iter); b_addon_iter != b_userpref.addons.end(); ++b_addon_iter) {
-			if(b_addon_iter->module() == "cycles") {
-				b_preferences = b_addon_iter->preferences().ptr;
-				break;
-			}
-		}
-
-		/* Test if we are using GPU devices. */
-		enum ComputeDevice {
-			COMPUTE_DEVICE_CPU = 0,
-			COMPUTE_DEVICE_CUDA = 1,
-			COMPUTE_DEVICE_OPENCL = 2,
-			COMPUTE_DEVICE_NUM = 3,
-		};
-
-		ComputeDevice compute_device = (ComputeDevice)get_enum(b_preferences,
-		                                                       "compute_device_type",
-		                                                       COMPUTE_DEVICE_NUM,
-		                                                       COMPUTE_DEVICE_CPU);
-
-		if(compute_device != COMPUTE_DEVICE_CPU) {
-			/* Query GPU devices with matching types. */
-			uint mask = DEVICE_MASK_CPU;
-			if(compute_device == COMPUTE_DEVICE_CUDA) {
-				mask |= DEVICE_MASK_CUDA;
-			}
-			else if(compute_device == COMPUTE_DEVICE_OPENCL) {
-				mask |= DEVICE_MASK_OPENCL;
-			}
-			vector<DeviceInfo> devices = Device::available_devices(mask);
-
-			/* Match device preferences and available devices. */
-			vector<DeviceInfo> used_devices;
-			RNA_BEGIN(&b_preferences, device, "devices") {
-				if(get_boolean(device, "use")) {
-					string id = get_string(device, "id");
-					foreach(DeviceInfo& info, devices) {
-						if(info.id == id) {
-							used_devices.push_back(info);
-							break;
-						}
-					}
-				}
-			} RNA_END;
-
-			if(!used_devices.empty()) {
-				params.device = Device::get_multi_device(used_devices,
-				                                         params.threads,
-				                                         params.background);
-			}
-			/* Else keep using the CPU device that was set before. */
-		}
-	}
+	/* Device */
+	params.threads = blender_device_threads(b_scene);
+	params.device = blender_device_info(b_preferences, b_scene, params.background);
 
 	/* samples */
 	int samples = get_int(cscene, "samples");
@@ -875,6 +804,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	params.text_timeout = (double)get_float(cscene, "debug_text_timeout");
 
 	/* progressive refine */
+	BL::RenderSettings b_r = b_scene.render();
 	params.progressive_refine = (b_engine.is_preview() ||
 	                             get_boolean(cscene, "use_progressive_refine")) &&
 	                            !b_r.use_save_buffers();

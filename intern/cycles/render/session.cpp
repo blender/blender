@@ -927,8 +927,11 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			 */
 			substatus += string_printf(", Sample %d/%d", progress.get_current_sample(), num_samples);
 		}
-		if(params.run_denoising) {
+		if(params.full_denoising) {
 			substatus += string_printf(", Denoised %d tiles", progress.get_denoised_tiles());
+		}
+		else if(params.run_denoising) {
+			substatus += string_printf(", Prefiltered %d tiles", progress.get_denoised_tiles());
 		}
 	}
 	else if(tile_manager.num_samples == INT_MAX)
@@ -976,10 +979,7 @@ void Session::render()
 	task.passes_size = tile_manager.params.get_passes_size();
 
 	if(params.run_denoising) {
-		task.denoising_radius = params.denoising_radius;
-		task.denoising_strength = params.denoising_strength;
-		task.denoising_feature_strength = params.denoising_feature_strength;
-		task.denoising_relative_pca = params.denoising_relative_pca;
+		task.denoising = params.denoising;
 
 		assert(!scene->film->need_update);
 		task.pass_stride = scene->film->pass_stride;
