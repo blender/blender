@@ -1771,7 +1771,7 @@ static void gp_set_default_eraser(Main *bmain, Brush *brush_dft)
 	}
 
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
-		if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+		if ((brush->gpencil_settings) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
 			if (brush == brush_dft) {
 				brush->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
 			}

@@ -1648,54 +1648,53 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 	/* for paint use paint brush size and color */
 	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
 		brush = scene->toolsettings->gp_paint->paint.brush;
+		if ((brush == NULL) || (brush->gpencil_settings == NULL)) {
+			return;
+		}
+
 		/* while drawing hide */
 		if ((gpd->runtime.sbuffer_size > 0) &&
-		    (brush) && ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
+			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
 		{
 			return;
 		}
 
-		if (brush) {
-			if ((brush->gpencil_settings->flag & GP_BRUSH_ENABLE_CURSOR) == 0) {
-				return;
-			}
+		if ((brush->gpencil_settings->flag & GP_BRUSH_ENABLE_CURSOR) == 0) {
+			return;
+		}
 
-			/* eraser has special shape and use a different shader program */
-			if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
-				ED_gpencil_brush_draw_eraser(brush, x, y);
-				return;
-			}
+		/* eraser has special shape and use a different shader program */
+		if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+			ED_gpencil_brush_draw_eraser(brush, x, y);
+			return;
+		}
 
-			/* get current drawing color */
-			ma = BKE_gpencil_get_material_from_brush(brush);
-			if (ma == NULL) {
-				BKE_gpencil_material_ensure(bmain, ob);
-				/* assign the first material to the brush */
-				ma = give_current_material(ob, 1);
-				brush->gpencil_settings->material = ma;
-			}
-			gp_style = ma->gp_style;
+		/* get current drawing color */
+		ma = BKE_gpencil_get_material_from_brush(brush);
+		if (ma == NULL) {
+			BKE_gpencil_material_ensure(bmain, ob);
+			/* assign the first material to the brush */
+			ma = give_current_material(ob, 1);
+			brush->gpencil_settings->material = ma;
+		}
+		gp_style = ma->gp_style;
 
-			/* after some testing, display the size of the brush is not practical because
-			 * is too disruptive and the size of cursor does not change with zoom factor.
-			 * The decision was to use a fix size, instead of brush->thickness value.
-			 */
-			if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
-			    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-			    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-			    (brush->gpencil_tool == GPAINT_TOOL_DRAW))
-			{
-				radius = 2.0f;
-				copy_v3_v3(color, gp_style->stroke_rgba);
-			}
-			else {
-				radius = 5.0f;
-				copy_v3_v3(color, brush->add_col);
-			}
+		/* after some testing, display the size of the brush is not practical because
+		 * is too disruptive and the size of cursor does not change with zoom factor.
+		 * The decision was to use a fix size, instead of brush->thickness value.
+		 */
+		if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
+			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
+			(brush->gpencil_tool == GPAINT_TOOL_DRAW))
+		{
+			radius = 2.0f;
+			copy_v3_v3(color, gp_style->stroke_rgba);
 		}
 		else {
-			return;
+			radius = 5.0f;
+			copy_v3_v3(color, brush->add_col);
 		}
 	}
 
