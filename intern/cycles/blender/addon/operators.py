@@ -43,15 +43,15 @@ class CYCLES_OT_use_shading_nodes(Operator):
 
 
 class CYCLES_OT_denoise_animation(Operator):
-    """Denoise rendered animation sequence using current scene and view """ \
-    """layer settings. Requires denoising data passes and output to """ \
-    """OpenEXR multilayer files"""
+    "Denoise rendered animation sequence using current scene and view " \
+    "layer settings. Requires denoising data passes and output to " \
+    "OpenEXR multilayer files"
     bl_idname = "cycles.denoise_animation"
     bl_label = "Denoise Animation"
 
     input_filepath = StringProperty(
         name='Input Filepath',
-        description='File path for frames to denoise. If not specified, uses the render file path from the scene',
+        description='File path for image to denoise. If not specified, uses the render file path and frame range from the scene',
         default='',
         subtype='FILE_PATH')
 
@@ -71,33 +71,41 @@ class CYCLES_OT_denoise_animation(Operator):
         in_filepath = self.input_filepath
         out_filepath = self.output_filepath
 
-        if in_filepath == '':
-            in_filepath = scene.render.filepath
-        if out_filepath == '':
-            out_filepath = in_filepath
-
-        # Backup since we will overwrite the scene path temporarily
-        original_filepath = scene.render.filepath
-
-        # Expand filepaths for each frame so we match Blender render output exactly.
         in_filepaths = []
         out_filepaths = []
 
-        for frame in range(scene.frame_start, scene.frame_end + 1):
-            scene.render.filepath = in_filepath
-            filepath = scene.render.frame_path(frame=frame)
-            in_filepaths.append(filepath)
+        if in_filepath != '':
+            # Denoise a single file
+            if out_filepath == '':
+                out_filepath = in_filepath
 
-            if not os.path.isfile(filepath):
-                scene.render.filepath = original_filepath
-                self.report({'ERROR'}, f"Frame '{filepath}' not found, animation must be complete.")
-                return {'CANCELLED'}
+            in_filepaths.append(in_filepath)
+            out_filepaths.append(out_filepath)
+        else:
+            # Denoise animation sequence with expanded frames matching
+            # Blender render output file naming.
+            in_filepath = scene.render.filepath
+            if out_filepath == '':
+                out_filepath = in_filepath
 
-            scene.render.filepath = out_filepath
-            filepath = scene.render.frame_path(frame=frame)
-            out_filepaths.append(filepath)
+            # Backup since we will overwrite the scene path temporarily
+            original_filepath = scene.render.filepath
 
-        scene.render.filepath = original_filepath
+            for frame in range(scene.frame_start, scene.frame_end + 1):
+                scene.render.filepath = in_filepath
+                filepath = scene.render.frame_path(frame=frame)
+                in_filepaths.append(filepath)
+
+                if not os.path.isfile(filepath):
+                    scene.render.filepath = original_filepath
+                    self.report({'ERROR'}, f"Frame '{filepath}' not found, animation must be complete.")
+                    return {'CANCELLED'}
+
+                scene.render.filepath = out_filepath
+                filepath = scene.render.frame_path(frame=frame)
+                out_filepaths.append(filepath)
+
+            scene.render.filepath = original_filepath
 
         # Run denoiser
         # TODO: support cancel and progress reports.
