@@ -103,4 +103,9 @@ bool DNA_struct_elem_find(const struct SDNA *sdna, const char *stype, const char
 
 int DNA_elem_type_size(const eSDNA_Type elem_nr);
 
+bool DNA_sdna_patch_struct(
+        struct SDNA *sdna, const char *struct_name_old, const char *struct_name_new);
+bool DNA_sdna_patch_struct_member(
+        struct SDNA *sdna, const char *struct_name, const char *member_old, const char *member_new);
+
 #endif /* __DNA_GENFILE_H__ */

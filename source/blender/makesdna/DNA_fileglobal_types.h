@@ -28,8 +28,9 @@
  * the moment of saving, and the file-specific settings.
  */
 typedef struct FileGlobal {
-	/** Needs to be here, for human fileformat recognition. */
+	/** Needs to be here, for human fileformat recognition (keep first!). */
 	char subvstr[4];
+
 	short subversion;
 	short minversion, minsubversion;
 	char pad[6];

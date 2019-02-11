@@ -22,6 +22,8 @@
 #ifndef __DNA_SDNA_TYPES_H__
 #define __DNA_SDNA_TYPES_H__
 
+struct MemArena;
+
 #
 #
 typedef struct SDNA {
@@ -59,6 +61,9 @@ typedef struct SDNA {
 
 	/** #GHash for faster lookups, requires WITH_DNA_GHASH to be used for now. */
 	struct GHash *structs_map;
+
+	/** Temporary memory currently only used for version patching DNA. */
+	struct MemArena *mem_arena;
 } SDNA;
 
 #

@@ -932,13 +932,30 @@ static void decode_blender_header(FileData *fd)
 static bool read_file_dna(FileData *fd, const char **r_error_message)
 {
 	BHead *bhead;
+	int subversion = 0;
 
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
-		if (bhead->code == DNA1) {
+		if (bhead->code == GLOB) {
+			/* Before this, the subversion didn't exist in 'FileGlobal' so the subversion
+			 * value isn't accessible for the purpose of DNA versioning in this case. */
+			if (fd->fileversion <= 242) {
+				continue;
+			}
+			/* We can't use read_global because this needs 'DNA1' to be decoded,
+			 * however the first 4 chars are _always_ the subversion. */
+			FileGlobal *fg = (void *)&bhead[1];
+			BLI_STATIC_ASSERT(offsetof(FileGlobal, subvstr) == 0, "Must be first: subvstr");
+			char num[5];
+			memcpy(num, fg->subvstr, 4);
+			num[4] = 0;
+			subversion = atoi(num);
+		}
+		else if (bhead->code == DNA1) {
 			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 
 			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap, true, r_error_message);
 			if (fd->filesdna) {
+				blo_do_versions_dna(fd->filesdna, fd->fileversion, subversion);
 				fd->compflags = DNA_struct_get_compareflags(fd->filesdna, fd->memsdna);
 				/* used to retrieve ID names from (bhead+1) */
 				fd->id_name_offs = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
