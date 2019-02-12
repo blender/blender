@@ -120,6 +120,7 @@ static void rna_def_light(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_refine_func(srna, "rna_Light_refine");
 	RNA_def_struct_ui_text(srna, "Light", "Light data-block for lighting a scene");
+	RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_ID_LIGHT);
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_DATA);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

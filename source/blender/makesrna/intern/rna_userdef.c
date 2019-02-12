@@ -30,6 +30,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_appdir.h"
 #include "BKE_sound.h"
 #include "BKE_addon.h"
@@ -1852,6 +1854,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "lamp");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Light", "");
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "speaker", PROP_FLOAT, PROP_COLOR_GAMMA);

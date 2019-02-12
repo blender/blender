@@ -464,7 +464,8 @@ void OBJECT_OT_add(wmOperatorType *ot)
 
 	/* properties */
 	ED_object_add_unit_props_radius(ot);
-	RNA_def_enum(ot->srna, "type", rna_enum_object_type_items, 0, "Type", "");
+	PropertyRNA *prop = RNA_def_enum(ot->srna, "type", rna_enum_object_type_items, 0, "Type", "");
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 
 	ED_object_add_generic_props(ot, true);
 }
