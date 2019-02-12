@@ -24,6 +24,8 @@
 #ifndef __DNA_GENFILE_H__
 #define __DNA_GENFILE_H__
 
+#include "intern/dna_utils.h"
+
 struct SDNA;
 
 /**
@@ -94,7 +96,6 @@ void *DNA_struct_reconstruct(
         const struct SDNA *newsdna, const struct SDNA *oldsdna,
         const char *compflags, int oldSDNAnr, int blocks, const void *data);
 
-int DNA_elem_array_size(const char *str);
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
 bool DNA_struct_find(const struct SDNA *sdna, const char *stype);

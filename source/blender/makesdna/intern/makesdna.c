@@ -49,6 +49,8 @@
 #include "BLI_sys_types.h"  /* for intptr_t support */
 #include "BLI_memarena.h"
 
+#include "dna_utils.h"
+
 #define SDNA_MAX_FILENAME_LENGTH 255
 
 /* Included the path relative from /source/blender/ here, so we can move     */
@@ -208,11 +210,6 @@ static int preprocess_include(char *maindata, int len);
  * Scan this file for serializable types.
  */
 static int convert_include(const char *filename);
-
-/**
- * Determine how many bytes are needed for an array.
- */
-static int arraysize(const char *str);
 
 /**
  * Determine how many bytes are needed for each struct.
@@ -723,25 +720,6 @@ static int convert_include(const char *filename)
 	return 0;
 }
 
-static int arraysize(const char *str)
-{
-	int a, mul = 1;
-	const char *cp = NULL;
-
-	for (a = 0; str[a]; a++) {
-		if (str[a] == '[') {
-			cp = &(str[a + 1]);
-		}
-		else if (str[a] == ']' && cp) {
-			/* if 'cp' is a preprocessor definition, it will evaluate to 0,
-			 * the caller needs to check for this case and throw an error */
-			mul *= atoi(cp);
-		}
-	}
-
-	return mul;
-}
-
 static bool check_field_alignment(int firststruct, int structtype, int type, int len,
                                   const char *name, const char *detail)
 {
@@ -798,7 +776,9 @@ static int calculate_structlens(int firststruct)
 						has_pointer = 1;
 						/* has the name an extra length? (array) */
 						int mul = 1;
-						if (cp[namelen - 1] == ']') mul = arraysize(cp);
+						if (cp[namelen - 1] == ']') {
+							mul = DNA_elem_array_size(cp);
+						}
 
 						if (mul == 0) {
 							fprintf(stderr, "Zero array size found or could not parse %s: '%.*s'\n",
@@ -843,7 +823,9 @@ static int calculate_structlens(int firststruct)
 					else if (typelens_native[type]) {
 						/* has the name an extra length? (array) */
 						int mul = 1;
-						if (cp[namelen - 1] == ']') mul = arraysize(cp);
+						if (cp[namelen - 1] == ']') {
+							mul = DNA_elem_array_size(cp);
+						}
 
 						if (mul == 0) {
 							fprintf(stderr, "Zero array size found or could not parse %s: '%.*s'\n",

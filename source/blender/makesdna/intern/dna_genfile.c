@@ -134,48 +134,6 @@
 #  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
 #endif
 
-/* ************************* MAKE DNA ********************** */
-
-/* allowed duplicate code from makesdna.c */
-
-/**
- * parses the "[n1][n2]..." on the end of an array name and returns the number of array elements n1*n2*...
- */
-int DNA_elem_array_size(const char *str)
-{
-	int result = 1;
-	int current = 0;
-	while (true) {
-		char c = *str++;
-		switch (c) {
-			case '\0':
-				return result;
-			case '[':
-				current = 0;
-				break;
-			case ']':
-				result *= current;
-				break;
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-				current = current * 10 + (c - '0');
-				break;
-			default:
-				break;
-		}
-	}
-}
-
-/* ************************* END MAKE DNA ********************** */
-
 /* ************************* DIV ********************** */
 
 void DNA_sdna_free(SDNA *sdna)

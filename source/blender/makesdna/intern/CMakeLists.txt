@@ -33,6 +33,7 @@ blender_include_dirs(
 # -----------------------------------------------------------------------------
 # Build makesdna executable
 set(SRC
+	dna_utils.c
 	makesdna.c
 	../../blenlib/intern/BLI_memarena.c
 	../../../../intern/guardedalloc/intern/mallocn.c
@@ -78,9 +79,12 @@ set(INC_SYS
 )
 
 set(SRC
+	dna_utils.c
 	dna_genfile.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	${SRC_DNA_INC}
+
+	dna_utils.h
 )
 
 set_source_files_properties(
