@@ -836,6 +836,7 @@ void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
 
 void DepsgraphRelationBuilder::build_object_parent(Object *object)
 {
+	Object *parent = object->parent;
 	ID *parent_id = &object->parent->id;
 	ComponentKey ob_key(&object->id, NodeType::TRANSFORM);
 	/* Type-specific links/ */
@@ -910,6 +911,16 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 			}
 			break;
 		}
+	}
+	/* Metaballs are the odd balls here (no pun intended): they will request
+	 * instance-list (formerly known as dupli-list) during evaluation. This is
+	 * their way of interacting with all instanced surfaces, making a nice
+	 * effect when is used form particle system. */
+	if (object->type == OB_MBALL && parent->transflag & OB_DUPLI) {
+		ComponentKey parent_geometry_key(parent_id, NodeType::GEOMETRY);
+		/* NOTE: Metaballs are evaluating geometry only after their transform,
+		 * so we onl;y hook up to transform channel here. */
+		add_relation(parent_geometry_key, ob_key, "Parent");
 	}
 }
 
