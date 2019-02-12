@@ -63,6 +63,7 @@ static void initData(ModifierData *md)
 	BooleanModifierData *bmd = (BooleanModifierData *)md;
 
 	bmd->double_threshold = 1e-6f;
+	bmd->operation = eBooleanModifierOp_Difference;
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))

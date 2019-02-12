@@ -2027,6 +2027,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_operation_items);
+	RNA_def_property_enum_default(prop, eBooleanModifierOp_Difference);
 	RNA_def_property_ui_text(prop, "Operation", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
