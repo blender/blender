@@ -1367,39 +1367,6 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
 /** \name Version Patch DNA
  * \{ */
 
-static bool is_identifier(const char c)
-{
-	return ((c >= 'a' && c <= 'z') ||
-	        (c >= 'A' && c <= 'Z') ||
-	        (c >= '0' && c <= '9') ||
-	        (c == '_'));
-}
-
-/**
- * Check if 'var' matches '*var[3]' for eg,
- * return true if it does, with start/end offsets.
- */
-static char str_member_match(
-        const char *member_search, const int member_search_len,
-        const char *member_dna,
-        uint *r_member_dna_offset)
-{
-	BLI_assert(strlen(member_search) == member_search_len);
-	int member_dna_offset = 0;
-	while (!is_identifier(member_dna[member_dna_offset])) {
-		member_dna_offset++;
-	}
-	const char *member_dna_trim = member_dna + member_dna_offset;
-	if (strncmp(member_search, member_dna_trim, member_search_len) == 0) {
-		const char c = member_dna_trim[member_search_len];
-		if (c == '\0' || !is_identifier(c)) {
-			*r_member_dna_offset = member_dna_offset;
-			return true;
-		}
-	}
-	return false;
-}
-
 static bool DNA_sdna_patch_struct_nr(
         SDNA *sdna, const int struct_name_old_nr, const char *struct_name_new)
 {
@@ -1438,28 +1405,18 @@ static bool DNA_sdna_patch_struct_member_nr(
 		const char *member_dna_old = sdna->names[sp[1]];
 		/* Start & end offsets in 'member_dna_old'. */
 		uint member_dna_offset_start;
-		if (str_member_match(member_old, member_old_len, member_dna_old, &member_dna_offset_start)) {
+		if (DNA_elem_id_match(member_old, member_old_len, member_dna_old, &member_dna_offset_start)) {
 			if (sdna->mem_arena == NULL) {
 				sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 			}
 			const int member_dna_old_len = strlen(member_dna_old);
-			const int member_final_len = (member_dna_old_len - member_old_len) + member_new_len;
-			char *member_dna_new = BLI_memarena_alloc(sdna->mem_arena, member_final_len + 1);
-			uint i = 0;
-			if (member_dna_offset_start != 0) {
-				memcpy(member_dna_new, member_dna_old, member_dna_offset_start);
-				i = member_dna_offset_start;
-			}
-			memcpy(&member_dna_new[i], member_new, member_new_len + 1);
-			i += member_new_len;
-			uint member_dna_offset_end = member_dna_offset_start + member_old_len;
-			if (member_dna_old[member_dna_offset_end] != '\0') {
-				const int member_dna_tail_len = (member_dna_old_len - member_dna_offset_end);
-				memcpy(&member_dna_new[i], &member_dna_old[member_dna_offset_end], member_dna_tail_len + 1);
-				i += member_dna_tail_len;
-			}
-			BLI_assert((strlen(member_dna_new) == member_final_len) && (i == member_final_len));
-			// printf("Struct member rename: '%s.%s' -> '%s'\n", member_old, member_dna_old, member_dna_new);
+			const char *member_dna_new = DNA_elem_id_rename(
+			        sdna->mem_arena,
+			        member_old, member_old_len,
+			        member_new, member_new_len,
+			        member_dna_old, member_dna_old_len,
+			        member_dna_offset_start);
+
 			sdna->names[sp[1]] = member_dna_new;
 			return true;
 		}

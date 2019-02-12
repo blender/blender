@@ -21,9 +21,19 @@
  * Utilities for stand-alone makesdna.c and Blender to share.
  */
 
+#include <string.h>
+
 #include "BLI_sys_types.h"
+#include "BLI_utildefines.h"
+#include "BLI_assert.h"
+
+#include "BLI_memarena.h"
 
 #include "dna_utils.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Struct Member Evaluation
+ * \{ */
 
 /**
  * Parses the `[n1][n2]...` on the end of an array name
@@ -61,3 +71,94 @@ int DNA_elem_array_size(const char *str)
 		}
 	}
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Struct Member Manipulation
+ * \{ */
+
+static bool is_identifier(const char c)
+{
+	return ((c >= 'a' && c <= 'z') ||
+	        (c >= 'A' && c <= 'Z') ||
+	        (c >= '0' && c <= '9') ||
+	        (c == '_'));
+}
+
+uint DNA_elem_id_offset_start(const char *elem_dna)
+{
+	uint elem_dna_offset = 0;
+	while (!is_identifier(elem_dna[elem_dna_offset])) {
+		elem_dna_offset++;
+	}
+	return elem_dna_offset;
+}
+
+uint DNA_elem_id_offset_end(const char *elem_dna)
+{
+	uint elem_dna_offset = 0;
+	while (is_identifier(elem_dna[elem_dna_offset])) {
+		elem_dna_offset++;
+	}
+	return elem_dna_offset;
+}
+
+/**
+ * Check if 'var' matches '*var[3]' for eg,
+ * return true if it does, with start/end offsets.
+ */
+bool DNA_elem_id_match(
+        const char *elem_search, const int elem_search_len,
+        const char *elem_dna,
+        uint *r_elem_dna_offset)
+{
+	BLI_assert(strlen(elem_search) == elem_search_len);
+	const uint elem_dna_offset = DNA_elem_id_offset_start(elem_dna);
+	const char *elem_dna_trim = elem_dna + elem_dna_offset;
+	if (strncmp(elem_search, elem_dna_trim, elem_search_len) == 0) {
+		const char c = elem_dna_trim[elem_search_len];
+		if (c == '\0' || !is_identifier(c)) {
+			*r_elem_dna_offset = elem_dna_offset;
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Return a renamed dna name, allocated from \a mem_arena.
+ */
+char *DNA_elem_id_rename(
+        struct MemArena *mem_arena,
+        const char *elem_src, const int elem_src_len,
+        const char *elem_dst, const int elem_dst_len,
+        const char *elem_dna_src, const int elem_dna_src_len,
+        const uint elem_dna_offset_start)
+{
+	BLI_assert(strlen(elem_src) == elem_src_len);
+	BLI_assert(strlen(elem_dst) == elem_dst_len);
+	BLI_assert(strlen(elem_dna_src) == elem_dna_src_len);
+	BLI_assert(DNA_elem_id_offset_start(elem_dna_src) == elem_dna_offset_start);
+	UNUSED_VARS_NDEBUG(elem_src);
+
+	const int elem_final_len = (elem_dna_src_len - elem_src_len) + elem_dst_len;
+	char *elem_dna_dst = BLI_memarena_alloc(mem_arena, elem_final_len + 1);
+	uint i = 0;
+	if (elem_dna_offset_start != 0) {
+		memcpy(elem_dna_dst, elem_dna_src, elem_dna_offset_start);
+		i = elem_dna_offset_start;
+	}
+	memcpy(&elem_dna_dst[i], elem_dst, elem_dst_len + 1);
+	i += elem_dst_len;
+	uint elem_dna_offset_end = elem_dna_offset_start + elem_src_len;
+	if (elem_dna_src[elem_dna_offset_end] != '\0') {
+		const int elem_dna_tail_len = (elem_dna_src_len - elem_dna_offset_end);
+		memcpy(&elem_dna_dst[i], &elem_dna_src[elem_dna_offset_end], elem_dna_tail_len + 1);
+		i += elem_dna_tail_len;
+	}
+	BLI_assert((strlen(elem_dna_dst) == elem_final_len) && (i == elem_final_len));
+	return elem_dna_dst;
+}
+
+/** \} */
