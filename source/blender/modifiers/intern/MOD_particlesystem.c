@@ -130,6 +130,10 @@ static void deformVerts(
 		if (psys->particles == NULL) {
 			psys->recalc |= ID_RECALC_PSYS_RESET;
 		}
+		/* TODO(sergey): This is not how particles were working prior to copy on
+		 * write, but now evaluation is similar to case when one duplicates the
+		 * object. In that case particles were doing reset here. */
+		psys->recalc |= ID_RECALC_PSYS_RESET;
 	}
 
 	/* make new mesh */
