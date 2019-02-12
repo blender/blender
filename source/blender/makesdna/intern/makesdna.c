@@ -46,10 +46,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "../blenlib/BLI_sys_types.h" // for intptr_t support
+#include "BLI_sys_types.h"  /* for intptr_t support */
+#include "BLI_memarena.h"
 
 #define SDNA_MAX_FILENAME_LENGTH 255
-
 
 /* Included the path relative from /source/blender/ here, so we can move     */
 /* headers around with more freedom.                                         */
@@ -130,14 +130,16 @@ static const char *includefiles[] = {
 	"",
 };
 
+MemArena *mem_arena = NULL;
+
 static int maxdata = 500000, maxnr = 50000;
 static int nr_names = 0;
 static int nr_types = 0;
 static int nr_structs = 0;
 /** at address names[a] is string a */
-static char **names, *namedata;
+static char **names;
 /** at address types[a] is string a */
-static char **types, *typedata;
+static char **types;
 /** at typelens[a] is the length of type 'a' on this systems bitness (32 or 64) */
 static short *typelens_native;
 /** contains sizes as they are calculated on 32 bit systems */
@@ -162,6 +164,16 @@ static int additional_slen_offset;
 
 #define DEBUG_PRINTF(debug_level, ...) \
 	{ if (debugSDNA > debug_level) { printf(__VA_ARGS__); } } ((void)0)
+
+
+/* stub for BLI_abort() */
+#ifndef NDEBUG
+void BLI_system_backtrace(FILE *fp);
+void BLI_system_backtrace(FILE *fp)
+{
+       (void)fp;
+}
+#endif
 
 /* ************************************************************************** */
 /* Functions                                                                  */
@@ -253,13 +265,9 @@ static int add_type(const char *str, int len)
 	}
 
 	/* append new type */
-	if (nr_types == 0) {
-		cp = typedata;
-	}
-	else {
-		cp = types[nr_types - 1] + strlen(types[nr_types - 1]) + 1;
-	}
-	strcpy(cp, str);
+	const int str_size = strlen(str) + 1;
+	cp = BLI_memarena_alloc(mem_arena, str_size);
+	memcpy(cp, str, str_size);
 	types[nr_types] = cp;
 	typelens_native[nr_types] = len;
 	typelens_32[nr_types] = len;
@@ -400,13 +408,9 @@ static int add_name(const char *str)
 	}
 
 	/* append new type */
-	if (nr_names == 0) {
-		cp = namedata;
-	}
-	else {
-		cp = names[nr_names - 1] + strlen(names[nr_names - 1]) + 1;
-	}
-	strcpy(cp, name);
+	const int name_size = strlen(name) + 1;
+	cp = BLI_memarena_alloc(mem_arena, name_size);
+	memcpy(cp, name, name_size);
 	names[nr_names] = cp;
 
 	if (nr_names >= maxnr) {
@@ -993,7 +997,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	const short *sp;
 	/* str contains filenames. Since we now include paths, I stretched       */
 	/* it a bit. Hope this is enough :) -nzc-                                */
-	char str[SDNA_MAX_FILENAME_LENGTH], *cp;
+	char str[SDNA_MAX_FILENAME_LENGTH];
 	int firststruct;
 
 	if (debugSDNA > 0) {
@@ -1001,9 +1005,9 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		printf("Running makesdna at debug level %d\n", debugSDNA);
 	}
 
+	mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
 	/* the longest known struct is 50k, so we assume 100k is sufficient! */
-	namedata = MEM_callocN(maxdata, "namedata");
-	typedata = MEM_callocN(maxdata, "typedata");
 	structdata = MEM_callocN(maxdata, "structdata");
 
 	/* a maximum of 5000 variables, must be sufficient? */
@@ -1098,32 +1102,42 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		/* pass */
 	}
 	else {
+		const char nil_bytes[4] = {0};
+		int len_align;
+
 		dna_write(file, "SDNA", 4);
 
 		/* write names */
 		dna_write(file, "NAME", 4);
 		len = nr_names;
 		dna_write(file, &len, 4);
-
-		/* calculate size of datablock with strings */
-		cp = names[nr_names - 1];
-		cp += strlen(names[nr_names - 1]) + 1;         /* +1: null-terminator */
-		len = (intptr_t) (cp - (char *) names[0]);
-		len = (len + 3) & ~3;
-		dna_write(file, names[0], len);
+		/* write array */
+		len = 0;
+		for (int nr = 0; nr < nr_names; nr++) {
+			int name_size = strlen(names[nr]) + 1;
+			dna_write(file, names[nr], name_size);
+			len += name_size;
+		}
+		len_align = (len + 3) & ~3;
+		if (len != len_align) {
+			dna_write(file, nil_bytes, len_align - len);
+		}
 
 		/* write TYPES */
 		dna_write(file, "TYPE", 4);
 		len = nr_types;
 		dna_write(file, &len, 4);
-
-		/* calculate datablock size */
-		cp = types[nr_types - 1];
-		cp += strlen(types[nr_types - 1]) + 1;     /* +1: null-terminator */
-		len = (intptr_t) (cp - (char *) types[0]);
-		len = (len + 3) & ~3;
-
-		dna_write(file, types[0], len);
+		/* write array */
+		len = 0;
+		for (int nr = 0; nr < nr_types; nr++) {
+			int type_size = strlen(types[nr]) + 1;
+			dna_write(file, types[nr], type_size);
+			len += type_size;
+		}
+		len_align = (len + 3) & ~3;
+		if (len != len_align) {
+			dna_write(file, nil_bytes, len_align - len);
+		}
 
 		/* WRITE TYPELENGTHS */
 		dna_write(file, "TLEN", 4);
@@ -1192,8 +1206,6 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		fprintf(file_offsets, "};\n");
 	}
 
-	MEM_freeN(namedata);
-	MEM_freeN(typedata);
 	MEM_freeN(structdata);
 	MEM_freeN(names);
 	MEM_freeN(types);
@@ -1201,6 +1213,8 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	MEM_freeN(typelens_32);
 	MEM_freeN(typelens_64);
 	MEM_freeN(structs);
+
+	BLI_memarena_free(mem_arena);
 
 	DEBUG_PRINTF(0, "done.\n");
 

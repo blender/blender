@@ -34,6 +34,7 @@ blender_include_dirs(
 # Build makesdna executable
 set(SRC
 	makesdna.c
+	../../blenlib/intern/BLI_memarena.c
 	../../../../intern/guardedalloc/intern/mallocn.c
 	../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
 	../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
