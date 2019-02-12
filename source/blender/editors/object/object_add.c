@@ -475,11 +475,11 @@ void OBJECT_OT_add(wmOperatorType *ot)
 static const char *get_lightprobe_defname(int type)
 {
 	switch (type) {
-		case LIGHTPROBE_TYPE_GRID: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "IrradianceVolume");
-		case LIGHTPROBE_TYPE_PLANAR: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "ReflectionPlane");
-		case LIGHTPROBE_TYPE_CUBE: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "ReflectionCubemap");
+		case LIGHTPROBE_TYPE_GRID: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "IrradianceVolume");
+		case LIGHTPROBE_TYPE_PLANAR: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionPlane");
+		case LIGHTPROBE_TYPE_CUBE: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "ReflectionCubemap");
 		default:
-			return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "LightProbe");
+			return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "LightProbe");
 	}
 }
 
@@ -1100,12 +1100,12 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 static const char *get_light_defname(int type)
 {
 	switch (type) {
-		case LA_LOCAL: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Point");
-		case LA_SUN: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Sun");
-		case LA_SPOT: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Spot");
-		case LA_AREA: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Area");
+		case LA_LOCAL: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Point");
+		case LA_SUN: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Sun");
+		case LA_SPOT: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Spot");
+		case LA_AREA: return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Area");
 		default:
-			return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Light");
+			return CTX_DATA_(BLT_I18NCONTEXT_ID_LIGHT, "Light");
 	}
 }
 
@@ -1167,7 +1167,7 @@ void OBJECT_OT_light_add(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_light_type_items, 0, "Type", "");
-	RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_LAMP);
+	RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_LIGHT);
 
 	ED_object_add_unit_props_radius(ot);
 	ED_object_add_generic_props(ot, false);
