@@ -2305,28 +2305,6 @@ static void mesh_create_pos_and_nor_tess(MeshRenderData *rdata, GPUVertBuf *vbo,
 	}
 }
 
-BLI_INLINE void mesh_edit_add_select_index(GPUVertBufRaw *buf, GPUVertCompType comp, uint index)
-{
-	/* We don't need to sanitize the value because the elements
-	 * with these undefined values will never get drawn. */
-	switch (comp) {
-		case GPU_COMP_U32:
-			*((uint *)GPU_vertbuf_raw_step(buf)) = index;
-			break;
-		case GPU_COMP_U16:
-			*((ushort *)GPU_vertbuf_raw_step(buf)) = (ushort)index;
-			break;
-		case GPU_COMP_U8:
-			*((uchar *)GPU_vertbuf_raw_step(buf)) = (uchar)index;
-			break;
-		default:
-			BLI_assert(0);
-			break;
-	}
-}
-
-#define SELECT_COMP_FORMAT(el_len) (el_len > 0xFF ? (el_len > 0xFFFF ? GPU_COMP_U32 : GPU_COMP_U16) : GPU_COMP_U8)
-
 static void mesh_create_edit_vertex_loops(
         MeshRenderData *rdata,
         GPUVertBuf *vbo_pos_nor,
@@ -2344,69 +2322,60 @@ static void mesh_create_edit_vertex_loops(
 	const int ledge_len = mesh_render_data_loose_edges_len_get_maybe_mapped(rdata);
 	const int loop_len = mesh_render_data_loops_len_get_maybe_mapped(rdata);
 	const int tot_loop_len = loop_len + ledge_len * 2 + lvert_len;
-	static struct { uint vert, edge, face, pos, nor, lnor, data, uvs; } attr_id;
 	float (*lnors)[3] = rdata->loop_normals;
 	uchar fflag;
 
-	/* Choose the most compact vertex format. */
-	GPUVertCompType vert_comp = SELECT_COMP_FORMAT(vert_len);
-	GPUVertCompType edge_comp = SELECT_COMP_FORMAT(edge_len);
-	GPUVertCompType face_comp = SELECT_COMP_FORMAT(poly_len);
-
-	GPUVertFormat format_vert_idx = { 0 }, format_edge_idx = { 0 }, format_face_idx = { 0 };
-	attr_id.vert = GPU_vertformat_attr_add(&format_vert_idx, "color", vert_comp, 1, GPU_FETCH_INT);
-	attr_id.edge = GPU_vertformat_attr_add(&format_edge_idx, "color", edge_comp, 1, GPU_FETCH_INT);
-	attr_id.face = GPU_vertformat_attr_add(&format_face_idx, "color", face_comp, 1, GPU_FETCH_INT);
-
 	/* Static formats */
-	static GPUVertFormat format_pos_nor = { 0 }, format_lnor = { 0 }, format_flag = { 0 }, format_uv = { 0 };
-	if (format_pos_nor.attr_len == 0) {
-		attr_id.pos = GPU_vertformat_attr_add(&format_pos_nor, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-		attr_id.nor = GPU_vertformat_attr_add(&format_pos_nor, "vnor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		attr_id.lnor = GPU_vertformat_attr_add(&format_lnor, "lnor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		attr_id.data = GPU_vertformat_attr_add(&format_flag, "data", GPU_COMP_U8, 4, GPU_FETCH_INT);
-		attr_id.uvs = GPU_vertformat_attr_add(&format_uv, "u", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-		GPU_vertformat_alias_add(&format_uv, "pos");
-		GPU_vertformat_alias_add(&format_flag, "flag");
+	static struct { GPUVertFormat sel_id, pos_nor, lnor, flag, uv; } format = { 0 };
+	static struct { uint sel_id, pos, nor, lnor, data, uvs; } attr_id;
+	if (format.sel_id.attr_len == 0) {
+		attr_id.sel_id = GPU_vertformat_attr_add(&format.sel_id, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
+		attr_id.pos = GPU_vertformat_attr_add(&format.pos_nor, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		attr_id.nor = GPU_vertformat_attr_add(&format.pos_nor, "vnor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		attr_id.lnor = GPU_vertformat_attr_add(&format.lnor, "lnor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		attr_id.data = GPU_vertformat_attr_add(&format.flag, "data", GPU_COMP_U8, 4, GPU_FETCH_INT);
+		attr_id.uvs = GPU_vertformat_attr_add(&format.uv, "u", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		GPU_vertformat_alias_add(&format.uv, "pos");
+		GPU_vertformat_alias_add(&format.flag, "flag");
 	}
 
 	GPUVertBufRaw raw_verts, raw_edges, raw_faces, raw_pos, raw_nor, raw_lnor, raw_uv, raw_data;
 	if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor)) {
-		GPU_vertbuf_init_with_format(vbo_pos_nor, &format_pos_nor);
+		GPU_vertbuf_init_with_format(vbo_pos_nor, &format.pos_nor);
 		GPU_vertbuf_data_alloc(vbo_pos_nor, tot_loop_len);
 		GPU_vertbuf_attr_get_raw_data(vbo_pos_nor, attr_id.pos, &raw_pos);
 		GPU_vertbuf_attr_get_raw_data(vbo_pos_nor, attr_id.nor, &raw_nor);
 	}
 	if (DRW_TEST_ASSIGN_VBO(vbo_lnor)) {
-		GPU_vertbuf_init_with_format(vbo_lnor, &format_lnor);
+		GPU_vertbuf_init_with_format(vbo_lnor, &format.lnor);
 		GPU_vertbuf_data_alloc(vbo_lnor, tot_loop_len);
 		GPU_vertbuf_attr_get_raw_data(vbo_lnor, attr_id.lnor, &raw_lnor);
 	}
 	if (DRW_TEST_ASSIGN_VBO(vbo_data)) {
-		GPU_vertbuf_init_with_format(vbo_data, &format_flag);
+		GPU_vertbuf_init_with_format(vbo_data, &format.flag);
 		GPU_vertbuf_data_alloc(vbo_data, tot_loop_len);
 		GPU_vertbuf_attr_get_raw_data(vbo_data, attr_id.data, &raw_data);
 	}
 	if (DRW_TEST_ASSIGN_VBO(vbo_uv)) {
-		GPU_vertbuf_init_with_format(vbo_uv, &format_uv);
+		GPU_vertbuf_init_with_format(vbo_uv, &format.uv);
 		GPU_vertbuf_data_alloc(vbo_uv, tot_loop_len);
 		GPU_vertbuf_attr_get_raw_data(vbo_uv, attr_id.uvs, &raw_uv);
 	}
 	/* Select Idx */
 	if (DRW_TEST_ASSIGN_VBO(vbo_verts)) {
-		GPU_vertbuf_init_with_format(vbo_verts, &format_vert_idx);
+		GPU_vertbuf_init_with_format(vbo_verts, &format.sel_id);
 		GPU_vertbuf_data_alloc(vbo_verts, tot_loop_len);
-		GPU_vertbuf_attr_get_raw_data(vbo_verts, attr_id.vert, &raw_verts);
+		GPU_vertbuf_attr_get_raw_data(vbo_verts, attr_id.sel_id, &raw_verts);
 	}
 	if (DRW_TEST_ASSIGN_VBO(vbo_edges)) {
-		GPU_vertbuf_init_with_format(vbo_edges, &format_edge_idx);
+		GPU_vertbuf_init_with_format(vbo_edges, &format.sel_id);
 		GPU_vertbuf_data_alloc(vbo_edges, tot_loop_len);
-		GPU_vertbuf_attr_get_raw_data(vbo_edges, attr_id.edge, &raw_edges);
+		GPU_vertbuf_attr_get_raw_data(vbo_edges, attr_id.sel_id, &raw_edges);
 	}
 	if (DRW_TEST_ASSIGN_VBO(vbo_faces)) {
-		GPU_vertbuf_init_with_format(vbo_faces, &format_face_idx);
+		GPU_vertbuf_init_with_format(vbo_faces, &format.sel_id);
 		GPU_vertbuf_data_alloc(vbo_faces, tot_loop_len);
-		GPU_vertbuf_attr_get_raw_data(vbo_faces, attr_id.face, &raw_faces);
+		GPU_vertbuf_attr_get_raw_data(vbo_faces, attr_id.sel_id, &raw_faces);
 	}
 
 	if (rdata->edit_bmesh && rdata->mapped.use == false) {
@@ -2449,14 +2418,14 @@ static void mesh_create_edit_vertex_loops(
 				/* Select Idx */
 				if (vbo_verts) {
 					int vidx = BM_elem_index_get(loop->v);
-					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 				}
 				if (vbo_edges) {
 					int eidx = BM_elem_index_get(loop->e);
-					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_edges)) = eidx;
 				}
 				if (vbo_faces) {
-					mesh_edit_add_select_index(&raw_faces, face_comp, fidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_faces)) = fidx;
 				}
 			}
 		}
@@ -2481,11 +2450,11 @@ static void mesh_create_edit_vertex_loops(
 				/* Select Idx */
 				if (vbo_verts) {
 					int vidx = BM_elem_index_get(eve);
-					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 				}
 				if (vbo_edges) {
 					int eidx = BM_elem_index_get(eed);
-					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_edges)) = eidx;
 				}
 			}
 		}
@@ -2508,7 +2477,7 @@ static void mesh_create_edit_vertex_loops(
 			/* Select Idx */
 			if (vbo_verts) {
 				int vidx = BM_elem_index_get(eve);
-				mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+				*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 			}
 		}
 	}
@@ -2581,14 +2550,14 @@ static void mesh_create_edit_vertex_loops(
 				/* Select Idx */
 				if (vbo_verts) {
 					int vidx = v_origindex[l->v];
-					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 				}
 				if (vbo_edges) {
 					int eidx = e_origindex[l->e];
-					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_edges)) = eidx;
 				}
 				if (vbo_faces) {
-					mesh_edit_add_select_index(&raw_faces, face_comp, fidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_faces)) = fidx;
 				}
 			}
 		}
@@ -2622,11 +2591,11 @@ static void mesh_create_edit_vertex_loops(
 				/* Select Idx */
 				if (vbo_verts) {
 					int vidx = v_origindex[v];
-					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 				}
 				if (vbo_edges) {
 					int eidx = e_origindex[e];
-					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_edges)) = eidx;
 				}
 			}
 		}
@@ -2653,7 +2622,7 @@ static void mesh_create_edit_vertex_loops(
 			/* Select Idx */
 			if (vbo_verts) {
 				int vidx = v_origindex[v];
-				mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+				*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 			}
 		}
 	}
@@ -2691,14 +2660,14 @@ static void mesh_create_edit_vertex_loops(
 				/* Select Idx */
 				if (vbo_verts) {
 					int vidx = v_origindex ? v_origindex[l->v] : l->v;
-					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 				}
 				if (vbo_edges) {
 					int eidx = e_origindex ? e_origindex[l->e] : l->e;
-					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_edges)) = eidx;
 				}
 				if (vbo_faces) {
-					mesh_edit_add_select_index(&raw_faces, face_comp, fidx);
+					*((uint *)GPU_vertbuf_raw_step(&raw_faces)) = fidx;
 				}
 			}
 		}
@@ -2716,10 +2685,10 @@ static void mesh_create_edit_vertex_loops(
 						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert[vidx].co);
 					}
 					if (vbo_verts) {
-						mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+						*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 					}
 					if (vbo_edges) {
-						mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+						*((uint *)GPU_vertbuf_raw_step(&raw_edges)) = eidx;
 					}
 				}
 			}
@@ -2734,7 +2703,7 @@ static void mesh_create_edit_vertex_loops(
 						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert->co);
 					}
 					if (vbo_verts) {
-						mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+						*((uint *)GPU_vertbuf_raw_step(&raw_verts)) = vidx;
 					}
 				}
 			}
@@ -2751,11 +2720,11 @@ static void mesh_create_edit_facedots_select_id(
 {
 	const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
 
-	GPUVertCompType comp = SELECT_COMP_FORMAT(poly_len);
-
-	GPUVertFormat format = { 0 };
-	struct { uint idx; } attr_id;
-	attr_id.idx = GPU_vertformat_attr_add(&format, "color", comp, 1, GPU_FETCH_INT);
+	static GPUVertFormat format = { 0 };
+	static struct { uint idx; } attr_id;
+	if (format.attr_len == 0) {
+		attr_id.idx = GPU_vertformat_attr_add(&format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
+	}
 
 	GPUVertBufRaw idx_step;
 	GPU_vertbuf_init_with_format(vbo, &format);
@@ -2768,13 +2737,13 @@ static void mesh_create_edit_facedots_select_id(
 			for (int poly = 0; poly < poly_len; poly++) {
 				const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, poly);
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-					mesh_edit_add_select_index(&idx_step, comp, poly);
+					*((uint *)GPU_vertbuf_raw_step(&idx_step)) = poly;
 				}
 			}
 		}
 		else {
 			for (int poly = 0; poly < poly_len; poly++) {
-				mesh_edit_add_select_index(&idx_step, comp, poly);
+				*((uint *)GPU_vertbuf_raw_step(&idx_step)) = poly;
 			}
 		}
 	}
@@ -2785,7 +2754,7 @@ static void mesh_create_edit_facedots_select_id(
 			if (p_orig != ORIGINDEX_NONE) {
 				const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-					mesh_edit_add_select_index(&idx_step, comp, poly);
+					*((uint *)GPU_vertbuf_raw_step(&idx_step)) = poly;
 				}
 			}
 		}
@@ -2797,7 +2766,6 @@ static void mesh_create_edit_facedots_select_id(
 		GPU_vertbuf_data_resize(vbo, facedot_len_used);
 	}
 }
-#undef SELECT_COMP_FORMAT
 
 static void mesh_create_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo)
 {
