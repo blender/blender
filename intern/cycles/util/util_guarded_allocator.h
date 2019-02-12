@@ -97,18 +97,6 @@ public:
 		return *this;
 	}
 
-	void construct(T *p, const T& val)
-	{
-		if(p != NULL) {
-			new ((T *)p) T(val);
-		}
-	}
-
-	void destroy(T *p)
-	{
-		p->~T();
-	}
-
 	size_t max_size() const
 	{
 		return size_t(-1);
