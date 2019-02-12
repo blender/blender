@@ -836,42 +836,41 @@ void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
 
 void DepsgraphRelationBuilder::build_object_parent(Object *object)
 {
-	/* XXX: for now, need to use the component key (not just direct to the parent op),
-	 * or else the matrix doesn't get reset. */
-	// XXX: @sergey - it would be good if we got that backwards flushing working
-	// when tagging for updates.
-	//OperationKey ob_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_PARENT);
+	ID *parent_id = &object->parent->id;
 	ComponentKey ob_key(&object->id, NodeType::TRANSFORM);
-
-	/* type-specific links */
+	/* Type-specific links/ */
 	switch (object->partype) {
-		case PARSKEL:  /* Armature Deform (Virtual Modifier) */
+		/* Armature Deform (Virtual Modifier) */
+		case PARSKEL:
 		{
-			ComponentKey parent_key(&object->parent->id, NodeType::TRANSFORM);
+			ComponentKey parent_key(parent_id, NodeType::TRANSFORM);
 			add_relation(parent_key, ob_key, "Armature Deform Parent");
 			break;
 		}
 
-		case PARVERT1: /* Vertex Parent */
+		/* Vertex Parent */
+		case PARVERT1:
 		case PARVERT3:
 		{
-			ComponentKey parent_key(&object->parent->id, NodeType::GEOMETRY);
+			ComponentKey parent_key(parent_id, NodeType::GEOMETRY);
 			add_relation(parent_key, ob_key, "Vertex Parent");
-
-			/* XXX not sure what this is for or how you could be done properly - lukas */
+			/* Original index is used for optimizations of lookups for subdiv
+			 * only meshes.
+			 * TODO(sergey): This optimization got lost at 2.8, so either verify
+			 * we can get rid of this mask here, or bring the optimization
+			 * back. */
 			add_customdata_mask(object->parent, CD_MASK_ORIGINDEX);
-
-			ComponentKey transform_key(&object->parent->id, NodeType::TRANSFORM);
+			ComponentKey transform_key(parent_id, NodeType::TRANSFORM);
 			add_relation(transform_key, ob_key, "Vertex Parent TFM");
 			break;
 		}
 
-		case PARBONE: /* Bone Parent */
+		/* Bone Parent */
+		case PARBONE:
 		{
-			ComponentKey parent_bone_key(&object->parent->id,
-			                             NodeType::BONE,
-			                             object->parsubstr);
-			OperationKey parent_transform_key(&object->parent->id,
+			ComponentKey parent_bone_key(
+			        parent_id, NodeType::BONE, object->parsubstr);
+			OperationKey parent_transform_key(parent_id,
 			                                  NodeType::TRANSFORM,
 			                                  OperationCode::TRANSFORM_FINAL);
 			add_relation(parent_bone_key, ob_key, "Bone Parent");
@@ -882,11 +881,9 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 		default:
 		{
 			if (object->parent->type == OB_LATTICE) {
-				/* Lattice Deform Parent - Virtual Modifier */
-				// XXX: no virtual modifiers should be left!
-				ComponentKey parent_key(&object->parent->id, NodeType::TRANSFORM);
-				ComponentKey geom_key(&object->parent->id, NodeType::GEOMETRY);
-
+				/* Lattice Deform Parent - Virtual Modifier. */
+				ComponentKey parent_key(parent_id, NodeType::TRANSFORM);
+				ComponentKey geom_key(parent_id, NodeType::GEOMETRY);
 				add_relation(parent_key, ob_key, "Lattice Deform Parent");
 				add_relation(geom_key, ob_key, "Lattice Deform Parent Geom");
 			}
@@ -894,22 +891,21 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 				Curve *cu = (Curve *)object->parent->data;
 
 				if (cu->flag & CU_PATH) {
-					/* Follow Path */
-					ComponentKey parent_key(&object->parent->id, NodeType::GEOMETRY);
+					/* Follow Path. */
+					ComponentKey parent_key(parent_id, NodeType::GEOMETRY);
 					add_relation(parent_key, ob_key, "Curve Follow Parent");
-
-					ComponentKey transform_key(&object->parent->id, NodeType::TRANSFORM);
+					ComponentKey transform_key(parent_id, NodeType::TRANSFORM);
 					add_relation(transform_key, ob_key, "Curve Follow TFM");
 				}
 				else {
-					/* Standard Parent */
-					ComponentKey parent_key(&object->parent->id, NodeType::TRANSFORM);
+					/* Standard Parent. */
+					ComponentKey parent_key(parent_id, NodeType::TRANSFORM);
 					add_relation(parent_key, ob_key, "Curve Parent");
 				}
 			}
 			else {
-				/* Standard Parent */
-				ComponentKey parent_key(&object->parent->id, NodeType::TRANSFORM);
+				/* Standard Parent. */
+				ComponentKey parent_key(parent_id, NodeType::TRANSFORM);
 				add_relation(parent_key, ob_key, "Parent");
 			}
 			break;
