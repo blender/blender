@@ -58,6 +58,12 @@
 
 BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1, 1};
 
+#ifndef RNA_RUNTIME
+static struct {
+	GHash *struct_map_static_from_alias;
+} g_version_data;
+#endif
+
 /* Duplicated code since we can't link in blenkernel or blenlib */
 
 /* pedantic check for final '.', note '...' are allowed though. */
@@ -354,7 +360,23 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 	const short *sp;
 	int a, b, structnr, totmember, cmp;
 
-	structnr = DNA_struct_find_nr(sdna, structname);
+	if (!DefRNA.preprocess) {
+		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		return 0;
+	}
+
+#ifndef RNA_RUNTIME
+	{
+		const char *structname_maybe_static = BLI_ghash_lookup_default(
+		        g_version_data.struct_map_static_from_alias, structname, (void *)structname);
+		structnr = DNA_struct_find_nr(sdna, structname_maybe_static);
+	}
+#else
+	/* Quiet warning only, this is only for the proprocessor. */
+	BLI_assert(0);
+	structnr = -1;
+#endif
+
 	if (structnr == -1)
 		return 0;
 
@@ -363,12 +385,11 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 	sp += 2;
 
 	for (a = 0; a < totmember; a++, sp += 2) {
-		dnaname = sdna->names[sp[1]];
-
+		dnaname = sdna->alias.names[sp[1]];
 		cmp = rna_member_cmp(dnaname, membername);
 
 		if (cmp == 1) {
-			smember->type = sdna->types[sp[0]];
+			smember->type = sdna->alias.types[sp[0]];
 			smember->name = dnaname;
 
 			if (strstr(membername, "["))
@@ -389,7 +410,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 			smember->arraylength = 0;
 
 			membername = strstr(membername, ".") + strlen(".");
-			rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+			rna_find_sdna_member(sdna, sdna->alias.types[sp[0]], membername, smember);
 
 			return 1;
 		}
@@ -400,7 +421,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 			smember->arraylength = 0;
 
 			membername = strstr(membername, "->") + strlen("->");
-			rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+			rna_find_sdna_member(sdna, sdna->alias.types[sp[0]], membername, smember);
 
 			return 1;
 		}
@@ -572,6 +593,16 @@ BlenderRNA *RNA_create(void)
 		DefRNA.error = 1;
 	}
 
+	/* We need both alias and static (on-disk) DNA names. */
+	DNA_sdna_alias_data_ensure(DefRNA.sdna);
+
+#ifndef RNA_RUNTIME
+	DNA_alias_maps(
+	        DNA_RENAME_STATIC_FROM_ALIAS,
+	        &g_version_data.struct_map_static_from_alias,
+	        NULL);
+#endif
+
 	return brna;
 }
 
@@ -705,6 +736,12 @@ void RNA_free(BlenderRNA *brna)
 			RNA_struct_free(brna, srna);
 		}
 	}
+
+#ifndef RNA_RUNTIME
+	BLI_ghash_free(g_version_data.struct_map_static_from_alias, NULL, NULL);
+	g_version_data.struct_map_static_from_alias = NULL;
+#endif
+
 }
 
 static size_t rna_property_type_sizeof(PropertyType type)

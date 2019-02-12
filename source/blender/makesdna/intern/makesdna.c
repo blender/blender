@@ -43,11 +43,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_sys_types.h"  /* for intptr_t support */
+#include "BLI_utildefines.h"
+#include "BLI_alloca.h"
+#include "BLI_ghash.h"
 #include "BLI_memarena.h"
+#include "BLI_sys_types.h"  /* for intptr_t support */
 
 #include "dna_utils.h"
 
@@ -157,6 +161,14 @@ static short *typelens_64;
  * sp[1] is amount of elements
  * sp[2] sp[3] is typenr,  namenr (etc) */
 static short **structs, *structdata;
+
+/** Versioning data */
+static struct {
+	GHash *struct_map_alias_from_static;
+	GHash *struct_map_static_from_alias;
+	GHash *elem_map_static_from_alias;
+} g_version_data = {NULL};
+
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:
@@ -174,7 +186,6 @@ static int additional_slen_offset;
 
 /* stub for BLI_abort() */
 #ifndef NDEBUG
-void BLI_system_backtrace(FILE *fp);
 void BLI_system_backtrace(FILE *fp)
 {
        (void)fp;
@@ -242,6 +253,44 @@ void printStructLengths(void);
  * Make DNA string (write to file).
  * \{ */
 
+
+static const char *version_struct_static_from_alias(const char *str)
+{
+	const char *str_test = BLI_ghash_lookup(g_version_data.struct_map_static_from_alias, str);
+	if (str_test != NULL) {
+		return str_test;
+	}
+	return str;
+}
+
+static const char *version_struct_alias_from_static(const char *str)
+{
+	const char *str_test = BLI_ghash_lookup(g_version_data.struct_map_alias_from_static, str);
+	if (str_test != NULL) {
+		return str_test;
+	}
+	return str;
+}
+
+static const char *version_elem_static_from_alias(
+        const int strct, const char *elem_alias_full)
+{
+	const uint elem_alias_full_len = strlen(elem_alias_full);
+	char *elem_alias = alloca(elem_alias_full_len + 1);
+	const int elem_alias_len = DNA_elem_id_strip_copy(elem_alias, elem_alias_full);
+	const char *str_pair[2] = {types[strct], elem_alias};
+	const char *elem_static = BLI_ghash_lookup(g_version_data.elem_map_static_from_alias, str_pair);
+	if (elem_static != NULL) {
+		return DNA_elem_id_rename(
+		        mem_arena,
+		        elem_alias, elem_alias_len,
+		        elem_static, strlen(elem_static),
+		        elem_alias_full, elem_alias_full_len,
+		        DNA_elem_id_offset_start(elem_alias_full));
+	}
+	return elem_alias_full;
+}
+
 static int add_type(const char *str, int len)
 {
 	int nr;
@@ -256,6 +305,8 @@ static int add_type(const char *str, int len)
 		 * 'struct SomeStruct* somevar;' <-- correct but we cant handle right now. */
 		return -1;
 	}
+
+	str = version_struct_static_from_alias(str);
 
 	/* search through type array */
 	for (nr = 0; nr < nr_types; nr++) {
@@ -676,8 +727,7 @@ static int convert_include(const char *filename)
 									if (md1[slen - 1] == ';') {
 										md1[slen - 1] = 0;
 
-
-										name = add_name(md1);
+										name = add_name(version_elem_static_from_alias(strct, md1));
 										slen += additional_slen_offset;
 										sp[0] = type;
 										sp[1] = name;
@@ -693,8 +743,7 @@ static int convert_include(const char *filename)
 										break;
 									}
 
-
-									name = add_name(md1);
+									name = add_name(version_elem_static_from_alias(strct, md1));
 									slen += additional_slen_offset;
 
 									sp[0] = type;
@@ -1008,6 +1057,16 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
 	structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
 
+	/* Build versioning data */
+	DNA_alias_maps(
+	        DNA_RENAME_ALIAS_FROM_STATIC,
+	        &g_version_data.struct_map_alias_from_static,
+	        NULL);
+	DNA_alias_maps(
+	        DNA_RENAME_STATIC_FROM_ALIAS,
+	        &g_version_data.struct_map_static_from_alias,
+	        &g_version_data.elem_map_static_from_alias);
+
 	/**
 	 * Insertion of all known types.
 	 *
@@ -1190,10 +1249,34 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		for (i = 0; i < nr_structs; i++) {
 			const short *structpoin = structs[i];
 			const int    structtype = structpoin[0];
-			fprintf(file_offsets, "\t_SDNA_TYPE_%s = %d,\n", types[structtype], i);
+			fprintf(file_offsets, "\t_SDNA_TYPE_%s = %d,\n", version_struct_alias_from_static(types[structtype]), i);
 		}
 		fprintf(file_offsets, "\tSDNA_TYPE_MAX = %d,\n", nr_structs);
 		fprintf(file_offsets, "};\n");
+	}
+
+	/* Check versioning errors which could cause duplicate names,
+	 * do last because names are stripped. */
+	{
+		GSet *names_unique = BLI_gset_str_new_ex(__func__, 512);
+		for (int struct_nr = 0; struct_nr < nr_structs; struct_nr++) {
+			sp = structs[struct_nr];
+			const char *struct_name = types[sp[0]];
+			const int len = sp[1];
+			sp += 2;
+			for (int a = 0; a < len; a++, sp += 2) {
+				char *name = names[sp[1]];
+				DNA_elem_id_strip(name);
+				if (!BLI_gset_add(names_unique, name)) {
+					fprintf(stderr, "Error: duplicate name found '%s.%s', "
+					       "likely cause is 'dna_rename_defs.h'\n",
+					       struct_name, name);
+					return 1;
+				}
+			}
+			BLI_gset_clear(names_unique, NULL);
+		}
+		BLI_gset_free(names_unique, NULL);
 	}
 
 	MEM_freeN(structdata);
@@ -1205,6 +1288,10 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	MEM_freeN(structs);
 
 	BLI_memarena_free(mem_arena);
+
+	BLI_ghash_free(g_version_data.struct_map_alias_from_static, NULL, NULL);
+	BLI_ghash_free(g_version_data.struct_map_static_from_alias, NULL, NULL);
+	BLI_ghash_free(g_version_data.elem_map_static_from_alias, MEM_freeN, NULL);
 
 	DEBUG_PRINTF(0, "done.\n");
 

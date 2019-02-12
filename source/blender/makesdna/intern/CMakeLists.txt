@@ -35,7 +35,11 @@ blender_include_dirs(
 set(SRC
 	dna_utils.c
 	makesdna.c
+	../../blenlib/intern/BLI_ghash.c
+	../../blenlib/intern/BLI_ghash_utils.c
 	../../blenlib/intern/BLI_memarena.c
+	../../blenlib/intern/BLI_mempool.c
+	../../blenlib/intern/hash_mm2a.c  # needed by 'BLI_ghash_utils.c', not used directly.
 	../../../../intern/guardedalloc/intern/mallocn.c
 	../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
 	../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c

@@ -35,6 +35,8 @@
  * - This means older versions of Blender won't have access to this data **USE WITH CARE**.
  *
  * - These changes are applied on file load (run-time), similar to versioning for compatibility.
+ *
+ * \attention ONLY USE THIS KIND OF VERSIONING WHEN `dna_rename_defs.h` ISN'T SUFFICIENT.
  */
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)
 {

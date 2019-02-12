@@ -23,9 +23,12 @@
 
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_assert.h"
+#include "BLI_ghash.h"
 
 #include "BLI_memarena.h"
 
@@ -183,5 +186,97 @@ char *DNA_elem_id_rename(
 	BLI_assert((strlen(elem_dst_full) == elem_final_len) && (i == elem_final_len));
 	return elem_dst_full;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Versioning
+ * \{ */
+
+static uint strhash_pair_p(const void *ptr)
+{
+	const char * const *pair = ptr;
+	return (BLI_ghashutil_strhash_p(pair[0]) ^
+	        BLI_ghashutil_strhash_p(pair[1]));
+}
+
+static bool strhash_pair_cmp(const void *a, const void *b)
+{
+	const char * const *pair_a = a;
+	const char * const *pair_b = b;
+	return (STREQ(pair_a[0], pair_b[0]) &&
+	        STREQ(pair_a[1], pair_b[1])) ? false : true;
+}
+
+void DNA_alias_maps(
+        enum eDNA_RenameDir version_dir,
+        GHash **r_struct_map, GHash **r_elem_map)
+{
+	GHash *struct_map_local = NULL;
+	if (r_struct_map) {
+		const char *data[][2] = {
+#define DNA_STRUCT_RENAME(old, new) {#old, #new},
+#define DNA_STRUCT_RENAME_ELEM(struct_name, old, new)
+#include "dna_rename_defs.h"
+#undef DNA_STRUCT_RENAME
+#undef DNA_STRUCT_RENAME_ELEM
+		};
+
+		int elem_key, elem_val;
+		if (version_dir == DNA_RENAME_ALIAS_FROM_STATIC) {
+			elem_key = 0;
+			elem_val = 1;
+		}
+		else {
+			elem_key = 1;
+			elem_val = 0;
+		}
+		GHash *struct_map = BLI_ghash_str_new_ex(__func__, ARRAY_SIZE(data));
+		for (int i = 0; i < ARRAY_SIZE(data); i++) {
+			BLI_ghash_insert(struct_map, (void *)data[i][elem_key], (void *)data[i][elem_val]);
+		}
+		*r_struct_map = struct_map;
+
+		/* We know the direction of this, for local use. */
+		struct_map_local = BLI_ghash_str_new_ex(__func__, ARRAY_SIZE(data));
+		for (int i = 0; i < ARRAY_SIZE(data); i++) {
+			BLI_ghash_insert(struct_map_local, (void *)data[i][1], (void *)data[i][0]);
+		}
+	}
+
+	if (r_elem_map != NULL) {
+		const char *data[][3] = {
+#define DNA_STRUCT_RENAME(old, new)
+#define DNA_STRUCT_RENAME_ELEM(struct_name, old, new) {#struct_name, #old, #new},
+#include "dna_rename_defs.h"
+#undef DNA_STRUCT_RENAME
+#undef DNA_STRUCT_RENAME_ELEM
+		};
+
+		int elem_key, elem_val;
+		if (version_dir == DNA_RENAME_ALIAS_FROM_STATIC) {
+			elem_key = 1;
+			elem_val = 2;
+		}
+		else {
+			elem_key = 2;
+			elem_val = 1;
+		}
+		GHash *elem_map = BLI_ghash_new_ex(strhash_pair_p, strhash_pair_cmp, __func__, ARRAY_SIZE(data));
+		for (int i = 0; i < ARRAY_SIZE(data); i++) {
+			const char **str_pair = MEM_mallocN(sizeof(char *) * 2, __func__);
+			str_pair[0] = BLI_ghash_lookup_default(struct_map_local, data[i][0], (void *)data[i][0]);
+			str_pair[1] = data[i][elem_key],
+			BLI_ghash_insert(elem_map, str_pair, (void *)data[i][elem_val]);
+		}
+		*r_elem_map = elem_map;
+	}
+
+	if (struct_map_local) {
+		BLI_ghash_free(struct_map_local, NULL, NULL);
+	}
+}
+
+#undef DNA_MAKESDNA
 
 /** \} */

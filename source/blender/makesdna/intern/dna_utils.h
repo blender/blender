@@ -21,6 +21,7 @@
 #define __DNA_UTILS_H__
 
 struct MemArena;
+struct GHash;
 
 int DNA_elem_array_size(const char *str);
 
@@ -38,5 +39,14 @@ char *DNA_elem_id_rename(
         const char *elem_dst, const int elem_dst_len,
         const char *elem_full_src, const int elem_full_src_len,
         const uint elem_full_offset_start);
+
+/* When requesting version info, support both directions. */
+enum eDNA_RenameDir {
+	DNA_RENAME_STATIC_FROM_ALIAS = -1,
+	DNA_RENAME_ALIAS_FROM_STATIC = 1,
+};
+void DNA_alias_maps(
+        enum eDNA_RenameDir version_dir,
+        struct GHash **r_struct_map, struct GHash **r_elem_map);
 
 #endif /* __DNA_UTILS_H__ */
