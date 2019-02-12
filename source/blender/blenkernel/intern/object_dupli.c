@@ -403,8 +403,7 @@ static void make_duplis_verts(const DupliContext *ctx)
 		 * during meta balls evaluation. But even without those all the objects
 		 * which are needed for correct instancing are already evaluated. */
 		if (vdd.edit_btmesh != NULL) {
-			/* XXX TODO replace with equivalent of editbmesh_get_eval_cage when available. */
-			vdd.me_eval = parent->runtime.mesh_deform_eval;
+			vdd.me_eval = vdd.edit_btmesh->mesh_eval_cage;
 		}
 		else {
 			vdd.me_eval = parent->runtime.mesh_eval;
@@ -678,8 +677,7 @@ static void make_duplis_faces(const DupliContext *ctx)
 		 * during meta balls evaluation. But even without those all the objects
 		 * which are needed for correct instancing are already evaluated. */
 		if (em != NULL) {
-			/* XXX TODO replace with equivalent of editbmesh_get_eval_cage when available. */
-			fdd.me_eval = parent->runtime.mesh_deform_eval;
+			fdd.me_eval = em->mesh_eval_cage;
 		}
 		else {
 			fdd.me_eval = parent->runtime.mesh_eval;
