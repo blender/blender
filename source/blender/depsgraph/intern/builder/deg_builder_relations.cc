@@ -285,13 +285,23 @@ void DepsgraphRelationBuilder::add_modifier_to_transform_relation(
 	/* Geometry operation, this is where relation will be wired to. */
 	OperationNode *geometry_operation_node =
 	        handle->node->get_entry_operation();
-	BLI_assert(geometry_operation_node->owner->type == NodeType::GEOMETRY);
+	ComponentNode *geometry_component = geometry_operation_node->owner;
+	BLI_assert(geometry_component->type == NodeType::GEOMETRY);
+	IDNode *id_node = geometry_component->owner;
 	/* Transform operation, the source of the relation. */
+	ComponentNode *transform_component =
+	        id_node->find_component(NodeType::TRANSFORM);
 	ID *id = geometry_operation_node->owner->owner->id_orig;
-	ComponentKey transform_component_key(id, NodeType::TRANSFORM);
-	Node *transform_node = get_node(transform_component_key);
-	OperationNode *transform_operation_node =
-	        transform_node->get_exit_operation();
+	BLI_assert(GS(id->name) == ID_OB);
+	Object *object = reinterpret_cast<Object *>(id);
+	OperationNode *transform_operation_node = NULL;
+	if (object->rigidbody_object == NULL) {
+		transform_operation_node = transform_component->get_exit_operation();
+	}
+	else {
+		transform_operation_node = transform_component->get_operation(
+		        OperationCode::TRANSFORM_EVAL);
+	}
 	/* Wire up the actual relation. */
 	add_operation_relation(
 	        transform_operation_node, geometry_operation_node, description);
@@ -657,14 +667,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		add_relation(ob_eval_key, final_transform_key, "Eval");
 	}
 	else {
-		/* NOTE: Keep an eye here, we skip some relations here to "streamline"
-		 * dependencies and avoid transitive relations which causes overhead.
-		 * But once we get rid of uber eval node this will need reconsideration. */
-		if (object->rigidbody_object == NULL) {
-			/* Rigid body will hook up another node in between, so skip
-			 * relation here to avoid transitive relation. */
-			add_relation(base_op_key, ob_eval_key, "Eval");
-		}
+		add_relation(base_op_key, ob_eval_key, "Eval");
 		add_relation(ob_eval_key, final_transform_key, "Eval");
 	}
 	/* Animation data */
@@ -1619,84 +1622,80 @@ void DepsgraphRelationBuilder::build_world(World *world)
 void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
-
-	OperationKey init_key(&scene->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_REBUILD);
-	OperationKey sim_key(&scene->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_SIM);
-
-	/* rel between the two sim-nodes */
-	add_relation(init_key, sim_key, "Rigidbody [Init -> SimStep]");
-
-	/* set up dependencies between these operations and other builtin nodes --------------- */
-
-	/* effectors */
+	OperationKey rb_init_key(&scene->id,
+	                      NodeType::TRANSFORM,
+	                      OperationCode::RIGIDBODY_REBUILD);
+	OperationKey rb_simulate_key(&scene->id,
+	                             NodeType::TRANSFORM,
+	                             OperationCode::RIGIDBODY_SIM);
+	/* Simulation depends on time. */
+	TimeSourceKey time_src_key;
+	add_relation(time_src_key, rb_init_key, "TimeSrc -> Rigidbody Init");
+	/* Simulation should always be run after initialization. */
+	/* NOTE: It is possible in theory to have dependency cycle which involves
+	 * this relation. We never want it to be killed. */
+	add_relation(rb_init_key,
+	             rb_simulate_key,
+	             "Rigidbody [Init -> SimStep]",
+	             RELATION_FLAG_GODMODE);
+	/* Effectors should be evaluated at the time simulation is being
+	 * initialized.
+	 * TODO(sergey): Verify that it indeed goes to initialization and not to a
+	 * simulation. */
 	ListBase *relations = build_effector_relations(graph_, rbw->effector_weights->group);
 	LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
-		ComponentKey eff_key(&relation->ob->id, NodeType::TRANSFORM);
-		add_relation(eff_key, init_key, "RigidBody Field");
-		// FIXME add relations so pointache is marked as outdated when effectors are modified
+		ComponentKey effector_transform_key(
+		        &relation->ob->id, NodeType::TRANSFORM);
+		add_relation(effector_transform_key, rb_init_key, "RigidBody Field");
 	}
-
-	/* time dependency */
-	TimeSourceKey time_src_key;
-	add_relation(time_src_key, init_key, "TimeSrc -> Rigidbody Reset/Rebuild (Optional)");
-
-	/* objects - simulation participants */
+	/* Objects. */
 	if (rbw->group != NULL) {
 		build_collection(NULL, NULL, rbw->group);
-
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 		{
 			if (object->type != OB_MESH) {
 				continue;
 			}
-
-			/* hook up evaluation order...
-			 * 1) flushing rigidbody results follows base transforms being applied
-			 * 2) rigidbody flushing can only be performed after simulation has been run
-			 *
-			 * 3) simulation needs to know base transforms to figure out what to do
-			 *    XXX: there's probably a difference between passive and active
-			 *         - passive don't change, so may need to know full transform... */
-			OperationKey rbo_key(&object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-
-			OperationCode trans_opcode = object->parent ? OperationCode::TRANSFORM_PARENT
-			                                            : OperationCode::TRANSFORM_LOCAL;
-			OperationKey trans_op(&object->id, NodeType::TRANSFORM, trans_opcode);
-
-			add_relation(sim_key, rbo_key, "Rigidbody Sim Eval -> RBO Sync");
-
-			/* Geometry must be known to create the rigid body. RBO_MESH_BASE uses the non-evaluated
-			 * mesh, so then the evaluation is unnecessary. */
-			if (object->rigidbody_object != NULL && object->rigidbody_object->mesh_source != RBO_MESH_BASE) {
-				ComponentKey geom_key(&object->id, NodeType::GEOMETRY);
-				add_relation(geom_key, init_key, "Object Geom Eval -> Rigidbody Rebuild");
+			OperationKey rb_transform_copy_key(
+			        &object->id,
+			        NodeType::TRANSFORM,
+			        OperationCode::RIGIDBODY_TRANSFORM_COPY);
+			/* Rigid body synchronization depends on the actual simulation. */
+			add_relation(rb_simulate_key,
+			             rb_transform_copy_key,
+			             "Rigidbody Sim Eval -> RBO Sync");
+			/* Simulation uses object transformation after parenting and solving
+			 * contraints. */
+			OperationKey object_transform_eval_key(
+			        &object->id,
+			        NodeType::TRANSFORM,
+			        OperationCode::TRANSFORM_EVAL);
+			add_relation(object_transform_eval_key,
+			             rb_simulate_key,
+			             "Object Transform -> Rigidbody Sim Eval");
+			/* Geometry must be known to create the rigid body. RBO_MESH_BASE
+			 * uses the non-evaluated mesh, so then the evaluation is
+			 * unnecessary. */
+			if (object->rigidbody_object != NULL &&
+			    object->rigidbody_object->mesh_source != RBO_MESH_BASE)
+			{
+				/* NOTE: We prefer this relation to be never killed, to avoid
+				 * access partially evaluated mesh from solver. */
+				ComponentKey object_geometry_key(
+				        &object->id, NodeType::GEOMETRY);
+				add_relation(object_geometry_key,
+				             rb_simulate_key,
+				             "Object Geom Eval -> Rigidbody Rebuild",
+				             RELATION_FLAG_GODMODE);
 			}
-
-			/* if constraints exist, those depend on the result of the rigidbody sim
-			 * - This allows constraints to modify the result of the sim (i.e. clamping)
-			 *   while still allowing the sim to depend on some changes to the objects.
-			 *   Also, since constraints are hooked up to the final nodes, this link
-			 *   means that we can also fit in there too...
-			 * - Later, it might be good to include a constraint in the stack allowing us
-			 *   to control whether rigidbody eval gets interleaved into the constraint stack */
-			if (object->constraints.first) {
-				OperationKey constraint_key(&object->id,
-				                            NodeType::TRANSFORM,
-				                            OperationCode::TRANSFORM_CONSTRAINTS);
-				add_relation(rbo_key, constraint_key, "RBO Sync -> Ob Constraints");
-			}
-			else {
-				/* Transform evaluation depends on rigidbody. */
-				OperationKey transform_eval_key(&object->id,
-				                                NodeType::TRANSFORM,
-				                                OperationCode::TRANSFORM_EVAL);
-				add_relation(rbo_key,
-				             transform_eval_key,
-				             "RBO Sync -> Transform Eval");
-			}
-
-			/* Needed to get correct base values. */
-			add_relation(trans_op, sim_key, "Base Ob Transform -> Rigidbody Sim Eval");
+			/* Final transform is whetever solver gave to us. */
+			OperationKey object_transform_final_key(
+			        &object->id,
+			        NodeType::TRANSFORM,
+			        OperationCode::TRANSFORM_FINAL);
+			add_relation(rb_transform_copy_key,
+			             object_transform_final_key,
+			             "Rigidbody Sync -> Transform Final");
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
@@ -1706,7 +1705,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 		{
 			RigidBodyCon *rbc = object->rigidbody_constraint;
 			if (rbc == NULL || rbc->ob1 == NULL || rbc->ob2 == NULL) {
-				/* When either ob1 or ob2 is NULL, the constraint doesn't work. */
+				/* When either ob1 or ob2 is NULL, the constraint doesn't
+				 * work. */
 				continue;
 			}
 			/* Make sure indirectly linked objects are fully built. */
@@ -1716,13 +1716,21 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			/* final result of the constraint object's transform controls how
 			 * the constraint affects the physics sim for these objects. */
 			ComponentKey trans_key(&object->id, NodeType::TRANSFORM);
-			OperationKey ob1_key(&rbc->ob1->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-			OperationKey ob2_key(&rbc->ob2->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
+			OperationKey ob1_key(&rbc->ob1->id,
+			                     NodeType::TRANSFORM,
+			                     OperationCode::RIGIDBODY_TRANSFORM_COPY);
+			OperationKey ob2_key(&rbc->ob2->id,
+			                     NodeType::TRANSFORM,
+			                     OperationCode::RIGIDBODY_TRANSFORM_COPY);
 			/* Constrained-objects sync depends on the constraint-holder. */
-			add_relation(trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
-			add_relation(trans_key, ob2_key, "RigidBodyConstraint -> RBC.Object_2");
+			add_relation(
+			        trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
+			add_relation(
+			        trans_key, ob2_key, "RigidBodyConstraint -> RBC.Object_2");
 			/* Ensure that sim depends on this constraint's transform. */
-			add_relation(trans_key, sim_key, "RigidBodyConstraint Transform -> RB Simulation");
+			add_relation(trans_key,
+			             rb_simulate_key,
+			             "RigidBodyConstraint Transform -> RB Simulation");
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
