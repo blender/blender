@@ -1102,28 +1102,3 @@ void free_object_duplilist(ListBase *lb)
 	BLI_freelistN(lb);
 	MEM_freeN(lb);
 }
-
-int count_duplilist(Object *ob)
-{
-	if (ob->transflag & OB_DUPLI) {
-		if (ob->transflag & OB_DUPLIVERTS) {
-			if (ob->type == OB_MESH) {
-				if (ob->transflag & OB_DUPLIVERTS) {
-					ParticleSystem *psys = ob->particlesystem.first;
-					int pdup = 0;
-
-					for (; psys; psys = psys->next)
-						pdup += psys->totpart;
-
-					if (pdup == 0) {
-						Mesh *me = ob->data;
-						return me->totvert;
-					}
-					else
-						return pdup;
-				}
-			}
-		}
-	}
-	return 1;
-}
