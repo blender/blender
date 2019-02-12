@@ -180,6 +180,7 @@ void node_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel node sockets");
 	strcpy(pt->idname, "NODE_PT_sockets");
+	strcpy(pt->category, N_("Node"));
 	strcpy(pt->label, N_("Sockets"));
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = node_sockets_panel;
@@ -189,6 +190,7 @@ void node_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel tree interface");
 	strcpy(pt->idname, "NODE_PT_node_tree_interface");
+	strcpy(pt->category, N_("Node"));
 	strcpy(pt->label, N_("Interface"));
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = node_tree_interface_panel;
