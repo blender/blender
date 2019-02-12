@@ -348,7 +348,6 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 		DEG_add_generic_id_relation(ctx->node, &wmd->mask_texture->id, "WeightVGProximity Modifier");
 	}
 	DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGProximity Modifier");
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_GEOMETRY, "WeightVGProximity Modifier");
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
