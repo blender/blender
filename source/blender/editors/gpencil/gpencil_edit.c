@@ -1186,10 +1186,16 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 	bGPDlayer *target_layer = NULL;
 	ListBase strokes = {NULL, NULL};
 	int layer_num = RNA_enum_get(op->ptr, "layer");
+	const bool use_autolock = (bool)(gpd->flag & GP_DATA_AUTOLOCK_LAYERS);
 
 	if (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) {
 		BKE_report(op->reports, RPT_ERROR, "Operator not supported in multiframe edition");
 		return OPERATOR_CANCELLED;
+	}
+
+	/* if autolock enabled, disabled now */
+	if (use_autolock) {
+		gpd->flag &= ~GP_DATA_AUTOLOCK_LAYERS;
 	}
 
 	/* Get layer or create new one */
@@ -1202,6 +1208,10 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 		target_layer = BLI_findlink(&gpd->layers, layer_num);
 
 		if (target_layer == NULL) {
+			/* back autolock status */
+			if (use_autolock) {
+				gpd->flag |= GP_DATA_AUTOLOCK_LAYERS;
+			}
 			BKE_reportf(op->reports, RPT_ERROR, "There is no layer number %d", layer_num);
 			return OPERATOR_CANCELLED;
 		}
@@ -1234,6 +1244,11 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 				BLI_addtail(&strokes, gps);
 			}
 		}
+
+		/* if new layer and autolock, lock old layer */
+		if ((layer_num == -1) && (use_autolock)) {
+			gpl->flag |= GP_LAYER_LOCKED;
+		}
 	}
 	CTX_DATA_END;
 
@@ -1243,6 +1258,11 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 
 		BLI_movelisttolist(&gpf->strokes, &strokes);
 		BLI_assert((strokes.first == strokes.last) && (strokes.first == NULL));
+	}
+
+	/* back autolock status */
+	if (use_autolock) {
+		gpd->flag |= GP_DATA_AUTOLOCK_LAYERS;
 	}
 
 	/* updates */
