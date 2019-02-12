@@ -208,7 +208,7 @@ void paint_get_tex_pixel_col(
 void paint_stroke_operator_properties(wmOperatorType *ot)
 {
 	static const EnumPropertyItem stroke_mode_items[] = {
-		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
+		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Regular", "Apply brush normally"},
 		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
 		{BRUSH_STROKE_SMOOTH, "SMOOTH", 0, "Smooth", "Switch brush to smooth mode for duration of stroke"},
 		{0},

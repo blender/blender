@@ -71,7 +71,7 @@ static const EnumPropertyItem rna_enum_gplayer_move_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_layer_blend_modes_items[] = {
-	{eGplBlendMode_Normal, "NORMAL", 0, "Normal", "" },
+	{eGplBlendMode_Normal, "NORMAL", 0, "Regular", "" },
 	{eGplBlendMode_Overlay, "OVERLAY", 0, "Overlay", "" },
 	{eGplBlendMode_Add, "ADD", 0, "Add", "" },
 	{eGplBlendMode_Subtract, "SUBTRACT", 0, "Subtract", "" },

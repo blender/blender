@@ -1039,7 +1039,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem emboss_items[] = {
-		{UI_EMBOSS, "NORMAL", 0, "Normal", "Draw standard button emboss style"},
+		{UI_EMBOSS, "NORMAL", 0, "Regular", "Draw standard button emboss style"},
 		{UI_EMBOSS_NONE, "NONE", 0, "None", "Draw only text and icons"},
 		{UI_EMBOSS_PULLDOWN, "PULLDOWN_MENU", 0, "Pulldown Menu", "Draw pulldown menu style"},
 		{UI_EMBOSS_RADIAL, "RADIAL_MENU", 0, "Radial Menu", "Draw radial menu style"},

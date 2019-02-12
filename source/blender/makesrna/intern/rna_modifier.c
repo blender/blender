@@ -2748,7 +2748,7 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Parents);
-	RNA_def_property_ui_text(prop, "Normal", "Create instances from normal particles");
+	RNA_def_property_ui_text(prop, "Regular", "Create instances from normal particles");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_children", PROP_BOOLEAN, PROP_NONE);

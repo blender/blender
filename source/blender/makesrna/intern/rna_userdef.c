@@ -3053,7 +3053,7 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "solid");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Normal", "Color used for the surface of bones");
+	RNA_def_property_ui_text(prop, "Regular", "Color used for the surface of bones");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "select", PROP_FLOAT, PROP_COLOR_GAMMA);

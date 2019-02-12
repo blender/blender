@@ -46,7 +46,7 @@
 #include "WM_types.h"
 
 const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
-	{BMO_DELIM_NORMAL, "NORMAL", 0, "Normal", "Delimit by face directions"},
+	{BMO_DELIM_NORMAL, "NORMAL", 0, "Regular", "Delimit by face directions"},
 	{BMO_DELIM_MATERIAL, "MATERIAL", 0, "Material", "Delimit by face material"},
 	{BMO_DELIM_SEAM, "SEAM", 0, "Seam", "Delimit by edge seams"},
 	{BMO_DELIM_SHARP, "SHARP", 0, "Sharp", "Delimit by sharp edges"},
