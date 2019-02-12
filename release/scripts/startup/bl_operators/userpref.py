@@ -36,6 +36,20 @@ from bpy.props import (
 from bpy.app.translations import pgettext_tip as tip_
 
 
+def module_filesystem_remove(path_base, module_name):
+    import os
+    module_name = os.path.splitext(module_name)[0]
+    for f in os.listdir(path_base):
+        f_base = os.path.splitext(f)[0]
+        if f_base == module_name:
+            f_full = os.path.join(path_base, f)
+
+            if os.path.isdir(f_full):
+                os.rmdir(f_full)
+            else:
+                os.remove(f_full)
+
+
 class WM_OT_keyconfig_activate(Operator):
     bl_idname = "wm.keyconfig_activate"
     bl_label = "Activate Keyconfig"
