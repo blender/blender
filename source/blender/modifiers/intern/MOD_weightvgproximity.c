@@ -347,7 +347,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if (wmd->mask_texture != NULL) {
 		DEG_add_generic_id_relation(ctx->node, &wmd->mask_texture->id, "WeightVGProximity Modifier");
 	}
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "WeightVGProximity Modifier");
+	DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGProximity Modifier");
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_GEOMETRY, "WeightVGProximity Modifier");
 }
 

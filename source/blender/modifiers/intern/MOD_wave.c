@@ -112,7 +112,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 		DEG_add_object_relation(ctx->node, wmd->map_object, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
 	}
 	if (wmd->objectcenter != NULL || wmd->map_object != NULL) {
-		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
+		DEG_add_modifier_to_transform_relation(ctx->node, "Wave Modifier");
 	}
 	if (wmd->texture != NULL) {
 		DEG_add_generic_id_relation(ctx->node, &wmd->texture->id, "Wave Modifier");

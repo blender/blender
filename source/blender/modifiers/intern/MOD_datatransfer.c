@@ -128,7 +128,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 		if (dtmd->flags & MOD_DATATRANSFER_OBSRC_TRANSFORM) {
 			DEG_add_object_relation(ctx->node, dtmd->ob_source, DEG_OB_COMP_TRANSFORM, "DataTransfer Modifier");
-			DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "DataTransfer Modifier");
+			DEG_add_modifier_to_transform_relation(ctx->node, "DataTransfer Modifier");
 		}
 	}
 }

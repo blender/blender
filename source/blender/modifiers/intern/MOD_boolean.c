@@ -89,7 +89,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 		DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_GEOMETRY, "Boolean Modifier");
 	}
 	/* We need own transformation as well. */
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
+	DEG_add_modifier_to_transform_relation(ctx->node, "Boolean Modifier");
 }
 
 static Mesh *get_quick_mesh(

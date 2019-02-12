@@ -194,6 +194,12 @@ struct DepsgraphRelationBuilder
 	                                   const char *description,
 	                                   int flags = 0);
 
+	/* Adds relation from proper transformation opertation to the modifier.
+	 * Takes care of checking for possible physics solvers modifying position
+	 * of this object. */
+	void add_modifier_to_transform_relation(const DepsNodeHandle *handle,
+	                                        const char *description);
+
 	void add_customdata_mask(Object *object, uint64_t mask);
 	void add_special_eval_flag(ID *object, uint32_t flag);
 

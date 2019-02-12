@@ -133,10 +133,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 	if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		DEG_add_object_relation(ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGEdit Modifier");
-		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "WeightVGEdit Modifier");
+		DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGEdit Modifier");
 	}
 	else if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL) {
-		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "WeightVGEdit Modifier");
+		DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGEdit Modifier");
 	}
 	if (wmd->mask_texture != NULL) {
 		DEG_add_generic_id_relation(ctx->node, &wmd->mask_texture->id, "WeightVGEdit Modifier");

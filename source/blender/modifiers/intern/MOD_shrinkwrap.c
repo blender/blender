@@ -157,7 +157,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 			DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
 		}
 	}
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
+	DEG_add_modifier_to_transform_relation(ctx->node, "Shrinkwrap Modifier");
 }
 
 static bool dependsOnNormals(ModifierData *md)

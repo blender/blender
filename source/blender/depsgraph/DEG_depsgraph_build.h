@@ -142,9 +142,18 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
                                  struct ID *id,
                                  const char *description);
 
+/* Special function which is used from modifiers' updateDepsgraph() callback
+ * to indicate that the modifietr needs to know transformation of the object
+ * which that modifier belongs to.
+ * This function will take care of checking which operation is required to
+ * have transformation for the modifier, taking into account possible simulation
+ * solvers. */
+void DEG_add_modifier_to_transform_relation(
+        struct DepsNodeHandle *node_handle,
+        const char *description);
+
 /* Adds relations from the given component of a given object to the given node
- * handle AND the component to the point cache component of the node's ID.
- */
+ * handle AND the component to the point cache component of the node's ID. */
 void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
                                         struct Object *object,
                                         eDepsObjectComponentType component,

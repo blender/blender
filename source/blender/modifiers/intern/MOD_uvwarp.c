@@ -241,7 +241,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	uv_warp_deps_object_bone_new(ctx->node, umd->object_src, umd->bone_src);
 	uv_warp_deps_object_bone_new(ctx->node, umd->object_dst, umd->bone_dst);
 
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "UVWarp Modifier");
+	DEG_add_modifier_to_transform_relation(ctx->node, "UVWarp Modifier");
 }
 
 ModifierTypeInfo modifierType_UVWarp = {

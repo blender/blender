@@ -278,6 +278,25 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
 	return find_node(key) != NULL;
 }
 
+void DepsgraphRelationBuilder::add_modifier_to_transform_relation(
+        const DepsNodeHandle *handle,
+        const char *description)
+{
+	/* Geometry operation, this is where relation will be wired to. */
+	OperationNode *geometry_operation_node =
+	        handle->node->get_entry_operation();
+	BLI_assert(geometry_operation_node->owner->type == NodeType::GEOMETRY);
+	/* Transform operation, the source of the relation. */
+	ID *id = geometry_operation_node->owner->owner->id_orig;
+	ComponentKey transform_component_key(id, NodeType::TRANSFORM);
+	Node *transform_node = get_node(transform_component_key);
+	OperationNode *transform_operation_node =
+	        transform_node->get_exit_operation();
+	/* Wire up the actual relation. */
+	add_operation_relation(
+	        transform_operation_node, geometry_operation_node, description);
+}
+
 void DepsgraphRelationBuilder::add_customdata_mask(Object *object, uint64_t mask)
 {
 	if (mask != 0 && object != NULL && object->type == OB_MESH) {
