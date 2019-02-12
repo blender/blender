@@ -3017,9 +3017,6 @@ def km_grease_pencil_stroke_paint_mode(params):
         # Brush size
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_paint.brush.size')]}),
-        # Brush size
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path_primary", 'preferences.edit.grease_pencil_eraser_radius')]}),
         # Draw context menu
         op_menu("GPENCIL_MT_gpencil_draw_specials", params.context_menu_event),
         # Draw delete menu
