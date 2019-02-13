@@ -89,25 +89,17 @@ void main()
 #endif
 
 #ifdef USE_DEPTH
-	d1 *= 1.0 - step(1.0, d1); /* make far plane depth = 0 */
 #  if SAMPLES > 8
-	d4 *= 1.0 - step(1.0, d4);
-	d3 *= 1.0 - step(1.0, d3);
-	d1 = max(d1, max(d3, d4));
+	d1 = min(d1, min(d3, d4));
 #  endif
 #  if SAMPLES > 4
-	d2 *= 1.0 - step(1.0, d2);
-	d1 = max(d1, d2);
-	d1 = max(d1, d2);
+	d1 = min(d1, d2);
+	d1 = min(d1, d2);
 #  endif
 #  if SAMPLES > 2
-	d1.xy = max(d1.xy, d1.zw);
+	d1.xy = min(d1.xy, d1.zw);
 #  endif
-	gl_FragDepth = max(d1.x, d1.y);
-	/* Don't let the 0.0 farplane occlude other things */
-	if (gl_FragDepth == 0.0) {
-		gl_FragDepth = 1.0;
-	}
+	gl_FragDepth = min(d1.x, d1.y);
 #endif
 
 	c1 =  c1 + c2;
