@@ -393,12 +393,16 @@ static void add_cryptomatte_layer(BL::RenderResult& b_rr, string name, string ma
 	render_add_metadata(b_rr, prefix+"manifest", manifest);
 }
 
-void BlenderSession::stamp_view_layer_metadata_do(const string& prefix)
+void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string& view_layer_name)
 {
 	BL::RenderResult b_rr = b_engine.get_result();
+	string prefix = "cycles." + view_layer_name + ".";
+
 	/* Configured number of samples for the view layer. */
-	b_rr.stamp_data_add_field((prefix + "samples").c_str(),
-	                          to_string(session->params.samples).c_str());
+	b_rr.stamp_data_add_field(
+		(prefix + "samples").c_str(),
+		to_string(session->params.samples).c_str());
+
 	/* Store ranged samples information. */
 	if(session->tile_manager.range_num_samples != -1) {
 		b_rr.stamp_data_add_field(
@@ -408,11 +412,20 @@ void BlenderSession::stamp_view_layer_metadata_do(const string& prefix)
 		        (prefix + "range_num_samples").c_str(),
 		        to_string(session->tile_manager.range_num_samples).c_str());
 	}
-}
 
-void BlenderSession::stamp_view_layer_metadata(const string& view_layer_name)
-{
-	stamp_view_layer_metadata_do("cycles." + view_layer_name + ".");
+	/* Write cryptomatte metadata. */
+	if(scene->film->cryptomatte_passes & CRYPT_OBJECT) {
+		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoObject",
+							  scene->object_manager->get_cryptomatte_objects(scene));
+	}
+	if(scene->film->cryptomatte_passes & CRYPT_MATERIAL) {
+		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoMaterial",
+							  scene->shader_manager->get_cryptomatte_materials(scene));
+	}
+	if(scene->film->cryptomatte_passes & CRYPT_ASSET) {
+		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoAsset",
+							  scene->object_manager->get_cryptomatte_assets(scene));
+	}
 }
 
 void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
@@ -540,21 +553,8 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 			break;
 	}
 
-	stamp_view_layer_metadata(b_rlay_name);
-
-	/* Write cryptomatte metadata. */
-	if(scene->film->cryptomatte_passes & CRYPT_OBJECT) {
-		add_cryptomatte_layer(b_rr, b_rlay_name+".CryptoObject",
-							  scene->object_manager->get_cryptomatte_objects(scene));
-	}
-	if(scene->film->cryptomatte_passes & CRYPT_MATERIAL) {
-		add_cryptomatte_layer(b_rr, b_rlay_name+".CryptoMaterial",
-							  scene->shader_manager->get_cryptomatte_materials(scene));
-	}
-	if(scene->film->cryptomatte_passes & CRYPT_ASSET) {
-		add_cryptomatte_layer(b_rr, b_rlay_name+".CryptoAsset",
-							  scene->object_manager->get_cryptomatte_assets(scene));
-	}
+	/* add metadata */
+	stamp_view_layer_metadata(scene, b_rlay_name);
 
 	/* free result without merging */
 	end_render_result(b_engine, b_rr, true, true, false);
