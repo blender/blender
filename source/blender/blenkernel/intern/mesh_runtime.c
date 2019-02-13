@@ -54,9 +54,10 @@ void BKE_mesh_runtime_reset(Mesh *mesh)
 /* Clear all pointers which we don't want to be shared on copying the datablock.
  * However, keep all the flags which defines what the mesh is (for example, that
  * it's deformed only, or that its custom data layers are out of date.) */
-void BKE_mesh_runtime_reset_on_copy(Mesh *mesh)
+void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
 {
 	Mesh_Runtime *runtime = &mesh->runtime;
+
 	runtime->edit_data = NULL;
 	runtime->batch_cache = NULL;
 	runtime->subdiv_ccg = NULL;

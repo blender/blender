@@ -511,32 +511,6 @@ static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **i
 	return IDWALK_RET_NOP;
 }
 
-static void id_copy_clear_runtime_pointers(ID *id, int UNUSED(flag))
-{
-	if (id == NULL) {
-		return;
-	}
-	/* TODO(sergey): We might want to do a deep-copy of all the pointers inside.
-	 * This isn't currently needed, and is quite involved change (to cover all
-	 * things like batch cache and such). */
-	switch ((ID_Type)GS(id->name)) {
-		case ID_OB:
-		{
-			Object *object = (Object *)id;
-			BKE_object_runtime_reset_on_copy(object);
-			break;
-		}
-		case ID_ME:
-		{
-			Mesh *mesh = (Mesh *)id;
-			BKE_mesh_runtime_reset_on_copy(mesh);
-			break;
-		}
-		default:
-			break;
-	}
-}
-
 bool BKE_id_copy_is_allowed(const ID *id)
 {
 #define LIB_ID_TYPES_NOCOPY ID_LI, ID_SCR, ID_WM,  /* Not supported */ \
@@ -702,8 +676,6 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
 	else {
 		(*r_newid)->lib = id->lib;
 	}
-
-	id_copy_clear_runtime_pointers(*r_newid, flag);
 
 	return true;
 }

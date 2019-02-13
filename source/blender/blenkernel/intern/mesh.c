@@ -525,6 +525,14 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
  */
 void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int flag)
 {
+	BKE_mesh_runtime_reset_on_copy(me_dst, flag);
+	if ((me_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
+		/* This is a direct copy of a main mesh, so for now it has the same topology. */
+		me_dst->runtime.deformed_only = true;
+	}
+	/* XXX WHAT? Why? Comment, please! And pretty sure this is not valid for regular Mesh copying? */
+	me_dst->runtime.is_original = false;
+
 	const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0)); /* only do tessface if we have no polys */
 	CustomDataMask mask = CD_MASK_MESH;
 
@@ -550,21 +558,6 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	BKE_mesh_update_customdata_pointers(me_dst, do_tessface);
 
 	me_dst->edit_btmesh = NULL;
-
-	/* Call BKE_mesh_runtime_reset? */
-	me_dst->runtime.batch_cache = NULL;
-	me_dst->runtime.looptris.array = NULL;
-	me_dst->runtime.bvh_cache = NULL;
-	me_dst->runtime.shrinkwrap_data = NULL;
-
-	if (me_src->id.tag & LIB_TAG_NO_MAIN) {
-		me_dst->runtime.deformed_only = me_src->runtime.deformed_only;
-	}
-	else {
-		/* This is a direct copy of a main mesh, so for now it has the same topology. */
-		me_dst->runtime.deformed_only = 1;
-	}
-	me_dst->runtime.is_original = false;
 
 	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
 	me_dst->bb = MEM_dupallocN(me_dst->bb);

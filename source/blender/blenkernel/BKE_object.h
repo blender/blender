@@ -306,7 +306,7 @@ int BKE_object_scenes_users_get(struct Main *bmain, struct Object *ob);
 struct MovieClip *BKE_object_movieclip_get(struct Scene *scene, struct Object *ob, bool use_default);
 
 void BKE_object_runtime_reset(struct Object *object);
-void BKE_object_runtime_reset_on_copy(struct Object *object);
+void BKE_object_runtime_reset_on_copy(struct Object *object, const int flag);
 
 void BKE_object_batch_cache_dirty_tag(struct Object *ob);
 
