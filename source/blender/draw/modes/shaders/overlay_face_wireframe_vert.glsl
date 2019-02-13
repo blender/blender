@@ -7,13 +7,17 @@ uniform mat3 NormalMatrix;
 uniform float wireStepParam;
 uniform float ofs;
 
+#ifndef USE_SCULPT
 float get_edge_sharpness(float wd)
 {
 	return (wd == 1.0) ? 1.0 : ((wd == 0.0) ? -1.0 : (wd + wireStepParam));
 }
+#else
+float get_edge_sharpness(float wd) { return 1.0; }
+#endif
 
 /* Geometry shader version */
-#if defined(SELECT_EDGES) || defined(USE_SCULPT)
+#if defined(SELECT_EDGES) || defined(USE_GEOM)
 
 in vec3 pos;
 in vec3 nor;
@@ -24,12 +28,7 @@ out float edgeSharpness_g;
 
 void main()
 {
-#  ifndef USE_SCULPT
 	edgeSharpness_g = get_edge_sharpness(wd);
-#  else
-	/* TODO approximation using normals. */
-	edgeSharpness_g = 1.0;
-#  endif
 
 	mat4 projmat = ProjectionMatrix;
 	projmat[3][2] -= ofs;
@@ -43,7 +42,7 @@ void main()
 #endif
 }
 
-#else /* SELECT_EDGES */
+#else /* USE_GEOM */
 
 in vec3 pos;
 in vec3 nor;

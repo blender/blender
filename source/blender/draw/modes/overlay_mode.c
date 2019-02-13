@@ -32,6 +32,9 @@
 #include "GPU_shader.h"
 #include "DRW_render.h"
 
+#ifdef __APPLE__
+#define USE_GEOM_SHADER_WORKAROUND
+#endif
 
 /* Structures */
 typedef struct OVERLAY_StorageList {
@@ -54,7 +57,6 @@ typedef struct OVERLAY_Data {
 typedef struct OVERLAY_PrivateData {
 	DRWShadingGroup *face_orientation_shgrp;
 	DRWShadingGroup *face_wires_shgrp;
-	DRWShadingGroup *sculpt_wires_shgrp;
 	View3DOverlay overlay;
 	float wire_step_param;
 	bool ghost_stencil_test;
@@ -67,7 +69,6 @@ typedef struct OVERLAY_Shaders {
 	/* Wireframe shader */
 	struct GPUShader *select_wireframe;
 	struct GPUShader *face_wireframe;
-	struct GPUShader *face_wireframe_sculpt;
 } OVERLAY_Shaders;
 
 /* *********** STATIC *********** */
@@ -121,16 +122,21 @@ static void overlay_engine_init(void *vedata)
 		        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, "#define SELECT_EDGES\n", NULL},
 		});
+#ifdef USE_GEOM_SHADER_WORKAROUND
+		/* Apple drivers does not support wide wires. Use geometry shader as a workaround. */
+		sh_data->face_wireframe = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_overlay_face_wireframe_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_overlay_face_wireframe_geom_glsl, NULL},
+		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define USE_GEOM\n", NULL},
+		});
+#else
 		sh_data->face_wireframe = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_overlay_face_wireframe_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
-		sh_data->face_wireframe_sculpt = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_overlay_face_wireframe_vert_glsl, NULL},
-		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
-		        .defs = (const char *[]){sh_cfg_data->def, NULL},
-		});
+#endif
 	}
 }
 
@@ -179,8 +185,9 @@ static void overlay_cache_init(void *vedata)
 
 	{
 		/* Wireframe */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_OFFSET_NEGATIVE;
-		float wire_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
+		                 DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_OFFSET_NEGATIVE;
+		float wire_size = U.pixelsize * 0.5f;
 
 		float winmat[4][4];
 		float viewdist = rv3d->dist;
@@ -192,26 +199,24 @@ static void overlay_cache_init(void *vedata)
 		const float depth_ofs = bglPolygonOffsetCalc((float *)winmat, viewdist, 1.0f);
 
 		const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
-		GPUShader *sculpt_wire_sh = use_select ? sh_data->select_wireframe : sh_data->face_wireframe_sculpt;
 		GPUShader *face_wires_sh = use_select ? sh_data->select_wireframe : sh_data->face_wireframe;
 
 		psl->face_wireframe_pass = DRW_pass_create("Face Wires", state);
 
-		g_data->sculpt_wires_shgrp = DRW_shgroup_create(sculpt_wire_sh, psl->face_wireframe_pass);
-		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(g_data->sculpt_wires_shgrp, rv3d);
-		}
-
 		g_data->face_wires_shgrp = DRW_shgroup_create(face_wires_sh, psl->face_wireframe_pass);
 		DRW_shgroup_uniform_float(g_data->face_wires_shgrp, "wireStepParam", &g_data->wire_step_param, 1);
 		DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "ofs", depth_ofs);
+#ifdef USE_GEOM_SHADER_WORKAROUND
+		DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "wireSize", wire_size);
+		DRW_shgroup_uniform_vec2(g_data->face_wires_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_vec2(g_data->face_wires_shgrp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
+#else
+		if (!use_select) {
+			DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "wireSize", wire_size);
+		}
+#endif
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(g_data->face_wires_shgrp, rv3d);
-		}
-
-		if (!use_select) {
-			DRW_shgroup_uniform_float_copy(g_data->sculpt_wires_shgrp, "wireSize", wire_size);
-			DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "wireSize", wire_size);
 		}
 
 		g_data->wire_step_param = stl->g_data->overlay.wireframe_threshold - 254.0f / 255.0f;
@@ -312,13 +317,13 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			geom = DRW_cache_object_face_wireframe_get(ob);
 
 			if (geom || is_sculpt_mode) {
-				shgrp = (is_sculpt_mode) ? pd->sculpt_wires_shgrp : pd->face_wires_shgrp;
-				shgrp = DRW_shgroup_create_sub(shgrp);
+				shgrp = DRW_shgroup_create_sub(pd->face_wires_shgrp);
 
 				static float all_wires_param = 10.0f;
-				DRW_shgroup_uniform_vec2(
-				        shgrp, "wireStepParam", (all_wires) ?
-				        &all_wires_param : &pd->wire_step_param, 1);
+				DRW_shgroup_uniform_float(
+				        shgrp, "wireStepParam",
+				        (all_wires || is_sculpt_mode) ? &all_wires_param : &pd->wire_step_param,
+				        1);
 
 				if (!(DRW_state_is_select() || DRW_state_is_depth())) {
 					DRW_shgroup_stencil_mask(shgrp, stencil_mask);
