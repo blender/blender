@@ -450,7 +450,6 @@ void            nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
 void            nodeDeleteNode(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 
 struct bNode    *BKE_node_copy_ex(struct bNodeTree *ntree, struct bNode *node_src, const int flag);
-struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void            nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);

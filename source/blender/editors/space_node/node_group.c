@@ -404,7 +404,7 @@ static int node_group_separate_selected(
 	for (node = ntree->nodes.first; node; node = node->next)
 		nodeSetSelected(node, false);
 
-	/* clear new pointers, set in nodeCopyNode */
+	/* clear new pointers, set in BKE_node_copy_ex(). */
 	for (node = ngroup->nodes.first; node; node = node->next)
 		node->new_node = NULL;
 
@@ -422,7 +422,7 @@ static int node_group_separate_selected(
 
 		if (make_copy) {
 			/* make a copy */
-			newnode = nodeCopyNode(ngroup, node);
+			newnode = BKE_node_copy_ex(ngroup, node, LIB_ID_COPY_DEFAULT);
 		}
 		else {
 			/* use the existing node */
@@ -541,13 +541,13 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 
 	switch (type) {
 		case NODE_GS_COPY:
-			if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, 1)) {
+			if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, true)) {
 				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
 			break;
 		case NODE_GS_MOVE:
-			if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, 0)) {
+			if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, false)) {
 				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
