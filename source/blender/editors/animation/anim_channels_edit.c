@@ -1625,6 +1625,27 @@ static void ANIM_OT_channels_ungroup(wmOperatorType *ot)
 
 /* ******************** Delete Channel Operator *********************** */
 
+static void update_dependencies_on_delete(bAnimListElem *ale)
+{
+	ID *id = ale->id;
+	AnimData *adt = BKE_animdata_from_id(id);
+	/* TODO(sergey): Technically, if the animation element is being deleted
+	 * from a driver we don't have to tag action. This is something we can check
+	 * for in the future. For now just do most reliable tag whic hwas always
+	 * happening. */
+	if (adt != NULL) {
+		DEG_id_tag_update(id, ID_RECALC_ANIMATION);
+		if (adt->action != NULL) {
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+		}
+	}
+	/* Deals with NLA and drivers.
+	 * Doesn't cause overhead for action updates, since object will receive
+	 * animation update after dependency graph flushes update from action to
+	 * all its users. */
+	DEG_id_tag_update(id, ID_RECALC_ANIMATION);
+}
+
 static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
@@ -1697,7 +1718,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 				/* try to free F-Curve */
 				ANIM_fcurve_delete_from_animdata(&ac, adt, fcu);
-				ale->update = ANIM_UPDATE_DEPS;
+				update_dependencies_on_delete(ale);
 				break;
 			}
 			case ANIMTYPE_NLACURVE:
@@ -1719,7 +1740,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				/* unlink and free the F-Curve */
 				BLI_remlink(&strip->fcurves, fcu);
 				free_fcurve(fcu);
-				ale->update = ANIM_UPDATE_DEPS;
+				update_dependencies_on_delete(ale);
 				break;
 			}
 			case ANIMTYPE_GPLAYER:
@@ -1747,7 +1768,6 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* cleanup */
-	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 
 	/* send notifier that things have changed */
