@@ -2315,8 +2315,10 @@ static void mesh_create_edit_vertex_loops(
         GPUVertBuf *vbo_edges,
         GPUVertBuf *vbo_faces)
 {
+#if 0
 	const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
 	const int edge_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
+#endif
 	const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
 	const int lvert_len = mesh_render_data_loose_verts_len_get_maybe_mapped(rdata);
 	const int ledge_len = mesh_render_data_loose_edges_len_get_maybe_mapped(rdata);
