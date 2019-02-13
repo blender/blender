@@ -526,7 +526,9 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* add or copy material */
 	if (ma) {
-		ma = BKE_material_copy(bmain, ma);
+		Material *new_ma = NULL;
+		BKE_id_copy_ex(bmain, &ma->id, (ID **)&new_ma, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+		ma = new_ma;
 	}
 	else {
 		const char *name = DATA_("Material");
