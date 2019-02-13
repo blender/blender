@@ -50,9 +50,6 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "mesh_intern.h"  /* own include */
 
 
@@ -604,7 +601,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		edbm_bevel_update_header(C, op);
 		handled = true;
 	}
-	else if (event->type == EVT_MODAL_MAP){
+	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case BEV_MODAL_CANCEL:
 				edbm_bevel_cancel(C, op);

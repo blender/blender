@@ -10409,8 +10409,7 @@ static void add_collections_to_scene(
 				 * instantiate its objects in active scene's collection directly. See T61141.
 				 * Note that we only check object directly into that collection, not recursively into its children.
 				 */
-				for (CollectionObject *coll_ob = collection->gobject.first; coll_ob != NULL; coll_ob = coll_ob->next)
-				{
+				for (CollectionObject *coll_ob = collection->gobject.first; coll_ob != NULL; coll_ob = coll_ob->next) {
 					Object *ob = coll_ob->ob;
 					if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 &&
 					    (ob->id.lib == lib) &&

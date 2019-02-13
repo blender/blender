@@ -1654,8 +1654,8 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 
 		/* while drawing hide */
 		if ((gpd->runtime.sbuffer_size > 0) &&
-			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
+		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
 		{
 			return;
 		}
@@ -1685,9 +1685,9 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 		 * The decision was to use a fix size, instead of brush->thickness value.
 		 */
 		if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
-			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-			((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-			(brush->gpencil_tool == GPAINT_TOOL_DRAW))
+		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
+		    (brush->gpencil_tool == GPAINT_TOOL_DRAW))
 		{
 			radius = 2.0f;
 			copy_v3_v3(color, gp_style->stroke_rgba);
