@@ -394,16 +394,15 @@ if(WITH_OPENMP)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${LIBDIR}/openmp/lib -lomp")
 
 		# Copy libomp.dylib to allow executables like datatoc to work.
-    if(CMAKE_MAKE_PROGRAM MATCHES "xcodebuild")
-      set(OPENMP_DYLIB_AUX_PATH "${CMAKE_BINARY_DIR}/bin")
-    else()
-      set(OPENMP_DYLIB_AUX_PATH "${CMAKE_BINARY_DIR}")
-    endif()
+		if(CMAKE_MAKE_PROGRAM MATCHES "xcodebuild")
+			set(OPENMP_DYLIB_AUX_PATH "${CMAKE_BINARY_DIR}/bin")
+		else()
+			set(OPENMP_DYLIB_AUX_PATH "${CMAKE_BINARY_DIR}")
+		endif()
 
-    execute_process(
-      COMMAND mkdir -p ${OPENMP_DYLIB_AUX_PATH}/Resources/lib
-      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${OPENMP_DYLIB_AUX_PATH}/Resources/lib/libomp.dylib
-      )
+		execute_process(
+				COMMAND mkdir -p ${OPENMP_DYLIB_AUX_PATH}/Resources/lib
+				COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${OPENMP_DYLIB_AUX_PATH}/Resources/lib/libomp.dylib)
 	endif()
 endif()
 

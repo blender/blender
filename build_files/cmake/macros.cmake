@@ -1393,7 +1393,7 @@ function(find_python_package
 		   NO_DEFAULT_PATH
 		)
 
-		 if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}")
+		if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}")
 			message(WARNING
 				"Python package '${package}' path could not be found in:\n"
 				"'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${package}', "
