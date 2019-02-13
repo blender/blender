@@ -742,11 +742,6 @@ const bTheme U_theme_default = {
 		.match = RGBA(0x337f334c),
 		.selected_highlight = RGBA(0x314e784c),
 	},
-	.ttime = {
-		.vertex_size = 3,
-		.outline_width = 1,
-		.facedot_size = 4,
-	},
 	.tnode = {
 		.back = RGBA(0x23232300),
 		.title = RGBA(0xeeeeeeff),

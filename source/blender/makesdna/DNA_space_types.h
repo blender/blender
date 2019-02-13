@@ -134,9 +134,8 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser;
 	/** Preview is signal to refresh. */
 	short preview;
-	short pad[2];
+	char _pad[5];
 	char flag;
-	char collection_context;
 
 	/** Runtime. */
 	void *path;

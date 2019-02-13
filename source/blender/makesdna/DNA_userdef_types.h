@@ -434,7 +434,6 @@ typedef struct bTheme {
 	ThemeSpace tima;
 	ThemeSpace text;
 	ThemeSpace toops;
-	ThemeSpace ttime;
 	ThemeSpace tnode;
 	ThemeSpace tuserpref;
 	ThemeSpace tconsole;
