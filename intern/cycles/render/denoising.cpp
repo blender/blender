@@ -123,7 +123,7 @@ static void fill_mapping(vector<ChannelMapping> &map, int pos, string name, stri
 }
 
 static const int INPUT_NUM_CHANNELS = 15;
-static vector<ChannelMapping> init_input_channels()
+static vector<ChannelMapping> input_channels()
 {
 	vector<ChannelMapping> map;
 	fill_mapping(map, 0, "Denoising Depth", "Z");
@@ -137,15 +137,12 @@ static vector<ChannelMapping> init_input_channels()
 }
 
 static const int OUTPUT_NUM_CHANNELS = 3;
-static vector<ChannelMapping> init_output_channels()
+static vector<ChannelMapping> output_channels()
 {
 	vector<ChannelMapping> map;
 	fill_mapping(map, 0, "Combined", "RGB");
 	return map;
 }
-
-static const vector<ChannelMapping> input_channels = init_input_channels();
-static const vector<ChannelMapping> output_channels = init_output_channels();
 
 /* Renderlayer Handling */
 
@@ -155,7 +152,7 @@ bool DenoiseImageLayer::detect_denoising_channels()
 	input_to_image_channel.clear();
 	input_to_image_channel.resize(INPUT_NUM_CHANNELS, -1);
 
-	foreach(const ChannelMapping& mapping, input_channels) {
+	foreach(const ChannelMapping& mapping, input_channels()) {
 		vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
 		if(i == channels.end()) {
 			return false;
@@ -170,7 +167,7 @@ bool DenoiseImageLayer::detect_denoising_channels()
 	output_to_image_channel.clear();
 	output_to_image_channel.resize(OUTPUT_NUM_CHANNELS, -1);
 
-	foreach(const ChannelMapping& mapping, output_channels) {
+	foreach(const ChannelMapping& mapping, output_channels()) {
 		vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
 		if(i == channels.end()) {
 			return false;
@@ -554,18 +551,8 @@ DenoiseImage::~DenoiseImage()
 
 void DenoiseImage::close_input()
 {
-	foreach(ImageInput *i, in_neighbors) {
-		i->close();
-		ImageInput::destroy(i);
-	}
-
 	in_neighbors.clear();
-
-	if(in) {
-		in->close();
-		ImageInput::destroy(in);
-		in = NULL;
-	}
+	in.reset();
 }
 
 void DenoiseImage::free()
@@ -675,7 +662,7 @@ bool DenoiseImage::load(const string& in_filepath, string& error)
 		return false;
 	}
 
-	in = ImageInput::open(in_filepath);
+	in.reset(ImageInput::open(in_filepath));
 	if(!in) {
 		error = "Couldn't open file: " + in_filepath;
 		return false;
@@ -724,7 +711,7 @@ bool DenoiseImage::load_neighbors(const vector<string>& filepaths, const vector<
 			return false;
 		}
 
-		ImageInput *in_neighbor = ImageInput::open(filepath);
+		unique_ptr<ImageInput> in_neighbor(ImageInput::open(filepath));
 		if(!in_neighbor) {
 			error = "Couldn't open neighbor frame: " + filepath;
 			return false;
@@ -733,8 +720,6 @@ bool DenoiseImage::load_neighbors(const vector<string>& filepaths, const vector<
 		const ImageSpec &neighbor_spec = in_neighbor->spec();
 		if(neighbor_spec.width != width || neighbor_spec.height != height) {
 			error = "Neighbor frame has different dimensions: " + filepath;
-			in_neighbor->close();
-			ImageInput::destroy(in_neighbor);
 			return false;
 		}
 
@@ -744,13 +729,11 @@ bool DenoiseImage::load_neighbors(const vector<string>& filepaths, const vector<
 			                         neighbor_spec.channelnames))
 			{
 				error = "Neighbor frame misses denoising data passes: " + filepath;
-				in_neighbor->close();
-				ImageInput::destroy(in_neighbor);
 				return false;
 			}
 		}
 
-		in_neighbors.push_back(in_neighbor);
+		in_neighbors.push_back(std::move(in_neighbor));
 	}
 
 	return true;
@@ -776,7 +759,7 @@ bool DenoiseImage::save_output(const string& out_filepath, string& error)
 	/* Write to temporary file path, so we denoise images in place and don't
 	 * risk destroying files when something goes wrong in file saving. */
 	string tmp_filepath = OIIO::Filesystem::temp_directory_path() + "/" + OIIO::Filesystem::unique_path() + ".exr";
-	ImageOutput *out = ImageOutput::create(tmp_filepath);
+	unique_ptr<ImageOutput> out(ImageOutput::create(tmp_filepath));
 
 	if(!out) {
 		error = "Failed to open temporary file " + tmp_filepath + " for writing";
@@ -786,7 +769,6 @@ bool DenoiseImage::save_output(const string& out_filepath, string& error)
 	/* Open temporary file and write image buffers. */
 	if(!out->open(tmp_filepath, out_spec)) {
 		error = "Failed to open file " + tmp_filepath + " for writing: " + out->geterror();
-		ImageOutput::destroy(out);
 		return false;
 	}
 
@@ -801,7 +783,7 @@ bool DenoiseImage::save_output(const string& out_filepath, string& error)
 		ok = false;
 	}
 
-	ImageOutput::destroy(out);
+	out.reset();
 
 	/* Copy temporary file to outputput filepath. */
 	if(ok && !OIIO::Filesystem::rename(tmp_filepath, out_filepath)) {

@@ -24,6 +24,7 @@
 
 #include "util/util_string.h"
 #include "util/util_vector.h"
+#include "util/util_unique_ptr.h"
 
 #include <OpenImageIO/imageio.h>
 
@@ -84,7 +85,7 @@ struct DenoiseImageLayer {
 	vector<int> input_to_image_channel;
 
 	/* input_to_image_channel of the secondary frames, if any are used. */
-	vector<vector<int> > neighbor_input_to_image_channel;
+	vector<vector<int>> neighbor_input_to_image_channel;
 
 	/* Write i-th channel of the processing output to output_to_image_channel[i]-th channel of the file. */
 	vector<int> output_to_image_channel;
@@ -116,8 +117,8 @@ public:
 	array<float> pixels;
 
 	/* Image file handles */
-	ImageInput *in;
-	vector<ImageInput*> in_neighbors;
+	unique_ptr<ImageInput> in;
+	vector<unique_ptr<ImageInput>> in_neighbors;
 
 	/* Render layers */
 	vector<DenoiseImageLayer> layers;

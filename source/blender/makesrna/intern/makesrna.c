@@ -3592,6 +3592,7 @@ static void rna_generate_header(BlenderRNA *UNUSED(brna), FILE *f)
 
 static const char *cpp_classes = ""
 "\n"
+"#include <stdlib.h> /* for malloc */\n"
 "#include <string>\n"
 "#include <string.h> /* for memcpy */\n"
 "\n"

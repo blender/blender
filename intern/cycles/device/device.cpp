@@ -601,10 +601,10 @@ void Device::tag_update()
 void Device::free_memory()
 {
 	devices_initialized_mask = 0;
-	cuda_devices.clear();
-	opencl_devices.clear();
-	cpu_devices.clear();
-	network_devices.clear();
+	cuda_devices.free_memory();
+	opencl_devices.free_memory();
+	cpu_devices.free_memory();
+	network_devices.free_memory();
 }
 
 CCL_NAMESPACE_END
