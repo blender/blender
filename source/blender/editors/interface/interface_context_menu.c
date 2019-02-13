@@ -710,7 +710,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 				item_found = true;
 			}
 		}
-		MEM_freeN(um_array);
+		if (um_array) {
+			MEM_freeN(um_array);
+		}
 
 		if (!item_found) {
 			but2 = uiDefIconTextBut(

@@ -59,6 +59,11 @@ bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
 	SpaceLink *sl = CTX_wm_space_data(C);
 	const char *context = CTX_data_mode_string(C);
 
+	if (sl == NULL) {
+		*r_len = 0;
+		return NULL;
+	}
+
 	uint array_len = 3;
 	bUserMenu **um_array = MEM_calloc_arrayN(array_len, sizeof(*um_array), __func__);
 	um_array[0] = BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context);
@@ -253,7 +258,9 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 			}
 		}
 	}
-	MEM_freeN(um_array);
+	if (um_array) {
+		MEM_freeN(um_array);
+	}
 
 	if (is_empty) {
 		uiItemL(menu->layout, IFACE_("No menu items found"), ICON_NONE);
