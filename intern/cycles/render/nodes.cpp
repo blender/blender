@@ -3530,7 +3530,7 @@ void TextureCoordinateNode::compile(OSLCompiler& compiler)
 	if(compiler.output_type() == SHADER_TYPE_VOLUME)
 		compiler.parameter("is_volume", true);
 	compiler.parameter(this, "use_transform");
-	Transform ob_itfm = transform_transposed_inverse(ob_tfm);
+	Transform ob_itfm = transform_inverse(ob_tfm);
 	compiler.parameter("object_itfm", ob_itfm);
 
 	compiler.parameter(this, "from_dupli");
