@@ -3364,8 +3364,8 @@ static void register_undefined_types(void)
 	 */
 
 	strcpy(NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
-	strcpy(NodeTreeTypeUndefined.ui_name, "Undefined");
-	strcpy(NodeTreeTypeUndefined.ui_description, "Undefined Node Tree Type");
+	strcpy(NodeTreeTypeUndefined.ui_name, N_("Undefined"));
+	strcpy(NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
 
 	node_type_base_custom(&NodeTypeUndefined, "NodeUndefined", "Undefined", 0, 0);
 	NodeTypeUndefined.poll = node_undefined_poll;

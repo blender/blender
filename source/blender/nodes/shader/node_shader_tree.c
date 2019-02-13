@@ -176,9 +176,9 @@ void register_node_tree_type_sh(void)
 
 	tt->type = NTREE_SHADER;
 	strcpy(tt->idname, "ShaderNodeTree");
-	strcpy(tt->ui_name, "Shader Editor");
+	strcpy(tt->ui_name, N_("Shader Editor"));
 	tt->ui_icon = 0;    /* defined in drawnode.c */
-	strcpy(tt->ui_description, "Shader nodes");
+	strcpy(tt->ui_description, N_("Shader nodes"));
 
 	tt->foreach_nodeclass = foreach_nodeclass;
 	tt->localize = localize;
