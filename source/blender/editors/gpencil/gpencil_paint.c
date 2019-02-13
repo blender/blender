@@ -279,33 +279,33 @@ static bool gpencil_draw_poll(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
 		ScrArea *sa = CTX_wm_area(C);
-		if (!ELEM(sa->spacetype, SPACE_VIEW3D)) {
-			/* check if current context can support GPencil data */
-			if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
-				/* check if Grease Pencil isn't already running */
-				if (ED_gpencil_session_active() == 0)
-					return 1;
-				else
-					CTX_wm_operator_poll_msg_set(C, "Grease Pencil operator is already active");
-			}
-			else {
-				CTX_wm_operator_poll_msg_set(C, "Failed to find Grease Pencil data to draw into");
-			}
-			return 0;
-		}
 		/* 3D Viewport */
-		else {
-			if (ED_gpencil_session_active() == 0) {
-				return 1;
-			}
-			else {
-				return 0;
-			}
+		if (sa->spacetype != SPACE_VIEW3D) {
+			return false;
 		}
+
+		/* check if Grease Pencil isn't already running */
+		if (ED_gpencil_session_active() != 0) {
+			CTX_wm_operator_poll_msg_set(C, "Grease Pencil operator is already active");
+			return false;
+		}
+
+		/* only grease pencil object type */
+		Object *ob = CTX_data_active_object(C);
+		if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+			return false;
+		}
+
+		bGPdata *gpd = (bGPdata *)ob->data;
+		if (!GPENCIL_PAINT_MODE(gpd)) {
+			return false;
+		}
+
+		return true;
 	}
 	else {
 		CTX_wm_operator_poll_msg_set(C, "Active region not set");
-		return 0;
+		return false;
 	}
 }
 
@@ -3178,28 +3178,25 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	}
 
 	/* enable paint mode */
-	if (p->sa->spacetype == SPACE_VIEW3D) {
-
 		/* handle speed guide events before drawing inside view3d */
-		if (!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP)) {
-			gpencil_guide_event_handling(C, op, event, p);
-		}
+	if (!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP)) {
+		gpencil_guide_event_handling(C, op, event, p);
+	}
 
-		Object *ob = CTX_data_active_object(C);
-		if (ob && (ob->type == OB_GPENCIL) && ((p->gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0)) {
-			/* FIXME: use the mode switching operator, this misses notifiers, messages. */
-			/* Just set paintmode flag... */
-			p->gpd->flag |= GP_DATA_STROKE_PAINTMODE;
-			/* disable other GP modes */
-			p->gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
-			p->gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
-			p->gpd->flag &= ~GP_DATA_STROKE_WEIGHTMODE;
-			/* set workspace mode */
-			ob->restore_mode = ob->mode;
-			ob->mode = OB_MODE_PAINT_GPENCIL;
-			/* redraw mode on screen */
-			WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
-		}
+	Object *ob = CTX_data_active_object(C);
+	if (ob && (ob->type == OB_GPENCIL) && ((p->gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0)) {
+		/* FIXME: use the mode switching operator, this misses notifiers, messages. */
+		/* Just set paintmode flag... */
+		p->gpd->flag |= GP_DATA_STROKE_PAINTMODE;
+		/* disable other GP modes */
+		p->gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
+		p->gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
+		p->gpd->flag &= ~GP_DATA_STROKE_WEIGHTMODE;
+		/* set workspace mode */
+		ob->restore_mode = ob->mode;
+		ob->mode = OB_MODE_PAINT_GPENCIL;
+		/* redraw mode on screen */
+		WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 	}
 
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
