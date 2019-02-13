@@ -2137,8 +2137,6 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 
 		if (has_layer_to_erase == false) {
 			p->status = GP_STATUS_ERROR;
-			//if (G.debug & G_DEBUG)
-			printf("Error: Eraser will not be affecting anything (gpencil_paint_init)\n");
 			return;
 		}
 	}
