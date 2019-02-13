@@ -200,8 +200,6 @@ enum {
 	CAM_BGIMG_FLAG_FLIP_Y        = (1 << 8),
 };
 
-#define CAM_BGIMG_FLAG_EXPANDED (CAM_BGIMG_FLAG_EXPANDED | CAM_BGIMG_FLAG_CAMERACLIP)
-
 /* CameraBGImage->source */
 /* may want to use 1 for select ?*/
 enum {
