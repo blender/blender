@@ -35,6 +35,8 @@ class Params:
         "cursor_set_event",
         "cursor_tweak_event",
         "use_mouse_emulate_3_button",
+        # Experemental option.
+        "pie_value",
 
         # User preferences.
         #
@@ -45,7 +47,9 @@ class Params:
         # Use pie menu for tab by default (swap 'Tab/Ctrl-Tab').
         "use_v3d_tab_menu",
         # Use extended pie menu for shading.
-        "use_v3d_shade_ex_pie"
+        "use_v3d_shade_ex_pie",
+        # Experemental option.
+        "use_pie_click_drag",
     )
 
     def __init__(
@@ -61,6 +65,7 @@ class Params:
             use_pie_on_tab=False,
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
+            use_pie_click_drag=False,
     ):
         from sys import platform
         self.apple = (platform == 'darwin')
@@ -105,6 +110,12 @@ class Params:
         self.use_select_all_toggle = use_select_all_toggle
         self.use_v3d_tab_menu = use_v3d_tab_menu
         self.use_v3d_shade_ex_pie = use_v3d_shade_ex_pie
+
+        self.use_pie_click_drag = use_pie_click_drag
+        if not use_pie_click_drag:
+            self.pie_value = 'PRESS'
+        else:
+            self.pie_value = 'CLICK_DRAG'
 
 
 # ------------------------------------------------------------------------------
@@ -927,7 +938,9 @@ def km_view3d(params):
          {"properties": [("use_all_regions", True), ("center", False)]}),
         ("view3d.view_all", {"type": 'C', "value": 'PRESS', "shift": True},
          {"properties": [("center", True)]}),
-        op_menu_pie("VIEW3D_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
+        op_menu_pie("VIEW3D_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": params.pie_value}),
+        *(() if not params.use_pie_click_drag else
+          (("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'CLICK'}, None),)),
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
         ("view3d.view_camera", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
@@ -1081,7 +1094,11 @@ def km_view3d(params):
              {"properties": [("data_path", 'space_data.show_gizmo_tool')]}),
             op_menu_pie(
                 "VIEW3D_MT_shading_pie" if not params.use_v3d_shade_ex_pie else
-                "VIEW3D_MT_shading_ex_pie", {"type": 'Z', "value": 'PRESS'}),
+                "VIEW3D_MT_shading_ex_pie",
+                {"type": 'Z', "value": params.pie_value}),
+            *(() if not params.use_pie_click_drag else
+              (("view3d.toggle_shading", {"type": 'Z', "value": 'CLICK'},
+                {"properties": [("type", 'WIREFRAME')]}),)),
             ("view3d.toggle_shading", {"type": 'Z', "value": 'PRESS', "shift": True},
              {"properties": [("type", 'WIREFRAME')]}),
             ("view3d.toggle_xray", {"type": 'Z', "value": 'PRESS', "alt": True}, None),
