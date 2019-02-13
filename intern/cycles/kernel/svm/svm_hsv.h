@@ -37,9 +37,8 @@ ccl_device void svm_node_hsv(KernelGlobals *kg, ShaderData *sd, float *stack, ui
 	color = rgb_to_hsv(color);
 
 	/* remember: fmod doesn't work for negative numbers here */
-	color.x += hue + 0.5f;
-	color.x = fmodf(color.x, 1.0f);
-	color.y *= sat;
+	color.x = fmodf(color.x + hue + 0.5f, 1.0f);
+	color.y *= saturate(sat);
 	color.z *= val;
 
 	color = hsv_to_rgb(color);

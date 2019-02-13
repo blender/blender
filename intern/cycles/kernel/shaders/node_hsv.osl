@@ -28,9 +28,8 @@ shader node_hsv(
 	color Color = rgb_to_hsv(ColorIn);
 
 	// remember: fmod doesn't work for negative numbers
-	Color[0] += Hue + 0.5;
-	Color[0] = fmod(Color[0], 1.0);
-	Color[1] *= Saturation;
+	Color[0] = fmod(Color[0] + Hue + 0.5, 1.0);
+	Color[1] *= clamp(Saturation, 0.0, 1.0);
 	Color[2] *= Value;
 
 	Color = hsv_to_rgb(Color);
