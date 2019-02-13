@@ -86,22 +86,34 @@ static bool is_identifier(const char c)
 	        (c == '_'));
 }
 
-uint DNA_elem_id_offset_start(const char *elem_dna)
+uint DNA_elem_id_offset_start(const char *elem_full)
 {
-	uint elem_dna_offset = 0;
-	while (!is_identifier(elem_dna[elem_dna_offset])) {
-		elem_dna_offset++;
+	uint elem_full_offset = 0;
+	while (!is_identifier(elem_full[elem_full_offset])) {
+		elem_full_offset++;
 	}
-	return elem_dna_offset;
+	return elem_full_offset;
 }
 
-uint DNA_elem_id_offset_end(const char *elem_dna)
+uint DNA_elem_id_offset_end(const char *elem_full)
 {
-	uint elem_dna_offset = 0;
-	while (is_identifier(elem_dna[elem_dna_offset])) {
-		elem_dna_offset++;
+	uint elem_full_offset = 0;
+	while (is_identifier(elem_full[elem_full_offset])) {
+		elem_full_offset++;
 	}
-	return elem_dna_offset;
+	return elem_full_offset;
+}
+
+/**
+ * \a elem_dst must be at least the size of \a elem_src.
+ */
+void DNA_elem_id_strip(char *elem_dst, const char *elem_src)
+{
+	const uint elem_src_offset = DNA_elem_id_offset_start(elem_src);
+	const char *elem_src_trim = elem_src + elem_src_offset;
+	const uint elem_src_trim_len = DNA_elem_id_offset_end(elem_src_trim);
+	memcpy(elem_dst, elem_src_trim, elem_src_trim_len);
+	elem_dst[elem_src_trim_len] = '\0';
 }
 
 /**
@@ -110,16 +122,16 @@ uint DNA_elem_id_offset_end(const char *elem_dna)
  */
 bool DNA_elem_id_match(
         const char *elem_search, const int elem_search_len,
-        const char *elem_dna,
-        uint *r_elem_dna_offset)
+        const char *elem_full,
+        uint *r_elem_full_offset)
 {
 	BLI_assert(strlen(elem_search) == elem_search_len);
-	const uint elem_dna_offset = DNA_elem_id_offset_start(elem_dna);
-	const char *elem_dna_trim = elem_dna + elem_dna_offset;
-	if (strncmp(elem_search, elem_dna_trim, elem_search_len) == 0) {
-		const char c = elem_dna_trim[elem_search_len];
+	const uint elem_full_offset = DNA_elem_id_offset_start(elem_full);
+	const char *elem_full_trim = elem_full + elem_full_offset;
+	if (strncmp(elem_search, elem_full_trim, elem_search_len) == 0) {
+		const char c = elem_full_trim[elem_search_len];
 		if (c == '\0' || !is_identifier(c)) {
-			*r_elem_dna_offset = elem_dna_offset;
+			*r_elem_full_offset = elem_full_offset;
 			return true;
 		}
 	}
@@ -133,32 +145,32 @@ char *DNA_elem_id_rename(
         struct MemArena *mem_arena,
         const char *elem_src, const int elem_src_len,
         const char *elem_dst, const int elem_dst_len,
-        const char *elem_dna_src, const int elem_dna_src_len,
-        const uint elem_dna_offset_start)
+        const char *elem_full_src, const int elem_full_src_len,
+        const uint elem_full_offset_start)
 {
 	BLI_assert(strlen(elem_src) == elem_src_len);
 	BLI_assert(strlen(elem_dst) == elem_dst_len);
-	BLI_assert(strlen(elem_dna_src) == elem_dna_src_len);
-	BLI_assert(DNA_elem_id_offset_start(elem_dna_src) == elem_dna_offset_start);
+	BLI_assert(strlen(elem_full_src) == elem_full_src_len);
+	BLI_assert(DNA_elem_id_offset_start(elem_full_src) == elem_full_offset_start);
 	UNUSED_VARS_NDEBUG(elem_src);
 
-	const int elem_final_len = (elem_dna_src_len - elem_src_len) + elem_dst_len;
-	char *elem_dna_dst = BLI_memarena_alloc(mem_arena, elem_final_len + 1);
+	const int elem_final_len = (elem_full_src_len - elem_src_len) + elem_dst_len;
+	char *elem_full_dst = BLI_memarena_alloc(mem_arena, elem_final_len + 1);
 	uint i = 0;
-	if (elem_dna_offset_start != 0) {
-		memcpy(elem_dna_dst, elem_dna_src, elem_dna_offset_start);
-		i = elem_dna_offset_start;
+	if (elem_full_offset_start != 0) {
+		memcpy(elem_full_dst, elem_full_src, elem_full_offset_start);
+		i = elem_full_offset_start;
 	}
-	memcpy(&elem_dna_dst[i], elem_dst, elem_dst_len + 1);
+	memcpy(&elem_full_dst[i], elem_dst, elem_dst_len + 1);
 	i += elem_dst_len;
-	uint elem_dna_offset_end = elem_dna_offset_start + elem_src_len;
-	if (elem_dna_src[elem_dna_offset_end] != '\0') {
-		const int elem_dna_tail_len = (elem_dna_src_len - elem_dna_offset_end);
-		memcpy(&elem_dna_dst[i], &elem_dna_src[elem_dna_offset_end], elem_dna_tail_len + 1);
-		i += elem_dna_tail_len;
+	uint elem_full_offset_end = elem_full_offset_start + elem_src_len;
+	if (elem_full_src[elem_full_offset_end] != '\0') {
+		const int elem_full_tail_len = (elem_full_src_len - elem_full_offset_end);
+		memcpy(&elem_full_dst[i], &elem_full_src[elem_full_offset_end], elem_full_tail_len + 1);
+		i += elem_full_tail_len;
 	}
-	BLI_assert((strlen(elem_dna_dst) == elem_final_len) && (i == elem_final_len));
-	return elem_dna_dst;
+	BLI_assert((strlen(elem_full_dst) == elem_final_len) && (i == elem_final_len));
+	return elem_full_dst;
 }
 
 /** \} */

@@ -24,17 +24,18 @@ struct MemArena;
 
 int DNA_elem_array_size(const char *str);
 
-uint DNA_elem_id_offset_start(const char *elem_dna);
-uint DNA_elem_id_offset_end(const char *elem_dna);
+uint DNA_elem_id_offset_start(const char *elem_full);
+uint DNA_elem_id_offset_end(const char *elem_full);
+void DNA_elem_id_strip(char *elem_dst, const char *elem_src);
 bool DNA_elem_id_match(
         const char *elem_search, const int elem_search_len,
-        const char *elem_dna,
-        uint *r_elem_dna_offset);
+        const char *elem_full,
+        uint *r_elem_full_offset);
 char *DNA_elem_id_rename(
         struct MemArena *mem_arena,
         const char *elem_src, const int elem_src_len,
         const char *elem_dst, const int elem_dst_len,
-        const char *elem_dna_src, const int elem_dna_src_len,
-        const uint elem_dna_offset_start);
+        const char *elem_full_src, const int elem_full_src_len,
+        const uint elem_full_offset_start);
 
 #endif /* __DNA_UTILS_H__ */

@@ -1402,22 +1402,22 @@ static bool DNA_sdna_patch_struct_member_nr(
 	BLI_assert(member_new != NULL);
 	const short *sp = sdna->structs[struct_name_nr];
 	for (int member_iter = sp[1]; member_iter > 0; member_iter--, sp += 2) {
-		const char *member_dna_old = sdna->names[sp[1]];
-		/* Start & end offsets in 'member_dna_old'. */
-		uint member_dna_offset_start;
-		if (DNA_elem_id_match(member_old, member_old_len, member_dna_old, &member_dna_offset_start)) {
+		const char *elem_full_old = sdna->names[sp[1]];
+		/* Start & end offsets in 'elem_full_old'. */
+		uint elem_full_offset_start;
+		if (DNA_elem_id_match(member_old, member_old_len, elem_full_old, &elem_full_offset_start)) {
 			if (sdna->mem_arena == NULL) {
 				sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 			}
-			const int member_dna_old_len = strlen(member_dna_old);
-			const char *member_dna_new = DNA_elem_id_rename(
+			const int elem_full_old_len = strlen(elem_full_old);
+			const char *elem_full_new = DNA_elem_id_rename(
 			        sdna->mem_arena,
 			        member_old, member_old_len,
 			        member_new, member_new_len,
-			        member_dna_old, member_dna_old_len,
-			        member_dna_offset_start);
+			        elem_full_old, elem_full_old_len,
+			        elem_full_offset_start);
 
-			sdna->names[sp[1]] = member_dna_new;
+			sdna->names[sp[1]] = elem_full_new;
 			return true;
 		}
 	}

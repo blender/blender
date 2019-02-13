@@ -975,7 +975,7 @@ void printStructLengths(void)
 
 static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offsets)
 {
-	int len, i;
+	int i;
 	const short *sp;
 	/* str contains filenames. Since we now include paths, I stretched       */
 	/* it a bit. Hope this is enough :) -nzc-                                */
@@ -1085,7 +1085,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	}
 	else {
 		const char nil_bytes[4] = {0};
-		int len_align;
+		int len, len_align;
 
 		dna_write(file, "SDNA", 4);
 
