@@ -379,8 +379,22 @@ static void overlay_draw_scene(void *vedata)
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
+	if (dfbl->multisample_fb != NULL) {
+		DRW_stats_query_start("Multisample Blit");
+		GPU_framebuffer_bind(dfbl->multisample_fb);
+		GPU_framebuffer_clear_color(dfbl->multisample_fb, (const float[4]){0.0f});
+		/* Special blit: we need the original depth and stencil
+		 * in the Multisample buffer. */
+		GPU_framebuffer_blit(dfbl->default_fb, 0,
+		                     dfbl->multisample_fb, 0,
+		                     GPU_DEPTH_BIT | GPU_STENCIL_BIT);
+		DRW_stats_query_end();
+	}
+
 	DRW_draw_pass(psl->face_wireframe_pass);
 
+	/* TODO(fclem): find a way to unify the multisample pass together
+	 * (non meshes + armature + wireframe) */
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 }
 
