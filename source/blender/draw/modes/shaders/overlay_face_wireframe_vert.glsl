@@ -1,9 +1,11 @@
 
-uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ProjectionMatrix;
+uniform mat4 ModelViewMatrix;
 uniform mat4 ModelMatrix;
 uniform mat3 NormalMatrix;
 
 uniform float wireStepParam;
+uniform float ofs;
 
 float get_edge_sharpness(float wd)
 {
@@ -29,7 +31,10 @@ void main()
 	edgeSharpness_g = 1.0;
 #  endif
 
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	mat4 projmat = ProjectionMatrix;
+	projmat[3][2] -= ofs;
+
+	gl_Position = projmat * (ModelViewMatrix * vec4(pos, 1.0));
 
 	facing_g = normalize(NormalMatrix * nor).z;
 
@@ -49,7 +54,10 @@ flat out float edgeSharpness;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	mat4 projmat = ProjectionMatrix;
+	projmat[3][2] -= ofs;
+
+	gl_Position = projmat * (ModelViewMatrix * vec4(pos, 1.0));
 
 	edgeSharpness = get_edge_sharpness(wd);
 

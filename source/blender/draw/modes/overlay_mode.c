@@ -23,6 +23,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BIF_glutil.h"
+
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
@@ -52,7 +54,6 @@ typedef struct OVERLAY_Data {
 typedef struct OVERLAY_PrivateData {
 	DRWShadingGroup *face_orientation_shgrp;
 	DRWShadingGroup *face_wires_shgrp;
-	DRWShadingGroup *flat_wires_shgrp;
 	DRWShadingGroup *sculpt_wires_shgrp;
 	View3DOverlay overlay;
 	float wire_step_param;
@@ -181,17 +182,20 @@ static void overlay_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_OFFSET_NEGATIVE;
 		float wire_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
 
+		float winmat[4][4];
+		float viewdist = rv3d->dist;
+		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
+		/* special exception for ortho camera (viewdist isnt used for perspective cameras) */
+		if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
+			viewdist = 1.0f / max_ff(fabsf(rv3d->winmat[0][0]), fabsf(rv3d->winmat[1][1]));
+		}
+		const float depth_ofs = bglPolygonOffsetCalc((float *)winmat, viewdist, 1.0f);
+
 		const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
 		GPUShader *sculpt_wire_sh = use_select ? sh_data->select_wireframe : sh_data->face_wireframe_sculpt;
 		GPUShader *face_wires_sh = use_select ? sh_data->select_wireframe : sh_data->face_wireframe;
-		GPUShader *flat_wires_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
 		psl->face_wireframe_pass = DRW_pass_create("Face Wires", state);
-
-		g_data->flat_wires_shgrp = DRW_shgroup_create(flat_wires_sh, psl->face_wireframe_pass);
-		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(g_data->flat_wires_shgrp, rv3d);
-		}
 
 		g_data->sculpt_wires_shgrp = DRW_shgroup_create(sculpt_wire_sh, psl->face_wireframe_pass);
 		if (rv3d->rflag & RV3D_CLIPPING) {
@@ -200,6 +204,7 @@ static void overlay_cache_init(void *vedata)
 
 		g_data->face_wires_shgrp = DRW_shgroup_create(face_wires_sh, psl->face_wireframe_pass);
 		DRW_shgroup_uniform_float(g_data->face_wires_shgrp, "wireStepParam", &g_data->wire_step_param, 1);
+		DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "ofs", depth_ofs);
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(g_data->face_wires_shgrp, rv3d);
 		}
