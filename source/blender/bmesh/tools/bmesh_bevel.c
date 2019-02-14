@@ -2816,10 +2816,11 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 static void adjust_offsets(BevelParams *bp)
 {
 	BevVert *bv, *bvcur;
-	BoundVert *v, *vanchor, *vchainstart, *vnext;
+	BoundVert *v, *vanchor, *vchainstart, *vchainend, *vnext;
 	EdgeHalf *enext;
 	GHashIterator giter;
 	bool iscycle;
+	int chainlen;
 
 	/* find and process chains and cycles of unvisited BoundVerts that have eon set */
 	GHASH_ITER(giter, bp->vert_hash) {
@@ -2840,8 +2841,9 @@ static void adjust_offsets(BevelParams *bp)
 			 * pairs with the right side of the next edge in the cycle or chain. */
 
 			/* first follow paired edges in left->right direction */
-			v = vchainstart = vanchor;
+			v = vchainstart = vchainend = vanchor;
 			iscycle = false;
+			chainlen = 1;
 			while (v->eon && !v->visited && !iscycle) {
 				v->visited = true;
 				if (!v->efirst)
@@ -2852,6 +2854,8 @@ static void adjust_offsets(BevelParams *bp)
 				BLI_assert(enext != NULL);
 				vnext = enext->leftv;
 				v->adjchain = vnext;
+				vchainend = vnext;
+				chainlen++;
 				if (vnext->visited) {
 					if (vnext != vchainstart) {
 						break;
@@ -2874,10 +2878,12 @@ static void adjust_offsets(BevelParams *bp)
 						break;
 					vnext = enext->rightv;
 					vnext->adjchain = v;
+					chainlen++;
 					vchainstart = vnext;
 					v = vnext;
 				} while (!v->visited && v->eon);
-				adjust_the_cycle_or_chain(vchainstart, false);
+				if (chainlen >= 3 && !vchainstart->eon && !vchainend->eon)
+					adjust_the_cycle_or_chain(vchainstart, false);
 			}
 		} while ((vanchor = vanchor->next) != bv->vmesh->boundstart);
 	}
