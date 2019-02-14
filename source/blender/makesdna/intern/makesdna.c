@@ -132,6 +132,10 @@ static const char *includefiles[] = {
 	"",
 };
 
+/* -------------------------------------------------------------------- */
+/** \name Variables
+ * \{ */
+
 MemArena *mem_arena = NULL;
 
 static int maxdata = 500000, maxnr = 50000;
@@ -177,20 +181,24 @@ void BLI_system_backtrace(FILE *fp)
 }
 #endif
 
-/* ************************************************************************** */
-/* Functions                                                                  */
-/* ************************************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Function Declarations
+ * \{ */
 
 /**
- * Add type \c str to struct indexed by \c len, if it was not yet found.
- * \param str: char
- * \param len: int
+ * Ensure type \c str to is in the #types array.
+ * \param str: Struct name without any qualifiers.
+ * \param len: The struct size in bytes.
+ * \return Index in the #types array.
  */
 static int add_type(const char *str, int len);
 
 /**
- * Add variable \c str to
- * \param str:
+ * Ensure \c str is int the #names array.
+ * \param str: Struct member name which may include pointer prefix & array size.
+ * \return Index in the #names array.
  */
 static int add_name(const char *str);
 
@@ -226,13 +234,13 @@ static void dna_write(FILE *file, const void *pntr, const int size);
  */
 void printStructLengths(void);
 
+/** \} */
 
-
-/* ************************************************************************** */
-/* Implementation                                                             */
-/* ************************************************************************** */
-
-/* ************************* MAKEN DNA ********************** */
+/* -------------------------------------------------------------------- */
+/** \name Implementation
+ *
+ * Make DNA string (write to file).
+ * \{ */
 
 static int add_type(const char *str, int len)
 {
@@ -926,7 +934,7 @@ static int calculate_structlens(int firststruct)
 		dna_error = 1;
 	}
 
-	return(dna_error);
+	return dna_error;
 }
 
 #define MAX_DNA_LINE_LENGTH 20
@@ -1036,14 +1044,14 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		sprintf(str, "%s%s", baseDirectory, includefiles[i]);
 		DEBUG_PRINTF(0, "\t|-- Converting %s\n", str);
 		if (convert_include(str)) {
-			return (1);
+			return 1;
 		}
 	}
 	DEBUG_PRINTF(0, "\tFinished scanning %d headers.\n", i);
 
 	if (calculate_structlens(firststruct)) {
 		/* error */
-		return(1);
+		return 1;
 	}
 
 	/* FOR DEBUG */
@@ -1200,10 +1208,16 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 
 	DEBUG_PRINTF(0, "done.\n");
 
-	return(0);
+	return 0;
 }
 
-/* ************************* END MAKE DNA ********************** */
+/** \} */
+
+/* end make DNA. */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Function
+ * \{ */
 
 static void make_bad_file(const char *file, int line)
 {
@@ -1270,7 +1284,7 @@ int main(int argc, char **argv)
 	}
 
 
-	return(return_status);
+	return return_status;
 }
 
 /* handy but fails on struct bounds which makesdna doesn't care about
@@ -1361,3 +1375,5 @@ int main(int argc, char **argv)
 #include "DNA_lightprobe_types.h"
 
 /* end of list */
+
+/** \} */
