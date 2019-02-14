@@ -202,7 +202,7 @@ void BKE_object_handle_data_update(
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_FONT:
-			BKE_displist_make_curveTypes(depsgraph, scene, ob, false, false);
+			BKE_displist_make_curveTypes(depsgraph, scene, ob, false, false, NULL);
 			break;
 
 		case OB_LATTICE:

@@ -27,6 +27,7 @@ struct Curve;
 struct Depsgraph;
 struct EditNurb;
 struct GHash;
+struct LinkNode;
 struct ListBase;
 struct Main;
 struct Nurb;
@@ -119,7 +120,8 @@ void BKE_curve_bevelList_free(struct ListBase *bev);
 void BKE_curve_bevelList_make(struct Object *ob, struct ListBase *nurbs, bool for_render);
 void BKE_curve_bevel_make(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,  struct ListBase *disp,
-        const bool for_render, const bool use_render_resolution);
+        const bool for_render, const bool use_render_resolution,
+        struct LinkNode *ob_cyclic_list);
 
 void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 void BKE_curve_forward_diff_tangent_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);

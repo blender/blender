@@ -49,6 +49,7 @@ enum {
 /* prototypes */
 
 struct Depsgraph;
+struct LinkNode;
 struct ListBase;
 struct Main;
 struct Mesh;
@@ -83,12 +84,15 @@ void BKE_displist_make_surf(
         struct Mesh **r_final, const bool for_render, const bool for_orco, const bool use_render_resolution);
 void BKE_displist_make_curveTypes(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
-        const bool for_render, const bool for_orco);
+        const bool for_render, const bool for_orco,
+        struct LinkNode *ob_cyclic_list);
 void BKE_displist_make_curveTypes_forRender(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
-        struct Mesh **r_final, const bool for_orco, const bool use_render_resolution);
+        struct Mesh **r_final, const bool for_orco, const bool use_render_resolution,
+        struct LinkNode *ob_cyclic_list);
 void BKE_displist_make_curveTypes_forOrco(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
+        struct LinkNode *ob_cyclic_list);
 void BKE_displist_make_mball(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_displist_make_mball_forRender(

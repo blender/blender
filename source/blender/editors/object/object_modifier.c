@@ -105,7 +105,7 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Scene *s
 		BKE_displist_make_mball(depsgraph, scene, ob);
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		BKE_displist_make_curveTypes(depsgraph, scene, ob, false, false);
+		BKE_displist_make_curveTypes(depsgraph, scene, ob, false, false, NULL);
 	}
 }
 

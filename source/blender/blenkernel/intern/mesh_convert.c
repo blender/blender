@@ -896,7 +896,9 @@ Mesh *BKE_mesh_new_from_object(
 			copycu->editnurb = tmpcu->editnurb;
 
 			/* get updated display list, and convert to a mesh */
-			BKE_displist_make_curveTypes_forRender(depsgraph, sce, tmpobj, &dispbase, &me_eval_final, false, render);
+			BKE_displist_make_curveTypes_forRender(
+			        depsgraph, sce, tmpobj, &dispbase, &me_eval_final, false, render,
+			        NULL);
 
 			copycu->editfont = NULL;
 			copycu->editnurb = NULL;

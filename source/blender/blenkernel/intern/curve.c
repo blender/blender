@@ -31,6 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_linklist.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
@@ -1735,7 +1736,7 @@ float *BKE_curve_make_orco(Depsgraph *depsgraph, Scene *scene, Object *ob, int *
 	float *fp, *coord_array;
 	ListBase disp = {NULL, NULL};
 
-	BKE_displist_make_curveTypes_forOrco(depsgraph, scene, ob, &disp);
+	BKE_displist_make_curveTypes_forOrco(depsgraph, scene, ob, &disp, NULL);
 
 	numVerts = 0;
 	for (dl = disp.first; dl; dl = dl->next) {
@@ -1828,7 +1829,8 @@ float *BKE_curve_make_orco(Depsgraph *depsgraph, Scene *scene, Object *ob, int *
 
 void BKE_curve_bevel_make(
         Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *disp,
-        const bool for_render, const bool use_render_resolution)
+        const bool for_render, const bool use_render_resolution,
+        LinkNode *ob_cyclic_list)
 {
 	DispList *dl, *dlnew;
 	Curve *bevcu, *cu;
@@ -1852,8 +1854,15 @@ void BKE_curve_bevel_make(
 			facy = cu->bevobj->size[1];
 
 			if (for_render) {
-				BKE_displist_make_curveTypes_forRender(depsgraph, scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution);
-				dl = bevdisp.first;
+				if (BLI_linklist_index(ob_cyclic_list, cu->bevobj) == -1) {
+					BKE_displist_make_curveTypes_forRender(
+					        depsgraph, scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution,
+					        &(LinkNode){ .link = ob, .next = ob_cyclic_list, });
+					dl = bevdisp.first;
+				}
+				else {
+					dl = NULL;
+				}
 			}
 			else if (cu->bevobj->runtime.curve_cache) {
 				dl = cu->bevobj->runtime.curve_cache->disp.first;
