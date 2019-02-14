@@ -32,7 +32,6 @@ extern DrawEngineType draw_engine_edit_text_type;
 extern DrawEngineType draw_engine_motion_path_type;
 extern DrawEngineType draw_engine_paint_texture_type;
 extern DrawEngineType draw_engine_paint_vertex_type;
-extern DrawEngineType draw_engine_paint_weight_type;
 extern DrawEngineType draw_engine_particle_type;
 extern DrawEngineType draw_engine_pose_type;
 extern DrawEngineType draw_engine_sculpt_type;

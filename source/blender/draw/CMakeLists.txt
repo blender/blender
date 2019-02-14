@@ -80,7 +80,6 @@ set(SRC
 	modes/overlay_mode.c
 	modes/paint_texture_mode.c
 	modes/paint_vertex_mode.c
-	modes/paint_weight_mode.c
 	modes/particle_mode.c
 	modes/pose_mode.c
 	modes/sculpt_mode.c
