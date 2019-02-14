@@ -117,7 +117,7 @@ public:
 	array<float> pixels;
 
 	/* Image file handles */
-	unique_ptr<ImageInput> in;
+	ImageSpec in_spec;
 	vector<unique_ptr<ImageInput>> in_neighbors;
 
 	/* Render layers */
