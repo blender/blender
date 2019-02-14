@@ -1197,14 +1197,13 @@ void EDBM_verts_mirror_apply(BMEditMesh *em, const int sel_from, const int sel_t
  * \{ */
 
 /* swap is 0 or 1, if 1 it hides not selected */
-void EDBM_mesh_hide(BMEditMesh *em, bool swap)
+bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
 {
 	BMIter iter;
 	BMElem *ele;
 	int itermode;
 	char hflag_swap = swap ? BM_ELEM_SELECT : 0;
-
-	if (em == NULL) return;
+	bool changed = true;
 
 	if (em->selectmode & SCE_SELECT_VERTEX)
 		itermode = BM_VERTS_OF_MESH;
@@ -1214,11 +1213,18 @@ void EDBM_mesh_hide(BMEditMesh *em, bool swap)
 		itermode = BM_FACES_OF_MESH;
 
 	BM_ITER_MESH (ele, &iter, em->bm, itermode) {
-		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ hflag_swap)
-			BM_elem_hide_set(em->bm, ele, true);
+		if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ hflag_swap) {
+				BM_elem_hide_set(em->bm, ele, true);
+				changed = true;
+			}
+		}
 	}
 
-	EDBM_selectmode_flush(em);
+	if (changed) {
+		EDBM_selectmode_flush(em);
+	}
+	return changed;
 
 	/* original hide flushing comment (OUTDATED):
 	 * hide happens on least dominant select mode, and flushes up, not down!
@@ -1230,7 +1236,7 @@ void EDBM_mesh_hide(BMEditMesh *em, bool swap)
 	 */
 }
 
-void EDBM_mesh_reveal(BMEditMesh *em, bool select)
+bool EDBM_mesh_reveal(BMEditMesh *em, bool select)
 {
 	const char iter_types[3] = {
 		BM_VERTS_OF_MESH,
@@ -1244,6 +1250,7 @@ void EDBM_mesh_reveal(BMEditMesh *em, bool select)
 		(em->selectmode & SCE_SELECT_FACE) != 0,
 	};
 	int i;
+	bool changed = false;
 
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
@@ -1252,8 +1259,18 @@ void EDBM_mesh_reveal(BMEditMesh *em, bool select)
 		BMElem *ele;
 
 		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
-			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
+			if (BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
+				BM_elem_flag_enable(ele, BM_ELEM_TAG);
+				changed = true;
+			}
+			else {
+				BM_elem_flag_disable(ele, BM_ELEM_TAG);
+			}
 		}
+	}
+
+	if (!changed) {
+		return false;
 	}
 
 	/* Reveal everything */
@@ -1279,6 +1296,8 @@ void EDBM_mesh_reveal(BMEditMesh *em, bool select)
 
 	/* hidden faces can have invalid normals */
 	EDBM_mesh_normals_update(em);
+
+	return true;
 }
 
 /** \} */

@@ -1983,6 +1983,7 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 {
 	const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	bool changed = false;
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
@@ -1991,18 +1992,28 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		BMesh *bm = em->bm;
 
-		if ((bm->totvertsel == 0) &&
-		    (bm->totedgesel == 0) &&
-		    (bm->totfacesel == 0))
-		{
-			continue;
+		if (unselected) {
+			if (bm->totvertsel == bm->totvert) {
+				continue;
+			}
+		}
+		else {
+			if (bm->totvertsel == 0) {
+				continue;
+			}
 		}
 
-		EDBM_mesh_hide(em, unselected);
-		EDBM_update_generic(em, true, false);
+		if (EDBM_mesh_hide(em, unselected)) {
+			EDBM_update_generic(em, true, false);
+			changed = true;
+		}
+	}
+	MEM_freeN(objects);
+
+	if (!changed) {
+		return OPERATOR_CANCELLED;
 	}
 
-	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
@@ -2041,8 +2052,9 @@ static int edbm_reveal_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		EDBM_mesh_reveal(em, select);
-		EDBM_update_generic(em, true, false);
+		if (EDBM_mesh_reveal(em, select)) {
+			EDBM_update_generic(em, true, false);
+		}
 	}
 	MEM_freeN(objects);
 
