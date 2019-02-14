@@ -25,9 +25,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
                                           int pass_filter,
                                           int sample)
 {
-	/* initialize master radiance accumulator */
 	kernel_assert(kernel_data.film.use_light_pass);
-	path_radiance_init(L, kernel_data.film.use_light_pass);
 
 	PathRadiance L_sample;
 	PathState state;
@@ -299,6 +297,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 
 	/* light passes */
 	PathRadiance L;
+	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
 	shader_setup_from_sample(kg, &sd,
 	                         P, Ng, Ng,

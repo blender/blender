@@ -63,7 +63,7 @@ public:
 	bool fast_math;
 };
 
-bool compile_cuda(CompilationSettings &settings)
+static bool compile_cuda(CompilationSettings &settings)
 {
 	const char* headers[] = {"stdlib.h" , "float.h", "math.h", "stdio.h"};
 	const char* header_content[] = {"\n", "\n", "\n", "\n"};
@@ -99,7 +99,7 @@ bool compile_cuda(CompilationSettings &settings)
 		headers);                        // includeNames
 
 	if(result != NVRTC_SUCCESS) {
-		fprintf(stderr, "Error: nvrtcCreateProgram failed (%x)\n\n", result);
+		fprintf(stderr, "Error: nvrtcCreateProgram failed (%d)\n\n", (int)result);
 		return false;
 	}
 
@@ -112,7 +112,7 @@ bool compile_cuda(CompilationSettings &settings)
 	result = nvrtcCompileProgram(prog, options.size(), &opts[0]);
 
 	if(result != NVRTC_SUCCESS) {
-		fprintf(stderr, "Error: nvrtcCompileProgram failed (%x)\n\n", result);
+		fprintf(stderr, "Error: nvrtcCompileProgram failed (%d)\n\n", (int)result);
 
 		size_t log_size;
 		nvrtcGetProgramLogSize(prog, &log_size);
@@ -128,14 +128,14 @@ bool compile_cuda(CompilationSettings &settings)
 	size_t ptx_size;
 	result = nvrtcGetPTXSize(prog, &ptx_size);
 	if(result != NVRTC_SUCCESS) {
-		fprintf(stderr, "Error: nvrtcGetPTXSize failed (%x)\n\n", result);
+		fprintf(stderr, "Error: nvrtcGetPTXSize failed (%d)\n\n", (int)result);
 		return false;
 	}
 
 	vector<char> ptx_code(ptx_size);
 	result = nvrtcGetPTX(prog, &ptx_code[0]);
 	if(result != NVRTC_SUCCESS) {
-		fprintf(stderr, "Error: nvrtcGetPTX failed (%x)\n\n", result);
+		fprintf(stderr, "Error: nvrtcGetPTX failed (%d)\n\n", (int)result);
 		return false;
 	}
 
@@ -148,7 +148,7 @@ bool compile_cuda(CompilationSettings &settings)
 	return true;
 }
 
-bool link_ptxas(CompilationSettings &settings)
+static bool link_ptxas(CompilationSettings &settings)
 {
 	string cudapath = "";
 	if(settings.cuda_toolkit_dir.size())
@@ -166,7 +166,7 @@ bool link_ptxas(CompilationSettings &settings)
 
 	int pxresult = system(ptx.c_str());
 	if(pxresult) {
-		fprintf(stderr, "Error: ptxas failed (%x)\n\n", pxresult);
+		fprintf(stderr, "Error: ptxas failed (%d)\n\n", pxresult);
 		return false;
 	}
 
@@ -177,17 +177,19 @@ bool link_ptxas(CompilationSettings &settings)
 	return true;
 }
 
-bool init(CompilationSettings &settings)
+static bool init(CompilationSettings &settings)
 {
 #ifdef _MSC_VER
 	if(settings.cuda_toolkit_dir.size()) {
 		SetDllDirectory((settings.cuda_toolkit_dir + "/bin").c_str());
 	}
+#else
+	(void)settings;
 #endif
 
 	int cuewresult = cuewInit(CUEW_INIT_NVRTC);
 	if(cuewresult != CUEW_SUCCESS) {
-		fprintf(stderr, "Error: cuew init fialed (0x%x)\n\n", cuewresult);
+		fprintf(stderr, "Error: cuew init fialed (0x%d)\n\n", cuewresult);
 		return false;
 	}
 
@@ -229,7 +231,7 @@ bool init(CompilationSettings &settings)
 	return true;
 }
 
-bool parse_parameters(int argc, const char **argv, CompilationSettings &settings)
+static bool parse_parameters(int argc, const char **argv, CompilationSettings &settings)
 {
 	OIIO::ArgParse ap;
 	ap.options("Usage: cycles_cubin_cc [options]",
