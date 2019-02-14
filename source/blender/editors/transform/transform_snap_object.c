@@ -1537,7 +1537,7 @@ static short snapCurve(
 					if (nu->bezt) {
 						/* don't snap to selected (moving) or hidden */
 						if (nu->bezt[u].f2 & SELECT || nu->bezt[u].hide != 0) {
-							break;
+							continue;
 						}
 						has_snap |= test_projected_vert_dist(
 						        &neasrest_precalc,
@@ -1567,7 +1567,7 @@ static short snapCurve(
 					else {
 						/* don't snap to selected (moving) or hidden */
 						if (nu->bp[u].f1 & SELECT || nu->bp[u].hide != 0) {
-							break;
+							continue;
 						}
 						has_snap |= test_projected_vert_dist(
 						        &neasrest_precalc,
