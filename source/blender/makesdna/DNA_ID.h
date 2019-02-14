@@ -530,9 +530,10 @@ enum {
 typedef enum IDRecalcFlag {
 	/* Individual update tags, this is what ID gets tagged for update with. */
 
-	/* Object transformation changed. */
+	/* ** Object transformation changed. ** */
 	ID_RECALC_TRANSFORM   = (1 << 0),
-	/* Object geometry changed.
+
+	/* ** Object geometry changed. **
 	 *
 	 * When object of armature type gets tagged with this flag, it's pose is
 	 * re-evaluated.
@@ -541,18 +542,30 @@ typedef enum IDRecalcFlag {
 	 * When object data type (mesh, curve, ...) gets tagged with this flag it
 	 * makes all objects which shares this datablock to be updated. */
 	ID_RECALC_GEOMETRY    = (1 << 1),
-	/* Animation or time changed and animation is to be re-evaluated. */
+
+	/* ** Animation or time changed and animation is to be re-evaluated. ** */
 	ID_RECALC_ANIMATION   = (1 << 2),
-	/* Particle system changed; values are aligned with ID_RECALC_PSYS_xxx. */
-	ID_RECALC_PSYS_REDO   = (1 << 3),  /* Only do pathcache etc */
-	ID_RECALC_PSYS_RESET  = (1 << 4),  /* Reset everything including pointcache. */
-	ID_RECALC_PSYS_CHILD  = (1 << 5),  /* Only child settings changed. */
-	ID_RECALC_PSYS_PHYS   = (1 << 6),  /* Physics type changed. */
-	/* Update copy on write component without flushing down the road. */
-	ID_RECALC_COPY_ON_WRITE = (1 << 7),
-	/* Tag shading components for update. Only parameters of material changed).
-	 */
-	ID_RECALC_SHADING       = (1 << 8),
+
+	/* ** Particle system changed. ** */
+	/* Only do pathcache etc. */
+	ID_RECALC_PSYS_REDO   = (1 << 3),
+	/* Reset everything including pointcache. */
+	ID_RECALC_PSYS_RESET  = (1 << 4),
+	/* Only child settings changed. */
+	ID_RECALC_PSYS_CHILD  = (1 << 5),
+	/* Physics type changed. */
+	ID_RECALC_PSYS_PHYS   = (1 << 6),
+
+	/* ** Material and shading ** */
+
+	/* For materials and node trees this means that topology of the shader tree
+	 * changed, and the shader is to be recompiled.
+	 * For objects it means that the draw batch cache is to be redone. */
+	ID_RECALC_SHADING             = (1 << 7),
+	/* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMATERS
+	 * which can be used for cases when only socket value changed, to speed up
+	 * redraw update in that case. */
+
 	/* Selection of the ID itself or its components (for example, vertices) did
 	 * change, and all the drawing data is to eb updated. */
 	ID_RECALC_SELECT        = (1 << 9),
@@ -566,6 +579,12 @@ typedef enum IDRecalcFlag {
 	 * For example, brush texture did change and the preview is to be
 	 * re-rendered. */
 	ID_RECALC_EDITORS       = (1 << 12),
+
+	/* ** Update copy on write component. **
+	 * This is most generic tag which should only be used when nothing else
+	 * matches.
+	 */
+	ID_RECALC_COPY_ON_WRITE = (1 << 13),
 
 	/* Aggregate flags, use only for checks on runtime.
 	 * Do NOT use those for tagging. */
