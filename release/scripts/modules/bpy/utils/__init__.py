@@ -587,14 +587,11 @@ def keyconfig_init():
 
 def keyconfig_set(filepath, report=None):
     from os.path import basename, splitext
-    from itertools import chain
 
     if _bpy.app.debug_python:
         print("loading preset:", filepath)
 
     keyconfigs = _bpy.context.window_manager.keyconfigs
-
-    keyconfigs_old = keyconfigs[:]
 
     try:
         error_msg = ""
@@ -603,17 +600,18 @@ def keyconfig_set(filepath, report=None):
         import traceback
         error_msg = traceback.format_exc()
 
+    name = splitext(basename(filepath))[0]
+    kc_new = keyconfigs.get(name)
+
     if error_msg:
         if report is not None:
             report({'ERROR'}, error_msg)
         print(error_msg)
-
-    kc_new = next(chain(iter(kc for kc in keyconfigs
-                             if kc not in keyconfigs_old), (None,)))
+        if kc_new is not None:
+            keyconfigs.remove(kc_new)
+        return False
 
     # Get name, exception for default keymap to keep backwards compatibility.
-    name = splitext(basename(filepath))[0]
-    kc_new = keyconfigs.get(name)
     if kc_new is None:
         if report is not None:
             report({'ERROR'}, "Failed to load keymap %r" % filepath)
