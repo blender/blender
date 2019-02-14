@@ -27,25 +27,35 @@
 
 import sys
 
-if len(sys.argv) < 2:
-    sys.stdout.write("Usage: ctodata <c_file>\n")
+argv = sys.argv[:]
+
+strip_byte = False
+if "--strip-byte" in argv:
+    argv.remove("--strip-byte")
+    strip_byte = True
+
+if len(argv) < 2:
+    sys.stdout.write("Usage: ctodata <c_file> [--strip-byte]\n")
     sys.exit(1)
 
-filename = sys.argv[1]
+filename = argv[1]
 
 try:
     fpin = open(filename, "r")
 except:
-    sys.stdout.write("Unable to open input %s\n" % sys.argv[1])
+    sys.stdout.write("Unable to open input %s\n" % argv[1])
     sys.exit(1)
 
 data = fpin.read().rsplit("{")[-1].split("}")[0]
 data = data.replace(",", " ")
 data = data.split()
 data = [int(v) for v in data]
-# for some reason all data gets trailing byte
-last = data.pop()
-assert(last == 0)
+
+if strip_byte:
+    # String data gets trailing byte.
+    last = data.pop()
+    assert(last == 0)
+
 data = bytes(data)
 
 dname = filename + ".ctodata"
