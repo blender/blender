@@ -1849,10 +1849,8 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
 
 /* Purge Orphans Operator --------------------------------------- */
 
-static bool outliner_orphans_purge_tag_cb(Main *UNUSED(bmain), ID *id, void *user_data)
+static void outliner_orphans_purge_tag(ID *id, int *num_tagged)
 {
-	int *num_tagged = (int *)user_data;
-
 	if (id->us == 0) {
 		id->tag |= LIB_TAG_DOIT;
 		num_tagged[INDEX_ID_NULL]++;
@@ -1861,7 +1859,6 @@ static bool outliner_orphans_purge_tag_cb(Main *UNUSED(bmain), ID *id, void *use
 	else {
 		id->tag &= ~LIB_TAG_DOIT;
 	}
-	return true;
 }
 
 static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
@@ -1870,7 +1867,12 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 	int num_tagged[INDEX_ID_MAX] = {0};
 
 	/* Tag all IDs having zero users. */
-	BKE_main_foreach_id(bmain, false, outliner_orphans_purge_tag_cb, num_tagged);
+	ID *id;
+	FOREACH_MAIN_ID_BEGIN(bmain, id)
+	{
+		outliner_orphans_purge_tag(id, num_tagged);
+	}
+	FOREACH_MAIN_ID_END;
 	RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
 
 	if (num_tagged[INDEX_ID_NULL] == 0) {
@@ -1912,7 +1914,12 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
 	if ((num_tagged[INDEX_ID_NULL] = RNA_int_get(op->ptr, "num_deleted")) == 0) {
 		/* Tag all IDs having zero users. */
-		BKE_main_foreach_id(bmain, false, outliner_orphans_purge_tag_cb, num_tagged);
+		ID *id;
+		FOREACH_MAIN_ID_BEGIN(bmain, id)
+		{
+			outliner_orphans_purge_tag(id, num_tagged);
+		}
+		FOREACH_MAIN_ID_END;
 
 		if (num_tagged[INDEX_ID_NULL] == 0) {
 			BKE_report(op->reports, RPT_INFO, "No orphanned data-blocks to purge");

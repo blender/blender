@@ -1328,27 +1328,6 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(
 	return IDWALK_RET_NOP;
 }
 
-static bool unused_linked_data_tag_init_cb(Main *UNUSED(bmain), ID *id, void *UNUSED(user_data))
-{
-	if (id->lib && (id->tag & LIB_TAG_INDIRECT) != 0) {
-		id->tag |= LIB_TAG_DOIT;
-	}
-	else {
-		id->tag &= ~LIB_TAG_DOIT;
-	}
-	return true;
-}
-
-static bool unused_linked_data_check_cb(Main *bmain, ID *id, void *user_data)
-{
-	if ((id->tag & LIB_TAG_DOIT) == 0) {
-		BKE_library_foreach_ID_link(
-		            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, user_data, IDWALK_READONLY);
-	}
-	/* Else it is an unused ID (so far), no need to check it further. */
-	return true;
-}
-
 /**
  * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly) in any way by any local data),
  * including complex cases like 'linked archipelagoes', i.e. linked datablocks that use each other in loops,
@@ -1359,13 +1338,35 @@ static bool unused_linked_data_check_cb(Main *bmain, ID *id, void *user_data)
  */
 void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 {
+	ID *id;
+
 	if (do_init_tag) {
-		BKE_main_foreach_id(bmain, true, unused_linked_data_tag_init_cb, NULL);
+		FOREACH_MAIN_ID_BEGIN(bmain, id)
+		{
+			if (id->lib && (id->tag & LIB_TAG_INDIRECT) != 0) {
+				id->tag |= LIB_TAG_DOIT;
+			}
+			else {
+				id->tag &= ~LIB_TAG_DOIT;
+			}
+		}
+		FOREACH_MAIN_ID_END;
 	}
 
 	for (bool do_loop = true; do_loop; ) {
+		bool do_break = false;
 		do_loop = false;
-		BKE_main_foreach_id(bmain, true, unused_linked_data_check_cb, &do_loop);
+		FOREACH_MAIN_ID_BREAKABLE_BEGIN(bmain, id, do_break)
+		{
+			if ((id->tag & LIB_TAG_DOIT) == 0) {
+				BKE_library_foreach_ID_link(
+				            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_READONLY);
+			}
+			/* Else it is an unused ID (so far), no need to check it further. */
+			do_break = true;
+			break;
+		}
+		FOREACH_MAIN_ID_BREAKABLE_END;
 	}
 }
 
