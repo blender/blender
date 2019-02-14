@@ -581,7 +581,34 @@ static void sculpt_draw_cb(
 
 	if (pbvh) {
 		BKE_pbvh_draw_cb(
-		        pbvh, NULL, NULL, fast_mode, false,
+		        pbvh, NULL, NULL, fast_mode, false, false,
+		        (void (*)(void *, GPUBatch *))draw_fn, shgroup);
+	}
+}
+
+static void sculpt_draw_wires_cb(
+        DRWShadingGroup *shgroup,
+        void (*draw_fn)(DRWShadingGroup *shgroup, GPUBatch *geom),
+        void *user_data)
+{
+	Object *ob = user_data;
+
+	/* XXX should be ensured before but sometime it's not... go figure (see T57040). */
+	PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(DST.draw_ctx.depsgraph, ob);
+
+	const DRWContextState *drwctx = DRW_context_state_get();
+	int fast_mode = 0;
+
+	if (drwctx->evil_C != NULL) {
+		Paint *p = BKE_paint_get_active_from_context(drwctx->evil_C);
+		if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
+			fast_mode = drwctx->rv3d->rflag & RV3D_NAVIGATING;
+		}
+	}
+
+	if (pbvh) {
+		BKE_pbvh_draw_cb(
+		        pbvh, NULL, NULL, fast_mode, true, false,
 		        (void (*)(void *, GPUBatch *))draw_fn, shgroup);
 	}
 }
@@ -589,6 +616,11 @@ static void sculpt_draw_cb(
 void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, Object *ob, float (*obmat)[4])
 {
 	DRW_shgroup_call_generate_add(shgroup, sculpt_draw_cb, ob, obmat);
+}
+
+void DRW_shgroup_call_sculpt_wires_add(DRWShadingGroup *shgroup, Object *ob, float (*obmat)[4])
+{
+	DRW_shgroup_call_generate_add(shgroup, sculpt_draw_wires_cb, ob, obmat);
 }
 
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], uint attr_len)

@@ -10,7 +10,7 @@ uniform float ofs;
 #ifndef USE_SCULPT
 float get_edge_sharpness(float wd)
 {
-	return (wd == 1.0) ? 1.0 : ((wd == 0.0) ? -1.0 : (wd + wireStepParam));
+	return ((wd == 1.0) ? 1.0 : ((wd == 0.0) ? -1.5 : wd)) + wireStepParam;
 }
 #else
 float get_edge_sharpness(float wd) { return 1.0; }

@@ -378,6 +378,7 @@ void DRW_shgroup_call_instances_add(
 void DRW_shgroup_call_object_instances_add(
         DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, uint *count);
 void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, struct Object *ob, float (*obmat)[4]);
+void DRW_shgroup_call_sculpt_wires_add(DRWShadingGroup *shgroup, struct Object *ob, float (*obmat)[4]);
 void DRW_shgroup_call_generate_add(
         DRWShadingGroup *shgroup, DRWCallGenerateFn *geometry_fn, void *user_data, float (*obmat)[4]);
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], uint attr_len);

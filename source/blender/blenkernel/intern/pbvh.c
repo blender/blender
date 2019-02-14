@@ -2049,6 +2049,7 @@ struct PBVHNodeDrawCallbackData {
 	void *user_data;
 	bool fast;
 	bool only_mask; /* Only draw nodes that have mask data. */
+	bool wires;
 };
 
 static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
@@ -2056,11 +2057,11 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
 	struct PBVHNodeDrawCallbackData *data = data_v;
 
 	if (!(node->flag & PBVH_FullyHidden)) {
-		GPUBatch *triangles = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast);
+		GPUBatch *batch = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast, data->wires);
 		bool show_mask = GPU_pbvh_buffers_has_mask(node->draw_buffers);
 		if (!data->only_mask || show_mask) {
-			if (triangles != NULL) {
-				data->draw_fn(data->user_data, triangles);
+			if (batch != NULL) {
+				data->draw_fn(data->user_data, batch);
 			}
 		}
 	}
@@ -2070,12 +2071,13 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
  * Version of #BKE_pbvh_draw that runs a callback.
  */
 void BKE_pbvh_draw_cb(
-        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast, bool only_mask,
+        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast, bool wires, bool only_mask,
         void (*draw_fn)(void *user_data, GPUBatch *batch), void *user_data)
 {
 	struct PBVHNodeDrawCallbackData draw_data = {
 		.only_mask = only_mask,
 		.fast = fast,
+		.wires = wires,
 		.draw_fn = draw_fn,
 		.user_data = user_data,
 	};

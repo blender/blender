@@ -319,11 +319,11 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			if (geom || is_sculpt_mode) {
 				shgrp = DRW_shgroup_create_sub(pd->face_wires_shgrp);
 
-				static float all_wires_param = 10.0f;
-				DRW_shgroup_uniform_float(
-				        shgrp, "wireStepParam",
-				        (all_wires || is_sculpt_mode) ? &all_wires_param : &pd->wire_step_param,
-				        1);
+				float wire_step_param = 10.0f;
+				if (!is_sculpt_mode) {
+					wire_step_param = (all_wires) ? 1.0f : pd->wire_step_param;
+				}
+				DRW_shgroup_uniform_float_copy(shgrp, "wireStepParam", wire_step_param);
 
 				if (!(DRW_state_is_select() || DRW_state_is_depth())) {
 					DRW_shgroup_stencil_mask(shgrp, stencil_mask);
@@ -332,7 +332,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				}
 
 				if (is_sculpt_mode) {
-					DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
+					DRW_shgroup_call_sculpt_wires_add(shgrp, ob, ob->obmat);
 				}
 				else {
 					DRW_shgroup_call_add(shgrp, geom, ob->obmat);

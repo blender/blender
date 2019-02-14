@@ -125,7 +125,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(
 /* Drawing */
 
 void BKE_pbvh_draw_cb(
-        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast, bool only_mask,
+        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast, bool wires, bool only_mask,
         void (*draw_fn)(void *user_data, struct GPUBatch *batch), void *user_data);
 
 /* PBVH Access */
