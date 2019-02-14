@@ -3132,6 +3132,16 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
 	}
 
+	/* do not draw in locked or invisible layers */
+	eGPencil_PaintModes paintmode = RNA_enum_get(op->ptr, "mode");
+	if (paintmode != GP_PAINTMODE_ERASER) {
+		bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
+		if ((gpl) && ((gpl->flag & GP_LAYER_LOCKED) || (gpl->flag & GP_LAYER_HIDE))) {
+			BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hide");
+			return OPERATOR_CANCELLED;
+		}
+	}
+
 	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op, event)) {
 		if (op->customdata)
