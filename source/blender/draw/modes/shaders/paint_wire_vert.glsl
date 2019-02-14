@@ -9,8 +9,13 @@ flat out vec4 finalColor;
 
 void main()
 {
+#ifdef USE_SELECT
 	bool is_select = (nor.w > 0.0);
 	bool is_hidden = (nor.w < 0.0);
+#else
+	bool is_select = false;
+	bool is_hidden = false;
+#endif
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	/* Add offset in Z to avoid zfighting and render selected wires on top. */
 	/* TODO scale this bias using znear and zfar range. */

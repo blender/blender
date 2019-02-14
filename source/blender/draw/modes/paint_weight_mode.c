@@ -46,8 +46,9 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 typedef struct PAINT_WEIGHT_PassList {
 	struct DRWPass *weight_faces;
 	struct DRWPass *wire_overlay;
-	struct DRWPass *face_overlay;
-	struct DRWPass *vert_overlay;
+	struct DRWPass *wire_select_overlay;
+	struct DRWPass *face_select_overlay;
+	struct DRWPass *vert_select_overlay;
 } PAINT_WEIGHT_PassList;
 
 typedef struct PAINT_WEIGHT_StorageList {
@@ -65,8 +66,9 @@ typedef struct PAINT_WEIGHT_Data {
 typedef struct PAINT_WEIGHT_Shaders {
 	struct GPUShader *weight_face;
 	struct GPUShader *wire_overlay;
-	struct GPUShader *face_overlay;
-	struct GPUShader *vert_overlay;
+	struct GPUShader *wire_select_overlay;
+	struct GPUShader *face_select_overlay;
+	struct GPUShader *vert_select_overlay;
 } PAINT_WEIGHT_Shaders;
 
 /* *********** STATIC *********** */
@@ -80,8 +82,9 @@ static struct {
 typedef struct PAINT_WEIGHT_PrivateData {
 	DRWShadingGroup *fweights_shgrp;
 	DRWShadingGroup *lwire_shgrp;
+	DRWShadingGroup *lwire_select_shgrp;
 	DRWShadingGroup *face_shgrp;
-	DRWShadingGroup *vert_shgrp;
+	DRWShadingGroup *vert_select_shgrp;
 } PAINT_WEIGHT_PrivateData;
 
 /* *********** FUNCTIONS *********** */
@@ -108,17 +111,21 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 		        .frag = (const char *[]){datatoc_paint_wire_frag_glsl, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, "#define WEIGHT_MODE\n", NULL},
 		});
-
-		sh_data->face_overlay = GPU_shader_create_from_arrays({
+		sh_data->wire_select_overlay = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_paint_wire_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define WEIGHT_MODE\n" "#define USE_SELECT\n", NULL},
+		});
+		sh_data->face_select_overlay = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_paint_face_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 
-		sh_data->vert_overlay = GPU_shader_create_from_arrays({
+		sh_data->vert_select_overlay = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_paint_vert_frag_glsl, NULL},
-		        .defs = (const char *[]){sh_cfg_data->def, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define USE_SELECT\n", NULL},
 		});
 	}
 }
@@ -168,11 +175,23 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 	}
 
 	{
-		psl->face_overlay = DRW_pass_create(
+		psl->wire_select_overlay = DRW_pass_create(
+		        "Wire Mask Pass",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
+
+		stl->g_data->lwire_select_shgrp = DRW_shgroup_create(sh_data->wire_select_overlay, psl->wire_overlay);
+		DRW_shgroup_uniform_block(stl->g_data->lwire_select_shgrp, "globalsBlock", G_draw.block_ubo);
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->lwire_select_shgrp, rv3d);
+		}
+	}
+
+	{
+		psl->face_select_overlay = DRW_pass_create(
 		        "Face Mask Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 
-		stl->g_data->face_shgrp = DRW_shgroup_create(sh_data->face_overlay, psl->face_overlay);
+		stl->g_data->face_shgrp = DRW_shgroup_create(sh_data->face_select_overlay, psl->face_select_overlay);
 
 		static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
 		DRW_shgroup_uniform_vec4(stl->g_data->face_shgrp, "color", col, 1);
@@ -182,14 +201,14 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 	}
 
 	{
-		psl->vert_overlay = DRW_pass_create(
+		psl->vert_select_overlay = DRW_pass_create(
 		        "Vert Mask Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
 
-		stl->g_data->vert_shgrp = DRW_shgroup_create(sh_data->vert_overlay, psl->vert_overlay);
-		DRW_shgroup_uniform_block(stl->g_data->vert_shgrp, "globalsBlock", G_draw.block_ubo);
+		stl->g_data->vert_select_shgrp = DRW_shgroup_create(sh_data->vert_select_overlay, psl->vert_select_overlay);
+		DRW_shgroup_uniform_block(stl->g_data->vert_select_shgrp, "globalsBlock", G_draw.block_ubo);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->vert_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->vert_select_shgrp, rv3d);
 		}
 	}
 }
@@ -214,8 +233,9 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (use_face_sel || use_wire) {
+			DRWShadingGroup *shgrp = use_face_sel ? stl->g_data->lwire_select_shgrp : stl->g_data->lwire_shgrp;
 			geom = DRW_cache_mesh_surface_edges_get(ob);
-			DRW_shgroup_call_add(stl->g_data->lwire_shgrp, geom, ob->obmat);
+			DRW_shgroup_call_add(shgrp, geom, ob->obmat);
 		}
 
 		if (use_face_sel) {
@@ -225,7 +245,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 
 		if (use_vert_sel) {
 			geom = DRW_cache_mesh_all_verts_get(ob);
-			DRW_shgroup_call_add(stl->g_data->vert_shgrp, geom, ob->obmat);
+			DRW_shgroup_call_add(stl->g_data->vert_select_shgrp, geom, ob->obmat);
 		}
 	}
 }
@@ -235,9 +255,10 @@ static void PAINT_WEIGHT_draw_scene(void *vedata)
 	PAINT_WEIGHT_PassList *psl = ((PAINT_WEIGHT_Data *)vedata)->psl;
 
 	DRW_draw_pass(psl->weight_faces);
-	DRW_draw_pass(psl->face_overlay);
 	DRW_draw_pass(psl->wire_overlay);
-	DRW_draw_pass(psl->vert_overlay);
+	DRW_draw_pass(psl->wire_select_overlay);
+	DRW_draw_pass(psl->vert_select_overlay);
+	DRW_draw_pass(psl->face_select_overlay);
 }
 
 static void PAINT_WEIGHT_engine_free(void)
