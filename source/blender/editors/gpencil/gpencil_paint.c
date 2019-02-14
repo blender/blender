@@ -2084,7 +2084,8 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
 	}
-	if (p->gpl->flag & GP_LAYER_LOCKED) {
+	if ((paintmode != GP_PAINTMODE_ERASER) &&
+		(p->gpl->flag & GP_LAYER_LOCKED)) {
 		p->status = GP_STATUS_ERROR;
 		if (G.debug & G_DEBUG)
 			printf("Error: Cannot paint on locked layer\n");
@@ -3123,6 +3124,8 @@ static void gpencil_guide_event_handling(bContext *C, wmOperator *op, const wmEv
 static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p = NULL;
+	Object *ob = CTX_data_active_object(C);
+	bGPdata *gpd = (bGPdata *)ob->data;
 
 	if (G.debug & G_DEBUG)
 		printf("GPencil - Starting Drawing\n");
@@ -3139,6 +3142,23 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		if ((gpl) && ((gpl->flag & GP_LAYER_LOCKED) || (gpl->flag & GP_LAYER_HIDE))) {
 			BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hide");
 			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		/* don't erase empty frames */
+		bool has_layer_to_erase = false;
+		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			/* Skip if layer not editable */
+			if (gpencil_layer_is_editable(gpl)) {
+				if (gpl->actframe && gpl->actframe->strokes.first) {
+					has_layer_to_erase = true;
+					break;
+				}
+			}
+		}
+		if (!has_layer_to_erase) {
+			BKE_report(op->reports, RPT_ERROR, "Nothing to erase or all layers locked");
+			return OPERATOR_FINISHED;
 		}
 	}
 
@@ -3193,7 +3213,6 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		gpencil_guide_event_handling(C, op, event, p);
 	}
 
-	Object *ob = CTX_data_active_object(C);
 	if (ob && (ob->type == OB_GPENCIL) && ((p->gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0)) {
 		/* FIXME: use the mode switching operator, this misses notifiers, messages. */
 		/* Just set paintmode flag... */
