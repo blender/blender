@@ -536,8 +536,6 @@ void DenoiseTask::free()
 
 DenoiseImage::DenoiseImage()
 {
-	in = NULL;
-
 	width = 0;
 	height = 0;
 	num_channels = 0;
@@ -552,7 +550,6 @@ DenoiseImage::~DenoiseImage()
 void DenoiseImage::close_input()
 {
 	in_neighbors.clear();
-	in.reset();
 }
 
 void DenoiseImage::free()
@@ -662,13 +659,13 @@ bool DenoiseImage::load(const string& in_filepath, string& error)
 		return false;
 	}
 
-	in.reset(ImageInput::open(in_filepath));
+	unique_ptr<ImageInput> in(ImageInput::open(in_filepath));
 	if(!in) {
 		error = "Couldn't open file: " + in_filepath;
 		return false;
 	}
 
-	const ImageSpec &in_spec = in->spec();
+	in_spec = in->spec();
 	width = in_spec.width;
 	height = in_spec.height;
 	num_channels = in_spec.nchannels;
@@ -725,7 +722,7 @@ bool DenoiseImage::load_neighbors(const vector<string>& filepaths, const vector<
 
 		foreach(DenoiseImageLayer& layer, layers) {
 			if(!layer.match_channels(neighbor,
-			                         in->spec().channelnames,
+			                         in_spec.channelnames,
 			                         neighbor_spec.channelnames))
 			{
 				error = "Neighbor frame misses denoising data passes: " + filepath;
@@ -742,7 +739,7 @@ bool DenoiseImage::load_neighbors(const vector<string>& filepaths, const vector<
 bool DenoiseImage::save_output(const string& out_filepath, string& error)
 {
 	/* Save image with identical dimensions, channels and metadata. */
-	ImageSpec out_spec = in->spec();
+	ImageSpec out_spec = in_spec;
 
 	/* Ensure that the output frame contains sample information even if the input didn't. */
 	for(int i = 0; i < layers.size(); i++) {

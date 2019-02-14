@@ -486,6 +486,9 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
 		float3 transmittance = volume_color_transmittance(coeff.sigma_t, t);
 		new_tp = *throughput * transmittance;
 	}
+	else {
+		new_tp = *throughput;
+	}
 
 	/* integrate emission attenuated by extinction */
 	if(L && (closure_flag & SD_EMISSION)) {
@@ -606,6 +609,9 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
 				/* absorption only, no sampling needed */
 				transmittance = volume_color_transmittance(coeff.sigma_t, dt);
 				new_tp = tp * transmittance;
+			}
+			else {
+				new_tp = tp;
 			}
 
 			/* integrate emission attenuated by absorption */

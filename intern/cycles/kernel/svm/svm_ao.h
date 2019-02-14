@@ -60,6 +60,8 @@ ccl_device_noinline float svm_ao(KernelGlobals *kg,
 		ray.D = D.x*T + D.y*B + D.z*N;
 		ray.t = max_dist;
 		ray.time = sd->time;
+		ray.dP = sd->dP;
+		ray.dD = differential3_zero();
 
 		if(flags & NODE_AO_ONLY_LOCAL) {
 			if(!scene_intersect_local(kg,

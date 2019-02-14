@@ -46,7 +46,7 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat
 
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv + 1, hsv + 2);
 		hsv[0] = fmodf(hsv[0] + hue + 0.5f, 1.0f);
-		hsv[1] *= clamp_f(sat, 0.0f, 1.0f);
+		hsv[1] = clamp_f(hsv[1] * sat, 0.0f, 1.0f);
 		hsv[2] *= val;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
 
