@@ -32,7 +32,17 @@ void main()
 	const vec4 colSel = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 
+#ifdef USE_SELECT
 	finalColor = (is_select) ? colSel : colorWire;
+#else
+#  ifdef VERTEX_MODE
+	finalColor = colorWire;
+#  else
+	/* Weight paint needs a light color to contrasts with dark weights. */
+	finalColor.xyz =  vec3(0.8, 0.8, 0.8);
+#  endif
+#endif
+
 	finalColor.a = nor.w;
 
 #ifdef USE_WORLD_CLIP_PLANES
