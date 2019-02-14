@@ -3754,6 +3754,7 @@ class VIEW3D_MT_edit_armature(Menu):
 
         layout.separator()
 
+        layout.operator("armature.symmetrize")
         layout.menu("VIEW3D_MT_edit_armature_names")
 
         layout.separator()
@@ -3799,8 +3800,10 @@ class VIEW3D_MT_armature_specials(Menu):
         layout.operator("armature.fill")
 
         layout.operator("armature.switch_direction", text="Switch Direction")
-        layout.operator("armature.symmetrize")
 
+        layout.separator()
+
+        layout.operator("armature.symmetrize")
         layout.menu("VIEW3D_MT_edit_armature_names")
 
         layout.separator()
