@@ -111,13 +111,13 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
         layout.prop(fx, "samples")
 
         layout.separator()
-        layout.prop(fx, "use_object", text="Use object as pivot")
+        layout.prop(fx, "use_object", text="Use Object As Pivot")
         if fx.use_object:
             row = layout.row()
             row.prop(fx, "object", text="Object")
 
         layout.separator()
-        layout.prop(fx, "use_wave", text="Use Wave effect")
+        layout.prop(fx, "use_wave", text="Use Wave Effect")
         if fx.use_wave is True:
             row = layout.row(align=True)
             row.prop(fx, "orientation", expand=True)
@@ -136,7 +136,7 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
         layout.separator()
         layout.prop(fx, "radius")
         layout.prop(fx, "samples")
-        layout.prop(fx, "use_alpha_mode", text="Use alpha mode")
+        layout.prop(fx, "use_alpha_mode", text="Use Alpha Mode")
 
     def FX_SWIRL(self, layout, fx):
         layout.prop(fx, "object", text="Object")
