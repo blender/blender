@@ -516,10 +516,6 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 	if (have_override || need_default_renderlayer) {
 		ViewLayer *view_layer = BKE_view_layer_add(scene, "Viewport");
 
-		/* Make it first in the list. */
-		BLI_remlink(&scene->view_layers, view_layer);
-		BLI_addhead(&scene->view_layers, view_layer);
-
 		/* If we ported all the original render layers, we don't need to make the viewport layer renderable. */
 		if (!BLI_listbase_is_single(&scene->view_layers)) {
 			view_layer->flag &= ~VIEW_LAYER_RENDER;
