@@ -146,70 +146,72 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 
 	{
 		/* Create a pass */
-		psl->weight_faces = DRW_pass_create(
+		DRWPass *pass = DRW_pass_create(
 		        "Weight Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY);
-
-		stl->g_data->fweights_shgrp = DRW_shgroup_create(sh_data->weight_face, psl->weight_faces);
-
-		DRW_shgroup_uniform_bool_copy(stl->g_data->fweights_shgrp, "drawContours", (v3d->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0);
-
-		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "opacity", &v3d->overlay.weight_paint_mode_opacity, 1);
-		DRW_shgroup_uniform_texture(stl->g_data->fweights_shgrp, "colorramp", G_draw.weight_ramp);
-		DRW_shgroup_uniform_block(stl->g_data->fweights_shgrp, "globalsBlock", G_draw.block_ubo);
+		DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->weight_face, pass);
+		DRW_shgroup_uniform_bool_copy(shgrp, "drawContours", (v3d->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0);
+		DRW_shgroup_uniform_float(shgrp, "opacity", &v3d->overlay.weight_paint_mode_opacity, 1);
+		DRW_shgroup_uniform_texture(shgrp, "colorramp", G_draw.weight_ramp);
+		DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->fweights_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
 		}
+		psl->weight_faces = pass;
+		stl->g_data->fweights_shgrp = shgrp;
 	}
 
 	{
-		psl->wire_overlay = DRW_pass_create(
+		DRWPass *pass = DRW_pass_create(
 		        "Wire Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
-
-		stl->g_data->lwire_shgrp = DRW_shgroup_create(sh_data->wire_overlay, psl->wire_overlay);
-		DRW_shgroup_uniform_block(stl->g_data->lwire_shgrp, "globalsBlock", G_draw.block_ubo);
+		DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->wire_overlay, pass);
+		DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->lwire_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
 		}
+		psl->wire_overlay = pass;
+		stl->g_data->lwire_shgrp = shgrp;
 	}
 
 	{
-		psl->wire_select_overlay = DRW_pass_create(
+		DRWPass *pass = DRW_pass_create(
 		        "Wire Mask Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
-
-		stl->g_data->lwire_select_shgrp = DRW_shgroup_create(sh_data->wire_select_overlay, psl->wire_overlay);
-		DRW_shgroup_uniform_block(stl->g_data->lwire_select_shgrp, "globalsBlock", G_draw.block_ubo);
+		DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->wire_select_overlay, pass);
+		DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->lwire_select_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
 		}
+		psl->wire_select_overlay = pass;
+		stl->g_data->lwire_select_shgrp = shgrp;
 	}
 
 	{
-		psl->face_select_overlay = DRW_pass_create(
+		static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
+		DRWPass *pass = DRW_pass_create(
 		        "Face Mask Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
-
-		stl->g_data->face_shgrp = DRW_shgroup_create(sh_data->face_select_overlay, psl->face_select_overlay);
-
-		static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
-		DRW_shgroup_uniform_vec4(stl->g_data->face_shgrp, "color", col, 1);
+		DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->face_select_overlay, pass);
+		DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->face_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
 		}
+		psl->face_select_overlay = pass;
+		stl->g_data->face_shgrp = shgrp;
 	}
 
 	{
-		psl->vert_select_overlay = DRW_pass_create(
+		DRWPass *pass = DRW_pass_create(
 		        "Vert Mask Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
-
-		stl->g_data->vert_select_shgrp = DRW_shgroup_create(sh_data->vert_select_overlay, psl->vert_select_overlay);
-		DRW_shgroup_uniform_block(stl->g_data->vert_select_shgrp, "globalsBlock", G_draw.block_ubo);
+		DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->vert_select_overlay, pass);
+		DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->vert_select_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
 		}
+		psl->vert_select_overlay = pass;
+		stl->g_data->vert_select_shgrp = shgrp;
 	}
 }
 
