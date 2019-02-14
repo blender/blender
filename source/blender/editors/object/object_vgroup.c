@@ -80,7 +80,9 @@ static bool vertex_group_use_vert_sel(Object *ob)
 	if (ob->mode == OB_MODE_EDIT) {
 		return true;
 	}
-	else if (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) {
+	else if ((ob->type == OB_MESH) &&
+	         ((Mesh *)ob->data)->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
+	{
 		return true;
 	}
 	else {
