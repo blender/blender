@@ -1180,7 +1180,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 /* ****************************************************** */
 
 /* **************** Box Select Tool ****************** */
-static void outliner_item_box_select(Scene *scene, rctf *rectf, TreeElement *te, bool select)
+static void outliner_item_box_select(SpaceOops *soops, Scene *scene, rctf *rectf, TreeElement *te, bool select)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 
@@ -1194,9 +1194,9 @@ static void outliner_item_box_select(Scene *scene, rctf *rectf, TreeElement *te,
 	}
 
 	/* Look at its children. */
-	if ((tselem->flag & TSE_CLOSED) == 0) {
+	if (TSELEM_OPEN(tselem, soops)) {
 		for (te = te->subtree.first; te; te = te->next) {
-			outliner_item_box_select(scene, rectf, te, select);
+			outliner_item_box_select(soops, scene, rectf, te, select);
 		}
 	}
 }
@@ -1214,7 +1214,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
 	for (te = soops->tree.first; te; te = te->next) {
-		outliner_item_box_select(scene, &rectf, te, select);
+		outliner_item_box_select(soops, scene, &rectf, te, select);
 	}
 
 	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
