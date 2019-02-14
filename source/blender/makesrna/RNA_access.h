@@ -319,6 +319,7 @@ extern StructRNA RNA_LatticeGpencilModifier;
 extern StructRNA RNA_LatticeModifier;
 extern StructRNA RNA_LatticePoint;
 extern StructRNA RNA_LayerCollection;
+extern StructRNA RNA_LayerObjects;
 extern StructRNA RNA_Library;
 extern StructRNA RNA_Light;
 extern StructRNA RNA_LightProbe;

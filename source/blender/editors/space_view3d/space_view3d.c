@@ -1086,6 +1086,9 @@ static void view3d_main_region_message_subscribe(
 		WM_msg_subscribe_rna_anon_prop(
 		        mbus, Object, mode,
 		        &msg_sub_value_region_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(
+		        mbus, LayerObjects, active,
+		        &msg_sub_value_region_tag_refresh);
 	}
 }
 

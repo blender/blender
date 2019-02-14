@@ -65,6 +65,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -119,11 +120,13 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
  */
 void ED_object_base_activate(bContext *C, Base *base)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	view_layer->basact = base;
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+	WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
 	DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_SELECT);
 }
 
