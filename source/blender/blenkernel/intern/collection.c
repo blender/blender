@@ -603,7 +603,9 @@ static bool scene_collections_object_remove(Main *bmain, Scene *scene, Object *o
 {
 	bool removed = false;
 
-	BKE_scene_remove_rigidbody_object(bmain, scene, ob);
+	if (collection_skip == NULL) {
+		BKE_scene_remove_rigidbody_object(bmain, scene, ob);
+	}
 
 	FOREACH_SCENE_COLLECTION_BEGIN(scene, collection)
 	{
