@@ -241,7 +241,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
                                       ViewLayer *view_layer)
 {
 	double start_time = 0.0;
-	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
+	if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
 		start_time = PIL_check_seconds_timer();
 	}
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
