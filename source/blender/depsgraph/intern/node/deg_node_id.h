@@ -60,10 +60,8 @@ struct IDNode : public Node {
 
 	virtual string identifier() const override;
 
-	ComponentNode *find_component(NodeType type,
-	                                  const char *name = "") const;
-	ComponentNode *add_component(NodeType type,
-	                                 const char *name = "");
+	ComponentNode *find_component(NodeType type, const char *name = "") const;
+	ComponentNode *add_component(NodeType type, const char *name = "");
 
 	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 

@@ -187,15 +187,13 @@ string IDNode::identifier() const
 	                                                        : "false") + ")";
 }
 
-ComponentNode *IDNode::find_component(NodeType type,
-                                              const char *name) const
+ComponentNode *IDNode::find_component(NodeType type, const char *name) const
 {
 	ComponentIDKey key(type, name);
 	return reinterpret_cast<ComponentNode *>(BLI_ghash_lookup(components, &key));
 }
 
-ComponentNode *IDNode::add_component(NodeType type,
-                                             const char *name)
+ComponentNode *IDNode::add_component(NodeType type, const char *name)
 {
 	ComponentNode *comp_node = find_component(type, name);
 	if (!comp_node) {
