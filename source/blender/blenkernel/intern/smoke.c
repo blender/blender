@@ -121,13 +121,13 @@ void smoke_initBlenderRNA(struct FLUID_3D *UNUSED(fluid), float *UNUSED(alpha), 
                           int *UNUSED(border_colli), float *UNUSED(burning_rate), float *UNUSED(flame_smoke), float *UNUSED(flame_smoke_color),
                           float *UNUSED(flame_vorticity), float *UNUSED(flame_ignition_temp), float *UNUSED(flame_max_temp)) {}
 struct Mesh *smokeModifier_do(SmokeModifierData *UNUSED(smd), Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *UNUSED(ob), Mesh *UNUSED(me)) { return NULL; }
-float smoke_get_velocity_at(struct Object *UNUSED(ob), float UNUSED(position[3]), float UNUSED(velocity[3])) { return 0.0f; }
+float BKE_smoke_get_velocity_at(struct Object *UNUSED(ob), float UNUSED(position[3]), float UNUSED(velocity[3])) { return 0.0f; }
 
 #endif /* WITH_SMOKE */
 
 #ifdef WITH_SMOKE
 
-void smoke_reallocate_fluid(SmokeDomainSettings *sds, float dx, int res[3], int free_old)
+void BKE_smoke_reallocate_fluid(SmokeDomainSettings *sds, float dx, int res[3], int free_old)
 {
 	int use_heat = (sds->active_fields & SM_ACTIVE_HEAT);
 	int use_fire = (sds->active_fields & SM_ACTIVE_FIRE);
@@ -149,7 +149,7 @@ void smoke_reallocate_fluid(SmokeDomainSettings *sds, float dx, int res[3], int 
 	sds->shadow = MEM_callocN(sizeof(float) * res[0] * res[1] * res[2], "SmokeDomainShadow");
 }
 
-void smoke_reallocate_highres_fluid(SmokeDomainSettings *sds, float dx, int res[3], int free_old)
+void BKE_smoke_reallocate_highres_fluid(SmokeDomainSettings *sds, float dx, int res[3], int free_old)
 {
 	int use_fire = (sds->active_fields & (SM_ACTIVE_HEAT | SM_ACTIVE_FIRE));
 	int use_colors = (sds->active_fields & SM_ACTIVE_COLORS);
@@ -293,13 +293,13 @@ static int smokeModifier_init(SmokeModifierData *smd, Object *ob, int scene_fram
 		copy_v3_v3_int(sds->res_max, res);
 
 		/* allocate fluid */
-		smoke_reallocate_fluid(sds, sds->dx, sds->res, 0);
+		BKE_smoke_reallocate_fluid(sds, sds->dx, sds->res, 0);
 
 		smd->time = scene_framenr;
 
 		/* allocate highres fluid */
 		if (sds->flags & MOD_SMOKE_HIGHRES) {
-			smoke_reallocate_highres_fluid(sds, sds->dx, sds->res, 0);
+			BKE_smoke_reallocate_highres_fluid(sds, sds->dx, sds->res, 0);
 		}
 		/* allocate shadow buffer */
 		if (!sds->shadow)
@@ -1929,9 +1929,9 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 		struct FLUID_3D *fluid_old = sds->fluid;
 		struct WTURBULENCE *turb_old = sds->wt;
 		/* allocate new fluid data */
-		smoke_reallocate_fluid(sds, sds->dx, res, 0);
+		BKE_smoke_reallocate_fluid(sds, sds->dx, res, 0);
 		if (sds->flags & MOD_SMOKE_HIGHRES) {
-			smoke_reallocate_highres_fluid(sds, sds->dx, res, 0);
+			BKE_smoke_reallocate_highres_fluid(sds, sds->dx, res, 0);
 		}
 
 		/* copy values from old fluid to new */
@@ -3077,7 +3077,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_la
 
 /* get smoke velocity and density at given coordinates
  * returns fluid density or -1.0f if outside domain. */
-float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity[3])
+float BKE_smoke_get_velocity_at(struct Object *ob, float position[3], float velocity[3])
 {
 	SmokeModifierData *smd = (SmokeModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
 	zero_v3(velocity);
@@ -3131,7 +3131,7 @@ float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity
 	return -1.0f;
 }
 
-int smoke_get_data_flags(SmokeDomainSettings *sds)
+int BKE_smoke_get_data_flags(SmokeDomainSettings *sds)
 {
 	int flags = 0;
 

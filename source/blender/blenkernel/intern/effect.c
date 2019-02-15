@@ -946,7 +946,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			zero_v3(force);
 			if (pd->f_source) {
 				float density;
-				if ((density = smoke_get_velocity_at(pd->f_source, point->loc, force)) >= 0.0f) {
+				if ((density = BKE_smoke_get_velocity_at(pd->f_source, point->loc, force)) >= 0.0f) {
 					float influence = strength * efd->falloff;
 					if (pd->flag & PFIELD_SMOKE_DENSITY) {
 						influence *= density;
