@@ -8187,6 +8187,17 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				}
 				break;
 			}
+			case RIGHTMOUSE:
+			{
+				if (event->val == KM_PRESS) {
+					uiBut *bt = ui_but_find_mouse_over(ar, event);
+					if (bt && bt->active == data) {
+						button_activate_state(C, bt, BUTTON_STATE_HIGHLIGHT);
+					}
+				}
+				break;
+			}
+
 		}
 
 		ui_do_button(C, block, but, event);
@@ -8833,6 +8844,28 @@ static int ui_handle_menu_event(
 
 			switch (event->type) {
 
+				/* Closing sub-levels of pull-downs.
+				 *
+				 * The actual event is handled by the button under the cursor.
+				 * This is done so we can right click on menu items even when they have sub-menus open. */
+				case RIGHTMOUSE:
+					if (inside == false) {
+						if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
+							if (block->saferct.first) {
+								/* Currently right clicking on a top level pull-down (typically in the header)
+								 * just closes the menu and doesn't support immediately handling the RMB event.
+								 *
+								 * To support we would need UI_RETURN_OUT_PARENT to be handled by
+								 * top-level buttons, not just menus. Note that this isn't very important
+								 * since it's easy to manually close these menus by clicking on them. */
+								menu->menuretval = (level > 0) ? UI_RETURN_OUT_PARENT : UI_RETURN_OUT;
+
+							}
+						}
+						retval = WM_UI_HANDLER_BREAK;
+					}
+					break;
+
 				/* closing sublevels of pulldowns */
 				case LEFTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP))
@@ -9062,8 +9095,11 @@ static int ui_handle_menu_event(
 			 *
 			 * note that there is an exception for root level menus and
 			 * popups which you can click again to close.
+			 *
+			 * Every's handled above may have already set the return value,
+			 * don't overwrite them, see: T61015.
 			 */
-			if (inside == 0) {
+			if ((inside == 0) && (menu->menuretval == 0)) {
 				uiSafetyRct *saferct = block->saferct.first;
 
 				if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
