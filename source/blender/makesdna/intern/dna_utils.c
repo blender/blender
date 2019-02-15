@@ -156,32 +156,32 @@ char *DNA_elem_id_rename(
         struct MemArena *mem_arena,
         const char *elem_src, const int elem_src_len,
         const char *elem_dst, const int elem_dst_len,
-        const char *elem_full_src, const int elem_full_src_len,
-        const uint elem_full_offset_start)
+        const char *elem_src_full, const int elem_src_full_len,
+        const uint elem_src_full_offset_len)
 {
 	BLI_assert(strlen(elem_src) == elem_src_len);
 	BLI_assert(strlen(elem_dst) == elem_dst_len);
-	BLI_assert(strlen(elem_full_src) == elem_full_src_len);
-	BLI_assert(DNA_elem_id_offset_start(elem_full_src) == elem_full_offset_start);
+	BLI_assert(strlen(elem_src_full) == elem_src_full_len);
+	BLI_assert(DNA_elem_id_offset_start(elem_src_full) == elem_src_full_offset_len);
 	UNUSED_VARS_NDEBUG(elem_src);
 
-	const int elem_final_len = (elem_full_src_len - elem_src_len) + elem_dst_len;
-	char *elem_full_dst = BLI_memarena_alloc(mem_arena, elem_final_len + 1);
+	const int elem_final_len = (elem_src_full_len - elem_src_len) + elem_dst_len;
+	char *elem_dst_full = BLI_memarena_alloc(mem_arena, elem_final_len + 1);
 	uint i = 0;
-	if (elem_full_offset_start != 0) {
-		memcpy(elem_full_dst, elem_full_src, elem_full_offset_start);
-		i = elem_full_offset_start;
+	if (elem_src_full_offset_len != 0) {
+		memcpy(elem_dst_full, elem_src_full, elem_src_full_offset_len);
+		i = elem_src_full_offset_len;
 	}
-	memcpy(&elem_full_dst[i], elem_dst, elem_dst_len + 1);
+	memcpy(&elem_dst_full[i], elem_dst, elem_dst_len + 1);
 	i += elem_dst_len;
-	uint elem_full_offset_end = elem_full_offset_start + elem_src_len;
-	if (elem_full_src[elem_full_offset_end] != '\0') {
-		const int elem_full_tail_len = (elem_full_src_len - elem_full_offset_end);
-		memcpy(&elem_full_dst[i], &elem_full_src[elem_full_offset_end], elem_full_tail_len + 1);
+	uint elem_src_full_offset_end = elem_src_full_offset_len + elem_src_len;
+	if (elem_src_full[elem_src_full_offset_end] != '\0') {
+		const int elem_full_tail_len = (elem_src_full_len - elem_src_full_offset_end);
+		memcpy(&elem_dst_full[i], &elem_src_full[elem_src_full_offset_end], elem_full_tail_len + 1);
 		i += elem_full_tail_len;
 	}
-	BLI_assert((strlen(elem_full_dst) == elem_final_len) && (i == elem_final_len));
-	return elem_full_dst;
+	BLI_assert((strlen(elem_dst_full) == elem_final_len) && (i == elem_final_len));
+	return elem_dst_full;
 }
 
 /** \} */

@@ -379,6 +379,14 @@ static bool init_structDNA(
 		for (int nr = 0; nr < sdna->nr_types; nr++) {
 			sdna->types[nr] = cp;
 
+			/* ------------------------------------------------------------- */
+			/* WARNING!
+			 *
+			 * The renaming here isn't complete, references to the old struct names
+			 * are still included in DNA, now fixing these struct names properly
+			 * breaks forward compatibility. Leave these as-is, but don't add to them!
+			 * See D4342#98780 */
+
 			/* this is a patch, to change struct names without a conflict with SDNA */
 			/* be careful to use it, in this case for a system-struct (opengl/X) */
 
@@ -394,6 +402,8 @@ static bool init_structDNA(
 			else if (strcmp("CollectionObject", cp) == 0) {
 				sdna->types[nr] = "GroupObject";
 			}
+			/* END WARNING */
+			/* ------------------------------------------------------------- */
 
 			while (*cp) cp++;
 			cp++;
