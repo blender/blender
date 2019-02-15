@@ -64,13 +64,22 @@ WorkSpaceLayout *ED_workspace_layout_duplicate(
 	bScreen *screen_new;
 	WorkSpaceLayout *layout_new;
 
-	if (BKE_screen_is_fullscreen_area(screen_old)) {
-		return NULL; /* XXX handle this case! */
-	}
-
 	layout_new = ED_workspace_layout_add(bmain, workspace, win, name);
 	screen_new = BKE_workspace_layout_screen_get(layout_new);
-	screen_data_copy(screen_new, screen_old);
+
+	if (BKE_screen_is_fullscreen_area(screen_old)) {
+		for (ScrArea *area_old = screen_old->areabase.first; area_old; area_old = area_old->next) {
+			if (area_old->full) {
+				ScrArea *area_new = (ScrArea *)screen_new->areabase.first;
+				ED_area_data_copy(area_new, area_old, true);
+				ED_area_tag_redraw(area_new);
+				break;
+			}
+		}
+	}
+	else {
+		screen_data_copy(screen_new, screen_old);
+	}
 
 	return layout_new;
 }
