@@ -268,6 +268,7 @@ public:
 	cl_platform_id cpPlatform;
 	cl_device_id cdDevice;
 	cl_int ciErr;
+	int device_num;
 
 	class OpenCLProgram {
 	public:
@@ -293,7 +294,15 @@ public:
 
 	private:
 		bool build_kernel(const string *debug_src);
+		/* Build the program by calling the own process.
+		 * This is required for multithreaded OpenCL compilation, since most Frameworks serialize
+		 * build calls internally if they come from the same process.
+		 * If that is not supported, this function just returns false.
+		 */
+		bool compile_separate(const string& clbin);
+		/* Build the program by calling OpenCL directly. */
 		bool compile_kernel(const string *debug_src);
+		/* Loading and saving the program from/to disk. */
 		bool load_binary(const string& clbin, const string *debug_src = NULL);
 		bool save_binary(const string& clbin);
 
@@ -342,12 +351,17 @@ public:
 	bool opencl_version_check();
 
 	string device_md5_hash(string kernel_custom_build_options = "");
-	bool load_kernels(const DeviceRequestedFeatures& requested_features);
+	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features);
 
 	/* Has to be implemented by the real device classes.
 	 * The base device will then load all these programs. */
-	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features,
-	                          vector<OpenCLProgram*> &programs) = 0;
+	virtual bool add_kernel_programs(const DeviceRequestedFeatures& requested_features,
+	                                 vector<OpenCLProgram*> &programs) = 0;
+
+	/* Get the name of the opencl program for the given kernel */
+	virtual const string get_opencl_program_name(bool single_program, const string& kernel_name) = 0;
+	/* Get the program file name to compile (*.cl) for the given kernel */
+	virtual const string get_opencl_program_filename(bool single_program, const string& kernel_name) = 0;
 
 	void mem_alloc(device_memory& mem);
 	void mem_copy_to(device_memory& mem);

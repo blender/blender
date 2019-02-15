@@ -22,6 +22,9 @@
 
 #include <numaapi.h>
 
+#include <OpenImageIO/sysutil.h>
+OIIO_NAMESPACE_USING
+
 #ifdef _WIN32
 #  if(!defined(FREE_WINDOWS))
 #    include <intrin.h>
@@ -328,6 +331,25 @@ bool system_cpu_support_avx2()
 }
 
 #endif
+
+bool system_call_self(const vector<string>& args)
+{
+	/* Escape program and arguments in case they contain spaces. */
+	string cmd = "\"" + Sysutil::this_program_path() + "\"";
+
+	for(int i = 0; i < args.size(); i++) {
+		cmd += " \"" + args[i] + "\"";
+	}
+
+	/* Quiet output. */
+#ifdef _WIN32
+	cmd += " > nul";
+#else
+	cmd += " > /dev/null";
+#endif
+
+	return (system(cmd.c_str()) == 0);
+}
 
 size_t system_physical_ram()
 {
