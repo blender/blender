@@ -439,12 +439,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
 
 		/* Current method just converts each point in screen-coordinates to
 		 * 3D-coordinates using the 3D-cursor as reference. In general, this
-		 * works OK, but it could of course be improved.
-		 *
-		 * TODO:
-		 * - investigate using nearest point(s) on a previous stroke as
-		 *   reference point instead or as offset, for easier stroke matching
-		 */
+		 * works OK, but it could of course be improved. */
 
 		gp_get_3d_reference(p, rvec);
 		zfac = ED_view3d_calc_zfac(p->ar->regiondata, rvec, NULL);
