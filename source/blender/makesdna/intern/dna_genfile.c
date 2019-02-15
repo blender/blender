@@ -328,6 +328,7 @@ static bool init_structDNA(
 			if (do_endian_swap) {
 				BLI_endian_switch_int32(&sdna->nr_names);
 			}
+			sdna->nr_names_alloc = sdna->nr_names;
 
 			data++;
 			sdna->names = MEM_callocN(sizeof(void *) * sdna->nr_names, "sdnanames");
@@ -1400,7 +1401,7 @@ static bool DNA_sdna_patch_struct_member_nr(
 	const int elem_old_len = strlen(elem_old);
 	const int elem_new_len = strlen(elem_new);
 	BLI_assert(elem_new != NULL);
-	const short *sp = sdna->structs[struct_name_nr];
+	short *sp = sdna->structs[struct_name_nr];
 	for (int elem_index = sp[1]; elem_index > 0; elem_index--, sp += 2) {
 		const char *elem_old_full = sdna->names[sp[1]];
 		/* Start & end offsets in 'elem_old_full'. */
@@ -1416,7 +1417,13 @@ static bool DNA_sdna_patch_struct_member_nr(
 			        elem_old_full, strlen(elem_old_full),
 			        elem_old_full_offset_start);
 
+			if (sdna->nr_names == sdna->nr_names_alloc) {
+				sdna->nr_names_alloc += 64;
+				sdna->names = MEM_recallocN(sdna->names, sizeof(*sdna->names) * sdna->nr_names_alloc);
+			}
+			sp[1] = sdna->nr_names++;
 			sdna->names[sp[1]] = elem_new_full;
+
 			return true;
 		}
 	}

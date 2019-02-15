@@ -34,7 +34,7 @@ typedef struct SDNA {
 	bool data_alloc;
 
 	/** Total number of struct members. */
-	int nr_names;
+	int nr_names, nr_names_alloc;
 	/** Struct member names. */
 	const char **names;
 
