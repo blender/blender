@@ -279,7 +279,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			}
 			case SPACE_IPO:
 			{
-				SpaceIpo *sipo = (SpaceIpo *)sl;
+				SpaceGraph *sipo = (SpaceGraph *)sl;
 				memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
 
 				/* init mainarea view2d */

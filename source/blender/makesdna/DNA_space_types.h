@@ -48,7 +48,7 @@ struct MovieClip;
 struct MovieClipScopes;
 struct Scopes;
 struct Script;
-struct SpaceIpo;
+struct SpaceGraph;
 struct Text;
 struct bDopeSheet;
 struct bGPdata;
@@ -359,16 +359,16 @@ typedef enum eSpaceOutliner_Search_Flags {
 /** \name Graph Editor
  * \{ */
 
-typedef struct SpaceIpo_Runtime {
+typedef struct SpaceGraph_Runtime {
 	/** #eGraphEdit_Runtime_Flag */
 	char flag;
 	char _pad[7];
 	/** Sampled snapshots of F-Curves used as in-session guides */
 	ListBase ghost_curves;
-} SpaceIpo_Runtime;
+} SpaceGraph_Runtime;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
-typedef struct SpaceIpo {
+typedef struct SpaceGraph {
 	SpaceLink *next, *prev;
 	/** Storage of regions for inactive spaces. */
 	ListBase regionbase;
@@ -402,11 +402,11 @@ typedef struct SpaceIpo {
 	int around;
 	int pad;
 
-	SpaceIpo_Runtime runtime;
-} SpaceIpo;
+	SpaceGraph_Runtime runtime;
+} SpaceGraph;
 
 
-/* SpaceIpo.flag (Graph Editor Settings) */
+/* SpaceGraph.flag (Graph Editor Settings) */
 typedef enum eGraphEdit_Flag {
 	/* OLD DEPRECEATED SETTING */
 	/* SIPO_LOCK_VIEW            = (1 << 0), */
@@ -441,7 +441,7 @@ typedef enum eGraphEdit_Flag {
 	SIPO_NORMALIZE_FREEZE     = (1 << 15),
 } eGraphEdit_Flag;
 
-/* SpaceIpo.mode (Graph Editor Mode) */
+/* SpaceGraph.mode (Graph Editor Mode) */
 typedef enum eGraphEdit_Mode {
 	/* all animation curves (from all over Blender) */
 	SIPO_MODE_ANIMATION = 0,

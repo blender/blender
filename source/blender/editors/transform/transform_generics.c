@@ -397,7 +397,7 @@ static void recalcData_actedit(TransInfo *t)
 /* helper for recalcData() - for Graph Editor transforms */
 static void recalcData_graphedit(TransInfo *t)
 {
-	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
+	SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 	ViewLayer *view_layer = t->view_layer;
 
 	ListBase anim_data = {NULL, NULL};
@@ -1484,7 +1484,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		SpaceIpo *sipo = sa->spacedata.first;
+		SpaceGraph *sipo = sa->spacedata.first;
 		t->view = &ar->v2d;
 		t->around = sipo->around;
 	}
@@ -1931,7 +1931,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 
 void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 {
-	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
+	SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 	Scene *scene = t->scene;
 
 	/* cursor is combination of current frame, and graph-editor cursor value */

@@ -1520,7 +1520,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 		if (t->spacetype == SPACE_IPO) {
 			View2D *v2d = &t->ar->v2d;
 			View2DGrid *grid;
-			SpaceIpo *sipo = t->sa->spacedata.first;
+			SpaceGraph *sipo = t->sa->spacedata.first;
 			int unity = V2D_UNIT_VALUES;
 			int unitx = (sipo->flag & SIPO_DRAWTIME) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
 

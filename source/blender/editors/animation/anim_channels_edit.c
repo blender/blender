@@ -1439,7 +1439,7 @@ static bool animchannels_grouping_poll(bContext *C)
 		}
 		case SPACE_IPO:
 		{
-			SpaceIpo *sipo = (SpaceIpo *)sl;
+			SpaceGraph *sipo = (SpaceGraph *)sl;
 
 			/* drivers can't have groups... */
 			if (sipo->mode != SIPO_MODE_ANIMATION)

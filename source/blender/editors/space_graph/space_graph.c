@@ -92,10 +92,10 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
 	ARegion *ar;
-	SpaceIpo *sipo;
+	SpaceGraph *sipo;
 
 	/* Graph Editor - general stuff */
-	sipo = MEM_callocN(sizeof(SpaceIpo), "init graphedit");
+	sipo = MEM_callocN(sizeof(SpaceGraph), "init graphedit");
 	sipo->spacetype = SPACE_IPO;
 
 	sipo->autosnap = SACTSNAP_FRAME;
@@ -162,7 +162,7 @@ static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 /* not spacelink itself */
 static void graph_free(SpaceLink *sl)
 {
-	SpaceIpo *si = (SpaceIpo *)sl;
+	SpaceGraph *si = (SpaceGraph *)sl;
 
 	if (si->ads) {
 		BLI_freelistN(&si->ads->chanbase);
@@ -178,7 +178,7 @@ static void graph_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+	SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
 
 	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (sipo->ads == NULL) {
@@ -196,10 +196,10 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
-	SpaceIpo *sipon = MEM_dupallocN(sl);
+	SpaceGraph *sipon = MEM_dupallocN(sl);
 
 	/* clear or remove stuff from old */
-	BLI_duplicatelist(&sipon->runtime.ghost_curves, &((SpaceIpo *)sl)->runtime.ghost_curves);
+	BLI_duplicatelist(&sipon->runtime.ghost_curves, &((SpaceGraph *)sl)->runtime.ghost_curves);
 	sipon->ads = MEM_dupallocN(sipon->ads);
 
 	return (SpaceLink *)sipon;
@@ -222,7 +222,7 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *ar)
 static void graph_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceIpo *sipo = CTX_wm_space_graph(C);
+	SpaceGraph *sipo = CTX_wm_space_graph(C);
 	Scene *scene = CTX_data_scene(C);
 	bAnimContext ac;
 	View2D *v2d = &ar->v2d;
@@ -565,7 +565,7 @@ static void graph_region_message_subscribe(
 /* editor level listener */
 static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
 {
-	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+	SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
 
 	/* context changes */
 	switch (wmn->category) {
@@ -755,7 +755,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
 static void graph_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+	SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
 
 	/* updates to data needed depends on Graph Editor mode... */
 	switch (sipo->mode) {
@@ -797,7 +797,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 
 static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
 {
-	SpaceIpo *sgraph = (SpaceIpo *)slink;
+	SpaceGraph *sgraph = (SpaceGraph *)slink;
 
 	if (sgraph->ads) {
 		if ((ID *)sgraph->ads->filter_grp == old_id) {
@@ -811,13 +811,13 @@ static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID
 
 static int graph_space_subtype_get(ScrArea *sa)
 {
-	SpaceIpo *sgraph = sa->spacedata.first;
+	SpaceGraph *sgraph = sa->spacedata.first;
 	return sgraph->mode;
 }
 
 static void graph_space_subtype_set(ScrArea *sa, int value)
 {
-	SpaceIpo *sgraph = sa->spacedata.first;
+	SpaceGraph *sgraph = sa->spacedata.first;
 	sgraph->mode = value;
 }
 

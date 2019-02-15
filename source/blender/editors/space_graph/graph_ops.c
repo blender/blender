@@ -75,7 +75,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SpaceIpo *sipo = CTX_wm_space_graph(C);
+	SpaceGraph *sipo = CTX_wm_space_graph(C);
 	/* this isn't technically "frame", but it'll do... */
 	float frame = RNA_float_get(op->ptr, "frame");
 

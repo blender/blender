@@ -1585,7 +1585,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *ptr)
 {
 	ScrArea *sa = rna_area_from_space(ptr);
-	SpaceIpo *sipo = (SpaceIpo *)ptr->data;
+	SpaceGraph *sipo = (SpaceGraph *)ptr->data;
 
 	/* for "Drivers" mode, enable all the necessary bits and pieces */
 	if (sipo->mode == SIPO_MODE_DRIVERS) {
@@ -1601,7 +1601,7 @@ static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *pt
 
 static bool rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
-	SpaceIpo *sipo = (SpaceIpo *)(ptr->data);
+	SpaceGraph *sipo = (SpaceGraph *)(ptr->data);
 	return (BLI_listbase_is_empty(&sipo->runtime.ghost_curves) == false);
 }
 
@@ -4078,7 +4078,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 
 
 	srna = RNA_def_struct(brna, "SpaceGraphEditor", "Space");
-	RNA_def_struct_sdna(srna, "SpaceIpo");
+	RNA_def_struct_sdna(srna, "SpaceGraph");
 	RNA_def_struct_ui_text(srna, "Space Graph Editor", "Graph Editor space data");
 
 	/* mode */

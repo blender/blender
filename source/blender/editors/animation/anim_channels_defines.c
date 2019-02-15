@@ -168,7 +168,7 @@ static bool acf_show_channel_colors(bAnimContext *ac)
 			}
 			case SPACE_IPO:
 			{
-				SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+				SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 				showGroupColors = !(sipo->flag & SIPO_NODRAWGCOLORS);
 
 				break;
@@ -3966,7 +3966,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 				}
 				case SPACE_IPO:
 				{
-					SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+					SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 					draw_sliders = (sipo->flag & SIPO_SLIDERS);
 					break;
 				}
@@ -4573,7 +4573,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 				}
 				case SPACE_IPO:
 				{
-					SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+					SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 					draw_sliders = (sipo->flag & SIPO_SLIDERS);
 					break;
 				}

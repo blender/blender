@@ -167,7 +167,7 @@ struct SpaceSeq *CTX_wm_space_seq(const bContext *C);
 struct SpaceOutliner *CTX_wm_space_outliner(const bContext *C);
 struct SpaceNla *CTX_wm_space_nla(const bContext *C);
 struct SpaceNode *CTX_wm_space_node(const bContext *C);
-struct SpaceIpo *CTX_wm_space_graph(const bContext *C);
+struct SpaceGraph *CTX_wm_space_graph(const bContext *C);
 struct SpaceAction *CTX_wm_space_action(const bContext *C);
 struct SpaceInfo *CTX_wm_space_info(const bContext *C);
 struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C);

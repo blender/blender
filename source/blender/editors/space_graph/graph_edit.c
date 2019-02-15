@@ -332,7 +332,7 @@ void GRAPH_OT_view_frame(wmOperatorType *ot)
 /* Bake each F-Curve into a set of samples, and store as a ghost curve */
 static void create_ghost_curves(bAnimContext *ac, int start, int end)
 {
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
@@ -448,12 +448,12 @@ void GRAPH_OT_ghost_curves_create(wmOperatorType *ot)
 static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
-	SpaceIpo *sipo;
+	SpaceGraph *sipo;
 
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	sipo = (SpaceIpo *)ac.sl;
+	sipo = (SpaceGraph *)ac.sl;
 
 	/* if no ghost curves, don't do anything */
 	if (BLI_listbase_is_empty(&sipo->runtime.ghost_curves)) {
@@ -520,7 +520,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 	size_t num_items;
 
 	ReportList *reports = ac->reports;
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	struct Depsgraph *depsgraph = ac->depsgraph;
 	Scene *scene = ac->scene;
 	ToolSettings *ts = scene->toolsettings;
@@ -2030,7 +2030,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* set the new current frame and cursor values, based on the average time and value */
 	if (ked.i1) {
-		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
+		SpaceGraph *sipo = (SpaceGraph *)ac.sl;
 		Scene *scene = ac.scene;
 
 		/* take the average values, rounding to the nearest int as necessary for int results */
@@ -2094,7 +2094,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	KeyframeEditData ked;
 	KeyframeEditFunc edit_cb;
 	float cursor_value = 0.0f;
@@ -2221,7 +2221,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	KeyframeEditData ked;
 	KeyframeEditFunc edit_cb;
 	float cursor_value = 0.0f;

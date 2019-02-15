@@ -600,7 +600,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		//SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
+		//SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
@@ -8680,7 +8680,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 			autosnap = saction->autosnap;
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
+		SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 
 		if (sipo)
 			autosnap = sipo->autosnap;

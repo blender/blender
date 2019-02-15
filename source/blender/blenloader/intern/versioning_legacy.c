@@ -682,7 +682,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				SpaceLink *sl = sa->spacedata.first;
 				while (sl) {
 					if (sl->spacetype == SPACE_IPO) {
-						SpaceIpo *sipo = (SpaceIpo *)sl;
+						SpaceGraph *sipo = (SpaceGraph *)sl;
 						sipo->v2d.max[0] = 15000.0;
 					}
 					sl = sl->next;
@@ -2503,7 +2503,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 						}
 						case SPACE_IPO:
 						{
-							SpaceIpo *sipo = (SpaceIpo *)sl;
+							SpaceGraph *sipo = (SpaceGraph *)sl;
 							sipo->autosnap = SACTSNAP_FRAME;
 							break;
 						}

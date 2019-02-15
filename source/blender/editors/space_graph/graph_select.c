@@ -83,7 +83,7 @@ void deselect_graph_keys(bAnimContext *ac, bool test, short sel, bool do_channel
 	bAnimListElem *ale;
 	int filter;
 
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	KeyframeEditData ked = {{NULL}};
 	KeyframeEditFunc test_cb, sel_cb;
 
@@ -235,7 +235,7 @@ static void box_select_graphkeys(
 	bAnimListElem *ale;
 	int filter, mapping_flag;
 
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	KeyframeEditData ked;
 	KeyframeEditFunc ok_cb, select_cb;
 	View2D *v2d = &ac->ar->v2d;
@@ -453,7 +453,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 		selectmode = SELECT_SUBTRACT;
 
 	{
-		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
+		SpaceGraph *sipo = (SpaceGraph *)ac.sl;
 		if (selectmode == SELECT_ADD) {
 			incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) ||
 			                (sipo->flag & SIPO_NOHANDLES)) == 0;
@@ -530,7 +530,7 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
 	rect_fl.ymax = y + radius;
 
 	{
-		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
+		SpaceGraph *sipo = (SpaceGraph *)ac.sl;
 		if (selectmode == SELECT_ADD) {
 			incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) ||
 			                (sipo->flag & SIPO_NOHANDLES)) == 0;
@@ -1113,7 +1113,7 @@ typedef enum eGraphVertIndex {
 
 /* check if its ok to select a handle */
 // XXX also need to check for int-values only?
-static bool fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
+static bool fcurve_handle_sel_check(SpaceGraph *sipo, BezTriple *bezt)
 {
 	if (sipo->flag & SIPO_NOHANDLES) return 0;
 	if ((sipo->flag & SIPO_SELVHANDLESONLY) && BEZT_ISSEL_ANY(bezt) == 0) return 0;
@@ -1183,7 +1183,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	bAnimListElem *ale;
 	int filter;
 
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	View2D *v2d = &ac->ar->v2d;
 	short mapping_flag = 0;
 
@@ -1307,7 +1307,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mv
 /* option 1) select keyframe directly under mouse */
 static void mouse_graph_keys(bAnimContext *ac, const int mval[2], short select_mode, short curves_only)
 {
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 	tNearestVertInfo *nvi;
 	BezTriple *bezt = NULL;
 

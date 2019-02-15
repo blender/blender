@@ -40,6 +40,7 @@
 
 /* Match RNA names where possible, keep sorted. */
 
+DNA_STRUCT_RENAME(SpaceIpo, SpaceGraph)
 DNA_STRUCT_RENAME(SpaceOops, SpaceOutliner)
 DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
 

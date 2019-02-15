@@ -2871,13 +2871,13 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
 			}
 		}
 		else if (sl->spacetype == SPACE_IPO) {
-			SpaceIpo *sipo = (SpaceIpo *)sl;
+			SpaceGraph *sipo = (SpaceGraph *)sl;
 			ListBase tmpGhosts = sipo->runtime.ghost_curves;
 
 			/* temporarily disable ghost curves when saving */
 			BLI_listbase_clear(&sipo->runtime.ghost_curves);
 
-			writestruct(wd, DATA, SpaceIpo, 1, sl);
+			writestruct(wd, DATA, SpaceGraph, 1, sl);
 			if (sipo->ads) {
 				writestruct(wd, DATA, bDopeSheet, 1, sipo->ads);
 			}

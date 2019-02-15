@@ -56,7 +56,7 @@
 /* NOTE: Currently called from windowmanager (new drivers editor window) and RNA (mode switching) */
 void ED_drivers_editor_init(bContext *C, ScrArea *sa)
 {
-	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+	SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
 
 	/* Set mode */
 	sipo->mode = SIPO_MODE_DRIVERS;

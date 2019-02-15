@@ -268,7 +268,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 /* ----------- Private Stuff - Graph Editor ------------- */
 
 /* Get data being edited in Graph Editor (depending on current 'mode') */
-static bool graphedit_get_context(bAnimContext *ac, SpaceIpo *sipo)
+static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
 {
 	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (sipo->ads == NULL) {
@@ -359,7 +359,7 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac)
 			}
 			case SPACE_IPO:
 			{
-				SpaceIpo *sipo = (SpaceIpo *)sl;
+				SpaceGraph *sipo = (SpaceGraph *)sl;
 				ok = graphedit_get_context(ac, sipo);
 				break;
 			}

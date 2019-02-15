@@ -774,7 +774,7 @@ struct SpaceNode *CTX_wm_space_node(const bContext *C)
 	return NULL;
 }
 
-struct SpaceIpo *CTX_wm_space_graph(const bContext *C)
+struct SpaceGraph *CTX_wm_space_graph(const bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacetype == SPACE_IPO)

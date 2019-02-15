@@ -108,7 +108,7 @@ static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 static void graph_panel_view(const bContext *C, Panel *pa)
 {
 	bScreen *sc = CTX_wm_screen(C);
-	SpaceIpo *sipo = CTX_wm_space_graph(C);
+	SpaceGraph *sipo = CTX_wm_space_graph(C);
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA spaceptr, sceneptr;
 	uiLayout *col, *sub, *row;
@@ -576,7 +576,7 @@ static void driver_update_flags_cb(bContext *UNUSED(C), void *fcu_v, void *UNUSE
 /* drivers panel poll */
 static bool graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	SpaceIpo *sipo = CTX_wm_space_graph(C);
+	SpaceGraph *sipo = CTX_wm_space_graph(C);
 
 	if (sipo->mode != SIPO_MODE_DRIVERS)
 		return 0;
