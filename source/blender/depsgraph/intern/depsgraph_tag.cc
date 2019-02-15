@@ -497,7 +497,8 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		graph_id_tag_update(bmain,
 		                    graph,
 		                    id_node->id_orig,
-		                    flag, DEG_UPDATE_SOURCE_VISIBILITY);
+		                    flag,
+		                    DEG_UPDATE_SOURCE_VISIBILITY);
 		if (id_type == ID_SCE) {
 			/* Make sure collection properties are up to date. */
 			id_node->tag_update(graph, DEG_UPDATE_SOURCE_VISIBILITY);
