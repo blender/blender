@@ -1013,8 +1013,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				SpaceLink *sl;
 
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_BUTS) {
-						SpaceButs *sbuts = (SpaceButs *)sl;
+					if (sl->spacetype == SPACE_PROPERTIES) {
+						SpaceProperties *sbuts = (SpaceProperties *)sl;
 
 						sbuts->v2d.maxzoom = 1.2f;
 

@@ -234,7 +234,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment = RGN_ALIGN_RIGHT;
 				ar->flag = RGN_FLAG_HIDDEN;
 #if 0
-			case SPACE_BUTS:
+			case SPACE_PROPERTIES:
 				/* context UI region */
 				ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
@@ -363,9 +363,9 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
 				break;
 			}
-			case SPACE_BUTS:
+			case SPACE_PROPERTIES:
 			{
-				SpaceButs *sbuts = (SpaceButs *)sl;
+				SpaceProperties *sbuts = (SpaceProperties *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
 
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);

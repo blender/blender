@@ -2155,7 +2155,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_BUTS) {
+					if (sl->spacetype == SPACE_PROPERTIES) {
 						ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 						ARegion *ar = MEM_callocN(sizeof(ARegion), "navigation bar for properties");
 						ARegion *ar_header = NULL;
@@ -2550,9 +2550,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							        SNODE_FLAG_DEPRECATED_11);
 							break;
 						}
-						case SPACE_BUTS:
+						case SPACE_PROPERTIES:
 						{
-							SpaceButs *sbuts = (SpaceButs *)sl;
+							SpaceProperties *sbuts = (SpaceProperties *)sl;
 							sbuts->flag &= ~(
 							        SB_FLAG_DEPRECATED_2 |
 							        SB_FLAG_DEPRECATED_3);

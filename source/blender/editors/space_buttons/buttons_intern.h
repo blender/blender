@@ -28,7 +28,7 @@
 
 struct ARegionType;
 struct ID;
-struct SpaceButs;
+struct SpaceProperties;
 struct Tex;
 struct bContext;
 struct bContextDataResult;
@@ -79,7 +79,7 @@ typedef struct ButsContextTexture {
 /* internal exports only */
 
 /* buttons_context.c */
-void buttons_context_compute(const struct bContext *C, struct SpaceButs *sbuts);
+void buttons_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
 int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
 void buttons_context_draw(const struct bContext *C, struct uiLayout *layout);
 void buttons_context_register(struct ARegionType *art);
@@ -88,7 +88,7 @@ struct ID *buttons_context_id_path(const struct bContext *C);
 extern const char *buttons_context_dir[]; /* doc access */
 
 /* buttons_texture.c */
-void buttons_texture_context_compute(const struct bContext *C, struct SpaceButs *sbuts);
+void buttons_texture_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);

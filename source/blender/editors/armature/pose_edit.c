@@ -79,7 +79,7 @@ Object *ED_pose_object_from_context(bContext *C)
 	Object *ob;
 
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa && sa->spacetype == SPACE_BUTS) {
+	if (sa && sa->spacetype == SPACE_PROPERTIES) {
 		ob = ED_object_context(C);
 	}
 	else {

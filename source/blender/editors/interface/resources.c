@@ -108,7 +108,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 		else {
 
 			switch (spacetype) {
-				case SPACE_BUTS:
+				case SPACE_PROPERTIES:
 					ts = &btheme->tbuts;
 					break;
 				case SPACE_VIEW3D:
@@ -779,7 +779,7 @@ void UI_SetTheme(int spacetype, int regionid)
 	else if (regionid) {
 		/* popups */
 		theme_active = U.themes.first;
-		theme_spacetype = SPACE_BUTS;
+		theme_spacetype = SPACE_PROPERTIES;
 		theme_regionid = regionid;
 	}
 	else {

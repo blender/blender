@@ -622,7 +622,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		ID *id = (ID *)idp;
 		ID *parent = (ID *)parentp;
 		MTex *slot = (MTex *)slotp;
-		SpaceButs *sbuts = CTX_wm_space_buts(C);
+		SpaceProperties *sbuts = CTX_wm_space_properties(C);
 		ShaderPreview *sp = WM_jobs_customdata(wm, sa);
 		rcti newrect;
 		int ok;

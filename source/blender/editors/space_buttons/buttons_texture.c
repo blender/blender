@@ -159,7 +159,7 @@ static void buttons_texture_modifier_gpencil_foreach(void *userData, Object *ob,
 		N_("Grease Pencil Modifiers"), RNA_struct_ui_icon(ptr.type), md->name);
 }
 
-static void buttons_texture_users_from_context(ListBase *users, const bContext *C, SpaceButs *sbuts)
+static void buttons_texture_users_from_context(ListBase *users, const bContext *C, SpaceProperties *sbuts)
 {
 	Scene *scene = NULL;
 	Object *ob = NULL;
@@ -265,7 +265,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	}
 }
 
-void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
+void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 {
 	/* gather available texture users in context. runs on every draw of
 	 * properties editor, before the buttons are created. */
@@ -327,7 +327,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg))
 {
 	/* callback when selecting a texture user in the menu */
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
 	ButsTextureUser *user = (ButsTextureUser *)user_p;
 	PointerRNA texptr;
@@ -369,7 +369,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	/* callback when opening texture user selection menu, to create buttons. */
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextTexture *ct = sbuts->texuser;
 	ButsTextureUser *user;
 	uiBlock *block = uiLayoutGetBlock(layout);
@@ -414,7 +414,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	/* texture user selection dropdown menu. the available users have been
 	 * gathered before drawing in ButsContextTexture, we merely need to
 	 * display the current item. */
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiBut *but;
@@ -454,7 +454,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 
 static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 {
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
 	ButsTextureUser *user;
 
@@ -482,7 +482,7 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	/* button to quickly show texture in texture tab */
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
 	ButsTextureUser *user;
 

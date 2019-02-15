@@ -2885,8 +2885,8 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
 			/* reenable ghost curves */
 			sipo->runtime.ghost_curves = tmpGhosts;
 		}
-		else if (sl->spacetype == SPACE_BUTS) {
-			writestruct(wd, DATA, SpaceButs, 1, sl);
+		else if (sl->spacetype == SPACE_PROPERTIES) {
+			writestruct(wd, DATA, SpaceProperties, 1, sl);
 		}
 		else if (sl->spacetype == SPACE_FILE) {
 			SpaceFile *sfile = (SpaceFile *)sl;

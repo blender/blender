@@ -853,7 +853,7 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->regiontype == RGN_TYPE_HEADER) {
-				if (ELEM(sa->spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_BUTS)) {
+				if (ELEM(sa->spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
 					ar->alignment = RGN_ALIGN_TOP;
 					continue;
 				}

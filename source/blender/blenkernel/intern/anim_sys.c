@@ -614,7 +614,7 @@ char *BKE_animdata_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *p
 	 * restricts the subspace of options to the 'active' data (a manageable state)
 	 */
 	/* TODO: watch out for pinned context? */
-	if ((sa) && (sa->spacetype == SPACE_BUTS)) {
+	if ((sa) && (sa->spacetype == SPACE_PROPERTIES)) {
 		Object *ob = CTX_data_active_object(C);
 
 		if (ob && id) {

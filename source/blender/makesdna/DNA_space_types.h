@@ -115,7 +115,7 @@ typedef enum eSpaceInfo_RptMask {
  * \{ */
 
 /* Properties Editor */
-typedef struct SpaceButs {
+typedef struct SpaceProperties {
 	SpaceLink *next, *prev;
 	/** Storage of regions for inactive spaces. */
 	ListBase regionbase;
@@ -144,12 +144,12 @@ typedef struct SpaceButs {
 	ID *pinid;
 
 	void *texuser;
-} SpaceButs;
+} SpaceProperties;
 
 /* button defines (deprecated) */
 #ifdef DNA_DEPRECATED_ALLOW
-/* warning: the values of these defines are used in SpaceButs.tabs[8] */
-/* SpaceButs.mainb new */
+/* warning: the values of these defines are used in SpaceProperties.tabs[8] */
+/* SpaceProperties.mainb new */
 #define CONTEXT_SCENE   0
 #define CONTEXT_OBJECT  1
 // #define CONTEXT_TYPES   2
@@ -158,7 +158,7 @@ typedef struct SpaceButs {
 // #define CONTEXT_SCRIPT  5
 // #define CONTEXT_LOGIC   6
 
-/* SpaceButs.mainb old (deprecated) */
+/* SpaceProperties.mainb old (deprecated) */
 // #define BUTS_VIEW           0
 #define BUTS_LAMP           1
 #define BUTS_MAT            2
@@ -176,7 +176,7 @@ typedef struct SpaceButs {
 // #define BUTS_EFFECTS        14
 #endif /* DNA_DEPRECATED_ALLOW */
 
-/* SpaceButs.mainb new */
+/* SpaceProperties.mainb new */
 typedef enum eSpaceButtons_Context {
 	BCONTEXT_RENDER = 0,
 	BCONTEXT_SCENE = 1,
@@ -200,7 +200,7 @@ typedef enum eSpaceButtons_Context {
 	BCONTEXT_TOT
 } eSpaceButtons_Context;
 
-/* SpaceButs.flag */
+/* SpaceProperties.flag */
 typedef enum eSpaceButtons_Flag {
 	SB_PRV_OSA = (1 << 0),
 	SB_PIN_CONTEXT = (1 << 1),
@@ -1597,7 +1597,7 @@ typedef enum eSpace_Type {
 	SPACE_VIEW3D   = 1,
 	SPACE_IPO      = 2,
 	SPACE_OUTLINER = 3,
-	SPACE_BUTS     = 4,
+	SPACE_PROPERTIES     = 4,
 	SPACE_FILE     = 5,
 	SPACE_IMAGE    = 6,
 	SPACE_INFO     = 7,

@@ -124,7 +124,7 @@ static void panel_title_color_get(bool show_background, uchar color[4])
 /*********************** space specific code ************************/
 /* temporary code to remove all sbuts stuff from panel code         */
 
-/* SpaceButs.align */
+/* SpaceProperties.align */
 typedef enum eSpaceButtons_Align {
 	BUT_HORIZONTAL = 0,
 	BUT_VERTICAL = 1,
@@ -133,7 +133,7 @@ typedef enum eSpaceButtons_Align {
 
 static int panel_aligned(ScrArea *sa, ARegion *ar)
 {
-	if (sa->spacetype == SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW)
+	if (sa->spacetype == SPACE_PROPERTIES && ar->regiontype == RGN_TYPE_WINDOW)
 		return BUT_VERTICAL;
 	else if (sa->spacetype == SPACE_USERPREF && ar->regiontype == RGN_TYPE_WINDOW)
 		return BUT_VERTICAL;
@@ -189,8 +189,8 @@ static bool panels_need_realign(ScrArea *sa, ARegion *ar, Panel **pa_animate)
 {
 	*pa_animate = NULL;
 
-	if (sa->spacetype == SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
-		SpaceButs *sbuts = sa->spacedata.first;
+	if (sa->spacetype == SPACE_PROPERTIES && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceProperties *sbuts = sa->spacedata.first;
 
 		if (sbuts->mainbo != sbuts->mainb) {
 			return true;
@@ -2313,7 +2313,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 						ScrArea *sa = CTX_wm_area(C);
 						SpaceLink *sl = sa->spacedata.first;
 
-						if (sa->spacetype != SPACE_BUTS) {
+						if (sa->spacetype != SPACE_PROPERTIES) {
 							if (!(pa->control & UI_PNL_SCALE)) {
 								if (event->type == PADPLUSKEY) sl->blockscale += 0.1;
 								else sl->blockscale -= 0.1;

@@ -243,7 +243,7 @@ bool ED_operator_action_active(bContext *C)
 
 bool ED_operator_buttons_active(bContext *C)
 {
-	return ed_spacetype_test(C, SPACE_BUTS);
+	return ed_spacetype_test(C, SPACE_PROPERTIES);
 }
 
 bool ED_operator_node_active(bContext *C)
@@ -3873,7 +3873,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws,
 				if ((redraws & (TIME_ALL_ANIM_WIN | TIME_REGION | TIME_ALL_3D_WIN)) || from_anim_edit)
 					return 1;
 				break;
-			case SPACE_BUTS:
+			case SPACE_PROPERTIES:
 				if (redraws & TIME_ALL_BUTS_WIN)
 					return 1;
 				break;
@@ -4777,7 +4777,7 @@ static bool space_context_cycle_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	/* sa might be NULL if called out of window bounds */
-	return (sa && ELEM(sa->spacetype, SPACE_BUTS, SPACE_USERPREF));
+	return (sa && ELEM(sa->spacetype, SPACE_PROPERTIES, SPACE_USERPREF));
 }
 
 /**
@@ -4791,7 +4791,7 @@ static void context_cycle_prop_get(
 	const char *propname;
 
 	switch (sa->spacetype) {
-		case SPACE_BUTS:
+		case SPACE_PROPERTIES:
 			RNA_pointer_create(&screen->id, &RNA_SpaceProperties, sa->spacedata.first, r_ptr);
 			propname = "context";
 			break;

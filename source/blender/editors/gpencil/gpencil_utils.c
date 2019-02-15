@@ -95,7 +95,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ID *screen_id, ScrArea *sa, Scene 
 
 		switch (sa->spacetype) {
 			/* XXX: Should we reduce reliance on context.gpencil_data for these cases? */
-			case SPACE_BUTS: /* properties */
+			case SPACE_PROPERTIES: /* properties */
 			case SPACE_INFO: /* header info (needed after workspaces merge) */
 			{
 				if (ob && (ob->type == OB_GPENCIL)) {
@@ -460,7 +460,7 @@ bool ED_gpencil_stroke_can_use_direct(const ScrArea *sa, const bGPDstroke *gps)
 	/* filter stroke types by flags + spacetype */
 	if (gps->flag & GP_STROKE_3DSPACE) {
 		/* 3D strokes - only in 3D view */
-		return ((sa->spacetype == SPACE_VIEW3D) || (sa->spacetype == SPACE_BUTS));
+		return ((sa->spacetype == SPACE_VIEW3D) || (sa->spacetype == SPACE_PROPERTIES));
 	}
 	else if (gps->flag & GP_STROKE_2DIMAGE) {
 		/* Special "image" strokes - only in Image Editor */

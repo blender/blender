@@ -68,7 +68,7 @@ bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
 	bUserMenu **um_array = MEM_calloc_arrayN(array_len, sizeof(*um_array), __func__);
 	um_array[0] = BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context);
 	um_array[1] = (sl->spacetype != SPACE_TOPBAR) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context) : NULL;
-	um_array[2] = (sl->spacetype == SPACE_VIEW3D) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_BUTS, context) : NULL;
+	um_array[2] = (sl->spacetype == SPACE_VIEW3D) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_PROPERTIES, context) : NULL;
 
 	*r_len = array_len;
 	return um_array;

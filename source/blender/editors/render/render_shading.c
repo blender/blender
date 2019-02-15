@@ -99,9 +99,9 @@
 static Object **object_array_for_shading(bContext *C, uint *r_objects_len)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	SpaceButs *sbuts = NULL;
+	SpaceProperties *sbuts = NULL;
 	View3D *v3d = NULL;
-	if (sa->spacetype == SPACE_BUTS) {
+	if (sa->spacetype == SPACE_PROPERTIES) {
 		sbuts = sa->spacedata.first;
 	}
 	else if (sa->spacetype == SPACE_VIEW3D) {

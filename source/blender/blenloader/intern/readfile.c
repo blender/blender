@@ -6893,8 +6893,8 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 			sseq->scopes.histogram_ibuf = NULL;
 			sseq->compositor = NULL;
 		}
-		else if (sl->spacetype == SPACE_BUTS) {
-			SpaceButs *sbuts = (SpaceButs *)sl;
+		else if (sl->spacetype == SPACE_PROPERTIES) {
+			SpaceProperties *sbuts = (SpaceProperties *)sl;
 
 			sbuts->path = NULL;
 			sbuts->texuser = NULL;
@@ -6988,9 +6988,9 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
 				}
 				break;
 			}
-			case SPACE_BUTS:
+			case SPACE_PROPERTIES:
 			{
-				SpaceButs *sbuts = (SpaceButs *)sl;
+				SpaceProperties *sbuts = (SpaceProperties *)sl;
 				sbuts->pinid = newlibadr(fd, parent_id->lib, sbuts->pinid);
 				if (sbuts->pinid == NULL) {
 					sbuts->flag &= ~SB_PIN_CONTEXT;
@@ -7480,8 +7480,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map, Main
 					 */
 					sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
 				}
-				else if (sl->spacetype == SPACE_BUTS) {
-					SpaceButs *sbuts = (SpaceButs *)sl;
+				else if (sl->spacetype == SPACE_PROPERTIES) {
+					SpaceProperties *sbuts = (SpaceProperties *)sl;
 					sbuts->pinid = restore_pointer_by_name(id_map, sbuts->pinid, USER_IGNORE);
 					if (sbuts->pinid == NULL) {
 						sbuts->flag &= ~SB_PIN_CONTEXT;

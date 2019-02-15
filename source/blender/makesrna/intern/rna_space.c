@@ -93,7 +93,7 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 	/* Data */
 	{0, "", ICON_NONE, "Data", ""},
 	{SPACE_OUTLINER, "OUTLINER", ICON_OUTLINER, "Outliner", "Overview of scene graph and all available data-blocks"},
-	{SPACE_BUTS, "PROPERTIES", ICON_PROPERTIES, "Properties", "Edit properties of active object and related data-blocks"},
+	{SPACE_PROPERTIES, "PROPERTIES", ICON_PROPERTIES, "Properties", "Edit properties of active object and related data-blocks"},
 	{SPACE_FILE, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", "Browse for files and assets"},
 	{SPACE_USERPREF, "PREFERENCES", ICON_PREFERENCES, "Preferences",
 	                 "Edit persistent configuration settings"},
@@ -389,7 +389,7 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceGraphEditor;
 		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;
-		case SPACE_BUTS:
+		case SPACE_PROPERTIES:
 			return &RNA_SpaceProperties;
 		case SPACE_FILE:
 			return &RNA_SpaceFileBrowser;
@@ -1217,13 +1217,13 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(
 /* note: this function exists only to avoid id refcounting */
 static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr, PointerRNA value)
 {
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
 	sbuts->pinid = value.data;
 }
 
 static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
 
 	if (sbuts->pinid)
 		return ID_code_to_RNA_type(GS(sbuts->pinid->name));
@@ -1233,7 +1233,7 @@ static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 
 static void rna_SpaceProperties_pin_id_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
 	ID *id = sbuts->pinid;
 
 	if (id == NULL) {
@@ -1262,7 +1262,7 @@ static void rna_SpaceProperties_pin_id_update(Main *UNUSED(bmain), Scene *UNUSED
 
 static void rna_SpaceProperties_context_set(PointerRNA *ptr, int value)
 {
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
 
 	sbuts->mainb = value;
 	sbuts->mainbuser = value;
@@ -1272,7 +1272,7 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
         bContext *UNUSED(C), PointerRNA *ptr,
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
@@ -1361,7 +1361,7 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 
 static void rna_SpaceProperties_context_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
+	SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
 	/* XXX BCONTEXT_DATA is ugly, but required for lights... See T51318. */
 	if (ELEM(sbuts->mainb, BCONTEXT_WORLD, BCONTEXT_MATERIAL, BCONTEXT_TEXTURE, BCONTEXT_DATA)) {
 		sbuts->preview = 1;
@@ -3450,7 +3450,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "SpaceProperties", "Space");
-	RNA_def_struct_sdna(srna, "SpaceButs");
+	RNA_def_struct_sdna(srna, "SpaceProperties");
 	RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");
 
 	prop = RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);

@@ -465,7 +465,7 @@ static bool buttons_context_linestyle_pinnable(const bContext *C, ViewLayer *vie
 	wmWindow *window = CTX_wm_window(C);
 	Scene *scene = WM_window_get_active_scene(window);
 	FreestyleConfig *config;
-	SpaceButs *sbuts;
+	SpaceProperties *sbuts;
 
 	/* if Freestyle is disabled in the scene */
 	if ((scene->r.mode & R_EDGE_FRS) == 0) {
@@ -477,7 +477,7 @@ static bool buttons_context_linestyle_pinnable(const bContext *C, ViewLayer *vie
 		return false;
 	}
 	/* if the scene has already been pinned */
-	sbuts = CTX_wm_space_buts(C);
+	sbuts = CTX_wm_space_properties(C);
 	if (sbuts->pinid && sbuts->pinid == &scene->id) {
 		return false;
 	}
@@ -489,7 +489,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 {
 	/* Note we don't use CTX_data here, instead we get it from the window.
 	 * Otherwise there is a loop reading the context that we are setting. */
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	wmWindow *window = CTX_wm_window(C);
 	Scene *scene = WM_window_get_active_scene(window);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(window);
@@ -619,7 +619,7 @@ static int buttons_shading_new_context(const bContext *C, int flag)
 	return BCONTEXT_RENDER;
 }
 
-void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
+void buttons_context_compute(const bContext *C, SpaceProperties *sbuts)
 {
 	ButsContextPath *path;
 	PointerRNA *ptr;
@@ -712,7 +712,7 @@ const char *buttons_context_dir[] = {
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextPath *path = sbuts ? sbuts->path : NULL;
 
 	if (!path)
@@ -991,7 +991,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 static void pin_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 
 	if (sbuts->flag & SB_PIN_CONTEXT) {
 		sbuts->pinid = buttons_context_id_path(C);
@@ -1004,7 +1004,7 @@ static void pin_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 
 void buttons_context_draw(const bContext *C, uiLayout *layout)
 {
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextPath *path = sbuts->path;
 	uiLayout *row;
 	uiBlock *block;
@@ -1072,7 +1072,7 @@ static bool buttons_header_context_poll(const bContext *C, HeaderType *UNUSED(ht
 static bool buttons_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
 #endif
 {
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	return (sbuts->mainb != BCONTEXT_TOOL);
 }
 
@@ -1092,7 +1092,7 @@ void buttons_context_register(ARegionType *art)
 
 	ht = MEM_callocN(sizeof(HeaderType), "spacetype buttons context header");
 	strcpy(ht->idname, "BUTTONS_HT_context");
-	ht->space_type = SPACE_BUTS;
+	ht->space_type = SPACE_PROPERTIES;
 	ht->region_type = art->regionid;
 	ht->poll = buttons_header_context_poll;
 	ht->draw = buttons_header_context_draw;
@@ -1113,7 +1113,7 @@ void buttons_context_register(ARegionType *art)
 
 ID *buttons_context_id_path(const bContext *C)
 {
-	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	SpaceProperties *sbuts = CTX_wm_space_properties(C);
 	ButsContextPath *path = sbuts->path;
 	PointerRNA *ptr;
 	int a;

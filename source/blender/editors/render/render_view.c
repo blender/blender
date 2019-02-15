@@ -60,7 +60,7 @@ static ScrArea *biggest_non_image_area(bContext *C)
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
 		if (sa->winx > 30 && sa->winy > 30) {
 			size = sa->winx * sa->winy;
-			if (!sa->full && sa->spacetype == SPACE_BUTS) {
+			if (!sa->full && sa->spacetype == SPACE_PROPERTIES) {
 				if (foundwin == 0 && size > bwmaxsize) {
 					bwmaxsize = size;
 					big = sa;
