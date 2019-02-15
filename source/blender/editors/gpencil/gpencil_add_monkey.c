@@ -73,6 +73,9 @@ static int gpencil_monkey_color(
 	if (!fill) {
 		ma->gp_style->flag &= ~GP_STYLE_FILL_SHOW;
 	}
+	else {
+		ma->gp_style->flag |= GP_STYLE_FILL_SHOW;
+	}
 
 	return BKE_gpencil_get_material_index(ob, ma) - 1;
 }
