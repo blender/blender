@@ -429,7 +429,6 @@ static void edbm_bevel_calc_initial_length(wmOperator *op, const wmEvent *event,
 
 static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	/* TODO make modal keymap (see fly mode) */
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	BevelData *opdata;
 	float center_3d[3];
@@ -456,6 +455,7 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (!edbm_bevel_calc(op)) {
 		edbm_bevel_cancel(C, op);
+		ED_workspace_status_text(C, NULL);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -605,6 +605,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		switch (event->val) {
 			case BEV_MODAL_CANCEL:
 				edbm_bevel_cancel(C, op);
+				ED_workspace_status_text(C, NULL);
 				return OPERATOR_CANCELLED;
 
 			case BEV_MODAL_CONFIRM:
@@ -615,6 +616,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				{
 					edbm_bevel_calc(op);
 					edbm_bevel_exit(C, op);
+					ED_workspace_status_text(C, NULL);
 					return OPERATOR_FINISHED;
 				}
 				break;
