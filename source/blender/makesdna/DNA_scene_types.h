@@ -738,7 +738,7 @@ typedef struct RenderData {
 	short simplify_subsurf;
 	short simplify_subsurf_render;
 	short simplify_gpencil;
-	short pad10;
+	short simplify_smoke_ignore_highres;
 	float simplify_particles;
 	float simplify_particles_render;
 

@@ -3148,3 +3148,14 @@ int BKE_smoke_get_data_flags(SmokeDomainSettings *sds)
 }
 
 #endif /* WITH_SMOKE */
+
+bool BKE_smoke_show_highres(Scene *scene, SmokeDomainSettings *sds)
+{
+	if ((sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES) == 0) {
+		return false;
+	}
+	if (scene->r.mode & R_SIMPLIFY) {
+		return !scene->r.simplify_smoke_ignore_highres;
+	}
+	return true;
+}

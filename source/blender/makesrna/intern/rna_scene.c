@@ -1556,6 +1556,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), Poi
 	}
 
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 	DEG_id_tag_update(&sce->id, 0);
 }
 
@@ -5489,6 +5490,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "simplify_particles_render");
 	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage during rendering");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop = RNA_def_property(srna, "use_simplify_smoke_highres", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "simplify_smoke_ignore_highres", 1);
+	RNA_def_property_ui_text(prop, "Use Smoke Highres", "Allow drawing high-res smoke in viewport");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	/* Grease Pencil - Simplify Options */
 	prop = RNA_def_property(srna, "simplify_gpencil", PROP_BOOLEAN, PROP_NONE);

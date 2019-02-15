@@ -32,6 +32,7 @@
 
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_smoke.h"
 
 #include "ED_screen.h"
 
@@ -506,10 +507,11 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >= sds->point_cache[0]->startframe);
 
 		if (sds->fluid && show_smoke) {
-			if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES)) {
+			const bool show_highres = BKE_smoke_show_highres(scene, sds);
+			if (!sds->wt || !show_highres) {
 				GPU_create_smoke(smd, 0);
 			}
-			else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES)) {
+			else if (sds->wt && show_highres) {
 				GPU_create_smoke(smd, 1);
 			}
 			BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(smd));

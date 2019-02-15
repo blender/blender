@@ -22,6 +22,7 @@
 #include "workbench_private.h"
 
 #include "BKE_object.h"
+#include "BKE_smoke.h"
 
 #include "BLI_rand.h"
 #include "BLI_dynstr.h"
@@ -124,13 +125,14 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 	}
 
 	wpd->volumes_do = true;
+	const bool show_highres = BKE_smoke_show_highres(scene, sds);
 	if (sds->use_coba) {
 		GPU_create_smoke_coba_field(smd);
 	}
-	else if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES)) {
+	else if (!sds->wt || !show_highres) {
 		GPU_create_smoke(smd, 0);
 	}
-	else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES)) {
+	else if (sds->wt && show_highres) {
 		GPU_create_smoke(smd, 1);
 	}
 
