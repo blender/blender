@@ -847,6 +847,9 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 	if (ang < BEVEL_EPSILON_ANG) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
+		 * this code used to just use offset and dir1, but that makes for visible errors
+		 * on a circle with > 200 sides, which trips this "nearly perp" code (see T61214).
+		 * so use the average of the two, and the offset formula for angle bisector.
 		 * if offsets are different, we're out of luck:
 		 * use the max of the two (so get consistent looking results if the same situation
 		 * arises elsewhere in the object but with opposite roles for e1 and e2 */
@@ -854,10 +857,12 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 			copy_v3_v3(norm_v, f->no);
 		else
 			copy_v3_v3(norm_v, v->no);
+		add_v3_v3(dir1, dir2);
 		cross_v3_v3v3(norm_perp1, dir1, norm_v);
 		normalize_v3(norm_perp1);
 		copy_v3_v3(off1a, v->co);
 		d = max_ff(e1->offset_r, e2->offset_l);
+		d = d / cos(ang / 2.0f);
 		madd_v3_v3fl(off1a, norm_perp1, d);
 		copy_v3_v3(meetco, off1a);
 	}
