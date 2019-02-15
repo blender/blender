@@ -127,10 +127,10 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 	if (sds->use_coba) {
 		GPU_create_smoke_coba_field(smd);
 	}
-	else if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+	else if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES)) {
 		GPU_create_smoke(smd, 0);
 	}
-	else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+	else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOW_HIGHRES)) {
 		GPU_create_smoke(smd, 1);
 	}
 

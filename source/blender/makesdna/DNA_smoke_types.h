@@ -41,7 +41,7 @@ enum {
 #define MOD_SMOKE_NOISEFFT (1<<1)
 #define MOD_SMOKE_NOISECURL (1<<2)
 /* viewsettings */
-#define MOD_SMOKE_VIEW_SHOWBIG (1<<0)
+#define MOD_SMOKE_VIEW_SHOW_HIGHRES (1<<0)
 
 /* slice method */
 enum {

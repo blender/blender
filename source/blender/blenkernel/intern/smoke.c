@@ -526,7 +526,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->flame_smoke_color[1] = 0.7f;
 			smd->domain->flame_smoke_color[2] = 0.7f;
 
-			smd->domain->viewsettings = MOD_SMOKE_VIEW_SHOWBIG;
+			smd->domain->viewsettings = MOD_SMOKE_VIEW_SHOW_HIGHRES;
 			smd->domain->effector_weights = BKE_effector_add_weights(NULL);
 
 #ifdef WITH_OPENVDB_BLOSC
