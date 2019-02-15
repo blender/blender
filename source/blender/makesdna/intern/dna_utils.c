@@ -107,22 +107,24 @@ uint DNA_elem_id_offset_end(const char *elem_full)
 /**
  * \a elem_dst must be at least the size of \a elem_src.
  */
-void DNA_elem_id_strip_copy(char *elem_dst, const char *elem_src)
+uint DNA_elem_id_strip_copy(char *elem_dst, const char *elem_src)
 {
 	const uint elem_src_offset = DNA_elem_id_offset_start(elem_src);
 	const char *elem_src_trim = elem_src + elem_src_offset;
 	const uint elem_src_trim_len = DNA_elem_id_offset_end(elem_src_trim);
 	memcpy(elem_dst, elem_src_trim, elem_src_trim_len);
 	elem_dst[elem_src_trim_len] = '\0';
+	return elem_src_trim_len;
 }
 
-void DNA_elem_id_strip(char *elem)
+uint DNA_elem_id_strip(char *elem)
 {
 	const uint elem_offset = DNA_elem_id_offset_start(elem);
 	const char *elem_trim = elem + elem_offset;
 	const uint elem_trim_len = DNA_elem_id_offset_end(elem_trim);
 	memmove(elem, elem_trim, elem_trim_len);
 	elem[elem_trim_len] = '\0';
+	return elem_trim_len;
 }
 
 /**

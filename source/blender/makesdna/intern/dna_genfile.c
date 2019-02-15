@@ -1395,44 +1395,43 @@ bool DNA_sdna_patch_struct(
 
 /* Make public if called often with same struct (avoid duplicate look-ups). */
 static bool DNA_sdna_patch_struct_member_nr(
-        SDNA *sdna, const int struct_name_nr, const char *member_old, const char *member_new)
+        SDNA *sdna, const int struct_name_nr, const char *elem_old, const char *elem_new)
 {
-	const int member_old_len = strlen(member_old);
-	const int member_new_len = strlen(member_new);
-	BLI_assert(member_new != NULL);
+	const int elem_old_len = strlen(elem_old);
+	const int elem_new_len = strlen(elem_new);
+	BLI_assert(elem_new != NULL);
 	const short *sp = sdna->structs[struct_name_nr];
-	for (int member_iter = sp[1]; member_iter > 0; member_iter--, sp += 2) {
-		const char *elem_full_old = sdna->names[sp[1]];
-		/* Start & end offsets in 'elem_full_old'. */
-		uint elem_full_offset_start;
-		if (DNA_elem_id_match(member_old, member_old_len, elem_full_old, &elem_full_offset_start)) {
+	for (int elem_index = sp[1]; elem_index > 0; elem_index--, sp += 2) {
+		const char *elem_old_full = sdna->names[sp[1]];
+		/* Start & end offsets in 'elem_old_full'. */
+		uint elem_old_full_offset_start;
+		if (DNA_elem_id_match(elem_old, elem_old_len, elem_old_full, &elem_old_full_offset_start)) {
 			if (sdna->mem_arena == NULL) {
 				sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 			}
-			const int elem_full_old_len = strlen(elem_full_old);
-			const char *elem_full_new = DNA_elem_id_rename(
+			const char *elem_new_full = DNA_elem_id_rename(
 			        sdna->mem_arena,
-			        member_old, member_old_len,
-			        member_new, member_new_len,
-			        elem_full_old, elem_full_old_len,
-			        elem_full_offset_start);
+			        elem_old, elem_old_len,
+			        elem_new, elem_new_len,
+			        elem_old_full, strlen(elem_old_full),
+			        elem_old_full_offset_start);
 
-			sdna->names[sp[1]] = elem_full_new;
+			sdna->names[sp[1]] = elem_new_full;
 			return true;
 		}
 	}
 	return false;
 }
 /**
- * Replace \a member_old with \a member_new for struct \a struct_name
+ * Replace \a elem_old with \a elem_new for struct \a struct_name
  * handles search & replace, maintaining surrounding non-identifier characters such as pointer & array size.
  */
 bool DNA_sdna_patch_struct_member(
-        SDNA *sdna, const char *struct_name, const char *member_old, const char *member_new)
+        SDNA *sdna, const char *struct_name, const char *elem_old, const char *elem_new)
 {
 	const int struct_name_nr = DNA_struct_find_nr(sdna, struct_name);
 	if (struct_name_nr != -1) {
-		return DNA_sdna_patch_struct_member_nr(sdna, struct_name_nr, member_old, member_new);
+		return DNA_sdna_patch_struct_member_nr(sdna, struct_name_nr, elem_old, elem_new);
 	}
 	return false;
 }
