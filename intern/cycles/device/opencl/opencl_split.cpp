@@ -79,6 +79,27 @@ public:
 	OpenCLProgram program_data_init;
 	OpenCLProgram program_state_buffer_size;
 
+	OpenCLProgram program_split;
+
+	OpenCLProgram program_path_init;
+	OpenCLProgram program_scene_intersect;
+	OpenCLProgram program_lamp_emission;
+	OpenCLProgram program_do_volume;
+	OpenCLProgram program_queue_enqueue;
+	OpenCLProgram program_indirect_background;
+	OpenCLProgram program_shader_setup;
+	OpenCLProgram program_shader_sort;
+	OpenCLProgram program_shader_eval;
+	OpenCLProgram program_holdout_emission_blurring_pathtermination_ao;
+	OpenCLProgram program_subsurface_scatter;
+	OpenCLProgram program_direct_lighting;
+	OpenCLProgram program_shadow_blocked_ao;
+	OpenCLProgram program_shadow_blocked_dl;
+	OpenCLProgram program_enqueue_inactive;
+	OpenCLProgram program_next_iteration_setup;
+	OpenCLProgram program_indirect_subsurface;
+	OpenCLProgram program_buffer_update;
+
 	OpenCLDeviceSplitKernel(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_);
 
 	~OpenCLDeviceSplitKernel()
@@ -99,26 +120,150 @@ public:
 		return BVH_LAYOUT_BVH2;
 	}
 
-	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features,
+	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features)
+	{
+		if (!OpenCLDeviceBase::load_kernels(requested_features)) {
+			return false;
+		}
+		return split_kernel->load_kernels(requested_features);
+	}
+
+	const string fast_compiled_kernels =
+		"path_init "
+		"scene_intersect "
+		"queue_enqueue "
+		"shader_setup "
+		"shader_sort "
+		"enqueue_inactive "
+		"next_iteration_setup "
+		"indirect_subsurface "
+		"buffer_update";
+
+	const string get_opencl_program_name(bool single_program, const string& kernel_name)
+	{
+		if (single_program) {
+			return "split";
+		}
+		else {
+			if (fast_compiled_kernels.find(kernel_name) != std::string::npos) {
+				return "split_bundle";
+			}
+			else {
+				return "split_" + kernel_name;
+			}
+		}
+	}
+
+	const string get_opencl_program_filename(bool single_program, const string& kernel_name)
+	{
+		if (single_program) {
+			return "kernel_split.cl";
+		}
+		else {
+			if (fast_compiled_kernels.find(kernel_name) != std::string::npos) {
+				return "kernel_split_bundle.cl";
+			}
+			else {
+				return "kernel_" + kernel_name + ".cl";
+			}
+		}
+	}
+
+	virtual bool add_kernel_programs(const DeviceRequestedFeatures& requested_features,
 	                          vector<OpenCLDeviceBase::OpenCLProgram*> &programs)
 	{
 		bool single_program = OpenCLInfo::use_single_program();
-		program_data_init = OpenCLDeviceBase::OpenCLProgram(this,
-		                                  single_program ? "split" : "split_data_init",
-		                                  single_program ? "kernel_split.cl" : "kernel_data_init.cl",
-		                                  get_build_options(this, requested_features));
-
+		program_data_init = OpenCLDeviceBase::OpenCLProgram(
+			this,
+			get_opencl_program_name(single_program, "data_init"),
+			get_opencl_program_filename(single_program, "data_init"),
+			get_build_options(this, requested_features));
 		program_data_init.add_kernel(ustring("path_trace_data_init"));
 		programs.push_back(&program_data_init);
 
-		program_state_buffer_size = OpenCLDeviceBase::OpenCLProgram(this,
-		                                  single_program ? "split" : "split_state_buffer_size",
-		                                  single_program ? "kernel_split.cl" : "kernel_state_buffer_size.cl",
-		                                  get_build_options(this, requested_features));
+		program_state_buffer_size = OpenCLDeviceBase::OpenCLProgram(
+			this,
+			get_opencl_program_name(single_program, "state_buffer_size"),
+			get_opencl_program_filename(single_program, "state_buffer_size"),
+			get_build_options(this, requested_features));
+
 		program_state_buffer_size.add_kernel(ustring("path_trace_state_buffer_size"));
 		programs.push_back(&program_state_buffer_size);
 
-		return split_kernel->load_kernels(requested_features);
+
+#define ADD_SPLIT_KERNEL_SINGLE_PROGRAM(kernel_name) program_split.add_kernel(ustring("path_trace_"#kernel_name));
+#define ADD_SPLIT_KERNEL_SPLIT_PROGRAM(kernel_name) \
+			program_##kernel_name = \
+				OpenCLDeviceBase::OpenCLProgram(this, \
+												"split_"#kernel_name, \
+												"kernel_"#kernel_name".cl", \
+												get_build_options(this, requested_features)); \
+			program_##kernel_name.add_kernel(ustring("path_trace_"#kernel_name)); \
+			programs.push_back(&program_##kernel_name);
+
+		if (single_program) {
+			program_split = OpenCLDeviceBase::OpenCLProgram(
+				this,
+				"split" ,
+				"kernel_split.cl",
+				get_build_options(this, requested_features));
+
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(path_init);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(scene_intersect);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(lamp_emission);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(do_volume);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(queue_enqueue);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(indirect_background);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shader_setup);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shader_sort);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shader_eval);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(holdout_emission_blurring_pathtermination_ao);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(subsurface_scatter);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(direct_lighting);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shadow_blocked_ao);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shadow_blocked_dl);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(enqueue_inactive);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(next_iteration_setup);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(indirect_subsurface);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(buffer_update);
+
+			programs.push_back(&program_split);
+		}
+		else {
+			/* Ordered with most complex kernels first, to reduce overall compile time. */
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(subsurface_scatter);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(do_volume);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(shadow_blocked_dl);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(shadow_blocked_ao);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(holdout_emission_blurring_pathtermination_ao);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(lamp_emission);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(direct_lighting);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(indirect_background);
+			ADD_SPLIT_KERNEL_SPLIT_PROGRAM(shader_eval);
+
+			/* Quick kernels bundled in a single program to reduce overhead of starting
+			 * Blender processes. */
+			program_split = OpenCLDeviceBase::OpenCLProgram(
+				this,
+				"split_bundle" ,
+				"kernel_split_bundle.cl",
+				get_build_options(this, requested_features));
+
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(path_init);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(scene_intersect);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(queue_enqueue);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shader_setup);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(shader_sort);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(enqueue_inactive);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(next_iteration_setup);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(indirect_subsurface);
+			ADD_SPLIT_KERNEL_SINGLE_PROGRAM(buffer_update);
+			programs.push_back(&program_split);
+		}
+#undef ADD_SPLIT_KERNEL_SPLIT_PROGRAM
+#undef ADD_SPLIT_KERNEL_SINGLE_PROGRAM
+
+		return true;
 	}
 
 	void thread_run(DeviceTask *task)
@@ -281,8 +426,8 @@ public:
 		bool single_program = OpenCLInfo::use_single_program();
 		kernel->program =
 			OpenCLDeviceBase::OpenCLProgram(device,
-			                                single_program ? "split" : "split_" + kernel_name,
-			                                single_program ? "kernel_split.cl" : "kernel_" + kernel_name + ".cl",
+			                                device->get_opencl_program_name(single_program, kernel_name),
+			                                device->get_opencl_program_filename(single_program, kernel_name),
 			                                get_build_options(device, requested_features));
 
 		kernel->program.add_kernel(ustring("path_trace_" + kernel_name));

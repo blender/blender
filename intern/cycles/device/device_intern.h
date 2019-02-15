@@ -24,6 +24,7 @@ class Device;
 Device *device_cpu_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
 bool device_opencl_init();
 Device *device_opencl_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
+bool device_opencl_compile_kernel(const vector<string>& parameters);
 bool device_cuda_init();
 Device *device_cuda_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
 Device *device_network_create(DeviceInfo& info, Stats &stats, Profiler &profiler, const char *address);

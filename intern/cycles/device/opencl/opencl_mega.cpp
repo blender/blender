@@ -35,19 +35,35 @@ public:
 
 	OpenCLDeviceMegaKernel(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_)
 	: OpenCLDeviceBase(info, stats, profiler, background_),
-	  path_trace_program(this, "megakernel", "kernel.cl", "-D__COMPILE_ONLY_MEGAKERNEL__ ")
+	  path_trace_program(this,
+	                     get_opencl_program_name(false, "megakernel"),
+	                     get_opencl_program_filename(false, "megakernel"),
+	                     "-D__COMPILE_ONLY_MEGAKERNEL__ ")
 	{
 	}
 
-	virtual bool show_samples() const {
+
+	virtual bool show_samples() const
+	{
 		return true;
 	}
 
-	virtual BVHLayoutMask get_bvh_layout_mask() const {
+	virtual BVHLayoutMask get_bvh_layout_mask() const
+	{
 		return BVH_LAYOUT_BVH2;
 	}
 
-	virtual bool load_kernels(const DeviceRequestedFeatures& /*requested_features*/,
+	const string get_opencl_program_name(bool /*single_program*/, const string& kernel_name)
+	{
+		return kernel_name;
+	}
+
+	const string get_opencl_program_filename(bool /*single_program*/, const string& /*kernel_name*/)
+	{
+		return "kernel.cl";
+	}
+
+	virtual bool add_kernel_programs(const DeviceRequestedFeatures& /*requested_features*/,
 	                          vector<OpenCLProgram*> &programs)
 	{
 		path_trace_program.add_kernel(ustring("path_trace"));

@@ -93,6 +93,7 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, Profiler &pro
 	}
 	assert(info.num < usable_devices.size());
 	OpenCLPlatformDevice& platform_device = usable_devices[info.num];
+	device_num = info.num;
 	cpPlatform = platform_device.platform_id;
 	cdDevice = platform_device.device_id;
 	platform_name = platform_device.platform_name;
@@ -143,7 +144,6 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, Profiler &pro
 	texture_info.resize(1);
 	memory_manager.alloc("texture_info", texture_info);
 
-	fprintf(stderr, "Device init success\n");
 	device_initialized = true;
 }
 
@@ -251,15 +251,13 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	programs.push_back(&base_program);
 	programs.push_back(&denoising_program);
 	/* Call actual class to fill the vector with its programs. */
-	if(!load_kernels(requested_features, programs)) {
+	if(!add_kernel_programs(requested_features, programs)) {
 		return false;
 	}
 
-	/* Parallel compilation is supported by Cycles, but currently all OpenCL frameworks
-	 * serialize the calls internally, so it's not much use right now.
-	 * Note: When enabling parallel compilation, use_stdout in the OpenCLProgram constructor
-	 * should be set to false as well. */
-#if 0
+	/* Parallel compilation of Cycles kernels, this launches multiple
+	 * processes to workaround OpenCL frameworks serializing the calls
+	 * internally within a single process. */
 	TaskPool task_pool;
 	foreach(OpenCLProgram *program, programs) {
 		task_pool.push(function_bind(&OpenCLProgram::load, program));
@@ -273,14 +271,6 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 			return false;
 		}
 	}
-#else
-	foreach(OpenCLProgram *program, programs) {
-		program->load();
-		if(!program->is_loaded()) {
-			return false;
-		}
-	}
-#endif
 
 	return true;
 }
