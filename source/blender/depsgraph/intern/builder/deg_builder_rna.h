@@ -22,6 +22,11 @@
 
 #pragma once
 
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_operation.h"
+
+struct GHash;
+struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
@@ -29,6 +34,7 @@ namespace DEG {
 
 struct Depsgraph;
 struct Node;
+struct RNANodeQueryIDData;
 
 /* For queries which gives operation node or key defines whether we are
  * interested in a result of the given property or whether we are linking some
@@ -44,11 +50,29 @@ enum class RNAPointerSource {
 	EXIT,
 };
 
+/* A helper structure which wraps all fields needed to find a node inside of
+ * the dependency graph. */
+class RNANodeIdentifier {
+public:
+	RNANodeIdentifier();
+
+	/* Check whether this identifier is valid and usable. */
+	bool is_valid() const;
+
+	ID *id;
+	NodeType type;
+	const char *component_name;
+	OperationCode operation_code;
+	const char *operation_name;
+	int operation_name_tag;
+};
+
 /* Helper class which performs optimized lookups of a node within a given
  * dependency graph which satisfies given RNA pointer or RAN path. */
 class RNANodeQuery {
 public:
 	RNANodeQuery(Depsgraph *depsgraph);
+	~RNANodeQuery();
 
 	Node *find_node(const PointerRNA *ptr,
 	                const PropertyRNA *prop,
@@ -56,6 +80,18 @@ public:
 
 protected:
 	Depsgraph *depsgraph_;
+
+	/* Indexed by an ID, returns RNANodeQueryIDData associated with that ID. */
+	GHash *id_data_map_;
+
+	/* Construct identifier of the node which correspods given configuration
+	 * of RNA property. */
+	RNANodeIdentifier construct_node_identifier(const PointerRNA *ptr,
+	                                            const PropertyRNA *prop,
+	                                            RNAPointerSource source);
+
+	/* Make sure ID data exists for the given ID, and returns it. */
+	RNANodeQueryIDData *ensure_id_data(const ID *id);
 };
 
 }  // namespace DEG

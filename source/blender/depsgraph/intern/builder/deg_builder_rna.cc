@@ -24,7 +24,10 @@
 
 #include <cstring>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
 extern "C" {
@@ -48,80 +51,197 @@ extern "C" {
 
 namespace DEG {
 
+/* ********************************* ID Data ******************************** */
+
+class RNANodeQueryIDData {
+public:
+	explicit RNANodeQueryIDData(const ID *id)
+	        : id_(id),
+	          contraint_to_pchan_map_(NULL) {
+	}
+
+	~RNANodeQueryIDData() {
+		if (contraint_to_pchan_map_ != NULL) {
+			BLI_ghash_free(contraint_to_pchan_map_, NULL, NULL);
+		}
+	}
+
+	const bPoseChannel *get_pchan_for_constraint(const bConstraint *constraint)
+	{
+		ensure_constraint_to_pchan_map();
+		return static_cast<bPoseChannel *>(
+		        BLI_ghash_lookup(contraint_to_pchan_map_, constraint));
+	}
+
+	void ensure_constraint_to_pchan_map()
+	{
+		if (contraint_to_pchan_map_ != NULL) {
+			return;
+		}
+		BLI_assert(GS(id_->name) == ID_OB);
+		const Object *object = reinterpret_cast<const Object *>(id_);
+		contraint_to_pchan_map_ =
+		        BLI_ghash_ptr_new("id data pchan constraint map");
+		if (object->pose != NULL) {
+			LISTBASE_FOREACH (
+			        const bPoseChannel *, pchan, &object->pose->chanbase)
+			{
+				LISTBASE_FOREACH (
+				        const bConstraint *, constraint, &pchan->constraints) 
+				{
+					BLI_ghash_insert(contraint_to_pchan_map_,
+					                 const_cast<bConstraint *>(constraint),
+					                 const_cast<bPoseChannel *>(pchan));
+				}
+			}
+		}
+	}
+
+protected:
+	/* ID this data corresponds to. */
+	const ID *id_;
+
+	/* indexed by bConstraint*, returns pose channel which contains that
+	 * constraint. */
+	GHash *contraint_to_pchan_map_;
+};
+
+/* ***************************** Node Identifier **************************** */
+
+RNANodeIdentifier::RNANodeIdentifier() 
+        : id(NULL),
+          type(NodeType::UNDEFINED),
+          component_name(""),
+          operation_code(OperationCode::OPERATION),
+          operation_name(),
+          operation_name_tag(-1)
+{
+}
+
+bool RNANodeIdentifier::is_valid() const
+{
+	return id != NULL &&
+	       type != NodeType::UNDEFINED;
+}
+
+/* ********************************** Query ********************************* */
+
 namespace {
 
-bool pointer_to_component_node_criteria(
+void ghash_id_data_free_func(void *value)
+{
+	RNANodeQueryIDData *id_data = static_cast<RNANodeQueryIDData *>(value);
+	OBJECT_GUARDED_DELETE(id_data, RNANodeQueryIDData);
+}
+
+}  // namespace
+
+RNANodeQuery::RNANodeQuery(Depsgraph *depsgraph)
+        : depsgraph_(depsgraph),
+          id_data_map_(BLI_ghash_ptr_new("rna node query id data hash"))
+{
+}
+
+RNANodeQuery::~RNANodeQuery() {
+	BLI_ghash_free(id_data_map_, NULL, ghash_id_data_free_func);
+}
+
+Node *RNANodeQuery::find_node(const PointerRNA *ptr,
+                              const PropertyRNA *prop,
+                              RNAPointerSource source)
+{
+	const RNANodeIdentifier node_identifier = construct_node_identifier(
+	        ptr, prop, source);
+	if (!node_identifier.is_valid()) {
+		return NULL;
+	}
+	IDNode *id_node = depsgraph_->find_id_node(node_identifier.id);
+	if (id_node == NULL) {
+		return NULL;
+	}
+	ComponentNode *comp_node = id_node->find_component(
+	        node_identifier.type, node_identifier.component_name);
+	if (comp_node == NULL) {
+		return NULL;
+	}
+	if (node_identifier.operation_code == OperationCode::OPERATION) {
+		return comp_node;
+	}
+	return comp_node->find_operation(node_identifier.operation_code,
+	                                 node_identifier.operation_name,
+	                                 node_identifier.operation_name_tag);
+}
+
+RNANodeIdentifier RNANodeQuery::construct_node_identifier(
         const PointerRNA *ptr,
         const PropertyRNA *prop,
-        RNAPointerSource /*source*/,
-        ID **id,
-        NodeType *type,
-        const char **component_name,
-        OperationCode *operation_code,
-        const char **operation_name,
-        int *operation_name_tag)
+        RNAPointerSource /*source*/)
 {
+	RNANodeIdentifier node_identifier;
 	if (ptr->type == NULL) {
-		return false;
+		return node_identifier;
 	}
 	/* Set default values for returns. */
-	*id = (ID *)ptr->id.data;
-	*component_name = "";
-	*operation_code = OperationCode::OPERATION;
-	*operation_name = "";
-	*operation_name_tag = -1;
+	node_identifier.id = static_cast<ID *>(ptr->id.data);
+	node_identifier.component_name = "";
+	node_identifier.operation_code = OperationCode::OPERATION;
+	node_identifier.operation_name = "";
+	node_identifier.operation_name_tag = -1;
 	/* Handling of commonly known scenarios. */
 	if (ptr->type == &RNA_PoseBone) {
-		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+		const bPoseChannel *pchan =
+		        static_cast<const bPoseChannel *>(ptr->data);
 		if (prop != NULL && RNA_property_is_idprop(prop)) {
-			*type = NodeType::PARAMETERS;
-			*operation_code = OperationCode::ID_PROPERTY;
-			*operation_name = RNA_property_identifier((PropertyRNA *)prop);
-			*operation_name_tag = -1;
+			node_identifier.type = NodeType::PARAMETERS;
+			node_identifier.operation_code = OperationCode::ID_PROPERTY;
+			node_identifier.operation_name =
+			        RNA_property_identifier(
+			                reinterpret_cast<const PropertyRNA *>(prop));
+			node_identifier.operation_name_tag = -1;
 		}
 		else {
 			/* Bone - generally, we just want the bone component. */
-			*type = NodeType::BONE;
-			*component_name = pchan->name;
+			node_identifier.type = NodeType::BONE;
+			node_identifier.component_name = pchan->name;
 			/* But B-Bone properties should connect to the actual operation. */
 			if (!ELEM(NULL, pchan->bone, prop) && pchan->bone->segments > 1 &&
 			    STRPREFIX(RNA_property_identifier(prop), "bbone_"))
 			{
-				*operation_code = OperationCode::BONE_SEGMENTS;
+				node_identifier.operation_code = OperationCode::BONE_SEGMENTS;
 			}
 		}
-		return true;
+		return node_identifier;
 	}
 	else if (ptr->type == &RNA_Bone) {
-		Bone *bone = (Bone *)ptr->data;
-		/* armature-level bone, but it ends up going to bone component anyway */
+		const Bone *bone = static_cast<const Bone *>(ptr->data);
+		/* Armature-level bone, but it ends up going to bone component
+		 * anyway. */
 		// NOTE: the ID in this case will end up being bArmature.
-		*type = NodeType::BONE;
-		*component_name = bone->name;
-		return true;
+		node_identifier.type = NodeType::BONE;
+		node_identifier.component_name = bone->name;
+		return node_identifier;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
-		Object *object = (Object *)ptr->id.data;
-		bConstraint *con = (bConstraint *)ptr->data;
+		const Object *object = static_cast<const Object *>(ptr->id.data);
+		const bConstraint *constraint =
+		        static_cast<const bConstraint *>(ptr->data);
+		RNANodeQueryIDData *id_data = ensure_id_data(&object->id);
 		/* Check whether is object or bone constraint. */
 		/* NOTE: Currently none of the area can address transform of an object
 		 * at a given constraint, but for rigging one might use constraint
 		 * influence to be used to drive some corrective shape keys or so. */
-		if (BLI_findindex(&object->constraints, con) != -1) {
-			*type = NodeType::TRANSFORM;
-			*operation_code = OperationCode::TRANSFORM_LOCAL;
-			return true;
+		const bPoseChannel *pchan =
+		        id_data->get_pchan_for_constraint(constraint);
+		if (pchan == NULL) {
+			node_identifier.type = NodeType::TRANSFORM;
+			node_identifier.operation_code = OperationCode::TRANSFORM_LOCAL;
 		}
-		else if (object->pose != NULL) {
-			LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-				if (BLI_findindex(&pchan->constraints, con) != -1) {
-					*type = NodeType::BONE;
-					*operation_code = OperationCode::BONE_LOCAL;
-					*component_name = pchan->name;
-					return true;
-				}
-			}
+		else {
+			node_identifier.type = NodeType::BONE;
+			node_identifier.operation_code = OperationCode::BONE_LOCAL;
+			node_identifier.component_name = pchan->name;
 		}
+		return node_identifier;
 	}
 	else if (ELEM(ptr->type, &RNA_ConstraintTarget, &RNA_ConstraintTargetBone)) {
 		Object *object = (Object *)ptr->id.data;
@@ -131,20 +251,20 @@ bool pointer_to_component_node_criteria(
 		bConstraint *con = BKE_constraint_find_from_target(object, tgt, &pchan);
 		if (con != NULL) {
 			if (pchan != NULL) {
-				*type = NodeType::BONE;
-				*operation_code = OperationCode::BONE_LOCAL;
-				*component_name = pchan->name;
+				node_identifier.type = NodeType::BONE;
+				node_identifier.operation_code = OperationCode::BONE_LOCAL;
+				node_identifier.component_name = pchan->name;
 			}
 			else {
-				*type = NodeType::TRANSFORM;
-				*operation_code = OperationCode::TRANSFORM_LOCAL;
+				node_identifier.type = NodeType::TRANSFORM;
+				node_identifier.operation_code = OperationCode::TRANSFORM_LOCAL;
 			}
-			return true;
+			return node_identifier;
 		}
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		*type = NodeType::GEOMETRY;
-		return true;
+		node_identifier.type = NodeType::GEOMETRY;
+		return node_identifier;
 	}
 	else if (ptr->type == &RNA_Object) {
 		/* Transforms props? */
@@ -156,107 +276,80 @@ bool pointer_to_component_node_criteria(
 			    strstr(prop_identifier, "scale") ||
 			    strstr(prop_identifier, "matrix_"))
 			{
-				*type = NodeType::TRANSFORM;
-				return true;
+				node_identifier.type = NodeType::TRANSFORM;
+				return node_identifier;
 			}
 			else if (strstr(prop_identifier, "data")) {
 				/* We access object.data, most likely a geometry.
 				 * Might be a bone tho. */
-				*type = NodeType::GEOMETRY;
-				return true;
+				node_identifier.type = NodeType::GEOMETRY;
+				return node_identifier;
 			}
 		}
 	}
 	else if (ptr->type == &RNA_ShapeKey) {
-		KeyBlock *key_block = (KeyBlock *)ptr->data;
-		*id = (ID *)ptr->id.data;
-		*type = NodeType::PARAMETERS;
-		*operation_code = OperationCode::PARAMETERS_EVAL;
-		*operation_name = key_block->name;
-		return true;
+		KeyBlock *key_block = static_cast<KeyBlock *>(ptr->data);
+		node_identifier.id = static_cast<ID *>(ptr->id.data);
+		node_identifier.type = NodeType::PARAMETERS;
+		node_identifier.operation_code = OperationCode::PARAMETERS_EVAL;
+		node_identifier.operation_name = key_block->name;
+		return node_identifier;
 	}
 	else if (ptr->type == &RNA_Key) {
-		*id = (ID *)ptr->id.data;
-		*type = NodeType::GEOMETRY;
-		return true;
+		node_identifier.id = static_cast<ID *>(ptr->id.data);
+		node_identifier.type = NodeType::GEOMETRY;
+		return node_identifier;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
-		Sequence *seq = (Sequence *)ptr->data;
+		const Sequence *seq = static_cast<Sequence *>(ptr->data);
 		/* Sequencer strip */
-		*type = NodeType::SEQUENCER;
-		*component_name = seq->name;
-		return true;
+		node_identifier.type = NodeType::SEQUENCER;
+		node_identifier.component_name = seq->name;
+		return node_identifier;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
-		*type = NodeType::SHADING;
-		return true;
+		node_identifier.type = NodeType::SHADING;
+		return node_identifier;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
-		*type = NodeType::SHADING;
-		return true;
+		node_identifier.type = NodeType::SHADING;
+		return node_identifier;
 	}
 	else if (ELEM(ptr->type, &RNA_Curve, &RNA_TextCurve)) {
-		*id = (ID *)ptr->id.data;
-		*type = NodeType::GEOMETRY;
-		return true;
+		node_identifier.id = (ID *)ptr->id.data;
+		node_identifier.type = NodeType::GEOMETRY;
+		return node_identifier;
 	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		if (RNA_property_is_idprop(prop)) {
-			*type = NodeType::PARAMETERS;
-			*operation_code = OperationCode::ID_PROPERTY;
-			*operation_name = RNA_property_identifier((PropertyRNA *)prop);
-			*operation_name_tag = -1;
+			node_identifier.type = NodeType::PARAMETERS;
+			node_identifier.operation_code = OperationCode::ID_PROPERTY;
+			node_identifier.operation_name =
+			        RNA_property_identifier((PropertyRNA *)prop);
+			node_identifier.operation_name_tag = -1;
 		}
 		else {
-			*type = NodeType::PARAMETERS;
-			*operation_code = OperationCode::PARAMETERS_EVAL;
-			*operation_name = "";
-			*operation_name_tag = -1;
+			node_identifier.type = NodeType::PARAMETERS;
+			node_identifier.operation_code = OperationCode::PARAMETERS_EVAL;
+			node_identifier.operation_name = "";
+			node_identifier.operation_name_tag = -1;
 		}
-		return true;
+		return node_identifier;
 	}
-	return false;
+	return node_identifier;
 }
 
-}  // namespace
-
-RNANodeQuery::RNANodeQuery(Depsgraph *depsgraph)
-        : depsgraph_(depsgraph)
+RNANodeQueryIDData *RNANodeQuery::ensure_id_data(const ID *id)
 {
-}
-
-Node *RNANodeQuery::find_node(const PointerRNA *ptr,
-                              const PropertyRNA *prop,
-                              RNAPointerSource source)
-{
-	ID *id;
-	NodeType node_type;
-	const char *component_name, *operation_name;
-	OperationCode operation_code;
-	int operation_name_tag;
-	if (pointer_to_component_node_criteria(
-	                 ptr, prop, source,
-	                 &id, &node_type, &component_name,
-	                 &operation_code, &operation_name, &operation_name_tag))
+	RNANodeQueryIDData **id_data_ptr;
+	if (!BLI_ghash_ensure_p(id_data_map_,
+	                        const_cast<ID *>(id),
+	                        reinterpret_cast<void***>(&id_data_ptr)))
 	{
-		IDNode *id_node = depsgraph_->find_id_node(id);
-		if (id_node == NULL) {
-			return NULL;
-		}
-		ComponentNode *comp_node =
-		        id_node->find_component(node_type, component_name);
-		if (comp_node == NULL) {
-			return NULL;
-		}
-		if (operation_code == OperationCode::OPERATION) {
-			return comp_node;
-		}
-		return comp_node->find_operation(operation_code,
-		                                 operation_name,
-		                                 operation_name_tag);
+		*id_data_ptr = OBJECT_GUARDED_NEW(RNANodeQueryIDData, id);
 	}
-	return NULL;
+	return *id_data_ptr;
 }
 
 }  // namespace DEG
