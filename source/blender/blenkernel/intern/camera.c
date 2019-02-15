@@ -133,7 +133,7 @@ float BKE_camera_object_dof_distance(Object *ob)
 		sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof_ob->obmat[3]);
 		return fabsf(dot_v3v3(view_dir, dof_dir));
 	}
-	return cam->YF_dofdist;
+	return cam->dof_distance;
 }
 
 float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y)

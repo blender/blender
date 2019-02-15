@@ -38,10 +38,12 @@
 
 /* No include guard (intentional). */
 
-/* Match RNA names where possible. */
+/* Match RNA names where possible, keep sorted. */
+
+DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
+
 #if 0
 DNA_STRUCT_RENAME(Lamp, Light)
 DNA_STRUCT_RENAME(SpaceOops, SpaceOutliner)
-DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
 DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
 #endif
