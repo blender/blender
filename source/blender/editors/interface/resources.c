@@ -933,6 +933,17 @@ void UI_GetThemeColor4fv(int colorid, float col[4])
 	col[3] = ((float)cp[3]) / 255.0f;
 }
 
+void UI_GetThemeColorType4fv(int colorid, int spacetype, float col[4])
+{
+	const unsigned char *cp;
+
+	cp = UI_ThemeGetColorPtr(theme_active, spacetype, colorid);
+	col[0] = ((float)cp[0]) / 255.0f;
+	col[1] = ((float)cp[1]) / 255.0f;
+	col[2] = ((float)cp[2]) / 255.0f;
+	col[3] = ((float)cp[3]) / 255.0f;
+}
+
 /* get the color, range 0.0-1.0, complete with shading offset */
 void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3])
 {

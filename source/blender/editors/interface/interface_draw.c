@@ -1606,12 +1606,26 @@ static void ui_draw_but_curve_grid(uint pos, const rcti *rect, float zoomx, floa
 
 }
 
-static void gl_shaded_color(uchar *col, int shade)
+
+static void gl_shaded_color_get(const uchar color[3], int shade, uchar r_color[3])
 {
-	immUniformColor3ub(
-	        col[0] - shade > 0 ? col[0] - shade : 0,
-	        col[1] - shade > 0 ? col[1] - shade : 0,
-	        col[2] - shade > 0 ? col[2] - shade : 0);
+	r_color[0] = color[0] - shade > 0 ? color[0] - shade : 0;
+	r_color[1] = color[1] - shade > 0 ? color[1] - shade : 0;
+	r_color[2] = color[2] - shade > 0 ? color[2] - shade : 0;
+}
+
+static void gl_shaded_color_get_fl(const uchar *color, int shade, float r_color[3])
+{
+	uchar color_shaded[3];
+	gl_shaded_color_get(color, shade, color_shaded);
+	rgb_uchar_to_float(r_color, color_shaded);
+}
+
+static void gl_shaded_color(uchar *color, int shade)
+{
+	uchar color_shaded[3];
+	gl_shaded_color_get(color, shade, color_shaded);
+	immUniformColor3ubv(color_shaded);
 }
 
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
@@ -1672,17 +1686,21 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* backdrop */
+	float color_backdrop[4] = {0, 0, 0, 1};
+
 	if (but->a1 == UI_GRAD_H) {
 		/* grid, hsv uses different grid */
 		GPU_blend(true);
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-		immUniformColor4ub(0, 0, 0, 48);
+		ARRAY_SET_ITEMS(color_backdrop, 0, 0, 0, 48.0 / 255.0);
+		immUniformColor4fv(color_backdrop);
 		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
 		GPU_blend(false);
 	}
 	else {
 		if (cumap->flag & CUMA_DO_CLIP) {
-			gl_shaded_color((uchar *)wcol->inner, -20);
+			gl_shaded_color_get_fl((uchar *)wcol->inner, -20, color_backdrop);
+			immUniformColor3fv(color_backdrop);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 			immUniformColor3ubv((uchar *)wcol->inner);
 			immRectf(pos,
@@ -1692,7 +1710,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 			         rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
 		else {
-			immUniformColor3ubv((uchar *)wcol->inner);
+			rgb_uchar_to_float(color_backdrop, (const uchar *)wcol->inner);
+			immUniformColor3fv(color_backdrop);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 
@@ -1831,18 +1850,25 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
+	/* Calculate vertex colors based on text theme. */
+	float color_vert[4], color_vert_select[4];
+	UI_GetThemeColor4fv(TH_TEXT_HI, color_vert);
+	UI_GetThemeColor4fv(TH_TEXT, color_vert_select);
+	if (len_squared_v3v3(color_vert, color_vert_select) < 0.1f) {
+		interp_v3_v3v3(color_vert, color_vert_select, color_backdrop, 0.75f);
+	}
+	if (len_squared_v3(color_vert) > len_squared_v3(color_vert_select)) {
+		/* Ensure brightest text color is used for selection. */
+		swap_v3_v3(color_vert, color_vert_select);
+	}
+
 	cmp = cuma->curve;
 	GPU_point_size(max_ff(1.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
 	immBegin(GPU_PRIM_POINTS, cuma->totpoint);
 	for (int a = 0; a < cuma->totpoint; a++) {
-		float color[4];
-		if (cmp[a].flag & CUMA_SELECT)
-			UI_GetThemeColor4fv(TH_TEXT_HI, color);
-		else
-			UI_GetThemeColor4fv(TH_TEXT, color);
 		float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
 		float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
-		immAttr4fv(col, color);
+		immAttr4fv(col, (cmp[a].flag & CUMA_SELECT) ? color_vert_select : color_vert);
 		immVertex2f(pos, fx, fy);
 	}
 	immEnd();
