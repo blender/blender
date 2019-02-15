@@ -132,8 +132,8 @@ struct Depsgraph {
 	 * \return A node matching the required characteristics if it exists
 	 * or NULL if no such node exists in the graph */
 	Node *find_node_from_pointer(const PointerRNA *ptr,
-	                                 const PropertyRNA *prop,
-	                                 RNAPointerSource source) const;
+	                             const PropertyRNA *prop,
+	                             RNAPointerSource source) const;
 
 	TimeSourceNode *add_time_source();
 	TimeSourceNode *find_time_source() const;
