@@ -289,7 +289,7 @@ static void do_outliner_ebone_select_recursive(bArmature *arm, EditBone *ebone_p
 }
 
 static eOLDrawState tree_element_set_active_object(
-        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOops *soops,
+        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOutliner *soops,
         TreeElement *te, const eOLSetState set, bool recursive)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
@@ -377,7 +377,7 @@ static eOLDrawState tree_element_set_active_object(
 }
 
 static eOLDrawState tree_element_active_material(
-        bContext *C, Scene *UNUSED(scene), ViewLayer *view_layer, SpaceOops *soops,
+        bContext *C, Scene *UNUSED(scene), ViewLayer *view_layer, SpaceOutliner *soops,
         TreeElement *te, const eOLSetState set)
 {
 	TreeElement *tes;
@@ -430,7 +430,7 @@ static eOLDrawState tree_element_active_material(
 }
 
 static eOLDrawState tree_element_active_lamp(
-        bContext *UNUSED(C), Scene *UNUSED(scene), ViewLayer *view_layer, SpaceOops *soops,
+        bContext *UNUSED(C), Scene *UNUSED(scene), ViewLayer *view_layer, SpaceOutliner *soops,
         TreeElement *te, const eOLSetState set)
 {
 	Object *ob;
@@ -453,7 +453,7 @@ static eOLDrawState tree_element_active_lamp(
 }
 
 static eOLDrawState tree_element_active_camera(
-        bContext *UNUSED(C), Scene *scene, ViewLayer *UNUSED(sl), SpaceOops *soops,
+        bContext *UNUSED(C), Scene *scene, ViewLayer *UNUSED(sl), SpaceOutliner *soops,
         TreeElement *te, const eOLSetState set)
 {
 	Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
@@ -466,7 +466,7 @@ static eOLDrawState tree_element_active_camera(
 }
 
 static eOLDrawState tree_element_active_world(
-        bContext *C, Scene *scene, ViewLayer *UNUSED(sl), SpaceOops *UNUSED(soops),
+        bContext *C, Scene *scene, ViewLayer *UNUSED(sl), SpaceOutliner *UNUSED(soops),
         TreeElement *te, const eOLSetState set)
 {
 	TreeElement *tep;
@@ -759,7 +759,7 @@ static int tree_element_active_constraint(
 }
 
 static eOLDrawState tree_element_active_text(
-        bContext *UNUSED(C), Scene *UNUSED(scene), ViewLayer *UNUSED(sl), SpaceOops *UNUSED(soops),
+        bContext *UNUSED(C), Scene *UNUSED(scene), ViewLayer *UNUSED(sl), SpaceOutliner *UNUSED(soops),
         TreeElement *UNUSED(te), int UNUSED(set))
 {
 	// XXX removed
@@ -911,7 +911,7 @@ static eOLDrawState tree_element_active_layer_collection(
 /* ---------------------------------------------- */
 
 /* generic call for ID data check or make/check active in UI */
-eOLDrawState tree_element_active(bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOops *soops, TreeElement *te,
+eOLDrawState tree_element_active(bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOutliner *soops, TreeElement *te,
                                  const eOLSetState set, const bool handle_all_types)
 {
 	switch (te->idcode) {
@@ -940,7 +940,7 @@ eOLDrawState tree_element_active(bContext *C, Scene *scene, ViewLayer *view_laye
  * Generic call for non-id data to make/check active in UI
  */
 eOLDrawState tree_element_type_active(
-        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOops *soops,
+        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOutliner *soops,
         TreeElement *te, TreeStoreElem *tselem, const eOLSetState set, bool recursive)
 {
 	switch (tselem->type) {
@@ -998,7 +998,7 @@ eOLDrawState tree_element_type_active(
  * Needed to run from operators accessed from a menu.
  */
 static void do_outliner_item_activate_tree_element(
-        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOops *soops,
+        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOutliner *soops,
         TreeElement *te, TreeStoreElem *tselem,
         const bool extend, const bool recursive)
 {
@@ -1099,7 +1099,7 @@ static void do_outliner_item_activate_tree_element(
  * \param extend: Don't deselect other items, only modify \a te.
  * \param toggle: Select \a te when not selected, deselect when selected.
  */
-void outliner_item_select(SpaceOops *soops, const TreeElement *te, const bool extend, const bool toggle)
+void outliner_item_select(SpaceOutliner *soops, const TreeElement *te, const bool extend, const bool toggle)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	const short new_flag = toggle ? (tselem->flag ^ TSE_SELECTED) : (tselem->flag | TSE_SELECTED);
@@ -1129,7 +1129,7 @@ static bool outliner_item_is_co_within_close_toggle(TreeElement *te, float view_
 	return ((te->flag & TE_ICONROW) == 0) && (view_co_x > te->xs) && (view_co_x < te->xs + UI_UNIT_X);
 }
 
-static bool outliner_is_co_within_restrict_columns(const SpaceOops *soops, const ARegion *ar, float view_co_x)
+static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *soops, const ARegion *ar, float view_co_x)
 {
 	return ((soops->outlinevis != SO_DATA_API) &&
 	        !(soops->flag & SO_HIDE_RESTRICTCOLS) &&
@@ -1148,7 +1148,7 @@ void outliner_item_do_activate_from_tree_element(
 {
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
 	do_outliner_item_activate_tree_element(
 	        C, scene, view_layer, soops,
@@ -1166,7 +1166,7 @@ int outliner_item_do_activate_from_cursor(
         bool extend, bool recursive)
 {
 	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float view_mval[2];
 	bool changed = false, rebuild_tree = false;
@@ -1235,7 +1235,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 /* ****************************************************** */
 
 /* **************** Box Select Tool ****************** */
-static void outliner_item_box_select(SpaceOops *soops, Scene *scene, rctf *rectf, TreeElement *te, bool select)
+static void outliner_item_box_select(SpaceOutliner *soops, Scene *scene, rctf *rectf, TreeElement *te, bool select)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 
@@ -1259,7 +1259,7 @@ static void outliner_item_box_select(SpaceOops *soops, Scene *scene, rctf *rectf
 static int outliner_box_select_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 	TreeElement *te;
 	rctf rectf;

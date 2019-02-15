@@ -218,7 +218,7 @@ typedef enum eSpaceButtons_Flag {
  * \{ */
 
 /* Outliner */
-typedef struct SpaceOops {
+typedef struct SpaceOutliner {
 	SpaceLink *next, *prev;
 	/** Storage of regions for inactive spaces. */
 	ListBase regionbase;
@@ -254,10 +254,10 @@ typedef struct SpaceOops {
 	 * Pointers to treestore elements, grouped by (id, type, nr)
 	 * in hashtable for faster searching */
 	void *treehash;
-} SpaceOops;
+} SpaceOutliner;
 
 
-/* SpaceOops.flag */
+/* SpaceOutliner.flag */
 typedef enum eSpaceOutliner_Flag {
 	SO_TESTBLOCKS           = (1 << 0),
 	SO_NEWSELECTED          = (1 << 1),
@@ -266,7 +266,7 @@ typedef enum eSpaceOutliner_Flag {
 	SO_SKIP_SORT_ALPHA      = (1 << 4),
 } eSpaceOutliner_Flag;
 
-/* SpaceOops.filter */
+/* SpaceOutliner.filter */
 typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_SEARCH           = (1 << 0),  /* Run-time flag. */
 	SO_FILTER_DEPRECATED_1     = (1 << 1),  /* cleared */
@@ -308,7 +308,7 @@ typedef enum eSpaceOutliner_Filter {
                        SO_FILTER_OB_STATE | \
                        SO_FILTER_NO_COLLECTION)
 
-/* SpaceOops.filter_state */
+/* SpaceOutliner.filter_state */
 typedef enum eSpaceOutliner_StateFilter {
 	SO_FILTER_OB_ALL           = 0,
 	SO_FILTER_OB_VISIBLE       = 1,
@@ -316,7 +316,7 @@ typedef enum eSpaceOutliner_StateFilter {
 	SO_FILTER_OB_ACTIVE        = 3,
 } eSpaceOutliner_StateFilter;
 
-/* SpaceOops.outlinevis */
+/* SpaceOutliner.outlinevis */
 typedef enum eSpaceOutliner_Mode {
 	SO_SCENES            = 0,
 	/* SO_CUR_SCENE      = 1, */  /* deprecated! */
@@ -336,7 +336,7 @@ typedef enum eSpaceOutliner_Mode {
 	SO_VIEW_LAYER        = 15,
 } eSpaceOutliner_Mode;
 
-/* SpaceOops.storeflag */
+/* SpaceOutliner.storeflag */
 typedef enum eSpaceOutliner_StoreFlag {
 	/* cleanup tree */
 	SO_TREESTORE_CLEANUP    = (1 << 0),
@@ -346,7 +346,7 @@ typedef enum eSpaceOutliner_StoreFlag {
 	SO_TREESTORE_REBUILD    = (1 << 2),
 } eSpaceOutliner_StoreFlag;
 
-/* outliner search flags (SpaceOops.search_flags) */
+/* outliner search flags (SpaceOutliner.search_flags) */
 typedef enum eSpaceOutliner_Search_Flags {
 	SO_FIND_CASE_SENSITIVE  = (1 << 0),
 	SO_FIND_COMPLETE        = (1 << 1),

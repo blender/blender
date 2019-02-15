@@ -2237,7 +2237,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_OUTLINER) {
-						SpaceOops *so = (SpaceOops *)sl;
+						SpaceOutliner *so = (SpaceOutliner *)sl;
 
 						if (!ELEM(so->outlinevis,
 						          SO_SCENES,

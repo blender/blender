@@ -83,13 +83,13 @@
 
 /* prototypes */
 static TreeElement *outliner_add_collection_recursive(
-        SpaceOops *soops, Collection *collection, TreeElement *ten);
+        SpaceOutliner *soops, Collection *collection, TreeElement *ten);
 static void outliner_make_object_parent_hierarchy(ListBase *lb);
 
 /* ********************************************************* */
 /* Persistent Data */
 
-static void outliner_storage_cleanup(SpaceOops *soops)
+static void outliner_storage_cleanup(SpaceOutliner *soops)
 {
 	BLI_mempool *ts = soops->treestore;
 
@@ -150,7 +150,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 	}
 }
 
-static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short type, short nr)
+static void check_persistent(SpaceOutliner *soops, TreeElement *te, ID *id, short type, short nr)
 {
 	TreeStoreElem *tselem;
 
@@ -194,7 +194,7 @@ void outliner_free_tree(ListBase *tree)
 	}
 }
 
-void outliner_cleanup_tree(SpaceOops *soops)
+void outliner_cleanup_tree(SpaceOutliner *soops)
 {
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
@@ -223,13 +223,13 @@ void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
 /* ********************************************************* */
 
 /* Prototype, see functions below */
-static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv,
+static TreeElement *outliner_add_element(SpaceOutliner *soops, ListBase *lb, void *idv,
                                          TreeElement *parent, short type, short index);
 
 /* -------------------------------------------------------- */
 
 /* special handling of hierarchical non-lib data */
-static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone,
+static void outliner_add_bone(SpaceOutliner *soops, ListBase *lb, ID *id, Bone *curBone,
                               TreeElement *parent, int *a)
 {
 	TreeElement *te = outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
@@ -251,7 +251,7 @@ static bool outliner_animdata_test(AnimData *adt)
 }
 
 #ifdef WITH_FREESTYLE
-static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
+static void outliner_add_line_styles(SpaceOutliner *soops, ListBase *lb, Scene *sce, TreeElement *te)
 {
 	ViewLayer *view_layer;
 	FreestyleLineSet *lineset;
@@ -278,7 +278,7 @@ static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce,
 }
 #endif
 
-static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
+static void outliner_add_scene_contents(SpaceOutliner *soops, ListBase *lb, Scene *sce, TreeElement *te)
 {
 	/* View layers */
 	TreeElement *ten = outliner_add_element(soops, lb, sce, te, TSE_R_LAYER_BASE, 0);
@@ -313,7 +313,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 }
 
 // can be inlined if necessary
-static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, Object *ob)
+static void outliner_add_object_contents(SpaceOutliner *soops, TreeElement *te, TreeStoreElem *tselem, Object *ob)
 {
 	if (outliner_animdata_test(ob->adt))
 		outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
@@ -484,7 +484,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 
 
 // can be inlined if necessary
-static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, ID *id)
+static void outliner_add_id_contents(SpaceOutliner *soops, TreeElement *te, TreeStoreElem *tselem, ID *id)
 {
 	/* tuck pointer back in object, to construct hierarchy */
 	if (GS(id->name) == ID_OB) id->newid = (ID *)te;
@@ -719,7 +719,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 
 // TODO: this function needs to be split up! It's getting a bit too large...
 // Note: "ID" is not always a real ID
-static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv,
+static TreeElement *outliner_add_element(SpaceOutliner *soops, ListBase *lb, void *idv,
                                          TreeElement *parent, short type, short index)
 {
 	TreeElement *te;
@@ -1119,7 +1119,7 @@ static int need_add_seq_dup(Sequence *seq)
 	return(1);
 }
 
-static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
+static void outliner_add_seq_dup(SpaceOutliner *soops, Sequence *seq, TreeElement *te, short index)
 {
 	/* TreeElement *ch; */ /* UNUSED */
 	Sequence *p;
@@ -1173,7 +1173,7 @@ static bool outliner_library_id_show(Library *lib, ID *id, short filter_id_type)
 	return true;
 }
 
-static TreeElement *outliner_add_library_contents(Main *mainvar, SpaceOops *soops, ListBase *lb, Library *lib)
+static TreeElement *outliner_add_library_contents(Main *mainvar, SpaceOutliner *soops, ListBase *lb, Library *lib)
 {
 	TreeElement *ten, *tenlib = NULL;
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -1231,7 +1231,7 @@ static TreeElement *outliner_add_library_contents(Main *mainvar, SpaceOops *soop
 	return tenlib;
 }
 
-static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
+static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOutliner *soops)
 {
 	TreeElement *ten;
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -1278,7 +1278,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 }
 
 static void outliner_add_layer_collection_objects(
-        SpaceOops *soops, ListBase *tree, ViewLayer *layer,
+        SpaceOutliner *soops, ListBase *tree, ViewLayer *layer,
         LayerCollection *lc, TreeElement *ten)
 {
 	for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
@@ -1293,7 +1293,7 @@ static void outliner_add_layer_collection_objects(
 }
 
 static void outliner_add_layer_collections_recursive(
-        SpaceOops *soops, ListBase *tree, ViewLayer *layer,
+        SpaceOutliner *soops, ListBase *tree, ViewLayer *layer,
         ListBase *layer_collections, TreeElement *parent_ten,
         const bool show_objects)
 {
@@ -1324,7 +1324,7 @@ static void outliner_add_layer_collections_recursive(
 	}
 }
 
-static void outliner_add_view_layer(SpaceOops *soops, ListBase *tree, TreeElement *parent,
+static void outliner_add_view_layer(SpaceOutliner *soops, ListBase *tree, TreeElement *parent,
                                     ViewLayer *layer, const bool show_objects)
 {
 	/* First layer collection is for master collection, don't show it. */
@@ -1346,7 +1346,7 @@ BLI_INLINE void outliner_add_collection_init(TreeElement *te, Collection *collec
 }
 
 BLI_INLINE void outliner_add_collection_objects(
-        SpaceOops *soops, ListBase *tree, Collection *collection, TreeElement *parent)
+        SpaceOutliner *soops, ListBase *tree, Collection *collection, TreeElement *parent)
 {
 	for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
 		outliner_add_element(soops, tree, cob->ob, parent, 0, 0);
@@ -1354,7 +1354,7 @@ BLI_INLINE void outliner_add_collection_objects(
 }
 
 static TreeElement *outliner_add_collection_recursive(
-        SpaceOops *soops, Collection *collection, TreeElement *ten)
+        SpaceOutliner *soops, Collection *collection, TreeElement *ten)
 {
 	outliner_add_collection_init(ten, collection);
 
@@ -1549,7 +1549,7 @@ typedef struct OutlinerTreeElementFocus {
  * Bring the outliner scrolling back to where it was in relation to the original focus element
  * Caller is expected to handle redrawing of ARegion.
  */
-static void outliner_restore_scrolling_position(SpaceOops *soops, ARegion *ar, OutlinerTreeElementFocus *focus)
+static void outliner_restore_scrolling_position(SpaceOutliner *soops, ARegion *ar, OutlinerTreeElementFocus *focus)
 {
 	View2D *v2d = &ar->v2d;
 	int ytop;
@@ -1592,7 +1592,7 @@ static bool test_object_callback(TreeElement *te)
  * See if TreeElement or any of its children pass the callback_test.
  */
 static TreeElement *outliner_find_first_desired_element_at_y_recursive(
-        const SpaceOops *soops,
+        const SpaceOutliner *soops,
         TreeElement *te,
         const float limit,
         bool (*callback_test)(TreeElement *))
@@ -1625,7 +1625,7 @@ static TreeElement *outliner_find_first_desired_element_at_y_recursive(
  * we return NULL.
  */
 static TreeElement *outliner_find_first_desired_element_at_y(
-        const SpaceOops *soops,
+        const SpaceOutliner *soops,
         const float view_co,
         const float view_co_limit)
 {
@@ -1681,7 +1681,7 @@ static TreeElement *outliner_find_first_desired_element_at_y(
  * Finds the top-most collection visible in the outliner and populates the OutlinerTreeElementFocus
  * struct to retrieve this element later to make sure it is in the same original position as before filtering
  */
-static void outliner_store_scrolling_position(SpaceOops *soops, ARegion *ar, OutlinerTreeElementFocus *focus)
+static void outliner_store_scrolling_position(SpaceOutliner *soops, ARegion *ar, OutlinerTreeElementFocus *focus)
 {
 	TreeElement *te;
 	float limit = ar->v2d.cur.ymin;
@@ -1699,7 +1699,7 @@ static void outliner_store_scrolling_position(SpaceOops *soops, ARegion *ar, Out
 	}
 }
 
-static int outliner_exclude_filter_get(SpaceOops *soops)
+static int outliner_exclude_filter_get(SpaceOutliner *soops)
 {
 	int exclude_filter = soops->filter & ~SO_FILTER_OB_STATE;
 
@@ -1842,7 +1842,7 @@ static bool outliner_filter_has_name(TreeElement *te, const char *name, int flag
 }
 
 static int outliner_filter_subtree(
-        SpaceOops *soops, ViewLayer *view_layer, ListBase *lb, const char *search_string, const int exclude_filter)
+        SpaceOutliner *soops, ViewLayer *view_layer, ListBase *lb, const char *search_string, const int exclude_filter)
 {
 	TreeElement *te, *te_next;
 	TreeStoreElem *tselem;
@@ -1893,9 +1893,9 @@ static int outliner_filter_subtree(
 	return (BLI_listbase_is_empty(lb) == false);
 }
 
-static void outliner_filter_tree(SpaceOops *soops, ViewLayer *view_layer)
+static void outliner_filter_tree(SpaceOutliner *soops, ViewLayer *view_layer)
 {
-	char search_buff[sizeof(((struct SpaceOops *)NULL)->search_string) + 2];
+	char search_buff[sizeof(((struct SpaceOutliner *)NULL)->search_string) + 2];
 	char *search_string;
 
 	const int exclude_filter = outliner_exclude_filter_get(soops);
@@ -1921,7 +1921,7 @@ static void outliner_filter_tree(SpaceOops *soops, ViewLayer *view_layer)
 
 /* Main entry point for building the tree data-structure that the outliner represents */
 // TODO: split each mode into its own function?
-void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, SpaceOops *soops, ARegion *ar)
+void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, SpaceOutliner *soops, ARegion *ar)
 {
 	TreeElement *te = NULL, *ten;
 	TreeStoreElem *tselem;

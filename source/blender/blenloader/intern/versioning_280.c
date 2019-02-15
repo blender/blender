@@ -629,7 +629,7 @@ void do_versions_after_linking_280(Main *bmain)
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *space = sa->spacedata.first; space; space = space->next) {
 					if (space->spacetype == SPACE_OUTLINER) {
-						SpaceOops *soutliner = (SpaceOops *)space;
+						SpaceOutliner *soutliner = (SpaceOutliner *)space;
 
 						soutliner->outlinevis = SO_VIEW_LAYER;
 
@@ -1147,7 +1147,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 6)) {
-		if (DNA_struct_elem_find(fd->filesdna, "SpaceOops", "int", "filter") == false) {
+		if (DNA_struct_elem_find(fd->filesdna, "SpaceOutliner", "int", "filter") == false) {
 			bScreen *sc;
 			ScrArea *sa;
 			SpaceLink *sl;
@@ -1157,7 +1157,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				for (sa = sc->areabase.first; sa; sa = sa->next) {
 					for (sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_OUTLINER) {
-							SpaceOops *so = (SpaceOops *)sl;
+							SpaceOutliner *so = (SpaceOutliner *)sl;
 
 							if (!ELEM(so->outlinevis,
 							          SO_SCENES,
@@ -1554,7 +1554,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_OUTLINER) {
-							SpaceOops *soops = (SpaceOops *)sl;
+							SpaceOutliner *soops = (SpaceOutliner *)sl;
 							soops->filter_id_type = ID_GR;
 							soops->outlinevis = SO_VIEW_LAYER;
 						}
@@ -2521,7 +2521,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						}
 						case SPACE_OUTLINER:
 						{
-							SpaceOops *so = (SpaceOops *)sl;
+							SpaceOutliner *so = (SpaceOutliner *)sl;
 							so->filter &= ~(
 							        SO_FILTER_DEPRECATED_1 |
 							        SO_FILTER_DEPRECATED_5 |

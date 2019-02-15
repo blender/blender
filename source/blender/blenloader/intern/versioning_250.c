@@ -264,7 +264,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 
 			case SPACE_OUTLINER:
 			{
-				SpaceOops *soops = (SpaceOops *)sl;
+				SpaceOutliner *soops = (SpaceOutliner *)sl;
 
 				memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
 

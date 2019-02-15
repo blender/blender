@@ -2292,7 +2292,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "SpaceOutliner", "Space");
-	RNA_def_struct_sdna(srna, "SpaceOops");
+	RNA_def_struct_sdna(srna, "SpaceOutliner");
 	RNA_def_struct_ui_text(srna, "Space Outliner", "Outliner space data");
 
 	prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);

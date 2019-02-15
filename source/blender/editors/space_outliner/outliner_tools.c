@@ -85,7 +85,7 @@
 
 /* ************ SELECTION OPERATIONS ********* */
 
-static void set_operation_types(SpaceOops *soops, ListBase *lb,
+static void set_operation_types(SpaceOutliner *soops, ListBase *lb,
                                 int *scenelevel,
                                 int *objectlevel,
                                 int *idlevel,
@@ -279,7 +279,7 @@ static void unlink_world_cb(
 }
 
 static void outliner_do_libdata_operation(
-        bContext *C, ReportList *reports, Scene *scene, SpaceOops *soops, ListBase *lb,
+        bContext *C, ReportList *reports, Scene *scene, SpaceOutliner *soops, ListBase *lb,
         outliner_operation_cb operation_cb,
         void *user_data)
 {
@@ -348,7 +348,7 @@ static bool scene_cb(bContext *C, eOutliner_PropSceneOps event, TreeElement *UNU
 
 static int outliner_scene_operation_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	const eOutliner_PropSceneOps event = RNA_enum_get(op->ptr, "type");
 
 	if (outliner_do_scene_operation(C, event, &soops->tree, scene_cb) == false) {
@@ -551,7 +551,7 @@ static void singleuser_world_cb(
  * \param select_recurse: Set to false for operations which are already recursively operating on their children.
  */
 void outliner_do_object_operation_ex(
-        bContext *C, ReportList *reports, Scene *scene_act, SpaceOops *soops, ListBase *lb,
+        bContext *C, ReportList *reports, Scene *scene_act, SpaceOutliner *soops, ListBase *lb,
         outliner_operation_cb operation_cb, void *user_data, bool select_recurse)
 {
 	TreeElement *te;
@@ -583,7 +583,7 @@ void outliner_do_object_operation_ex(
 }
 
 void outliner_do_object_operation(
-        bContext *C, ReportList *reports, Scene *scene_act, SpaceOops *soops, ListBase *lb,
+        bContext *C, ReportList *reports, Scene *scene_act, SpaceOutliner *soops, ListBase *lb,
         outliner_operation_cb operation_cb)
 {
 	outliner_do_object_operation_ex(C, reports, scene_act, soops, lb, operation_cb, NULL, true);
@@ -743,7 +743,7 @@ static void constraint_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 {
 	bContext *C = C_v;
 	Main *bmain = CTX_data_main(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	bConstraint *constraint = (bConstraint *)te->directdata;
 	Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
 
@@ -784,7 +784,7 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 {
 	bContext *C = (bContext *)Carg;
 	Main *bmain = CTX_data_main(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	ModifierData *md = (ModifierData *)te->directdata;
 	Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
 
@@ -805,7 +805,7 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 	}
 }
 
-static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb,
+static void outliner_do_data_operation(SpaceOutliner *soops, int type, int event, ListBase *lb,
                                        void (*operation_cb)(int, TreeElement *, TreeStoreElem *, void *),
                                        void *arg)
 {
@@ -1003,7 +1003,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = CTX_wm_window(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int event;
 	const char *str = NULL;
 
@@ -1189,7 +1189,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(
 static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 	eOutlinerIdOpTypes event;
 
@@ -1392,7 +1392,7 @@ static const EnumPropertyItem outliner_lib_op_type_items[] = {
 static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 	eOutlinerLibOpTypes event;
 
@@ -1464,7 +1464,7 @@ void OUTLINER_OT_lib_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
-static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *lb, ID *newid,
+static void outliner_do_id_set_operation(SpaceOutliner *soops, int type, ListBase *lb, ID *newid,
                                          void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *, ID *))
 {
 	TreeElement *te;
@@ -1506,7 +1506,7 @@ static void actionset_id_cb(TreeElement *UNUSED(te), TreeStoreElem *tselem, Tree
 
 static int outliner_action_set_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 
 	bAction *act;
@@ -1603,7 +1603,7 @@ static const EnumPropertyItem prop_animdata_op_types[] = {
 
 static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 	eOutliner_AnimDataOps event;
 	short updateDeps = 0;
@@ -1698,7 +1698,7 @@ static const EnumPropertyItem prop_constraint_op_types[] = {
 
 static int outliner_constraint_operation_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 	eOutliner_PropConstraintOps event;
 
@@ -1743,7 +1743,7 @@ static const EnumPropertyItem prop_modifier_op_types[] = {
 
 static int outliner_modifier_operation_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 	eOutliner_PropModifierOps event;
 
@@ -1791,7 +1791,7 @@ static const EnumPropertyItem prop_data_op_types[] = {
 
 static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 	eOutliner_PropDataOps event;
 
@@ -1898,7 +1898,7 @@ static int outliner_operator_menu(bContext *C, const char *opname)
 	return OPERATOR_INTERFACE;
 }
 
-static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soops,
+static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOutliner *soops,
                                        TreeElement *te, const float mval[2])
 {
 	ReportList *reports = CTX_wm_reports(C); // XXX...
@@ -2008,7 +2008,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	uiBut *but = UI_context_active_but_get(C);
 	TreeElement *te;
 	float fmval[2];

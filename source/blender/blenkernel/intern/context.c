@@ -750,7 +750,7 @@ struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
 	return NULL;
 }
 
-struct SpaceOops *CTX_wm_space_outliner(const bContext *C)
+struct SpaceOutliner *CTX_wm_space_outliner(const bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacetype == SPACE_OUTLINER)
