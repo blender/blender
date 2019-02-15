@@ -177,10 +177,10 @@ static bool check_id_has_anim_component(ID *id)
 }
 
 static OperationCode bone_target_opcode(ID *target,
-                                              const char *subtarget,
-                                              ID *id,
-                                              const char *component_subdata,
-                                              RootPChanMap *root_map)
+                                        const char *subtarget,
+                                        ID *id,
+                                        const char *component_subdata,
+                                        RootPChanMap *root_map)
 {
 	/* Same armature.  */
 	if (target == id) {
@@ -212,7 +212,8 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
                                                    Depsgraph *graph)
     : bmain_(bmain),
       graph_(graph),
-      scene_(NULL)
+      scene_(NULL),
+      rna_node_query_(graph)
 {
 }
 
@@ -253,9 +254,9 @@ OperationNode *DepsgraphRelationBuilder::get_node(
 	return op_node;
 }
 
-Node *DepsgraphRelationBuilder::get_node(const RNAPathKey &key) const
+Node *DepsgraphRelationBuilder::get_node(const RNAPathKey &key)
 {
-	return graph_->find_node_from_pointer(&key.ptr, key.prop, key.source);
+	return rna_node_query_.find_node(&key.ptr, key.prop, key.source);
 }
 
 OperationNode *DepsgraphRelationBuilder::find_node(
@@ -1260,7 +1261,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 		{
 			continue;
 		}
-		Node *node_to = graph_->find_node_from_pointer(
+		Node *node_to = rna_node_query_.find_node(
 		        &ptr, prop, RNAPointerSource::ENTRY);
 		if (node_to == NULL) {
 			continue;

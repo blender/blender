@@ -36,6 +36,7 @@
 #include "BLI_string.h"
 
 #include "intern/builder/deg_builder_map.h"
+#include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
@@ -298,7 +299,7 @@ protected:
 	TimeSourceNode *get_node(const TimeSourceKey &key) const;
 	ComponentNode *get_node(const ComponentKey &key) const;
 	OperationNode *get_node(const OperationKey &key) const;
-	Node *get_node(const RNAPathKey &key) const;
+	Node *get_node(const RNAPathKey &key);
 
 	OperationNode *find_node(const OperationKey &key) const;
 	bool has_node(const OperationKey &key) const;
@@ -355,6 +356,7 @@ private:
 	Scene *scene_;
 
 	BuilderMap built_map_;
+	RNANodeQuery rna_node_query_;
 };
 
 struct DepsNodeHandle

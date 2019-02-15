@@ -45,8 +45,6 @@ struct GHash;
 struct GSet;
 struct ID;
 struct Main;
-struct PointerRNA;
-struct PropertyRNA;
 struct Scene;
 struct ViewLayer;
 
@@ -94,20 +92,6 @@ struct Relation {
 	int flag;                     /* Bitmask of RelationFlag) */
 };
 
-/* For queries which gives operation node or key defines whether we are
- * interested in a result of the given property or whether we are linking some
- * dependency to that property. */
-enum class RNAPointerSource {
-	/* Query will return pointer to an entry operation of component which is
-	 * responsible for evaluation of the given property. */
-	ENTRY,
-	/* Query will return pointer to an exit operation of component which is
-	 * responsible for evaluation of the given property.
-	 * More precisely, it will return operation at which the property is known
-	 * to be evaluated. */
-	EXIT,
-};
-
 /* ********* */
 /* Depsgraph */
 
@@ -121,19 +105,6 @@ struct Depsgraph {
 	          ViewLayer *view_layer,
 	          eEvaluationMode mode);
 	~Depsgraph();
-
-	/**
-	 * Convenience wrapper to find node given just pointer + property.
-	 *
-	 * \param ptr: pointer to the data that node will represent
-	 * \param prop: optional property affected - providing this effectively
-	 *              results in inner nodes being returned
-	 *
-	 * \return A node matching the required characteristics if it exists
-	 * or NULL if no such node exists in the graph */
-	Node *find_node_from_pointer(const PointerRNA *ptr,
-	                             const PropertyRNA *prop,
-	                             RNAPointerSource source) const;
 
 	TimeSourceNode *add_time_source();
 	TimeSourceNode *find_time_source() const;
