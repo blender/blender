@@ -67,7 +67,6 @@ struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(
         int *r_part);
 void wm_gizmogroup_intersectable_gizmos_to_list(
         const struct wmGizmoGroup *gzgroup, struct ListBase *listbase);
-void wm_gizmogroup_ensure_initialized(struct wmGizmoGroup *gzgroup, const struct bContext *C);
 bool wm_gizmogroup_is_visible_in_drawstep(
         const struct wmGizmoGroup *gzgroup, const eWM_GizmoFlagMapDrawStep drawstep);
 

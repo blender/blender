@@ -2071,7 +2071,10 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 								if (ar != NULL) {
 									wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
 									WM_gizmo_group_type_ensure_ptr_ex(gzgt, gzmap_type);
-									WM_gizmomaptype_group_init_runtime_with_region(gzmap_type, gzgt, ar);
+									wmGizmoGroup *gzgroup = WM_gizmomaptype_group_init_runtime_with_region(gzmap_type, gzgt, ar);
+									/* We can't rely on drawing to initialize gizmo's since disabling
+									 * overlays/gizmos will prevent pre-drawing setup calls. (see T60905) */
+									WM_gizmogroup_ensure_init(C, gzgroup);
 								}
 							}
 						}

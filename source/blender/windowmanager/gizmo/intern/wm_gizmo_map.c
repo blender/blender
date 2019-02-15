@@ -355,7 +355,7 @@ static void gizmomap_prepare_drawing(
 			gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
 		}
 		/* Calls `setup`, `setup_keymap` and `refresh` if they're defined. */
-		wm_gizmogroup_ensure_initialized(gzgroup, C);
+		WM_gizmogroup_ensure_init(C, gzgroup);
 
 		/* prepare drawing */
 		if (gzgroup->type->draw_prepare) {

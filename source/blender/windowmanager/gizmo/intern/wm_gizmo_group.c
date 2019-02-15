@@ -190,7 +190,7 @@ void wm_gizmogroup_intersectable_gizmos_to_list(const wmGizmoGroup *gzgroup, Lis
 	}
 }
 
-void wm_gizmogroup_ensure_initialized(wmGizmoGroup *gzgroup, const bContext *C)
+void WM_gizmogroup_ensure_init(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	/* prepare for first draw */
 	if (UNLIKELY((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0)) {
@@ -806,7 +806,7 @@ void WM_gizmomaptype_group_init_runtime(
 	}
 }
 
-void WM_gizmomaptype_group_init_runtime_with_region(
+wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(
         wmGizmoMapType *gzmap_type,
         wmGizmoGroupType *gzgt, ARegion *ar)
 {
@@ -814,10 +814,13 @@ void WM_gizmomaptype_group_init_runtime_with_region(
 	BLI_assert(gzmap && gzmap->type == gzmap_type);
 	UNUSED_VARS_NDEBUG(gzmap_type);
 
-	wm_gizmogroup_new_from_type(gzmap, gzgt);
+	wmGizmoGroup *gzgroup = wm_gizmogroup_new_from_type(gzmap, gzgt);
 
 	wm_gizmomap_highlight_set(gzmap, NULL, NULL, 0);
+
 	ED_region_tag_redraw(ar);
+
+	return gzgroup;
 }
 
 /**
