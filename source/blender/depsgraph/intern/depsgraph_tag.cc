@@ -280,6 +280,7 @@ void depsgraph_tag_component(Depsgraph *graph,
 		ComponentNode *cow_comp =
 		        id_node->find_component(NodeType::COPY_ON_WRITE);
 		cow_comp->tag_update(graph, update_source);
+		id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
 	}
 }
 
@@ -765,6 +766,7 @@ static void deg_graph_clear_id_node_func(
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(data_v);
 	DEG::IDNode *id_node = deg_graph->id_nodes[i];
 	id_node->id_cow->recalc &= ~ID_RECALC_ALL;
+	id_node->id_orig->recalc &= ~ID_RECALC_ALL;
 
 	/* Clear embedded node trees too. */
 	bNodeTree *ntree_cow = ntreeFromID(id_node->id_cow);

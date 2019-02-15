@@ -684,6 +684,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 {
 	const ID *id_orig = id_node->id_orig;
 	ID *id_cow = id_node->id_cow;
+	const int id_cow_recalc = id_cow->recalc;
 	/* No need to expand such datablocks, their copied ID is same as original
 	 * one already. */
 	if (!deg_copy_on_write_is_needed(id_orig)) {
@@ -760,6 +761,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	/* Correct or tweak some pointers which are not taken care by foreach
 	 * from above. */
 	update_special_pointers(depsgraph, id_orig, id_cow);
+	id_cow->recalc = id_orig->recalc | id_cow_recalc;
 	return id_cow;
 }
 

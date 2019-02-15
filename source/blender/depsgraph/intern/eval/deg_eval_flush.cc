@@ -248,6 +248,10 @@ void flush_editors_id_update(Main *bmain,
 		/* TODO(sergey): Do we need to pass original or evaluated ID here? */
 		ID *id_orig = id_node->id_orig;
 		ID *id_cow = id_node->id_cow;
+		/* Copy tag from original data to CoW storage.
+		 * This is because DEG_id_tag_update() sets tags on original
+		 * data. */
+		id_cow->recalc |= (id_orig->recalc & ID_RECALC_ALL);
 		/* Gather recalc flags from all changed components. */
 		GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
 		{
