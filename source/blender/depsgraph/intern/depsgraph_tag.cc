@@ -484,6 +484,13 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		int flag = 0;
 		if (!DEG::deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			flag |= ID_RECALC_COPY_ON_WRITE;
+			/* TODO(sergey): Shouldn't be needed, but currently we are lackign
+			 * some flushing of evaluated data to the original one, which makes,
+			 * for example, files saved with the rest pose.
+			 * Need to solve those issues carefully, for until then we evaluate
+			 * animation for datablocks which appears in the graph for the first
+			 * time. */
+			flag |= ID_RECALC_ANIMATION;
 		}
 		/* We only tag components which needs an update. Tagging everything is
 		 * not a good idea because that might reset particles cache (or any
