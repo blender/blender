@@ -285,7 +285,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	/* Relations are up to date. */
 	deg_graph->need_update = false;
 	/* Finish statistics. */
-	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
+	if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
 		printf("Depsgraph built in %f seconds.\n",
 		       PIL_check_seconds_timer() - start_time);
 	}
