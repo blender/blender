@@ -3255,89 +3255,109 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeUserInterface");
 	RNA_def_property_ui_text(prop, "User Interface", "");
 
+	/* Space Types */
 	prop = RNA_def_property(srna, "view_3d", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tv3d");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_view3d");
 	RNA_def_property_struct_type(prop, "ThemeView3D");
 	RNA_def_property_ui_text(prop, "3D View", "");
 
 	prop = RNA_def_property(srna, "graph_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tipo");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_graph");
 	RNA_def_property_struct_type(prop, "ThemeGraphEditor");
 	RNA_def_property_ui_text(prop, "Graph Editor", "");
 
 	prop = RNA_def_property(srna, "file_browser", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tfile");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_file");
 	RNA_def_property_struct_type(prop, "ThemeFileBrowser");
 	RNA_def_property_ui_text(prop, "File Browser", "");
 
 	prop = RNA_def_property(srna, "nla_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tnla");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_nla");
 	RNA_def_property_struct_type(prop, "ThemeNLAEditor");
 	RNA_def_property_ui_text(prop, "Nonlinear Animation", "");
 
 	prop = RNA_def_property(srna, "dopesheet_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tact");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_action");
 	RNA_def_property_struct_type(prop, "ThemeDopeSheet");
 	RNA_def_property_ui_text(prop, "Dope Sheet", "");
 
 	prop = RNA_def_property(srna, "image_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tima");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_image");
 	RNA_def_property_struct_type(prop, "ThemeImageEditor");
 	RNA_def_property_ui_text(prop, "Image Editor", "");
 
 	prop = RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tseq");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_sequencer");
 	RNA_def_property_struct_type(prop, "ThemeSequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 
 	prop = RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tbuts");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_properties");
 	RNA_def_property_struct_type(prop, "ThemeProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 
 	prop = RNA_def_property(srna, "text_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "text");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_text");
 	RNA_def_property_struct_type(prop, "ThemeTextEditor");
 	RNA_def_property_ui_text(prop, "Text Editor", "");
 
 	prop = RNA_def_property(srna, "node_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tnode");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_node");
 	RNA_def_property_struct_type(prop, "ThemeNodeEditor");
 	RNA_def_property_ui_text(prop, "Node Editor", "");
 
 	prop = RNA_def_property(srna, "outliner", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "toops");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_outliner");
 	RNA_def_property_struct_type(prop, "ThemeOutliner");
 	RNA_def_property_ui_text(prop, "Outliner", "");
 
 	prop = RNA_def_property(srna, "info", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tinfo");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_info");
 	RNA_def_property_struct_type(prop, "ThemeInfo");
 	RNA_def_property_ui_text(prop, "Info", "");
 
 	prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tuserpref");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_preferences");
 	RNA_def_property_struct_type(prop, "ThemePreferences");
 	RNA_def_property_ui_text(prop, "Preferences", "");
 
 	prop = RNA_def_property(srna, "console", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tconsole");
+	RNA_def_property_pointer_sdna(prop, NULL, "space_console");
 	RNA_def_property_struct_type(prop, "ThemeConsole");
 	RNA_def_property_ui_text(prop, "Console", "");
+
+	prop = RNA_def_property(srna, "clip_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "space_clip");
+	RNA_def_property_struct_type(prop, "ThemeClipEditor");
+	RNA_def_property_ui_text(prop, "Clip Editor", "");
+
+	prop = RNA_def_property(srna, "topbar", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "space_topbar");
+	RNA_def_property_struct_type(prop, "ThemeTopBar");
+	RNA_def_property_ui_text(prop, "Top Bar", "");
+
+	prop = RNA_def_property(srna, "statusbar", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "space_statusbar");
+	RNA_def_property_struct_type(prop, "ThemeStatusBar");
+	RNA_def_property_ui_text(prop, "Status Bar", "");
+	/* end space types */
 
 	prop = RNA_def_property(srna, "bone_color_sets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -3345,23 +3365,6 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
 	RNA_def_property_ui_text(prop, "Bone Color Sets", "");
 
-	prop = RNA_def_property(srna, "clip_editor", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tclip");
-	RNA_def_property_struct_type(prop, "ThemeClipEditor");
-	RNA_def_property_ui_text(prop, "Clip Editor", "");
-
-	prop = RNA_def_property(srna, "topbar", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "ttopbar");
-	RNA_def_property_struct_type(prop, "ThemeTopBar");
-	RNA_def_property_ui_text(prop, "Top Bar", "");
-
-	prop = RNA_def_property(srna, "statusbar", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "tstatusbar");
-	RNA_def_property_struct_type(prop, "ThemeStatusBar");
-	RNA_def_property_ui_text(prop, "Status Bar", "");
 }
 
 static void rna_def_userdef_addon(BlenderRNA *brna)

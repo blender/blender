@@ -8780,8 +8780,8 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 
 		/* themes for Node and Sequence editor were not using grid color, but back. we copy this over then */
 		for (btheme = user->themes.first; btheme; btheme = btheme->next) {
-			copy_v4_v4_char(btheme->tnode.grid, btheme->tnode.back);
-			copy_v4_v4_char(btheme->tseq.grid, btheme->tseq.back);
+			copy_v4_v4_char(btheme->space_node.grid, btheme->space_node.back);
+			copy_v4_v4_char(btheme->space_sequencer.grid, btheme->space_sequencer.back);
 		}
 	}
 
