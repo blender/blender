@@ -663,7 +663,7 @@ static bool animedit_poll_channels_active(bContext *C)
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 	/* animation editor test */
-	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
+	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA) == 0)
 		return 0;
 
 	return 1;
@@ -680,7 +680,7 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 	/* animation editor test */
-	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
+	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA) == 0)
 		return 0;
 
 	/* NLA TweakMode test */
@@ -1437,7 +1437,7 @@ static bool animchannels_grouping_poll(bContext *C)
 
 			break;
 		}
-		case SPACE_IPO:
+		case SPACE_GRAPH:
 		{
 			SpaceGraph *sipo = (SpaceGraph *)sl;
 
@@ -1844,7 +1844,7 @@ static void setflag_anim_channels(bAnimContext *ac, eAnimChannel_Settings settin
 	 * - but for Graph Editor, this gets used also from main region
 	 *   where hierarchy doesn't apply [#21276]
 	 */
-	if ((ac->spacetype == SPACE_IPO) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
+	if ((ac->spacetype == SPACE_GRAPH) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
 		/* graph editor (case 2) */
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
 	}
@@ -2223,7 +2223,7 @@ static bool animchannels_enable_poll(bContext *C)
 		return 0;
 
 	/* animation editor test - Action/Dopesheet/etc. and Graph only */
-	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO) == 0)
+	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_GRAPH) == 0)
 		return 0;
 
 	return 1;
@@ -2295,7 +2295,7 @@ static bool animchannels_find_poll(bContext *C)
 		return 0;
 
 	/* animation editor with dopesheet */
-	return ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA);
+	return ELEM(sa->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA);
 }
 
 /* find_invoke() - Get initial channels */

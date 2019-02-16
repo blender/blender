@@ -382,7 +382,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			case SPACE_VIEW3D:
 				km = WM_keymap_find_all(C, "3D View", sl->spacetype, 0);
 				break;
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 				km = WM_keymap_find_all(C, "Graph Editor", sl->spacetype, 0);
 				break;
 			case SPACE_ACTION:

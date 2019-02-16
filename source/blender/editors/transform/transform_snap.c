@@ -1517,7 +1517,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 
 	if (use_aspect) {
 		/* custom aspect for fcurve */
-		if (t->spacetype == SPACE_IPO) {
+		if (t->spacetype == SPACE_GRAPH) {
 			View2D *v2d = &t->ar->v2d;
 			View2DGrid *grid;
 			SpaceGraph *sipo = t->sa->spacedata.first;

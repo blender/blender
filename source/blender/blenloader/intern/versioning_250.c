@@ -136,7 +136,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 	if (sl) {
 		/* first channels for ipo action nla... */
 		switch (sl->spacetype) {
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 				ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
 				ar->regiontype = RGN_TYPE_CHANNELS;
@@ -277,7 +277,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 			{
 				SpaceGraph *sipo = (SpaceGraph *)sl;
 				memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));

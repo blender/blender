@@ -96,7 +96,7 @@ static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	/* Graph Editor - general stuff */
 	sipo = MEM_callocN(sizeof(SpaceGraph), "init graphedit");
-	sipo->spacetype = SPACE_IPO;
+	sipo->spacetype = SPACE_GRAPH;
 
 	sipo->autosnap = SACTSNAP_FRAME;
 
@@ -213,9 +213,9 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_IPO, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_GRAPH, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -365,7 +365,7 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -415,7 +415,7 @@ static void graph_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -646,7 +646,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 	if (ANIM_animdata_get_context(C, &ac) == false)
 		return;
 
-	UI_SetTheme(SPACE_IPO, RGN_TYPE_WINDOW);
+	UI_SetTheme(SPACE_GRAPH, RGN_TYPE_WINDOW);
 
 	/* build list of F-Curves which will be visible as channels in channel-region
 	 * - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
@@ -833,7 +833,7 @@ void ED_spacetype_ipo(void)
 	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype ipo");
 	ARegionType *art;
 
-	st->spaceid = SPACE_IPO;
+	st->spaceid = SPACE_GRAPH;
 	strncpy(st->name, "Graph", BKE_ST_MAXNAME);
 
 	st->new = graph_new;

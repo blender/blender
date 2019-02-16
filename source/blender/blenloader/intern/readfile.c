@@ -6791,7 +6791,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 
 			blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
 		}
-		else if (sl->spacetype == SPACE_IPO) {
+		else if (sl->spacetype == SPACE_GRAPH) {
 			SpaceGraph *sipo = (SpaceGraph *)sl;
 
 			sipo->ads = newdataadr(fd, sipo->ads);
@@ -6977,7 +6977,7 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
 				}
 				break;
 			}
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 			{
 				SpaceGraph *sipo = (SpaceGraph *)sl;
 				bDopeSheet *ads = sipo->ads;
@@ -7464,7 +7464,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map, Main
 						}
 					}
 				}
-				else if (sl->spacetype == SPACE_IPO) {
+				else if (sl->spacetype == SPACE_GRAPH) {
 					SpaceGraph *sipo = (SpaceGraph *)sl;
 					bDopeSheet *ads = sipo->ads;
 

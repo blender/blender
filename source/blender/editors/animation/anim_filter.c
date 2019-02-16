@@ -357,7 +357,7 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac)
 				ok = actedit_get_context(ac, saction);
 				break;
 			}
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 			{
 				SpaceGraph *sipo = (SpaceGraph *)sl;
 				ok = graphedit_get_context(ac, sipo);

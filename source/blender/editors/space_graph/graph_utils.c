@@ -139,7 +139,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
 
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
-	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+	if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
 		return 0;
 
 	/* try to init Anim-Context stuff ourselves and check */
@@ -188,7 +188,7 @@ bool graphop_editable_keyframes_poll(bContext *C)
 
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
-	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+	if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
 		return 0;
 
 	/* try to init Anim-Context stuff ourselves and check */
@@ -235,7 +235,7 @@ bool graphop_active_fcurve_poll(bContext *C)
 
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
-	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+	if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
 		return 0;
 
 	/* try to init Anim-Context stuff ourselves and check */
@@ -276,7 +276,7 @@ bool graphop_selected_fcurve_poll(bContext *C)
 
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
-	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+	if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
 		return 0;
 
 	/* try to init Anim-Context stuff ourselves and check */

@@ -6705,7 +6705,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		/* clear flag that was set for time-slide drawing */
 		saction->flag &= ~SACTION_MOVING;
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 		bAnimContext ac;
 		const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
@@ -6962,7 +6962,7 @@ int special_transform_moving(TransInfo *t)
 	if (t->spacetype == SPACE_SEQ) {
 		return G_TRANSFORM_SEQ;
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		return G_TRANSFORM_FCURVES;
 	}
 	else if ((t->flag & T_EDIT) || (t->flag & T_POSE)) {
@@ -8716,7 +8716,7 @@ void createTransData(bContext *C, TransInfo *t)
 		createTransSeqData(C, t);
 		countAndCleanTransDataContainer(t);
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		t->flag |= T_POINTS | T_2D_EDIT;
 		t->obedit_type = -1;
 

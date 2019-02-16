@@ -476,7 +476,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 				CTX_TEST_SPACE_TYPE(SPACE_IMAGE, "space_data.uv_editor", space_data);
 				CTX_TEST_SPACE_TYPE(SPACE_VIEW3D, "space_data.fx_settings", &(CTX_wm_view3d(C)->fx_settings));
 				CTX_TEST_SPACE_TYPE(SPACE_NLA, "space_data.dopesheet", CTX_wm_space_nla(C)->ads);
-				CTX_TEST_SPACE_TYPE(SPACE_IPO, "space_data.dopesheet", CTX_wm_space_graph(C)->ads);
+				CTX_TEST_SPACE_TYPE(SPACE_GRAPH, "space_data.dopesheet", CTX_wm_space_graph(C)->ads);
 				CTX_TEST_SPACE_TYPE(SPACE_ACTION, "space_data.dopesheet", &(CTX_wm_space_action(C)->ads));
 				CTX_TEST_SPACE_TYPE(SPACE_FILE, "space_data.params", CTX_wm_space_file(C)->params);
 				break;

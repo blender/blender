@@ -74,7 +74,7 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 	{0, "", ICON_NONE, "Animation", ""},
 	//{SPACE_ACTION, "TIMELINE", ICON_TIME, "Timeline", "Timeline and playback controls (NOTE: Switch to 'Timeline' mode)"}, /* XXX */
 	{SPACE_ACTION, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet", "Adjust timing of keyframes"},
-	{SPACE_IPO, "GRAPH_EDITOR", ICON_GRAPH, "Graph Editor", "Edit drivers and keyframe interpolation"},
+	{SPACE_GRAPH, "GRAPH_EDITOR", ICON_GRAPH, "Graph Editor", "Edit drivers and keyframe interpolation"},
 	{SPACE_NLA, "NLA_EDITOR", ICON_NLA, "Nonlinear Animation", "Combine and layer Actions"},
 
 	/* Scripting */
@@ -385,7 +385,7 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 	switch (space->spacetype) {
 		case SPACE_VIEW3D:
 			return &RNA_SpaceView3D;
-		case SPACE_IPO:
+		case SPACE_GRAPH:
 			return &RNA_SpaceGraphEditor;
 		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;

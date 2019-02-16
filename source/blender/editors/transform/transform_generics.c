@@ -1117,7 +1117,7 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype == SPACE_SEQ) {
 		recalcData_sequencer(t);
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		recalcData_graphedit(t);
 	}
 	else if (t->spacetype == SPACE_NODE) {
@@ -1483,7 +1483,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->view = &ar->v2d;
 		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		SpaceGraph *sipo = sa->spacedata.first;
 		t->view = &ar->v2d;
 		t->around = sipo->around;
@@ -1575,7 +1575,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			/* use settings from scene only if modal */
 			if (t->flag & T_MODAL) {
 				if ((t->options & CTX_NO_PET) == 0) {
-					if (t->spacetype == SPACE_IPO) {
+					if (t->spacetype == SPACE_GRAPH) {
 						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_fcurve);
 					}
 					else if (t->spacetype == SPACE_ACTION) {
@@ -1716,7 +1716,7 @@ void postTrans(bContext *C, TransInfo *t)
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 			/* free data malloced per trans-data */
 			if (ELEM(t->obedit_type, OB_CURVE, OB_SURF) ||
-			    (t->spacetype == SPACE_IPO))
+			    (t->spacetype == SPACE_GRAPH))
 			{
 				TransData *td = tc->data;
 				for (int a = 0; a < tc->data_len; a++, td++) {
@@ -2058,7 +2058,7 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
 		case V3D_AROUND_CURSOR:
 			if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP))
 				calculateCenterCursor2D(t, r_center);
-			else if (t->spacetype == SPACE_IPO)
+			else if (t->spacetype == SPACE_GRAPH)
 				calculateCenterCursorGraph2D(t, r_center);
 			else
 				calculateCenterCursor(t, r_center);

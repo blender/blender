@@ -804,7 +804,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		else if (t->spacetype == SPACE_IMAGE) {
 			GPU_matrix_scale_2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
 		}
-		else if (ELEM(t->spacetype, SPACE_IPO, SPACE_ACTION)) {
+		else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION)) {
 			/* only scale y */
 			rcti *mask = &t->ar->v2d.mask;
 			rctf *datamask = &t->ar->v2d.cur;

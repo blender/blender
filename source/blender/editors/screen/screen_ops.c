@@ -205,7 +205,7 @@ bool ED_operator_animview_active(bContext *C)
 {
 	if (ED_operator_areaactive(C)) {
 		SpaceLink *sl = (SpaceLink *)CTX_wm_space_data(C);
-		if (sl && (ELEM(sl->spacetype, SPACE_SEQ, SPACE_ACTION, SPACE_NLA, SPACE_IPO)))
+		if (sl && (ELEM(sl->spacetype, SPACE_SEQ, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)))
 			return true;
 	}
 
@@ -268,7 +268,7 @@ bool ED_operator_node_editable(bContext *C)
 
 bool ED_operator_graphedit_active(bContext *C)
 {
-	return ed_spacetype_test(C, SPACE_IPO);
+	return ed_spacetype_test(C, SPACE_GRAPH);
 }
 
 bool ED_operator_sequencer_active(bContext *C)
@@ -2528,7 +2528,7 @@ static void areas_do_frame_follow(bContext *C, bool middle)
 				/* do follow here if editor type supports it */
 				if ((scr->redraws_flag & TIME_FOLLOW)) {
 					if ((ar->regiontype == RGN_TYPE_WINDOW &&
-					     ELEM(sa->spacetype, SPACE_SEQ, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
+					     ELEM(sa->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
 					    (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
 					{
 						float w = BLI_rctf_size_x(&ar->v2d.cur);
@@ -3861,7 +3861,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws,
 				if ((redraws & TIME_ALL_3D_WIN) || from_anim_edit)
 					return 1;
 				break;
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 			case SPACE_NLA:
 				if ((redraws & TIME_ALL_ANIM_WIN) || from_anim_edit)
 					return 1;
@@ -3898,7 +3898,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws,
 	}
 	else if (regiontype == RGN_TYPE_CHANNELS) {
 		switch (spacetype) {
-			case SPACE_IPO:
+			case SPACE_GRAPH:
 			case SPACE_ACTION:
 			case SPACE_NLA:
 				if (redraws & TIME_ALL_ANIM_WIN)
@@ -4082,7 +4082,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 						/* do follow here if editor type supports it */
 						if ((sad->redraws & TIME_FOLLOW)) {
 							if ((ar->regiontype == RGN_TYPE_WINDOW &&
-							     ELEM(sa->spacetype, SPACE_SEQ, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
+							     ELEM(sa->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
 							    (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
 							{
 								float w = BLI_rctf_size_x(&ar->v2d.cur);

@@ -330,7 +330,7 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
 /* Get flags used for normalization in ANIM_unit_mapping_get_factor. */
 short ANIM_get_normalization_flags(bAnimContext *ac)
 {
-	if (ac->sl->spacetype == SPACE_IPO) {
+	if (ac->sl->spacetype == SPACE_GRAPH) {
 		SpaceGraph *sipo = (SpaceGraph *) ac->sl;
 		bool use_normalization = (sipo->flag & SIPO_NORMALIZE) != 0;
 		bool freeze_normalization = (sipo->flag & SIPO_NORMALIZE_FREEZE) != 0;

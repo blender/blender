@@ -114,7 +114,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				case SPACE_VIEW3D:
 					ts = &btheme->space_view3d;
 					break;
-				case SPACE_IPO:
+				case SPACE_GRAPH:
 					ts = &btheme->space_graph;
 					break;
 				case SPACE_FILE:

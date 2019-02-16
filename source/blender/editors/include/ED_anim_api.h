@@ -359,8 +359,8 @@ typedef enum eAnimFilter_Flags {
 /* Action Channel Group */
 #define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED) == 0)
 #define EXPANDED_AGRP(ac, agrp) \
-	( ((!(ac) || ((ac)->spacetype != SPACE_IPO)) && (agrp->flag & AGRP_EXPANDED)) || \
-	  (( (ac) && ((ac)->spacetype == SPACE_IPO)) && (agrp->flag & AGRP_EXPANDED_G)) )
+	( ((!(ac) || ((ac)->spacetype != SPACE_GRAPH)) && (agrp->flag & AGRP_EXPANDED)) || \
+	  (( (ac) && ((ac)->spacetype == SPACE_GRAPH)) && (agrp->flag & AGRP_EXPANDED_G)) )
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
 /* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED) == 0)

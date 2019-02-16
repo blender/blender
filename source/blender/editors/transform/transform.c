@@ -213,7 +213,7 @@ static bool transdata_check_local_center(TransInfo *t, short around)
 	            (t->flag & (T_OBJECT | T_POSE)) ||
 	            /* implicit: (t->flag & T_EDIT) */
 	            (ELEM(t->obedit_type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE, OB_GPENCIL)) ||
-	            (t->spacetype == SPACE_IPO) ||
+	            (t->spacetype == SPACE_GRAPH) ||
 	            (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE)))
 	        );
 }
@@ -276,7 +276,7 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
 			ED_space_clip_get_aspect(sclip, &r_aspect[0], &r_aspect[1]);
 		}
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		/* depemds on context of usage */
 	}
 }
@@ -343,7 +343,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
 		r_vec[0] *= t->aspect[0];
 		r_vec[1] *= t->aspect[1];
 	}
-	else if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+	else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
 		convertViewVec2D(t->view, r_vec, dx, dy);
 	}
 	else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
@@ -425,7 +425,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 		adr[0] = out[0];
 		adr[1] = out[1];
 	}
-	else if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+	else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
 		int out[2] = {0, 0};
 
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
@@ -599,7 +599,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		//SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		//SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
@@ -683,7 +683,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 	}
-	else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_IPO)) {
+	else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
@@ -2101,7 +2101,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
 			    !RNA_property_is_set(op->ptr, prop))
 			{
-				if (t->spacetype == SPACE_IPO)
+				if (t->spacetype == SPACE_GRAPH)
 					ts->proportional_fcurve = proportional;
 				else if (t->spacetype == SPACE_ACTION)
 					ts->proportional_action = proportional;
@@ -2316,7 +2316,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
 		        helpline_poll, drawHelpline, t);
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 		t->draw_handle_cursor = WM_paint_cursor_activate(
@@ -2522,7 +2522,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			/* same as TFM_TIME_EXTEND, but we need the mode info for later
 			 * so that duplicate-culling will work properly
 			 */
-			if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA))
+			if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA))
 				initTranslation(t);
 			else
 				initTimeTranslate(t);
@@ -2534,7 +2534,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			 * (for Graph/NLA Editors only since they uses 'standard' transforms to get 2D movement)
 			 * depending on which editor this was called from
 			 */
-			if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA))
+			if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA))
 				initTranslation(t);
 			else
 				initTimeTranslate(t);
@@ -4696,7 +4696,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3])
 		r_snap[1] = ED_node_grid_size();
 		r_snap[2] = ED_node_grid_size();
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		r_snap[0] = 0.0f;
 		r_snap[1] = 1.0;
 		r_snap[2] = 0.1f;
@@ -4740,7 +4740,7 @@ static void initTranslation(TransInfo *t)
 		t->num.unit_type[2] = B_UNIT_LENGTH;
 	}
 	else {
-		/* SPACE_IPO, SPACE_ACTION, etc. could use some time units, when we have them... */
+		/* SPACE_GRAPH, SPACE_ACTION, etc. could use some time units, when we have them... */
 		t->num.unit_type[0] = B_UNIT_NONE;
 		t->num.unit_type[1] = B_UNIT_NONE;
 		t->num.unit_type[2] = B_UNIT_NONE;
@@ -8679,7 +8679,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 		if (saction)
 			autosnap = saction->autosnap;
 	}
-	else if (t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_GRAPH) {
 		SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
 
 		if (sipo)

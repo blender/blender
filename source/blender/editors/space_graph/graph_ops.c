@@ -488,7 +488,7 @@ void ED_operatormacros_graph(void)
 void graphedit_keymap(wmKeyConfig *keyconf)
 {
 	/* keymap for all regions */
-	WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_IPO, 0);
+	WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_GRAPH, 0);
 
 	/* channels */
 	/* Channels are not directly handled by the Graph Editor module, but are inherited from the Animation module.
@@ -497,5 +497,5 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	 */
 
 	/* keyframes */
-	WM_keymap_ensure(keyconf, "Graph Editor", SPACE_IPO, 0);
+	WM_keymap_ensure(keyconf, "Graph Editor", SPACE_GRAPH, 0);
 }

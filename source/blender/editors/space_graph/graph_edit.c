@@ -2815,7 +2815,7 @@ static bool graph_driver_delete_invalid_poll(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 
 	/* firstly, check if in Graph Editor */
-	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+	if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
 		return 0;
 
 	/* try to init Anim-Context stuff ourselves and check */

@@ -664,12 +664,12 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	else if (CTX_data_equals(member, "selected_editable_fcurves")) {
 		bAnimContext ac;
 
-		if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_IPO)) {
+		if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
 			bAnimListElem *ale;
 			ListBase anim_data = {NULL, NULL};
 
 			int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS | ANIMFILTER_SEL) |
-			             (ac.spacetype == SPACE_IPO ? ANIMFILTER_CURVE_VISIBLE : ANIMFILTER_LIST_VISIBLE);
+			             (ac.spacetype == SPACE_GRAPH ? ANIMFILTER_CURVE_VISIBLE : ANIMFILTER_LIST_VISIBLE);
 
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 

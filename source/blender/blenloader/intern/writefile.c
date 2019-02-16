@@ -2870,7 +2870,7 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
 				writestruct(wd, DATA, GPUDOFSettings, 1, v3d->fx_settings.dof);
 			}
 		}
-		else if (sl->spacetype == SPACE_IPO) {
+		else if (sl->spacetype == SPACE_GRAPH) {
 			SpaceGraph *sipo = (SpaceGraph *)sl;
 			ListBase tmpGhosts = sipo->runtime.ghost_curves;
 
