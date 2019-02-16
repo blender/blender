@@ -33,6 +33,9 @@
  *   All references to the previous destination name can be removed since they're
  *   never written to disk.
  *
+ * - Old names aren't sanity checked (since this file is the only place that knows about them)
+ *   typos in the old names will break both backwards & forwards compatibility **TAKE CARE**.
+ *
  * \see versioning_dna.c for a actual version patching.
  */
 

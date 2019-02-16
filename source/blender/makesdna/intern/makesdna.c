@@ -1464,3 +1464,23 @@ int main(int argc, char **argv)
 /* end of list */
 
 /** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name DNA Renaming Sanity Check
+ *
+ * Without this it's possible to reference struct members that don't exist,
+ * breaking backward & forward compatibility.
+ *
+ * \{ */
+
+static void UNUSED_FUNCTION(dna_rename_defs_ensure)(void)
+{
+#define DNA_STRUCT_RENAME(old, new) (void)sizeof(new);
+#define DNA_STRUCT_RENAME_ELEM(struct_name, old, new) (void)offsetof(struct_name, new);
+#include "dna_rename_defs.h"
+#undef DNA_STRUCT_RENAME
+#undef DNA_STRUCT_RENAME_ELEM
+}
+
+/** \} */
