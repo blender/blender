@@ -505,16 +505,6 @@ static void rna_def_sun_light(BlenderRNA *brna)
 	rna_def_light_shadow(srna, 1);
 }
 
-static void rna_def_hemi_light(BlenderRNA *brna)
-{
-	StructRNA *srna;
-
-	srna = RNA_def_struct(brna, "HemiLight", "Light");
-	RNA_def_struct_sdna(srna, "Lamp");
-	RNA_def_struct_ui_text(srna, "Hemi Light", "180 degree constant Light");
-	RNA_def_struct_ui_icon(srna, ICON_LIGHT_HEMI);
-}
-
 void RNA_def_light(BlenderRNA *brna)
 {
 	rna_def_light(brna);
@@ -522,7 +512,6 @@ void RNA_def_light(BlenderRNA *brna)
 	rna_def_area_light(brna);
 	rna_def_spot_light(brna);
 	rna_def_sun_light(brna);
-	rna_def_hemi_light(brna);
 }
 
 #endif
