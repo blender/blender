@@ -574,15 +574,23 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	BevelData *opdata = op->customdata;
 	const bool has_numinput = hasNumInput(&opdata->num_input[opdata->value_mode]);
 	bool handled = false;
+	short etype = event->type;
+	short eval = event->val;
 
+	/* When activated from toolbar, need to convert leftmouse release to confirm */
+	if (etype == LEFTMOUSE && eval == KM_RELEASE &&
+			RNA_boolean_get(op->ptr, "release_confirm")) {
+	    etype = EVT_MODAL_MAP;
+	    eval = BEV_MODAL_CONFIRM;
+	}
 	/* Modal numinput active, try to handle numeric inputs first... */
-	if (event->type != EVT_MODAL_MAP && event->val == KM_PRESS && has_numinput && handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+	if (etype != EVT_MODAL_MAP && eval == KM_PRESS && has_numinput && handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
 		edbm_bevel_numinput_set_value(op);
 		edbm_bevel_calc(op);
 		edbm_bevel_update_header(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
-	else if (event->type == MOUSEMOVE) {
+	else if (etype == MOUSEMOVE) {
 		if (!has_numinput) {
 			edbm_bevel_mouse_set_value(op, event);
 			edbm_bevel_calc(op);
@@ -590,7 +598,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			handled = true;
 		}
 	}
-	else if (event->type == MOUSEPAN) {
+	else if (etype == MOUSEPAN) {
 		float delta = 0.02f * (event->y - event->prevy);
 		if (opdata->segments >= 1 && opdata->segments + delta < 1)
 			opdata->segments = 1;
@@ -601,25 +609,18 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		edbm_bevel_update_header(C, op);
 		handled = true;
 	}
-	else if (event->type == EVT_MODAL_MAP) {
-		switch (event->val) {
+	else if (etype == EVT_MODAL_MAP) {
+		switch (eval) {
 			case BEV_MODAL_CANCEL:
 				edbm_bevel_cancel(C, op);
 				ED_workspace_status_text(C, NULL);
 				return OPERATOR_CANCELLED;
 
 			case BEV_MODAL_CONFIRM:
-#if 0
-				if ((event->val == KM_PRESS) ||
-				    ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm")))
-#endif
-				{
-					edbm_bevel_calc(op);
-					edbm_bevel_exit(C, op);
-					ED_workspace_status_text(C, NULL);
-					return OPERATOR_FINISHED;
-				}
-				break;
+				edbm_bevel_calc(op);
+				edbm_bevel_exit(C, op);
+				ED_workspace_status_text(C, NULL);
+				return OPERATOR_FINISHED;
 
 			case BEV_MODAL_SEGMENTS_UP:
 				opdata->segments = opdata->segments + 1;
@@ -759,7 +760,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	/* Modal numinput inactive, try to handle numeric inputs last... */
-	if (!handled && event->val == KM_PRESS && handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+	if (!handled && eval == KM_PRESS && handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
 		edbm_bevel_numinput_set_value(op);
 		edbm_bevel_calc(op);
 		edbm_bevel_update_header(C, op);
