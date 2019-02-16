@@ -166,7 +166,7 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define PROJ_SRC_VIEW_FILL  4
 
 #define PROJ_VIEW_DATA_ID "view_data"
-/* viewmat + winmat + clipsta + clipend + is_ortho */
+/* viewmat + winmat + clip_start + clip_end + is_ortho */
 #define PROJ_VIEW_DATA_SIZE (4 * 4 + 4 * 4 + 3)
 
 #define PROJ_BUCKET_NULL        0
@@ -337,7 +337,7 @@ typedef struct ProjPaintState {
 	float viewDir[3];
 	/** View location in object relative 3D space, so can compare to verts. */
 	float viewPos[3];
-	float clipsta, clipend;
+	float clip_start, clip_end;
 
 	/* reproject vars */
 	Image *reproject_image;
@@ -3254,7 +3254,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
 
 		ED_view3d_ob_project_mat_get_from_obmat(ps->rv3d, ps->obmat, ps->projectMat);
 
-		ps->is_ortho = ED_view3d_clip_range_get(ps->depsgraph, ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
+		ps->is_ortho = ED_view3d_clip_range_get(ps->depsgraph, ps->v3d, ps->rv3d, &ps->clip_start, &ps->clip_end, true);
 	}
 	else {
 		/* re-projection */
@@ -3274,8 +3274,8 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
 			/* use image array, written when creating image */
 			memcpy(winmat, array, sizeof(winmat)); array += sizeof(winmat) / sizeof(float);
 			memcpy(viewmat, array, sizeof(viewmat)); array += sizeof(viewmat) / sizeof(float);
-			ps->clipsta = array[0];
-			ps->clipend = array[1];
+			ps->clip_start = array[0];
+			ps->clip_end = array[1];
 			ps->is_ortho = array[2] ? 1 : 0;
 
 			invert_m4_m4(viewinv, viewmat);
@@ -3296,8 +3296,8 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
 			BKE_camera_params_compute_matrix(&params);
 
 			copy_m4_m4(winmat, params.winmat);
-			ps->clipsta = params.clipsta;
-			ps->clipend = params.clipend;
+			ps->clip_start = params.clip_start;
+			ps->clip_end = params.clip_end;
 			ps->is_ortho = params.is_ortho;
 		}
 		else {
@@ -3358,7 +3358,7 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
 
 			mul_m4_v4(ps->projectMat, projScreenCo);
 
-			if (projScreenCo[3] > ps->clipsta) {
+			if (projScreenCo[3] > ps->clip_start) {
 				/* screen space, not clamped */
 				projScreenCo[0] = (float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * projScreenCo[0] / projScreenCo[3];
 				projScreenCo[1] = (float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * projScreenCo[1] / projScreenCo[3];

@@ -1142,7 +1142,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 		GPU_matrix_push();
 
 		copy_v3_v3(v3, dir);
-		mul_v3_fl(v3, v3d->far);
+		mul_v3_fl(v3, v3d->clip_end);
 
 		sub_v3_v3v3(v2, center, v3);
 		add_v3_v3v3(v1, center, v3);

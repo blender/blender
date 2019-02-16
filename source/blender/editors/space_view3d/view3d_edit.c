@@ -2639,7 +2639,7 @@ static void view3d_from_minmax(
 			new_dist = ED_view3d_radius_to_dist(v3d, ar, CTX_data_depsgraph(C), persp, true, (size / 2) * VIEW3D_MARGIN);
 			if (rv3d->is_persp) {
 				/* don't zoom closer than the near clipping plane */
-				new_dist = max_ff(new_dist, v3d->near * 1.5f);
+				new_dist = max_ff(new_dist, v3d->clip_start * 1.5f);
 			}
 		}
 	}
@@ -3438,7 +3438,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = len_v3(dvec);
 
 		/* ignore dist_range min */
-		dist_range[0] = v3d->near * 1.5f;
+		dist_range[0] = v3d->clip_start * 1.5f;
 	}
 	else { /* othographic */
 		/* find the current window width and height */

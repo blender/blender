@@ -50,9 +50,6 @@
 #undef rct1
 #undef rct2
 
-#define near clipsta
-#define far clipend
-
 #undef small
 
 // These definitions are also in BLI_math for simplicity

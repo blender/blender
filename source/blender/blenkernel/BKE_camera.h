@@ -80,8 +80,8 @@ typedef struct CameraParams {
 	int sensor_fit;
 
 	/* clipping */
-	float clipsta;
-	float clipend;
+	float clip_start;
+	float clip_end;
 
 	/* computed viewplane */
 	float ycor;

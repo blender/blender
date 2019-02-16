@@ -312,8 +312,8 @@ static void view3d_camera_border(
 	/* get camera viewplane */
 	BKE_camera_params_init(&params);
 	/* fallback for non camera objects */
-	params.clipsta = v3d->near;
-	params.clipend = v3d->far;
+	params.clip_start = v3d->clip_start;
+	params.clip_end = v3d->clip_end;
 	BKE_camera_params_from_object(&params, camera_eval);
 	if (no_shift) {
 		params.shiftx = 0.0f;
@@ -1517,8 +1517,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		BKE_camera_params_init(&params);
 		/* fallback for non camera objects */
-		params.clipsta = v3d->near;
-		params.clipend = v3d->far;
+		params.clip_start = v3d->clip_start;
+		params.clip_end = v3d->clip_end;
 		BKE_camera_params_from_object(&params, camera_eval);
 		BKE_camera_multiview_params(&scene->r, &params, camera_eval, viewname);
 		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
@@ -1531,14 +1531,14 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	}
 	else {
 		rctf viewplane;
-		float clipsta, clipend;
+		float clip_start, clipend;
 
-		is_ortho = ED_view3d_viewplane_get(depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+		is_ortho = ED_view3d_viewplane_get(depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clip_start, &clipend, NULL);
 		if (is_ortho) {
 			orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
 		}
 		else {
-			perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
+			perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clip_start, clipend);
 		}
 	}
 
@@ -1705,8 +1705,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 		BKE_camera_params_compute_matrix(&params);
 
 		copy_m4_m4(rv3d.winmat, params.winmat);
-		v3d.near = params.clipsta;
-		v3d.far = params.clipend;
+		v3d.clip_start = params.clip_start;
+		v3d.clip_end = params.clip_end;
 		v3d.lens = params.lens;
 	}
 

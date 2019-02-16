@@ -1233,7 +1233,7 @@ static bool view3d_localview_init(
 
 					if (rv3d->persp == RV3D_PERSP) {
 						/* Don't zoom closer than the near clipping plane. */
-						dist_new = max_ff(dist_new, v3d->near * 1.5f);
+						dist_new = max_ff(dist_new, v3d->clip_start * 1.5f);
 					}
 				}
 

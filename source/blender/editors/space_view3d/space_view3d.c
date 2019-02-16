@@ -338,8 +338,8 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION;
 
 	v3d->lens = 50.0f;
-	v3d->near = 0.01f;
-	v3d->far = 1000.0f;
+	v3d->clip_start = 0.01f;
+	v3d->clip_end = 1000.0f;
 
 	v3d->overlay.gpencil_paper_opacity = 0.5f;
 	v3d->overlay.gpencil_grid_opacity = 0.9f;

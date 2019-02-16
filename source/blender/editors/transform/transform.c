@@ -1261,7 +1261,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					float fac = 1.0f + 0.005f *(event->y - event->prevy);
 					t->prop_size *= fac;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO) {
-						t->prop_size = max_ff(min_ff(t->prop_size, ((View3D *)t->view)->far), T_PROP_SIZE_MIN);
+						t->prop_size = max_ff(min_ff(t->prop_size, ((View3D *)t->view)->clip_end), T_PROP_SIZE_MIN);
 					}
 					else {
 						t->prop_size = max_ff(min_ff(t->prop_size, T_PROP_SIZE_MAX), T_PROP_SIZE_MIN);
@@ -1275,7 +1275,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO) {
-						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->clip_end);
 					}
 					else {
 						t->prop_size = min_ff(t->prop_size, T_PROP_SIZE_MAX);
@@ -1465,7 +1465,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				if (event->alt && t->flag & T_PROP_EDIT) {
 					t->prop_size *= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->clip_end);
 					calculatePropRatio(t);
 					t->redraw = TREDRAW_HARD;
 					handled = true;

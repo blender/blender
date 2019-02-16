@@ -187,8 +187,8 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
 		params.offsety = 0.0f;
 		params.shiftx = 0.0f;
 		params.shifty = 0.0f;
-		params.clipsta = 0.001f;
-		params.clipend = 20.0f;
+		params.clip_start = 0.001f;
+		params.clip_end = 20.0f;
 		BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, aspect[0], aspect[1]);
 		BKE_camera_params_compute_matrix(&params);
 

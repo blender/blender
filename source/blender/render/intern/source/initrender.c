@@ -146,8 +146,8 @@ static void re_camera_params_get(Render *re, CameraParams *params)
 {
 	copy_m4_m4(re->winmat, params->winmat);
 
-	re->clipsta = params->clipsta;
-	re->clipend = params->clipend;
+	re->clip_start = params->clip_start;
+	re->clip_end = params->clip_end;
 
 	re->viewplane = params->viewplane;
 }
@@ -193,8 +193,8 @@ void RE_GetCameraWindowWithOverscan(struct Render *re, float mat[4][4], float ov
 {
 	CameraParams params;
 	params.is_ortho = re->winmat[3][3] != 0.0f;
-	params.clipsta = re->clipsta;
-	params.clipend = re->clipend;
+	params.clip_start = re->clip_start;
+	params.clip_end = re->clip_end;
 	params.viewplane = re->viewplane;
 
 	overscan *= max_ff(BLI_rctf_size_x(&params.viewplane), BLI_rctf_size_y(&params.viewplane));

@@ -89,8 +89,8 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			Camera *cam = (Camera *)camera->data;
 
 			/* Retrieve Near and Far distance */
-			effects->dof_near_far[0] = -cam->clipsta;
-			effects->dof_near_far[1] = -cam->clipend;
+			effects->dof_near_far[0] = -cam->clip_start;
+			effects->dof_near_far[1] = -cam->clip_end;
 
 			int buffer_size[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
 

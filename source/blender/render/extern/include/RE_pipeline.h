@@ -241,8 +241,8 @@ void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetOverrideCamera(struct Render *re, struct Object *camera);
 void RE_SetCamera(struct Render *re, struct Object *camera);
-void RE_SetWindow(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
-void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
+void RE_SetWindow(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
+void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
 
 /* option to set viewmatrix before making dbase */
 void RE_SetView(struct Render *re, float mat[4][4]);

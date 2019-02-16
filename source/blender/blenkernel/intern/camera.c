@@ -58,8 +58,8 @@ void BKE_camera_init(Camera *cam)
 	cam->lens = 50.0f;
 	cam->sensor_x = DEFAULT_SENSOR_WIDTH;
 	cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
-	cam->clipsta = 0.1f;
-	cam->clipend = 1000.0f;
+	cam->clip_start = 0.1f;
+	cam->clip_end = 1000.0f;
 	cam->drawsize = 1.0f;
 	cam->ortho_scale = 6.0;
 	cam->flag |= CAM_SHOWPASSEPARTOUT;
@@ -171,8 +171,8 @@ void BKE_camera_params_init(CameraParams *params)
 	params->zoom = 1.0f;
 
 	/* fallback for non camera objects */
-	params->clipsta = 0.1f;
-	params->clipend = 100.0f;
+	params->clip_start = 0.1f;
+	params->clip_end = 100.0f;
 }
 
 void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
@@ -196,8 +196,8 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 		params->sensor_y = cam->sensor_y;
 		params->sensor_fit = cam->sensor_fit;
 
-		params->clipsta = cam->clipsta;
-		params->clipend = cam->clipend;
+		params->clip_start = cam->clip_start;
+		params->clip_end = cam->clip_end;
 	}
 	else if (ob->type == OB_LAMP) {
 		/* lamp object */
@@ -206,8 +206,8 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 		if (params->lens == 0.0f)
 			params->lens = 35.0f;
 
-		params->clipsta = la->clipsta;
-		params->clipend = la->clipend;
+		params->clip_start = la->clipsta;
+		params->clip_end = la->clipend;
 	}
 	else {
 		params->lens = 35.0f;
@@ -218,8 +218,8 @@ void BKE_camera_params_from_view3d(CameraParams *params, Depsgraph *depsgraph, c
 {
 	/* common */
 	params->lens = v3d->lens;
-	params->clipsta = v3d->near;
-	params->clipend = v3d->far;
+	params->clip_start = v3d->clip_start;
+	params->clip_end = v3d->clip_end;
 
 	if (rv3d->persp == RV3D_CAMOB) {
 		/* camera view */
@@ -239,8 +239,8 @@ void BKE_camera_params_from_view3d(CameraParams *params, Depsgraph *depsgraph, c
 	else if (rv3d->persp == RV3D_ORTHO) {
 		/* orthographic view */
 		float sensor_size = BKE_camera_sensor_size(params->sensor_fit, params->sensor_x, params->sensor_y);
-		params->clipend *= 0.5f;    // otherwise too extreme low zbuffer quality
-		params->clipsta = -params->clipend;
+		params->clip_end *= 0.5f;    // otherwise too extreme low zbuffer quality
+		params->clip_start = -params->clip_start;
 
 		params->is_ortho = true;
 		/* make sure any changes to this match ED_view3d_radius_to_dist_ortho() */
@@ -269,7 +269,7 @@ void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int win
 	else {
 		/* perspective camera */
 		sensor_size = BKE_camera_sensor_size(params->sensor_fit, params->sensor_x, params->sensor_y);
-		pixsize = (sensor_size * params->clipsta) / params->lens;
+		pixsize = (sensor_size * params->clip_start) / params->lens;
 	}
 
 	/* determine sensor fit */
@@ -323,10 +323,10 @@ void BKE_camera_params_compute_matrix(CameraParams *params)
 	/* compute projection matrix */
 	if (params->is_ortho)
 		orthographic_m4(params->winmat, viewplane.xmin, viewplane.xmax,
-		                viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
+		                viewplane.ymin, viewplane.ymax, params->clip_start, params->clip_end);
 	else
 		perspective_m4(params->winmat, viewplane.xmin, viewplane.xmax,
-		               viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
+		               viewplane.ymin, viewplane.ymax, params->clip_start, params->clip_end);
 }
 
 /***************************** Camera View Frame *****************************/
@@ -364,12 +364,12 @@ void BKE_camera_view_frame_ex(
 		facy = 0.5f * camera->ortho_scale * r_asp[1] * scale[1];
 		r_shift[0] = camera->shiftx * camera->ortho_scale * scale[0];
 		r_shift[1] = camera->shifty * camera->ortho_scale * scale[1];
-		depth = do_clip ? -((camera->clipsta * scale[2]) + 0.1f) : -drawsize * scale[2];
+		depth = do_clip ? -((camera->clip_start * scale[2]) + 0.1f) : -drawsize * scale[2];
 
 		*r_drawsize = 0.5f * camera->ortho_scale;
 	}
 	else {
-		/* that way it's always visible - clipsta+0.1 */
+		/* that way it's always visible - clip_start+0.1 */
 		float fac, scale_x, scale_y;
 		float half_sensor = 0.5f * ((camera->sensor_fit == CAMERA_SENSOR_FIT_VERT) ?
 		                            (camera->sensor_y) : (camera->sensor_x));
@@ -379,7 +379,7 @@ void BKE_camera_view_frame_ex(
 			/* fixed depth, variable size (avoids exceeding clipping range) */
 			/* r_drawsize shouldn't be used in this case, set to dummy value */
 			*r_drawsize = 1.0f;
-			depth = -(camera->clipsta + 0.1f) * scale[2];
+			depth = -(camera->clip_start + 0.1f) * scale[2];
 			fac = depth / (camera->lens / (-half_sensor));
 			scale_x = scale[0] / scale[2];
 			scale_y = scale[1] / scale[2];
@@ -536,7 +536,7 @@ static bool camera_frame_fit_calc_from_data(
 		zero_v3(r_co);
 		madd_v3_v3fl(r_co, cam_axis_x, (dists[2] - dists[0]) * 0.5f + params->shiftx * scale_diff);
 		madd_v3_v3fl(r_co, cam_axis_y, (dists[1] - dists[3]) * 0.5f + params->shifty * scale_diff);
-		madd_v3_v3fl(r_co, cam_axis_z, -(data->dist_to_cam - 1.0f - params->clipsta));
+		madd_v3_v3fl(r_co, cam_axis_z, -(data->dist_to_cam - 1.0f - params->clip_start));
 
 		return true;
 	}

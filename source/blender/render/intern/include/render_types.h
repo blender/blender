@@ -99,8 +99,8 @@ struct Render {
 	float winmat[4][4];
 
 	/* clippping */
-	float clipsta;
-	float clipend;
+	float clip_start;
+	float clip_end;
 
 	/* main, scene, and its full copy of renderdata and world */
 	struct Main *main;

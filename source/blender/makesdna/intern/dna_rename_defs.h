@@ -44,6 +44,10 @@ DNA_STRUCT_RENAME(SpaceButs, SpaceProperties)
 DNA_STRUCT_RENAME(SpaceIpo, SpaceGraph)
 DNA_STRUCT_RENAME(SpaceOops, SpaceOutliner)
 DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
+DNA_STRUCT_RENAME_ELEM(Camera, clipend, clip_end)
+DNA_STRUCT_RENAME_ELEM(Camera, clipsta, clip_start)
+DNA_STRUCT_RENAME_ELEM(View3D, far, clip_end)
+DNA_STRUCT_RENAME_ELEM(View3D, near, clip_start)
 
 #if 0
 DNA_STRUCT_RENAME(Lamp, Light)

@@ -66,8 +66,8 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 			COLLADASW::PerspectiveOptic persp(mSW);
 			persp.setXFov(RAD2DEGF(focallength_to_fov(cam->lens, cam->sensor_x)), "xfov");
 			persp.setAspectRatio((float)(sce->r.xsch) / (float)(sce->r.ysch), false, "aspect_ratio");
-			persp.setZFar(cam->clipend, false, "zfar");
-			persp.setZNear(cam->clipsta, false, "znear");
+			persp.setZFar(cam->clip_end, false, "zfar");
+			persp.setZNear(cam->clip_start, false, "znear");
 			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
 			exportBlenderProfile(ccam, cam);
 			addCamera(ccam);
@@ -80,8 +80,8 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 			COLLADASW::OrthographicOptic ortho(mSW);
 			ortho.setXMag(cam->ortho_scale / 2, "xmag");
 			ortho.setAspectRatio((float)(sce->r.xsch) / (float)(sce->r.ysch), false, "aspect_ratio");
-			ortho.setZFar(cam->clipend, false, "zfar");
-			ortho.setZNear(cam->clipsta, false, "znear");
+			ortho.setZFar(cam->clip_end, false, "zfar");
+			ortho.setZNear(cam->clip_start, false, "znear");
 			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
 			exportBlenderProfile(ccam, cam);
 			addCamera(ccam);

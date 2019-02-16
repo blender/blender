@@ -436,24 +436,24 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rectx, int recty,
                                        float *rect_float, float zoomx, float zoomy)
 {
-	float bias, scale, *rectf, clipend;
+	float bias, scale, *rectf, clip_end;
 	int a;
 	float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
 	if (scene->camera && scene->camera->type == OB_CAMERA) {
-		bias = ((Camera *)scene->camera->data)->clipsta;
-		clipend = ((Camera *)scene->camera->data)->clipend;
-		scale = 1.0f / (clipend - bias);
+		bias = ((Camera *)scene->camera->data)->clip_start;
+		clip_end = ((Camera *)scene->camera->data)->clip_end;
+		scale = 1.0f / (clip_end - bias);
 	}
 	else {
 		bias = 0.1f;
 		scale = 0.01f;
-		clipend = 100.0f;
+		clip_end = 100.0f;
 	}
 
 	rectf = MEM_mallocN(rectx * recty * sizeof(float), "temp");
 	for (a = rectx * recty - 1; a >= 0; a--) {
-		if (rect_float[a] > clipend)
+		if (rect_float[a] > clip_end)
 			rectf[a] = 0.0f;
 		else if (rect_float[a] < bias)
 			rectf[a] = 1.0f;

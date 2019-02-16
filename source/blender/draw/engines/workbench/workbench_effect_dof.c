@@ -256,8 +256,8 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 		wpd->dof_distance = -focus_dist;
 		wpd->dof_invsensorsize = full_size[0] / sensor_scaled;
 
-		wpd->dof_near_far[0] = -cam->clipsta;
-		wpd->dof_near_far[1] = -cam->clipend;
+		wpd->dof_near_far[0] = -cam->clip_start;
+		wpd->dof_near_far[1] = -cam->clip_end;
 
 		float blades = cam->gpu_dof.num_blades;
 		float rotation = cam->gpu_dof.rotation;

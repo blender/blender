@@ -114,7 +114,7 @@ void ED_view3d_dist_range_get(
         float r_dist_range[2])
 {
 	r_dist_range[0] = v3d->grid * 0.001f;
-	r_dist_range[1] = v3d->far * 10.0f;
+	r_dist_range[1] = v3d->clip_end * 10.0f;
 }
 
 /**
@@ -132,13 +132,13 @@ bool ED_view3d_clip_range_get(
 	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
 
 	if (use_ortho_factor && params.is_ortho) {
-		const float fac = 2.0f / (params.clipend - params.clipsta);
-		params.clipsta *= fac;
-		params.clipend *= fac;
+		const float fac = 2.0f / (params.clip_end - params.clip_start);
+		params.clip_start *= fac;
+		params.clip_end *= fac;
 	}
 
-	if (r_clipsta) *r_clipsta = params.clipsta;
-	if (r_clipend) *r_clipend = params.clipend;
+	if (r_clipsta) *r_clipsta = params.clip_start;
+	if (r_clipend) *r_clipend = params.clip_end;
 
 	return params.is_ortho;
 }
@@ -146,7 +146,7 @@ bool ED_view3d_clip_range_get(
 bool ED_view3d_viewplane_get(
         Depsgraph *depsgraph,
         const View3D *v3d, const RegionView3D *rv3d, int winx, int winy,
-        rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
+        rctf *r_viewplane, float *r_clip_start, float *r_clip_end, float *r_pixsize)
 {
 	CameraParams params;
 
@@ -155,8 +155,8 @@ bool ED_view3d_viewplane_get(
 	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
 	if (r_viewplane) *r_viewplane = params.viewplane;
-	if (r_clipsta) *r_clipsta = params.clipsta;
-	if (r_clipend) *r_clipend = params.clipend;
+	if (r_clip_start) *r_clip_start = params.clip_start;
+	if (r_clip_end) *r_clip_end = params.clip_end;
 	if (r_pixsize) *r_pixsize = params.viewdx;
 
 	return params.is_ortho;
@@ -1090,8 +1090,8 @@ float ED_view3d_radius_to_dist(
 		if (persp == RV3D_CAMOB) {
 			CameraParams params;
 			BKE_camera_params_init(&params);
-			params.clipsta = v3d->near;
-			params.clipend = v3d->far;
+			params.clip_start = v3d->clip_start;
+			params.clip_end = v3d->clip_end;
 			Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
 			BKE_camera_params_from_object(&params, camera_eval);
 

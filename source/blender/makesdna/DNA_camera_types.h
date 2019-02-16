@@ -86,7 +86,7 @@ typedef struct Camera {
 	char dtx;
 	short flag;
 	float passepartalpha;
-	float clipsta, clipend;
+	float clip_start, clip_end;
 	float lens, ortho_scale, drawsize;
 	float sensor_x, sensor_y;
 	float shiftx, shifty;

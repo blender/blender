@@ -1448,7 +1448,7 @@ static bool point_is_visible(
 
 		/* avoid projecting behind the viewpoint */
 		if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
-			dist = kcd->vc.v3d->far * 2.0f;
+			dist = kcd->vc.v3d->clip_end * 2.0f;
 		}
 
 		if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
