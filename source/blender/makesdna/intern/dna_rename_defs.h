@@ -36,6 +36,13 @@
  * - Old names aren't sanity checked (since this file is the only place that knows about them)
  *   typos in the old names will break both backwards & forwards compatibility **TAKE CARE**.
  *
+ * - Before editing rename defines run:
+ *
+ *   `sha1sum $BUILD_DIR/source/blender/makesdna/intern/dna.c`
+ *
+ *   Compare the results before & after to ensure all changes are reversed by renaming
+ *   and the DNA remains unchanged.
+ *
  * \see versioning_dna.c for a actual version patching.
  */
 
