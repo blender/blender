@@ -1522,15 +1522,6 @@ typedef struct ToolSettings {
 /* Assorted Scene Data */
 
 /* ------------------------------------------- */
-/* Stats (show in Info header) */
-
-typedef struct bStats {
-	/* scene totals for visible layers */
-	int totobj, totlamp, totobjsel, totcurve, totmesh, totarmature;
-	int totvert, totface;
-} bStats;
-
-/* ------------------------------------------- */
 /* Unit Settings */
 
 typedef struct UnitSettings {
