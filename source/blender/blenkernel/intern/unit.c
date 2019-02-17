@@ -104,6 +104,8 @@ enum {
 	B_UNIT_DEF_SUPPRESS = 1,
 	/** Display a unit even if its value is 0.1, eg 0.1mm instead of 100um */
 	B_UNIT_DEF_TENTH = 2,
+	/** Short unit name is case sensitive, for example to distinguish mW and MW */
+	B_UNIT_DEF_CASE_SENSITIVE = 4,
 };
 
 /* define a single unit */
@@ -302,10 +304,10 @@ static struct bUnitCollection buCameraLenCollection = {buCameraLenDef, 3, 0, UNI
 /* (Light) Power */
 static struct bUnitDef buPowerDef[] = {
 	{"gigawatt",  "gigawatts",  "GW", NULL, "Gigawatts",  NULL, 1e9f,  0.0, B_UNIT_DEF_NONE},
-	{"megawatt",  "megawatts",  "MW", NULL, "Megawatts",  NULL, 1e6f,  0.0, B_UNIT_DEF_NONE},
+	{"megawatt",  "megawatts",  "MW", NULL, "Megawatts",  NULL, 1e6f,  0.0, B_UNIT_DEF_CASE_SENSITIVE},
 	{"kilowatt",  "kilowatts",  "kW", NULL, "Kilowatts",  NULL, 1e3f,  0.0, B_UNIT_DEF_SUPPRESS},
 	{"watt",      "watts",      "W",  NULL, "Watts",      NULL, 1.0f,  0.0, B_UNIT_DEF_NONE},
-	{"milliwatt", "milliwatts", "mW", NULL, "Milliwatts", NULL, 1e-3f, 0.0, B_UNIT_DEF_NONE},
+	{"milliwatt", "milliwatts", "mW", NULL, "Milliwatts", NULL, 1e-3f, 0.0, B_UNIT_DEF_CASE_SENSITIVE},
 	{"microwatt", "microwatts", "µW", "uW", "Microwatts", NULL, 1e-6f, 0.0, B_UNIT_DEF_NONE},
 	{"nanowatt",  "nanowatts",  "nW", NULL, "Nannowatts", NULL, 1e-9f, 0.0, B_UNIT_DEF_NONE},
 };
@@ -578,12 +580,16 @@ BLI_INLINE bool isalpha_or_utf8(const int ch)
 	return (ch >= 128 || isalpha(ch));
 }
 
-static const char *unit_find_str(const char *str, const char *substr)
+static const char *unit_find_str(const char *str, const char *substr, bool case_sensitive)
 {
 	if (substr && substr[0] != '\0') {
 		while (true) {
 			/* Unit detection is case insensitive. */
-			const char *str_found = BLI_strcasestr(str, substr);
+			const char *str_found;
+			if (case_sensitive)
+				str_found = strstr(str, substr);
+			else
+				str_found = BLI_strcasestr(str, substr);
 
 			if (str_found) {
 				/* Previous char cannot be a letter. */
@@ -643,11 +649,11 @@ static bool ch_is_op(char op)
 }
 
 static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, const bUnitDef *unit,
-                          const char *replace_str)
+                          const char *replace_str, bool case_sensitive)
 {
 	char *str_found;
 
-	if ((len_max > 0) && (str_found = (char *)unit_find_str(str, replace_str))) {
+	if ((len_max > 0) && (str_found = (char *)unit_find_str(str, replace_str, case_sensitive))) {
 		/* XXX - investigate, does not respect len_max properly  */
 
 		int len, len_num, len_name, len_move, found_ofs;
@@ -693,20 +699,22 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pr
 
 static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref, const bUnitDef *unit)
 {
+	const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
 	int ofs = 0;
-	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_short);
-	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_plural);
-	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_alt);
-	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_short, case_sensitive);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_plural, false);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_alt, case_sensitive);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name, false);
 	return ofs;
 }
 
 static bool unit_find(const char *str, const bUnitDef *unit)
 {
-	if (unit_find_str(str, unit->name_short))   return true;
-	if (unit_find_str(str, unit->name_plural))  return true;
-	if (unit_find_str(str, unit->name_alt))     return true;
-	if (unit_find_str(str, unit->name))         return true;
+	const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
+	if (unit_find_str(str, unit->name_short, case_sensitive)) return true;
+	if (unit_find_str(str, unit->name_plural, false))  return true;
+	if (unit_find_str(str, unit->name_alt, case_sensitive)) return true;
+	if (unit_find_str(str, unit->name, false)) return true;
 
 	return false;
 }
@@ -786,9 +794,6 @@ bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sc
 	double scale_pref_base = scale_pref;
 	char str_tmp[TEMP_STR_SIZE];
 	bool changed = false;
-
-	/* Convert to lowercase, to make unit detection case insensitive. */
-	BLI_str_tolower_ascii(str, len_max);
 
 	/* Try to find a default unit from current or previous string. */
 	default_unit = unit_detect_from_str(usys, str, str_prev);
@@ -877,7 +882,8 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 	/* find and substitute all units */
 	for (unit = usys->units; unit->name; unit++) {
 		if (len_max > 0 && unit->name_alt) {
-			const char *found = unit_find_str(orig_str, unit->name_short);
+			const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
+			const char *found = unit_find_str(orig_str, unit->name_short, case_sensitive);
 			if (found) {
 				int offset = (int)(found - orig_str);
 				int len_name = 0;
