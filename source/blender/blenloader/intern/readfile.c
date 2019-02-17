@@ -4276,8 +4276,8 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 
 			part->ipo = newlibadr_us(fd, part->id.lib, part->ipo); // XXX deprecated - old animation system
 
-			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
-			part->dup_group = newlibadr_us(fd, part->id.lib, part->dup_group);
+			part->instance_object = newlibadr(fd, part->id.lib, part->instance_object);
+			part->instance_collection = newlibadr_us(fd, part->id.lib, part->instance_collection);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
 			part->collision_group = newlibadr(fd, part->id.lib, part->collision_group);
@@ -4292,13 +4292,13 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 				part->effector_weights = BKE_effector_add_weights(part->eff_group);
 			}
 
-			if (part->dupliweights.first && part->dup_group) {
-				for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+			if (part->instance_weights.first && part->instance_collection) {
+				for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
 					dw->ob = newlibadr(fd, part->id.lib, dw->ob);
 				}
 			}
 			else {
-				BLI_listbase_clear(&part->dupliweights);
+				BLI_listbase_clear(&part->instance_weights);
 			}
 
 			if (part->boids) {
@@ -4370,7 +4370,7 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	if (!part->effector_weights)
 		part->effector_weights = BKE_effector_add_weights(part->eff_group);
 
-	link_list(fd, &part->dupliweights);
+	link_list(fd, &part->instance_weights);
 
 	part->boids = newdataadr(fd, part->boids);
 	part->fluid = newdataadr(fd, part->fluid);
@@ -4883,10 +4883,10 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			/* 2.8x drops support for non-empty dupli instances. */
 			if (ob->type == OB_EMPTY) {
-				ob->dup_group = newlibadr_us(fd, ob->id.lib, ob->dup_group);
+				ob->instance_collection = newlibadr_us(fd, ob->id.lib, ob->instance_collection);
 			}
 			else {
-				ob->dup_group = NULL;
+				ob->instance_collection = NULL;
 				ob->transflag &= ~OB_DUPLICOLLECTION;
 			}
 
@@ -9499,8 +9499,8 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 {
 	int a;
 
-	expand_doit(fd, mainvar, part->dup_ob);
-	expand_doit(fd, mainvar, part->dup_group);
+	expand_doit(fd, mainvar, part->instance_object);
+	expand_doit(fd, mainvar, part->instance_collection);
 	expand_doit(fd, mainvar, part->eff_group);
 	expand_doit(fd, mainvar, part->bb_ob);
 	expand_doit(fd, mainvar, part->collision_group);
@@ -9546,7 +9546,7 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 		}
 	}
 
-	for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+	for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
 		expand_doit(fd, mainvar, dw->ob);
 	}
 }
@@ -9868,8 +9868,8 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	if (paf && paf->group)
 		expand_doit(fd, mainvar, paf->group);
 
-	if (ob->dup_group)
-		expand_doit(fd, mainvar, ob->dup_group);
+	if (ob->instance_collection)
+		expand_doit(fd, mainvar, ob->instance_collection);
 
 	if (ob->proxy)
 		expand_doit(fd, mainvar, ob->proxy);
@@ -10396,7 +10396,7 @@ static void add_collections_to_scene(
 			view_layer->basact = base;
 
 			/* Assign the collection. */
-			ob->dup_group = collection;
+			ob->instance_collection = collection;
 			id_us_plus(&collection->id);
 			ob->transflag |= OB_DUPLICOLLECTION;
 			copy_v3_v3(ob->loc, scene->cursor.location);

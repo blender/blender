@@ -500,16 +500,16 @@ static bool object_select_all_by_material(bContext *C, Material *mat)
 	return changed;
 }
 
-static bool object_select_all_by_dup_group(bContext *C, Object *ob)
+static bool object_select_all_by_instance_collection(bContext *C, Object *ob)
 {
 	bool changed = false;
-	Collection *dup_group = (ob->transflag & OB_DUPLICOLLECTION) ? ob->dup_group : NULL;
+	Collection *instance_collection = (ob->transflag & OB_DUPLICOLLECTION) ? ob->instance_collection : NULL;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
 		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
-			Collection *dup_group_other = (base->object->transflag & OB_DUPLICOLLECTION) ? base->object->dup_group : NULL;
-			if (dup_group == dup_group_other) {
+			Collection *instance_collection_other = (base->object->transflag & OB_DUPLICOLLECTION) ? base->object->instance_collection : NULL;
+			if (instance_collection == instance_collection_other) {
 				ED_object_base_select(base, BA_SELECT);
 				changed = true;
 			}
@@ -649,10 +649,10 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		changed = object_select_all_by_material(C, mat);
 	}
 	else if (nr == OBJECT_SELECT_LINKED_DUPGROUP) {
-		if (ob->dup_group == NULL)
+		if (ob->instance_collection == NULL)
 			return OPERATOR_CANCELLED;
 
-		changed = object_select_all_by_dup_group(C, ob);
+		changed = object_select_all_by_instance_collection(C, ob);
 	}
 	else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
 		if (BLI_listbase_is_empty(&ob->particlesystem))

@@ -220,7 +220,7 @@ static void unlink_collection_cb(
 	if (tsep) {
 		if (GS(tsep->id->name) == ID_OB) {
 			Object *ob = (Object *)tsep->id;
-			ob->dup_group = NULL;
+			ob->instance_collection = NULL;
 			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 			DEG_relations_tag_update(bmain);
 		}

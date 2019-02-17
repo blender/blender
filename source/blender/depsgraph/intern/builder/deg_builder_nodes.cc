@@ -622,11 +622,11 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 		        -1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
 	}
 	/* Object dupligroup. */
-	if (object->dup_group != NULL) {
+	if (object->instance_collection != NULL) {
 		const bool is_current_parent_collection_visible =
 		        is_parent_collection_visible_;
 		is_parent_collection_visible_ = is_visible;
-		build_collection(NULL, object->dup_group);
+		build_collection(NULL, object->instance_collection);
 		is_parent_collection_visible_ = is_current_parent_collection_visible;
 		add_operation_node(
 		        &object->id, NodeType::DUPLI, OperationCode::DUPLI);
@@ -1123,16 +1123,16 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object,
 		/* Visualization of particle system. */
 		switch (part->ren_as) {
 			case PART_DRAW_OB:
-				if (part->dup_ob != NULL) {
+				if (part->instance_object != NULL) {
 					build_object(-1,
-					             part->dup_ob,
+					             part->instance_object,
 					             DEG_ID_LINKED_INDIRECTLY,
 					             is_object_visible);
 				}
 				break;
 			case PART_DRAW_GR:
-				if (part->dup_group != NULL) {
-					build_collection(NULL, part->dup_group);
+				if (part->instance_collection != NULL) {
+					build_collection(NULL, part->instance_collection);
 				}
 				break;
 		}

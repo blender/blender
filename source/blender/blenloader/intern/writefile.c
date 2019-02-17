@@ -1400,12 +1400,12 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part)
 			write_curvemapping(wd, part->twistcurve);
 		}
 
-		for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+		for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
 			/* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
 			if (dw->ob != NULL) {
 				dw->index = 0;
-				if (part->dup_group) { /* can be NULL if lining fails or set to None */
-					FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+				if (part->instance_collection) { /* can be NULL if lining fails or set to None */
+					FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->instance_collection, object)
 					{
 						if (object != dw->ob) {
 							dw->index++;

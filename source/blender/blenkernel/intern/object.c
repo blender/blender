@@ -852,7 +852,7 @@ void BKE_object_init(Object *ob)
 		ob->upflag = OB_POSZ;
 	}
 
-	ob->dupfacesca = 1.0;
+	ob->instance_faces_scale = 1.0;
 
 	ob->col_group = 0x01;
 	ob->col_mask = 0xffff;
@@ -1576,9 +1576,9 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
 	if (cob) {
 		ob->rotmode = target->rotmode;
 		mul_m4_m4m4(ob->obmat, cob->obmat, target->obmat);
-		if (cob->dup_group) { /* should always be true */
+		if (cob->instance_collection) { /* should always be true */
 			float tvec[3];
-			mul_v3_mat3_m4v3(tvec, ob->obmat, cob->dup_group->dupli_ofs);
+			mul_v3_mat3_m4v3(tvec, ob->obmat, cob->instance_collection->dupli_ofs);
 			sub_v3_v3(ob->obmat[3], tvec);
 		}
 		BKE_object_apply_mat4(ob, ob->obmat, false, true);

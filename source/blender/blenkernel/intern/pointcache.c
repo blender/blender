@@ -1786,8 +1786,8 @@ static bool foreach_object_ptcache(Scene *scene,
 	/* Consider all object in dupli groups to be part of the same object,
 	 * for baking with linking dupligroups. Once we have better overrides
 	 * this can be revisited so users select the local objects directly. */
-	if (scene != NULL && (duplis-- > 0) && (object->dup_group != NULL)) {
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(object->dup_group,
+	if (scene != NULL && (duplis-- > 0) && (object->instance_collection != NULL)) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(object->instance_collection,
 		                                          current_object)
 		{
 			if (current_object == object) {

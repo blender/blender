@@ -1216,7 +1216,7 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 		}
 
 		Object *ob = ED_object_add_type(C, OB_EMPTY, collection->id.name + 2, loc, rot, false, local_view_bits);
-		ob->dup_group = collection;
+		ob->instance_collection = collection;
 		ob->transflag |= OB_DUPLICOLLECTION;
 		id_us_plus(&collection->id);
 
@@ -1685,7 +1685,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		}
 	}
 
-	if (base->object->transflag & OB_DUPLICOLLECTION && base->object->dup_group) {
+	if (base->object->transflag & OB_DUPLICOLLECTION && base->object->instance_collection) {
 		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (ob->proxy_group == base->object) {
 				ob->proxy = NULL;

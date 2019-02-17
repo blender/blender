@@ -173,8 +173,8 @@ void SceneExporter::writeNodes(Object *ob)
 
 		// empty object
 		else if (ob->type == OB_EMPTY) { // TODO: handle groups (OB_DUPLICOLLECTION
-			if ((ob->transflag & OB_DUPLICOLLECTION) == OB_DUPLICOLLECTION && ob->dup_group) {
-				Collection *collection = ob->dup_group;
+			if ((ob->transflag & OB_DUPLICOLLECTION) == OB_DUPLICOLLECTION && ob->instance_collection) {
+				Collection *collection = ob->instance_collection;
 				/* printf("group detected '%s'\n", group->id.name + 2); */
 				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 				{

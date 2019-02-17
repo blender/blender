@@ -267,10 +267,10 @@ typedef struct ParticleSettings {
 	/** MAX_MTEX. */
 	struct MTex *mtex[18];
 
-	struct Collection *dup_group;
-	struct ListBase dupliweights;
+	struct Collection *instance_collection;
+	struct ListBase instance_weights;
 	struct Collection *eff_group  DNA_DEPRECATED;		// deprecated
-	struct Object *dup_ob;
+	struct Object *instance_object;
 	struct Object *bb_ob;
 	/** Old animation system, deprecated for 2.5. */
 	struct Ipo *ipo  DNA_DEPRECATED;
@@ -343,7 +343,7 @@ typedef struct ParticleSystem {
 	/** Particle system name, MAX_NAME. */
 	char name[64];
 
-	/** Used for duplicators. */
+	/** Used for instancing. */
 	float imat[4][4];
 	float cfra, tree_frame, bvhtree_frame;
 	int seed, child_seed;
@@ -409,7 +409,7 @@ typedef enum eParticleDrawFlag {
 	PART_ABS_PATH_TIME      = (1 << 5),
 	PART_DRAW_COUNT_GR      = (1 << 6),
 	PART_DRAW_BB_LOCK       = (1 << 7), /* used with billboards */
-	PART_DRAW_ROTATE_OB     = (1 << 7), /* used with dupliobjects/groups */
+	PART_DRAW_ROTATE_OB     = (1 << 7), /* used with instance object/collection */
 	PART_DRAW_PARENT        = (1 << 8),
 	PART_DRAW_NUM           = (1 << 9),
 	PART_DRAW_RAND_GR       = (1 << 10),
@@ -418,7 +418,7 @@ typedef enum eParticleDrawFlag {
 	PART_DRAW_MAT_COL       = (1 << 13), /* deprecated, but used in do_versions */
 	PART_DRAW_WHOLE_GR      = (1 << 14),
 	PART_DRAW_REN_STRAND    = (1 << 15),
-	PART_DRAW_NO_SCALE_OB   = (1 << 16), /* used with dupliobjects/groups */
+	PART_DRAW_NO_SCALE_OB   = (1 << 16), /* used with instance object/collection */
 	PART_DRAW_GUIDE_HAIRS   = (1 << 17),
 	PART_DRAW_HAIR_GRID     = (1 << 18),
 } eParticleDrawFlag;

@@ -1099,7 +1099,7 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
 						/* collections cannot be duplicated for mballs yet,
 						 * this enters eternal loop because of
 						 * makeDispListMBall getting called inside of collection_duplilist */
-						if ((*base)->object->dup_group == NULL) {
+						if ((*base)->object->instance_collection == NULL) {
 							iter->duplilist = object_duplilist(depsgraph, (*scene), (*base)->object);
 
 							iter->dupob = iter->duplilist->first;

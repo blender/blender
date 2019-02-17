@@ -2293,7 +2293,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 					for (; dup; dup = dup->id.next) {
 						if (ob == blo_do_versions_newlibadr(fd, lib, dup->parent)) {
-							part->dup_ob = dup;
+							part->instance_object = dup;
 							ob->transflag |= OB_DUPLIPARTS;
 							ob->transflag &= ~OB_DUPLIVERTS;
 
@@ -2344,7 +2344,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 		/* dupliface scale */
 		for (ob = bmain->object.first; ob; ob = ob->id.next)
-			ob->dupfacesca = 1.0f;
+			ob->instance_faces_scale = 1.0f;
 	}
 
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 11)) {

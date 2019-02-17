@@ -478,8 +478,8 @@ static void outliner_add_object_contents(SpaceOutliner *soops, TreeElement *te, 
 	}
 
 	/* duplicated group */
-	if (ob->dup_group)
-		outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
+	if (ob->instance_collection)
+		outliner_add_element(soops, &te->subtree, ob->instance_collection, te, 0, 0);
 }
 
 

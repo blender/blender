@@ -297,9 +297,9 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	/* Get object to work on - use a menu if we need to... */
-	if (ob->dup_group && ID_IS_LINKED(ob->dup_group)) {
+	if (ob->instance_collection && ID_IS_LINKED(ob->instance_collection)) {
 		/* gives menu with list of objects in group */
-		/* proxy_group_objects_menu(C, op, ob, ob->dup_group); */
+		/* proxy_group_objects_menu(C, op, ob, ob->instance_collection); */
 		WM_enum_search_invoke(C, op, event);
 		return OPERATOR_CANCELLED;
 	}
@@ -333,9 +333,9 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	if (gob->dup_group != NULL) {
-		const ListBase dup_group_objects = BKE_collection_object_cache_get(gob->dup_group);
-		Base *base = BLI_findlink(&dup_group_objects, RNA_enum_get(op->ptr, "object"));
+	if (gob->instance_collection != NULL) {
+		const ListBase instance_collection_objects = BKE_collection_object_cache_get(gob->instance_collection);
+		Base *base = BLI_findlink(&instance_collection_objects, RNA_enum_get(op->ptr, "object"));
 		ob = base->object;
 	}
 	else {
@@ -386,11 +386,11 @@ static const EnumPropertyItem *proxy_collection_object_itemf(
 	int i = 0;
 	Object *ob = ED_object_active_context(C);
 
-	if (!ob || !ob->dup_group)
+	if (!ob || !ob->instance_collection)
 		return DummyRNA_DEFAULT_items;
 
 	/* find the object to affect */
-	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(ob->dup_group, object)
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(ob->instance_collection, object)
 	{
 		item_tmp.identifier = item_tmp.name = object->id.name + 2;
 		item_tmp.value = i++;
@@ -1433,7 +1433,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 						/* now add in the collections from the link nodes */
 						for (collection_node = ob_collections; collection_node; collection_node = collection_node->next) {
-							if (ob_dst->dup_group != collection_node->link) {
+							if (ob_dst->instance_collection != collection_node->link) {
 								BKE_collection_object_add(bmain, collection_node->link, ob_dst);
 							}
 							else {
@@ -1443,9 +1443,9 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						break;
 					}
 					case MAKE_LINKS_DUPLICOLLECTION:
-						ob_dst->dup_group = ob_src->dup_group;
-						if (ob_dst->dup_group) {
-							id_us_plus(&ob_dst->dup_group->id);
+						ob_dst->instance_collection = ob_src->instance_collection;
+						if (ob_dst->instance_collection) {
+							id_us_plus(&ob_dst->instance_collection->id);
 							ob_dst->transflag |= OB_DUPLICOLLECTION;
 						}
 						break;
@@ -2200,7 +2200,7 @@ static int make_override_static_invoke(bContext *C, wmOperator *op, const wmEven
 	}
 
 	/* Get object to work on - use a menu if we need to... */
-	if (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group)) {
+	if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL && ID_IS_LINKED(obact->instance_collection)) {
 		/* Gives menu with list of objects in group. */
 		WM_enum_search_invoke(C, op, event);
 		return OPERATOR_CANCELLED;
@@ -2235,9 +2235,9 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 	bool success = false;
 
-	if (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group)) {
+	if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL && ID_IS_LINKED(obact->instance_collection)) {
 		Object *obcollection = obact;
-		Collection *collection = obcollection->dup_group;
+		Collection *collection = obcollection->instance_collection;
 
 		const ListBase dup_collection_objects = BKE_collection_object_cache_get(collection);
 		Base *base = BLI_findlink(&dup_collection_objects, RNA_enum_get(op->ptr, "object"));
@@ -2302,7 +2302,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		/* obcollection is no more duplicollection-ing,
 		 * it merely parents whole collection of overriding instantiated objects. */
-		obcollection->dup_group = NULL;
+		obcollection->instance_collection = NULL;
 
 		/* Also, we'd likely want to lock by default things like
 		 * transformations of implicitly overridden objects? */
@@ -2350,7 +2350,7 @@ static bool make_override_static_poll(bContext *C)
 	return (BKE_override_static_is_enabled() &&
 	        ED_operator_objectmode(C) && obact != NULL &&
 	        ((ID_IS_LINKED(obact) && obact->id.tag & LIB_TAG_EXTERN) ||
-	         (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group))));
+	         (!ID_IS_LINKED(obact) && obact->instance_collection != NULL && ID_IS_LINKED(obact->instance_collection))));
 }
 
 void OBJECT_OT_make_override_static(wmOperatorType *ot)

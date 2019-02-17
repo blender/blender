@@ -304,7 +304,7 @@ typedef struct Object {
 	char empty_drawtype;
 	float empty_drawsize;
 	/** Dupliface scale. */
-	float dupfacesca;
+	float instance_faces_scale;
 
 	/** Custom index, for renderpasses. */
 	short index;
@@ -335,7 +335,7 @@ typedef struct Object {
 	/** If exists, saved in file. */
 	struct SoftBody *soft;
 	/** Object duplicator for group. */
-	struct Collection *dup_group;
+	struct Collection *instance_collection;
 	void *pad10;
 
 	char  pad4;

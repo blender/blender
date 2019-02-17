@@ -343,11 +343,11 @@ void psys_find_group_weights(ParticleSettings *part)
 	/* Find object pointers based on index. If the collection is linked from
 	 * another library linking may not have the object pointers available on
 	 * file load, so we have to retrieve them later. See T49273. */
-	const ListBase dup_group_objects = BKE_collection_object_cache_get(part->dup_group);
+	const ListBase instance_collection_objects = BKE_collection_object_cache_get(part->instance_collection);
 
-	for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
+	for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
 		if (dw->ob == NULL) {
-			Base *base = BLI_findlink(&dup_group_objects, dw->index);
+			Base *base = BLI_findlink(&instance_collection_objects, dw->index);
 			if (base != NULL) {
 				dw->ob = base->object;
 			}
@@ -359,8 +359,8 @@ void psys_check_group_weights(ParticleSettings *part)
 {
 	ParticleDupliWeight *dw, *tdw;
 
-	if (part->ren_as != PART_DRAW_GR || !part->dup_group) {
-		BLI_freelistN(&part->dupliweights);
+	if (part->ren_as != PART_DRAW_GR || !part->instance_collection) {
+		BLI_freelistN(&part->instance_weights);
 		return;
 	}
 
@@ -368,11 +368,11 @@ void psys_check_group_weights(ParticleSettings *part)
 	psys_find_group_weights(part);
 
 	/* Remove NULL objects, that were removed from the collection. */
-	dw = part->dupliweights.first;
+	dw = part->instance_weights.first;
 	while (dw) {
-		if (dw->ob == NULL || !BKE_collection_has_object_recursive(part->dup_group, dw->ob)) {
+		if (dw->ob == NULL || !BKE_collection_has_object_recursive(part->instance_collection, dw->ob)) {
 			tdw = dw->next;
-			BLI_freelinkN(&part->dupliweights, dw);
+			BLI_freelinkN(&part->instance_weights, dw);
 			dw = tdw;
 		}
 		else {
@@ -382,9 +382,9 @@ void psys_check_group_weights(ParticleSettings *part)
 
 	/* Add new objects in the collection. */
 	int index = 0;
-	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->instance_collection, object)
 	{
-		dw = part->dupliweights.first;
+		dw = part->instance_weights.first;
 		while (dw && dw->ob != object) {
 			dw = dw->next;
 		}
@@ -393,7 +393,7 @@ void psys_check_group_weights(ParticleSettings *part)
 			dw = MEM_callocN(sizeof(ParticleDupliWeight), "ParticleDupliWeight");
 			dw->ob = object;
 			dw->count = 1;
-			BLI_addtail(&part->dupliweights, dw);
+			BLI_addtail(&part->instance_weights, dw);
 		}
 
 		dw->index = index++;
@@ -402,7 +402,7 @@ void psys_check_group_weights(ParticleSettings *part)
 
 	/* Ensure there is an element marked as current. */
 	int current = 0;
-	for (dw = part->dupliweights.first; dw; dw = dw->next) {
+	for (dw = part->instance_weights.first; dw; dw = dw->next) {
 		if (dw->flag & PART_DUPLIW_CURRENT) {
 			current = 1;
 			break;
@@ -410,7 +410,7 @@ void psys_check_group_weights(ParticleSettings *part)
 	}
 
 	if (!current) {
-		dw = part->dupliweights.first;
+		dw = part->instance_weights.first;
 		if (dw)
 			dw->flag |= PART_DUPLIW_CURRENT;
 	}
@@ -452,7 +452,7 @@ void BKE_particlesettings_free(ParticleSettings *part)
 
 	MEM_SAFE_FREE(part->effector_weights);
 
-	BLI_freelistN(&part->dupliweights);
+	BLI_freelistN(&part->instance_weights);
 
 	boid_free_settings(part->boids);
 	fluid_free_settings(part->fluid);
@@ -3319,7 +3319,7 @@ void BKE_particlesettings_copy_data(
 		}
 	}
 
-	BLI_duplicatelist(&part_dst->dupliweights, &part_src->dupliweights);
+	BLI_duplicatelist(&part_dst->instance_weights, &part_src->instance_weights);
 }
 
 ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings *part)

@@ -921,8 +921,8 @@ static void add_collision_object(ListBase *relations, Object *ob, int level, uns
 	/* objects in dupli groups, one level only for now */
 	/* TODO: this doesn't really work, we are not taking into account the
 	 * dupli transforms and can get objects in the list multiple times. */
-	if (ob->dup_group && level == 0) {
-		Collection *collection= ob->dup_group;
+	if (ob->instance_collection && level == 0) {
+		Collection *collection= ob->instance_collection;
 
 		/* add objects */
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)

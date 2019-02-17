@@ -697,8 +697,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		             "Proxy Group Transform");
 	}
 	/* Object dupligroup. */
-	if (object->dup_group != NULL) {
-		build_collection(NULL, object, object->dup_group);
+	if (object->instance_collection != NULL) {
+		build_collection(NULL, object, object->instance_collection);
 	}
 	/* Point caches. */
 	build_object_pointcache(object);
@@ -1850,18 +1850,18 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 		/* Visualization. */
 		switch (part->ren_as) {
 			case PART_DRAW_OB:
-				if (part->dup_ob != NULL) {
+				if (part->instance_object != NULL) {
 					/* Make sure object's relations are all built.  */
-					build_object(NULL, part->dup_ob);
+					build_object(NULL, part->instance_object);
 					/* Build relation for the particle visualization. */
 					build_particle_system_visualization_object(
-					        object,  psys, part->dup_ob);
+					        object,  psys, part->instance_object);
 				}
 				break;
 			case PART_DRAW_GR:
-				if (part->dup_group != NULL) {
-					build_collection(NULL, NULL, part->dup_group);
-					LISTBASE_FOREACH (CollectionObject *, go, &part->dup_group->gobject) {
+				if (part->instance_collection != NULL) {
+					build_collection(NULL, NULL, part->instance_collection);
+					LISTBASE_FOREACH (CollectionObject *, go, &part->instance_collection->gobject) {
 						build_particle_system_visualization_object(
 						        object, psys, go->ob);
 					}

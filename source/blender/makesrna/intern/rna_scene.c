@@ -1530,10 +1530,10 @@ static void object_simplify_update(Object *ob)
 	for (psys = ob->particlesystem.first; psys; psys = psys->next)
 		psys->recalc |= ID_RECALC_PSYS_CHILD;
 
-	if (ob->dup_group) {
+	if (ob->instance_collection) {
 		CollectionObject *cob;
 
-		for (cob = ob->dup_group->gobject.first; cob; cob = cob->next)
+		for (cob = ob->instance_collection->gobject.first; cob; cob = cob->next)
 			object_simplify_update(cob->ob);
 	}
 }

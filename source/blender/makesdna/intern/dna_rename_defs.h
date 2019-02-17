@@ -49,6 +49,11 @@ DNA_STRUCT_RENAME(SpaceOops, SpaceOutliner)
 DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
 DNA_STRUCT_RENAME_ELEM(Camera, clipend, clip_end)
 DNA_STRUCT_RENAME_ELEM(Camera, clipsta, clip_start)
+DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
+DNA_STRUCT_RENAME_ELEM(Object, dupfacesca, instance_faces_scale)
+DNA_STRUCT_RENAME_ELEM(ParticleSettings, dup_group, instance_collection)
+DNA_STRUCT_RENAME_ELEM(ParticleSettings, dup_ob, instance_object)
+DNA_STRUCT_RENAME_ELEM(ParticleSettings, dupliweights, instance_weights)
 DNA_STRUCT_RENAME_ELEM(View3D, far, clip_end)
 DNA_STRUCT_RENAME_ELEM(View3D, near, clip_start)
 DNA_STRUCT_RENAME_ELEM(bTheme, tact, space_action)
@@ -71,5 +76,4 @@ DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
 
 #if 0
 DNA_STRUCT_RENAME(Lamp, Light)
-DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
 #endif

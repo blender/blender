@@ -401,8 +401,8 @@ Collection *BKE_collection_master(const Scene *scene)
 
 static bool collection_object_cyclic_check_internal(Object *object, Collection *collection)
 {
-	if (object->dup_group) {
-		Collection *dup_collection = object->dup_group;
+	if (object->instance_collection) {
+		Collection *dup_collection = object->instance_collection;
 		if ((dup_collection->id.tag & LIB_TAG_DOIT) == 0) {
 			/* Cycle already exists in collections, let's prevent further crappyness */
 			return true;
@@ -483,9 +483,9 @@ bool BKE_collection_is_empty(Collection *collection)
 
 static bool collection_object_add(Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
 {
-	if (ob->dup_group) {
+	if (ob->instance_collection) {
 		/* Cyclic dependency check. */
-		if (collection_find_child_recursive(ob->dup_group, collection)) {
+		if (collection_find_child_recursive(ob->instance_collection, collection)) {
 			return false;
 		}
 	}
