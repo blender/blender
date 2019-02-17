@@ -1089,11 +1089,11 @@ static void boundbox_lattice(Object *ob)
 	Lattice *lt;
 	float min[3], max[3];
 
-	if (ob->bb == NULL) {
-		ob->bb = MEM_callocN(sizeof(BoundBox), "Lattice boundbox");
+	if (ob->runtime.bb == NULL) {
+		ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "Lattice boundbox");
 	}
 
-	bb = ob->bb;
+	bb = ob->runtime.bb;
 	lt = ob->data;
 
 	INIT_MINMAX(min, max);
@@ -1107,7 +1107,7 @@ BoundBox *BKE_lattice_boundbox_get(Object *ob)
 {
 	boundbox_lattice(ob);
 
-	return ob->bb;
+	return ob->runtime.bb;
 }
 
 void BKE_lattice_minmax_dl(Object *ob, Lattice *lt, float min[3], float max[3])

@@ -5654,7 +5654,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		BKE_object_empty_draw_type_set(ob, ob->empty_drawtype);
 	}
 
-	ob->bb = NULL;
+	ob->runtime.bb = NULL;
 	ob->derivedDeform = NULL;
 	ob->derivedFinal = NULL;
 	BKE_object_runtime_reset(ob);

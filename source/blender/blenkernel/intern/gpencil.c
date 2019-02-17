@@ -1111,11 +1111,11 @@ static void boundbox_gpencil(Object *ob)
 	bGPdata *gpd;
 	float min[3], max[3];
 
-	if (ob->bb == NULL) {
-		ob->bb = MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
+	if (ob->runtime.bb == NULL) {
+		ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
 	}
 
-	bb  = ob->bb;
+	bb  = ob->runtime.bb;
 	gpd = ob->data;
 
 	BKE_gpencil_data_minmax(NULL, gpd, min, max);
@@ -1133,15 +1133,15 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 		return NULL;
 
 	gpd = ob->data;
-	if ((ob->bb) && ((ob->bb->flag & BOUNDBOX_DIRTY) == 0) &&
+	if ((ob->runtime.bb) && ((ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) &&
 	    ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0))
 	{
-		return ob->bb;
+		return ob->runtime.bb;
 	}
 
 	boundbox_gpencil(ob);
 
-	return ob->bb;
+	return ob->runtime.bb;
 }
 
 /* ************************************************** */

@@ -122,6 +122,15 @@ struct ObjectBBoneDeform;
 /* Not saved in file! */
 typedef struct Object_Runtime {
 	/**
+	 * The custom data layer mask that was last used
+	 * to calculate mesh_eval and mesh_deform_eval.
+	 */
+	uint64_t last_data_mask;
+
+	/** Axis aligned boundbox (in localspace). */
+	struct BoundBox *bb;
+
+	/**
 	 * Original mesh pointer, before object->data was changed to point
 	 * to mesh_eval.
 	 * Is assigned by dependency graph's copy-on-write evaluation.
@@ -138,7 +147,6 @@ typedef struct Object_Runtime {
 	 */
 	struct Mesh *mesh_deform_eval;
 
-
 	/** Runtime evaluated curve-specific data, not stored in the file. */
 	struct CurveCache *curve_cache;
 
@@ -146,12 +154,6 @@ typedef struct Object_Runtime {
 	struct GpencilBatchCache *gpencil_cache;
 
 	struct ObjectBBoneDeform *cached_bbone_deformation;
-
-	/**
-	 * The custom data layer mask that was last used
-	 * to calculate mesh_eval and mesh_deform_eval.
-	 */
-	uint64_t last_data_mask;
 
 	/** Did last modifier stack generation need mapping support? */
 	char last_need_mapping;
@@ -179,8 +181,6 @@ typedef struct Object {
 	/** Old animation system, deprecated for 2.5. */
 	struct Ipo *ipo  DNA_DEPRECATED;
 	/* struct Path *path; */
-	/** Axis aligned boundbox (in localspace). */
-	struct BoundBox *bb;
 	struct bAction *action  DNA_DEPRECATED;	 // XXX deprecated... old animation system
 	struct bAction *poselib;
 	/** Pose data, armature objects only. */

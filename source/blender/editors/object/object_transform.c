@@ -1011,7 +1011,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				Curve *cu = ob->data;
 
-				if (ob->bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
+				if (ob->runtime.bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
 					/* do nothing*/
 				}
 				else {
@@ -1020,8 +1020,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					}
 					else {
 						/* extra 0.5 is the height o above line */
-						cent[0] = 0.5f * (ob->bb->vec[4][0] + ob->bb->vec[0][0]);
-						cent[1] = 0.5f * (ob->bb->vec[0][1] + ob->bb->vec[2][1]);
+						cent[0] = 0.5f * (ob->runtime.bb->vec[4][0] + ob->runtime.bb->vec[0][0]);
+						cent[1] = 0.5f * (ob->runtime.bb->vec[0][1] + ob->runtime.bb->vec[2][1]);
 					}
 
 					cent[2] = 0.0f;

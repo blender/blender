@@ -258,10 +258,10 @@ void BKE_object_eval_boundbox(Depsgraph *depsgraph, Object *object)
 	Object *ob_orig = DEG_get_original_object(object);
 	BoundBox *bb = BKE_object_boundbox_get(object);
 	if (bb != NULL) {
-		if (ob_orig->bb == NULL) {
-			ob_orig->bb = MEM_mallocN(sizeof(*ob_orig->bb), __func__);
+		if (ob_orig->runtime.bb == NULL) {
+			ob_orig->runtime.bb = MEM_mallocN(sizeof(*ob_orig->runtime.bb), __func__);
 		}
-		*ob_orig->bb = *bb;
+		*ob_orig->runtime.bb = *bb;
 	}
 }
 

@@ -449,9 +449,9 @@ void BKE_object_free_derived_caches(Object *ob)
 		}
 	}
 
-	if (ob->bb) {
-		MEM_freeN(ob->bb);
-		ob->bb = NULL;
+	if (ob->runtime.bb) {
+		MEM_freeN(ob->runtime.bb);
+		ob->runtime.bb = NULL;
 	}
 
 	object_update_from_subsurf_ccg(ob);
@@ -565,7 +565,7 @@ void BKE_object_free(Object *ob)
 	MEM_SAFE_FREE(ob->mat);
 	MEM_SAFE_FREE(ob->matbits);
 	MEM_SAFE_FREE(ob->iuser);
-	MEM_SAFE_FREE(ob->bb);
+	MEM_SAFE_FREE(ob->runtime.bb);
 
 	BLI_freelistN(&ob->defbase);
 	BLI_freelistN(&ob->fmaps);
@@ -1342,7 +1342,7 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 
 	if (ob_src->iuser) ob_dst->iuser = MEM_dupallocN(ob_src->iuser);
 
-	if (ob_src->bb) ob_dst->bb = MEM_dupallocN(ob_src->bb);
+	if (ob_src->runtime.bb) ob_dst->runtime.bb = MEM_dupallocN(ob_src->runtime.bb);
 
 	BLI_listbase_clear(&ob_dst->modifiers);
 
@@ -2447,13 +2447,13 @@ void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
 		zero_v3(max);
 	}
 
-	if (ob->bb == NULL) {
-		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
+	if (ob->runtime.bb == NULL) {
+		ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
 	}
 
-	BKE_boundbox_init_from_minmax(ob->bb, min, max);
+	BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 
-	ob->bb->flag &= ~BOUNDBOX_DIRTY;
+	ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 void BKE_object_dimensions_get(Object *ob, float vec[3])

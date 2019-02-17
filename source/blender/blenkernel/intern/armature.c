@@ -2466,10 +2466,10 @@ static void boundbox_armature(Object *ob)
 	BoundBox *bb;
 	float min[3], max[3];
 
-	if (ob->bb == NULL) {
-		ob->bb = MEM_callocN(sizeof(BoundBox), "Armature boundbox");
+	if (ob->runtime.bb == NULL) {
+		ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "Armature boundbox");
 	}
-	bb = ob->bb;
+	bb = ob->runtime.bb;
 
 	INIT_MINMAX(min, max);
 	if (!minmax_armature(ob, min, max)) {
@@ -2486,7 +2486,7 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
 {
 	boundbox_armature(ob);
 
-	return ob->bb;
+	return ob->runtime.bb;
 }
 
 bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select)

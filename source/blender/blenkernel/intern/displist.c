@@ -1894,8 +1894,8 @@ static void boundbox_displist_object(Object *ob)
 		 */
 
 		/* object's BB is calculated from final displist */
-		if (ob->bb == NULL)
-			ob->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+		if (ob->runtime.bb == NULL)
+			ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 
 		if (ob->runtime.mesh_eval) {
 			BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
@@ -1905,9 +1905,9 @@ static void boundbox_displist_object(Object *ob)
 
 			INIT_MINMAX(min, max);
 			BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
-			BKE_boundbox_init_from_minmax(ob->bb, min, max);
+			BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 
-			ob->bb->flag &= ~BOUNDBOX_DIRTY;
+			ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
 		}
 	}
 }
