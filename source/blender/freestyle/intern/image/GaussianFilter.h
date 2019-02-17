@@ -17,8 +17,9 @@
 #ifndef __GAUSSIANFILTER_H__
 #define __GAUSSIANFILTER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to perform gaussian filtering operations on an image
+/** \file
+ * \ingroup freestyle
+ * \brief Class to perform gaussian filtering operations on an image
  */
 
 #include <cstdlib> // for abs

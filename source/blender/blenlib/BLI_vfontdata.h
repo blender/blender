@@ -20,8 +20,9 @@
 #ifndef __BLI_VFONTDATA_H__
 #define __BLI_VFONTDATA_H__
 
-/** \file \ingroup bli
- *  \brief A structure to represent vector fonts,
+/** \file
+ * \ingroup bli
+ * \brief A structure to represent vector fonts,
  *   and to load them from PostScript fonts.
  */
 

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CAST_H__
 #define __FREESTYLE_CAST_H__
 
-/** \file \ingroup freestyle
- *  \brief Cast function
+/** \file
+ * \ingroup freestyle
+ * \brief Cast function
  */
 
 namespace Freestyle {

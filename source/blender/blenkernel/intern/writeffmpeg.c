@@ -15,7 +15,8 @@
  * Partial Copyright (c) 2006 Peter Schlaile
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifdef WITH_FFMPEG

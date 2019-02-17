@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 
 #include "LU_HELPER.h"

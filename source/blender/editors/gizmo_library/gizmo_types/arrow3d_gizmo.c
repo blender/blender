@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edgizmolib
+/** \file
+ * \ingroup edgizmolib
  *
  * \name Arrow Gizmo
  *

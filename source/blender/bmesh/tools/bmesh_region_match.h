@@ -17,7 +17,8 @@
 #ifndef __BMESH_REGION_MATCH_H__
 #define __BMESH_REGION_MATCH_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 int BM_mesh_region_match(

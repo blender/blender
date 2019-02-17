@@ -20,7 +20,8 @@
 #ifndef __IO_ALEMBIC_H__
 #define __IO_ALEMBIC_H__
 
-/** \file \ingroup editor/io
+/** \file
+ * \ingroup editor/io
  */
 
 struct wmOperatorType;

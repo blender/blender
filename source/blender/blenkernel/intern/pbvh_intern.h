@@ -17,7 +17,8 @@
 #ifndef __PBVH_INTERN_H__
 #define __PBVH_INTERN_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 /* Axis-aligned bounding box */

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup locale
+/** \file
+ * \ingroup locale
  *  A thin C wrapper around boost::locale...
  */
 

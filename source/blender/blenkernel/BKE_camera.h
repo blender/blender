@@ -20,8 +20,9 @@
 #ifndef __BKE_CAMERA_H__
 #define __BKE_CAMERA_H__
 
-/** \file \ingroup bke
- *  \brief Camera datablock and utility functions.
+/** \file
+ * \ingroup bke
+ * \brief Camera datablock and utility functions.
  */
 #ifdef __cplusplus
 extern "C" {

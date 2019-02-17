@@ -17,8 +17,9 @@
 #ifndef __VECMAT_H__
 #define __VECMAT_H__
 
-/** \file \ingroup freestyle
- *  \brief Vectors and Matrices definition and manipulation
+/** \file
+ * \ingroup freestyle
+ * \brief Vectors and Matrices definition and manipulation
  */
 
 #include <iostream>

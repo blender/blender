@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  *
  * \todo Save floats as 16 bits per channel, currently readonly.
  */

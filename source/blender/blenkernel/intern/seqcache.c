@@ -16,7 +16,8 @@
  * Peter Schlaile <peter [at] schlaile [dot] de> 2010
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include <stddef.h>

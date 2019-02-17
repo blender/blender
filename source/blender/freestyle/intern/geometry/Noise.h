@@ -17,8 +17,9 @@
 #ifndef __NOISE_H__
 #define __NOISE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define Perlin noise
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define Perlin noise
  */
 
 #include "Geom.h"

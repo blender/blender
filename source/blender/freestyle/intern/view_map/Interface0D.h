@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_INTERFACE_0D_H__
 #define __FREESTYLE_INTERFACE_0D_H__
 
-/** \file \ingroup freestyle
- *  \brief Interface to 0D elts
+/** \file
+ * \ingroup freestyle
+ * \brief Interface to 0D elts
  */
 
 #include <iostream>
@@ -174,8 +175,8 @@ public:
 
 /*! Class defining an iterator over Interface0D elements.
  *  An instance of this iterator is always obtained from a 1D element.
- *  \attention In the scripting language, you must call \code it2 = Interface0DIterator(it1) \endcode instead of
- *  \code it2 = it1 \endcode where \a it1 and \a it2 are 2 Interface0DIterator.
+ * \attention In the scripting language, you must call \code it2 = Interface0DIterator(it1) \endcode instead of
+ * \code it2 = it1 \endcode where \a it1 and \a it2 are 2 Interface0DIterator.
  *  Otherwise, incrementing \a it1 will also increment \a it2.
  */
 class Interface0DIterator : public Iterator

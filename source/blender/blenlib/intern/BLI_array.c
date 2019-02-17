@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
- *  \brief A (mainly) macro array library.
+/** \file
+ * \ingroup bli
+ * \brief A (mainly) macro array library.
  *
  * This is an array library, used to manage array (re)allocation.
  *

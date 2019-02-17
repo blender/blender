@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  */
 
 /* Implementation based in part off the paper "B-Mesh: A Fast Modeling

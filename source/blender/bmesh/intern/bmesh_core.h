@@ -17,7 +17,8 @@
 #ifndef __BMESH_CORE_H__
 #define __BMESH_CORE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 BMFace *BM_face_copy(

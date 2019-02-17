@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Helper functions and implementations of standard data types for #GHash
  * (not it's implementation).

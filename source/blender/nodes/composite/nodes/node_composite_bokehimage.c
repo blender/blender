@@ -18,7 +18,8 @@
 
  */
 
-/** \file \ingroup cmpnodes
+/** \file
+ * \ingroup cmpnodes
  */
 
 

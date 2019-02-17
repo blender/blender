@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_NODE_SHAPE_H__
 #define __FREESTYLE_NODE_SHAPE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to build a shape node. It contains a Rep, which is the shape geometry
+/** \file
+ * \ingroup freestyle
+ * \brief Class to build a shape node. It contains a Rep, which is the shape geometry
  */
 
 #include <vector>

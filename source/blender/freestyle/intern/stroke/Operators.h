@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_OPERATORS_H__
 #define __FREESTYLE_OPERATORS_H__
 
-/** \file \ingroup freestyle
- *  \brief Class gathering stroke creation algorithms
+/** \file
+ * \ingroup freestyle
+ * \brief Class gathering stroke creation algorithms
  */
 
 #include <iostream>

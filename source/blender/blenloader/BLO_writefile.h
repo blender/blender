@@ -20,8 +20,9 @@
 #ifndef __BLO_WRITEFILE_H__
 #define __BLO_WRITEFILE_H__
 
-/** \file \ingroup blenloader
- *  \brief external writefile function prototypes.
+/** \file
+ * \ingroup blenloader
+ * \brief external writefile function prototypes.
  */
 
 struct BlendThumbnail;

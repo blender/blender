@@ -18,7 +18,8 @@
  * DNA handling
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Defines in this header are only used to define blend file storage.
  * This allows us to rename variables & structs without breaking compatibility.

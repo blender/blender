@@ -18,7 +18,8 @@
  * Operators for dealing with GP datablocks and layers
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 

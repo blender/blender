@@ -17,7 +17,8 @@
 #ifndef __MATHUTILS_QUATERNION_H__
 #define __MATHUTILS_QUATERNION_H__
 
-/** \file \ingroup pymathutils
+/** \file
+ * \ingroup pymathutils
  */
 
 extern PyTypeObject quaternion_Type;

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edsculpt
+/** \file
+ * \ingroup edsculpt
  */
 
 #include <math.h>

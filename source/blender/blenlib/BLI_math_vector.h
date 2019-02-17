@@ -23,7 +23,8 @@
 #ifndef __BLI_MATH_VECTOR_H__
 #define __BLI_MATH_VECTOR_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

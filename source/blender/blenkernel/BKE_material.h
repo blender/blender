@@ -20,8 +20,9 @@
 #ifndef __BKE_MATERIAL_H__
 #define __BKE_MATERIAL_H__
 
-/** \file \ingroup bke
- *  \brief General operations, lookup, etc. for materials.
+/** \file
+ * \ingroup bke
+ * \brief General operations, lookup, etc. for materials.
  */
 #ifdef __cplusplus
 extern "C" {

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_EXCEPTION_H__
 #define __FREESTYLE_EXCEPTION_H__
 
-/** \file \ingroup freestyle
- *  \brief Singleton to manage exceptions
+/** \file
+ * \ingroup freestyle
+ * \brief Singleton to manage exceptions
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC

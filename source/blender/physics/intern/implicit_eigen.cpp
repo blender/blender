@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bph
+/** \file
+ * \ingroup bph
  */
 
 #include "implicit.h"

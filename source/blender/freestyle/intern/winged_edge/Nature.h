@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_NATURE_H__
 #define __FREESTYLE_NATURE_H__
 
-/** \file \ingroup freestyle
- *  \brief Different natures for both vertices and edges
+/** \file
+ * \ingroup freestyle
+ * \brief Different natures for both vertices and edges
  */
 
 namespace Freestyle {

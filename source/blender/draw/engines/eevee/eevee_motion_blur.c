@@ -16,7 +16,8 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file \ingroup draw_engine
+/** \file
+ * \ingroup draw_engine
  *
  * Gather all screen space effects technique such as Bloom, Motion Blur, DoF, SSAO, SSR, ...
  */

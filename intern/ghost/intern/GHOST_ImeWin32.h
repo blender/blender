@@ -19,7 +19,8 @@
  * The Original Code is: some of this file.
 */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  */
 
 #ifndef __GHOST_IME_H__

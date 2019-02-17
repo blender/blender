@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  */
 
 #ifndef __EEVEE_LUT_H__

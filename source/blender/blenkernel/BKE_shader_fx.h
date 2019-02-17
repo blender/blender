@@ -16,7 +16,8 @@
 #ifndef __BKE_SHADER_FX_H__
 #define __BKE_SHADER_FX_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "DNA_shader_fx_types.h"     /* needed for all enum typdefs */

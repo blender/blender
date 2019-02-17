@@ -21,7 +21,8 @@
  * Code that uses exotic character maps is present but commented out.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include <ft2build.h>

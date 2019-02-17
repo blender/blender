@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blt
+/** \file
+ * \ingroup blt
  *
  * Manages translation files and provides translation functions.
  * (which are optional and can be disabled as a preference).

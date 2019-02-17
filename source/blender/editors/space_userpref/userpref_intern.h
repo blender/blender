@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spuserpref
+/** \file
+ * \ingroup spuserpref
  */
 
 #ifndef __USERPREF_INTERN_H__

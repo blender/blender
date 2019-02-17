@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  */
 
 #include "MEM_guardedalloc.h"

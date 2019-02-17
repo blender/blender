@@ -20,7 +20,8 @@
  *
  * */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifndef __MATH_VECTOR_INLINE_C__

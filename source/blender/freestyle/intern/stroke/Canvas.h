@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CANVAS_H__
 #define __FREESTYLE_CANVAS_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a canvas designed to draw style modules
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a canvas designed to draw style modules
  */
 
 #include <cstring>

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * User level access for blend file read/write, file-history and userprefs (including relevant operators).
  */

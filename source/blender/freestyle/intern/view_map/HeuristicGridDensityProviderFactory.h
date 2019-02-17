@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_HEURISTIC_GRID_DENSITY_PROVIDER_FACTORY_H__
 #define __FREESTYLE_HEURISTIC_GRID_DENSITY_PROVIDER_FACTORY_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a cell grid surrounding the projected image of a scene
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a cell grid surrounding the projected image of a scene
  */
 
 //#include <memory> // provided by GridDensityProvider.h

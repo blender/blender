@@ -16,7 +16,8 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file \ingroup draw_engine
+/** \file
+ * \ingroup draw_engine
  *
  * Implementation of Blender Mist pass.
  * IMPORTANT: This is a "post process" of the Z depth so it will lack any transparent objects.

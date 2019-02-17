@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * BM remove functions.
  */

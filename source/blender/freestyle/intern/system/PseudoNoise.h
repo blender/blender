@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_PSEUDO_NOISE_H__
 #define __FREESTYLE_PSEUDO_NOISE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a pseudo Perlin noise
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a pseudo Perlin noise
  */
 
 #include "Precision.h"

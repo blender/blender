@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  *
  * \brief MetaBall API for render engines
  */

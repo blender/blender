@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Used for custom mesh data types (stored per vert/edge/loop/face)
  */

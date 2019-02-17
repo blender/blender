@@ -20,7 +20,8 @@
 #ifndef __BLI_SORT_UTILS_H__
 #define __BLI_SORT_UTILS_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 /**

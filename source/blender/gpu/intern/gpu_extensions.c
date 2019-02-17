@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * Wrap OpenGL features such as textures, shaders and GLSL
  * with checks for drivers and GPU support.

@@ -20,7 +20,8 @@
 #ifndef __BMESH_PRIVATE_H__
 #define __BMESH_PRIVATE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Private function prototypes for bmesh public API.
  * This file is a grab-bag of functions from various

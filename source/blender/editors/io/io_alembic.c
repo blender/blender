@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup editor/io
+/** \file
+ * \ingroup editor/io
  */
 
 #ifdef WITH_ALEMBIC

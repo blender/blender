@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * Interface for accessing gpu-related methods for selection. The semantics are
  * similar to glRenderMode(GL_SELECT) from older OpenGL versions.

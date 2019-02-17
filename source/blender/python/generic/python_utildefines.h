@@ -14,9 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pygen
- *  \brief header-only utilities
- *  \note light addition to Python.h, use py_capi_utils.h for larger features.
+/** \file
+ * \ingroup pygen
+ * \brief header-only utilities
+ * \note light addition to Python.h, use py_capi_utils.h for larger features.
  */
 
 #ifndef __PYTHON_UTILDEFINES_H__

@@ -17,7 +17,8 @@
 #ifndef __BLI_UTILDEFINES_ITER_H__
 #define __BLI_UTILDEFINES_ITER_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * General looping helpers, use `BLI_FOREACH` prefix.
  */

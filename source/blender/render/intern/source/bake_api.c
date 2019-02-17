@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup render
+/** \file
+ * \ingroup render
  *
  * \brief The API itself is simple. Blender sends a populated array of BakePixels to the renderer, and gets back an
  * array of floats with the result.

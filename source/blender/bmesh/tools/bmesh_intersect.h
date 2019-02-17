@@ -17,7 +17,8 @@
 #ifndef __BMESH_INTERSECT_H__
 #define __BMESH_INTERSECT_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 bool BM_mesh_intersect(

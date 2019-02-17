@@ -17,7 +17,8 @@
 #ifndef __CREATOR_INTERN_H__
 #define __CREATOR_INTERN_H__
 
-/** \file \ingroup creator
+/** \file
+ * \ingroup creator
  *
  * Functionality for main() initialization.
  */

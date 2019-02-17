@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edmesh
+/** \file
+ * \ingroup edmesh
  */
 
 /* Internal for editmesh_xxxx.c functions */

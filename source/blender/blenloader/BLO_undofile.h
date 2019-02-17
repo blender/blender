@@ -21,7 +21,8 @@
 #ifndef __BLO_UNDOFILE_H__
 #define __BLO_UNDOFILE_H__
 
-/** \file \ingroup blenloader
+/** \file
+ * \ingroup blenloader
  */
 
 struct Scene;

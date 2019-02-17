@@ -20,7 +20,8 @@
 #ifndef __BLI_RECT_H__
 #define __BLI_RECT_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include "DNA_vec_types.h"

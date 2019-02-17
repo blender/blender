@@ -17,7 +17,8 @@
 #ifndef __BMESH_WALKERS_PRIVATE_H__
 #define __BMESH_WALKERS_PRIVATE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * BMesh walker API.
  */

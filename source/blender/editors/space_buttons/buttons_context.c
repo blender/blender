@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spbuttons
+/** \file
+ * \ingroup spbuttons
  */
 
 

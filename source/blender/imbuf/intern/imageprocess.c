@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  *
  * This file was moved here from the src/ directory. It is meant to
  * deal with endianness. It resided in a general blending lib. The

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * This file contains implementation of blender-side region tracker
  * which is used for 2D feature tracking.

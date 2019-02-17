@@ -1,4 +1,5 @@
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 /* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
 

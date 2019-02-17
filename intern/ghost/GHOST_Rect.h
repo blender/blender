@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  * Macro's used in GHOST debug target.
  */
 

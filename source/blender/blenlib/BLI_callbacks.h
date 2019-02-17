@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifndef __BLI_CALLBACKS_H__

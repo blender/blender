@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to define a pseudo Perlin noise
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a pseudo Perlin noise
  */
 
 #include "BLI_math.h"

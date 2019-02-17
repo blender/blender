@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  */
 
 #include <stdio.h>

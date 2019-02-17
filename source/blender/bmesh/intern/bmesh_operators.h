@@ -17,7 +17,8 @@
 #ifndef __BMESH_OPERATORS_H__
 #define __BMESH_OPERATORS_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 /*see comments in intern/bmesh_opdefines.c for documentation of specific operators*/

@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to define the representation of 3D Line.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define the representation of 3D Line.
  */
 
 #include "LineRep.h"

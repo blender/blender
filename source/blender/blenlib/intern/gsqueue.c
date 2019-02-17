@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * \brief A generic structure queue
  * (a queue for fixed length generally small) structures.

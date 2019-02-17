@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spnla
+/** \file
+ * \ingroup spnla
  */
 
 #include <string.h>

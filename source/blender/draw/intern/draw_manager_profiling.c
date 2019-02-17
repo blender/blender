@@ -16,7 +16,8 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 
 #include "BLI_rect.h"

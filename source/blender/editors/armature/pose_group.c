@@ -18,7 +18,8 @@
  * Implementation of Bone Groups operators and editing API's
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include <string.h>

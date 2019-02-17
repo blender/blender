@@ -20,7 +20,8 @@
  *
  * */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Utility functions for primitive drawing operations.
  */
@@ -164,7 +165,7 @@ static float inv_slope(const int a[2], const int b[2])
 /**
  * <pre>
  * *---*
- *  \ /
+ * \ /
  *   *
  * </pre>
  */

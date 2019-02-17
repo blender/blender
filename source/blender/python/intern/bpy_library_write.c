@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  *
  * Python API for writing a set of data-blocks into a file.
  * Useful for writing out asset-libraries, defines: `bpy.data.libraries.write(...)`.

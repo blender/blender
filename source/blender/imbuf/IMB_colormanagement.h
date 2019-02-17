@@ -20,7 +20,8 @@
 #ifndef __IMB_COLORMANAGEMENT_H__
 #define __IMB_COLORMANAGEMENT_H__
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include "BLI_sys_types.h"

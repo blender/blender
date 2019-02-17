@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup avi
+/** \file
+ * \ingroup avi
  */
 
 #ifndef __AVI_INTERN_H__

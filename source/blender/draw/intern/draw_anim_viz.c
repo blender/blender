@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2009/2018 by the Blender Foundation.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 
 

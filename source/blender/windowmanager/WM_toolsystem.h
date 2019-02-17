@@ -16,7 +16,8 @@
 #ifndef __WM_TOOLSYSTEM_H__
 #define __WM_TOOLSYSTEM_H__
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  */
 
 /* dna-savable wmStructs here */

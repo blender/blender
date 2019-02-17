@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * Mesh drawing using OpenGL VBO (Vertex Buffer Objects)
  */

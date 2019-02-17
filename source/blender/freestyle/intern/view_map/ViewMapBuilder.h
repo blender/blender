@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_VIEW_MAP_BUILDER_H__
 #define __FREESTYLE_VIEW_MAP_BUILDER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to build silhouette edges from a Winged-Edge structure
+/** \file
+ * \ingroup freestyle
+ * \brief Class to build silhouette edges from a Winged-Edge structure
  */
 
 #include <vector>

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  */
 
 #include "BLI_math.h"

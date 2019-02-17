@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_RAND_GEN_H__
 #define __FREESTYLE_RAND_GEN_H__
 
-/** \file \ingroup freestyle
- *  \brief Pseudo-random number generator
+/** \file
+ * \ingroup freestyle
+ * \brief Pseudo-random number generator
  */
 
 // TODO Check whether we could replace this with BLI rand stuff...

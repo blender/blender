@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blf
+/** \file
+ * \ingroup blf
  *
  * Main BlenFont (BLF) API, public functions for font handling.
  *

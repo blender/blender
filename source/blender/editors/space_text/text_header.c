@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup sptext
+/** \file
+ * \ingroup sptext
  */
 
 #include "DNA_windowmanager_types.h"

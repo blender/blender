@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Selection routines for bmesh structures.
  * This is actually all old code ripped from

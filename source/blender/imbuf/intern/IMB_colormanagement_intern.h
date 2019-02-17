@@ -20,7 +20,8 @@
 #ifndef __IMB_COLORMANAGEMENT_INTERN_H__
 #define __IMB_COLORMANAGEMENT_INTERN_H__
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include "DNA_listBase.h"

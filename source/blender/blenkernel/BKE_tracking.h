@@ -20,7 +20,8 @@
 #ifndef __BKE_TRACKING_H__
 #define __BKE_TRACKING_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct Camera;

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  */
 
 #ifndef __GHOST_CONTEXTSDL_H__

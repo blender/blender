@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  * Declaration of GHOST_System class.
  */
 

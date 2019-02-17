@@ -16,7 +16,8 @@
  * Copyright 2006 Joseph Eagar (joeedh@gmail.com)
  */
 
-/** \file \ingroup imbcineon
+/** \file
+ * \ingroup imbcineon
  *
  * Cineon image file format library routines.
  */

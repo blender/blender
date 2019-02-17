@@ -19,7 +19,8 @@
 #ifndef __BKE_SOUND_H__
 #define __BKE_SOUND_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_W_FILL_GRID_H__
 #define __FREESTYLE_W_FILL_GRID_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to fill in a grid from a SceneGraph (uses only the WingedEdge structures)
+/** \file
+ * \ingroup freestyle
+ * \brief Class to fill in a grid from a SceneGraph (uses only the WingedEdge structures)
  */
 
 #include "WEdge.h"

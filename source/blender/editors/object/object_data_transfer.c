@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edobj
+/** \file
+ * \ingroup edobj
  */
 
 #include "DNA_mesh_types.h"

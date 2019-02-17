@@ -17,7 +17,8 @@
 #ifndef __MATHUTILS_EULER_H__
 #define __MATHUTILS_EULER_H__
 
-/** \file \ingroup pymathutils
+/** \file
+ * \ingroup pymathutils
  */
 
 extern PyTypeObject euler_Type;

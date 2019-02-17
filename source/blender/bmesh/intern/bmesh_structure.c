@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Low level routines for manipulating the BM structure.
  */

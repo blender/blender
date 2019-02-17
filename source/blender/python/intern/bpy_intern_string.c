@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  *
  * Store python versions of strings frequently used for python lookups
  * to avoid converting, creating the hash and freeing every time as

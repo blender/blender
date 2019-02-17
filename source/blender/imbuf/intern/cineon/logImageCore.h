@@ -16,7 +16,8 @@
  * Copyright 1999,2000,2001 David Hodson <hodsond@acm.org>
  */
 
-/** \file \ingroup imbcineon
+/** \file
+ * \ingroup imbcineon
  *
  * Cineon image file format library definitions.
  * Cineon and DPX common structures.

@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 #ifndef MATH_UTILS_H
 #define MATH_UTILS_H

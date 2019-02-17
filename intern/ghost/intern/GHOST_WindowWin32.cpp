@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  */
 
 #define _USE_MATH_DEFINES

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup glew-mx
+/** \file
+ * \ingroup glew-mx
  *
  * This file is for any simple stuff that is missing from GLEW when
  * compiled with either the GLEW_ES_ONLY or the GLEW_NO_ES flag.

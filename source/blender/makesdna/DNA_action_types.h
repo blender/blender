@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Define actions data-block for the animation system.
  * A collection of animation curves and drivers to be assigned to data-blocks

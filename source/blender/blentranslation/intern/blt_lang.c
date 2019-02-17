@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blt
+/** \file
+ * \ingroup blt
  *
  * Main internationalization functions to set the locale and query available languages.
  */

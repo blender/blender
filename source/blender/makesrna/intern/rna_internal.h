@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup RNA
+/** \file
+ * \ingroup RNA
  */
 
 #ifndef __RNA_INTERNAL_H__

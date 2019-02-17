@@ -18,7 +18,8 @@
  * (uit traces) maart 95
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Triangulate multiple 2D/3D polygon with support for holes,
  * use for tessellating curves, fonts and geometry.

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spnode
+/** \file
+ * \ingroup spnode
  */
 
 #include "DNA_gpencil_types.h"

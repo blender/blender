@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_ADVANCED_FUNCTIONS_0D_H__
 #define __FREESTYLE_ADVANCED_FUNCTIONS_0D_H__
 
-/** \file \ingroup freestyle
- *  \brief Functions taking 0D input
+/** \file
+ * \ingroup freestyle
+ * \brief Functions taking 0D input
  */
 
 #include "../image/GaussianFilter.h"

@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup editors
+/** \file
+ * \ingroup editors
  */
 
 #ifndef __ED_GPENCIL_H__

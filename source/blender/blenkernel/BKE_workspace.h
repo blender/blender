@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifndef __BKE_WORKSPACE_H__

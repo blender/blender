@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
- *  \brief Utility defines for timing/benchmarks.
+/** \file
+ * \ingroup bli
+ * \brief Utility defines for timing/benchmarks.
  */
 
 #ifndef __PIL_TIME_UTILDEFINES_H__

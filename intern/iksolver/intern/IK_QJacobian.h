@@ -18,7 +18,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup iksolver
+/** \file
+ * \ingroup iksolver
  */
 
 #pragma once

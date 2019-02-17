@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  *
  * Definition of GHOST_ContextGLX class.
  */

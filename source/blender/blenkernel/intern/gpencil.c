@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 

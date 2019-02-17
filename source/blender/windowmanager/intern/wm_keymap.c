@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Configurable key-maps - add/remove/find/compare/patch...
  */

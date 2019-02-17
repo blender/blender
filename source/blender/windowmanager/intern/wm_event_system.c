@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Handle events and notifiers from GHOST input (mouse, keyboard, tablet, ndof).
  *

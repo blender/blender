@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edmeta
+/** \file
+ * \ingroup edmeta
  */
 
 #include "DNA_scene_types.h"

@@ -17,7 +17,8 @@
 #ifndef __BMESH_PATH_REGION_H__
 #define __BMESH_PATH_REGION_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct LinkNode *BM_mesh_calc_path_region_vert(

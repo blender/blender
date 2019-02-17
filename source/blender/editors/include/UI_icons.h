@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup editorui
+/** \file
+ * \ingroup editorui
  */
 
 /* Note: this is included multiple times with different #defines for DEF_ICON. */

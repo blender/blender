@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Default operator callbacks for use with gestures (border/circle/lasso/straightline).
  * Operators themselves are defined elsewhere.

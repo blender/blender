@@ -16,7 +16,8 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 
 /* This is the Render Functions used by Realtime engines to draw with OpenGL */

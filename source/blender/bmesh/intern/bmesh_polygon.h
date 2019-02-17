@@ -17,7 +17,8 @@
 #ifndef __BMESH_POLYGON_H__
 #define __BMESH_POLYGON_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct Heap;

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edrend
+/** \file
+ * \ingroup edrend
  */
 
 #include <string.h>

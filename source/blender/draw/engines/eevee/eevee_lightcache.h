@@ -16,7 +16,8 @@
  * Copyright 2018, Blender Foundation.
  */
 
-/** \file \ingroup eevee
+/** \file
+ * \ingroup eevee
  */
 
 #ifndef __EEVEE_LIGHTCACHE_H__

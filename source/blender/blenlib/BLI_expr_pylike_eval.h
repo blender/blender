@@ -20,7 +20,8 @@
 #ifndef __BLI_EXPR_PYLIKE_EVAL_H__
 #define __BLI_EXPR_PYLIKE_EVAL_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

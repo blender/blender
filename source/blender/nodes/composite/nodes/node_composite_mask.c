@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup cmpnodes
+/** \file
+ * \ingroup cmpnodes
  */
 
 #include "DNA_mask_types.h"

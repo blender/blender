@@ -18,7 +18,8 @@
  * Dynamically sized string ADT
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include <stdlib.h>  /* malloc */

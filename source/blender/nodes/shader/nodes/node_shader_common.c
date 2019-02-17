@@ -18,7 +18,8 @@
  * Juho Vepsäläinen
  */
 
-/** \file \ingroup shdnodes
+/** \file
+ * \ingroup shdnodes
  */
 
 

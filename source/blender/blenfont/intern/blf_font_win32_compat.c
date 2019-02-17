@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup blf
+/** \file
+ * \ingroup blf
  *
  * Workaround for win32 which needs to use BLI_fopen to access files.
  *

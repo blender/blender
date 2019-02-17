@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Handle OpenGL buffers for windowing, also paint cursor.
  */

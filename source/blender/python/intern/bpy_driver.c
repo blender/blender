@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  *
  * This file defines the 'BPY_driver_exec' to execute python driver expressions,
  * called by the animation system, there are also some utility functions

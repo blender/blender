@@ -20,7 +20,8 @@
 #ifndef __BKE_BOIDS_H__
 #define __BKE_BOIDS_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "DNA_boid_types.h"

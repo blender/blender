@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  *
  * This file contains utility functions for getting data from a python stack
  * trace.

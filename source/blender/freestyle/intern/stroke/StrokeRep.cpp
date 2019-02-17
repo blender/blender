@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to define the representation of a stroke (for display purpose)
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define the representation of a stroke (for display purpose)
  */
 
 #include "Stroke.h"

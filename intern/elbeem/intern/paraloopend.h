@@ -1,4 +1,5 @@
-/** \file \ingroup elbeem
+/** \file
+ * \ingroup elbeem
  */
 
 // same as grid loop_end + barrier

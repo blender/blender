@@ -17,7 +17,8 @@
 #ifndef __CLG_LOG_H__
 #define __CLG_LOG_H__
 
-/** \file \ingroup clog
+/** \file
+ * \ingroup clog
  *
  * C Logging Library (clog)
  * ========================

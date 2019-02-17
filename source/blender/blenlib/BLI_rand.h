@@ -20,8 +20,9 @@
 #ifndef __BLI_RAND_H__
 #define __BLI_RAND_H__
 
-/** \file \ingroup bli
- *  \brief Random number functions.
+/** \file
+ * \ingroup bli
+ * \brief Random number functions.
  */
 
 /* RNG is an abstract random number generator type that avoids using globals.

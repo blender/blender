@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Use API in BKE_workspace.h!
  * Struct members marked with DNA_PRIVATE_WORKSPACE will throw a

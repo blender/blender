@@ -20,7 +20,8 @@
 #ifndef __BLI_VOXEL_H__
 #define __BLI_VOXEL_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 /** find the index number of a voxel, given x/y/z integer coords and resolution vector */

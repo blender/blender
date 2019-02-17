@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pygen
+/** \file
+ * \ingroup pygen
  *
  * This file defines replacements for pythons '__import__' and 'imp.reload'
  * functions which can import from blender textblocks.

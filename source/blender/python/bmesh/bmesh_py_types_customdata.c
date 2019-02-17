@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  *
  * This file defines the types for 'BMesh.verts/edges/faces/loops.layers'
  * customdata layer access.

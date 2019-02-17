@@ -16,7 +16,8 @@
  * BIF_meshlaplacian.h: Algorithms using the mesh laplacian.
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 

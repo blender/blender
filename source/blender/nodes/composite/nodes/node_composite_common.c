@@ -18,7 +18,8 @@
  * Juho Vepsäläinen
  */
 
-/** \file \ingroup cmpnodes
+/** \file
+ * \ingroup cmpnodes
  */
 
 #include "DNA_node_types.h"

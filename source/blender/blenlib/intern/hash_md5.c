@@ -17,7 +17,8 @@
  * Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  *  Functions to compute MD5 message digest of files or memory blocks
  *  according to the definition of MD5 in RFC 1321 from April 1992.
@@ -284,7 +285,7 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 
 /** Compute MD5 message digest for bytes read from 'stream'.
  *  The resulting message digest number will be written into the 16 bytes beginning at 'resblock'.
- *  \return Non-zero if an error occurred.
+ * \return Non-zero if an error occurred.
  */
 int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {

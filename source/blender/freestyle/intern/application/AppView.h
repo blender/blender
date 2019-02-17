@@ -17,7 +17,8 @@
 #ifndef __APPVIEW_H__
 #define __APPVIEW_H__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include "AppConfig.h"

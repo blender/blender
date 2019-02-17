@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup MEM
+/** \file
+ * \ingroup MEM
  */
 
 #ifndef __MMAP_WIN_H__

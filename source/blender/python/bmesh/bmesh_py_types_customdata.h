@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  */
 
 #ifndef __BMESH_PY_TYPES_CUSTOMDATA_H__

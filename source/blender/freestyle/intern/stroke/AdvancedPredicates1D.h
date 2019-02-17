@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_ADVANCED_PREDICATES_1D_H__
 #define __FREESTYLE_ADVANCED_PREDICATES_1D_H__
 
-/** \file \ingroup freestyle
- *  \brief Class gathering stroke creation algorithms
+/** \file
+ * \ingroup freestyle
+ * \brief Class gathering stroke creation algorithms
  */
 
 #include <string>

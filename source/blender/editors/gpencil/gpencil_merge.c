@@ -18,7 +18,8 @@
  * Operators for merge Grease Pencil strokes
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 #include <stdio.h>

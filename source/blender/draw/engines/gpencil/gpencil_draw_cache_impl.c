@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 
 #include "BLI_polyfill_2d.h"

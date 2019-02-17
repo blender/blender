@@ -17,7 +17,8 @@
 #ifndef __BKE_BRUSH_H__
 #define __BKE_BRUSH_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * General operations for brushes.
  */

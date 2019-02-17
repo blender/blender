@@ -16,7 +16,8 @@
 #ifndef __BKE_MODIFIER_H__
 #define __BKE_MODIFIER_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "DNA_modifier_types.h"     /* needed for all enum typdefs */

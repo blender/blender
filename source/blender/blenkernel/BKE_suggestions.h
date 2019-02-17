@@ -19,7 +19,8 @@
 #ifndef __BKE_SUGGESTIONS_H__
 #define __BKE_SUGGESTIONS_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifdef __cplusplus

@@ -18,7 +18,8 @@
 #ifndef __BLI_MATH_BITS_H__
 #define __BLI_MATH_BITS_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

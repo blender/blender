@@ -18,7 +18,8 @@
  */
 
 
-/** \file \ingroup spseq
+/** \file
+ * \ingroup spseq
  */
 
 #include "MEM_guardedalloc.h"

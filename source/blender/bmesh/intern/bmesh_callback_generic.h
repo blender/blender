@@ -17,7 +17,8 @@
 #ifndef __BMESH_CALLBACK_GENERIC_H__
 #define __BMESH_CALLBACK_GENERIC_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 bool BM_elem_cb_check_hflag_enabled(BMElem *, void *user_data);

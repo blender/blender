@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spclip
+/** \file
+ * \ingroup spclip
  */
 
 #include "DNA_gpencil_types.h"

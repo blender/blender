@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * Functions for evaluating the mask beziers into points for the outline and feather.
  */

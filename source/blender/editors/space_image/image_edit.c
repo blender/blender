@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spimage
+/** \file
+ * \ingroup spimage
  */
 
 #include "DNA_brush_types.h"

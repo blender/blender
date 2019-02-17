@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_INTERPRETER_H__
 #define __FREESTYLE_INTERPRETER_H__
 
-/** \file \ingroup freestyle
- *  \brief Base Class of all script interpreters
+/** \file
+ * \ingroup freestyle
+ * \brief Base Class of all script interpreters
  */
 
 #include <string>

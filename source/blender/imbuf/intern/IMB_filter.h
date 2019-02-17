@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  * \brief Function declarations for filter.c
  */
 

@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Removes isolated geometry regions without creating holes in the mesh.
  */

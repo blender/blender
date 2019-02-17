@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  */
 
-/** \file \ingroup imbcineon
+/** \file
+ * \ingroup imbcineon
  */
 
 

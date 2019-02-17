@@ -20,7 +20,8 @@
 #ifndef __BMESH_EDGELOOP_H__
 #define __BMESH_EDGELOOP_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct BMEdgeLoopStore;

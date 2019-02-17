@@ -20,7 +20,8 @@
 #ifndef __BKE_CCG_H__
 #define __BKE_CCG_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 /* defines BLI_INLINE */

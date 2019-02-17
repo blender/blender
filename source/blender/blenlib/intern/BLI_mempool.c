@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Simple, fast memory allocator for allocating many elements of the same size.
  *

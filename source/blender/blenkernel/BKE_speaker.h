@@ -17,8 +17,9 @@
 #ifndef __BKE_SPEAKER_H__
 #define __BKE_SPEAKER_H__
 
-/** \file \ingroup bke
- *  \brief General operations for speakers.
+/** \file
+ * \ingroup bke
+ * \brief General operations for speakers.
  */
 
 struct Main;

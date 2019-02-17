@@ -17,7 +17,8 @@
 #ifndef __UVEDIT_PARAMETRIZER_H__
 #define __UVEDIT_PARAMETRIZER_H__
 
-/** \file \ingroup eduv
+/** \file
+ * \ingroup eduv
  */
 
 #ifdef __cplusplus

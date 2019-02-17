@@ -18,7 +18,8 @@
  * rotate.c
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include "BLI_utildefines.h"

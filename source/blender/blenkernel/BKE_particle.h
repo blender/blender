@@ -23,7 +23,8 @@
 #ifndef __BKE_PARTICLE_H__
 #define __BKE_PARTICLE_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "BLI_utildefines.h"

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spinfo
+/** \file
+ * \ingroup spinfo
  */
 
 

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_WINGED_EDGE_BUILDER_H__
 #define __FREESTYLE_WINGED_EDGE_BUILDER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in nodes
+/** \file
+ * \ingroup freestyle
+ * \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in nodes
  *         of a scene graph
  */
 

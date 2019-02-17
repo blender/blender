@@ -17,7 +17,8 @@
 #ifndef __BKE_COLLECTION_H__
 #define __BKE_COLLECTION_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "BLI_compiler_compat.h"

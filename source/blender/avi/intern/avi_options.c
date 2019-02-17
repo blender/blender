@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup avi
+/** \file
+ * \ingroup avi
  *
  * This is external code. Sets some compression related options
  * (width, height quality, framerate).

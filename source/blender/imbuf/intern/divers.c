@@ -18,7 +18,8 @@
  * allocimbuf.c
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include "BLI_math.h"

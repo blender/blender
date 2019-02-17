@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  *
  * This file is so python can define operators that C can call into.
  * The generic callback functions for python operators are defines in

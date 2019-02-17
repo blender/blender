@@ -17,7 +17,8 @@
 #ifndef __MATHUTILS_GEOMETRY_H__
 #define __MATHUTILS_GEOMETRY_H__
 
-/** \file \ingroup pymathutils
+/** \file
+ * \ingroup pymathutils
  */
 
 PyMODINIT_FUNC PyInit_mathutils_geometry(void);

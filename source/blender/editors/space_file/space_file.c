@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spfile
+/** \file
+ * \ingroup spfile
  */
 
 #include <string.h>

@@ -17,7 +17,8 @@
 #ifndef __BLENDER_FILE_LOADER_H__
 #define __BLENDER_FILE_LOADER_H__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include <string.h>

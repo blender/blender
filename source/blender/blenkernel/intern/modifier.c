@@ -20,7 +20,8 @@
  * BKE_modifier.h contains the function prototypes for this file.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include <stdlib.h>

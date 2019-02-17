@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup DNA
- *  \brief Types and defines for representing Rigid Body entities
+/** \file
+ * \ingroup DNA
+ * \brief Types and defines for representing Rigid Body entities
  */
 
 #ifndef __DNA_RIGIDBODY_TYPES_H__

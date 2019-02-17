@@ -18,7 +18,8 @@
  * getting info on the layers themselves, accessing the data is
  * done through the (not yet written) mpoly interfaces.*/
 
-/** \file \ingroup RNA
+/** \file
+ * \ingroup RNA
  */
 
 #include <stdlib.h>

@@ -17,7 +17,8 @@
 #ifndef __BPY_INTERN_STRING_H__
 #define __BPY_INTERN_STRING_H__
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  */
 
 void bpy_intern_string_init(void);

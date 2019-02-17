@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spnode
- *  \brief higher level node drawing for the node editor.
+/** \file
+ * \ingroup spnode
+ * \brief higher level node drawing for the node editor.
  */
 
 #include "DNA_lamp_types.h"

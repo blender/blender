@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * Contains management of #Main database itself.
  */

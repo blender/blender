@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Functions taking 0D input
+/** \file
+ * \ingroup freestyle
+ * \brief Functions taking 0D input
  */
 
 #include "Functions0D.h"

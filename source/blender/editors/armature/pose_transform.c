@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include "DNA_anim_types.h"

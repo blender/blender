@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifndef __PARTICLE_PRIVATE_H__

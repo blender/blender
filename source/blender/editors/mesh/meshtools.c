@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edmesh
+/** \file
+ * \ingroup edmesh
  *
  * meshtools.c: no editmode (violated already :), mirror & join),
  * tools operating on meshes

@@ -14,9 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Base Class for most shared objects (Node, Rep). Defines the addRef, release system.
- *  \brief Inspired by COM IUnknown system.
+/** \file
+ * \ingroup freestyle
+ * \brief Base Class for most shared objects (Node, Rep). Defines the addRef, release system.
+ * \brief Inspired by COM IUnknown system.
  */
 
 #include "BaseObject.h"

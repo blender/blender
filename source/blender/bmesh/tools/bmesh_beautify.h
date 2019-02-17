@@ -17,7 +17,8 @@
 #ifndef __BMESH_BEAUTIFY_H__
 #define __BMESH_BEAUTIFY_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 enum {

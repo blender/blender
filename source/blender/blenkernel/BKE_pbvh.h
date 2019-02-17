@@ -17,8 +17,9 @@
 #ifndef __BKE_PBVH_H__
 #define __BKE_PBVH_H__
 
-/** \file \ingroup bke
- *  \brief A BVH for high poly meshes.
+/** \file
+ * \ingroup bke
+ * \brief A BVH for high poly meshes.
  */
 
 #include "BLI_bitmap.h"

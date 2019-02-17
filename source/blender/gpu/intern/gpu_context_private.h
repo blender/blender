@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * This interface allow GPU to manage GL objects for multiple context and threads.
  */

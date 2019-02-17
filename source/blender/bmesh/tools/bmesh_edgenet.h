@@ -17,7 +17,8 @@
 #ifndef __BMESH_EDGENET_H__
 #define __BMESH_EDGENET_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 void BM_mesh_edgenet(

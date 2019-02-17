@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_WX_EDGE_H__
 #define __FREESTYLE_WX_EDGE_H__
 
-/** \file \ingroup freestyle
- *  \brief Classes to define an Extended Winged Edge data structure.
+/** \file
+ * \ingroup freestyle
+ * \brief Classes to define an Extended Winged Edge data structure.
  */
 
 #include "Curvature.h"

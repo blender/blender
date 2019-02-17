@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spfile
+/** \file
+ * \ingroup spfile
  */
 
 #ifndef __FILE_INTERN_H__

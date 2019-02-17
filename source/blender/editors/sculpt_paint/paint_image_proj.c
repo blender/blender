@@ -18,8 +18,9 @@
  * The Original Code is: some of this file.
  */
 
-/** \file \ingroup edsculpt
- *  \brief Functions to paint images in 2D and 3D.
+/** \file
+ * \ingroup edsculpt
+ * \brief Functions to paint images in 2D and 3D.
  */
 
 #include <float.h>

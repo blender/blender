@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup DNA
- *  \brief Object is a sort of wrapper for general info.
+/** \file
+ * \ingroup DNA
+ * \brief Object is a sort of wrapper for general info.
  */
 
 #ifndef __DNA_OBJECT_TYPES_H__

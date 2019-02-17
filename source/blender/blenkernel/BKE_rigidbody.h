@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blenkernel
- *  \brief API for Blender-side Rigid Body stuff
+/** \file
+ * \ingroup blenkernel
+ * \brief API for Blender-side Rigid Body stuff
  */
 
 

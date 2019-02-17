@@ -17,8 +17,9 @@
 #ifndef __CONTROLLER_H__
 #define __CONTROLLER_H__
 
-/** \file \ingroup freestyle
- *  \brief The spinal tap of the system.
+/** \file
+ * \ingroup freestyle
+ * \brief The spinal tap of the system.
  */
 
 #include <string>

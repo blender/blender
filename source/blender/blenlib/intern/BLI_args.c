@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
- *  \brief A general argument parsing module
+/** \file
+ * \ingroup bli
+ * \brief A general argument parsing module
  */
 
 #include <ctype.h> /* for tolower */

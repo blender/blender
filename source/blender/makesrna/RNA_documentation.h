@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup RNA
- *  \page makesrna makesrna
- *  \section aboutmakesrna About RNA
+/** \file
+ * \ingroup RNA
+ * \page makesrna makesrna
+ * \section aboutmakesrna About RNA
  *  The \ref RNA module defines and provides the access API to the data, thus encapsulating \ref DNA
  */

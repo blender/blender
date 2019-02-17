@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup edscr
- *  \brief Functions for screen vertices and edges
+/** \file
+ * \ingroup edscr
+ * \brief Functions for screen vertices and edges
  *
  * Screen geometry refers to the vertices (ScrVert) and edges (ScrEdge) through
  * which the flexible screen-layout system of Blender is established.

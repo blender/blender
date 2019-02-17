@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pygen
+/** \file
+ * \ingroup pygen
  */
 
 #include <Python.h>

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_PYTHON_INTERPRETER_H__
 #define __FREESTYLE_PYTHON_INTERPRETER_H__
 
-/** \file \ingroup freestyle
- *  \brief Python Interpreter
+/** \file
+ * \ingroup freestyle
+ * \brief Python Interpreter
  */
 
 #include <iostream>

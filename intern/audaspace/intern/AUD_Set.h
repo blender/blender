@@ -18,7 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup audaspace
+/** \file
+ * \ingroup audaspace
  */
  
 #ifndef __AUD_SET_H__

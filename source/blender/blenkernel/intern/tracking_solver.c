@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * This file contains blender-side implementation of camera solver.
  */

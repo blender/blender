@@ -16,7 +16,8 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file \ingroup draw_engine
+/** \file
+ * \ingroup draw_engine
  */
 
 #include "DNA_mesh_types.h"

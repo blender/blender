@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to build view edges and the underlying chains of feature edges...
+/** \file
+ * \ingroup freestyle
+ * \brief Class to build view edges and the underlying chains of feature edges...
  */
 
 #include <list>

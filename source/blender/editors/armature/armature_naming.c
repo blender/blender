@@ -18,7 +18,8 @@
  * Operators and API's for renaming bones both in and out of Edit Mode
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include <string.h>

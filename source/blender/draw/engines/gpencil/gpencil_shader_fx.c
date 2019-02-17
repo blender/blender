@@ -16,7 +16,8 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 #include "DNA_gpencil_types.h"
 #include "DNA_shader_fx_types.h"

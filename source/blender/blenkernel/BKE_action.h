@@ -19,8 +19,9 @@
 
 #ifndef __BKE_ACTION_H__
 #define __BKE_ACTION_H__
-/** \file \ingroup bke
- *  \brief Blender kernel action and pose functionality.
+/** \file
+ * \ingroup bke
+ * \brief Blender kernel action and pose functionality.
  */
 
 #include "DNA_listBase.h"

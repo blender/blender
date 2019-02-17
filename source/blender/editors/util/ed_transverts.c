@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edutil
+/** \file
+ * \ingroup edutil
  */
 
 #include "MEM_guardedalloc.h"

@@ -1,5 +1,5 @@
 /** \file itasc/kdl/frames_io.cpp
- *  \ingroup itasc
+ * \ingroup itasc
  */
 
 /***************************************************************************

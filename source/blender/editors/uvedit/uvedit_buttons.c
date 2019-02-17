@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup eduv
+/** \file
+ * \ingroup eduv
  */
 
 #include <string.h>

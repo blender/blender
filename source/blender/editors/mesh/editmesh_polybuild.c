@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup edmesh
+/** \file
+ * \ingroup edmesh
  *
  * Tools to implement polygon building tool,
  * an experimental tool for quickly constructing/manipulating faces.

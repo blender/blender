@@ -18,9 +18,10 @@
  * Efficient memory allocation for lots of similar small chunks.
  */
 
-/** \file \ingroup bli
- *  \brief Memory arena ADT.
- *  \section aboutmemarena Memory Arena
+/** \file
+ * \ingroup bli
+ * \brief Memory arena ADT.
+ * \section aboutmemarena Memory Arena
  *
  * Memory arena's are commonly used when the program
  * needs to quickly allocate lots of little bits of data,

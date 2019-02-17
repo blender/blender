@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
- *  \brief CustomData interface, see also DNA_customdata_types.h.
+/** \file
+ * \ingroup bke
+ * \brief CustomData interface, see also DNA_customdata_types.h.
  */
 
 #ifndef __BKE_CUSTOMDATA_H__

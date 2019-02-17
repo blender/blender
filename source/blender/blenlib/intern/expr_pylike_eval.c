@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Simple evaluator for a subset of Python expressions that can be
  * computed using purely double precision floating point values.

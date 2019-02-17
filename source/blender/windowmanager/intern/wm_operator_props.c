@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Generic re-usable property definitions and accessors for operators to share.
  * (`WM_operator_properties_*` functions).

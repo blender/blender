@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2006 by Blender Foundation
  * All rights reserved.
  */
-/** \file \ingroup render
+/** \file
+ * \ingroup render
  */
 
 

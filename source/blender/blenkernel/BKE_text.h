@@ -19,7 +19,8 @@
 #ifndef __BKE_TEXT_H__
 #define __BKE_TEXT_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifdef __cplusplus

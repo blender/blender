@@ -21,7 +21,8 @@
 #ifndef __BLI_KDOPBVH_H__
 #define __BLI_KDOPBVH_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

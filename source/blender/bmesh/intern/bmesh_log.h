@@ -17,7 +17,8 @@
 #ifndef __BMESH_LOG_H__
 #define __BMESH_LOG_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct BMFace;

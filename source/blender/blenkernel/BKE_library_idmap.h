@@ -16,7 +16,8 @@
 #ifndef __BKE_LIBRARY_IDMAP_H__
 #define __BKE_LIBRARY_IDMAP_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "BLI_compiler_attrs.h"

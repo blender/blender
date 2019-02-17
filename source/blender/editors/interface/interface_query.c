@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup edinterface
+/** \file
+ * \ingroup edinterface
  *
  * Utilities to inspect the interface, extract information.
  */

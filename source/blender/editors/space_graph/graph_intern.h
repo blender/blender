@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spgraph
+/** \file
+ * \ingroup spgraph
  */
 
 #ifndef __GRAPH_INTERN_H__

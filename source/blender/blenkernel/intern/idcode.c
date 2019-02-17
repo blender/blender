@@ -18,7 +18,8 @@
  * return info about ID types
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include <stdlib.h>

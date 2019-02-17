@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bpygpu
+/** \file
+ * \ingroup bpygpu
  *
  * - Use ``bpygpu_`` for local API.
  * - Use ``BPyGPU`` for public API.

@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Find the region defined by the path(s) between 2 elements.
  * (path isn't ordered).

@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2013, Blender Foundation
  */
 
-/** \file \ingroup editors
+/** \file
+ * \ingroup editors
  */
 
 #ifndef __ED_BUTTONS_H__

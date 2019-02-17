@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edphys
+/** \file
+ * \ingroup edphys
  */
 
 #include <math.h>

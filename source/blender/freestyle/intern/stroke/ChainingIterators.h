@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CHAINING_ITERATORS_H__
 #define __FREESTYLE_CHAINING_ITERATORS_H__
 
-/** \file \ingroup freestyle
- *  \brief Chaining iterators
+/** \file
+ * \ingroup freestyle
+ * \brief Chaining iterators
  */
 
 #include <iostream>

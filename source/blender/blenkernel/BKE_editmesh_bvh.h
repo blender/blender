@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifndef __BKE_EDITMESH_BVH_H__

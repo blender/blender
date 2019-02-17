@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L

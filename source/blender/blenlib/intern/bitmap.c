@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Utility functions for variable size bitmasks.
  */

@@ -1,4 +1,5 @@
-/** \file \ingroup elbeem
+/** \file
+ * \ingroup elbeem
  */
 
 // advance pointer in main loop

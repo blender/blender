@@ -26,7 +26,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file \ingroup MEM
+/** \file
+ * \ingroup MEM
  */
 
 #ifndef __MALLOCN_INLINE_H__

@@ -20,7 +20,8 @@
  * Ported from Quake 2 by Alex Fraser <alex@phatcore.com>
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  */
 
 #ifdef WITH_X11_XF86VMODE

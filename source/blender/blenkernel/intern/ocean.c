@@ -20,7 +20,8 @@
  * OpenMP hints by Christian Schnellhammer
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include <math.h>

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #ifndef __BKE_DATA_TRANSFER_H__

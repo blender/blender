@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_VIEW_MAP_ITERATORS_H__
 #define __FREESTYLE_VIEW_MAP_ITERATORS_H__
 
-/** \file \ingroup freestyle
- *  \brief Iterators used to iterate over the various elements of the ViewMap
+/** \file
+ * \ingroup freestyle
+ * \brief Iterators used to iterate over the various elements of the ViewMap
  */
 
 #include "ViewMap.h"

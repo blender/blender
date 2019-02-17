@@ -16,7 +16,8 @@
  * Copyright 2011 AutoCRC
  */
 
-/** \file \ingroup RNA
+/** \file
+ * \ingroup RNA
  */
 
 #include <stdio.h>

@@ -17,8 +17,9 @@
 #ifndef __GEOMCLEANER_H__
 #define __GEOMCLEANER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a cleaner of geometry providing a set of useful tools
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a cleaner of geometry providing a set of useful tools
  */
 
 #include "Geom.h"

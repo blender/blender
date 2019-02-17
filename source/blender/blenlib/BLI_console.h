@@ -24,8 +24,9 @@
 extern "C" {
 #endif
 
-/** \file \ingroup bli
- *  \brief Set of utility functions and constants to work with consoles.
+/** \file
+ * \ingroup bli
+ * \brief Set of utility functions and constants to work with consoles.
  */
 
 /* Format string where one could BLI_snprintf() R, G and B values

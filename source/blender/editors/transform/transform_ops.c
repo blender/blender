@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup edtransform
+/** \file
+ * \ingroup edtransform
  */
 
 #include "MEM_guardedalloc.h"

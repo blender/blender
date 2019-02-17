@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  *
  * This file defines the 'bmesh' module.
  */

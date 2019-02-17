@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_PS_STROKE_RENDERER_H__
 #define __FREESTYLE_PS_STROKE_RENDERER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define the Postscript rendering of a stroke
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define the Postscript rendering of a stroke
  */
 
 #include <fstream>

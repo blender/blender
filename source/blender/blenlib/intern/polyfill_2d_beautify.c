@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * This function is to improve the tessellation resulting from polyfill2d,
  * creating optimal topology.

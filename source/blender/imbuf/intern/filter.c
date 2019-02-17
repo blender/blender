@@ -18,7 +18,8 @@
  * filter.c
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include "MEM_guardedalloc.h"

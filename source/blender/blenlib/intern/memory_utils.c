@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bli
- *  \brief Generic memory manipulation API.
+/** \file
+ * \ingroup bli
+ * \brief Generic memory manipulation API.
  *
  * This is to extend on existing functions
  * such as ``memcpy`` & ``memcmp``.

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edobj
+/** \file
+ * \ingroup edobj
  */
 
 #include "DNA_object_types.h"

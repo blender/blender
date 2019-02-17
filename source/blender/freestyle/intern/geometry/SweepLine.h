@@ -17,8 +17,9 @@
 #ifndef __SWEEPLINE_H__
 #define __SWEEPLINE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a Sweep Line
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a Sweep Line
  */
 
 #include <list>

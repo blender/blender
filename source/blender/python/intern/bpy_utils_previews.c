@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  *
  * This file defines a singleton py object accessed via 'bpy.utils.previews',
  * which exposes low-level API for custom previews/icons.

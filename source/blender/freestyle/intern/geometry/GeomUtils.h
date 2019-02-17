@@ -17,8 +17,9 @@
 #ifndef __GEOMUTILS_H__
 #define __GEOMUTILS_H__
 
-/** \file \ingroup freestyle
- *  \brief Various tools for geometry
+/** \file
+ * \ingroup freestyle
+ * \brief Various tools for geometry
  */
 
 #include <vector>

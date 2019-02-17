@@ -18,7 +18,8 @@
  * Operators and API's for creating bones
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include "DNA_armature_types.h"

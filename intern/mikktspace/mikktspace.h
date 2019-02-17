@@ -1,4 +1,5 @@
-/** \file \ingroup mikktspace
+/** \file
+ * \ingroup mikktspace
  */
 /**
  *  Copyright (C) 2011 by Morten S. Mikkelsen

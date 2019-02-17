@@ -17,7 +17,8 @@
 #ifndef __BMESH_OPERATOR_API_H__
 #define __BMESH_OPERATOR_API_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 #ifdef __cplusplus

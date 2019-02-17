@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup collada
+/** \file
+ * \ingroup collada
  */
 
 #include "io_ops.h"  /* own include */

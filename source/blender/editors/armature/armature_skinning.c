@@ -19,7 +19,8 @@
  * - Interfaces with heat weighting in meshlaplacian
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include "DNA_mesh_types.h"

@@ -17,7 +17,8 @@
 #ifndef __IMBUF_PY_API_H__
 #define __IMBUF_PY_API_H__
 
-/** \file \ingroup pygen
+/** \file
+ * \ingroup pygen
  */
 
 PyObject *BPyInit_imbuf(void);

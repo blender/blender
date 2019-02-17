@@ -20,7 +20,8 @@
  * Copyright 2011-2012 AutoCRC
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 

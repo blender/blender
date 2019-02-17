@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to define a cleaner of geometry providing a set of useful tools
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a cleaner of geometry providing a set of useful tools
  */
 
 #if 0

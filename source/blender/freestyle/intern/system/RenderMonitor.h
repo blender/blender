@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_RENDER_MONITOR_H__
 #define __FREESTYLE_RENDER_MONITOR_H__
 
-/** \file \ingroup freestyle
- *  \brief Classes defining the basic "Iterator" design pattern
+/** \file
+ * \ingroup freestyle
+ * \brief Classes defining the basic "Iterator" design pattern
  */
 
 extern "C" {

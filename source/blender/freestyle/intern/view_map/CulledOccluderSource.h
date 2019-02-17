@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CULLED_OCCLUDER_SOURCE_H__
 #define __FREESTYLE_CULLED_OCCLUDER_SOURCE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a cell grid surrounding the projected image of a scene
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a cell grid surrounding the projected image of a scene
  */
 
 #include "OccluderSource.h"

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spnla
+/** \file
+ * \ingroup spnla
  */
 
 #ifndef __NLA_INTERN_H__

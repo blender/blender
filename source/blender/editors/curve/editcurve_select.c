@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edcurve
+/** \file
+ * \ingroup edcurve
  */
 
 #include "DNA_object_types.h"

@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup DNA
- *  \brief These structs are the foundation for all linked lists in the
+/** \file
+ * \ingroup DNA
+ * \brief These structs are the foundation for all linked lists in the
  *         library system.
  *
  * Doubly-linked lists start from a ListBase and contain elements beginning

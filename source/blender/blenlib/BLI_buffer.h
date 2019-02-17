@@ -17,7 +17,8 @@
 #ifndef __BLI_BUFFER_H__
 #define __BLI_BUFFER_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 typedef struct {

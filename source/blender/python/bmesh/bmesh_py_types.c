@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  */
 
 #include "BLI_math.h"

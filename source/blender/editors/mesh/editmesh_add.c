@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edmesh
+/** \file
+ * \ingroup edmesh
  */
 
 #include "DNA_meshdata_types.h"

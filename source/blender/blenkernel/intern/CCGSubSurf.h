@@ -17,7 +17,8 @@
 #ifndef __CCGSUBSURF_H__
 #define __CCGSUBSURF_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 typedef void* CCGMeshHDL;

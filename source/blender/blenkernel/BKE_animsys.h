@@ -20,7 +20,8 @@
 #ifndef __BKE_ANIMSYS_H__
 #define __BKE_ANIMSYS_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct AnimData;

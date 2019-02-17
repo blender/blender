@@ -19,7 +19,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include <string.h>

@@ -19,7 +19,8 @@
 #ifndef __BKE_SOFTBODY_H__
 #define __BKE_SOFTBODY_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct Depsgraph;

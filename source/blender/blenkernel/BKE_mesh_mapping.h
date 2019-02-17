@@ -19,7 +19,8 @@
 #ifndef __BKE_MESH_MAPPING_H__
 #define __BKE_MESH_MAPPING_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct MEdge;

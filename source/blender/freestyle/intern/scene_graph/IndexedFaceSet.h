@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_INDEXED_FACE_SET_H__
 #define __FREESTYLE_INDEXED_FACE_SET_H__
 
-/** \file \ingroup freestyle
- *  \brief A Set of indexed faces to represent a surfacic object
+/** \file
+ * \ingroup freestyle
+ * \brief A Set of indexed faces to represent a surfacic object
  */
 
 #include <memory.h>

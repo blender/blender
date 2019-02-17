@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
 #define __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
 
-/** \file \ingroup freestyle
- *  \brief Fredo's stroke shaders
+/** \file
+ * \ingroup freestyle
+ * \brief Fredo's stroke shaders
  */
 
 #include "BasicStrokeShaders.h"
@@ -61,7 +62,7 @@ protected:
 /*! [ Geometry Shader ].
  *  Spatial Noise stroke shader.
  *  Moves the vertices to make the stroke more noisy.
- *  \see \htmlonly <a href=noise/noise.html>noise/noise.html</a> \endhtmlonly
+ * \see \htmlonly <a href=noise/noise.html>noise/noise.html</a> \endhtmlonly
  */
 class SpatialNoiseShader : public StrokeShader
 {
@@ -99,7 +100,7 @@ protected:
  *  (Moves the vertices to make the stroke smoother).
  *  Uses curvature flow to converge towards a curve of constant curvature. The diffusion method we use is anisotropic
  *  to prevent the diffusion accross corners.
- *  \see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
+ * \see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
  */
 class SmoothingShader : public StrokeShader
 {

@@ -19,8 +19,9 @@
 #ifndef __BKE_MAIN_H__
 #define __BKE_MAIN_H__
 
-/** \file \ingroup bke
- *  \section aboutmain Main struct
+/** \file
+ * \ingroup bke
+ * \section aboutmain Main struct
  * Main is the root of the 'database' of a Blender context. All data
  * is stuffed into lists, and all these lists are knotted to here. A
  * Blender file is not much more but a binary dump of these

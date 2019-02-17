@@ -19,7 +19,8 @@
 #ifndef __BKE_MESH_RUNTIME_H__
 #define __BKE_MESH_RUNTIME_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * This file contains access functions for the Mesh.runtime struct.
  */

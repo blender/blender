@@ -20,7 +20,8 @@
 #ifndef __EIGEN_UTILS_H__
 #define __EIGEN_UTILS_H__
 
-/** \file \ingroup bph
+/** \file
+ * \ingroup bph
  */
 
 #if defined(__GNUC__) && !defined(__clang__)

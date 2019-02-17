@@ -20,8 +20,9 @@
 #ifndef __BLO_BLEND_VALIDATE_H__
 #define __BLO_BLEND_VALIDATE_H__
 
-/** \file \ingroup blenloader
- *  \brief Utils ensuring .blend file (i.e. Main) is in valid state during write and/or read process.
+/** \file
+ * \ingroup blenloader
+ * \brief Utils ensuring .blend file (i.e. Main) is in valid state during write and/or read process.
  */
 
 struct Main;

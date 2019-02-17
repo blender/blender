@@ -19,7 +19,8 @@
 
 #include <stdio.h>
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 int BLI_cpu_support_sse2(void);

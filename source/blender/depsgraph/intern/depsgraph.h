@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup depsgraph
+/** \file
+ * \ingroup depsgraph
  *
  * Datatypes for internal use in the Depsgraph
  *

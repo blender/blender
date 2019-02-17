@@ -17,7 +17,8 @@
 #ifndef __BLI_DIAL_2D_H__
 #define __BLI_DIAL_2D_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * \note dials act similar to old rotation based phones and output an angle.
  *

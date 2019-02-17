@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Mask data-blocks are collections of 2D curves to be used
  * for image masking in the compositor and sequencer.

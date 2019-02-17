@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bpygpu
+/** \file
+ * \ingroup bpygpu
  */
 
 #ifndef __GPU_PY_VERTEX_FORMAT_H__

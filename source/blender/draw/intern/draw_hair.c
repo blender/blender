@@ -17,9 +17,10 @@
  * All rights reserved.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  *
- *  \brief Contains procedural GPU hair drawing methods.
+ * \brief Contains procedural GPU hair drawing methods.
  */
 
 #include "DRW_render.h"

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup editorui
+/** \file
+ * \ingroup editorui
  */
 
 #ifndef __UI_RESOURCES_H__

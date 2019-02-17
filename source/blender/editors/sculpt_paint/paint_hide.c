@@ -18,7 +18,8 @@
  * Implements the PBVH node hiding operator
  */
 
-/** \file \ingroup edsculpt
+/** \file
+ * \ingroup edsculpt
  */
 
 #include "MEM_guardedalloc.h"

@@ -18,7 +18,8 @@
  * .blend file reading entry point
  */
 
-/** \file \ingroup blenloader
+/** \file
+ * \ingroup blenloader
  */
 
 #include <stdlib.h>

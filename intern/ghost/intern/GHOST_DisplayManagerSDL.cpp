@@ -18,7 +18,8 @@
  * Copyright (C) 2012 Alex Fraser
  */
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  */
 
 #include "GHOST_SystemSDL.h"

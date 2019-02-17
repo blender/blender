@@ -28,7 +28,8 @@
 #ifndef __MATRIX_UTIL__
 #define __MATRIX_UTIL__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include "../system/FreestyleConfig.h"

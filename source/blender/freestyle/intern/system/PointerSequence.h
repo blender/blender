@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_POINTER_SEQUENCE_H__
 #define __FREESTYLE_POINTER_SEQUENCE_H__
 
-/** \file \ingroup freestyle
- *  \brief Simple RAII wrappers for std:: sequential containers
+/** \file
+ * \ingroup freestyle
+ * \brief Simple RAII wrappers for std:: sequential containers
  *
  *  PointerSequence
  *

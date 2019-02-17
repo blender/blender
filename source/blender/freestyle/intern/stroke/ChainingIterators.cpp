@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Chaining iterators
+/** \file
+ * \ingroup freestyle
+ * \brief Chaining iterators
  */
 
 #include "../python/Director.h"

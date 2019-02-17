@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup avi
+/** \file
+ * \ingroup avi
  *
  * \section avi_about About the AVI module
  *

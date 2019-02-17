@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CHAIN_H__
 #define __FREESTYLE_CHAIN_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a chain of viewedges.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a chain of viewedges.
  */
 
 #include "Curve.h"

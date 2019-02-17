@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  */
 
 #include "DNA_object_types.h"

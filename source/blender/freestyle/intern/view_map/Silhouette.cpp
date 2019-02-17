@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Classes to define a silhouette structure
+/** \file
+ * \ingroup freestyle
+ * \brief Classes to define a silhouette structure
  */
 
 #include "Silhouette.h"

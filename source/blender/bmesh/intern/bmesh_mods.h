@@ -17,7 +17,8 @@
 #ifndef __BMESH_MODS_H__
 #define __BMESH_MODS_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 bool BM_vert_dissolve(BMesh *bm, BMVert *v);

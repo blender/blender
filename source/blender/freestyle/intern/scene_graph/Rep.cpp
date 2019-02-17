@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Base class for all shapes. Inherits from BasicObjects for references counter management (addRef, release).
+/** \file
+ * \ingroup freestyle
+ * \brief Base class for all shapes. Inherits from BasicObjects for references counter management (addRef, release).
  */
 
 #include "Rep.h"

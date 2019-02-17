@@ -18,7 +18,8 @@
  * Operators for creating new Grease Pencil primitives (boxes, circles, ...)
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 #include <stdio.h>

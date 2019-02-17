@@ -17,9 +17,10 @@
 #ifndef __FREESTYLE_NODE_TRANSFORM_H__
 #define __FREESTYLE_NODE_TRANSFORM_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to represent a transform node. A Transform node contains one or several children,
- *  \brief all affected by the transformation.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to represent a transform node. A Transform node contains one or several children,
+ * \brief all affected by the transformation.
  */
 
 #include "NodeGroup.h"

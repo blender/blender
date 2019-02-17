@@ -16,7 +16,8 @@
  * Copyright (C) 2018 Blender Foundation.
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Utilities for stand-alone makesdna.c and Blender to share.
  */

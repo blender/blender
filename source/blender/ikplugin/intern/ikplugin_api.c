@@ -18,7 +18,8 @@
  * Original author: Benoit Bolsee
  */
 
-/** \file \ingroup ikplugin
+/** \file
+ * \ingroup ikplugin
  */
 
 #include "BIK_api.h"

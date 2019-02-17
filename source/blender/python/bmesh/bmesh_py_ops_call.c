@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  *
  * This file provides __call__ aka BPy_BMO_call for
  * the bmesh operator and has been given its own file

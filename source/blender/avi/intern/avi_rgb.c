@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup avi
+/** \file
+ * \ingroup avi
  *
  * This is external code. Converts rgb-type avi-s.
  */

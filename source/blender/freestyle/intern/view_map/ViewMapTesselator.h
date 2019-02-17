@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_VIEW_MAP_TESSELATOR_H__
 #define __FREESTYLE_VIEW_MAP_TESSELATOR_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to build a Node Tree designed to be displayed from a Silhouette View Map structure.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to build a Node Tree designed to be displayed from a Silhouette View Map structure.
  */
 
 #include "Silhouette.h"

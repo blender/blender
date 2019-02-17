@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_PROGRESS_BAR_H__
 #define __FREESTYLE_PROGRESS_BAR_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to encapsulate a progress bar
+/** \file
+ * \ingroup freestyle
+ * \brief Class to encapsulate a progress bar
  */
 
 #include <string>

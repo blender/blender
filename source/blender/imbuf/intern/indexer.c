@@ -16,7 +16,8 @@
  * Peter Schlaile <peter [at] schlaile [dot] de> 2011
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include <stdlib.h>

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup MEM
+/** \file
+ * \ingroup MEM
  *
  * Guarded memory allocation, and boundary-write detection.
  */

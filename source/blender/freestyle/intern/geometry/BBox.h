@@ -17,8 +17,9 @@
 #ifndef __BBOX_H__
 #define __BBOX_H__
 
-/** \file \ingroup freestyle
- *  \brief A class to hold a bounding box
+/** \file
+ * \ingroup freestyle
+ * \brief A class to hold a bounding box
  */
 
 #include <stdlib.h>

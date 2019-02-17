@@ -15,7 +15,8 @@
  * Copyright (C) 2014 Blender Foundation.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  *  Functions to compute Murmur2A hash key.
  *

@@ -17,8 +17,9 @@
 #ifndef __POLYGON_H__
 #define __POLYGON_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a polygon
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a polygon
  */
 
 #include <vector>

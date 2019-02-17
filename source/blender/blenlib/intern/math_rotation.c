@@ -20,7 +20,8 @@
  *
  * */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include <assert.h>

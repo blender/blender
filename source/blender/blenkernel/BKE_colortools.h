@@ -19,7 +19,8 @@
 #ifndef __BKE_COLORTOOLS_H__
 #define __BKE_COLORTOOLS_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct ColorManagedColorspaceSettings;

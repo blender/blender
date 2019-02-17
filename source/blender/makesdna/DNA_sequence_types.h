@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  *
  * Structs for use by the 'Sequencer' (Video Editor)
  *

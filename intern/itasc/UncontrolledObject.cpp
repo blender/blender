@@ -1,5 +1,5 @@
 /** \file itasc/UncontrolledObject.cpp
- *  \ingroup itasc
+ * \ingroup itasc
  */
 /*
  * UncontrolledObject.cpp

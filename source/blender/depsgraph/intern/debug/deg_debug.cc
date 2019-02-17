@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup depsgraph
+/** \file
+ * \ingroup depsgraph
  */
 
 #include "intern/debug/deg_debug.h"

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_AUTOPTR_HELPER_H__
 #define __FREESTYLE_AUTOPTR_HELPER_H__
 
-/** \file \ingroup freestyle
- *  \brief Utility header for auto_ptr/unique_ptr selection
+/** \file
+ * \ingroup freestyle
+ * \brief Utility header for auto_ptr/unique_ptr selection
  */
 
 #include <memory>

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spview3d
+/** \file
+ * \ingroup spview3d
  */
 
 #ifndef __VIEW3D_INTERN_H__

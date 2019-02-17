@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup RNA
+/** \file
+ * \ingroup RNA
  */
 
 
@@ -5020,7 +5021,7 @@ bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_
  * indicated by fully resolving the path.
  *
  * This is a convenience method to avoid logic errors and ugly syntax.
- *  \note Assumes all pointers provided are valid
+ * \note Assumes all pointers provided are valid
  * \return True only if both a valid pointer and property are found after resolving the path
  */
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)

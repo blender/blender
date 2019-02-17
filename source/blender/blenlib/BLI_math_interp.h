@@ -20,7 +20,8 @@
 #ifndef __BLI_MATH_INTERP_H__
 #define __BLI_MATH_INTERP_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 void BLI_bicubic_interpolation_fl(const float *buffer, float *output, int width, int height,

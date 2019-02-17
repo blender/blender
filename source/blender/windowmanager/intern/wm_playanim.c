@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Animation player for image sequences & video's with sound support.
  * Launched in a separate process from Blender's #RENDER_OT_play_rendered_anim

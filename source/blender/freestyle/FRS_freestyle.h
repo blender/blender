@@ -17,7 +17,8 @@
 #ifndef __FRS_FREESTYLE_H__
 #define __FRS_FREESTYLE_H__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #ifdef __cplusplus

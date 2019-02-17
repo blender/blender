@@ -17,7 +17,8 @@
 #ifndef __BKE_EDITMESH_H__
 #define __BKE_EDITMESH_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * The \link edmesh EDBM module\endlink is for editmode bmesh stuff.
  * In contrast, this module is for code shared with blenkernel that's

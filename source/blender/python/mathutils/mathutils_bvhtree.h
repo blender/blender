@@ -15,7 +15,8 @@
  */
 
 
-/** \file \ingroup mathutils
+/** \file
+ * \ingroup mathutils
  */
 
 #ifndef __MATHUTILS_BVHTREE_H__

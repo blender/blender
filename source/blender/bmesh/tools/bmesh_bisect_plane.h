@@ -17,7 +17,8 @@
 #ifndef __BMESH_BISECT_PLANE_H__
 #define __BMESH_BISECT_PLANE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 void BM_mesh_bisect_plane(

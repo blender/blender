@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup rna
- *  \brief RNA property definitions for Rigid Body datatypes
+/** \file
+ * \ingroup rna
+ * \brief RNA property definitions for Rigid Body datatypes
  */
 
 #include <stdlib.h>

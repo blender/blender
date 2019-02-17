@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup editor/io
+/** \file
+ * \ingroup editor/io
  */
 
 #ifndef __IO_COLLADA_H__

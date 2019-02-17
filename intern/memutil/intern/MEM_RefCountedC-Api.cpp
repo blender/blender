@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup memutil
+/** \file
+ * \ingroup memutil
  */
 
 

@@ -18,7 +18,8 @@
  * blenloader readfile private function prototypes
  */
 
-/** \file \ingroup blenloader
+/** \file
+ * \ingroup blenloader
  */
 
 #ifndef __READFILE_H__

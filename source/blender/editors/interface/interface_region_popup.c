@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edinterface
+/** \file
+ * \ingroup edinterface
  *
  * PopUp Region (Generic)
  */

@@ -17,7 +17,8 @@
 #ifndef __BMESH_CLASS_H__
 #define __BMESH_CLASS_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 /* bmesh data structures */

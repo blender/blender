@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * This is to mark the transition to OpenGL core profile
  * The idea is to allow Blender 2.8 to be built with OpenGL 3.3 even if it means breaking things

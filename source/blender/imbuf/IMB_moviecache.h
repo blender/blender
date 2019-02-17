@@ -20,7 +20,8 @@
 #ifndef __IMB_MOVIECACHE_H__
 #define __IMB_MOVIECACHE_H__
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #include "BLI_utildefines.h"

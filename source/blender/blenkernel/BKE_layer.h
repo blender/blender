@@ -17,7 +17,8 @@
 #ifndef __BKE_LAYER_H__
 #define __BKE_LAYER_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "BKE_collection.h"

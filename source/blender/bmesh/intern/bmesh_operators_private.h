@@ -17,7 +17,8 @@
 #ifndef __BMESH_OPERATORS_PRIVATE_H__
 #define __BMESH_OPERATORS_PRIVATE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct BMOperator;

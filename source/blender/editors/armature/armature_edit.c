@@ -18,7 +18,8 @@
  * Armature EditMode tools - transforms, chain based editing, and other settings
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include <assert.h>

@@ -20,7 +20,8 @@
 #ifndef __BKE_IDCODE_H__
 #define __BKE_IDCODE_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 const char *BKE_idcode_to_name(short idcode);

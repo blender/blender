@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_SILHOUETTE_H__
 #define __FREESTYLE_SILHOUETTE_H__
 
-/** \file \ingroup freestyle
- *  \brief Classes to define a silhouette structure
+/** \file
+ * \ingroup freestyle
+ * \brief Classes to define a silhouette structure
  */
 
 #include <float.h>

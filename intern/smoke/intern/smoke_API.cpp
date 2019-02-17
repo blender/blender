@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 
 #include "FLUID_3D.h"

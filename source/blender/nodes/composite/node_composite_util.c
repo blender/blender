@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup nodes
+/** \file
+ * \ingroup nodes
  */
 
 #include "node_composite_util.h"

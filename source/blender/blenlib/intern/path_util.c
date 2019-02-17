@@ -18,7 +18,8 @@
  * various string, file, list operations.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include <ctype.h>

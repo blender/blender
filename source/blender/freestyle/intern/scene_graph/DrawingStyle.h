@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_DRAWING_STYLE_H__
 #define __FREESTYLE_DRAWING_STYLE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define the drawing style of a node
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define the drawing style of a node
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STEERABLE_VIEW_MAP_H__
 #define __FREESTYLE_STEERABLE_VIEW_MAP_H__
 
-/** \file \ingroup freestyle
- *  \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
+/** \file
+ * \ingroup freestyle
+ * \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
  */
 
 #include <map>

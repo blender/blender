@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup collada
+/** \file
+ * \ingroup collada
  */
 
 /* COLLADABU_ASSERT, may be able to remove later */

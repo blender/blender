@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 #ifndef JAMA_EIG_H
 #define JAMA_EIG_H

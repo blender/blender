@@ -19,7 +19,8 @@
 #ifndef __BKE_LIBRARY_QUERY_H__
 #define __BKE_LIBRARY_QUERY_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct ID;

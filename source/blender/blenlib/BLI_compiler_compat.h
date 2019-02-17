@@ -17,7 +17,8 @@
 #ifndef __BLI_COMPILER_COMPAT_H__
 #define __BLI_COMPILER_COMPAT_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Use to help with cross platform portability.
  */

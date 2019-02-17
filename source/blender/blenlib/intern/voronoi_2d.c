@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Fortune's algorithm implemented using explanation and some code snippets from
  * http://blog.ivank.net/fortunes-algorithm-and-implementation.html

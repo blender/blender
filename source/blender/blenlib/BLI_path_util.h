@@ -19,7 +19,8 @@
 #ifndef __BLI_PATH_UTIL_H__
 #define __BLI_PATH_UTIL_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

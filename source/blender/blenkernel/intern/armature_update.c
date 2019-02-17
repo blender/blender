@@ -19,7 +19,8 @@
  * Defines and code for core node types
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "MEM_guardedalloc.h"

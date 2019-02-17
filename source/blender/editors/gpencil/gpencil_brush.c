@@ -18,7 +18,8 @@
  * Brush based operators for editing Grease Pencil strokes
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 

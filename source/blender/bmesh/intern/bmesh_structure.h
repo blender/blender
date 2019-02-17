@@ -20,7 +20,8 @@
 #ifndef __BMESH_STRUCTURE_H__
 #define __BMESH_STRUCTURE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * The lowest level of functionality for manipulating bmesh structures.
  * None of these functions should ever be exported to the rest of Blender.

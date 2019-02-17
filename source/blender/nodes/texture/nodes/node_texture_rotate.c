@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup texnodes
+/** \file
+ * \ingroup texnodes
  */
 
 

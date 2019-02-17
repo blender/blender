@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * GPU geometry batch
  * Contains VAOs + VBOs + Shader representing a drawable entity.

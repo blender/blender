@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  */
 
 #ifndef __WM_EVENT_SYSTEM_H__

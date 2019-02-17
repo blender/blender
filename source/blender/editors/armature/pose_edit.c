@@ -18,7 +18,8 @@
  * Pose Mode API's and Operators for Pose Mode armatures
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

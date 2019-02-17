@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edinterface
+/** \file
+ * \ingroup edinterface
  *
  * This file defines an eyedropper for picking 3D depth value (primary use is depth-of-field).
  *

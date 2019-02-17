@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  *
  * Array modifier: duplicates the object multiple times along an axis.
  */

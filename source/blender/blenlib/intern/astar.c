@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
- *  \brief An implementation of the A* (AStar) algorithm to solve shortest path problem.
+/** \file
+ * \ingroup bli
+ * \brief An implementation of the A* (AStar) algorithm to solve shortest path problem.
  *
  * This library implements the simple A* (AStar) algorithm, an optimized version of
  * classical dijkstra shortest path solver. The difference is that each future possible

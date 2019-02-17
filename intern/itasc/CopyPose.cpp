@@ -1,5 +1,5 @@
 /** \file itasc/CopyPose.cpp
- *  \ingroup itasc
+ * \ingroup itasc
  */
 /*
  * CopyPose.cpp

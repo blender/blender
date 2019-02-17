@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_W_EDGE_H__
 #define __FREESTYLE_W_EDGE_H__
 
-/** \file \ingroup freestyle
- *  \brief Classes to define a Winged Edge data structure.
+/** \file
+ * \ingroup freestyle
+ * \brief Classes to define a Winged Edge data structure.
  */
 
 #include <iterator>

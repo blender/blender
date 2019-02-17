@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup render
+/** \file
+ * \ingroup render
  */
 
 #ifndef __RENDER_RESULT_H__

@@ -17,7 +17,8 @@
 #ifndef __MATHUTILS_H__
 #define __MATHUTILS_H__
 
-/** \file \ingroup pymathutils
+/** \file
+ * \ingroup pymathutils
  */
 
 /* Can cast different mathutils types to this, use for generic funcs */

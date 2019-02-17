@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2009, Blender Foundation
  */
 
-/** \file \ingroup editors
+/** \file
+ * \ingroup editors
  */
 
 #ifndef __ED_INFO_H__

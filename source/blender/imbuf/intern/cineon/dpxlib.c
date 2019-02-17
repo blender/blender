@@ -16,7 +16,8 @@
  * Copyright 1999 - 2002 David Hodson <hodsond@acm.org>
  */
 
-/** \file \ingroup imbcineon
+/** \file
+ * \ingroup imbcineon
  *
  * Dpx image file format library routines.
  */

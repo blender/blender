@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 
 #include "EIGENVALUE_HELPER.h"

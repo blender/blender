@@ -17,8 +17,9 @@
 #ifndef __APP_CONFIG_H__
 #define __APP_CONFIG_H__
 
-/** \file \ingroup freestyle
- *  \brief Configuration file
+/** \file
+ * \ingroup freestyle
+ * \brief Configuration file
  */
 
 #include <string>

@@ -18,7 +18,8 @@
  */
 
 
-/** \file \ingroup depsgraph
+/** \file
+ * \ingroup depsgraph
  */
 
 /* Enable special; trickery to treat nested owned IDs (such as nodetree of

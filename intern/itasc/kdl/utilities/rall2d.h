@@ -6,18 +6,18 @@
  *       
  *      Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
- *  \version 
+ * \version 
  *      ORO_Geometry V0.2
  *
- *  \par Note
+ * \par Note
  *      VC6++ contains a bug, concerning the use of inlined friend functions 
  *      in combination with namespaces.  So, try to avoid inlined friend 
  *      functions !  
  *
- *  \par History
+ * \par History
  *      - $log$ 
  *
- *  \par Release
+ * \par Release
  *      $Name:  $ 
  ****************************************************************************/
 

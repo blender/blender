@@ -16,7 +16,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup sptext
+/** \file
+ * \ingroup sptext
  */
 
 #include <string.h>

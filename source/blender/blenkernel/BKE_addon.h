@@ -16,7 +16,8 @@
 #ifndef __BKE_ADDON_H__
 #define __BKE_ADDON_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 

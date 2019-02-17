@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Functions to manage I/O for the stroke
+/** \file
+ * \ingroup freestyle
+ * \brief Functions to manage I/O for the stroke
  */
 
 #include "StrokeAdvancedIterators.h"

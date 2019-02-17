@@ -22,7 +22,8 @@
 #ifndef __BLI_FNMATCH_H__
 #define __BLI_FNMATCH_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef  __cplusplus

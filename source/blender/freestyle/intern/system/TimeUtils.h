@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_TIME_UTILS_H__
 #define __FREESTYLE_TIME_UTILS_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to measure elapsed time
+/** \file
+ * \ingroup freestyle
+ * \brief Class to measure elapsed time
  */
 
 #include <time.h>

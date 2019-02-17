@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pygen
+/** \file
+ * \ingroup pygen
  *
  * This file is the 'bgl' module which wraps OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts.

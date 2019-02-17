@@ -19,8 +19,9 @@
 #ifndef __BKE_BLENDER_H__
 #define __BKE_BLENDER_H__
 
-/** \file \ingroup bke
- *  \brief Blender util stuff
+/** \file
+ * \ingroup bke
+ * \brief Blender util stuff
  */
 
 #ifdef __cplusplus

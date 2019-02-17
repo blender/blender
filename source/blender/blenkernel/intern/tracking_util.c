@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * This file contains implementation of function which are used
  * by multiple tracking files but which should not be public.

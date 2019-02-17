@@ -19,7 +19,8 @@
 
  */
 
-/** \file \ingroup edmeta
+/** \file
+ * \ingroup edmeta
  */
 
 #include <math.h>

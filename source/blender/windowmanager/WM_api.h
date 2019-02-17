@@ -19,7 +19,8 @@
 #ifndef __WM_API_H__
 #define __WM_API_H__
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * \page wmpage windowmanager
  * \section wmabout About windowmanager

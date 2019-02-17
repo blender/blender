@@ -19,7 +19,8 @@
  * Some really low-level file thingies.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #include <sys/types.h>

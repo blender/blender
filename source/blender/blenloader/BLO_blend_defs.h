@@ -16,8 +16,9 @@
 #ifndef __BLO_BLEND_DEFS_H__
 #define __BLO_BLEND_DEFS_H__
 
-/** \file \ingroup blenloader
- *  \brief defines for blendfile codes
+/** \file
+ * \ingroup blenloader
+ * \brief defines for blendfile codes
  */
 
 /* INTEGER CODES */

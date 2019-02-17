@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spview3d
+/** \file
+ * \ingroup spview3d
  *
  * 3D View checks and manipulation (no operators).
  */

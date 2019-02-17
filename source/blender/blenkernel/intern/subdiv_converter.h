@@ -20,7 +20,8 @@
 #ifndef __SUBDIV_CONVERTER_H__
 #define __SUBDIV_CONVERTER_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "BKE_subdiv.h"

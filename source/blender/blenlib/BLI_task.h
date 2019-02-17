@@ -22,7 +22,8 @@
 struct Link;
 struct ListBase;
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

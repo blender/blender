@@ -17,7 +17,8 @@
 #ifndef __BMESH_WALKERS_H__
 #define __BMESH_WALKERS_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 /*

@@ -18,7 +18,8 @@
  * os dependent include locations of gl.h
  */
 
-/** \file \ingroup editorui
+/** \file
+ * \ingroup editorui
  */
 
 #ifndef __BIF_GL_H__

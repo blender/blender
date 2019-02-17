@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * Custom select code for picking small regions (not efficient for large regions).
  * `gpu_select_pick_*` API.

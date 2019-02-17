@@ -18,7 +18,8 @@
  * Operators for dealing with armatures and GP datablocks
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 

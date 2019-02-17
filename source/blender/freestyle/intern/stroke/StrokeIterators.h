@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STROKE_ITERATORS_H__
 #define __FREESTYLE_STROKE_ITERATORS_H__
 
-/** \file \ingroup freestyle
- *  \brief Iterators used to iterate over the elements of the Stroke
+/** \file
+ * \ingroup freestyle
+ * \brief Iterators used to iterate over the elements of the Stroke
  */
 
 #include "Stroke.h"
@@ -41,8 +42,8 @@ namespace StrokeInternal {
  *  should use a StrokeVertexIterator.
  *  The castToInterface0DIterator() method is useful to get an Interface0DIterator from a StrokeVertexIterator in
  *  order to call any functions of the type UnaryFunction0D.
- *  \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
- *  \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
+ * \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
+ * \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
  *  Otherwise, incrementing \a it1 will also increment \a it2.
  */
 class StrokeVertexIterator : public Interface0DIteratorNested

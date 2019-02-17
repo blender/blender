@@ -1,5 +1,5 @@
 /** \file itasc/WDLSSolver.cpp
- *  \ingroup itasc
+ * \ingroup itasc
  */
 /*
  * WDLSSolver.hpp.cpp

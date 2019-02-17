@@ -15,7 +15,8 @@
  *
  * */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifndef __MATH_BITS_INLINE_C__

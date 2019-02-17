@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 #ifndef __GPENCIL_INTERN_H__

@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CURVE_ITERATORS_H__
 #define __FREESTYLE_CURVE_ITERATORS_H__
 
-/** \file \ingroup freestyle
- *  \brief Iterators used to iterate over the elements of the Curve
+/** \file
+ * \ingroup freestyle
+ * \brief Iterators used to iterate over the elements of the Curve
  */
 
 #include "Curve.h"

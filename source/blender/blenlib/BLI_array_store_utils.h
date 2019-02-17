@@ -17,7 +17,8 @@
 #ifndef __BLI_ARRAY_STORE_UTILS_H__
 #define __BLI_ARRAY_STORE_UTILS_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 struct BArrayStore;

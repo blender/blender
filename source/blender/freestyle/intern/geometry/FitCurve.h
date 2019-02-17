@@ -17,9 +17,10 @@
 #ifndef __FITCURVE_H__
 #define __FITCURVE_H__
 
-/** \file \ingroup freestyle
- *  \brief An Algorithm for Automatically Fitting Digitized Curves by Philip J. Schneider,
- *  \brief from "Graphics Gems", Academic Press, 1990
+/** \file
+ * \ingroup freestyle
+ * \brief An Algorithm for Automatically Fitting Digitized Curves by Philip J. Schneider,
+ * \brief from "Graphics Gems", Academic Press, 1990
  */
 
 #include <vector>

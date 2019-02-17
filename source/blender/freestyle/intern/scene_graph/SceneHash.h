@@ -17,7 +17,8 @@
 #ifndef __FREESTYLE_SCENE_HASH_H__
 #define __FREESTYLE_SCENE_HASH_H__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include "IndexedFaceSet.h"

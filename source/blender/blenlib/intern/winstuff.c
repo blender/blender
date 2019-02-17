@@ -18,7 +18,8 @@
  * Windows-posix compatibility layer, windows-specific functions.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 

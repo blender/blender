@@ -17,7 +17,8 @@
 #ifndef __BMESH_ITERATORS_H__
 #define __BMESH_ITERATORS_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 /**

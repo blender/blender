@@ -20,7 +20,8 @@
 #ifndef __BKE_MULTIRES_H__
 #define __BKE_MULTIRES_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "BLI_compiler_compat.h"

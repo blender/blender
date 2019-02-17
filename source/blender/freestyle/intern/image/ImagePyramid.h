@@ -17,8 +17,9 @@
 #ifndef __IMAGEPYRAMID_H__
 #define __IMAGEPYRAMID_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to represent a pyramid of images
+/** \file
+ * \ingroup freestyle
+ * \brief Class to represent a pyramid of images
  */
 
 #include <vector>

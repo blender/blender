@@ -18,7 +18,8 @@
  * Support for linked lists.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Routines for working with single linked lists of 'links' - pointers to other data.
  *

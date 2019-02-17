@@ -17,8 +17,9 @@
 #ifndef __GEOM_H__
 #define __GEOM_H__
 
-/** \file \ingroup freestyle
- *  \brief Vectors and Matrices (useful type definitions)
+/** \file
+ * \ingroup freestyle
+ * \brief Vectors and Matrices (useful type definitions)
  */
 
 #include "VecMat.h"

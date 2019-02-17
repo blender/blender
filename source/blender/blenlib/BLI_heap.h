@@ -17,8 +17,9 @@
 #ifndef __BLI_HEAP_H__
 #define __BLI_HEAP_H__
 
-/** \file \ingroup bli
- *  \brief A min-heap / priority queue ADT
+/** \file
+ * \ingroup bli
+ * \brief A min-heap / priority queue ADT
  */
 
 struct Heap;

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup editorui
+/** \file
+ * \ingroup editorui
  */
 
 #ifndef __BIF_GLUTIL_H__

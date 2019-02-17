@@ -15,7 +15,8 @@
  * Windows-posix compatibility layer for opendir/readdir/closedir
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Posix compatibility functions for windows dealing with DIR
  * (opendir, readdir, closedir)

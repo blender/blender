@@ -20,7 +20,8 @@
 #ifndef __BMESH_MESH_CONV_H__
 #define __BMESH_MESH_CONV_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct Main;

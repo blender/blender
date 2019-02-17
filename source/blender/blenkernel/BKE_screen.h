@@ -19,7 +19,8 @@
 #ifndef __BKE_SCREEN_H__
 #define __BKE_SCREEN_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct ARegion;

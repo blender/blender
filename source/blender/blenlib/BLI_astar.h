@@ -20,8 +20,9 @@
 #ifndef __BLI_ASTAR_H__
 #define __BLI_ASTAR_H__
 
-/** \file \ingroup bli
- *  \brief An implementation of the A* (AStar) algorithm to solve shortest path problem.
+/** \file
+ * \ingroup bli
+ * \brief An implementation of the A* (AStar) algorithm to solve shortest path problem.
  */
 
 #include "BLI_utildefines.h"

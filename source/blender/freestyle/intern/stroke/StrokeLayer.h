@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STROKE_LAYER_H__
 #define __FREESTYLE_STROKE_LAYER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a layer of strokes.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a layer of strokes.
  */
 
 #include <deque>

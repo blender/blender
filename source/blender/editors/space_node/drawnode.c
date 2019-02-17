@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spnode
- *  \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
+/** \file
+ * \ingroup spnode
+ * \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
  */
 
 #include "BLI_blenlib.h"

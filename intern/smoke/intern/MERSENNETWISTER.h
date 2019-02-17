@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 // MersenneTwister.h
 // Mersenne Twister random number generator -- a C++ class MTRand

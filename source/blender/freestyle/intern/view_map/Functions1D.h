@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_FUNCTIONS_1D_H__
 #define __FREESTYLE_FUNCTIONS_1D_H__
 
-/** \file \ingroup freestyle
- *  \brief Functions taking 1D input
+/** \file
+ * \ingroup freestyle
+ * \brief Functions taking 1D input
  */
 
 #include "Functions0D.h"
@@ -44,7 +45,7 @@ namespace Freestyle {
 
 /*! Base class for Unary Functions (functors) working on Interface1D.
  *  A unary function will be used by calling its operator() on an Interface1D.
- *  \attention In the scripting language, there exists several prototypes depending on the returned value type.
+ * \attention In the scripting language, there exists several prototypes depending on the returned value type.
  *  For example, you would inherit from a UnaryFunction1DDouble if you wish to define a function that returns a double.
  *  The different existing prototypes are:
  *    - UnaryFunction1DDouble

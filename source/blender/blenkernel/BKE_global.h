@@ -19,8 +19,9 @@
 #ifndef __BKE_GLOBAL_H__
 #define __BKE_GLOBAL_H__
 
-/** \file \ingroup bke
- *  \section aboutglobal Global settings
+/** \file
+ * \ingroup bke
+ * \section aboutglobal Global settings
  *   Global settings, handles, pointers. This is the root for finding
  *   any data in Blender. This block is not serialized, but built anew
  *   for every fresh Blender run.

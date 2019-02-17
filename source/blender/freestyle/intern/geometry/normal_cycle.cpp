@@ -25,7 +25,8 @@
  *      FRANCE
  */
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include "matrix_util.h"

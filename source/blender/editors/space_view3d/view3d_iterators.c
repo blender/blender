@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup spview3d
+/** \file
+ * \ingroup spview3d
  */
 
 #include "DNA_curve_types.h"

@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  */
 
 #ifndef __DNA_SDNA_TYPES_H__

@@ -17,7 +17,8 @@
 #ifndef __BLI_STRING_UTF8_H__
 #define __BLI_STRING_UTF8_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

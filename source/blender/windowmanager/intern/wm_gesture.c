@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * Gestures (cursor motions) creating, evaluating and drawing, shared between operators.
  */

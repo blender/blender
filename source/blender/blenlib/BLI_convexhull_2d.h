@@ -17,7 +17,8 @@
 #ifndef __BLI_CONVEXHULL_2D_H__
 #define __BLI_CONVEXHULL_2D_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 int BLI_convexhull_2d_sorted(const float (*points)[2], const int n, int r_points[]);

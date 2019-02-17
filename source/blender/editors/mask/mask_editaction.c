@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup edmask
+/** \file
+ * \ingroup edmask
  */
 
 #include <stdio.h>

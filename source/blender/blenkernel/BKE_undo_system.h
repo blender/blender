@@ -16,7 +16,8 @@
 #ifndef __BKE_UNDO_SYSTEM_H__
 #define __BKE_UNDO_SYSTEM_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct Main;

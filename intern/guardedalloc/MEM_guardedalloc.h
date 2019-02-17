@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup MEM
+/** \file
+ * \ingroup MEM
  *
  * \brief Read \ref MEMPage
  *

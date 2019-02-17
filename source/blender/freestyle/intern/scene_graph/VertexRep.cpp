@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to define the representation of a vertex for displaying purpose.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define the representation of a vertex for displaying purpose.
  */
 
 #include "VertexRep.h"

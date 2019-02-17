@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup elbeem
+/** \file
+ * \ingroup elbeem
  */
 
 #ifndef LBM_FLUIDSIM_H

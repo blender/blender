@@ -18,7 +18,8 @@
  * Original author: Laurence
  */
 
-/** \file \ingroup iksolver
+/** \file
+ * \ingroup iksolver
  */
 
 

@@ -16,7 +16,8 @@
  * Copyright 2018, Blender Foundation.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 
 #ifndef __DRAW_DEBUG_H__

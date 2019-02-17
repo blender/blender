@@ -16,7 +16,8 @@
  * The Original Code is Copyright (C) Blender Foundation
  */
 
-/** \file \ingroup spgraph
+/** \file
+ * \ingroup spgraph
  */
 
 

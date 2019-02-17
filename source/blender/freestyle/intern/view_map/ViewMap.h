@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_VIEW_MAP_H__
 #define __FREESTYLE_VIEW_MAP_H__
 
-/** \file \ingroup freestyle
- *  \brief Classes to define a View Map (ViewVertex, ViewEdge, etc.)
+/** \file
+ * \ingroup freestyle
+ * \brief Classes to define a View Map (ViewVertex, ViewEdge, etc.)
  */
 
 #include <map>

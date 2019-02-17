@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STROKE_REP_H__
 #define __FREESTYLE_STROKE_REP_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define the representation of a stroke (for display purpose)
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define the representation of a stroke (for display purpose)
  */
 
 #include "Stroke.h"

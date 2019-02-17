@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STYLE_MODULE_H__
 #define __FREESTYLE_STYLE_MODULE_H__
 
-/** \file \ingroup freestyle
- *  \brief Class representing a style module
+/** \file
+ * \ingroup freestyle
+ * \brief Class representing a style module
  */
 
 #include <iostream>

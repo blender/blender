@@ -17,7 +17,8 @@
 #ifndef __BMESH_MESH_H__
 #define __BMESH_MESH_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 struct BMAllocTemplate;

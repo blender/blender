@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blenkernel
- *  \brief Blender-side interface and methods for dealing with Rigid Body simulations
+/** \file
+ * \ingroup blenkernel
+ * \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 
 #include <stdio.h>

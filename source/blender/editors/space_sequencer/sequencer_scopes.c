@@ -16,7 +16,8 @@
  * Author: Peter Schlaile < peter [at] schlaile [dot] de >
  */
 
-/** \file \ingroup spseq
+/** \file
+ * \ingroup spseq
  */
 
 

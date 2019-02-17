@@ -5889,7 +5889,7 @@ static void set_profile_spacing(BevelParams *bp)
  * Assume we have a situation like:
  *
  * a                 d
- *  \               /
+ * \               /
  * A \             / C
  *    \ th1    th2/
  *     b---------c

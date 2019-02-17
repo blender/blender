@@ -18,7 +18,8 @@
  * Dalai Felinto
  */
 
-/** \file \ingroup cmpnodes
+/** \file
+ * \ingroup cmpnodes
  */
 
 #include "BKE_context.h"

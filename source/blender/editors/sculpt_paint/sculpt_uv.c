@@ -18,7 +18,8 @@
  * UV Sculpt tools
  */
 
-/** \file \ingroup edsculpt
+/** \file
+ * \ingroup edsculpt
  */
 
 

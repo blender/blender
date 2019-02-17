@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_PREDICATES_0D_H__
 #define __FREESTYLE_PREDICATES_0D_H__
 
-/** \file \ingroup freestyle
- *  \brief Class gathering stroke creation algorithms
+/** \file
+ * \ingroup freestyle
+ * \brief Class gathering stroke creation algorithms
  */
 
 #include "../view_map/Functions0D.h"

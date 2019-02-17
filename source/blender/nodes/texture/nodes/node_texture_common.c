@@ -18,7 +18,8 @@
  * Juho Vepsäläinen
  */
 
-/** \file \ingroup texnodes
+/** \file
+ * \ingroup texnodes
  */
 
 

@@ -20,7 +20,8 @@
  */
 
 
-/** \file \ingroup GHOST
+/** \file
+ * \ingroup GHOST
  */
 
 #ifdef WITH_INPUT_IME

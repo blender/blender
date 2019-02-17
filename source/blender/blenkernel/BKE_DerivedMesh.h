@@ -20,7 +20,8 @@
 #ifndef __BKE_DERIVEDMESH_H__
 #define __BKE_DERIVEDMESH_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * Basic design of the DerivedMesh system:
  *

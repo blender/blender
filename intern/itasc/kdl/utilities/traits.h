@@ -1,5 +1,5 @@
 /** \file itasc/kdl/utilities/traits.h
- *  \ingroup itasc
+ * \ingroup itasc
  */
 #ifndef KDLPV_TRAITS_H 
 #define KDLPV_TRAITS_H 

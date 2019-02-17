@@ -18,7 +18,8 @@
  * util.c
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 

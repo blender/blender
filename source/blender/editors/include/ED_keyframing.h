@@ -17,7 +17,8 @@
  * This is a new part of Blender (with some old code)
  */
 
-/** \file \ingroup editors
+/** \file
+ * \ingroup editors
  */
 
 #ifndef __ED_KEYFRAMING_H__

@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  */
 
 #ifndef __DNA_GPENCIL_TYPES_H__

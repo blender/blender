@@ -20,8 +20,9 @@
 #ifndef __BKE_LINESTYLE_H__
 #define __BKE_LINESTYLE_H__
 
-/** \file \ingroup bke
- *  \brief Blender kernel freestyle line style functionality.
+/** \file
+ * \ingroup bke
+ * \brief Blender kernel freestyle line style functionality.
  */
 
 #include "DNA_linestyle_types.h"

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spview3d
+/** \file
+ * \ingroup spview3d
  */
 
 #include "DNA_camera_types.h"

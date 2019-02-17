@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup pygen
+/** \file
+ * \ingroup pygen
  *
  * This file contains wrapper functions related to global interpreter lock.
  * these functions are slightly different from the original Python API,

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup wm
+/** \file
+ * \ingroup wm
  *
  * \name Gizmos Window Manager API
  * API for usage in window manager code only. It should contain all functionality

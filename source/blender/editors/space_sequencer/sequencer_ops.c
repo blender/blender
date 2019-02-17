@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spseq
+/** \file
+ * \ingroup spseq
  */
 
 #include <stdlib.h>

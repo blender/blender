@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Functions for interpolating data across the surface of a mesh.
  */

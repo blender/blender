@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_ORIENTED_LINE_REP_H__
 #define __FREESTYLE_ORIENTED_LINE_REP_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to display an oriented line representation.
+/** \file
+ * \ingroup freestyle
+ * \brief Class to display an oriented line representation.
  */
 
 #include "LineRep.h"

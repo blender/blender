@@ -16,7 +16,8 @@
 #ifndef __BLI_UVPROJECT_H__
 #define __BLI_UVPROJECT_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 struct Object;

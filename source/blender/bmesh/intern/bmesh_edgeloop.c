@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  *
  * Generic utility functions for getting edge loops from a mesh.
  */

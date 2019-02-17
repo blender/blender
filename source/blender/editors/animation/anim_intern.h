@@ -17,7 +17,8 @@
  * This is a new part of Blender (with some old code)
  */
 
-/** \file \ingroup edanimation
+/** \file
+ * \ingroup edanimation
  */
 
 

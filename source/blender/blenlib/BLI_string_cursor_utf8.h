@@ -20,7 +20,8 @@
 #ifndef __BLI_STRING_CURSOR_UTF8_H__
 #define __BLI_STRING_CURSOR_UTF8_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 typedef enum eStrCursorJumpType {

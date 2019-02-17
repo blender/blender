@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 /******************************************************************************
  * Copyright 2007 Nils Thuerey

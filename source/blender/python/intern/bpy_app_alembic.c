@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  */
 
 #include <Python.h>

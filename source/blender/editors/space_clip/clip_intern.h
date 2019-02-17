@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spclip
+/** \file
+ * \ingroup spclip
  */
 
 #ifndef __CLIP_INTERN_H__

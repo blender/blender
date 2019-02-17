@@ -17,7 +17,8 @@
 #ifndef __APPCANVAS_H__
 #define __APPCANVAS_H__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include "../stroke/Canvas.h"

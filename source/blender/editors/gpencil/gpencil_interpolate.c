@@ -18,7 +18,8 @@
  * Operators for interpolating new Grease Pencil frames from existing strokes
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup glew-mx
+/** \file
+ * \ingroup glew-mx
  *  Utility used to check for use of deprecated functions.
  */
 

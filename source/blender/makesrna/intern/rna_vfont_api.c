@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup RNA
+/** \file
+ * \ingroup RNA
  */
 
 #include "DNA_packedFile_types.h"

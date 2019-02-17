@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edphys
+/** \file
+ * \ingroup edphys
  */
 
 #ifndef __PARTICLE_EDIT_UTILDEFNIES_H__

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spinfo
+/** \file
+ * \ingroup spinfo
  */
 
 #ifndef __INFO_INTERN_H__

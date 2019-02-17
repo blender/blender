@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blf
+/** \file
+ * \ingroup blf
  *
  * Glyph rendering, texturing and caching. Wraps Freetype and OpenGL functions.
  */

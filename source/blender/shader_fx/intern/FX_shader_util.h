@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup shader_fx
+/** \file
+ * \ingroup shader_fx
  */
 
 

@@ -20,9 +20,10 @@
 #ifndef __BLI_DYNSTR_H__
 #define __BLI_DYNSTR_H__
 
-/** \file \ingroup bli
- *  \brief A dynamically sized string ADT.
- *  \section aboutdynstr Dynamic String
+/** \file
+ * \ingroup bli
+ * \brief A dynamically sized string ADT.
+ * \section aboutdynstr Dynamic String
  * This ADT is designed purely for dynamic string creation
  * through appending, not for general usage, the intent is
  * to build up dynamic strings using a DynStr object, then

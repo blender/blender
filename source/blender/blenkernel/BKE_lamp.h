@@ -20,8 +20,9 @@
 #ifndef __BKE_LAMP_H__
 #define __BKE_LAMP_H__
 
-/** \file \ingroup bke
- *  \brief General operations, lookup, etc. for blender lamps.
+/** \file
+ * \ingroup bke
+ * \brief General operations, lookup, etc. for blender lamps.
  */
 #ifdef __cplusplus
 extern "C" {

@@ -20,8 +20,9 @@
 #ifndef __BLI_FILEOPS_TYPES_H__
 #define __BLI_FILEOPS_TYPES_H__
 
-/** \file \ingroup bli
- *  \brief Some types for dealing with directories.
+/** \file
+ * \ingroup bli
+ * \brief Some types for dealing with directories.
  */
 
 #include <sys/stat.h>

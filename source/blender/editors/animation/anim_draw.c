@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edanimation
+/** \file
+ * \ingroup edanimation
  */
 
 #include "BLI_sys_types.h"

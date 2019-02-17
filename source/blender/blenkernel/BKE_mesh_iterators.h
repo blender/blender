@@ -16,7 +16,8 @@
 #ifndef __BKE_MESH_ITERATORS_H__
 #define __BKE_MESH_ITERATORS_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct MEdge;

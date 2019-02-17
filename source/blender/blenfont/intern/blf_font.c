@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blf
+/** \file
+ * \ingroup blf
  *
  * Deals with drawing text to OpenGL or bitmap buffers.
  *

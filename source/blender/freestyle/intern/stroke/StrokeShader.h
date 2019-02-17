@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STROKE_SHADERS_H__
 #define __FREESTYLE_STROKE_SHADERS_H__
 
-/** \file \ingroup freestyle
- *  \brief Class defining StrokeShader
+/** \file
+ * \ingroup freestyle
+ * \brief Class defining StrokeShader
  */
 
 #include <iostream>
@@ -46,15 +47,15 @@ class Stroke;
  *  The basic way to achieve this operation consists in iterating over the StrokeVertices of the Stroke
  *  and to modify each one's StrokeAttribute.
  *  Here is a python code example of such an iteration:
- *  \code
+ * \code
  *  it = ioStroke.strokeVerticesBegin()
  *  while not it.isEnd():
  *      att = it.getObject().attribute()
  *      ## perform here any attribute modification
  *      it.increment()
- *  \endcode
+ * \endcode
  *  Here is a C++ code example of such an iteration:
- *  \code
+ * \code
  *  for (StrokeInternal::StrokeVertexIterator v = ioStroke.strokeVerticesBegin(), vend = ioStroke.strokeVerticesEnd();
  *      v != vend;
  *      ++v)
@@ -62,7 +63,7 @@ class Stroke;
  *  	StrokeAttribute& att = v->attribute();
  *  	// perform any attribute modification here...
  *  }
- *  \endcode
+ * \endcode
  */
 class StrokeShader
 {

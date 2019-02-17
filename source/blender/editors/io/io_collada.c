@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup collada
+/** \file
+ * \ingroup collada
  */
 #ifdef WITH_COLLADA
 #include "DNA_space_types.h"

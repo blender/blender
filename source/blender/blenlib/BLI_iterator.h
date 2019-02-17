@@ -17,7 +17,8 @@
 #ifndef __BLI_ITERATOR_H__
 #define __BLI_ITERATOR_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 typedef struct BLI_Iterator {

@@ -18,7 +18,8 @@
  * Making screendumps.
  */
 
-/** \file \ingroup edscr
+/** \file
+ * \ingroup edscr
  */
 
 

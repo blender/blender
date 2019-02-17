@@ -19,7 +19,8 @@
  * Added interface for generic movie support (ton)
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 

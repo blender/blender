@@ -19,7 +19,8 @@
 #ifndef __BKE_COLLISION_H__
 #define __BKE_COLLISION_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include <math.h>

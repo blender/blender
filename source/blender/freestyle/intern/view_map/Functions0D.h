@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_FUNCTIONS_0D_H__
 #define __FREESTYLE_FUNCTIONS_0D_H__
 
-/** \file \ingroup freestyle
- *  \brief Functions taking 0D input
+/** \file
+ * \ingroup freestyle
+ * \brief Functions taking 0D input
  */
 
 #include <set>
@@ -54,7 +55,7 @@ using namespace Geometry;
 
 /*! Base class for Unary Functions (functors) working on Interface0DIterator.
  *  A unary function will be used by calling its operator() on an Interface0DIterator.
- *  \attention In the scripting language, there exists several prototypes depending on the returned value type.
+ * \attention In the scripting language, there exists several prototypes depending on the returned value type.
  *  For example, you would inherit from a UnaryFunction0DDouble if you wish to define a function that returns a double.
  *  The different existing prototypes are:
  *    - UnaryFunction0DDouble

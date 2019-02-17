@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in nodes
+/** \file
+ * \ingroup freestyle
+ * \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in nodes
  *         of a scene graph
  */
 

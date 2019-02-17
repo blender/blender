@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  *
  * This module exposes a rasterizer that works as a black box - implementation details are confined to this file,
  *

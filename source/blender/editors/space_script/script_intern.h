@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spscript
+/** \file
+ * \ingroup spscript
  */
 
 #ifndef __SCRIPT_INTERN_H__

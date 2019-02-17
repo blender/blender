@@ -20,7 +20,8 @@
 #ifndef __DNA_FREESTYLE_TYPES_H__
 #define __DNA_FREESTYLE_TYPES_H__
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  */
 
 #include "DNA_defs.h"

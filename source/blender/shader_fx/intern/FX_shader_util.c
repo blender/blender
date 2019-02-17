@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup shader_fx
+/** \file
+ * \ingroup shader_fx
  */
 
 

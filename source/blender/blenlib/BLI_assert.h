@@ -17,7 +17,8 @@
 #ifndef __BLI_ASSERT_H__
 #define __BLI_ASSERT_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  * Defines:
  * - #BLI_assert

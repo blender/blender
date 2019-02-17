@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  *
  * This file defines customdata types which can't be accessed as primitive
  * python types such as MDeformVert, MLoopUV, MTexPoly

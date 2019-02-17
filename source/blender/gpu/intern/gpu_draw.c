@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup gpu
+/** \file
+ * \ingroup gpu
  *
  * Utility functions for dealing with OpenGL texture & material context,
  * mipmap generation and light objects.

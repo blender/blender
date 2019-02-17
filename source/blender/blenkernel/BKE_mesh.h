@@ -19,7 +19,8 @@
 #ifndef __BKE_MESH_H__
 #define __BKE_MESH_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 /* defines BLI_INLINE */

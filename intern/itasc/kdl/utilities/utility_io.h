@@ -1,7 +1,7 @@
 /***************************************************************************** 
  *  	Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
- *  \version 
+ * \version 
  *		ORO_Geometry V0.2
  *
  *	\par History
@@ -10,7 +10,7 @@
  *	\par Release
  *		$Name:  $ 
  *
- *  \file   utility_io.h
+ * \file   utility_io.h
  *     Included by most lrl-files to provide some general
  *     functions and macro definitions related to file/stream I/O.
  */

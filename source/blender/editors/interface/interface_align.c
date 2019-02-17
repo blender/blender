@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edinterface
+/** \file
+ * \ingroup edinterface
  */
 
 #include "DNA_screen_types.h"

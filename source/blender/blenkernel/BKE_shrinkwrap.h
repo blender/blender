@@ -19,7 +19,8 @@
 #ifndef __BKE_SHRINKWRAP_H__
 #define __BKE_SHRINKWRAP_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 /* Shrinkwrap stuff */

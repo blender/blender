@@ -17,7 +17,8 @@
 #ifndef __BMESH_QUERY_H__
 #define __BMESH_QUERY_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 bool    BM_vert_in_face(BMVert *v, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

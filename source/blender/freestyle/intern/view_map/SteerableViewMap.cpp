@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup freestyle
- *  \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
+/** \file
+ * \ingroup freestyle
+ * \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
  */
 
 #include <sstream>

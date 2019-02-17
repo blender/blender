@@ -20,7 +20,8 @@
  * BKE_cdderivedmesh.h contains the function prototypes for this file.
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "atomic_ops.h"

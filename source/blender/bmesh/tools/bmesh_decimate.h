@@ -17,7 +17,8 @@
 #ifndef __BMESH_DECIMATE_H__
 #define __BMESH_DECIMATE_H__
 
-/** \file \ingroup bmesh
+/** \file
+ * \ingroup bmesh
  */
 
 void BM_mesh_decimate_collapse(

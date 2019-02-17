@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  */
 
 #include "DNA_customdata_types.h"

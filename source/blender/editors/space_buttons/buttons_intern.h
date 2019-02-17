@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spbuttons
+/** \file
+ * \ingroup spbuttons
  */
 
 #ifndef __BUTTONS_INTERN_H__

@@ -14,8 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup bli
- *  \brief Helper functions for BLI_array_store API.
+/** \file
+ * \ingroup bli
+ * \brief Helper functions for BLI_array_store API.
  */
 
 #include "MEM_guardedalloc.h"

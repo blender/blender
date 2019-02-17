@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_VIEW_MAP_IO_H__
 #define __FREESTYLE_VIEW_MAP_IO_H__
 
-/** \file \ingroup freestyle
- *  \brief Functions to manage I/O for the view map
+/** \file
+ * \ingroup freestyle
+ * \brief Functions to manage I/O for the view map
  */
 
 #include <fstream>

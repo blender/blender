@@ -18,7 +18,8 @@
  * Original author: Benoit Bolsee
  */
 
-/** \file \ingroup ikplugin
+/** \file
+ * \ingroup ikplugin
  */
 
 #include "MEM_guardedalloc.h"

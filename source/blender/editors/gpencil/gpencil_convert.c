@@ -18,7 +18,8 @@
  * Operator for converting Grease Pencil data to geometry
  */
 
-/** \file \ingroup edgpencil
+/** \file
+ * \ingroup edgpencil
  */
 
 

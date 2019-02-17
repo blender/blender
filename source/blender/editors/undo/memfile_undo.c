@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup edundo
+/** \file
+ * \ingroup edundo
  *
  * Wrapper between 'ED_undo.h' and 'BKE_undo_system.h' API's.
  */

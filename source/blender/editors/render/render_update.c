@@ -16,7 +16,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edrend
+/** \file
+ * \ingroup edrend
  */
 
 #include <stdlib.h>

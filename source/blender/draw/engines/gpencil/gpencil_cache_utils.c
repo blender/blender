@@ -16,7 +16,8 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file \ingroup draw
+/** \file
+ * \ingroup draw
  */
 
 #include "DRW_engine.h"

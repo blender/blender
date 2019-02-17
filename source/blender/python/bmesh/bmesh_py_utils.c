@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pybmesh
+/** \file
+ * \ingroup pybmesh
  *
  * This file defines the 'bmesh.utils' module.
  * Utility functions for operating on 'bmesh.types'

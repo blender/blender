@@ -17,8 +17,9 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bli
- *  \brief Jitter offset table
+/** \file
+ * \ingroup bli
+ * \brief Jitter offset table
  */
 
 #include <math.h>

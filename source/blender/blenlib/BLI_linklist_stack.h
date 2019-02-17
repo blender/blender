@@ -20,7 +20,8 @@
 #ifndef __BLI_LINKLIST_STACK_H__
 #define __BLI_LINKLIST_STACK_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  * \brief BLI_LINKSTACK_*** wrapper macros for using a \a LinkNode
  *        to store a stack of pointers, using a single linked list
  *        allocated from a mempool.

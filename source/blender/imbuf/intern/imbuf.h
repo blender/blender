@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup imbuf
+/** \file
+ * \ingroup imbuf
  */
 
 #ifndef __IMBUF_H__

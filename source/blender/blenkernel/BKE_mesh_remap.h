@@ -17,7 +17,8 @@
 #ifndef __BKE_MESH_REMAP_H__
 #define __BKE_MESH_REMAP_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 struct CustomData;

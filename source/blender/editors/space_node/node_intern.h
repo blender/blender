@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spnode
+/** \file
+ * \ingroup spnode
  */
 
 #ifndef __NODE_INTERN_H__

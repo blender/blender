@@ -1,5 +1,5 @@
 /** \file itasc/WorldObject.cpp
- *  \ingroup itasc
+ * \ingroup itasc
  */
 /*
  * WorldObject.cpp

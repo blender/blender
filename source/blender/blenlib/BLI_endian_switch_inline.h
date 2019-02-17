@@ -22,7 +22,8 @@
 #  error "this file isnt to be directly included"
 #endif
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 /* note: using a temp char to switch endian is a lot slower,

@@ -20,7 +20,8 @@
 #ifndef __BLI_UTILDEFINES_H__
 #define __BLI_UTILDEFINES_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

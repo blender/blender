@@ -30,9 +30,10 @@
 #ifndef __FREESTYLE_CURVATURE_H__
 #define __FREESTYLE_CURVATURE_H__
 
-/** \file \ingroup freestyle
- *  \brief GTS - Library for the manipulation of triangulated surfaces
- *  \brief OGF/Graphite: Geometry and Graphics Programming Library + Utilities
+/** \file
+ * \ingroup freestyle
+ * \brief GTS - Library for the manipulation of triangulated surfaces
+ * \brief OGF/Graphite: Geometry and Graphics Programming Library + Utilities
  */
 
 #include "../geometry/Geom.h"

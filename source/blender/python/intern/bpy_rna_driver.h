@@ -17,7 +17,8 @@
 #ifndef __BPY_RNA_DRIVER_H__
 #define __BPY_RNA_DRIVER_H__
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  */
 
 struct ChannelDriver;

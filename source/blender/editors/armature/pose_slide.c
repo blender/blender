@@ -17,7 +17,8 @@
  * This is a new part of Blender
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

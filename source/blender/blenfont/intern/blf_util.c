@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup blf
+/** \file
+ * \ingroup blf
  *
  * Internal utility API for BLF.
  */

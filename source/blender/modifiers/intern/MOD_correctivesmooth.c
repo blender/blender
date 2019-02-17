@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup modifiers
+/** \file
+ * \ingroup modifiers
  *
  * Method of smoothing deformation, also known as 'delta-mush'.
  */

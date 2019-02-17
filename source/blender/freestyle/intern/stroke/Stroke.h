@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_STROKE_H__
 #define __FREESTYLE_STROKE_H__
 
-/** \file \ingroup freestyle
- *  \brief Classes to define a stroke
+/** \file
+ * \ingroup freestyle
+ * \brief Classes to define a stroke
  */
 
 #include <map>

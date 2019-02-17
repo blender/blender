@@ -18,7 +18,8 @@
  * Implements the Sculpt Mode tools
  */
 
-/** \file \ingroup edsculpt
+/** \file
+ * \ingroup edsculpt
  */
 
 #include <stddef.h>

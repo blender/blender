@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup datatoc
+/** \file
+ * \ingroup datatoc
  */
 
 #include <stdio.h>

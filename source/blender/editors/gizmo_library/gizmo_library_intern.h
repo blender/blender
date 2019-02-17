@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup edgizmolib
+/** \file
+ * \ingroup edgizmolib
  */
 
 #ifndef __GIZMO_LIBRARY_INTERN_H__

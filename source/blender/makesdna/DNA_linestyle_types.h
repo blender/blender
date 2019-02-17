@@ -20,7 +20,8 @@
 #ifndef __DNA_LINESTYLE_TYPES_H__
 #define __DNA_LINESTYLE_TYPES_H__
 
-/** \file \ingroup DNA
+/** \file
+ * \ingroup DNA
  */
 
 #include "DNA_listBase.h"

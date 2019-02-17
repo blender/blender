@@ -17,7 +17,8 @@
 #ifndef __BLENDERSTYLEMODULE_H__
 #define __BLENDERSTYLEMODULE_H__
 
-/** \file \ingroup freestyle
+/** \file
+ * \ingroup freestyle
  */
 
 #include "../stroke/StyleModule.h"

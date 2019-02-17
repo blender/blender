@@ -20,7 +20,8 @@
  * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 

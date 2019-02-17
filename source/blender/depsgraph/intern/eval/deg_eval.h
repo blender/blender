@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup depsgraph
+/** \file
+ * \ingroup depsgraph
  *
  * Evaluation engine entrypoints for Depsgraph Engine.
  */

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup pythonintern
+/** \file
+ * \ingroup pythonintern
  */
 
 #ifndef __BPY_APP_ALEMBIC_H__

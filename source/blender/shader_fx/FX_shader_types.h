@@ -14,7 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file \ingroup shader_fx
+/** \file
+ * \ingroup shader_fx
  */
 
 #ifndef __FX_SHADER_TYPES_H__

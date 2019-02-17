@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup bph
+/** \file
+ * \ingroup bph
  */
 
 #ifndef __BPH_MASS_SPRING_H__

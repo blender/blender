@@ -15,7 +15,8 @@
  * Copyright (C) 2018 Blender Foundation.
  */
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  *
  *  Functions to compute Murmur3 hash key.
  *

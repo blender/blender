@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_INTERFACE_1D_H__
 #define __FREESTYLE_INTERFACE_1D_H__
 
-/** \file \ingroup freestyle
- *  \brief Interface 1D and related tools definitions
+/** \file
+ * \ingroup freestyle
+ * \brief Interface 1D and related tools definitions
  */
 
 #include <float.h>
@@ -53,16 +54,16 @@ typedef enum {
 } IntegrationType;
 
 /*! Returns a single value from a set of values evaluated at each 0D element of this 1D element.
- *  \param fun:
+ * \param fun:
  *    The UnaryFunction0D used to compute a value at each Interface0D.
- *  \param it:
+ * \param it:
  *    The Interface0DIterator used to iterate over the 0D elements of this 1D element. The integration will occur
  *    over the 0D elements starting from the one pointed by it.
- *  \param it_end:
+ * \param it_end:
  *    The Interface0DIterator pointing the end of the 0D elements of the 1D element.
- *  \param integration_type:
+ * \param integration_type:
  *    The integration method used to compute a single value from a set of values.
- *  \return the single value obtained for the 1D element.
+ * \return the single value obtained for the 1D element.
  */
 template <class T>
 T integrate(UnaryFunction0D<T>& fun, Interface0DIterator it, Interface0DIterator it_end,

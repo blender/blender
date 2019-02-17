@@ -22,7 +22,8 @@
  * texture coordinates are patched within the displist
  */
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include <stdio.h>

@@ -20,7 +20,8 @@
 #ifndef __BKE_CONTEXT_H__
 #define __BKE_CONTEXT_H__
 
-/** \file \ingroup bke
+/** \file
+ * \ingroup bke
  */
 
 #include "DNA_listBase.h"

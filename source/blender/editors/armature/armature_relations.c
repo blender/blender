@@ -18,7 +18,8 @@
  * Operators for relations between bones and for transferring bones between armature objects
  */
 
-/** \file \ingroup edarmature
+/** \file
+ * \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spoutliner
+/** \file
+ * \ingroup spoutliner
  */
 
 #include "DNA_anim_types.h"

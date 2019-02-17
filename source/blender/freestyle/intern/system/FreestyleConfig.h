@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_CONFIG_H__
 #define __FREESTYLE_CONFIG_H__
 
-/** \file \ingroup freestyle
- *  \brief Configuration definitions
+/** \file
+ * \ingroup freestyle
+ * \brief Configuration definitions
  */
 
 #include <string>

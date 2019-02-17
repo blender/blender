@@ -17,8 +17,9 @@
 #ifndef __FREESTYLE_VIEW_EDGE_X_BUILDER_H__
 #define __FREESTYLE_VIEW_EDGE_X_BUILDER_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to build view edges and the underlying chains of feature edges...
+/** \file
+ * \ingroup freestyle
+ * \brief Class to build view edges and the underlying chains of feature edges...
  */
 
 #include <map>

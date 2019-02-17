@@ -1,4 +1,5 @@
-/** \file \ingroup smoke
+/** \file
+ * \ingroup smoke
  */
 #ifndef JAMA_LU_H
 #define JAMA_LU_H

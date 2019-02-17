@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 
-/** \file \ingroup spaction
+/** \file
+ * \ingroup spaction
  */
 
 #include <string.h>

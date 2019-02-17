@@ -20,7 +20,8 @@
 #ifndef __BLI_LINKLIST_LOCKFREE_H__
 #define __BLI_LINKLIST_LOCKFREE_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

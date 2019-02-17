@@ -17,8 +17,9 @@
 #ifndef __FASTGRID_H__
 #define __FASTGRID_H__
 
-/** \file \ingroup freestyle
- *  \brief Class to define a cell grid surrounding the bounding box of the scene
+/** \file
+ * \ingroup freestyle
+ * \brief Class to define a cell grid surrounding the bounding box of the scene
  */
 
 #include "Grid.h"

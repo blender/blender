@@ -17,7 +17,8 @@
 #ifndef __BLI_UTILDEFINES_VARIADIC_H__
 #define __BLI_UTILDEFINES_VARIADIC_H__
 
-/** \file \ingroup bli
+/** \file
+ * \ingroup bli
  */
 
 /* --- internal helpers --- */
