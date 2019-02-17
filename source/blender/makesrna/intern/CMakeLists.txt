@@ -159,6 +159,7 @@ set(SRC
 	rna_define.c
 	${DEFSRC}
 	${APISRC}
+	../../../../intern/clog/clog.c
 	../../../../intern/guardedalloc/intern/mallocn.c
 	../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
 	../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
@@ -166,7 +167,7 @@ set(SRC
 )
 
 set(INC
-
+    ../../../../intern/clog
 )
 
 set(INC_SYS

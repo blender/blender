@@ -44,11 +44,14 @@
 
 #include "rna_internal.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"rna.define"};
 
 #ifdef DEBUG
 #  define ASSERT_SOFT_HARD_LIMITS \
 	if (softmin < hardmin || softmax > hardmax) { \
-		fprintf(stderr, "Error with soft/hard limits: %s.%s\n", CONTAINER_RNA_ID(cont), identifier); \
+		CLOG_ERROR(&LOG, "error with soft/hard limits: %s.%s", CONTAINER_RNA_ID(cont), identifier); \
 		BLI_assert(!"invalid soft/hard limits"); \
 	} (void)0
 #else
@@ -73,8 +76,8 @@ static struct {
 	if (description && (description)[0]) {                                         \
 		int i = strlen(description);                                               \
 		if (i > 3 && (description)[i - 1] == '.' && (description)[i - 3] != '.') { \
-			fprintf(stderr, "%s: '%s' description from '%s' '%s' ends with a '.' !\n",       \
-			        __func__, description, id1 ? id1 : "", id2 ? id2 : "");                     \
+			CLOG_WARN(&LOG, "'%s' description from '%s' '%s' ends with a '.' !",   \
+			          description, id1 ? id1 : "", id2 ? id2 : "");                \
 		}                                                                          \
 	} (void)0
 
@@ -175,7 +178,7 @@ StructDefRNA *rna_find_struct_def(StructRNA *srna)
 
 	if (!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return NULL;
 	}
 
@@ -194,7 +197,7 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 
 	if (!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return NULL;
 	}
 
@@ -222,7 +225,7 @@ static PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 
 	if (!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return NULL;
 	}
 
@@ -245,7 +248,7 @@ FunctionDefRNA *rna_find_function_def(FunctionRNA *func)
 
 	if (!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return NULL;
 	}
 
@@ -274,7 +277,7 @@ PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm)
 
 	if (!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return NULL;
 	}
 
@@ -308,7 +311,7 @@ static ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
 
 	if (!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return NULL;
 	}
 
@@ -362,7 +365,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 	int a, b, structnr, totmember, cmp;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return 0;
 	}
 
@@ -590,7 +593,7 @@ BlenderRNA *RNA_create(void)
 
 	DefRNA.sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, &error_message);
 	if (DefRNA.sdna == NULL) {
-		fprintf(stderr, "Error decoding SDNA: %s\n", error_message);
+		CLOG_ERROR(&LOG, "Failed to decode SDNA: %s.", error_message);
 		DefRNA.error = 1;
 	}
 
@@ -669,7 +672,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 #if 0
 	if (srna->flag & STRUCT_RUNTIME) {
 		if (RNA_struct_py_type_get(srna)) {
-			fprintf(stderr, "%s '%s' freed while holding a python reference\n", __func__, srna->identifier);
+			fprintf(stderr, "%s '%s' freed while holding a python reference.", srna->identifier);
 		}
 	}
 #endif
@@ -781,7 +784,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 		char error[512];
 
 		if (rna_validate_identifier(identifier, error, false) == 0) {
-			fprintf(stderr, "%s: struct identifier \"%s\" error - %s\n", __func__, identifier, error);
+			CLOG_ERROR(&LOG, "struct identifier \"%s\" error - %s", identifier, error);
 			DefRNA.error = 1;
 		}
 	}
@@ -901,7 +904,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* Inline RNA_struct_find(...) because it wont link from here. */
 		srnafrom = BLI_ghash_lookup(brna->structs_map, from);
 		if (!srnafrom) {
-			fprintf(stderr, "%s: struct %s not found to define %s.\n", __func__, from, identifier);
+			CLOG_ERROR(&LOG, "struct %s not found to define %s.", from, identifier);
 			DefRNA.error = 1;
 		}
 	}
@@ -914,7 +917,7 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 	StructDefRNA *ds;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -925,7 +928,7 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 #if 0
 	if (DNA_struct_find_nr(DefRNA.sdna, structname) == -1) {
 		if (!DefRNA.silent) {
-			fprintf(stderr, "%s: %s not found.\n", __func__, structname);
+			CLOG_ERROR(&LOG, "%s not found.", structname);
 			DefRNA.error = 1;
 		}
 		return;
@@ -940,20 +943,20 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
 	StructDefRNA *ds;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	ds = rna_find_def_struct(srna);
 
 	if (!ds->dnaname) {
-		fprintf(stderr, "%s: %s base struct must know DNA already.\n", __func__, structname);
+		CLOG_ERROR(&LOG, "%s base struct must know DNA already.", structname);
 		return;
 	}
 
 	if (DNA_struct_find_nr(DefRNA.sdna, structname) == -1) {
 		if (!DefRNA.silent) {
-			fprintf(stderr, "%s: %s not found.\n", __func__, structname);
+			CLOG_ERROR(&LOG, "%s not found.", structname);
 			DefRNA.error = 1;
 		}
 		return;
@@ -966,7 +969,7 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
 void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *prop)
 {
 	if (prop->type != PROP_STRING) {
-		fprintf(stderr, "%s: \"%s.%s\", must be a string property.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", must be a string property.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 	}
 	else
@@ -980,7 +983,7 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 	/* find struct to derive from */
 	srnafrom = BLI_ghash_lookup(brna->structs_map, structname);
 	if (!srnafrom) {
-		fprintf(stderr, "%s: struct %s not found for %s.\n", __func__, structname, srna->identifier);
+		CLOG_ERROR(&LOG, "struct %s not found for %s.", structname, srna->identifier);
 		DefRNA.error = 1;
 	}
 
@@ -1005,7 +1008,7 @@ void RNA_def_struct_property_tags(StructRNA *srna, const EnumPropertyItem *prop_
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -1015,7 +1018,7 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -1025,7 +1028,7 @@ void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties)
 void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg, const char *instance)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -1037,7 +1040,7 @@ void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char 
 void RNA_def_struct_path_func(StructRNA *srna, const char *path)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -1047,7 +1050,7 @@ void RNA_def_struct_path_func(StructRNA *srna, const char *path)
 void RNA_def_struct_identifier(BlenderRNA *brna, StructRNA *srna, const char *identifier)
 {
 	if (DefRNA.preprocess) {
-		fprintf(stderr, "%s: only at runtime.\n", __func__);
+		CLOG_ERROR(&LOG, "only at runtime.");
 		return;
 	}
 
@@ -1072,7 +1075,7 @@ void RNA_def_struct_identifier(BlenderRNA *brna, StructRNA *srna, const char *id
 void RNA_def_struct_identifier_no_struct_map(StructRNA *srna, const char *identifier)
 {
 	if (DefRNA.preprocess) {
-		fprintf(stderr, "%s: only at runtime.\n", __func__);
+		CLOG_ERROR(&LOG, "only at runtime.");
 		return;
 	}
 
@@ -1111,7 +1114,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		char error[512];
 
 		if (rna_validate_identifier(identifier, error, true) == 0) {
-			fprintf(stderr, "%s: property identifier \"%s.%s\" - %s\n", __func__,
+			CLOG_ERROR(&LOG, "property identifier \"%s.%s\" - %s",
 			        CONTAINER_RNA_ID(cont), identifier, error);
 			DefRNA.error = 1;
 		}
@@ -1120,7 +1123,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 
 		/* XXX - toto, detect supertype collisions */
 		if (rna_findlink(&dcont->properties, identifier)) {
-			fprintf(stderr, "%s: duplicate identifier \"%s.%s\"\n", __func__, CONTAINER_RNA_ID(cont), identifier);
+			CLOG_ERROR(&LOG, "duplicate identifier \"%s.%s\"", CONTAINER_RNA_ID(cont), identifier);
 			DefRNA.error = 1;
 		}
 
@@ -1131,7 +1134,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 #ifdef DEBUG
 		char error[512];
 		if (rna_validate_identifier(identifier, error, true) == 0) {
-			fprintf(stderr, "%s: runtime property identifier \"%s.%s\" - %s\n", __func__,
+			CLOG_ERROR(&LOG, "runtime property identifier \"%s.%s\" - %s",
 			        CONTAINER_RNA_ID(cont), identifier, error);
 			DefRNA.error = 1;
 		}
@@ -1144,7 +1147,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		case PROP_BOOLEAN:
 			if (DefRNA.preprocess) {
 				if ((subtype & ~(PROP_LAYER_MEMBER)) != PROP_NONE) {
-					fprintf(stderr, "%s: subtype does not apply to 'PROP_BOOLEAN' \"%s.%s\"\n", __func__,
+					CLOG_ERROR(&LOG, "subtype does not apply to 'PROP_BOOLEAN' \"%s.%s\"",
 					        CONTAINER_RNA_ID(cont), identifier);
 					DefRNA.error = 1;
 				}
@@ -1156,7 +1159,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 
 #ifndef RNA_RUNTIME
 			if (subtype == PROP_DISTANCE) {
-				fprintf(stderr, "%s: subtype does not apply to 'PROP_INT' \"%s.%s\"\n", __func__,
+				CLOG_ERROR(&LOG, "subtype does not apply to 'PROP_INT' \"%s.%s\"",
 				        CONTAINER_RNA_ID(cont), identifier);
 				DefRNA.error = 1;
 			}
@@ -1208,7 +1211,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		case PROP_COLLECTION:
 			break;
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", invalid property type.\n", __func__, CONTAINER_RNA_ID(cont), identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", invalid property type.", CONTAINER_RNA_ID(cont), identifier);
 			DefRNA.error = 1;
 			return NULL;
 	}
@@ -1369,22 +1372,22 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (length < 0) {
-		fprintf(stderr, "%s: \"%s.%s\", array length must be zero of greater.\n", __func__,
+		CLOG_ERROR(&LOG, "\"%s.%s\", array length must be zero of greater.",
 		        srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
 
 	if (length > RNA_MAX_ARRAY_LENGTH) {
-		fprintf(stderr, "%s: \"%s.%s\", array length must be smaller than %d.\n", __func__,
+		CLOG_ERROR(&LOG, "\"%s.%s\", array length must be smaller than %d.",
 		        srna->identifier, prop->identifier, RNA_MAX_ARRAY_LENGTH);
 		DefRNA.error = 1;
 		return;
 	}
 
 	if (prop->arraydimension > 1) {
-		fprintf(stderr, "%s: \"%s.%s\", array dimensions has been set to %u but would be overwritten as 1.\n",
-		        __func__, srna->identifier, prop->identifier, prop->arraydimension);
+		CLOG_ERROR(&LOG, "\"%s.%s\", array dimensions has been set to %u but would be overwritten as 1.",
+		           srna->identifier, prop->identifier, prop->arraydimension);
 		DefRNA.error = 1;
 		return;
 	}
@@ -1398,8 +1401,8 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 			prop->arraydimension = 1;
 			break;
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", only boolean/int/float can be array.\n",
-			        __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", only boolean/int/float can be array.",
+			           srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1416,8 +1419,8 @@ void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int le
 	int i;
 
 	if (dimension < 1 || dimension > RNA_MAX_ARRAY_DIMENSION) {
-		fprintf(stderr, "%s: \"%s.%s\", array dimension must be between 1 and %d.\n",
-		        __func__, srna->identifier, prop->identifier, RNA_MAX_ARRAY_DIMENSION);
+		CLOG_ERROR(&LOG, "\"%s.%s\", array dimension must be between 1 and %d.",
+		           srna->identifier, prop->identifier, RNA_MAX_ARRAY_DIMENSION);
 		DefRNA.error = 1;
 		return;
 	}
@@ -1428,8 +1431,8 @@ void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int le
 		case PROP_FLOAT:
 			break;
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", only boolean/int/float can be array.\n",
-			        __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", only boolean/int/float can be array.",
+			           srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1484,20 +1487,20 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 
 #ifndef NDEBUG
 	if (min > max) {
-		fprintf(stderr, "%s: \"%s.%s\", min > max.\n",
-		        __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", min > max.",
+		           srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 	}
 
 	if (step < 0 || step > 100) {
-		fprintf(stderr, "%s: \"%s.%s\", step outside range.\n",
-		        __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", step outside range.",
+		           srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 	}
 
 	if (precision < -1 || precision > UI_PRECISION_FLOAT_MAX) {
-		fprintf(stderr, "%s: \"%s.%s\", precision outside range.\n",
-		        __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", precision outside range.",
+		           srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 	}
 #endif
@@ -1521,8 +1524,8 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", invalid type for ui range.\n",
-			        __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", invalid type for ui range.",
+			           srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1534,8 +1537,8 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 
 #ifdef DEBUG
 	if (min > max) {
-		fprintf(stderr, "%s: \"%s.%s\", min > max.\n",
-		        __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", min > max.",
+		           srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 	}
 #endif
@@ -1560,7 +1563,7 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", invalid type for range.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", invalid type for range.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1571,7 +1574,7 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s \"%s.%s\": only during preprocessing.\n", __func__, srna->identifier, prop->identifier);
+		fprintf(stderr, "\"%s.%s\": only during preprocessing.", srna->identifier, prop->identifier);
 		return;
 	}
 
@@ -1589,8 +1592,8 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", invalid type for struct type.\n",
-			        __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", invalid type for struct type.",
+			           srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1601,7 +1604,7 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (DefRNA.preprocess) {
-		fprintf(stderr, "%s: only at runtime.\n", __func__);
+		CLOG_ERROR(&LOG, "only at runtime.");
 		return;
 	}
 
@@ -1623,8 +1626,8 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", invalid type for struct type.\n",
-			        __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", invalid type for struct type.",
+			           srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1660,8 +1663,8 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", invalid type for struct type.\n",
-			        __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", invalid type for struct type.",
+			           srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1679,7 +1682,7 @@ void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not string.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not string.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1698,7 +1701,7 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, bool value)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not boolean.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not boolean.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1716,7 +1719,7 @@ void RNA_def_property_boolean_array_default(PropertyRNA *prop, const bool *array
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not boolean.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not boolean.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1734,7 +1737,7 @@ void RNA_def_property_int_default(PropertyRNA *prop, int value)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not int.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not int.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1752,7 +1755,7 @@ void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not int.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not int.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1770,7 +1773,7 @@ void RNA_def_property_float_default(PropertyRNA *prop, float value)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not float.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not float.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1788,7 +1791,7 @@ void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not float.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not float.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1804,13 +1807,13 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 
 			if (value == NULL) {
-				fprintf(stderr, "%s: \"%s.%s\", NULL string passed (dont call in this case).\n", __func__, srna->identifier, prop->identifier);
+				CLOG_ERROR(&LOG, "\"%s.%s\", NULL string passed (dont call in this case).", srna->identifier, prop->identifier);
 				DefRNA.error = 1;
 				break;
 			}
 
 			if (!value[0]) {
-				fprintf(stderr, "%s: \"%s.%s\", empty string passed (dont call in this case).\n", __func__, srna->identifier, prop->identifier);
+				CLOG_ERROR(&LOG, "\"%s.%s\", empty string passed (dont call in this case).", srna->identifier, prop->identifier);
 				DefRNA.error = 1;
 				// BLI_assert(0);
 				break;
@@ -1820,7 +1823,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not string.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not string.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1847,8 +1850,8 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 				}
 
 				if (eprop->defaultvalue & ~totflag) {
-					fprintf(stderr, "%s: \"%s.%s\", default includes unused bits (%d).\n",
-					        __func__, srna->identifier, prop->identifier, eprop->defaultvalue & ~totflag);
+					CLOG_ERROR(&LOG, "\"%s.%s\", default includes unused bits (%d).",
+					           srna->identifier, prop->identifier, eprop->defaultvalue & ~totflag);
 					DefRNA.error = 1;
 				}
 			}
@@ -1863,8 +1866,8 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 						eprop->defaultvalue = eprop->item[0].value;
 					}
 					else {
-						fprintf(stderr, "%s: \"%s.%s\", default is not in items.\n",
-						        __func__, srna->identifier, prop->identifier);
+						CLOG_ERROR(&LOG, "\"%s.%s\", default is not in items.",
+						           srna->identifier, prop->identifier);
 						DefRNA.error = 1;
 					}
 				}
@@ -1873,7 +1876,7 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not enum.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not enum.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -1912,8 +1915,8 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 			return dp;
 		}
 		else {
-			fprintf(stderr, "%s: \"%s.%s\" (identifier \"%s\") not found. Struct must be in DNA.\n",
-			        __func__, structname, propname, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\" (identifier \"%s\") not found. Struct must be in DNA.",
+			           structname, propname, prop->identifier);
 			DefRNA.error = 1;
 			return NULL;
 		}
@@ -1946,12 +1949,12 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, co
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_BOOLEAN) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not boolean.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not boolean.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -1961,8 +1964,8 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, co
 		if (DefRNA.silent == 0) {
 			/* error check to ensure floats are not wrapped as ints/bools */
 			if (dp->dnatype && *dp->dnatype && IS_DNATYPE_INT_COMPAT(dp->dnatype) == 0) {
-				fprintf(stderr, "%s: %s.%s is a '%s' but wrapped as type '%s'.\n",
-				        __func__, srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
+				CLOG_ERROR(&LOG, "%s.%s is a '%s' but wrapped as type '%s'.",
+				           srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
 				DefRNA.error = 1;
 				return;
 			}
@@ -1992,12 +1995,12 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_INT) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not int.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not int.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -2007,8 +2010,8 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 		/* error check to ensure floats are not wrapped as ints/bools */
 		if (DefRNA.silent == 0) {
 			if (dp->dnatype && *dp->dnatype && IS_DNATYPE_INT_COMPAT(dp->dnatype) == 0) {
-				fprintf(stderr, "%s: %s.%s is a '%s' but wrapped as type '%s'.\n",
-				        __func__, srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
+				CLOG_ERROR(&LOG, "%s.%s is a '%s' but wrapped as type '%s'.",
+				           srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
 				DefRNA.error = 1;
 				return;
 			}
@@ -2043,12 +2046,12 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_FLOAT) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not float.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not float.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -2058,8 +2061,8 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 		if (DefRNA.silent == 0) {
 			if (dp->dnatype && *dp->dnatype && IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0) {
 				if (prop->subtype != PROP_COLOR_GAMMA) { /* colors are an exception. these get translated */
-					fprintf(stderr, "%s: %s.%s is a '%s' but wrapped as type '%s'.\n",
-					        __func__, srna->identifier, prop->identifier, dp->dnatype,
+					CLOG_ERROR(&LOG, "%s.%s is a '%s' but wrapped as type '%s'.",
+					           srna->identifier, prop->identifier, dp->dnatype,
 					        RNA_property_typename(prop->type));
 					DefRNA.error = 1;
 					return;
@@ -2082,12 +2085,12 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_ENUM) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not enum.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not enum.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -2098,8 +2101,8 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 			prop->totarraylength = 0;
 
 			if (!DefRNA.silent) {
-				fprintf(stderr, "%s: \"%s.%s\", array not supported for enum type.\n",
-				        __func__, structname, propname);
+				CLOG_ERROR(&LOG, "\"%s.%s\", array not supported for enum type.",
+				           structname, propname);
 				DefRNA.error = 1;
 			}
 		}
@@ -2125,12 +2128,12 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_STRING) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not string.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not string.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -2150,12 +2153,12 @@ void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, co
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_POINTER) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not pointer.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not pointer.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -2166,8 +2169,8 @@ void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, co
 			prop->totarraylength = 0;
 
 			if (!DefRNA.silent) {
-				fprintf(stderr, "%s: \"%s.%s\", array not supported for pointer type.\n",
-				        __func__, structname, propname);
+				CLOG_ERROR(&LOG, "\"%s.%s\", array not supported for pointer type.",
+				           structname, propname);
 				DefRNA.error = 1;
 			}
 		}
@@ -2182,12 +2185,12 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (prop->type != PROP_COLLECTION) {
-		fprintf(stderr, "%s: \"%s.%s\", type is not collection.\n", __func__, srna->identifier, prop->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", type is not collection.", srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 		return;
 	}
@@ -2198,8 +2201,8 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			prop->totarraylength = 0;
 
 			if (!DefRNA.silent) {
-				fprintf(stderr, "%s: \"%s.%s\", array of collections not supported.\n",
-				        __func__, structname, propname);
+				CLOG_ERROR(&LOG, "\"%s.%s\", array of collections not supported.",
+				           structname, propname);
 				DefRNA.error = 1;
 			}
 		}
@@ -2240,7 +2243,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 		}
 		else {
 			if (!DefRNA.silent) {
-				fprintf(stderr, "%s: \"%s.%s\" not found.\n", __func__, structname, lengthpropname);
+				CLOG_ERROR(&LOG, "\"%s.%s\" not found.", structname, lengthpropname);
 				DefRNA.error = 1;
 			}
 		}
@@ -2257,7 +2260,7 @@ void RNA_def_property_translation_context(PropertyRNA *prop, const char *context
 void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2267,7 +2270,7 @@ void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable)
 void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editable)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2282,7 +2285,7 @@ void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editabl
 void RNA_def_property_override_funcs(PropertyRNA *prop, const char *diff, const char *store, const char *apply)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2300,7 +2303,7 @@ void RNA_def_property_override_funcs(PropertyRNA *prop, const char *diff, const 
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2319,19 +2322,19 @@ void RNA_def_property_poll_runtime(PropertyRNA *prop, const void *func)
 		((PointerPropertyRNA *)prop)->poll = (void *)func;
 	}
 	else {
-		fprintf(stderr, "%s: %s is not a Pointer Property.\n", __func__, prop->identifier);
+		CLOG_ERROR(&LOG, "%s is not a Pointer Property.", prop->identifier);
 	}
 }
 
 void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength)
 {
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
 	if (!(prop->flag & PROP_DYNAMIC)) {
-		fprintf(stderr, "%s: property is a not dynamic array.\n", __func__);
+		CLOG_ERROR(&LOG, "property is a not dynamic array.");
 		DefRNA.error = 1;
 		return;
 	}
@@ -2344,7 +2347,7 @@ void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const ch
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2364,7 +2367,7 @@ void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const ch
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not boolean.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not boolean.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2407,7 +2410,7 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2428,7 +2431,7 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not int.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not int.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2473,7 +2476,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2494,7 +2497,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not float.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not float.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2539,7 +2542,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2554,7 +2557,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not enum.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not enum.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2588,7 +2591,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2603,7 +2606,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not string.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not string.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2632,7 +2635,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2648,7 +2651,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not pointer.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not pointer.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2661,7 +2664,7 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 	StructRNA *srna = DefRNA.laststruct;
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return;
 	}
 
@@ -2681,7 +2684,7 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 			break;
 		}
 		default:
-			fprintf(stderr, "%s: \"%s.%s\", type is not collection.\n", __func__, srna->identifier, prop->identifier);
+			CLOG_ERROR(&LOG, "\"%s.%s\", type is not collection.", srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
 	}
@@ -2895,7 +2898,7 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, co
 	PropertyRNA *prop;
 
 	if (!items) {
-		printf("%s: items not allowed to be NULL.\n", __func__);
+		CLOG_ERROR(&LOG, "items not allowed to be NULL.");
 		return NULL;
 	}
 
@@ -2915,7 +2918,7 @@ PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont_, const char *identifie
 	PropertyRNA *prop;
 
 	if (!items) {
-		printf("%s: items not allowed to be NULL.\n", __func__);
+		CLOG_ERROR(&LOG, "items not allowed to be NULL.");
 		return NULL;
 	}
 
@@ -3183,7 +3186,7 @@ static FunctionRNA *rna_def_function(StructRNA *srna, const char *identifier)
 		char error[512];
 
 		if (rna_validate_identifier(identifier, error, false) == 0) {
-			fprintf(stderr, "%s: function identifier \"%s\" - %s\n", __func__, identifier, error);
+			CLOG_ERROR(&LOG, "function identifier \"%s\" - %s", identifier, error);
 			DefRNA.error = 1;
 		}
 	}
@@ -3212,14 +3215,14 @@ FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const cha
 	FunctionDefRNA *dfunc;
 
 	if (BLI_findstring_ptr(&srna->functions, identifier, offsetof(FunctionRNA, identifier))) {
-		fprintf(stderr, "%s: %s.%s already defined.\n", __func__, srna->identifier, identifier);
+		CLOG_ERROR(&LOG, "%s.%s already defined.", srna->identifier, identifier);
 		return NULL;
 	}
 
 	func = rna_def_function(srna, identifier);
 
 	if (!DefRNA.preprocess) {
-		fprintf(stderr, "%s: only at preprocess time.\n", __func__);
+		CLOG_ERROR(&LOG, "only at preprocess time.");
 		return func;
 	}
 
@@ -3236,7 +3239,7 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 	func = rna_def_function(srna, identifier);
 
 	if (DefRNA.preprocess) {
-		fprintf(stderr, "%s: only at runtime.\n", __func__);
+		CLOG_ERROR(&LOG, "only at runtime.");
 		return func;
 	}
 
@@ -3250,13 +3253,13 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 {
 	if (ret->flag & PROP_DYNAMIC) {
-		fprintf(stderr, "%s: \"%s.%s\", dynamic values are not allowed as strict returns, "
-		        "use RNA_def_function_output instead.\n", __func__, func->identifier, ret->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", dynamic values are not allowed as strict returns, "
+		        "use RNA_def_function_output instead.", func->identifier, ret->identifier);
 		return;
 	}
 	else if (ret->arraydimension) {
-		fprintf(stderr, "%s: \"%s.%s\", arrays are not allowed as strict returns, "
-		        "use RNA_def_function_output instead.\n", __func__, func->identifier, ret->identifier);
+		CLOG_ERROR(&LOG, "\"%s.%s\", arrays are not allowed as strict returns, "
+		        "use RNA_def_function_output instead.", func->identifier, ret->identifier);
 		return;
 	}
 
