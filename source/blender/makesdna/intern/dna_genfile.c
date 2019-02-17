@@ -384,34 +384,8 @@ static bool init_structDNA(
 
 		cp = (char *)data;
 		for (int nr = 0; nr < sdna->nr_types; nr++) {
-			sdna->types[nr] = cp;
-
-			/* ------------------------------------------------------------- */
-			/* WARNING!
-			 *
-			 * The renaming here isn't complete, references to the old struct names
-			 * are still included in DNA, now fixing these struct names properly
-			 * breaks forward compatibility. Leave these as-is, but don't add to them!
-			 * See D4342#98780 */
-
-			/* this is a patch, to change struct names without a conflict with SDNA */
-			/* be careful to use it, in this case for a system-struct (opengl/X) */
-
-			/* struct Screen was already used by X,
-			 * 'bScreen' replaces the old IrisGL 'Screen' struct */
-			if (strcmp("bScreen", cp) == 0) {
-				sdna->types[nr] = cp + 1;
-			}
-			/* Groups renamed to collections in 2.8 */
-			else if (strcmp("Collection", cp) == 0) {
-				sdna->types[nr] = "Group";
-			}
-			else if (strcmp("CollectionObject", cp) == 0) {
-				sdna->types[nr] = "GroupObject";
-			}
-			/* END WARNING */
-			/* ------------------------------------------------------------- */
-
+			/* WARNING! See: DNA_struct_rename_legacy_hack_static_from_alias docs. */
+			sdna->types[nr] = DNA_struct_rename_legacy_hack_static_from_alias(cp);
 			while (*cp) cp++;
 			cp++;
 		}
@@ -1530,6 +1504,9 @@ static const char *dna_sdna_alias_alias_from_static_elem_full(
 
 void DNA_sdna_alias_data_ensure(SDNA *sdna)
 {
+	/* We may want this to be optional later. */
+	const bool use_legacy_hack = true;
+
 	if (sdna->mem_arena == NULL) {
 		sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 	}
@@ -1546,9 +1523,14 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
 	if (sdna->alias.types == NULL) {
 		sdna->alias.types = MEM_mallocN(sizeof(*sdna->alias.types) * sdna->nr_types, __func__);
 		for (int type_nr = 0; type_nr < sdna->nr_types; type_nr++) {
-			const char *str = sdna->types[type_nr];
+			const char *struct_name_static = sdna->types[type_nr];
+
+			if (use_legacy_hack) {
+				struct_name_static = DNA_struct_rename_legacy_hack_alias_from_static(struct_name_static);
+			}
+
 			sdna->alias.types[type_nr] = BLI_ghash_lookup_default(
-			        struct_map_alias_from_static, str, (void *)str);
+			        struct_map_alias_from_static, struct_name_static, (void *)struct_name_static);
 		}
 	}
 
@@ -1558,6 +1540,11 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
 		for (int struct_nr = 0; struct_nr < sdna->nr_structs; struct_nr++) {
 			const short *sp = sdna->structs[struct_nr];
 			const char *struct_name_static = sdna->types[sp[0]];
+
+			if (use_legacy_hack) {
+				struct_name_static = DNA_struct_rename_legacy_hack_alias_from_static(struct_name_static);
+			}
+
 			const int dna_struct_names_len = sp[1];
 			sp += 2;
 			for (int a = 0; a < dna_struct_names_len; a++, sp += 2) {

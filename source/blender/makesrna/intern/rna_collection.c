@@ -303,8 +303,6 @@ void RNA_def_collections(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Collection", "ID");
-	/* XXX: CAN WE RENAME TO Collection? */
-	RNA_def_struct_sdna(srna, "Group"); /* it is actually Collection but for 2.8 the dna is patched! */
 	RNA_def_struct_ui_text(srna, "Collection", "Collection of Object data-blocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 	/* this is done on save/load in readfile.c, removed if no objects are in the collection and not in a scene */

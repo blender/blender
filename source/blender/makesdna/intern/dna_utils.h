@@ -50,4 +50,7 @@ void DNA_alias_maps(
         enum eDNA_RenameDir version_dir,
         struct GHash **r_struct_map, struct GHash **r_elem_map);
 
+const char *DNA_struct_rename_legacy_hack_alias_from_static(const char *name);
+const char *DNA_struct_rename_legacy_hack_static_from_alias(const char *name);
+
 #endif /* __DNA_UTILS_H__ */

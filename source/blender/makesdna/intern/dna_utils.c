@@ -281,3 +281,52 @@ void DNA_alias_maps(
 #undef DNA_MAKESDNA
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Struct Name Legacy Hack
+ * \{ */
+
+/**
+ * DNA Compatibility Hack
+ * ======================
+ *
+ * Only keep this for compatibility: **NEVER ADD NEW STRINGS HERE**.
+ *
+ * The renaming here isn't complete, references to the old struct names
+ * are still included in DNA, now fixing these struct names properly
+ * breaks forward compatibility. Leave these as-is, but don't add to them!
+ * See D4342#98780
+ */
+const char *DNA_struct_rename_legacy_hack_static_from_alias(const char *name)
+{
+	/* 'bScreen' replaces the old IrisGL 'Screen' struct */
+	if (STREQ("bScreen", name)) {
+		return "Screen";
+	}
+	/* Groups renamed to collections in 2.8 */
+	if (STREQ("Collection", name)) {
+		return "Group";
+	}
+	if (STREQ("CollectionObject", name)) {
+		return "GroupObject";
+	}
+	return name;
+}
+
+const char *DNA_struct_rename_legacy_hack_alias_from_static(const char *name)
+{
+	/* 'bScreen' replaces the old IrisGL 'Screen' struct */
+	if (STREQ("Screen", name)) {
+		return "bScreen";
+	}
+	/* Groups renamed to collections in 2.8 */
+	if (STREQ("Group", name)) {
+		return "Collection";
+	}
+	if (STREQ("GroupObject", name)) {
+		return "CollectionObject";
+	}
+	return name;
+}
+
+/** \} */

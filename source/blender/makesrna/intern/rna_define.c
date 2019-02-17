@@ -172,6 +172,20 @@ static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 }
 #endif
 
+
+static int DNA_struct_find_nr_wrapper(const struct SDNA *sdna, const char *struct_name)
+{
+	struct_name = DNA_struct_rename_legacy_hack_static_from_alias(struct_name);
+#ifdef RNA_RUNTIME
+	/* We may support this at some point but for now we don't. */
+	BLI_assert(0);
+#else
+	struct_name = BLI_ghash_lookup_default(
+	        g_version_data.struct_map_static_from_alias, struct_name, (void *)struct_name);
+#endif
+	return DNA_struct_find_nr(sdna, struct_name);
+}
+
 StructDefRNA *rna_find_struct_def(StructRNA *srna)
 {
 	StructDefRNA *dsrna;
@@ -368,18 +382,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 		CLOG_ERROR(&LOG, "only during preprocessing.");
 		return 0;
 	}
-
-#ifndef RNA_RUNTIME
-	{
-		const char *structname_maybe_static = BLI_ghash_lookup_default(
-		        g_version_data.struct_map_static_from_alias, structname, (void *)structname);
-		structnr = DNA_struct_find_nr(sdna, structname_maybe_static);
-	}
-#else
-	/* Quiet warning only, this is only for the proprocessor. */
-	BLI_assert(0);
-	structnr = -1;
-#endif
+	structnr = DNA_struct_find_nr_wrapper(sdna, structname);
 
 	if (structnr == -1)
 		return 0;
@@ -926,7 +929,7 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 	/* there are far too many structs which initialize without valid DNA struct names,
 	 * this can't be checked without adding an option to disable (tested this and it means changes all over - Campbell) */
 #if 0
-	if (DNA_struct_find_nr(DefRNA.sdna, structname) == -1) {
+	if (DNA_struct_find_nr_wrapper(DefRNA.sdna, structname) == -1) {
 		if (!DefRNA.silent) {
 			CLOG_ERROR(&LOG, "%s not found.", structname);
 			DefRNA.error = 1;
@@ -954,7 +957,7 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
 		return;
 	}
 
-	if (DNA_struct_find_nr(DefRNA.sdna, structname) == -1) {
+	if (DNA_struct_find_nr_wrapper(DefRNA.sdna, structname) == -1) {
 		if (!DefRNA.silent) {
 			CLOG_ERROR(&LOG, "%s not found.", structname);
 			DefRNA.error = 1;
