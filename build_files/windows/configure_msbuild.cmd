@@ -9,7 +9,7 @@ if "%BUILD_ARCH%"=="x64" (
 )
 
 if "%WITH_CLANG%"=="1" (
-	set CLANG_CMAKE_ARGS=-T"LLVM-vs2017"
+	set CLANG_CMAKE_ARGS=-T"llvm"
 	if "%WITH_ASAN%"=="1" (
 		set ASAN_CMAKE_ARGS=-DWITH_COMPILER_ASAN=On
 	)

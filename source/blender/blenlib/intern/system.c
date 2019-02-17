@@ -28,6 +28,7 @@
 
 /* for backtrace and gethostname/GetComputerName */
 #if defined(WIN32)
+#  include <intrin.h>
 #  include <windows.h>
 #  include <dbghelp.h>
 #else
