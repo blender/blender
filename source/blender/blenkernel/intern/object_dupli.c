@@ -276,7 +276,7 @@ static void make_duplis_collection(const DupliContext *ctx)
 
 	/* combine collection offset and obmat */
 	unit_m4(collection_mat);
-	sub_v3_v3(collection_mat[3], collection->dupli_ofs);
+	sub_v3_v3(collection_mat[3], collection->instance_offset);
 	mul_m4_m4m4(collection_mat, ob->obmat, collection_mat);
 	/* don't access 'ob->obmat' from now on. */
 
@@ -943,8 +943,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					mul_v3_fl(tmat[3], size * scale);
 
 					/* collection dupli offset, should apply after everything else */
-					if (!is_zero_v3(part->instance_collection->dupli_ofs)) {
-						sub_v3_v3(tmat[3], part->instance_collection->dupli_ofs);
+					if (!is_zero_v3(part->instance_collection->instance_offset)) {
+						sub_v3_v3(tmat[3], part->instance_collection->instance_offset);
 					}
 
 					/* individual particle transform */

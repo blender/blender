@@ -309,7 +309,6 @@ void RNA_def_collections(BlenderRNA *brna)
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
 	prop = RNA_def_property(srna, "instance_offset", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
 	RNA_def_property_ui_text(prop, "Instance Offset", "Offset from the origin to use when instancing");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);

@@ -44,7 +44,7 @@
  *   Compare the results before & after to ensure all changes are reversed by renaming
  *   and the DNA remains unchanged.
  *
- * \see versioning_dna.c for a actual version patching.
+ * \see versioning_dna.c for actual version patching.
  */
 
 /* No include guard (intentional). */
@@ -57,6 +57,7 @@ DNA_STRUCT_RENAME(SpaceOops, SpaceOutliner)
 DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
 DNA_STRUCT_RENAME_ELEM(Camera, clipend, clip_end)
 DNA_STRUCT_RENAME_ELEM(Camera, clipsta, clip_start)
+DNA_STRUCT_RENAME_ELEM(Collection, dupli_ofs, instance_offset)
 DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
 DNA_STRUCT_RENAME_ELEM(Object, dupfacesca, instance_faces_scale)
 DNA_STRUCT_RENAME_ELEM(ParticleSettings, dup_group, instance_collection)

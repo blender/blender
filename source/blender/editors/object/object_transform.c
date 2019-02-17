@@ -944,7 +944,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							mul_m4_v3(ob->imat, cent);
 						}
 
-						add_v3_v3(ob->instance_collection->dupli_ofs, cent);
+						add_v3_v3(ob->instance_collection->instance_offset, cent);
 
 						tot_change++;
 						ob->instance_collection->id.tag |= LIB_TAG_DOIT;
