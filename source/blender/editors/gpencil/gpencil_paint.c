@@ -2077,11 +2077,13 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 	if (p->gpl == NULL) {
 		p->gpl = BKE_gpencil_layer_addnew(p->gpd, DATA_("GP_Layer"), true);
 
-		if (p->custom_color[3])
+		if (p->custom_color[3]) {
 			copy_v3_v3(p->gpl->color, p->custom_color);
+		}
 	}
 	if ((paintmode != GP_PAINTMODE_ERASER) &&
-		(p->gpl->flag & GP_LAYER_LOCKED)) {
+	    (p->gpl->flag & GP_LAYER_LOCKED))
+	{
 		p->status = GP_STATUS_ERROR;
 		if (G.debug & G_DEBUG)
 			printf("Error: Cannot paint on locked layer\n");

@@ -88,7 +88,7 @@ public:
 			        const bPoseChannel *, pchan, &object->pose->chanbase)
 			{
 				LISTBASE_FOREACH (
-				        const bConstraint *, constraint, &pchan->constraints) 
+				        const bConstraint *, constraint, &pchan->constraints)
 				{
 					BLI_ghash_insert(contraint_to_pchan_map_,
 					                 const_cast<bConstraint *>(constraint),
@@ -109,7 +109,7 @@ protected:
 
 /* ***************************** Node Identifier **************************** */
 
-RNANodeIdentifier::RNANodeIdentifier() 
+RNANodeIdentifier::RNANodeIdentifier()
         : id(NULL),
           type(NodeType::UNDEFINED),
           component_name(""),
@@ -143,7 +143,8 @@ RNANodeQuery::RNANodeQuery(Depsgraph *depsgraph)
 {
 }
 
-RNANodeQuery::~RNANodeQuery() {
+RNANodeQuery::~RNANodeQuery()
+{
 	BLI_ghash_free(id_data_map_, NULL, ghash_id_data_free_func);
 }
 

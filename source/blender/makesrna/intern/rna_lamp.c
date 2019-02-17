@@ -186,7 +186,7 @@ static void rna_def_light_energy(StructRNA *srna, bool distant)
 {
 	PropertyRNA *prop;
 
-	if(distant) {
+	if (distant) {
 		/* Distant light strength has no unit defined, it's proportional to
 		 * Watt/m^2 and is not sensitive to scene unit scale. */
 		prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
