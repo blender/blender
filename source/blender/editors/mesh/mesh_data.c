@@ -57,7 +57,7 @@
 static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)
 {
 	CustomData *data;
-	BMesh *bm = (me->edit_btmesh) ? me->edit_btmesh->bm : NULL;
+	BMesh *bm = (me->edit_mesh) ? me->edit_mesh->bm : NULL;
 	int tot;
 
 	/* this  */
@@ -113,7 +113,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
 	return data;
 }
 
-#define GET_CD_DATA(me, data) ((me)->edit_btmesh ? &(me)->edit_btmesh->bm->data : &(me)->data)
+#define GET_CD_DATA(me, data) ((me)->edit_mesh ? &(me)->edit_mesh->bm->data : &(me)->data)
 static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 {
 	const int type = layer->type;
@@ -125,8 +125,8 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 	n = (layer - &data->layers[layer_index]);
 	BLI_assert(n >= 0 && (n + layer_index) < data->totlayer);
 
-	if (me->edit_btmesh) {
-		BM_data_layer_free_n(me->edit_btmesh->bm, data, type, n);
+	if (me->edit_mesh) {
+		BM_data_layer_free_n(me->edit_mesh->bm, data, type, n);
 	}
 	else {
 		CustomData_free_layer(data, type, tot, layer_index + n);
@@ -204,7 +204,7 @@ static void mesh_uv_reset_mface(MPoly *mp, MLoopUV *mloopuv)
 /* without bContext, called in uvedit */
 void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 {
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 
 	if (em) {
 		/* Collect BMesh UVs */
@@ -256,8 +256,8 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 
 	bool is_init = false;
 
-	if (me->edit_btmesh) {
-		em = me->edit_btmesh;
+	if (me->edit_mesh) {
+		em = me->edit_mesh;
 
 		layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
 		if (layernum_dst >= MAX_MTFACE)
@@ -315,8 +315,8 @@ void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name)
 	BMEditMesh *em;
 	int layernum_dst;
 
-	if (me->edit_btmesh) {
-		em = me->edit_btmesh;
+	if (me->edit_mesh) {
+		em = me->edit_mesh;
 
 		layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
 		if (layernum_dst == 0)
@@ -381,8 +381,8 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 	BMEditMesh *em;
 	int layernum;
 
-	if (me->edit_btmesh) {
-		em = me->edit_btmesh;
+	if (me->edit_mesh) {
+		em = me->edit_mesh;
 
 		layernum = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
 		if (layernum >= MAX_MCOL) {
@@ -431,7 +431,7 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name)
 {
-	BLI_assert(me->edit_btmesh == NULL);
+	BLI_assert(me->edit_mesh == NULL);
 
 	if (!me->mloopcol && me->totloop) {
 		CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
@@ -625,8 +625,8 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 	BLI_assert(CustomData_layertype_is_singleton(type) == true);
 
 	if (CustomData_has_layer(data, type)) {
-		if (me->edit_btmesh) {
-			BM_data_layer_free(me->edit_btmesh->bm, data, type);
+		if (me->edit_mesh) {
+			BM_data_layer_free(me->edit_mesh->bm, data, type);
 		}
 		else {
 			CustomData_free_layers(data, type, tot);
@@ -783,13 +783,13 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
 	if (!BKE_mesh_has_custom_loop_normals(me)) {
 		CustomData *data = GET_CD_DATA(me, ldata);
 
-		if (me->edit_btmesh) {
+		if (me->edit_mesh) {
 			/* Tag edges as sharp according to smooth threshold if needed, to preserve autosmooth shading. */
 			if (me->flag & ME_AUTOSMOOTH) {
-				BM_edges_sharp_from_angle_set(me->edit_btmesh->bm, me->smoothresh);
+				BM_edges_sharp_from_angle_set(me->edit_mesh->bm, me->smoothresh);
 			}
 
-			BM_data_layer_add(me->edit_btmesh->bm, data, CD_CUSTOMLOOPNORMAL);
+			BM_data_layer_add(me->edit_mesh->bm, data, CD_CUSTOMLOOPNORMAL);
 		}
 		else {
 			/* Tag edges as sharp according to smooth threshold if needed, to preserve autosmooth shading. */
@@ -1088,7 +1088,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
 #if 0
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot add geometry in edit mode");
 		return;
 	}
@@ -1104,7 +1104,7 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 
 void ED_mesh_tessfaces_add(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot add tessfaces in edit mode");
 		return;
 	}
@@ -1119,7 +1119,7 @@ void ED_mesh_tessfaces_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot add edges in edit mode");
 		return;
 	}
@@ -1129,7 +1129,7 @@ void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot add vertices in edit mode");
 		return;
 	}
@@ -1139,7 +1139,7 @@ void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot remove faces in edit mode");
 		return;
 	}
@@ -1153,7 +1153,7 @@ void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot remove edges in edit mode");
 		return;
 	}
@@ -1167,7 +1167,7 @@ void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_vertices_remove(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
 		return;
 	}
@@ -1181,7 +1181,7 @@ void ED_mesh_vertices_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot add loops in edit mode");
 		return;
 	}
@@ -1191,7 +1191,7 @@ void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 {
-	if (mesh->edit_btmesh) {
+	if (mesh->edit_mesh) {
 		BKE_report(reports, RPT_ERROR, "Cannot add polygons in edit mode");
 		return;
 	}
@@ -1201,8 +1201,8 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_calc_tessface(Mesh *mesh, bool free_mpoly)
 {
-	if (mesh->edit_btmesh) {
-		BKE_editmesh_tessface_calc(mesh->edit_btmesh);
+	if (mesh->edit_mesh) {
+		BKE_editmesh_tessface_calc(mesh->edit_mesh);
 	}
 	else {
 		BKE_mesh_tessface_calc(mesh);

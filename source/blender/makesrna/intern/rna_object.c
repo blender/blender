@@ -347,8 +347,8 @@ static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 
 				DEG_id_tag_update(ob->data, 0);
 
-				EDBM_mesh_normals_update(((Mesh *)ob->data)->edit_btmesh);
-				BKE_editmesh_tessface_calc(((Mesh *)ob->data)->edit_btmesh);
+				EDBM_mesh_normals_update(((Mesh *)ob->data)->edit_mesh);
+				BKE_editmesh_tessface_calc(((Mesh *)ob->data)->edit_mesh);
 				break;
 			case OB_CURVE:
 			case OB_SURF:
@@ -789,8 +789,8 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->edit_btmesh)
-			me->edit_btmesh->mat_nr = value;
+		if (me->edit_mesh)
+			me->edit_mesh->mat_nr = value;
 	}
 }
 

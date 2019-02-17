@@ -51,7 +51,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	struct DRWTextStore *dt = DRW_text_cache_ensure();
 	const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | (unit->system ? 0 : DRW_TEXT_CACHE_ASCII);
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
 	char numstr[32]; /* Stores the measurement display text here */
 	size_t numstr_len;

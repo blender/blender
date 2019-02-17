@@ -1453,7 +1453,7 @@ static void prepare_mesh_for_viewport_render(
 		     (mesh->id.recalc & ID_RECALC_ALL)))
 		{
 			if (check_rendered_viewport_visible(bmain)) {
-				BMesh *bm = mesh->edit_btmesh->bm;
+				BMesh *bm = mesh->edit_mesh->bm;
 				BM_mesh_bm_to_me(
 				        bmain, bm, mesh,
 				        (&(struct BMeshToMeshParams){

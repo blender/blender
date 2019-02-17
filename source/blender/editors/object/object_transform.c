@@ -842,7 +842,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	if (obedit) {
 		if (obedit->type == OB_MESH) {
 			Mesh *me = obedit->data;
-			BMEditMesh *em = me->edit_btmesh;
+			BMEditMesh *em = me->edit_mesh;
 			BMVert *eve;
 			BMIter iter;
 

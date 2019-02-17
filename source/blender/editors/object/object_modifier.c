@@ -1485,7 +1485,7 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
 static void modifier_skin_customdata_delete(Object *ob)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 
 	if (em)
 		BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);

@@ -1909,11 +1909,11 @@ static void editbmesh_calc_modifiers(
 	 * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
 	 * but quiets annoying error messages since tessfaces wont be created. */
 	if (dataMask & CD_MASK_MFACE) {
-		if ((*r_final)->edit_btmesh == NULL) {
+		if ((*r_final)->edit_mesh == NULL) {
 			BKE_mesh_tessface_ensure(*r_final);
 		}
 		if (r_cage && *r_cage) {
-			if ((*r_cage)->edit_btmesh == NULL) {
+			if ((*r_cage)->edit_mesh == NULL) {
 				if (*r_cage != *r_final) {
 					BKE_mesh_tessface_ensure(*r_cage);
 				}
@@ -1971,7 +1971,7 @@ static void mesh_finalize_eval(Object *object)
 	/* Make evaluated mesh to share same edit mesh pointer as original
 	 * and copied meshes.
 	 */
-	mesh_eval->edit_btmesh = mesh->edit_btmesh;
+	mesh_eval->edit_mesh = mesh->edit_mesh;
 	/* Copy autosmooth settings from original mesh.
 	 * This is not done by BKE_mesh_new_nomain_from_template(), so need to take
 	 * extra care here.

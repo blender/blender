@@ -407,11 +407,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 
 	if (obedit->type == OB_MESH) {
 		Mesh *me = obedit->data;
-		if (me->edit_btmesh == NULL) {
+		if (me->edit_mesh == NULL) {
 			return false;
 		}
 
-		if (me->edit_btmesh->bm->totvert > MESH_MAX_VERTS) {
+		if (me->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return false;
 		}
@@ -419,9 +419,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		EDBM_mesh_load(bmain, obedit);
 
 		if (freedata) {
-			EDBM_mesh_free(me->edit_btmesh);
-			MEM_freeN(me->edit_btmesh);
-			me->edit_btmesh = NULL;
+			EDBM_mesh_free(me->edit_mesh);
+			MEM_freeN(me->edit_mesh);
+			me->edit_mesh = NULL;
 		}
 		/* will be recalculated as needed. */
 		{

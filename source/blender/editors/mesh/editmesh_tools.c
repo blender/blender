@@ -3067,7 +3067,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		Mesh *me = obedit->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 
 		if (em->bm->totvertsel == 0) {
 			continue;
@@ -3128,7 +3128,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	Mesh *me_ref = obedit_ref->data;
 	Key *key_ref = me_ref->key;
 	KeyBlock *kb_ref = NULL;
-	BMEditMesh *em_ref = me_ref->edit_btmesh;
+	BMEditMesh *em_ref = me_ref->edit_mesh;
 	BMVert *eve;
 	BMIter iter;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3164,7 +3164,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		Mesh *me = obedit->data;
 		Key *key = me->key;
 		KeyBlock *kb = NULL;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 		int shape;
 
 		if (em->bm->totvertsel == 0) {
@@ -3742,7 +3742,7 @@ static Base *mesh_separate_tagged(Main *bmain, Scene *scene, ViewLayer *view_lay
 	BM_mesh_bm_to_me(bmain, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
 
 	BM_mesh_free(bm_new);
-	((Mesh *)base_new->object->data)->edit_btmesh = NULL;
+	((Mesh *)base_new->object->data)->edit_mesh = NULL;
 
 	return base_new;
 }

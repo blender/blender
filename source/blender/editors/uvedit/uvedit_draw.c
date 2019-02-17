@@ -268,7 +268,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 	if (sima->flag & SI_DRAWSHADOW) {
 		bool is_cage_like_final_meshes = false;
 		Mesh *me = (Mesh *)eval_ob->data;
-		BMEditMesh *embm = me->edit_btmesh;
+		BMEditMesh *embm = me->edit_mesh;
 		is_cage_like_final_meshes = embm &&
 		                            embm->mesh_eval_final &&
 		                            embm->mesh_eval_final->runtime.is_original;

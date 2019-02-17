@@ -94,13 +94,13 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 		return NULL;
 	}
 
-	if (me->edit_btmesh == NULL) {
+	if (me->edit_mesh == NULL) {
 		PyErr_SetString(PyExc_ValueError,
 		                "The mesh must be in editmode");
 		return NULL;
 	}
 
-	bm = me->edit_btmesh->bm;
+	bm = me->edit_mesh->bm;
 
 	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
@@ -141,7 +141,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
 		return NULL;
 	}
 
-	if (me->edit_btmesh == NULL) {
+	if (me->edit_mesh == NULL) {
 		PyErr_SetString(PyExc_ValueError,
 		                "The mesh must be in editmode");
 		return NULL;
@@ -150,7 +150,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
 	{
 		extern void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_destructive);
 
-		EDBM_update_generic(me->edit_btmesh, do_loop_triangles, is_destructive);
+		EDBM_update_generic(me->edit_mesh, do_loop_triangles, is_destructive);
 	}
 
 	Py_RETURN_NONE;

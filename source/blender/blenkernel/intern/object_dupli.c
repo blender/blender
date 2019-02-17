@@ -305,7 +305,7 @@ static const DupliGenerator gen_dupli_collection = {
 /* OB_DUPLIVERTS */
 typedef struct VertexDupliData {
 	Mesh *me_eval;
-	BMEditMesh *edit_btmesh;
+	BMEditMesh *edit_mesh;
 	int totvert;
 	float (*orco)[3];
 	bool use_rotation;
@@ -396,14 +396,14 @@ static void make_duplis_verts(const DupliContext *ctx)
 
 	/* gather mesh info */
 	{
-		vdd.edit_btmesh = BKE_editmesh_from_object(parent);
+		vdd.edit_mesh = BKE_editmesh_from_object(parent);
 
 		/* We do not need any render-specific handling anymore, depsgraph takes care of that. */
 		/* NOTE: Do direct access to the evaluated mesh: this function is used
 		 * during meta balls evaluation. But even without those all the objects
 		 * which are needed for correct instancing are already evaluated. */
-		if (vdd.edit_btmesh != NULL) {
-			vdd.me_eval = vdd.edit_btmesh->mesh_eval_cage;
+		if (vdd.edit_mesh != NULL) {
+			vdd.me_eval = vdd.edit_mesh->mesh_eval_cage;
 		}
 		else {
 			vdd.me_eval = parent->runtime.mesh_eval;

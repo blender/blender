@@ -173,8 +173,8 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->edit_btmesh) {
-			BMEditMesh *em = me->edit_btmesh;
+		if (me->edit_mesh) {
+			BMEditMesh *em = me->edit_mesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
 			if (cd_dvert_offset != -1) {
@@ -353,7 +353,7 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
 	/* Else, make sure that any groups with higher indices are adjusted accordingly */
 	else if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
 		BMIter iter;

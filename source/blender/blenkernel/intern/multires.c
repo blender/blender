@@ -79,8 +79,8 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 void multires_customdata_delete(Mesh *me)
 {
-	if (me->edit_btmesh) {
-		BMEditMesh *em = me->edit_btmesh;
+	if (me->edit_mesh) {
+		BMEditMesh *em = me->edit_mesh;
 		/* CustomData_external_remove is used here only to mark layer
 		 * as non-external for further free-ing, so zero element count
 		 * looks safer than em->totface */
@@ -469,8 +469,8 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
 	Mesh *me = ob->data;
 	MDisps *mdisp;
 
-	if (me->edit_btmesh)
-		mdisp = CustomData_get_layer(&me->edit_btmesh->bm->ldata, CD_MDISPS);
+	if (me->edit_mesh)
+		mdisp = CustomData_get_layer(&me->edit_mesh->bm->ldata, CD_MDISPS);
 	else
 		mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 

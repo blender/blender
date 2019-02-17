@@ -162,7 +162,7 @@ void BKE_object_handle_data_update(
 #if 0
 			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
 #else
-			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? ((Mesh *)ob->data)->edit_btmesh : NULL;
+			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? ((Mesh *)ob->data)->edit_mesh : NULL;
 			if (em && em->ob != ob) {
 				em = NULL;
 			}

@@ -63,7 +63,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, Mesh *me_eval, cons
 	}
 	else if (mode == 's') {   /* start table */
 		Mesh *me = ob->data;
-		const bool use_em = (!me_eval && em && me->edit_btmesh == em);
+		const bool use_em = (!me_eval && em && me->edit_mesh == em);
 		const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->totvert : me->totvert;
 
 		if (MirrKdStore.tree) /* happens when entering this call without ending it */
@@ -136,7 +136,7 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
 
 bool ED_mesh_mirrtopo_recalc_check(Mesh *me, Mesh *me_eval, MirrTopoStore_t *mesh_topo_store)
 {
-	const bool is_editmode = (me->edit_btmesh != NULL);
+	const bool is_editmode = (me->edit_mesh != NULL);
 	int totvert;
 	int totedge;
 
@@ -144,9 +144,9 @@ bool ED_mesh_mirrtopo_recalc_check(Mesh *me, Mesh *me_eval, MirrTopoStore_t *mes
 		totvert = me_eval->totvert;
 		totedge = me_eval->totedge;
 	}
-	else if (me->edit_btmesh) {
-		totvert = me->edit_btmesh->bm->totvert;
-		totedge = me->edit_btmesh->bm->totedge;
+	else if (me->edit_mesh) {
+		totvert = me->edit_mesh->bm->totvert;
+		totedge = me->edit_mesh->bm->totedge;
 	}
 	else {
 		totvert = me->totvert;
@@ -170,9 +170,9 @@ void ED_mesh_mirrtopo_init(
         Mesh *me, Mesh *me_eval, MirrTopoStore_t *mesh_topo_store,
         const bool skip_em_vert_array_init)
 {
-	const bool is_editmode = (me->edit_btmesh != NULL);
+	const bool is_editmode = (me->edit_mesh != NULL);
 	MEdge *medge = NULL, *med;
-	BMEditMesh *em = me_eval ?  NULL : me->edit_btmesh;
+	BMEditMesh *em = me_eval ?  NULL : me->edit_mesh;
 
 	/* editmode*/
 	BMEdge *eed;
@@ -208,7 +208,7 @@ void ED_mesh_mirrtopo_init(
 
 	/* Initialize the vert-edge-user counts used to detect unique topology */
 	if (em) {
-		totedge = me->edit_btmesh->bm->totedge;
+		totedge = me->edit_mesh->bm->totedge;
 
 		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 			const int i1 = BM_elem_index_get(eed->v1), i2 = BM_elem_index_get(eed->v2);

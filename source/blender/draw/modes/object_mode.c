@@ -2961,7 +2961,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				bool has_edit_mesh_cage = false;
 				/* TODO: Should be its own function. */
 				if (is_edit_mode) {
-					BMEditMesh *embm = me->edit_btmesh;
+					BMEditMesh *embm = me->edit_mesh;
 					has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
 				}
 				if (!is_edit_mode ||

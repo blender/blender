@@ -147,8 +147,8 @@ bool ED_vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, co
 			{
 				Mesh *me = (Mesh *)id;
 
-				if (me->edit_btmesh) {
-					BMEditMesh *em = me->edit_btmesh;
+				if (me->edit_mesh) {
+					BMEditMesh *em = me->edit_mesh;
 					BMesh *bm = em->bm;
 					const int cd_dvert_offset  = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 					BMIter iter;
@@ -506,7 +506,7 @@ static void ED_mesh_defvert_mirror_update_em(
         const int cd_dvert_offset)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	BMVert *eve_mirr;
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
@@ -543,7 +543,7 @@ static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 void ED_vgroup_vert_active_mirror(Object *ob, int def_nr)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	MDeformVert *dvert_act;
 
 	if (me->editflag & ME_EDIT_MIRROR_X) {
@@ -580,7 +580,7 @@ static void vgroup_remove_weight(Object *ob, const int def_nr)
 static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	BMVert *eve_act;
 	int v_act;
 	MDeformVert *dvert_act;
@@ -619,7 +619,7 @@ static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type
 static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	MDeformVert *dvert_act;
 	int i, vgroup_tot, subset_count;
 	const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
@@ -895,8 +895,8 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->edit_btmesh) {
-			BMEditMesh *em = me->edit_btmesh;
+		if (me->edit_mesh) {
+			BMEditMesh *em = me->edit_mesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			/* warning, this lookup is _not_ fast */
 
@@ -972,8 +972,8 @@ static void vgroup_select_verts(Object *ob, int select)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->edit_btmesh) {
-			BMEditMesh *em = me->edit_btmesh;
+		if (me->edit_mesh) {
+			BMEditMesh *em = me->edit_mesh;
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
 			if (cd_dvert_offset != -1) {
@@ -2210,7 +2210,7 @@ void ED_vgroup_mirror(
 	/* only the active group */
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 
 		if (em) {
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -2387,8 +2387,8 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->edit_btmesh) {
-			BMEditMesh *em = me->edit_btmesh;
+		if (me->edit_mesh) {
+			BMEditMesh *em = me->edit_mesh;
 			int cd_dvert_offset;
 
 			BMIter iter;
@@ -3740,7 +3740,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 	MDeformVert *dvert_act;
 
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	float weight_act;
 	int i;
 

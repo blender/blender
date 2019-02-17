@@ -822,7 +822,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *e
 int ED_mesh_mirror_get_vert(Object *ob, int index)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 	int index_mirr;
 
@@ -1255,7 +1255,7 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
 {
 	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
 		Mesh *me = ob->data;
-		BMesh *bm = me->edit_btmesh->bm;
+		BMesh *bm = me->edit_mesh->bm;
 		const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
 		if (cd_dvert_offset != -1) {

@@ -520,22 +520,22 @@ void update_lattice_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 void update_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
-	/* For meshes we need to update edit_btmesh to make it to point
+	/* For meshes we need to update edit_mesh to make it to point
 	 * to the CoW version of object.
 	 *
 	 * This is kind of confusing, because actual bmesh is not owned by
 	 * the CoW object, so need to be accurate about using link from
-	 * edit_btmesh to object. */
+	 * edit_mesh to object. */
 	const Mesh *mesh_orig = (const Mesh *)id_orig;
 	Mesh *mesh_cow = (Mesh *)id_cow;
-	if (mesh_orig->edit_btmesh == NULL) {
+	if (mesh_orig->edit_mesh == NULL) {
 		return;
 	}
-	mesh_cow->edit_btmesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_btmesh);
-	mesh_cow->edit_btmesh->ob =
-	    (Object *)depsgraph->get_cow_id(&mesh_orig->edit_btmesh->ob->id);
-	mesh_cow->edit_btmesh->mesh_eval_cage = NULL;
-	mesh_cow->edit_btmesh->mesh_eval_final = NULL;
+	mesh_cow->edit_mesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_mesh);
+	mesh_cow->edit_mesh->ob =
+	    (Object *)depsgraph->get_cow_id(&mesh_orig->edit_mesh->ob->id);
+	mesh_cow->edit_mesh->mesh_eval_cage = NULL;
+	mesh_cow->edit_mesh->mesh_eval_final = NULL;
 }
 
 /* Edit data is stored and owned by original datablocks, copied ones
@@ -850,10 +850,10 @@ static void deg_restore_object_runtime(
 			/* Do same thing as object update: override actual object data
 			 * pointer with evaluated datablock. */
 			object->data = mesh_eval;
-			/* Evaluated mesh simply copied edit_btmesh pointer from
+			/* Evaluated mesh simply copied edit_mesh pointer from
 			 * original mesh during update, need to make sure no dead
 			 * pointers are left behind. */
-			mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
+			mesh_eval->edit_mesh = mesh_orig->edit_mesh;
 		}
 	}
 	object->base_flag = object_runtime_backup->base_flag;
@@ -992,12 +992,12 @@ void discard_lattice_edit_mode_pointers(ID *id_cow)
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
 	Mesh *mesh_cow = (Mesh *)id_cow;
-	if (mesh_cow->edit_btmesh == NULL) {
+	if (mesh_cow->edit_mesh == NULL) {
 		return;
 	}
-	BKE_editmesh_free_derivedmesh(mesh_cow->edit_btmesh);
-	MEM_freeN(mesh_cow->edit_btmesh);
-	mesh_cow->edit_btmesh = NULL;
+	BKE_editmesh_free_derivedmesh(mesh_cow->edit_mesh);
+	MEM_freeN(mesh_cow->edit_mesh);
+	mesh_cow->edit_mesh = NULL;
 }
 
 void discard_scene_pointers(ID *id_cow)

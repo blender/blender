@@ -144,7 +144,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
 		DEG_id_tag_update(obedit->data, 0);
 
-		em = me->edit_btmesh;
+		em = me->edit_mesh;
 
 		EDBM_mesh_normals_update(em);
 		BKE_editmesh_tessface_calc(em);

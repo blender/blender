@@ -88,22 +88,22 @@ enum {
 
 static int mesh_render_verts_len_get(Mesh *me)
 {
-	return me->edit_btmesh ? me->edit_btmesh->bm->totvert : me->totvert;
+	return me->edit_mesh ? me->edit_mesh->bm->totvert : me->totvert;
 }
 
 static int mesh_render_edges_len_get(Mesh *me)
 {
-	return me->edit_btmesh ? me->edit_btmesh->bm->totedge : me->totedge;
+	return me->edit_mesh ? me->edit_mesh->bm->totedge : me->totedge;
 }
 
 static int mesh_render_looptri_len_get(Mesh *me)
 {
-	return me->edit_btmesh ? me->edit_btmesh->tottri : poly_to_tri_count(me->totpoly, me->totloop);
+	return me->edit_mesh ? me->edit_mesh->tottri : poly_to_tri_count(me->totpoly, me->totloop);
 }
 
 static int mesh_render_polys_len_get(Mesh *me)
 {
-	return me->edit_btmesh ? me->edit_btmesh->bm->totface : me->totpoly;
+	return me->edit_mesh ? me->edit_mesh->bm->totface : me->totpoly;
 }
 
 static int mesh_render_mat_len_get(Mesh *me)
@@ -113,7 +113,7 @@ static int mesh_render_mat_len_get(Mesh *me)
 
 static int UNUSED_FUNCTION(mesh_render_loops_len_get)(Mesh *me)
 {
-	return me->edit_btmesh ? me->edit_btmesh->bm->totloop : me->totloop;
+	return me->edit_mesh ? me->edit_mesh->bm->totloop : me->totloop;
 }
 
 /** \} */
@@ -345,7 +345,7 @@ static void mesh_cd_layers_type_merge(
 static void mesh_cd_calc_active_uv_layer(
         const Mesh *me, ushort cd_lused[CD_NUMTYPES])
 {
-	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
+	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
 	if (layer != -1) {
@@ -356,7 +356,7 @@ static void mesh_cd_calc_active_uv_layer(
 static void mesh_cd_calc_active_vcol_layer(
         const Mesh *me, ushort cd_lused[CD_NUMTYPES])
 {
-	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
+	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
 	if (layer != -1) {
@@ -368,7 +368,7 @@ static void mesh_cd_calc_used_gpu_layers(
         const Mesh *me, uchar cd_vused[CD_NUMTYPES], ushort cd_lused[CD_NUMTYPES],
         struct GPUMaterial **gpumat_array, int gpumat_array_len)
 {
-	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
+	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	/* See: DM_vertex_attributes_from_gpu for similar logic */
 	GPUVertAttrLayers gpu_attrs = {{{0}}};
@@ -499,7 +499,7 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(
         Mesh *me, const ushort cd_lused[CD_NUMTYPES],
         char **r_auto_layers_names, int **r_auto_layers_srgb, int *r_auto_layers_len)
 {
-	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
+	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int uv_len_used = count_bits_i(cd_lused[CD_MLOOPUV]);
 	int vcol_len_used = count_bits_i(cd_lused[CD_MLOOPCOL]);
@@ -563,8 +563,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 	const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
 	const float split_angle = is_auto_smooth ? me->smoothresh : (float)M_PI;
 
-	if (me->edit_btmesh) {
-		BMEditMesh *embm = me->edit_btmesh;
+	if (me->edit_mesh) {
+		BMEditMesh *embm = me->edit_mesh;
 		BMesh *bm = embm->bm;
 
 		rdata->edit_bmesh = embm;
@@ -792,8 +792,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 		BLI_assert(cd_vused != NULL && cd_lused != NULL);
 
-		if (me->edit_btmesh) {
-			BMesh *bm = me->edit_btmesh->bm;
+		if (me->edit_mesh) {
+			BMesh *bm = me->edit_mesh->bm;
 			cd_vdata = &bm->vdata;
 			cd_ldata = &bm->ldata;
 		}
@@ -823,8 +823,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 			/* If orco is not available compute it ourselves */
 			if (!rdata->orco) {
 				rdata->is_orco_allocated = true;
-				if (me->edit_btmesh) {
-					BMesh *bm = me->edit_btmesh->bm;
+				if (me->edit_mesh) {
+					BMesh *bm = me->edit_mesh->bm;
 					rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
 					BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
 					for (int i = 0; i < bm->totvert; i++) {
@@ -1070,12 +1070,12 @@ static MeshRenderData *mesh_render_data_create_ex(
 #define MBC_GET_FINAL_MESH(me) \
 	/* Hack to show the final result. */ \
 	const bool _use_em_final = ( \
-	        (me)->edit_btmesh && \
-	        (me)->edit_btmesh->mesh_eval_final && \
-	        ((me)->edit_btmesh->mesh_eval_final->runtime.is_original == false)); \
+	        (me)->edit_mesh && \
+	        (me)->edit_mesh->mesh_eval_final && \
+	        ((me)->edit_mesh->mesh_eval_final->runtime.is_original == false)); \
 	Mesh _me_fake; \
 	if (_use_em_final) { \
-		_me_fake = *(me)->edit_btmesh->mesh_eval_final; \
+		_me_fake = *(me)->edit_mesh->mesh_eval_final; \
 		_me_fake.mat = (me)->mat; \
 		_me_fake.totcol = (me)->totcol; \
 		(me) = &_me_fake; \
@@ -1884,7 +1884,7 @@ static bool mesh_batch_cache_valid(Mesh *me)
 		return false;
 	}
 
-	if (cache->is_editmode != (me->edit_btmesh != NULL)) {
+	if (cache->is_editmode != (me->edit_mesh != NULL)) {
 		return false;
 	}
 
@@ -1923,7 +1923,7 @@ static void mesh_batch_cache_init(Mesh *me)
 		memset(cache, 0, sizeof(*cache));
 	}
 
-	cache->is_editmode = me->edit_btmesh != NULL;
+	cache->is_editmode = me->edit_mesh != NULL;
 
 	if (cache->is_editmode == false) {
 		cache->edge_len = mesh_render_edges_len_get(me);

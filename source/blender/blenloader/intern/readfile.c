@@ -4717,7 +4717,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
 
 	mesh->bb = NULL;
-	mesh->edit_btmesh = NULL;
+	mesh->edit_mesh = NULL;
 	BKE_mesh_runtime_reset(mesh);
 
 	/* happens with old files */

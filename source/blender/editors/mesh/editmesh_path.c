@@ -286,7 +286,7 @@ static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
 
 static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
 {
-	BMesh *bm = me->edit_btmesh->bm;
+	BMesh *bm = me->edit_mesh->bm;
 
 	switch (edge_mode) {
 		case EDGE_MODE_TAG_CREASE:

@@ -1484,9 +1484,9 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
 
 			if (view_layer && view_layer->basact) {
 				Mesh *me = BKE_mesh_from_object(view_layer->basact->object);
-				if (me && me->edit_btmesh && me->edit_btmesh->selectmode != flag) {
-					me->edit_btmesh->selectmode = flag;
-					EDBM_selectmode_set(me->edit_btmesh);
+				if (me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
+					me->edit_mesh->selectmode = flag;
+					EDBM_selectmode_set(me->edit_mesh);
 				}
 			}
 		}
@@ -1500,7 +1500,7 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA *UNUSE
 
 	if (view_layer->basact) {
 		me = BKE_mesh_from_object(view_layer->basact->object);
-		if (me && me->edit_btmesh == NULL)
+		if (me && me->edit_mesh == NULL)
 			me = NULL;
 	}
 
@@ -1742,7 +1742,7 @@ static void rna_EditMesh_update(bContext *C, PointerRNA *UNUSED(ptr))
 
 	if (view_layer->basact) {
 		me = BKE_mesh_from_object(view_layer->basact->object);
-		if (me && me->edit_btmesh == NULL)
+		if (me && me->edit_mesh == NULL)
 			me = NULL;
 	}
 

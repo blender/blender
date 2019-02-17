@@ -216,7 +216,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	if (ob->type == OB_MESH) {
 		TransformMedian_Mesh *median = &median_basis.mesh;
 		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 		BMesh *bm = em->bm;
 		BMVert *eve;
 		BMEdge *eed;
@@ -557,7 +557,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		{
 			const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
 			Mesh *me = ob->data;
-			BMEditMesh *em = me->edit_btmesh;
+			BMEditMesh *em = me->edit_mesh;
 			BMesh *bm = em->bm;
 			BMIter iter;
 			BMVert *eve;

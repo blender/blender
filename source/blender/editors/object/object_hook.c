@@ -136,7 +136,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	BMVert *eve;
 	BMIter iter;
 	int index = 0, nr = 0;
@@ -316,7 +316,7 @@ static bool object_hook_index_array(Main *bmain, Scene *scene, Object *obedit,
 
 			DEG_id_tag_update(obedit->data, 0);
 
-			em = me->edit_btmesh;
+			em = me->edit_mesh;
 
 			EDBM_mesh_normals_update(em);
 			BKE_editmesh_tessface_calc(em);

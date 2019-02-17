@@ -890,7 +890,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 	}
 
 	/* we could allow this but its almost certainly _not_ what script authors want */
-	if (me->edit_btmesh) {
+	if (me->edit_mesh) {
 		PyErr_Format(PyExc_ValueError,
 		             "to_mesh(): Mesh '%s' is in editmode", me->id.name + 2);
 		return NULL;

@@ -208,10 +208,10 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
 	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
-			if (me->edit_btmesh) {
-				EDBM_mesh_free(me->edit_btmesh);
-				MEM_freeN(me->edit_btmesh);
-				me->edit_btmesh = NULL;
+			if (me->edit_mesh) {
+				EDBM_mesh_free(me->edit_mesh);
+				MEM_freeN(me->edit_mesh);
+				me->edit_mesh = NULL;
 			}
 		}
 		else if (ob->type == OB_ARMATURE) {

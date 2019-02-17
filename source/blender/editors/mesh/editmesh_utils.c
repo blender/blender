@@ -296,26 +296,26 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 	        me, ob, add_key_index,
 	        &((struct BMeshCreateParams){.use_toolflags = true,}));
 
-	if (me->edit_btmesh) {
+	if (me->edit_mesh) {
 		/* this happens when switching shape keys */
-		EDBM_mesh_free(me->edit_btmesh);
-		MEM_freeN(me->edit_btmesh);
+		EDBM_mesh_free(me->edit_mesh);
+		MEM_freeN(me->edit_mesh);
 	}
 
 	/* currently executing operators re-tessellates, so we can avoid doing here
 	 * but at some point it may need to be added back. */
 #if 0
-	me->edit_btmesh = BKE_editmesh_create(bm, true);
+	me->edit_mesh = BKE_editmesh_create(bm, true);
 #else
-	me->edit_btmesh = BKE_editmesh_create(bm, false);
+	me->edit_mesh = BKE_editmesh_create(bm, false);
 #endif
 
-	me->edit_btmesh->selectmode = me->edit_btmesh->bm->selectmode = select_mode;
-	me->edit_btmesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
-	me->edit_btmesh->ob = ob;
+	me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
+	me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
+	me->edit_mesh->ob = ob;
 
 	/* we need to flush selection because the mode may have changed from when last in editmode */
-	EDBM_selectmode_flush(me->edit_btmesh);
+	EDBM_selectmode_flush(me->edit_mesh);
 }
 
 /**
@@ -325,7 +325,7 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 void EDBM_mesh_load(Main *bmain, Object *ob)
 {
 	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMesh *bm = me->edit_mesh->bm;
 
 	/* Workaround for T42360, 'ob->shapenr' should be 1 in this case.
 	 * however this isn't synchronized between objects at the moment. */

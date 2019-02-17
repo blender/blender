@@ -99,8 +99,8 @@ static void object_fmap_swap_edit_mode(Object *ob, int num1, int num2)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->edit_btmesh) {
-			BMEditMesh *em = me->edit_btmesh;
+		if (me->edit_mesh) {
+			BMEditMesh *em = me->edit_mesh;
 			const int cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
 
 			if (cd_fmap_offset != -1) {
@@ -238,7 +238,7 @@ static int face_map_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (fmap) {
 		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 		BMFace *efa;
 		BMIter iter;
 		int *map;
@@ -286,7 +286,7 @@ static int face_map_remove_from_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (fmap) {
 		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 		BMFace *efa;
 		BMIter iter;
 		int *map;
@@ -331,7 +331,7 @@ void OBJECT_OT_face_map_remove_from(struct wmOperatorType *ot)
 static void fmap_select(Object *ob, bool select)
 {
 	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = me->edit_mesh;
 	BMFace *efa;
 	BMIter iter;
 	int *map;

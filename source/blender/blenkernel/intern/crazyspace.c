@@ -99,18 +99,18 @@ float (*BKE_crazyspace_get_mapped_editverts(
 	Mesh *me = obedit->data;
 	Mesh *me_eval;
 	float (*vertexcos)[3];
-	int nverts = me->edit_btmesh->bm->totvert;
+	int nverts = me->edit_mesh->bm->totvert;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if (modifiers_disable_subsurf_temporary(obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(depsgraph, scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH, false);
+		makeDerivedMesh(depsgraph, scene, obedit, me->edit_mesh, CD_MASK_BAREMESH, false);
 	}
 
 	/* now get the cage */
 	vertexcos = MEM_mallocN(sizeof(*vertexcos) * nverts, "vertexcos map");
 
-	me_eval = editbmesh_get_eval_cage_from_orig(depsgraph, scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
+	me_eval = editbmesh_get_eval_cage_from_orig(depsgraph, scene, obedit, me->edit_mesh, CD_MASK_BAREMESH);
 
 	mesh_get_mapped_verts_coords(me_eval, vertexcos, nverts);
 

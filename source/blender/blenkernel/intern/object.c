@@ -465,7 +465,7 @@ void BKE_object_free_derived_caches(Object *ob)
 			ob->data = ob->runtime.mesh_orig;
 		}
 		/* Evaluated mesh points to edit mesh, but does not own it. */
-		mesh_eval->edit_btmesh = NULL;
+		mesh_eval->edit_mesh = NULL;
 		BKE_mesh_free(mesh_eval);
 		BKE_libblock_free_data(&mesh_eval->id, false);
 		MEM_freeN(mesh_eval);
@@ -613,7 +613,7 @@ bool BKE_object_is_in_editmode(const Object *ob)
 
 	switch (ob->type) {
 		case OB_MESH:
-			return ((Mesh *)ob->data)->edit_btmesh != NULL;
+			return ((Mesh *)ob->data)->edit_mesh != NULL;
 		case OB_ARMATURE:
 			return ((bArmature *)ob->data)->edbo != NULL;
 		case OB_FONT:
@@ -642,7 +642,7 @@ bool BKE_object_data_is_in_editmode(const ID *id)
 	BLI_assert(OB_DATA_SUPPORT_EDITMODE(type));
 	switch (type) {
 		case ID_ME:
-			return ((const Mesh *)id)->edit_btmesh != NULL;
+			return ((const Mesh *)id)->edit_mesh != NULL;
 		case ID_CU:
 			return (
 			        (((const Curve *)id)->editnurb != NULL) ||
@@ -665,7 +665,7 @@ bool BKE_object_is_in_wpaint_select_vert(const Object *ob)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 		return ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
-		        (me->edit_btmesh == NULL) &&
+		        (me->edit_mesh == NULL) &&
 		        (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX));
 	}
 
@@ -2001,7 +2001,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
 	if (par->type == OB_MESH) {
 		Mesh *me = par->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = me->edit_mesh;
 		Mesh *me_eval = (em) ? em->mesh_eval_final : par->runtime.mesh_eval;
 
 		if (me_eval) {
