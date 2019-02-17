@@ -240,8 +240,9 @@ void BKE_camera_params_from_view3d(CameraParams *params, Depsgraph *depsgraph, c
 	else if (rv3d->persp == RV3D_ORTHO) {
 		/* orthographic view */
 		float sensor_size = BKE_camera_sensor_size(params->sensor_fit, params->sensor_x, params->sensor_y);
-		params->clip_end *= 0.5f;    // otherwise too extreme low zbuffer quality
-		params->clip_start = -params->clip_start;
+		/* Halve, otherwise too extreme low zbuffer quality. */
+		params->clip_end *= 0.5f;
+		params->clip_start = -params->clip_end;
 
 		params->is_ortho = true;
 		/* make sure any changes to this match ED_view3d_radius_to_dist_ortho() */
