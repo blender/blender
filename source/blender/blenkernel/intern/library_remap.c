@@ -398,8 +398,6 @@ ATTR_NONNULL(1) static void libblock_remap_data(
         Main *bmain, ID *id, ID *old_id, ID *new_id, const short remap_flags, IDRemap *r_id_remap_data)
 {
 	IDRemap id_remap_data;
-	ListBase *lb_array[MAX_LIBARRAY];
-	int i;
 	const int foreach_id_flags = (remap_flags & ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE) != 0 ? IDWALK_NO_INDIRECT_PROXY_DATA_USAGE : IDWALK_NOP;
 
 	if (r_id_remap_data == NULL) {
@@ -424,24 +422,23 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 		BKE_library_foreach_ID_link(NULL, id, foreach_libblock_remap_callback, (void *)r_id_remap_data, foreach_id_flags);
 	}
 	else {
-		i = set_listbasepointers(bmain, lb_array);
-
 		/* Note that this is a very 'brute force' approach, maybe we could use some depsgraph to only process
 		 * objects actually using given old_id... sounds rather unlikely currently, though, so this will do for now. */
+		ID *id_curr;
 
-		while (i--) {
-			for (ID *id_curr = lb_array[i]->first; id_curr; id_curr = id_curr->next) {
-				if (BKE_library_id_can_use_idtype(id_curr, GS(old_id->name))) {
-					/* Note that we cannot skip indirect usages of old_id here (if requested), we still need to check it for
-					 * the user count handling...
-					 * XXX No more true (except for debug usage of those skipping counters). */
-					r_id_remap_data->id = id_curr;
-					libblock_remap_data_preprocess(r_id_remap_data);
-					BKE_library_foreach_ID_link(
-					            NULL, id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, foreach_id_flags);
-				}
+		FOREACH_MAIN_ID_BEGIN(bmain, id_curr)
+		{
+			if (BKE_library_id_can_use_idtype(id_curr, GS(old_id->name))) {
+				/* Note that we cannot skip indirect usages of old_id here (if requested), we still need to check it for
+				 * the user count handling...
+				 * XXX No more true (except for debug usage of those skipping counters). */
+				r_id_remap_data->id = id_curr;
+				libblock_remap_data_preprocess(r_id_remap_data);
+				BKE_library_foreach_ID_link(
+				            NULL, id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, foreach_id_flags);
 			}
 		}
+		FOREACH_MAIN_ID_END;
 	}
 
 	/* XXX We may not want to always 'transfer' fakeuser from old to new id... Think for now it's desired behavior
