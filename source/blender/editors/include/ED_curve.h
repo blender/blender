@@ -82,7 +82,7 @@ void    ED_text_to_object(struct bContext *C, struct Text *text, const bool spli
 void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct BezTriple *src, int count);
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
 
-int ED_curve_updateAnimPaths(struct Curve *cu);
+int ED_curve_updateAnimPaths(struct Main *bmain, struct Curve *cu);
 
 bool ED_curve_active_center(struct Curve *cu, float center[3]);
 

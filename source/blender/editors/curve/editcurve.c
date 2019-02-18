@@ -1021,7 +1021,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 }
 
 /* return 0 if animation data wasn't changed, 1 otherwise */
-int ED_curve_updateAnimPaths(Curve *cu)
+int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
 {
 	AnimData *adt = BKE_animdata_from_id(&cu->id);
 	EditNurb *editnurb = cu->editnurb;
@@ -1031,10 +1031,16 @@ int ED_curve_updateAnimPaths(Curve *cu)
 
 	if (!curve_is_animated(cu)) return 0;
 
-	if (adt->action)
+	if (adt->action != NULL) {
 		curve_rename_fcurves(cu, &adt->action->curves);
+		DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+	}
 
 	curve_rename_fcurves(cu, &adt->drivers);
+	DEG_id_tag_update(&cu->id, ID_RECALC_COPY_ON_WRITE);
+
+	/* TODO(sergey): Only update if something actually changed. */
+	DEG_relations_tag_update(bmain);
 
 	return 1;
 }
@@ -1218,7 +1224,7 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
 
 		cu->nurb = newnurb;
 
-		ED_curve_updateAnimPaths(obedit->data);
+		ED_curve_updateAnimPaths(bmain, obedit->data);
 
 		BKE_nurbList_free(&oldnurb);
 	}
@@ -1422,6 +1428,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 
 static int curve_split_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	int ok = -1;
@@ -1452,7 +1459,7 @@ static int curve_split_exec(bContext *C, wmOperator *op)
 		cu->actnu -= len_orig - BLI_listbase_count(editnurb);
 		BLI_movelisttolist(editnurb, &newnurb);
 
-		if (ED_curve_updateAnimPaths(obedit->data)) {
+		if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 		}
 
@@ -2387,6 +2394,7 @@ static void adduplicateflagNurb(Object *obedit, View3D *v3d, ListBase *newnurb,
 
 static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -2414,7 +2422,7 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 
-		if (ED_curve_updateAnimPaths(obedit->data)) {
+		if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 		}
 
@@ -3496,6 +3504,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 {
 	const int number_cuts = RNA_int_get(op->ptr, "number_cuts");
 
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -3511,8 +3520,9 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 
 		subdividenurb(obedit, v3d, number_cuts);
 
-		if (ED_curve_updateAnimPaths(cu))
+		if (ED_curve_updateAnimPaths(bmain, cu)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
 
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, cu);
 		DEG_id_tag_update(obedit->data, 0);
@@ -3695,6 +3705,7 @@ static void findselectedNurbvert(
 
 static int set_spline_type_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -3725,8 +3736,9 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	}
 
 	if (changed) {
-		if (ED_curve_updateAnimPaths(obedit->data))
+		if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
 
 		DEG_id_tag_update(obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -4250,6 +4262,7 @@ static int merge_nurb(View3D *v3d, Object *obedit)
 
 static int make_segment_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -4480,7 +4493,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		if (ED_curve_updateAnimPaths(obedit->data)) {
+		if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 		}
 
@@ -4767,6 +4780,7 @@ bool ed_editnurb_spin(float viewmat[4][4], View3D *v3d, Object *obedit, const fl
 
 static int spin_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
@@ -4800,7 +4814,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 		}
 
 		ok = 1;
-		if (ED_curve_updateAnimPaths(cu)) {
+		if (ED_curve_updateAnimPaths(bmain, cu)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 		}
 
@@ -5247,6 +5261,7 @@ static int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, cons
 
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Curve *cu = obedit->data;
@@ -5260,7 +5275,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 	mul_m4_v3(imat, location);
 
 	if (ed_editcurve_addvert(cu, editnurb, v3d, location)) {
-		if (ED_curve_updateAnimPaths(obedit->data)) {
+		if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 		}
 
@@ -5387,6 +5402,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 
 static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -5424,7 +5440,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 
 		if (changed) {
-			if (ED_curve_updateAnimPaths(obedit->data)) {
+			if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 			}
 
@@ -6081,6 +6097,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
 
 static int curve_delete_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	eCurveElem_Types type = RNA_enum_get(op->ptr, "type");
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -6111,7 +6128,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 			changed_multi = true;
 			cu->actnu = cu->actvert = CU_ACT_NONE;
 
-			if (ED_curve_updateAnimPaths(obedit->data)) {
+			if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 			}
 
@@ -6186,6 +6203,7 @@ static bool test_bezt_is_sel_any(const void *bezt_v, void *user_data)
 
 static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -6270,7 +6288,9 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 
 		cu->actnu = cu->actvert = CU_ACT_NONE;
 
-		if (ED_curve_updateAnimPaths(obedit->data)) WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
 
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 		DEG_id_tag_update(obedit->data, 0);
@@ -6310,6 +6330,7 @@ static bool nurb_bezt_flag_any(const Nurb *nu, const char flag_test)
 
 static int curve_decimate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	const float error_sq_max = FLT_MAX;
 	float ratio = RNA_float_get(op->ptr, "ratio");
 	bool all_supported_multi = true;
@@ -6349,7 +6370,7 @@ static int curve_decimate_exec(bContext *C, wmOperator *op)
 
 		if (changed) {
 			cu->actnu = cu->actvert = CU_ACT_NONE;
-			if (ED_curve_updateAnimPaths(obedit->data)) {
+			if (ED_curve_updateAnimPaths(bmain, obedit->data)) {
 				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 			}
 
