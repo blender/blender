@@ -2645,12 +2645,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        IMA_FLAG_DEPRECATED_8 |
 			        IMA_FLAG_DEPRECATED_15 |
 			        IMA_FLAG_DEPRECATED_16);
-			image->tpageflag &= ~(
-			        IMA_TPAGEFLAG_DEPRECATED_0 |
-			        IMA_TPAGEFLAG_DEPRECATED_1 |
-			        IMA_TPAGEFLAG_DEPRECATED_2 |
-			        IMA_TPAGEFLAG_DEPRECATED_4 |
-			        IMA_TPAGEFLAG_DEPRECATED_5);
 		}
 
 		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {

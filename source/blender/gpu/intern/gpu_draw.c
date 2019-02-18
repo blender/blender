@@ -284,9 +284,9 @@ GPUTexture *GPU_texture_from_blender(
 	}
 
 	/* currently, tpage refresh is used by ima sequences */
-	if (ima->tpageflag & IMA_TPAGE_REFRESH) {
+	if (ima->gpuflag & IMA_GPU_REFRESH) {
 		GPU_free_image(ima);
-		ima->tpageflag &= ~IMA_TPAGE_REFRESH;
+		ima->gpuflag &= ~IMA_GPU_REFRESH;
 	}
 
 	/* check if we have a valid image buffer */
@@ -339,9 +339,9 @@ GPUTexture *GPU_texture_from_blender(
 	/* mark as non-color data texture */
 	if (bindcode) {
 		if (is_data)
-			ima->tpageflag |= IMA_GLBIND_IS_DATA;
+			ima->gpuflag |= IMA_GPU_IS_DATA;
 		else
-			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
+			ima->gpuflag &= ~IMA_GPU_IS_DATA;
 	}
 
 	/* clean up */
@@ -446,7 +446,7 @@ void GPU_create_gl_tex(
 			glGenerateMipmap(GL_TEXTURE_2D);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 			if (ima)
-				ima->tpageflag |= IMA_MIPMAP_COMPLETE;
+				ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
 		}
 		else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -471,7 +471,7 @@ void GPU_create_gl_tex(
 				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 
 				if (ima)
-					ima->tpageflag |= IMA_MIPMAP_COMPLETE;
+					ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
 			}
 			else {
 				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -598,7 +598,7 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
 	if (mipmap) {
 		for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
 			if (BKE_image_has_opengl_texture(ima)) {
-				if (ima->tpageflag & IMA_MIPMAP_COMPLETE) {
+				if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
 					if (ima->gputexture[TEXTARGET_TEXTURE_2D]) {
 						GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
@@ -610,7 +610,7 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
 					GPU_free_image(ima);
 			}
 			else
-				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+				ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 		}
 
 	}
@@ -625,7 +625,7 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
 				}
 			}
 			else
-				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+				ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 		}
 	}
 }
@@ -693,7 +693,7 @@ static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
-			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+			ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 		}
 
 		GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
@@ -723,7 +723,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 		/* if color correction is needed, we must update the part that needs updating. */
 		if (ibuf->rect_float) {
 			float *buffer = MEM_mallocN(w * h * sizeof(float) * 4, "temp_texpaint_float_buf");
-			bool is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA) != 0;
+			bool is_data = (ima->gpuflag & IMA_GPU_IS_DATA) != 0;
 			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
 
 			if (gpu_check_scaled_image(ibuf, ima, buffer, x, y, w, h)) {
@@ -741,7 +741,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 			else {
-				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+				ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 			}
 
 			GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
@@ -778,7 +778,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
-			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+			ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 		}
 
 		GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
@@ -1143,7 +1143,7 @@ void GPU_free_image(Image *ima)
 		}
 	}
 
-	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE | IMA_GLBIND_IS_DATA);
+	ima->gpuflag &= ~(IMA_GPU_MIPMAP_COMPLETE | IMA_GPU_IS_DATA);
 }
 
 void GPU_free_images(Main *bmain)

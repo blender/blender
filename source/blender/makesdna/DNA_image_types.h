@@ -90,8 +90,8 @@ typedef struct RenderSlot {
 
 /* iuser->flag */
 #define IMA_ANIM_ALWAYS         (1 << 0)
-#define IMA_ANIM_REFRESHED      (1 << 1)
-/* #define IMA_DO_PREMUL        (1 << 2) */
+/* #define IMA_DEPRECATED_1     (1 << 1) */
+/* #define IMA_DEPRECATED_2     (1 << 2) */
 #define IMA_NEED_FRAME_RECALC   (1 << 3)
 #define IMA_SHOW_STEREO         (1 << 4)
 
@@ -123,8 +123,8 @@ typedef struct Image {
 	short source, type;
 	int lastframe;
 
-	/* texture page */
-	short tpageflag;
+	/* GPU texture flag. */
+	short gpuflag;
 	short pad2;
 	unsigned int pad3;
 
@@ -187,18 +187,14 @@ enum {
 	IMA_FLAG_DEPRECATED_16  = (1 << 16),  /* cleared */
 };
 
-/* Image.tpageflag */
+/* Image.gpuflag */
 enum {
-	IMA_TPAGEFLAG_DEPRECATED_0 =      (1 << 0),  /* cleared */
-	IMA_TPAGEFLAG_DEPRECATED_1 =      (1 << 1),  /* cleared */
-	IMA_TPAGEFLAG_DEPRECATED_2 =      (1 << 2),  /* cleared */
+	/** GPU texture needs to be refreshed. */
+	IMA_GPU_REFRESH =                 (1 << 0),
 	/** All mipmap levels in OpenGL texture set? */
-	IMA_MIPMAP_COMPLETE =             (1 << 3),
-	IMA_TPAGEFLAG_DEPRECATED_4 =      (1 << 4),  /* cleared */
-	IMA_TPAGEFLAG_DEPRECATED_5 =      (1 << 5),  /* cleared */
-	IMA_TPAGE_REFRESH =               (1 << 6),
+	IMA_GPU_MIPMAP_COMPLETE =         (1 << 1),
 	/** OpenGL image texture bound as non-color data. */
-	IMA_GLBIND_IS_DATA =              (1 << 7),
+	IMA_GPU_IS_DATA =                 (1 << 2),
 };
 
 /* ima->type and ima->source moved to BKE_image.h, for API */

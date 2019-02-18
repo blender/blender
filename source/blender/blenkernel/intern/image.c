@@ -3188,7 +3188,7 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
 
 	/* XXX temp stuff? */
 	if (ima->lastframe != frame)
-		ima->tpageflag |= IMA_TPAGE_REFRESH;
+		ima->gpuflag |= IMA_GPU_REFRESH;
 
 	ima->lastframe = frame;
 
@@ -3912,7 +3912,7 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_frame, 
 		ibuf = image_get_cached_ibuf_for_index_frame(ima, index, frame);
 		/* XXX temp stuff? */
 		if (ima->lastframe != frame)
-			ima->tpageflag |= IMA_TPAGE_REFRESH;
+			ima->gpuflag |= IMA_GPU_REFRESH;
 		ima->lastframe = frame;
 	}
 	else if (ima->source == IMA_SRC_SEQUENCE) {
@@ -3922,7 +3922,7 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_frame, 
 
 			/* XXX temp stuff? */
 			if (ima->lastframe != frame) {
-				ima->tpageflag |= IMA_TPAGE_REFRESH;
+				ima->gpuflag |= IMA_GPU_REFRESH;
 			}
 			ima->lastframe = frame;
 
@@ -4316,11 +4316,6 @@ void BKE_image_user_frame_calc(ImageUser *iuser, int cfra)
 		else {
 			iuser->flag &= ~IMA_USER_FRAME_IN_RANGE;
 		}
-
-		/* allows image users to handle redraws */
-		if (iuser->flag & IMA_ANIM_ALWAYS)
-			if (framenr != iuser->framenr)
-				iuser->flag |= IMA_ANIM_REFRESHED;
 
 		iuser->framenr = framenr;
 		if (iuser->ok == 0) iuser->ok = 1;

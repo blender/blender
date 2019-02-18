@@ -932,17 +932,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
 
-			// XXX what was this for?
-#if 0
-			/* check for re-render, only buttons */
-			if (imagechanged == B_IMAGECHANGED) {
-				if (iuser->flag & IMA_ANIM_REFRESHED) {
-					iuser->flag &= ~IMA_ANIM_REFRESHED;
-					WM_event_add_notifier(C, NC_IMAGE, ima);
-				}
-			}
-#endif
-
 			/* multilayer? */
 			if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
 				const float dpi_fac = UI_DPI_FAC;
