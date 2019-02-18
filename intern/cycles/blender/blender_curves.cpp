@@ -185,9 +185,7 @@ static bool ObtainCacheParticleData(Mesh *mesh,
 						float3 cKey = make_float3(nco[0], nco[1], nco[2]);
 						cKey = transform_point(&itfm, cKey);
 						if(step_no > 0) {
-							float step_length = len(cKey - pcKey);
-							if(step_length == 0.0f)
-								continue;
+							const float step_length = len(cKey - pcKey);
 							curve_length += step_length;
 						}
 						CData->curvekey_co.push_back_slow(cKey);
@@ -336,9 +334,6 @@ static void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
 	/* compute and reserve size of arrays */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			numverts += 2 + (CData->curve_keynum[curve] - 1)*2;
 			numtris += (CData->curve_keynum[curve] - 1)*2;
 		}
@@ -349,9 +344,6 @@ static void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
 	/* actually export */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			float3 xbasis;
 			float3 v1;
 			float time = 0.0f;
@@ -421,9 +413,6 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 	/* compute and reserve size of arrays */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			numverts += (CData->curve_keynum[curve] - 1)*resolution + resolution;
 			numtris += (CData->curve_keynum[curve] - 1)*2*resolution;
 		}
@@ -434,9 +423,6 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 	/* actually export */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			float3 firstxbasis = cross(make_float3(1.0f,0.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]);
 			if(!is_zero(firstxbasis))
 				firstxbasis = normalize(firstxbasis);
@@ -564,9 +550,6 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 	/* compute and reserve size of arrays */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			num_keys += CData->curve_keynum[curve];
 			num_curves++;
 		}
@@ -584,19 +567,27 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 	/* actually export */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			size_t num_curve_keys = 0;
 
-			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve]; curvekey++) {
-				float3 ickey_loc = CData->curvekey_co[curvekey];
-				float time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
-				float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
-
-				if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+			for(int curvekey = CData->curve_firstkey[curve];
+			    curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve];
+			    curvekey++)
+			{
+				const float3 ickey_loc = CData->curvekey_co[curvekey];
+				const float curve_time = CData->curvekey_time[curvekey];
+				const float curve_length = CData->curve_length[curve];
+				const float time = (curve_length > 0.0f)
+				                           ? curve_time / curve_length
+				                           : 0.0f;
+				float radius = shaperadius(CData->psys_shape[sys],
+				                           CData->psys_rootradius[sys],
+				                           CData->psys_tipradius[sys],
+				                           time);
+				if(CData->psys_closetip[sys] &&
+				   (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+				{
 					radius = 0.0f;
-
+				}
 				mesh->add_curve_key(ickey_loc, radius);
 				if(attr_intercept)
 					attr_intercept->add(time);
@@ -623,8 +614,10 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 
 static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, int curvekey)
 {
-	float3 ickey_loc = CData->curvekey_co[curvekey];
-	float time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
+	const float3 ickey_loc = CData->curvekey_co[curvekey];
+	const float curve_time = CData->curvekey_time[curvekey];
+	const float curve_length = CData->curve_length[curve];
+	float time = (curve_length > 0.0f) ? curve_time / curve_length : 0.0f;
 	float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
 
 	if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
@@ -683,13 +676,7 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 	int num_curves = 0;
 
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
-		if(CData->psys_curvenum[sys] == 0)
-			continue;
-
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			/* Curve lengths may not match! Curves can be clipped. */
 			int curve_key_end = (num_curves+1 < (int)mesh->curve_first_key.size() ? mesh->curve_first_key[num_curves+1] : (int)mesh->curve_keys.size());
 			const int num_center_curve_keys = curve_key_end - mesh->curve_first_key[num_curves];
@@ -715,7 +702,10 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 			else {
 				/* Number of keys has changed. Genereate an interpolated version
 				 * to preserve motion blur. */
-				float step_size = 1.0f / (num_center_curve_keys-1);
+				const float step_size =
+				        num_center_curve_keys > 1
+				                ? 1.0f / (num_center_curve_keys - 1)
+				                : 0.0f;
 				for(int step_index = 0;
 				    step_index < num_center_curve_keys;
 				    ++step_index)
@@ -774,11 +764,10 @@ static void ExportCurveTriangleUV(ParticleCurveData *CData,
 
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
-				time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
+				const float curve_time = CData->curvekey_time[curvekey];
+				const float curve_length = CData->curve_length[curve];
+				time = (curve_length > 0.0f) ? curve_time / curve_length : 0.0f;
 
 				for(int section = 0; section < resol; section++) {
 					uvdata[vertexindex] = CData->curve_uv[curve];
@@ -819,9 +808,6 @@ static void ExportCurveTriangleVcol(ParticleCurveData *CData,
 
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
-			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
-				continue;
-
 			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
 				for(int section = 0; section < resol; section++) {
 					/* Encode vertex color using the sRGB curve. */
