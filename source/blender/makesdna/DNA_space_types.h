@@ -440,6 +440,8 @@ typedef enum eGraphEdit_Flag {
 	/* normalize curves on display */
 	SIPO_NORMALIZE            = (1 << 14),
 	SIPO_NORMALIZE_FREEZE     = (1 << 15),
+	/* show vertical line for every marker */
+	SIPO_MARKER_LINES         = (1 << 16),
 } eGraphEdit_Flag;
 
 /* SpaceGraph.mode (Graph Editor Mode) */
@@ -581,6 +583,7 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_NO_WAVEFORMS            = (1 << 8), /* draw no waveforms */
 	SEQ_SHOW_SAFE_CENTER        = (1 << 9),
 	SEQ_SHOW_METADATA           = (1 << 10),
+	SEQ_SHOW_MARKER_LINES       = (1 << 11),
 } eSpaceSeq_Flag;
 
 /* SpaceSeq.view */

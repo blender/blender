@@ -24,7 +24,7 @@
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         280
-#define BLENDER_SUBVERSION      44
+#define BLENDER_SUBVERSION      45
 /* Several breakages with 280, e.g. collections vs layers */
 #define BLENDER_MINVERSION      280
 #define BLENDER_MINSUBVERSION   0

@@ -212,6 +212,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_seconds")
             layout.prop(st, "show_frame_indicator")
             layout.prop(st, "show_strip_offset")
+            layout.prop(st, "show_marker_lines")
 
             layout.prop_menu_enum(st, "waveform_display_type")
 

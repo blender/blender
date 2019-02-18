@@ -120,6 +120,7 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
         layout.prop(st, "show_group_colors")
+        layout.prop(st, "show_marker_lines")
         layout.prop(st, "use_auto_merge_keyframes")
 
         layout.separator()
