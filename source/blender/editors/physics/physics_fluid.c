@@ -438,7 +438,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 
 			set_channel(fobj->Translation, timeAtFrame, ob->loc, i, CHANNEL_VEC);
 			set_channel(fobj->Rotation, timeAtFrame, rot_d, i, CHANNEL_VEC);
-			set_channel(fobj->Scale, timeAtFrame, ob->size, i, CHANNEL_VEC);
+			set_channel(fobj->Scale, timeAtFrame, ob->scale, i, CHANNEL_VEC);
 			set_channel(fobj->Active, timeAtFrame, &active, i, CHANNEL_FLOAT);
 			set_channel(fobj->InitialVelocity, timeAtFrame, &fluidmd->fss->iniVelx, i, CHANNEL_VEC);
 

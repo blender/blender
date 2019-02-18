@@ -714,7 +714,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	immBindBuiltinProgram(GPU_SHADER_GPENCIL_STROKE);
 	immUniform2fv("Viewport", viewport);
 	immUniform1f("pixsize", tgpw->rv3d->pixsize);
-	float obj_scale = tgpw->ob ? (tgpw->ob->size[0] + tgpw->ob->size[1] + tgpw->ob->size[2]) / 3.0f : 1.0f;
+	float obj_scale = tgpw->ob ? (tgpw->ob->scale[0] + tgpw->ob->scale[1] + tgpw->ob->scale[2]) / 3.0f : 1.0f;
 
 	immUniform1f("objscale", obj_scale);
 	int keep_size = (int)((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));

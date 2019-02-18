@@ -1938,7 +1938,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 
 		job->lay = BKE_scene_base_find(scene, job)->lay = 2;
 
-		mul_v3_fl(job->size, 0.5f);
+		mul_v3_fl(job->scale, 0.5f);
 		DEG_id_tag_update(&job->id, ID_RECALC_TRANSFORM);
 
 		verify_adt_action((ID *)&job->id, 1);
@@ -1955,7 +1955,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 			mul_m4_m4m4(mat, ipar, temp);
 		}
 
-		bc_decompose(mat, job->loc, NULL, job->quat, job->size);
+		bc_decompose(mat, job->loc, NULL, job->quat, job->scale);
 
 		if (par_job) {
 			job->parent = par_job;

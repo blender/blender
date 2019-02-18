@@ -1851,8 +1851,8 @@ void BKE_curve_bevel_make(
 		bevcu = cu->bevobj->data;
 		if (bevcu->ext1 == 0.0f && bevcu->ext2 == 0.0f) {
 			ListBase bevdisp = {NULL, NULL};
-			facx = cu->bevobj->size[0];
-			facy = cu->bevobj->size[1];
+			facx = cu->bevobj->scale[0];
+			facy = cu->bevobj->scale[1];
 
 			if (for_render) {
 				if (BLI_linklist_index(ob_cyclic_list, cu->bevobj) == -1) {

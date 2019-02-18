@@ -440,7 +440,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	if (ob->type == OB_LATTICE) {
 		/* lattice is a special case!
 		 * we never want to scale the obdata since that is the rest-state */
-		copy_v3_fl(ob->size, radius);
+		copy_v3_fl(ob->scale, radius);
 	}
 	else {
 		BKE_object_obdata_size_init(ob, radius);

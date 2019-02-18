@@ -62,7 +62,7 @@ static void generate_vert_coordinates(
 	if (r_size != NULL) {
 		if (ob_center != NULL) {
 			/* Not we are not interested in signs here - they are even troublesome actually, due to security clamping! */
-			abs_v3_v3(r_size, ob_center->size);
+			abs_v3_v3(r_size, ob_center->scale);
 		}
 		else {
 			/* Set size. */

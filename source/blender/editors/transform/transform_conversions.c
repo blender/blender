@@ -5826,8 +5826,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	}
 	td->ext->rotOrder = ob->rotmode;
 
-	td->ext->size = ob->size;
-	copy_v3_v3(td->ext->isize, ob->size);
+	td->ext->size = ob->scale;
+	copy_v3_v3(td->ext->isize, ob->scale);
 	copy_v3_v3(td->ext->dscale, ob->dscale);
 
 	copy_v3_v3(td->center, ob->obmat[3]);

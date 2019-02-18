@@ -222,15 +222,15 @@ static void object_clear_scale(Object *ob, const bool clear_delta)
 {
 	/* clear scale factors which are not locked */
 	if ((ob->protectflag & OB_LOCK_SCALEX) == 0) {
-		ob->size[0] = 1.0f;
+		ob->scale[0] = 1.0f;
 		if (clear_delta) ob->dscale[0] = 1.0f;
 	}
 	if ((ob->protectflag & OB_LOCK_SCALEY) == 0) {
-		ob->size[1] = 1.0f;
+		ob->scale[1] = 1.0f;
 		if (clear_delta) ob->dscale[1] = 1.0f;
 	}
 	if ((ob->protectflag & OB_LOCK_SCALEZ) == 0) {
-		ob->size[2] = 1.0f;
+		ob->scale[2] = 1.0f;
 		if (clear_delta) ob->dscale[2] = 1.0f;
 	}
 }
@@ -630,7 +630,7 @@ static int apply_objects_internal(
 				continue;
 
 			if (apply_scale)
-				BKE_tracking_reconstruction_scale(&clip->tracking, ob->size);
+				BKE_tracking_reconstruction_scale(&clip->tracking, ob->scale);
 		}
 		else if (ob->type == OB_EMPTY) {
 			/* It's possible for empties too, even though they don't
@@ -649,7 +649,7 @@ static int apply_objects_internal(
 			    (apply_rot == false) &&
 			    (apply_scale == true))
 			{
-				float max_scale = max_fff(fabsf(ob->size[0]), fabsf(ob->size[1]), fabsf(ob->size[2]));
+				float max_scale = max_fff(fabsf(ob->scale[0]), fabsf(ob->scale[1]), fabsf(ob->scale[2]));
 				ob->empty_drawsize *= max_scale;
 			}
 		}
@@ -680,7 +680,7 @@ static int apply_objects_internal(
 		if (apply_loc)
 			zero_v3(ob->loc);
 		if (apply_scale)
-			ob->size[0] = ob->size[1] = ob->size[2] = 1.0f;
+			ob->scale[0] = ob->scale[1] = ob->scale[2] = 1.0f;
 		if (apply_rot) {
 			zero_v3(ob->rot);
 			unit_qt(ob->quat);
@@ -1402,10 +1402,10 @@ static void object_apply_rotation(Object *ob, const float rmat[3][3])
 	float rmat4[4][4];
 	copy_m4_m3(rmat4, rmat);
 
-	copy_v3_v3(size, ob->size);
+	copy_v3_v3(size, ob->scale);
 	copy_v3_v3(loc, ob->loc);
 	BKE_object_apply_mat4(ob, rmat4, true, true);
-	copy_v3_v3(ob->size, size);
+	copy_v3_v3(ob->scale, size);
 	copy_v3_v3(ob->loc, loc);
 }
 /* We may want to extract this to: BKE_object_apply_location */

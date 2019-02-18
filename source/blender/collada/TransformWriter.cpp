@@ -70,11 +70,11 @@ void TransformWriter::add_node_transform_ob(
 
 		// factor out scale from obmat
 
-		copy_v3_v3(scale, ob->size);
+		copy_v3_v3(scale, ob->scale);
 
-		ob->size[0] = ob->size[1] = ob->size[2] = 1.0f;
+		ob->scale[0] = ob->scale[1] = ob->scale[2] = 1.0f;
 		BKE_object_to_mat4(ob, C);
-		copy_v3_v3(ob->size, scale);
+		copy_v3_v3(ob->scale, scale);
 
 		mul_m4_series(tmat, ob->parent->obmat, ob->parentinv, C);
 
@@ -91,7 +91,7 @@ void TransformWriter::add_node_transform_ob(
 	else {
 		copy_v3_v3(loc, ob->loc);
 		copy_v3_v3(rot, ob->rot);
-		copy_v3_v3(scale, ob->size);
+		copy_v3_v3(scale, ob->scale);
 	}
 
 	add_transform(node, loc, rot, scale);

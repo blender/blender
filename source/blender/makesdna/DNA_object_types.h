@@ -228,7 +228,7 @@ typedef struct Object {
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
 	/** Scale in fact. */
-	float size[3];
+	float scale[3];
 	/** DEPRECATED, 2.60 and older only. */
 	float dsize[3] DNA_DEPRECATED ;
 	/** Ack!, changing. */

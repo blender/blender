@@ -670,18 +670,18 @@ static int do_set_scale(bContext *C,
 		}
 		else {
 			if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-				mul_v3_fl(object->size, scale);
+				mul_v3_fl(object->scale, scale);
 				mul_v3_fl(object->loc, scale);
 			}
 			else if (!scale_solution) {
 				Object *solver_camera = object_solver_camera(scene, object);
 
-				object->size[0] = object->size[1] = object->size[2] = 1.0f / scale;
+				object->scale[0] = object->scale[1] = object->scale[2] = 1.0f / scale;
 
 				if (solver_camera) {
-					object->size[0] /= solver_camera->size[0];
-					object->size[1] /= solver_camera->size[1];
-					object->size[2] /= solver_camera->size[2];
+					object->scale[0] /= solver_camera->scale[0];
+					object->scale[1] /= solver_camera->scale[1];
+					object->scale[2] /= solver_camera->scale[2];
 				}
 			}
 			else {

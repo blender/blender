@@ -1249,9 +1249,9 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
 
 		/* don't polygonize metaballs with too high resolution (base mball to small)
 		 * note: Eps was 0.0001f but this was giving problems for blood animation for durian, using 0.00001f */
-		if (ob->size[0] > 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
-		    ob->size[1] > 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
-		    ob->size[2] > 0.00001f * (process.allbb.max[2] - process.allbb.min[2]))
+		if (ob->scale[0] > 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
+		    ob->scale[1] > 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
+		    ob->scale[2] > 0.00001f * (process.allbb.max[2] - process.allbb.min[2]))
 		{
 			polygonize(&process);
 

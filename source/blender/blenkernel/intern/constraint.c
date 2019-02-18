@@ -1090,7 +1090,7 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		float size[3], vec[3];
 		float totmat[3][3];
 
-		/* Get size property, since ob->size is only the object's own relative size, not its global one */
+		/* Get size property, since ob->scale is only the object's own relative size, not its global one */
 		mat4_to_size(size, cob->matrix);
 
 		/* Clear the object's rotation */
