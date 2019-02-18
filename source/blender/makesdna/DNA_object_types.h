@@ -128,6 +128,15 @@ typedef struct Object_Runtime {
 	 */
 	uint64_t last_data_mask;
 
+	/** Did last modifier stack generation need mapping support? */
+	char last_need_mapping;
+
+	char _pad0[3];
+
+	/** Only used for drawing the parent/child help-line. */
+	float parent_origin_eval[3];
+
+
 	/** Axis aligned boundbox (in localspace). */
 	struct BoundBox *bb;
 
@@ -156,9 +165,6 @@ typedef struct Object_Runtime {
 
 	struct ObjectBBoneDeform *cached_bbone_deformation;
 
-	/** Did last modifier stack generation need mapping support? */
-	char last_need_mapping;
-	char pad[7];
 } Object_Runtime;
 
 typedef struct Object {
@@ -226,8 +232,8 @@ typedef struct Object {
 	int actcol;
 
 	/* rot en drot have to be together! (transform('r' en 's')) */
-	float loc[3], dloc[3], orig[3];
-	/** Scale in fact. */
+	float loc[3], dloc[3];
+	/** Scale (can be negative). */
 	float scale[3];
 	/** DEPRECATED, 2.60 and older only. */
 	float dsize[3] DNA_DEPRECATED ;
@@ -276,7 +282,6 @@ typedef struct Object {
 	short trackflag, upflag;
 	/** Used for DopeSheet filtering settings (expanded/collapsed). */
 	short nlaflag;
-	short pad[2];
 
 	char pad12;
 	char duplicator_visibility_flag;
