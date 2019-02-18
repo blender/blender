@@ -33,7 +33,9 @@
 #include "DRW_render.h"
 
 #ifdef __APPLE__
-#define USE_GEOM_SHADER_WORKAROUND
+#define USE_GEOM_SHADER_WORKAROUND 1
+#else
+#define USE_GEOM_SHADER_WORKAROUND 0
 #endif
 
 /* Structures */
@@ -122,7 +124,7 @@ static void overlay_engine_init(void *vedata)
 		        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, "#define SELECT_EDGES\n", NULL},
 		});
-#ifdef USE_GEOM_SHADER_WORKAROUND
+#if USE_GEOM_SHADER_WORKAROUND
 		/* Apple drivers does not support wide wires. Use geometry shader as a workaround. */
 		sh_data->face_wireframe = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_overlay_face_wireframe_vert_glsl, NULL},
@@ -206,15 +208,11 @@ static void overlay_cache_init(void *vedata)
 		g_data->face_wires_shgrp = DRW_shgroup_create(face_wires_sh, psl->face_wireframe_pass);
 		DRW_shgroup_uniform_float(g_data->face_wires_shgrp, "wireStepParam", &g_data->wire_step_param, 1);
 		DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "ofs", depth_ofs);
-#ifdef USE_GEOM_SHADER_WORKAROUND
-		DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "wireSize", wire_size);
-		DRW_shgroup_uniform_vec2(g_data->face_wires_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_vec2(g_data->face_wires_shgrp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
-#else
-		if (!use_select) {
+		if (use_select || USE_GEOM_SHADER_WORKAROUND) {
 			DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "wireSize", wire_size);
+			DRW_shgroup_uniform_vec2(g_data->face_wires_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+			DRW_shgroup_uniform_vec2(g_data->face_wires_shgrp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
 		}
-#endif
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(g_data->face_wires_shgrp, rv3d);
 		}
