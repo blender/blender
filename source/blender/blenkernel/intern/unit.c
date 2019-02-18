@@ -307,10 +307,11 @@ static struct bUnitDef buPowerDef[] = {
 	{"gigawatt",  "gigawatts",  "GW", NULL, "Gigawatts",  NULL, 1e9f,  0.0, B_UNIT_DEF_NONE},
 	{"megawatt",  "megawatts",  "MW", NULL, "Megawatts",  NULL, 1e6f,  0.0, B_UNIT_DEF_CASE_SENSITIVE},
 	{"kilowatt",  "kilowatts",  "kW", NULL, "Kilowatts",  NULL, 1e3f,  0.0, B_UNIT_DEF_SUPPRESS},
-	{"watt",      "watts",      "W",  NULL, "Watts",      NULL, 1.0f,  0.0, B_UNIT_DEF_NONE},
+	{"watt",      "watts",      "W",  NULL, "Watts",      NULL, 1.0f,  0.0, B_UNIT_DEF_NONE}, /* base unit */
 	{"milliwatt", "milliwatts", "mW", NULL, "Milliwatts", NULL, 1e-3f, 0.0, B_UNIT_DEF_CASE_SENSITIVE},
 	{"microwatt", "microwatts", "µW", "uW", "Microwatts", NULL, 1e-6f, 0.0, B_UNIT_DEF_NONE},
 	{"nanowatt",  "nanowatts",  "nW", NULL, "Nannowatts", NULL, 1e-9f, 0.0, B_UNIT_DEF_NONE},
+	NULL_UNIT,
 };
 static struct bUnitCollection buPowerCollection = {buPowerDef, 3, 0, UNIT_COLLECTION_LENGTH(buPowerDef)};
 
