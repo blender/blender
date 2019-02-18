@@ -171,14 +171,14 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visibility Bias", "Bias for reducing self shadowing");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
-	prop = RNA_def_property(srna, "visibility_bleed_bias", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "visibility_bleed_bias", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "vis_bleedbias");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Visibility Bleed Bias", "Bias for reducing light-bleed on variance shadow maps");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
-	prop = RNA_def_property(srna, "visibility_blur", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "visibility_blur", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "vis_blur");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);

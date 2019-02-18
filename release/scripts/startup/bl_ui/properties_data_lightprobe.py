@@ -68,11 +68,10 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "falloff")
             col.prop(probe, "intensity")
 
-            col.separator()
-
-            col.prop(probe, "grid_resolution_x", text="Resolution X")
-            col.prop(probe, "grid_resolution_y", text="Y")
-            col.prop(probe, "grid_resolution_z", text="Z")
+            sub = col.column(align=True)
+            sub.prop(probe, "grid_resolution_x", text="Resolution X")
+            sub.prop(probe, "grid_resolution_y", text="Y")
+            sub.prop(probe, "grid_resolution_z", text="Z")
 
         elif probe.type == 'PLANAR':
             col = layout.column()
@@ -90,8 +89,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "falloff")
             col.prop(probe, "intensity")
 
-        col = layout.column()
-        sub = col.column()
+        sub = col.column(align=True)
         if probe.type != 'PLANAR':
             sub.prop(probe, "clip_start", text="Clipping Start")
         else:
@@ -100,14 +98,24 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         if probe.type != 'PLANAR':
             sub.prop(probe, "clip_end", text="End")
 
+
+class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
+    bl_label = "Visibility"
+    bl_parent_id = "DATA_PT_lightprobe"
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        probe = context.lightprobe
+
+        col = layout.column()
+
         if probe.type == 'GRID':
-            col.separator()
-            col.label(text="Visibility")
             col.prop(probe, "visibility_buffer_bias", text="Bias")
             col.prop(probe, "visibility_bleed_bias", text="Bleed Bias")
             col.prop(probe, "visibility_blur", text="Blur")
-
-        col.separator()
 
         row = col.row(align=True)
         row.prop(probe, "visibility_collection")
@@ -176,6 +184,7 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 classes = (
     DATA_PT_context_lightprobe,
     DATA_PT_lightprobe,
+    DATA_PT_lightprobe_visibility,
     DATA_PT_lightprobe_parallax,
     DATA_PT_lightprobe_display,
 )
