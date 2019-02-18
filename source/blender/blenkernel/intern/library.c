@@ -1660,19 +1660,14 @@ void id_clear_lib_data(Main *bmain, ID *id)
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
 void BKE_main_id_clear_newpoins(Main *bmain)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
-	int a;
 
-	a = set_listbasepointers(bmain, lbarray);
-	while (a--) {
-		id = lbarray[a]->first;
-		while (id) {
-			id->newid = NULL;
-			id->tag &= ~LIB_TAG_NEW;
-			id = id->next;
-		}
+	FOREACH_MAIN_ID_BEGIN(bmain, id)
+	{
+		id->newid = NULL;
+		id->tag &= ~LIB_TAG_NEW;
 	}
+	FOREACH_MAIN_ID_END;
 }
 
 
