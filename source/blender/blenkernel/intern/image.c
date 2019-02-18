@@ -2775,6 +2775,19 @@ static void image_tag_frame_recalc(Image *ima, ImageUser *iuser, void *customdat
 
 	if (ima == changed_image && BKE_image_is_animated(ima)) {
 		iuser->flag |= IMA_NEED_FRAME_RECALC;
+		iuser->ok = 1;
+	}
+}
+
+static void image_tag_reload(Image *ima, ImageUser *iuser, void *customdata)
+{
+	Image *changed_image = customdata;
+
+	if (ima == changed_image) {
+		iuser->ok = 1;
+		if (iuser->scene) {
+			image_update_views_format(ima, iuser);
+		}
 	}
 }
 
@@ -2847,9 +2860,9 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 			BKE_image_free_buffers(ima);
 
 			ima->ok = 1;
-			if (iuser)
-				iuser->ok = 1;
-
+			if (iuser) {
+				image_tag_frame_recalc(ima, iuser, ima);
+			}
 			BKE_image_walk_all_users(bmain, ima, image_tag_frame_recalc);
 
 			break;
@@ -2886,12 +2899,9 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 				BKE_image_free_buffers(ima);
 
 			if (iuser) {
-				iuser->ok = 1;
-				if (iuser->scene) {
-					image_update_views_format(ima, iuser);
-				}
+				image_tag_reload(ima, iuser, ima);
 			}
-
+			BKE_image_walk_all_users(bmain, ima, image_tag_reload);
 			break;
 		case IMA_SIGNAL_USER_NEW_IMAGE:
 			if (iuser) {

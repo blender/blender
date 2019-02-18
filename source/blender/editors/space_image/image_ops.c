@@ -2346,7 +2346,6 @@ static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-	// XXX other users?
 	BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_RELOAD);
 	DEG_id_tag_update(&ima->id, 0);
 
