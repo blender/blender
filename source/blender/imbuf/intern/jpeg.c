@@ -461,7 +461,6 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
 	int x, y;
 	char neogeo[128];
 	struct NeoGeo_Word *neogeo_word;
-	char *text;
 
 	jpeg_start_compress(cinfo, true);
 
@@ -472,13 +471,24 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
 	jpeg_write_marker(cinfo, 0xe1, (JOCTET *) neogeo, 10);
 	if (ibuf->metadata) {
 		IDProperty *prop;
-		/* key + max value + "Blender" */
-		text = MEM_mallocN(530, "stamp info read");
+		/* Static storage array for the short metadata. */
+		char static_text[1024];
+		const int static_text_size = ARRAY_SIZE(static_text);
 		for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
 			if (prop->type == IDP_STRING) {
 				int text_len;
 				if (!strcmp(prop->name, "None")) {
 					jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *) IDP_String(prop), prop->len + 1);
+				}
+
+				char *text = static_text;
+				int text_size = static_text_size;
+				/* 7 is for Blender, 2 colon separators, length of property
+				 * name and property value, followed by the NULL-terminator. */
+				const int text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) + 1;
+				if (text_length_required <= static_text_size) {
+					text = MEM_mallocN(text_length_required, "jpeg metadata field");
+					text_size = text_length_required;
 				}
 
 				/*
@@ -490,11 +500,17 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
 				 * The first "Blender" is a simple identify to help
 				 * in the read process.
 				 */
-				text_len = sprintf(text, "Blender:%s:%s", prop->name, IDP_String(prop));
+				text_len = BLI_snprintf(text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
 				jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *) text, text_len + 1);
+
+				/* TODO(sergey): Ideally we will try to re-use allocation as
+				 * much as possible. In practice, such long fields don't happen
+				 * often. */
+				if (text != static_text) {
+					MEM_freeN(text);
+				}
 			}
 		}
-		MEM_freeN(text);
 	}
 
 	row_pointer[0] =
