@@ -337,11 +337,6 @@ typedef struct Object {
 
 	char _pad3[2];
 
-	/** Smoothresh is phong interpolation ray_shadow correction in render. */
-	float smoothresh;
-
-	char _pad4[4];
-
 	/** Object constraints. */
 	ListBase constraints;
 	ListBase nlastrips  DNA_DEPRECATED;			// XXX deprecated... old animation system
