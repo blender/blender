@@ -739,12 +739,12 @@ static void curve_create_edit_data_and_handles(
 	for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next, nu_id++) {
 		const BezTriple *bezt = nu->bezt;
 		const BPoint *bp = nu->bp;
-		if (bezt && bezt->hide == false) {
+		if (bezt) {
 			for (int a = 0; a < nu->pntsu; a++, bezt++) {
-				if (elbp_verts) {
+				if (elbp_verts && bezt->hide == false) {
 					GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 1);
 				}
-				if (elbp_lines) {
+				if (elbp_lines && bezt->hide == false) {
 					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 0);
 					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 2);
 				}
