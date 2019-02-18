@@ -8449,7 +8449,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 /* ************************* menu handling *******************************/
 
 /**
- * Function used to prevent losing the open menu when using nested pulldowns,
+ * Function used to prevent losing the open menu when using nested pull-downs,
  * when moving mouse towards the pulldown menu over other buttons that could
  * steal the highlight from the current button, only checks:
  *
@@ -8867,7 +8867,7 @@ static int ui_handle_menu_event(
 					}
 					break;
 
-				/* closing sublevels of pulldowns */
+				/* Closing sub-levels of pull-downs. */
 				case LEFTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP))
 						if (block->saferct.first)
@@ -8876,7 +8876,7 @@ static int ui_handle_menu_event(
 					retval = WM_UI_HANDLER_BREAK;
 					break;
 
-				/* opening sublevels of pulldowns */
+				/* Opening sub-levels of pull-downs. */
 				case RIGHTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 
@@ -9067,7 +9067,7 @@ static int ui_handle_menu_event(
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
 								}
 								else if (ELEM(but->type, UI_BTYPE_BLOCK, UI_BTYPE_PULLDOWN)) {
-									/* open submenus (like right arrow key) */
+									/* open sub-menus (like right arrow key) */
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
 								}
 								else if (but->type == UI_BTYPE_MENU) {
@@ -9091,13 +9091,13 @@ static int ui_handle_menu_event(
 
 		/* here we check return conditions for menus */
 		if (block->flag & UI_BLOCK_LOOP) {
-			/* if we click outside the block, verify if we clicked on the
+			/* If we click outside the block, verify if we clicked on the
 			 * button that opened us, otherwise we need to close,
 			 *
 			 * note that there is an exception for root level menus and
 			 * popups which you can click again to close.
 			 *
-			 * Every's handled above may have already set the return value,
+			 * Events handled above may have already set the return value,
 			 * don't overwrite them, see: T61015.
 			 */
 			if ((inside == 0) && (menu->menuretval == 0)) {
@@ -9136,12 +9136,12 @@ static int ui_handle_menu_event(
 			}
 #ifdef USE_KEYNAV_LIMIT
 			else if ((event->type == MOUSEMOVE) && ui_mouse_motion_keynav_test(&menu->keynav_state, event)) {
-				/* don't handle the mousemove if we're using key-navigation */
+				/* Don't handle the mouse-move if we're using key-navigation. */
 				retval = WM_UI_HANDLER_BREAK;
 			}
 #endif
 			else if (event->type == ESCKEY && event->val == KM_PRESS) {
-				/* esc cancels this and all preceding menus */
+				/* Escape cancels this and all preceding menus. */
 				menu->menuretval = UI_RETURN_CANCEL;
 			}
 			else if (ELEM(event->type, RETKEY, PADENTER) && event->val == KM_PRESS) {
