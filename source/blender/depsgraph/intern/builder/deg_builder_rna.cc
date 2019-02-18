@@ -322,6 +322,11 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(
 		node_identifier.type = NodeType::GEOMETRY;
 		return node_identifier;
 	}
+	else if (ELEM(ptr->type, &RNA_BezierSplinePoint, &RNA_SplinePoint)) {
+		node_identifier.id = (ID *)ptr->id.data;
+		node_identifier.type = NodeType::GEOMETRY;
+		return node_identifier;
+	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		if (RNA_property_is_idprop(prop)) {
