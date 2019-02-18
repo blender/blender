@@ -90,7 +90,10 @@
 	if (!((_data)->status & IDWALK_STOP)) { \
 		const int _flag = (_data)->flag; \
 		ID *old_id = *(id_pp); \
-		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, _cb_flag | (_data)->cb_flag); \
+		const int callback_return = (_data)->callback((_data)->user_data, \
+		                                              (_data)->self_id, \
+		                                              id_pp, \
+		                                              (_cb_flag | (_data)->cb_flag) & ~(_data)->cb_flag_clear); \
 		if (_flag & IDWALK_READONLY) { \
 			BLI_assert(*(id_pp) == old_id); \
 		} \
@@ -131,6 +134,7 @@ typedef struct LibraryForeachIDData {
 	ID *self_id;
 	int flag;
 	int cb_flag;
+	int cb_flag_clear;
 	LibraryIDLinkCallback callback;
 	void *user_data;
 	int status;
@@ -369,6 +373,8 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 	for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
 		data.self_id = id;
 		data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
+		/* When an ID is not in Main database, it should never refcount IDs it is using. */
+		data.cb_flag_clear = (id->tag & LIB_TAG_NO_MAIN) ? IDWALK_CB_USER | IDWALK_CB_USER_ONE : 0;
 
 		if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
 			/* Note that this is minor optimization, even in worst cases (like id being an object with lots of
