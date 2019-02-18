@@ -324,11 +324,22 @@ typedef struct Object {
 	/** Object color. */
 	float col[4];
 
-	/** For restricting view, select, render etc. accessible in outliner. */
-	char restrictflag;
-	char _pad3;
 	/** Softbody settings. */
 	short softflag;
+
+	/** For restricting view, select, render etc. accessible in outliner. */
+	char restrictflag;
+
+	/** Flag for pinning. */
+	char  shapeflag;
+	/** Current shape key for menu or pinned. */
+	short shapenr;
+
+	char _pad3[2];
+
+	/** Smoothresh is phong interpolation ray_shadow correction in render. */
+	float smoothresh;
+
 	char _pad4[4];
 
 	/** Object constraints. */
@@ -344,21 +355,11 @@ typedef struct Object {
 	struct SoftBody *soft;
 	/** Object duplicator for group. */
 	struct Collection *instance_collection;
-	void *_pad5;
-
-	char  _pad6;
-	/** Flag for pinning. */
-	char  shapeflag;
-	/** Current shape key for menu or pinned. */
-	short shapenr;
-	/** Smoothresh is phong interpolation ray_shadow correction in render. */
-	float smoothresh;
 
 	/** If fluidsim enabled, store additional settings. */
 	struct FluidsimSettings *fluidsimSettings;
 
 	struct DerivedMesh *derivedDeform, *derivedFinal;
-	void *_pad7;
 
 	ListBase pc_ids;
 
@@ -373,16 +374,15 @@ typedef struct Object {
 	ImageUser *iuser;
 	char empty_image_visibility_flag;
 	char empty_image_depth;
-	char _pad8[6];
+	char _pad8[2];
+
+	int select_color;
 
 	/** Contains data for levels of detail. */
 	ListBase lodlevels;
 	LodLevel *currentlod;
 
 	struct PreviewImage *preview;
-
-	int _pad9;
-	int select_color;
 
 	/** Runtime evaluation data (keep last). */
 	Object_Runtime runtime;
