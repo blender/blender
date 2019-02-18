@@ -156,9 +156,9 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 #define FOREACH_MAIN_ID_BEGIN(_bmain, _id)                                \
 	{                                                                     \
 		ListBase *_lbarray[MAX_LIBARRAY];                                 \
-		int i = set_listbasepointers(_bmain, _lbarray);                   \
-		while (i--) {                                                     \
-			FOREACH_MAIN_LISTBASE_ID_BEGIN(_lbarray[i], _id)
+		int _i = set_listbasepointers(_bmain, _lbarray);                  \
+		while (_i--) {                                                    \
+			FOREACH_MAIN_LISTBASE_ID_BEGIN(_lbarray[_i], _id)
 
 #define FOREACH_MAIN_ID_END                                               \
 			FOREACH_MAIN_LISTBASE_ID_END;                                 \
