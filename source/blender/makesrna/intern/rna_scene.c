@@ -3945,7 +3945,7 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Margin", "Extends the baked result as a post process filter");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
-	prop = RNA_def_property(srna, "cage_extrusion", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "cage_extrusion", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 3);
 	RNA_def_property_ui_text(prop, "Cage Extrusion",
@@ -5911,13 +5911,13 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Cubemap Cache", "Display captured cubemaps in the viewport");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "gi_irradiance_display_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gi_irradiance_display_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "gi_irradiance_draw_size");
 	RNA_def_property_range(prop, 0.05f, 10.0f);
 	RNA_def_property_float_default(prop, 0.1f);
 	RNA_def_property_ui_text(prop, "Irradiance Display Size", "Size of the irradiance sample spheres to debug captured light");
 
-	prop = RNA_def_property(srna, "gi_cubemap_display_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gi_cubemap_display_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "gi_cubemap_draw_size");
 	RNA_def_property_range(prop, 0.05f, 10.0f);
 	RNA_def_property_float_default(prop, 0.3f);

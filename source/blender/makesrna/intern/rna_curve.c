@@ -1145,28 +1145,28 @@ static void rna_def_textbox(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Text Box", "Text bounding box for layout");
 
 	/* number values */
-	prop = RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -50.0f, 50.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Textbox X Offset", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "y");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -50.0f, 50.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Textbox Y Offset", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "w");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 50.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Textbox Width", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "h");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 50.0f, 10, 3);

@@ -2391,7 +2391,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Color", "Draw additional particle data as a color");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop = RNA_def_property(srna, "display_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "display_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "draw_size");
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_range(prop, 0, 100, 1, -1);
@@ -2847,7 +2847,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Random Child Size", "Random variation to the size of the child particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop = RNA_def_property(srna, "child_radius", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "child_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "childrad");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Child Radius", "Radius of children around parent");
@@ -2897,7 +2897,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* kink */
-	prop = RNA_def_property(srna, "kink_amplitude", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "kink_amplitude", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "kink_amp");
 	RNA_def_property_range(prop, -100000.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.1, 3);
@@ -3193,14 +3193,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shape", "Strand shape parameter");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
 
-	prop = RNA_def_property(srna, "root_radius", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "root_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "rad_root");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Root", "Strand width at the root");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
 
-	prop = RNA_def_property(srna, "tip_radius", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "tip_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "rad_tip");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
