@@ -2725,9 +2725,9 @@ void BKE_scene_foreach_display_point(
 
 /* copied from DNA_object_types.h */
 typedef struct ObTfmBack {
-	float loc[3], dloc[3], orig[3];
+	float loc[3], dloc[3];
 	/** scale and delta scale. */
-	float size[3], dscale[3];
+	float scale[3], dscale[3];
 	/** euler rotation. */
 	float rot[3], drot[3];
 	/** quaternion rotation. */
@@ -2751,8 +2751,7 @@ void *BKE_object_tfm_backup(Object *ob)
 	ObTfmBack *obtfm = MEM_mallocN(sizeof(ObTfmBack), "ObTfmBack");
 	copy_v3_v3(obtfm->loc, ob->loc);
 	copy_v3_v3(obtfm->dloc, ob->dloc);
-	copy_v3_v3(obtfm->orig, ob->orig);
-	copy_v3_v3(obtfm->size, ob->scale);
+	copy_v3_v3(obtfm->scale, ob->scale);
 	copy_v3_v3(obtfm->dscale, ob->dscale);
 	copy_v3_v3(obtfm->rot, ob->rot);
 	copy_v3_v3(obtfm->drot, ob->drot);
@@ -2775,8 +2774,7 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
 	ObTfmBack *obtfm = (ObTfmBack *)obtfm_pt;
 	copy_v3_v3(ob->loc, obtfm->loc);
 	copy_v3_v3(ob->dloc, obtfm->dloc);
-	copy_v3_v3(ob->orig, obtfm->orig);
-	copy_v3_v3(ob->scale, obtfm->size);
+	copy_v3_v3(ob->scale, obtfm->scale);
 	copy_v3_v3(ob->dscale, obtfm->dscale);
 	copy_v3_v3(ob->rot, obtfm->rot);
 	copy_v3_v3(ob->drot, obtfm->drot);
