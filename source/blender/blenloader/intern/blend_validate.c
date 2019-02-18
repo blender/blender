@@ -149,30 +149,29 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 /** Check (and fix if needed) that shape key's 'from' pointer is valid. */
 bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
 {
+	ID *id;
 	bool is_valid = true;
 
 	BKE_main_lock(bmain);
 
-	ListBase *lbarray[MAX_LIBARRAY];
-	int i = set_listbasepointers(bmain, lbarray);
-	while (i--) {
-		for (ID *id = lbarray[i]->first; id != NULL; id = id->next) {
-			if (!BKE_key_idtype_support(GS(id->name))) {
-				break;
-			}
-			if (id->lib == NULL) {
-				/* We assume lib data is valid... */
-				Key *shapekey = BKE_key_from_id(id);
-				if (shapekey != NULL && shapekey->from != id) {
-					is_valid = false;
-					BKE_reportf(reports, RPT_ERROR,
-					            "ID %s uses shapekey %s, but its 'from' pointer is invalid (%p), fixing...",
-					            id->name, shapekey->id.name, shapekey->from);
-					shapekey->from = id;
-				}
+	FOREACH_MAIN_ID_BEGIN(bmain, id)
+	{
+		if (!BKE_key_idtype_support(GS(id->name))) {
+			break;
+		}
+		if (id->lib == NULL) {
+			/* We assume lib data is valid... */
+			Key *shapekey = BKE_key_from_id(id);
+			if (shapekey != NULL && shapekey->from != id) {
+				is_valid = false;
+				BKE_reportf(reports, RPT_ERROR,
+				            "ID %s uses shapekey %s, but its 'from' pointer is invalid (%p), fixing...",
+				            id->name, shapekey->id.name, shapekey->from);
+				shapekey->from = id;
 			}
 		}
 	}
+	FOREACH_MAIN_ID_END;
 
 	BKE_main_unlock(bmain);
 
