@@ -14,10 +14,10 @@ void main()
 {
 #ifndef UNIFORM_ID
 	id = vec4(
-		(((color + offset)      ) & uint(0xFF)) * (1.0f / 255.0f),
-		(((color + offset) >>  8) & uint(0xFF)) * (1.0f / 255.0f),
-		(((color + offset) >> 16) & uint(0xFF)) * (1.0f / 255.0f),
-		(((color + offset) >> 24)             ) * (1.0f / 255.0f));
+		(((color + offset)       ) & 0xFFu) * (1.0f / 255.0f),
+		(((color + offset) >>  8u) & 0xFFu) * (1.0f / 255.0f),
+		(((color + offset) >> 16u) & 0xFFu) * (1.0f / 255.0f),
+		(((color + offset) >> 24u)        ) * (1.0f / 255.0f));
 #endif
 
 	vec4 pos_4d = vec4(pos, 1.0);

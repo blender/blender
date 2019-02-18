@@ -11,10 +11,10 @@ void main()
 {
 #ifdef UNIFORM_ID
 	fragColor = vec4(
-		((id      ) & uint(0xFF)) * (1.0f / 255.0f),
-		((id >>  8) & uint(0xFF)) * (1.0f / 255.0f),
-		((id >> 16) & uint(0xFF)) * (1.0f / 255.0f),
-		((id >> 24)             ) * (1.0f / 255.0f));
+		((id       ) & 0xFFu) * (1.0f / 255.0f),
+		((id >>  8u) & 0xFFu) * (1.0f / 255.0f),
+		((id >> 16u) & 0xFFu) * (1.0f / 255.0f),
+		((id >> 24u)        ) * (1.0f / 255.0f));
 #else
 	fragColor = id;
 #endif
