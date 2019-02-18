@@ -40,7 +40,14 @@ class MotionPathButtonsPanel:
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(mps, "type")
+        row = layout.row(align=True)
+        row.prop(mps, "type")
+        if mps.type == 'RANGE':
+            if bones:
+                row.operator("pose.paths_range_update", text="", icon='TIME')
+            else:
+                row.operator("object.paths_range_update", text="", icon='TIME')
+
 
         if mps.type == 'CURRENT_FRAME':
             col = layout.column(align=True)
@@ -48,17 +55,10 @@ class MotionPathButtonsPanel:
             col.prop(mps, "frame_after", text="After")
             col.prop(mps, "frame_step", text="Step")
         elif mps.type == 'RANGE':
-            row = layout.row()
-            sub = row.column()
-            if mps.type == 'RANGE':
-                if bones:
-                    sub.operator("pose.paths_range_update", text="", icon='TIME')
-                else:
-                    sub.operator("object.paths_range_update", text="", icon='TIME')
-            sub = row.column(align=True)
-            sub.prop(mps, "frame_start", text="Frame Range Start")
-            sub.prop(mps, "frame_end", text="End")
-            sub.prop(mps, "frame_step", text="Step")
+            col = layout.column(align=True)
+            col.prop(mps, "frame_start", text="Frame Range Start")
+            col.prop(mps, "frame_end", text="End")
+            col.prop(mps, "frame_step", text="Step")
 
         if mpath:
             col = layout.column(align=True)
@@ -98,10 +98,11 @@ class MotionPathButtonsPanel_display:
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        col = layout.column()
-        col.prop(mps, "show_frame_numbers", text="Frame Numbers")
-        col.prop(mps, "show_keyframe_highlight", text="Keyframes")
-        sub = col.column()
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+
+        flow.prop(mps, "show_frame_numbers", text="Frame Numbers")
+        flow.prop(mps, "show_keyframe_highlight", text="Keyframes")
+        sub = flow.column()
         sub.enabled = mps.show_keyframe_highlight
         if bones:
             sub.prop(mps, "show_keyframe_action_all", text="+ Non-Grouped Keyframes")
@@ -109,7 +110,9 @@ class MotionPathButtonsPanel_display:
 
         # Customize path
         if mpath is not None:
-            col.prop(mpath, "lines", text="Lines")
+            flow.prop(mpath, "lines", text="Lines")
+
+            col = layout.column()
             col.prop(mpath, "line_thickness", text="Thickness")
 
             split = col.split(factor=0.6)
