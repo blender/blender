@@ -8600,6 +8600,7 @@ void createTransData(bContext *C, TransInfo *t)
 	ViewLayer *view_layer = t->view_layer;
 	Object *ob = OBACT(view_layer);
 
+	bool has_transform_context = true;
 	t->data_len_all = -1;
 
 	/* if tests must match recalcData for correct updates */
@@ -8672,6 +8673,9 @@ void createTransData(bContext *C, TransInfo *t)
 				createTransPaintCurveVerts(C, t);
 				countAndCleanTransDataContainer(t);
 			}
+			else {
+				has_transform_context = false;
+			}
 		}
 		else if (t->obedit_type == OB_MESH) {
 
@@ -8686,6 +8690,9 @@ void createTransData(bContext *C, TransInfo *t)
 				set_prop_dist(t, 1);
 				sort_trans_data_dist(t);
 			}
+		}
+		else {
+			has_transform_context = false;
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -8766,6 +8773,9 @@ void createTransData(bContext *C, TransInfo *t)
 				sort_trans_data_dist(t);
 			}
 		}
+		else {
+			has_transform_context = false;
+		}
 	}
 	else if (t->obedit_type != -1) {
 		/* Multi object editing. */
@@ -8840,6 +8850,7 @@ void createTransData(bContext *C, TransInfo *t)
 	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
 		/* important that ob_armature can be set even when its not selected [#23412]
 		 * lines below just check is also visible */
+		has_transform_context = false;
 		Object *ob_armature = modifiers_isDeformedByArmature(ob);
 		if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
 			Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
@@ -8852,12 +8863,9 @@ void createTransData(bContext *C, TransInfo *t)
 					initTransDataContainers_FromObjectData(t, ob_armature, objects, objects_len);
 					createTransPose(t);
 					countAndCleanTransDataContainer(t);
+					has_transform_context = true;
 				}
 			}
-		}
-		/* Mark as initialized if above checks fail. */
-		if (t->data_len_all == -1) {
-			t->data_len_all = 0;
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, ob))) {
@@ -8877,9 +8885,8 @@ void createTransData(bContext *C, TransInfo *t)
 			createTransPaintCurveVerts(C, t);
 			countAndCleanTransDataContainer(t);
 		}
-		/* Mark as initialized if above checks fail. */
-		if (t->data_len_all == -1) {
-			t->data_len_all = 0;
+		else {
+			has_transform_context = false;
 		}
 	}
 	else {
@@ -8907,7 +8914,13 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 
 	/* Check that 'countAndCleanTransDataContainer' ran. */
-	BLI_assert(t->data_len_all != -1);
+	if (has_transform_context) {
+		BLI_assert(t->data_len_all != -1);
+	}
+	else {
+		BLI_assert(t->data_len_all == -1);
+		t->data_len_all = 0;
+	}
 
 	BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));
 }
