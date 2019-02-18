@@ -58,7 +58,7 @@ typedef struct bDeformGroup {
 	/** MAX_VGROUP_NAME. */
 	char name[64];
 	/* need this flag for locking weights */
-	char flag, pad[7];
+	char flag, _pad0[7];
 } bDeformGroup;
 
 /* Face Maps*/
@@ -67,7 +67,7 @@ typedef struct bFaceMap {
 	/** MAX_VGROUP_NAME. */
 	char name[64];
 	char flag;
-	char pad[7];
+	char _pad0[7];
 } bFaceMap;
 
 #define MAX_VGROUP_NAME 64
@@ -98,7 +98,8 @@ typedef struct bFaceMap {
  */
 typedef struct BoundBox {
 	float vec[8][3];
-	int flag, pad;
+	int flag;
+	char _pad0[4];
 } BoundBox;
 
 /* boundbox flag */
@@ -111,7 +112,8 @@ typedef struct LodLevel {
 	struct LodLevel *next, *prev;
 	struct Object *source;
 	int flags;
-	float distance, pad;
+	float distance;
+	char _pad0[4];
 	int obhysteresis;
 } LodLevel;
 
@@ -202,7 +204,7 @@ typedef struct Object {
 	bAnimVizSettings avs;
 	/** Motion path cache for this object. */
 	bMotionPath *mpath;
-	void *pad1;
+	void *_pad0;
 
 	ListBase constraintChannels  DNA_DEPRECATED; // XXX deprecated... old animation system
 	ListBase effect  DNA_DEPRECATED;             // XXX deprecated... keep for readfile
@@ -283,7 +285,7 @@ typedef struct Object {
 	/** Used for DopeSheet filtering settings (expanded/collapsed). */
 	short nlaflag;
 
-	char pad12;
+	char _pad1;
 	char duplicator_visibility_flag;
 
 	/* Depsgraph */
@@ -318,16 +320,16 @@ typedef struct Object {
 	unsigned short actdef;
 	/** Current face map, note: index starts at 1. */
 	unsigned short actfmap;
-	unsigned char pad5[2];
+	char _pad2[2];
 	/** Object color. */
 	float col[4];
 
 	/** For restricting view, select, render etc. accessible in outliner. */
 	char restrictflag;
-	char pad3;
+	char _pad3;
 	/** Softbody settings. */
 	short softflag;
-	int pad2;
+	char _pad4[4];
 
 	/** Object constraints. */
 	ListBase constraints;
@@ -342,9 +344,9 @@ typedef struct Object {
 	struct SoftBody *soft;
 	/** Object duplicator for group. */
 	struct Collection *instance_collection;
-	void *pad10;
+	void *_pad5;
 
-	char  pad4;
+	char  _pad6;
 	/** Flag for pinning. */
 	char  shapeflag;
 	/** Current shape key for menu or pinned. */
@@ -356,7 +358,7 @@ typedef struct Object {
 	struct FluidsimSettings *fluidsimSettings;
 
 	struct DerivedMesh *derivedDeform, *derivedFinal;
-	void *pad7;
+	void *_pad7;
 
 	ListBase pc_ids;
 
@@ -371,7 +373,7 @@ typedef struct Object {
 	ImageUser *iuser;
 	char empty_image_visibility_flag;
 	char empty_image_depth;
-	char pad11[6];
+	char _pad8[6];
 
 	/** Contains data for levels of detail. */
 	ListBase lodlevels;
@@ -379,10 +381,10 @@ typedef struct Object {
 
 	struct PreviewImage *preview;
 
-	int pad6;
+	int _pad9;
 	int select_color;
 
-	/* Runtime evaluation data (keep last). */
+	/** Runtime evaluation data (keep last). */
 	Object_Runtime runtime;
 } Object;
 
