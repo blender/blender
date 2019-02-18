@@ -76,6 +76,11 @@ RNG *BLI_rng_new_srandom(unsigned int seed)
 	return rng;
 }
 
+RNG *BLI_rng_copy(RNG *rng)
+{
+	return MEM_dupallocN(rng);
+}
+
 void BLI_rng_free(RNG *rng)
 {
 	MEM_freeN(rng);

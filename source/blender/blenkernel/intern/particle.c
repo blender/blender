@@ -3297,8 +3297,8 @@ void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
 void BKE_particlesettings_copy_data(
         Main *UNUSED(bmain), ParticleSettings *part_dst, const ParticleSettings *part_src, const int UNUSED(flag))
 {
-	part_dst->pd = MEM_dupallocN(part_src->pd);
-	part_dst->pd2 = MEM_dupallocN(part_src->pd2);
+	part_dst->pd = BKE_partdeflect_copy(part_src->pd);
+	part_dst->pd2 = BKE_partdeflect_copy(part_src->pd2);
 	part_dst->effector_weights = MEM_dupallocN(part_src->effector_weights);
 	part_dst->fluid = MEM_dupallocN(part_src->fluid);
 

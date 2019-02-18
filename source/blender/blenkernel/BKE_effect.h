@@ -110,6 +110,7 @@ typedef struct EffectorRelation {
 
 
 struct PartDeflect *BKE_partdeflect_new(int type);
+struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
 void                BKE_partdeflect_free(struct PartDeflect *pd);
 
 struct ListBase *BKE_effector_relations_create(

@@ -131,6 +131,18 @@ PartDeflect *BKE_partdeflect_new(int type)
 
 /************************ PARTICLES ***************************/
 
+PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src)
+{
+	if (pd_src == NULL) {
+		return NULL;
+	}
+	PartDeflect *pd_dst = MEM_dupallocN(pd_src);
+	if (pd_dst->rng != NULL) {
+		pd_dst->rng = BLI_rng_copy(pd_dst->rng);
+	}
+	return pd_dst;
+}
+
 void BKE_partdeflect_free(PartDeflect *pd)
 {
 	if (!pd) {

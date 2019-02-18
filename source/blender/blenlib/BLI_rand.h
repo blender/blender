@@ -37,6 +37,7 @@ typedef struct RNG_THREAD_ARRAY RNG_THREAD_ARRAY;
 
 struct RNG *BLI_rng_new(unsigned int seed);
 struct RNG *BLI_rng_new_srandom(unsigned int seed);
+struct RNG *BLI_rng_copy(struct RNG *rng) ATTR_NONNULL(1);
 void        BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
 
 void        BLI_rng_seed(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
