@@ -821,7 +821,9 @@ static void deg_backup_object_runtime(
 	 * Need to make sure we don't have data set to evaluated one before free
 	 * anything. */
 	if (mesh_eval != NULL && object->data == mesh_eval) {
-		object->data = object->runtime.mesh_orig;
+		/* XXX Is this still useful? code was broken for some times (always setting object->data to NULL),
+		 *     and did not seem to cause any issue? */
+		object->data = object_runtime_backup->runtime.mesh_orig;
 	}
 	/* Make a backup of base flags. */
 	object_runtime_backup->base_flag = object->base_flag;
