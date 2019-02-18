@@ -72,22 +72,21 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         ob = context.object
         arm = context.armature
 
-        layout.row().prop(arm, "display_type", expand=True)
+        layout.prop(arm, "display_type", text="Display As")
 
-        layout.use_property_split = True
-
-        col = layout.column()
-        col.prop(arm, "show_names", text="Names")
-        col.prop(arm, "show_axes", text="Axes")
-        col.prop(arm, "show_bone_custom_shapes", text="Shapes")
-        col.prop(arm, "show_group_colors", text="Group Colors")
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+        flow.prop(arm, "show_names", text="Names")
+        flow.prop(arm, "show_axes", text="Axes")
+        flow.prop(arm, "show_bone_custom_shapes", text="Shapes")
+        flow.prop(arm, "show_group_colors", text="Group Colors")
         if ob:
-            col.prop(ob, "show_in_front", text="In Front")
-        col.prop(arm, "use_deform_delay", text="Delay Refresh")
+            flow.prop(ob, "show_in_front", text="In Front")
+        flow.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
 class DATA_MT_bone_group_specials(Menu):
@@ -229,9 +228,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
         layout.prop(ob.pose, "ik_solver")
 
         if itasc:
-            layout.use_property_split = False
-            layout.row().prop(itasc, "mode", expand=True)
-            layout.use_property_split = True
+            layout.prop(itasc, "mode")
             simulation = (itasc.mode == 'SIMULATION')
             if simulation:
                 layout.prop(itasc, "reiteration_method", expand=False)
@@ -242,20 +239,19 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
             col.prop(itasc, "iterations")
 
             if simulation:
-                layout.prop(itasc, "use_auto_step")
-                col = layout.column(align=True)
+                col.prop(itasc, "use_auto_step")
+                sub = layout.column(align=True)
                 if itasc.use_auto_step:
-                    col.prop(itasc, "step_min", text="Steps Min")
-                    col.prop(itasc, "step_max", text="Max")
+                    sub.prop(itasc, "step_min", text="Steps Min")
+                    sub.prop(itasc, "step_max", text="Max")
                 else:
-                    col.prop(itasc, "step_count", text="Steps")
+                    sub.prop(itasc, "step_count", text="Steps")
 
-            layout.prop(itasc, "solver")
+            col.prop(itasc, "solver")
             if simulation:
-                layout.prop(itasc, "feedback")
-                layout.prop(itasc, "velocity_max")
+                col.prop(itasc, "feedback")
+                col.prop(itasc, "velocity_max")
             if itasc.solver == 'DLS':
-                col = layout.column()
                 col.separator()
                 col.prop(itasc, "damping_max", text="Damping Max", slider=True)
                 col.prop(itasc, "damping_epsilon", text="Damping Epsilon", slider=True)
