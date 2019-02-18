@@ -245,10 +245,19 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 				                     ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 			}
 			if (cb_flag & IDWALK_CB_USER) {
-				id_us_min(old_id);
-				/* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
-				if (new_id)
+				/* NOTE: We don't user-count IDs which are not in the main database.
+				 * This is because in certain conditions we can have datablocks in
+				 * the main which are referencing datablocks outside of it.
+				 * For example, BKE_mesh_new_from_object() called on an evaluated
+				 * object will cause such situation.
+				 */
+				if ((old_id->tag & LIB_TAG_NO_MAIN) == 0) {
+					id_us_min(old_id);
+				}
+				if (new_id != NULL && (new_id->tag & LIB_TAG_NO_MAIN) == 0) {
+					/* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
 					new_id->us++;
+				}
 			}
 			else if (cb_flag & IDWALK_CB_USER_ONE) {
 				id_us_ensure_real(new_id);
