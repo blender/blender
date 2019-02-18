@@ -143,9 +143,13 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 /* *** Generic utils to loop over whole Main database. *** */
 
 #define FOREACH_MAIN_LISTBASE_ID_BEGIN(_lb, _id)                          \
-	for (_id = _lb->first; _id != NULL; _id = _id->next) {                \
+	{                                                                     \
+		ID *_id_next = _lb->first;                                        \
+		for (_id = _id_next; _id != NULL; _id = _id_next) {               \
+			_id_next = _id->next;
 
 #define FOREACH_MAIN_LISTBASE_ID_END                                      \
+		}                                                                 \
 	} ((void)0)
 
 
@@ -154,7 +158,7 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 		ListBase *_lbarray[MAX_LIBARRAY];                                 \
 		int i = set_listbasepointers(_bmain, _lbarray);                   \
 		while (i--) {                                                     \
-			FOREACH_MAIN_LISTBASE_ID_BEGIN(_lbarray[i], _id)              \
+			FOREACH_MAIN_LISTBASE_ID_BEGIN(_lbarray[i], _id)
 
 #define FOREACH_MAIN_ID_END                                               \
 			FOREACH_MAIN_LISTBASE_ID_END;                                 \
