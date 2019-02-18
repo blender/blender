@@ -1753,76 +1753,140 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
         cbk = scene.render.bake
         rd = scene.render
 
-        col = layout.column()
-        col.prop(rd, "use_bake_multires")
         if rd.use_bake_multires:
-            col.prop(rd, "bake_type")
+            layout.operator("object.bake_image", icon='RENDER_STILL')
+            layout.prop(rd, "use_bake_multires")
+            layout.prop(rd, "bake_type")
 
-            col = layout.column()
-            col.prop(rd, "bake_margin")
-            col.prop(rd, "use_bake_clear")
+        else:
+            layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
+            layout.prop(rd, "use_bake_multires")
+            layout.prop(cscene, "bake_type")
+
+
+class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
+    bl_label = "Influence"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_bake"
+    COMPAT_ENGINES = {'CYCLES'}
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        cscene = scene.cycles
+        rd = scene.render
+        if rd.use_bake_multires == False and cscene.bake_type in {
+                'NORMAL', 'COMBINED', 'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
+            return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        cscene = scene.cycles
+        cbk = scene.render.bake
+        rd = scene.render
+
+        col = layout.column()
+
+        if cscene.bake_type == 'NORMAL':
+            col.prop(cbk, "normal_space", text="Space")
+
+            sub = col.column(align=True)
+            sub.prop(cbk, "normal_r", text="Swizzle R")
+            sub.prop(cbk, "normal_g", text="G")
+            sub.prop(cbk, "normal_b", text="B")
+
+        elif cscene.bake_type == 'COMBINED':
+            row = col.row(align=True)
+            row.use_property_split = False
+            row.prop(cbk, "use_pass_direct", toggle=True)
+            row.prop(cbk, "use_pass_indirect", toggle=True)
+
+            flow = col.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+
+            flow.active = cbk.use_pass_direct or cbk.use_pass_indirect
+            flow.prop(cbk, "use_pass_diffuse")
+            flow.prop(cbk, "use_pass_glossy")
+            flow.prop(cbk, "use_pass_transmission")
+            flow.prop(cbk, "use_pass_subsurface")
+            flow.prop(cbk, "use_pass_ambient_occlusion")
+            flow.prop(cbk, "use_pass_emit")
+
+        elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
+            row = col.row(align=True)
+            row.use_property_split = False
+            row.prop(cbk, "use_pass_direct", toggle=True)
+            row.prop(cbk, "use_pass_indirect", toggle=True)
+            row.prop(cbk, "use_pass_color", toggle=True)
+
+
+class CYCLES_RENDER_PT_bake_selected_to_active(CyclesButtonsPanel, Panel):
+    bl_label = "Selected to Active"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_bake"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'CYCLES'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        rd = scene.render
+        return rd.use_bake_multires == False
+
+    def draw_header(self, context):
+        scene = context.scene
+        cbk = scene.render.bake
+        self.layout.prop(cbk, "use_selected_to_active", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        cscene = scene.cycles
+        cbk = scene.render.bake
+        rd = scene.render
+
+        layout.active = cbk.use_selected_to_active
+        col = layout.column()
+
+        col.prop(cbk, "use_cage", text="Cage")
+        if cbk.use_cage:
+            col.prop(cbk, "cage_extrusion", text="Extrusion")
+            col.prop(cbk, "cage_object", text="Cage Object")
+        else:
+            col.prop(cbk, "cage_extrusion", text="Ray Distance")
+
+
+class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
+    bl_label = "Output"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_bake"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        cscene = scene.cycles
+        cbk = scene.render.bake
+        rd = scene.render
+
+        if rd.use_bake_multires:
+            layout.prop(rd, "bake_margin")
+            layout.prop(rd, "use_bake_clear", text="Clear Image")
 
             if rd.bake_type == 'DISPLACEMENT':
                 col.prop(rd, "use_bake_lores_mesh")
-
-            col.operator("object.bake_image", icon='RENDER_STILL')
-
         else:
-            col.prop(cscene, "bake_type")
 
-            col = layout.column()
-
-            if cscene.bake_type == 'NORMAL':
-                col.prop(cbk, "normal_space", text="Space")
-
-                sub = col.column(align=True)
-                sub.prop(cbk, "normal_r", text="Swizzle R")
-                sub.prop(cbk, "normal_g", text="G")
-                sub.prop(cbk, "normal_b", text="B")
-
-            elif cscene.bake_type == 'COMBINED':
-                row = col.row(align=True)
-                row.use_property_split = False
-                row.prop(cbk, "use_pass_direct", toggle=True)
-                row.prop(cbk, "use_pass_indirect", toggle=True)
-
-                col = col.column()
-                col.active = cbk.use_pass_direct or cbk.use_pass_indirect
-                col.prop(cbk, "use_pass_diffuse")
-                col.prop(cbk, "use_pass_glossy")
-                col.prop(cbk, "use_pass_transmission")
-                col.prop(cbk, "use_pass_subsurface")
-                col.prop(cbk, "use_pass_ambient_occlusion")
-                col.prop(cbk, "use_pass_emit")
-
-            elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
-                row = col.row(align=True)
-                row.use_property_split = False
-                row.prop(cbk, "use_pass_direct", toggle=True)
-                row.prop(cbk, "use_pass_indirect", toggle=True)
-                row.prop(cbk, "use_pass_color", toggle=True)
-
-            layout.separator()
-
-            col = layout.column()
-            col.prop(cbk, "margin")
-            col.prop(cbk, "use_clear", text="Clear Image")
-
-            col.separator()
-
-            col.prop(cbk, "use_selected_to_active")
-            sub = col.column()
-            sub.active = cbk.use_selected_to_active
-            sub.prop(cbk, "use_cage", text="Cage")
-            if cbk.use_cage:
-                sub.prop(cbk, "cage_extrusion", text="Extrusion")
-                sub.prop(cbk, "cage_object", text="Cage Object")
-            else:
-                sub.prop(cbk, "cage_extrusion", text="Ray Distance")
-
-            layout.separator()
-
-            layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
+            layout.prop(cbk, "margin")
+            layout.prop(cbk, "use_clear", text="Clear Image")
 
 
 class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
@@ -2134,6 +2198,9 @@ classes = (
     CYCLES_MATERIAL_PT_settings_surface,
     CYCLES_MATERIAL_PT_settings_volume,
     CYCLES_RENDER_PT_bake,
+    CYCLES_RENDER_PT_bake_influence,
+    CYCLES_RENDER_PT_bake_selected_to_active,
+    CYCLES_RENDER_PT_bake_output,
     CYCLES_RENDER_PT_debug,
     CYCLES_NODE_PT_settings,
     CYCLES_NODE_PT_settings_surface,
