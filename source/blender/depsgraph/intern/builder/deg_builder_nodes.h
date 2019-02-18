@@ -238,7 +238,7 @@ protected:
 		ID *id_orig;
 		NodeType component_type;
 		OperationCode opcode;
-		const char *name;
+		string name;
 		int name_tag;
 	};
 	vector<SavedEntryTag> saved_entry_tags_;

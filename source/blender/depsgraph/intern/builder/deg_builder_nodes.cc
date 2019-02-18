@@ -377,7 +377,8 @@ void DepsgraphNodeBuilder::end_build()
 		if (comp_node == NULL) {
 			continue;
 		}
-		OperationNode *op_node = comp_node->find_operation(entry_tag.opcode, entry_tag.name, entry_tag.name_tag);
+		OperationNode *op_node = comp_node->find_operation(
+		        entry_tag.opcode, entry_tag.name.c_str(), entry_tag.name_tag);
 		if (op_node == NULL) {
 			continue;
 		}

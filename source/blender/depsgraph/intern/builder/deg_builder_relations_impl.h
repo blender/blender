@@ -155,7 +155,7 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom& key_from,
 		return false;
 	}
 	/* ... BUT, we also need to check if it's same bone.  */
-	if (!STREQ(op_from->owner->name, op_to->owner->name)) {
+	if (op_from->owner->name != op_to->owner->name) {
 		return false;
 	}
 	return true;

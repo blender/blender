@@ -155,7 +155,7 @@ struct Node {
 	 * have relationships between these nodes. */
 	typedef vector<Relation *> Relations;
 
-	const char *name;     /* Identifier - mainly for debugging purposes. */
+	string name;     /* Identifier - mainly for debugging purposes. */
 	NodeType type;  /* Structural type of node. */
 	Relations inlinks;    /* Nodes which this one depends on. */
 	Relations outlinks;   /* Nodes which depend on this one. */
