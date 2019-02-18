@@ -119,6 +119,8 @@ const char *operationCodeAsString(OperationCode opcode)
 		case OperationCode::MOVIECLIP_EVAL: return "MOVIECLIP_EVAL";
 		case OperationCode::MOVIECLIP_SELECT_UPDATE:
 			return "MOVIECLIP_SELECT_UPDATE";
+		/* Image. */
+		case OperationCode::IMAGE_ANIMATION: return "IMAGE_ANIMATION";
 		/* Synchronization. */
 		case OperationCode::SYNCHRONIZE_TO_ORIGINAL:
 			return "SYNCHRONIZE_TO_ORIGINAL";

@@ -173,6 +173,9 @@ enum class OperationCode {
 	MOVIECLIP_EVAL,
 	MOVIECLIP_SELECT_UPDATE,
 
+	/* Images. -------------------------------------------------------------- */
+	IMAGE_ANIMATION,
+
 	/* Synchronization clips. ----------------------------------------------- */
 	SYNCHRONIZE_TO_ORIGINAL,
 

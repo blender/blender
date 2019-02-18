@@ -319,7 +319,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(
 			BKE_image_release_ibuf(image, ibuf, NULL);
 		}
 		else {
-			GPUTexture *texture = GPU_texture_from_blender(gp_style->ima, &iuser, GL_TEXTURE_2D, true, 0.0);
+			GPUTexture *texture = GPU_texture_from_blender(gp_style->ima, &iuser, GL_TEXTURE_2D, true);
 			DRW_shgroup_uniform_texture(grp, "myTexture", texture);
 
 			stl->shgroups[id].texture_clamp = gp_style->flag & GP_STYLE_COLOR_TEX_CLAMP ? 1 : 0;
@@ -432,7 +432,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 			BKE_image_release_ibuf(image, ibuf, NULL);
 		}
 		else {
-			GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, GL_TEXTURE_2D, true, 0.0f);
+			GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, GL_TEXTURE_2D, true);
 			DRW_shgroup_uniform_texture(grp, "myTexture", texture);
 
 			BKE_image_release_ibuf(image, ibuf, NULL);
@@ -525,7 +525,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 			BKE_image_release_ibuf(image, ibuf, NULL);
 		}
 		else {
-			GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, GL_TEXTURE_2D, true, 0.0f);
+			GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, GL_TEXTURE_2D, true);
 			DRW_shgroup_uniform_texture(grp, "myTexture", texture);
 
 			BKE_image_release_ibuf(image, ibuf, NULL);

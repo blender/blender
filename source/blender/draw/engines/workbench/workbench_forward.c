@@ -189,7 +189,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
 		if (workbench_material_determine_color_type(wpd, material->ima, ob) == V3D_SHADING_TEXTURE_COLOR) {
 			material->shgrp_object_outline = DRW_shgroup_create(
 			        e_data.object_outline_texture_sh, psl->object_outline_pass);
-			GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
+			GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false);
 			DRW_shgroup_uniform_texture(material->shgrp_object_outline, "image", tex);
 		}
 		else {

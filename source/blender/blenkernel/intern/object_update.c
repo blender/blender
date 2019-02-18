@@ -152,8 +152,6 @@ void BKE_object_handle_data_update(
         Scene *scene,
         Object *ob)
 {
-	float ctime = BKE_scene_frame_get(scene);
-
 	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
 	/* includes all keys and modifiers */
@@ -208,12 +206,6 @@ void BKE_object_handle_data_update(
 
 		case OB_LATTICE:
 			BKE_lattice_modifiers_calc(depsgraph, scene, ob);
-			break;
-
-		case OB_EMPTY:
-			if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data)
-				if (BKE_image_is_animated(ob->data))
-					BKE_image_user_check_frame_calc(ob->iuser, (int)ctime);
 			break;
 	}
 

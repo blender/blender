@@ -72,6 +72,7 @@ extern "C" {
 #include "BKE_effect.h"
 #include "BKE_collision.h"
 #include "BKE_fcurve.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -1199,6 +1200,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 
 void DepsgraphRelationBuilder::build_animdata(ID *id)
 {
+	/* Images. */
+	build_animation_images(id);
 	/* Animation curves and NLA. */
 	build_animdata_curves(id);
 	/* Drivers. */
@@ -1388,6 +1391,18 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 		if (adt->action || adt->nla_tracks.first) {
 			add_relation(adt_key, driver_key, "AnimData Before Drivers");
 		}
+	}
+}
+
+void DepsgraphRelationBuilder::build_animation_images(ID *id)
+{
+	/* TODO: can we check for existance of node for performance? */
+	if (BKE_image_user_id_has_animation(id)) {
+		OperationKey image_animation_key(id,
+		                                 NodeType::ANIMATION,
+		                                 OperationCode::IMAGE_ANIMATION);
+		TimeSourceKey time_src_key;
+		add_relation(time_src_key, image_animation_key, "TimeSrc -> Image Animation");
 	}
 }
 

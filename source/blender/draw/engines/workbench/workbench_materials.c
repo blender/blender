@@ -247,7 +247,7 @@ void workbench_material_shgroup_uniform(
 		ImBuf *ibuf = BKE_image_acquire_ibuf(material->ima, NULL, NULL);
 		const bool do_color_correction = (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0);
 		BKE_image_release_ibuf(material->ima, ibuf, NULL);
-		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
+		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
 		DRW_shgroup_uniform_bool_copy(grp, "imageSrgb", do_color_correction);
 		DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));

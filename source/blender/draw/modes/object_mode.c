@@ -924,7 +924,7 @@ static void DRW_shgroup_empty_image(
 	GPUTexture *tex = NULL;
 
 	if (ob->data != NULL) {
-		tex = GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f);
+		tex = GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false);
 		if (tex) {
 			size[0] = GPU_texture_width(tex);
 			size[1] = GPU_texture_height(tex);

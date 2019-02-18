@@ -75,6 +75,8 @@
 #  include "smoke_API.h"
 #endif
 
+static void gpu_free_image_immediate(Image *ima);
+
 //* Checking powers of two for images since OpenGL ES requires it */
 #ifdef WITH_DDS
 static bool is_power_of_2_resolution(int w, int h)
@@ -262,11 +264,16 @@ GPUTexture *GPU_texture_from_blender(
         Image *ima,
         ImageUser *iuser,
         int textarget,
-        bool is_data,
-        double UNUSED(time))
+        bool is_data)
 {
 	if (ima == NULL) {
 		return NULL;
+	}
+
+	/* currently, gpu refresh tagging is used by ima sequences */
+	if (ima->gpuflag & IMA_GPU_REFRESH) {
+		gpu_free_image_immediate(ima);
+		ima->gpuflag &= ~IMA_GPU_REFRESH;
 	}
 
 	/* Test if we already have a texture. */
@@ -281,12 +288,6 @@ GPUTexture *GPU_texture_from_blender(
 	if (ima->ok == 0) {
 		*tex = GPU_texture_from_bindcode(textarget, bindcode);
 		return *tex;
-	}
-
-	/* currently, tpage refresh is used by ima sequences */
-	if (ima->gpuflag & IMA_GPU_REFRESH) {
-		GPU_free_image(ima);
-		ima->gpuflag &= ~IMA_GPU_REFRESH;
 	}
 
 	/* check if we have a valid image buffer */
@@ -1128,13 +1129,8 @@ void GPU_free_unused_buffers(Main *bmain)
 	BLI_thread_unlock(LOCK_OPENGL);
 }
 
-void GPU_free_image(Image *ima)
+static void gpu_free_image_immediate(Image *ima)
 {
-	if (!BLI_thread_is_main()) {
-		gpu_queue_image_for_free(ima);
-		return;
-	}
-
 	for (int i = 0; i < TEXTARGET_COUNT; i++) {
 		/* free glsl image binding */
 		if (ima->gputexture[i]) {
@@ -1144,6 +1140,16 @@ void GPU_free_image(Image *ima)
 	}
 
 	ima->gpuflag &= ~(IMA_GPU_MIPMAP_COMPLETE | IMA_GPU_IS_DATA);
+}
+
+void GPU_free_image(Image *ima)
+{
+	if (!BLI_thread_is_main()) {
+		gpu_queue_image_for_free(ima);
+		return;
+	}
+
+	gpu_free_image_immediate(ima);
 }
 
 void GPU_free_images(Main *bmain)

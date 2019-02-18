@@ -73,6 +73,7 @@ extern "C" {
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idcode.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mask.h"
@@ -825,11 +826,13 @@ void DepsgraphNodeBuilder::build_object_pointcache(Object *object)
 }
 
 /**
- * Build graph nodes for AnimData block
+ * Build graph nodes for AnimData block and any animated images used.
  * \param id: ID-Block which hosts the AnimData
  */
 void DepsgraphNodeBuilder::build_animdata(ID *id)
 {
+	build_animation_images(id);
+
 	AnimData *adt = BKE_animdata_from_id(id);
 	if (adt == NULL) {
 		return;
@@ -883,6 +886,20 @@ void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
 		else if (strip->strips.first != NULL) {
 			build_animdata_nlastrip_targets(&strip->strips);
 		}
+	}
+}
+
+/**
+ * Build graph nodes to update the current frame in image users.
+ */
+void DepsgraphNodeBuilder::build_animation_images(ID *id)
+{
+	if (BKE_image_user_id_has_animation(id)) {
+		ID *id_cow = get_cow_id(id);
+		add_operation_node(id,
+		                   NodeType::ANIMATION,
+		                   OperationCode::IMAGE_ANIMATION,
+		                   function_bind(BKE_image_user_id_eval_animation, _1, id_cow));
 	}
 }
 

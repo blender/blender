@@ -193,7 +193,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 					Image *ima = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 					int interp = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].interp : 0;
 					GPUTexture *tex = ima ?
-					        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f) : NULL;
+					        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false) : NULL;
 
 					if (tex) {
 						DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
@@ -211,7 +211,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 			else {
 				Image *ima = imapaint->canvas;
 				GPUTexture *tex = ima ?
-				        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f) : NULL;
+				        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false) : NULL;
 
 				if (tex) {
 					DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);

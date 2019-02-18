@@ -48,8 +48,14 @@ static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *no
 static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	Image *ima = (Image *)node->id;
-	ImageUser *iuser = NULL;
 	NodeTexEnvironment *tex = node->storage;
+
+	/* We get the image user from the original node, since GPU image keeps
+	 * a pointer to it and the dependency refreshes the original. */
+	bNode *node_original = node->original ? node->original : node;
+	NodeTexImage *tex_original = node_original->storage;
+	ImageUser *iuser = &tex_original->iuser;
+
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
 	GPUNodeLink *outalpha;
 

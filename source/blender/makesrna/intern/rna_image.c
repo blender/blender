@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "DNA_image_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -65,6 +66,8 @@ static const EnumPropertyItem image_source_items[] = {
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "ED_node.h"
 
 static bool rna_Image_is_stereo_3d_get(PointerRNA *ptr)
 {
@@ -136,16 +139,23 @@ static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA 
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ImageUser *iuser = ptr->data;
+	ID *id = ptr->id.data;
 
 	BKE_image_user_frame_calc(iuser, scene->r.cfra);
 
-	if (ptr->id.data) {
-		/* Update material or texture for render preview. */
-		DEG_id_tag_update(ptr->id.data, 0);
-		DEG_id_tag_update(ptr->id.data, ID_RECALC_EDITORS);
+	if (id) {
+		if (GS(id->name) == ID_NT) {
+			/* Special update for nodetrees to find parent datablock. */
+			ED_node_tag_update_nodetree(bmain, (bNodeTree *)id, NULL);
+		}
+		else  {
+			/* Update material or texture for render preview. */
+			DEG_id_tag_update(id, 0);
+			DEG_id_tag_update(id, ID_RECALC_EDITORS);
+		}
 	}
 }
 

@@ -67,8 +67,14 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 	};
 
 	Image *ima = (Image *)node->id;
-	ImageUser *iuser = NULL;
 	NodeTexImage *tex = node->storage;
+
+	/* We get the image user from the original node, since GPU image keeps
+	 * a pointer to it and the dependency refreshes the original. */
+	bNode *node_original = node->original ? node->original : node;
+	NodeTexImage *tex_original = node_original->storage;
+	ImageUser *iuser = &tex_original->iuser;
+
 	const char *gpu_node_name = (tex->projection == SHD_PROJ_BOX)
 	                             ? names_box[tex->interpolation]
 	                             : names[tex->interpolation];

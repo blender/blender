@@ -1524,7 +1524,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph,
 	/* Update animated image textures for particles, modifiers, gpu, etc,
 	 * call this at the start so modifiers with textures don't lag 1 frame.
 	 */
-	BKE_image_update_frame(bmain, scene->r.cfra);
+	BKE_image_editors_update_frame(bmain, scene->r.cfra);
 	BKE_sound_set_cfra(scene->r.cfra);
 	DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
 	/* Update animated cache files for modifiers.

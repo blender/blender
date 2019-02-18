@@ -857,7 +857,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	ima = imaptr.data;
 	iuser = userptr->data;
 
-	BKE_image_user_check_frame_calc(iuser, (int)scene->r.cfra);
+	BKE_image_user_frame_calc(iuser, (int)scene->r.cfra);
 
 	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
 	cb->ptr = *ptr;
@@ -1242,6 +1242,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
 {
+	Scene *scene = CTX_data_scene(C);
 	ImBuf *ibuf;
 	char str[MAX_IMAGE_INFO_LEN];
 	void *lock;
@@ -1251,7 +1252,8 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
 	ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
-	image_info(CTX_data_scene(C), iuser, ima, ibuf, str, MAX_IMAGE_INFO_LEN);
+	BKE_image_user_frame_calc(iuser, (int)scene->r.cfra);
+	image_info(scene, iuser, ima, ibuf, str, MAX_IMAGE_INFO_LEN);
 	BKE_image_release_ibuf(ima, ibuf, lock);
 	uiItemL(layout, str, ICON_NONE);
 }

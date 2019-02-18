@@ -88,6 +88,9 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 /* for image user iteration */
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
@@ -4418,26 +4421,72 @@ void BKE_image_user_frame_calc(ImageUser *iuser, int cfra)
 	}
 }
 
-void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra)
+/* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
+static void image_editors_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
 {
-	if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
-		BKE_image_user_frame_calc(iuser, cfra);
+	int cfra = *(int *)customdata;
 
+	if ((iuser->flag & IMA_ANIM_ALWAYS) ||
+	    (iuser->flag & IMA_NEED_FRAME_RECALC))
+	{
+		BKE_image_user_frame_calc(iuser, cfra);
 		iuser->flag &= ~IMA_NEED_FRAME_RECALC;
 	}
 }
 
-/* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
-static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
+void BKE_image_editors_update_frame(const Main *bmain, int cfra)
 {
-	int cfra = *(int *)customdata;
-
-	BKE_image_user_check_frame_calc(iuser, cfra);
+	/* This only updates images used by the user interface. For others the
+	 * dependency graph will call BKE_image_user_id_eval_animation. */
+	wmWindowManager *wm = bmain->wm.first;
+	BKE_image_walk_id_all_users(&wm->id, &cfra, image_editors_update_frame);
 }
 
-void BKE_image_update_frame(const Main *bmain, int cfra)
+static void image_user_id_has_animation(struct Image *ima, struct ImageUser *UNUSED(iuser), void *customdata)
 {
-	BKE_image_walk_all_users(bmain, &cfra, image_update_frame);
+	if (ima && BKE_image_is_animated(ima)) {
+		*(bool *)customdata = true;
+	}
+}
+
+bool BKE_image_user_id_has_animation(ID *id)
+{
+	bool has_animation = false;
+	BKE_image_walk_id_all_users(id, &has_animation, image_user_id_has_animation);
+	return has_animation;
+}
+
+static void image_user_id_eval_animation(struct Image *ima, struct ImageUser *iuser, void *customdata)
+{
+	if (ima && BKE_image_is_animated(ima)) {
+		Depsgraph *depsgraph = (Depsgraph *)customdata;
+
+		if ((iuser->flag & IMA_ANIM_ALWAYS) ||
+		    (iuser->flag & IMA_NEED_FRAME_RECALC) ||
+		    (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER))
+		{
+			int framenr = iuser->framenr;
+			float cfra = DEG_get_ctime(depsgraph);
+
+			BKE_image_user_frame_calc(iuser, cfra);
+			iuser->flag &= ~IMA_NEED_FRAME_RECALC;
+
+			if (iuser->framenr != framenr) {
+				/* Note: a single texture and refresh doesn't really work when
+				 * multiple image users may use different frames, this is to
+				 * be improved with perhaps a GPU texture cache. */
+				ima->gpuflag |= IMA_GPU_REFRESH;
+			}
+		}
+	}
+}
+
+void BKE_image_user_id_eval_animation(Depsgraph *depsgraph, ID *id)
+{
+	/* This is called from the dependency graph to update the image
+	 * users in datablocks. It computes the current frame number
+	 * and tags the image to be refreshed. */
+	BKE_image_walk_id_all_users(id, depsgraph, image_user_id_eval_animation);
 }
 
 void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
@@ -4605,11 +4654,7 @@ bool BKE_image_has_packedfile(Image *ima)
 	return (BLI_listbase_is_empty(&ima->packedfiles) == false);
 }
 
-/**
- * Checks the image buffer changes (not keyframed values)
- *
- * to see if we need to call #BKE_image_user_check_frame_calc
- */
+/* Checks the image buffer changes with time (not keyframed values). */
 bool BKE_image_is_animated(Image *image)
 {
 	return ELEM(image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE);

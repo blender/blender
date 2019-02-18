@@ -848,8 +848,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct
 			GPUTexture *tex = NULL;
 
 			if (input->ima) {
-				double time = 0.0; /* TODO make time variable */
-				tex = GPU_texture_from_blender(input->ima, input->iuser, GL_TEXTURE_2D, input->image_isdata, time);
+				tex = GPU_texture_from_blender(input->ima, input->iuser, GL_TEXTURE_2D, input->image_isdata);
 			}
 			else {
 				/* Color Ramps */
