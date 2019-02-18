@@ -68,7 +68,7 @@ Base *ED_armature_base_and_ebone_from_select_buffer(
 	EditBone *ebone = NULL;
 	/* TODO(campbell): optimize, eg: sort & binary search. */
 	for (uint base_index = 0; base_index < bases_len; base_index++) {
-		if (bases[base_index]->object->select_color == hit_object) {
+		if (bases[base_index]->object->select_id == hit_object) {
 			base = bases[base_index];
 			break;
 		}
@@ -90,7 +90,7 @@ Object *ED_armature_object_and_ebone_from_select_buffer(
 	EditBone *ebone = NULL;
 	/* TODO(campbell): optimize, eg: sort & binary search. */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		if (objects[ob_index]->select_color == hit_object) {
+		if (objects[ob_index]->select_id == hit_object) {
 			ob = objects[ob_index];
 			break;
 		}
@@ -112,7 +112,7 @@ Base *ED_armature_base_and_bone_from_select_buffer(
 	Bone *bone = NULL;
 	/* TODO(campbell): optimize, eg: sort & binary search. */
 	for (uint base_index = 0; base_index < bases_len; base_index++) {
-		if (bases[base_index]->object->select_color == hit_object) {
+		if (bases[base_index]->object->select_id == hit_object) {
 			base = bases[base_index];
 			break;
 		}

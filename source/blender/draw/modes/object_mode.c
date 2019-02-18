@@ -2016,7 +2016,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 				}
 
 				if (is_select) {
-					DRW_select_load_id(camera_object->select_color | (track_index << 16));
+					DRW_select_load_id(camera_object->select_id | (track_index << 16));
 					track_index++;
 				}
 

@@ -1208,7 +1208,7 @@ static Base *object_mouse_select_menu(
 	bool ok;
 	LinkNode *linklist = NULL;
 
-	/* handle base->object->select_color */
+	/* handle base->object->select_id */
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		ok = false;
@@ -1217,7 +1217,7 @@ static Base *object_mouse_select_menu(
 		if (buffer) {
 			for (int a = 0; a < hits; a++) {
 				/* index was converted */
-				if (base->object->select_color == (buffer[(4 * a) + 3] & ~0xFFFF0000)) {
+				if (base->object->select_id == (buffer[(4 * a) + 3] & ~0xFFFF0000)) {
 					ok = true;
 					break;
 				}
@@ -1458,7 +1458,7 @@ static Base *mouse_select_eval_buffer(
 		else {
 			/* only exclude active object when it is selected... */
 			if (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED) && hits > 1) {
-				notcol = BASACT(view_layer)->object->select_color;
+				notcol = BASACT(view_layer)->object->select_id;
 			}
 
 			for (a = 0; a < hits; a++) {
@@ -1472,7 +1472,9 @@ static Base *mouse_select_eval_buffer(
 		base = FIRSTBASE(view_layer);
 		while (base) {
 			if (BASE_SELECTABLE(v3d, base)) {
-				if (base->object->select_color == selcol) break;
+				if (base->object->select_id == selcol) {
+					break;
+				}
 			}
 			base = base->next;
 		}
@@ -1495,13 +1497,15 @@ static Base *mouse_select_eval_buffer(
 					if (has_bones) {
 						/* skip non-bone objects */
 						if ((buffer[4 * a + 3] & 0xFFFF0000)) {
-							if (base->object->select_color == (buffer[(4 * a) + 3] & 0xFFFF))
+							if (base->object->select_id == (buffer[(4 * a) + 3] & 0xFFFF)) {
 								basact = base;
+							}
 						}
 					}
 					else {
-						if (base->object->select_color == (buffer[(4 * a) + 3] & 0xFFFF))
+						if (base->object->select_id == (buffer[(4 * a) + 3] & 0xFFFF)) {
 							basact = base;
+						}
 					}
 				}
 			}
@@ -1703,7 +1707,7 @@ static bool ed_object_select_pick(
 
 							/* if there's bundles in buffer select bundles first,
 							 * so non-camera elements should be ignored in buffer */
-							if (basact->object->select_color != (hitresult & 0xFFFF)) {
+							if (basact->object->select_id != (hitresult & 0xFFFF)) {
 								continue;
 							}
 
@@ -2385,7 +2389,7 @@ static int do_meta_box_select(
 			}
 
 			const uint hit_object = hitresult & 0xFFFF;
-			if (vc->obedit->select_color != hit_object) {
+			if (vc->obedit->select_id != hit_object) {
 				continue;
 			}
 
@@ -2537,7 +2541,7 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 
 	for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
 		if (BASE_SELECTABLE(v3d, base)) {
-			if ((base->object->select_color & 0x0000FFFF) != 0) {
+			if ((base->object->select_id & 0x0000FFFF) != 0) {
 				BLI_array_append(bases, base);
 			}
 		}
@@ -2627,7 +2631,7 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 
 				/* Select the next bone if we're not switching bases. */
 				if (col + 4 != col_end) {
-					if ((base->object->select_color & 0x0000FFFF) != (col[4] & 0x0000FFFF)) {
+					if ((base->object->select_id & 0x0000FFFF) != (col[4] & 0x0000FFFF)) {
 						break;
 					}
 					if (base->object->pose != NULL) {

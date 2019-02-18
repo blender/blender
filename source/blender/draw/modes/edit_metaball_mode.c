@@ -162,8 +162,8 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 				copy_v3_v3(draw_scale_xform[2], scamat[2]);
 			}
 
-			int selection_id = ob->select_color;
-			for (MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next, selection_id += 0x10000) {
+			int select_id = ob->select_id;
+			for (MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next, select_id += 0x10000) {
 				float world_pos[3];
 				mul_v3_m4v3(world_pos, ob->obmat, &ml->x);
 				draw_scale_xform[0][3] = world_pos[0];
@@ -176,7 +176,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 				else color = col_radius;
 
 				if (is_select) {
-					DRW_select_load_id(selection_id | MBALLSEL_RADIUS);
+					DRW_select_load_id(select_id | MBALLSEL_RADIUS);
 				}
 
 				DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &ml->rad, color);
@@ -185,7 +185,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 				else color = col_stiffness;
 
 				if (is_select) {
-					DRW_select_load_id(selection_id | MBALLSEL_STIFF);
+					DRW_select_load_id(select_id | MBALLSEL_STIFF);
 				}
 
 				DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &draw_stiffness_radius, color);

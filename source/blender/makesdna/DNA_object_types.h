@@ -376,7 +376,7 @@ typedef struct Object {
 	char empty_image_depth;
 	char _pad8[2];
 
-	int select_color;
+	int select_id;
 
 	/** Contains data for levels of detail. */
 	ListBase lodlevels;

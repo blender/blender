@@ -92,7 +92,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	/* Get pointer to a CoW version of scene ID. */
 	Scene *scene_cow = get_cow_datablock(scene);
 	/* Scene objects. */
-	int select_color = 1;
+	int select_id = 1;
 	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
 	 * but object is expected to be an original one. Hence we go into some
 	 * tricks here iterating over the view layer. */
@@ -109,7 +109,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 			             is_object_visible);
 			++base_index;
 		}
-		base->object->select_color = select_color++;
+		base->object->select_id = select_id++;
 	}
 	build_layer_collections(&view_layer->layer_collections);
 	if (scene->camera != NULL) {
