@@ -450,10 +450,7 @@ void BKE_object_free_derived_caches(Object *ob)
 		}
 	}
 
-	if (ob->runtime.bb) {
-		MEM_freeN(ob->runtime.bb);
-		ob->runtime.bb = NULL;
-	}
+	MEM_SAFE_FREE(ob->runtime.bb);
 
 	object_update_from_subsurf_ccg(ob);
 	BKE_object_free_derived_mesh_caches(ob);
