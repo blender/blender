@@ -225,7 +225,8 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 
 	FOREACH_MAIN_ID_BEGIN(bmain, id)
 	{
-		if (val_types_bitmap != NULL) {
+		/* We cannot skip here in case we have some filter on key types... */
+		if (key_types_bitmap == NULL && val_types_bitmap != NULL) {
 			if (!id_check_type(id, val_types_bitmap)) {
 				break;  /* Break iter on that type of IDs, continues with next ID type. */
 			}
@@ -238,7 +239,12 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 			data_cb.py_id_key_lookup_only = pyrna_id_CreatePyObject(id);
 		}
 
-		if (!data_cb.is_subset) {
+		if (!data_cb.is_subset &&
+		    /* We do not want to pre-add keys of flitered out types. */
+		    (key_types_bitmap == NULL || id_check_type(id, key_types_bitmap)) &&
+		    /* We do not want to pre-add keys when we have filter on value types, but not on key types. */
+		    (val_types_bitmap == NULL || key_types_bitmap != NULL))
+		{
 			PyObject *key = data_cb.py_id_key_lookup_only;
 			PyObject *set;
 
@@ -253,6 +259,10 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 				Py_DECREF(set);
 				Py_DECREF(key);
 			}
+		}
+
+		if (val_types_bitmap != NULL && !id_check_type(id, val_types_bitmap)) {
+			continue;
 		}
 
 		data_cb.id_curr = id;
