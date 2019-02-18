@@ -199,32 +199,28 @@ ID *BKE_override_static_create_from_id(Main *bmain, ID *reference_id)
  */
 bool BKE_override_static_create_from_tag(Main *bmain)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	int a;
+	ID *reference_id;
 	bool ret = true;
 
-	const int num_types = a = set_listbasepointers(bmain, lbarray);
-	while (a--) {
-		for (ID *reference_id = lbarray[a]->first; reference_id != NULL; reference_id = reference_id->next) {
-			if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL) {
-				if ((reference_id->newid = override_static_create_from(bmain, reference_id)) == NULL) {
-					ret = false;
-				}
+	FOREACH_MAIN_ID_BEGIN(bmain, reference_id)
+	{
+		if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL) {
+			if ((reference_id->newid = override_static_create_from(bmain, reference_id)) == NULL) {
+				ret = false;
 			}
 		}
 	}
+	FOREACH_MAIN_ID_END;
 
-	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overridden ID). */
-	a = num_types;
-	while (a--) {
-		for (ID *reference_id = lbarray[a]->first; reference_id != NULL; reference_id = reference_id->next) {
-			if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL && reference_id->newid != NULL) {
-				ID *local_id = reference_id->newid;
-				BKE_libblock_remap(bmain, reference_id, local_id,
-				                   ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_STATIC_OVERRIDE);
-			}
+	FOREACH_MAIN_ID_BEGIN(bmain, reference_id)
+	{
+		if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL && reference_id->newid != NULL) {
+			ID *local_id = reference_id->newid;
+			BKE_libblock_remap(bmain, reference_id, local_id,
+			                   ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_STATIC_OVERRIDE);
 		}
 	}
+	FOREACH_MAIN_ID_END;
 
 	return ret;
 }
@@ -574,24 +570,18 @@ bool BKE_override_static_operations_create(Main *bmain, ID *local, const bool fo
 /** Check all overrides from given \a bmain and create/update overriding operations as needed. */
 void BKE_main_override_static_operations_create(Main *bmain, const bool force_auto)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	int base_count, i;
+	ID *id;
 
-	base_count = set_listbasepointers(bmain, lbarray);
-
-	for (i = 0; i < base_count; i++) {
-		ListBase *lb = lbarray[i];
-		ID *id;
-
-		for (id = lb->first; id; id = id->next) {
-			if (force_auto ||
-			    (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH)))
-			{
-				BKE_override_static_operations_create(bmain, id, force_auto);
-				id->tag &= ~LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;
-			}
+	FOREACH_MAIN_ID_BEGIN(bmain, id)
+	{
+		if (force_auto ||
+		    (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH)))
+		{
+			BKE_override_static_operations_create(bmain, id, force_auto);
+			id->tag &= ~LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;
 		}
 	}
+	FOREACH_MAIN_ID_END;
 }
 
 /** Update given override from its reference (re-applying overridden properties). */
@@ -662,21 +652,15 @@ void BKE_override_static_update(Main *bmain, ID *local)
 /** Update all overrides from given \a bmain. */
 void BKE_main_override_static_update(Main *bmain)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	int base_count, i;
+	ID *id;
 
-	base_count = set_listbasepointers(bmain, lbarray);
-
-	for (i = 0; i < base_count; i++) {
-		ListBase *lb = lbarray[i];
-		ID *id;
-
-		for (id = lb->first; id; id = id->next) {
-			if (id->override_static != NULL && id->lib == NULL) {
-				BKE_override_static_update(bmain, id);
-			}
+	FOREACH_MAIN_ID_BEGIN(bmain, id)
+	{
+		if (id->override_static != NULL && id->lib == NULL) {
+			BKE_override_static_update(bmain, id);
 		}
 	}
+	FOREACH_MAIN_ID_END;
 }
 
 /***********************************************************************************************************************
@@ -765,19 +749,13 @@ void BKE_override_static_operations_store_finalize(OverrideStaticStorage *overri
 {
 	/* We cannot just call BKE_main_free(override_storage), not until we have option to make 'ghost' copies of IDs
 	 * without increasing usercount of used data-blocks... */
-	ListBase *lbarray[MAX_LIBARRAY];
-	int base_count, i;
+	ID *id;
 
-	base_count = set_listbasepointers(override_storage, lbarray);
-
-	for (i = 0; i < base_count; i++) {
-		ListBase *lb = lbarray[i];
-		ID *id;
-
-		while ((id = lb->first)) {
-			BKE_id_free_ex(override_storage, id, LIB_ID_FREE_NO_UI_USER, true);
-		}
+	FOREACH_MAIN_ID_BEGIN(override_storage, id)
+	{
+		BKE_id_free_ex(override_storage, id, LIB_ID_FREE_NO_UI_USER, true);
 	}
+	FOREACH_MAIN_ID_END;
 
 	BKE_main_free(override_storage);
 }
