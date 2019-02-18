@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_points.h"
 
 #include "abc_mesh.h"

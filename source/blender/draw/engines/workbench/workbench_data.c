@@ -16,6 +16,10 @@
  * Copyright 2018, Blender Foundation.
  */
 
+/** \file
+ * \ingroup draw_engine
+ */
+
 #include "workbench_private.h"
 
 #include "DNA_userdef_types.h"

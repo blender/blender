@@ -14,6 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #ifndef __ABC_TRANSFORM_H__
 #define __ABC_TRANSFORM_H__
 

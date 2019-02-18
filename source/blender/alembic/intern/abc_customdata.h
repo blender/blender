@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #ifndef __ABC_CUSTOMDATA_H__
 #define __ABC_CUSTOMDATA_H__
 

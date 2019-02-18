@@ -14,6 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_mball.h"
 #include "abc_mesh.h"
 #include "abc_transform.h"

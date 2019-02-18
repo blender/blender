@@ -1,10 +1,4 @@
 
-/** \defgroup blenderplayer Blender Player */
-
-/** \defgroup blc bad level calls
- *  \ingroup blenderplayer
- */
-
 /** \defgroup render Rendering
  *  \ingroup blender
  */
@@ -29,14 +23,13 @@
  *  \ingroup python
  */
 
-/** \defgroup blpluginapi Blender pluginapi
- *  \ingroup blender
- *  \attention not in use currently
- */
-
 /* ================================ */
 
 /** \defgroup blender Blender */
+
+/** \defgroup balembic BlenderAlembic
+ *  \ingroup blender
+ */
 
 /** \defgroup blt BlenTranslation
  *  \ingroup blender
@@ -78,6 +71,10 @@
  *  \ingroup nodes
  */
 /** \defgroup modifiers Object Modifiers
+ *  \ingroup blender
+ */
+
+/** \defgroup shader_fx Shader Effects
  *  \ingroup blender
  */
 

@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup gpu
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_image_types.h"

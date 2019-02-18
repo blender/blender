@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_curves.h"
 
 #include <cstdio>

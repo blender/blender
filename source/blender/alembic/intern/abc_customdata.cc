@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_customdata.h"
 
 #include <Alembic/AbcGeom/All.h>

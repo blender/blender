@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #ifndef __ABC_POINTS_H__
 #define __ABC_POINTS_H__
 
