@@ -2624,62 +2624,148 @@ void BKE_image_verify_viewer_views(const RenderData *rd, Image *ima, ImageUser *
 	BLI_thread_unlock(LOCK_DRAW_IMAGE);
 }
 
-void BKE_image_walk_all_users(const Main *mainp, void *customdata,
-                              void callback(Image *ima, ImageUser *iuser, void *customdata))
+static void image_walk_ntree_all_users(bNodeTree *ntree, void *customdata,
+                                       void callback(Image *ima, ImageUser *iuser, void *customdata))
 {
-	wmWindowManager *wm;
-	wmWindow *win;
-	Tex *tex;
-
-	/* texture users */
-	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
-		if (tex->type == TEX_IMAGE && tex->ima) {
-			callback(tex->ima, &tex->iuser, customdata);
-		}
-
-		if (tex->nodetree) {
-			bNode *node;
-			for (node = tex->nodetree->nodes.first; node; node = node->next) {
+	switch (ntree->type) {
+		case NTREE_SHADER:
+			for (bNode *node = ntree->nodes.first; node; node = node->next) {
+				if (node->id) {
+					if (node->type == SH_NODE_TEX_IMAGE) {
+						NodeTexImage *tex = node->storage;
+						Image *ima = (Image *)node->id;
+						callback(ima, &tex->iuser, customdata);
+					}
+					if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+						NodeTexImage *tex = node->storage;
+						Image *ima = (Image *)node->id;
+						callback(ima, &tex->iuser, customdata);
+					}
+				}
+			}
+			break;
+		case NTREE_TEXTURE:
+			for (bNode *node = ntree->nodes.first; node; node = node->next) {
 				if (node->id && node->type == TEX_NODE_IMAGE) {
 					Image *ima = (Image *)node->id;
 					ImageUser *iuser = node->storage;
 					callback(ima, iuser, customdata);
 				}
 			}
-		}
-	}
-
-	for (Camera *cam = mainp->camera.first; cam; cam = cam->id.next) {
-		for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
-			callback(bgpic->ima, &bgpic->iuser, customdata);
-		}
-	}
-
-	/* image window, compo node users */
-	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
-		for (win = wm->windows.first; win; win = win->next) {
-			const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-
-			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-				if (sa->spacetype == SPACE_IMAGE) {
-					SpaceImage *sima = sa->spacedata.first;
-					callback(sima->image, &sima->iuser, customdata);
+			break;
+		case NTREE_COMPOSIT:
+			for (bNode *node = ntree->nodes.first; node; node = node->next) {
+				if (node->id && node->type == CMP_NODE_IMAGE) {
+					Image *ima = (Image *)node->id;
+					ImageUser *iuser = node->storage;
+					callback(ima, iuser, customdata);
 				}
-				else if (sa->spacetype == SPACE_NODE) {
-					SpaceNode *snode = sa->spacedata.first;
-					if (snode->nodetree && snode->nodetree->type == NTREE_COMPOSIT) {
-						bNode *node;
-						for (node = snode->nodetree->nodes.first; node; node = node->next) {
-							if (node->id && node->type == CMP_NODE_IMAGE) {
-								Image *ima = (Image *)node->id;
-								ImageUser *iuser = node->storage;
-								callback(ima, iuser, customdata);
-							}
-						}
+			}
+			break;
+	}
+}
+
+void BKE_image_walk_id_all_users(ID *id, void *customdata,
+                                 void callback(Image *ima, ImageUser *iuser, void *customdata))
+{
+	switch(GS(id->name)) {
+		case ID_OB:
+		{
+			Object *ob = (Object *)id;
+			if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data) {
+				callback(ob->data, ob->iuser, customdata);
+			}
+			break;
+		}
+		case ID_MA:
+		{
+			Material *ma = (Material *)id;
+			if (ma->nodetree && ma->use_nodes) {
+				image_walk_ntree_all_users(ma->nodetree, customdata, callback);
+			}
+			break;
+		}
+		case ID_TE:
+		{
+			Tex *tex = (Tex *)id;
+			if (tex->type == TEX_IMAGE && tex->ima) {
+				callback(tex->ima, &tex->iuser, customdata);
+			}
+			if (tex->nodetree && tex->use_nodes) {
+				image_walk_ntree_all_users(tex->nodetree, customdata, callback);
+			}
+			break;
+		}
+		case ID_NT:
+		{
+			bNodeTree *ntree = (bNodeTree *)id;
+			image_walk_ntree_all_users(ntree, customdata, callback);
+			break;
+		}
+		case ID_CA:
+		{
+			Camera *cam = (Camera *)id;
+			for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
+				callback(bgpic->ima, &bgpic->iuser, customdata);
+			}
+			break;
+		}
+		case ID_WM:
+		{
+			wmWindowManager *wm = (wmWindowManager *)id;
+			for (wmWindow *win = wm->windows.first; win; win = win->next) {
+				const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					if (sa->spacetype == SPACE_IMAGE) {
+						SpaceImage *sima = sa->spacedata.first;
+						callback(sima->image, &sima->iuser, customdata);
 					}
 				}
 			}
+			break;
 		}
+		case ID_SCE:
+		{
+			Scene *scene = (Scene *)id;
+			if (scene->nodetree && scene->use_nodes) {
+				image_walk_ntree_all_users(scene->nodetree, customdata, callback);
+			}
+		}
+		default:
+			break;
+	}
+}
+
+void BKE_image_walk_all_users(const Main *mainp, void *customdata,
+                              void callback(Image *ima, ImageUser *iuser, void *customdata))
+{
+	for (Scene *scene = mainp->scene.first; scene; scene = scene->id.next) {
+		BKE_image_walk_id_all_users(&scene->id, customdata, callback);
+	}
+
+	for (Object *ob = mainp->object.first; ob; ob = ob->id.next) {
+		BKE_image_walk_id_all_users(&ob->id, customdata, callback);
+	}
+
+	for (bNodeTree *ntree = mainp->nodetree.first; ntree; ntree = ntree->id.next) {
+		BKE_image_walk_id_all_users(&ntree->id, customdata, callback);
+	}
+
+	for (Material *ma = mainp->mat.first; ma; ma = ma->id.next) {
+		BKE_image_walk_id_all_users(&ma->id, customdata, callback);
+	}
+
+	for (Tex *tex = mainp->tex.first; tex; tex = tex->id.next) {
+		BKE_image_walk_id_all_users(&tex->id, customdata, callback);
+	}
+
+	for (Camera *cam = mainp->camera.first; cam; cam = cam->id.next) {
+		BKE_image_walk_id_all_users(&cam->id, customdata, callback);
+	}
+
+	for (wmWindowManager *wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
+		BKE_image_walk_id_all_users(&wm->id, customdata, callback);
 	}
 }
 
