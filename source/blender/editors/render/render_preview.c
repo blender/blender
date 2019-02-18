@@ -159,7 +159,8 @@ typedef struct ShaderPreview {
 	Lamp *lampcopy;
 	World *worldcopy;
 
-	float col[4];       /* active object color */
+	/** Copy of the active objects #Object.color */
+	float color[4];
 
 	int sizex, sizey;
 	unsigned int *pr_rect;
@@ -443,7 +444,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 				if (base->object->id.name[2] == 'p') {
 					/* copy over object color, in case material uses it */
-					copy_v4_v4(base->object->col, sp->col);
+					copy_v4_v4(base->object->color, sp->color);
 
 					if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
@@ -1363,8 +1364,12 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 		sp->pr_main = G_pr_main_grease_pencil;
 	}
 
-	if (ob && ob->totcol) copy_v4_v4(sp->col, ob->col);
-	else sp->col[0] = sp->col[1] = sp->col[2] = sp->col[3] = 1.0f;
+	if (ob && ob->totcol) {
+		copy_v4_v4(sp->color, ob->color);
+	}
+	else {
+		ARRAY_SET_ITEMS(sp->color, 0.0f, 0.0f, 0.0f, 1.0f);
+	}
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, sp, shader_preview_free);

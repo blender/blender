@@ -321,8 +321,8 @@ typedef struct Object {
 	/** Current face map, note: index starts at 1. */
 	unsigned short actfmap;
 	char _pad2[2];
-	/** Object color. */
-	float col[4];
+	/** Object color (in most cases the material color is used for drawing). */
+	float color[4];
 
 	/** Softbody settings. */
 	short softflag;

@@ -934,11 +934,11 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		else if (ELEM(wpd->shading.color_type,
 		              V3D_SHADING_SINGLE_COLOR, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR))
 		{
-			if ((ob->col[3] < 1.0f) &&
+			if ((ob->color[3] < 1.0f) &&
 			    (wpd->shading.color_type == V3D_SHADING_OBJECT_COLOR))
 			{
 				/* Hack */
-				wpd->shading.xray_alpha = ob->col[3];
+				wpd->shading.xray_alpha = ob->color[3];
 				material = workbench_forward_get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
 				has_transp_mat = true;
 			}
