@@ -222,7 +222,7 @@ Support Overview
 
 .. note::
 
-   Using the :mod:`bmesh` api is completely separate api from :mod:`bpy`,
+   Using the :mod:`bmesh` API is completely separate API from :mod:`bpy`,
    typically you would would use one or the other based on the level of editing needed,
    not simply for a different way to access faces.
 
@@ -233,7 +233,7 @@ Creating
 All 3 datatypes can be used for face creation.
 
 - polygons are the most efficient way to create faces but the data structure is _very_ rigid and inflexible,
-  you must have all your vertes and faces ready and create them all at once.
+  you must have all your vertices and faces ready and create them all at once.
   This is further complicated by the fact that each polygon does not store its own verts,
   rather they reference an index and size in :class:`bpy.types.Mesh.loops` which are a fixed array too.
 - bmesh-faces are most likely the easiest way for new scripts to create faces,
@@ -534,7 +534,7 @@ Strange errors using 'threading' module
 Python threading with Blender only works properly when the threads finish up before the script does.
 By using ``threading.join()`` for example.
 
-Heres an example of threading supported by Blender:
+Here is an example of threading supported by Blender:
 
 .. code-block:: python
 
@@ -716,7 +716,7 @@ the object data but are most common when switching edit-mode.
 Array Re-Allocation
 -------------------
 
-When adding new points to a curve or vertices's/edges/polygons to a mesh,
+When adding new points to a curve or vertices/edges/polygons to a mesh,
 internally the array which stores this data is re-allocated.
 
 .. code-block:: python
@@ -729,7 +729,7 @@ internally the array which stores this data is re-allocated.
    point.co = 1.0, 2.0, 3.0
 
 This can be avoided by re-assigning the point variables after adding the new one or by storing
-indices's to the points rather than the points themselves.
+indices to the points rather than the points themselves.
 
 The best way is to sidestep the problem altogether add all the points to the curve at once.
 This means you don't have to worry about array re-allocation and its faster too
@@ -745,7 +745,7 @@ along with objects, scenes, collections, bones.. etc.
 
 The ``remove()`` api calls will invalidate the data they free to prevent common mistakes.
 
-The following example shows how this precortion works.
+The following example shows how this precaution works.
 
 .. code-block:: python
 
