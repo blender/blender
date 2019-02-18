@@ -170,6 +170,8 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 
 	PyObject *ret = NULL;
 
+	IDUserMapData data_cb = {NULL};
+
 	static const char *_keywords[] = {"subset", "key_types", "value_types", NULL};
 	static _PyArg_Parser _parser = {"|O$O!O!:user_map", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
@@ -196,8 +198,6 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 			goto error;
 		}
 	}
-
-	IDUserMapData data_cb = {NULL};
 
 	if (subset) {
 		PyObject *subset_fast = PySequence_Fast(subset, "user_map");
@@ -268,13 +268,15 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 	ret = data_cb.user_map;
 
 error:
-	Py_XDECREF(data_cb.py_id_key_lookup_only);
+	if (data_cb.py_id_key_lookup_only != NULL) {
+		Py_XDECREF(data_cb.py_id_key_lookup_only);
+	}
 
-	if (key_types_bitmap) {
+	if (key_types_bitmap != NULL) {
 		MEM_freeN(key_types_bitmap);
 	}
 
-	if (val_types_bitmap) {
+	if (val_types_bitmap != NULL) {
 		MEM_freeN(val_types_bitmap);
 	}
 
