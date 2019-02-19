@@ -3319,6 +3319,16 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 					NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *)node->storage;
 					memset(&npd->pd, 0, sizeof(npd->pd));
 				}
+				else if (node->type == SH_NODE_TEX_IMAGE) {
+					NodeTexImage *tex = (NodeTexImage *)node->storage;
+					tex->iuser.ok = 1;
+					tex->iuser.scene = NULL;
+				}
+				else if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+					NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
+					tex->iuser.ok = 1;
+					tex->iuser.scene = NULL;
+				}
 			}
 			else if (ntree->type == NTREE_COMPOSIT) {
 				if (ELEM(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
@@ -3331,10 +3341,14 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 				}
 			}
 			else if (ntree->type == NTREE_TEXTURE) {
-				if (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)
+				if (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME) {
 					direct_link_curvemapping(fd, node->storage);
-				else if (node->type == TEX_NODE_IMAGE)
-					((ImageUser *)node->storage)->ok = 1;
+				}
+				else if (node->type == TEX_NODE_IMAGE) {
+					ImageUser *iuser = node->storage;
+					iuser->ok = 1;
+					iuser->scene = NULL;
+				}
 			}
 		}
 	}
@@ -3658,6 +3672,7 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 
 	for (CameraBGImage *bgpic = ca->bg_images.first; bgpic; bgpic = bgpic->next) {
 		bgpic->iuser.ok = 1;
+		bgpic->iuser.scene = NULL;
 	}
 }
 
@@ -4126,6 +4141,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->preview = direct_link_preview_image(fd, tex->preview);
 
 	tex->iuser.ok = 1;
+	tex->iuser.scene = NULL;
 }
 
 

@@ -480,8 +480,6 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 	Camera *cam = v3d->camera->data;
 
 	for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
-		bgpic->iuser.scene = scene;  /* Needed for render results. */
-
 		if ((bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != fg_flag)
 			continue;
 
@@ -504,13 +502,16 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 				ima = bgpic->ima;
 				if (ima == NULL)
 					continue;
-				BKE_image_user_frame_calc(&bgpic->iuser, (int)DEG_get_ctime(depsgraph));
-				if (ima->source == IMA_SRC_SEQUENCE && !(bgpic->iuser.flag & IMA_USER_FRAME_IN_RANGE)) {
+
+				ImageUser iuser = bgpic->iuser;
+				iuser.scene = scene;  /* Needed for render results. */
+				BKE_image_user_frame_calc(&iuser, (int)DEG_get_ctime(depsgraph));
+				if (ima->source == IMA_SRC_SEQUENCE && !(iuser.flag & IMA_USER_FRAME_IN_RANGE)) {
 					ibuf = NULL; /* frame is out of range, dont show */
 				}
 				else {
-					view3d_stereo_bgpic_setup(scene, v3d, ima, &bgpic->iuser);
-					ibuf = BKE_image_acquire_ibuf(ima, &bgpic->iuser, &lock);
+					view3d_stereo_bgpic_setup(scene, v3d, ima, &iuser);
+					ibuf = BKE_image_acquire_ibuf(ima, &iuser, &lock);
 					releaseibuf = ibuf;
 				}
 
