@@ -10320,9 +10320,8 @@ static void add_loose_objects_to_scene(
 
 	/* Give all objects which are LIB_TAG_INDIRECT a base, or for a collection when *lib has been set. */
 	for (Object *ob = mainvar->object.first; ob; ob = ob->id.next) {
-		if ((ob->id.tag & LIB_TAG_INDIRECT) && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0) {
-			bool do_it = false;
-
+		bool do_it = (ob->id.tag & LIB_TAG_DOIT) != 0;
+		if (do_it || ((ob->id.tag & LIB_TAG_INDIRECT) && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0)) {
 			if (!is_link) {
 				if (ob->id.us == 0) {
 					do_it = true;
@@ -10336,6 +10335,7 @@ static void add_loose_objects_to_scene(
 
 			if (do_it) {
 				CLAMP_MIN(ob->id.us, 0);
+				ob->mode = OB_MODE_OBJECT;
 
 				Collection *active_collection = get_collection_active(bmain, scene, view_layer, FILE_ACTIVE_COLLECTION);
 				BKE_collection_object_add(bmain, active_collection, ob);
@@ -10348,8 +10348,6 @@ static void add_loose_objects_to_scene(
 				BKE_scene_object_base_flag_sync_from_base(base);
 
 				if (flag & FILE_AUTOSELECT) {
-					/* Note that link_object_postprocess() already checks for FILE_AUTOSELECT flag,
-					 * but it will miss objects from non-instantiated collections... */
 					if (base->flag & BASE_SELECTABLE) {
 						base->flag |= BASE_SELECTED;
 						BKE_scene_object_base_flag_sync_from_base(base);
@@ -10412,6 +10410,7 @@ static void add_collections_to_scene(
 				for (CollectionObject *coll_ob = collection->gobject.first; coll_ob != NULL; coll_ob = coll_ob->next) {
 					Object *ob = coll_ob->ob;
 					if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 &&
+					    (ob->id.tag & LIB_TAG_DOIT) == 0 &&
 					    (ob->id.lib == lib) &&
 					    (object_in_any_scene(bmain, ob) == 0))
 					{
@@ -10500,38 +10499,6 @@ static ID *link_named_part(
 	return id;
 }
 
-static void link_object_postprocess(
-        ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, const View3D *v3d, const int flag)
-{
-	if (scene) {
-		/* link to scene */
-		Base *base;
-		Object *ob;
-		Collection *collection;
-
-		ob = (Object *)id;
-		ob->mode = OB_MODE_OBJECT;
-
-		collection = get_collection_active(bmain, scene, view_layer, flag);
-		BKE_collection_object_add(bmain, collection, ob);
-		base = BKE_view_layer_base_find(view_layer, ob);
-		BKE_scene_object_base_flag_sync_from_base(base);
-
-		/* Link at active local view (view3d if available in context. */
-		if (v3d != NULL) {
-			base->local_view_bits |= v3d->local_view_uuid;
-		}
-
-		if (flag & FILE_AUTOSELECT) {
-			if (base->flag & BASE_SELECTABLE) {
-				base->flag |= BASE_SELECTED;
-				BKE_scene_object_base_flag_sync_from_base(base);
-			}
-			/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
-		}
-	}
-}
-
 /**
  * Simple reader for copy/paste buffers.
  */
@@ -10568,13 +10535,13 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 }
 
 static ID *link_named_part_ex(
-        Main *mainl, FileData *fd, const short idcode, const char *name, const int flag,
-        Main *bmain, Scene *scene, ViewLayer *view_layer, const View3D *v3d)
+        Main *mainl, FileData *fd, const short idcode, const char *name, const int flag)
 {
 	ID *id = link_named_part(mainl, fd, idcode, name, flag);
 
-	if (id && (GS(id->name) == ID_OB)) {    /* loose object: give a base */
-		link_object_postprocess(id, bmain, scene, view_layer, v3d, flag);
+	if (id && (GS(id->name) == ID_OB)) {
+		/* Tag as loose object needing to be instantiated somewhere... */
+		id->tag |= LIB_TAG_DOIT;
 	}
 	else if (id && (GS(id->name) == ID_GR)) {
 		/* tag as needing to be instantiated or linked */
@@ -10614,11 +10581,10 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcod
  */
 ID *BLO_library_link_named_part_ex(
         Main *mainl, BlendHandle **bh,
-        const short idcode, const char *name, const int flag,
-        Main *bmain, Scene *scene, ViewLayer *view_layer, const View3D *v3d)
+        const short idcode, const char *name, const int flag)
 {
 	FileData *fd = (FileData *)(*bh);
-	return link_named_part_ex(mainl, fd, idcode, name, flag, bmain, scene, view_layer, v3d);
+	return link_named_part_ex(mainl, fd, idcode, name, flag);
 }
 
 static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *id, ID **r_id)
@@ -10798,7 +10764,8 @@ static void library_link_end(
 		/* printf("library_append_end, scene is NULL (objects wont get bases)\n"); */
 	}
 
-	/* clear collection instantiating tag */
+	/* Clear objects and collections instantiating tag. */
+	BKE_main_id_tag_listbase(&(mainvar->object), LIB_TAG_DOIT, false);
 	BKE_main_id_tag_listbase(&(mainvar->collection), LIB_TAG_DOIT, false);
 
 	/* patch to prevent switch_endian happens twice */

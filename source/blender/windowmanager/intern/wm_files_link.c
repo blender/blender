@@ -253,9 +253,7 @@ static void wm_link_do(
 				continue;
 			}
 
-			new_id = BLO_library_link_named_part_ex(
-			        mainl, &bh, item->idcode, item->name, flag, bmain,
-			        scene, view_layer, v3d);
+			new_id = BLO_library_link_named_part_ex(mainl, &bh, item->idcode, item->name, flag);
 
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
