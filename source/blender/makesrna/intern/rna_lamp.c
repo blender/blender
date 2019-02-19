@@ -230,13 +230,13 @@ static void rna_def_light_falloff(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom light falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Light_update");
 
-	prop = RNA_def_property(srna, "linear_attenuation", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "linear_attenuation", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "att1");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Linear Attenuation", "Linear distance attenuation");
 	RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
-	prop = RNA_def_property(srna, "quadratic_attenuation", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "quadratic_attenuation", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "att2");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Quadratic Attenuation", "Quadratic distance attenuation");

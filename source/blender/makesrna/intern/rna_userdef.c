@@ -851,13 +851,13 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shadow Y Offset", "Shadow offset in pixels");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "shadow_alpha", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "shadow_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shadowalpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shadow Alpha", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "shadow_value", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "shadow_value", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shadowcolor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in gray value");
@@ -4445,7 +4445,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	                               "View the result of the studio light editor in the viewport");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
-	prop = RNA_def_property(srna, "gl_clip_alpha", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gl_clip_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "glalphaclip");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clip Alpha", "Clip alpha below this threshold in the 3D textured view");

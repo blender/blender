@@ -5043,9 +5043,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
-	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "blurfac");
-	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 2);
+	RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
@@ -5361,7 +5361,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Hostname", "Include the hostname of the machine that rendered the frame");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
-	prop = RNA_def_property(srna, "stamp_font_size", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "stamp_font_size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "stamp_font_id");
 	RNA_def_property_range(prop, 8, 64);
 	RNA_def_property_ui_text(prop, "Font Size", "Size of the font used when rendering stamp text");
@@ -6634,7 +6634,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance Model", "Distance model for distance attenuation calculation");
 	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
 
-	prop = RNA_def_property(srna, "audio_volume", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "audio_volume", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.volume");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Audio volume");

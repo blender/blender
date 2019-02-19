@@ -1701,7 +1701,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Axis of symmetry");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "vertex_group_factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "vertex_group_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "defgrp_factor");
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_range(prop, 0, 10, 1, 4);
@@ -1919,7 +1919,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "HookModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_HOOK);
 
-	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "force");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Strength",  "Relative force of the hook");
@@ -2371,7 +2371,7 @@ static void rna_def_modifier_smooth(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z", "Smooth object along Z axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -10, 10, 1, 3);
@@ -2419,7 +2419,7 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "CorrectiveSmoothModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SMOOTH);
 
-	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "lambda");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 5, 3);
@@ -2594,7 +2594,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use transform", "Use object transform to control projection shape");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -10, 10, 5, 2);
@@ -3944,14 +3944,14 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGMixModifier_defgrp_name_b_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "default_weight_a", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "default_weight_a", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, -1);
 	RNA_def_property_ui_text(prop, "Default Weight A", "Default weight a vertex will have if "
 	                         "it is not in the first A vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "default_weight_b", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "default_weight_b", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, -1);
 	RNA_def_property_ui_text(prop, "Default Weight B", "Default weight a vertex will have if "
@@ -4287,13 +4287,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Random Seed", "Seed of the random generator");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
-	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "bakestart");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bake Start", "Start frame of the ocean baking");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
-	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "bakeend");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bake End", "End frame of the ocean baking");
@@ -4482,7 +4482,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 
 	/* -------------------------------------------------------------------- */
 	/* For Scene time */
-	prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "frame_start");
 	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Frame Start", "Add this to the start frame");
@@ -4508,7 +4508,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Evaluation Time", "Evaluation time in seconds");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "eval_factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "eval_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "eval_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Evaluation Factor", "Evaluation time in seconds");

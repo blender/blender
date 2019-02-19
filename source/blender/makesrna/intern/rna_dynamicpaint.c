@@ -438,20 +438,20 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DISSOLVE);
 	RNA_def_property_ui_text(prop, "Dissolve", "Enable to make surface changes disappear over time");
 
-	prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "diss_speed");
 	RNA_def_property_range(prop, 1.0, 10000.0);
 	RNA_def_property_ui_range(prop, 1.0, 10000.0, 5, -1);
-	RNA_def_property_ui_text(prop, "Dissolve Speed", "Approximately in how many frames should dissolve happen");
+	RNA_def_property_ui_text(prop, "Dissolve Time", "Approximately in how many frames should dissolve happen");
 
 	prop = RNA_def_property(srna, "use_drying", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_USE_DRYING);
 	RNA_def_property_ui_text(prop, "Dry", "Enable to make surface wetness dry over time");
 
-	prop = RNA_def_property(srna, "dry_speed", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "dry_speed", PROP_INT, PROP_TIME);
 	RNA_def_property_range(prop, 1.0, 10000.0);
 	RNA_def_property_ui_range(prop, 1.0, 10000.0, 5, -1);
-	RNA_def_property_ui_text(prop, "Dry Speed", "Approximately in how many frames should drying happen");
+	RNA_def_property_ui_text(prop, "Dry Time", "Approximately in how many frames should drying happen");
 
 	/*
 	 *   Simulation settings

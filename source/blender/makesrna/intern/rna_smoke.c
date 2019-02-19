@@ -611,7 +611,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strength", "Strength of noise");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
-	prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "diss_speed");
 	RNA_def_property_range(prop, 1.0, 10000.0);
 	RNA_def_property_ui_range(prop, 1.0, 10000.0, 1, -1);

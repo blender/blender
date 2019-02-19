@@ -1138,21 +1138,21 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_IK_update");
 
-	prop = RNA_def_property(srna, "ik_stretch", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "ik_stretch", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "ikstretch");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "IK Stretch", "Allow scaling of the bone for IK");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_IK_update");
 
-	prop = RNA_def_property(srna, "ik_rotation_weight", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "ik_rotation_weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "ikrotweight");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "IK Rot Weight", "Weight of rotation constraint for IK");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
-	prop = RNA_def_property(srna, "ik_linear_weight", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "ik_linear_weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "iklinweight");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "IK Lin Weight", "Weight of scale constraint for IK");
@@ -1324,13 +1324,13 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	                         "performance/accuracy trade off");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
-	prop = RNA_def_property(srna, "step_min", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "step_min", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "minstep");
 	RNA_def_property_range(prop, 0.0f, 0.1f);
 	RNA_def_property_ui_text(prop, "Min step", "Lower bound for timestep in second in case of automatic substeps");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
-	prop = RNA_def_property(srna, "step_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "step_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "maxstep");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Max step", "Higher bound for timestep in second in case of automatic substeps");
@@ -1356,7 +1356,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Solver", "Solving method selection: automatic damping or manual damping");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update_rebuild");
 
-	prop = RNA_def_property(srna, "damping_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "damping_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "dampmax");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Damp",
@@ -1364,7 +1364,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	                         "(higher values=more stability, less reactivity - default=0.5)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
-	prop = RNA_def_property(srna, "damping_epsilon", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "damping_epsilon", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "dampeps");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Epsilon",

@@ -441,21 +441,21 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	/* goal */
 
-	prop = RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "mingoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Goal Minimum",
 	                         "Goal minimum, vertex group weights are scaled to match this range");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "goal_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "goal_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "maxgoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Goal Maximum",
 	                         "Goal maximum, vertex group weights are scaled to match this range");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "goal_default", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "goal_default", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "defgoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Goal Default",
@@ -474,13 +474,13 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Goal Damping", "Goal (vertex target position) friction");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "internal_friction", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "internal_friction", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "velocity_smooth");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Internal Friction", "");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "collider_friction", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "collider_friction", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "collider_friction");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Collider Friction", "");
@@ -492,7 +492,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Target Density", "Maximum density of hair");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "density_strength", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "density_strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "density_strength");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Target Density Strength", "Influence of target density on the simulation");
@@ -553,14 +553,14 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shrink Vertex Group", "Vertex Group for shrinking cloth");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "shrink_min", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "shrink_min", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shrink_min");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_shrink_min_set", NULL);
 	RNA_def_property_ui_text(prop, "Shrink Factor", "Factor by which to shrink cloth");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "shrink_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "shrink_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shrink_max");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_shrink_max_set", NULL);

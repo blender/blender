@@ -381,7 +381,7 @@ static void rna_def_boidrule_average_speed(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Level", "How much velocity's z-component is kept constant");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop = RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "speed", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Speed", "Percentage of maximum speed");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");

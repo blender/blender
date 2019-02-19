@@ -66,14 +66,14 @@ static void rna_def_speaker(BlenderRNA *brna)
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_sound_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
-	prop = RNA_def_property(srna, "volume_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "volume_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Maximum Volume", "Maximum volume, no matter how near the object is");
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_max_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
-	prop = RNA_def_property(srna, "volume_min", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "volume_min", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Minimum Volume", "Minimum volume, no matter how far away the object is");
@@ -119,14 +119,14 @@ static void rna_def_speaker(BlenderRNA *brna)
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_angle_inner_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
-	prop = RNA_def_property(srna, "cone_volume_outer", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "cone_volume_outer", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Outer Cone Volume", "Volume outside the outer cone");
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_volume_outer_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
-	prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "How loud the sound is");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);

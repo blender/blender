@@ -797,7 +797,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	                         "In dynamic-topology mode, how mesh detail size is calculated");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-	prop = RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "gravity_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);

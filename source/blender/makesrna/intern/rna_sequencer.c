@@ -1630,7 +1630,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_Sequence_opacity_get", "rna_Sequence_opacity_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
-	prop = RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
 	RNA_def_property_float_sdna(prop, NULL, "effect_fader");
@@ -2208,7 +2208,7 @@ static void rna_def_wipe(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "WipeVars", "effectdata");
 
-	prop = RNA_def_property(srna, "blur_width", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "blur_width", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "edgeWidth");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Blur Width",
@@ -2240,13 +2240,13 @@ static void rna_def_glow(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "GlowVars", "effectdata");
 
-	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "fMini");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Minimum intensity to trigger a glow");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
-	prop = RNA_def_property(srna, "clamp", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "clamp", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "fClamp");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clamp", "Brightness limit of intensity");
