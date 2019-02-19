@@ -2671,7 +2671,7 @@ static void image_walk_ntree_all_users(bNodeTree *ntree, void *customdata,
 void BKE_image_walk_id_all_users(ID *id, void *customdata,
                                  void callback(Image *ima, ImageUser *iuser, void *customdata))
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 		case ID_OB:
 		{
 			Object *ob = (Object *)id;

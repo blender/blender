@@ -3380,7 +3380,7 @@ static void mesh_create_loops_lines(
 			BM_ITER_MESH (bm_edge, &iter, bm, BM_EDGES_OF_MESH) {
 				/* use_hide always for edit-mode */
 				if (!BM_elem_flag_test(bm_edge, BM_ELEM_HIDDEN) &&
-					bm_edge->l != NULL)
+				    bm_edge->l != NULL)
 				{
 					BMLoop *bm_loop1 = BM_vert_find_first_loop(bm_edge->v1);
 					BMLoop *bm_loop2 = BM_vert_find_first_loop(bm_edge->v2);

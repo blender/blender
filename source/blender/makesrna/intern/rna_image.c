@@ -151,7 +151,7 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			/* Special update for nodetrees to find parent datablock. */
 			ED_node_tag_update_nodetree(bmain, (bNodeTree *)id, NULL);
 		}
-		else  {
+		else {
 			/* Update material or texture for render preview. */
 			DEG_id_tag_update(id, 0);
 			DEG_id_tag_update(id, ID_RECALC_EDITORS);

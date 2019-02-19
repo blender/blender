@@ -184,7 +184,7 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 }
 
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **active_fcurve)
+static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale, FCurve **active_fcurve)
 {
 	FCurve *fcu = (FCurve *)ale->data;
 	ID *owner_id = ale->id;
