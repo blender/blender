@@ -2654,7 +2654,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 	}
 	else if (but->type == UI_BTYPE_TEXT) {
 		/* string */
-		if (!but->poin || (str[0] == '\0')) {
+		if (!but->poin) {
 			str = "";
 		}
 		else if (ui_but_is_utf8(but)) {
