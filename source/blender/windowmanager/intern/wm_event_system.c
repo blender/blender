@@ -2432,9 +2432,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					action |= wm_handler_fileselect_call(C, handlers, handler_op, event);
 				}
 			}
-			else if (handler->dropboxes) {
+			else if (handler->type == WM_HANDLER_TYPE_DROPBOX) {
+				wmEventHandler_Dropbox *handler_db = (wmEventHandler_Dropbox *)handler;
 				if (!wm->is_interface_locked && event->type == EVT_DROP) {
-					wmDropBox *drop = handler->dropboxes->first;
+					wmDropBox *drop = handler_db->dropboxes->first;
 					for (; drop; drop = drop->next) {
 						/* other drop custom types allowed */
 						if (event->custom == EVT_DATA_DRAGDROP) {
@@ -3518,20 +3519,24 @@ void WM_event_free_ui_handler_all(
 
 wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
 {
-	wmEventHandler *handler;
-
 	/* only allow same dropbox once */
-	for (handler = handlers->first; handler; handler = handler->next)
-		if (handler->dropboxes == dropboxes)
-			return handler;
+	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+		if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
+			wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
+			if (handler->dropboxes == dropboxes) {
+				return &handler->base;
+			}
+		}
+	}
 
-	handler = MEM_callocN(sizeof(wmEventHandler), "dropbox handler");
+	wmEventHandler_Dropbox *handler = MEM_callocN(sizeof(*handler), __func__);
+	handler->base.type = WM_HANDLER_TYPE_DROPBOX;
 
 	/* dropbox stored static, no free or copy */
 	handler->dropboxes = dropboxes;
 	BLI_addhead(handlers, handler);
 
-	return handler;
+	return &handler->base;
 }
 
 /* XXX solution works, still better check the real cause (ton) */

@@ -194,16 +194,17 @@ void WM_drag_free_list(struct ListBase *lb)
 
 static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, const wmEvent *event)
 {
-	wmEventHandler *handler = handlers->first;
-	for (; handler; handler = handler->next) {
-		if (handler->dropboxes) {
-			wmDropBox *drop = handler->dropboxes->first;
-			for (; drop; drop = drop->next) {
-				const char *tooltip = NULL;
-				if (drop->poll(C, drag, event, &tooltip)) {
-					/* XXX Doing translation here might not be ideal, but later we have no more
-					 *     access to ot (and hence op context)... */
-					return (tooltip) ? tooltip : RNA_struct_ui_name(drop->ot->srna);
+	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+		if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
+			wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
+			if (handler->dropboxes) {
+				for (wmDropBox *drop = handler->dropboxes->first; drop; drop = drop->next) {
+					const char *tooltip = NULL;
+					if (drop->poll(C, drag, event, &tooltip)) {
+						/* XXX Doing translation here might not be ideal, but later we have no more
+						 *     access to ot (and hence op context)... */
+						return (tooltip) ? tooltip : RNA_struct_ui_name(drop->ot->srna);
+					}
 				}
 			}
 		}

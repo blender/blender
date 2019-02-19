@@ -46,6 +46,7 @@ enum eWM_EventHandlerType {
 	WM_HANDLER_TYPE_GIZMO,
 	WM_HANDLER_TYPE_UI,
 	WM_HANDLER_TYPE_OP,
+	WM_HANDLER_TYPE_DROPBOX,
 };
 
 typedef struct wmEventHandler {
@@ -61,10 +62,6 @@ typedef struct wmEventHandler {
 	struct wmEventHandler_KeymapFn keymap_callback;
 
 	struct bToolRef *keymap_tool;
-
-
-	/* drop box handler */
-	ListBase *dropboxes;
 } wmEventHandler;
 
 /** #WM_HANDLER_TYPE_GIZMO */
@@ -109,6 +106,13 @@ typedef struct wmEventHandler_Op {
 	} context;
 } wmEventHandler_Op;
 
+/** #WM_HANDLER_TYPE_DROPBOX */
+typedef struct wmEventHandler_Dropbox {
+	wmEventHandler base;
+
+	/** Never NULL. */
+	ListBase *dropboxes;
+} wmEventHandler_Dropbox;
 
 /* wm_event_system.c */
 void        wm_event_free_all       (wmWindow *win);
