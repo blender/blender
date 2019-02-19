@@ -10022,22 +10022,26 @@ void UI_popup_handlers_add(bContext *C, ListBase *handlers, uiPopupBlockHandle *
 
 void UI_popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup)
 {
-	wmEventHandler *handler;
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
+		if (handler_base->type == WM_HANDLER_TYPE_UI) {
+			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 
-	for (handler = handlers->first; handler; handler = handler->next) {
-		if (handler->ui_handle == ui_popup_handler &&
-		    handler->ui_remove == ui_popup_handler_remove &&
-		    handler->ui_userdata == popup)
-		{
-			/* tag refresh parent popup */
-			if (handler->next &&
-			    handler->next->ui_handle == ui_popup_handler &&
-			    handler->next->ui_remove == ui_popup_handler_remove)
+			if (handler->handle_fn == ui_popup_handler &&
+			    handler->remove_fn == ui_popup_handler_remove &&
+			    handler->user_data == popup)
 			{
-				uiPopupBlockHandle *parent_popup = handler->next->ui_userdata;
-				ED_region_tag_refresh_ui(parent_popup->region);
+				/* tag refresh parent popup */
+				wmEventHandler_UI *handler_next = (wmEventHandler_UI *)handler->base.next;
+				if (handler_next &&
+				    handler_next->base.type == WM_HANDLER_TYPE_UI &&
+				    handler_next->handle_fn == ui_popup_handler &&
+				    handler_next->remove_fn == ui_popup_handler_remove)
+				{
+					uiPopupBlockHandle *parent_popup = handler_next->user_data;
+					ED_region_tag_refresh_ui(parent_popup->region);
+				}
+				break;
 			}
-			break;
 		}
 	}
 

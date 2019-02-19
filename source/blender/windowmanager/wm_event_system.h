@@ -44,6 +44,7 @@ struct wmEventHandler_KeymapFn {
 enum eWM_EventHandlerType {
 	WM_HANDLER_TYPE_DEFAULT,
 	WM_HANDLER_TYPE_GIZMO,
+	WM_HANDLER_TYPE_UI,
 };
 
 typedef struct wmEventHandler {
@@ -67,13 +68,6 @@ typedef struct wmEventHandler {
 	struct ARegion *op_region;          /* for derived/modal handlers */
 	short           op_region_type;     /* for derived/modal handlers */
 
-	/* ui handler */
-	wmUIHandlerFunc ui_handle;          /* callback receiving events */
-	wmUIHandlerRemoveFunc ui_remove;    /* callback when handler is removed */
-	void *ui_userdata;                  /* user data pointer */
-	struct ScrArea *ui_area;            /* for derived/modal handlers */
-	struct ARegion *ui_region;          /* for derived/modal handlers */
-	struct ARegion *ui_menu;            /* for derived/modal handlers */
 
 	/* drop box handler */
 	ListBase *dropboxes;
@@ -86,6 +80,22 @@ typedef struct wmEventHandler_Gizmo {
 	/** Gizmo handler (never NULL). */
 	struct wmGizmoMap *gizmo_map;
 } wmEventHandler_Gizmo;
+
+/** #WM_HANDLER_TYPE_UI */
+typedef struct wmEventHandler_UI {
+	wmEventHandler base;
+
+	wmUIHandlerFunc handle_fn;          /* callback receiving events */
+	wmUIHandlerRemoveFunc remove_fn;    /* callback when handler is removed */
+	void *user_data;                  /* user data pointer */
+
+	/** Store context for this handler for derived/modal handlers. */
+	struct {
+		struct ScrArea *area;
+		struct ARegion *region;
+		struct ARegion *menu;
+	} context;
+} wmEventHandler_UI;
 
 /* wm_event_system.c */
 void        wm_event_free_all       (wmWindow *win);

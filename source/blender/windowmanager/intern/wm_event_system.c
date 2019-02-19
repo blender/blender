@@ -543,7 +543,7 @@ static int wm_event_always_pass(const wmEvent *event)
 
 /* ********************* ui handler ******************* */
 
-static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, const wmEvent *event, int always_pass)
+static int wm_handler_ui_call(bContext *C, wmEventHandler_UI *handler, const wmEvent *event, int always_pass)
 {
 	ScrArea *area = CTX_wm_area(C);
 	ARegion *region = CTX_wm_region(C);
@@ -554,7 +554,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, const wmEven
 
 	/* UI code doesn't handle return values - it just always returns break.
 	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
-	if (((handler->flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
+	if (((handler->base.flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
 	    !ISMOUSE_BUTTON(event->type) &&
 	    (event->val == KM_DBL_CLICK))
 	{
@@ -571,11 +571,17 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, const wmEven
 	}
 
 	/* we set context to where ui handler came from */
-	if (handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
-	if (handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
-	if (handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
+	if (handler->context.area) {
+		CTX_wm_area_set(C, handler->context.area);
+	}
+	if (handler->context.region) {
+		CTX_wm_region_set(C, handler->context.region);
+	}
+	if (handler->context.menu) {
+		CTX_wm_menu_set(C, handler->context.menu);
+	}
 
-	retval = handler->ui_handle(C, event, handler->ui_userdata);
+	retval = handler->handle_fn(C, event, handler->user_data);
 
 	/* putting back screen context */
 	if ((retval != WM_UI_HANDLER_BREAK) || always_pass) {
@@ -604,20 +610,22 @@ static void wm_handler_ui_cancel(bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
 	ARegion *ar = CTX_wm_region(C);
-	wmEventHandler *handler, *nexthandler;
 
 	if (!ar)
 		return;
 
-	for (handler = ar->handlers.first; handler; handler = nexthandler) {
-		nexthandler = handler->next;
-
-		if (handler->ui_handle) {
+	for (wmEventHandler *handler_base = ar->handlers.first, *handler_base_next;
+	     handler_base;
+	     handler_base = handler_base_next)
+	{
+		handler_base_next = handler_base->next;
+		if (handler_base->type == WM_HANDLER_TYPE_UI) {
+			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
+			BLI_assert(handler->handle_fn != NULL);
 			wmEvent event;
-
 			wm_event_init_from_window(win, &event);
 			event.type = EVT_BUT_CANCEL;
-			handler->ui_handle(C, &event, handler->ui_userdata);
+			handler->handle_fn(C, &event, handler->user_data);
 		}
 	}
 }
@@ -1732,25 +1740,25 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler, const wm
 /* called on exit or remove area, only here call cancel callback */
 void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 {
-	wmEventHandler *handler;
+	wmEventHandler *handler_base;
 	wmWindowManager *wm = CTX_wm_manager(C);
 
 	/* C is zero on freeing database, modal handlers then already were freed */
-	while ((handler = BLI_pophead(handlers))) {
-		if (handler->op) {
+	while ((handler_base = BLI_pophead(handlers))) {
+		if (handler_base->op) {
 			wmWindow *win = CTX_wm_window(C);
-			if (handler->op->type->cancel) {
+			if (handler_base->op->type->cancel) {
 				ScrArea *area = CTX_wm_area(C);
 				ARegion *region = CTX_wm_region(C);
 
-				wm_handler_op_context(C, handler, win->eventstate);
+				wm_handler_op_context(C, handler_base, win->eventstate);
 
-				if (handler->op->type->flag & OPTYPE_UNDO)
+				if (handler_base->op->type->flag & OPTYPE_UNDO)
 					wm->op_undo_depth++;
 
-				handler->op->type->cancel(C, handler->op);
+				handler_base->op->type->cancel(C, handler_base->op);
 
-				if (handler->op->type->flag & OPTYPE_UNDO)
+				if (handler_base->op->type->flag & OPTYPE_UNDO)
 					wm->op_undo_depth--;
 
 				CTX_wm_area_set(C, area);
@@ -1758,25 +1766,35 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 			}
 
 			WM_cursor_grab_disable(win, NULL);
-			WM_operator_free(handler->op);
+			WM_operator_free(handler_base->op);
 		}
-		else if (handler->ui_remove) {
-			ScrArea *area = CTX_wm_area(C);
-			ARegion *region = CTX_wm_region(C);
-			ARegion *menu = CTX_wm_menu(C);
+		else if (handler_base->type == WM_HANDLER_TYPE_UI) {
+			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 
-			if (handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
-			if (handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
-			if (handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
+			if (handler->remove_fn) {
+				ScrArea *area = CTX_wm_area(C);
+				ARegion *region = CTX_wm_region(C);
+				ARegion *menu = CTX_wm_menu(C);
 
-			handler->ui_remove(C, handler->ui_userdata);
+				if (handler->context.area) {
+					CTX_wm_area_set(C, handler->context.area);
+				}
+				if (handler->context.region) {
+					CTX_wm_region_set(C, handler->context.region);
+				}
+				if (handler->context.menu) {
+					CTX_wm_menu_set(C, handler->context.menu);
+				}
 
-			CTX_wm_area_set(C, area);
-			CTX_wm_region_set(C, region);
-			CTX_wm_menu_set(C, menu);
+				handler->remove_fn(C, handler->user_data);
+
+				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, region);
+				CTX_wm_menu_set(C, menu);
+			}
 		}
 
-		wm_event_free_handler(handler);
+		wm_event_free_handler(handler_base);
 	}
 }
 
@@ -2388,9 +2406,11 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					PRINT("fail\n");
 				}
 			}
-			else if (handler->ui_handle) {
+			else if (handler->type == WM_HANDLER_TYPE_UI) {
+				wmEventHandler_UI *handler_ui = (wmEventHandler_UI *)handler;
+				BLI_assert(handler_ui->handle_fn != NULL);
 				if (!wm->is_interface_locked) {
-					action |= wm_handler_ui_call(C, handler, event, always_pass);
+					action |= wm_handler_ui_call(C, handler_ui, event, always_pass);
 				}
 			}
 			else if (handler->op_is_fileselect) {
@@ -3399,72 +3419,80 @@ void WM_event_set_keymap_handler_callback(
 
 wmEventHandler *WM_event_add_ui_handler(
         const bContext *C, ListBase *handlers,
-        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
-        void *userdata, const char flag)
+        wmUIHandlerFunc handle_fn, wmUIHandlerRemoveFunc remove_fn,
+        void *user_data, const char flag)
 {
-	wmEventHandler *handler = MEM_callocN(sizeof(wmEventHandler), "event ui handler");
-	handler->ui_handle = ui_handle;
-	handler->ui_remove = ui_remove;
-	handler->ui_userdata = userdata;
+	wmEventHandler_UI *handler = MEM_callocN(sizeof(*handler), __func__);
+	handler->base.type = WM_HANDLER_TYPE_UI;
+	handler->handle_fn = handle_fn;
+	handler->remove_fn = remove_fn;
+	handler->user_data = user_data;
 	if (C) {
-		handler->ui_area    = CTX_wm_area(C);
-		handler->ui_region  = CTX_wm_region(C);
-		handler->ui_menu    = CTX_wm_menu(C);
+		handler->context.area    = CTX_wm_area(C);
+		handler->context.region  = CTX_wm_region(C);
+		handler->context.menu    = CTX_wm_menu(C);
 	}
 	else {
-		handler->ui_area    = NULL;
-		handler->ui_region  = NULL;
-		handler->ui_menu    = NULL;
+		handler->context.area    = NULL;
+		handler->context.region  = NULL;
+		handler->context.menu    = NULL;
 	}
 
 	BLI_assert((flag & WM_HANDLER_DO_FREE) == 0);
-	handler->flag = flag;
+	handler->base.flag = flag;
 
 	BLI_addhead(handlers, handler);
 
-	return handler;
+	return &handler->base;
 }
 
 /* set "postpone" for win->modalhandlers, this is in a running for () loop in wm_handlers_do() */
 void WM_event_remove_ui_handler(
         ListBase *handlers,
-        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
-        void *userdata, const bool postpone)
+        wmUIHandlerFunc handle_fn, wmUIHandlerRemoveFunc remove_fn,
+        void *user_data, const bool postpone)
 {
-	wmEventHandler *handler;
+	wmEventHandler *handler_base;
 
-	for (handler = handlers->first; handler; handler = handler->next) {
-		if ((handler->ui_handle == ui_handle) &&
-		    (handler->ui_remove == ui_remove) &&
-		    (handler->ui_userdata == userdata))
-		{
-			/* handlers will be freed in wm_handlers_do() */
-			if (postpone) {
-				handler->flag |= WM_HANDLER_DO_FREE;
+	for (handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+		if (handler_base->type == WM_HANDLER_TYPE_UI) {
+			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
+			if ((handler->handle_fn == handle_fn) &&
+			    (handler->remove_fn == remove_fn) &&
+			    (handler->user_data == user_data))
+			{
+				/* handlers will be freed in wm_handlers_do() */
+				if (postpone) {
+					handler->base.flag |= WM_HANDLER_DO_FREE;
+				}
+				else {
+					BLI_remlink(handlers, handler);
+					wm_event_free_handler(&handler->base);
+				}
+				break;
 			}
-			else {
-				BLI_remlink(handlers, handler);
-				wm_event_free_handler(handler);
-			}
-			break;
 		}
 	}
 }
 
 void WM_event_free_ui_handler_all(
         bContext *C, ListBase *handlers,
-        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove)
+        wmUIHandlerFunc handle_fn, wmUIHandlerRemoveFunc remove_fn)
 {
-	wmEventHandler *handler, *handler_next;
-
-	for (handler = handlers->first; handler; handler = handler_next) {
-		handler_next = handler->next;
-		if ((handler->ui_handle == ui_handle) &&
-		    (handler->ui_remove == ui_remove))
-		{
-			ui_remove(C, handler->ui_userdata);
-			BLI_remlink(handlers, handler);
-			wm_event_free_handler(handler);
+	for (wmEventHandler *handler_base = handlers->first, *handler_base_next;
+	     handler_base;
+	     handler_base = handler_base_next)
+	{
+		handler_base_next = handler_base->next;
+		if (handler_base->type == WM_HANDLER_TYPE_UI) {
+			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
+			if ((handler->handle_fn == handle_fn) &&
+			    (handler->remove_fn == remove_fn))
+			{
+				remove_fn(C, handler->user_data);
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(&handler->base);
+			}
 		}
 	}
 }
@@ -3490,14 +3518,17 @@ wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropb
 /* XXX solution works, still better check the real cause (ton) */
 void WM_event_remove_area_handler(ListBase *handlers, void *area)
 {
-	wmEventHandler *handler, *nexthandler;
 
-	for (handler = handlers->first; handler; handler = nexthandler) {
-		nexthandler = handler->next;
-		if (handler->op_is_fileselect == false) {
-			if (handler->ui_area == area) {
+	for (wmEventHandler *handler_base = handlers->first, *handler_base_next;
+	     handler_base;
+	     handler_base = handler_base_next)
+	{
+		handler_base_next = handler_base->next;
+		if (handler_base->type == WM_HANDLER_TYPE_UI) {
+			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
+			if (handler->context.area == area) {
 				BLI_remlink(handlers, handler);
-				wm_event_free_handler(handler);
+				wm_event_free_handler(handler_base);
 			}
 		}
 	}
@@ -3843,9 +3874,11 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 		/* let's skip windows having modal handlers now */
 		/* potential XXX ugly... I wouldn't have added a modalhandlers list (introduced in rev 23331, ton) */
-		for (handler = win->modalhandlers.first; handler; handler = handler->next)
-			if (handler->ui_handle || handler->op)
+		for (handler = win->modalhandlers.first; handler; handler = handler->next) {
+			if ((handler->type == WM_HANDLER_TYPE_UI) || handler->op) {
 				return NULL;
+			}
+		}
 
 		/* to desktop space */
 		mx += (int) (U.pixelsize * win->posx);
