@@ -292,12 +292,12 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 		}
 
 		/* get _unnormalized_ interpolated normal and tangent */
-		float3 tangent = primitive_attribute_float3(kg, sd, attr, NULL, NULL);
-		float sign = primitive_attribute_float(kg, sd, attr_sign, NULL, NULL);
+		float3 tangent = primitive_surface_attribute_float3(kg, sd, attr, NULL, NULL);
+		float sign = primitive_surface_attribute_float(kg, sd, attr_sign, NULL, NULL);
 		float3 normal;
 
 		if(sd->shader & SHADER_SMOOTH_NORMAL) {
-			normal = primitive_attribute_float3(kg, sd, attr_normal, NULL, NULL);
+			normal = primitive_surface_attribute_float3(kg, sd, attr_normal, NULL, NULL);
 		}
 		else {
 			normal = sd->Ng;
@@ -360,25 +360,28 @@ ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack
 	decode_node_uchar4(node.y, &tangent_offset, &direction_type, &axis, NULL);
 
 	float3 tangent;
+	float3 attribute_value;
+	const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
+	if (desc.offset != ATTR_STD_NOT_FOUND) {
+		attribute_value = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
+	}
+
 
 	if(direction_type == NODE_TANGENT_UVMAP) {
 		/* UV map */
-		const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
-
 		if(desc.offset == ATTR_STD_NOT_FOUND)
 			tangent = make_float3(0.0f, 0.0f, 0.0f);
 		else
-			tangent = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
+			tangent = attribute_value;
 	}
 	else {
 		/* radial */
-		const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
 		float3 generated;
 
 		if(desc.offset == ATTR_STD_NOT_FOUND)
 			generated = sd->P;
 		else
-			generated = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
+			generated = attribute_value;
 
 		if(axis == NODE_TANGENT_AXIS_X)
 			tangent = make_float3(0.0f, -(generated.z - 0.5f), (generated.y - 0.5f));

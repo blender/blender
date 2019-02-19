@@ -52,24 +52,22 @@ ccl_device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, u
 	AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 	/* fetch and store attribute */
-	if(type == NODE_ATTR_FLOAT) {
-		if(desc.type == NODE_ATTR_FLOAT) {
-			float f = primitive_attribute_float(kg, sd, desc, NULL, NULL);
+	if (desc.type == NODE_ATTR_FLOAT) {
+		float f = primitive_attribute_float(kg, sd, desc, NULL, NULL);
+		if (type == NODE_ATTR_FLOAT) {
 			stack_store_float(stack, out_offset, f);
 		}
 		else {
-			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
-			stack_store_float(stack, out_offset, average(f));
+			stack_store_float3(stack, out_offset, make_float3(f, f, f));
 		}
 	}
 	else {
-		if(desc.type == NODE_ATTR_FLOAT3) {
-			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
-			stack_store_float3(stack, out_offset, f);
+		float3 f = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
+		if (type == NODE_ATTR_FLOAT) {
+			stack_store_float(stack, out_offset, average(f));
 		}
 		else {
-			float f = primitive_attribute_float(kg, sd, desc, NULL, NULL);
-			stack_store_float3(stack, out_offset, make_float3(f, f, f));
+			stack_store_float3(stack, out_offset, f);
 		}
 	}
 }
@@ -86,28 +84,24 @@ void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint
 	AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 	/* fetch and store attribute */
-	if(type == NODE_ATTR_FLOAT) {
-		if(desc.type == NODE_ATTR_FLOAT) {
-			float dx;
-			float f = primitive_attribute_float(kg, sd, desc, &dx, NULL);
+	if (desc.type == NODE_ATTR_FLOAT) {
+		float dx;
+		float f = primitive_surface_attribute_float(kg, sd, desc, &dx, NULL);
+		if (type == NODE_ATTR_FLOAT) {
 			stack_store_float(stack, out_offset, f+dx);
 		}
 		else {
-			float3 dx;
-			float3 f = primitive_attribute_float3(kg, sd, desc, &dx, NULL);
-			stack_store_float(stack, out_offset, average(f+dx));
+			stack_store_float3(stack, out_offset, make_float3(f+dx, f+dx, f+dx));
 		}
 	}
 	else {
-		if(desc.type == NODE_ATTR_FLOAT3) {
-			float3 dx;
-			float3 f = primitive_attribute_float3(kg, sd, desc, &dx, NULL);
-			stack_store_float3(stack, out_offset, f+dx);
+		float3 dx;
+		float3 f = primitive_surface_attribute_float3(kg, sd, desc, &dx, NULL);
+		if (type == NODE_ATTR_FLOAT) {
+			stack_store_float(stack, out_offset, average(f+dx));
 		}
 		else {
-			float dx;
-			float f = primitive_attribute_float(kg, sd, desc, &dx, NULL);
-			stack_store_float3(stack, out_offset, make_float3(f+dx, f+dx, f+dx));
+			stack_store_float3(stack, out_offset, f+dx);
 		}
 	}
 }
@@ -127,28 +121,24 @@ void svm_node_attr_bump_dy(KernelGlobals *kg,
 	AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 	/* fetch and store attribute */
-	if(type == NODE_ATTR_FLOAT) {
-		if(desc.type == NODE_ATTR_FLOAT) {
-			float dy;
-			float f = primitive_attribute_float(kg, sd, desc, NULL, &dy);
+		if (desc.type == NODE_ATTR_FLOAT) {
+		float dy;
+		float f = primitive_surface_attribute_float(kg, sd, desc, NULL, &dy);
+		if (type == NODE_ATTR_FLOAT) {
 			stack_store_float(stack, out_offset, f+dy);
 		}
 		else {
-			float3 dy;
-			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, &dy);
-			stack_store_float(stack, out_offset, average(f+dy));
+			stack_store_float3(stack, out_offset, make_float3(f+dy, f+dy, f+dy));
 		}
 	}
 	else {
-		if(desc.type == NODE_ATTR_FLOAT3) {
-			float3 dy;
-			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, &dy);
-			stack_store_float3(stack, out_offset, f+dy);
+		float3 dy;
+		float3 f = primitive_surface_attribute_float3(kg, sd, desc, NULL, &dy);
+		if (type == NODE_ATTR_FLOAT) {
+			stack_store_float(stack, out_offset, average(f+dy));
 		}
 		else {
-			float dy;
-			float f = primitive_attribute_float(kg, sd, desc, NULL, &dy);
-			stack_store_float3(stack, out_offset, make_float3(f+dy, f+dy, f+dy));
+			stack_store_float3(stack, out_offset, f+dy);
 		}
 	}
 }
