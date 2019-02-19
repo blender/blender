@@ -3919,8 +3919,10 @@ static bool ui_but_is_mouse_over_icon_extra(const ARegion *region, uiBut *but, c
 
 static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+	const bool is_property = (but->rnaprop != NULL);
+
 #ifdef USE_DRAG_TOGGLE
-	{
+	if (is_property) {
 		int retval;
 		if (ui_do_but_ANY_drag_toggle(C, but, data, event, &retval)) {
 			return retval;
@@ -3931,7 +3933,7 @@ static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		const int rna_type = but->rnaprop ? RNA_property_type(but->rnaprop) : 0;
 
-		if (but->rnaprop &&
+		if (is_property &&
 		    ELEM(rna_type, PROP_POINTER, PROP_STRING) &&
 		    (but->custom_data != NULL) &&
 		    (event->type == LEFTMOUSE) &&
@@ -3940,9 +3942,12 @@ static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			return WM_UI_HANDLER_BREAK;
 		}
-		else if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && (event->val == KM_PRESS)) {
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
+		else if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY)) {
+			int event_val = (is_property) ? KM_PRESS : KM_CLICK;
+			if (event->val == event_val) {
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				return WM_UI_HANDLER_BREAK;
+			}
 		}
 	}
 	else if (data->state == BUTTON_STATE_TEXT_EDITING) {
