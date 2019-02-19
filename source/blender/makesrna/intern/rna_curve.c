@@ -897,7 +897,7 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
 	PropertyRNA *prop;
 
 	/* number values */
-	prop = RNA_def_property(srna, "path_duration", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "path_duration", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "pathlen");
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Path Length",
@@ -1459,7 +1459,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	                         "Surface resolution in V direction used while rendering (zero uses preview resolution)");
 
 
-	prop = RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "ctime");
 	RNA_def_property_ui_text(prop, "Evaluation Time",
 	                         "Parametric position along the length of the curve that Objects 'following' it should be "

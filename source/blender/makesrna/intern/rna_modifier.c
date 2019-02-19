@@ -1776,7 +1776,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Normal", "Enable displacement along the Z normal");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "timeoffs");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Time Offset",
@@ -3071,7 +3071,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Width", "Bevel amount");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "width_pct", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "width_pct", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "value");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 5.0, 2);
