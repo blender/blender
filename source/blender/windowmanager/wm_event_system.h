@@ -43,7 +43,6 @@ struct wmEventHandler_KeymapFn {
 typedef struct wmEventHandler {
 	struct wmEventHandler *next, *prev;
 
-	char type;                          /* WM_HANDLER_DEFAULT, ... */
 	char flag;                          /* WM_HANDLER_BLOCKING, ... */
 
 	/* keymap handler */
@@ -55,6 +54,7 @@ typedef struct wmEventHandler {
 	struct bToolRef *keymap_tool;
 
 	/* modal operator handler */
+	bool op_is_fileselect;
 	wmOperator *op;                     /* for derived/modal handlers */
 	struct ScrArea *op_area;            /* for derived/modal handlers */
 	struct ARegion *op_region;          /* for derived/modal handlers */
@@ -77,7 +77,6 @@ typedef struct wmEventHandler {
 /* custom types for handlers, for signaling, freeing */
 enum {
 	WM_HANDLER_DEFAULT,
-	WM_HANDLER_FILESELECT,
 };
 
 /* wm_event_system.c */

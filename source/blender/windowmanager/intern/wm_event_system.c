@@ -2393,7 +2393,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					action |= wm_handler_ui_call(C, handler, event, always_pass);
 				}
 			}
-			else if (handler->type == WM_HANDLER_FILESELECT) {
+			else if (handler->op_is_fileselect) {
 				if (!wm->is_interface_locked) {
 					/* screen context changes here */
 					action |= wm_handler_fileselect_call(C, handlers, handler, event);
@@ -3220,7 +3220,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	for (handler = win->modalhandlers.first; handler; handler = handlernext) {
 		handlernext = handler->next;
 
-		if (handler->type == WM_HANDLER_FILESELECT) {
+		if (handler->op_is_fileselect) {
 			bScreen *screen = CTX_wm_screen(C);
 			bool cancel_handler = true;
 
@@ -3247,7 +3247,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
 	handler = MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
 
-	handler->type = WM_HANDLER_FILESELECT;
+	handler->op_is_fileselect = true;
 	handler->op = op;
 	handler->op_area = CTX_wm_area(C);
 	handler->op_region = CTX_wm_region(C);
@@ -3307,7 +3307,7 @@ void WM_event_modal_handler_area_replace(wmWindow *win, const ScrArea *old_area,
 {
 	for (wmEventHandler *handler = win->modalhandlers.first; handler; handler = handler->next) {
 		/* fileselect handler is quite special... it needs to keep old area stored in handler, so don't change it */
-		if ((handler->op_area == old_area) && (handler->type != WM_HANDLER_FILESELECT)) {
+		if ((handler->op_area == old_area) && (handler->op_is_fileselect == false)) {
 			handler->op_area = new_area;
 		}
 	}
@@ -3492,7 +3492,7 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
 
 	for (handler = handlers->first; handler; handler = nexthandler) {
 		nexthandler = handler->next;
-		if (handler->type != WM_HANDLER_FILESELECT) {
+		if (handler->op_is_fileselect == false) {
 			if (handler->ui_area == area) {
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
