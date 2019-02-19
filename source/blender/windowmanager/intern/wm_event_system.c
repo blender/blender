@@ -2373,6 +2373,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 			if (handler->flag & WM_HANDLER_BLOCKING)
 				action |= WM_HANDLER_BREAK;
 
+			/* Handle all types here. */
 			if (handler->type == WM_HANDLER_TYPE_KEYMAP) {
 				wmEventHandler_Keymap *handler_km = (wmEventHandler_Keymap *)handler;
 				wmKeyMap *keymap = WM_keymap_active(wm, handler_km->keymap);
@@ -2423,15 +2424,6 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				BLI_assert(handler_ui->handle_fn != NULL);
 				if (!wm->is_interface_locked) {
 					action |= wm_handler_ui_call(C, handler_ui, event, always_pass);
-				}
-			}
-			else if ((handler->type == WM_HANDLER_TYPE_OP) &&
-			         ((wmEventHandler_Op *)handler)->is_fileselect)
-			{
-				wmEventHandler_Op *handler_op = (wmEventHandler_Op *)handler;
-				if (!wm->is_interface_locked) {
-					/* screen context changes here */
-					action |= wm_handler_fileselect_call(C, handlers, handler_op, event);
 				}
 			}
 			else if (handler->type == WM_HANDLER_TYPE_DROPBOX) {
@@ -2607,9 +2599,21 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, region);
 			}
+			else if (handler->type == WM_HANDLER_TYPE_OP) {
+				wmEventHandler_Op *handler_op = (wmEventHandler_Op *)handler;
+				if (handler_op->is_fileselect) {
+					if (!wm->is_interface_locked) {
+						/* screen context changes here */
+						action |= wm_handler_fileselect_call(C, handlers, handler_op, event);
+					}
+				}
+				else {
+					action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
+				}
+			}
 			else {
-				/* modal, swallows all */
-				action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
+				/* Unreachable (handle all types above). */
+				BLI_assert(0);
 			}
 
 			if (action & WM_HANDLER_BREAK) {
