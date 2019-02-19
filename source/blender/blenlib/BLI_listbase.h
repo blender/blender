@@ -125,7 +125,13 @@ if ((lb)->last && (lb_init || (lb_init = (lb)->last))) { \
 #define LISTBASE_FOREACH(type, var, list) \
 	for (type var = (type)((list)->first); \
 	     var != NULL; \
-	     var = (type)(((Link*)(var))->next))
+	     var = (type)(((Link *)(var))->next))
+
+/** A verion of #LISTBASE_FOREACH that supports removing the item we're looping over. */
+#define LISTBASE_FOREACH_MUTABLE(type, var, list) \
+	for (type var = (type)((list)->first), *var##_iter_next; \
+	     ((var != NULL) ? ((void)(var##_iter_next = (type)(((Link *)(var))->next)), 1) : 0); \
+	     var = var##_iter_next)
 
 #ifdef __cplusplus
 }
