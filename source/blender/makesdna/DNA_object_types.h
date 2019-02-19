@@ -136,7 +136,7 @@ typedef struct Object_Runtime {
 	char _pad0[3];
 
 	/** Only used for drawing the parent/child help-line. */
-	float parent_origin_eval[3];
+	float parent_display_origin[3];
 
 
 	/** Axis aligned boundbox (in localspace). */
