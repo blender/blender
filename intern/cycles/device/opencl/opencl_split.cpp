@@ -327,7 +327,7 @@ public:
 protected:
 	/* ** Those guys are for workign around some compiler-specific bugs ** */
 
-	string build_options_for_base_program(
+	string build_options_for_bake_program(
 	        const DeviceRequestedFeatures& requested_features)
 	{
 		return requested_features.get_build_options();

@@ -162,6 +162,9 @@ OpenCLDeviceBase::~OpenCLDeviceBase()
 	}
 
 	base_program.release();
+	bake_program.release();
+	displace_program.release();
+	background_program.release();
 	if(cqCommandQueue)
 		clReleaseCommandQueue(cqCommandQueue);
 	if(cxContext)
@@ -225,13 +228,19 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	if(!opencl_version_check())
 		return false;
 
-	base_program = OpenCLProgram(this, "base", "kernel.cl", build_options_for_base_program(requested_features));
+	base_program = OpenCLProgram(this, "base", "kernel.cl", "");
 	base_program.add_kernel(ustring("convert_to_byte"));
 	base_program.add_kernel(ustring("convert_to_half_float"));
-	base_program.add_kernel(ustring("displace"));
-	base_program.add_kernel(ustring("background"));
-	base_program.add_kernel(ustring("bake"));
 	base_program.add_kernel(ustring("zero_buffer"));
+
+	bake_program = OpenCLProgram(this, "bake", "kernel_bake.cl", build_options_for_bake_program(requested_features));
+	bake_program.add_kernel(ustring("bake"));
+
+	displace_program = OpenCLProgram(this, "displace", "kernel_displace.cl", build_options_for_bake_program(requested_features));
+	displace_program.add_kernel(ustring("displace"));
+
+	background_program = OpenCLProgram(this, "background", "kernel_background.cl", build_options_for_bake_program(requested_features));
+	background_program.add_kernel(ustring("background"));
 
 	denoising_program = OpenCLProgram(this, "denoising", "filter.cl", "");
 	denoising_program.add_kernel(ustring("filter_divide_shadow"));
@@ -248,12 +257,15 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	denoising_program.add_kernel(ustring("filter_finalize"));
 
 	vector<OpenCLProgram*> programs;
-	programs.push_back(&base_program);
-	programs.push_back(&denoising_program);
+	programs.push_back(&bake_program);
+	programs.push_back(&displace_program);
+	programs.push_back(&background_program);
 	/* Call actual class to fill the vector with its programs. */
 	if(!add_kernel_programs(requested_features, programs)) {
 		return false;
 	}
+	programs.push_back(&base_program);
+	programs.push_back(&denoising_program);
 
 	/* Parallel compilation of Cycles kernels, this launches multiple
 	 * processes to workaround OpenCL frameworks serializing the calls
@@ -1152,13 +1164,13 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 	cl_kernel kernel;
 
 	if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
-		kernel = base_program(ustring("bake"));
+		kernel = bake_program(ustring("bake"));
 	}
 	else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
-		kernel = base_program(ustring("displace"));
+		kernel = displace_program(ustring("displace"));
 	}
 	else {
-		kernel = base_program(ustring("background"));
+		kernel = background_program(ustring("background"));
 	}
 
 	cl_uint start_arg_index =
@@ -1385,7 +1397,7 @@ void OpenCLDeviceBase::store_cached_kernel(
 	                           cache_locker);
 }
 
-string OpenCLDeviceBase::build_options_for_base_program(
+string OpenCLDeviceBase::build_options_for_bake_program(
         const DeviceRequestedFeatures& requested_features)
 {
 	/* TODO(sergey): By default we compile all features, meaning

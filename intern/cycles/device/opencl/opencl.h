@@ -325,7 +325,11 @@ public:
 		map<ustring, cl_kernel> kernels;
 	};
 
-	OpenCLProgram base_program, denoising_program;
+	OpenCLProgram base_program;
+	OpenCLProgram bake_program;
+	OpenCLProgram displace_program;
+	OpenCLProgram background_program;
+	OpenCLProgram denoising_program;
 
 	typedef map<string, device_vector<uchar>*> ConstMemMap;
 	typedef map<string, device_ptr> MemMap;
@@ -571,7 +575,7 @@ protected:
 	        ustring key,
 	        thread_scoped_lock& cache_locker);
 
-	virtual string build_options_for_base_program(
+	virtual string build_options_for_bake_program(
 	        const DeviceRequestedFeatures& /*requested_features*/);
 
 private:
