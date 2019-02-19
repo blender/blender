@@ -59,6 +59,7 @@ struct wmDropBox;
 struct wmEvent;
 struct wmEventHandler;
 struct wmEventHandler_Keymap;
+struct wmEventHandler_UI;
 struct wmGesture;
 struct wmJob;
 struct wmMsgSubscribeKey;
@@ -207,7 +208,7 @@ void WM_event_set_keymap_handler_callback(
 typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
 typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 
-struct wmEventHandler *WM_event_add_ui_handler(
+struct wmEventHandler_UI *WM_event_add_ui_handler(
         const struct bContext *C, ListBase *handlers,
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
         void *userdata, const char flag);
@@ -221,7 +222,7 @@ void WM_event_free_ui_handler_all(
         struct bContext *C, ListBase *handlers,
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove);
 
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
+struct wmEventHandler_Op *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void WM_event_modal_handler_area_replace(wmWindow *win, const struct ScrArea *old_area, struct ScrArea *new_area);
 void WM_event_modal_handler_region_replace(wmWindow *win, const struct ARegion *old_region, struct ARegion *new_region);
 
@@ -236,7 +237,8 @@ enum {
 	WM_HANDLER_DO_FREE              = (1 << 7),  /* handler tagged to be freed in wm_handlers_do() */
 };
 
-struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
+struct wmEventHandler_Dropbox *WM_event_add_dropbox_handler(
+        ListBase *handlers, ListBase *dropboxes);
 
 			/* mouse */
 void		WM_event_add_mousemove(const struct bContext *C);

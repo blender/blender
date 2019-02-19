@@ -3307,7 +3307,7 @@ static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 }
 #endif
 
-wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
+wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
 	wmEventHandler_Op *handler = MEM_callocN(sizeof(*handler), __func__);
 	handler->base.type = WM_HANDLER_TYPE_OP;
@@ -3334,7 +3334,7 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 		WM_window_status_area_tag_redraw(win);
 	}
 
-	return &handler->base;
+	return handler;
 }
 
 /**
@@ -3444,7 +3444,7 @@ void WM_event_set_keymap_handler_callback(
 	handler->keymap_callback.user_data = user_data;
 }
 
-wmEventHandler *WM_event_add_ui_handler(
+wmEventHandler_UI *WM_event_add_ui_handler(
         const bContext *C, ListBase *handlers,
         wmUIHandlerFunc handle_fn, wmUIHandlerRemoveFunc remove_fn,
         void *user_data, const char flag)
@@ -3470,7 +3470,7 @@ wmEventHandler *WM_event_add_ui_handler(
 
 	BLI_addhead(handlers, handler);
 
-	return &handler->base;
+	return handler;
 }
 
 /* set "postpone" for win->modalhandlers, this is in a running for () loop in wm_handlers_do() */
@@ -3524,14 +3524,14 @@ void WM_event_free_ui_handler_all(
 	}
 }
 
-wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
+wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
 {
 	/* only allow same dropbox once */
 	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
 		if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
 			wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
 			if (handler->dropboxes == dropboxes) {
-				return &handler->base;
+				return handler;
 			}
 		}
 	}
@@ -3543,7 +3543,7 @@ wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropb
 	handler->dropboxes = dropboxes;
 	BLI_addhead(handlers, handler);
 
-	return &handler->base;
+	return handler;
 }
 
 /* XXX solution works, still better check the real cause (ton) */
