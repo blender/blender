@@ -683,7 +683,7 @@ void WM_gizmomap_add_handlers(ARegion *ar, wmGizmoMap *gzmap)
 	}
 
 	wmEventHandler_Gizmo *handler = MEM_callocN(sizeof(*handler), __func__);
-	handler->base.type = WM_HANDLER_TYPE_GIZMO;
+	handler->head.type = WM_HANDLER_TYPE_GIZMO;
 	BLI_assert(gzmap == ar->gizmo_map);
 	handler->gizmo_map = gzmap;
 	BLI_addtail(&ar->handlers, handler);

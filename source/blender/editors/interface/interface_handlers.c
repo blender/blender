@@ -10036,9 +10036,9 @@ void UI_popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup)
 			    handler->user_data == popup)
 			{
 				/* tag refresh parent popup */
-				wmEventHandler_UI *handler_next = (wmEventHandler_UI *)handler->base.next;
+				wmEventHandler_UI *handler_next = (wmEventHandler_UI *)handler->head.next;
 				if (handler_next &&
-				    handler_next->base.type == WM_HANDLER_TYPE_UI &&
+				    handler_next->head.type == WM_HANDLER_TYPE_UI &&
 				    handler_next->handle_fn == ui_popup_handler &&
 				    handler_next->remove_fn == ui_popup_handler_remove)
 				{

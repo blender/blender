@@ -414,7 +414,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				handler = BLI_findptr(&win->modalhandlers, op, offsetof(wmEventHandler_Op, op));
 				if (handler) {
 					BLI_remlink(&win->modalhandlers, handler);
-					wm_event_free_handler(&handler->base);
+					wm_event_free_handler(&handler->head);
 				}
 
 				/* if operator is blocking, grab cursor

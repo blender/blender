@@ -204,7 +204,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 					if (handler->op && handler->op->type == ot) {
 						/* don't run op->cancel because it needs the context,
 						 * assume whoever unregisters the operator will cleanup */
-						handler->base.flag |= WM_HANDLER_DO_FREE;
+						handler->head.flag |= WM_HANDLER_DO_FREE;
 						WM_operator_free(handler->op);
 						handler->op = NULL;
 					}

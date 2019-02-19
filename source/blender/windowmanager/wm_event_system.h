@@ -61,7 +61,7 @@ typedef struct wmEventHandler {
 
 /** #WM_HANDLER_TYPE_KEYMAP */
 typedef struct wmEventHandler_Keymap {
-	wmEventHandler base;
+	wmEventHandler head;
 
 	/** Pointer to builtin/custom keymaps (never NULL). */
 	wmKeyMap *keymap;
@@ -73,7 +73,7 @@ typedef struct wmEventHandler_Keymap {
 
 /** #WM_HANDLER_TYPE_GIZMO */
 typedef struct wmEventHandler_Gizmo {
-	wmEventHandler base;
+	wmEventHandler head;
 
 	/** Gizmo handler (never NULL). */
 	struct wmGizmoMap *gizmo_map;
@@ -81,7 +81,7 @@ typedef struct wmEventHandler_Gizmo {
 
 /** #WM_HANDLER_TYPE_UI */
 typedef struct wmEventHandler_UI {
-	wmEventHandler base;
+	wmEventHandler head;
 
 	wmUIHandlerFunc handle_fn;          /* callback receiving events */
 	wmUIHandlerRemoveFunc remove_fn;    /* callback when handler is removed */
@@ -97,7 +97,7 @@ typedef struct wmEventHandler_UI {
 
 /** #WM_HANDLER_TYPE_OP */
 typedef struct wmEventHandler_Op {
-	wmEventHandler base;
+	wmEventHandler head;
 
 	/** Operator can be NULL. */
 	wmOperator *op;
@@ -115,7 +115,7 @@ typedef struct wmEventHandler_Op {
 
 /** #WM_HANDLER_TYPE_DROPBOX */
 typedef struct wmEventHandler_Dropbox {
-	wmEventHandler base;
+	wmEventHandler head;
 
 	/** Never NULL. */
 	ListBase *dropboxes;

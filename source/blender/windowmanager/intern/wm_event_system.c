@@ -554,7 +554,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler_UI *handler, const wmE
 
 	/* UI code doesn't handle return values - it just always returns break.
 	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
-	if (((handler->base.flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
+	if (((handler->head.flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
 	    !ISMOUSE_BUTTON(event->type) &&
 	    (event->val == KM_DBL_CLICK))
 	{
@@ -2051,7 +2051,7 @@ static int wm_handler_operator_call(
 					WM_cursor_grab_disable(CTX_wm_window(C), NULL);
 
 					BLI_remlink(handlers, handler);
-					wm_event_free_handler(&handler->base);
+					wm_event_free_handler(&handler->head);
 
 					/* prevent silly errors from operator users */
 					//retval &= ~OPERATOR_PASS_THROUGH;
@@ -2280,7 +2280,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 
 			CTX_wm_area_set(C, NULL);
 
-			wm_event_free_handler(&handler->base);
+			wm_event_free_handler(&handler->head);
 
 			action = WM_HANDLER_BREAK;
 			break;
@@ -2909,7 +2909,7 @@ static void wm_event_temp_tool_handler_apply(
 			/* We shouldn't use keymaps from unrelated spaces. */
 			if (km != NULL) {
 				// printf("Keymap: '%s' -> '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
-				sneaky_handler->base.type = WM_HANDLER_TYPE_KEYMAP;
+				sneaky_handler->head.type = WM_HANDLER_TYPE_KEYMAP;
 				sneaky_handler->keymap = km;
 				sneaky_handler->keymap_tool = sa->runtime.tool;
 
@@ -3273,7 +3273,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	}
 
 	wmEventHandler_Op *handler = MEM_callocN(sizeof(*handler), __func__);
-	handler->base.type = WM_HANDLER_TYPE_OP;
+	handler->head.type = WM_HANDLER_TYPE_OP;
 
 	handler->is_fileselect = true;
 	handler->op = op;
@@ -3302,7 +3302,7 @@ static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
 	wmEventHandler_Op *handler = MEM_callocN(sizeof(*handler), __func__);
-	handler->base.type = WM_HANDLER_TYPE_OP;
+	handler->head.type = WM_HANDLER_TYPE_OP;
 	wmWindow *win = CTX_wm_window(C);
 
 	/* operator was part of macro */
@@ -3381,7 +3381,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
 	}
 
 	wmEventHandler_Keymap *handler = MEM_callocN(sizeof(*handler), __func__);
-	handler->base.type = WM_HANDLER_TYPE_KEYMAP;
+	handler->head.type = WM_HANDLER_TYPE_KEYMAP;
 	BLI_addtail(handlers, handler);
 	handler->keymap = keymap;
 
@@ -3394,7 +3394,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers, 
 	WM_event_remove_keymap_handler(handlers, keymap);
 
 	wmEventHandler_Keymap *handler = MEM_callocN(sizeof(*handler), "event keymap handler");
-	handler->base.type = WM_HANDLER_TYPE_KEYMAP;
+	handler->head.type = WM_HANDLER_TYPE_KEYMAP;
 
 	BLI_addhead(handlers, handler);
 	handler->keymap = keymap;
@@ -3407,8 +3407,8 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyM
 	wmEventHandler_Keymap *handler = WM_event_add_keymap_handler(handlers, keymap);
 
 	if (handler) {
-		handler->base.bblocal = bblocal;
-		handler->base.bbwin = bbwin;
+		handler->head.bblocal = bblocal;
+		handler->head.bbwin = bbwin;
 	}
 	return handler;
 }
@@ -3420,7 +3420,7 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
 			if (handler->keymap == keymap) {
 				BLI_remlink(handlers, handler);
-				wm_event_free_handler(&handler->base);
+				wm_event_free_handler(&handler->head);
 				break;
 			}
 		}
@@ -3442,7 +3442,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(
         void *user_data, const char flag)
 {
 	wmEventHandler_UI *handler = MEM_callocN(sizeof(*handler), __func__);
-	handler->base.type = WM_HANDLER_TYPE_UI;
+	handler->head.type = WM_HANDLER_TYPE_UI;
 	handler->handle_fn = handle_fn;
 	handler->remove_fn = remove_fn;
 	handler->user_data = user_data;
@@ -3458,7 +3458,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(
 	}
 
 	BLI_assert((flag & WM_HANDLER_DO_FREE) == 0);
-	handler->base.flag = flag;
+	handler->head.flag = flag;
 
 	BLI_addhead(handlers, handler);
 
@@ -3480,11 +3480,11 @@ void WM_event_remove_ui_handler(
 			{
 				/* handlers will be freed in wm_handlers_do() */
 				if (postpone) {
-					handler->base.flag |= WM_HANDLER_DO_FREE;
+					handler->head.flag |= WM_HANDLER_DO_FREE;
 				}
 				else {
 					BLI_remlink(handlers, handler);
-					wm_event_free_handler(&handler->base);
+					wm_event_free_handler(&handler->head);
 				}
 				break;
 			}
@@ -3504,7 +3504,7 @@ void WM_event_free_ui_handler_all(
 			{
 				remove_fn(C, handler->user_data);
 				BLI_remlink(handlers, handler);
-				wm_event_free_handler(&handler->base);
+				wm_event_free_handler(&handler->head);
 			}
 		}
 	}
@@ -3523,7 +3523,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
 	}
 
 	wmEventHandler_Dropbox *handler = MEM_callocN(sizeof(*handler), __func__);
-	handler->base.type = WM_HANDLER_TYPE_DROPBOX;
+	handler->head.type = WM_HANDLER_TYPE_DROPBOX;
 
 	/* dropbox stored static, no free or copy */
 	handler->dropboxes = dropboxes;
