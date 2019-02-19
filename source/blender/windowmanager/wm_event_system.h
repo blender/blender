@@ -42,8 +42,7 @@ struct wmEventHandler_KeymapFn {
 
 /** Custom types for handlers, for signaling, freeing */
 enum eWM_EventHandlerType {
-	WM_HANDLER_TYPE_DEFAULT,
-	WM_HANDLER_TYPE_GIZMO,
+	WM_HANDLER_TYPE_GIZMO = 1,
 	WM_HANDLER_TYPE_UI,
 	WM_HANDLER_TYPE_OP,
 	WM_HANDLER_TYPE_DROPBOX,

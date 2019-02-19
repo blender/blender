@@ -1745,6 +1745,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 
 	/* C is zero on freeing database, modal handlers then already were freed */
 	while ((handler_base = BLI_pophead(handlers))) {
+		BLI_assert(handler_base->type != 0);
 		if (handler_base->type == WM_HANDLER_TYPE_OP) {
 			wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 			if (handler->op) {
