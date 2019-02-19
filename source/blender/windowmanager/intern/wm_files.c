@@ -1393,21 +1393,22 @@ void WM_autosave_init(wmWindowManager *wm)
 
 void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
-	wmWindow *win;
-	wmEventHandler *handler;
 	char filepath[FILE_MAX];
 
 	WM_event_remove_timer(wm, NULL, wm->autosavetimer);
 
 	/* if a modal operator is running, don't autosave, but try again in 10 seconds */
-	for (win = wm->windows.first; win; win = win->next) {
-		for (handler = win->modalhandlers.first; handler; handler = handler->next) {
-			if (handler->op) {
-				wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 10.0);
-				if (G.debug) {
-					printf("Skipping auto-save, modal operator running, retrying in ten seconds...\n");
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		for (wmEventHandler *handler_base = win->modalhandlers.first; handler_base; handler_base = handler_base->next) {
+			if (handler_base->type == WM_HANDLER_TYPE_OP) {
+				wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+				if (handler->op) {
+					wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 10.0);
+					if (G.debug) {
+						printf("Skipping auto-save, modal operator running, retrying in ten seconds...\n");
+					}
+					return;
 				}
-				return;
 			}
 		}
 	}

@@ -197,17 +197,17 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 	wmWindow *win;
 	for (win = wm->windows.first; win; win = win->next) {
 		ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
-		wmEventHandler *handler;
-		int i;
-
-		for (i = 0; i < 2; i++) {
-			for (handler = lb[i]->first; handler; handler = handler->next) {
-				if (handler->op && handler->op->type == ot) {
-					/* don't run op->cancel because it needs the context,
-					 * assume whoever unregisters the operator will cleanup */
-					handler->flag |= WM_HANDLER_DO_FREE;
-					WM_operator_free(handler->op);
-					handler->op = NULL;
+		for (int i = 0; i < ARRAY_SIZE(lb); i++) {
+			for (wmEventHandler *handler_base = lb[i]->first; handler_base; handler_base = handler_base->next) {
+				if (handler_base->type == WM_HANDLER_TYPE_OP) {
+					wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+					if (handler->op && handler->op->type == ot) {
+						/* don't run op->cancel because it needs the context,
+						 * assume whoever unregisters the operator will cleanup */
+						handler->base.flag |= WM_HANDLER_DO_FREE;
+						WM_operator_free(handler->op);
+						handler->op = NULL;
+					}
 				}
 			}
 		}

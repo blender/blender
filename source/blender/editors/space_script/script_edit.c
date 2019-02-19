@@ -26,6 +26,7 @@
 #include <stdio.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -88,13 +89,14 @@ static bool script_test_modal_operators(bContext *C)
 	wm = CTX_wm_manager(C);
 
 	for (win = wm->windows.first; win; win = win->next) {
-		wmEventHandler *handler;
-
-		for (handler = win->modalhandlers.first; handler; handler = handler->next) {
-			if (handler->op) {
-				wmOperatorType *ot = handler->op->type;
-				if (ot->ext.srna) {
-					return true;
+		LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
+			if (handler_base->type == WM_HANDLER_TYPE_OP) {
+				wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+				if (handler->op != NULL) {
+					wmOperatorType *ot = handler->op->type;
+					if (ot->ext.srna) {
+						return true;
+					}
 				}
 			}
 		}

@@ -45,6 +45,7 @@ enum eWM_EventHandlerType {
 	WM_HANDLER_TYPE_DEFAULT,
 	WM_HANDLER_TYPE_GIZMO,
 	WM_HANDLER_TYPE_UI,
+	WM_HANDLER_TYPE_OP,
 };
 
 typedef struct wmEventHandler {
@@ -60,13 +61,6 @@ typedef struct wmEventHandler {
 	struct wmEventHandler_KeymapFn keymap_callback;
 
 	struct bToolRef *keymap_tool;
-
-	/* modal operator handler */
-	bool op_is_fileselect;
-	wmOperator *op;                     /* for derived/modal handlers */
-	struct ScrArea *op_area;            /* for derived/modal handlers */
-	struct ARegion *op_region;          /* for derived/modal handlers */
-	short           op_region_type;     /* for derived/modal handlers */
 
 
 	/* drop box handler */
@@ -96,6 +90,25 @@ typedef struct wmEventHandler_UI {
 		struct ARegion *menu;
 	} context;
 } wmEventHandler_UI;
+
+/** #WM_HANDLER_TYPE_OP */
+typedef struct wmEventHandler_Op {
+	wmEventHandler base;
+
+	/** Operator can be NULL. */
+	wmOperator *op;
+
+	/** Hack, special case for file-select. */
+	bool is_fileselect;
+
+	/** Store context for this handler for derived/modal handlers. */
+	struct {
+		struct ScrArea *area;
+		struct ARegion *region;
+		short           region_type;
+	} context;
+} wmEventHandler_Op;
+
 
 /* wm_event_system.c */
 void        wm_event_free_all       (wmWindow *win);
