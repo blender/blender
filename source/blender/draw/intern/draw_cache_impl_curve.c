@@ -741,10 +741,14 @@ static void curve_create_edit_data_and_handles(
 		const BPoint *bp = nu->bp;
 		if (bezt) {
 			for (int a = 0; a < nu->pntsu; a++, bezt++) {
-				if (elbp_verts && bezt->hide == false) {
+				if (bezt->hide == true) {
+					continue;
+				}
+
+				if (elbp_verts) {
 					GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 1);
 				}
-				if (elbp_lines && bezt->hide == false) {
+				if (elbp_lines) {
 					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 0);
 					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 2);
 				}
@@ -770,14 +774,17 @@ static void curve_create_edit_data_and_handles(
 		else if (bp) {
 			int pt_len = nu->pntsu * nu->pntsv;
 			for (int a = 0; a < pt_len; a++, bp++) {
+				if (bp->hide == true) {
+					continue;
+				}
 				int u = (a % nu->pntsu);
 				int v = (a / nu->pntsu);
 				/* Use indexed rendering for bezier.
 				 * Specify all points and use indices to hide/show. */
-				if (elbp_verts && bp->hide == false) {
+				if (elbp_verts) {
 					GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used);
 				}
-				if (elbp_lines && bp->hide == false) {
+				if (elbp_lines) {
 					const BPoint *bp_next_u = (u < (nu->pntsu - 1)) ? &nu->bp[a + 1] : NULL;
 					const BPoint *bp_next_v = (v < (nu->pntsv - 1)) ? &nu->bp[a + nu->pntsu] : NULL;
 					if (bp_next_u && (bp_next_u->hide == false)) {
