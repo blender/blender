@@ -341,10 +341,11 @@ bool system_call_self(const vector<string>& args)
 		cmd += " \"" + args[i] + "\"";
 	}
 
-	/* Quiet output. */
 #ifdef _WIN32
-	cmd += " > nul";
+	/* Use cmd /S to avoid issues with spaces in arguments. */
+	cmd = "cmd /S /C \"" + cmd + " > nul \"";
 #else
+	/* Quiet output. */
 	cmd += " > /dev/null";
 #endif
 
