@@ -195,50 +195,7 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 	if (ELEM(NULL, fcu, fcu->rna_path, owner_id))
 		return;
 
-	if (GS(owner_id->name) == ID_OB) {
-		Object *ob = (Object *)owner_id;
-
-		/* only affect if F-Curve involves pose.bones */
-		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
-			bArmature *arm = (bArmature *)ob->data;
-			bPoseChannel *pchan;
-			char *bone_name;
-
-			/* get bone-name, and check if this bone is selected */
-			bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-			if (bone_name) MEM_freeN(bone_name);
-
-			/* F-Curve selection depends on whether the bone is selected */
-			if ((pchan) && (pchan->bone)) {
-				/* F-Curve selection */
-				if (pchan->bone->flag & BONE_SELECTED)
-					fcu->flag |= FCURVE_SELECTED;
-				else
-					fcu->flag &= ~FCURVE_SELECTED;
-
-				/* Active F-Curve - it should be the first one for this bone on the
-				 * active object to be considered as active
-				 */
-				if ((ob == ac->obact) && (pchan->bone == arm->act_bone)) {
-					/* if no previous F-Curve has active flag, then we're the first and only one to get it */
-					if (*active_fcurve == NULL) {
-						fcu->flag |= FCURVE_ACTIVE;
-						*active_fcurve = fcu;
-					}
-					else {
-						/* someone else has already taken it - set as not active */
-						fcu->flag &= ~FCURVE_ACTIVE;
-					}
-				}
-				else {
-					/* this can't possibly be active now */
-					fcu->flag &= ~FCURVE_ACTIVE;
-				}
-			}
-		}
-	}
-	else if (GS(owner_id->name) == ID_SCE) {
+	if (GS(owner_id->name) == ID_SCE) {
 		Scene *scene = (Scene *)owner_id;
 
 		/* only affect if F-Curve involves sequence_editor.sequences */
