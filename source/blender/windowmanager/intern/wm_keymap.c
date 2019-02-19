@@ -1226,20 +1226,22 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
         wmKeyMap **r_keymap)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	wmEventHandler *handler;
 	wmKeyMap *keymap;
 
 	/* find keymap item in handlers */
-	for (handler = handlers->first; handler; handler = handler->next) {
-		keymap = WM_keymap_active(wm, handler->keymap);
-		if (keymap && WM_keymap_poll((bContext *)C, keymap)) {
-			wmKeyMapItem *kmi = wm_keymap_item_find_in_keymap(
-			        keymap, opname, properties, is_strict, params);
-			if (kmi != NULL) {
-				if (r_keymap) {
-					*r_keymap = keymap;
+	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+		if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
+			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
+			keymap = WM_keymap_active(wm, handler->keymap);
+			if (keymap && WM_keymap_poll((bContext *)C, keymap)) {
+				wmKeyMapItem *kmi = wm_keymap_item_find_in_keymap(
+				        keymap, opname, properties, is_strict, params);
+				if (kmi != NULL) {
+					if (r_keymap) {
+						*r_keymap = keymap;
+					}
+					return kmi;
 				}
-				return kmi;
 			}
 		}
 	}

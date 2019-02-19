@@ -2071,11 +2071,15 @@ static int wm_handler_operator_call(
 		if (ot && wm_operator_check_locked_interface(C, ot)) {
 			bool use_last_properties = true;
 			PointerRNA tool_properties = {{0}};
-			const bool is_tool = (handler_base->keymap_tool != NULL);
+
+			bToolRef *keymap_tool = (
+			        (handler_base->type == WM_HANDLER_TYPE_KEYMAP) ?
+			        ((wmEventHandler_Keymap *)handler_base)->keymap_tool : NULL);
+			const bool is_tool = (keymap_tool != NULL);
 			const bool use_tool_properties = is_tool;
 
 			if (use_tool_properties) {
-				WM_toolsystem_ref_properties_init_for_keymap(handler_base->keymap_tool, &tool_properties, properties, ot);
+				WM_toolsystem_ref_properties_init_for_keymap(keymap_tool, &tool_properties, properties, ot);
 				properties = &tool_properties;
 				use_last_properties = false;
 			}
@@ -2089,7 +2093,7 @@ static int wm_handler_operator_call(
 			/* Link gizmo if 'WM_GIZMOGROUPTYPE_TOOL_INIT' is set. */
 			if (retval & OPERATOR_FINISHED) {
 				if (is_tool) {
-					bToolRef_Runtime *tref_rt = handler_base->keymap_tool->runtime;
+					bToolRef_Runtime *tref_rt = keymap_tool->runtime;
 					if (tref_rt->gizmo_group[0]) {
 						const char *idname = tref_rt->gizmo_group;
 						wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
@@ -2372,8 +2376,9 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 			if (handler->flag & WM_HANDLER_BLOCKING)
 				action |= WM_HANDLER_BREAK;
 
-			if (handler->keymap) {
-				wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
+			if (handler->type == WM_HANDLER_TYPE_KEYMAP) {
+				wmEventHandler_Keymap *handler_km = (wmEventHandler_Keymap *)handler;
+				wmKeyMap *keymap = WM_keymap_active(wm, handler_km->keymap);
 				wmKeyMapItem *kmi;
 
 				PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
@@ -2384,7 +2389,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 					for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if (wm_eventmatch(event, kmi)) {
-							struct wmEventHandler_KeymapFn keymap_callback = handler->keymap_callback;
+							struct wmEventHandler_KeymapFn keymap_callback = handler_km->keymap_callback;
 
 							PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
@@ -2553,7 +2558,6 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							PRINT("pass\n");
 							for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 								if (wm_eventmatch(event, kmi)) {
-									struct wmEventHandler_KeymapFn keymap_callback = handler->keymap_callback;
 									PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
 									/* weak, but allows interactive callback to not use rawkey */
@@ -2567,10 +2571,6 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									CTX_wm_gizmo_group_set(C, NULL);
 
 									if (action & WM_HANDLER_BREAK) {
-										if (keymap_callback.handle_post_fn != NULL) {
-											keymap_callback.handle_post_fn(keymap, kmi, keymap_callback.user_data);
-										}
-
 										if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
 											printf("%s:       handled - and pass on! '%s'\n",
 											       __func__, kmi->idname);
@@ -2902,7 +2902,7 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 
 #ifdef USE_WORKSPACE_TOOL
 static void wm_event_temp_tool_handler_apply(
-        bContext *C, ScrArea *sa, ARegion *ar, wmEventHandler *sneaky_handler)
+        bContext *C, ScrArea *sa, ARegion *ar, wmEventHandler_Keymap *sneaky_handler)
 {
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
 		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
@@ -2912,6 +2912,7 @@ static void wm_event_temp_tool_handler_apply(
 			/* We shouldn't use keymaps from unrelated spaces. */
 			if (km != NULL) {
 				// printf("Keymap: '%s' -> '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
+				sneaky_handler->base.type = WM_HANDLER_TYPE_KEYMAP;
 				sneaky_handler->keymap = km;
 				sneaky_handler->keymap_tool = sa->runtime.tool;
 
@@ -2931,7 +2932,7 @@ static void wm_event_temp_tool_handler_apply(
 }
 
 static void wm_event_temp_tool_handler_clear(
-        bContext *UNUSED(C), ScrArea *UNUSED(sa), ARegion *ar, wmEventHandler *sneaky_handler)
+        bContext *UNUSED(C), ScrArea *UNUSED(sa), ARegion *ar, wmEventHandler_Keymap *sneaky_handler)
 {
 	if (sneaky_handler->keymap) {
 		BLI_remlink(&ar->handlers, sneaky_handler);
@@ -3122,7 +3123,7 @@ void wm_event_do_handlers(bContext *C)
 									 * We might need to add a more dynamic handler type that uses a callback
 									 * to fetch its current keymap.
 									 */
-									wmEventHandler sneaky_handler = {NULL};
+									wmEventHandler_Keymap sneaky_handler = {NULL};
 									wm_event_temp_tool_handler_apply(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
@@ -3369,21 +3370,25 @@ void WM_event_modal_handler_region_replace(wmWindow *win, const ARegion *old_reg
 	}
 }
 
-wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
+wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 {
-	wmEventHandler *handler;
-
 	if (!keymap) {
 		CLOG_WARN(WM_LOG_HANDLERS, "called with NULL keymap");
 		return NULL;
 	}
 
 	/* only allow same keymap once */
-	for (handler = handlers->first; handler; handler = handler->next)
-		if (handler->keymap == keymap)
-			return handler;
+	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+		if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
+			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
+			if (handler->keymap == keymap) {
+				return handler;
+			}
+		}
+	}
 
-	handler = MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
+	wmEventHandler_Keymap *handler = MEM_callocN(sizeof(*handler), __func__);
+	handler->base.type = WM_HANDLER_TYPE_KEYMAP;
 	BLI_addtail(handlers, handler);
 	handler->keymap = keymap;
 
@@ -3391,45 +3396,46 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap
 }
 
 /* priorities not implemented yet, for time being just insert in begin of list */
-wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int UNUSED(priority))
+wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int UNUSED(priority))
 {
-	wmEventHandler *handler;
-
 	WM_event_remove_keymap_handler(handlers, keymap);
 
-	handler = MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
+	wmEventHandler_Keymap *handler = MEM_callocN(sizeof(*handler), "event keymap handler");
+	handler->base.type = WM_HANDLER_TYPE_KEYMAP;
+
 	BLI_addhead(handlers, handler);
 	handler->keymap = keymap;
 
 	return handler;
 }
 
-wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyMap *keymap, const rcti *bblocal, const rcti *bbwin)
+wmEventHandler_Keymap *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyMap *keymap, const rcti *bblocal, const rcti *bbwin)
 {
-	wmEventHandler *handler = WM_event_add_keymap_handler(handlers, keymap);
+	wmEventHandler_Keymap *handler = WM_event_add_keymap_handler(handlers, keymap);
 
 	if (handler) {
-		handler->bblocal = bblocal;
-		handler->bbwin = bbwin;
+		handler->base.bblocal = bblocal;
+		handler->base.bbwin = bbwin;
 	}
 	return handler;
 }
 
 void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 {
-	wmEventHandler *handler;
-
-	for (handler = handlers->first; handler; handler = handler->next) {
-		if (handler->keymap == keymap) {
-			BLI_remlink(handlers, handler);
-			wm_event_free_handler(handler);
-			break;
+	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+		if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
+			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
+			if (handler->keymap == keymap) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(&handler->base);
+				break;
+			}
 		}
 	}
 }
 
 void WM_event_set_keymap_handler_callback(
-        wmEventHandler *handler,
+        wmEventHandler_Keymap *handler,
         void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
         void *user_data)
 {
@@ -4482,13 +4488,14 @@ static wmKeyMapItem *wm_kmi_from_event(
         bContext *C, wmWindowManager *wm,
         ListBase *handlers, const wmEvent *event)
 {
-	for (wmEventHandler *handler = handlers->first; handler; handler = handler->next) {
+	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
 		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
-		if (handler->flag & WM_HANDLER_DO_FREE) {
+		if (handler_base->flag & WM_HANDLER_DO_FREE) {
 			/* pass */
 		}
-		else if (handler_boundbox_test(handler, event)) { /* optional boundbox */
-			if (handler->keymap) {
+		else if (handler_boundbox_test(handler_base, event)) { /* optional boundbox */
+			if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
+				wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
 				wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
 				if (WM_keymap_poll(C, keymap)) {
 					for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
@@ -4694,7 +4701,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 	CTX_wm_region_set(C, ar);
 
 #ifdef USE_WORKSPACE_TOOL
-	wmEventHandler sneaky_handler = {NULL};
+	wmEventHandler_Keymap sneaky_handler = {NULL};
 	wm_event_temp_tool_handler_apply(C, sa, ar, &sneaky_handler);
 #endif
 

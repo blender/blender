@@ -76,7 +76,7 @@ struct uiPopover {
 	/* Needed for keymap removal. */
 	wmWindow *window;
 	wmKeyMap *keymap;
-	struct wmEventHandler *keymap_handler;
+	struct wmEventHandler_Keymap *keymap_handler;
 
 	uiMenuCreateFunc menu_func;
 	void *menu_arg;
