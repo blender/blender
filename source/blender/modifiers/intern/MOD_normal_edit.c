@@ -61,6 +61,9 @@ static void generate_vert_coordinates(
 	/* Get size (i.e. deformation of the spheroid generating normals), either from target object, or own geometry. */
 	if (r_size != NULL) {
 		if (ob_center != NULL) {
+			/* Using 'scale' as 'size' here. The input object is typically an empty
+			 * who's scale is used to define an ellipsoid instead of a simple sphere. */
+
 			/* Not we are not interested in signs here - they are even troublesome actually, due to security clamping! */
 			abs_v3_v3(r_size, ob_center->scale);
 		}
