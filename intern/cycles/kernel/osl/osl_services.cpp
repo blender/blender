@@ -561,7 +561,7 @@ static bool set_attribute_matrix(const Transform& tfm, TypeDesc type, void *val)
 	return false;
 }
 
-static bool get_mesh_element_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
+static bool get_primitive_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
                                const TypeDesc& type, bool derivatives, void *val)
 {
 	if(attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
@@ -849,7 +849,7 @@ bool OSLRenderServices::get_attribute(ShaderData *sd, bool derivatives, ustring 
 
 		if(attr.desc.element != ATTR_ELEMENT_OBJECT) {
 			/* triangle and vertex attributes */
-			if(get_mesh_element_attribute(kg, sd, attr, type, derivatives, val))
+			if(get_primitive_attribute(kg, sd, attr, type, derivatives, val))
 				return true;
 			else
 				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);

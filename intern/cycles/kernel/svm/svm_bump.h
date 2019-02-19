@@ -30,7 +30,7 @@ ccl_device void svm_node_enter_bump_eval(KernelGlobals *kg, ShaderData *sd, floa
 
 	if(desc.offset != ATTR_STD_NOT_FOUND) {
 		float3 P, dPdx, dPdy;
-		P = primitive_attribute_float3(kg, sd, desc, &dPdx, &dPdy);
+		P = primitive_surface_attribute_float3(kg, sd, desc, &dPdx, &dPdy);
 
 		object_position_transform(kg, sd, &P);
 		object_dir_transform(kg, sd, &dPdx);
