@@ -40,9 +40,16 @@ struct wmEventHandler_KeymapFn {
 	void  *user_data;
 };
 
+/** Custom types for handlers, for signaling, freeing */
+enum eWM_EventHandlerType {
+	WM_HANDLER_TYPE_DEFAULT,
+	WM_HANDLER_TYPE_GIZMO,
+};
+
 typedef struct wmEventHandler {
 	struct wmEventHandler *next, *prev;
 
+	enum eWM_EventHandlerType type;
 	char flag;                          /* WM_HANDLER_BLOCKING, ... */
 
 	/* keymap handler */
@@ -70,14 +77,15 @@ typedef struct wmEventHandler {
 
 	/* drop box handler */
 	ListBase *dropboxes;
-	/* gizmo handler */
-	struct wmGizmoMap *gizmo_map;
 } wmEventHandler;
 
-/* custom types for handlers, for signaling, freeing */
-enum {
-	WM_HANDLER_DEFAULT,
-};
+/** #WM_HANDLER_TYPE_GIZMO */
+typedef struct wmEventHandler_Gizmo {
+	wmEventHandler base;
+
+	/** Gizmo handler (never NULL). */
+	struct wmGizmoMap *gizmo_map;
+} wmEventHandler_Gizmo;
 
 /* wm_event_system.c */
 void        wm_event_free_all       (wmWindow *win);

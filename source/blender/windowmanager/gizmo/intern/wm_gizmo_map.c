@@ -673,16 +673,17 @@ wmGizmo *wm_gizmomap_highlight_find(
 
 void WM_gizmomap_add_handlers(ARegion *ar, wmGizmoMap *gzmap)
 {
-	wmEventHandler *handler;
-
-	for (handler = ar->handlers.first; handler; handler = handler->next) {
-		if (handler->gizmo_map == gzmap) {
-			return;
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, &ar->handlers) {
+		if (handler_base->type == WM_HANDLER_TYPE_GIZMO) {
+			wmEventHandler_Gizmo *handler = (wmEventHandler_Gizmo *)handler_base;
+			if (handler->gizmo_map == gzmap) {
+				return;
+			}
 		}
 	}
 
-	handler = MEM_callocN(sizeof(wmEventHandler), "gizmo handler");
-
+	wmEventHandler_Gizmo *handler = MEM_callocN(sizeof(*handler), __func__);
+	handler->base.type = WM_HANDLER_TYPE_GIZMO;
 	BLI_assert(gzmap == ar->gizmo_map);
 	handler->gizmo_map = gzmap;
 	BLI_addtail(&ar->handlers, handler);
@@ -846,8 +847,9 @@ void wm_gizmomap_handler_context(bContext *C, wmEventHandler *handler)
 			if (sa == NULL) {
 				/* when changing screen layouts with running modal handlers (like render display), this
 				 * is not an error to print */
-				if (handler->gizmo_map == NULL)
+				if (handler->type != WM_HANDLER_TYPE_GIZMO) {
 					printf("internal error: modal gizmo-map handler has invalid area\n");
+				}
 			}
 			else {
 				ARegion *ar;

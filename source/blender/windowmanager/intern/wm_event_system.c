@@ -2443,14 +2443,16 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					}
 				}
 			}
-			else if (handler->gizmo_map) {
+			else if (handler->type == WM_HANDLER_TYPE_GIZMO) {
+				wmEventHandler_Gizmo *handler_gz = (wmEventHandler_Gizmo *)handler;
 				ScrArea *area = CTX_wm_area(C);
 				ARegion *region = CTX_wm_region(C);
-				wmGizmoMap *gzmap = handler->gizmo_map;
+				wmGizmoMap *gzmap = handler_gz->gizmo_map;
+				BLI_assert(gzmap != NULL);
 				wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
 
-				if (region->gizmo_map != handler->gizmo_map) {
-					WM_gizmomap_tag_refresh(handler->gizmo_map);
+				if (region->gizmo_map != handler_gz->gizmo_map) {
+					WM_gizmomap_tag_refresh(handler_gz->gizmo_map);
 				}
 
 				wm_gizmomap_handler_context(C, handler);
@@ -2889,7 +2891,7 @@ static void wm_event_temp_tool_handler_apply(
 
 				/* Handle widgets first. */
 				wmEventHandler *handler_last = ar->handlers.last;
-				while (handler_last && handler_last->gizmo_map == NULL) {
+				while (handler_last && handler_last->type != WM_HANDLER_TYPE_GIZMO) {
 					handler_last = handler_last->prev;
 				}
 				/* Head of list or after last gizmo. */
