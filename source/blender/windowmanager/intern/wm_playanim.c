@@ -1256,8 +1256,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 		GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
 
 		playanim_window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y);
-
-		playanim_gl_matrix();
 	}
 
 	GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &maxwinx, &maxwiny);
@@ -1286,6 +1284,12 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	glClearColor(0.1, 0.1, 0.1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	int win_x, win_y;
+	playanim_window_get_size(&win_x, &win_y);
+	glViewport(0, 0, win_x, win_y);
+	glScissor(0, 0, win_x, win_y);
+	playanim_gl_matrix();
 
 	GHOST_SwapWindowBuffers(g_WS.ghost_window);
 
