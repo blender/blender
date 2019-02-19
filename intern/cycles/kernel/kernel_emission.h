@@ -29,43 +29,36 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	/* setup shading at emitter */
 	float3 eval;
 
-	int shader_flag = kernel_tex_fetch(__shaders, (ls->shader & SHADER_MASK)).flags;
-
-#ifdef __BACKGROUND_MIS__
-	if(ls->type == LIGHT_BACKGROUND) {
-		Ray ray;
-		ray.D = ls->D;
-		ray.P = ls->P;
-		ray.t = 1.0f;
-		ray.time = time;
-		ray.dP = differential3_zero();
-		ray.dD = dI;
-
-		shader_setup_from_background(kg, emission_sd, &ray);
-
-		path_state_modify_bounce(state, true);
-		eval = shader_eval_background(kg, emission_sd, state, 0);
-		path_state_modify_bounce(state, false);
-	}
-	else
-#endif
-	if(shader_flag & SD_HAS_CONSTANT_EMISSION)
-	{
-		eval.x = kernel_tex_fetch(__shaders, (ls->shader & SHADER_MASK)).constant_emission[0];
-		eval.y = kernel_tex_fetch(__shaders, (ls->shader & SHADER_MASK)).constant_emission[1];
-		eval.z = kernel_tex_fetch(__shaders, (ls->shader & SHADER_MASK)).constant_emission[2];
+	if(shader_constant_emission_eval(kg, ls->shader, &eval)) {
 		if((ls->prim != PRIM_NONE) && dot(ls->Ng, I) < 0.0f) {
 			ls->Ng = -ls->Ng;
 		}
 	}
-	else
-	{
-		shader_setup_from_sample(kg, emission_sd,
-		                         ls->P, ls->Ng, I,
-		                         ls->shader, ls->object, ls->prim,
-		                         ls->u, ls->v, t, time, false, ls->lamp);
+	else {
+		/* Setup shader data and call shader_eval_surface once, better
+		 * for GPU coherence and compile times. */
+#ifdef __BACKGROUND_MIS__
+		if(ls->type == LIGHT_BACKGROUND) {
+			Ray ray;
+			ray.D = ls->D;
+			ray.P = ls->P;
+			ray.t = 1.0f;
+			ray.time = time;
+			ray.dP = differential3_zero();
+			ray.dD = dI;
 
-		ls->Ng = emission_sd->Ng;
+			shader_setup_from_background(kg, emission_sd, &ray);
+		}
+		else
+#endif
+		{
+			shader_setup_from_sample(kg, emission_sd,
+			                         ls->P, ls->Ng, I,
+			                         ls->shader, ls->object, ls->prim,
+			                         ls->u, ls->v, t, time, false, ls->lamp);
+
+			ls->Ng = emission_sd->Ng;
+		}
 
 		/* No proper path flag, we're evaluating this for all closures. that's
 		 * weak but we'd have to do multiple evaluations otherwise. */
@@ -73,8 +66,16 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 		shader_eval_surface(kg, emission_sd, state, PATH_RAY_EMISSION);
 		path_state_modify_bounce(state, false);
 
-		/* Evaluate emissive closure. */
-		eval = shader_emissive_eval(kg, emission_sd);
+		/* Evaluate closures. */
+#ifdef __BACKGROUND_MIS__
+		if (ls->type == LIGHT_BACKGROUND) {
+			eval = shader_background_eval(emission_sd);
+		}
+		else
+#endif
+		{
+			eval = shader_emissive_eval(emission_sd);
+		}
 	}
 
 	eval *= ls->eval_fac;
@@ -201,7 +202,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
 ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, ShaderData *sd, float t, int path_flag, float bsdf_pdf)
 {
 	/* evaluate emissive closure */
-	float3 L = shader_emissive_eval(kg, sd);
+	float3 L = shader_emissive_eval(sd);
 
 #ifdef __HAIR__
 	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) && (sd->type & PRIMITIVE_ALL_TRIANGLE))
@@ -294,7 +295,7 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg,
 #ifdef __BACKGROUND__
 	int shader = kernel_data.background.surface_shader;
 
-	/* use visibility flag to skip lights */
+	/* Use visibility flag to skip lights. */
 	if(shader & SHADER_EXCLUDE_ANY) {
 		if(((shader & SHADER_EXCLUDE_DIFFUSE) && (state->flag & PATH_RAY_DIFFUSE)) ||
 		   ((shader & SHADER_EXCLUDE_GLOSSY) &&
@@ -305,20 +306,27 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg,
 			return make_float3(0.0f, 0.0f, 0.0f);
 	}
 
-	/* evaluate background closure */
+
+	/* Evaluate background shader. */
+	float3 L;
+	if(!shader_constant_emission_eval(kg, shader, &L)) {
 #  ifdef __SPLIT_KERNEL__
-	Ray priv_ray = *ray;
-	shader_setup_from_background(kg, emission_sd, &priv_ray);
+		Ray priv_ray = *ray;
+		shader_setup_from_background(kg, emission_sd, &priv_ray);
 #  else
-	shader_setup_from_background(kg, emission_sd, ray);
+		shader_setup_from_background(kg, emission_sd, ray);
 #  endif
 
-	path_state_modify_bounce(state, true);
-	float3 L = shader_eval_background(kg, emission_sd, state, state->flag);
-	path_state_modify_bounce(state, false);
+		path_state_modify_bounce(state, true);
+		shader_eval_surface(kg, emission_sd, state, PATH_RAY_EMISSION);
+		path_state_modify_bounce(state, false);
 
+		L = shader_background_eval(emission_sd);
+	}
+
+	/* Background MIS weights. */
 #ifdef __BACKGROUND_MIS__
-	/* check if background light exists or if we should skip pdf */
+	/* Check if background light exists or if we should skip pdf. */
 	int res_x = kernel_data.integrator.pdf_background_res_x;
 
 	if(!(state->flag & PATH_RAY_MIS_SKIP) && res_x) {
