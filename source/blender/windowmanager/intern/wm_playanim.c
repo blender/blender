@@ -1540,6 +1540,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	GPU_shader_free_builtin_shaders();
 
+	immDeactivate();
+
 	if (g_WS.gpu_context) {
 		GPU_context_active_set(g_WS.gpu_context);
 		GPU_context_discard(g_WS.gpu_context);
@@ -1548,7 +1550,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	BLF_exit();
 
-	immDeactivate();
 	GPU_exit();
 
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
