@@ -1399,7 +1399,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 
 	/* if a modal operator is running, don't autosave, but try again in 10 seconds */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		for (wmEventHandler *handler_base = win->modalhandlers.first; handler_base; handler_base = handler_base->next) {
+		LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
 			if (handler_base->type == WM_HANDLER_TYPE_OP) {
 				wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 				if (handler->op) {

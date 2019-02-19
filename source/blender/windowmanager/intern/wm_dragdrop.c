@@ -194,7 +194,7 @@ void WM_drag_free_list(struct ListBase *lb)
 
 static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, const wmEvent *event)
 {
-	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
 			wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
 			if (handler->dropboxes) {

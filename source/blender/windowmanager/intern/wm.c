@@ -198,7 +198,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 	for (win = wm->windows.first; win; win = win->next) {
 		ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
 		for (int i = 0; i < ARRAY_SIZE(lb); i++) {
-			for (wmEventHandler *handler_base = lb[i]->first; handler_base; handler_base = handler_base->next) {
+			LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
 				if (handler_base->type == WM_HANDLER_TYPE_OP) {
 					wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 					if (handler->op && handler->op->type == ot) {

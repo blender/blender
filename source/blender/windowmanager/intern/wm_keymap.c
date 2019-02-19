@@ -1229,7 +1229,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 	wmKeyMap *keymap;
 
 	/* find keymap item in handlers */
-	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
 			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
 			keymap = WM_keymap_active(wm, handler->keymap);

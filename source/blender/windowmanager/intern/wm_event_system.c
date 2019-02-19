@@ -614,11 +614,7 @@ static void wm_handler_ui_cancel(bContext *C)
 	if (!ar)
 		return;
 
-	for (wmEventHandler *handler_base = ar->handlers.first, *handler_base_next;
-	     handler_base;
-	     handler_base = handler_base_next)
-	{
-		handler_base_next = handler_base->next;
+	LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &ar->handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_UI) {
 			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 			BLI_assert(handler->handle_fn != NULL);
@@ -3246,11 +3242,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
 	/* only allow 1 file selector open per window */
-	for (wmEventHandler *handler_base = win->modalhandlers.first, *handler_base_next;
-	     handler_base;
-	     handler_base = handler_base_next)
-	{
-		handler_base_next = handler_base->next;
+	LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &win->modalhandlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_OP) {
 			wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 			if (handler->is_fileselect == false) {
@@ -3343,7 +3335,7 @@ wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op)
  */
 void WM_event_modal_handler_area_replace(wmWindow *win, const ScrArea *old_area, ScrArea *new_area)
 {
-	for (wmEventHandler *handler_base = win->modalhandlers.first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_OP) {
 			wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 			/* fileselect handler is quite special... it needs to keep old area stored in handler, so don't change it */
@@ -3360,7 +3352,7 @@ void WM_event_modal_handler_area_replace(wmWindow *win, const ScrArea *old_area,
  */
 void WM_event_modal_handler_region_replace(wmWindow *win, const ARegion *old_region, ARegion *new_region)
 {
-	for (wmEventHandler *handler_base = win->modalhandlers.first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_OP) {
 			wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 			if (handler->context.region == old_region) {
@@ -3379,7 +3371,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
 	}
 
 	/* only allow same keymap once */
-	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
 			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
 			if (handler->keymap == keymap) {
@@ -3423,7 +3415,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyM
 
 void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 {
-	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
 			wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
 			if (handler->keymap == keymap) {
@@ -3479,9 +3471,7 @@ void WM_event_remove_ui_handler(
         wmUIHandlerFunc handle_fn, wmUIHandlerRemoveFunc remove_fn,
         void *user_data, const bool postpone)
 {
-	wmEventHandler *handler_base;
-
-	for (handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_UI) {
 			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 			if ((handler->handle_fn == handle_fn) &&
@@ -3506,11 +3496,7 @@ void WM_event_free_ui_handler_all(
         bContext *C, ListBase *handlers,
         wmUIHandlerFunc handle_fn, wmUIHandlerRemoveFunc remove_fn)
 {
-	for (wmEventHandler *handler_base = handlers->first, *handler_base_next;
-	     handler_base;
-	     handler_base = handler_base_next)
-	{
-		handler_base_next = handler_base->next;
+	LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_UI) {
 			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 			if ((handler->handle_fn == handle_fn) &&
@@ -3527,7 +3513,7 @@ void WM_event_free_ui_handler_all(
 wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
 {
 	/* only allow same dropbox once */
-	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
 			wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
 			if (handler->dropboxes == dropboxes) {
@@ -3549,12 +3535,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
 /* XXX solution works, still better check the real cause (ton) */
 void WM_event_remove_area_handler(ListBase *handlers, void *area)
 {
-
-	for (wmEventHandler *handler_base = handlers->first, *handler_base_next;
-	     handler_base;
-	     handler_base = handler_base_next)
-	{
-		handler_base_next = handler_base->next;
+	LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, handlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_UI) {
 			wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 			if (handler->context.area == area) {
@@ -4489,7 +4470,7 @@ static wmKeyMapItem *wm_kmi_from_event(
         bContext *C, wmWindowManager *wm,
         ListBase *handlers, const wmEvent *event)
 {
-	for (wmEventHandler *handler_base = handlers->first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
 		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
 		if (handler_base->flag & WM_HANDLER_DO_FREE) {
 			/* pass */
@@ -4760,7 +4741,7 @@ bool WM_window_modal_keymap_status_draw(
 {
 	wmKeyMap *keymap = NULL;
 	wmOperator *op = NULL;
-	for (wmEventHandler *handler_base = win->modalhandlers.first; handler_base; handler_base = handler_base->next) {
+	LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
 		if (handler_base->type == WM_HANDLER_TYPE_OP) {
 			wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
 			if (handler->op != NULL) {
