@@ -120,11 +120,11 @@ void GeometryExporter::operator()(Object *ob)
 		// XXX slow
 		if (ob->totcol) {
 			for (int a = 0; a < ob->totcol; a++) {
-				createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+				create_mesh_primitive_list(a, has_uvs, has_color, ob, me, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+			create_mesh_primitive_list(0, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 
@@ -205,11 +205,11 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 	// XXX slow
 	if (ob->totcol) {
 		for (int a = 0; a < ob->totcol; a++) {
-			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+			create_mesh_primitive_list(a, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	else {
-		createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+		create_mesh_primitive_list(0, has_uvs, has_color, ob, me, geom_id, norind);
 	}
 
 	closeMesh();
@@ -272,6 +272,64 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 
 }
 
+static void prepareToAppendValues(bool is_triangulated, COLLADASW::PrimitivesBase &primitive_list, std::vector<unsigned long> &vcount_list)
+{
+	// performs the actual writing
+	if (is_triangulated) {
+		((COLLADASW::Triangles &)primitive_list).prepareToAppendValues();
+	}
+	else {
+		// sets <vcount>
+		primitive_list.setVCountList(vcount_list);
+		((COLLADASW::Polylist &)primitive_list).prepareToAppendValues();
+	}
+}
+
+static void finish_and_delete_primitive_List(bool is_triangulated, COLLADASW::PrimitivesBase *primitive_list)
+{
+	if (is_triangulated) {
+		((COLLADASW::Triangles *)primitive_list)->finish();
+	}
+	else {
+		((COLLADASW::Polylist *)primitive_list)->finish();
+	}
+	delete primitive_list;
+}
+
+static COLLADASW::PrimitivesBase *create_primitive_list(bool is_triangulated, COLLADASW::StreamWriter *mSW)
+{
+	COLLADASW::PrimitivesBase *primitive_list;
+
+	if (is_triangulated)
+	{
+		primitive_list = new COLLADASW::Triangles(mSW);
+	}
+	else {
+		primitive_list = new COLLADASW::Polylist(mSW);
+	}
+	return primitive_list;
+}
+
+static bool collect_vertex_counts_per_poly(Mesh *me, int material_index, std::vector<unsigned long> &vcount_list)
+{
+	MPoly *mpolys = me->mpoly;
+	int totpolys = me->totpoly;
+	bool is_triangulated = true;
+
+	int i;
+	// Expecting that p->mat_nr is always 0 if the mesh has no materials assigned
+	for (i = 0; i < totpolys; i++) {
+		MPoly *p = &mpolys[i];
+		if (p->mat_nr == material_index) {
+			int vertex_count = p->totloop;
+			vcount_list.push_back(vertex_count);
+			if (vertex_count != 3)
+				is_triangulated = false;
+		}
+	}
+	return is_triangulated;
+}
+
 std::string GeometryExporter::makeVertexColorSourceId(std::string& geom_id, char *layer_name)
 {
 	std::string result = getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + "-" + layer_name;
@@ -279,7 +337,7 @@ std::string GeometryExporter::makeVertexColorSourceId(std::string& geom_id, char
 }
 
 // powerful because it handles both cases when there is material and when there's not
-void GeometryExporter::createPolylist(short material_index,
+void GeometryExporter::create_mesh_primitive_list(short material_index,
                                       bool has_uvs,
                                       bool has_color,
                                       Object *ob,
@@ -292,66 +350,52 @@ void GeometryExporter::createPolylist(short material_index,
 	MLoop *mloops = me->mloop;
 	int totpolys  = me->totpoly;
 
-	// <vcount>
-	int i;
-	int faces_in_polylist = 0;
 	std::vector<unsigned long> vcount_list;
 
-	// count faces with this material
-	for (i = 0; i < totpolys; i++) {
-		MPoly *p = &mpolys[i];
-
-		if (p->mat_nr == material_index) {
-			faces_in_polylist++;
-			vcount_list.push_back(p->totloop);
-		}
-	}
+	bool is_triangulated = collect_vertex_counts_per_poly(me, material_index, vcount_list);
+	int polygon_count = vcount_list.size();
 
 	// no faces using this material
-	if (faces_in_polylist == 0) {
+	if (polygon_count == 0) {
 		fprintf(stderr, "%s: material with index %d is not used.\n", id_name(ob).c_str(), material_index);
 		return;
 	}
 
 	Material *ma = ob->totcol ? give_current_material(ob, material_index + 1) : NULL;
-	COLLADASW::Polylist polylist(mSW);
+	COLLADASW::PrimitivesBase *primitive_list = create_primitive_list(is_triangulated, mSW);
 
 	// sets count attribute in <polylist>
-	polylist.setCount(faces_in_polylist);
+	primitive_list->setCount(polygon_count);
 
 	// sets material name
 	if (ma) {
 		std::string material_id = get_material_id(ma);
 		std::ostringstream ostr;
 		ostr << translate_id(material_id);
-		polylist.setMaterial(ostr.str());
+		primitive_list->setMaterial(ostr.str());
 	}
 
-	COLLADASW::InputList &til = polylist.getInputList();
+	COLLADASW::Input vertex_input(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
+	COLLADASW::Input normals_input(COLLADASW::InputSemantic::NORMAL, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL), 1);
 
-	// creates <input> in <polylist> for vertices
-	COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
-
-	// creates <input> in <polylist> for normals
-	COLLADASW::Input input2(COLLADASW::InputSemantic::NORMAL, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL), 1);
-
-	til.push_back(input1);
-	til.push_back(input2);
+	COLLADASW::InputList &til = primitive_list->getInputList();
+	til.push_back(vertex_input);
+	til.push_back(normals_input);
 
 	// if mesh has uv coords writes <input> for TEXCOORD
 	int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
-	for (i = 0; i < num_layers; i++) {
+	for (int i = 0; i < num_layers; i++) {
 		int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, i);
 		if (!this->export_settings->active_uv_only || layer_index == active_uv_index) {
 
 			// char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, i);
-			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
+			COLLADASW::Input texcoord_input(COLLADASW::InputSemantic::TEXCOORD,
 									makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings->active_uv_only)),
 									2, // this is only until we have optimized UV sets
 									(this->export_settings->active_uv_only) ? 0 : layer_index-1  //set (0,1,2,...)
 									);
-			til.push_back(input3);
+			til.push_back(texcoord_input);
 		}
 	}
 
@@ -371,15 +415,12 @@ void GeometryExporter::createPolylist(short material_index,
 		}
 	}
 
-	// sets <vcount>
-	polylist.setVCountList(vcount_list);
-
 	// performs the actual writing
-	polylist.prepareToAppendValues();
+	prepareToAppendValues(is_triangulated, *primitive_list, vcount_list);
 
 	// <p>
 	int texindex = 0;
-	for (i = 0; i < totpolys; i++) {
+	for (int i = 0; i < totpolys; i++) {
 		MPoly *p = &mpolys[i];
 		int loop_count = p->totloop;
 
@@ -388,21 +429,22 @@ void GeometryExporter::createPolylist(short material_index,
 			BCPolygonNormalsIndices normal_indices = norind[i];
 
 			for (int j = 0; j < loop_count; j++) {
-				polylist.appendValues(l[j].v);
-				polylist.appendValues(normal_indices[j]);
+				primitive_list->appendValues(l[j].v);
+				primitive_list->appendValues(normal_indices[j]);
 				if (has_uvs)
-					polylist.appendValues(texindex + j);
+					primitive_list->appendValues(texindex + j);
 
 				if (has_color)
-					polylist.appendValues(texindex + j);
+					primitive_list->appendValues(texindex + j);
 			}
 		}
 
 		texindex += loop_count;
 	}
 
-	polylist.finish();
+	finish_and_delete_primitive_List(is_triangulated, primitive_list);
 }
+
 
 // creates <source> for positions
 void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
@@ -437,7 +479,6 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	source.finish();
 
 }
-
 
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
