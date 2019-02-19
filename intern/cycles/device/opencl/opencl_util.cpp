@@ -383,6 +383,12 @@ bool OpenCLDeviceBase::OpenCLProgram::compile_kernel(const string *debug_src)
 	return true;
 }
 
+static void escape_python_string(string& str)
+{
+	/* Escape string to be passed as a Python raw string with '' quotes'. */
+	string_replace(str, "'", "\'");
+}
+
 bool OpenCLDeviceBase::OpenCLProgram::compile_separate(const string& clbin)
 {
 	vector<string> args;
@@ -390,16 +396,30 @@ bool OpenCLDeviceBase::OpenCLProgram::compile_separate(const string& clbin)
 	args.push_back("--factory-startup");
 	args.push_back("--python-expr");
 
+	const char *force_all_platforms = (DebugFlags().opencl.kernel_type != DebugFlags::OpenCL::KERNEL_DEFAULT)? "true" : "false";
+	int device_platform_id = device->device_num;
+	string device_name = device->device_name;
+	string platform_name = device->platform_name;
+	string build_options = device->kernel_build_options(NULL) + kernel_build_options;
+	string kernel_file_escaped = kernel_file;
+	string clbin_escaped = clbin;
+
+	escape_python_string(device_name);
+	escape_python_string(platform_name);
+	escape_python_string(build_options);
+	escape_python_string(kernel_file_escaped);
+	escape_python_string(clbin_escaped);
+
 	args.push_back(
 		string_printf(
-			"import _cycles; _cycles.opencl_compile('%s', '%d', '%s', '%s', '%s', '%s', '%s')",
-			(DebugFlags().opencl.kernel_type != DebugFlags::OpenCL::KERNEL_DEFAULT)? "true" : "false",
-			device->device_num,
-			device->device_name.c_str(),
-			device->platform_name.c_str(),
-			(device->kernel_build_options(NULL) + kernel_build_options).c_str(),
-			kernel_file.c_str(),
-			clbin.c_str()));
+			"import _cycles; _cycles.opencl_compile(r'%s', r'%d', r'%s', r'%s', r'%s', r'%s', r'%s')",
+			force_all_platforms,
+			device_platform_id,
+			device_name.c_str(),
+			platform_name.c_str(),
+			build_options.c_str(),
+			kernel_file_escaped.c_str(),
+			clbin_escaped.c_str()));
 
 	double starttime = time_dt();
 	add_log(string("Cycles: compiling OpenCL program ") + program_name + "...", false);
