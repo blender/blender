@@ -73,15 +73,14 @@ static const char *view3d_gzgt_ruler_id = "VIEW3D_GGT_ruler";
 
 /* -------------------------------------------------------------------- */
 /* Ruler Item (we can have many) */
-enum {
-	RULERITEM_USE_ANGLE = (1 << 0),  /* use protractor */
-	RULERITEM_USE_RAYCAST = (1 << 1),
-};
 
 enum {
-	RULERITEM_DIRECTION_IN = 0,
-	RULERITEM_DIRECTION_OUT,
+	/** Use protractor. */
+	RULERITEM_USE_ANGLE = (1 << 0),
+	/** Protractor vertex is selected (deleting removes it). */
+	RULERITEM_USE_ANGLE_ACTIVE = (1 << 1),
 };
+
 
 /* keep smaller then selection, since we may want click elsewhere without selecting a ruler */
 #define RULER_PICK_DIST 12.0f
@@ -135,7 +134,6 @@ typedef struct RulerInteraction {
 	/* selected coord */
 	char  co_index; /* 0 -> 2 */
 	float drag_start_co[3];
-	uint inside_region : 1;
 } RulerInteraction;
 
 /* -------------------------------------------------------------------- */
@@ -630,6 +628,20 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
 			GPU_blend(true);
 
+			if (is_act && (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
+				GPU_line_width(3.0f);
+				immUniformColor3fv(color_act);
+				immBegin(GPU_PRIM_LINES, 4);
+				/* angle vertex */
+				immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
+
+				immEnd();
+				GPU_line_width(1.0f);
+			}
+
 			immUniformColor3ubv(color_wire);
 
 			immBegin(GPU_PRIM_LINES, 8);
@@ -834,7 +846,6 @@ static int gizmo_ruler_modal(
 	int exit_code = OPERATOR_RUNNING_MODAL;
 	RulerInfo *ruler_info = gz->parent_gzgroup->customdata;
 	RulerItem *ruler_item = (RulerItem *)gz;
-	RulerInteraction *inter = ruler_item->gz.interaction_data;
 	ARegion *ar = CTX_wm_region(C);
 
 	ruler_info->ar = ar;
@@ -849,7 +860,6 @@ static int gizmo_ruler_modal(
 				{
 					do_draw = true;
 				}
-				inter->inside_region = BLI_rcti_isect_pt_v(&ar->winrct, &event->x);
 			}
 			break;
 		}
@@ -911,8 +921,12 @@ static int gizmo_ruler_invoke(
 		copy_v3_v3(inter->drag_start_co, ruler_item_pick->co[inter->co_index]);
 	}
 
-	/* Should always be true. */
-	inter->inside_region = BLI_rcti_isect_pt_v(&ar->winrct, &event->x);
+	if (inter->co_index == 1) {
+		ruler_item_pick->flag |= RULERITEM_USE_ANGLE_ACTIVE;
+	}
+	else {
+		ruler_item_pick->flag &= ~RULERITEM_USE_ANGLE_ACTIVE;
+	}
 
 	ruler_info->item_active = ruler_item_pick;
 
@@ -926,24 +940,6 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
 	if (!cancel) {
 		if (ruler_info->state == RULER_STATE_DRAG) {
-			RulerItem *ruler_item = (RulerItem *)gz;
-			RulerInteraction *inter = gz->interaction_data;
-			/* rubber-band angle removal */
-			if (!inter->inside_region) {
-				if ((inter->co_index == 1) && (ruler_item->flag & RULERITEM_USE_ANGLE)) {
-					ruler_item->flag &= ~RULERITEM_USE_ANGLE;
-				}
-#if 0
-				else {
-					/* Not ideal, since the ruler isn't a mode and we don't want to override delete key
-					 * use dragging out of the view for removal. */
-					ruler_item_remove(C, gzgroup, ruler_item);
-					ruler_item = NULL;
-					gz = NULL;
-					inter = NULL;
-				}
-#endif
-			}
 			if (ruler_info->snap_flag & RULER_SNAP_OK) {
 				ruler_info->snap_flag &= ~RULER_SNAP_OK;
 			}
@@ -1106,11 +1102,10 @@ void VIEW3D_OT_ruler_add(wmOperatorType *ot)
 /** \name Remove Ruler Operator
  * \{ */
 
-static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
 	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)))
@@ -1124,7 +1119,15 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
 	if (gzgroup) {
 		RulerInfo *ruler_info = gzgroup->customdata;
 		if (ruler_info->item_active) {
-			ruler_item_remove(C, gzgroup, ruler_info->item_active);
+			RulerItem *ruler_item = ruler_info->item_active;
+			if ((ruler_item->flag & RULERITEM_USE_ANGLE) &&
+			    (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE))
+			{
+				ruler_item->flag &= ~(RULERITEM_USE_ANGLE | RULERITEM_USE_ANGLE_ACTIVE);
+			}
+			else {
+				ruler_item_remove(C, gzgroup, ruler_item);
+			}
 			ED_region_tag_redraw(ar);
 			return OPERATOR_FINISHED;
 		}
