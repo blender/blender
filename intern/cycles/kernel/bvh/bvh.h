@@ -334,6 +334,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
 	PROFILING_INIT(kg, PROFILING_INTERSECT_SHADOW_ALL);
 
 	if(!scene_intersect_valid(ray)) {
+		*num_hits = 0;
 		return false;
 	}
 #  ifdef __EMBREE__
