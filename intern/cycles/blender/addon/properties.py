@@ -644,6 +644,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Scanline \"exposure\" time for the rolling shutter effect",
         default=0.1,
         min=0.0, max=1.0,
+        subtype='FACTOR',
     )
 
     texture_limit: EnumProperty(
@@ -1343,6 +1344,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         description="Size of the image area that's used to denoise a pixel (higher values are smoother, but might lose detail and are slower)",
         min=1, max=25,
         default=8,
+        subtype="PIXEL",
     )
     denoising_relative_pca: BoolProperty(
         name="Relative filter",
