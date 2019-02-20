@@ -845,10 +845,21 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 	(void) add_id_node(id);
 	ID *id_cow = get_cow_id(id);
 	if (adt->action != NULL || !BLI_listbase_is_empty(&adt->nla_tracks)) {
-		add_operation_node(id, NodeType::ANIMATION,
-		                   OperationCode::ANIMATION,
-		                   function_bind(BKE_animsys_eval_animdata, _1, id_cow),
-		                   id->name);
+		OperationNode *operation_node;
+		/* Explicit entry operation. */
+		operation_node = add_operation_node(
+		        id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);
+		operation_node->set_as_entry();
+		/* All the evaluation nodes. */
+		add_operation_node(
+		        id,
+		        NodeType::ANIMATION,
+		        OperationCode::ANIMATION_EVAL,
+		        function_bind(BKE_animsys_eval_animdata, _1, id_cow));
+		/* Explicit exit operation. */
+		operation_node = add_operation_node(
+		        id, NodeType::ANIMATION, OperationCode::ANIMATION_EXIT);
+		operation_node->set_as_exit();
 	}
 	/* NLA strips contain actions. */
 	LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
@@ -894,7 +905,7 @@ void DepsgraphNodeBuilder::build_action(bAction *action)
 		return;
 	}
 	add_operation_node(
-	        &action->id, NodeType::ANIMATION, OperationCode::ANIMATION);
+	        &action->id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
 }
 
 /**

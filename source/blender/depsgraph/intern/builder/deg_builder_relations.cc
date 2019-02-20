@@ -1217,10 +1217,19 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	if (adt->action != NULL) {
 		build_action(adt->action);
 	}
-	if (adt->action == NULL && adt->nla_tracks.first == NULL) {
+	if (adt->action == NULL && BLI_listbase_is_empty(&adt->nla_tracks)) {
 		return;
 	}
-	/* Wire up dependency to time source. */
+	/* Ensure evaluation order from entry to exit. */
+	OperationKey animation_entry_key(
+	        id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);
+	OperationKey animation_eval_key(
+	        id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
+	OperationKey animation_exit_key(
+	        id, NodeType::ANIMATION, OperationCode::ANIMATION_EXIT);
+	add_relation(animation_entry_key, animation_eval_key, "Init -> Eval");
+	add_relation(animation_eval_key, animation_exit_key, "Eval -> Exit");
+	/* Wire up dependency from action. */
 	ComponentKey adt_key(id, NodeType::ANIMATION);
 	/* Relation from action itself. */
 	if (adt->action != NULL) {

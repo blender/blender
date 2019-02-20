@@ -51,7 +51,9 @@ enum class OperationCode {
 
 	/* Animation, Drivers, etc. --------------------------------------------- */
 	/* NLA + Action */
-	ANIMATION,
+	ANIMATION_ENTRY,
+	ANIMATION_EVAL,
+	ANIMATION_EXIT,
 	/* Driver */
 	DRIVER,
 
