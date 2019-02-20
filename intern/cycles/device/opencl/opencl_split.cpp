@@ -486,7 +486,6 @@ OpenCLDevice::OpenCLDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, b
 	device_initialized = true;
 
 	split_kernel = new OpenCLSplitKernel(this);
-	background = background;
 }
 
 OpenCLDevice::~OpenCLDevice()
