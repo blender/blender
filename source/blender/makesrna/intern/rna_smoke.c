@@ -757,7 +757,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Smoke", "Amount of smoke created by burning fuel");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
-	prop = RNA_def_property(srna, "flame_vorticity", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "flame_vorticity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1.0, 5);
 	RNA_def_property_ui_text(prop, "Vorticity", "Additional vorticity for the flames");
@@ -842,7 +842,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	                         "How many slices per voxel should be generated");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-	prop = RNA_def_property(srna, "slice_depth", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "slice_depth", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "slice_depth");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 3);
@@ -954,7 +954,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SmokeFlowSettings");
 	RNA_def_struct_path_func(srna, "rna_SmokeFlowSettings_path");
 
-	prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "density");
 	RNA_def_property_range(prop, 0.0, 1);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1.0, 4);
@@ -1030,13 +1030,13 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Random", "Amount of random velocity");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
-	prop = RNA_def_property(srna, "volume_density", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "volume_density", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.05, 5);
 	RNA_def_property_ui_text(prop, "Volume", "Factor for smoke emitted from inside the mesh volume");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
-	prop = RNA_def_property(srna, "surface_distance", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "surface_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_range(prop, 0.5, 5.0, 0.05, 5);
 	RNA_def_property_ui_text(prop, "Surface", "Maximum distance from mesh surface to emit smoke");

@@ -4872,7 +4872,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_mix_mode_itemf");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_float(srna, "mix_factor", 1.0f, 0.0f, 1.0f, "Mix Factor",
+	prop = RNA_def_float_factor(srna, "mix_factor", 1.0f, 0.0f, 1.0f, "Mix Factor",
 	                     "Factor to use when applying data to destination (exact behavior depends on mix mode)",
 	                     0.0f, 1.0f);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

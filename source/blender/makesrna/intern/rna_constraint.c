@@ -2406,7 +2406,7 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
 	                         "Offset will be an absolute point in space instead of relative to the target");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_XYZ);
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Offset",
 	                         "Offset of pivot from target (when set), or from owner's location "
