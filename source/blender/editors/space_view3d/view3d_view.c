@@ -1336,18 +1336,6 @@ static bool view3d_localview_exit(
 
 		restore_localviewdata(depsgraph, wm, win, bmain, sa, smooth_viewtx);
 
-		Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-		for (base = FIRSTBASE(view_layer); base; base = base->next) {
-			if (base->local_view_bits & local_view_bit) {
-				base->local_view_bits &= ~local_view_bit;
-				if (base->object != obedit) {
-					ED_object_base_select(base, BA_SELECT);
-				}
-			}
-		}
-
-		DEG_on_visible_update(bmain, false);
-
 		return true;
 	}
 	else {
