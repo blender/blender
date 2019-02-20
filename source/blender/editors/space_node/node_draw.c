@@ -893,11 +893,11 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		/* header uses color from backdrop, but we make it opaque */
 		if (color_id == TH_NODE) {
 			UI_GetThemeColorShade3fv(color_id, -20, color);
-			color[3] = 1.0f;
 		}
 		else {
-			UI_GetThemeColor4fv(color_id, color);
+			UI_GetThemeColor3fv(color_id, color);
 		}
+		color[3] = 1.0f;
 	}
 
 	GPU_line_width(1.0f);
