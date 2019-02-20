@@ -356,12 +356,13 @@ void ED_area_type_hud_ensure(struct bContext *C, struct ScrArea *sa);
 enum {
 	ED_KEYMAP_UI        = (1 << 1),
 	ED_KEYMAP_GIZMO     = (1 << 2),
-	ED_KEYMAP_VIEW2D    = (1 << 3),
-	ED_KEYMAP_MARKERS   = (1 << 4),
-	ED_KEYMAP_ANIMATION = (1 << 5),
-	ED_KEYMAP_FRAMES    = (1 << 6),
-	ED_KEYMAP_HEADER    = (1 << 7),
-	ED_KEYMAP_GPENCIL   = (1 << 8),
+	ED_KEYMAP_TOOL      = (1 << 3),
+	ED_KEYMAP_VIEW2D    = (1 << 4),
+	ED_KEYMAP_MARKERS   = (1 << 5),
+	ED_KEYMAP_ANIMATION = (1 << 6),
+	ED_KEYMAP_FRAMES    = (1 << 7),
+	ED_KEYMAP_HEADER    = (1 << 8),
+	ED_KEYMAP_GPENCIL   = (1 << 9),
 };
 
 /* SCREEN_OT_space_context_cycle direction */

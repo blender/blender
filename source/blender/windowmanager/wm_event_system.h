@@ -68,6 +68,12 @@ typedef struct wmEventHandler_Keymap {
 	/** Run after the keymap item runs. */
 	struct wmEventHandler_KeymapFn keymap_callback;
 
+	/** Support for a getter function that looks up the keymap each access. */
+	struct {
+		wmEventHandler_KeymapDynamicFn *keymap_fn;
+		void *user_data;
+	} dynamic;
+
 	struct bToolRef *keymap_tool;
 } wmEventHandler_Keymap;
 

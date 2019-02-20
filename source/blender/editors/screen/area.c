@@ -1474,6 +1474,9 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ARegion *ar, L
 			WM_gizmomap_add_handlers(ar, ar->gizmo_map);
 		}
 	}
+	if (flag & ED_KEYMAP_TOOL) {
+		WM_event_add_keymap_handler_dynamic(&ar->handlers, WM_event_get_keymap_from_toolsystem, sa);
+	}
 	if (flag & ED_KEYMAP_VIEW2D) {
 		/* 2d-viewport handling+manipulation */
 		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "View2D", 0, 0);

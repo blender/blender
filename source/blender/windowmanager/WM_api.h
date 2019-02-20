@@ -198,12 +198,20 @@ struct wmEventHandler_Keymap *WM_event_add_keymap_handler_bb(
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(
         ListBase *handlers, wmKeyMap *keymap, int priority);
 
+typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm, struct wmEventHandler_Keymap *handler) ATTR_WARN_UNUSED_RESULT;
+
+struct wmKeyMap *WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
+
+struct wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
+        ListBase *handlers, wmEventHandler_KeymapDynamicFn *keymap_fn, void *user_data);
+
 void		WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 
 void WM_event_set_keymap_handler_callback(
         struct wmEventHandler_Keymap *handler,
         void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
         void *user_data);
+wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
 
 typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
 typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
