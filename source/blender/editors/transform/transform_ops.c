@@ -890,7 +890,7 @@ static void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_editmesh;
 	ot->poll_property = transform_poll_property;
 
-	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_distance(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
 	RNA_def_boolean(ot->srna, "use_even_offset", false, "Offset Even", "Scale the offset to give more even thickness");
 
