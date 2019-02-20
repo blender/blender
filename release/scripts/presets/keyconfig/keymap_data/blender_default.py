@@ -5276,6 +5276,8 @@ def km_3d_view_tool_measure(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("view3d.ruler_add", {"type": params.tool_tweak, "value": 'ANY'}, None),
+            ("view3d.ruler_remove", {"type": 'X', "value": 'PRESS'}, None),
+            ("view3d.ruler_remove", {"type": 'DEL', "value": 'PRESS'}, None),
         ]},
     )
 

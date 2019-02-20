@@ -106,18 +106,21 @@ class _defs_view3d_generic:
     def ruler():
         def description(context, item, km):
             if km is not None:
-                kmi = km.keymap_items.find_from_operator("view3d.ruler_add")
+                kmi_add = km.keymap_items.find_from_operator("view3d.ruler_add")
+                kmi_remove = km.keymap_items.find_from_operator("view3d.ruler_remove")
             else:
-                kmi = None
+                kmi_add = None
+                kmi_remove = None
             return (
                 "Measure distance and angles.\n"
                 "\u2022 {} anywhere for new measurement.\n"
                 "\u2022 Drag ruler segment to measure an angle.\n"
-                "\u2022 Drag ruler outside the view to remove.\n"
+                "\u2022 {} to remove the active ruler.\n"
                 "\u2022 Ctrl while dragging to snap.\n"
                 "\u2022 Shift while dragging to measure surface thickness."
             ).format(
-                kmi_to_string_or_none(kmi)
+                kmi_to_string_or_none(kmi_add),
+                kmi_to_string_or_none(kmi_remove),
             )
         return dict(
             text="Measure",

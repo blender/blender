@@ -222,6 +222,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_toggle_matcap_flip);
 
 	WM_operatortype_append(VIEW3D_OT_ruler_add);
+	WM_operatortype_append(VIEW3D_OT_ruler_remove);
 
 	transform_operatortypes();
 }

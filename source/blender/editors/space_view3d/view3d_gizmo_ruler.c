@@ -102,9 +102,10 @@ enum {
 	RULER_SNAP_OK = (1 << 0),
 };
 
+struct RulerItem;
+
 typedef struct RulerInfo {
-	// ListBase items;
-	int      item_active;
+	struct RulerItem *item_active;
 	int flag;
 	int snap_flag;
 	int state;
@@ -152,6 +153,10 @@ static RulerItem *ruler_item_add(wmGizmoGroup *gzgroup)
 
 static void ruler_item_remove(bContext *C, wmGizmoGroup *gzgroup, RulerItem *ruler_item)
 {
+	RulerInfo *ruler_info = gzgroup->customdata;
+	if (ruler_info->item_active == ruler_item) {
+		ruler_info->item_active = NULL;
+	}
 	WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, &ruler_item->gz, C);
 }
 
@@ -526,7 +531,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 		copy_v3_fl(color_back, 0.0f);
 	}
 
-	const bool is_act = (gz->flag & WM_GIZMO_DRAW_HOVER);
+	const bool is_act = (ruler_info->item_active == ruler_item);
 	float dir_ruler[2];
 	float co_ss[3][2];
 	int j;
@@ -909,6 +914,8 @@ static int gizmo_ruler_invoke(
 	/* Should always be true. */
 	inter->inside_region = BLI_rcti_isect_pt_v(&ar->winrct, &event->x);
 
+	ruler_info->item_active = ruler_item_pick;
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -926,6 +933,7 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
 				if ((inter->co_index == 1) && (ruler_item->flag & RULERITEM_USE_ANGLE)) {
 					ruler_item->flag &= ~RULERITEM_USE_ANGLE;
 				}
+#if 0
 				else {
 					/* Not ideal, since the ruler isn't a mode and we don't want to override delete key
 					 * use dragging out of the view for removal. */
@@ -934,6 +942,7 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
 					gz = NULL;
 					inter = NULL;
 				}
+#endif
 			}
 			if (ruler_info->snap_flag & RULER_SNAP_OK) {
 				ruler_info->snap_flag &= ~RULER_SNAP_OK;
@@ -1085,6 +1094,51 @@ void VIEW3D_OT_ruler_add(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_ruler_add";
 
 	ot->invoke = view3d_ruler_add_invoke;
+	ot->poll = view3d_ruler_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Ruler Operator
+ * \{ */
+
+static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = ar->regiondata;
+
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)))
+	{
+		BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
+		return OPERATOR_CANCELLED;
+	}
+
+	wmGizmoMap *gzmap = ar->gizmo_map;
+	wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
+	if (gzgroup) {
+		RulerInfo *ruler_info = gzgroup->customdata;
+		if (ruler_info->item_active) {
+			ruler_item_remove(C, gzgroup, ruler_info->item_active);
+			ED_region_tag_redraw(ar);
+			return OPERATOR_FINISHED;
+		}
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void VIEW3D_OT_ruler_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Ruler Remove";
+	ot->idname = "VIEW3D_OT_ruler_remove";
+
+	ot->invoke = view3d_ruler_remove_invoke;
 	ot->poll = view3d_ruler_poll;
 
 	/* flags */
