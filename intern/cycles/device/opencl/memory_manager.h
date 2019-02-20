@@ -26,7 +26,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-class OpenCLDeviceBase;
+class OpenCLDevice;
 
 class MemoryManager {
 public:
@@ -73,12 +73,12 @@ private:
 
 		void add_allocation(Allocation& allocation);
 
-		void update_device_memory(OpenCLDeviceBase *device);
+		void update_device_memory(OpenCLDevice *device);
 
-		void free(OpenCLDeviceBase *device);
+		void free(OpenCLDevice *device);
 	};
 
-	OpenCLDeviceBase *device;
+	OpenCLDevice *device;
 
 	DeviceBuffer device_buffers[NUM_DEVICE_BUFFERS];
 
@@ -90,7 +90,7 @@ private:
 	DeviceBuffer* smallest_device_buffer();
 
 public:
-	MemoryManager(OpenCLDeviceBase *device);
+	MemoryManager(OpenCLDevice *device);
 
 	void free(); /* Free all memory. */
 

@@ -90,7 +90,6 @@ void DebugFlags::CUDA::reset()
 
 DebugFlags::OpenCL::OpenCL()
   : device_type(DebugFlags::OpenCL::DEVICE_ALL),
-    kernel_type(DebugFlags::OpenCL::KERNEL_DEFAULT),
     debug(false),
     single_program(false)
 {
@@ -121,14 +120,6 @@ void DebugFlags::OpenCL::reset()
 		else if(strcmp(device, "ACCELERATOR") == 0) {
 			device_type = DebugFlags::OpenCL::DEVICE_ACCELERATOR;
 		}
-	}
-	/* Initialize kernel type from environment variables. */
-	kernel_type = DebugFlags::OpenCL::KERNEL_DEFAULT;
-	if(getenv("CYCLES_OPENCL_MEGA_KERNEL_TEST") != NULL) {
-		kernel_type = DebugFlags::OpenCL::KERNEL_MEGA;
-	}
-	else if(getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST") != NULL) {
-		kernel_type = DebugFlags::OpenCL::KERNEL_SPLIT;
 	}
 	/* Initialize other flags from environment variables. */
 	debug = (getenv("CYCLES_OPENCL_DEBUG") != NULL);
@@ -164,8 +155,7 @@ std::ostream& operator <<(std::ostream &os,
 	os << "CUDA flags:\n"
 	   << " Adaptive Compile: " << string_from_bool(debug_flags.cuda.adaptive_compile) << "\n";
 
-	const char *opencl_device_type,
-	           *opencl_kernel_type;
+	const char *opencl_device_type;
 	switch(debug_flags.opencl.device_type) {
 		case DebugFlags::OpenCL::DEVICE_NONE:
 			opencl_device_type = "NONE";
@@ -186,20 +176,8 @@ std::ostream& operator <<(std::ostream &os,
 			opencl_device_type = "ACCELERATOR";
 			break;
 	}
-	switch(debug_flags.opencl.kernel_type) {
-		case DebugFlags::OpenCL::KERNEL_DEFAULT:
-			opencl_kernel_type = "DEFAULT";
-			break;
-		case DebugFlags::OpenCL::KERNEL_MEGA:
-			opencl_kernel_type = "MEGA";
-			break;
-		case DebugFlags::OpenCL::KERNEL_SPLIT:
-			opencl_kernel_type = "SPLIT";
-			break;
-	}
 	os << "OpenCL flags:\n"
 	   << "  Device type    : " << opencl_device_type << "\n"
-	   << "  Kernel type    : " << opencl_kernel_type << "\n"
 	   << "  Debug          : " << string_from_bool(debug_flags.opencl.debug) << "\n"
 	   << "  Single program : " << string_from_bool(debug_flags.opencl.single_program) << "\n"
 	   << "  Memory limit   : " << string_human_readable_size(debug_flags.opencl.mem_limit) << "\n";

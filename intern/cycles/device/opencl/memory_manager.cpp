@@ -28,7 +28,7 @@ void MemoryManager::DeviceBuffer::add_allocation(Allocation& allocation)
 	allocations.push_back(&allocation);
 }
 
-void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDeviceBase *device)
+void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDevice *device)
 {
 	bool need_realloc = false;
 
@@ -142,7 +142,7 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDeviceBase *device)
 	clFinish(device->cqCommandQueue);
 }
 
-void MemoryManager::DeviceBuffer::free(OpenCLDeviceBase *)
+void MemoryManager::DeviceBuffer::free(OpenCLDevice *)
 {
 	buffer->free();
 }
@@ -160,7 +160,7 @@ MemoryManager::DeviceBuffer* MemoryManager::smallest_device_buffer()
 	return smallest;
 }
 
-MemoryManager::MemoryManager(OpenCLDeviceBase *device)
+MemoryManager::MemoryManager(OpenCLDevice *device)
 : device(device), need_update(false)
 {
 	foreach(DeviceBuffer& device_buffer, device_buffers) {
