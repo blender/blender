@@ -126,8 +126,8 @@ static int count_num_ptex_faces(const Mesh *mesh)
 	return num_ptex_faces;
 }
 
-static void displacement_data_init_mapping(SubdivCCGMask *mask_evaluator,
-                                           const Mesh *mesh)
+static void mask_data_init_mapping(SubdivCCGMask *mask_evaluator,
+                                   const Mesh *mesh)
 {
 	GridPaintMaskData *data = mask_evaluator->user_data;
 	const MPoly *mpoly = mesh->mpoly;
@@ -156,17 +156,16 @@ static void displacement_data_init_mapping(SubdivCCGMask *mask_evaluator,
 	}
 }
 
-static void displacement_init_data(SubdivCCGMask *mask_evaluator,
-                                   const Mesh *mesh)
+static void mask_init_data(SubdivCCGMask *mask_evaluator, const Mesh *mesh)
 {
 	GridPaintMaskData *data = mask_evaluator->user_data;
 	data->mpoly = mesh->mpoly;
 	data->grid_paint_mask =
 	        CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
-	displacement_data_init_mapping(mask_evaluator, mesh);
+	mask_data_init_mapping(mask_evaluator, mesh);
 }
 
-static void displacement_init_functions(SubdivCCGMask *mask_evaluator)
+static void mask_init_functions(SubdivCCGMask *mask_evaluator)
 {
 	mask_evaluator->eval_mask = eval_mask;
 	mask_evaluator->free = free_mask_data;
@@ -184,7 +183,7 @@ bool BKE_subdiv_ccg_mask_init_from_paint(
 	/* Allocate all required memory. */
 	mask_evaluator->user_data = MEM_callocN(sizeof(GridPaintMaskData),
 	                                        "mask from grid data");
-	displacement_init_data(mask_evaluator, mesh);
-	displacement_init_functions(mask_evaluator);
+	mask_init_data(mask_evaluator, mesh);
+	mask_init_functions(mask_evaluator);
 	return true;
 }
