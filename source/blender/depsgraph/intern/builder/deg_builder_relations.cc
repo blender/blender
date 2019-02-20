@@ -1237,14 +1237,12 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	BLI_assert(operation_from != NULL);
 	/* Build relations from animation operation to properties it changes. */
 	if (adt->action != NULL) {
-		build_animdata_curves_targets(id, adt_key,
-	                              operation_from,
-	                              &adt->action->curves);
+		build_animdata_curves_targets(
+		        id, adt_key, operation_from, &adt->action->curves);
 	}
 	LISTBASE_FOREACH(NlaTrack *, nlt, &adt->nla_tracks) {
-		build_animdata_nlastrip_targets(id, adt_key,
-		                                operation_from,
-		                                &nlt->strips);
+		build_animdata_nlastrip_targets(
+		        id, adt_key, operation_from, &nlt->strips);
 	}
 }
 
@@ -1260,8 +1258,8 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 		PointerRNA ptr;
 		PropertyRNA *prop;
 		int index;
-		if (!RNA_path_resolve_full(&id_ptr, fcu->rna_path,
-		                           &ptr, &prop, &index))
+		if (!RNA_path_resolve_full(
+		        &id_ptr, fcu->rna_path,  &ptr, &prop, &index))
 		{
 			continue;
 		}
@@ -1275,9 +1273,8 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 		 * each of the bones. Bone evaluation could only start from pose
 		 * init anyway. */
 		if (operation_to->opcode == OperationCode::BONE_LOCAL) {
-			OperationKey pose_init_key(id,
-			                           NodeType::EVAL_POSE,
-			                           OperationCode::POSE_INIT);
+			OperationKey pose_init_key(
+			        id, NodeType::EVAL_POSE, OperationCode::POSE_INIT);
 			add_relation(adt_key,
 			             pose_init_key,
 			             "Animation -> Prop",
@@ -1292,8 +1289,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 		const IDNode *id_node_from = operation_from->owner->owner;
 		const IDNode *id_node_to = operation_to->owner->owner;
 		if (id_node_from != id_node_to) {
-			ComponentKey cow_key(id_node_to->id_orig,
-			                     NodeType::COPY_ON_WRITE);
+			ComponentKey cow_key(id_node_to->id_orig, NodeType::COPY_ON_WRITE);
 			add_relation(cow_key,
 			             adt_key,
 			             "Animated CoW -> Animation",
@@ -1314,14 +1310,12 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(
 			ComponentKey action_key(&strip->act->id, NodeType::ANIMATION);
 			add_relation(action_key, adt_key, "Action -> Animation");
 
-			build_animdata_curves_targets(id, adt_key,
-			                              operation_from,
-			                              &strip->act->curves);
+			build_animdata_curves_targets(
+			        id, adt_key, operation_from, &strip->act->curves);
 		}
 		else if (strip->strips.first != NULL) {
-			build_animdata_nlastrip_targets(id, adt_key,
-			                                operation_from,
-			                                &strip->strips);
+			build_animdata_nlastrip_targets(
+			        id, adt_key, operation_from, &strip->strips);
 		}
 	}
 }
