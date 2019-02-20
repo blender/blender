@@ -1358,7 +1358,7 @@ COLLADASW::ColorOrTexture bc_get_base_color(Material *ma)
 		return bc_get_base_color(master_shader);
 	}
 	else {
-		return bc_get_cot(ma->r, ma->g, ma->b, ma->alpha);
+		return bc_get_cot(ma->r, ma->g, ma->b, ma->alpha_threshold);
 	}
 }
 
