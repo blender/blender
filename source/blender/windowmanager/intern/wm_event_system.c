@@ -2392,7 +2392,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 					for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if (wm_eventmatch(event, kmi)) {
-							struct wmEventHandler_KeymapFn keymap_callback = handler->keymap_callback;
+							struct wmEventHandler_KeymapPost keymap_post = handler->post;
 
 							PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
@@ -2404,8 +2404,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							if (action & WM_HANDLER_BREAK) {
 								/* not always_pass here, it denotes removed handler_base */
 								CLOG_INFO(WM_LOG_HANDLERS, 2, "handled! '%s'", kmi->idname);
-								if (keymap_callback.handle_post_fn != NULL) {
-									keymap_callback.handle_post_fn(keymap, kmi, keymap_callback.user_data);
+								if (keymap_post.post_fn != NULL) {
+									keymap_post.post_fn(keymap, kmi, keymap_post.user_data);
 								}
 								break;
 							}
@@ -3427,13 +3427,13 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 	}
 }
 
-void WM_event_set_keymap_handler_callback(
+void WM_event_set_keymap_handler_post_callback(
         wmEventHandler_Keymap *handler,
         void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
         void *user_data)
 {
-	handler->keymap_callback.handle_post_fn = keymap_tag;
-	handler->keymap_callback.user_data = user_data;
+	handler->post.post_fn = keymap_tag;
+	handler->post.user_data = user_data;
 }
 
 wmEventHandler_UI *WM_event_add_ui_handler(

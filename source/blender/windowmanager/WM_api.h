@@ -205,9 +205,9 @@ struct wmKeyMap *WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
         ListBase *handlers, wmEventHandler_KeymapDynamicFn *keymap_fn, void *user_data);
 
-void		WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
+void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 
-void WM_event_set_keymap_handler_callback(
+void WM_event_set_keymap_handler_post_callback(
         struct wmEventHandler_Keymap *handler,
         void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
         void *user_data);
