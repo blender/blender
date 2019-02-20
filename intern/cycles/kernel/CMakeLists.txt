@@ -36,8 +36,8 @@ set(SRC_CUDA_KERNELS
 )
 
 set(SRC_OPENCL_KERNELS
-	kernels/opencl/kernel.cl
 	kernels/opencl/kernel_bake.cl
+	kernels/opencl/kernel_base.cl
 	kernels/opencl/kernel_displace.cl
 	kernels/opencl/kernel_background.cl
 	kernels/opencl/kernel_state_buffer_size.cl

@@ -67,7 +67,6 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	/* Backup some settings for comparison. */
 	DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
-	DebugFlags::OpenCL::KernelType opencl_kernel_type = flags.opencl.kernel_type;
 	/* Synchronize shared flags. */
 	flags.viewport_static_bvh = get_enum(cscene, "debug_bvh_type");
 	/* Synchronize CPU flags. */
@@ -81,18 +80,6 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
 	/* Synchronize CUDA flags. */
 	flags.cuda.adaptive_compile = get_boolean(cscene, "debug_use_cuda_adaptive_compile");
 	flags.cuda.split_kernel = get_boolean(cscene, "debug_use_cuda_split_kernel");
-	/* Synchronize OpenCL kernel type. */
-	switch(get_enum(cscene, "debug_opencl_kernel_type")) {
-		case 0:
-			flags.opencl.kernel_type = DebugFlags::OpenCL::KERNEL_DEFAULT;
-			break;
-		case 1:
-			flags.opencl.kernel_type = DebugFlags::OpenCL::KERNEL_MEGA;
-			break;
-		case 2:
-			flags.opencl.kernel_type = DebugFlags::OpenCL::KERNEL_SPLIT;
-			break;
-	}
 	/* Synchronize OpenCL device type. */
 	switch(get_enum(cscene, "debug_opencl_device_type")) {
 		case 0:
@@ -118,8 +105,7 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
 	flags.opencl.debug = get_boolean(cscene, "debug_use_opencl_debug");
 	flags.opencl.mem_limit = ((size_t)get_int(cscene, "debug_opencl_mem_limit"))*1024*1024;
 	flags.opencl.single_program = get_boolean(cscene, "debug_opencl_kernel_single_program");
-	return flags.opencl.device_type != opencl_device_type ||
-	       flags.opencl.kernel_type != opencl_kernel_type;
+	return flags.opencl.device_type != opencl_device_type;
 }
 
 /* Reset debug flags to default values.
@@ -130,10 +116,8 @@ bool debug_flags_reset()
 	DebugFlagsRef flags = DebugFlags();
 	/* Backup some settings for comparison. */
 	DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
-	DebugFlags::OpenCL::KernelType opencl_kernel_type = flags.opencl.kernel_type;
 	flags.reset();
-	return flags.opencl.device_type != opencl_device_type ||
-	       flags.opencl.kernel_type != opencl_kernel_type;
+	return flags.opencl.device_type != opencl_device_type;
 }
 
 }  /* namespace */

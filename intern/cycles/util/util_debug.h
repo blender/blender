@@ -123,9 +123,6 @@ public:
 		/* Requested device type. */
 		DeviceType device_type;
 
-		/* Requested kernel type. */
-		KernelType kernel_type;
-
 		/* Use debug version of the kernel. */
 		bool debug;
 

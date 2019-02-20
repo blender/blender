@@ -243,7 +243,7 @@ string OpenCLCache::get_kernel_md5()
 	return self.kernel_md5;
 }
 
-OpenCLDeviceBase::OpenCLProgram::OpenCLProgram(OpenCLDeviceBase *device,
+OpenCLDevice::OpenCLProgram::OpenCLProgram(OpenCLDevice *device,
                                                const string& program_name,
                                                const string& kernel_file,
                                                const string& kernel_build_options,
@@ -258,12 +258,12 @@ OpenCLDeviceBase::OpenCLProgram::OpenCLProgram(OpenCLDeviceBase *device,
 	program = NULL;
 }
 
-OpenCLDeviceBase::OpenCLProgram::~OpenCLProgram()
+OpenCLDevice::OpenCLProgram::~OpenCLProgram()
 {
 	release();
 }
 
-void OpenCLDeviceBase::OpenCLProgram::release()
+void OpenCLDevice::OpenCLProgram::release()
 {
 	for(map<ustring, cl_kernel>::iterator kernel = kernels.begin(); kernel != kernels.end(); ++kernel) {
 		if(kernel->second) {
@@ -277,7 +277,7 @@ void OpenCLDeviceBase::OpenCLProgram::release()
 	}
 }
 
-void OpenCLDeviceBase::OpenCLProgram::add_log(const string& msg, bool debug)
+void OpenCLDevice::OpenCLProgram::add_log(const string& msg, bool debug)
 {
 	if(!use_stdout) {
 		log += msg + "\n";
@@ -291,7 +291,7 @@ void OpenCLDeviceBase::OpenCLProgram::add_log(const string& msg, bool debug)
 	}
 }
 
-void OpenCLDeviceBase::OpenCLProgram::add_error(const string& msg)
+void OpenCLDevice::OpenCLProgram::add_error(const string& msg)
 {
 	if(use_stdout) {
 		fprintf(stderr, "%s\n", msg.c_str());
@@ -302,14 +302,14 @@ void OpenCLDeviceBase::OpenCLProgram::add_error(const string& msg)
 	error_msg += msg;
 }
 
-void OpenCLDeviceBase::OpenCLProgram::add_kernel(ustring name)
+void OpenCLDevice::OpenCLProgram::add_kernel(ustring name)
 {
 	if(!kernels.count(name)) {
 		kernels[name] = NULL;
 	}
 }
 
-bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
+bool OpenCLDevice::OpenCLProgram::build_kernel(const string *debug_src)
 {
 	string build_options;
 	build_options = device->kernel_build_options(debug_src) + kernel_build_options;
@@ -341,7 +341,7 @@ bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
 	return (ciErr == CL_SUCCESS);
 }
 
-bool OpenCLDeviceBase::OpenCLProgram::compile_kernel(const string *debug_src)
+bool OpenCLDevice::OpenCLProgram::compile_kernel(const string *debug_src)
 {
 	string source = "#include \"kernel/kernels/opencl/" + kernel_file + "\"\n";
 	/* We compile kernels consisting of many files. unfortunately OpenCL
@@ -389,14 +389,13 @@ static void escape_python_string(string& str)
 	string_replace(str, "'", "\'");
 }
 
-bool OpenCLDeviceBase::OpenCLProgram::compile_separate(const string& clbin)
+bool OpenCLDevice::OpenCLProgram::compile_separate(const string& clbin)
 {
 	vector<string> args;
 	args.push_back("--background");
 	args.push_back("--factory-startup");
 	args.push_back("--python-expr");
 
-	const char *force_all_platforms = (DebugFlags().opencl.kernel_type != DebugFlags::OpenCL::KERNEL_DEFAULT)? "true" : "false";
 	int device_platform_id = device->device_num;
 	string device_name = device->device_name;
 	string platform_name = device->platform_name;
@@ -412,8 +411,7 @@ bool OpenCLDeviceBase::OpenCLProgram::compile_separate(const string& clbin)
 
 	args.push_back(
 		string_printf(
-			"import _cycles; _cycles.opencl_compile(r'%s', r'%d', r'%s', r'%s', r'%s', r'%s', r'%s')",
-			force_all_platforms,
+			"import _cycles; _cycles.opencl_compile(r'%d', r'%s', r'%s', r'%s', r'%s', r'%s')",
 			device_platform_id,
 			device_name.c_str(),
 			platform_name.c_str(),
@@ -438,20 +436,19 @@ bool OpenCLDeviceBase::OpenCLProgram::compile_separate(const string& clbin)
  * module compile kernels. Parameters must match function above. */
 bool device_opencl_compile_kernel(const vector<string>& parameters)
 {
-	bool force_all_platforms = parameters[0] == "true";
-	int device_platform_id = std::stoi(parameters[1]);
-	const string& device_name = parameters[2];
-	const string& platform_name = parameters[3];
-	const string& build_options = parameters[4];
-	const string& kernel_file = parameters[5];
-	const string& binary_path = parameters[6];
+	int device_platform_id = std::stoi(parameters[0]);
+	const string& device_name = parameters[1];
+	const string& platform_name = parameters[2];
+	const string& build_options = parameters[3];
+	const string& kernel_file = parameters[4];
+	const string& binary_path = parameters[5];
 
 	if(clewInit() != CLEW_SUCCESS) {
 		return false;
 	}
 
 	vector<OpenCLPlatformDevice> usable_devices;
-	OpenCLInfo::get_usable_devices(&usable_devices, force_all_platforms);
+	OpenCLInfo::get_usable_devices(&usable_devices);
 	if(device_platform_id >= usable_devices.size()) {
 		return false;
 	}
@@ -504,7 +501,7 @@ bool device_opencl_compile_kernel(const vector<string>& parameters)
 	return result;
 }
 
-bool OpenCLDeviceBase::OpenCLProgram::load_binary(const string& clbin,
+bool OpenCLDevice::OpenCLProgram::load_binary(const string& clbin,
                                                   const string *debug_src)
 {
 	/* read binary into memory */
@@ -535,7 +532,7 @@ bool OpenCLDeviceBase::OpenCLProgram::load_binary(const string& clbin,
 	return true;
 }
 
-bool OpenCLDeviceBase::OpenCLProgram::save_binary(const string& clbin)
+bool OpenCLDevice::OpenCLProgram::save_binary(const string& clbin)
 {
 	size_t size = 0;
 	clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &size, NULL);
@@ -551,7 +548,7 @@ bool OpenCLDeviceBase::OpenCLProgram::save_binary(const string& clbin)
 	return path_write_binary(clbin, binary);
 }
 
-void OpenCLDeviceBase::OpenCLProgram::load()
+void OpenCLDevice::OpenCLProgram::load()
 {
 	assert(device);
 
@@ -642,7 +639,7 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 	loaded = true;
 }
 
-void OpenCLDeviceBase::OpenCLProgram::report_error()
+void OpenCLDevice::OpenCLProgram::report_error()
 {
 	/* If loaded is true, there was no error. */
 	if(loaded) return;
@@ -656,13 +653,13 @@ void OpenCLDeviceBase::OpenCLProgram::report_error()
 	}
 }
 
-cl_kernel OpenCLDeviceBase::OpenCLProgram::operator()()
+cl_kernel OpenCLDevice::OpenCLProgram::operator()()
 {
 	assert(kernels.size() == 1);
 	return kernels.begin()->second;
 }
 
-cl_kernel OpenCLDeviceBase::OpenCLProgram::operator()(ustring name)
+cl_kernel OpenCLDevice::OpenCLProgram::operator()(ustring name)
 {
 	assert(kernels.count(name));
 	return kernels[name];
@@ -713,28 +710,6 @@ bool OpenCLInfo::kernel_use_advanced_shading(const string& platform)
 	/* Make sure officially unsupported OpenCL platforms
 	 * does not set up to use advanced shading.
 	 */
-	return false;
-}
-
-bool OpenCLInfo::kernel_use_split(const string& platform_name,
-                                  const cl_device_type device_type)
-{
-	if(DebugFlags().opencl.kernel_type == DebugFlags::OpenCL::KERNEL_SPLIT) {
-		VLOG(1) << "Forcing split kernel to use.";
-		return true;
-	}
-	if(DebugFlags().opencl.kernel_type == DebugFlags::OpenCL::KERNEL_MEGA) {
-		VLOG(1) << "Forcing mega kernel to use.";
-		return false;
-	}
-	/* TODO(sergey): Replace string lookups with more enum-like API,
-	 * similar to device/vendor checks blender's gpu.
-	 */
-	if(platform_name == "AMD Accelerated Parallel Processing" &&
-	   device_type == CL_DEVICE_TYPE_GPU)
-	{
-		return true;
-	}
 	return false;
 }
 
@@ -878,8 +853,6 @@ string OpenCLInfo::get_hardware_id(const string& platform_name, cl_device_id dev
 void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices,
                                     bool force_all)
 {
-	const bool force_all_platforms = force_all ||
-		(DebugFlags().opencl.kernel_type != DebugFlags::OpenCL::KERNEL_DEFAULT);
 	const cl_device_type device_type = OpenCLInfo::device_type();
 	static bool first_time = true;
 #define FIRST_VLOG(severity) if(first_time) VLOG(severity)
@@ -952,7 +925,7 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 				              << " due to old compiler version.";
 				continue;
 			}
-			if(force_all_platforms ||
+			if(force_all ||
 			   device_supported(platform_name, device_id))
 			{
 				cl_device_type device_type;
