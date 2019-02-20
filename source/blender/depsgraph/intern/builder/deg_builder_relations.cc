@@ -710,6 +710,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	                             OperationCode::SYNCHRONIZE_TO_ORIGINAL);
 	add_relation(
 	        final_transform_key, synchronize_key, "Synchronize to Original");
+	/* Parameters. */
+	build_parameters(&object->id);
 }
 
 void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
@@ -806,8 +808,8 @@ void DepsgraphRelationBuilder::build_object_data_lamp(Object *object)
 {
 	Lamp *lamp = (Lamp *)object->data;
 	build_lamp(lamp);
-	ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
 	ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
+	ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
 	add_relation(lamp_parameters_key, object_parameters_key, "Light -> Object");
 }
 
@@ -1623,6 +1625,20 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 		}
 		DRIVER_TARGETS_LOOPER_END;
 	}
+}
+
+void DepsgraphRelationBuilder::build_parameters(ID *id)
+{
+	OperationKey parameters_entry_key(
+	        id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
+	OperationKey parameters_eval_key(
+	        id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+	OperationKey parameters_exit_key(
+	        id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+	add_relation(
+	        parameters_entry_key, parameters_eval_key, "Entry -> Eval");
+	add_relation(
+	        parameters_eval_key, parameters_exit_key, "Entry -> Exit");
 }
 
 void DepsgraphRelationBuilder::build_world(World *world)

@@ -602,14 +602,14 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Object data. */
 	build_object_data(object, is_visible);
+	/* Paramaters, used by both drivers/animation and also to inform dependency
+	 * from object's data. */
+	build_parameters(&object->id);
 	/* Build animation data,
 	 *
 	 * Do it now because it's possible object data will affect
 	 * on object's level animation, for example in case of rebuilding
 	 * pose for proxy. */
-	OperationNode *op_node = add_operation_node(
-	        &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
-	op_node->set_as_exit();
 	build_animdata(&object->id);
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
@@ -981,6 +981,23 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id,
 	                      OperationCode::ID_PROPERTY,
 	                      NULL,
 	                      prop_identifier);
+}
+
+void DepsgraphNodeBuilder::build_parameters(ID *id)
+{
+	(void) add_id_node(id);
+	OperationNode *op_node;
+	/* Explicit entry. */
+	op_node = add_operation_node(
+	        id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
+	op_node->set_as_entry();
+	/* Generic evaluation node. */
+	add_operation_node(
+	        id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+	/* Explicit exit operation. */
+	op_node = add_operation_node(
+	        id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+	op_node->set_as_exit();
 }
 
 /* Recursively build graph for world */

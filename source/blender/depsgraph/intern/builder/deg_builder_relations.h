@@ -243,6 +243,7 @@ struct DepsgraphRelationBuilder
 	void build_driver(ID *id, FCurve *fcurve);
 	void build_driver_data(ID *id, FCurve *fcurve);
 	void build_driver_variables(ID *id, FCurve *fcurve);
+	void build_parameters(ID *id);
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
 	void build_particle_systems(Object *object);
