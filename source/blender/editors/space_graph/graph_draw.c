@@ -484,10 +484,9 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *ar, FCurve *fcu)
 /* Curve ---------------- */
 
 /* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
-static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, View2DGrid *grid, unsigned int pos)
+static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, View2DGrid *grid, unsigned int pos)
 {
 	SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-	ChannelDriver *driver;
 	float samplefreq;
 	float stime, etime;
 	float unitFac, offset;
@@ -502,12 +501,12 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 		return;
 
 
-	/* disable any drivers temporarily */
-	driver = fcu->driver;
-	fcu->driver = NULL;
+	/* disable any drivers */
+	FCurve fcurve_for_draw = *fcu_;
+	fcurve_for_draw.driver = NULL;
 
 	/* compute unit correction factor */
-	unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
+	unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, &fcurve_for_draw, mapping_flag, &offset);
 
 	/* Note about sampling frequency:
 	 * Ideally, this is chosen such that we have 1-2 pixels = 1 segment
@@ -563,14 +562,11 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 
 		for (i = 0; i <= n; i++) {
 			float ctime = stime + i * samplefreq;
-			immVertex2f(pos, ctime, (evaluate_fcurve(fcu, ctime) + offset) * unitFac);
+			immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, ctime) + offset) * unitFac);
 		}
 
 		immEnd();
 	}
-
-	/* restore driver */
-	fcu->driver = driver;
 }
 
 /* helper func - draw a samples-based F-Curve */
