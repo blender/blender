@@ -1035,9 +1035,9 @@ void BlenderSync::sync_curves(Mesh *mesh,
 					size_t i = 0;
 
 					/* Encode vertex color using the sRGB curve. */
-					for(size_t curve = 0; curve < CData.curve_vcol.size(); curve++)
-						if(!(CData.curve_keynum[curve] <= 1 || CData.curve_length[curve] == 0.0f))
-							fdata[i++] = color_srgb_to_linear_v3(CData.curve_vcol[curve]);
+					for(size_t curve = 0; curve < CData.curve_vcol.size(); curve++) {
+						fdata[i++] = color_srgb_to_linear_v3(CData.curve_vcol[curve]);
+					}
 				}
 			}
 		}
@@ -1080,9 +1080,9 @@ void BlenderSync::sync_curves(Mesh *mesh,
 					if(uv) {
 						size_t i = 0;
 
-						for(size_t curve = 0; curve < CData.curve_uv.size(); curve++)
-							if(!(CData.curve_keynum[curve] <= 1 || CData.curve_length[curve] == 0.0f))
-								uv[i++] = CData.curve_uv[curve];
+						for(size_t curve = 0; curve < CData.curve_uv.size(); curve++) {
+							uv[i++] = CData.curve_uv[curve];
+						}
 					}
 				}
 			}
