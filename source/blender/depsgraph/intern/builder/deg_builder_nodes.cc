@@ -831,8 +831,9 @@ void DepsgraphNodeBuilder::build_object_pointcache(Object *object)
  */
 void DepsgraphNodeBuilder::build_animdata(ID *id)
 {
+	/* Special handling for animated images/sequences. */
 	build_animation_images(id);
-
+	/* Regular animation. */
 	AnimData *adt = BKE_animdata_from_id(id);
 	if (adt == NULL) {
 		return;
@@ -840,39 +841,24 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 	if (adt->action != NULL) {
 		build_action(adt->action);
 	}
-	/* animation */
-	if (adt->action || adt->nla_tracks.first || adt->drivers.first) {
-		(void) add_id_node(id);
-		ID *id_cow = get_cow_id(id);
-
-		// XXX: Hook up specific update callbacks for special properties which
-		// may need it...
-
-		/* actions and NLA - as a single unit for now, as it gets complicated to
-		 * schedule otherwise.  */
-		if ((adt->action) || (adt->nla_tracks.first)) {
-			/* create the node */
-			add_operation_node(
-			        id, NodeType::ANIMATION,
-			        OperationCode::ANIMATION,
-			        function_bind(BKE_animsys_eval_animdata, _1, id_cow),
-			        id->name);
-			/* TODO: for each channel affected, we might also want to add some
-			 * support for running RNA update callbacks on them
-			 * (which will be needed for proper handling of drivers later) */
-		}
-
-		/* NLA strips contain actions */
-		LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-			build_animdata_nlastrip_targets(&nlt->strips);
-		}
-
-		/* drivers */
-		int driver_index = 0;
-		LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-			/* create driver */
-			build_driver(id, fcu, driver_index++);
-		}
+	/* Make sure ID node exists. */
+	(void) add_id_node(id);
+	ID *id_cow = get_cow_id(id);
+	if (adt->action != NULL || !BLI_listbase_is_empty(&adt->nla_tracks)) {
+		add_operation_node(id, NodeType::ANIMATION,
+		                   OperationCode::ANIMATION,
+		                   function_bind(BKE_animsys_eval_animdata, _1, id_cow),
+		                   id->name);
+	}
+	/* NLA strips contain actions. */
+	LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+		build_animdata_nlastrip_targets(&nlt->strips);
+	}
+	/* Drivers. */
+	int driver_index = 0;
+	LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+		/* create driver */
+		build_driver(id, fcu, driver_index++);
 	}
 }
 
