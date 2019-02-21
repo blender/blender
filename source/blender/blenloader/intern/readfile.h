@@ -38,44 +38,54 @@ struct PartEff;
 struct ReportList;
 struct View3D;
 
+enum eFileDataFlag {
+	FD_FLAGS_SWITCH_ENDIAN         = 1 << 0,
+	FD_FLAGS_FILE_POINTSIZE_IS_4   = 1 << 1,
+	FD_FLAGS_POINTSIZE_DIFFERS     = 1 << 2,
+	FD_FLAGS_FILE_OK               = 1 << 3,
+	FD_FLAGS_NOT_MY_BUFFER         = 1 << 4,
+	/* XXX Unused in practice (checked once but never set). */
+	FD_FLAGS_NOT_MY_LIBMAP         = 1 << 5,
+};
+
 typedef struct FileData {
-	// linked list of BHeadN's
+	/** Linked list of BHeadN's. */
 	ListBase listbase;
-	int flags;
-	int eof;
+	enum eFileDataFlag flags;
+	bool is_eof;
 	int buffersize;
 	int seek;
 	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
 
-	// variables needed for reading from memory / stream
+	/** Variables needed for reading from memory / stream. */
 	const char *buffer;
-	// variables needed for reading from memfile (undo)
+	/** Variables needed for reading from memfile (undo). */
 	struct MemFile *memfile;
 
-	// variables needed for reading from file
+	/** Variables needed for reading from file. */
 	int filedes;
 	gzFile gzfiledes;
 
-	// now only in use for library appending
+	/** Now only in use for library appending. */
 	char relabase[FILE_MAX];
 
-	// variables needed for reading from stream
-	char headerdone;
-	int inbuffer;
-
-	// gzip stream for memory decompression
+	/** Gzip stream for memory decompression. */
 	z_stream strm;
 
-	// general reading variables
+	/** General reading variables. */
 	struct SDNA *filesdna;
 	const struct SDNA *memsdna;
-	const char *compflags;  /* array of eSDNA_StructCompare */
+	/** Array of #eSDNA_StructCompare. */
+	const char *compflags;
 
 	int fileversion;
-	int id_name_offs;       /* used to retrieve ID names from (bhead+1) */
-	int globalf, fileflags; /* for do_versions patching */
+	/** Used to retrieve ID names from (bhead+1). */
+	int id_name_offs;
+	/** For do_versions patching. */
+	int globalf, fileflags;
 
-	eBLOReadSkip skip_flags;  /* skip some data-blocks */
+	/** Optionally skip some data-blocks when they're not needed. */
+	eBLOReadSkip skip_flags;
 
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;
@@ -89,11 +99,12 @@ typedef struct FileData {
 	struct BHeadSort *bheadmap;
 	int tot_bheadmap;
 
-	/* see: USE_GHASH_BHEAD */
+	/** See: #USE_GHASH_BHEAD. */
 	struct GHash *bhead_idname_hash;
 
 	ListBase *mainlist;
-	ListBase *old_mainlist;  /* Used for undo. */
+	/** Used for undo. */
+	ListBase *old_mainlist;
 
 	struct ReportList *reports;
 } FileData;
@@ -102,16 +113,6 @@ typedef struct BHeadN {
 	struct BHeadN *next, *prev;
 	struct BHead bhead;
 } BHeadN;
-
-/* FileData->flags */
-enum {
-	FD_FLAGS_SWITCH_ENDIAN         = 1 << 0,
-	FD_FLAGS_FILE_POINTSIZE_IS_4   = 1 << 1,
-	FD_FLAGS_POINTSIZE_DIFFERS     = 1 << 2,
-	FD_FLAGS_FILE_OK               = 1 << 3,
-	FD_FLAGS_NOT_MY_BUFFER         = 1 << 4,
-	FD_FLAGS_NOT_MY_LIBMAP         = 1 << 5,  /* XXX Unused in practice (checked once but never set). */
-};
 
 #define SIZEOFBLENDERHEADER 12
 

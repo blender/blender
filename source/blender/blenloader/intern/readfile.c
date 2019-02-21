@@ -726,7 +726,7 @@ static BHeadN *get_bhead(FileData *fd)
 	int readsize;
 
 	if (fd) {
-		if (!fd->eof) {
+		if (!fd->is_eof) {
 			/* initializing to zero isn't strictly needed but shuts valgrind up
 			 * since uninitialized memory gets compared */
 			BHead8 bhead8 = {0};
@@ -759,7 +759,7 @@ static BHeadN *get_bhead(FileData *fd)
 					}
 				}
 				else {
-					fd->eof = 1;
+					fd->is_eof = true;
 					bhead.len = 0;
 				}
 			}
@@ -782,18 +782,20 @@ static BHeadN *get_bhead(FileData *fd)
 					}
 				}
 				else {
-					fd->eof = 1;
+					fd->is_eof = true;
 					bhead.len = 0;
 				}
 			}
 
 			/* make sure people are not trying to pass bad blend files */
-			if (bhead.len < 0) fd->eof = 1;
+			if (bhead.len < 0) {
+				fd->is_eof = true;
+			}
 
 			/* bhead now contains the (converted) bhead structure. Now read
 			 * the associated data and put everything in a BHeadN (creative naming !)
 			 */
-			if (!fd->eof) {
+			if (!fd->is_eof) {
 				new_bhead = MEM_mallocN(sizeof(BHeadN) + bhead.len, "new_bhead");
 				if (new_bhead) {
 					new_bhead->next = new_bhead->prev = NULL;
@@ -802,13 +804,13 @@ static BHeadN *get_bhead(FileData *fd)
 					readsize = fd->read(fd, new_bhead + 1, bhead.len);
 
 					if (readsize != bhead.len) {
-						fd->eof = 1;
+						fd->is_eof = true;
 						MEM_freeN(new_bhead);
 						new_bhead = NULL;
 					}
 				}
 				else {
-					fd->eof = 1;
+					fd->is_eof = true;
 				}
 			}
 		}
@@ -821,7 +823,7 @@ static BHeadN *get_bhead(FileData *fd)
 		BLI_addtail(&fd->listbase, new_bhead);
 	}
 
-	return(new_bhead);
+	return new_bhead;
 }
 
 BHead *blo_firstbhead(FileData *fd)
@@ -841,7 +843,7 @@ BHead *blo_firstbhead(FileData *fd)
 		bhead = &new_bhead->bhead;
 	}
 
-	return(bhead);
+	return bhead;
 }
 
 BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
@@ -875,7 +877,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 		bhead = &new_bhead->bhead;
 	}
 
-	return(bhead);
+	return bhead;
 }
 
 /* Warning! Caller's responsibility to ensure given bhead **is** and ID one! */
@@ -1106,7 +1108,6 @@ static FileData *filedata_new(void)
 {
 	FileData *fd = MEM_callocN(sizeof(FileData), "FileData");
 
-	fd->filedes = -1;
 	fd->gzfiledes = NULL;
 
 	fd->memsdna = DNA_sdna_current_get();
