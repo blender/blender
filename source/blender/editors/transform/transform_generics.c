@@ -1232,6 +1232,7 @@ void initTransDataContainers_FromObjectData(TransInfo *t, Object *obact, Object 
 			tc->mirror.axis_flag = (
 			        ((t->flag & T_NO_MIRROR) == 0) &&
 			        ((t->options & CTX_NO_MIRROR) == 0) &&
+			        (objects[i]->type == OB_MESH) &&
 			        (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_X) != 0);
 
 			if (object_mode & OB_MODE_EDIT) {
