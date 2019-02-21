@@ -419,7 +419,7 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 
 			uint motion_steps;
 
-			if(scene->need_motion() == Scene::MOTION_BLUR) {
+			if(need_motion == Scene::MOTION_BLUR) {
 				motion_steps = object_motion_steps(b_parent, b_ob);
 				mesh->motion_steps = motion_steps;
 				if(motion_steps && object_use_deform_motion(b_parent, b_ob)) {
