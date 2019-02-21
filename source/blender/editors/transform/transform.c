@@ -3824,9 +3824,15 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	size_to_mat3(mat, t->values);
-
-	if (t->con.applySize) {
+	if (t->con.mode & CON_APPLY) {
 		t->con.applySize(t, NULL, NULL, mat);
+
+		/* Only so we have re-usable value with redo. */
+		for (i = 0; i < 3; i++) {
+			if (!(t->con.mode & (CON_AXIS0 << i))) {
+				t->values[i] = 1.0f;
+			}
+		}
 	}
 
 	copy_m3_m3(t->mat, mat);    // used in gizmo
@@ -3850,8 +3856,9 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 1)) {
 		size_to_mat3(mat, t->values);
 
-		if (t->con.applySize)
+		if (t->con.mode & CON_APPLY) {
 			t->con.applySize(t, NULL, NULL, mat);
+		}
 
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
