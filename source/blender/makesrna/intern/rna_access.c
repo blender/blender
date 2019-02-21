@@ -6316,20 +6316,24 @@ static const char *bool_as_py_string(const int var)
 	return var ? "True" : "False";
 }
 
-static void *rna_array_as_string_alloc(int type, int len, PointerRNA *ptr, PropertyRNA *prop)
+static void *rna_array_as_string_alloc(
+        int type, int len, PointerRNA *ptr, PropertyRNA *prop, void **r_buf_end)
 {
 	void *buf_ret = NULL;
 	if (type == PROP_BOOLEAN) {
 		bool *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len,  __func__);
 		RNA_property_boolean_get_array(ptr, prop, buf);
+		*r_buf_end = buf + len;
 	}
 	else if (type == PROP_INT) {
 		int *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len,  __func__);
 		RNA_property_int_get_array(ptr, prop, buf);
+		*r_buf_end = buf + len;
 	}
 	else if (type == PROP_FLOAT) {
 		float *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len,  __func__);
 		RNA_property_float_get_array(ptr, prop, buf);
+		*r_buf_end = buf + len;
 	}
 	else {
 		BLI_assert(0);
@@ -6391,14 +6395,15 @@ static void rna_array_as_string_recursive(
 
 static void rna_array_as_string(int type, int len, PointerRNA *ptr, PropertyRNA *prop, DynStr *dynstr)
 {
-	void *buf = rna_array_as_string_alloc(type, len, ptr, prop);
-	void *temp_buf = buf;
+	void *buf_end;
+	void *buf = rna_array_as_string_alloc(type, len, ptr, prop, &buf_end);
+	void *buf_step = buf;
 	int totdim, dim_size[RNA_MAX_ARRAY_DIMENSION];
 
 	totdim = RNA_property_array_dimension(ptr, prop, dim_size);
 
-	rna_array_as_string_recursive(type, &temp_buf, totdim, dim_size, dynstr);
-	BLI_assert(temp_buf == (char *)buf + MEM_allocN_len(buf));
+	rna_array_as_string_recursive(type, &buf_step, totdim, dim_size, dynstr);
+	BLI_assert(buf_step == buf_end);
 	MEM_freeN(buf);
 }
 
