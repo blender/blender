@@ -1318,11 +1318,11 @@ BLI_INLINE void apply_blend_function_byte(
 	rt = out;
 	while (y--) {
 		for (x = xo; x > 0; x--) {
-			achannel = rt2[3];
-			rt2[3] = (unsigned int) achannel * facf0;
+			achannel = rt1[3];
+			rt1[3] = (unsigned int) achannel * facf0;
 			blend_function(rt, rt1, rt2);
-			rt2[3] = achannel;
-			rt[3] = rt2[3];
+			rt1[3] = achannel;
+			rt[3] = rt1[3];
 			rt1 += 4;
 			rt2 += 4;
 			rt += 4;
@@ -1332,11 +1332,11 @@ BLI_INLINE void apply_blend_function_byte(
 		}
 		y--;
 		for (x = xo; x > 0; x--) {
-			achannel = rt2[3];
-			rt2[3] = (unsigned int) achannel * facf1;
+			achannel = rt1[3];
+			rt1[3] = (unsigned int) achannel * facf1;
 			blend_function(rt, rt1, rt2);
-			rt2[3] = achannel;
-			rt[3] = rt2[3];
+			rt1[3] = achannel;
+			rt[3] = rt1[3];
 			rt1 += 4;
 			rt2 += 4;
 			rt += 4;
@@ -1357,11 +1357,11 @@ BLI_INLINE void apply_blend_function_float(
 	rt = out;
 	while (y--) {
 		for (x = xo; x > 0; x--) {
-			achannel = rt2[3];
-			rt2[3] = achannel * facf0;
+			achannel = rt1[3];
+			rt1[3] = achannel * facf0;
 			blend_function(rt, rt1, rt2);
-			rt2[3] = achannel;
-			rt[3] = rt2[3];
+			rt1[3] = achannel;
+			rt[3] = rt1[3];
 			rt1 += 4;
 			rt2 += 4;
 			rt += 4;
@@ -1371,11 +1371,11 @@ BLI_INLINE void apply_blend_function_float(
 		}
 		y--;
 		for (x = xo; x > 0; x--) {
-			achannel = rt2[3];
-			rt2[3] = achannel * facf1;
+			achannel = rt1[3];
+			rt1[3] = achannel * facf1;
 			blend_function(rt, rt1, rt2);
-			rt2[3] = achannel;
-			rt[3] = rt2[3];
+			rt1[3] = achannel;
+			rt[3] = rt1[3];
 			rt1 += 4;
 			rt2 += 4;
 			rt += 4;
