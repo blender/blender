@@ -5804,7 +5804,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	/* Hack over hack, looks like in some cases eval object has not yet been fully flushed or so?
 	 * In some cases, macro operators starting transform just after creating a new object (OBJECT_OT_duplicate),
 	 * if dupli flags are not protected, they can be erased here (see T61787). */
-	ob->transflag = (object_eval->transflag & ~(OB_DUPLI | OB_DUPLIFACES_SCALE | OB_DUPLIROT));
+	ob->transflag = ((object_eval->transflag & ~(OB_DUPLI | OB_DUPLIFACES_SCALE | OB_DUPLIROT)) |
+	                 (ob->transflag & (OB_DUPLI | OB_DUPLIFACES_SCALE | OB_DUPLIROT)));
 
 	td->ob = ob;
 
