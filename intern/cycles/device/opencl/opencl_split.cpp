@@ -154,21 +154,21 @@ public:
 		if(cached_id != cached_memory.id) {
 			cl_uint start_arg_index =
 				device->kernel_set_args(program(),
-					            0,
-					            kg,
-					            data,
-					            *cached_memory.split_data,
-					            *cached_memory.ray_state);
+				                        0,
+				                        kg,
+				                        data,
+				                        *cached_memory.split_data,
+				                        *cached_memory.ray_state);
 
 				device->set_kernel_arg_buffers(program(), &start_arg_index);
 
 			start_arg_index +=
 				device->kernel_set_args(program(),
-					            start_arg_index,
-					            *cached_memory.queue_index,
-					            *cached_memory.use_queues_flag,
-					            *cached_memory.work_pools,
-					            *cached_memory.buffer);
+				                        start_arg_index,
+				                        *cached_memory.queue_index,
+				                        *cached_memory.use_queues_flag,
+				                        *cached_memory.work_pools,
+				                        *cached_memory.buffer);
 
 			cached_id = cached_memory.id;
 		}
@@ -211,9 +211,9 @@ public:
 		bool single_program = OpenCLInfo::use_single_program();
 		kernel->program =
 			OpenCLDevice::OpenCLProgram(device,
-			                                device->get_opencl_program_name(single_program, kernel_name),
-			                                device->get_opencl_program_filename(single_program, kernel_name),
-			                                device->get_build_options(requested_features));
+			                            device->get_opencl_program_name(single_program, kernel_name),
+			                            device->get_opencl_program_filename(single_program, kernel_name),
+			                            device->get_build_options(requested_features));
 
 		kernel->program.add_kernel(ustring("path_trace_" + kernel_name));
 		kernel->program.load();
@@ -237,14 +237,14 @@ public:
 
 		size_t global_size = 64;
 		device->ciErr = clEnqueueNDRangeKernel(device->cqCommandQueue,
-		                               device->program_state_buffer_size(),
-		                               1,
-		                               NULL,
-		                               &global_size,
-		                               NULL,
-		                               0,
-		                               NULL,
-		                               NULL);
+		                                       device->program_state_buffer_size(),
+		                                       1,
+		                                       NULL,
+		                                       &global_size,
+		                                       NULL,
+		                                       0,
+		                                       NULL,
+		                                       NULL);
 
 		device->opencl_assert_err(device->ciErr, "clEnqueueNDRangeKernel");
 
@@ -284,43 +284,43 @@ public:
 
 		cl_uint start_arg_index =
 			device->kernel_set_args(device->program_data_init(),
-			                0,
-			                kernel_globals,
-			                kernel_data,
-			                split_data,
-			                num_global_elements,
-			                ray_state);
+			                        0,
+			                        kernel_globals,
+			                        kernel_data,
+			                        split_data,
+			                        num_global_elements,
+			                        ray_state);
 
 			device->set_kernel_arg_buffers(device->program_data_init(), &start_arg_index);
 
 		start_arg_index +=
 			device->kernel_set_args(device->program_data_init(),
-			                start_arg_index,
-			                start_sample,
-			                end_sample,
-			                rtile.x,
-			                rtile.y,
-			                rtile.w,
-			                rtile.h,
-			                rtile.offset,
-			                rtile.stride,
-			                queue_index,
-			                dQueue_size,
-			                use_queues_flag,
-			                work_pool_wgs,
-			                rtile.num_samples,
-			                rtile.buffer);
+			                        start_arg_index,
+			                        start_sample,
+			                        end_sample,
+			                        rtile.x,
+			                        rtile.y,
+			                        rtile.w,
+			                        rtile.h,
+			                        rtile.offset,
+			                        rtile.stride,
+			                        queue_index,
+			                        dQueue_size,
+			                        use_queues_flag,
+			                        work_pool_wgs,
+			                        rtile.num_samples,
+			                        rtile.buffer);
 
 		/* Enqueue ckPathTraceKernel_data_init kernel. */
 		device->ciErr = clEnqueueNDRangeKernel(device->cqCommandQueue,
-		                               device->program_data_init(),
-		                               2,
-		                               NULL,
-		                               dim.global_size,
-		                               dim.local_size,
-		                               0,
-		                               NULL,
-		                               NULL);
+		                                       device->program_data_init(),
+		                                       2,
+		                                       NULL,
+		                                       dim.global_size,
+		                                       dim.local_size,
+		                                       0,
+		                                       NULL,
+		                                       NULL);
 
 		device->opencl_assert_err(device->ciErr, "clEnqueueNDRangeKernel");
 
@@ -630,18 +630,17 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 #define ADD_SPLIT_KERNEL_SPLIT_PROGRAM(kernel_name) \
 		program_##kernel_name = \
 			OpenCLDevice::OpenCLProgram(this, \
-											"split_"#kernel_name, \
-											"kernel_"#kernel_name".cl", \
-											get_build_options(requested_features)); \
+			                            "split_"#kernel_name, \
+			                            "kernel_"#kernel_name".cl", \
+			                            get_build_options(requested_features)); \
 		program_##kernel_name.add_kernel(ustring("path_trace_"#kernel_name)); \
 		programs.push_back(&program_##kernel_name);
 
 	if (single_program) {
-		program_split = OpenCLDevice::OpenCLProgram(
-			this,
-			"split" ,
-			"kernel_split.cl",
-			get_build_options(requested_features));
+		program_split = OpenCLDevice::OpenCLProgram(this,
+		                                            "split" ,
+		                                            "kernel_split.cl",
+		                                            get_build_options(requested_features));
 
 		ADD_SPLIT_KERNEL_SINGLE_PROGRAM(path_init);
 		ADD_SPLIT_KERNEL_SINGLE_PROGRAM(scene_intersect);
@@ -678,11 +677,10 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 
 		/* Quick kernels bundled in a single program to reduce overhead of starting
 			* Blender processes. */
-		program_split = OpenCLDevice::OpenCLProgram(
-			this,
-			"split_bundle" ,
-			"kernel_split_bundle.cl",
-			get_build_options(requested_features));
+		program_split = OpenCLDevice::OpenCLProgram(this,
+		                                            "split_bundle" ,
+		                                            "kernel_split_bundle.cl",
+		                                            get_build_options(requested_features));
 
 		ADD_SPLIT_KERNEL_SINGLE_PROGRAM(path_init);
 		ADD_SPLIT_KERNEL_SINGLE_PROGRAM(scene_intersect);
@@ -725,8 +723,8 @@ void OpenCLDevice::mem_alloc(device_memory& mem)
 {
 	if(mem.name) {
 		VLOG(1) << "Buffer allocate: " << mem.name << ", "
-			    << string_human_readable_number(mem.memory_size()) << " bytes. ("
-			    << string_human_readable_size(mem.memory_size()) << ")";
+		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
+		        << string_human_readable_size(mem.memory_size()) << ")";
 	}
 
 	size_t size = mem.memory_size();
@@ -1094,7 +1092,7 @@ void OpenCLDevice::flush_texture_buffers()
 			int pos = name.rfind("_");
 			int id = atoi(name.data() + pos + 1);
 			texture_slots.push_back(texture_slot_t(name,
-				                                   num_data_slots + id));
+			                                       num_data_slots + id));
 			num_slots = max(num_slots, num_data_slots + id + 1);
 		}
 	}
@@ -1155,9 +1153,9 @@ void OpenCLDevice::thread_run(DeviceTask *task)
 				scoped_timer timer(&tile.buffers->render_time);
 
 				split_kernel->path_trace(task,
-											tile,
-											kgbuffer,
-											*const_mem_map["__data"]);
+				                         tile,
+				                         kgbuffer,
+				                         *const_mem_map["__data"]);
 
 				/* Complete kernel execution before release tile. */
 				/* This helps in multi-device render;
@@ -1223,10 +1221,10 @@ void OpenCLDevice::film_convert(DeviceTask& task, device_ptr buffer, device_ptr 
 }
 
 bool OpenCLDevice::denoising_non_local_means(device_ptr image_ptr,
-                                                 device_ptr guide_ptr,
-                                                 device_ptr variance_ptr,
-                                                 device_ptr out_ptr,
-                                                 DenoisingTask *task)
+                                             device_ptr guide_ptr,
+                                             device_ptr variance_ptr,
+                                             device_ptr out_ptr,
+                                             DenoisingTask *task)
 {
 	int stride = task->buffer.stride;
 	int w = task->buffer.width;
@@ -1348,10 +1346,10 @@ bool OpenCLDevice::denoising_construct_transform(DenoisingTask *task)
 }
 
 bool OpenCLDevice::denoising_accumulate(device_ptr color_ptr,
-                                            device_ptr color_variance_ptr,
-                                            device_ptr scale_ptr,
-                                            int frame,
-                                            DenoisingTask *task)
+                                        device_ptr color_variance_ptr,
+                                        device_ptr scale_ptr,
+                                        int frame,
+                                        DenoisingTask *task)
 {
 	cl_mem color_mem = CL_MEM_PTR(color_ptr);
 	cl_mem color_variance_mem = CL_MEM_PTR(color_variance_ptr);
@@ -1432,7 +1430,7 @@ bool OpenCLDevice::denoising_accumulate(device_ptr color_ptr,
 }
 
 bool OpenCLDevice::denoising_solve(device_ptr output_ptr,
-                                       DenoisingTask *task)
+                                   DenoisingTask *task)
 {
 	cl_kernel ckFinalize = denoising_program(ustring("filter_finalize"));
 
@@ -1458,11 +1456,11 @@ bool OpenCLDevice::denoising_solve(device_ptr output_ptr,
 }
 
 bool OpenCLDevice::denoising_combine_halves(device_ptr a_ptr,
-                                                device_ptr b_ptr,
-                                                device_ptr mean_ptr,
-                                                device_ptr variance_ptr,
-                                                int r, int4 rect,
-                                                DenoisingTask *task)
+                                            device_ptr b_ptr,
+                                            device_ptr mean_ptr,
+                                            device_ptr variance_ptr,
+                                            int r, int4 rect,
+                                            DenoisingTask *task)
 {
 	cl_mem a_mem = CL_MEM_PTR(a_ptr);
 	cl_mem b_mem = CL_MEM_PTR(b_ptr);
@@ -1486,11 +1484,11 @@ bool OpenCLDevice::denoising_combine_halves(device_ptr a_ptr,
 }
 
 bool OpenCLDevice::denoising_divide_shadow(device_ptr a_ptr,
-                                               device_ptr b_ptr,
-                                               device_ptr sample_variance_ptr,
-                                               device_ptr sv_variance_ptr,
-                                               device_ptr buffer_variance_ptr,
-                                               DenoisingTask *task)
+                                           device_ptr b_ptr,
+                                           device_ptr sample_variance_ptr,
+                                           device_ptr sv_variance_ptr,
+                                           device_ptr buffer_variance_ptr,
+                                           DenoisingTask *task)
 {
 	cl_mem a_mem = CL_MEM_PTR(a_ptr);
 	cl_mem b_mem = CL_MEM_PTR(b_ptr);
@@ -1528,11 +1526,11 @@ bool OpenCLDevice::denoising_divide_shadow(device_ptr a_ptr,
 }
 
 bool OpenCLDevice::denoising_get_feature(int mean_offset,
-                                             int variance_offset,
-                                             device_ptr mean_ptr,
-                                             device_ptr variance_ptr,
-                                             float scale,
-                                             DenoisingTask *task)
+                                         int variance_offset,
+                                         device_ptr mean_ptr,
+                                         device_ptr variance_ptr,
+                                         float scale,
+                                         DenoisingTask *task)
 {
 	cl_mem mean_mem = CL_MEM_PTR(mean_ptr);
 	cl_mem variance_mem = CL_MEM_PTR(variance_ptr);
@@ -1567,9 +1565,9 @@ bool OpenCLDevice::denoising_get_feature(int mean_offset,
 }
 
 bool OpenCLDevice::denoising_write_feature(int out_offset,
-                                               device_ptr from_ptr,
-                                               device_ptr buffer_ptr,
-                                               DenoisingTask *task)
+                                           device_ptr from_ptr,
+                                           device_ptr buffer_ptr,
+                                           DenoisingTask *task)
 {
 	cl_mem from_mem = CL_MEM_PTR(from_ptr);
 	cl_mem buffer_mem = CL_MEM_PTR(buffer_ptr);
@@ -1592,10 +1590,10 @@ bool OpenCLDevice::denoising_write_feature(int out_offset,
 }
 
 bool OpenCLDevice::denoising_detect_outliers(device_ptr image_ptr,
-                                                 device_ptr variance_ptr,
-                                                 device_ptr depth_ptr,
-                                                 device_ptr output_ptr,
-                                                 DenoisingTask *task)
+                                             device_ptr variance_ptr,
+                                             device_ptr depth_ptr,
+                                             device_ptr output_ptr,
+                                             DenoisingTask *task)
 {
 	cl_mem image_mem = CL_MEM_PTR(image_ptr);
 	cl_mem variance_mem = CL_MEM_PTR(variance_ptr);
@@ -1754,40 +1752,40 @@ string OpenCLDevice::kernel_build_options(const string *debug_src)
  * C++0x is allowed. Should allow to clean this up a bit.
  */
 int OpenCLDevice::kernel_set_args(cl_kernel kernel,
-                    int start_argument_index,
-                    const ArgumentWrapper& arg1,
-                    const ArgumentWrapper& arg2,
-                    const ArgumentWrapper& arg3,
-                    const ArgumentWrapper& arg4,
-                    const ArgumentWrapper& arg5,
-                    const ArgumentWrapper& arg6,
-                    const ArgumentWrapper& arg7,
-                    const ArgumentWrapper& arg8,
-                    const ArgumentWrapper& arg9,
-                    const ArgumentWrapper& arg10,
-                    const ArgumentWrapper& arg11,
-                    const ArgumentWrapper& arg12,
-                    const ArgumentWrapper& arg13,
-                    const ArgumentWrapper& arg14,
-                    const ArgumentWrapper& arg15,
-                    const ArgumentWrapper& arg16,
-                    const ArgumentWrapper& arg17,
-                    const ArgumentWrapper& arg18,
-                    const ArgumentWrapper& arg19,
-                    const ArgumentWrapper& arg20,
-                    const ArgumentWrapper& arg21,
-                    const ArgumentWrapper& arg22,
-                    const ArgumentWrapper& arg23,
-                    const ArgumentWrapper& arg24,
-                    const ArgumentWrapper& arg25,
-                    const ArgumentWrapper& arg26,
-                    const ArgumentWrapper& arg27,
-                    const ArgumentWrapper& arg28,
-                    const ArgumentWrapper& arg29,
-                    const ArgumentWrapper& arg30,
-                    const ArgumentWrapper& arg31,
-                    const ArgumentWrapper& arg32,
-                    const ArgumentWrapper& arg33)
+                                  int start_argument_index,
+                                  const ArgumentWrapper& arg1,
+                                  const ArgumentWrapper& arg2,
+                                  const ArgumentWrapper& arg3,
+                                  const ArgumentWrapper& arg4,
+                                  const ArgumentWrapper& arg5,
+                                  const ArgumentWrapper& arg6,
+                                  const ArgumentWrapper& arg7,
+                                  const ArgumentWrapper& arg8,
+                                  const ArgumentWrapper& arg9,
+                                  const ArgumentWrapper& arg10,
+                                  const ArgumentWrapper& arg11,
+                                  const ArgumentWrapper& arg12,
+                                  const ArgumentWrapper& arg13,
+                                  const ArgumentWrapper& arg14,
+                                  const ArgumentWrapper& arg15,
+                                  const ArgumentWrapper& arg16,
+                                  const ArgumentWrapper& arg17,
+                                  const ArgumentWrapper& arg18,
+                                  const ArgumentWrapper& arg19,
+                                  const ArgumentWrapper& arg20,
+                                  const ArgumentWrapper& arg21,
+                                  const ArgumentWrapper& arg22,
+                                  const ArgumentWrapper& arg23,
+                                  const ArgumentWrapper& arg24,
+                                  const ArgumentWrapper& arg25,
+                                  const ArgumentWrapper& arg26,
+                                  const ArgumentWrapper& arg27,
+                                  const ArgumentWrapper& arg28,
+                                  const ArgumentWrapper& arg29,
+                                  const ArgumentWrapper& arg30,
+                                  const ArgumentWrapper& arg31,
+                                  const ArgumentWrapper& arg32,
+                                  const ArgumentWrapper& arg33)
 {
 	int current_arg_index = 0;
 #define FAKE_VARARG_HANDLE_ARG(arg) \
@@ -1863,9 +1861,8 @@ void OpenCLDevice::release_program_safe(cl_program program)
 
 /* ** Those guys are for workign around some compiler-specific bugs ** */
 
-cl_program OpenCLDevice::load_cached_kernel(
-        ustring key,
-        thread_scoped_lock& cache_locker)
+cl_program OpenCLDevice::load_cached_kernel(ustring key,
+                                            thread_scoped_lock& cache_locker)
 {
 	return OpenCLCache::get_program(cpPlatform,
 	                                cdDevice,
@@ -1873,10 +1870,9 @@ cl_program OpenCLDevice::load_cached_kernel(
 	                                cache_locker);
 }
 
-void OpenCLDevice::store_cached_kernel(
-        cl_program program,
-        ustring key,
-        thread_scoped_lock& cache_locker)
+void OpenCLDevice::store_cached_kernel(cl_program program,
+                                       ustring key,
+                                       thread_scoped_lock& cache_locker)
 {
 	OpenCLCache::store_program(cpPlatform,
 	                           cdDevice,

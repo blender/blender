@@ -30,11 +30,7 @@ __kernel void kernel_ocl_displace(
 	int x = sx + ccl_global_id(0);
 
 	if(x < sx + sw) {
-#ifdef __NO_BAKING__
-		output[x] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-#else
 		kernel_displace_evaluate(kg, input, output, x);
-#endif
 	}
 }
 

@@ -2086,6 +2086,8 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 					ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
 					ibuf->planes = 24;
+					IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
+					                                    &scene->display_settings, &imf);
 
 					ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
 
