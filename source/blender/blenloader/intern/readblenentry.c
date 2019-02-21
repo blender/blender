@@ -369,7 +369,7 @@ BlendFileData *BLO_read_from_memfile(
 	FileData *fd;
 	ListBase old_mainlist;
 
-	fd = blo_openblendermemfile(memfile, reports);
+	fd = blo_filedata_from_memfile(memfile, reports);
 	if (fd) {
 		fd->reports = reports;
 		fd->skip_flags = skip_flags;

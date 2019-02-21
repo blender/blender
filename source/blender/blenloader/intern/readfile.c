@@ -1263,7 +1263,7 @@ FileData *blo_filedata_from_memory(const void *mem, int memsize, ReportList *rep
 	}
 }
 
-FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
+FileData *blo_filedata_from_memfile(MemFile *memfile, ReportList *reports)
 {
 	if (!memfile) {
 		BKE_report(reports, RPT_WARNING, "Unable to open blend <memory>");

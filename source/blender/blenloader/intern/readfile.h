@@ -124,7 +124,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
 FileData *blo_filedata_from_file(const char *filepath, struct ReportList *reports);
 FileData *blo_filedata_from_memory(const void *buffer, int buffersize, struct ReportList *reports);
-FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
+FileData *blo_filedata_from_memfile(struct MemFile *memfile, struct ReportList *reports);
 
 void blo_clear_proxy_pointers_from_lib(struct Main *oldmain);
 void blo_make_image_pointer_map(FileData *fd, struct Main *oldmain);
