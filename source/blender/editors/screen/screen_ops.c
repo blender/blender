@@ -645,15 +645,17 @@ typedef struct sActionzoneData {
 static bool actionzone_area_poll(bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa = CTX_wm_area(C);
+	bScreen *screen = WM_window_get_active_screen(win);
 
-	if (sa && win && win->eventstate) {
+	if (screen && win && win->eventstate) {
 		const int *xy = &win->eventstate->x;
 		AZone *az;
 
-		for (az = sa->actionzones.first; az; az = az->next)
-			if (BLI_rcti_isect_pt_v(&az->rect, xy))
-				return 1;
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			for (az = sa->actionzones.first; az; az = az->next)
+				if (BLI_rcti_isect_pt_v(&az->rect, xy))
+					return 1;
+		}
 	}
 	return 0;
 }
@@ -824,6 +826,31 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 	return az;
 }
 
+/* Finds an actionzone by position in entire screen so azones can overlap */
+static AZone *screen_actionzone_find_xy(bScreen *sc, const int xy[2])
+{
+	for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+		AZone *az = area_actionzone_refresh_xy(sa, xy, true);
+		if (az != NULL) {
+			return az;
+		}
+	}
+	return NULL;
+}
+
+/* Returns the area that the azone belongs to */
+static ScrArea *screen_actionzone_area(bScreen *sc, const AZone *az)
+{
+	for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+		for (AZone *zone = area->actionzones.first; zone; zone = zone->next) {
+			if (zone == az) {
+				return area;
+			}
+		}
+	}
+	return NULL;
+}
+
 AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2])
 {
 	return area_actionzone_refresh_xy(sa, xy, true);
@@ -869,8 +896,8 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 
 static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	AZone *az = ED_area_actionzone_find_xy(sa, &event->x);
+	bScreen *sc = CTX_wm_screen(C);
+	AZone *az = screen_actionzone_find_xy(sc, &event->x);
 	sActionzoneData *sad;
 
 	/* quick escape - Scroll azones only hide/unhide the scroll-bars, they have their own handling. */
@@ -879,7 +906,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* ok we do the actionzone */
 	sad = op->customdata = MEM_callocN(sizeof(sActionzoneData), "sActionzoneData");
-	sad->sa1 = sa;
+	sad->sa1 = screen_actionzone_area(sc, az);
 	sad->az = az;
 	sad->x = event->x; sad->y = event->y;
 
@@ -937,7 +964,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				WM_window_screen_rect_calc(win, &screen_rect);
 				/* once we drag outside the actionzone, register a gesture
 				 * check we're not on an edge so join finds the other area */
-				is_gesture = (delta_okay && (ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
+				is_gesture = (delta_okay && (screen_actionzone_find_xy(sc, &event->x) != sad->az) &&
 				              (screen_geom_area_map_find_active_scredge(
 				                   AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y) == NULL));
 			}
@@ -3105,10 +3132,10 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 
 		/* prepare operator state vars */
-		RNA_int_set(op->ptr, "min_x", sad->x);
-		RNA_int_set(op->ptr, "min_y", sad->y);
-		RNA_int_set(op->ptr, "max_x", event->x);
-		RNA_int_set(op->ptr, "max_y", event->y);
+		RNA_int_set(op->ptr, "min_x", sad->sa1->totrct.xmin);
+		RNA_int_set(op->ptr, "min_y", sad->sa1->totrct.ymin);
+		RNA_int_set(op->ptr, "max_x", sad->sa2->totrct.xmin);
+		RNA_int_set(op->ptr, "max_y", sad->sa2->totrct.ymin);
 	}
 
 
