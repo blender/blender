@@ -554,7 +554,7 @@ static void read_file_version(FileData *fd, Main *main)
 {
 	BHead *bhead;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == GLOB) {
 			FileGlobal *fg = read_struct(fd, bhead, "Global");
 			if (fg) {
@@ -583,7 +583,7 @@ static void read_file_bhead_idname_map_create(FileData *fd)
 	int code_prev = ENDB;
 	uint reserve = 0;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (code_prev != bhead->code) {
 			code_prev = bhead->code;
 			is_link = BKE_idcode_is_valid(code_prev) ? BKE_idcode_is_linkable(code_prev) : false;
@@ -598,14 +598,14 @@ static void read_file_bhead_idname_map_create(FileData *fd)
 
 	fd->bhead_idname_hash = BLI_ghash_str_new_ex(__func__, reserve);
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (code_prev != bhead->code) {
 			code_prev = bhead->code;
 			is_link = BKE_idcode_is_valid(code_prev) ? BKE_idcode_is_linkable(code_prev) : false;
 		}
 
 		if (is_link) {
-			BLI_ghash_insert(fd->bhead_idname_hash, (void *)bhead_id_name(fd, bhead), bhead);
+			BLI_ghash_insert(fd->bhead_idname_hash, (void *)blo_bhead_id_name(fd, bhead), bhead);
 		}
 	}
 }
@@ -826,7 +826,7 @@ static BHeadN *get_bhead(FileData *fd)
 	return new_bhead;
 }
 
-BHead *blo_firstbhead(FileData *fd)
+BHead *blo_bhead_first(FileData *fd)
 {
 	BHeadN *new_bhead;
 	BHead *bhead = NULL;
@@ -846,7 +846,7 @@ BHead *blo_firstbhead(FileData *fd)
 	return bhead;
 }
 
-BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
+BHead *blo_bhead_prev(FileData *UNUSED(fd), BHead *thisblock)
 {
 	BHeadN *bheadn = (BHeadN *)POINTER_OFFSET(thisblock, -offsetof(BHeadN, bhead));
 	BHeadN *prev = bheadn->prev;
@@ -854,7 +854,7 @@ BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
 	return (prev) ? &prev->bhead : NULL;
 }
 
-BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
+BHead *blo_bhead_next(FileData *fd, BHead *thisblock)
 {
 	BHeadN *new_bhead = NULL;
 	BHead *bhead = NULL;
@@ -881,7 +881,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 }
 
 /* Warning! Caller's responsibility to ensure given bhead **is** and ID one! */
-const char *bhead_id_name(const FileData *fd, const BHead *bhead)
+const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead)
 {
 	return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
 }
@@ -937,7 +937,7 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
 	BHead *bhead;
 	int subversion = 0;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == GLOB) {
 			/* Before this, the subversion didn't exist in 'FileGlobal' so the subversion
 			 * value isn't accessible for the purpose of DNA versioning in this case. */
@@ -983,7 +983,7 @@ static int *read_file_thumbnail(FileData *fd)
 	BHead *bhead;
 	int *blend_thumb = NULL;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == TEST) {
 			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 			int *data = (int *)(bhead + 1);
@@ -1129,13 +1129,13 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 			BKE_reportf(reports, RPT_ERROR,
 			            "Failed to read blend file '%s': %s",
 			            fd->relabase, error_message);
-			blo_freefiledata(fd);
+			blo_filedata_free(fd);
 			fd = NULL;
 		}
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file '%s', not a blend file", fd->relabase);
-		blo_freefiledata(fd);
+		blo_filedata_free(fd);
 		fd = NULL;
 	}
 
@@ -1144,7 +1144,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 
 /* cannot be called with relative paths anymore! */
 /* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
+FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
 {
 	gzFile gzfile;
 	errno = 0;
@@ -1168,10 +1168,10 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 }
 
 /**
- * Same as blo_openblenderfile(), but does not reads DNA data, only header. Use it for light access
+ * Same as blo_filedata_from_file(), but does not reads DNA data, only header. Use it for light access
  * (e.g. thumbnail reading).
  */
-static FileData *blo_openblenderfile_minimal(const char *filepath)
+static FileData *blo_filedata_from_file_minimal(const char *filepath)
 {
 	gzFile gzfile;
 	errno = 0;
@@ -1188,7 +1188,7 @@ static FileData *blo_openblenderfile_minimal(const char *filepath)
 			return fd;
 		}
 
-		blo_freefiledata(fd);
+		blo_filedata_free(fd);
 	}
 
 	return NULL;
@@ -1234,7 +1234,7 @@ static int fd_read_gzip_from_memory_init(FileData *fd)
 	return 1;
 }
 
-FileData *blo_openblendermemory(const void *mem, int memsize, ReportList *reports)
+FileData *blo_filedata_from_memory(const void *mem, int memsize, ReportList *reports)
 {
 	if (!mem || memsize < SIZEOFBLENDERHEADER) {
 		BKE_report(reports, RPT_WARNING, (mem) ? TIP_("Unable to read") : TIP_("Unable to open"));
@@ -1250,7 +1250,7 @@ FileData *blo_openblendermemory(const void *mem, int memsize, ReportList *report
 		/* test if gzip */
 		if (cp[0] == 0x1f && cp[1] == 0x8b) {
 			if (0 == fd_read_gzip_from_memory_init(fd)) {
-				blo_freefiledata(fd);
+				blo_filedata_free(fd);
 				return NULL;
 			}
 		}
@@ -1281,7 +1281,7 @@ FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
 }
 
 
-void blo_freefiledata(FileData *fd)
+void blo_filedata_free(FileData *fd)
 {
 	if (fd) {
 		if (fd->gzfiledes != NULL) {
@@ -1432,7 +1432,7 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 	BlendThumbnail *data = NULL;
 	int *fd_data;
 
-	fd = blo_openblenderfile_minimal(filepath);
+	fd = blo_filedata_from_file_minimal(filepath);
 	fd_data = fd ? read_file_thumbnail(fd) : NULL;
 
 	if (fd_data) {
@@ -1450,7 +1450,7 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 		}
 	}
 
-	blo_freefiledata(fd);
+	blo_filedata_free(fd);
 
 	return data;
 }
@@ -8464,7 +8464,7 @@ static const char *dataname(short id_code)
 
 static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *allocname)
 {
-	bhead = blo_nextbhead(fd, bhead);
+	bhead = blo_bhead_next(fd, bhead);
 
 	while (bhead && bhead->code == DATA) {
 		void *data;
@@ -8483,7 +8483,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
 		}
 
-		bhead = blo_nextbhead(fd, bhead);
+		bhead = blo_bhead_next(fd, bhead);
 	}
 
 	return bhead;
@@ -8504,7 +8504,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	 * That means we have to carefully check whether current lib or libdata already exits in old main, if it does
 	 * we merely copy it over into new main area, otherwise we have to do a full read of that bhead... */
 	if (fd->memfile && ELEM(bhead->code, ID_LI, ID_ID)) {
-		const char *idname = bhead_id_name(fd, bhead);
+		const char *idname = blo_bhead_id_name(fd, bhead);
 
 		DEBUG_PRINTF("Checking %s...\n", idname);
 
@@ -8527,7 +8527,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 					if (r_id) {
 						*r_id = NULL;  /* Just in case... */
 					}
-					return blo_nextbhead(fd, bhead);
+					return blo_bhead_next(fd, bhead);
 				}
 				DEBUG_PRINTF("nothing...\n");
 			}
@@ -8545,7 +8545,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 				if (r_id) {
 					*r_id = NULL;  /* Just in case... */
 				}
-				return blo_nextbhead(fd, bhead);
+				return blo_bhead_next(fd, bhead);
 			}
 			DEBUG_PRINTF("nothing...\n");
 		}
@@ -8573,7 +8573,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	if (r_id)
 		*r_id = id;
 	if (!id)
-		return blo_nextbhead(fd, bhead);
+		return blo_bhead_next(fd, bhead);
 
 	id->lib = main->curlib;
 	id->us = ID_FAKE_USERS(id);
@@ -8587,7 +8587,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 		/* That way, we know which datablock needs do_versions (required currently for linking). */
 		id->tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_NEW;
 
-		return blo_nextbhead(fd, bhead);
+		return blo_bhead_next(fd, bhead);
 	}
 
 	/* need a name for the mallocN, just for debugging and sane prints on leaks */
@@ -8764,7 +8764,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	fd->globalf = bfd->globalf;
 	fd->fileflags = bfd->fileflags;
 
-	return blo_nextbhead(fd, bhead);
+	return blo_bhead_next(fd, bhead);
 }
 
 /* note, this has to be kept for reading older files... */
@@ -9002,7 +9002,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 {
-	BHead *bhead = blo_firstbhead(fd);
+	BHead *bhead = blo_bhead_first(fd);
 	BlendFileData *bfd;
 	ListBase mainlist = {NULL, NULL};
 
@@ -9044,14 +9044,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 			case DNA1:
 			case TEST: /* used as preview since 2.5x */
 			case REND:
-				bhead = blo_nextbhead(fd, bhead);
+				bhead = blo_bhead_next(fd, bhead);
 				break;
 			case GLOB:
 				bhead = read_global(bfd, fd, bhead);
 				break;
 			case USER:
 				if (fd->skip_flags & BLO_READ_SKIP_USERDEF) {
-					bhead = blo_nextbhead(fd, bhead);
+					bhead = blo_bhead_next(fd, bhead);
 				}
 				else {
 					bhead = read_userdef(bfd, fd, bhead);
@@ -9065,7 +9065,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 				/* Always adds to the most recently loaded ID_LI block, see direct_link_library.
 				 * This is part of the file format definition. */
 				if (fd->skip_flags & BLO_READ_SKIP_DATA) {
-					bhead = blo_nextbhead(fd, bhead);
+					bhead = blo_bhead_next(fd, bhead);
 				}
 				else {
 					bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_READ | LIB_TAG_EXTERN, NULL);
@@ -9078,7 +9078,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 				ATTR_FALLTHROUGH;
 			default:
 				if (fd->skip_flags & BLO_READ_SKIP_DATA) {
-					bhead = blo_nextbhead(fd, bhead);
+					bhead = blo_bhead_next(fd, bhead);
 				}
 				else {
 					bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, NULL);
@@ -9153,7 +9153,7 @@ static void sort_bhead_old_map(FileData *fd)
 	struct BHeadSort *bhs;
 	int tot = 0;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead))
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead))
 		tot++;
 
 	fd->tot_bheadmap = tot;
@@ -9161,7 +9161,7 @@ static void sort_bhead_old_map(FileData *fd)
 
 	bhs = fd->bheadmap = MEM_malloc_arrayN(tot, sizeof(struct BHeadSort), "BHeadSort");
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead), bhs++) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead), bhs++) {
 		bhs->bhead = bhead;
 		bhs->old = bhead->old;
 	}
@@ -9175,7 +9175,7 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 	if (fd->memfile)
 		return NULL;
 
-	for (; bhead; bhead = blo_prevbhead(fd, bhead)) {
+	for (; bhead; bhead = blo_bhead_prev(fd, bhead)) {
 		if (bhead->code == ID_LI)
 			break;
 	}
@@ -9203,7 +9203,7 @@ static BHead *find_bhead(FileData *fd, void *old)
 		return bhs->bhead;
 
 #if 0
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->old == old)
 			return bhead;
 	}
@@ -9226,9 +9226,9 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 #else
 	BHead *bhead;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == idcode) {
-			const char *idname_test = bhead_id_name(fd, bhead);
+			const char *idname_test = blo_bhead_id_name(fd, bhead);
 			if (STREQ(idname_test + 2, name)) {
 				return bhead;
 			}
@@ -9253,7 +9253,7 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 {
-	const char *idname = bhead_id_name(fd, bhead);
+	const char *idname = blo_bhead_id_name(fd, bhead);
 	/* which_libbase can be NULL, intentionally not using idname+2 */
 	return BLI_findstring(which_libbase(mainvar, GS(idname)), idname, offsetof(ID, name));
 }
@@ -9275,7 +9275,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 				Main *ptr = blo_find_main(fd, lib->name, fd->relabase);
 
 				if (ptr->curlib == NULL) {
-					const char *idname = bhead_id_name(fd, bhead);
+					const char *idname = blo_bhead_id_name(fd, bhead);
 
 					blo_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB: Data refers to main .blend file: '%s' from %s"),
 					                 idname, mainvar->curlib->filepath);
@@ -10520,7 +10520,7 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 	FileData *fd = (FileData *)(bh);
 	BHead *bhead;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		ID *id = NULL;
 
 		if (bhead->code == ENDB)
@@ -10783,7 +10783,7 @@ static void library_link_end(
 
 	/* patch to prevent switch_endian happens twice */
 	if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		blo_freefiledata(*fd);
+		blo_filedata_free(*fd);
 		*fd = NULL;
 	}
 }
@@ -10869,7 +10869,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						        basefd->reports, RPT_INFO, TIP_("Read packed library:  '%s', parent '%s'"),
 						        mainptr->curlib->name,
 						        library_parent_filepath(mainptr->curlib));
-						fd = blo_openblendermemory(pf->data, pf->size, basefd->reports);
+						fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
 
 						/* needed for library_append and read_libraries */
@@ -10881,7 +10881,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						        mainptr->curlib->filepath,
 						        mainptr->curlib->name,
 						        library_parent_filepath(mainptr->curlib));
-						fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
+						fd = blo_filedata_from_file(mainptr->curlib->filepath, basefd->reports);
 					}
 
 					if (fd) {
@@ -10988,7 +10988,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		if (mainptr->curlib->filedata)
 			lib_link_all(mainptr->curlib->filedata, mainptr);
 
-		if (mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
+		if (mainptr->curlib->filedata) blo_filedata_free(mainptr->curlib->filedata);
 		mainptr->curlib->filedata = NULL;
 	}
 	BKE_main_free(main_newid);

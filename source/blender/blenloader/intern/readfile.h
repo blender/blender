@@ -122,8 +122,8 @@ void blo_split_main(ListBase *mainlist, struct Main *main);
 
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
-FileData *blo_openblenderfile(const char *filepath, struct ReportList *reports);
-FileData *blo_openblendermemory(const void *buffer, int buffersize, struct ReportList *reports);
+FileData *blo_filedata_from_file(const char *filepath, struct ReportList *reports);
+FileData *blo_filedata_from_memory(const void *buffer, int buffersize, struct ReportList *reports);
 FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
 void blo_clear_proxy_pointers_from_lib(struct Main *oldmain);
@@ -139,13 +139,13 @@ void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);
 
-void blo_freefiledata(FileData *fd);
+void blo_filedata_free(FileData *fd);
 
-BHead *blo_firstbhead(FileData *fd);
-BHead *blo_nextbhead(FileData *fd, BHead *thisblock);
-BHead *blo_prevbhead(FileData *fd, BHead *thisblock);
+BHead *blo_bhead_first(FileData *fd);
+BHead *blo_bhead_next(FileData *fd, BHead *thisblock);
+BHead *blo_bhead_prev(FileData *fd, BHead *thisblock);
 
-const char *bhead_id_name(const FileData *fd, const BHead *bhead);
+const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead);
 
 /* do versions stuff */
 

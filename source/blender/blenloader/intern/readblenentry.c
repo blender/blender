@@ -73,7 +73,7 @@ BlendHandle *BLO_blendhandle_from_file(const char *filepath, ReportList *reports
 {
 	BlendHandle *bh;
 
-	bh = (BlendHandle *)blo_openblenderfile(filepath, reports);
+	bh = (BlendHandle *)blo_filedata_from_file(filepath, reports);
 
 	return bh;
 }
@@ -89,7 +89,7 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize)
 {
 	BlendHandle *bh;
 
-	bh = (BlendHandle *)blo_openblendermemory(mem, memsize, NULL);
+	bh = (BlendHandle *)blo_filedata_from_memory(mem, memsize, NULL);
 
 	return bh;
 }
@@ -100,7 +100,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 	BHead *bhead;
 
 	fprintf(fp, "[\n");
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == ENDB)
 			break;
 		else {
@@ -139,9 +139,9 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
 	BHead *bhead;
 	int tot = 0;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == ofblocktype) {
-			const char *idname = bhead_id_name(fd, bhead);
+			const char *idname = blo_bhead_id_name(fd, bhead);
 
 			BLI_linklist_prepend(&names, strdup(idname + 2));
 			tot++;
@@ -172,9 +172,9 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 	PreviewImage *new_prv = NULL;
 	int tot = 0;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == ofblocktype) {
-			const char *idname = bhead_id_name(fd, bhead);
+			const char *idname = blo_bhead_id_name(fd, bhead);
 			switch (GS(idname)) {
 				case ID_MA: /* fall through */
 				case ID_TE: /* fall through */
@@ -203,7 +203,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							uint *rect = NULL;
 							size_t len = new_prv->w[0] * new_prv->h[0] * sizeof(uint);
 							new_prv->rect[0] = MEM_callocN(len, __func__);
-							bhead = blo_nextbhead(fd, bhead);
+							bhead = blo_bhead_next(fd, bhead);
 							rect = (uint *)(bhead + 1);
 							BLI_assert(len == bhead->len);
 							memcpy(new_prv->rect[0], rect, len);
@@ -220,7 +220,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							uint *rect = NULL;
 							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(uint);
 							new_prv->rect[1] = MEM_callocN(len, __func__);
-							bhead = blo_nextbhead(fd, bhead);
+							bhead = blo_bhead_next(fd, bhead);
 							rect = (uint *)(bhead + 1);
 							BLI_assert(len == bhead->len);
 							memcpy(new_prv->rect[1], rect, len);
@@ -265,7 +265,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 	LinkNode *names = NULL;
 	BHead *bhead;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		if (bhead->code == ENDB) {
 			break;
 		}
@@ -294,7 +294,7 @@ void BLO_blendhandle_close(BlendHandle *bh)
 {
 	FileData *fd = (FileData *)bh;
 
-	blo_freefiledata(fd);
+	blo_filedata_free(fd);
 }
 
 /**********/
@@ -315,12 +315,12 @@ BlendFileData *BLO_read_from_file(
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 
-	fd = blo_openblenderfile(filepath, reports);
+	fd = blo_filedata_from_file(filepath, reports);
 	if (fd) {
 		fd->reports = reports;
 		fd->skip_flags = skip_flags;
 		bfd = blo_read_file_internal(fd, filepath);
-		blo_freefiledata(fd);
+		blo_filedata_free(fd);
 	}
 
 	return bfd;
@@ -343,12 +343,12 @@ BlendFileData *BLO_read_from_memory(
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 
-	fd = blo_openblendermemory(mem, memsize,  reports);
+	fd = blo_filedata_from_memory(mem, memsize,  reports);
 	if (fd) {
 		fd->reports = reports;
 		fd->skip_flags = skip_flags;
 		bfd = blo_read_file_internal(fd, "");
-		blo_freefiledata(fd);
+		blo_filedata_free(fd);
 	}
 
 	return bfd;
@@ -450,7 +450,7 @@ BlendFileData *BLO_read_from_memfile(
 		 * will be cleared together with oldmain... */
 		blo_join_main(&old_mainlist);
 
-		blo_freefiledata(fd);
+		blo_filedata_free(fd);
 	}
 
 	return bfd;
