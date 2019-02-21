@@ -640,29 +640,29 @@ static unsigned char *prefetch_read_file_to_memory(
         size_t *r_size)
 {
 	MovieClipUser user = {0};
-	char name[FILE_MAX];
-	size_t size;
-	int file;
-	unsigned char *mem;
-
 	user.framenr = current_frame;
 	user.render_size = render_size;
 	user.render_flag = render_flag;
 
+	char name[FILE_MAX];
 	BKE_movieclip_filename_for_frame(clip, &user, name);
 
-	file = BLI_open(name, O_BINARY | O_RDONLY, 0);
+	int file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 	if (file == -1) {
 		return NULL;
 	}
 
-	size = BLI_file_descriptor_size(file);
+	const size_t size = BLI_file_descriptor_size(file);
 	if (size < 1) {
 		close(file);
 		return NULL;
 	}
 
-	mem = MEM_mallocN(size, "movieclip prefetch memory file");
+	unsigned char *mem = MEM_mallocN(size, "movieclip prefetch memory file");
+	if (mem == NULL) {
+		close(file);
+		return NULL;
+	}
 
 	if (read(file, mem, size) != size) {
 		close(file);
