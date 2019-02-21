@@ -17,7 +17,6 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(WIN32)
-		set(PTHREAD_XCFLAGS /MD)
 
 		if(MSVC14) # vs2015 has timespec
 			set(PTHREAD_CPPFLAGS "/I. /DHAVE_CONFIG_H /D_TIMESPEC_DEFINED ")
@@ -25,7 +24,7 @@ if(WIN32)
 			set(PTHREAD_CPPFLAGS "/I. /DHAVE_CONFIG_H ")
 		endif()
 
-		set(PTHREADS_BUILD cd ${BUILD_DIR}/pthreads/src/external_pthreads/ && cd && nmake VC /e CPPFLAGS=${PTHREAD_CPPFLAGS} /e XCFLAGS=${PTHREAD_XCFLAGS} /e XLIBS=/NODEFAULTLIB:msvcr)
+		set(PTHREADS_BUILD cd ${BUILD_DIR}/pthreads/src/external_pthreads/ && cd && nmake VC-static /e CPPFLAGS=${PTHREAD_CPPFLAGS} /e XLIBS=/NODEFAULTLIB:msvcr)
 
 		ExternalProject_Add(external_pthreads
 			URL ${PTHREADS_URI}
@@ -35,8 +34,7 @@ if(WIN32)
 			CONFIGURE_COMMAND echo .
 			BUILD_COMMAND ${PTHREADS_BUILD}
 			INSTALL_COMMAND COMMAND
-				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC3.dll ${LIBDIR}/pthreads/lib/pthreadVC3.dll &&
-				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC3${LIBEXT} ${LIBDIR}/pthreads/lib/pthreadVC3${LIBEXT} &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/libpthreadVC3${LIBEXT} ${LIBDIR}/pthreads/lib/pthreadVC3${LIBEXT} &&
 				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthread.h ${LIBDIR}/pthreads/inc/pthread.h &&
 				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/sched.h ${LIBDIR}/pthreads/inc/sched.h &&
 				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/semaphore.h ${LIBDIR}/pthreads/inc/semaphore.h &&

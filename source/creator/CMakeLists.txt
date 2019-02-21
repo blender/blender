@@ -772,13 +772,6 @@ elseif(WIN32)
 		endif()
 	endif()
 
-	if(MSVC)
-		install(
-			FILES ${LIBDIR}/pthreads/lib/pthreadVC3.dll
-			DESTINATION "."
-		)
-	endif()
-
 	if(WITH_CODEC_FFMPEG)
 		install(
 			FILES
