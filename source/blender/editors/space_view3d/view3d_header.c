@@ -134,10 +134,10 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
 		                 TIP_("Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
 		uiDefIconButBitS(block, UI_BTYPE_TOGGLE, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL,
-		                 0, 0, ceilf(UI_UNIT_X - UI_DPI_FAC), UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
+		                 0, 0, ceilf(UI_UNIT_X - U.pixelsize), UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
 		                 TIP_("Edge select - Shift-Click for multiple modes, Ctrl-Click expands/contracts selection"));
 		uiDefIconButBitS(block, UI_BTYPE_TOGGLE, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL,
-		                 0, 0, ceilf(UI_UNIT_X - UI_DPI_FAC), UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
+		                 0, 0, ceilf(UI_UNIT_X - U.pixelsize), UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
 		                 TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
 	}
 }

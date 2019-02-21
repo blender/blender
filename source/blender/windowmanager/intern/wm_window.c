@@ -603,8 +603,12 @@ void WM_window_set_dpi(wmWindow *win)
 	U.pixelsize = pixelsize;
 	U.dpi = dpi / pixelsize;
 	U.virtual_pixel = (pixelsize == 1) ? VIRTUAL_PIXEL_NATIVE : VIRTUAL_PIXEL_DOUBLE;
-	U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;
 	U.dpi_fac = ((U.pixelsize * (float)U.dpi) / 72.0f);
+
+	/* Set user preferences globals for drawing, and for forward compatibility. */
+	U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;
+	/* If line thickness differs from scaling factor then adjustments need to be made */
+	U.widget_unit += 2 * ((int)U.pixelsize - (int)U.dpi_fac);
 
 	/* update font drawing */
 	BLF_default_dpi(U.pixelsize * U.dpi);

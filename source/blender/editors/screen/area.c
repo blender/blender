@@ -2504,10 +2504,10 @@ void ED_region_header_init(ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
-/* UI_UNIT_Y is defined as U variable now, depending dpi */
 int ED_area_headersize(void)
 {
-	return (int)(HEADERY * UI_DPI_FAC);
+	/* Accomodate widget and padding. */
+	return U.widget_unit + (int)(UI_DPI_FAC * HEADER_PADDING_Y);
 }
 
 int ED_area_header_alignment_or_fallback(const ScrArea *area, int fallback)

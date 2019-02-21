@@ -469,9 +469,10 @@ enum {
 	AREA_FLAG_ACTIONZONES_UPDATE = (1 << 8),
 };
 
-#define AREAGRID	4
-#define AREAMINX	32
-#define HEADERY		26
+#define AREAGRID          4
+#define AREAMINX          32
+#define HEADER_PADDING_Y  6
+#define HEADERY           (20 + HEADER_PADDING_Y)
 
 /** #bScreen.flag */
 enum {
