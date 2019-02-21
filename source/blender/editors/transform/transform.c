@@ -2183,35 +2183,40 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
 		}
 
-
-		if (t->con.mode & CON_APPLY) {
-			RNA_float_set_array(op->ptr, "constraint_matrix", &t->con.mtx[0][0]);
-		}
-		else {
-			RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
-		}
-
 		/* Use 'constraint_matrix' instead. */
 		if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
 			RNA_enum_set(op->ptr, "constraint_orientation", orientation);
 		}
 
-		if (t->con.mode & CON_APPLY) {
-			if (t->con.mode & CON_AXIS0) {
-				constraint_axis[0] = true;
+		if (t->flag & T_MODAL) {
+			if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
+				if (t->flag & T_MODAL) {
+					RNA_enum_set(op->ptr, "constraint_matrix_orientation", orientation);
+				}
 			}
-			if (t->con.mode & CON_AXIS1) {
-				constraint_axis[1] = true;
+			if (t->con.mode & CON_APPLY) {
+				RNA_float_set_array(op->ptr, "constraint_matrix", &t->con.mtx[0][0]);
 			}
-			if (t->con.mode & CON_AXIS2) {
-				constraint_axis[2] = true;
+			else {
+				RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
 			}
-		}
+			if (t->con.mode & CON_APPLY) {
+				if (t->con.mode & CON_AXIS0) {
+					constraint_axis[0] = true;
+				}
+				if (t->con.mode & CON_AXIS1) {
+					constraint_axis[1] = true;
+				}
+				if (t->con.mode & CON_AXIS2) {
+					constraint_axis[2] = true;
+				}
+			}
 
-		/* Only set if needed, so we can hide in the UI when nothing is set.
-		 * See 'transform_poll_property'. */
-		if (ELEM(true, UNPACK3(constraint_axis))) {
-			RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+			/* Only set if needed, so we can hide in the UI when nothing is set.
+			 * See 'transform_poll_property'. */
+			if (ELEM(true, UNPACK3(constraint_axis))) {
+				RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+			}
 		}
 	}
 
@@ -2584,24 +2589,42 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	}
 
 	/* Constraint init from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop)) {
-		bool constraint_axis[3];
+	if (t->flag & T_MODAL) {
+		if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
+		    RNA_property_is_set(op->ptr, prop))
+		{
+			bool constraint_axis[3];
 
-		RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
+			RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
 
-		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
-			t->con.mode |= CON_APPLY;
+			if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
+				t->con.mode |= CON_APPLY;
 
-			if (constraint_axis[0]) {
-				t->con.mode |= CON_AXIS0;
+				/* Only for interactive operation, when redoing, ignore these values since the numbers
+				 * will be constrainted already. */
+				if (t->flag & T_MODAL) {
+					if (constraint_axis[0]) {
+						t->con.mode |= CON_AXIS0;
+					}
+					if (constraint_axis[1]) {
+						t->con.mode |= CON_AXIS1;
+					}
+					if (constraint_axis[2]) {
+						t->con.mode |= CON_AXIS2;
+					}
+				}
+				else {
+					t->con.mode |= CON_AXIS0 | CON_AXIS1 | CON_AXIS2;
+				}
+
+				setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
 			}
-			if (constraint_axis[1]) {
-				t->con.mode |= CON_AXIS1;
-			}
-			if (constraint_axis[2]) {
-				t->con.mode |= CON_AXIS2;
-			}
-
+		}
+	}
+	else {
+		/* So we can adjust in non global orientation. */
+		if (t->orientation.user != V3D_ORIENT_GLOBAL) {
+			t->con.mode |= CON_APPLY | CON_AXIS0 | CON_AXIS1 | CON_AXIS2;
 			setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
 		}
 	}

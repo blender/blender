@@ -764,7 +764,16 @@ enum {
 
 /* transinfo->con->mode */
 enum {
+	/**
+	 * TODO(campbell): this has two meanings:
+	 * - Constraint axes.
+	 * - Transform values are evaluated in different orientation.
+	 *
+	 * We should split out this second meaning into another flag
+	 * because transform logic becomes hard to follow when we're
+	 * only want to support an alternate orientation. */
 	CON_APPLY =       1 << 0,
+	/** These are only used for modal execution. */
 	CON_AXIS0 =       1 << 1,
 	CON_AXIS1 =       1 << 2,
 	CON_AXIS2 =       1 << 3,

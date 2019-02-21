@@ -515,8 +515,8 @@ static bool transform_poll_property(const bContext *UNUSED(C), wmOperator *op, c
 	/* Orientation/Constraints. */
 	{
 		/* Hide orientation axis if no constraints are set, since it wont be used. */
-		PropertyRNA *prop_con = RNA_struct_find_property(op->ptr, "constraint_axis");
-		if (prop_con && !RNA_property_is_set(op->ptr, prop_con)) {
+		PropertyRNA *prop_con = RNA_struct_find_property(op->ptr, "constraint_orientation");
+		if (prop_con != NULL && (prop_con != prop)) {
 			if (STRPREFIX(prop_id, "constraint")) {
 				return false;
 			}
@@ -564,6 +564,14 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		/* Set by 'constraint_orientation' or gizmo which acts on non-standard orientation. */
 		prop = RNA_def_float_matrix(ot->srna, "constraint_matrix", 3, 3, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
 		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+		/* Only use 'constraint_matrix' when 'constraint_matrix_orientation == constraint_orientation',
+		 * this allows us to reuse the orientation set by a gizmo for eg, without disabling the ability
+		 * to switch over to other orientations. */
+		prop = RNA_def_property(ot->srna, "constraint_matrix_orientation", PROP_ENUM, PROP_NONE);
+		RNA_def_property_ui_text(prop, "Matrix Orientation", "");
+		RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
+		RNA_def_property_flag(prop, PROP_HIDDEN);
 
 		prop = RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
