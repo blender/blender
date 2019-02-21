@@ -2183,7 +2183,13 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
 		}
 
-		RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
+
+		if (t->con.mode & CON_APPLY) {
+			RNA_float_set_array(op->ptr, "constraint_matrix", &t->con.mtx[0][0]);
+		}
+		else {
+			RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
+		}
 
 		/* Use 'constraint_matrix' instead. */
 		if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
