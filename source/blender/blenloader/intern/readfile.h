@@ -63,7 +63,6 @@ typedef struct FileData {
 	struct MemFile *memfile;
 
 	/** Variables needed for reading from file. */
-	int filedes;
 	gzFile gzfiledes;
 
 	/** Now only in use for library appending. */

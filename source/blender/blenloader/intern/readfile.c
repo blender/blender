@@ -1284,10 +1284,6 @@ FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
 void blo_freefiledata(FileData *fd)
 {
 	if (fd) {
-		if (fd->filedes != -1) {
-			close(fd->filedes);
-		}
-
 		if (fd->gzfiledes != NULL) {
 			gzclose(fd->gzfiledes);
 		}
