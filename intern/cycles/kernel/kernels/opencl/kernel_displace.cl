@@ -9,7 +9,7 @@
 #include "kernel/kernel_path.h"
 #include "kernel/kernel_path_branched.h"
 
-#include "kernel/kernel_bake.h
+#include "kernel/kernel_bake.h"
 
 __kernel void kernel_ocl_displace(
 	ccl_constant KernelData *data,
