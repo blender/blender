@@ -6316,6 +6316,92 @@ static const char *bool_as_py_string(const int var)
 	return var ? "True" : "False";
 }
 
+static void *rna_array_as_string_alloc(int type, int len, PointerRNA *ptr, PropertyRNA *prop)
+{
+	void *buf_ret = NULL;
+	if (type == PROP_BOOLEAN) {
+		bool *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len,  __func__);
+		RNA_property_boolean_get_array(ptr, prop, buf);
+	}
+	else if (type == PROP_INT) {
+		int *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len,  __func__);
+		RNA_property_int_get_array(ptr, prop, buf);
+	}
+	else if (type == PROP_FLOAT) {
+		float *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len,  __func__);
+		RNA_property_float_get_array(ptr, prop, buf);
+	}
+	else {
+		BLI_assert(0);
+	}
+	return buf_ret;
+}
+
+static void rna_array_as_string_elem(
+        int type, void **buf_p, int len, DynStr *dynstr)
+{
+	/* This will print a comma seperated string of the array elements from
+	 * buf start to len. We will add a comma if len == 1 to preserve tuples. */
+	const int end = len - 1;
+	if (type == PROP_BOOLEAN) {
+		bool *buf = *buf_p;
+		for (int i = 0; i < len; i++, buf++) {
+			BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%s, " : "%s", bool_as_py_string(*buf));
+		}
+		*buf_p = buf;
+	}
+	else if (type == PROP_INT) {
+		int *buf = *buf_p;
+		for (int i = 0; i < len; i++, buf++) {
+			BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%d, " : "%d", *buf);
+		}
+		*buf_p = buf;
+	}
+	else if (type == PROP_FLOAT) {
+		float *buf = *buf_p;
+		for (int i = 0; i < len; i++, buf++) {
+			BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%g, " : "%g", *buf);
+		}
+		*buf_p = buf;
+	}
+	else {
+		BLI_assert(0);
+	}
+}
+
+static void rna_array_as_string_recursive(
+        int type, void **buf_p, int totdim, const int *dim_size, DynStr *dynstr)
+{
+	BLI_dynstr_append(dynstr, "(");
+	if (totdim > 1) {
+		totdim--;
+		const int end = dim_size[totdim] - 1;
+		for (int i = 0; i <= end; i++){
+			rna_array_as_string_recursive(type, buf_p, totdim, dim_size, dynstr);
+			if (i < end || !end) {
+				BLI_dynstr_append(dynstr, ", ");
+			}
+		}
+	}
+	else {
+		rna_array_as_string_elem(type, buf_p, dim_size[0], dynstr);
+	}
+	BLI_dynstr_append(dynstr, ")");
+}
+
+static void rna_array_as_string(int type, int len, PointerRNA *ptr, PropertyRNA *prop, DynStr *dynstr)
+{
+	void *buf = rna_array_as_string_alloc(type, len, ptr, prop);
+	void *temp_buf = buf;
+	int totdim, dim_size[RNA_MAX_ARRAY_DIMENSION];
+
+	totdim = RNA_property_array_dimension(ptr, prop, dim_size);
+
+	rna_array_as_string_recursive(type, &temp_buf, totdim, dim_size, dynstr);
+	BLI_assert(temp_buf == (char *)buf + MEM_allocN_len(buf));
+	MEM_freeN(buf);
+}
+
 char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index, int max_prop_length)
 {
 	int type = RNA_property_type(prop);
@@ -6323,7 +6409,6 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 
 	DynStr *dynstr = BLI_dynstr_new();
 	char *cstring;
-
 
 	/* see if we can coerce into a python type - PropertyType */
 	switch (type) {
@@ -6336,20 +6421,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 					BLI_dynstr_append(dynstr, bool_as_py_string(RNA_property_boolean_get_index(ptr, prop, index)));
 				}
 				else {
-					bool fixedbuf[RNA_MAX_ARRAY_LENGTH];
-					bool *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
-
-					RNA_property_boolean_get_array(ptr, prop, buf);
-					BLI_dynstr_append(dynstr, "(");
-					for (int i = 0; i < len; i++) {
-						BLI_dynstr_appendf(dynstr, i ? ", %s" : "%s", bool_as_py_string(buf[i]));
-					}
-					if (len == 1)
-						BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
-					BLI_dynstr_append(dynstr, ")");
-					if (buf != fixedbuf) {
-						MEM_freeN(buf);
-					}
+					rna_array_as_string(type, len, ptr, prop, dynstr);
 				}
 			}
 			break;
@@ -6362,20 +6434,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 					BLI_dynstr_appendf(dynstr, "%d", RNA_property_int_get_index(ptr, prop, index));
 				}
 				else {
-					int fixedbuf[RNA_MAX_ARRAY_LENGTH];
-					int *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
-
-					RNA_property_int_get_array(ptr, prop, buf);
-					BLI_dynstr_append(dynstr, "(");
-					for (int i = 0; i < len; i++) {
-						BLI_dynstr_appendf(dynstr, i ? ", %d" : "%d", buf[i]);
-					}
-					if (len == 1)
-						BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
-					BLI_dynstr_append(dynstr, ")");
-					if (buf != fixedbuf) {
-						MEM_freeN(buf);
-					}
+					rna_array_as_string(type, len, ptr, prop, dynstr);
 				}
 			}
 			break;
@@ -6388,20 +6447,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 					BLI_dynstr_appendf(dynstr, "%g", RNA_property_float_get_index(ptr, prop, index));
 				}
 				else {
-					float fixedbuf[RNA_MAX_ARRAY_LENGTH];
-					float *buf = ARRAY_SIZE(fixedbuf) >= len ? fixedbuf : MEM_mallocN(sizeof(*buf) * len,  __func__);
-
-					RNA_property_float_get_array(ptr, prop, buf);
-					BLI_dynstr_append(dynstr, "(");
-					for (int i = 0; i < len; i++) {
-						BLI_dynstr_appendf(dynstr, i ? ", %g" : "%g", buf[i]);
-					}
-					if (len == 1)
-						BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
-					BLI_dynstr_append(dynstr, ")");
-					if (buf != fixedbuf) {
-						MEM_freeN(buf);
-					}
+					rna_array_as_string(type, len, ptr, prop, dynstr);
 				}
 			}
 			break;
