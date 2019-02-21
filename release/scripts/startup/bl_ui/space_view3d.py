@@ -2244,6 +2244,26 @@ class VIEW3D_MT_paint_vertex(Menu):
         layout.operator("paint.vertex_color_brightness_contrast", text="Bright/Contrast")
 
 
+class VIEW3D_MT_paint_vertex_specials(Menu):
+    bl_label = "Vertex Paint Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("paint.vertex_color_set")
+        layout.separator()
+        layout.operator("paint.vertex_color_smooth")
+
+
+class VIEW3D_MT_paint_texture_specials(Menu):
+    bl_label = "Texture Paint Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("image.save_dirty")
+
+
 class VIEW3D_MT_hook(Menu):
     bl_label = "Hooks"
 
@@ -2341,6 +2361,19 @@ class VIEW3D_MT_paint_weight(Menu):
         self.draw_generic(self.layout, is_editmode=False)
 
 
+class VIEW3D_MT_paint_weight_specials(Menu):
+    bl_label = "Weights Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("paint.weight_set")
+        layout.separator()
+        layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_clean", text="Clean")
+        layout.operator("object.vertex_group_smooth", text="Smooth")
+
+
 class VIEW3D_MT_sculpt(Menu):
     bl_label = "Sculpt"
 
@@ -2372,6 +2405,16 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "use_deform_only")
         layout.prop(sculpt, "show_diffuse_color")
         layout.prop(sculpt, "show_mask")
+
+
+class VIEW3D_MT_sculpt_specials(Menu):
+    bl_label = "Sculpt Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("object.shade_smooth")
+        layout.operator("object.shade_flat")
 
 
 class VIEW3D_MT_hide_mask(Menu):
@@ -5753,10 +5796,14 @@ classes = (
     VIEW3D_MT_brush,
     VIEW3D_MT_brush_paint_modes,
     VIEW3D_MT_paint_vertex,
+    VIEW3D_MT_paint_vertex_specials,
+    VIEW3D_MT_paint_texture_specials,
     VIEW3D_MT_hook,
     VIEW3D_MT_vertex_group,
     VIEW3D_MT_paint_weight,
+    VIEW3D_MT_paint_weight_specials,
     VIEW3D_MT_sculpt,
+    VIEW3D_MT_sculpt_specials,
     VIEW3D_MT_hide_mask,
     VIEW3D_MT_particle,
     VIEW3D_MT_particle_specials,
