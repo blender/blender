@@ -42,6 +42,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_remap.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
@@ -1114,7 +1115,7 @@ bool BKE_object_data_transfer_ex(
 	/* Get source evaluated mesh.*/
 	me_src_mask |= BKE_object_data_transfer_dttypes_to_cdmask(data_types);
 	if (is_modifier) {
-		me_src = ob_src->runtime.mesh_eval;
+		me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src, false);
 
 		if (me_src == NULL || (me_src_mask & ~ob_src->runtime.last_data_mask) != 0) {
 			CLOG_WARN(&LOG, "Data Transfer: source mesh data is not ready - dependency cycle?");
