@@ -389,7 +389,6 @@ static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Obj
 static void make_duplis_verts(const DupliContext *ctx)
 {
 	Object *parent = ctx->object;
-	bool use_texcoords = (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER);
 	VertexDupliData vdd;
 
 	vdd.ctx = ctx;
@@ -414,13 +413,7 @@ static void make_duplis_verts(const DupliContext *ctx)
 			return;
 		}
 
-		if (use_texcoords) {
-			vdd.orco = CustomData_get_layer(&vdd.me_eval->vdata, CD_ORCO);
-		}
-		else {
-			vdd.orco = NULL;
-		}
-
+		vdd.orco = CustomData_get_layer(&vdd.me_eval->vdata, CD_ORCO);
 		vdd.totvert = vdd.me_eval->totvert;
 	}
 
@@ -599,7 +592,6 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 	float (*orco)[3] = fdd->orco;
 	MLoopUV *mloopuv = fdd->mloopuv;
 	int a, totface = fdd->totface;
-	bool use_texcoords = (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER);
 	float child_imat[4][4];
 	DupliObject *dob;
 
@@ -638,21 +630,16 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 		mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
 
 		dob = make_dupli(ctx, inst_ob, obmat, a);
-		if (use_texcoords) {
-			float w = 1.0f / (float)mp->totloop;
 
-			if (orco) {
-				int j;
-				for (j = 0; j < mp->totloop; j++) {
-					madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
-				}
+		const float w = 1.0f / (float)mp->totloop;
+		if (orco) {
+			for (int j = 0; j < mp->totloop; j++) {
+				madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
 			}
-
-			if (mloopuv) {
-				int j;
-				for (j = 0; j < mp->totloop; j++) {
-					madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j].uv, w);
-				}
+		}
+		if (mloopuv) {
+			for (int j = 0; j < mp->totloop; j++) {
+				madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j].uv, w);
 			}
 		}
 
@@ -664,7 +651,6 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 static void make_duplis_faces(const DupliContext *ctx)
 {
 	Object *parent = ctx->object;
-	bool use_texcoords = (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER);
 	FaceDupliData fdd;
 
 	fdd.use_scale = ((parent->transflag & OB_DUPLIFACES_SCALE) != 0);
@@ -688,15 +674,9 @@ static void make_duplis_faces(const DupliContext *ctx)
 			return;
 		}
 
-		if (use_texcoords) {
-			fdd.orco = CustomData_get_layer(&fdd.me_eval->vdata, CD_ORCO);
-			const int uv_idx = CustomData_get_render_layer(&fdd.me_eval->ldata, CD_MLOOPUV);
-			fdd.mloopuv = CustomData_get_layer_n(&fdd.me_eval->ldata, CD_MLOOPUV, uv_idx);
-		}
-		else {
-			fdd.orco = NULL;
-			fdd.mloopuv = NULL;
-		}
+		fdd.orco = CustomData_get_layer(&fdd.me_eval->vdata, CD_ORCO);
+		const int uv_idx = CustomData_get_render_layer(&fdd.me_eval->ldata, CD_MLOOPUV);
+		fdd.mloopuv = CustomData_get_layer_n(&fdd.me_eval->ldata, CD_MLOOPUV, uv_idx);
 
 		fdd.totface = fdd.me_eval->totpoly;
 		fdd.mpoly = fdd.me_eval->mpoly;
@@ -721,7 +701,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	Object *par = ctx->object;
 	eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
 	bool for_render = mode == DAG_EVAL_RENDER;
-	bool use_texcoords = for_render;
 
 	Object *ob = NULL, **oblist = NULL;
 	DupliObject *dob;
@@ -953,9 +932,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					dob = make_dupli(ctx, object, mat, a);
 					dob->particle_system = psys;
 
-					if (use_texcoords) {
-						psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
-					}
+					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 
 					b++;
 				}
@@ -1007,8 +984,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 				dob = make_dupli(ctx, ob, mat, a);
 				dob->particle_system = psys;
-				if (use_texcoords)
-					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
+				psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 			}
 		}
 
