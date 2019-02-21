@@ -5782,12 +5782,12 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	if (t->mode == TFM_DUMMY)
 		skip_invert = true;
 
-	/* NOTE: This is not relaly following copy-on-write design and we shoud not
+	/* NOTE: This is not really following copy-on-write design and we shoud not
 	 * be re-evaluating the evaluated object. But as the comment above mentioned
 	 * this is part of a hack.
 	 * More proper solution would be to make a shallwe copy of the object  and
-	 * evaluate that, and access matrix of that evaluated copy of tje object.
-	 * Might be more tricky as it sounds, if some logic later on accesses the
+	 * evaluate that, and access matrix of that evaluated copy of the object.
+	 * Might be more tricky than it sounds, if some logic later on accesses the
 	 * object matrix via td->ob->obmat. */
 	Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
 	if (skip_invert == false && constinv == false) {
@@ -5798,7 +5798,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	else {
 		BKE_object_where_is_calc(t->depsgraph, t->scene, object_eval);
 	}
-	/* Copy enwely evaluated fields to the original object, similar to how
+	/* Copy newly evaluated fields to the original object, similar to how
 	 * active dependency graph will do it. */
 	copy_m4_m4(ob->obmat, object_eval->obmat);
 	ob->transflag = object_eval->transflag;
