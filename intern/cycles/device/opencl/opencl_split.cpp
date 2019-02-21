@@ -591,6 +591,7 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 	denoising_program = OpenCLProgram(this, "denoising", "filter.cl", "");
 	denoising_program.add_kernel(ustring("filter_divide_shadow"));
 	denoising_program.add_kernel(ustring("filter_get_feature"));
+	denoising_program.add_kernel(ustring("filter_write_feature"));
 	denoising_program.add_kernel(ustring("filter_detect_outliers"));
 	denoising_program.add_kernel(ustring("filter_combine_halves"));
 	denoising_program.add_kernel(ustring("filter_construct_transform"));
