@@ -270,6 +270,7 @@ class _defs_transform:
             icon="ops.transform.resize.cage",
             widget="VIEW3D_GGT_xform_cage",
             operator="transform.resize",
+            keymap="3D View Tool: Scale",
             draw_settings=draw_settings,
         )
 
