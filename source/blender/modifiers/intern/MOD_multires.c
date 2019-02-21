@@ -80,9 +80,7 @@ static Subdiv *subdiv_descriptor_ensure(MultiresModifierData *mmd,
 {
 	Subdiv *subdiv = BKE_subdiv_update_from_mesh(
 	        mmd->subdiv, subdiv_settings, mesh);
-	if (false) {
-		mmd->subdiv = subdiv;
-	}
+	mmd->subdiv = subdiv;
 	return subdiv;
 }
 

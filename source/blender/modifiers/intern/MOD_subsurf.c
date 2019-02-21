@@ -123,9 +123,7 @@ static Subdiv *subdiv_descriptor_ensure(SubsurfModifierData *smd,
 {
 	Subdiv *subdiv = BKE_subdiv_update_from_mesh(
 	        smd->subdiv, subdiv_settings, mesh);
-	if (false) {
-		smd->subdiv = subdiv;
-	}
+	smd->subdiv = subdiv;
 	return subdiv;
 }
 
