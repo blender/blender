@@ -30,10 +30,6 @@ __kernel void kernel_ocl_background(
 	int x = sx + ccl_global_id(0);
 
 	if(x < sx + sw) {
-#ifdef __NO_BAKING__
-		output[x] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-#else
 		kernel_background_evaluate(kg, input, output, x);
-#endif
 	}
 }
