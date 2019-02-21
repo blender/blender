@@ -7,6 +7,7 @@ uniform int cacheStart;
 uniform bool showKeyFrames = true;
 uniform bool useCustomColor;
 uniform vec3 customColor;
+uniform int stepSize;
 
 in vec3 pos;
 in int flag;
@@ -26,6 +27,10 @@ void main()
 
 	/* Bias to reduce z fighting with the path */
 	gl_Position.z -= 1e-4;
+
+	if (gl_VertexID % stepSize == 0) {
+		gl_PointSize = float(pointSize) + 4;
+	}
 
 	if (showKeyFrames) {
 		if ((flag & MOTIONPATH_VERT_KEY) != 0) {
