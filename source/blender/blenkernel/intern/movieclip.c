@@ -1019,10 +1019,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 		               (user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL);
 
 		if (clip->source == MCLIP_SRC_SEQUENCE || use_sequence) {
-			ibuf = movieclip_load_sequence_file(clip,
-			                                    user,
-			                                    framenr,
-			                                    flag);
+			ibuf = movieclip_load_sequence_file(clip, user, framenr, flag);
 		}
 		else {
 			ibuf = movieclip_load_movie_file(clip, user, framenr, flag);
