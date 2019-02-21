@@ -1266,18 +1266,23 @@ static void view3d_localview_exit(
         const Depsgraph *depsgraph,
         wmWindowManager *wm,
         wmWindow *win,
+        ViewLayer *view_layer,
         ScrArea *sa,
         const bool frame_selected,
         const int smooth_viewtx)
 {
-	ARegion *ar;
 	View3D *v3d = sa->spacedata.first;
-	Object *camera_old, *camera_new;
 
 	if (v3d->localvd == NULL) return;
 
-	camera_old = v3d->camera;
-	camera_new = v3d->localvd->camera;
+	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+		if (base->local_view_bits & v3d->local_view_uuid) {
+			base->local_view_bits &= ~v3d->local_view_uuid;
+		}
+	}
+
+	Object *camera_old = v3d->camera;
+	Object *camera_new = v3d->localvd->camera;
 
 	v3d->local_view_uuid = 0;
 	v3d->camera = v3d->localvd->camera;
@@ -1285,7 +1290,7 @@ static void view3d_localview_exit(
 	MEM_freeN(v3d->localvd);
 	v3d->localvd = NULL;
 
-	for (ar = sa->regionbase.first; ar; ar = ar->next) {
+	for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 		if (ar->regiontype == RGN_TYPE_WINDOW) {
 			RegionView3D *rv3d = ar->regiondata;
 
@@ -1335,7 +1340,7 @@ static int localview_exec(bContext *C, wmOperator *op)
 	bool changed;
 
 	if (v3d->localvd) {
-		view3d_localview_exit(depsgraph, wm, win, sa, frame_selected, smooth_viewtx);
+		view3d_localview_exit(depsgraph, wm, win, view_layer, sa, frame_selected, smooth_viewtx);
 		changed = true;
 	}
 	else {
