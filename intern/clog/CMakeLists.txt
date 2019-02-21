@@ -18,6 +18,7 @@
 
 set(INC
 	.
+	../atomic
 	../guardedalloc
 )
 
