@@ -375,3 +375,11 @@ set(SRC
 add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}")
+
+#makesrna needs the prhreads dll to properly run on windows
+if(WIN32)
+	ADD_CUSTOM_COMMAND(TARGET bf_rna
+			  PRE_BUILD
+			  COMMAND ${CMAKE_COMMAND} -E copy  ${LIBDIR}/pthreads/lib/pthreadVC3.dll $<TARGET_FILE_DIR:makesrna>/
+	)
+endif()
