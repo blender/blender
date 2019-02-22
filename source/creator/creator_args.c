@@ -468,7 +468,7 @@ static void print_version_short(void)
 #ifdef BUILD_DATE
 	/* NOTE: We include built time since sometimes we need to tell broken from
 	 * working built of the same hash. */
-	printf(BLEND_VERSION_FMT " (hash %s built %s %s)\n
+	printf(BLEND_VERSION_FMT " (hash %s built %s %s)\n",
 	       BLEND_VERSION_ARG, build_hash, build_date, build_time);
 #else
 	printf(BLEND_VERSION_STRING_FMT);
