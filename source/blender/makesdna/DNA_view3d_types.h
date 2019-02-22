@@ -154,7 +154,8 @@ typedef struct View3DShading {
 	char light;
 	char background_type;
 	char cavity_type;
-	char pad[7];
+	char wire_color_type;
+	char pad[6];
 
 	/** FILE_MAXFILE. */
 	char studio_light[256];

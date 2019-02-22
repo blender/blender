@@ -29,6 +29,8 @@
 #include "BKE_object.h"
 #include "BKE_global.h"
 
+#include "BLI_hash.h"
+
 #include "GPU_shader.h"
 #include "DRW_render.h"
 
@@ -39,6 +41,7 @@
 #endif
 
 /* Structures */
+
 typedef struct OVERLAY_StorageList {
 	struct OVERLAY_PrivateData *g_data;
 } OVERLAY_StorageList;
@@ -59,6 +62,7 @@ typedef struct OVERLAY_Data {
 typedef struct OVERLAY_PrivateData {
 	DRWShadingGroup *face_orientation_shgrp;
 	DRWShadingGroup *face_wires_shgrp;
+	BLI_mempool *wire_color_mempool;
 	View3DOverlay overlay;
 	float wire_step_param;
 	bool ghost_stencil_test;
@@ -102,7 +106,7 @@ static void overlay_engine_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	stl->g_data->ghost_stencil_test = false;
 
@@ -172,6 +176,13 @@ static void overlay_cache_init(void *vedata)
 	if (v3d->shading.type == OB_WIRE) {
 		g_data->overlay.flag |= V3D_OVERLAY_WIREFRAMES;
 		g_data->show_overlays = true;
+
+		if (ELEM(v3d->shading.wire_color_type,
+		         V3D_SHADING_OBJECT_COLOR,
+		         V3D_SHADING_RANDOM_COLOR))
+		{
+			g_data->wire_color_mempool = BLI_mempool_create(sizeof(float[3]), 0, 512, 0);
+		}
 	}
 
 	{
@@ -221,6 +232,92 @@ static void overlay_cache_init(void *vedata)
 	}
 }
 
+static void overlay_wire_color_get(
+        const View3D *v3d, const OVERLAY_PrivateData *pd, const Object *ob, const bool use_coloring,
+        float **rim_col, float **wire_col)
+{
+#ifndef NDEBUG
+	*rim_col = NULL;
+	*wire_col = NULL;
+#endif
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
+	if (UNLIKELY(ob->base_flag & BASE_FROM_SET)) {
+		*rim_col = G_draw.block.colorDupli;
+		*wire_col = G_draw.block.colorDupli;
+	}
+	else if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
+		if (ob->base_flag & BASE_SELECTED) {
+			if (G.moving & G_TRANSFORM_OBJ) {
+				*rim_col = G_draw.block.colorTransform;
+			}
+			else {
+				*rim_col = G_draw.block.colorDupliSelect;
+			}
+		}
+		else {
+			*rim_col = G_draw.block.colorDupli;
+		}
+		*wire_col = G_draw.block.colorDupli;
+	}
+	else if ((ob->base_flag & BASE_SELECTED) && use_coloring) {
+		if (G.moving & G_TRANSFORM_OBJ) {
+			*rim_col = G_draw.block.colorTransform;
+		}
+		else if (ob == draw_ctx->obact) {
+			*rim_col = G_draw.block.colorActive;
+		}
+		else {
+			*rim_col = G_draw.block.colorSelect;
+		}
+		*wire_col = G_draw.block.colorWire;
+	}
+	else {
+		*rim_col = G_draw.block.colorWire;
+		*wire_col = G_draw.block.colorWire;
+	}
+
+	if (v3d->shading.type == OB_WIRE) {
+		if (ELEM(v3d->shading.wire_color_type,
+		         V3D_SHADING_OBJECT_COLOR,
+		         V3D_SHADING_RANDOM_COLOR))
+		{
+			*wire_col = BLI_mempool_alloc(pd->wire_color_mempool);
+			*rim_col = BLI_mempool_alloc(pd->wire_color_mempool);
+
+			if (v3d->shading.wire_color_type == V3D_SHADING_OBJECT_COLOR) {
+				linearrgb_to_srgb_v3_v3(*wire_col, ob->color);
+				mul_v3_fl(*wire_col, 0.5f);
+				copy_v3_v3(*rim_col, *wire_col);
+			}
+			else {
+				uint hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
+				if (ob->id.lib) {
+					hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->name);
+				}
+
+				float hue = BLI_hash_int_01(hash);
+				float hsv[3] = {hue, 0.75f, 0.8f};
+				hsv_to_rgb_v(hsv, *wire_col);
+				copy_v3_v3(*rim_col, *wire_col);
+			}
+
+			if ((ob->base_flag & BASE_SELECTED) && use_coloring) {
+				/* "Normalize" color. */
+				add_v3_fl(*wire_col, 1e-4f);
+				float brightness = max_fff((*wire_col)[0], (*wire_col)[1], (*wire_col)[2]);
+				mul_v3_fl(*wire_col, (0.5f / brightness));
+				add_v3_fl(*rim_col, 0.75f);
+			}
+			else {
+				mul_v3_fl(*rim_col, 0.5f);
+				add_v3_fl(*wire_col, 0.5f);
+			}
+		}
+	}
+	BLI_assert(*rim_col && *wire_col);
+}
+
 static void overlay_cache_populate(void *vedata, Object *ob)
 {
 	OVERLAY_Data *data = vedata;
@@ -267,49 +364,12 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 			const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES);
 			const bool is_wire = (ob->dt < OB_SOLID);
+			const bool use_coloring = (!is_edit_mode && !is_sculpt_mode && !has_edit_mesh_cage);
 			const int stencil_mask = (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF;
+			float *rim_col, *wire_col;
 			DRWShadingGroup *shgrp = NULL;
 
-			const float *rim_col = NULL;
-			const float *wire_col = NULL;
-
-			if (UNLIKELY(ob->base_flag & BASE_FROM_SET)) {
-				rim_col = G_draw.block.colorDupli;
-				wire_col = G_draw.block.colorDupli;
-			}
-			else if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
-				if (ob->base_flag & BASE_SELECTED) {
-					if (G.moving & G_TRANSFORM_OBJ) {
-						rim_col = G_draw.block.colorTransform;
-					}
-					else {
-						rim_col = G_draw.block.colorDupliSelect;
-					}
-				}
-				else {
-					rim_col = G_draw.block.colorDupli;
-				}
-				wire_col = G_draw.block.colorDupli;
-			}
-			else if ((ob->base_flag & BASE_SELECTED) &&
-			         (!is_edit_mode && !is_sculpt_mode && !has_edit_mesh_cage))
-			{
-				if (G.moving & G_TRANSFORM_OBJ) {
-					rim_col = G_draw.block.colorTransform;
-				}
-				else if (ob == draw_ctx->obact) {
-					rim_col = G_draw.block.colorActive;
-				}
-				else {
-					rim_col = G_draw.block.colorSelect;
-				}
-				wire_col = G_draw.block.colorWire;
-			}
-			else {
-				rim_col = G_draw.block.colorWire;
-				wire_col = G_draw.block.colorWire;
-			}
-			BLI_assert(rim_col && wire_col);
+			overlay_wire_color_get(v3d, pd, ob, use_coloring, &rim_col, &wire_col);
 
 			struct GPUBatch *geom;
 			geom = DRW_cache_object_face_wireframe_get(ob);
@@ -372,6 +432,7 @@ static void overlay_draw_scene(void *vedata)
 {
 	OVERLAY_Data *data = vedata;
 	OVERLAY_PassList *psl = data->psl;
+	OVERLAY_StorageList *stl = data->stl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
@@ -380,7 +441,8 @@ static void overlay_draw_scene(void *vedata)
 	}
 	DRW_draw_pass(psl->face_orientation_pass);
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
+	/* This is replaced by the next code block  */
+	// MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
 	if (dfbl->multisample_fb != NULL) {
 		DRW_stats_query_start("Multisample Blit");
@@ -399,6 +461,12 @@ static void overlay_draw_scene(void *vedata)
 	/* TODO(fclem): find a way to unify the multisample pass together
 	 * (non meshes + armature + wireframe) */
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
+
+	/* XXX TODO(fclem) do not discard data after drawing! Store them per viewport. */
+	if (stl->g_data->wire_color_mempool) {
+		BLI_mempool_destroy(stl->g_data->wire_color_mempool);
+		stl->g_data->wire_color_mempool = NULL;
+	}
 }
 
 static void overlay_engine_free(void)

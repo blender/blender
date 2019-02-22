@@ -4583,7 +4583,9 @@ class VIEW3D_PT_shading_color(Panel):
 
     def draw(self, context):
         shading = VIEW3D_PT_shading.get_shading(context)
-        if shading.type != 'WIREFRAME':
+        if shading.type == 'WIREFRAME':
+            self.layout.row().prop(shading, "wireframe_color_type", expand=True)
+        else:
             self._draw_color_type(context)
             self.layout.separator()
         self._draw_background_color(context)

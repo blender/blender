@@ -804,6 +804,11 @@ static const EnumPropertyItem *rna_View3DShading_color_type_itemf(
 			RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_TEXTURE_COLOR);
 		}
 	}
+	else if (shading->type == OB_WIRE) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_SINGLE_COLOR);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_OBJECT_COLOR);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_RANDOM_COLOR);
+	}
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
@@ -2531,6 +2536,13 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "color_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "color_type");
+	RNA_def_property_enum_items(prop, rna_enum_shading_color_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_View3DShading_color_type_itemf");
+	RNA_def_property_ui_text(prop, "Color", "Color Type");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "wireframe_color_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wire_color_type");
 	RNA_def_property_enum_items(prop, rna_enum_shading_color_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_View3DShading_color_type_itemf");
 	RNA_def_property_ui_text(prop, "Color", "Color Type");
