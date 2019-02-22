@@ -364,79 +364,134 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
 /** \name Grid PBVH
  * \{ */
 
-static void gpu_pbvh_grid_fill_fast_buffer(GPU_PBVH_Buffers *buffers, int totgrid, int gridsize)
+static void gpu_pbvh_grid_fill_index_buffers(
+        GPU_PBVH_Buffers *buffers,
+        int *grid_indices,
+        uint visible_quad_len,
+        int totgrid,
+        int gridsize)
 {
 	GPUIndexBufBuilder elb, elb_lines;
+	GPUIndexBufBuilder elb_fast, elb_lines_fast;
+
+	GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 2 * visible_quad_len, INT_MAX);
+	GPU_indexbuf_init(&elb_fast, GPU_PRIM_TRIS, 2 * totgrid, INT_MAX);
+	GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, 2 * totgrid * gridsize * (gridsize - 1), INT_MAX);
+	GPU_indexbuf_init(&elb_lines_fast, GPU_PRIM_LINES, 4 * totgrid, INT_MAX);
+
 	if (buffers->smooth) {
-		GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, 4 * totgrid, INT_MAX);
-		GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 2 * totgrid, INT_MAX);
-		for (int i = 0; i < totgrid; i++) {
-			const uint v0 = i * gridsize * gridsize + gridsize - 1;
-			const uint v1 = i * gridsize * gridsize;
-			const uint v2 = (i + 1) * gridsize * gridsize - gridsize;
-			const uint v3 = (i + 1) * gridsize * gridsize - 1;
+		uint offset = 0;
+		const uint grid_vert_len = gridsize * gridsize;
+		for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
+			uint v0, v1, v2, v3;
+			bool grid_visible = false;
 
-			GPU_indexbuf_add_tri_verts(&elb, v0, v1, v2);
-			GPU_indexbuf_add_tri_verts(&elb, v3, v0, v2);
+			BLI_bitmap *gh = buffers->grid_hidden[grid_indices[i]];
 
-			GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
-			GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
-			GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
-			GPU_indexbuf_add_line_verts(&elb_lines, v3, v0);
+			for (int j = 0; j < gridsize - 1; ++j) {
+				for (int k = 0; k < gridsize - 1; ++k) {
+					/* Skip hidden grid face */
+					if (gh && paint_is_grid_face_hidden(
+					        gh, gridsize, k, j))
+					{
+						continue;
+					}
+					/* Indices in a Clockwise QUAD disposition. */
+					v0 = offset + j * gridsize + k;
+					v1 = v0 + 1;
+					v2 = v1 + gridsize;
+					v3 = v2 - 1;
+
+					GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
+					GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
+
+					GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
+					GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
+
+					if (j + 2 == gridsize) {
+						GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
+					}
+					grid_visible = true;
+				}
+				GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+			}
+
+			if (grid_visible) {
+				/* Grid corners */
+				v0 = offset + gridsize - 1;
+				v1 = offset;
+				v2 = offset + grid_vert_len - 1;
+				v3 = offset + grid_vert_len - gridsize;
+
+				GPU_indexbuf_add_tri_verts(&elb_fast, v0, v2, v1);
+				GPU_indexbuf_add_tri_verts(&elb_fast, v0, v3, v2);
+
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v0, v1);
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v1, v2);
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v2, v3);
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v3, v0);
+			}
 		}
 	}
 	else {
-		GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, 4 * totgrid, INT_MAX);
-		GPU_indexbuf_init_ex(&elb, GPU_PRIM_TRI_STRIP, 5 * totgrid, INT_MAX, true);
-		uint vbo_index_offset = 0;
-		for (int i = 0; i < totgrid; i++) {
-			uint grid_indices[4] = {0, 0, 0, 0};
+		uint offset = 0;
+		const uint grid_vert_len = SQUARE(gridsize - 1) * 4;
+		for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
+			bool grid_visible = false;
+
+			BLI_bitmap *gh = buffers->grid_hidden[grid_indices[i]];
+
+			uint v0, v1, v2, v3;
 			for (int j = 0; j < gridsize - 1; j++) {
 				for (int k = 0; k < gridsize - 1; k++) {
-					const bool is_row_start = (k == 0);
-					const bool is_row_end = (k == gridsize - 2);
-					const bool is_grid_start = (j == 0);
-					const bool is_grid_end = (j == gridsize - 2);
-					const bool is_first_grid = (i == 0);
-					const bool is_last_grid = (i == totgrid - 1);
+					/* Skip hidden grid face */
+					if (gh && paint_is_grid_face_hidden(
+					        gh, gridsize, k, j))
+					{
+						continue;
+					}
+					/* VBO data are in a Clockwise QUAD disposition. */
+					v0 = offset + (j * (gridsize - 1) + k) * 4;
+					v1 = v0 + 1;
+					v2 = v0 + 2;
+					v3 = v0 + 3;
 
-					if (is_row_start && !(is_grid_start && is_first_grid)) {
-						vbo_index_offset += 1;
-					}
+					GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
+					GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
 
-					if (is_grid_start && is_row_start) {
-						grid_indices[0] = vbo_index_offset + 0;
-					}
-					if (is_grid_start && is_row_end) {
-						grid_indices[1] = vbo_index_offset + 2;
-					}
-					if (is_grid_end && is_row_start) {
-						grid_indices[2] = vbo_index_offset + 1;
-					}
-					if (is_grid_end && is_row_end) {
-						grid_indices[3] = vbo_index_offset + 3;
-					}
-					vbo_index_offset += 4;
+					GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
+					GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
 
-					if (is_row_end && !(is_grid_end && is_last_grid)) {
-						vbo_index_offset += 1;
+					if (j + 2 == gridsize) {
+						GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
 					}
+					grid_visible = true;
 				}
+				GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
 			}
-			GPU_indexbuf_add_generic_vert(&elb, grid_indices[1]);
-			GPU_indexbuf_add_generic_vert(&elb, grid_indices[0]);
-			GPU_indexbuf_add_generic_vert(&elb, grid_indices[3]);
-			GPU_indexbuf_add_generic_vert(&elb, grid_indices[2]);
-			GPU_indexbuf_add_primitive_restart(&elb);
+	
+			if (grid_visible) {
+				/* Grid corners */
+				v0 = offset;
+				v1 = offset + (gridsize - 1) * 4 - 3;
+				v2 = offset + grid_vert_len - 2;
+				v3 = offset + grid_vert_len - (gridsize - 1) * 4 + 3;
 
-			GPU_indexbuf_add_line_verts(&elb_lines, grid_indices[0], grid_indices[1]);
-			GPU_indexbuf_add_line_verts(&elb_lines, grid_indices[1], grid_indices[3]);
-			GPU_indexbuf_add_line_verts(&elb_lines, grid_indices[2], grid_indices[3]);
-			GPU_indexbuf_add_line_verts(&elb_lines, grid_indices[2], grid_indices[0]);
+				GPU_indexbuf_add_tri_verts(&elb_fast, v0, v2, v1);
+				GPU_indexbuf_add_tri_verts(&elb_fast, v0, v3, v2);
+
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v0, v1);
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v1, v2);
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v2, v3);
+				GPU_indexbuf_add_line_verts(&elb_lines_fast, v3, v0);
+			}
 		}
 	}
-	buffers->index_buf_fast = GPU_indexbuf_build(&elb);
-	buffers->index_lines_buf_fast = GPU_indexbuf_build(&elb_lines);
+
+	buffers->index_buf = GPU_indexbuf_build(&elb);
+	buffers->index_buf_fast = GPU_indexbuf_build(&elb_fast);
+	buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
+	buffers->index_lines_buf_fast = GPU_indexbuf_build(&elb_lines_fast);
 }
 
 void GPU_pbvh_grid_buffers_update(
@@ -449,37 +504,49 @@ void GPU_pbvh_grid_buffers_update(
 	bool empty_mask = true;
 	int i, j, k, x, y;
 
-	buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
+	const bool smooth = true;//grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
 	/* Build VBO */
 	const int has_mask = key->has_mask;
 
-	uint vert_count = totgrid * key->grid_area;
+	uint vert_per_grid = (smooth) ? key->grid_area : (SQUARE(key->grid_size - 1) * 4);
+	uint vert_count = totgrid * vert_per_grid;
 
-	if (!buffers->smooth) {
-		vert_count = totgrid * SQUARE(key->grid_size - 1) * 4;
-		/* Count strip restart verts (2 verts between each row and grid) */
-		vert_count += ((totgrid - 1) + totgrid * (key->grid_size - 2)) * 2;
+	if (buffers->smooth != smooth) {
+		buffers->smooth = smooth;
+		GPU_BATCH_DISCARD_SAFE(buffers->triangles);
+		GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
+		GPU_BATCH_DISCARD_SAFE(buffers->lines);
+		GPU_BATCH_DISCARD_SAFE(buffers->lines_fast);
+
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf);
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf_fast);
 	}
 
-	GPU_BATCH_DISCARD_SAFE(buffers->triangles);
-	GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
-	GPU_BATCH_DISCARD_SAFE(buffers->lines);
-	GPU_BATCH_DISCARD_SAFE(buffers->lines_fast);
-	GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
-	GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
-	GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf);
-	GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf_fast);
+	if (buffers->index_buf == NULL) {
+		uint visible_quad_len = BKE_pbvh_count_grid_quads((BLI_bitmap **)buffers->grid_hidden,
+		                                                  grid_indices,
+		                                                  totgrid,
+		                                                  key->grid_size);
 
-	if (buffers->index_buf_fast == NULL && key->grid_size > 2) {
-		gpu_pbvh_grid_fill_fast_buffer(buffers, totgrid, key->grid_size);
+		/* totally hidden node, return here to avoid BufferData with zero below. */
+		if (visible_quad_len == 0) {
+			return;
+		}
+
+		gpu_pbvh_grid_fill_index_buffers(buffers, grid_indices, visible_quad_len, totgrid, key->grid_size);
 	}
 
 	uint vbo_index_offset = 0;
 	/* Build VBO */
 	if (gpu_pbvh_vert_buf_data_set(buffers, vert_count)) {
 		GPUIndexBufBuilder elb_lines;
-		GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, totgrid * key->grid_area * 2, vert_count);
+
+		if (buffers->index_lines_buf == NULL) {
+			GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, totgrid * key->grid_area * 2, vert_count);
+		}
 
 		for (i = 0; i < totgrid; ++i) {
 			CCGElem *grid = grids[grid_indices[i]];
@@ -500,13 +567,6 @@ void GPU_pbvh_grid_buffers_update(
 							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
 							empty_mask = empty_mask && (fmask == 0.0f);
 						}
-
-						if (x + 1 < key->grid_size) {
-							GPU_indexbuf_add_line_verts(&elb_lines, vbo_index, vbo_index + 1);
-						}
-						if (y + 1 < key->grid_size) {
-							GPU_indexbuf_add_line_verts(&elb_lines, vbo_index, vbo_index + key->grid_size);
-						}
 						vbo_index += 1;
 					}
 				}
@@ -515,18 +575,11 @@ void GPU_pbvh_grid_buffers_update(
 			else {
 				for (j = 0; j < key->grid_size - 1; j++) {
 					for (k = 0; k < key->grid_size - 1; k++) {
-						const bool is_row_start = (k == 0);
-						const bool is_row_end = (k == key->grid_size - 2);
-						const bool is_grid_start = (j == 0);
-						const bool is_grid_end = (j == key->grid_size - 2);
-						const bool is_first_grid = (i == 0);
-						const bool is_last_grid = (i == totgrid - 1);
-
 						CCGElem *elems[4] = {
-							CCG_grid_elem(key, grid, k, j + 1),
-							CCG_grid_elem(key, grid, k + 1, j + 1),
-							CCG_grid_elem(key, grid, k + 1, j),
 							CCG_grid_elem(key, grid, k, j),
+							CCG_grid_elem(key, grid, k + 1, j),
+							CCG_grid_elem(key, grid, k + 1, j + 1),
+							CCG_grid_elem(key, grid, k, j + 1),
 						};
 						float *co[4] = {
 						    CCG_elem_co(key, elems[0]),
@@ -537,65 +590,38 @@ void GPU_pbvh_grid_buffers_update(
 
 						float fno[3];
 						short no_short[3];
-						normal_quad_v3(fno, co[0], co[1], co[2], co[3]);
+						/* Note: Clockwise indices ordering, that's why we invert order here. */
+						normal_quad_v3(fno, co[3], co[2], co[1], co[0]);
 						normal_float_to_short_v3(no_short, fno);
 
-						if (is_row_start && !(is_grid_start && is_first_grid)) {
-							/* Duplicate first vert
-							 * (only pos is needed since the triangle will be degenerate) */
-							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, co[3]);
-							vbo_index += 1;
-							vbo_index_offset += 1;
-						}
-
-						/* Note indices orders (3, 0, 2, 1); we are drawing a triangle strip. */
-						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, co[3]);
-						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no_short);
-						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 1, co[0]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 0, co[0]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 0, no_short);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 1, co[1]);
 						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 1, no_short);
 						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 2, co[2]);
 						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 2, no_short);
-						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 3, co[1]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 3, co[3]);
 						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 3, no_short);
-
-						GPU_indexbuf_add_line_verts(&elb_lines, vbo_index, vbo_index + 1);
-						GPU_indexbuf_add_line_verts(&elb_lines, vbo_index, vbo_index + 2);
-						if (is_row_end) {
-							GPU_indexbuf_add_line_verts(&elb_lines, vbo_index + 2, vbo_index + 3);
-						}
-						if (is_grid_end) {
-							GPU_indexbuf_add_line_verts(&elb_lines, vbo_index + 1, vbo_index + 3);
-						}
 
 						if (has_mask && show_mask) {
 							float fmask = (*CCG_elem_mask(key, elems[0]) +
 							               *CCG_elem_mask(key, elems[1]) +
 							               *CCG_elem_mask(key, elems[2]) +
 							               *CCG_elem_mask(key, elems[3])) * 0.25f;
-							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 0, &fmask);
 							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 1, &fmask);
 							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 2, &fmask);
 							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 3, &fmask);
 							empty_mask = empty_mask && (fmask == 0.0f);
 						}
-
-						if (is_row_end && !(is_grid_end && is_last_grid)) {
-							/* Duplicate last vert
-							 * (only pos is needed since the triangle will be degenerate) */
-							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 4, co[1]);
-							vbo_index += 1;
-							vbo_index_offset += 1;
-						}
 						vbo_index += 4;
 					}
 				}
-				vbo_index_offset += (key->grid_size - 1) * (key->grid_size - 1) * 4;
+				vbo_index_offset += SQUARE(key->grid_size - 1) * 4;
 			}
 		}
 
-		buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
-
-		gpu_pbvh_batch_init(buffers, buffers->smooth ? GPU_PRIM_TRIS : GPU_PRIM_TRI_STRIP);
+		gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 	}
 
 	buffers->grids = grids;
@@ -608,97 +634,17 @@ void GPU_pbvh_grid_buffers_update(
 	//printf("node updated %p\n", buffers);
 }
 
-/* Build the element array buffer of grid indices using either
- * ushorts or uints. */
-#define FILL_QUAD_BUFFER(max_vert_, tot_quad_, buffer_)                 \
-	{                                                                   \
-		int offset = 0;                                                 \
-		int i, j, k;                                                    \
-                                                                        \
-		GPUIndexBufBuilder elb;                                         \
-		GPU_indexbuf_init(                                              \
-		       &elb, GPU_PRIM_TRIS, tot_quad_ * 2, max_vert_);          \
-                                                                        \
-		/* Fill the buffer */                                           \
-		for (i = 0; i < totgrid; ++i) {                                 \
-			BLI_bitmap *gh = NULL;                                      \
-			if (grid_hidden)                                            \
-				gh = grid_hidden[(grid_indices)[i]];                    \
-                                                                        \
-			for (j = 0; j < gridsize - 1; ++j) {                        \
-				for (k = 0; k < gridsize - 1; ++k) {                    \
-					/* Skip hidden grid face */                         \
-					if (gh && paint_is_grid_face_hidden(                \
-					        gh, gridsize, k, j))                        \
-					{                                                   \
-						continue;                                       \
-					}                                                   \
-					GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
-					GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k);    \
-					GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
-                                                                        \
-					GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k + 1); \
-					GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
-					GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
-				}                                                       \
-			}                                                           \
-                                                                        \
-			offset += gridsize * gridsize;                              \
-		}                                                               \
-		buffer_ = GPU_indexbuf_build(&elb);                             \
-	} (void)0
-/* end FILL_QUAD_BUFFER */
-
-static GPUIndexBuf *gpu_get_grid_buffer(
-        int gridsize, uint *totquad,
-        /* remove this arg  when GPU gets base-vertex support! */
-        int totgrid)
-{
-	/* used in the FILL_QUAD_BUFFER macro */
-	BLI_bitmap * const *grid_hidden = NULL;
-	const int *grid_indices = NULL;
-
-	/* Build new VBO */
-	*totquad = (gridsize - 1) * (gridsize - 1) * totgrid;
-	int max_vert = gridsize * gridsize * totgrid;
-
-	GPUIndexBuf *mres_buffer;
-	FILL_QUAD_BUFFER(max_vert, *totquad, mres_buffer);
-
-	return mres_buffer;
-}
-
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
-        int *grid_indices, int totgrid, BLI_bitmap **grid_hidden, int gridsize, const CCGKey *UNUSED(key))
+        int totgrid,
+        BLI_bitmap **grid_hidden)
 {
 	GPU_PBVH_Buffers *buffers;
-	int totquad;
-	int fully_visible_totquad = (gridsize - 1) * (gridsize - 1) * totgrid;
 
 	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 	buffers->grid_hidden = grid_hidden;
 	buffers->totgrid = totgrid;
 
 	buffers->show_mask = false;
-
-	/* Count the number of quads */
-	totquad = BKE_pbvh_count_grid_quads(grid_hidden, grid_indices, totgrid, gridsize);
-
-	/* totally hidden node, return here to avoid BufferData with zero below. */
-	if (totquad == 0)
-		return buffers;
-
-	/* TODO(fclem) this needs a bit of cleanup. It's only needed for smooth grids.
-	 * Could be moved to the update function somehow. */
-	if (totquad == fully_visible_totquad) {
-		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->tot_quad, totgrid);
-	}
-	else {
-		uint max_vert = totgrid * gridsize * gridsize;
-		buffers->tot_quad = totquad;
-
-		FILL_QUAD_BUFFER(max_vert, totquad, buffers->index_buf);
-	}
 
 	return buffers;
 }
