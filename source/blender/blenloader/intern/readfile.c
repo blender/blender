@@ -1033,7 +1033,7 @@ static int fd_read_gzip_from_file(FileData *filedata, void *buffer, uint size)
 		readsize = EOF;
 	}
 	else {
-		filedata->seek += readsize;
+		filedata->file_offset += readsize;
 	}
 
 	return (readsize);
@@ -1042,10 +1042,10 @@ static int fd_read_gzip_from_file(FileData *filedata, void *buffer, uint size)
 static int fd_read_from_memory(FileData *filedata, void *buffer, uint size)
 {
 	/* don't read more bytes then there are available in the buffer */
-	int readsize = (int)MIN2(size, (uint)(filedata->buffersize - filedata->seek));
+	int readsize = (int)MIN2(size, (uint)(filedata->buffersize - filedata->file_offset));
 
-	memcpy(buffer, filedata->buffer + filedata->seek, readsize);
-	filedata->seek += readsize;
+	memcpy(buffer, filedata->buffer + filedata->file_offset, readsize);
+	filedata->file_offset += readsize;
 
 	return (readsize);
 }
@@ -1059,19 +1059,19 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, uint size)
 
 	if (size == 0) return 0;
 
-	if (seek != (uint)filedata->seek) {
+	if (seek != (uint)filedata->file_offset) {
 		chunk = filedata->memfile->chunks.first;
 		seek = 0;
 
 		while (chunk) {
-			if (seek + chunk->size > (uint)filedata->seek) {
+			if (seek + chunk->size > (uint)filedata->file_offset) {
 				break;
 			}
 			seek += chunk->size;
 			chunk = chunk->next;
 		}
 		offset = seek;
-		seek = filedata->seek;
+		seek = filedata->file_offset;
 	}
 
 	if (chunk) {
@@ -1101,7 +1101,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, uint size)
 
 			memcpy(POINTER_OFFSET(buffer, totread), chunk->buf + chunkoffset, readsize);
 			totread += readsize;
-			filedata->seek += readsize;
+			filedata->file_offset += readsize;
 			seek += readsize;
 		} while (totread < size);
 
@@ -1219,7 +1219,7 @@ static int fd_read_gzip_from_memory(FileData *filedata, void *buffer, uint size)
 		return 0;
 	}
 
-	filedata->seek += size;
+	filedata->file_offset += size;
 
 	return (size);
 }
