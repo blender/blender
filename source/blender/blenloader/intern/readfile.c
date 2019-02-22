@@ -1458,7 +1458,8 @@ void blo_filedata_free(FileData *fd)
  * \{ */
 
 /**
- * Check whether given path ends with a blend file compatible extension (.blend, .ble or .blend.gz).
+ * Check whether given path ends with a blend file compatible extension
+ * (`.blend`, `.ble` or `.blend.gz`).
  *
  * \param str: The path to check.
  * \return true is this path ends with a blender file extension.
@@ -1470,11 +1471,12 @@ bool BLO_has_bfile_extension(const char *str)
 }
 
 /**
- * Try to explode given path into its 'library components' (i.e. a .blend file, id type/group, and datablock itself).
+ * Try to explode given path into its 'library components'
+ * (i.e. a .blend file, id type/group, and data-block itself).
  *
  * \param path: the full path to explode.
  * \param r_dir: the string that'll contain path up to blend file itself ('library' path).
- *              WARNING! Must be FILE_MAX_LIBEXTRA long (it also stores group and name strings)!
+ * WARNING! Must be #FILE_MAX_LIBEXTRA long (it also stores group and name strings)!
  * \param r_group: the string that'll contain 'group' part of the path, if any. May be NULL.
  * \param r_name: the string that'll contain data's name part of the path, if any. May be NULL.
  * \return true if path contains a blend file.
@@ -1543,7 +1545,7 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
  *
  * \param filepath: The path of the file to extract thumbnail from.
  * \return The raw thumbnail
- *         (MEM-allocated, as stored in file, use BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
+ * (MEM-allocated, as stored in file, use BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
  */
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
@@ -2338,8 +2340,9 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 #define IDP_DirectLinkGroup_OrFree(prop, switch_endian, fd) \
        _IDP_DirectLinkGroup_OrFree(prop, switch_endian, fd, __func__)
 
-static void _IDP_DirectLinkGroup_OrFree(IDProperty **prop, int switch_endian, FileData *fd,
-                                        const char *caller_func_id)
+static void _IDP_DirectLinkGroup_OrFree(
+        IDProperty **prop, int switch_endian, FileData *fd,
+        const char *caller_func_id)
 {
 	if (*prop) {
 		if ((*prop)->type == IDP_GROUP) {
@@ -7119,8 +7122,9 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 			if (ts) {
 				TreeStoreElem *elems = newdataadr_no_us(fd, ts->data);
 
-				soops->treestore = BLI_mempool_create(sizeof(TreeStoreElem), ts->usedelem,
-				                                      512, BLI_MEMPOOL_ALLOW_ITER);
+				soops->treestore = BLI_mempool_create(
+				        sizeof(TreeStoreElem), ts->usedelem,
+				        512, BLI_MEMPOOL_ALLOW_ITER);
 				if (ts->usedelem && elems) {
 					int i;
 					for (i = 0; i < ts->usedelem; i++) {
@@ -8429,8 +8433,9 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 
 			if (masklay_shape->tot_vert) {
 				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-					BLI_endian_switch_float_array(masklay_shape->data,
-					                              masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+					BLI_endian_switch_float_array(
+					        masklay_shape->data,
+					        masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 
 				}
 			}
@@ -10948,12 +10953,12 @@ static ID *link_named_part_ex(
 }
 
 /**
- * Link a named datablock from an external blend file.
+ * Link a named data-block from an external blend file.
  *
  * \param mainl: The main database to link from (not the active one).
  * \param bh: The blender file handle.
- * \param idcode: The kind of datablock to link.
- * \param name: The name of the datablock (without the 2 char ID prefix).
+ * \param idcode: The kind of data-block to link.
+ * \param name: The name of the data-block (without the 2 char ID prefix).
  * \return the linked ID when found.
  */
 ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcode, const char *name)
@@ -10963,13 +10968,13 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcod
 }
 
 /**
- * Link a named datablock from an external blend file.
+ * Link a named data-block from an external blend file.
  * Optionally instantiate the object/collection in the scene when the flags are set.
  *
  * \param mainl: The main database to link from (not the active one).
  * \param bh: The blender file handle.
- * \param idcode: The kind of datablock to link.
- * \param name: The name of the datablock (without the 2 char ID prefix).
+ * \param idcode: The kind of data-block to link.
+ * \param name: The name of the data-block (without the 2 char ID prefix).
  * \param flag: Options for linking, used for instantiating.
  * \param scene: The scene in which to instantiate objects/collections (if NULL, no instantiation is done).
  * \param v3d: The active View3D (only to define active layers for instantiated objects & collections, can be NULL).

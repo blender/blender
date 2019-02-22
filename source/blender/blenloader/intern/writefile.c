@@ -31,7 +31,7 @@
  *
  * start file:
  * <pre>
- *     BLENDER_V100    12 bytes  (versie 1.00)
+ *     BLENDER_V100    12 bytes  (version 1.00)
  *                     V = big endian, v = little endian
  *                     _ = 4 byte pointer, - = 8 byte pointer
  * </pre>
