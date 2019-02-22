@@ -36,7 +36,6 @@
 #include "draw_common.h"
 
 extern char datatoc_sculpt_mask_vert_glsl[];
-extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 /* *********** LISTS *********** */
@@ -93,7 +92,6 @@ static struct {
 	 * Add sources to source/blender/draw/modes/shaders
 	 * init in SCULPT_engine_init();
 	 * free in SCULPT_engine_free(); */
-	struct GPUShader *shader_flat;
 	struct GPUShader *shader_smooth;
 } e_data = {NULL}; /* Engine data */
 
@@ -117,11 +115,6 @@ static void SCULPT_engine_init(void *vedata)
 
 	UNUSED_VARS(txl, fbl, stl);
 
-	if (!e_data.shader_flat) {
-		e_data.shader_flat = DRW_shader_create(datatoc_sculpt_mask_vert_glsl, NULL,
-		                                       datatoc_gpu_shader_flat_color_frag_glsl,
-		                                       "#define SHADE_FLAT");
-	}
 	if (!e_data.shader_smooth) {
 		e_data.shader_smooth = DRW_shader_create(datatoc_sculpt_mask_vert_glsl, NULL,
 		                                         datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL);
@@ -136,34 +129,13 @@ static void SCULPT_cache_init(void *vedata)
 	SCULPT_StorageList *stl = ((SCULPT_Data *)vedata)->stl;
 
 	if (!stl->g_data) {
-		/* Alloc transient pointers */
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{
-		/* Create a pass */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY;
 		psl->pass = DRW_pass_create("Sculpt Pass", state);
-
-		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		/*
-		 * stl->g_data->group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
-		 * -- or --
-		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
-		 */
-		stl->g_data->group_flat = DRW_shgroup_create(e_data.shader_flat, psl->pass);
 		stl->g_data->group_smooth = DRW_shgroup_create(e_data.shader_smooth, psl->pass);
-	}
-}
-
-static bool object_is_flat(const Object *ob)
-{
-	Mesh *me = ob->data;
-	if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
-		return false;
-	}
-	else {
-		return true;
 	}
 }
 
@@ -206,10 +178,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 
 			PBVH *pbvh = ob->sculpt->pbvh;
 			if (pbvh && pbvh_has_mask(pbvh)) {
-				/* Get geometry cache */
-				DRWShadingGroup *shgroup = object_is_flat(ob) ? stl->g_data->group_flat : stl->g_data->group_smooth;
-
-				DRW_shgroup_call_generate_add(shgroup, sculpt_draw_mask_cb, ob, ob->obmat);
+				DRW_shgroup_call_generate_add(stl->g_data->group_smooth, sculpt_draw_mask_cb, ob, ob->obmat);
 			}
 		}
 	}
@@ -258,7 +227,6 @@ static void SCULPT_draw_scene(void *vedata)
  * Mostly used for freeing shaders */
 static void SCULPT_engine_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.shader_flat);
 	DRW_SHADER_FREE_SAFE(e_data.shader_smooth);
 }
 

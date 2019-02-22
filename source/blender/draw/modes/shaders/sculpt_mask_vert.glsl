@@ -4,11 +4,7 @@ uniform mat4 ModelViewProjectionMatrix;
 in vec3 pos;
 in float msk;
 
-#ifdef SHADE_FLAT
-flat out vec4 finalColor;
-#else
 out vec4 finalColor;
-#endif
 
 void main()
 {
