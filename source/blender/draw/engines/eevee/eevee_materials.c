@@ -1518,14 +1518,19 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 			char *auto_layer_names;
 			int *auto_layer_is_srgb;
 			int auto_layer_count;
-			struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
-			        ob, gpumat_array, materials_len,
-			        &auto_layer_names,
-			        &auto_layer_is_srgb,
-			        &auto_layer_count);
-			if (mat_geom) {
+			struct GPUBatch **mat_geom = NULL;
+
+			if (!is_sculpt_mode_draw) {
+				mat_geom = DRW_cache_object_surface_material_get(
+				        ob, gpumat_array, materials_len,
+				        &auto_layer_names,
+				        &auto_layer_is_srgb,
+				        &auto_layer_count);
+			}
+
+			if (is_sculpt_mode_draw || mat_geom) {
 				for (int i = 0; i < materials_len; ++i) {
-					if (mat_geom[i] == NULL) {
+					if (!is_sculpt_mode_draw && mat_geom[i] == NULL) {
 						continue;
 					}
 					EEVEE_ObjectEngineData *oedata = NULL;
@@ -1557,6 +1562,11 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 					/* Depth Prepass */
 					ADD_SHGROUP_CALL_SAFE(shgrp_depth_array[i], ob, ma, mat_geom[i], oedata);
 					ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, ma, mat_geom[i], oedata);
+
+					/* TODO(fclem): Don't support shadows in sculpt mode. */
+					if (is_sculpt_mode_draw) {
+						break;
+					}
 
 					char *name = auto_layer_names;
 					for (int j = 0; j < auto_layer_count; ++j) {
