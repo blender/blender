@@ -225,7 +225,9 @@
 /**
  * Delay reading blocks we might not use (especially applies to library linking).
  * which keeps large arrays in memory from data-blocks we may not even use. */
-#define USE_BHEAD_READ_ON_DEMAND
+#if !defined(_WIN32)  /* Slow on windows, see: T61855 */
+#  define USE_BHEAD_READ_ON_DEMAND
+#endif
 
 /* use GHash for BHead name-based lookups (speeds up linking) */
 #define USE_GHASH_BHEAD
