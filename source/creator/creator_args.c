@@ -445,10 +445,7 @@ static void arg_py_context_restore(
  *
  * \{ */
 
-static const char arg_handle_print_version_doc[] =
-"\n\tPrint Blender version and exit."
-;
-static int arg_handle_print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+static void print_version_full(void)
 {
 	printf(BLEND_VERSION_STRING_FMT);
 #ifdef BUILD_DATE
@@ -464,8 +461,27 @@ static int arg_handle_print_version(int UNUSED(argc), const char **UNUSED(argv),
 	printf("\tbuild link flags: %s\n", build_linkflags);
 	printf("\tbuild system: %s\n", build_system);
 #endif
-	exit(0);
+}
 
+static void print_version_short(void)
+{
+#ifdef BUILD_DATE
+	/* NOTE: We include built time since sometimes we need to tell broken from
+	 * working built of the same hash. */
+	printf(BLEND_VERSION_FMT " (hash %s built %s %s)\n
+	       BLEND_VERSION_ARG, build_hash, build_date, build_time);
+#else
+	printf(BLEND_VERSION_STRING_FMT);
+#endif
+}
+
+static const char arg_handle_print_version_doc[] =
+"\n\tPrint Blender version and exit."
+;
+static int arg_handle_print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	print_version_full();
+	exit(0);
 	return 0;
 }
 
@@ -711,6 +727,7 @@ static const char arg_handle_background_mode_set_doc[] =
 ;
 static int arg_handle_background_mode_set(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
+	print_version_short();
 	G.background = 1;
 	return 0;
 }
