@@ -223,6 +223,11 @@
  * (added remark: oh, i thought that was solved? will look at that... (ton).
  */
 
+/**
+ * Delay reading blocks we might not use (especially applies to library linking).
+ * which keeps large arrays in memory from data-blocks we may not even use. */
+#define USE_BHEAD_READ_ON_DEMAND
+
 /* use GHash for BHead name-based lookups (speeds up linking) */
 #define USE_GHASH_BHEAD
 
@@ -253,10 +258,21 @@ static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt);
 
 typedef struct BHeadN {
 	struct BHeadN *next, *prev;
+#ifdef USE_BHEAD_READ_ON_DEMAND
+	/** Use to read the data from the file directly into memory as needed. */
+	int file_offset;
+	/** When set, the remainder of this allocation is the data, otherwise it needs to be read. */
+	bool has_data;
+#endif
 	struct BHead bhead;
 } BHeadN;
 
 #define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -offsetof(BHeadN, bhead)))
+
+/* We could change this in the future, for now it's simplest if only data is delayed
+ * because ID names are used in lookup tables. */
+#define BHEAD_USE_READ_ON_DEMAND(bhead) \
+	((bhead)->code == DATA)
 
 /* this function ensures that reports are printed,
  * in the case of libraray linking errors this is important!
@@ -802,10 +818,39 @@ static BHeadN *get_bhead(FileData *fd)
 			/* bhead now contains the (converted) bhead structure. Now read
 			 * the associated data and put everything in a BHeadN (creative naming !)
 			 */
-			if (!fd->is_eof) {
+			if (fd->is_eof) {
+				/* pass */
+			}
+#ifdef USE_BHEAD_READ_ON_DEMAND
+			else if (fd->seek != NULL && BHEAD_USE_READ_ON_DEMAND(&bhead)) {
+				/* Delay reading bhead content. */
+				new_bhead = MEM_mallocN(sizeof(BHeadN), "new_bhead");
+				if (new_bhead) {
+					new_bhead->next = new_bhead->prev = NULL;
+					new_bhead->file_offset = fd->file_offset;
+					new_bhead->has_data = false;
+					new_bhead->bhead = bhead;
+					int seek_new = fd->seek(fd, bhead.len, SEEK_CUR);
+					if (seek_new == -1) {
+						fd->is_eof = true;
+						MEM_freeN(new_bhead);
+						new_bhead = NULL;
+					}
+					BLI_assert(fd->file_offset == seek_new);
+				}
+				else {
+					fd->is_eof = true;
+				}
+			}
+#endif
+			else {
 				new_bhead = MEM_mallocN(sizeof(BHeadN) + bhead.len, "new_bhead");
 				if (new_bhead) {
 					new_bhead->next = new_bhead->prev = NULL;
+#ifdef USE_BHEAD_READ_ON_DEMAND
+					new_bhead->file_offset = 0;  /* don't seek. */
+					new_bhead->has_data = true;
+#endif
 					new_bhead->bhead = bhead;
 
 					readsize = fd->read(fd, new_bhead + 1, bhead.len);
@@ -886,6 +931,42 @@ BHead *blo_bhead_next(FileData *fd, BHead *thisblock)
 
 	return bhead;
 }
+
+#ifdef USE_BHEAD_READ_ON_DEMAND
+static bool blo_bhead_read_data(FileData *fd, BHead *thisblock, void *buf)
+{
+	bool success = true;
+	BHeadN *new_bhead = BHEADN_FROM_BHEAD(thisblock);
+	BLI_assert(new_bhead->has_data == false && new_bhead->file_offset != 0);
+	int offset_backup = fd->file_offset;
+	if (UNLIKELY(fd->seek(fd, new_bhead->file_offset, SEEK_SET) == -1)) {
+		success = false;
+	}
+	else {
+		if (fd->read(fd, buf, new_bhead->bhead.len) != new_bhead->bhead.len) {
+			success = false;
+		}
+	}
+	if (fd->seek(fd, offset_backup, SEEK_SET) == -1) {
+		success = false;
+	}
+	return success;
+}
+
+static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
+{
+	BHeadN *new_bhead = BHEADN_FROM_BHEAD(thisblock);
+	BHeadN *new_bhead_data = MEM_mallocN(sizeof(BHeadN) + new_bhead->bhead.len, "new_bhead");
+	new_bhead_data->bhead = new_bhead->bhead;
+	new_bhead_data->file_offset = new_bhead->file_offset;
+	new_bhead_data->has_data = true;
+	if (!blo_bhead_read_data(fd, thisblock, new_bhead_data + 1)) {
+		MEM_freeN(new_bhead_data);
+		return NULL;
+	}
+	return &new_bhead_data->bhead;
+}
+#endif  /* USE_BHEAD_READ_ON_DEMAND */
 
 /* Warning! Caller's responsibility to ensure given bhead **is** and ID one! */
 const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead)
@@ -1039,6 +1120,12 @@ static int fd_read_gzip_from_file(FileData *filedata, void *buffer, uint size)
 	return (readsize);
 }
 
+static int fd_seek_gzip_from_file(FileData *filedata, int offset, int whence)
+{
+	filedata->file_offset = gzseek(filedata->gzfiledes, offset, whence);
+	return filedata->file_offset;
+}
+
 static int fd_read_from_memory(FileData *filedata, void *buffer, uint size)
 {
 	/* don't read more bytes then there are available in the buffer */
@@ -1166,6 +1253,7 @@ FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
 		FileData *fd = filedata_new();
 		fd->gzfiledes = gzfile;
 		fd->read = fd_read_gzip_from_file;
+		fd->seek = fd_seek_gzip_from_file;
 
 		/* needed for library_append and read_libraries */
 		BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
@@ -1306,8 +1394,18 @@ void blo_filedata_free(FileData *fd)
 			fd->buffer = NULL;
 		}
 
-		// Free all BHeadN data blocks
+		/* Free all BHeadN data blocks */
+#ifndef NDEBUG
 		BLI_freelistN(&fd->listbase);
+#else
+		/* Sanity check we're not keeping memory we don't need. */
+		LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->listbase) {
+			if (fd->seek != NULL && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
+				BLI_assert(new_bhead->has_data == 0);
+			}
+			MEM_freeN(new_bhead);
+		}
+#endif
 
 		if (fd->filesdna)
 			DNA_sdna_free(fd->filesdna);
@@ -1926,20 +2024,63 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
 	void *temp = NULL;
 
 	if (bh->len) {
+#ifdef USE_BHEAD_READ_ON_DEMAND
+		BHead *bh_orig = bh;
+ #endif
+
 		/* switch is based on file dna */
-		if (bh->SDNAnr && (fd->flags & FD_FLAGS_SWITCH_ENDIAN))
+		if (bh->SDNAnr && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+#ifdef USE_BHEAD_READ_ON_DEMAND
+			if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
+				bh = blo_bhead_read_full(fd, bh);
+				if (UNLIKELY(bh == NULL)) {
+					fd->flags &= ~FD_FLAGS_FILE_OK;
+					return NULL;
+				}
+			}
+ #endif
 			switch_endian_structs(fd->filesdna, bh);
+		}
 
 		if (fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED) {
 			if (fd->compflags[bh->SDNAnr] == SDNA_CMP_NOT_EQUAL) {
+#ifdef USE_BHEAD_READ_ON_DEMAND
+				if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
+					bh = blo_bhead_read_full(fd, bh);
+					if (UNLIKELY(bh == NULL)) {
+						fd->flags &= ~FD_FLAGS_FILE_OK;
+						return NULL;
+					}
+				}
+#endif
 				temp = DNA_struct_reconstruct(fd->memsdna, fd->filesdna, fd->compflags, bh->SDNAnr, bh->nr, (bh + 1));
 			}
 			else {
 				/* SDNA_CMP_EQUAL */
 				temp = MEM_mallocN(bh->len, blockname);
+#ifdef USE_BHEAD_READ_ON_DEMAND
+				if (BHEADN_FROM_BHEAD(bh)->has_data) {
+					memcpy(temp, (bh + 1), bh->len);
+				}
+				else {
+					/* Instead of allocating the bhead, then copying it,
+					 * read the data from the file directly into the memory. */
+					if (UNLIKELY(!blo_bhead_read_data(fd, bh, temp))) {
+						fd->flags &= ~FD_FLAGS_FILE_OK;
+						MEM_freeN(temp);
+						temp = NULL;
+					}
+				}
+#else
 				memcpy(temp, (bh + 1), bh->len);
+#endif
 			}
 		}
+#ifdef USE_BHEAD_READ_ON_DEMAND
+		if (bh_orig != bh) {
+			MEM_freeN(BHEADN_FROM_BHEAD(bh));
+		}
+#endif
 	}
 
 	return temp;

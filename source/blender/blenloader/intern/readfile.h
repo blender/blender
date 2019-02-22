@@ -56,6 +56,7 @@ typedef struct FileData {
 	int buffersize;
 	int file_offset;
 	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
+	int (*seek)(struct FileData *filedata, int offset, int whence);
 
 	/** Variables needed for reading from memory / stream. */
 	const char *buffer;
