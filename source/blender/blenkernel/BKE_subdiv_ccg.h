@@ -25,6 +25,7 @@
 #define __BKE_SUBDIV_CCG_H__
 
 #include "BKE_customdata.h"
+#include "BKE_DerivedMesh.h"
 #include "BLI_bitmap.h"
 #include "BLI_sys_types.h"
 
@@ -40,20 +41,41 @@ struct Subdiv;
  */
 
 /* Functor which evaluates mask value at a given (u, v) of given ptex face. */
-typedef struct SubdivCCGMask {
-	float (*eval_mask)(struct SubdivCCGMask *mask,
+typedef struct SubdivCCGMaskEvaluator {
+	float (*eval_mask)(struct SubdivCCGMaskEvaluator *mask_evaluator,
 	                   const int ptex_face_index,
 	                   const float u, const float v);
 
 	/* Free the data, not the evaluator itself. */
-	void (*free)(struct SubdivCCGMask *mask);
+	void (*free)(struct SubdivCCGMaskEvaluator *mask_evaluator);
 
 	void *user_data;
-} SubdivCCGMask;
+} SubdivCCGMaskEvaluator;
 
 /* Return true if mesh has mask and evaluator can be used. */
 bool BKE_subdiv_ccg_mask_init_from_paint(
-        SubdivCCGMask *mask_evaluator,
+        SubdivCCGMaskEvaluator *mask_evaluator,
+        const struct Mesh *mesh);
+
+/* =============================================================================
+ * Materials.
+ */
+
+/* Functor which evaluates material and flags of a given coarse face. */
+typedef struct SubdivCCGMaterialFlagsEvaluator {
+	DMFlagMat (*eval_material_flags)(
+	        struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
+	        const int coarse_face_index);
+
+	/* Free the data, not the evaluator itself. */
+	void (*free)(
+	        struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
+
+	void *user_data;
+} SubdivCCGMaterialFlagsEvaluator;
+
+void BKE_subdiv_ccg_material_flags_init_from_mesh(
+        SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
         const struct Mesh *mesh);
 
 /* =============================================================================
@@ -196,7 +218,8 @@ typedef struct SubdivCCG {
 struct SubdivCCG *BKE_subdiv_to_ccg(
         struct Subdiv *subdiv,
         const SubdivToCCGSettings *settings,
-        SubdivCCGMask *mask_evaluator);
+        SubdivCCGMaskEvaluator *mask_evaluator,
+        SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
 
 /* Destroy CCG representation of subdivision surface. */
 void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);
@@ -217,6 +240,11 @@ void BKE_subdiv_ccg_key_top_level(
 
 /* Recalculate all normals based on grid element coordinates. */
 void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
+
+/* Update normals of affected faces. */
+void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
+                                   struct CCGFace **effected_faces,
+                                   int num_effected_faces);
 
 /* Average grid coordinates and normals along the grid boundatries. */
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);

@@ -194,6 +194,7 @@ set(SRC
 	intern/subdiv.c
 	intern/subdiv_ccg.c
 	intern/subdiv_ccg_mask.c
+	intern/subdiv_ccg_material.c
 	intern/subdiv_converter.c
 	intern/subdiv_converter_mesh.c
 	intern/subdiv_displacement.c

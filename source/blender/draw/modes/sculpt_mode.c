@@ -29,6 +29,7 @@
 
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
+#include "BKE_subdiv_ccg.h"
 
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
@@ -154,6 +155,22 @@ static void sculpt_draw_mask_cb(
 	}
 }
 
+static void sculpt_update_pbvh_normals(Object *object)
+{
+	Mesh *mesh = object->data;
+	PBVH *pbvh = object->sculpt->pbvh;
+	SubdivCCG *subdiv_ccg = mesh->runtime.subdiv_ccg;
+	if (pbvh == NULL || subdiv_ccg == NULL) {
+		return;
+	}
+	struct CCGFace **faces;
+	int num_faces;
+	BKE_pbvh_get_grid_updates(pbvh, 1, (void ***)&faces, &num_faces);
+	if (num_faces > 0) {
+		BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
+	}
+}
+
 /* Add geometry to shadingGroups. Execute for each objects */
 static void SCULPT_cache_populate(void *vedata, Object *ob)
 {
@@ -166,6 +183,8 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 
 		if (ob->sculpt && (ob == draw_ctx->obact)) {
+			sculpt_update_pbvh_normals(ob);
+
 			/* XXX, needed for dyntopo-undo (which clears).
 			 * probably depsgraph should handlle? in 2.7x getting derived-mesh does this (mesh_build_data) */
 			if (ob->sculpt->pbvh == NULL) {

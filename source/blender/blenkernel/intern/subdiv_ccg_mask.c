@@ -54,7 +54,7 @@ typedef struct GridPaintMaskData {
 } GridPaintMaskData;
 
 static int mask_get_grid_and_coord(
-        SubdivCCGMask *mask_evaluator,
+        SubdivCCGMaskEvaluator *mask_evaluator,
         const int ptex_face_index, const float u, const float v,
         const GridPaintMask **r_mask_grid,
         float *grid_u, float *grid_v)
@@ -92,7 +92,7 @@ BLI_INLINE float read_mask_grid(const GridPaintMask *mask_grid,
 	return mask_grid->data[y * grid_size + x];
 }
 
-static float eval_mask(SubdivCCGMask *mask_evaluator,
+static float eval_mask(SubdivCCGMaskEvaluator *mask_evaluator,
                        const int ptex_face_index,
                        const float u, const float v)
 {
@@ -105,7 +105,7 @@ static float eval_mask(SubdivCCGMask *mask_evaluator,
 	return read_mask_grid(mask_grid, grid_u, grid_v);
 }
 
-static void free_mask_data(SubdivCCGMask *mask_evaluator)
+static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 {
 	GridPaintMaskData *data = mask_evaluator->user_data;
 	MEM_freeN(data->ptex_poly_corner);
@@ -126,7 +126,7 @@ static int count_num_ptex_faces(const Mesh *mesh)
 	return num_ptex_faces;
 }
 
-static void mask_data_init_mapping(SubdivCCGMask *mask_evaluator,
+static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator,
                                    const Mesh *mesh)
 {
 	GridPaintMaskData *data = mask_evaluator->user_data;
@@ -156,7 +156,8 @@ static void mask_data_init_mapping(SubdivCCGMask *mask_evaluator,
 	}
 }
 
-static void mask_init_data(SubdivCCGMask *mask_evaluator, const Mesh *mesh)
+static void mask_init_data(SubdivCCGMaskEvaluator *mask_evaluator,
+                           const Mesh *mesh)
 {
 	GridPaintMaskData *data = mask_evaluator->user_data;
 	data->mpoly = mesh->mpoly;
@@ -165,14 +166,14 @@ static void mask_init_data(SubdivCCGMask *mask_evaluator, const Mesh *mesh)
 	mask_data_init_mapping(mask_evaluator, mesh);
 }
 
-static void mask_init_functions(SubdivCCGMask *mask_evaluator)
+static void mask_init_functions(SubdivCCGMaskEvaluator *mask_evaluator)
 {
 	mask_evaluator->eval_mask = eval_mask;
 	mask_evaluator->free = free_mask_data;
 }
 
 bool BKE_subdiv_ccg_mask_init_from_paint(
-        SubdivCCGMask *mask_evaluator,
+        SubdivCCGMaskEvaluator *mask_evaluator,
         const struct Mesh *mesh)
 {
 	GridPaintMask *grid_paint_mask =
