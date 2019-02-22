@@ -225,10 +225,24 @@ void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_imag
 	bNode *node;
 	*r_mat = give_current_material(ob, mat_nr);
 	ED_object_get_active_image(ob, mat_nr, r_image, NULL, &node, NULL);
-	if (node) {
-		BLI_assert(node->type == SH_NODE_TEX_IMAGE);
-		NodeTexImage *storage = node->storage;
-		*r_interp = storage->interpolation;
+	if (node && *r_image) {
+		switch (node->type) {
+			case SH_NODE_TEX_IMAGE:
+			{
+				NodeTexImage *storage = node->storage;
+				*r_interp = storage->interpolation;
+				break;
+			}
+			case SH_NODE_TEX_ENVIRONMENT:
+			{
+				NodeTexEnvironment *storage = node->storage;
+				*r_interp = storage->interpolation;
+				break;
+			}
+			default:
+				BLI_assert(!"Node type not supported by workbench");
+				*r_interp = 0;
+		}
 	}
 	else {
 		*r_interp = 0;
