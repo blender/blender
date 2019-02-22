@@ -54,9 +54,9 @@ typedef struct FileData {
 	enum eFileDataFlag flags;
 	bool is_eof;
 	int buffersize;
-	int file_offset;
+	off_t file_offset;
 	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
-	int (*seek)(struct FileData *filedata, int offset, int whence);
+	off_t (*seek)(struct FileData *filedata, off_t offset, int whence);
 
 	/** Variables needed for reading from memory / stream. */
 	const char *buffer;

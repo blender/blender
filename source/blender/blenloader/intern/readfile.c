@@ -260,7 +260,7 @@ typedef struct BHeadN {
 	struct BHeadN *next, *prev;
 #ifdef USE_BHEAD_READ_ON_DEMAND
 	/** Use to read the data from the file directly into memory as needed. */
-	int file_offset;
+	off_t file_offset;
 	/** When set, the remainder of this allocation is the data, otherwise it needs to be read. */
 	bool has_data;
 #endif
@@ -830,7 +830,7 @@ static BHeadN *get_bhead(FileData *fd)
 					new_bhead->file_offset = fd->file_offset;
 					new_bhead->has_data = false;
 					new_bhead->bhead = bhead;
-					int seek_new = fd->seek(fd, bhead.len, SEEK_CUR);
+					off_t seek_new = fd->seek(fd, bhead.len, SEEK_CUR);
 					if (seek_new == -1) {
 						fd->is_eof = true;
 						MEM_freeN(new_bhead);
@@ -938,7 +938,7 @@ static bool blo_bhead_read_data(FileData *fd, BHead *thisblock, void *buf)
 	bool success = true;
 	BHeadN *new_bhead = BHEADN_FROM_BHEAD(thisblock);
 	BLI_assert(new_bhead->has_data == false && new_bhead->file_offset != 0);
-	int offset_backup = fd->file_offset;
+	off_t offset_backup = fd->file_offset;
 	if (UNLIKELY(fd->seek(fd, new_bhead->file_offset, SEEK_SET) == -1)) {
 		success = false;
 	}
@@ -1120,7 +1120,7 @@ static int fd_read_gzip_from_file(FileData *filedata, void *buffer, uint size)
 	return (readsize);
 }
 
-static int fd_seek_gzip_from_file(FileData *filedata, int offset, int whence)
+static off_t fd_seek_gzip_from_file(FileData *filedata, off_t offset, int whence)
 {
 	filedata->file_offset = gzseek(filedata->gzfiledes, offset, whence);
 	return filedata->file_offset;
@@ -1139,19 +1139,19 @@ static int fd_read_from_memory(FileData *filedata, void *buffer, uint size)
 
 static int fd_read_from_memfile(FileData *filedata, void *buffer, uint size)
 {
-	static uint seek = (1 << 30); /* the current position */
-	static uint offset = 0;     /* size of previous chunks */
+	static size_t seek = SIZE_MAX; /* the current position */
+	static size_t offset = 0;      /* size of previous chunks */
 	static MemFileChunk *chunk = NULL;
-	uint chunkoffset, readsize, totread;
+	size_t chunkoffset, readsize, totread;
 
 	if (size == 0) return 0;
 
-	if (seek != (uint)filedata->file_offset) {
+	if (seek != (size_t)filedata->file_offset) {
 		chunk = filedata->memfile->chunks.first;
 		seek = 0;
 
 		while (chunk) {
-			if (seek + chunk->size > (uint)filedata->file_offset) {
+			if (seek + chunk->size > (size_t)filedata->file_offset) {
 				break;
 			}
 			seek += chunk->size;
