@@ -504,7 +504,7 @@ void GPU_pbvh_grid_buffers_update(
 	bool empty_mask = true;
 	int i, j, k, x, y;
 
-	const bool smooth = true;//grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
+	const bool smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
 	/* Build VBO */
 	const int has_mask = key->has_mask;
