@@ -251,6 +251,13 @@ static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection
 static void direct_link_animdata(FileData *fd, AnimData *adt);
 static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt);
 
+typedef struct BHeadN {
+	struct BHeadN *next, *prev;
+	struct BHead bhead;
+} BHeadN;
+
+#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -offsetof(BHeadN, bhead)))
+
 /* this function ensures that reports are printed,
  * in the case of libraray linking errors this is important!
  *
@@ -848,7 +855,7 @@ BHead *blo_bhead_first(FileData *fd)
 
 BHead *blo_bhead_prev(FileData *UNUSED(fd), BHead *thisblock)
 {
-	BHeadN *bheadn = (BHeadN *)POINTER_OFFSET(thisblock, -offsetof(BHeadN, bhead));
+	BHeadN *bheadn = BHEADN_FROM_BHEAD(thisblock);
 	BHeadN *prev = bheadn->prev;
 
 	return (prev) ? &prev->bhead : NULL;
@@ -862,7 +869,7 @@ BHead *blo_bhead_next(FileData *fd, BHead *thisblock)
 	if (thisblock) {
 		/* bhead is actually a sub part of BHeadN
 		 * We calculate the BHeadN pointer from the BHead pointer below */
-		new_bhead = (BHeadN *)POINTER_OFFSET(thisblock, -offsetof(BHeadN, bhead));
+		new_bhead = BHEADN_FROM_BHEAD(thisblock);
 
 		/* get the next BHeadN. If it doesn't exist we read in the next one */
 		new_bhead = new_bhead->next;

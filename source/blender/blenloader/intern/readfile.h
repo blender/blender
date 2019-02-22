@@ -108,11 +108,6 @@ typedef struct FileData {
 	struct ReportList *reports;
 } FileData;
 
-typedef struct BHeadN {
-	struct BHeadN *next, *prev;
-	struct BHead bhead;
-} BHeadN;
-
 #define SIZEOFBLENDERHEADER 12
 
 /***/
