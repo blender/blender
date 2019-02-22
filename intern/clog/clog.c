@@ -23,7 +23,13 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
-#include <pthread.h>
+
+/* Disable for small single threaded programs
+ * to avoid having to link with pthreads. */
+#ifdef WITH_CLOG_PTHREADS
+#  include <pthread.h>
+#  include "atomic_ops.h"
+#endif
 
 /* For 'isatty' to check for color. */
 #if defined(__unix__) || defined(__APPLE__) || defined(__HAIKU__)
@@ -40,7 +46,6 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#include "atomic_ops.h"
 
 /* Only other dependency (could use regular malloc too). */
 #include "MEM_guardedalloc.h"
@@ -71,7 +76,9 @@ typedef struct CLG_IDFilter {
 typedef struct CLogContext {
 	/** Single linked list of types.  */
 	CLG_LogType *types;
+#ifdef WITH_CLOG_PTHREADS
 	pthread_mutex_t types_lock;
+#endif
 
 	/* exclude, include filters.  */
 	CLG_IDFilter *filters[2];
@@ -578,7 +585,9 @@ static void CLG_ctx_level_set(CLogContext *ctx, int level)
 static CLogContext *CLG_ctx_init(void)
 {
 	CLogContext *ctx = MEM_callocN(sizeof(*ctx), __func__);
+#ifdef WITH_CLOG_PTHREADS
 	pthread_mutex_init(&ctx->types_lock, NULL);
+#endif
 	ctx->use_color = true;
 	ctx->default_type.level = 1;
 	CLG_ctx_output_set(ctx, stdout);
@@ -601,7 +610,9 @@ static void CLG_ctx_free(CLogContext *ctx)
 			MEM_freeN(item);
 		}
 	}
+#ifdef WITH_CLOG_PTHREADS
 	pthread_mutex_destroy(&ctx->types_lock);
+#endif
 	MEM_freeN(ctx);
 }
 
@@ -678,16 +689,24 @@ void CLG_level_set(int level)
 
 void CLG_logref_init(CLG_LogRef *clg_ref)
 {
+#ifdef WITH_CLOG_PTHREADS
 	/* Only runs once when initializing a static type in most cases. */
 	pthread_mutex_lock(&g_ctx->types_lock);
+#endif
 	if (clg_ref->type == NULL) {
 		CLG_LogType *clg_ty = clg_ctx_type_find_by_name(g_ctx, clg_ref->identifier);
 		if (clg_ty == NULL) {
 			clg_ty = clg_ctx_type_register(g_ctx, clg_ref->identifier);
 		}
+#ifdef WITH_CLOG_PTHREADS
 		atomic_cas_ptr((void **)&clg_ref->type, clg_ref->type, clg_ty);
+#else
+		clg_ref->type = clg_ty;
+#endif
 	}
+#ifdef WITH_CLOG_PTHREADS
 	pthread_mutex_unlock(&g_ctx->types_lock);
+#endif
 }
 
 /** \} */
