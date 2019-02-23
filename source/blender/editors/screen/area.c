@@ -1105,7 +1105,7 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 				return true;
 			}
 		}
-		else if (ELEM(spacetype, SPACE_VIEW3D, SPACE_SEQ, SPACE_IMAGE)) {
+		else if (ELEM(spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
 			if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS)) {
 				return true;
 			}
