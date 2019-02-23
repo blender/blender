@@ -34,6 +34,8 @@
 #include "GPU_shader.h"
 #include "DRW_render.h"
 
+#include "draw_mode_engines.h"
+
 #ifdef __APPLE__
 #define USE_GEOM_SHADER_WORKAROUND 1
 #else

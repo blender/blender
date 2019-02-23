@@ -29,6 +29,7 @@
 #include "GPU_shader.h"
 
 #include "draw_common.h"
+#include "draw_mode_engines.h"
 
 extern char datatoc_common_globals_lib_glsl[];
 

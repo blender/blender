@@ -26,6 +26,7 @@
 #include "GPU_shader.h"
 
 #include "draw_common.h"
+#include "draw_mode_engines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"

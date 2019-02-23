@@ -32,7 +32,7 @@
 #include "GPU_texture.h"
 
 #include "draw_common.h"
-
+#include "draw_mode_engines.h"
 
 #include "DNA_mesh_types.h"
 

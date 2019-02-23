@@ -30,6 +30,7 @@
 #include "GPU_shader.h"
 
 #include "draw_common.h"
+#include "draw_mode_engines.h"
 
 #include "ED_particle.h"
 

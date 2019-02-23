@@ -35,6 +35,7 @@
 #include "GPU_shader.h"
 
 #include "draw_common.h"
+#include "draw_mode_engines.h"
 
 extern char datatoc_sculpt_mask_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];

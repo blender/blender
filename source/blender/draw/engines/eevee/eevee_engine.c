@@ -31,6 +31,8 @@
 
 #include "eevee_private.h"
 
+#include "eevee_engine.h"  /* own include */
+
 #define EEVEE_ENGINE "BLENDER_EEVEE"
 
 /* *********** FUNCTIONS *********** */

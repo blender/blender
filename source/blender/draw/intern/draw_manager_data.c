@@ -41,8 +41,6 @@
 
 struct GPUVertFormat *g_pos_format = NULL;
 
-extern struct GPUUniformBuffer *view_ubo; /* draw_manager_exec.c */
-
 /* -------------------------------------------------------------------- */
 /** \name Uniform Buffer Object (DRW_uniformbuffer)
  * \{ */
@@ -670,7 +668,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	int view_ubo_location = GPU_shader_get_uniform_block(shader, "viewBlock");
 
 	if (view_ubo_location != -1) {
-		drw_shgroup_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK_PERSIST, view_ubo, 0, 1);
+		drw_shgroup_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK_PERSIST, G_draw.view_ubo, 0, 1);
 	}
 	else {
 		/* Only here to support builtin shaders. This should not be used by engines. */

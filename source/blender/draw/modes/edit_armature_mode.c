@@ -27,6 +27,7 @@
 #include "DNA_view3d_types.h"
 
 #include "draw_common.h"
+#include "draw_mode_engines.h"
 
 /* *********** LISTS *********** */
 typedef struct EDIT_ARMATURE_PassList {

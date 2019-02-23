@@ -33,6 +33,7 @@
 #include "GPU_shader.h"
 
 #include "draw_common.h"
+#include "draw_mode_engines.h"
 
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.

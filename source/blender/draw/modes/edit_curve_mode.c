@@ -32,7 +32,7 @@
 #include "GPU_shader.h"
 
 #include "draw_common.h"
-
+#include "draw_mode_engines.h"
 
 /* If needed, contains all global/Theme colors
  * Add needed theme colors / values to DRW_globals_update() and update UBO
