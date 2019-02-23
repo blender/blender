@@ -240,6 +240,7 @@ int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
 struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);
 
 /* intern */
+double seq_rendersize_to_scale_factor(int size);
 void BKE_sequencer_update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_seq, int len_change, int ibuf_change);
 bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context, struct Sequence *seq, float cfra);
 

@@ -2572,6 +2572,8 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 
 	/* investigate using BLF_ascender() */
 	const int font_id = BLF_default();
+
+	BLF_set_default();
 	const float default_height = g_v2d_strings ? BLF_height(font_id, "28", 3) : 0.0f;
 
 	wmOrtho2_region_pixelspace(ar);

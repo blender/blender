@@ -897,24 +897,26 @@ ImBuf *sequencer_ibuf_get(
 	SeqRenderData context = {0};
 	ImBuf *ibuf;
 	int rectx, recty;
-	float render_size;
-	float proxy_size = 100.0;
 	short is_break = G.is_break;
+	short render_size = sseq->render_size;
+	float proxy_size = 100.0;
+	double scale_fac;
 
-	render_size = sseq->render_size;
 	if (render_size == 0) {
 		render_size = scene->r.size;
+		scale_fac = (float)scene->r.size / 100.0f;
 	}
 	else {
-		proxy_size = render_size;
+		scale_fac = seq_rendersize_to_scale_factor(render_size);
+		proxy_size = scale_fac * 100;
 	}
 
 	if (render_size < 0) {
 		return NULL;
 	}
 
-	rectx = (render_size * (float)scene->r.xsch) / 100.0f + 0.5f;
-	recty = (render_size * (float)scene->r.ysch) / 100.0f + 0.5f;
+	rectx = ((float) scene->r.xsch * scale_fac) + 0.5f;
+	recty = ((float) scene->r.ysch * scale_fac) + 0.5f;
 
 	BKE_sequencer_new_render_data(
 	        bmain, depsgraph, scene,

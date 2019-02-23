@@ -1471,7 +1471,7 @@ static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
 	return IMB_PROXY_25;
 }
 
-static double seq_rendersize_to_scale_factor(int size)
+double seq_rendersize_to_scale_factor(int size)
 {
 	if (size >= 99) {
 		return 1.0;
