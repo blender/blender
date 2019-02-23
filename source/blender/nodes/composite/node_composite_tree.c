@@ -214,6 +214,7 @@ void register_node_tree_type_cmp(void)
 	ntreeTypeAdd(tt);
 }
 
+extern void *COM_linker_hack;  /* Quiet warning. */
 void *COM_linker_hack = NULL;
 
 void ntreeCompositExecTree(Scene *scene, bNodeTree *ntree, RenderData *rd, int rendering, int do_preview,

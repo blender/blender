@@ -107,6 +107,8 @@ struct Depsgraph;
 
 void BKE_material_eval(struct Depsgraph *depsgraph, struct Material *material);
 
+extern struct Material defmaterial;
+
 #ifdef __cplusplus
 }
 #endif

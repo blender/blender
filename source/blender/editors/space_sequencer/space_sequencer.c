@@ -432,6 +432,7 @@ static void sequencer_dropboxes(void)
 /* ************* end drop *********** */
 
 /* DO NOT make this static, this hides the symbol and breaks API generation script. */
+extern const char *sequencer_context_dir[];  /* quiet warning. */
 const char *sequencer_context_dir[] = {"edit_mask", NULL};
 
 static int sequencer_context(const bContext *C, const char *member, bContextDataResult *result)

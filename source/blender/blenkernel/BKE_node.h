@@ -1065,4 +1065,7 @@ void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
                                       struct bNodeTree *ntree_dst,
                                       const struct bNodeTree *ntree_src);
 
+extern struct bNodeType NodeTypeUndefined;
+extern struct bNodeSocketType NodeSocketTypeUndefined;
+
 #endif  /* __BKE_NODE_H__ */
