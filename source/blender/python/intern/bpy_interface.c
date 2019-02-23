@@ -81,7 +81,6 @@ CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_RNA, "bpy.rna");
 
 /* in case a python script triggers another python call, stop bpy_context_clear from invalidating */
 static int py_call_level = 0;
-BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 
 // #define TIME_PY_RUN // simple python tests. prints on exit.
 

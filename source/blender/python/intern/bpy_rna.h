@@ -223,4 +223,6 @@ extern PyMethodDef meth_bpy_unregister_class;
 extern PyMethodDef meth_bpy_owner_id_set;
 extern PyMethodDef meth_bpy_owner_id_get;
 
+extern BPy_StructRNA *bpy_context_module;
+
 #endif

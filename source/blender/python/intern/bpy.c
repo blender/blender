@@ -294,7 +294,6 @@ static PyObject *bpy_import_test(const char *modname)
  ******************************************************************************/
 void BPy_init_modules(void)
 {
-	extern BPy_StructRNA *bpy_context_module;
 	PointerRNA ctx_ptr;
 	PyObject *mod;
 

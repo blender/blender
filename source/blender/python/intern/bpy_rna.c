@@ -78,6 +78,8 @@
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
 
+BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
+
 static PyObject *pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 

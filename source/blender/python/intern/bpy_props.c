@@ -52,8 +52,6 @@ enum {
 	BPY_DATA_CB_SLOT_SIZE       = 4,
 };
 
-extern BPy_StructRNA *bpy_context_module;
-
 static const EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
