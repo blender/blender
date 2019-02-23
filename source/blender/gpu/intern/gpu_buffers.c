@@ -418,8 +418,8 @@ static void gpu_pbvh_grid_fill_index_buffers(
 
 			if (grid_visible) {
 				/* Grid corners */
-				v0 = offset + gridsize - 1;
-				v1 = offset;
+				v0 = offset;
+				v1 = offset + gridsize - 1;
 				v2 = offset + grid_vert_len - 1;
 				v3 = offset + grid_vert_len - gridsize;
 
