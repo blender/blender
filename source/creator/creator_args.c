@@ -1177,14 +1177,12 @@ static int arg_handle_no_window_focus(int UNUSED(argc), const char **UNUSED(argv
 	return 0;
 }
 
-extern bool wm_start_with_console; /* wm_init_exit.c */
-
 static const char arg_handle_start_with_console_doc[] =
 "\n\tStart with the console window open (ignored if -b is set), (Windows only)."
 ;
 static int arg_handle_start_with_console(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	wm_start_with_console = true;
+	WM_init_state_start_with_console_set(true);
 	return 0;
 }
 

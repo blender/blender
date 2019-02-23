@@ -85,6 +85,7 @@ void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);
 void		WM_init_state_fullscreen_set(void);
 void		WM_init_state_normal_set(void);
 void		WM_init_state_maximized_set(void);
+void		WM_init_state_start_with_console_set(bool value);
 void		WM_init_window_focus_set(bool do_it);
 void		WM_init_native_pixels(bool do_it);
 void		WM_init_tablet_api(void);

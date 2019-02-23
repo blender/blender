@@ -152,7 +152,12 @@ static void wm_free_reports(bContext *C)
 	BKE_reports_clear(reports);
 }
 
-bool wm_start_with_console = false; /* used in creator.c */
+static bool wm_start_with_console = false;
+
+void WM_init_state_start_with_console_set(bool value)
+{
+	wm_start_with_console = value;
+}
 
 /**
  * Since we cannot know in advance if we will require the draw manager
