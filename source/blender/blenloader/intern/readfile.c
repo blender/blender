@@ -1248,30 +1248,36 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 	return fd;
 }
 
-/* cannot be called with relative paths anymore! */
-/* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
+static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *reports)
 {
-	gzFile gzfile;
 	errno = 0;
-	gzfile = BLI_gzopen(filepath, "rb");
-
+	gzFile gzfile = BLI_gzopen(filepath, "rb");
 	if (gzfile == (gzFile)Z_NULL) {
 		BKE_reportf(reports, RPT_WARNING, "Unable to open '%s': %s",
 		            filepath, errno ? strerror(errno) : TIP_("unknown error reading file"));
 		return NULL;
 	}
-	else {
-		FileData *fd = filedata_new();
-		fd->gzfiledes = gzfile;
-		fd->read = fd_read_gzip_from_file;
-		fd->seek = fd_seek_gzip_from_file;
 
+	FileData *fd = filedata_new();
+	fd->gzfiledes = gzfile;
+	fd->read = fd_read_gzip_from_file;
+	fd->seek = fd_seek_gzip_from_file;
+
+	return fd;
+}
+
+/* cannot be called with relative paths anymore! */
+/* on each new library added, it now checks for the current FileData and expands relativeness */
+FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
+{
+	FileData *fd = blo_filedata_from_file_open(filepath, reports);
+	if (fd != NULL) {
 		/* needed for library_append and read_libraries */
 		BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
 
 		return blo_decode_and_check(fd, reports);
 	}
+	return NULL;
 }
 
 /**
@@ -1280,24 +1286,14 @@ FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
  */
 static FileData *blo_filedata_from_file_minimal(const char *filepath)
 {
-	gzFile gzfile;
-	errno = 0;
-	gzfile = BLI_gzopen(filepath, "rb");
-
-	if (gzfile != (gzFile)Z_NULL) {
-		FileData *fd = filedata_new();
-		fd->gzfiledes = gzfile;
-		fd->read = fd_read_gzip_from_file;
-
+	FileData *fd = blo_filedata_from_file_open(filepath, NULL);
+	if (fd != NULL) {
 		decode_blender_header(fd);
-
 		if (fd->flags & FD_FLAGS_FILE_OK) {
 			return fd;
 		}
-
 		blo_filedata_free(fd);
 	}
-
 	return NULL;
 }
 
