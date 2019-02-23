@@ -1,4 +1,4 @@
-if NOT exist "%BLENDER_DIR%/source/tools" (
+if NOT exist "%BLENDER_DIR%\source\tools\.git" (
 	echo Checking out sub-modules 
 	if not "%GIT%" == "" (
 		"%GIT%" submodule update --init --recursive --progress
