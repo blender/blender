@@ -103,8 +103,6 @@ extern char datatoc_volumetric_lib_glsl[];
 
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
-extern Material defmaterial;
-
 /* *********** FUNCTIONS *********** */
 
 #if 0 /* Used only to generate the LUT values */

@@ -28,4 +28,7 @@ extern PyObject *bpy_package_py;
 void BPY_atexit_register(void);
 void BPY_atexit_unregister(void);
 
+extern struct CLG_LogRef *BPY_LOG_CONTEXT;
+extern struct CLG_LogRef *BPY_LOG_RNA;
+
 #endif  /* __BPY_H__ */

@@ -148,7 +148,6 @@ void CLG_logref_init(CLG_LogRef *clg_ref);
 /** Declare outside function, declare as extern in header. */
 #define CLG_LOGREF_DECLARE_GLOBAL(var, id) \
 	static CLG_LogRef _static_ ## var = {id}; \
-	extern CLG_LogRef *var; \
 	CLG_LogRef *var = &_static_ ## var
 
 /** Initialize struct once. */

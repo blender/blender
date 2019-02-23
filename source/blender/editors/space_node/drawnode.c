@@ -2963,9 +2963,6 @@ void ED_node_init_butfuncs(void)
 	/* Fallback types for undefined tree, nodes, sockets
 	 * Defined in blenkernel, but not registered in type hashes.
 	 */
-	/*extern bNodeTreeType NodeTreeTypeUndefined;*/
-	extern bNodeType NodeTypeUndefined;
-	extern bNodeSocketType NodeSocketTypeUndefined;
 
 	/* default ui functions */
 	NodeTypeUndefined.draw_nodetype = node_draw_default;
