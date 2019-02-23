@@ -31,7 +31,12 @@
 #include "BLF_api.h"
 
 #include "BKE_colortools.h"
+#include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
+#include "BKE_lattice.h"
+#include "BKE_mball.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -2547,25 +2552,6 @@ void DRW_engines_register(void)
 
 	/* setup callbacks */
 	{
-		/* BKE: mball.c */
-		extern void *BKE_mball_batch_cache_dirty_tag_cb;
-		extern void *BKE_mball_batch_cache_free_cb;
-		/* BKE: curve.c */
-		extern void *BKE_curve_batch_cache_dirty_tag_cb;
-		extern void *BKE_curve_batch_cache_free_cb;
-		/* BKE: mesh.c */
-		extern void *BKE_mesh_batch_cache_dirty_tag_cb;
-		extern void *BKE_mesh_batch_cache_free_cb;
-		/* BKE: lattice.c */
-		extern void *BKE_lattice_batch_cache_dirty_tag_cb;
-		extern void *BKE_lattice_batch_cache_free_cb;
-		/* BKE: particle.c */
-		extern void *BKE_particle_batch_cache_dirty_tag_cb;
-		extern void *BKE_particle_batch_cache_free_cb;
-		/* BKE: gpencil.c */
-		extern void *BKE_gpencil_batch_cache_dirty_tag_cb;
-		extern void *BKE_gpencil_batch_cache_free_cb;
-
 		BKE_mball_batch_cache_dirty_tag_cb = DRW_mball_batch_cache_dirty_tag;
 		BKE_mball_batch_cache_free_cb = DRW_mball_batch_cache_free;
 

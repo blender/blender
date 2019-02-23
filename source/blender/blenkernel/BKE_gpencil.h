@@ -178,4 +178,7 @@ bool BKE_gpencil_smooth_stroke_uv(struct bGPDstroke *gps, int point_index, float
 void BKE_gpencil_get_range_selected(struct bGPDlayer *gpl, int *r_initframe, int *r_endframe);
 float BKE_gpencil_multiframe_falloff_calc(struct bGPDframe *gpf, int actnum, int f_init, int f_end, struct CurveMapping *cur_falloff);
 
+extern void (*BKE_gpencil_batch_cache_dirty_tag_cb)(struct bGPdata *gpd);
+extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);
+
 #endif /*  __BKE_GPENCIL_H__ */

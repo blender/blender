@@ -486,4 +486,7 @@ enum {
 void BKE_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, int mode);
 void BKE_particle_batch_cache_free(struct ParticleSystem *psys);
 
+extern void (*BKE_particle_batch_cache_dirty_tag_cb)(struct ParticleSystem *psys, int mode);
+extern void (*BKE_particle_batch_cache_free_cb)(struct ParticleSystem *psys);
+
 #endif  /* __BKE_PARTICLE_H__ */

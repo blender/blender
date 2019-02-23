@@ -83,4 +83,8 @@ enum {
 void BKE_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void BKE_mball_batch_cache_free(struct MetaBall *mb);
 
+extern void (*BKE_mball_batch_cache_dirty_tag_cb)(struct MetaBall *mb, int mode);
+extern void (*BKE_mball_batch_cache_free_cb)(struct MetaBall *mb);
+
+
 #endif
