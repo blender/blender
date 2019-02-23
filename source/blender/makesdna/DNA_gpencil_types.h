@@ -510,7 +510,11 @@ typedef struct bGPdata {
 	char _pad2[6];
 	int   totstroke;
 	int   totpoint;
-	char _pad3[4];
+
+	/** Draw mode for strokes (eGP_DrawMode). */
+	short draw_mode;
+	char _pad3[2];
+
 	bGPgrid grid;
 
 	bGPdata_Runtime runtime;
@@ -615,6 +619,12 @@ typedef enum eGP_DepthOrdering {
 	GP_XRAY_3DSPACE = 1,
 	GP_XRAY_BACK  = 2,
 } eGP_DepthOrdering;
+
+/* draw modes (Use 2D or 3D position) */
+typedef enum eGP_DrawMode {
+	GP_DRAWMODE_2D = 0,
+	GP_DRAWMODE_3D = 1
+} eGP_DrawMode;
 
 /* ***************************************** */
 /* Mode Checking Macros */

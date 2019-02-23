@@ -15,6 +15,7 @@ uniform int texture_mix;
 uniform int texture_flip;
 uniform float texture_opacity;
 uniform int xraymode;
+uniform int drawmode;
 uniform float layer_opacity;
 
 uniform sampler2D myTexture;
@@ -31,6 +32,9 @@ uniform int texture_clamp;
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1
 #define GP_XRAY_BACK  2
+
+#define GP_DRAWMODE_2D 0
+#define GP_DRAWMODE_3D 1
 
 in vec4 finalColor;
 in vec2 texCoord_interp;
@@ -136,7 +140,13 @@ void main()
 		gl_FragDepth = 0.000001;
 	}
 	else if (xraymode == GP_XRAY_3DSPACE) {
-		gl_FragDepth = gl_FragCoord.z;
+	/* if 3D mode, move slightly the fill to avoid z-fighting between stroke and fill on same stroke */
+		if (drawmode == GP_DRAWMODE_3D) {
+			gl_FragDepth = gl_FragCoord.z * 1.0001;
+		}
+		else {
+			gl_FragDepth = gl_FragCoord.z;
+		}
 	}
 	else if  (xraymode == GP_XRAY_BACK) {
 		gl_FragDepth = 0.999999;
@@ -144,4 +154,5 @@ void main()
 	else {
 		gl_FragDepth = 0.000001;
 	}
+	
 }

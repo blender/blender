@@ -332,10 +332,15 @@ void GPENCIL_cache_init(void *vedata)
 	stl->g_data->gp_object_cache = NULL;
 
 	{
-		/* Stroke pass */
-		psl->stroke_pass = DRW_pass_create(
+		/* Stroke pass 2D */
+		psl->stroke_pass_2d = DRW_pass_create(
 		        "GPencil Stroke Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND);
+		stl->storage->shgroup_id = 0;
+		/* Stroke pass 3D */
+		psl->stroke_pass_3d = DRW_pass_create(
+			"GPencil Stroke Pass",
+			DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 		stl->storage->shgroup_id = 0;
 
 		/* edit pass */
@@ -689,7 +694,7 @@ static void gpencil_free_obj_runtime(GPENCIL_StorageList *stl)
 static void gpencil_draw_pass_range(
 	GPENCIL_FramebufferList *fbl, GPENCIL_StorageList *stl,
 	GPENCIL_PassList *psl, GPENCIL_TextureList *txl,
-	GPUFrameBuffer *fb,
+	GPUFrameBuffer *fb, bGPdata *gpd,
 	DRWShadingGroup *init_shgrp, DRWShadingGroup *end_shgrp, bool multi)
 {
 	if (init_shgrp == NULL) {
@@ -702,7 +707,8 @@ static void gpencil_draw_pass_range(
 	}
 
 	DRW_draw_pass_subset(
-		psl->stroke_pass, init_shgrp, end_shgrp);
+		GPENCIL_3D_DRAWMODE(gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
+		init_shgrp, end_shgrp);
 
 	if ((!stl->storage->is_mat_preview) && (multi)) {
 		MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fb, txl);
@@ -811,7 +817,7 @@ void GPENCIL_draw_scene(void *ved)
 							/* draw pending groups */
 							gpencil_draw_pass_range(
 								fbl, stl, psl, txl, fbl->temp_fb_a,
-								init_shgrp, end_shgrp, is_last);
+								gpd, init_shgrp, end_shgrp, is_last);
 
 							/* draw current group in separated texture */
 							init_shgrp = array_elm->init_shgrp;
@@ -821,7 +827,7 @@ void GPENCIL_draw_scene(void *ved)
 							GPU_framebuffer_clear_color_depth(fbl->temp_fb_fx, clearcol, 1.0f);
 							gpencil_draw_pass_range(
 							        fbl, stl, psl, txl, fbl->temp_fb_fx,
-							        init_shgrp, end_shgrp,
+							        gpd, init_shgrp, end_shgrp,
 							        is_last);
 
 							/* Blend A texture and FX texture */
@@ -850,7 +856,7 @@ void GPENCIL_draw_scene(void *ved)
 					/* last group */
 					gpencil_draw_pass_range(
 					        fbl, stl, psl, txl, fbl->temp_fb_a,
-					        init_shgrp, end_shgrp,
+					        gpd, init_shgrp, end_shgrp,
 					        true);
 				}
 
