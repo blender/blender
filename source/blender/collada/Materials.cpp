@@ -139,15 +139,13 @@ void MaterialNode::set_diffuse(COLLADAFW::ColorOrTexture &cot, std::string label
 	int locy = -300 * (node_map.size()-2);
 	if (cot.isColor()) {
 		COLLADAFW::Color col = cot.getColor();
-		material->r = col.getRed();
-		material->g = col.getGreen();
-		material->b = col.getBlue();
-
 		bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&shader_node->inputs, BC_PBR_DIFFUSE);
 		float *fcol = (float *)socket->default_value;
-		fcol[0] = col.getRed();
-		fcol[1] = col.getGreen();
-		fcol[2] = col.getBlue();
+
+		fcol[0] = material->r = col.getRed();
+		fcol[1] = material->g = col.getGreen();
+		fcol[2] = material->b = col.getBlue();
+		fcol[3] = material->a = col.getAlpha();
 	}
 	else if (cot.isTexture()) {
 		bNode *texture_node = add_texture_node(cot, -300, locy, label);
