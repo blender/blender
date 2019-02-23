@@ -90,6 +90,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 	ImBuf *ibuf = sequencer_ibuf_get(bmain, depsgraph, scene, sseq, CFRA, 0, NULL);
 	ImageSampleInfo *info = op->customdata;
+	float fx, fy;
 
 	if (ibuf == NULL) {
 		IMB_freeImBuf(ibuf);
@@ -97,33 +98,18 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 		return;
 	}
 
-	short scene_scale_size = sseq->render_size ? 100 : scene->r.size;
-	float rectx = (float) scene->r.xsch * ((float) scene_scale_size / 100.0f);
-	float recty = (float) scene->r.ysch * ((float) scene_scale_size / 100.0f);
-	float scale_x = (float) ibuf->x / rectx;
-	float scale_y = (float) ibuf->y / recty;
-	float fx, fy;
-
-	/* max coords are +/- (rect* / 2)
-	 */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
-	fx += rectx / 2.0f;
-	fy += recty / 2.0f;
-
-	/* to get ibuf coords we have to scale by (ibuf->* / rect*)
-	 */
-	fx *= scale_x;
-	fy *= scale_y;
+	fx += (float) ibuf->x / 2.0f;
+	fy += (float) ibuf->y / 2.0f;
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < ibuf->x && fy < ibuf->y) {
 		const float *fp;
 		unsigned char *cp;
 		int x = (int) fx, y = (int) fy;
 
-		/* we will report mouse position on unscaled image */
-		info->x = 1 + x / scale_x;
-		info->y = 1 + y / scale_y;
+		info->x = x;
+		info->y = y;
 		info->draw = 1;
 		info->channels = ibuf->channels;
 
