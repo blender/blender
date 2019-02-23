@@ -1354,18 +1354,18 @@ bc_node_add_link(ntree, nmap["main"], 0, nmap["out"], 0);
 COLLADASW::ColorOrTexture bc_get_base_color(Material *ma)
 {
 	bNode *master_shader = bc_get_master_shader(ma);
-	if (master_shader) {
+	if (ma->use_nodes && master_shader) {
 		return bc_get_base_color(master_shader);
 	}
 	else {
-		return bc_get_cot(ma->r, ma->g, ma->b, ma->alpha_threshold);
+		return bc_get_cot(ma->r, ma->g, ma->b, ma->a);
 	}
 }
 
 COLLADASW::ColorOrTexture bc_get_specular_color(Material *ma, bool use_fallback)
 {
 	bNode *master_shader = bc_get_master_shader(ma);
-	if (master_shader) {
+	if (ma->use_nodes && master_shader) {
 		return bc_get_specular_color(master_shader);
 	}
 	else if (use_fallback) {

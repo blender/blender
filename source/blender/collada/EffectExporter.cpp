@@ -98,14 +98,14 @@ void EffectsExporter::set_shader_type(COLLADASW::EffectProfile &ep, Material *ma
 
 void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *ma)
 {
-	if (ma->alpha_threshold == 1.0f) {
-		return; // have no transparency
+	COLLADASW::ColorOrTexture cot = bc_get_base_color(ma);
+	float transparency = cot.getColor().getAlpha();
+	if (transparency < 1) {
+		// Tod: because we are in A_ONE mode transparency is calculated like this:
+		COLLADASW::ColorOrTexture cot = getcol(1.0f, 1.0f, 1.0f, transparency);
+		ep.setTransparent(cot);
+		ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
 	}
-
-	// Tod: because we are in A_ONE mode transparency is calculated like this:
-	COLLADASW::ColorOrTexture cot = getcol(1.0f, 1.0f, 1.0f, ma->alpha_threshold);
-	ep.setTransparent(cot);
-	ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
 }
 void EffectsExporter::set_diffuse_color(COLLADASW::EffectProfile &ep, Material *ma)
 {
