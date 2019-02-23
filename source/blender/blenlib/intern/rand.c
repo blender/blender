@@ -46,7 +46,8 @@
 #define ADDEND      0xB
 #define LOWSEED     0x330E
 
-extern unsigned char hash[];    // noise.c
+extern unsigned char BLI_noise_hash_uchar_512[512];  /* noise.c */
+#define hash BLI_noise_hash_uchar_512
 
 /**
  * Random Number Generator.

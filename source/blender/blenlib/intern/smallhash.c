@@ -79,7 +79,8 @@ BLI_INLINE bool smallhash_val_is_used(const void *val)
 #endif
 }
 
-extern const uint hashsizes[];
+extern const uint BLI_ghash_hash_sizes[];
+#define hashsizes BLI_ghash_hash_sizes
 
 BLI_INLINE uint smallhash_key(const uintptr_t key)
 {
