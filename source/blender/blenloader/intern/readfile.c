@@ -224,10 +224,12 @@
 
 /**
  * Delay reading blocks we might not use (especially applies to library linking).
- * which keeps large arrays in memory from data-blocks we may not even use. */
-#if !defined(_WIN32)  /* Slow on windows, see: T61855 */
-#  define USE_BHEAD_READ_ON_DEMAND
-#endif
+ * which keeps large arrays in memory from data-blocks we may not even use.
+ *
+ * \note This is disabled when using compression,
+ * while zlib supports seek ist's unusably slow, see: T61880.
+ */
+#define USE_BHEAD_READ_ON_DEMAND
 
 /* use GHash for BHead name-based lookups (speeds up linking) */
 #define USE_GHASH_BHEAD
