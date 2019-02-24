@@ -1271,28 +1271,20 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 	return fd;
 }
 
-static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *reports)
+static FileData *blo_filedata_from_file_descriptor(const char *filepath, ReportList *reports, int file)
 {
 	FileDataReadFn *read_fn = NULL;
 	FileDataSeekFn *seek_fn = NULL;  /* Optional. */
 
-	int file = -1;
 	gzFile gzfile = (gzFile)Z_NULL;
 
 	char header[7];
 
 	/* Regular file. */
 	errno = 0;
-	file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
-	if (file == -1) {
-		BKE_reportf(reports, RPT_WARNING, "Unable to open '%s': %s",
-		            filepath, errno ? strerror(errno) : TIP_("unknown error reading file"));
-		return NULL;
-	}
-	else if (read(file, header, sizeof(header)) != sizeof(header)) {
+	if (read(file, header, sizeof(header)) != sizeof(header)) {
 		BKE_reportf(reports, RPT_WARNING, "Unable to read '%s': %s",
 		            filepath, errno ? strerror(errno) : TIP_("insufficient content"));
-		close(file);
 		return NULL;
 	}
 	else {
@@ -1303,10 +1295,6 @@ static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *r
 	if (memcmp(header, "BLENDER", sizeof(header)) == 0) {
 		read_fn = fd_read_data_from_file;
 		seek_fn = fd_seek_data_from_file;
-	}
-	else {
-		close(file);
-		file = -1;
 	}
 
 	/* Gzip file. */
@@ -1324,6 +1312,8 @@ static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *r
 		else {
 			/* 'seek_fn' is too slow for gzip, don't set it. */
 			read_fn = fd_read_gzip_from_file;
+			/* Caller must close. */
+			file = -1;
 		}
 	}
 
@@ -1340,6 +1330,22 @@ static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *r
 	fd->read = read_fn;
 	fd->seek = seek_fn;
 
+	return fd;
+}
+
+static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *reports)
+{
+	errno = 0;
+	const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+	if (file == -1) {
+		BKE_reportf(reports, RPT_WARNING, "Unable to open '%s': %s",
+		            filepath, errno ? strerror(errno) : TIP_("unknown error reading file"));
+		return NULL;
+	}
+	FileData *fd = blo_filedata_from_file_descriptor(filepath, reports, file);
+	if ((fd == NULL) || (fd->filedes == -1)) {
+		close(file);
+	}
 	return fd;
 }
 
