@@ -185,13 +185,6 @@ static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, in
 		gpd->flag &= ~GP_DATA_PYTHON_UPDATED;
 		valid = false;
 	}
-	else if (DRW_gpencil_onion_active(gpd)) {
-		/* if onion, set as dirty always
-		 * This reduces performance, but avoid any crash in the multiple
-		 * overlay and multiwindow options and keep all windows working
-		 */
-		valid = false;
-	}
 	else if (cache->is_editmode) {
 		valid = false;
 	}

@@ -65,6 +65,10 @@ static void gpencil_calc_vertex(
         GpencilBatchCache *cache, bGPdata *gpd,
         int cfra_eval)
 {
+	if (!cache->is_dirty) {
+		return;
+	}
+
 	Object *ob = cache_ob->ob;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool main_onion = draw_ctx->v3d != NULL ? (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
