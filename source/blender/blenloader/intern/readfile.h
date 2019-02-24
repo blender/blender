@@ -48,6 +48,11 @@ enum eFileDataFlag {
 	FD_FLAGS_NOT_MY_LIBMAP         = 1 << 5,
 };
 
+
+
+typedef int (FileDataReadFn)(struct FileData *filedata, void *buffer, unsigned int size);
+typedef off_t (FileDataSeekFn)(struct FileData *filedata, off_t offset, int whence);
+
 typedef struct FileData {
 	/** Linked list of BHeadN's. */
 	ListBase listbase;
@@ -55,8 +60,12 @@ typedef struct FileData {
 	bool is_eof;
 	int buffersize;
 	off_t file_offset;
-	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
-	off_t (*seek)(struct FileData *filedata, off_t offset, int whence);
+
+	FileDataReadFn *read;
+	FileDataSeekFn *seek;
+
+	/** Regular file reading. */
+	int filedes;
 
 	/** Variables needed for reading from memory / stream. */
 	const char *buffer;
@@ -65,12 +74,12 @@ typedef struct FileData {
 
 	/** Variables needed for reading from file. */
 	gzFile gzfiledes;
+	/** Gzip stream for memory decompression. */
+	z_stream strm;
 
 	/** Now only in use for library appending. */
 	char relabase[FILE_MAX];
 
-	/** Gzip stream for memory decompression. */
-	z_stream strm;
 
 	/** General reading variables. */
 	struct SDNA *filesdna;
