@@ -1156,12 +1156,6 @@ static int fd_read_gzip_from_file(FileData *filedata, void *buffer, uint size)
 	return (readsize);
 }
 
-static off_t fd_seek_gzip_from_file(FileData *filedata, off_t offset, int whence)
-{
-	filedata->file_offset = gzseek(filedata->gzfiledes, offset, whence);
-	return filedata->file_offset;
-}
-
 /* Memory reading. */
 
 static int fd_read_from_memory(FileData *filedata, void *buffer, uint size)
@@ -1328,8 +1322,8 @@ static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *r
 			return NULL;
 		}
 		else {
+			/* 'seek_fn' is too slow for gzip, don't set it. */
 			read_fn = fd_read_gzip_from_file;
-			seek_fn = fd_seek_gzip_from_file;
 		}
 	}
 
