@@ -181,7 +181,7 @@ static struct bUnitDef buImperialAreaDef[] = {
 	{"square yard",    "square yards",    "sq yd",  NULL,  "Square Yards",    NULL, UN_SC_YD * UN_SC_YD,   0.0, B_UNIT_DEF_NONE},
 	{"square foot",    "square feet",     "sq ft",  NULL,  "Square Feet",     NULL, UN_SC_FT * UN_SC_FT,   0.0, B_UNIT_DEF_NONE}, /* base unit */
 	{"square inch",    "square inches",   "sq in",  NULL,  "Square Inches",   NULL, UN_SC_IN * UN_SC_IN,   0.0, B_UNIT_DEF_NONE},
-	{"square thou",    "square thous",    "sq mil", NULL,  "Square Thous",    NULL, UN_SC_MIL * UN_SC_MIL, 0.0, B_UNIT_DEF_NONE},
+	{"square thou",    "square thou",     "sq mil", NULL,  "Square Thou",     NULL, UN_SC_MIL * UN_SC_MIL, 0.0, B_UNIT_DEF_NONE},
 	NULL_UNIT,
 };
 static struct bUnitCollection buImperialAreaCollection = {buImperialAreaDef, 4, 0, UNIT_COLLECTION_LENGTH(buImperialAreaDef)};
@@ -207,7 +207,7 @@ static struct bUnitDef buImperialVolDef[] = {
 	{"cubic yard",    "cubic yards",    "cu yd",  NULL,   "Cubic Yards",    NULL, UN_SC_YD * UN_SC_YD * UN_SC_YD,    0.0, B_UNIT_DEF_NONE},
 	{"cubic foot",    "cubic feet",     "cu ft",  NULL,   "Cubic Feet",     NULL, UN_SC_FT * UN_SC_FT * UN_SC_FT,    0.0, B_UNIT_DEF_NONE}, /* base unit */
 	{"cubic inch",    "cubic inches",   "cu in",  NULL,   "Cubic Inches",   NULL, UN_SC_IN * UN_SC_IN * UN_SC_IN,    0.0, B_UNIT_DEF_NONE},
-	{"cubic thou",    "cubic thous",    "cu mil", NULL,   "Cubic Thous",    NULL, UN_SC_MIL * UN_SC_MIL * UN_SC_MIL, 0.0, B_UNIT_DEF_NONE},
+	{"cubic thou",    "cubic thou",     "cu mil", NULL,   "Cubic Thou",     NULL, UN_SC_MIL * UN_SC_MIL * UN_SC_MIL, 0.0, B_UNIT_DEF_NONE},
 	NULL_UNIT,
 };
 static struct bUnitCollection buImperialVolCollection = {buImperialVolDef, 4, 0, UNIT_COLLECTION_LENGTH(buImperialVolDef)};
