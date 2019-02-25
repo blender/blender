@@ -2712,7 +2712,10 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 		zero_v3(min);
 		zero_v3(max);
 		zero_v3(cursor->location);
-		unit_qt(cursor->rotation);
+		unit_qt(cursor->rotation_quaternion);
+		zero_v3(cursor->rotation_euler);
+		ARRAY_SET_ITEMS(cursor->rotation_axis, 0.0f, 1.0f, 0.0f);
+		cursor->rotation_angle = 0.0f;
 	}
 	else {
 		INIT_MINMAX(min, max);
@@ -4762,10 +4765,30 @@ void ED_view3d_cursor3d_update(
 	View3DCursor *cursor_curr = &scene->cursor;
 	View3DCursor  cursor_prev = *cursor_curr;
 
-	ED_view3d_cursor3d_position_rotation(
-	        C, mval,
-	        use_depth, orientation,
-	        cursor_curr->location, cursor_curr->rotation);
+	{
+		float quat[4], quat_prev[4];
+		BKE_scene_cursor_rot_to_quat(cursor_curr, quat);
+		copy_qt_qt(quat_prev, quat);
+		ED_view3d_cursor3d_position_rotation(
+		        C, mval,
+		        use_depth, orientation,
+		        cursor_curr->location, quat);
+
+		if (!equals_v4v4(quat_prev, quat)) {
+			if ((cursor_curr->rotation_mode == ROT_MODE_AXISANGLE) &&
+			    RV3D_VIEW_IS_AXIS(rv3d->view))
+			{
+				float tmat[3][3], cmat[3][3];
+				quat_to_mat3(tmat, quat);
+				negate_v3_v3(cursor_curr->rotation_axis, tmat[2]);
+				axis_angle_to_mat3(cmat, cursor_curr->rotation_axis, 0.0f);
+				cursor_curr->rotation_angle = angle_signed_on_axis_v3v3_v3(cmat[0], tmat[0], cursor_curr->rotation_axis);
+			}
+			else {
+				BKE_scene_cursor_quat_to_rot(cursor_curr, quat, true);
+			}
+		}
+	}
 
 	/* offset the cursor lock to avoid jumping to new offset */
 	if (v3d->ob_centre_cursor) {

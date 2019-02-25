@@ -36,6 +36,7 @@ struct RenderData;
 struct Scene;
 struct TransformOrientation;
 struct UnitSettings;
+struct View3DCursor;
 struct ViewLayer;
 struct ViewRender;
 struct WorkSpace;
@@ -200,6 +201,12 @@ struct TransformOrientation *BKE_scene_transform_orientation_find(
         const struct Scene *scene, const int index);
 int BKE_scene_transform_orientation_get_index(
         const struct Scene *scene, const struct TransformOrientation *orientation);
+
+void BKE_scene_cursor_rot_to_mat3(const struct View3DCursor *cursor, float mat[3][3]);
+void BKE_scene_cursor_mat3_to_rot(struct View3DCursor *cursor, const float mat[3][3], bool use_compat);
+
+void BKE_scene_cursor_rot_to_quat(const struct View3DCursor *cursor, float quat[4]);
+void BKE_scene_cursor_quat_to_rot(struct View3DCursor *cursor, const float quat[4], bool use_compat);
 
 #ifdef __cplusplus
 }

@@ -547,7 +547,10 @@ void BKE_scene_init(Scene *sce)
 
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(sce, id));
 
-	unit_qt(sce->cursor.rotation);
+
+	sce->cursor.rotation_mode = ROT_MODE_XYZ;
+	sce->cursor.rotation_quaternion[0] = 1.0f;
+	sce->cursor.rotation_axis[1] = 1.0f;
 
 	sce->r.mode = R_OSA;
 	sce->r.cfra = 1;
@@ -2240,5 +2243,99 @@ int BKE_scene_transform_orientation_get_index(
 {
 	return BLI_findindex(&scene->transform_spaces, orientation);
 }
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Cursor Rotation
+ *
+ * Matches #BKE_object_rot_to_mat3 and #BKE_object_mat3_to_rot.
+ * \{ */
+
+void BKE_scene_cursor_rot_to_mat3(const View3DCursor *cursor, float mat[3][3])
+{
+	if (cursor->rotation_mode > 0) {
+		eulO_to_mat3(mat, cursor->rotation_euler, cursor->rotation_mode);
+	}
+	else if (cursor->rotation_mode == ROT_MODE_AXISANGLE) {
+		axis_angle_to_mat3(mat, cursor->rotation_axis, cursor->rotation_angle);
+	}
+	else {
+		float tquat[4];
+		normalize_qt_qt(tquat, cursor->rotation_quaternion);
+		quat_to_mat3(mat, tquat);
+	}
+}
+
+void BKE_scene_cursor_rot_to_quat(const View3DCursor *cursor, float quat[4])
+{
+	if (cursor->rotation_mode > 0) {
+		eulO_to_quat(quat, cursor->rotation_euler, cursor->rotation_mode);
+	}
+	else if (cursor->rotation_mode == ROT_MODE_AXISANGLE) {
+		axis_angle_to_quat(quat, cursor->rotation_axis, cursor->rotation_angle);
+	}
+	else {
+		normalize_qt_qt(quat, cursor->rotation_quaternion);
+	}
+}
+
+void BKE_scene_cursor_mat3_to_rot(View3DCursor *cursor, const float mat[3][3], bool use_compat)
+{
+	BLI_ASSERT_UNIT_M3(mat);
+
+	switch (cursor->rotation_mode) {
+		case ROT_MODE_QUAT:
+		{
+			mat3_normalized_to_quat(cursor->rotation_quaternion, mat);
+			break;
+		}
+		case ROT_MODE_AXISANGLE:
+		{
+			mat3_to_axis_angle(cursor->rotation_axis, &cursor->rotation_angle, mat);
+			break;
+		}
+		default:
+		{
+			if (use_compat) {
+				mat3_to_compatible_eulO(cursor->rotation_euler, cursor->rotation_euler, cursor->rotation_mode, mat);
+			}
+			else {
+				mat3_to_eulO(cursor->rotation_euler, cursor->rotation_mode, mat);
+			}
+			break;
+		}
+	}
+}
+
+void BKE_scene_cursor_quat_to_rot(View3DCursor *cursor, const float quat[4], bool use_compat)
+{
+	BLI_ASSERT_UNIT_QUAT(quat);
+
+	switch (cursor->rotation_mode) {
+		case ROT_MODE_QUAT:
+		{
+			copy_qt_qt(cursor->rotation_quaternion, quat);
+			break;
+		}
+		case ROT_MODE_AXISANGLE:
+		{
+			quat_to_axis_angle(cursor->rotation_axis, &cursor->rotation_angle, quat);
+			break;
+		}
+		default:
+		{
+			if (use_compat) {
+				quat_to_compatible_eulO(cursor->rotation_euler, cursor->rotation_euler, cursor->rotation_mode, quat);
+			}
+			else {
+				quat_to_eulO(cursor->rotation_euler, cursor->rotation_mode, quat);
+			}
+			break;
+		}
+	}
+}
+
 
 /** \} */

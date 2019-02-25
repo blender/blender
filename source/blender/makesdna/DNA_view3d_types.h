@@ -136,8 +136,13 @@ typedef struct RegionView3D {
 
 typedef struct View3DCursor {
 	float location[3];
-	float rotation[4];
-	char _pad[4];
+
+	float rotation_quaternion[4];
+	float rotation_euler[3];
+	float rotation_axis[3], rotation_angle;
+	short rotation_mode;
+
+	char _pad[6];
 } View3DCursor;
 
 /* 3D Viewport Shading settings */

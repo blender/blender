@@ -405,15 +405,39 @@ static void createTransCursor_view3d(TransInfo *t)
 	td->ob = NULL;
 
 	unit_m3(td->mtx);
-	quat_to_mat3(td->axismtx, cursor->rotation);
+    BKE_scene_cursor_rot_to_mat3(cursor, td->axismtx);
 	normalize_m3(td->axismtx);
 	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
 	td->loc = cursor->location;
 	copy_v3_v3(td->iloc, cursor->location);
 
-	td->ext->quat = cursor->rotation;
-	copy_qt_qt(td->ext->iquat, cursor->rotation);
+	if (cursor->rotation_mode > 0) {
+		td->ext->rot = cursor->rotation_euler;
+		td->ext->rotAxis = NULL;
+		td->ext->rotAngle = NULL;
+		td->ext->quat = NULL;
+
+		copy_v3_v3(td->ext->irot, cursor->rotation_euler);
+	}
+	else if (cursor->rotation_mode == ROT_MODE_AXISANGLE) {
+		td->ext->rot = NULL;
+		td->ext->rotAxis = cursor->rotation_axis;
+		td->ext->rotAngle = &cursor->rotation_angle;
+		td->ext->quat = NULL;
+
+		td->ext->irotAngle = cursor->rotation_angle;
+		copy_v3_v3(td->ext->irotAxis, cursor->rotation_axis);
+	}
+	else {
+		td->ext->rot = NULL;
+		td->ext->rotAxis = NULL;
+		td->ext->rotAngle = NULL;
+		td->ext->quat = cursor->rotation_quaternion;
+
+		copy_qt_qt(td->ext->iquat, cursor->rotation_quaternion);
+	}
+	td->ext->rotOrder = cursor->rotation_mode;
 }
 
 /** \} */

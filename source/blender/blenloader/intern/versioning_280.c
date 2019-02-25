@@ -1336,12 +1336,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-
-		if (!DNA_struct_find(fd->filesdna, "View3DCursor")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-				unit_qt(scene->cursor.rotation);
-			}
-		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 14)) {
@@ -2818,6 +2812,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							v3d->shading.wire_color_type = V3D_SHADING_SINGLE_COLOR;
 						}
 					}
+				}
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DCursor", "short", "rotation_mode")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				if (is_zero_v3(scene->cursor.rotation_axis)) {
+					scene->cursor.rotation_mode = ROT_MODE_XYZ;
+					scene->cursor.rotation_quaternion[0] = 1.0f;
+					scene->cursor.rotation_axis[1] = 1.0f;
 				}
 			}
 		}

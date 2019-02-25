@@ -8086,8 +8086,8 @@ void blo_lib_link_restore(Main *oldmain, Main *newmain, wmWindowManager *curwm, 
 		BKE_workspace_active_set(win->workspace_hook, workspace);
 
 		/* keep cursor location through undo */
-		copy_v3_v3(win->scene->cursor.location, oldscene->cursor.location);
-		copy_qt_qt(win->scene->cursor.rotation, oldscene->cursor.rotation);
+		memcpy(&win->scene->cursor, &oldscene->cursor, sizeof(win->scene->cursor));
+
 		lib_link_window_scene_data_restore(win, win->scene, cur_view_layer);
 
 		BLI_assert(win->screen == NULL);
