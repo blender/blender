@@ -216,6 +216,9 @@ struct WriteWrap {
 	bool   (*close)(WriteWrap *ww);
 	size_t (*write)(WriteWrap *ww, const char *data, size_t data_len);
 
+	/* Buffer output (we only want when output isn't already buffered). */
+	bool use_buf;
+
 	/* internal */
 	union {
 		int file_handle;
@@ -291,6 +294,7 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 			r_ww->open  = ww_open_zlib;
 			r_ww->close = ww_close_zlib;
 			r_ww->write = ww_write_zlib;
+			r_ww->use_buf = false;
 			break;
 		}
 		default:
@@ -298,6 +302,7 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 			r_ww->open  = ww_open_none;
 			r_ww->close = ww_close_none;
 			r_ww->write = ww_write_none;
+			r_ww->use_buf = true;
 			break;
 		}
 	}
@@ -351,7 +356,9 @@ static WriteData *writedata_new(WriteWrap *ww)
 
 	wd->ww = ww;
 
-	wd->buf = MEM_mallocN(MYWRITE_BUFFER_SIZE, "wd->buf");
+	if ((ww == NULL) || (ww->use_buf)) {
+		wd->buf = MEM_mallocN(MYWRITE_BUFFER_SIZE, "wd->buf");
+	}
 
 	return wd;
 }
@@ -379,7 +386,9 @@ static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 
 static void writedata_free(WriteData *wd)
 {
-	MEM_freeN(wd->buf);
+	if (wd->buf) {
+		MEM_freeN(wd->buf);
+	}
 	MEM_freeN(wd);
 }
 
@@ -421,33 +430,38 @@ static void mywrite(WriteData *wd, const void *adr, int len)
 	wd->write_len += len;
 #endif
 
-	/* if we have a single big chunk, write existing data in
-	 * buffer and write out big chunk in smaller pieces */
-	if (len > MYWRITE_MAX_CHUNK) {
-		if (wd->buf_used_len) {
+	if (wd->buf == NULL) {
+		writedata_do_write(wd, adr, len);
+	}
+	else {
+		/* if we have a single big chunk, write existing data in
+		 * buffer and write out big chunk in smaller pieces */
+		if (len > MYWRITE_MAX_CHUNK) {
+			if (wd->buf_used_len) {
+				writedata_do_write(wd, wd->buf, wd->buf_used_len);
+				wd->buf_used_len = 0;
+			}
+
+			do {
+				int writelen = MIN2(len, MYWRITE_MAX_CHUNK);
+				writedata_do_write(wd, adr, writelen);
+				adr = (const char *)adr + writelen;
+				len -= writelen;
+			} while (len > 0);
+
+			return;
+		}
+
+		/* if data would overflow buffer, write out the buffer */
+		if (len + wd->buf_used_len > MYWRITE_BUFFER_SIZE - 1) {
 			writedata_do_write(wd, wd->buf, wd->buf_used_len);
 			wd->buf_used_len = 0;
 		}
 
-		do {
-			int writelen = MIN2(len, MYWRITE_MAX_CHUNK);
-			writedata_do_write(wd, adr, writelen);
-			adr = (const char *)adr + writelen;
-			len -= writelen;
-		} while (len > 0);
-
-		return;
+		/* append data at end of buffer */
+		memcpy(&wd->buf[wd->buf_used_len], adr, len);
+		wd->buf_used_len += len;
 	}
-
-	/* if data would overflow buffer, write out the buffer */
-	if (len + wd->buf_used_len > MYWRITE_BUFFER_SIZE - 1) {
-		writedata_do_write(wd, wd->buf, wd->buf_used_len);
-		wd->buf_used_len = 0;
-	}
-
-	/* append data at end of buffer */
-	memcpy(&wd->buf[wd->buf_used_len], adr, len);
-	wd->buf_used_len += len;
 }
 
 /**
