@@ -746,9 +746,11 @@ void DRW_gpencil_fx_prepare(
         tGPencilObjectCache *cache)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
+	const bool wiremode = (bool)(stl->storage->shading_type == OB_WIRE);
+
 	int ob_idx = cache->idx;
 
-	if (cache->shader_fx.first == NULL) {
+	if ((wiremode) || (cache->shader_fx.first == NULL)) {
 		return;
 	}
 	/* loop FX */

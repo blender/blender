@@ -385,6 +385,14 @@ void GPENCIL_cache_init(void *vedata)
 		stl->storage->simplify_fx = GP_SIMPLIFY_FX(scene, stl->storage->is_playing);
 		stl->storage->simplify_blend = GP_SIMPLIFY_BLEND(scene, stl->storage->is_playing);
 
+		/* save shading type */
+		if (v3d) {
+			stl->storage->shading_type = v3d->shading.type;
+		}
+		else {
+			stl->storage->shading_type = OB_SOLID;
+		}
+
 		/* save pixsize */
 		stl->storage->pixsize = DRW_viewport_pixelsize_get();
 		if ((!DRW_state_is_opengl_render()) && (stl->storage->is_render)) {
@@ -514,7 +522,9 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
 
 		/* create effects passes */
-		if (!stl->storage->simplify_fx) {
+		if ((!stl->storage->simplify_fx) &&
+			(stl->storage->shading_type != OB_WIRE))
+		{
 			GPENCIL_create_fx_passes(psl);
 		}
 	}
@@ -542,7 +552,8 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 	/* FX passses */
 	cache_ob->has_fx = false;
 	if ((!stl->storage->simplify_fx) &&
-	    (BKE_shaderfx_has_gpencil(ob)))
+		(stl->storage->shading_type != OB_WIRE) &&
+		(BKE_shaderfx_has_gpencil(ob)))
 	{
 		cache_ob->has_fx = true;
 		if ((!stl->storage->simplify_fx) && (!is_multiedit)) {

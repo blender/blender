@@ -598,7 +598,7 @@ static void gpencil_add_stroke_vertexdata(
         GpencilBatchCache *cache,
         Object *ob, bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps,
         const float opacity, const float tintcolor[4], const bool onion,
-        const bool custonion)
+        const bool custonion, const bool use_wiremode)
 {
 	float tcolor[4];
 	float ink[4];
@@ -616,6 +616,15 @@ static void gpencil_add_stroke_vertexdata(
 			else {
 				interp_v3_v3v3(tcolor, gps->runtime.tmp_stroke_rgba, tintcolor, tintcolor[3]);
 				tcolor[3] = gps->runtime.tmp_stroke_rgba[3] * opacity;
+
+				if ((use_wiremode) &&
+					((gps->runtime.tmp_stroke_rgba[3] < GPENCIL_ALPHA_OPACITY_THRESH) ||
+					 (((gp_style->flag & GP_STYLE_STROKE_SHOW) == 0))) &&
+					(gps->runtime.tmp_fill_rgba[3] >= GPENCIL_ALPHA_OPACITY_THRESH))
+				{
+					interp_v3_v3v3(tcolor, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
+					tcolor[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
+				}
 			}
 			copy_v4_v4(ink, tcolor);
 		}
@@ -629,8 +638,14 @@ static void gpencil_add_stroke_vertexdata(
 			}
 		}
 
-		sthickness = gps->thickness + gpl->line_change;
-		CLAMP_MIN(sthickness, 1);
+		/* if wireframe mode, set thickeness to 1 */
+		if (!use_wiremode) {
+			sthickness = gps->thickness + gpl->line_change;
+			CLAMP_MIN(sthickness, 1);
+		}
+		else {
+			sthickness = 1;
+		}
 
 		if ((gps->totpoints > 1) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
 			/* create vertex data */
@@ -812,6 +827,7 @@ static void gpencil_draw_strokes(
 				/* fill */
 				if ((gp_style->flag & GP_STYLE_FILL_SHOW) &&
 				    (!stl->storage->simplify_fill) &&
+					(stl->storage->shading_type != OB_WIRE) &&
 				    ((gps->flag & GP_STROKE_NOFILL) == 0))
 				{
 					gpencil_add_fill_vertexdata(
@@ -821,13 +837,15 @@ static void gpencil_draw_strokes(
 				/* stroke */
 				/* No fill strokes, must show stroke always */
 				if (((gp_style->flag & GP_STYLE_STROKE_SHOW) ||
-				     (gps->flag & GP_STROKE_NOFILL)) &&
+				     (gps->flag & GP_STROKE_NOFILL) ||
+					 (stl->storage->shading_type == OB_WIRE)) &&
 				    ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 				     (gpl->blend_mode == eGplBlendMode_Normal)))
 				{
 					gpencil_add_stroke_vertexdata(
 						cache, ob, gpl, derived_gpf, gps,
-						opacity, tintcolor, false, custonion);
+						opacity, tintcolor, false, custonion,
+						(stl->storage->shading_type == OB_WIRE));
 				}
 			}
 		}
@@ -906,7 +924,9 @@ static void gpencil_draw_onion_strokes(
 
 		/* stroke */
 		gpencil_add_stroke_vertexdata(
-		        cache, ob, gpl, gpf, gps, opacity, tintcolor, true, custonion);
+		        cache, ob, gpl, gpf, gps, opacity, tintcolor,
+				true, custonion,
+				(stl->storage->shading_type == OB_WIRE));
 
 		stl->storage->shgroup_id++;
 	}
