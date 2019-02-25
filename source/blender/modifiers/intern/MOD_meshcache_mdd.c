@@ -22,8 +22,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
+
 #include "BLI_fileops.h"
 #include "BLI_math.h"
 #ifdef __LITTLE_ENDIAN__
@@ -33,9 +33,9 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "MOD_meshcache_util.h"  /* own include */
-
 #include "DNA_modifier_types.h"
+
+#include "MOD_meshcache_util.h"  /* own include */
 
 typedef struct MDDHead {
 	int frame_tot;

@@ -24,9 +24,9 @@
 
 #include <string.h>
 
-#include "DNA_object_types.h"
-
 #include "BLI_utildefines.h"
+
+#include "DNA_object_types.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"

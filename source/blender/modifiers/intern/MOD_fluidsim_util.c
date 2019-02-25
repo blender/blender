@@ -25,23 +25,25 @@
 #include <stddef.h>
 #include <zlib.h>
 
+#include "BLI_utildefines.h"
+
+#ifdef WITH_MOD_FLUID
+#  include "BLI_blenlib.h"
+#  include "BLI_math.h"
+#endif
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_fluidsim_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_fluidsim.h" /* ensure definitions here match */
+#include "BKE_mesh.h"
 #ifdef WITH_MOD_FLUID
-#  include "BLI_blenlib.h"
-#  include "BLI_math.h"
-
 #  include "BKE_global.h"
 #  include "BKE_library.h"
 #endif
-#include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

@@ -27,16 +27,17 @@
  */
 
 #include "BLI_utildefines.h"
+
 #include "BLI_math.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 
 #include "MOD_modifiertypes.h"
 

@@ -19,6 +19,7 @@
  */
 
 #include "BLI_utildefines.h"
+
 #include "BLI_math.h"
 
 #include "DNA_modifier_types.h"

@@ -24,9 +24,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_rand.h"
-#include "BLI_math_vector.h"
+
 #include "BLI_ghash.h"
+#include "BLI_math_vector.h"
+#include "BLI_rand.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"

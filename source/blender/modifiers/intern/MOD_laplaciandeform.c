@@ -22,11 +22,15 @@
  */
 
 #include "BLI_utildefines.h"
-#include "BLI_utildefines_stack.h"
+
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines_stack.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
@@ -34,9 +38,6 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_particle.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "MOD_util.h"
 
