@@ -347,14 +347,10 @@ typedef struct CurveBatchCache {
 	struct {
 		GPUVertBuf *pos_nor;
 		GPUVertBuf *curves_pos;
+
+		GPUVertBuf *loop_pos_nor;
+		GPUVertBuf *loop_uv;
 	} ordered;
-
-	struct {
-		GPUVertBuf *pos_nor;
-		GPUVertBuf *uv;
-
-		GPUVertBuf *wireframe_data;
-	} tess;
 
 	struct {
 		/* Curve points. Aligned with ordered.pos_nor */
@@ -367,6 +363,7 @@ typedef struct CurveBatchCache {
 
 	struct {
 		GPUIndexBuf *surfaces_tris;
+		GPUIndexBuf *surfaces_lines;
 		GPUIndexBuf *curves_lines;
 		/* Edit mode */
 		GPUIndexBuf *edit_verts_points; /* Only control points. Not handles. */
@@ -375,14 +372,13 @@ typedef struct CurveBatchCache {
 
 	struct {
 		GPUBatch *surfaces;
+		GPUBatch *surfaces_edges;
 		GPUBatch *curves;
 		/* control handles and vertices */
 		GPUBatch *edit_edges;
 		GPUBatch *edit_verts;
 		GPUBatch *edit_handles_verts;
 		GPUBatch *edit_normals;
-		/* Triangles for object mode wireframe. */
-		GPUBatch *wire_triangles;
 	} batch;
 
 	GPUIndexBuf **surf_per_mat_tris;
@@ -504,10 +500,6 @@ static void curve_batch_cache_clear(Curve *cu)
 
 	for (int i = 0; i < sizeof(cache->ordered) / sizeof(void *); ++i) {
 		GPUVertBuf **vbo = (GPUVertBuf **)&cache->ordered;
-		GPU_VERTBUF_DISCARD_SAFE(vbo[i]);
-	}
-	for (int i = 0; i < sizeof(cache->tess) / sizeof(void *); ++i) {
-		GPUVertBuf **vbo = (GPUVertBuf **)&cache->tess;
 		GPU_VERTBUF_DISCARD_SAFE(vbo[i]);
 	}
 	for (int i = 0; i < sizeof(cache->edit) / sizeof(void *); ++i) {
@@ -884,7 +876,7 @@ GPUBatch **DRW_curve_batch_cache_get_surface_shaded(
 GPUBatch *DRW_curve_batch_cache_get_wireframes_face(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
-	return DRW_batch_request(&cache->batch.wire_triangles);
+	return DRW_batch_request(&cache->batch.surfaces_edges);
 }
 
 /** \} */
@@ -920,13 +912,13 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 		DRW_ibo_request(cache->batch.surfaces, &cache->ibo.surfaces_tris);
 		DRW_vbo_request(cache->batch.surfaces, &cache->ordered.pos_nor);
 	}
+	if (DRW_batch_requested(cache->batch.surfaces_edges, GPU_PRIM_LINES)) {
+		DRW_ibo_request(cache->batch.surfaces_edges, &cache->ibo.surfaces_lines);
+		DRW_vbo_request(cache->batch.surfaces_edges, &cache->ordered.pos_nor);
+	}
 	if (DRW_batch_requested(cache->batch.curves, GPU_PRIM_LINE_STRIP)) {
 		DRW_ibo_request(cache->batch.curves, &cache->ibo.curves_lines);
 		DRW_vbo_request(cache->batch.curves, &cache->ordered.curves_pos);
-	}
-	if (DRW_batch_requested(cache->batch.wire_triangles, GPU_PRIM_TRIS)) {
-		DRW_vbo_request(cache->batch.wire_triangles, &cache->tess.pos_nor);
-		DRW_vbo_request(cache->batch.wire_triangles, &cache->tess.wireframe_data);
 	}
 
 	/* Edit mode */
@@ -953,9 +945,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 				DRW_ibo_request(cache->surf_per_mat[i], &cache->surf_per_mat_tris[i]);
 			}
 			if (cache->cd_used & CD_MLOOPUV) {
-				DRW_vbo_request(cache->surf_per_mat[i], &cache->tess.uv);
+				DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_uv);
 			}
-			DRW_vbo_request(cache->surf_per_mat[i], &cache->tess.pos_nor);
+			DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_pos_nor);
 		}
 	}
 
@@ -963,10 +955,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	int mr_flag = 0;
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.pos_nor, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.curves_pos, CU_DATATYPE_WIRE);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->tess.pos_nor, CU_DATATYPE_SURFACE);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->tess.uv, CU_DATATYPE_SURFACE);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->tess.wireframe_data, CU_DATATYPE_SURFACE);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_pos_nor, CU_DATATYPE_SURFACE);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_uv, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_tris, CU_DATATYPE_SURFACE);
+	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_lines, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.curves_lines, CU_DATATYPE_WIRE);
 
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.pos, CU_DATATYPE_OVERLAY);
@@ -987,23 +979,20 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
 	/* Generate VBOs */
 	if (DRW_vbo_requested(cache->ordered.pos_nor)) {
-		DRW_displist_vertbuf_create_pos_and_nor(lb, cache->ordered.pos_nor);
+		DRW_displist_vertbuf_create_pos_and_nor_and_wiredata(lb, cache->ordered.pos_nor);
 	}
 	if (DRW_vbo_requested(cache->ordered.curves_pos)) {
 		curve_create_curves_pos(rdata, cache->ordered.curves_pos);
 	}
 
-	if (DRW_vbo_requested(cache->tess.pos_nor) ||
-	    DRW_vbo_requested(cache->tess.uv))
+	if (DRW_vbo_requested(cache->ordered.loop_pos_nor) ||
+	    DRW_vbo_requested(cache->ordered.loop_uv))
 	{
-		DRW_displist_vertbuf_create_pos_and_nor_and_uv_tess(lb, cache->tess.pos_nor, cache->tess.uv);
-	}
-	if (DRW_vbo_requested(cache->tess.wireframe_data)) {
-		DRW_displist_vertbuf_create_wireframe_data_tess(lb, cache->tess.wireframe_data);
+		DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv(lb, cache->ordered.loop_pos_nor, cache->ordered.loop_uv);
 	}
 
 	if (DRW_ibo_requested(cache->surf_per_mat_tris[0])) {
-		DRW_displist_indexbuf_create_triangles_tess_split_by_material(lb, cache->surf_per_mat_tris, cache->mat_len);
+		DRW_displist_indexbuf_create_triangles_loop_split_by_material(lb, cache->surf_per_mat_tris, cache->mat_len);
 	}
 
 	if (DRW_ibo_requested(cache->ibo.curves_lines)) {
@@ -1011,6 +1000,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	}
 	if (DRW_ibo_requested(cache->ibo.surfaces_tris)) {
 		DRW_displist_indexbuf_create_triangles_in_order(lb, cache->ibo.surfaces_tris);
+	}
+	if (DRW_ibo_requested(cache->ibo.surfaces_lines)) {
+		DRW_displist_indexbuf_create_lines_in_order(lb, cache->ibo.surfaces_lines);
 	}
 
 	if (DRW_vbo_requested(cache->edit.pos) ||

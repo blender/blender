@@ -81,12 +81,12 @@ struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(
 struct GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(struct Object *ob);
 
 /* DispList */
-void DRW_displist_vertbuf_create_pos_and_nor(struct ListBase *lb, struct GPUVertBuf *vbo);
-void DRW_displist_vertbuf_create_pos_and_nor_and_uv_tess(
+void DRW_displist_vertbuf_create_pos_and_nor_and_wiredata(struct ListBase *lb, struct GPUVertBuf *vbo);
+void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv(
         struct ListBase *lb, struct GPUVertBuf *vbo_pos_nor, struct GPUVertBuf *vbo_uv);
-void DRW_displist_vertbuf_create_wireframe_data_tess(struct ListBase *lb, struct GPUVertBuf *vbo);
-void DRW_displist_indexbuf_create_triangles_in_order(struct ListBase *lb, struct GPUIndexBuf *vbo);
-void DRW_displist_indexbuf_create_triangles_tess_split_by_material(
+void DRW_displist_indexbuf_create_lines_in_order(struct ListBase *lb, struct GPUIndexBuf *ibo);
+void DRW_displist_indexbuf_create_triangles_in_order(struct ListBase *lb, struct GPUIndexBuf *ibo);
+void DRW_displist_indexbuf_create_triangles_loop_split_by_material(
         struct ListBase *lb, struct GPUIndexBuf **ibo_mat, uint mat_len);
 
 /* Lattice */
