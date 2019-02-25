@@ -115,7 +115,7 @@ typedef struct ColorizeShaderFxData {
 typedef enum ColorizeShaderFxModes {
 	eShaderFxColorizeMode_GrayScale = 0,
 	eShaderFxColorizeMode_Sepia = 1,
-	eShaderFxColorizeMode_BiTone = 2,
+	eShaderFxColorizeMode_DualTone = 2,
 	eShaderFxColorizeMode_Custom = 3,
 	eShaderFxColorizeMode_Transparent = 4,
 } ColorizeShaderFxModes;
