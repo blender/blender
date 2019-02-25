@@ -3828,16 +3828,24 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 		t->con.applySize(t, NULL, NULL, mat);
 
 		/* Only so we have re-usable value with redo. */
+		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		int j = 0;
 		for (i = 0; i < 3; i++) {
 			if (!(t->con.mode & (CON_AXIS0 << i))) {
 				t->values[i] = 1.0f;
 			}
+			else {
+				pvec[j++] = t->values[i];
+			}
 		}
+		headerResize(t, pvec, str);
+	}
+	else {
+		headerResize(t, t->values, str);
 	}
 
 	copy_m3_m3(t->mat, mat);    // used in gizmo
 
-	headerResize(t, t->values, str);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		TransData *td = tc->data;
