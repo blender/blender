@@ -135,7 +135,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 			Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
-			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MLOOPUV);
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MASK_MLOOPUV);
 			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
 			RNA_enum_item_add_separator(&item, &totitem);
@@ -157,7 +157,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 			Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
-			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MASK_MLOOPCOL);
 			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
 			RNA_enum_item_add_separator(&item, &totitem);
