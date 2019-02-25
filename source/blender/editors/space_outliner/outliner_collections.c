@@ -42,6 +42,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -263,8 +264,11 @@ static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *c
 
 static int collection_delete_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const Base *basact_prev = BASACT(view_layer);
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 	bool hierarchy = RNA_boolean_get(op->ptr, "hierarchy");
@@ -291,6 +295,10 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 	DEG_relations_tag_update(bmain);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	if (basact_prev != BASACT(view_layer)) {
+		WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
+	}
 
 	return OPERATOR_FINISHED;
 }

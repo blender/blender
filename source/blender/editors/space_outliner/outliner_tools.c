@@ -70,6 +70,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -962,9 +963,6 @@ static void object_batch_delete_hierarchy_cb(
 		tselem->id = NULL;
 #endif
 	}
-
-	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 }
 
 /* **************************************** */
@@ -1001,6 +999,7 @@ static const EnumPropertyItem prop_object_op_types[] = {
 
 static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = CTX_wm_window(C);
@@ -1043,6 +1042,9 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	}
 	else if (event == OL_OP_DELETE) {
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		const Base *basact_prev = BASACT(view_layer);
+
 		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_delete_cb);
 
 		/* XXX: tree management normally happens from draw_outliner(), but when
@@ -1055,9 +1057,15 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		DEG_relations_tag_update(bmain);
 		str = "Delete Objects";
 		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+		if (basact_prev != BASACT(view_layer)) {
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+			WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
+		}
 	}
 	else if (event == OL_OP_DELETE_HIERARCHY) {
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		const Base *basact_prev = BASACT(view_layer);
+
 		/* Keeping old 'safe and slow' code for a bit (new one enabled on 28/01/2019). */
 		if (G.debug_value == 666) {
 			outliner_do_object_operation_ex(
@@ -1079,6 +1087,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		str = "Delete Object Hierarchy";
 		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+		if (basact_prev != BASACT(view_layer)) {
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+			WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
+		}
 	}
 	else if (event == OL_OP_REMAP) {
 		outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
