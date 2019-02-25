@@ -4325,6 +4325,7 @@ class VIEW3D_PT_view3d_cursor(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
 

@@ -6365,18 +6365,21 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_WORLD, "rna_Scene_world_update");
 
 	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ_LENGTH);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "cursor.location");
 	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "cursor_rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "cursor.rotation_quaternion");
 	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Cursor Quaternion Rotation", "3D cursor rotation in quaternions (keep normalized)");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "cursor_rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_Scene_cursor_rotation_axis_angle_get",
 	                             "rna_Scene_cursor_rotation_axis_angle_set", NULL);
@@ -6385,11 +6388,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "cursor_rotation_euler", PROP_FLOAT, PROP_EULER);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "cursor.rotation_euler");
 	RNA_def_property_ui_text(prop, "Cursor Euler Rotation", "3D cursor rotation");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "cursor_rotation_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "cursor.rotation_mode");
 	RNA_def_property_enum_items(prop, rna_enum_object_rotation_mode_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Scene_cursor_rotation_mode_set", NULL);
