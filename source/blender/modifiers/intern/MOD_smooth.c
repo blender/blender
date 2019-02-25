@@ -22,13 +22,14 @@
  */
 
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+#include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_math.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_library.h"

@@ -22,8 +22,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
+
+#include "BLI_math_base.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"

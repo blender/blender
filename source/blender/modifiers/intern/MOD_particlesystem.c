@@ -24,11 +24,10 @@
 
 #include <stddef.h>
 
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-
 #include "BLI_utildefines.h"
 
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"

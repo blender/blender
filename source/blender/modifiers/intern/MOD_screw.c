@@ -25,13 +25,14 @@
 /* Screw modifier: revolves the edges about an axis */
 #include <limits.h>
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_alloca.h"
-#include "BLI_utildefines.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"

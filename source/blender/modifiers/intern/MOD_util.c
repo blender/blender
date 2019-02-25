@@ -24,17 +24,18 @@
 
 #include <string.h>
 
+#include "BLI_utildefines.h"
+
+#include "BLI_bitmap.h"
+#include "BLI_math_vector.h"
+#include "BLI_math_matrix.h"
+
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_bitmap.h"
-#include "BLI_math_vector.h"
-#include "BLI_math_matrix.h"
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"

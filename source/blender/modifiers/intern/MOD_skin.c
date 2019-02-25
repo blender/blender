@@ -52,17 +52,18 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
+#include "BLI_array.h"
+#include "BLI_bitmap.h"
+#include "BLI_heap_simple.h"
+#include "BLI_math.h"
+#include "BLI_stack.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_array.h"
-#include "BLI_heap_simple.h"
-#include "BLI_math.h"
-#include "BLI_stack.h"
-#include "BLI_bitmap.h"
 
 #include "BKE_deform.h"
 #include "BKE_library.h"

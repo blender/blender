@@ -24,15 +24,15 @@
 
 /* UV Project modifier: Generates UVs projected from an object */
 
+#include "BLI_utildefines.h"
+
+#include "BLI_math.h"
+#include "BLI_uvproject.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
-
-#include "BLI_math.h"
-#include "BLI_uvproject.h"
-#include "BLI_utildefines.h"
-
 
 #include "BKE_camera.h"
 #include "BKE_library_query.h"
