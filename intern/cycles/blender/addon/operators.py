@@ -22,22 +22,22 @@ from bpy.props import StringProperty
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
-    """Enable nodes on a material, world or light"""
+    """Enable nodes on a material, world or lamp"""
     bl_idname = "cycles.use_shading_nodes"
     bl_label = "Use Nodes"
 
     @classmethod
     def poll(cls, context):
         return (getattr(context, "material", False) or getattr(context, "world", False) or
-                getattr(context, "light", False))
+                getattr(context, "lamp", False))
 
     def execute(self, context):
         if context.material:
             context.material.use_nodes = True
         elif context.world:
             context.world.use_nodes = True
-        elif context.light:
-            context.light.use_nodes = True
+        elif context.lamp:
+            context.lamp.use_nodes = True
 
         return {'FINISHED'}
 
