@@ -51,16 +51,16 @@ static const EnumPropertyItem parent_type_items[] = {
 };
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem rna_enum_gpencil_drawmodes_items[] = {
-	{GP_DRAWMODE_2D, "2D", 0, "2D Layers",	"Draw strokes using grease pencil layers to define order"},
-	{GP_DRAWMODE_3D, "3D", 0, "3D Location", "Draw strokes using real 3D position in 3D space"},
+static EnumPropertyItem rna_enum_gpencil_stroke_depth_order_items[] = {
+	{GP_DRAWMODE_2D, "2D", 0, "2D Layers",	"Display strokes using grease pencil layers to define order"},
+	{GP_DRAWMODE_3D, "3D", 0, "3D Location", "Display strokes using real 3D position in 3D space"},
 	{0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem rna_enum_gpencil_xraymodes_items[] = {
-	{GP_XRAY_FRONT, "FRONT", 0, "Front", "Draw all strokes in front"},
-	{GP_XRAY_3DSPACE, "3DSPACE", 0, "3D Space", "Draw strokes relative to other objects in 3D space"},
-	{GP_XRAY_BACK, "BACK", 0, "Back", "Draw all strokes last"},
+static EnumPropertyItem rna_enum_gpencil_object_depth_order_items[] = {
+	{GP_XRAY_FRONT, "FRONT", 0, "Front", "Display all strokes in front"},
+	{GP_XRAY_3DSPACE, "3DSPACE", 0, "3D Space", "Display strokes relative to other objects in 3D space"},
+	{GP_XRAY_BACK, "BACK", 0, "Back", "Display all strokes last"},
 	{0, NULL, 0, NULL, NULL},
 };
 
@@ -1473,6 +1473,12 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	static float onion_dft1[3] = { 0.145098f, 0.419608f, 0.137255f }; /* green */
 	static float onion_dft2[3] = { 0.125490f, 0.082353f, 0.529412f }; /* blue */
 
+		static const EnumPropertyItem stroke_thickness_items[] = {
+		{0, "WORLDSPACE", 0, "World Space", "Set stroke thickness relative to the world space"},
+		{GP_DATA_STROKE_KEEPTHICKNESS, "SCREENSPACE", 0, "Screen Space", "Set stroke thickness relative to the screen space"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
 	srna = RNA_def_struct(brna, "GreasePencil", "ID");
 	RNA_def_struct_sdna(srna, "bGPdata");
 	RNA_def_struct_ui_text(srna, "Grease Pencil", "Freehand annotation sketchbook");
@@ -1496,19 +1502,18 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
 
-	/* draw modes */
-	prop = RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
+	/* Depth */
+	prop = RNA_def_property(srna, "stroke_depth_order", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "draw_mode");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_drawmodes_items);
-	RNA_def_property_ui_text(prop, "Mode",
+	RNA_def_property_enum_items(prop, rna_enum_gpencil_stroke_depth_order_items);
+	RNA_def_property_ui_text(prop, "Stroke Depth Order",
 		"Defines how the strokes are ordered in 3D space");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-	/* xray modes */
-	prop = RNA_def_property(srna, "xray_mode", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "object_depth_order", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "xray_mode");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_xraymodes_items);
-	RNA_def_property_ui_text(prop, "X-Ray", "");
+	RNA_def_property_enum_items(prop, rna_enum_gpencil_object_depth_order_items);
+	RNA_def_property_ui_text(prop, "Object Depth Order", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Flags */
@@ -1547,9 +1552,10 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 		"and smaller red dot (end) points");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-	prop = RNA_def_property(srna, "show_constant_thickness", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_STROKE_KEEPTHICKNESS);
-	RNA_def_property_ui_text(prop, "Keep Thickness", "Maintain the thickness of the stroke when the viewport zoom changes");
+    prop = RNA_def_property(srna, "stroke_thickness_space", PROP_ENUM, PROP_NONE); /* as an enum */
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, stroke_thickness_items);
+	RNA_def_property_ui_text(prop, "Stroke Thickness", "Set stroke thickness in screen space or world space");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "pixel_factor", PROP_FLOAT, PROP_NONE);

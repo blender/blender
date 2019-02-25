@@ -332,6 +332,33 @@ class DATA_PT_gpencil_vertexpanel(DataButtonsPanel, Panel):
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
 
 
+class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
+    bl_label = "Strokes"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        ob = context.object
+
+        gpd = context.gpencil_data
+
+        layout.prop(gpd, "object_depth_order")
+        if gpd.object_depth_order == '3DSPACE':
+            layout.prop(gpd, "stroke_depth_order")
+
+        col = layout.column(align=True)
+        col.prop(gpd, "stroke_thickness_space")
+        sub = col.column()
+        sub.active = gpd.stroke_thickness_space == 'WORLDSPACE'
+        sub.prop(gpd, "pixel_factor", text="Thickness Scale")
+
+        layout.prop(gpd, "use_force_fill_recalc", text="Force Fill Update")
+        layout.prop(gpd, "use_adaptive_uv", text="Adaptive UVs")
+
+
 class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
@@ -346,24 +373,11 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
         gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
 
-        layout.prop(gpd, "xray_mode", text="Depth Ordering")
-        if gpd.xray_mode == '3DSPACE':
-            layout.prop(gpd, "draw_mode", text="Mode")
-
         layout.prop(ob, "empty_display_size", text="Marker Size")
-
-        col = layout.column(align=True)
-        col.prop(gpd, "show_constant_thickness")
-        sub = col.column()
-        sub.active = not gpd.show_constant_thickness
-        sub.prop(gpd, "pixel_factor", text="Thickness Scale")
 
         layout.prop(gpd, "edit_line_color", text="Edit Line Color")
         if gpl:
             layout.prop(gpd, "show_stroke_direction", text="Show Stroke Directions")
-
-        layout.prop(gpd, "use_force_fill_recalc", text="Force Fill Update")
-        layout.prop(gpd, "use_adaptive_uv", text="Adaptive UVs")
 
 
 class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
@@ -402,6 +416,7 @@ classes = (
     DATA_PT_gpencil_layer_optionpanel,
     DATA_PT_gpencil_parentpanel,
     DATA_PT_gpencil_vertexpanel,
+    DATA_PT_gpencil_strokes,
     DATA_PT_gpencil_display,
     DATA_PT_gpencil_canvas,
     DATA_PT_custom_props_gpencil,
