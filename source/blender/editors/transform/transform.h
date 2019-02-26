@@ -628,10 +628,11 @@ typedef struct TransInfo {
 	/** Offset applied ontop of modal input. */
 	float		values_modal_offset[4];
 	float		auto_values[4];
-	float		axis[3];
-	/** TransCon can change 'axis', store the original value here. */
-	float		axis_orig[3];
-	float		axis_ortho[3];
+
+	int orient_axis;
+	int orient_axis_ortho;
+	float orient_matrix[3][3];
+	bool  orient_matrix_is_set;
 
 	/** remove elements if operator is canceled. */
 	bool		remove_on_cancel;

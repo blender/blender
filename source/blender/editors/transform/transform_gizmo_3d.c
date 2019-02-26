@@ -1325,7 +1325,7 @@ void drawDial3d(const TransInfo *t)
 		}
 		else {
 			axis_idx = MAN_AXIS_ROT_C;
-			negate_v3_v3(mat_basis[2], t->axis);
+			negate_v3_v3(mat_basis[2], t->orient_matrix[t->orient_axis]);
 			scale *= 1.2f;
 			line_with -= 1.0f;
 		}
@@ -2210,8 +2210,11 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 				else {
 					negate_v3_v3(axis, tbounds.axis[i_ortho_b]);
 				}
-				RNA_float_set_array(&gzop->ptr, "axis", axis);
-				RNA_float_set_array(&gzop->ptr, "axis_ortho", tbounds.axis[i_ortho_a]);
+				float orient_matrix[3][3];
+				cross_v3_v3v3(orient_matrix[0], tbounds.axis[i_ortho_a], axis);
+				copy_v3_v3(orient_matrix[1], tbounds.axis[i_ortho_a]);
+				copy_v3_v3(orient_matrix[2], axis);
+				RNA_float_set_array(&gzop->ptr, "orient_matrix", &orient_matrix[0][0]);
 				mul_v3_fl(gz->matrix_basis[0], 0.5f);
 				mul_v3_fl(gz->matrix_basis[1], 6.0f);
 			}

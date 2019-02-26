@@ -2156,12 +2156,15 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "axis"))) {
-		RNA_property_float_set_array(op->ptr, prop, t->axis);
-	}
-
-	if ((prop = RNA_struct_find_property(op->ptr, "axis_ortho"))) {
-		RNA_property_float_set_array(op->ptr, prop, t->axis_ortho);
+	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
+		if (t->flag & T_MODAL) {
+			if (t->con.mode & CON_APPLY) {
+				int orient_axis = constraintModeToIndex(t);
+				if (orient_axis != -1) {
+					RNA_property_enum_set(op->ptr, prop, orient_axis);
+				}
+			}
+		}
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
@@ -2194,8 +2197,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 					RNA_enum_set(op->ptr, "constraint_matrix_orientation", orientation);
 				}
 			}
-			if (t->con.mode & CON_APPLY || (t->orientation.unset != V3D_ORIENT_GLOBAL)) {
+			if (t->con.mode & CON_APPLY) {
 				RNA_float_set_array(op->ptr, "constraint_matrix", &t->con.mtx[0][0]);
+			}
+			else if (t->orient_matrix_is_set) {
+				RNA_float_set_array(op->ptr, "constraint_matrix", &t->orient_matrix[0][0]);
 			}
 			else {
 				RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
@@ -2577,15 +2583,15 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	}
 
 	/* Transformation axis from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_float_get_array(op->ptr, prop, t->axis);
-		normalize_v3(t->axis);
-		copy_v3_v3(t->axis_orig, t->axis);
+	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis")) &&
+	    RNA_property_is_set(op->ptr, prop))
+	{
+		t->orient_axis = RNA_property_enum_get(op->ptr, prop);
 	}
-
-	if ((prop = RNA_struct_find_property(op->ptr, "axis_ortho")) && RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_float_get_array(op->ptr, prop, t->axis_ortho);
-		normalize_v3(t->axis_ortho);
+	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho")) &&
+	    RNA_property_is_set(op->ptr, prop))
+	{
+		t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
 	}
 
 	/* Constraint init from operator */
@@ -3396,10 +3402,10 @@ static void initShear_mouseInputMode(TransInfo *t)
 	float dir[3];
 
 	if (t->custom.mode.data == NULL) {
-		copy_v3_v3(dir, t->axis_ortho);
+		copy_v3_v3(dir, t->orient_matrix[t->orient_axis_ortho]);
 	}
 	else {
-		cross_v3_v3v3(dir, t->axis_ortho, t->axis);
+		cross_v3_v3v3(dir, t->orient_matrix[t->orient_axis_ortho], t->orient_matrix[t->orient_axis]);
 	}
 
 	mul_mat3_m4_v3(t->viewmat, dir);
@@ -3417,13 +3423,20 @@ static void initShear(TransInfo *t)
 	t->transform = applyShear;
 	t->handleEvent = handleEventShear;
 
-	if (is_zero_v3(t->axis)) {
-		negate_v3_v3(t->axis, t->viewinv[2]);
-		normalize_v3(t->axis);
-	}
-	if (is_zero_v3(t->axis_ortho)) {
-		copy_v3_v3(t->axis_ortho, t->viewinv[0]);
-		normalize_v3(t->axis_ortho);
+	t->orient_axis = 2;
+	t->orient_axis_ortho = 1;
+
+	if (t->orient_matrix_is_set == false) {
+		float *axis = t->orient_matrix[t->orient_axis];
+		float *axis_ortho = t->orient_matrix[t->orient_axis_ortho];
+		if (is_zero_v3(axis)) {
+			negate_v3_v3(axis, t->viewinv[2]);
+			normalize_v3(axis);
+		}
+		if (is_zero_v3(axis_ortho)) {
+			copy_v3_v3(axis_ortho, t->viewinv[0]);
+			normalize_v3(axis_ortho);
+		}
 	}
 
 	initShear_mouseInputMode(t);
@@ -3512,8 +3525,8 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	else
 		smat[0][1] = value;
 
-	copy_v3_v3(axismat_inv[0], t->axis_ortho);
-	copy_v3_v3(axismat_inv[2], t->axis);
+	copy_v3_v3(axismat_inv[0], t->orient_matrix[t->orient_axis_ortho]);
+	copy_v3_v3(axismat_inv[2], t->orient_matrix[t->orient_axis]);
 	cross_v3_v3v3(axismat_inv[1], axismat_inv[0], axismat_inv[2]);
 	invert_m3_m3(axismat, axismat_inv);
 
@@ -4100,8 +4113,10 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 
 static void postInputRotation(TransInfo *t, float values[3])
 {
+	float axis_final[3];
+	copy_v3_v3(axis_final, t->orient_matrix[t->orient_axis]);
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-		t->con.applyRot(t, NULL, NULL, t->axis, values);
+		t->con.applyRot(t, NULL, NULL, axis_final, values);
 	}
 }
 
@@ -4127,17 +4142,16 @@ static void initRotation(TransInfo *t)
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
 
-	if (t->options & CTX_PAINT_CURVE) {
-		t->axis[0] = 0.0;
-		t->axis[1] = 0.0;
-		t->axis[2] = -1.0;
-	}
-	else {
-		negate_v3_v3(t->axis, t->viewinv[2]);
-		normalize_v3(t->axis);
+	if (t->orient_matrix_is_set == false) {
+		if ((t->options & CTX_PAINT_CURVE) == 0) {
+			t->orientation.unset = V3D_ORIENT_VIEW;
+			copy_m3_m4(t->orient_matrix, t->viewinv);
+			normalize_m3(t->orient_matrix);
+			negate_m3(t->orient_matrix);
+		}
 	}
 
-	copy_v3_v3(t->axis_orig, t->axis);
+	t->orient_axis = 2;
 }
 
 /* Used by Transform Rotation and Transform Normal Rotation */
@@ -4446,12 +4460,11 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	snapGridIncrement(t, &final);
 
+	float axis_final[3];
+	copy_v3_v3(axis_final, t->orient_matrix[t->orient_axis]);
+
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-		t->con.applyRot(t, NULL, NULL, t->axis, NULL);
-	}
-	else {
-		/* reset axis if constraint is not set */
-		copy_v3_v3(t->axis, t->axis_orig);
+		t->con.applyRot(t, NULL, NULL, axis_final, NULL);
 	}
 
 	applySnapping(t, &final);
@@ -4463,7 +4476,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	headerRotation(t, str, final);
 
-	applyRotationValue(t, final, t->axis);
+	applyRotationValue(t, final, axis_final);
 
 	recalcData(t);
 
@@ -4654,10 +4667,14 @@ static void initNormalRotation(TransInfo *t)
 		storeCustomLNorValue(tc, bm);
 	}
 
-	negate_v3_v3(t->axis, t->viewinv[2]);
-	normalize_v3(t->axis);
+	if (t->orient_matrix_is_set == false) {
+		t->orientation.unset = V3D_ORIENT_VIEW;
+		copy_m3_m4(t->orient_matrix, t->viewinv);
+		normalize_m3(t->orient_matrix);
+		negate_m3(t->orient_matrix);
+	}
 
-	copy_v3_v3(t->axis_orig, t->axis);
+	t->orient_axis = 2;
 }
 
 /* Works by getting custom normal from clnor_data, transform, then store */
@@ -4665,12 +4682,11 @@ static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[UI_MAX_DRAW_STR];
 
+	float axis_final[3];
+	copy_v3_v3(axis_final, t->orient_matrix[t->orient_axis]);
+
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-		t->con.applyRot(t, NULL, NULL, t->axis, NULL);
-	}
-	else {
-		/* reset axis if constraint is not set */
-		copy_v3_v3(t->axis, t->axis_orig);
+		t->con.applyRot(t, NULL, NULL, axis_final, NULL);
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER(t, tc) {
@@ -4683,7 +4699,7 @@ static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
 		float axis[3];
 		float mat[3][3];
 		float angle = t->values[0];
-		copy_v3_v3(axis, t->axis);
+		copy_v3_v3(axis, axis_final);
 
 		snapGridIncrement(t, &angle);
 
