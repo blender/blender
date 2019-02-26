@@ -122,7 +122,7 @@ const EnumPropertyItem rna_enum_proportional_falloff_items[] = {
 	{PROP_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", "Smooth falloff"},
 	{PROP_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", "Spherical falloff"},
 	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", "Root falloff"},
-	{PROP_INVSQUARE, "INVERSE_SQUARE", ICON_ROOTCURVE, "Inverse Square", "Inverse Square falloff"},
+	{PROP_INVSQUARE, "INVERSE_SQUARE", ICON_INVERSESQUARECURVE, "Inverse Square", "Inverse Square falloff"},
 	{PROP_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", "Sharp falloff"},
 	{PROP_LIN, "LINEAR", ICON_LINCURVE, "Linear", "Linear falloff"},
 	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", "Constant falloff"},
@@ -145,7 +145,7 @@ const EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
 const EnumPropertyItem rna_enum_proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
 	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
-	{PROP_EDIT_PROJECTED, "PROJECTED", ICON_PROP_ON, "Projected (2D)",
+	{PROP_EDIT_PROJECTED, "PROJECTED", ICON_PROP_PROJECTED, "Projected (2D)",
 	                      "Proportional Editing using screen space locations"},
 	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected",
 	                      "Proportional Editing using connected geometry only"},
@@ -2414,7 +2414,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
 		{GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points" },
 		/* GPXX need better icon for segment */
-		{GP_SELECTMODE_SEGMENT, "SEGMENT", ICON_SHADERFX, "Segment", "Select all stroke points between other strokes" },
+		{GP_SELECTMODE_SEGMENT, "SEGMENT", ICON_GP_SELECT_BETWEEN_STROKES, "Segment", "Select all stroke points between other strokes" },
 		{0, NULL, 0, NULL, NULL},
 	};
 
