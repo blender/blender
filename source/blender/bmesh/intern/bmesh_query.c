@@ -377,6 +377,13 @@ BMLoop *BM_vert_find_first_loop(BMVert *v)
 {
 	return v->e ? bmesh_disk_faceloop_find_first(v->e, v) : NULL;
 }
+/**
+ * A version of #BM_vert_find_first_loop that ignores hidden loops.
+ */
+BMLoop *BM_vert_find_first_loop_visible(BMVert *v)
+{
+	return v->e ? bmesh_disk_faceloop_find_first_visible(v->e, v) : NULL;
+}
 
 /**
  * Returns true if the vertex is used in a given face.
@@ -1996,6 +2003,24 @@ BMEdge *BM_edge_find_double(BMEdge *e)
 		}
 	}
 
+	return NULL;
+}
+
+/**
+ * Only #BMEdge.l access us needed, however when we want the first visible loop,
+ * a utility function is needed.
+ */
+BMLoop *BM_edge_find_first_loop_visible(BMEdge *e)
+{
+	if (e->l != NULL) {
+		BMLoop *l_iter, *l_first;
+		l_iter = l_first = e->l;
+		do {
+			if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
+				return l_iter;
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
 	return NULL;
 }
 

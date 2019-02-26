@@ -45,6 +45,7 @@ int     bmesh_disk_facevert_count_at_most(const BMVert *v, const int count_max) 
 int     bmesh_disk_facevert_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMLoop *bmesh_disk_faceloop_find_first(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMLoop *bmesh_disk_faceloop_find_first_visible(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* RADIAL CYCLE MANAGMENT */

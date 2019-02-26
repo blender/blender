@@ -347,6 +347,28 @@ BMLoop *bmesh_disk_faceloop_find_first(const BMEdge *e, const BMVert *v)
 	return NULL;
 }
 
+/**
+ * A version of #bmesh_disk_faceloop_find_first that ignores hidden faces.
+ */
+BMLoop *bmesh_disk_faceloop_find_first_visible(const BMEdge *e, const BMVert *v)
+{
+	const BMEdge *e_iter = e;
+	do {
+		if (!BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN)) {
+			if (e_iter->l != NULL) {
+				BMLoop *l_iter, *l_first;
+				l_iter = l_first = e_iter->l;
+				do {
+					if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
+						return (l_iter->v == v) ? l_iter : l_iter->next;
+					}
+				} while ((l_iter = l_iter->radial_next) != l_first);
+			}
+		}
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
+	return NULL;
+}
+
 BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v)
 {
 	BMEdge *e_find;
