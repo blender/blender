@@ -1410,6 +1410,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 
 		TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
+		t->orientation.unset = V3D_ORIENT_GLOBAL;
 		t->orientation.user = orient_slot->type;
 		t->orientation.custom = BKE_scene_transform_orientation_find(t->scene, orient_slot->index_custom);
 

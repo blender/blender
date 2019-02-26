@@ -607,6 +607,10 @@ typedef struct TransInfo {
 	short		launch_event;
 
 	struct {
+		/** Orientation type when when we're not constrained.
+		 * nearly always global except for rotate which defaults to screen-space orientation. */
+		short		unset;
+		/** Orientation to use when a key is pressed. */
 		short		user;
 		/* Used when user is global. */
 		short		user_alt;
@@ -913,7 +917,8 @@ void constraintNumInput(TransInfo *t, float vec[3]);
 
 bool isLockConstraint(TransInfo *t);
 int  getConstraintSpaceDimension(TransInfo *t);
-char constraintModeToChar(TransInfo *t);
+int  constraintModeToIndex(const TransInfo *t);
+char constraintModeToChar(const TransInfo *t);
 
 void startConstraint(TransInfo *t);
 void stopConstraint(TransInfo *t);

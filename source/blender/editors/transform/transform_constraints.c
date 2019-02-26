@@ -1092,26 +1092,35 @@ void setNearestAxis(TransInfo *t)
 
 /*-------------- HELPER FUNCTIONS ----------------*/
 
-char constraintModeToChar(TransInfo *t)
+int constraintModeToIndex(const TransInfo *t)
 {
 	if ((t->con.mode & CON_APPLY) == 0) {
-		return '\0';
+		return -1;
 	}
 	switch (t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2)) {
 		case (CON_AXIS0):
 		case (CON_AXIS1 | CON_AXIS2):
-			return 'X';
+			return 0;
 		case (CON_AXIS1):
 		case (CON_AXIS0 | CON_AXIS2):
-			return 'Y';
+			return 1;
 		case (CON_AXIS2):
 		case (CON_AXIS0 | CON_AXIS1):
-			return 'Z';
+			return 2;
 		default:
-			return '\0';
+			return -1;
 	}
 }
 
+char constraintModeToChar(const TransInfo *t)
+{
+	int index = constraintModeToIndex(t);
+	if (index == -1) {
+		return '\0';
+	}
+	BLI_assert((uint)index < 3);
+	return 'X' + index;
+}
 
 bool isLockConstraint(TransInfo *t)
 {

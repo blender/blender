@@ -2171,7 +2171,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
 		/* constraint orientation can be global, even if user selects something else
 		 * so use the orientation in the constraint if set */
-		short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->orientation.user;
+		short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->orientation.unset;
 
 		if (orientation == V3D_ORIENT_CUSTOM) {
 			const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
@@ -2194,7 +2194,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 					RNA_enum_set(op->ptr, "constraint_matrix_orientation", orientation);
 				}
 			}
-			if (t->con.mode & CON_APPLY) {
+			if (t->con.mode & CON_APPLY || (t->orientation.unset != V3D_ORIENT_GLOBAL)) {
 				RNA_float_set_array(op->ptr, "constraint_matrix", &t->con.mtx[0][0]);
 			}
 			else {
