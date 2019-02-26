@@ -658,7 +658,7 @@ void DepsgraphNodeBuilder::build_object_flags(
 	add_operation_node(&object->id,
 	                   NodeType::OBJECT_FROM_LAYER,
 	                   OperationCode::OBJECT_BASE_FLAGS,
-	                   function_bind(BKE_object_eval_flush_base_flags,
+	                   function_bind(BKE_object_eval_eval_base_flags,
 	                                 _1,
 	                                 scene_cow,
 	                                 view_layer_index_,

@@ -36,6 +36,11 @@ typedef struct Base {
 	struct Object *object;
 	unsigned int lay DNA_DEPRECATED;
 	int flag_legacy;
+
+	/* Pointer to an original base. Is initialized for evaluated view layer.
+	 * NOTE: Only allowed to be accessed from within active dependency graph. */
+	struct Base *base_orig;
+	void *_pad;
 } Base;
 
 typedef struct ViewLayerEngineData {

@@ -405,10 +405,10 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
 	}
 }
 
-void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
-                                      Scene *scene, const int view_layer_index,
-                                      Object *object, int base_index,
-                                      const bool is_from_set)
+void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
+                                     Scene *scene, const int view_layer_index,
+                                     Object *object, int base_index,
+                                     const bool is_from_set)
 {
 	/* TODO(sergey): Avoid list lookup. */
 	BLI_assert(view_layer_index >= 0);
@@ -421,6 +421,28 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 	BLI_assert(base->object == object);
 
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+
+	/* Visibility based on depsgraph mode. */
+	const eEvaluationMode mode = DEG_get_mode(depsgraph);
+	const int base_enabled_flag = (mode == DAG_EVAL_VIEWPORT)
+	        ? BASE_ENABLED_VIEWPORT
+	        : BASE_ENABLED_RENDER;
+
+	/* Compute visibility for depsgraph evaluation mode. */
+	if (base->flag & base_enabled_flag) {
+		base->flag |= BASE_ENABLED;
+		/* When rendering, visibility is controlled by the enable/disable option. */
+		if (mode == DAG_EVAL_RENDER) {
+			base->flag |= BASE_VISIBLE;
+		}
+	}
+	else {
+		base->flag &= ~(BASE_ENABLED | BASE_VISIBLE | BASE_SELECTABLE);
+	}
+	/* If base is not selectable, clear select. */
+	if ((base->flag & BASE_SELECTABLE) == 0) {
+		base->flag &= ~BASE_SELECTED;
+	}
 
 	/* Copy flags and settings from base. */
 	object->base_flag = base->flag;
@@ -437,5 +459,13 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 		{
 			BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 		}
+	}
+
+	/* Copy base flag back to the original view layer for editing. */
+	if (DEG_is_active(depsgraph) && (view_layer == DEG_get_evaluated_view_layer(depsgraph))) {
+		Base *base_orig = base->base_orig;
+		BLI_assert(base_orig != NULL);
+		BLI_assert(base_orig->object != NULL);
+		base_orig->flag = base->flag;
 	}
 }

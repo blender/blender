@@ -260,7 +260,7 @@ void BKE_object_data_select_update(
         struct Depsgraph *depsgraph,
         struct ID *object_data);
 
-void BKE_object_eval_flush_base_flags(
+void BKE_object_eval_eval_base_flags(
         struct Depsgraph *depsgraph,
         struct Scene *scene, const int view_layer_index,
         struct Object *object, int base_index,

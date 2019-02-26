@@ -1462,18 +1462,13 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /* Evaluation  */
 
-void BKE_layer_eval_view_layer(
+static void layer_eval_view_layer(
         struct Depsgraph *depsgraph,
         struct Scene *UNUSED(scene),
         ViewLayer *view_layer)
 {
 	DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 
-	/* Visibility based on depsgraph mode. */
-	const eEvaluationMode mode = DEG_get_mode(depsgraph);
-	const int base_enabled_flag = (mode == DAG_EVAL_VIEWPORT)
-	        ? BASE_ENABLED_VIEWPORT
-	        : BASE_ENABLED_RENDER;
 	/* Create array of bases, for fast index-based lookup. */
 	const int num_object_bases = BLI_listbase_count(&view_layer->object_bases);
 	MEM_SAFE_FREE(view_layer->object_bases_array);
@@ -1481,36 +1476,7 @@ void BKE_layer_eval_view_layer(
 	        num_object_bases, sizeof(Base *), "view_layer->object_bases_array");
 	int base_index = 0;
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		/* Compute visibility for depsgraph evaluation mode. */
-		if (base->flag & base_enabled_flag) {
-			base->flag |= BASE_ENABLED;
-
-			/* When rendering, visibility is controlled by the enable/disable option. */
-			if (mode == DAG_EVAL_RENDER) {
-				base->flag |= BASE_VISIBLE;
-			}
-		}
-		else {
-			base->flag &= ~(BASE_ENABLED | BASE_VISIBLE | BASE_SELECTABLE);
-		}
-		/* If base is not selectabled, clear select. */
-		if ((base->flag & BASE_SELECTABLE) == 0) {
-			base->flag &= ~BASE_SELECTED;
-		}
 		view_layer->object_bases_array[base_index++] = base;
-	}
-	/* Flush back base flag to the original view layer for editing. */
-	if (DEG_is_active(depsgraph) && (view_layer == DEG_get_evaluated_view_layer(depsgraph))) {
-		ViewLayer *view_layer_orig = DEG_get_input_view_layer(depsgraph);
-		Base *base_orig = view_layer_orig->object_bases.first;
-		const Base *base_eval = view_layer->object_bases.first;
-		while (base_orig != NULL) {
-			if (base_orig->flag & base_enabled_flag) {
-				base_orig->flag = base_eval->flag;
-				base_eval = base_eval->next;
-			}
-			base_orig = base_orig->next;
-		}
 	}
 }
 
@@ -1522,5 +1488,5 @@ void BKE_layer_eval_view_layer_indexed(
 	BLI_assert(view_layer_index >= 0);
 	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
 	BLI_assert(view_layer != NULL);
-	BKE_layer_eval_view_layer(depsgraph, scene, view_layer);
+	layer_eval_view_layer(depsgraph, scene, view_layer);
 }

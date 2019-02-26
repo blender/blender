@@ -114,11 +114,6 @@ bool BKE_layer_collection_set_visible(struct ViewLayer *view_layer, struct Layer
 
 /* evaluation */
 
-void BKE_layer_eval_view_layer(
-        struct Depsgraph *depsgraph,
-        struct Scene *scene,
-        struct ViewLayer *view_layer);
-
 void BKE_layer_eval_view_layer_indexed(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
