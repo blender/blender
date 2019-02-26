@@ -3382,8 +3382,8 @@ static void mesh_create_loops_lines(
 				if (!BM_elem_flag_test(bm_edge, BM_ELEM_HIDDEN) &&
 				    bm_edge->l != NULL)
 				{
-					BMLoop *bm_loop1 = BM_vert_find_first_loop(bm_edge->v1);
-					BMLoop *bm_loop2 = BM_vert_find_first_loop(bm_edge->v2);
+					BMLoop *bm_loop1 = BM_vert_find_first_loop_visible(bm_edge->v1);
+					BMLoop *bm_loop2 = BM_vert_find_first_loop_visible(bm_edge->v2);
 					int v1 = BM_elem_index_get(bm_loop1);
 					int v2 = BM_elem_index_get(bm_loop2);
 					if (v1 > v2) {
@@ -3625,7 +3625,8 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 			BMEdge *eed;
 			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-					if (eed->l != NULL) {
+					BMLoop *l = BM_edge_find_first_loop_visible(eed);
+					if (l != NULL) {
 						int v1 = BM_elem_index_get(eed->l);
 						int v2 = BM_elem_index_get(eed->l->next);
 						GPU_indexbuf_add_line_verts(&elb_edge, v1, v2);
@@ -3638,7 +3639,7 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 			BMVert *eve;
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-					BMLoop *l = BM_vert_find_first_loop(eve);
+					BMLoop *l = BM_vert_find_first_loop_visible(eve);
 					if (l != NULL) {
 						int v = BM_elem_index_get(l);
 						GPU_indexbuf_add_generic_vert(&elb_vert, v);
