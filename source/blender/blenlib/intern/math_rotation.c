@@ -938,6 +938,9 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 	axis[0] = q[1] / si;
 	axis[1] = q[2] / si;
 	axis[2] = q[3] / si;
+	if (is_zero_v3(axis)) {
+		axis[1] = 1.0f;
+	}
 }
 
 /* Axis Angle to Euler Rotation */
