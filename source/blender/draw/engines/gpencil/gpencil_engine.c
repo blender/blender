@@ -30,13 +30,13 @@
 
 #include "draw_mode_engines.h"
 
-
 #include "GPU_texture.h"
 
 #include "gpencil_engine.h"
 
 #include "DEG_depsgraph_query.h"
 
+#include "ED_view3d.h"
 #include "ED_screen.h"
 
 
@@ -385,12 +385,12 @@ void GPENCIL_cache_init(void *vedata)
 		stl->storage->simplify_fx = GP_SIMPLIFY_FX(scene, stl->storage->is_playing);
 		stl->storage->simplify_blend = GP_SIMPLIFY_BLEND(scene, stl->storage->is_playing);
 
-		/* save shading type */
+		/* xray mode */
 		if (v3d) {
-			stl->storage->shading_type = v3d->shading.type;
+			stl->storage->is_xray = (v3d->shading.flag & V3D_XRAY_FLAG(v3d)) ? 1 : 0;
 		}
 		else {
-			stl->storage->shading_type = OB_SOLID;
+			stl->storage->is_xray = 0;
 		}
 
 		/* save pixsize */
@@ -522,9 +522,7 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
 
 		/* create effects passes */
-		if ((!stl->storage->simplify_fx) &&
-		    (stl->storage->shading_type != OB_WIRE))
-		{
+		if (!stl->storage->simplify_fx) {
 			GPENCIL_create_fx_passes(psl);
 		}
 	}
@@ -552,7 +550,7 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 	/* FX passses */
 	cache_ob->has_fx = false;
 	if ((!stl->storage->simplify_fx) &&
-	    (stl->storage->shading_type != OB_WIRE) &&
+	    (cache_ob->shading_type != OB_WIRE) &&
 	    (BKE_shaderfx_has_gpencil(ob)))
 	{
 		cache_ob->has_fx = true;

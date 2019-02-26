@@ -5,6 +5,8 @@ uniform float pixsize;   /* rv3d->pixsize */
 uniform int keep_size;
 uniform float objscale;
 uniform float pixfactor;
+uniform int shading_type;
+uniform vec4 wire_color;
 
 in vec3 pos;
 in vec4 color;
@@ -16,6 +18,8 @@ out float finalThickness;
 out vec2 finaluvdata;
 
 #define TRUE 1
+
+#define OB_WIRE 2
 
 float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
@@ -30,6 +34,12 @@ void main(void)
 	else {
 		float size = (ProjectionMatrix[3][3] == 0.0) ? (thickness / (gl_Position.z * defaultpixsize)) : (thickness / defaultpixsize);
 		finalThickness = max(size * objscale, 1.0);
+	}
+
+	/* for wireframe override size and color */
+	if (shading_type == OB_WIRE) {
+		finalThickness = 1.0;
+		finalColor = wire_color;
 	}
 
 	finaluvdata = uvdata;

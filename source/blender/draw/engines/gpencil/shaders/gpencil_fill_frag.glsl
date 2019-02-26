@@ -21,6 +21,10 @@ uniform float layer_opacity;
 uniform sampler2D myTexture;
 uniform int texture_clamp;
 
+uniform int viewport_xray;
+uniform int shading_type;
+uniform vec4 wire_color;
+
 /* keep this list synchronized with list in gpencil_draw_utils.c */
 #define SOLID 0
 #define GRADIENT 1
@@ -35,6 +39,8 @@ uniform int texture_clamp;
 
 #define GP_DRAWMODE_2D 0
 #define GP_DRAWMODE_3D 1
+
+#define OB_WIRE 2
 
 in vec4 finalColor;
 in vec2 texCoord_interp;
@@ -83,6 +89,11 @@ void main()
 	tmp_color = (texture_clamp == 0) ? texture2D(myTexture, rot_tex * texture_scale) : texture2D(myTexture, clamp(rot_tex * texture_scale, 0.0, 1.0));
 	vec4 text_color = vec4(tmp_color[0], tmp_color[1], tmp_color[2], tmp_color[3] * texture_opacity);
 	vec4 chesscolor;
+
+	/* wireframe with x-ray discard */
+	if ((viewport_xray == 1) &&  (shading_type == OB_WIRE)) {
+		discard;
+	}
 
 	/* solid fill */
 	if (fill_type == SOLID) {
@@ -153,6 +164,11 @@ void main()
 	}
 	else {
 		gl_FragDepth = 0.000001;
+	}
+	
+	/* if wire mode override colors */
+	if (shading_type == OB_WIRE) {
+		fragColor = wire_color;
 	}
 
 }

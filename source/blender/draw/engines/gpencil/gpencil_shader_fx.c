@@ -743,22 +743,22 @@ void GPENCIL_create_fx_passes(GPENCIL_PassList *psl)
 /* prepare fx shading groups */
 void DRW_gpencil_fx_prepare(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata,
-        tGPencilObjectCache *cache)
+        tGPencilObjectCache *cache_ob)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
-	const bool wiremode = (bool)(stl->storage->shading_type == OB_WIRE);
+	const bool wiremode = (bool)(cache_ob->shading_type == OB_WIRE);
 
-	int ob_idx = cache->idx;
+	int ob_idx = cache_ob->idx;
 
-	if ((wiremode) || (cache->shader_fx.first == NULL)) {
+	if ((wiremode) || (cache_ob->shader_fx.first == NULL)) {
 		return;
 	}
 	/* loop FX */
-	for (ShaderFxData *fx = cache->shader_fx.first; fx; fx = fx->next) {
-		if (effect_is_active(cache->gpd, fx, stl->storage->is_render)) {
+	for (ShaderFxData *fx = cache_ob->shader_fx.first; fx; fx = fx->next) {
+		if (effect_is_active(cache_ob->gpd, fx, stl->storage->is_render)) {
 			switch (fx->type) {
 				case eShaderFxType_Blur:
-					DRW_gpencil_fx_blur(fx, ob_idx, e_data, vedata, cache);
+					DRW_gpencil_fx_blur(fx, ob_idx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Colorize:
 					DRW_gpencil_fx_colorize(fx, e_data, vedata);
@@ -767,22 +767,22 @@ void DRW_gpencil_fx_prepare(
 					DRW_gpencil_fx_flip(fx, e_data, vedata);
 					break;
 				case eShaderFxType_Light:
-					DRW_gpencil_fx_light(fx, e_data, vedata, cache);
+					DRW_gpencil_fx_light(fx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Pixel:
-					DRW_gpencil_fx_pixel(fx, e_data, vedata, cache);
+					DRW_gpencil_fx_pixel(fx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Rim:
-					DRW_gpencil_fx_rim(fx, e_data, vedata, cache);
+					DRW_gpencil_fx_rim(fx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Shadow:
-					DRW_gpencil_fx_shadow(fx, e_data, vedata, cache);
+					DRW_gpencil_fx_shadow(fx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Glow:
-					DRW_gpencil_fx_glow(fx, e_data, vedata, cache);
+					DRW_gpencil_fx_glow(fx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Swirl:
-					DRW_gpencil_fx_swirl(fx, e_data, vedata, cache);
+					DRW_gpencil_fx_swirl(fx, e_data, vedata, cache_ob);
 					break;
 				case eShaderFxType_Wave:
 					DRW_gpencil_fx_wave(fx, e_data, vedata);
@@ -1059,15 +1059,15 @@ static void draw_gpencil_glow_passes(
 /* apply all object fx effects */
 void DRW_gpencil_fx_draw(
         GPENCIL_e_data *e_data,
-        GPENCIL_Data *vedata, tGPencilObjectCache *cache)
+        GPENCIL_Data *vedata, tGPencilObjectCache *cache_ob)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
 
 	/* loop FX modifiers */
-	for (ShaderFxData *fx = cache->shader_fx.first; fx; fx = fx->next) {
-		if (effect_is_active(cache->gpd, fx, stl->storage->is_render)) {
+	for (ShaderFxData *fx = cache_ob->shader_fx.first; fx; fx = fx->next) {
+		if (effect_is_active(cache_ob->gpd, fx, stl->storage->is_render)) {
 			switch (fx->type) {
 
 				case eShaderFxType_Blur:
