@@ -97,7 +97,9 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 	LOAD_KERNEL(path_init);
 	LOAD_KERNEL(scene_intersect);
 	LOAD_KERNEL(lamp_emission);
-	LOAD_KERNEL(do_volume);
+	if (requested_features.use_volume) {
+		LOAD_KERNEL(do_volume);
+	}
 	LOAD_KERNEL(queue_enqueue);
 	LOAD_KERNEL(indirect_background);
 	LOAD_KERNEL(shader_setup);
@@ -239,7 +241,9 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 			for(int PathIter = 0; PathIter < 16; PathIter++) {
 				ENQUEUE_SPLIT_KERNEL(scene_intersect, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(lamp_emission, global_size, local_size);
-				ENQUEUE_SPLIT_KERNEL(do_volume, global_size, local_size);
+				if (kernel_do_volume) {
+					ENQUEUE_SPLIT_KERNEL(do_volume, global_size, local_size);
+				}
 				ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(indirect_background, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(shader_setup, global_size, local_size);
