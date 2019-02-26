@@ -1415,7 +1415,7 @@ Key *BKE_key_from_id(ID *id)
 	return NULL;
 }
 
-Key **BKE_key_from_object_p(Object *ob)
+Key **BKE_key_from_object_p(const Object *ob)
 {
 	if (ob == NULL || ob->data == NULL)
 		return NULL;
@@ -1423,7 +1423,7 @@ Key **BKE_key_from_object_p(Object *ob)
 	return BKE_key_from_id_p(ob->data);
 }
 
-Key *BKE_key_from_object(Object *ob)
+Key *BKE_key_from_object(const Object *ob)
 {
 	Key **key_p;
 	key_p = BKE_key_from_object_p(ob);
