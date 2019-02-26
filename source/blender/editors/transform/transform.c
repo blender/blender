@@ -3427,6 +3427,7 @@ static void initShear(TransInfo *t)
 	t->orient_axis_ortho = 1;
 
 	if (t->orient_matrix_is_set == false) {
+		t->orient_matrix_is_set = true;
 		float *axis = t->orient_matrix[t->orient_axis];
 		float *axis_ortho = t->orient_matrix[t->orient_axis_ortho];
 		if (is_zero_v3(axis)) {
@@ -4142,8 +4143,9 @@ static void initRotation(TransInfo *t)
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
 
-	if (t->orient_matrix_is_set == false) {
-		if ((t->options & CTX_PAINT_CURVE) == 0) {
+	if ((t->options & CTX_PAINT_CURVE) == 0) {
+		if (t->orient_matrix_is_set == false) {
+			t->orient_matrix_is_set = true;
 			t->orientation.unset = V3D_ORIENT_VIEW;
 			copy_m3_m4(t->orient_matrix, t->viewinv);
 			normalize_m3(t->orient_matrix);
@@ -4668,6 +4670,7 @@ static void initNormalRotation(TransInfo *t)
 	}
 
 	if (t->orient_matrix_is_set == false) {
+		t->orient_matrix_is_set = true;
 		t->orientation.unset = V3D_ORIENT_VIEW;
 		copy_m3_m4(t->orient_matrix, t->viewinv);
 		normalize_m3(t->orient_matrix);

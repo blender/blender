@@ -1528,6 +1528,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	{
 		RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);
 		/* Some transform modes use this to operate on an axis. */
+		t->orient_matrix_is_set = true;
 		copy_m3_m3(t->orient_matrix, t->spacemtx);
 		t->orient_matrix_is_set = true;
 		t->orientation.user = V3D_ORIENT_CUSTOM_MATRIX;
