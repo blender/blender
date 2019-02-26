@@ -1118,7 +1118,7 @@ void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter)
 }
 
 
-/* scene objects iteractor */
+/* scene objects iterator */
 
 typedef struct SceneObjectsIteratorData {
 	GSet *visited;
