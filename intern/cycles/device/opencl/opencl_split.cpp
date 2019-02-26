@@ -650,13 +650,18 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 		return false;
 
 	vector<OpenCLProgram*> programs;
-	displace_program = OpenCLProgram(this, "displace", "kernel_displace.cl", get_build_options(requested_features, "displace"));
-	displace_program.add_kernel(ustring("displace"));
-	programs.push_back(&displace_program);
 
-	background_program = OpenCLProgram(this, "background", "kernel_background.cl", get_build_options(requested_features, "background"));
-	background_program.add_kernel(ustring("background"));
-	programs.push_back(&background_program);
+	if (requested_features.use_true_displacement) {
+		displace_program = OpenCLProgram(this, "displace", "kernel_displace.cl", get_build_options(requested_features, "displace"));
+		displace_program.add_kernel(ustring("displace"));
+		programs.push_back(&displace_program);
+	}
+
+	if (requested_features.use_background_light) {
+		background_program = OpenCLProgram(this, "background", "kernel_background.cl", get_build_options(requested_features, "background"));
+		background_program.add_kernel(ustring("background"));
+		programs.push_back(&background_program);
+	}
 
 	bool single_program = OpenCLInfo::use_single_program();
 
@@ -1719,9 +1724,11 @@ void OpenCLDevice::shader(DeviceTask& task)
 		kernel = bake_program(ustring("bake"));
 	}
 	else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
+		assert(displace_program);
 		kernel = displace_program(ustring("displace"));
 	}
 	else {
+		assert(background_program);
 		kernel = background_program(ustring("background"));
 	}
 

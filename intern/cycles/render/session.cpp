@@ -22,6 +22,7 @@
 #include "device/device.h"
 #include "render/graph.h"
 #include "render/integrator.h"
+#include "render/light.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"
@@ -687,7 +688,10 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 		if(object->is_shadow_catcher) {
 			requested_features.use_shadow_tricks = true;
 		}
+		requested_features.use_true_displacement |= mesh->has_true_displacement();
 	}
+
+	requested_features.use_background_light = scene->light_manager->has_background_light(scene);
 
 	BakeManager *bake_manager = scene->bake_manager;
 	requested_features.use_baking = bake_manager->get_baking();
