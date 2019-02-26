@@ -628,7 +628,8 @@ SubdivCCG *BKE_subdiv_to_ccg(
 	subdiv_ccg_init_faces(subdiv_ccg);
 	subdiv_ccg_init_faces_neighborhood(subdiv_ccg);
 	if (!subdiv_ccg_evaluate_grids(
-	        subdiv_ccg, subdiv, mask_evaluator, material_flags_evaluator)) {
+	            subdiv_ccg, subdiv, mask_evaluator, material_flags_evaluator))
+	{
 		BKE_subdiv_ccg_destroy(subdiv_ccg);
 		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 		return NULL;

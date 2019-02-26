@@ -469,7 +469,7 @@ static void gpu_pbvh_grid_fill_index_buffers(
 				}
 				GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
 			}
-	
+
 			if (grid_visible) {
 				/* Grid corners */
 				v0 = offset;

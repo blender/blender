@@ -523,7 +523,7 @@ void GPENCIL_cache_init(void *vedata)
 
 		/* create effects passes */
 		if ((!stl->storage->simplify_fx) &&
-			(stl->storage->shading_type != OB_WIRE))
+		    (stl->storage->shading_type != OB_WIRE))
 		{
 			GPENCIL_create_fx_passes(psl);
 		}
@@ -552,8 +552,8 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 	/* FX passses */
 	cache_ob->has_fx = false;
 	if ((!stl->storage->simplify_fx) &&
-		(stl->storage->shading_type != OB_WIRE) &&
-		(BKE_shaderfx_has_gpencil(ob)))
+	    (stl->storage->shading_type != OB_WIRE) &&
+	    (BKE_shaderfx_has_gpencil(ob)))
 	{
 		cache_ob->has_fx = true;
 		if ((!stl->storage->simplify_fx) && (!is_multiedit)) {

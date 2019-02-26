@@ -6380,7 +6380,7 @@ static void rna_array_as_string_recursive(
 	if (totdim > 1) {
 		totdim--;
 		const int end = dim_size[totdim] - 1;
-		for (int i = 0; i <= end; i++){
+		for (int i = 0; i <= end; i++) {
 			rna_array_as_string_recursive(type, buf_p, totdim, dim_size, dynstr);
 			if (i < end || !end) {
 				BLI_dynstr_append(dynstr, ", ");

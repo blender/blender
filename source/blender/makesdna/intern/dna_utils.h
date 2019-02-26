@@ -21,8 +21,8 @@
 #ifndef __DNA_UTILS_H__
 #define __DNA_UTILS_H__
 
-struct MemArena;
 struct GHash;
+struct MemArena;
 
 int DNA_elem_array_size(const char *str);
 

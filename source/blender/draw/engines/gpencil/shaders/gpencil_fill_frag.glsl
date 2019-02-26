@@ -154,5 +154,5 @@ void main()
 	else {
 		gl_FragDepth = 0.000001;
 	}
-	
+
 }

@@ -2135,7 +2135,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
 	if (bh->len) {
 #ifdef USE_BHEAD_READ_ON_DEMAND
 		BHead *bh_orig = bh;
- #endif
+#endif
 
 		/* switch is based on file dna */
 		if (bh->SDNAnr && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
@@ -2147,7 +2147,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
 					return NULL;
 				}
 			}
- #endif
+#endif
 			switch_endian_structs(fd->filesdna, bh);
 		}
 

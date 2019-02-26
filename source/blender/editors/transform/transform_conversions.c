@@ -405,7 +405,7 @@ static void createTransCursor_view3d(TransInfo *t)
 	td->ob = NULL;
 
 	unit_m3(td->mtx);
-    BKE_scene_cursor_rot_to_mat3(cursor, td->axismtx);
+	BKE_scene_cursor_rot_to_mat3(cursor, td->axismtx);
 	normalize_m3(td->axismtx);
 	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
