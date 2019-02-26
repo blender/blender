@@ -77,7 +77,7 @@ static const EnumPropertyItem rna_enum_shaderfx_glow_modes_items[] = {
 static const EnumPropertyItem rna_enum_shaderfx_colorize_modes_items[] = {
 	{eShaderFxColorizeMode_GrayScale, "GRAYSCALE", 0, "Gray Scale", "" },
 	{eShaderFxColorizeMode_Sepia, "SEPIA", 0, "Sepia", "" },
-	{eShaderFxColorizeMode_DualTone, "DUALTONE", 0, "Dualtone", "" },
+	{eShaderFxColorizeMode_Duotone, "DUOTONE", 0, "Duotone", "" },
 	{eShaderFxColorizeMode_Transparent, "TRANSPARENT", 0, "Transparent", "" },
 	{eShaderFxColorizeMode_Custom, "CUSTOM", 0, "Custom", "" },
 	{0, NULL, 0, NULL, NULL }

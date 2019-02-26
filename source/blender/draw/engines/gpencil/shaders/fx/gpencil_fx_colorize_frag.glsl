@@ -10,7 +10,7 @@ out vec4 FragColor;
 
 #define MODE_GRAYSCALE   0
 #define MODE_SEPIA       1
-#define MODE_DUALTONE    2
+#define MODE_DUOTONE    2
 #define MODE_CUSTOM      3
 #define MODE_TRANSPARENT 4
 
@@ -48,7 +48,7 @@ void main()
 			outcolor = vec4(Red, Green, Blue, src_pixel.a);
 			break;
 			}
-		case MODE_DUALTONE:
+		case MODE_DUOTONE:
 			{
 			if (luminance <= factor) {
 				outcolor = low_color;
