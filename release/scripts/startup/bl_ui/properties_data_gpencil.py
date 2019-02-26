@@ -36,6 +36,16 @@ class DataButtonsPanel:
 
     @classmethod
     def poll(cls, context):
+        return context.gpencil_data
+
+
+class ObjectButtonsPanel:
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
         return context.object and context.object.type == 'GPENCIL'
 
 
@@ -46,8 +56,7 @@ class LayerDataButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        return (context.object and
-                context.object.type == 'GPENCIL' and
+        return (context.gpencil_data and
                 context.active_gpencil_layer)
 
 
@@ -103,14 +112,7 @@ class DATA_PT_gpencil_datapanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.gpencil_data is None:
-            return False
-
-        ob = context.object
-        if ob is not None and ob.type == 'GPENCIL':
-            return True
-
-        return False
+        return context.gpencil_data
 
     @staticmethod
     def draw(self, context):
@@ -294,7 +296,7 @@ class GPENCIL_UL_vgroups(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class DATA_PT_gpencil_vertexpanel(DataButtonsPanel, Panel):
+class DATA_PT_gpencil_vertexpanel(ObjectButtonsPanel, Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -359,7 +361,7 @@ class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
         layout.prop(gpd, "use_adaptive_uv", text="Adaptive UVs")
 
 
-class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
+class DATA_PT_gpencil_display(ObjectButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
 
