@@ -74,7 +74,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_ver
 
 	numVerts = mesh->totvert;
 	numEdges = mesh->totedge;
-	numFaces = mesh->totface;
+	numFaces = mesh->totpoly;
 	mpoly = mesh->mpoly;
 	medge = mesh->medge;
 	mvert = mesh->mvert;
