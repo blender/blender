@@ -1473,7 +1473,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	static float onion_dft1[3] = { 0.145098f, 0.419608f, 0.137255f }; /* green */
 	static float onion_dft2[3] = { 0.125490f, 0.082353f, 0.529412f }; /* blue */
 
-		static const EnumPropertyItem stroke_thickness_items[] = {
+	static const EnumPropertyItem stroke_thickness_items[] = {
 		{0, "WORLDSPACE", 0, "World Space", "Set stroke thickness relative to the world space"},
 		{GP_DATA_STROKE_KEEPTHICKNESS, "SCREENSPACE", 0, "Screen Space", "Set stroke thickness relative to the screen space"},
 		{0, NULL, 0, NULL, NULL},
@@ -1552,7 +1552,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 		"and smaller red dot (end) points");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-    prop = RNA_def_property(srna, "stroke_thickness_space", PROP_ENUM, PROP_NONE); /* as an enum */
+	prop = RNA_def_property(srna, "stroke_thickness_space", PROP_ENUM, PROP_NONE); /* as an enum */
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, stroke_thickness_items);
 	RNA_def_property_ui_text(prop, "Stroke Thickness", "Set stroke thickness in screen space or world space");
