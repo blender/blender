@@ -3563,7 +3563,7 @@ void GPENCIL_OT_stroke_simplify_fixed(wmOperatorType *ot)
 }
 
 /* ******************* Stroke trim ************************** */
-static int gp_stroke_trim_exec(bContext *C, wmOperator *op)
+static int gp_stroke_trim_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 
