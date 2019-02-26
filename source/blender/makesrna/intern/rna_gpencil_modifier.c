@@ -1499,7 +1499,7 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Light Falloff Curve");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
 	prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);

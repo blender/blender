@@ -387,8 +387,8 @@ Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 
 	Main *bmain = CTX_data_main(mContext);
 	Object *ob = bc_add_object(bmain, sce, view_layer, OB_LAMP, NULL);
-	Lamp *la = uid_lamp_map[lamp_uid];
-	Lamp *old_lamp = (Lamp *)ob->data;
+	Light *la = uid_lamp_map[lamp_uid];
+	Light *old_lamp = (Light *)ob->data;
 	ob->data = la;
 	BKE_id_free_us(bmain, old_lamp);
 	return ob;
@@ -983,7 +983,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		return true;
 
 	Main *bmain = CTX_data_main(mContext);
-	Lamp *lamp = NULL;
+	Light *lamp = NULL;
 	std::string la_id, la_name;
 
 	ExtraTags *et = getExtraTags(light->getUniqueId());
@@ -995,8 +995,8 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add(bmain, (char *)la_name.c_str());
-	else lamp = (Lamp *)BKE_lamp_add(bmain, (char *)la_id.c_str());
+	if (la_name.size()) lamp = (Light *)BKE_light_add(bmain, (char *)la_name.c_str());
+	else lamp = (Light *)BKE_light_add(bmain, (char *)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create light.\n");

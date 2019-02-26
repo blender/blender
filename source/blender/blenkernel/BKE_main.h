@@ -94,7 +94,7 @@ typedef struct Main {
 	ListBase tex;
 	ListBase image;
 	ListBase latt;
-	ListBase lamp;
+	ListBase light;
 	ListBase camera;
 	ListBase ipo;   // XXX deprecated
 	ListBase key;

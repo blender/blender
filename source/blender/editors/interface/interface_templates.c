@@ -2192,7 +2192,7 @@ void uiTemplatePreview(
 		else if (parent && (GS(parent->name) == ID_WO))
 			pr_texture = &((World *)parent)->pr_texture;
 		else if (parent && (GS(parent->name) == ID_LA))
-			pr_texture = &((Lamp *)parent)->pr_texture;
+			pr_texture = &((Light *)parent)->pr_texture;
 		else if (parent && (GS(parent->name) == ID_LS))
 			pr_texture = &((FreestyleLineStyle *)parent)->pr_texture;
 

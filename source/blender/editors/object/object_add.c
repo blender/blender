@@ -1115,7 +1115,7 @@ static int object_light_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
-	Lamp *la;
+	Light *la;
 	int type = RNA_enum_get(op->ptr, "type");
 	ushort local_view_bits;
 	float loc[3], rot[3];
@@ -1141,7 +1141,7 @@ static int object_light_add_exec(bContext *C, wmOperator *op)
 	}
 	BKE_object_obdata_size_init(ob, size);
 
-	la = (Lamp *)ob->data;
+	la = (Light *)ob->data;
 	la->type = type;
 
 	if (BKE_scene_uses_cycles(scene)) {
@@ -2351,7 +2351,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 				if (dupflag & USER_DUP_LAMP) {
 					ID_NEW_REMAP_US2(obn->data)
 					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_lamp_copy(bmain, obn->data));
+						obn->data = ID_NEW_SET(obn->data, BKE_light_copy(bmain, obn->data));
 						didit = 1;
 					}
 					id_us_min(id);

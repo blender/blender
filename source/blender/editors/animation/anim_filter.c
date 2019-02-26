@@ -672,7 +672,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			}
 			case ANIMTYPE_DSLAM:
 			{
-				Lamp *la = (Lamp *)data;
+				Light *la = (Light *)data;
 				AnimData *adt = la->adt;
 
 				ale->flag = FILTER_LAM_OBJD(la);
@@ -2082,7 +2082,7 @@ static size_t animdata_filter_ds_texture(bAnimContext *ac, ListBase *anim_data, 
 }
 
 /* NOTE: owner_id is the direct owner of the texture stack in question
- *       It used to be Material/Lamp/World before the Blender Internal removal for 2.8
+ *       It used to be Material/Light/World before the Blender Internal removal for 2.8
  */
 static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
 {
@@ -2363,9 +2363,9 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 			expanded = FILTER_CAM_OBJD(ca);
 			break;
 		}
-		case OB_LAMP: /* ---------- Lamp ----------- */
+		case OB_LAMP: /* ---------- Light ----------- */
 		{
-			Lamp *la = (Lamp *)ob->data;
+			Light *la = (Light *)ob->data;
 
 			if (ads->filterflag & ADS_FILTER_NOLAM)
 				return 0;
@@ -2451,7 +2451,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 		switch (ob->type) {
 			case OB_LAMP:  /* lamp - textures + nodetree */
 			{
-				Lamp *la = ob->data;
+				Light *la = ob->data;
 				bNodeTree *ntree = la->nodetree;
 
 				/* nodetree */

@@ -723,7 +723,7 @@ static int get_lamp(ViewLayer *view_layer, float *light)
 	// try to find a lamp, preferably local
 	for (base_tmp = FIRSTBASE(view_layer); base_tmp; base_tmp = base_tmp->next) {
 		if (base_tmp->object->type == OB_LAMP) {
-			Lamp *la = base_tmp->object->data;
+			Light *la = base_tmp->object->data;
 
 			if (la->type == LA_LOCAL) {
 				copy_v3_v3(light, base_tmp->object->obmat[3]);

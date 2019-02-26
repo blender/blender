@@ -156,7 +156,7 @@ typedef struct ShaderPreview {
 	/* datablocks with nodes need full copy during preview render, glsl uses it too */
 	Material *matcopy;
 	Tex *texcopy;
-	Lamp *lampcopy;
+	Light *lampcopy;
 	World *worldcopy;
 
 	/** Copy of the active objects #Object.color */
@@ -268,7 +268,7 @@ static const char *preview_collection_name(const char pr_type)
 		case MA_TEXTURE:
 			return "Texture";
 		case MA_LAMP:
-			return "Lamp";
+			return "Light";
 		case MA_SKY:
 			return "Sky";
 		case MA_HAIR:
@@ -330,7 +330,7 @@ static ID *duplicate_ids(ID *id, Depsgraph *depsgraph)
 		case ID_TE:
 			return (ID *)BKE_texture_localize((Tex *)id_eval);
 		case ID_LA:
-			return (ID *)BKE_lamp_localize((Lamp *)id_eval);
+			return (ID *)BKE_light_localize((Light *)id_eval);
 		case ID_WO:
 			return (ID *)BKE_world_localize((World *)id_eval);
 		case ID_IM:
@@ -479,14 +479,14 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			}
 		}
 		else if (id_type == ID_LA) {
-			Lamp *la = NULL, *origla = (Lamp *)id;
+			Light *la = NULL, *origla = (Light *)id;
 
 			/* work on a copy */
 			if (origla) {
 				BLI_assert(sp->id_copy != NULL);
-				la = sp->lampcopy = (Lamp *)sp->id_copy;
+				la = sp->lampcopy = (Light *)sp->id_copy;
 				sp->id_copy = NULL;
-				BLI_addtail(&pr_main->lamp, la);
+				BLI_addtail(&pr_main->light, la);
 			}
 
 			set_preview_collection(sce, view_layer, MA_LAMP);
@@ -705,7 +705,7 @@ static void shader_preview_updatejob(void *spv)
 					ntreeLocalSync(sp->worldcopy->nodetree, wrld->nodetree);
 			}
 			else if (GS(sp->id->name) == ID_LA) {
-				Lamp *la = (Lamp *)sp->id;
+				Light *la = (Light *)sp->id;
 
 				if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree)
 					ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
@@ -912,7 +912,7 @@ static void shader_preview_free(void *customdata)
 	}
 	if (sp->lampcopy) {
 		sp->id_copy = (ID *)sp->lampcopy;
-		BLI_remlink(&pr_main->lamp, sp->lampcopy);
+		BLI_remlink(&pr_main->light, sp->lampcopy);
 	}
 	if (sp->id_copy) {
 		/* node previews */
@@ -934,7 +934,7 @@ static void shader_preview_free(void *customdata)
 				BKE_texture_free((Tex *)sp->id_copy);
 				break;
 			case ID_LA:
-				BKE_lamp_free((Lamp *)sp->id_copy);
+				BKE_light_free((Light *)sp->id_copy);
 				break;
 			case ID_WO:
 				BKE_world_free((World *)sp->id_copy);

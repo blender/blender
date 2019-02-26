@@ -1483,7 +1483,7 @@ static int acf_dslight_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Setti
 /* get pointer to the setting */
 static void *acf_dslight_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
-	Lamp *la = (Lamp *)ale->data;
+	Light *la = (Light *)ale->data;
 
 	/* clear extra return data first */
 	*type = 0;

@@ -495,7 +495,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 			build_shapekeys((Key *)id);
 			break;
 		case ID_LA:
-			build_lamp((Lamp *)id);
+			build_lamp((Light *)id);
 			break;
 		case ID_LP:
 			build_lightprobe((LightProbe *)id);
@@ -806,7 +806,7 @@ void DepsgraphRelationBuilder::build_object_data_camera(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data_lamp(Object *object)
 {
-	Lamp *lamp = (Lamp *)object->data;
+	Light *lamp = (Light *)object->data;
 	build_lamp(lamp);
 	ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
 	ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
@@ -2349,7 +2349,7 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
 }
 
 /* Lamps */
-void DepsgraphRelationBuilder::build_lamp(Lamp *lamp)
+void DepsgraphRelationBuilder::build_lamp(Light *lamp)
 {
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;

@@ -55,7 +55,7 @@ extern char datatoc_concentric_samples_lib_glsl[];
 
 /* Prototypes */
 static void eevee_light_setup(Object *ob, EEVEE_Light *evli);
-static float light_attenuation_radius_get(Lamp *la, float light_threshold);
+static float light_attenuation_radius_get(Light *la, float light_threshold);
 
 /* *********** LIGHT BITS *********** */
 static void lightbits_set_single(EEVEE_LightBits *bitf, uint idx, bool val)
@@ -342,7 +342,7 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 		printf("Too many lights in the scene !!!\n");
 	}
 	else {
-		Lamp *la = (Lamp *)ob->data;
+		Light *la = (Light *)ob->data;
 		EEVEE_Light *evli = linfo->light_data + linfo->num_light;
 		eevee_light_setup(ob, evli);
 
@@ -591,7 +591,7 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_lights_update(sldata, vedata);
 }
 
-float light_attenuation_radius_get(Lamp *la, float light_threshold)
+float light_attenuation_radius_get(Light *la, float light_threshold)
 {
 	if (la->mode & LA_CUSTOM_ATTENUATION) {
 		return la->att_dist;
@@ -607,7 +607,7 @@ float light_attenuation_radius_get(Lamp *la, float light_threshold)
 	return distance;
 }
 
-static void light_shape_parameters_set(EEVEE_Light *evli, const Lamp *la, float scale[3])
+static void light_shape_parameters_set(EEVEE_Light *evli, const Light *la, float scale[3])
 {
 	if (la->type == LA_SPOT) {
 		/* Spot size & blend */
@@ -631,7 +631,7 @@ static void light_shape_parameters_set(EEVEE_Light *evli, const Lamp *la, float 
 	}
 }
 
-static float light_shape_power_get(const Lamp *la, const EEVEE_Light *evli)
+static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
 {
 	float power;
 	/* Make illumination power constant */
@@ -662,7 +662,7 @@ static float light_shape_power_get(const Lamp *la, const EEVEE_Light *evli)
 /* Update buffer with lamp data */
 static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 {
-	Lamp *la = (Lamp *)ob->data;
+	Light *la = (Light *)ob->data;
 	float mat[4][4], scale[3], power, att_radius;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -695,7 +695,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 
 	light_shape_parameters_set(evli, la, scale);
 
-	/* Lamp Type */
+	/* Light Type */
 	evli->lamptype = (float)la->type;
 	if ((la->type == LA_AREA) && ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
 		evli->lamptype = LAMPTYPE_AREA_ELLIPSE;
@@ -777,7 +777,7 @@ static void sample_ellipse(
 
 
 static void shadow_cube_random_position_set(
-        EEVEE_Light *evli, Lamp *la,
+        EEVEE_Light *evli, Light *la,
         int sample_ofs,
         float ws_sample_pos[3])
 {
@@ -815,7 +815,7 @@ static void eevee_shadow_cube_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_La
 	EEVEE_Light *evli = linfo->light_data + sh_data->light_id;
 	EEVEE_Shadow *ubo_data = linfo->shadow_data + sh_data->shadow_id;
 	EEVEE_ShadowCube *cube_data = linfo->shadow_cube_data + sh_data->cube_id;
-	Lamp *la = (Lamp *)ob->data;
+	Light *la = (Light *)ob->data;
 
 	copy_v3_v3(cube_data->position, ob->obmat[3]);
 
@@ -912,7 +912,7 @@ static void eevee_shadow_cascade_setup(
         Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngineData *led,
         DRWMatrixState *saved_mats, float view_near, float view_far, int sample_ofs)
 {
-	Lamp *la = (Lamp *)ob->data;
+	Light *la = (Light *)ob->data;
 
 	/* Camera Matrices */
 	float (*persinv)[4] = saved_mats->mat[DRW_MAT_PERSINV];
@@ -1231,7 +1231,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	/* Precompute all shadow/view test before rendering and trashing the culling cache. */
 	bool cube_visible[MAX_SHADOW_CUBE];
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
-		Lamp *la = (Lamp *)ob->data;
+		Light *la = (Light *)ob->data;
 		BoundSphere bsphere = {
 			.center = {ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2]},
 			.radius = light_attenuation_radius_get(la, light_threshold),
@@ -1259,7 +1259,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	/* Render each shadow to one layer of the array */
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(ob);
-		Lamp *la = (Lamp *)ob->data;
+		Light *la = (Light *)ob->data;
 
 		if (!led->need_update || !cube_visible[i]) {
 			continue;
@@ -1372,7 +1372,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		}
 
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(ob);
-		Lamp *la = (Lamp *)ob->data;
+		Light *la = (Light *)ob->data;
 
 		EEVEE_ShadowCascadeData *evscd = &led->data.scad;
 		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;

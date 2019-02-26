@@ -86,7 +86,7 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
 	break;
 	case BC_ANIMATION_TYPE_LIGHT:
 	{
-		Lamp *lamp = (Lamp *)ob->data;
+		Light *lamp = (Light *)ob->data;
 		RNA_id_pointer_create(&lamp->id, &id_ptr);
 	}
 	break;
@@ -175,7 +175,7 @@ const std::string BCAnimationCurve::get_animation_name(Object *ob) const
 
 		case BC_ANIMATION_TYPE_LIGHT:
 		{
-			Lamp *lamp = (Lamp *)ob->data;
+			Light *lamp = (Light *)ob->data;
 			name = id_name(ob) + "-" + id_name(lamp) + "-light";
 		}
 		break;

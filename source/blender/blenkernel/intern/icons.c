@@ -323,7 +323,7 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
 		ID_PRV_CASE(ID_MA, Material);
 		ID_PRV_CASE(ID_TE, Tex);
 		ID_PRV_CASE(ID_WO, World);
-		ID_PRV_CASE(ID_LA, Lamp);
+		ID_PRV_CASE(ID_LA, Light);
 		ID_PRV_CASE(ID_IM, Image);
 		ID_PRV_CASE(ID_BR, Brush);
 		ID_PRV_CASE(ID_OB, Object);

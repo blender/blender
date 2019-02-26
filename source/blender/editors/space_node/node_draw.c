@@ -102,7 +102,7 @@ static bNodeTree *node_tree_from_ID(ID *id)
 			case ID_MA:
 				return ((Material *)id)->nodetree;
 			case ID_LA:
-				return ((Lamp *)id)->nodetree;
+				return ((Light *)id)->nodetree;
 			case ID_WO:
 				return ((World *)id)->nodetree;
 			case ID_SCE:

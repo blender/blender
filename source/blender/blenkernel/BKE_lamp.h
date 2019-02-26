@@ -30,17 +30,17 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 
-struct Lamp;
+struct Light;
 struct Main;
 struct Scene;
 
-void BKE_lamp_init(struct Lamp *la);
-struct Lamp *BKE_lamp_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
-void BKE_lamp_copy_data(struct Main *bmain, struct Lamp *la_dst, const struct Lamp *la_src, const int flag);
-struct Lamp *BKE_lamp_copy(struct Main *bmain, const struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
-struct Lamp *BKE_lamp_localize(struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
-void BKE_lamp_make_local(struct Main *bmain, struct Lamp *la, const bool lib_local);
-void BKE_lamp_free(struct Lamp *la);
+void BKE_light_init(struct Light *la);
+struct Light *BKE_light_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
+void BKE_light_copy_data(struct Main *bmain, struct Light *la_dst, const struct Light *la_src, const int flag);
+struct Light *BKE_light_copy(struct Main *bmain, const struct Light *la) ATTR_WARN_UNUSED_RESULT;
+struct Light *BKE_light_localize(struct Light *la) ATTR_WARN_UNUSED_RESULT;
+void BKE_light_make_local(struct Main *bmain, struct Light *la, const bool lib_local);
+void BKE_light_free(struct Light *la);
 
 #ifdef __cplusplus
 }

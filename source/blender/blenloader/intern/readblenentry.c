@@ -253,7 +253,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 }
 
 /**
- * Gets the names of all the linkable datablock types available in a file. (e.g. "Scene", "Mesh", "Lamp", etc.).
+ * Gets the names of all the linkable datablock types available in a file. (e.g. "Scene", "Mesh", "Light", etc.).
  *
  * \param bh: The blendhandle to access.
  * \return A BLI_linklist of strings. The string links should be freed with malloc.

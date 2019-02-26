@@ -105,7 +105,7 @@ static void rna_Main_object_begin(CollectionPropertyIterator *iter, PointerRNA *
 static void rna_Main_light_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lamp, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->light, NULL);
 }
 
 static void rna_Main_library_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -362,7 +362,7 @@ int rna_Main_mesh_lookup_string(PointerRNA *ptr, const char *key, struct Pointer
 int rna_Main_light_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
 {
 	Main *bmain = ptr->data;
-	return rna_ID_lookup_string(&bmain->lamp, key, r_ptr);
+	return rna_ID_lookup_string(&bmain->light, key, r_ptr);
 }
 
 int rna_Main_library_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)

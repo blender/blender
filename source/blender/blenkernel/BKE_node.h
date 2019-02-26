@@ -662,7 +662,7 @@ struct NodeTreeIterStore {
 	Scene *scene;
 	Material *mat;
 	Tex *tex;
-	Lamp *lamp;
+	Light *light;
 	World *world;
 	FreestyleLineStyle *linestyle;
 };

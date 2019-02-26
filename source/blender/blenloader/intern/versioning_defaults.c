@@ -327,8 +327,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		}
 
 		/* Rename lamp objects. */
-		rename_id_for_versioning(bmain, ID_OB, "Lamp", "Light");
-		rename_id_for_versioning(bmain, ID_LA, "Lamp", "Light");
+		rename_id_for_versioning(bmain, ID_OB, "Light", "Light");
+		rename_id_for_versioning(bmain, ID_LA, "Light", "Light");
 
 		for (Mesh *mesh = bmain->mesh.first; mesh; mesh = mesh->id.next) {
 			/* Match default for new meshes. */

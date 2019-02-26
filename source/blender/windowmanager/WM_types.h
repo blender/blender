@@ -320,7 +320,7 @@ typedef struct wmNotifier {
 #define	ND_SHADING_LINKS	(32<<16)
 #define	ND_SHADING_PREVIEW	(33<<16)
 
-	/* NC_LAMP Lamp */
+	/* NC_LAMP Light */
 #define	ND_LIGHTING			(40<<16)
 #define	ND_LIGHTING_DRAW	(41<<16)
 #define ND_SKY				(42<<16)

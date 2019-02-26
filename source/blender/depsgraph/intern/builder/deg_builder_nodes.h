@@ -40,8 +40,8 @@ struct GHash;
 struct ID;
 struct Image;
 struct Key;
-struct Lamp;
 struct LayerCollection;
+struct Light;
 struct LightProbe;
 struct ListBase;
 struct MTex;
@@ -204,7 +204,7 @@ struct DepsgraphNodeBuilder {
 	void build_armature(bArmature *armature);
 	void build_shapekeys(Key *key);
 	void build_camera(Camera *camera);
-	void build_lamp(Lamp *lamp);
+	void build_lamp(Light *lamp);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);

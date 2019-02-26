@@ -102,7 +102,7 @@ namespace {
 union NestedIDHackTempStorage {
 	Curve curve;
 	FreestyleLineStyle linestyle;
-	Lamp lamp;
+	Light lamp;
 	Lattice lattice;
 	Material material;
 	Mesh mesh;
@@ -123,7 +123,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
 		}
 
 		SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree)
-		SPECIAL_CASE(ID_LA, Lamp, nodetree)
+		SPECIAL_CASE(ID_LA, Light, nodetree)
 		SPECIAL_CASE(ID_MA, Material, nodetree)
 		SPECIAL_CASE(ID_TE, Tex, nodetree)
 		SPECIAL_CASE(ID_WO, World, nodetree)
@@ -176,7 +176,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
 		}
 
 		SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree, linestyle)
-		SPECIAL_CASE(ID_LA, Lamp, nodetree, lamp)
+		SPECIAL_CASE(ID_LA, Light, nodetree, lamp)
 		SPECIAL_CASE(ID_MA, Material, nodetree, material)
 		SPECIAL_CASE(ID_TE, Tex, nodetree, tex)
 		SPECIAL_CASE(ID_WO, World, nodetree, world)
@@ -217,7 +217,7 @@ void nested_id_hack_restore_pointers(const ID *old_id, ID *new_id)
 		}
 
 		SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree)
-		SPECIAL_CASE(ID_LA, Lamp, nodetree)
+		SPECIAL_CASE(ID_LA, Light, nodetree)
 		SPECIAL_CASE(ID_MA, Material, nodetree)
 		SPECIAL_CASE(ID_SCE, Scene, nodetree)
 		SPECIAL_CASE(ID_TE, Tex, nodetree)
@@ -255,7 +255,7 @@ void ntree_hack_remap_pointers(const Depsgraph *depsgraph, ID *id_cow)
 		}
 
 		SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree, bNodeTree)
-		SPECIAL_CASE(ID_LA, Lamp, nodetree, bNodeTree)
+		SPECIAL_CASE(ID_LA, Light, nodetree, bNodeTree)
 		SPECIAL_CASE(ID_MA, Material, nodetree, bNodeTree)
 		SPECIAL_CASE(ID_SCE, Scene, nodetree, bNodeTree)
 		SPECIAL_CASE(ID_TE, Tex, nodetree, bNodeTree)

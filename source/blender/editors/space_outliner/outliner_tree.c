@@ -584,7 +584,7 @@ static void outliner_add_id_contents(SpaceOutliner *soops, TreeElement *te, Tree
 		}
 		case ID_LA:
 		{
-			Lamp *la = (Lamp *)id;
+			Light *la = (Light *)id;
 
 			if (outliner_animdata_test(la->adt))
 				outliner_add_element(soops, &te->subtree, la, te, TSE_ANIM_DATA, 0);

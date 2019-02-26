@@ -2983,7 +2983,7 @@ static int previews_id_ensure_callback(void *userdata, ID *UNUSED(self_id), ID *
 static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	ListBase *lb[] = {&bmain->mat, &bmain->tex, &bmain->image, &bmain->world, &bmain->lamp, NULL};
+	ListBase *lb[] = {&bmain->mat, &bmain->tex, &bmain->image, &bmain->world, &bmain->light, NULL};
 	PreviewsIDEnsureData preview_id_data;
 	Scene *scene;
 	ID *id;
@@ -3049,7 +3049,7 @@ static int previews_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	ListBase *lb[] = {&bmain->object, &bmain->collection,
-	                  &bmain->mat, &bmain->world, &bmain->lamp, &bmain->tex, &bmain->image, NULL};
+	                  &bmain->mat, &bmain->world, &bmain->light, &bmain->tex, &bmain->image, NULL};
 	int i;
 
 	const int id_filters = RNA_enum_get(op->ptr, "id_type");

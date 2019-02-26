@@ -614,7 +614,7 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 	return NULL;
 }
 
-/* Lamp Types */
+/* Light Types */
 static const char *lamp_adrcodes_to_paths(int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
@@ -1990,8 +1990,8 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* lamps */
-	for (id = bmain->lamp.first; id; id = id->next) {
-		Lamp *la = (Lamp *)id;
+	for (id = bmain->light.first; id; id = id->next) {
+		Light *la = (Light *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting light %s\n", id->name + 2);
 
@@ -2000,7 +2000,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 			/* Add AnimData block */
 			AnimData *adt = BKE_animdata_add_id(id);
 
-			/* Convert Lamp data... */
+			/* Convert Light data... */
 			ipo_to_animdata(bmain, id, la->ipo, NULL, NULL, NULL);
 
 			if (adt->action)

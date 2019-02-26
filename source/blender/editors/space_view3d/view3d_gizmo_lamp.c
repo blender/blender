@@ -45,7 +45,7 @@
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
-/** \name Spot Lamp Gizmos
+/** \name Spot Light Gizmos
  * \{ */
 
 static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
@@ -62,7 +62,7 @@ static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmGizmoGroupType *UNUS
 	if (base && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
-			Lamp *la = ob->data;
+			Light *la = ob->data;
 			return (la->type == LA_SPOT);
 		}
 	}
@@ -90,7 +90,7 @@ static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmGizmoGroup *gzgro
 	wmGizmo *gz = wwrapper->gizmo;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	Lamp *la = ob->data;
+	Light *la = ob->data;
 	float dir[3];
 
 	negate_v3_v3(dir, ob->obmat[2]);
@@ -122,7 +122,7 @@ void VIEW3D_GGT_lamp_spot(wmGizmoGroupType *gzgt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Area Lamp Gizmos
+/** \name Area Light Gizmos
  * \{ */
 
 /* scale callbacks */
@@ -132,7 +132,7 @@ static void gizmo_area_lamp_prop_matrix_get(
 {
 	BLI_assert(gz_prop->type->array_length == 16);
 	float (*matrix)[4] = value_p;
-	const Lamp *la = gz_prop->custom_func.user_data;
+	const Light *la = gz_prop->custom_func.user_data;
 
 	matrix[0][0] = la->area_size;
 	matrix[1][1] = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE) ? la->area_sizey : la->area_size;
@@ -144,7 +144,7 @@ static void gizmo_area_lamp_prop_matrix_set(
 {
 	const float (*matrix)[4] = value_p;
 	BLI_assert(gz_prop->type->array_length == 16);
-	Lamp *la = gz_prop->custom_func.user_data;
+	Light *la = gz_prop->custom_func.user_data;
 
 	if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
 		la->area_size = len_v3(matrix[0]);
@@ -170,7 +170,7 @@ static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmGizmoGroupType *UNUS
 	if (base && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
-			Lamp *la = ob->data;
+			Light *la = ob->data;
 			return (la->type == LA_AREA);
 		}
 	}
@@ -198,7 +198,7 @@ static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmGizmoGroup *gzgro
 	wmGizmoWrapper *wwrapper = gzgroup->customdata;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	Lamp *la = ob->data;
+	Light *la = ob->data;
 	wmGizmo *gz = wwrapper->gizmo;
 
 	copy_m4_m4(gz->matrix_basis, ob->obmat);
@@ -238,7 +238,7 @@ void VIEW3D_GGT_lamp_area(wmGizmoGroupType *gzgt)
 
 
 /* -------------------------------------------------------------------- */
-/** \name Lamp Target Gizmo
+/** \name Light Target Gizmo
  * \{ */
 
 static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
@@ -253,7 +253,7 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UN
 	if (base && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
-			Lamp *la = ob->data;
+			Light *la = ob->data;
 			return (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA));
 		}
 #if 0
@@ -297,7 +297,7 @@ static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmGizmoGroup
 	unit_m4(gz->matrix_offset);
 
 	if (ob->type == OB_LAMP) {
-		Lamp *la = ob->data;
+		Light *la = ob->data;
 		if (la->type == LA_SPOT) {
 			/* Draw just past the lamp size angle gizmo. */
 			madd_v3_v3fl(gz->matrix_basis[3], gz->matrix_basis[2], -la->spotsize);

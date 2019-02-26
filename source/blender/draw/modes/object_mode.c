@@ -1501,7 +1501,7 @@ static void DRW_shgroup_mball_handles(OBJECT_ShadingGroupList *sgl, Object *ob, 
 
 static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer)
 {
-	Lamp *la = ob->data;
+	Light *la = ob->data;
 	float *color;
 	int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);
 	static float zero = 0.0f;

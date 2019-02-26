@@ -31,7 +31,7 @@ struct Brush;
 struct ColorBand;
 struct FreestyleLineStyle;
 struct ImagePool;
-struct Lamp;
+struct Light;
 struct MTex;
 struct Main;
 struct Material;

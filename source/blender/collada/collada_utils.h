@@ -90,13 +90,13 @@ inline bAction *bc_getSceneObjectAction(Object *ob)
 	return (ob->adt && ob->adt->action) ? ob->adt->action : NULL;
 }
 
-/* Returns Lamp Action or NULL */
+/* Returns Light Action or NULL */
 inline bAction *bc_getSceneLampAction(Object *ob)
 {
 	if (ob->type != OB_LAMP)
 		return NULL;
 
-	Lamp *lamp = (Lamp *)ob->data;
+	Light *lamp = (Light *)ob->data;
 	return (lamp->adt && lamp->adt->action) ? lamp->adt->action : NULL;
 }
 

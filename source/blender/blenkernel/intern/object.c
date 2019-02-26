@@ -793,7 +793,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
 		case OB_FONT:      return BKE_curve_add(bmain, name, OB_FONT);
 		case OB_MBALL:     return BKE_mball_add(bmain, name);
 		case OB_CAMERA:    return BKE_camera_add(bmain, name);
-		case OB_LAMP:      return BKE_lamp_add(bmain, name);
+		case OB_LAMP:      return BKE_light_add(bmain, name);
 		case OB_LATTICE:   return BKE_lattice_add(bmain, name);
 		case OB_ARMATURE:  return BKE_armature_add(bmain, name);
 		case OB_SPEAKER:   return BKE_speaker_add(bmain, name);
@@ -1680,7 +1680,7 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
 		}
 		case OB_LAMP:
 		{
-			Lamp *lamp = ob->data;
+			Light *lamp = ob->data;
 			lamp->dist *= size;
 			lamp->area_size  *= size;
 			lamp->area_sizey *= size;

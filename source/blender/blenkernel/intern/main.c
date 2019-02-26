@@ -342,7 +342,7 @@ ListBase *which_libbase(Main *bmain, short type)
 		case ID_LT:
 			return &(bmain->latt);
 		case ID_LA:
-			return &(bmain->lamp);
+			return &(bmain->light);
 		case ID_CA:
 			return &(bmain->camera);
 		case ID_IP:
@@ -433,7 +433,7 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 	lb[INDEX_ID_MB] = &(bmain->mball);
 
 	lb[INDEX_ID_LT] = &(bmain->latt);
-	lb[INDEX_ID_LA] = &(bmain->lamp);
+	lb[INDEX_ID_LA] = &(bmain->light);
 	lb[INDEX_ID_CA] = &(bmain->camera);
 
 	lb[INDEX_ID_TXT] = &(bmain->text);

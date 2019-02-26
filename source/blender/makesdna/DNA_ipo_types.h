@@ -325,7 +325,7 @@ typedef struct Ipo {
 #define WO_STARDIST	15
 #define WO_STARSIZE	16
 
-/* ********** Lamp (ID_LA) ********** */
+/* ********** Light (ID_LA) ********** */
 
 #define LA_TOTIPO	21
 #define LA_TOTNAM	10

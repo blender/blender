@@ -55,7 +55,7 @@ void LightsExporter::exportLights(Scene *sce)
 
 void LightsExporter::operator()(Object *ob)
 {
-	Lamp *la = (Lamp *)ob->data;
+	Light *la = (Light *)ob->data;
 	std::string la_id(get_light_id(ob));
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
@@ -119,7 +119,7 @@ void LightsExporter::operator()(Object *ob)
 
 }
 
-bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
+bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Light *la)
 {
 	cla.addExtraTechniqueParameter("blender", "type", la->type);
 	cla.addExtraTechniqueParameter("blender", "flag", la->flag);

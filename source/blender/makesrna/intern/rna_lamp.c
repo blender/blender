@@ -50,7 +50,7 @@
 
 static void rna_Light_buffer_size_set(PointerRNA *ptr, int value)
 {
-	Lamp *la = (Lamp *)ptr->data;
+	Light *la = (Light *)ptr->data;
 
 	CLAMP(value, 128, 10240);
 	la->bufsize = value;
@@ -59,7 +59,7 @@ static void rna_Light_buffer_size_set(PointerRNA *ptr, int value)
 
 static StructRNA *rna_Light_refine(struct PointerRNA *ptr)
 {
-	Lamp *la = (Lamp *)ptr->data;
+	Light *la = (Light *)ptr->data;
 
 	switch (la->type) {
 		case LA_LOCAL:
@@ -77,7 +77,7 @@ static StructRNA *rna_Light_refine(struct PointerRNA *ptr)
 
 static void rna_Light_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Lamp *la = ptr->id.data;
+	Light *la = ptr->id.data;
 
 	DEG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
@@ -85,7 +85,7 @@ static void rna_Light_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Light_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Lamp *la = ptr->id.data;
+	Light *la = ptr->id.data;
 
 	DEG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
@@ -93,7 +93,7 @@ static void rna_Light_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 
 static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
-	Lamp *la = (Lamp *)ptr->data;
+	Light *la = (Light *)ptr->data;
 
 	if (la->use_nodes && la->nodetree == NULL)
 		ED_node_shader_default(C, &la->id);
@@ -118,7 +118,7 @@ static void rna_def_light(BlenderRNA *brna)
 	static float default_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	srna = RNA_def_struct(brna, "Light", "ID");
-	RNA_def_struct_sdna(srna, "Lamp");
+	RNA_def_struct_sdna(srna, "Light");
 	RNA_def_struct_refine_func(srna, "rna_Light_refine");
 	RNA_def_struct_ui_text(srna, "Light", "Light data-block for lighting a scene");
 	RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_ID_LIGHT);
@@ -420,7 +420,7 @@ static void rna_def_point_light(BlenderRNA *brna)
 	StructRNA *srna;
 
 	srna = RNA_def_struct(brna, "PointLight", "Light");
-	RNA_def_struct_sdna(srna, "Lamp");
+	RNA_def_struct_sdna(srna, "Light");
 	RNA_def_struct_ui_text(srna, "Point Light", "Omnidirectional point Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_POINT);
 
@@ -443,7 +443,7 @@ static void rna_def_area_light(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "AreaLight", "Light");
-	RNA_def_struct_sdna(srna, "Lamp");
+	RNA_def_struct_sdna(srna, "Light");
 	RNA_def_struct_ui_text(srna, "Area Light", "Directional area Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_AREA);
 
@@ -481,7 +481,7 @@ static void rna_def_spot_light(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "SpotLight", "Light");
-	RNA_def_struct_sdna(srna, "Lamp");
+	RNA_def_struct_sdna(srna, "Light");
 	RNA_def_struct_ui_text(srna, "Spot Light", "Directional cone Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_SPOT);
 
@@ -520,7 +520,7 @@ static void rna_def_sun_light(BlenderRNA *brna)
 	StructRNA *srna;
 
 	srna = RNA_def_struct(brna, "SunLight", "Light");
-	RNA_def_struct_sdna(srna, "Lamp");
+	RNA_def_struct_sdna(srna, "Light");
 	RNA_def_struct_ui_text(srna, "Sun Light", "Constant direction parallel ray Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_SUN);
 

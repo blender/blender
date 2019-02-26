@@ -37,7 +37,7 @@ struct Ipo;
 struct MTex;
 struct bNodeTree;
 
-typedef struct Lamp {
+typedef struct Light {
 	ID id;
 	/** Animation data (must be immediately after id for utilities to use it). */
 	struct AnimData *adt;
@@ -88,7 +88,7 @@ typedef struct Lamp {
 
 	/* nodes */
 	struct bNodeTree *nodetree;
-} Lamp;
+} Light;
 
 /* **************** LAMP ********************* */
 

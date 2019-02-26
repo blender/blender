@@ -923,8 +923,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp")) {
-			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "bleedexp")) {
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
 				la->bleedexp = 2.5f;
 			}
 		}
@@ -950,8 +950,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 2)) {
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist")) {
-			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "cascade_max_dist")) {
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
 				la->cascade_max_dist = 1000.0f;
 				la->cascade_count = 4;
 				la->cascade_exponent = 0.8f;
@@ -959,8 +959,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist")) {
-			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "contact_dist")) {
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
 				la->contact_dist = 0.2f;
 				la->contact_bias = 0.03f;
 				la->contact_spread = 0.2f;
@@ -1280,10 +1280,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 11)) {
-		for (Lamp *lamp = bmain->lamp.first; lamp; lamp = lamp->id.next) {
-			if (lamp->mode & (1 << 13)) { /* LA_SHAD_RAY */
-				lamp->mode |= LA_SHADOW;
-				lamp->mode &= ~(1 << 13);
+		for (Light *la = bmain->light.first; la; la = la->id.next) {
+			if (la->mode & (1 << 13)) { /* LA_SHAD_RAY */
+				la->mode |= LA_SHADOW;
+				la->mode &= ~(1 << 13);
 			}
 		}
 	}
@@ -1312,8 +1312,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 13)) {
 		/* Initialize specular factor. */
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "spec_fac")) {
-			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "spec_fac")) {
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
 				la->spec_fac = 1.0f;
 			}
 		}
@@ -2219,7 +2219,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+		for (Light *la = bmain->light.first; la; la = la->id.next) {
 			/* Removed Hemi lights. */
 			if (!ELEM(la->type, LA_LOCAL, LA_SUN, LA_SPOT, LA_AREA)) {
 				la->type = LA_SUN;
@@ -2244,8 +2244,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "att_dist")) {
-			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "att_dist")) {
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
 				la->att_dist = la->clipend;
 			}
 		}

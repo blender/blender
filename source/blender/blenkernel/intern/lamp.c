@@ -44,7 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
-void BKE_lamp_init(Lamp *la)
+void BKE_light_init(Light *la)
 {
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(la, id));
 
@@ -84,26 +84,26 @@ void BKE_lamp_init(Lamp *la)
 	curvemapping_initialize(la->curfalloff);
 }
 
-Lamp *BKE_lamp_add(Main *bmain, const char *name)
+Light *BKE_light_add(Main *bmain, const char *name)
 {
-	Lamp *la;
+	Light *la;
 
 	la =  BKE_libblock_alloc(bmain, ID_LA, name, 0);
 
-	BKE_lamp_init(la);
+	BKE_light_init(la);
 
 	return la;
 }
 
 /**
- * Only copy internal data of Lamp ID from source to already allocated/initialized destination.
+ * Only copy internal data of Light ID from source to already allocated/initialized destination.
  * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
  * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_lamp_copy_data(Main *bmain, Lamp *la_dst, const Lamp *la_src, const int flag)
+void BKE_light_copy_data(Main *bmain, Light *la_dst, const Light *la_src, const int flag)
 {
 	la_dst->curfalloff = curvemapping_copy(la_src->curfalloff);
 
@@ -121,18 +121,18 @@ void BKE_lamp_copy_data(Main *bmain, Lamp *la_dst, const Lamp *la_src, const int
 	}
 }
 
-Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
+Light *BKE_light_copy(Main *bmain, const Light *la)
 {
-	Lamp *la_copy;
+	Light *la_copy;
 	BKE_id_copy(bmain, &la->id, (ID **)&la_copy);
 	return la_copy;
 }
 
-Lamp *BKE_lamp_localize(Lamp *la)
+Light *BKE_light_localize(Light *la)
 {
 	/* TODO(bastien): Replace with something like:
 	 *
-	 *   Lamp *la_copy;
+	 *   Light *la_copy;
 	 *   BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy,
 	 *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
 	 *                  false);
@@ -140,7 +140,7 @@ Lamp *BKE_lamp_localize(Lamp *la)
 	 *
 	 * NOTE: Only possible once nested node trees are fully converted to that too. */
 
-	Lamp *lan = BKE_libblock_copy_for_localize(&la->id);
+	Light *lan = BKE_libblock_copy_for_localize(&la->id);
 
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
@@ -154,12 +154,12 @@ Lamp *BKE_lamp_localize(Lamp *la)
 	return lan;
 }
 
-void BKE_lamp_make_local(Main *bmain, Lamp *la, const bool lib_local)
+void BKE_light_make_local(Main *bmain, Light *la, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &la->id, true, lib_local);
 }
 
-void BKE_lamp_free(Lamp *la)
+void BKE_light_free(Light *la)
 {
 	BKE_animdata_free((ID *)la, false);
 

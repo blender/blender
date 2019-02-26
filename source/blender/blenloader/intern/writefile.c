@@ -2368,11 +2368,11 @@ static void write_world(WriteData *wd, World *wrld)
 	}
 }
 
-static void write_lamp(WriteData *wd, Lamp *la)
+static void write_lamp(WriteData *wd, Light *la)
 {
 	if (la->id.us > 0 || wd->use_memfile) {
 		/* write LibData */
-		writestruct(wd, ID_LA, Lamp, 1, la);
+		writestruct(wd, ID_LA, Light, 1, la);
 		write_iddata(wd, &la->id);
 
 		if (la->adt) {
@@ -3934,7 +3934,7 @@ static bool write_file_handle(
 						write_camera(wd, (Camera *)id);
 						break;
 					case ID_LA:
-						write_lamp(wd, (Lamp *)id);
+						write_lamp(wd, (Light *)id);
 						break;
 					case ID_LT:
 						write_lattice(wd, (Lattice *)id);

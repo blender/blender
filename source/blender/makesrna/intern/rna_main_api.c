@@ -325,12 +325,12 @@ Mesh *rna_Main_meshes_new_from_object(
 	return BKE_mesh_new_from_object(depsgraph, bmain, sce, ob, apply_modifiers, calc_undeformed);
 }
 
-static Lamp *rna_Main_lights_new(Main *bmain, const char *name, int type)
+static Light *rna_Main_lights_new(Main *bmain, const char *name, int type)
 {
 	char safe_name[MAX_ID_NAME - 2];
 	rna_idname_validate(name, safe_name);
 
-	Lamp *lamp = BKE_lamp_add(bmain, safe_name);
+	Light *lamp = BKE_light_add(bmain, safe_name);
 	lamp->type = type;
 	id_us_min(&lamp->id);
 	return lamp;
@@ -617,7 +617,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(objects, object, ID_OB)
 RNA_MAIN_ID_TAG_FUNCS_DEF(materials, mat, ID_MA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(node_groups, nodetree, ID_NT)
 RNA_MAIN_ID_TAG_FUNCS_DEF(meshes, mesh, ID_ME)
-RNA_MAIN_ID_TAG_FUNCS_DEF(lights, lamp, ID_LA)
+RNA_MAIN_ID_TAG_FUNCS_DEF(lights, light, ID_LA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(libraries, library, ID_LI)
 RNA_MAIN_ID_TAG_FUNCS_DEF(screens, screen, ID_SCR)
 RNA_MAIN_ID_TAG_FUNCS_DEF(window_managers, wm, ID_WM)

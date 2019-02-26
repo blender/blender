@@ -3975,7 +3975,7 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 
 static void lib_link_lamp(FileData *fd, Main *main)
 {
-	for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+	for (Light *la = main->light.first; la; la = la->id.next) {
 		if (la->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(la->id.properties, fd);
 			lib_link_animdata(fd, &la->id, la->adt);
@@ -3992,7 +3992,7 @@ static void lib_link_lamp(FileData *fd, Main *main)
 	}
 }
 
-static void direct_link_lamp(FileData *fd, Lamp *la)
+static void direct_link_lamp(FileData *fd, Light *la)
 {
 	la->adt = newdataadr(fd, la->adt);
 	direct_link_animdata(fd, la->adt);
@@ -9059,7 +9059,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
 			direct_link_image(fd, (Image *)id);
 			break;
 		case ID_LA:
-			direct_link_lamp(fd, (Lamp *)id);
+			direct_link_lamp(fd, (Light *)id);
 			break;
 		case ID_VF:
 			direct_link_vfont(fd, (VFont *)id);
@@ -10126,7 +10126,7 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	}
 }
 
-static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
+static void expand_lamp(FileData *fd, Main *mainvar, Light *la)
 {
 	expand_doit(fd, mainvar, la->ipo); // XXX deprecated - old animation system
 
@@ -10692,7 +10692,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 							expand_lattice(fd, mainvar, (Lattice *)id);
 							break;
 						case ID_LA:
-							expand_lamp(fd, mainvar, (Lamp *)id);
+							expand_lamp(fd, mainvar, (Light *)id);
 							break;
 						case ID_KE:
 							expand_key(fd, mainvar, (Key *)id);

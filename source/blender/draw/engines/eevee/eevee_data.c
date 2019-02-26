@@ -151,7 +151,7 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob)
 	        NULL);
 }
 
-/* Lamp data. */
+/* Light data. */
 
 static void eevee_lamp_data_init(DrawData *dd)
 {

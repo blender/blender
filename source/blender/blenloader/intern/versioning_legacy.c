@@ -1541,7 +1541,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if (bmain->versionfile <= 241) {
 		Object *ob;
 		Scene *sce;
-		Lamp *la;
+		Light *la;
 		bArmature *arm;
 		bNodeTree *ntree;
 
@@ -1581,7 +1581,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next)
 			ntree_version_241(ntree);
 
-		for (la = bmain->lamp.first; la; la = la->id.next)
+		for (la = bmain->light.first; la; la = la->id.next)
 			if (la->buffers == 0)
 				la->buffers = 1;
 
@@ -1915,7 +1915,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Scene *sce;
 		Object *ob;
 		Image *ima;
-		Lamp *la;
+		Light *la;
 		Material *ma;
 		ParticleSettings *part;
 		Mesh *me;
@@ -2048,7 +2048,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 
 		if (bmain->versionfile != 245 || bmain->subversionfile < 1) {
-			for (la = bmain->lamp.first; la; la = la->id.next) {
+			for (la = bmain->light.first; la; la = la->id.next) {
 				la->falloff_type = LA_FALLOFF_INVLINEAR;
 
 				if (la->curfalloff == NULL) {
@@ -2403,7 +2403,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		idproperties_fix_group_lengths(bmain->tex);
 		idproperties_fix_group_lengths(bmain->image);
 		idproperties_fix_group_lengths(bmain->latt);
-		idproperties_fix_group_lengths(bmain->lamp);
+		idproperties_fix_group_lengths(bmain->light);
 		idproperties_fix_group_lengths(bmain->camera);
 		idproperties_fix_group_lengths(bmain->ipo);
 		idproperties_fix_group_lengths(bmain->key);

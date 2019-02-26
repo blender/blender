@@ -994,7 +994,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	}
 
 	if ((animType->light) != 0) {
-		Lamp *lamp  = (Lamp *) ob->data;
+		Light *lamp  = (Light *) ob->data;
 		if (!lamp->adt || !lamp->adt->action)
 			act = verify_adt_action(bmain, (ID *)&lamp->id, 1);
 		else

@@ -1063,11 +1063,10 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		{
-			Lamp *lamp;
 #define LA_YF_PHOTON    5
-			for (lamp = bmain->lamp.first; lamp; lamp = lamp->id.next) {
-				if (lamp->type == LA_YF_PHOTON) {
-					lamp->type = LA_LOCAL;
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
+				if (la->type == LA_YF_PHOTON) {
+					la->type = LA_LOCAL;
 				}
 			}
 #undef LA_YF_PHOTON

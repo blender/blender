@@ -37,7 +37,7 @@ public:
 	void exportLights(Scene *sce);
 	void operator()(Object *ob);
 private:
-	bool exportBlenderProfile(COLLADASW::Light &cla, Lamp *la);
+	bool exportBlenderProfile(COLLADASW::Light &cla, Light *la);
 	const ExportSettings *export_settings;
 };
 

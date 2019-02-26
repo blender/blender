@@ -868,14 +868,14 @@ static bool select_grouped_siblings(bContext *C, Object *ob)
 }
 static bool select_grouped_lamptype(bContext *C, Object *ob)
 {
-	Lamp *la = ob->data;
+	Light *la = ob->data;
 
 	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if (base->object->type == OB_LAMP) {
-			Lamp *la_test = base->object->data;
+			Light *la_test = base->object->data;
 			if ((la->type == la_test->type) && ((base->flag & BASE_SELECTED) == 0)) {
 				ED_object_base_select(base, BA_SELECT);
 				changed = true;

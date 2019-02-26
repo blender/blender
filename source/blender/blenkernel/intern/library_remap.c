@@ -732,7 +732,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
 			BKE_lattice_free((Lattice *)id);
 			break;
 		case ID_LA:
-			BKE_lamp_free((Lamp *)id);
+			BKE_light_free((Light *)id);
 			break;
 		case ID_CA:
 			BKE_camera_free((Camera *) id);

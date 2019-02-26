@@ -1337,7 +1337,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 					data.icon = ICON_OUTLINER_DATA_LATTICE; break;
 				case ID_LA:
 				{
-					Lamp *la = (Lamp *)tselem->id;
+					Light *la = (Light *)tselem->id;
 					switch (la->type) {
 						case LA_LOCAL:
 							data.icon = ICON_LIGHT_POINT; break;

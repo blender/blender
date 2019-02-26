@@ -702,7 +702,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 			case ID_LA:
 			{
-				Lamp *lamp = (Lamp *) id;
+				Light *lamp = (Light *) id;
 				if (lamp->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
 					library_foreach_ID_as_subdata_link((ID **)&lamp->nodetree, callback, user_data, flag, &data);

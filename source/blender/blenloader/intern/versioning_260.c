@@ -822,7 +822,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			Scene *sce;
 			Material *mat;
 			Tex *tex;
-			Lamp *lamp;
 			World *world;
 			bNodeTree *ntree;
 
@@ -841,9 +840,9 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					do_versions_nodetree_socket_use_flags_2_62(tex->nodetree);
 			}
 
-			for (lamp = bmain->lamp.first; lamp; lamp = lamp->id.next) {
-				if (lamp->nodetree)
-					do_versions_nodetree_socket_use_flags_2_62(lamp->nodetree);
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
+				if (la->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(la->nodetree);
 			}
 
 			for (world = bmain->world.first; world; world = world->id.next) {
@@ -1177,7 +1176,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		Scene *sce;
 		Material *mat;
 		Tex *tex;
-		Lamp *lamp;
 		World *world;
 		bNodeTree *ntree;
 
@@ -1193,9 +1191,9 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			if (tex->nodetree)
 				do_versions_nodetree_frame_2_64_6(tex->nodetree);
 
-		for (lamp = bmain->lamp.first; lamp; lamp = lamp->id.next)
-			if (lamp->nodetree)
-				do_versions_nodetree_frame_2_64_6(lamp->nodetree);
+		for (Light *la = bmain->light.first; la; la = la->id.next)
+			if (la->nodetree)
+				do_versions_nodetree_frame_2_64_6(la->nodetree);
 
 		for (world = bmain->world.first; world; world = world->id.next)
 			if (world->nodetree)
@@ -2319,10 +2317,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		{
 			Scene *scene;
 			Object *ob;
-			Lamp *lamp;
 
-			for (lamp = bmain->lamp.first; lamp; lamp = lamp->id.next)
-				lamp->spotsize = DEG2RADF(lamp->spotsize);
+			for (Light *la = bmain->light.first; la; la = la->id.next) {
+				la->spotsize = DEG2RADF(la->spotsize);
+			}
 
 			for (ob = bmain->object.first; ob; ob = ob->id.next) {
 				ModifierData *md;

@@ -409,7 +409,7 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id, lib_local);
 			return true;
 		case ID_LA:
-			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id, lib_local);
+			if (!test) BKE_light_make_local(bmain, (Light *)id, lib_local);
 			return true;
 		case ID_CA:
 			if (!test) BKE_camera_make_local(bmain, (Camera *)id, lib_local);
@@ -591,7 +591,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
 			BKE_lattice_copy_data(bmain, (Lattice *)*r_newid, (Lattice *)id, flag);
 			break;
 		case ID_LA:
-			BKE_lamp_copy_data(bmain, (Lamp *)*r_newid, (Lamp *)id, flag);
+			BKE_light_copy_data(bmain, (Light *)*r_newid, (Light *)id, flag);
 			break;
 		case ID_SPK:
 			BKE_speaker_copy_data(bmain, (Speaker *)*r_newid, (Speaker *)id, flag);
@@ -716,7 +716,7 @@ void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
 		CASE_SWAP(ID_TE, Tex);
 		CASE_SWAP(ID_IM, Image);
 		CASE_SWAP(ID_LT, Lattice);
-		CASE_SWAP(ID_LA, Lamp);
+		CASE_SWAP(ID_LA, Light);
 		CASE_SWAP(ID_LP, LightProbe);
 		CASE_SWAP(ID_CA, Camera);
 		CASE_SWAP(ID_KE, Key);
@@ -1049,7 +1049,7 @@ size_t BKE_libblock_get_alloc_info(short type, const char **name)
 		CASE_RETURN(ID_TE,  Tex);
 		CASE_RETURN(ID_IM,  Image);
 		CASE_RETURN(ID_LT,  Lattice);
-		CASE_RETURN(ID_LA,  Lamp);
+		CASE_RETURN(ID_LA,  Light);
 		CASE_RETURN(ID_CA,  Camera);
 		CASE_RETURN(ID_IP,  Ipo);
 		CASE_RETURN(ID_KE,  Key);
@@ -1186,7 +1186,7 @@ void BKE_libblock_init_empty(ID *id)
 			BKE_lattice_init((Lattice *)id);
 			break;
 		case ID_LA:
-			BKE_lamp_init((Lamp *)id);
+			BKE_light_init((Light *)id);
 			break;
 		case ID_SPK:
 			BKE_speaker_init((Speaker *)id);

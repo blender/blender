@@ -413,7 +413,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 		}
 		case ID_LA:
 		{
-			Lamp *la = (Lamp *)id;
+			Light *la = (Light *)id;
 			la->nodetree = ntree;
 
 			output_type = SH_NODE_OUTPUT_LIGHT;

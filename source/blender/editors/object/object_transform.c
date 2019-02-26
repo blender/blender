@@ -510,7 +510,7 @@ static int apply_objects_internal(
 		}
 
 		if (ob->type == OB_LAMP) {
-			Lamp *la = ob->data;
+			Light *la = ob->data;
 			if (la->type == LA_AREA) {
 				if (apply_rot || apply_loc) {
 					BKE_reportf(reports, RPT_ERROR,
@@ -654,7 +654,7 @@ static int apply_objects_internal(
 			}
 		}
 		else if (ob->type == OB_LAMP) {
-			Lamp *la = ob->data;
+			Light *la = ob->data;
 			if (la->type != LA_AREA) {
 				continue;
 			}
@@ -1361,7 +1361,7 @@ static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *x
 static bool object_is_target_compat(const Object *ob)
 {
 	if (ob->type == OB_LAMP) {
-		const Lamp *la = ob->data;
+		const Light *la = ob->data;
 		if (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA)) {
 			return true;
 		}
