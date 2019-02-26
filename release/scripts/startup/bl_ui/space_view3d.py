@@ -4324,8 +4324,6 @@ class VIEW3D_PT_view3d_cursor(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
 
@@ -4337,7 +4335,7 @@ class VIEW3D_PT_view3d_cursor(Panel):
             layout.column().prop(scene, "cursor_rotation_axis_angle", text="Rotation")
         else:
             layout.column().prop(scene, "cursor_rotation_euler", text="Rotation")
-        layout.row().prop(scene, "cursor_rotation_mode")
+        layout.prop(scene, "cursor_rotation_mode", text="")
 
 
 class VIEW3D_PT_collections(Panel):
