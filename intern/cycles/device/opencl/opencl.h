@@ -326,29 +326,17 @@ public:
 
 	DeviceSplitKernel *split_kernel;
 
-	OpenCLProgram program_data_init;
-	OpenCLProgram program_state_buffer_size;
-
 	OpenCLProgram program_split;
 
-	OpenCLProgram program_path_init;
-	OpenCLProgram program_scene_intersect;
 	OpenCLProgram program_lamp_emission;
 	OpenCLProgram program_do_volume;
-	OpenCLProgram program_queue_enqueue;
 	OpenCLProgram program_indirect_background;
-	OpenCLProgram program_shader_setup;
-	OpenCLProgram program_shader_sort;
 	OpenCLProgram program_shader_eval;
 	OpenCLProgram program_holdout_emission_blurring_pathtermination_ao;
 	OpenCLProgram program_subsurface_scatter;
 	OpenCLProgram program_direct_lighting;
 	OpenCLProgram program_shadow_blocked_ao;
 	OpenCLProgram program_shadow_blocked_dl;
-	OpenCLProgram program_enqueue_inactive;
-	OpenCLProgram program_next_iteration_setup;
-	OpenCLProgram program_indirect_subsurface;
-	OpenCLProgram program_buffer_update;
 
 	OpenCLProgram base_program;
 	OpenCLProgram bake_program;
@@ -386,8 +374,7 @@ public:
 	const string get_opencl_program_name(bool single_program, const string& kernel_name);
 	/* Get the program file name to compile (*.cl) for the given kernel */
 	const string get_opencl_program_filename(bool single_program, const string& kernel_name);
-	string get_build_options(const DeviceRequestedFeatures& requested_features);
-	string get_build_options_for_bake(const DeviceRequestedFeatures& requested_features);
+	string get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name);
 
 	void mem_alloc(device_memory& mem);
 	void mem_copy_to(device_memory& mem);

@@ -149,6 +149,12 @@ public:
 	/* Use raytracing in shaders. */
 	bool use_shader_raytrace;
 
+	/* Use true displacement */
+	bool use_true_displacement;
+
+	/* Use background lights */
+	bool use_background_light;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -168,6 +174,8 @@ public:
 		use_principled = false;
 		use_denoising = false;
 		use_shader_raytrace = false;
+		use_true_displacement = false;
+		use_background_light = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
@@ -187,7 +195,9 @@ public:
 		         use_shadow_tricks == requested_features.use_shadow_tricks &&
 		         use_principled == requested_features.use_principled &&
 		         use_denoising == requested_features.use_denoising &&
-		         use_shader_raytrace == requested_features.use_shader_raytrace);
+		         use_shader_raytrace == requested_features.use_shader_raytrace &&
+		         use_true_displacement == requested_features.use_true_displacement &&
+		         use_background_light == requested_features.use_background_light);
 	}
 
 	/* Convert the requested features structure to a build options,

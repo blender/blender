@@ -74,6 +74,10 @@ std::ostream& operator <<(std::ostream &os,
 	   << string_from_bool(requested_features.use_principled) << std::endl;
 	os << "Use Denoising: "
 	   << string_from_bool(requested_features.use_denoising) << std::endl;
+	os << "Use Displacement: "
+	   << string_from_bool(requested_features.use_true_displacement) << std::endl;
+	os << "Use Background Light: "
+	   << string_from_bool(requested_features.use_background_light) << std::endl;
 	return os;
 }
 
