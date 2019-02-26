@@ -50,13 +50,13 @@
 /* could be exposed for other functions to use */
 
 typedef struct EdgeFaceRef {
-	int f1; /* init as -1 */
-	int f2;
+	int p1; /* init as -1 */
+	int p2;
 } EdgeFaceRef;
 
 BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 {
-	return !((edge_ref->f1 == 0) && (edge_ref->f2 == 0));
+	return !((edge_ref->p1 == 0) && (edge_ref->p2 == 0));
 }
 
 /**
@@ -64,9 +64,9 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
  * \param face_nors: Precalculated face normals.
  * \param r_vert_nors: Return vert normals.
  */
-static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_vert_nors)[3])
+static void mesh_calc_hq_normal(Mesh *mesh, float (*poly_nors)[3], float (*r_vert_nors)[3])
 {
-	int i, numVerts, numEdges, numFaces;
+	int i, numVerts, numEdges, numPolys;
 	MPoly *mpoly, *mp;
 	MLoop *mloop, *ml;
 	MEdge *medge, *ed;
@@ -74,7 +74,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_ver
 
 	numVerts = mesh->totvert;
 	numEdges = mesh->totedge;
-	numFaces = mesh->totpoly;
+	numPolys = mesh->totpoly;
 	mpoly = mesh->mpoly;
 	medge = mesh->medge;
 	mvert = mesh->mvert;
@@ -97,7 +97,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_ver
 		float edge_normal[3];
 
 		/* Add an edge reference if it's not there, pointing back to the face index. */
-		for (i = 0; i < numFaces; i++, mp++) {
+		for (i = 0; i < numPolys; i++, mp++) {
 			int j;
 
 			ml = mloop + mp->loopstart;
@@ -106,15 +106,15 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_ver
 				/* --- add edge ref to face --- */
 				edge_ref = &edge_ref_array[ml->e];
 				if (!edgeref_is_init(edge_ref)) {
-					edge_ref->f1 =  i;
-					edge_ref->f2 = -1;
+					edge_ref->p1 =  i;
+					edge_ref->p2 = -1;
 				}
-				else if ((edge_ref->f1 != -1) && (edge_ref->f2 == -1)) {
-					edge_ref->f2 = i;
+				else if ((edge_ref->p1 != -1) && (edge_ref->p2 == -1)) {
+					edge_ref->p2 = i;
 				}
 				else {
 					/* 3+ faces using an edge, we can't handle this usefully */
-					edge_ref->f1 = edge_ref->f2 = -1;
+					edge_ref->p1 = edge_ref->p2 = -1;
 #ifdef USE_NONMANIFOLD_WORKAROUND
 					medge[ml->e].flag |= ME_EDGE_TMP_TAG;
 #endif
@@ -126,8 +126,8 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_ver
 		for (i = 0, ed = medge, edge_ref = edge_ref_array; i < numEdges; i++, ed++, edge_ref++) {
 			/* Get the edge vert indices, and edge value (the face indices that use it) */
 
-			if (edgeref_is_init(edge_ref) && (edge_ref->f1 != -1)) {
-				if (edge_ref->f2 != -1) {
+			if (edgeref_is_init(edge_ref) && (edge_ref->p1 != -1)) {
+				if (edge_ref->p2 != -1) {
 					/* We have 2 faces using this edge, calculate the edges normal
 					 * using the angle between the 2 faces as a weighting */
 #if 0
@@ -136,13 +136,13 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_ver
 					        edge_normal,
 					        angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
 #else
-					mid_v3_v3v3_angle_weighted(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
+					mid_v3_v3v3_angle_weighted(edge_normal, poly_nors[edge_ref->p1], poly_nors[edge_ref->p2]);
 #endif
 				}
 				else {
 					/* only one face attached to that edge */
 					/* an edge without another attached- the weight on this is undefined */
-					copy_v3_v3(edge_normal, face_nors[edge_ref->f1]);
+					copy_v3_v3(edge_normal, poly_nors[edge_ref->p1]);
 				}
 				add_v3_v3(r_vert_nors[ed->v1], edge_normal);
 				add_v3_v3(r_vert_nors[ed->v2], edge_normal);
@@ -199,9 +199,9 @@ static Mesh *applyModifier(
 	MPoly *mp, *mpoly, *orig_mpoly;
 	const unsigned int numVerts = (unsigned int)mesh->totvert;
 	const unsigned int numEdges = (unsigned int)mesh->totedge;
-	const unsigned int numFaces = (unsigned int)mesh->totpoly;
+	const unsigned int numPolys = (unsigned int)mesh->totpoly;
 	const unsigned int numLoops = (unsigned int)mesh->totloop;
-	unsigned int newLoops = 0, newFaces = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
+	unsigned int newLoops = 0, newPolys = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ctx->object->totcol > 1 ? ctx->object->totcol - 1 : 0;
@@ -222,9 +222,9 @@ static Mesh *applyModifier(
 	char *edge_order = NULL;
 
 	float (*vert_nors)[3] = NULL;
-	float (*face_nors)[3] = NULL;
+	float (*poly_nors)[3] = NULL;
 
-	const bool need_face_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) || (smd->flag & MOD_SOLIDIFY_EVEN);
+	const bool need_poly_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) || (smd->flag & MOD_SOLIDIFY_EVEN);
 
 	const float ofs_orig = -(((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 	const float ofs_new  = smd->offset + ofs_orig;
@@ -249,14 +249,14 @@ static Mesh *applyModifier(
 	orig_mloop = mesh->mloop;
 	orig_mpoly = mesh->mpoly;
 
-	if (need_face_normals) {
+	if (need_poly_normals) {
 		/* calculate only face normals */
-		face_nors = MEM_malloc_arrayN(numFaces, sizeof(*face_nors), __func__);
+		poly_nors = MEM_malloc_arrayN(numPolys, sizeof(*poly_nors), __func__);
 		BKE_mesh_calc_normals_poly(
 		            orig_mvert, NULL, (int)numVerts,
 		            orig_mloop, orig_mpoly,
-		            (int)numLoops, (int)numFaces,
-		            face_nors, true);
+		            (int)numLoops, (int)numPolys,
+		            poly_nors, true);
 	}
 
 	STACK_INIT(new_vert_arr, numVerts * 2);
@@ -286,7 +286,7 @@ static Mesh *applyModifier(
 			edge_users[eidx] = INVALID_UNUSED;
 		}
 
-		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
+		for (i = 0, mp = orig_mpoly; i < numPolys; i++, mp++) {
 			MLoop *ml_prev;
 			int j;
 
@@ -300,7 +300,7 @@ static Mesh *applyModifier(
 					ed = orig_medge + eidx;
 					BLI_assert(ELEM(ml_prev->v,    ed->v1, ed->v2) &&
 					           ELEM(ml->v, ed->v1, ed->v2));
-					edge_users[eidx] = (ml_prev->v > ml->v) == (ed->v1 < ed->v2) ? i : (i + numFaces);
+					edge_users[eidx] = (ml_prev->v > ml->v) == (ed->v1 < ed->v2) ? i : (i + numPolys);
 					edge_order[eidx] = j;
 				}
 				else {
@@ -315,7 +315,7 @@ static Mesh *applyModifier(
 				BLI_BITMAP_ENABLE(orig_mvert_tag, ed->v1);
 				BLI_BITMAP_ENABLE(orig_mvert_tag, ed->v2);
 				STACK_PUSH(new_edge_arr, eidx);
-				newFaces++;
+				newPolys++;
 				newLoops += 4;
 			}
 		}
@@ -338,7 +338,7 @@ static Mesh *applyModifier(
 		/* only add rim vertices */
 		newVerts = rimVerts;
 		/* each extruded face needs an opposite edge */
-		newEdges = newFaces;
+		newEdges = newPolys;
 	}
 	else {
 		/* (stride == 2) in this case, so no need to add newVerts/newEdges */
@@ -348,7 +348,7 @@ static Mesh *applyModifier(
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
 		vert_nors = MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno_hq");
-		mesh_calc_hq_normal(mesh, face_nors, vert_nors);
+		mesh_calc_hq_normal(mesh, poly_nors, vert_nors);
 	}
 
 	result = BKE_mesh_new_nomain_from_template(
@@ -356,7 +356,7 @@ static Mesh *applyModifier(
 	        (int)((numVerts * stride) + newVerts),
 	        (int)((numEdges * stride) + newEdges + rimVerts), 0,
 	        (int)((numLoops * stride) + newLoops),
-	        (int)((numFaces * stride) + newFaces));
+	        (int)((numPolys * stride) + newPolys));
 
 	mpoly = result->mpoly;
 	mloop = result->mloop;
@@ -376,8 +376,8 @@ static Mesh *applyModifier(
 		 * and point in expected direction...).
 		 * If we also copy data here, then this data get overwritten (and allocated memory becomes memleak). */
 
-		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numFaces);
-		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)numFaces, (int)numFaces);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numPolys);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)numPolys, (int)numPolys);
 	}
 	else {
 		int i, j;
@@ -406,7 +406,7 @@ static Mesh *applyModifier(
 
 		/* will be created later */
 		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)numLoops);
-		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numFaces);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numPolys);
 	}
 
 #undef INVALID_UNUSED
@@ -438,7 +438,7 @@ static Mesh *applyModifier(
 	if (do_shell) {
 		unsigned int i;
 
-		mp = mpoly + numFaces;
+		mp = mpoly + numPolys;
 		for (i = 0; i < mesh->totpoly; i++, mp++) {
 			const int loop_end = mp->totloop - 1;
 			MLoop *ml2;
@@ -593,7 +593,7 @@ static Mesh *applyModifier(
 			}
 		}
 
-		for (i = 0, mp = mpoly; i < numFaces; i++, mp++) {
+		for (i = 0, mp = mpoly; i < numPolys; i++, mp++) {
 			/* #BKE_mesh_calc_poly_angles logic is inlined here */
 			float nor_prev[3];
 			float nor_next[3];
@@ -627,13 +627,13 @@ static Mesh *applyModifier(
 				    LIKELY(((orig_medge[ml[i_curr].e].flag & ME_EDGE_TMP_TAG) == 0) &&
 				           ((orig_medge[ml[i_next].e].flag & ME_EDGE_TMP_TAG) == 0)))
 				{
-					vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], face_nors[i]) * angle;
+					vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_nors[i]) * angle;
 				}
 				else {
 					vert_angles[vidx] += angle;
 				}
 #else
-				vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], face_nors[i]) * angle;
+				vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_nors[i]) * angle;
 #endif
 				/* --- end non-angle-calc section --- */
 
@@ -785,17 +785,17 @@ static Mesh *applyModifier(
 		}
 
 		/* faces */
-		mp = mpoly + (numFaces * stride);
+		mp = mpoly + (numPolys * stride);
 		ml = mloop + (numLoops * stride);
 		j = 0;
-		for (i = 0; i < newFaces; i++, mp++) {
+		for (i = 0; i < newPolys; i++, mp++) {
 			unsigned int eidx = new_edge_arr[i];
-			unsigned int fidx = edge_users[eidx];
+			unsigned int pidx = edge_users[eidx];
 			int k1, k2;
 			bool flip;
 
-			if (fidx >= numFaces) {
-				fidx -= numFaces;
+			if (pidx >= numPolys) {
+				pidx -= numPolys;
 				flip = true;
 			}
 			else {
@@ -805,15 +805,15 @@ static Mesh *applyModifier(
 			ed = medge + eidx;
 
 			/* copy most of the face settings */
-			CustomData_copy_data(&mesh->pdata, &result->pdata, (int)fidx, (int)((numFaces * stride) + i), 1);
+			CustomData_copy_data(&mesh->pdata, &result->pdata, (int)pidx, (int)((numPolys * stride) + i), 1);
 			mp->loopstart = (int)(j + (numLoops * stride));
-			mp->flag = mpoly[fidx].flag;
+			mp->flag = mpoly[pidx].flag;
 
 			/* notice we use 'mp->totloop' which is later overwritten,
 			 * we could lookup the original face but there's no point since this is a copy
 			 * and will have the same value, just take care when changing order of assignment */
-			k1 = mpoly[fidx].loopstart + (((edge_order[eidx] - 1) + mp->totloop) % mp->totloop);  /* prev loop */
-			k2 = mpoly[fidx].loopstart +   (edge_order[eidx]);
+			k1 = mpoly[pidx].loopstart + (((edge_order[eidx] - 1) + mp->totloop) % mp->totloop);  /* prev loop */
+			k2 = mpoly[pidx].loopstart +   (edge_order[eidx]);
 
 			mp->totloop = 4;
 
@@ -921,10 +921,10 @@ static Mesh *applyModifier(
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
 
-	if (face_nors)
-		MEM_freeN(face_nors);
+	if (poly_nors)
+		MEM_freeN(poly_nors);
 
-	if (numFaces == 0 && numEdges != 0) {
+	if (numPolys == 0 && numEdges != 0) {
 		modifier_setError(md, "Faces needed for useful output");
 	}
 
