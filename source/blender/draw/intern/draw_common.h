@@ -175,7 +175,7 @@ typedef struct DRWArmaturePasses {
 	struct DRWPass *relationship_lines;
 } DRWArmaturePasses;
 
-void DRW_shgroup_armature_object(struct Object *ob, struct ViewLayer *view_layer, struct DRWArmaturePasses passes);
+void DRW_shgroup_armature_object(struct Object *ob, struct ViewLayer *view_layer, struct DRWArmaturePasses passes, bool transp);
 void DRW_shgroup_armature_pose(struct Object *ob, struct DRWArmaturePasses passes, bool transp);
 void DRW_shgroup_armature_edit(struct Object *ob, struct DRWArmaturePasses passes, bool transp);
 

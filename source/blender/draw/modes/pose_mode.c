@@ -42,6 +42,7 @@
 
 typedef struct POSE_PassList {
 	struct DRWPass *bone_solid[2];
+	struct DRWPass *bone_transp[2];
 	struct DRWPass *bone_outline[2];
 	struct DRWPass *bone_wire[2];
 	struct DRWPass *bone_envelope[2];
@@ -110,12 +111,14 @@ static void POSE_cache_init(void *vedata)
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	POSE_PrivateData *ppd = stl->g_data;
-	ppd->transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
+	ppd->transparent_bones = (draw_ctx->v3d->shading.type == OB_WIRE) ||
+	                         (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 
 	for (int i = 0; i < 2; ++i) {
 		/* Solid bones */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
-		psl->bone_solid[i] = DRW_pass_create("Bone Solid Pass", state);
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
+		psl->bone_solid[i] = DRW_pass_create("Bone Solid Pass", state | DRW_STATE_WRITE_DEPTH);
+		psl->bone_transp[i] = DRW_pass_create("Bone Transp Pass", state | DRW_STATE_BLEND);
 
 		/* Bones Outline */
 		state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
@@ -196,16 +199,17 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 		}
 		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 			int ghost = (ob->dtx & OB_DRAWXRAY) ? 1 : 0;
+			bool transp = (ppd->transparent_bones || (ob->dt <= OB_WIRE));
 
 			DRWArmaturePasses passes = {
-			    .bone_solid = psl->bone_solid[ghost],
+			    .bone_solid = (transp) ? psl->bone_transp[ghost] : psl->bone_solid[ghost],
 			    .bone_outline = psl->bone_outline[ghost],
 			    .bone_wire = psl->bone_wire[ghost],
 			    .bone_envelope = psl->bone_envelope[ghost],
 			    .bone_axes = psl->bone_axes,
 			    .relationship_lines = psl->relationship[ghost],
 			};
-			DRW_shgroup_armature_pose(ob, passes, ppd->transparent_bones);
+			DRW_shgroup_armature_pose(ob, passes, transp);
 		}
 	}
 	else if (ob->type == OB_MESH &&
@@ -275,19 +279,11 @@ static void POSE_draw_scene(void *vedata)
 	}
 
 	DRW_draw_pass(psl->bone_envelope[0]);
-
-	if (transparent_bones) {
-		DRW_pass_state_add(psl->bone_solid[0], DRW_STATE_BLEND);
-		DRW_pass_state_remove(psl->bone_solid[0], DRW_STATE_WRITE_DEPTH);
-		DRW_draw_pass(psl->bone_solid[0]);
-	}
+	DRW_draw_pass(psl->bone_transp[0]);
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-	if (!transparent_bones) {
-		DRW_draw_pass(psl->bone_solid[0]);
-	}
-
+	DRW_draw_pass(psl->bone_solid[0]);
 	DRW_draw_pass(psl->bone_outline[0]);
 	DRW_draw_pass(psl->bone_wire[0]);
 	DRW_draw_pass(psl->relationship[0]);
@@ -295,6 +291,7 @@ static void POSE_draw_scene(void *vedata)
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 
 	if (!DRW_pass_is_empty(psl->bone_envelope[1]) ||
+	    !DRW_pass_is_empty(psl->bone_transp[1]) ||
 	    !DRW_pass_is_empty(psl->bone_solid[1]) ||
 	    !DRW_pass_is_empty(psl->bone_outline[1]) ||
 	    !DRW_pass_is_empty(psl->bone_wire[1]) ||
@@ -312,6 +309,7 @@ static void POSE_draw_scene(void *vedata)
 
 		DRW_draw_pass(psl->bone_envelope[1]);
 		DRW_draw_pass(psl->bone_solid[1]);
+		DRW_draw_pass(psl->bone_transp[1]);
 		DRW_draw_pass(psl->bone_outline[1]);
 		DRW_draw_pass(psl->bone_wire[1]);
 		DRW_draw_pass(psl->relationship[1]);

@@ -3084,22 +3084,24 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		case OB_ARMATURE:
 		{
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-			    (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES))
+			    (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) ||
+			    (ob->dt < OB_WIRE))
 			{
 				break;
 			}
 			bArmature *arm = ob->data;
 			if (arm->edbo == NULL) {
 				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
+					bool is_wire = (v3d->shading.type == OB_WIRE) || (ob->dt <= OB_WIRE);
 					DRWArmaturePasses passes = {
-					    .bone_solid = sgl->bone_solid,
+					    .bone_solid = (is_wire) ? NULL : sgl->bone_solid,
 					    .bone_outline = sgl->bone_outline,
 					    .bone_wire = sgl->bone_wire,
 					    .bone_envelope = sgl->bone_envelope,
 					    .bone_axes = sgl->bone_axes,
 					    .relationship_lines = NULL, /* Don't draw relationship lines */
 					};
-					DRW_shgroup_armature_object(ob, view_layer, passes);
+					DRW_shgroup_armature_object(ob, view_layer, passes, is_wire);
 				}
 			}
 			break;
