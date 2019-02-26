@@ -78,16 +78,14 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
             sub.prop(pchan, "lock_location", text="")
 
             col = layout.column()
-            if pchan.rotation_mode == 'QUATERNION':
+            rotation_mode = pchan.rotation_mode
+            if rotation_mode == 'QUATERNION':
                 sub = col.row(align=True)
                 sub.prop(pchan, "rotation_quaternion", text="Rotation")
                 subsub = sub.column(align=True)
                 subsub.prop(pchan, "lock_rotation_w", text="")
                 subsub.prop(pchan, "lock_rotation", text="")
-            elif pchan.rotation_mode == 'AXIS_ANGLE':
-                # col.label(text="Rotation")
-                #col.prop(pchan, "rotation_angle", text="Angle")
-                #col.prop(pchan, "rotation_axis", text="Axis")
+            elif rotation_mode == 'AXIS_ANGLE':
                 sub = col.row(align=True)
                 sub.prop(pchan, "rotation_axis_angle", text="Rotation")
                 subsub = sub.column(align=True)
