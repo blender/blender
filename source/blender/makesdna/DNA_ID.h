@@ -479,14 +479,12 @@ enum {
 	 * and is only used (linked) inderectly through other libraries. */
 	LIB_TAG_INDIRECT        = 1 << 1,
 
-	/* RESET_AFTER_USE Three flags used internally in readfile.c,
-	 * to mark IDs needing to be read (only done once). */
-	LIB_TAG_NEED_EXPAND     = 1 << 3,
-	LIB_TAG_TESTEXT         = (LIB_TAG_NEED_EXPAND | LIB_TAG_EXTERN),
-	LIB_TAG_TESTIND         = (LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT),
 	/* RESET_AFTER_USE Flag used internally in readfile.c,
-	 * to mark IDs needing to be linked from a library. */
-	LIB_TAG_READ            = 1 << 4,
+	 * to mark IDs needing to be expanded (only done once). */
+	LIB_TAG_NEED_EXPAND     = 1 << 3,
+	/* RESET_AFTER_USE Flag used internally in readfile.c to mark ID
+	 * placeholders for linked datablocks needing to be read. */
+	LIB_TAG_ID_ID           = 1 << 4,
 	/* RESET_AFTER_USE */
 	LIB_TAG_NEED_LINK       = 1 << 5,
 
@@ -524,7 +522,7 @@ enum {
 	LIB_TAG_NO_USER_REFCOUNT = 1 << 16,  /* Datablock does not refcount usages of other IDs. */
 	/* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
 	 * (usual type-specific freeing is called though). */
-	LIB_TAG_NOT_ALLOCATED     = 1 << 17,
+	LIB_TAG_NOT_ALLOCATED     = 1 << 18,
 };
 
 /* Tag given ID for an update in all the dependency graphs. */

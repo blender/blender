@@ -8913,7 +8913,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	return bhead;
 }
 
-static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short tag, ID **r_id)
+static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int tag, ID **r_id)
 {
 	/* this routine reads a libblock and its direct data. Use link functions to connect it all
 	 */
@@ -9523,7 +9523,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 					bhead = blo_bhead_next(fd, bhead);
 				}
 				else {
-					bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_READ | LIB_TAG_EXTERN, NULL);
+					bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_ID_ID | LIB_TAG_EXTERN, NULL);
 				}
 				break;
 			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -9752,7 +9752,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 					id = is_yet_read(fd, ptr, bhead);
 
 				if (id == NULL) {
-					read_libblock(fd, ptr, bhead, LIB_TAG_READ | LIB_TAG_INDIRECT, NULL);
+					read_libblock(fd, ptr, bhead, LIB_TAG_ID_ID | LIB_TAG_INDIRECT, NULL);
 					// commented because this can print way too much
 					// if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 
@@ -9795,7 +9795,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
 			id = is_yet_read(fd, mainvar, bhead);
 			if (id == NULL) {
-				read_libblock(fd, mainvar, bhead, LIB_TAG_TESTIND, NULL);
+				read_libblock(fd, mainvar, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, NULL);
 			}
 			else {
 				/* this is actually only needed on UI call? when ID was already read before, and another append
@@ -10914,7 +10914,7 @@ static void add_collections_to_scene(
 	}
 }
 
-static ID *create_placeholder(Main *mainvar, const short idcode, const char *idname, const short tag)
+static ID *create_placeholder(Main *mainvar, const short idcode, const char *idname, const int tag)
 {
 	ListBase *lb = which_libbase(mainvar, idcode);
 	ID *ph_id = BKE_libblock_alloc_notest(idcode);
@@ -10950,7 +10950,8 @@ static ID *link_named_part(
 		id = is_yet_read(fd, mainl, bhead);
 		if (id == NULL) {
 			/* not read yet */
-			read_libblock(fd, mainl, bhead, force_indirect ? LIB_TAG_TESTIND : LIB_TAG_TESTEXT, &id);
+			const int tag = force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN;
+			read_libblock(fd, mainl, bhead, tag | LIB_TAG_NEED_EXPAND , &id);
 
 			if (id) {
 				/* sort by name in list */
@@ -10997,7 +10998,7 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 		if (bhead->code == ENDB)
 			break;
 		if (ELEM(bhead->code, ID_OB, ID_GR)) {
-			read_libblock(fd, mainl, bhead, LIB_TAG_TESTIND, &id);
+			read_libblock(fd, mainl, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, &id);
 		}
 
 
@@ -11080,7 +11081,7 @@ static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *i
 		bhead = find_bhead_from_idname(fd, id->name);
 	}
 
-	id->tag &= ~LIB_TAG_READ;
+	id->tag &= ~LIB_TAG_ID_ID;
 
 	if (!is_valid) {
 		blo_reportf_wrap(
@@ -11292,7 +11293,7 @@ void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
 /** \name Library Reading
  * \{ */
 
-static int mainvar_id_tag_any_check(Main *mainvar, const short tag)
+static int mainvar_id_tag_any_check(Main *mainvar, const int tag)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a;
@@ -11328,8 +11329,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		/* test 1: read libdata */
 		mainptr = mainl->next;
 		while (mainptr) {
-			if (mainvar_id_tag_any_check(mainptr, LIB_TAG_READ)) {
-				// printf("found LIB_TAG_READ %s (%s)\n", mainptr->curlib->id.name, mainptr->curlib->name);
+			if (mainvar_id_tag_any_check(mainptr, LIB_TAG_ID_ID)) {
+				// printf("found LIB_TAG_ID_ID %s (%s)\n", mainptr->curlib->id.name, mainptr->curlib->name);
 
 				FileData *fd = mainptr->curlib->filedata;
 
@@ -11405,7 +11406,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					while (id) {
 						ID *idn = id->next;
-						if (id->tag & LIB_TAG_READ) {
+						if (id->tag & LIB_TAG_ID_ID) {
 							BLI_remlink(lbarray[a], id);
 
 							/* When playing with lib renaming and such, you may end with cases where you have
