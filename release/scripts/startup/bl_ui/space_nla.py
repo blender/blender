@@ -100,6 +100,7 @@ class NLA_MT_view(Menu):
 
         layout.prop(st, "show_strip_curves")
         layout.prop(st, "show_local_markers")
+        layout.prop(st, "show_marker_lines")
 
         layout.separator()
         layout.operator("anim.previewrange_set")

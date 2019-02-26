@@ -337,6 +337,7 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "show_group_colors")
         layout.prop(st, "show_interpolation")
         layout.prop(st, "show_extremes")
+        layout.prop(st, "show_marker_lines")
         layout.prop(st, "use_auto_merge_keyframes")
 
         layout.prop(st, "show_seconds")

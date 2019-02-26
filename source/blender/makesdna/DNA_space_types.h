@@ -500,6 +500,8 @@ typedef enum eSpaceNla_Flag {
 	SNLA_NOREALTIMEUPDATES = (1 << 6),
 	/* don't show local strip marker indications */
 	SNLA_NOLOCALMARKERS    = (1 << 7),
+	/* show vertical line for every marker */
+	SNLA_SHOW_MARKER_LINES = (1 << 8),
 } eSpaceNla_Flag;
 
 /** \} */

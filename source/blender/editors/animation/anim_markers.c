@@ -368,11 +368,35 @@ static void draw_marker_name(
 	UI_fontstyle_draw_simple(fstyle, x, y, name, text_col);
 }
 
+static void draw_marker_line(const float color[4], float x, float ymin, float ymax)
+{
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+
+	float viewport_size[4];
+	GPU_viewport_size_get_f(viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	immUniformColor4fv(color);
+	immUniform1i("colors_len", 0);  /* "simple" mode */
+	immUniform1f("dash_width", 6.0f);
+	immUniform1f("dash_factor", 0.5f);
+
+	immBegin(GPU_PRIM_LINES, 2);
+	immVertex2f(pos, x, ymin);
+	immVertex2f(pos, x, ymax);
+	immEnd();
+
+	immUnbindProgram();
+}
+
 /* function to draw markers */
 static void draw_marker(
-        View2D *v2d, const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int flag,
+        const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int flag,
         /* avoid re-calculating each time */
-        const float ypixels, const float xscale, const float yscale)
+        const float ypixels, const float xscale, int height)
 {
 	const float xpos = marker->frame * xscale;
 #ifdef DURIAN_CAMERA_SWITCH
@@ -392,31 +416,15 @@ static void draw_marker(
 	if (flag & DRAW_MARKERS_LINES)
 #endif
 	{
-		GPUVertFormat *format = immVertexFormat();
-		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
-		float viewport_size[4];
-		GPU_viewport_size_get_f(viewport_size);
-		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
+		float color[4];
 		if (marker->flag & SELECT) {
-			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.38f);
+			copy_v4_fl4(color, 1.0f, 1.0f, 1.0f, 0.38f);
 		}
 		else {
-			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.38f);
+			copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 0.38f);
 		}
-		immUniform1i("colors_len", 0);  /* "simple" mode */
-		immUniform1f("dash_width", 6.0f);
-		immUniform1f("dash_factor", 0.5f);
 
-		immBegin(GPU_PRIM_LINES, 2);
-		immVertex2f(pos, xpos + 0.5f, 12.0f);
-		immVertex2f(pos, xpos + 0.5f, (v2d->cur.ymax + 12.0f) * yscale);
-		immEnd();
-
-		immUnbindProgram();
+		draw_marker_line(color, xpos, yoffs + 1.5f * UI_DPI_ICON_SIZE, height);
 	}
 
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
@@ -477,6 +485,7 @@ void ED_markers_draw(const bContext *C, int flag)
 
 	scene = CTX_data_scene(C);
 	v2d = UI_view2d_fromcontext(C);
+	int height = v2d->mask.ymax - v2d->mask.ymin;
 
 	if (flag & DRAW_MARKERS_MARGIN) {
 		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -515,8 +524,8 @@ void ED_markers_draw(const bContext *C, int flag)
 				if ((marker->frame >= v2d_clip_range_x[0]) &&
 				    (marker->frame <= v2d_clip_range_x[1]))
 				{
-					draw_marker(v2d, fstyle, marker, scene->r.cfra, flag,
-					            ypixels, xscale, yscale);
+					draw_marker(fstyle, marker, scene->r.cfra, flag,
+					            ypixels, xscale, height);
 				}
 			}
 		}

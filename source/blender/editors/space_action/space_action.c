@@ -243,6 +243,7 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 
 	marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) | DRAW_MARKERS_MARGIN;
+	if (saction->flag & SACTION_SHOW_MARKER_LINES) marker_flag |= DRAW_MARKERS_LINES;
 	ED_markers_draw(C, marker_flag);
 
 	/* caches */
