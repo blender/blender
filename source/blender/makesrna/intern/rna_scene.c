@@ -2413,7 +2413,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	static const EnumPropertyItem gpencil_selectmode_items[] = {
 		{GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
 		{GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points" },
-		/* GPXX need better icon for segment */
 		{GP_SELECTMODE_SEGMENT, "SEGMENT", ICON_GP_SELECT_BETWEEN_STROKES, "Segment", "Select all stroke points between other strokes" },
 		{0, NULL, 0, NULL, NULL},
 	};
