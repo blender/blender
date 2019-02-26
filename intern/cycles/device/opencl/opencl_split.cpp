@@ -1724,11 +1724,11 @@ void OpenCLDevice::shader(DeviceTask& task)
 		kernel = bake_program(ustring("bake"));
 	}
 	else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
-		assert(displace_program);
+		assert(displace_program());
 		kernel = displace_program(ustring("displace"));
 	}
 	else {
-		assert(background_program);
+		assert(background_program());
 		kernel = background_program(ustring("background"));
 	}
 
