@@ -69,6 +69,7 @@ typedef struct tGPencilObjectCache {
 	struct Object *ob;
 	struct bGPdata *gpd;
 	int idx;  /*original index, can change after sort */
+	char name[66];
 
 	/* effects */
 	bool has_fx;

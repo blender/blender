@@ -639,6 +639,30 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 void GPENCIL_cache_finish(void *vedata)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
+	tGPencilObjectCache *cache_ob = NULL;
+	Object *ob = NULL;
+
+	GHash *gh_objects = BLI_ghash_str_new(__func__);
+	/* create hash of real object (non duplicated) */
+	for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
+		cache_ob = &stl->g_data->gp_object_cache[i];
+		if (!cache_ob->is_dup_ob) {
+			ob = cache_ob->ob;
+			BLI_ghash_insert(gh_objects, ob->id.name, cache_ob->ob);
+		}
+	}
+	/* reasign duplicate objects because memory for particles is not available
+	 * and need to use the original datablock and runtime data */
+	for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
+		cache_ob = &stl->g_data->gp_object_cache[i];
+		if (cache_ob->is_dup_ob) {
+			Object *ob_orig  = (Object *)BLI_ghash_lookup(gh_objects, cache_ob->name);
+			cache_ob->ob = ob_orig;
+			cache_ob->gpd = (bGPdata *)ob_orig->data;
+		}
+	}
+
+	BLI_ghash_free(gh_objects, NULL, NULL);
 
 	/* draw particles */
 	DRW_gpencil_populate_particles(&e_data, vedata);

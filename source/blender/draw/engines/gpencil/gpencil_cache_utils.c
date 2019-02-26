@@ -68,6 +68,8 @@ tGPencilObjectCache *gpencil_object_cache_add(
 
 	cache_elem->ob = ob;
 	cache_elem->gpd = (bGPdata *)ob->data;
+	strcpy(cache_elem->name, ob->id.name);
+
 	copy_v3_v3(cache_elem->loc, ob->obmat[3]);
 	copy_m4_m4(cache_elem->obmat, ob->obmat);
 	cache_elem->idx = *gp_cache_used;
