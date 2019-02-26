@@ -3562,6 +3562,74 @@ void GPENCIL_OT_stroke_simplify_fixed(wmOperatorType *ot)
 
 }
 
+/* ******************* Stroke trim ************************** */
+static int gp_stroke_trim_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+
+	/* sanity checks */
+	if (ELEM(NULL, gpd))
+		return OPERATOR_CANCELLED;
+
+	/* Go through each editable + selected stroke */
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *init_gpf = gpl->actframe;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
+
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				bGPDstroke *gps, *gpsn;
+
+				if (gpf == NULL)
+					continue;
+
+				for (gps = gpf->strokes.first; gps; gps = gpsn) {
+					gpsn = gps->next;
+
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					if (gps->flag & GP_STROKE_SELECT) {
+						BKE_gpencil_trim_stroke(gps);
+					}
+				}
+				/* if not multiedit, exit loop*/
+				if (!is_multiedit) {
+					break;
+				}
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	/* notifiers */
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_stroke_trim(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Trim Stroke";
+	ot->idname = "GPENCIL_OT_stroke_trim";
+	ot->description = "Trim selected stroke to first loop or intersection";
+
+	/* api callbacks */
+	ot->exec = gp_stroke_trim_exec;
+	ot->poll = gp_active_layer_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ***************** Separate Strokes ********************** */
 typedef enum eGP_SeparateModes {
 	/* Points */

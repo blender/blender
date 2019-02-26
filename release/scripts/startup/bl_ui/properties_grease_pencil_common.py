@@ -215,6 +215,7 @@ class GreasePencilStrokeEditPanel:
         row = col.row(align=True)
         row.operator("gpencil.stroke_simplify_fixed", text="Simplify")
         row.operator("gpencil.stroke_simplify", text="Adaptive")
+        row.operator("gpencil.stroke_trim", text="Trim")
 
         col.separator()
 

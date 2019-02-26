@@ -71,8 +71,7 @@ typedef struct BrushGpencilSettings {
 	short draw_smoothlvl;
 	/** Number of times to subdivide new strokes. */
 	short draw_subdivide;
-	/** Internal grease pencil drawing flags. */
-	short flag;
+	short _pad;
 
 	/** Number of times to apply thickness smooth factor to new strokes. */
 	short thick_smoothlvl;
@@ -106,7 +105,8 @@ typedef struct BrushGpencilSettings {
 	float era_strength_f;
 	/** Factor to apply to thickness for soft eraser. */
 	float era_thickness_f;
-	char pad_2[4];
+	/** Internal grease pencil drawing flags. */
+	int flag;
 
 	struct CurveMapping *curve_sensitivity;
 	struct CurveMapping *curve_strength;
@@ -147,6 +147,8 @@ typedef enum eGPDbrush_Flag {
 	GP_BRUSH_DISSABLE_LASSO = (1 << 14),
 	/* Do not erase strokes oLcluded */
 	GP_BRUSH_OCCLUDE_ERASER = (1 << 15),
+	/* Post process trim stroke */
+	GP_BRUSH_TRIM_STROKE = (1 << 16),
 } eGPDbrush_Flag;
 
 /* BrushGpencilSettings->gp_fill_draw_mode */

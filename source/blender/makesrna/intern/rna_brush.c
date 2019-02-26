@@ -1256,6 +1256,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", "Mode to draw boundary limits");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
+	prop = RNA_def_property(srna, "trim", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_TRIM_STROKE);
+	RNA_def_property_boolean_default(prop, false);
+	RNA_def_property_ui_text(prop, "Trim Stroke Ends", "Trim intersecting stroke ends");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
 	/* Material */
 	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");

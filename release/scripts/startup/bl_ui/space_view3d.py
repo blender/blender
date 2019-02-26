@@ -4007,6 +4007,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.operator("gpencil.stroke_smooth", text="Smooth")
         layout.operator("gpencil.stroke_subdivide", text="Subdivide")
         layout.menu("VIEW3D_MT_gpencil_simplify")
+        layout.operator("gpencil.stroke_trim", text="Trim")
 
         layout.separator()
 
@@ -5674,6 +5675,7 @@ class VIEW3D_MT_gpencil_edit_specials(Menu):
         layout.operator("gpencil.stroke_subdivide", text="Subdivide")
         layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
         layout.operator("gpencil.stroke_simplify", text="Simplify Adaptive")
+        layout.operator("gpencil.stroke_trim", text="Trim")
 
         layout.separator()
         layout.menu("GPENCIL_MT_separate", text="Separate")

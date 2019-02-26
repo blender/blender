@@ -1599,6 +1599,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
         col.prop(gp_settings, "pen_subdivision_steps")
         col.prop(gp_settings, "random_subdiv", text="Randomness", slider=True)
 
+        col = layout.column(align=True)
+        col.prop(gp_settings, "trim")
+
 
 class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"

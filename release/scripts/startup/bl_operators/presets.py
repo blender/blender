@@ -673,6 +673,7 @@ class AddPresetGpencilBrush(AddPresetBase, Operator):
         "settings.uv_random",
         "settings.pen_jitter",
         "settings.use_jitter_pressure",
+        "settings.trim",
     ]
 
     preset_subdir = "gpencil_brush"
