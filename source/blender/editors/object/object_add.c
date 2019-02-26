@@ -2208,20 +2208,14 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /* Does set ID->newid pointers. */
 static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, int dupflag)
 {
-#define ID_NEW_REMAP_US(a)	if (      (a)->id.newid) { (a) = (void *)(a)->id.newid;       (a)->id.us++; }
-#define ID_NEW_REMAP_US2(a)	if (((ID *)a)->newid)    { (a) = ((ID  *)a)->newid;     ((ID *)a)->us++;    }
-
 	Base *base, *basen = NULL;
-	Material ***matarar;
 	Object *obn;
-	ID *id;
-	int a, didit;
 
 	if (ob->mode & OB_MODE_POSE) {
 		; /* nothing? */
 	}
 	else {
-		obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
+		obn = ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag));
 		DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 		base = BKE_view_layer_base_find(view_layer, ob);
@@ -2249,214 +2243,8 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					BKE_collection_object_add(bmain, collection, obn);
 			}
 		}
-
-		/* duplicates using userflags */
-		if (dupflag & USER_DUP_ACT) {
-			BKE_animdata_copy_id_action(bmain, &obn->id, true);
-		}
-
-		if (dupflag & USER_DUP_MAT) {
-			for (a = 0; a < obn->totcol; a++) {
-				id = (ID *)obn->mat[a];
-				if (id) {
-					ID_NEW_REMAP_US(obn->mat[a])
-					else {
-						obn->mat[a] = ID_NEW_SET(obn->mat[a], BKE_material_copy(bmain, obn->mat[a]));
-					}
-					id_us_min(id);
-
-					if (dupflag & USER_DUP_ACT) {
-						BKE_animdata_copy_id_action(bmain, &obn->mat[a]->id, true);
-					}
-				}
-			}
-		}
-		if (dupflag & USER_DUP_PSYS) {
-			ParticleSystem *psys;
-			for (psys = obn->particlesystem.first; psys; psys = psys->next) {
-				id = (ID *) psys->part;
-				if (id) {
-					ID_NEW_REMAP_US(psys->part)
-					else {
-						psys->part = ID_NEW_SET(psys->part, BKE_particlesettings_copy(bmain, psys->part));
-					}
-
-					if (dupflag & USER_DUP_ACT) {
-						BKE_animdata_copy_id_action(bmain, &psys->part->id, true);
-					}
-
-					id_us_min(id);
-				}
-			}
-		}
-
-		id = obn->data;
-		didit = 0;
-
-		switch (obn->type) {
-			case OB_MESH:
-				if (dupflag & USER_DUP_MESH) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_mesh_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_CURVE:
-				if (dupflag & USER_DUP_CURVE) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_curve_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_SURF:
-				if (dupflag & USER_DUP_SURF) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_curve_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_FONT:
-				if (dupflag & USER_DUP_FONT) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_curve_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_MBALL:
-				if (dupflag & USER_DUP_MBALL) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_mball_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_LAMP:
-				if (dupflag & USER_DUP_LAMP) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_light_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_ARMATURE:
-				DEG_id_tag_update(&obn->id, ID_RECALC_GEOMETRY);
-				if (obn->pose)
-					BKE_pose_tag_recalc(bmain, obn->pose);
-				if (dupflag & USER_DUP_ARM) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_armature_copy(bmain, obn->data));
-						BKE_pose_rebuild(bmain, obn, obn->data, true);
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_LATTICE:
-				if (dupflag != 0) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_lattice_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_CAMERA:
-				if (dupflag != 0) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_camera_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_LIGHTPROBE:
-				if (dupflag != 0) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_lightprobe_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_SPEAKER:
-				if (dupflag != 0) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_speaker_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-			case OB_GPENCIL:
-				if (dupflag != 0) {
-					ID_NEW_REMAP_US2(obn->data)
-					else {
-						obn->data = ID_NEW_SET(obn->data, BKE_gpencil_copy(bmain, obn->data));
-						didit = 1;
-					}
-					id_us_min(id);
-				}
-				break;
-		}
-
-		/* check if obdata is copied */
-		if (didit) {
-			Key *key = BKE_key_from_object(obn);
-
-			Key *oldkey = BKE_key_from_object(ob);
-			if (oldkey != NULL) {
-				ID_NEW_SET(oldkey, key);
-			}
-
-			if (dupflag & USER_DUP_ACT) {
-				BKE_animdata_copy_id_action(bmain, (ID *)obn->data, true);
-				if (key) {
-					BKE_animdata_copy_id_action(bmain, (ID *)key, true);
-				}
-			}
-
-			if (dupflag & USER_DUP_MAT) {
-				matarar = give_matarar(obn);
-				if (matarar) {
-					for (a = 0; a < obn->totcol; a++) {
-						id = (ID *)(*matarar)[a];
-						if (id) {
-							ID_NEW_REMAP_US((*matarar)[a])
-							else {
-								(*matarar)[a] = ID_NEW_SET((*matarar)[a], BKE_material_copy(bmain, (*matarar)[a]));
-							}
-							id_us_min(id);
-						}
-					}
-				}
-			}
-		}
 	}
 	return basen;
-
-#undef ID_NEW_REMAP_US
-#undef ID_NEW_REMAP_US2
 }
 
 /* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */

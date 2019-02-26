@@ -209,17 +209,72 @@ void BKE_collection_copy_data(
 	}
 }
 
+static void collection_duplicate_recursive(Main *bmain, GHash *visited, Collection *collection, const int dupflag)
+{
+	const bool is_first_run = (visited == NULL);
+	if (is_first_run) {
+		visited = BLI_ghash_ptr_new(__func__);
+		BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
+	}
+
+	if (collection->id.tag & LIB_TAG_DOIT) {
+		return;
+	}
+	collection->id.tag |= LIB_TAG_DOIT;
+
+	ListBase collection_object_list = {NULL, NULL};
+	BLI_duplicatelist(&collection_object_list, &collection->gobject);
+	for (CollectionObject *cob = collection_object_list.first; cob; cob = cob->next) {
+		Object *ob_old = cob->ob;
+		Object *ob_new = NULL;
+		void **ob_key_p, **ob_value_p;
+
+		if (!BLI_ghash_ensure_p_ex(visited, ob_old, &ob_key_p, &ob_value_p)) {
+			ob_new = BKE_object_duplicate(bmain, ob_old, dupflag);
+			*ob_key_p = ob_old;
+			*ob_value_p = ob_new;
+		}
+		else {
+			ob_new = *ob_value_p;
+		}
+
+		collection_object_add(bmain, collection, ob_new, 0, true);
+		collection_object_remove(bmain, collection, ob_old, false);
+	}
+	BLI_freelistN(&collection_object_list);
+
+	ListBase collection_child_list = {NULL, NULL};
+	BLI_duplicatelist(&collection_child_list, &collection->children);
+	for (CollectionChild *child = collection_child_list.first; child; child = child->next) {
+		Collection *child_collection_old = child->collection;
+		Collection *child_collection_new = BKE_collection_copy(bmain, collection, child_collection_old);
+
+		collection_duplicate_recursive(bmain, visited, child_collection_new, dupflag);
+		collection_child_remove(collection, child_collection_old);
+	}
+	BLI_freelistN(&collection_child_list);
+
+	if (is_first_run) {
+		BLI_ghash_free(visited, NULL, NULL);
+	}
+}
+
 /**
  * Makes a shallow copy of a Collection
  *
- * Add a new collection in the same level as the old one, copy any nested collections
- * but link the objects to the new collection (as oppose to copy them).
+ * Add a new collection in the same level as the old one, link any nested collections
+ * and finally link the objects to the new collection (as oppose to copy them).
  */
 Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *collection)
 {
+	return BKE_collection_duplicate(bmain, parent, collection, false, false);
+}
+
+Collection *BKE_collection_duplicate(Main *bmain, Collection *parent, Collection *collection, const bool do_hierarchy, const bool do_deep_copy)
+{
 	/* It's not allowed to copy the master collection. */
 	if (collection->flag & COLLECTION_IS_MASTER) {
-		BLI_assert("!Master collection can't be copied");
+		BLI_assert("!Master collection can't be duplicated");
 		return NULL;
 	}
 
@@ -239,6 +294,10 @@ Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *col
 				BLI_insertlinkafter(&parent->children, child, child_new);
 			}
 		}
+	}
+
+	if (do_hierarchy) {
+		collection_duplicate_recursive(bmain, NULL, collection_new, (do_deep_copy) ? U.dupflag : 0);
 	}
 
 	BKE_main_collection_sync(bmain);
