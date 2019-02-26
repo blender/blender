@@ -1948,7 +1948,7 @@ void BKE_library_make_local(
 			else {
 				/* we can switch the proxy'ing from the linked-in to the made-local proxy.
 				 * BKE_object_make_proxy() shouldn't be used here, as it allocates memory that
-				 * was already allocated by BKE_object_make_local_ex() (which called BKE_object_copy_ex). */
+				 * was already allocated by BKE_object_make_local_ex() (which called BKE_object_copy). */
 				ob_new->proxy = ob->proxy;
 				ob_new->proxy_group = ob->proxy_group;
 				ob_new->proxy_from = ob->proxy_from;
