@@ -144,6 +144,17 @@ class VIEW3D_HT_header(Header):
                 icon_value=trans_icon,
             )
 
+        # Pivot
+        if object_mode in {'OBJECT', 'EDIT', 'POSE', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'}:
+            pivot_point = tool_settings.transform_pivot_point
+            act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
+            row = layout.row(align=True)
+            row.popover(
+                panel="VIEW3D_PT_pivot_point",
+                icon=act_pivot_point.icon,
+                text="",
+            )
+
         # Snap
         show_snap = False
         if obj is None:
@@ -218,16 +229,6 @@ class VIEW3D_HT_header(Header):
                 sub.active = tool_settings.proportional_edit != 'DISABLED'
                 sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
-        # Pivot
-        if object_mode in {'OBJECT', 'EDIT', 'POSE', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'}:
-            pivot_point = tool_settings.transform_pivot_point
-            act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
-            row = layout.row(align=True)
-            row.popover(
-                panel="VIEW3D_PT_pivot_point",
-                icon=act_pivot_point.icon,
-                text="",
-            )
         # grease pencil
         if object_mode == 'PAINT_GPENCIL':
             origin = tool_settings.gpencil_stroke_placement_view3d

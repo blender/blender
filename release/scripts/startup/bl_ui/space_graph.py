@@ -65,6 +65,8 @@ class GRAPH_HT_header(Header):
             icon='FILTER',
         )
 
+        layout.prop(st, "pivot_point", icon_only=True)
+
         layout.prop(st, "auto_snap", text="")
 
         row = layout.row(align=True)
@@ -72,8 +74,6 @@ class GRAPH_HT_header(Header):
         sub = row.row(align=True)
         sub.active = tool_settings.use_proportional_fcurve
         sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
-
-        layout.prop(st, "pivot_point", icon_only=True)
 
 
 class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
