@@ -1551,6 +1551,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 				continue;
 			}
 			build_id(dtar->id);
+			build_driver_id_property(dtar->id, dtar->rna_path);
 			/* Initialize relations coming to proxy_from. */
 			Object *proxy_from = NULL;
 			if ((GS(dtar->id->name) == ID_OB) &&
@@ -1625,6 +1626,38 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 		}
 		DRIVER_TARGETS_LOOPER_END;
 	}
+}
+
+void DepsgraphRelationBuilder::build_driver_id_property(ID *id,
+                                                        const char *rna_path)
+{
+	if (id == NULL || rna_path == NULL) {
+		return;
+	}
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	RNA_id_pointer_create(id, &id_ptr);
+	if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, NULL)) {
+		return;
+	}
+	if (prop == NULL) {
+		return;
+	}
+	if (!RNA_property_is_idprop(prop)) {
+		return;
+	}
+	const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
+	OperationKey id_property_key(id,
+	                             NodeType::PARAMETERS,
+	                             OperationCode::ID_PROPERTY,
+	                             prop_identifier);
+	OperationKey parameters_exit_key(id,
+	                                 NodeType::PARAMETERS,
+	                                 OperationCode::PARAMETERS_EXIT);
+	add_relation(id_property_key,
+	             parameters_exit_key,
+	             "ID Property -> Done",
+	             RELATION_CHECK_BEFORE_ADD);
 }
 
 void DepsgraphRelationBuilder::build_parameters(ID *id)
