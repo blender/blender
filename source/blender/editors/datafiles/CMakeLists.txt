@@ -696,6 +696,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.gpencil.sculpt_thickness
 	ops.gpencil.sculpt_twist
 	ops.gpencil.sculpt_weight
+	ops.gpencil.stroke_cutter
 	ops.mesh.bevel
 	ops.mesh.bisect
 	ops.mesh.dupli_extrude_cursor
