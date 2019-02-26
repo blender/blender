@@ -357,10 +357,6 @@ enum {
 	MOD_EDGESPLIT_FROMFLAG   = (1 << 2),
 };
 
-typedef struct BevelModNorEditData {
-	struct GHash *faceHash;
-} BevelModNorEditData;
-
 typedef struct BevelModifierData {
 	ModifierData modifier;
 
@@ -393,25 +389,21 @@ typedef struct BevelModifierData {
 	/** if the MOD_BEVEL_VWEIGHT option is set,
 	 * this will be the name of the vert group, MAX_VGROUP_NAME */
 	char defgrp_name[64];
-	struct BevelModNorEditData clnordata;
 } BevelModifierData;
 
 /* BevelModifierData->flags and BevelModifierData->lim_flags */
 enum {
 	MOD_BEVEL_VERT          = (1 << 1),
-/*	MOD_BEVEL_RADIUS        = (1 << 2), */
+/*	unused                  = (1 << 2), */
 	MOD_BEVEL_ANGLE         = (1 << 3),
 	MOD_BEVEL_WEIGHT        = (1 << 4),
 	MOD_BEVEL_VGROUP        = (1 << 5),
-	MOD_BEVEL_EMIN          = (1 << 7),
-	MOD_BEVEL_EMAX          = (1 << 8),
-/*	MOD_BEVEL_RUNNING       = (1 << 9), */
-/*	MOD_BEVEL_RES           = (1 << 10), */
-	/* This is a new setting not related to old (trunk bmesh bevel code)
-	 * but adding here because they are mixed - campbell
-	 */
-/*	MOD_BEVEL_EVEN          = (1 << 11), */
-/*	MOD_BEVEL_DIST          = (1 << 12), */  /* same as above */
+/*	unused                  = (1 << 7), */
+/*	unused                  = (1 << 8), */
+/*	unused                  = (1 << 9), */
+/*	unused                  = (1 << 10), */
+/*	unused                  = (1 << 11), */
+/*	unused                  = (1 << 12), */
 	MOD_BEVEL_OVERLAP_OK    = (1 << 13),
 	MOD_BEVEL_EVEN_WIDTHS   = (1 << 14),
 	MOD_BEVEL_HARDEN_NORMALS = (1 << 15),

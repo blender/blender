@@ -3035,14 +3035,6 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	/* TO BE DEPRECATED */
-	static const EnumPropertyItem prop_edge_weight_method_items[] = {
-		{0, "AVERAGE", 0, "Average", ""},
-		{MOD_BEVEL_EMIN, "SHARPEST", 0, "Sharpest", ""},
-		{MOD_BEVEL_EMAX, "LARGEST", 0, "Largest", ""},
-		{0, NULL, 0, NULL, NULL},
-	};
-
 	static EnumPropertyItem prop_harden_normals_items[] = {
 		{ MOD_BEVEL_FACE_STRENGTH_NONE, "FSTR_NONE", 0, "None", "Do not set face strength" },
 		{ MOD_BEVEL_FACE_STRENGTH_NEW, "FSTR_NEW", 0, "New", "Set face strength on new faces only" },
@@ -3093,13 +3085,6 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "lim_flags");
 	RNA_def_property_enum_items(prop, prop_limit_method_items);
 	RNA_def_property_ui_text(prop, "Limit Method", "");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	/* TO BE DEPRECATED */
-	prop = RNA_def_property(srna, "edge_weight_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "e_flags");
-	RNA_def_property_enum_items(prop, prop_edge_weight_method_items);
-	RNA_def_property_ui_text(prop, "Edge Weight Method", "What edge weight to use for weighting a vertex");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "angle_limit", PROP_FLOAT, PROP_ANGLE);
