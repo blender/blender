@@ -870,7 +870,9 @@ static void ApplySnapResize(TransInfo *t, float vec[3])
 	getSnapPoint(t, point);
 
 	float dist = ResizeBetween(t, t->tsnap.snapTarget, point);
-	copy_v3_fl(vec, dist);
+	if (dist != TRANSFORM_DIST_INVALID) {
+		copy_v3_fl(vec, dist);
+	}
 }
 
 /********************** DISTANCE **************************/
