@@ -666,7 +666,7 @@ void GPENCIL_cache_finish(void *vedata)
 		DRW_gpencil_populate_particles(&e_data, gh_objects, vedata);
 
 		/* free hash */
-		BLI_ghash_free(gh_objects, NULL, NULL);
+		BLI_ghash_free(gh_objects, MEM_freeN, NULL);
 	}
 
 	if (stl->g_data->session_flag & (GP_DRW_PAINT_IDLE | GP_DRW_PAINT_FILLING)) {
@@ -719,6 +719,7 @@ static void gpencil_free_obj_runtime(GPENCIL_StorageList *stl)
 
 		/* free shgrp array */
 		cache_ob->tot_layers = 0;
+		MEM_SAFE_FREE(cache_ob->name);
 		MEM_SAFE_FREE(cache_ob->shgrp_array);
 	}
 
