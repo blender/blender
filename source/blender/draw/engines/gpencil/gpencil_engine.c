@@ -651,21 +651,12 @@ void GPENCIL_cache_finish(void *vedata)
 			BLI_ghash_insert(gh_objects, ob->id.name, cache_ob->ob);
 		}
 	}
-	/* reasign duplicate objects because memory for particles is not available
-	 * and need to use the original datablock and runtime data */
-	for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
-		cache_ob = &stl->g_data->gp_object_cache[i];
-		if (cache_ob->is_dup_ob) {
-			Object *ob_orig  = (Object *)BLI_ghash_lookup(gh_objects, cache_ob->name);
-			cache_ob->ob = ob_orig;
-			cache_ob->gpd = (bGPdata *)ob_orig->data;
-		}
-	}
-
-	BLI_ghash_free(gh_objects, NULL, NULL);
 
 	/* draw particles */
-	DRW_gpencil_populate_particles(&e_data, vedata);
+	DRW_gpencil_populate_particles(&e_data, gh_objects, vedata);
+
+	/* free hash */
+	BLI_ghash_free(gh_objects, NULL, NULL);
 
 	if (stl->g_data->session_flag & (GP_DRW_PAINT_IDLE | GP_DRW_PAINT_FILLING)) {
 		stl->storage->framebuffer_flag |= GP_FRAMEBUFFER_DRAW;
