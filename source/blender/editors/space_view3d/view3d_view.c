@@ -1076,7 +1076,7 @@ int view3d_opengl_select(
 			.rect = &rect,
 			.gpu_select_mode = gpu_select_mode,
 		};
-		draw_surface = (v3d->shading.type > OB_WIRE);
+		draw_surface = (v3d->shading.type > OB_WIRE) || ((v3d->shading.flag & V3D_XRAY_FLAG(v3d)) == 0);
 		DRW_draw_select_loop(
 		        depsgraph, ar, v3d,
 		        use_obedit_skip, draw_surface, use_nearest, &rect,
