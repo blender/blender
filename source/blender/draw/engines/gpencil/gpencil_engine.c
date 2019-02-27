@@ -330,6 +330,7 @@ void GPENCIL_cache_init(void *vedata)
 	stl->g_data->gp_cache_used = 0;
 	stl->g_data->gp_cache_size = 0;
 	stl->g_data->gp_object_cache = NULL;
+	stl->g_data->do_instances = false;
 
 	{
 		/* Stroke pass 2D */
@@ -594,6 +595,11 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 				stl->g_data->gp_object_cache, ob,
 				&stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
 
+			/* enable instance loop */
+			if (!stl->g_data->do_instances) {
+				stl->g_data->do_instances = ob->base_flag & BASE_FROM_DUPLI;
+			}
+
 			/* load drawing data */
 			gpencil_add_draw_data(vedata, ob);
 		}
@@ -642,21 +648,24 @@ void GPENCIL_cache_finish(void *vedata)
 	tGPencilObjectCache *cache_ob = NULL;
 	Object *ob = NULL;
 
-	GHash *gh_objects = BLI_ghash_str_new(__func__);
-	/* create hash of real object (non duplicated) */
-	for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
-		cache_ob = &stl->g_data->gp_object_cache[i];
-		if (!cache_ob->is_dup_ob) {
-			ob = cache_ob->ob;
-			BLI_ghash_insert(gh_objects, ob->id.name, cache_ob->ob);
+	/* create data for instances */
+	if (stl->g_data->do_instances) {
+		GHash *gh_objects = BLI_ghash_str_new(__func__);
+		/* create hash of real object (non duplicated) */
+		for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
+			cache_ob = &stl->g_data->gp_object_cache[i];
+			if (!cache_ob->is_dup_ob) {
+				ob = cache_ob->ob;
+				BLI_ghash_insert(gh_objects, ob->id.name, cache_ob->ob);
+			}
 		}
+
+		/* draw particles */
+		DRW_gpencil_populate_particles(&e_data, gh_objects, vedata);
+
+		/* free hash */
+		BLI_ghash_free(gh_objects, NULL, NULL);
 	}
-
-	/* draw particles */
-	DRW_gpencil_populate_particles(&e_data, gh_objects, vedata);
-
-	/* free hash */
-	BLI_ghash_free(gh_objects, NULL, NULL);
 
 	if (stl->g_data->session_flag & (GP_DRW_PAINT_IDLE | GP_DRW_PAINT_FILLING)) {
 		stl->storage->framebuffer_flag |= GP_FRAMEBUFFER_DRAW;

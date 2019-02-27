@@ -246,6 +246,7 @@ typedef struct g_data {
 	struct tGPencilObjectCache *gp_object_cache;
 
 	int session_flag;
+	bool do_instances;
 
 } g_data; /* Transient data */
 
