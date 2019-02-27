@@ -828,12 +828,16 @@ typedef enum eDirEntry_SelectFlag {
 #define ASSET_UUID_LENGTH     16
 
 /* Used to communicate with asset engines outside of 'import' context. */
+#
+#
 typedef struct AssetUUID {
 	int uuid_asset[4];
 	int uuid_variant[4];
 	int uuid_revision[4];
 } AssetUUID;
 
+#
+#
 typedef struct AssetUUIDList {
 	AssetUUID *uuids;
 	int nbr_uuids;
@@ -841,6 +845,8 @@ typedef struct AssetUUIDList {
 } AssetUUIDList;
 
 /* Container for a revision, only relevant in asset context. */
+#
+#
 typedef struct FileDirEntryRevision {
 	struct FileDirEntryRevision *next, *prev;
 
@@ -859,6 +865,8 @@ typedef struct FileDirEntryRevision {
 
 /* Container for a variant, only relevant in asset context.
  * In case there are no variants, a single one shall exist, with NULL name/description. */
+#
+#
 typedef struct FileDirEntryVariant {
 	struct FileDirEntryVariant *next, *prev;
 
@@ -872,6 +880,8 @@ typedef struct FileDirEntryVariant {
 } FileDirEntryVariant;
 
 /* Container for mere direntry, with additional asset-related data. */
+#
+#
 typedef struct FileDirEntry {
 	struct FileDirEntry *next, *prev;
 
@@ -913,6 +923,8 @@ typedef struct FileDirEntry {
  * In AssetEngine context (i.e. outside of 'browsing' context), entries contain all needed data, there is no filtering,
  *                        so nbr_entries_filtered, entry_idx_start and entry_idx_end should all be set to -1.
  */
+#
+#
 typedef struct FileDirEntryArr {
 	ListBase entries;
 	int nbr_entries;
