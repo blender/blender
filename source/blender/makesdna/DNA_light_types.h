@@ -52,7 +52,8 @@ typedef struct Light {
 
 	/** Quad1 and Quad2 attenuation. */
 	float att1, att2;
-	float coeff_const, coeff_lin, coeff_quad, coeff_pad;
+	float coeff_const, coeff_lin, coeff_quad;
+	char _pad0[4];
 	struct CurveMapping *curfalloff;
 	short falloff_type;
 	char _pad2[2];

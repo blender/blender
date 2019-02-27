@@ -158,7 +158,7 @@ typedef struct FFMpegCodecData {
 	int audio_bitrate;
 	int audio_mixrate;
 	int audio_channels;
-	int audio_pad;
+	char _pad0[4];
 	float audio_volume;
 	int gop_size;
 	/** Only used if FFMPEG_USE_MAX_B_FRAMES flag is set. */

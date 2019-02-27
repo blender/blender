@@ -217,7 +217,8 @@ typedef struct ParticleSettings {
 	float timetweak, courant_target;
 	float jitfac, eff_hair, grid_rand, ps_offset[1];
 	int totpart, userjit, grid_res, effector_amount;
-	short time_flag, time_pad[3];
+	short time_flag;
+	char _pad0[6];
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
