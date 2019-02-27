@@ -310,7 +310,7 @@ static struct bUnitDef buPowerDef[] = {
 	{"watt",      "watts",      "W",  NULL, "Watts",      NULL, 1.0f,  0.0, B_UNIT_DEF_NONE}, /* base unit */
 	{"milliwatt", "milliwatts", "mW", NULL, "Milliwatts", NULL, 1e-3f, 0.0, B_UNIT_DEF_CASE_SENSITIVE},
 	{"microwatt", "microwatts", "µW", "uW", "Microwatts", NULL, 1e-6f, 0.0, B_UNIT_DEF_NONE},
-	{"nanowatt",  "nanowatts",  "nW", NULL, "Nannowatts", NULL, 1e-9f, 0.0, B_UNIT_DEF_NONE},
+	{"nanowatt",  "nanowatts",  "nW", NULL, "Nanowatts",  NULL, 1e-9f, 0.0, B_UNIT_DEF_NONE},
 	NULL_UNIT,
 };
 static struct bUnitCollection buPowerCollection = {buPowerDef, 3, 0, UNIT_COLLECTION_LENGTH(buPowerDef)};
