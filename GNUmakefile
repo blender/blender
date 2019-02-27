@@ -101,13 +101,21 @@ Utilities
 
    * icons:
      Updates PNG icons from SVG files.
-     Set environment variables 'BLENDER_BIN' and 'INKSCAPE_BIN'
-     to define your own commands.
+
+     Optionally pass in variables: 'BLENDER_BIN', 'INKSCAPE_BIN'
+     otherwise default paths are used.
+
+     Example
+        make icons INKSCAPE_BIN=/path/to/inkscape
 
    * icons_geom:
      Updates Geometry icons from BLEND file.
-     Set environment variable 'BLENDER_BIN'
-     to define your own command.
+
+     Optionally pass in variable: 'BLENDER_BIN'
+     otherwise default paths are used.
+
+     Example
+        make icons_geom BLENDER_BIN=/path/to/blender
 
    * tgz:
      Create a compressed archive of the source code.
@@ -478,9 +486,12 @@ check_descriptions: .FORCE
 tgz: .FORCE
 	./build_files/utils/build_tgz.sh
 
+INKSCAPE_BIN?="inkscape"
 icons: .FORCE
-	"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
-	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
+	BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
+		"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
+	BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
+		"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
 
 icons_geom: .FORCE
 	BLENDER_BIN=$(BLENDER_BIN) \
