@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_map.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.h"
@@ -172,8 +173,9 @@ struct RNAPathKey
 	RNAPointerSource source;
 };
 
-struct DepsgraphRelationBuilder
+class DepsgraphRelationBuilder : public DepsgraphBuilder
 {
+public:
 	DepsgraphRelationBuilder(Main *bmain, Depsgraph *graph);
 
 	void begin_build();
@@ -351,10 +353,6 @@ private:
 	                            ID **idpoin,
 	                            bool is_reference,
 	                            void *user_data);
-
-	/* State which never changes, same for the whole builder time. */
-	Main *bmain_;
-	Depsgraph *graph_;
 
 	/* State which demotes currently built entities. */
 	Scene *scene_;

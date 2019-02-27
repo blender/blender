@@ -212,8 +212,7 @@ static bool bone_has_segments(Object *object, const char *bone_name)
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
                                                    Depsgraph *graph)
-    : bmain_(bmain),
-      graph_(graph),
+    : DepsgraphBuilder(bmain, graph),
       scene_(NULL),
       rna_node_query_(graph)
 {

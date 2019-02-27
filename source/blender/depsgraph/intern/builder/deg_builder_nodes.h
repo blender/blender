@@ -23,13 +23,13 @@
 
 #pragma once
 
+#include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph_type.h"
-
-#include "DEG_depsgraph.h"
-
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
+
+#include "DEG_depsgraph.h"
 
 struct Base;
 struct CacheFile;
@@ -74,7 +74,8 @@ struct Node;
 struct OperationNode;
 struct TimeSourceNode;
 
-struct DepsgraphNodeBuilder {
+class DepsgraphNodeBuilder : public DepsgraphBuilder {
+public:
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);
 	~DepsgraphNodeBuilder();
 
@@ -258,10 +259,6 @@ protected:
 	                            ID **idpoin,
 	                            bool is_reference,
 	                            void *user_data);
-
-	/* State which never changes, same for the whole builder time. */
-	Main *bmain_;
-	Depsgraph *graph_;
 
 	/* State which demotes currently built entities. */
 	Scene *scene_;

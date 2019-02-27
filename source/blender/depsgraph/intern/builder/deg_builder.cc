@@ -24,8 +24,9 @@
 #include "intern/builder/deg_builder.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_object_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_ID.h"
+#include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -47,6 +48,28 @@ extern "C" {
 #include "DEG_depsgraph.h"
 
 namespace DEG {
+
+/*******************************************************************************
+ * Base class for builders.
+ */
+
+DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph)
+        : bmain_(bmain),
+          graph_(graph) {
+}
+
+bool DepsgraphBuilder::needPullBaseIntoGraph(struct Base *base) {
+	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
+	        BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
+	if (base->flag & base_flag) {
+		return true;
+	}
+	return false;
+}
+
+/*******************************************************************************
+ * Builder finalizer.
+ */
 
 namespace {
 

@@ -131,8 +131,7 @@ void free_copy_on_write_datablock(void *id_info_v)
 /* **** General purpose functions **** */
 
 DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph)
-    : bmain_(bmain),
-      graph_(graph),
+    : DepsgraphBuilder(bmain, graph),
       scene_(NULL),
       view_layer_(NULL),
       view_layer_index_(-1),

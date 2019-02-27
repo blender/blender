@@ -97,16 +97,15 @@ void DepsgraphNodeBuilder::build_view_layer(
 	 * but object is expected to be an original one. Hence we go into some
 	 * tricks here iterating over the view layer. */
 	int base_index = 0;
-	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
-		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
 		/* object itself */
-		const bool is_object_visible = (base->flag & base_flag);
-		if (is_object_visible) {
-			build_object(base_index,
-			             base->object,
-			             linked_state,
-			             is_object_visible);
+		if (needPullBaseIntoGraph(base)) {
+			/* NOTE: We consider object visible even if it's currently
+			 * restricted by the base/restriction flags. Otherwise its drivers
+			 * will never be evaluated.
+			 *
+			 * TODO(sergey): Need to go more granular on visibility checks. */
+			build_object(base_index, base->object, linked_state, true);
 			++base_index;
 		}
 		base->object->select_id = select_id++;
