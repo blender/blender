@@ -711,16 +711,22 @@ static void gpencil_prepare_fast_drawing(
 
 static void gpencil_free_obj_runtime(GPENCIL_StorageList *stl)
 {
+	if (stl->g_data->gp_object_cache == NULL) {
+		return;
+	}
+
 	/* reset all cache flags */
 	for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
 		tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
-		bGPdata *gpd = cache_ob->gpd;
-		gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;
+		if (cache_ob) {
+			bGPdata *gpd = cache_ob->gpd;
+			gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;
 
-		/* free shgrp array */
-		cache_ob->tot_layers = 0;
-		MEM_SAFE_FREE(cache_ob->name);
-		MEM_SAFE_FREE(cache_ob->shgrp_array);
+			/* free shgrp array */
+			cache_ob->tot_layers = 0;
+			MEM_SAFE_FREE(cache_ob->name);
+			MEM_SAFE_FREE(cache_ob->shgrp_array);
+		}
 	}
 
 	/* free the cache itself */
@@ -752,6 +758,47 @@ static void gpencil_draw_pass_range(
 
 }
 
+/* draw strokes to use for selection */
+static void drw_gpencil_select_render(GPENCIL_StorageList *stl, GPENCIL_PassList *psl)
+{
+	tGPencilObjectCache *cache_ob;
+	tGPencilObjectCache_shgrp *array_elm = NULL;
+	DRWShadingGroup *init_shgrp = NULL;
+	DRWShadingGroup *end_shgrp = NULL;
+
+	/* Draw all pending objects */
+	if ((stl->g_data->gp_cache_used > 0) &&
+		(stl->g_data->gp_object_cache))
+	{
+		/* sort by zdepth */
+		qsort(stl->g_data->gp_object_cache, stl->g_data->gp_cache_used,
+			sizeof(tGPencilObjectCache), gpencil_object_cache_compare_zdepth);
+
+		for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
+			cache_ob = &stl->g_data->gp_object_cache[i];
+			if (cache_ob) {
+				bGPdata *gpd = cache_ob->gpd;
+				init_shgrp = NULL;
+				if (cache_ob->tot_layers > 0) {
+					for (int e = 0; e < cache_ob->tot_layers; e++) {
+						array_elm = &cache_ob->shgrp_array[e];
+						if (init_shgrp == NULL) {
+							init_shgrp = array_elm->init_shgrp;
+						}
+						end_shgrp = array_elm->end_shgrp;
+					}
+					/* draw group */
+					DRW_draw_pass_subset(
+						GPENCIL_3D_DRAWMODE(gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
+						init_shgrp, end_shgrp);
+				}
+				/* the cache must be dirty for next loop */
+				gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
+			}
+		}
+	}
+}
+
 /* draw scene */
 void GPENCIL_draw_scene(void *ved)
 {
@@ -777,6 +824,16 @@ void GPENCIL_draw_scene(void *ved)
 	const bool is_render = stl->storage->is_render;
 	bGPdata *gpd_act = (obact) && (obact->type == OB_GPENCIL) ? (bGPdata *)obact->data : NULL;
 	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd_act);
+
+	/* if the draw is for select, do a basic drawing and return */
+	if (DRW_state_is_select()) {
+
+		drw_gpencil_select_render(stl, psl);
+		/* free memory */
+		gpencil_free_obj_runtime(stl);
+
+		return;
+	}
 
 	/* paper pass to display a comfortable area to draw over complex scenes with geometry */
 	if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {

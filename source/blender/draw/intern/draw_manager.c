@@ -2087,11 +2087,17 @@ void DRW_draw_select_loop(
 		drw_engines_enable_from_mode(obedit_mode);
 	}
 	else if (!draw_surface) {
+		/* grease pencil selection */
+		use_drw_engine(&draw_engine_gpencil_type);
+
 		drw_engines_enable_from_overlays(v3d->overlay.flag);
 		drw_engines_enable_from_object_mode();
 	}
 	else {
 		drw_engines_enable_basic();
+		/* grease pencil selection */
+		use_drw_engine(&draw_engine_gpencil_type);
+
 		drw_engines_enable_from_overlays(v3d->overlay.flag);
 		drw_engines_enable_from_object_mode();
 	}
