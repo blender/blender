@@ -2159,15 +2159,29 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_NO_MIRROR) == 0);
 	}
 
-	short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->orientation.unset;
-	if (orientation == V3D_ORIENT_CUSTOM) {
-		const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
-		        t->scene, t->orientation.custom);
-		/* Maybe we need a t->con.custom_orientation?
-		 * Seems like it would always match t->orientation.custom. */
-		orientation = V3D_ORIENT_CUSTOM + orientation_index_custom;
-		BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
+	/* Orientastion used for redo. */
+	short orientation;
+	if (t->con.mode & CON_APPLY) {
+		orientation = t->con.orientation;
+		if (orientation == V3D_ORIENT_CUSTOM) {
+			const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
+			        t->scene, t->orientation.custom);
+			/* Maybe we need a t->con.custom_orientation?
+			 * Seems like it would always match t->orientation.custom. */
+			orientation = V3D_ORIENT_CUSTOM + orientation_index_custom;
+			BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
+		}
 	}
+	else if ((t->orientation.user == V3D_ORIENT_CUSTOM_MATRIX) &&
+	         (prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")))
+	{
+		orientation = RNA_property_enum_get(op->ptr, prop);
+	}
+	else {
+		/* We're not using an orientation, use the fallback. */
+		orientation = t->orientation.unset;
+	}
+
 
 	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
 		if (t->flag & T_MODAL) {
@@ -2177,6 +2191,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 					RNA_property_enum_set(op->ptr, prop, orient_axis);
 				}
 			}
+			else {
+				RNA_property_enum_set(op->ptr, prop, t->orient_axis);
+			}
+		}
+	}
+	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
+		if (t->flag & T_MODAL) {
+			RNA_property_enum_set(op->ptr, prop, t->orient_axis_ortho);
 		}
 	}
 
@@ -3414,6 +3436,11 @@ static void initShear_mouseInputMode(TransInfo *t)
 		cross_v3_v3v3(dir, t->orient_matrix[t->orient_axis_ortho], t->orient_matrix[t->orient_axis]);
 	}
 
+	/* Without this, half the gizmo handles move in the opposite direction. */
+	if ((t->orient_axis_ortho + 1) % 3 != t->orient_axis) {
+		negate_v3(dir);
+	}
+
 	mul_mat3_m4_v3(t->viewmat, dir);
 	if (normalize_v2(dir) == 0.0f) {
 		dir[0] = 1.0f;
@@ -3429,21 +3456,13 @@ static void initShear(TransInfo *t)
 	t->transform = applyShear;
 	t->handleEvent = handleEventShear;
 
-	t->orient_axis = 2;
-	t->orient_axis_ortho = 1;
-
+	if (t->orient_axis == t->orient_axis_ortho) {
+		t->orient_axis = 2;
+		t->orient_axis_ortho = 1;
+	}
 	if (t->orient_matrix_is_set == false) {
 		t->orient_matrix_is_set = true;
-		float *axis = t->orient_matrix[t->orient_axis];
-		float *axis_ortho = t->orient_matrix[t->orient_axis_ortho];
-		if (is_zero_v3(axis)) {
-			negate_v3_v3(axis, t->viewinv[2]);
-			normalize_v3(axis);
-		}
-		if (is_zero_v3(axis_ortho)) {
-			copy_v3_v3(axis_ortho, t->viewinv[0]);
-			normalize_v3(axis_ortho);
-		}
+		copy_m3_m3(t->orient_matrix, t->spacemtx);
 	}
 
 	initShear_mouseInputMode(t);

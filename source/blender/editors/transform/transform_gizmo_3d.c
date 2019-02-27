@@ -2203,18 +2203,13 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 				WM_gizmo_set_matrix_rotation_from_yz_axis(gz, rv3d->twmat[i_ortho_a], rv3d->twmat[i]);
 				WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
 
-				float axis[3];
-				if (j == 0) {
-					copy_v3_v3(axis, tbounds.axis[i_ortho_b]);
-				}
-				else {
-					negate_v3_v3(axis, tbounds.axis[i_ortho_b]);
-				}
-				float orient_matrix[3][3];
-				cross_v3_v3v3(orient_matrix[0], tbounds.axis[i_ortho_a], axis);
-				copy_v3_v3(orient_matrix[1], tbounds.axis[i_ortho_a]);
-				copy_v3_v3(orient_matrix[2], axis);
-				RNA_float_set_array(&gzop->ptr, "orient_matrix", &orient_matrix[0][0]);
+				RNA_float_set_array(&gzop->ptr, "orient_matrix", &tbounds.axis[0][0]);
+				RNA_enum_set(&gzop->ptr, "orient_type", orient_slot->type);
+				RNA_enum_set(&gzop->ptr, "orient_matrix_type", orient_slot->type);
+
+				RNA_enum_set(&gzop->ptr, "orient_axis", i_ortho_b);
+				RNA_enum_set(&gzop->ptr, "orient_axis_ortho", i_ortho_a);
+
 				mul_v3_fl(gz->matrix_basis[0], 0.5f);
 				mul_v3_fl(gz->matrix_basis[1], 6.0f);
 			}
