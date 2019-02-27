@@ -664,7 +664,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
         if part.physics_type != 'NO':
             col = col.column()
             col.prop(part, "mass")
-            col.prop(part, "use_multiply_size_mass", text="Multiply mass with size")
+            col.prop(part, "use_multiply_size_mass", text="Multiply Mass with Size")
 
         if part.physics_type == 'FLUID':
             fluid = part.fluid
@@ -2107,7 +2107,7 @@ class PARTICLE_PT_hair_shape(ParticleButtonsPanel, Panel):
         col.prop(part, "tip_radius", text="Tip")
 
         col = layout.column()
-        col.prop(part, "radius_scale", text="Radius Scaling")
+        col.prop(part, "radius_scale")
         col.prop(part, "use_close_tip")
 
 

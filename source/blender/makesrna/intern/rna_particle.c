@@ -2265,7 +2265,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
-	RNA_def_property_ui_text(prop, "Orientation axis",
+	RNA_def_property_ui_text(prop, "Orientation Axis",
 	                         "Particle orientation axis (does not affect Explode modifier's results)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -3211,7 +3211,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rad_scale");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Scaling", "Multiplier of radius properties");
+	RNA_def_property_ui_text(prop, "Radius Scale", "Multiplier of radius properties");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
 }
 
