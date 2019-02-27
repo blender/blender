@@ -50,7 +50,7 @@ typedef struct GlobalsUboStorage {
 	float colorLibrarySelect[4];
 	float colorLibrary[4];
 	float colorTransform[4];
-	float colorLamp[4];
+	float colorLight[4];
 	float colorSpeaker[4];
 	float colorCamera[4];
 	float colorEmpty[4];
@@ -76,7 +76,7 @@ typedef struct GlobalsUboStorage {
 
 	float colorDeselect[4];
 	float colorOutline[4];
-	float colorLampNoAlpha[4];
+	float colorLightNoAlpha[4];
 
 	float colorBackground[4];
 	float colorEditMeshMiddle[4];
@@ -110,7 +110,7 @@ typedef struct GlobalsUboStorage {
 	/* NOTE! Put all color before UBO_LAST_COLOR */
 
 	/* Pack individual float at the end of the buffer to avoid alignment errors */
-	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;
+	float sizeLightCenter, sizeLightCircle, sizeLightCircleShadow;
 	float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
 	float gridDistance, gridResolution, gridSubdivisions, gridScale;
 

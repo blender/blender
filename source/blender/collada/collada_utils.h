@@ -91,7 +91,7 @@ inline bAction *bc_getSceneObjectAction(Object *ob)
 }
 
 /* Returns Light Action or NULL */
-inline bAction *bc_getSceneLampAction(Object *ob)
+inline bAction *bc_getSceneLightAction(Object *ob)
 {
 	if (ob->type != OB_LAMP)
 		return NULL;

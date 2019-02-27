@@ -866,7 +866,7 @@ static bool select_grouped_siblings(bContext *C, Object *ob)
 	CTX_DATA_END;
 	return changed;
 }
-static bool select_grouped_lamptype(bContext *C, Object *ob)
+static bool select_grouped_lighttype(bContext *C, Object *ob)
 {
 	Light *la = ob->data;
 
@@ -1038,7 +1038,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 				BKE_report(op->reports, RPT_ERROR, "Active object must be a light");
 				break;
 			}
-			changed |= select_grouped_lamptype(C, ob);
+			changed |= select_grouped_lighttype(C, ob);
 			break;
 		default:
 			break;

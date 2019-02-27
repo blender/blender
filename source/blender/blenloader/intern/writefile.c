@@ -2368,7 +2368,7 @@ static void write_world(WriteData *wd, World *wrld)
 	}
 }
 
-static void write_lamp(WriteData *wd, Light *la)
+static void write_light(WriteData *wd, Light *la)
 {
 	if (la->id.us > 0 || wd->use_memfile) {
 		/* write LibData */
@@ -2383,7 +2383,7 @@ static void write_lamp(WriteData *wd, Light *la)
 			write_curvemapping(wd, la->curfalloff);
 		}
 
-		/* nodetree is integral part of lamps, no libdata */
+		/* Node-tree is integral part of lights, no libdata. */
 		if (la->nodetree) {
 			writestruct(wd, DATA, bNodeTree, 1, la->nodetree);
 			write_nodetree_nolib(wd, la->nodetree);
@@ -3934,7 +3934,7 @@ static bool write_file_handle(
 						write_camera(wd, (Camera *)id);
 						break;
 					case ID_LA:
-						write_lamp(wd, (Light *)id);
+						write_light(wd, (Light *)id);
 						break;
 					case ID_LT:
 						write_lattice(wd, (Lattice *)id);

@@ -721,7 +721,7 @@ const std::string AnimationExporter::get_collada_name(std::string channel_target
 		{ "specular_hardness", "specular_hardness" },
 		{ "alpha", "alpha" },
 
-		/* Lamps */
+		/* Lights */
 		{ "color", "color" },
 		{ "fall_off_angle", "falloff_angle" },
 		{ "spot_size", "falloff_angle" },

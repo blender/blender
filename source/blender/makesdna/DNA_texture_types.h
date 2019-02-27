@@ -78,7 +78,7 @@ typedef struct MTex {
 	float lifefac, sizefac, ivelfac, fieldfac;
 	float twistfac;
 
-	/* lamp */
+	/* light */
 	float shadowfac;
 
 	/* world */
@@ -405,7 +405,7 @@ typedef struct ColorMapping {
 #define TEX_RGB		1
 #define TEX_NOR		2
 
-/* pr_texture in material, world, lamp, */
+/* pr_texture in material, world, light. */
 #define TEX_PR_TEXTURE	0
 #define TEX_PR_OTHER	1
 #define TEX_PR_BOTH		2

@@ -3550,7 +3550,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_uvalongstroke();
 	register_node_type_sh_eevee_specular();
 
-	register_node_type_sh_output_lamp();
+	register_node_type_sh_output_light();
 	register_node_type_sh_output_material();
 	register_node_type_sh_output_world();
 	register_node_type_sh_output_linestyle();

@@ -59,7 +59,7 @@ class NODE_HT_header(Header):
 
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
 
-                # No shader nodes for Eevee lamps
+                # No shader nodes for Eevee lights
                 if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob.type == 'LIGHT'):
                     row = layout.row()
                     row.prop(snode_id, "use_nodes")

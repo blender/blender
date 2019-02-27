@@ -26,7 +26,7 @@ void prep_specular(
 /* Normalized Blinn shading */
 vec4 blinn_specular(vec4 shininess, vec4 spec_angle, vec4 NL)
 {
-	/* Pi is already divided in the lamp power.
+	/* Pi is already divided in the light power.
 	 * normalization_factor = (shininess + 8.0) / (8.0 * M_PI) */
 	vec4 normalization_factor = shininess * 0.125 + 1.0;
 	vec4 spec_light = pow(spec_angle, shininess) * NL * normalization_factor;

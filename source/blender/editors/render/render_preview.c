@@ -492,7 +492,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			set_preview_collection(sce, view_layer, MA_LAMP);
 
 			if (sce->world) {
-				/* Only use lighting from the lamp. */
+				/* Only use lighting from the light. */
 				sce->world->use_nodes = false;
 				sce->world->horr = 0.0f;
 				sce->world->horg = 0.0f;

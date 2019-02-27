@@ -476,8 +476,8 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 	/* recreate dependency graph to include new objects */
 	DEG_relations_tag_update(bmain);
 
-	/* free gpu materials, some materials depend on existing objects,
-	 * such as lamps so freeing correctly refreshes */
+	/* Free gpu materials, some materials depend on existing objects,
+	 * such as lights so freeing correctly refreshes. */
 	GPU_materials_free(bmain);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);

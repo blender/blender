@@ -46,11 +46,11 @@
 
 static struct {
 	char *volumetric_common_lib;
-	char *volumetric_common_lamps_lib;
+	char *volumetric_common_lights_lib;
 
 	struct GPUShader *volumetric_clear_sh;
 	struct GPUShader *volumetric_scatter_sh;
-	struct GPUShader *volumetric_scatter_with_lamps_sh;
+	struct GPUShader *volumetric_scatter_with_lights_sh;
 	struct GPUShader *volumetric_integration_sh;
 	struct GPUShader *volumetric_resolve_sh;
 
@@ -84,7 +84,7 @@ static void eevee_create_shader_volumes(void)
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_volumetric_lib_glsl);
 
-	e_data.volumetric_common_lamps_lib = BLI_string_joinN(
+	e_data.volumetric_common_lights_lib = BLI_string_joinN(
 	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
@@ -104,15 +104,15 @@ static void eevee_create_shader_volumes(void)
 	        datatoc_volumetric_vert_glsl,
 	        datatoc_volumetric_geom_glsl,
 	        datatoc_volumetric_scatter_frag_glsl,
-	        e_data.volumetric_common_lamps_lib,
+	        e_data.volumetric_common_lights_lib,
 	        SHADER_DEFINES
 	        "#define VOLUMETRICS\n"
 	        "#define VOLUME_SHADOW\n");
-	e_data.volumetric_scatter_with_lamps_sh = DRW_shader_create_with_lib(
+	e_data.volumetric_scatter_with_lights_sh = DRW_shader_create_with_lib(
 	        datatoc_volumetric_vert_glsl,
 	        datatoc_volumetric_geom_glsl,
 	        datatoc_volumetric_scatter_frag_glsl,
-	        e_data.volumetric_common_lamps_lib,
+	        e_data.volumetric_common_lights_lib,
 	        SHADER_DEFINES
 	        "#define VOLUMETRICS\n"
 	        "#define VOLUME_LIGHTING\n"
@@ -416,7 +416,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		psl->volumetric_objects_ps = DRW_pass_create("Volumetric Properties", DRW_STATE_WRITE_COLOR |
 		                                                                      DRW_STATE_ADDITIVE);
 
-		struct GPUShader *scatter_sh = (common_data->vol_use_lights) ? e_data.volumetric_scatter_with_lamps_sh
+		struct GPUShader *scatter_sh = (common_data->vol_use_lights) ? e_data.volumetric_scatter_with_lights_sh
 		                                                      : e_data.volumetric_scatter_sh;
 		psl->volumetric_scatter_ps = DRW_pass_create("Volumetric Scattering", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_empty_tri_batch_create(scatter_sh, psl->volumetric_scatter_ps,
@@ -608,11 +608,11 @@ void EEVEE_volumes_free_smoke_textures(void)
 void EEVEE_volumes_free(void)
 {
 	MEM_SAFE_FREE(e_data.volumetric_common_lib);
-	MEM_SAFE_FREE(e_data.volumetric_common_lamps_lib);
+	MEM_SAFE_FREE(e_data.volumetric_common_lights_lib);
 
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_clear_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_scatter_sh);
-	DRW_SHADER_FREE_SAFE(e_data.volumetric_scatter_with_lamps_sh);
+	DRW_SHADER_FREE_SAFE(e_data.volumetric_scatter_with_lights_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_integration_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_resolve_sh);
 }

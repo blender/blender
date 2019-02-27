@@ -326,7 +326,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			scene->eevee.motion_blur_shutter = 0.5f;
 		}
 
-		/* Rename lamp objects. */
+		/* Rename light objects. */
 		rename_id_for_versioning(bmain, ID_OB, "Light", "Light");
 		rename_id_for_versioning(bmain, ID_LA, "Light", "Light");
 

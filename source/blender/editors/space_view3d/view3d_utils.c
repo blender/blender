@@ -1337,7 +1337,7 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
  * \param ofs: The view offset to be set, normally from RegionView3D.ofs.
  * \param quat: The view rotation to be set, quaternion normally from RegionView3D.viewquat.
  * \param dist: The view distance from ofs to be set, normally from RegionView3D.dist.
- * \param lens: The view lens angle set for cameras and lamps, normally from View3D.lens.
+ * \param lens: The view lens angle set for cameras and lights, normally from View3D.lens.
  */
 void ED_view3d_from_object(const Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
 {

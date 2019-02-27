@@ -80,17 +80,17 @@ struct GPUBatch *DRW_cache_field_cone_limit_get(void);
 /* Grease Pencil */
 struct GPUBatch *DRW_cache_gpencil_axes_get(void);
 
-/* Lamps */
-struct GPUBatch *DRW_cache_lamp_get(void);
-struct GPUBatch *DRW_cache_lamp_shadows_get(void);
-struct GPUBatch *DRW_cache_lamp_sunrays_get(void);
-struct GPUBatch *DRW_cache_lamp_area_square_get(void);
-struct GPUBatch *DRW_cache_lamp_area_disk_get(void);
-struct GPUBatch *DRW_cache_lamp_hemi_get(void);
-struct GPUBatch *DRW_cache_lamp_spot_get(void);
-struct GPUBatch *DRW_cache_lamp_spot_volume_get(void);
-struct GPUBatch *DRW_cache_lamp_spot_square_get(void);
-struct GPUBatch *DRW_cache_lamp_spot_square_volume_get(void);
+/* Lights */
+struct GPUBatch *DRW_cache_light_get(void);
+struct GPUBatch *DRW_cache_light_shadows_get(void);
+struct GPUBatch *DRW_cache_light_sunrays_get(void);
+struct GPUBatch *DRW_cache_light_area_square_get(void);
+struct GPUBatch *DRW_cache_light_area_disk_get(void);
+struct GPUBatch *DRW_cache_light_hemi_get(void);
+struct GPUBatch *DRW_cache_light_spot_get(void);
+struct GPUBatch *DRW_cache_light_spot_volume_get(void);
+struct GPUBatch *DRW_cache_light_spot_square_get(void);
+struct GPUBatch *DRW_cache_light_spot_square_volume_get(void);
 
 /* Camera */
 struct GPUBatch *DRW_cache_camera_get(void);

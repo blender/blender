@@ -201,7 +201,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 		params->clip_end = cam->clip_end;
 	}
 	else if (ob->type == OB_LAMP) {
-		/* lamp object */
+		/* light object */
 		Light *la = ob->data;
 		params->lens = 16.0f / tanf(la->spotsize * 0.5f);
 		if (params->lens == 0.0f)

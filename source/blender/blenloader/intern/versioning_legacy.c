@@ -1182,8 +1182,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* Object *ob = bmain->object.first; */
 
 		while (ma) {
-			if (ma->pr_lamp == 0)
-				ma->pr_lamp = 3;
+			if (ma->pr_light == 0)
+				ma->pr_light = 3;
 			ma = ma->id.next;
 		}
 

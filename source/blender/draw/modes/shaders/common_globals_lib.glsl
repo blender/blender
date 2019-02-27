@@ -10,7 +10,7 @@ layout(std140) uniform globalsBlock {
 	vec4 colorLibrarySelect;
 	vec4 colorLibrary;
 	vec4 colorTransform;
-	vec4 colorLamp;
+	vec4 colorLight;
 	vec4 colorSpeaker;
 	vec4 colorCamera;
 	vec4 colorEmpty;
@@ -35,7 +35,7 @@ layout(std140) uniform globalsBlock {
 	vec4 colorFaceDot;
 	vec4 colorDeselect;
 	vec4 colorOutline;
-	vec4 colorLampNoAlpha;
+	vec4 colorLightNoAlpha;
 
 	vec4 colorBackground;
 	vec4 colorEditMeshMiddle;
@@ -66,9 +66,9 @@ layout(std140) uniform globalsBlock {
 	vec4 colorGridAxisY;
 	vec4 colorGridAxisZ;
 
-	float sizeLampCenter;
-	float sizeLampCircle;
-	float sizeLampCircleShadow;
+	float sizeLightCenter;
+	float sizeLightCircle;
+	float sizeLightCircleShadow;
 	float sizeVertex;
 	float sizeEdge;
 	float sizeEdgeFix;

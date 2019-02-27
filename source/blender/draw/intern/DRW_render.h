@@ -69,7 +69,7 @@ struct GPUMaterial;
 struct GPUShader;
 struct GPUTexture;
 struct GPUUniformBuffer;
-struct LampEngineData;
+struct LightEngineData;
 struct Object;
 struct ParticleSystem;
 struct RenderEngineType;

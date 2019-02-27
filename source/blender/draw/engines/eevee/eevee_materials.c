@@ -1117,7 +1117,7 @@ static void material_opaque(
 	Scene *scene = draw_ctx->scene;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_LampsInfo *linfo = sldata->lamps;
+	EEVEE_LightsInfo *linfo = sldata->lights;
 	bool use_diffuse, use_glossy, use_refract;
 
 	float *color_p = &ma->r;
@@ -1318,7 +1318,7 @@ static void material_transparent(
 	Scene *scene = draw_ctx->scene;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_LampsInfo *linfo = sldata->lamps;
+	EEVEE_LightsInfo *linfo = sldata->lights;
 
 	const bool use_ssrefract = (
 	        ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
@@ -1682,7 +1682,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 					static float half = 0.5f;
 					static float error_col[3] = {1.0f, 0.0f, 1.0f};
 					static float compile_col[3] = {0.5f, 0.5f, 0.5f};
-					struct GPUMaterial *gpumat = EEVEE_material_hair_get(scene, ma, sldata->lamps->shadow_method);
+					struct GPUMaterial *gpumat = EEVEE_material_hair_get(scene, ma, sldata->lights->shadow_method);
 
 					switch (GPU_material_status(gpumat)) {
 						case GPU_MAT_SUCCESS:
@@ -1719,7 +1719,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 					shgrp = EEVEE_default_shading_group_get(sldata, vedata,
 					                                        ob, psys, md,
 					                                        true, false, use_ssr,
-					                                        sldata->lamps->shadow_method);
+					                                        sldata->lights->shadow_method);
 					DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
 					DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
 					DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
@@ -1746,7 +1746,7 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 	const View3D *v3d = draw_ctx->v3d;
 	if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
 		EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-		EEVEE_LampsInfo *linfo = sldata->lamps;
+		EEVEE_LightsInfo *linfo = sldata->lights;
 		struct GPUBatch *sphere = DRW_cache_sphere_get();
 		static float mat1[4][4];
 		static float color[3] = {0.8f, 0.8f, 0.8f};

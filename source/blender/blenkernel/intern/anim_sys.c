@@ -1131,7 +1131,7 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
 	/* textures */
 	ANIMDATA_NODETREE_IDS_CB(bmain->tex.first, Tex);
 
-	/* lamps */
+	/* lights */
 	ANIMDATA_NODETREE_IDS_CB(bmain->light.first, Light);
 
 	/* materials */
@@ -1230,7 +1230,7 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const cha
 	/* textures */
 	RENAMEFIX_ANIM_NODETREE_IDS(bmain->tex.first, Tex);
 
-	/* lamps */
+	/* lights */
 	RENAMEFIX_ANIM_NODETREE_IDS(bmain->light.first, Light);
 
 	/* materials */
@@ -3612,7 +3612,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, Scene 
 	/* textures */
 	EVAL_ANIM_NODETREE_IDS(main->tex.first, Tex, ADT_RECALC_ANIM);
 
-	/* lamps */
+	/* lights */
 	EVAL_ANIM_NODETREE_IDS(main->light.first, Light, ADT_RECALC_ANIM);
 
 	/* materials */

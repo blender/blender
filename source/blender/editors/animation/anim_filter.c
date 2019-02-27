@@ -2449,7 +2449,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 
 		/* sub-data filtering... */
 		switch (ob->type) {
-			case OB_LAMP:  /* lamp - textures + nodetree */
+			case OB_LAMP:  /* light - textures + nodetree */
 			{
 				Light *la = ob->data;
 				bNodeTree *ntree = la->nodetree;

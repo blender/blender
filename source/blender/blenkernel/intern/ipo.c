@@ -615,7 +615,7 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* Light Types */
-static const char *lamp_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index = 0;
@@ -842,8 +842,8 @@ static char *get_rna_access(ID *id, int blocktype, int adrcode, char actname[], 
 			propname = camera_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 
-		case ID_LA: /* lamp */
-			propname = lamp_adrcodes_to_paths(adrcode, &dummy_index);
+		case ID_LA: /* light */
+			propname = light_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 
 		case ID_SO: /* sound */
@@ -1989,7 +1989,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 		}
 	}
 
-	/* lamps */
+	/* lights */
 	for (id = bmain->light.first; id; id = id->next) {
 		Light *la = (Light *)id;
 

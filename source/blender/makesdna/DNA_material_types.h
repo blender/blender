@@ -150,7 +150,7 @@ typedef struct Material {
 
 	/* Ror buttons and render. */
 	char pr_type, use_nodes;
-	short pr_lamp, pr_texture;
+	short pr_light, pr_texture;
 
 	/* Index for render passes. */
 	short index;
@@ -195,7 +195,7 @@ typedef struct Material {
 /* **************** MATERIAL ********************* */
 
 /* maximum number of materials per material array.
- * (on object, mesh, lamp, etc.). limited by
+ * (on object, mesh, light, etc.). limited by
  * short mat_nr in verts, faces.
  * -1 because for active material we store the index + 1 */
 #define MAXMAT			(32767-1)

@@ -27,7 +27,7 @@ layout(std140) uniform common_block {
 	bool sssToggle;
 	/* Specular */
 	bool specToggle;
-	/* Lamps */
+	/* Lights */
 	int laNumLight;
 	/* Probes */
 	int prbNumPlanar;

@@ -19,7 +19,7 @@ layout(std140) uniform light_block {
 #define SUN            1.0
 #define SPOT           2.0
 #define AREA_RECT      4.0
-/* Used to define the area lamp shape, doesn't directly correspond to a Blender lamp type. */
+/* Used to define the area light shape, doesn't directly correspond to a Blender light type. */
 #define AREA_ELLIPSE 100.0
 
 #if defined(SHADOW_VSM)

@@ -29,7 +29,7 @@
 #include "collada_internal.h"
 
 template<class Functor>
-void forEachLampObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
+void forEachLightObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 {
 	LinkNode *node;
 	for (node = export_set; node; node = node->next) {
@@ -48,7 +48,7 @@ void LightsExporter::exportLights(Scene *sce)
 {
 	openLibrary();
 
-	forEachLampObjectInExportSet(sce, *this, this->export_settings->export_set);
+	forEachLightObjectInExportSet(sce, *this, this->export_settings->export_set);
 
 	closeLibrary();
 }
@@ -105,7 +105,7 @@ void LightsExporter::operator()(Object *ob)
 		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
-	// area lamp is not supported
+	// area light is not supported
 	// it will be exported as a local lamp
 	else {
 		COLLADASW::PointLight cla(mSW, la_id, la_name);

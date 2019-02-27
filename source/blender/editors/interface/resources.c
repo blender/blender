@@ -282,7 +282,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 					cp = ts->syntaxr; break;
 				case TH_WIRE_EDIT:
 					cp = ts->wire_edit; break;
-				case TH_LAMP:
+				case TH_LIGHT:
 					cp = ts->lamp; break;
 				case TH_SPEAKER:
 					cp = ts->speaker; break;

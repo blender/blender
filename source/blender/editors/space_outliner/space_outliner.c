@@ -171,7 +171,7 @@ static void outliner_main_region_listener(
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_LAMP:
-			/* For updating lamp icons, when changing lamp type */
+			/* For updating light icons, when changing light type */
 			if (wmn->data == ND_LIGHTING_DRAW)
 				ED_region_tag_redraw(ar);
 			break;

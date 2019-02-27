@@ -22,7 +22,7 @@
 
 /** \file
  * \ingroup bke
- * \brief General operations, lookup, etc. for blender lamps.
+ * \brief General operations, lookup, etc. for blender lights.
  */
 #ifdef __cplusplus
 extern "C" {

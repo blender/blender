@@ -549,7 +549,7 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
  * - parse name from right to left
  * - last character is channel ID, 1 char like 'A' 'R' 'G' 'B' 'X' 'Y' 'Z' 'W' 'U' 'V'
  * - separated with a dot; the Pass name (like "Depth", "Color", "Diffuse" or "Combined")
- * - separated with a dot: the Layer name (like "Lamp1" or "Walls" or "Characters")
+ * - separated with a dot: the Layer name (like "Light1" or "Walls" or "Characters")
  */
 
 static ListBase exrhandles = {NULL, NULL};

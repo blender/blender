@@ -686,9 +686,9 @@ static void view3d_widgets(void)
 	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
 	        &(const struct wmGizmoMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
 
-	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_spot);
-	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_area);
-	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_target);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_spot);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_area);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_target);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_force_field);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);

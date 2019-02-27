@@ -851,7 +851,7 @@ static float blinn_specular(
 	gloss *= 1.0f - wrap;
 	float shininess = exp2(10.0f * gloss + 1.0f);
 
-	/* Pi is already divided in the lamp power.
+	/* Pi is already divided in the light power.
 	 * normalization_factor = (shininess + 8.0) / (8.0 * M_PI) */
 	float normalization_factor = shininess * 0.125f + 1.0f;
 	float spec_light = powf(spec_angle, shininess) * max_ff(NL, 0.0f) * normalization_factor;

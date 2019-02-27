@@ -377,20 +377,20 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 	return ob;
 }
 
-Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Scene *sce)
+Object *DocumentImporter::create_light_object(COLLADAFW::InstanceLight *lamp, Scene *sce)
 {
 	const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
-	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {
+	if (uid_light_map.find(lamp_uid) == uid_light_map.end()) {
 		fprintf(stderr, "Couldn't find light by UID.\n");
 		return NULL;
 	}
 
 	Main *bmain = CTX_data_main(mContext);
 	Object *ob = bc_add_object(bmain, sce, view_layer, OB_LAMP, NULL);
-	Light *la = uid_lamp_map[lamp_uid];
-	Light *old_lamp = (Light *)ob->data;
+	Light *la = uid_light_map[lamp_uid];
+	Light *old_light = (Light *)ob->data;
 	ob->data = la;
-	BKE_id_free_us(bmain, old_lamp);
+	BKE_id_free_us(bmain, old_light);
 	return ob;
 }
 
@@ -563,9 +563,9 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			++camera_done;
 		}
 		while (lamp_done < lamp.getCount()) {
-			ob = create_lamp_object(lamp[lamp_done], sce);
+			ob = create_light_object(lamp[lamp_done], sce);
 			if (ob == NULL) {
-				report_unknown_reference(*node, "instance_lamp");
+				report_unknown_reference(*node, "instance_light");
 			}
 			else {
 				objects_done->push_back(ob);
@@ -1117,7 +1117,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		}
 	}
 
-	this->uid_lamp_map[light->getUniqueId()] = lamp;
+	this->uid_light_map[light->getUniqueId()] = lamp;
 	this->FW_object_map[light->getUniqueId()] = light;
 	return true;
 }

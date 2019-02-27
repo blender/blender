@@ -430,7 +430,7 @@ static eOLDrawState tree_element_active_material(
 	return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_lamp(
+static eOLDrawState tree_element_active_light(
         bContext *UNUSED(C), Scene *UNUSED(scene), ViewLayer *view_layer, SpaceOutliner *soops,
         TreeElement *te, const eOLSetState set)
 {
@@ -928,7 +928,7 @@ eOLDrawState tree_element_active(bContext *C, Scene *scene, ViewLayer *view_laye
 		case ID_WO:
 			return tree_element_active_world(C, scene, view_layer, soops, te, set);
 		case ID_LA:
-			return tree_element_active_lamp(C, scene, view_layer, soops, te, set);
+			return tree_element_active_light(C, scene, view_layer, soops, te, set);
 		case ID_TXT:
 			return tree_element_active_text(C, scene, view_layer, soops, te, set);
 		case ID_CA:

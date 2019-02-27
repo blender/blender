@@ -145,7 +145,7 @@ void ED_view3d_update_viewmat(
 		rv3d->viewcamtexcofac[2] = rv3d->viewcamtexcofac[3] = 0.0f;
 	}
 
-	/* calculate pixelsize factor once, is used for lamps and obcenters */
+	/* calculate pixelsize factor once, is used for lights and obcenters */
 	{
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
 		 * because of float point precision problems at large values [#23908] */

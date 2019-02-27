@@ -204,28 +204,28 @@ typedef struct OBJECT_ShadingGroupList {
 	/* MetaBalls */
 	DRWShadingGroup *mball_handle;
 
-	/* Lamps */
-	DRWShadingGroup *lamp_center;
-	DRWShadingGroup *lamp_groundpoint;
-	DRWShadingGroup *lamp_groundline;
-	DRWShadingGroup *lamp_circle;
-	DRWShadingGroup *lamp_circle_shadow;
-	DRWShadingGroup *lamp_sunrays;
-	DRWShadingGroup *lamp_distance;
-	DRWShadingGroup *lamp_buflimit;
-	DRWShadingGroup *lamp_buflimit_points;
-	DRWShadingGroup *lamp_area_sphere;
-	DRWShadingGroup *lamp_area_square;
-	DRWShadingGroup *lamp_area_disk;
-	DRWShadingGroup *lamp_hemi;
-	DRWShadingGroup *lamp_spot_cone;
-	DRWShadingGroup *lamp_spot_blend;
-	DRWShadingGroup *lamp_spot_pyramid;
-	DRWShadingGroup *lamp_spot_blend_rect;
-	DRWShadingGroup *lamp_spot_volume;
-	DRWShadingGroup *lamp_spot_volume_rect;
-	DRWShadingGroup *lamp_spot_volume_outside;
-	DRWShadingGroup *lamp_spot_volume_rect_outside;
+	/* Lights */
+	DRWShadingGroup *light_center;
+	DRWShadingGroup *light_groundpoint;
+	DRWShadingGroup *light_groundline;
+	DRWShadingGroup *light_circle;
+	DRWShadingGroup *light_circle_shadow;
+	DRWShadingGroup *light_sunrays;
+	DRWShadingGroup *light_distance;
+	DRWShadingGroup *light_buflimit;
+	DRWShadingGroup *light_buflimit_points;
+	DRWShadingGroup *light_area_sphere;
+	DRWShadingGroup *light_area_square;
+	DRWShadingGroup *light_area_disk;
+	DRWShadingGroup *light_hemi;
+	DRWShadingGroup *light_spot_cone;
+	DRWShadingGroup *light_spot_blend;
+	DRWShadingGroup *light_spot_pyramid;
+	DRWShadingGroup *light_spot_blend_rect;
+	DRWShadingGroup *light_spot_volume;
+	DRWShadingGroup *light_spot_volume_rect;
+	DRWShadingGroup *light_spot_volume_outside;
+	DRWShadingGroup *light_spot_volume_rect_outside;
 
 	/* Helpers */
 	DRWShadingGroup *relationship_lines;
@@ -1156,7 +1156,7 @@ static void OBJECT_cache_init(void *vedata)
 	for (int i = 0; i < 2; ++i) {
 		OBJECT_ShadingGroupList *sgl = (i == 1) ? &stl->g_data->sgl_ghost : &stl->g_data->sgl;
 
-		/* Non Meshes Pass (Camera, empties, lamps ...) */
+		/* Non Meshes Pass (Camera, empties, lights ...) */
 		struct GPUBatch *geom;
 		struct GPUShader *sh;
 
@@ -1304,57 +1304,57 @@ static void OBJECT_cache_init(void *vedata)
 		/* Metaballs Handles */
 		sgl->mball_handle = shgroup_instance_mball_handles(sgl->non_meshes, draw_ctx->sh_cfg);
 
-		/* Lamps */
+		/* Lights */
 		/* TODO
-		 * for now we create multiple times the same VBO with only lamp center coordinates
+		 * for now we create multiple times the same VBO with only light center coordinates
 		 * but ideally we would only create it once */
 
 		/* start with buflimit because we don't want stipples */
 		geom = DRW_cache_single_line_get();
-		sgl->lamp_buflimit = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->light_buflimit = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		sgl->lamp_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, gb->colorLampNoAlpha, &gb->sizeLampCenter, draw_ctx->sh_cfg);
+		sgl->light_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, gb->colorLightNoAlpha, &gb->sizeLightCenter, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_get();
-		sgl->lamp_circle = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle, draw_ctx->sh_cfg);
-		geom = DRW_cache_lamp_shadows_get();
-		sgl->lamp_circle_shadow = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircleShadow, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_get();
+		sgl->light_circle = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLightCircle, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_shadows_get();
+		sgl->light_circle_shadow = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLightCircleShadow, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_sunrays_get();
-		sgl->lamp_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_sunrays_get();
+		sgl->light_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLightCircle, draw_ctx->sh_cfg);
 
-		sgl->lamp_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, gb->colorLamp, draw_ctx->sh_cfg);
-		sgl->lamp_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, gb->colorLamp, draw_ctx->sh_cfg);
+		sgl->light_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, gb->colorLight, draw_ctx->sh_cfg);
+		sgl->light_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, gb->colorLight, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_screenspace_circle_get();
-		sgl->lamp_area_sphere = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->light_area_sphere = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_area_square_get();
-		sgl->lamp_area_square = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_area_square_get();
+		sgl->light_area_square = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_area_disk_get();
-		sgl->lamp_area_disk = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_area_disk_get();
+		sgl->light_area_disk = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_hemi_get();
-		sgl->lamp_hemi = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_hemi_get();
+		sgl->light_hemi = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_single_line_get();
-		sgl->lamp_distance = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->light_distance = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_single_line_endpoints_get();
-		sgl->lamp_buflimit_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->light_buflimit_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_spot_get();
-		sgl->lamp_spot_cone = shgroup_spot_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_spot_get();
+		sgl->light_spot_cone = shgroup_spot_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_circle_get();
-		sgl->lamp_spot_blend = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->light_spot_blend = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_spot_square_get();
-		sgl->lamp_spot_pyramid = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_spot_square_get();
+		sgl->light_spot_pyramid = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_square_get();
-		sgl->lamp_spot_blend_rect = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->light_spot_blend_rect = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
 		/* -------- STIPPLES ------- */
 
@@ -1380,21 +1380,21 @@ static void OBJECT_cache_init(void *vedata)
 		state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND | DRW_STATE_CULL_FRONT;
 		sgl->spot_shapes = psl->spot_shapes[i] = DRW_pass_create("Spot Shape Pass", state);
 
-		geom = DRW_cache_lamp_spot_volume_get();
-		sgl->lamp_spot_volume = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_spot_volume_get();
+		sgl->light_spot_volume = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_spot_square_volume_get();
-		sgl->lamp_spot_volume_rect = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		geom = DRW_cache_light_spot_square_volume_get();
+		sgl->light_spot_volume_rect = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_lamp_spot_volume_get();
-		sgl->lamp_spot_volume_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
-		DRW_shgroup_state_disable(sgl->lamp_spot_volume_outside, DRW_STATE_CULL_FRONT);
-		DRW_shgroup_state_enable(sgl->lamp_spot_volume_outside, DRW_STATE_CULL_BACK);
+		geom = DRW_cache_light_spot_volume_get();
+		sgl->light_spot_volume_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		DRW_shgroup_state_disable(sgl->light_spot_volume_outside, DRW_STATE_CULL_FRONT);
+		DRW_shgroup_state_enable(sgl->light_spot_volume_outside, DRW_STATE_CULL_BACK);
 
-		geom = DRW_cache_lamp_spot_square_volume_get();
-		sgl->lamp_spot_volume_rect_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
-		DRW_shgroup_state_disable(sgl->lamp_spot_volume_rect_outside, DRW_STATE_CULL_FRONT);
-		DRW_shgroup_state_enable(sgl->lamp_spot_volume_rect_outside, DRW_STATE_CULL_BACK);
+		geom = DRW_cache_light_spot_square_volume_get();
+		sgl->light_spot_volume_rect_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		DRW_shgroup_state_disable(sgl->light_spot_volume_rect_outside, DRW_STATE_CULL_FRONT);
+		DRW_shgroup_state_enable(sgl->light_spot_volume_rect_outside, DRW_STATE_CULL_BACK);
 	}
 
 	{
@@ -1499,52 +1499,52 @@ static void DRW_shgroup_mball_handles(OBJECT_ShadingGroupList *sgl, Object *ob, 
 	}
 }
 
-static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer)
+static void DRW_shgroup_light(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer)
 {
 	Light *la = ob->data;
 	float *color;
 	int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);
 	static float zero = 0.0f;
 
-	typedef struct LampEngineData {
+	typedef struct LightEngineData {
 		DrawData dd;
 		float shape_mat[4][4];
 		float spot_blend_mat[4][4];
-	} LampEngineData;
+	} LightEngineData;
 
-	LampEngineData *lamp_engine_data =
-	        (LampEngineData *)DRW_drawdata_ensure(
+	LightEngineData *light_engine_data =
+	        (LightEngineData *)DRW_drawdata_ensure(
 	                &ob->id,
 	                &draw_engine_object_type,
-	                sizeof(LampEngineData),
+	                sizeof(LightEngineData),
 	                NULL,
 	                NULL);
 
-	float (*shapemat)[4] = lamp_engine_data->shape_mat;
-	float (*spotblendmat)[4] = lamp_engine_data->spot_blend_mat;
+	float (*shapemat)[4] = light_engine_data->shape_mat;
+	float (*spotblendmat)[4] = light_engine_data->spot_blend_mat;
 
 	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
 		/* Don't draw the center if it's selected or active */
-		if (theme_id == TH_LAMP) {
-			DRW_shgroup_call_dynamic_add(sgl->lamp_center, ob->obmat[3]);
+		if (theme_id == TH_LIGHT) {
+			DRW_shgroup_call_dynamic_add(sgl->light_center, ob->obmat[3]);
 		}
 	}
 
 	/* First circle */
-	DRW_shgroup_call_dynamic_add(sgl->lamp_circle, ob->obmat[3], color);
+	DRW_shgroup_call_dynamic_add(sgl->light_circle, ob->obmat[3], color);
 
 	/* draw dashed outer circle for shadow */
-	DRW_shgroup_call_dynamic_add(sgl->lamp_circle_shadow, ob->obmat[3], color);
+	DRW_shgroup_call_dynamic_add(sgl->light_circle_shadow, ob->obmat[3], color);
 
 	/* Distance */
 	if (ELEM(la->type, LA_SUN, LA_AREA)) {
-		DRW_shgroup_call_dynamic_add(sgl->lamp_distance, color, &zero, &la->dist, ob->obmat);
+		DRW_shgroup_call_dynamic_add(sgl->light_distance, color, &zero, &la->dist, ob->obmat);
 	}
 
 	copy_m4_m4(shapemat, ob->obmat);
 
 	if (la->type == LA_SUN) {
-		DRW_shgroup_call_dynamic_add(sgl->lamp_sunrays, ob->obmat[3], color);
+		DRW_shgroup_call_dynamic_add(sgl->light_sunrays, ob->obmat[3], color);
 	}
 	else if (la->type == LA_SPOT) {
 		float size[3], sizemat[4][4];
@@ -1565,39 +1565,39 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 		mul_m4_m4m4(spotblendmat, shapemat, sizemat);
 
 		if (la->mode & LA_SQUARE) {
-			DRW_shgroup_call_dynamic_add(sgl->lamp_spot_pyramid, color, &one, shapemat);
+			DRW_shgroup_call_dynamic_add(sgl->light_spot_pyramid, color, &one, shapemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
 			 * confusing because it doesn't show the actual blend size */
 			if (blend != 0.0f && blend != 1.0f) {
-				DRW_shgroup_call_dynamic_add(sgl->lamp_spot_blend_rect, color, &one, spotblendmat);
+				DRW_shgroup_call_dynamic_add(sgl->light_spot_blend_rect, color, &one, spotblendmat);
 			}
 
 			if (la->mode & LA_SHOW_CONE) {
 
-				DRW_shgroup_call_dynamic_add(sgl->lamp_spot_volume_rect, cone_inside, &one, shapemat);
-				DRW_shgroup_call_dynamic_add(sgl->lamp_spot_volume_rect_outside, cone_outside, &one, shapemat);
+				DRW_shgroup_call_dynamic_add(sgl->light_spot_volume_rect, cone_inside, &one, shapemat);
+				DRW_shgroup_call_dynamic_add(sgl->light_spot_volume_rect_outside, cone_outside, &one, shapemat);
 			}
 		}
 		else {
-			DRW_shgroup_call_dynamic_add(sgl->lamp_spot_cone, color, shapemat);
+			DRW_shgroup_call_dynamic_add(sgl->light_spot_cone, color, shapemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
 			 * confusing because it doesn't show the actual blend size */
 			if (blend != 0.0f && blend != 1.0f) {
-				DRW_shgroup_call_dynamic_add(sgl->lamp_spot_blend, color, &one, spotblendmat);
+				DRW_shgroup_call_dynamic_add(sgl->light_spot_blend, color, &one, spotblendmat);
 			}
 
 			if (la->mode & LA_SHOW_CONE) {
-				DRW_shgroup_call_dynamic_add(sgl->lamp_spot_volume, cone_inside, &one, shapemat);
-				DRW_shgroup_call_dynamic_add(sgl->lamp_spot_volume_outside, cone_outside, &one, shapemat);
+				DRW_shgroup_call_dynamic_add(sgl->light_spot_volume, cone_inside, &one, shapemat);
+				DRW_shgroup_call_dynamic_add(sgl->light_spot_volume_outside, cone_outside, &one, shapemat);
 			}
 		}
 
-		DRW_shgroup_call_dynamic_add(sgl->lamp_buflimit, color, &la->clipsta, &la->clipend, ob->obmat);
-		DRW_shgroup_call_dynamic_add(sgl->lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
+		DRW_shgroup_call_dynamic_add(sgl->light_buflimit, color, &la->clipsta, &la->clipend, ob->obmat);
+		DRW_shgroup_call_dynamic_add(sgl->light_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
 	}
 	else if (la->type == LA_AREA) {
 		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];
@@ -1609,10 +1609,10 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 		}
 
 		if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
-			DRW_shgroup_call_dynamic_add(sgl->lamp_area_disk, color, &la->area_size, shapemat);
+			DRW_shgroup_call_dynamic_add(sgl->light_area_disk, color, &la->area_size, shapemat);
 		}
 		else {
-			DRW_shgroup_call_dynamic_add(sgl->lamp_area_square, color, &la->area_size, shapemat);
+			DRW_shgroup_call_dynamic_add(sgl->light_area_square, color, &la->area_size, shapemat);
 		}
 	}
 
@@ -1622,12 +1622,12 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 		shapemat[0][1] = shapemat[0][2] = 0.0f;
 		shapemat[1][0] = shapemat[1][2] = 0.0f;
 		shapemat[2][0] = shapemat[2][1] = 0.0f;
-		DRW_shgroup_call_dynamic_add(sgl->lamp_area_sphere, color, &la->area_size, shapemat);
+		DRW_shgroup_call_dynamic_add(sgl->light_area_sphere, color, &la->area_size, shapemat);
 	}
 
 	/* Line and point going to the ground */
-	DRW_shgroup_call_dynamic_add(sgl->lamp_groundline, ob->obmat[3]);
-	DRW_shgroup_call_dynamic_add(sgl->lamp_groundpoint, ob->obmat[3]);
+	DRW_shgroup_call_dynamic_add(sgl->light_groundline, ob->obmat[3]);
+	DRW_shgroup_call_dynamic_add(sgl->light_groundpoint, ob->obmat[3]);
 }
 
 static GPUBatch *batch_camera_path_get(
@@ -2539,16 +2539,16 @@ static void DRW_shgroup_lightprobe(
 				normalize_m4_m4(clipmat, ob->obmat);
 				mul_m4_m4m4(clipmat, clipmat, cubefacemat[i]);
 
-				DRW_shgroup_call_dynamic_add(sgl->lamp_buflimit, color, &prb->clipsta, &prb->clipend, clipmat);
-				DRW_shgroup_call_dynamic_add(sgl->lamp_buflimit_points, color, &prb->clipsta, &prb->clipend, clipmat);
+				DRW_shgroup_call_dynamic_add(sgl->light_buflimit, color, &prb->clipsta, &prb->clipend, clipmat);
+				DRW_shgroup_call_dynamic_add(sgl->light_buflimit_points, color, &prb->clipsta, &prb->clipend, clipmat);
 			}
 		}
 	}
 
 	/* Line and point going to the ground */
 	if (prb->type == LIGHTPROBE_TYPE_CUBE) {
-		DRW_shgroup_call_dynamic_add(sgl->lamp_groundline, ob->obmat[3]);
-		DRW_shgroup_call_dynamic_add(sgl->lamp_groundpoint, ob->obmat[3]);
+		DRW_shgroup_call_dynamic_add(sgl->light_groundline, ob->obmat[3]);
+		DRW_shgroup_call_dynamic_add(sgl->light_groundpoint, ob->obmat[3]);
 	}
 }
 
@@ -3045,7 +3045,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (hide_object_extra) {
 				break;
 			}
-			DRW_shgroup_lamp(sgl, ob, view_layer);
+			DRW_shgroup_light(sgl, ob, view_layer);
 			break;
 		case OB_CAMERA:
 			if (hide_object_extra) {

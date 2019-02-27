@@ -59,7 +59,7 @@ typedef struct GPUColorBandBuilder {
 } GPUColorBandBuilder;
 
 struct GPUMaterial {
-	Scene *scene; /* DEPRECATED was only useful for lamps */
+	Scene *scene; /* DEPRECATED was only useful for lights. */
 	Material *ma;
 
 	eGPUMaterialStatus status;

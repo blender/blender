@@ -715,10 +715,10 @@ void smokeModifier_copy(const struct SmokeModifierData *smd, struct SmokeModifie
 static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_layer);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-static int get_lamp(ViewLayer *view_layer, float *light)
+static int get_light(ViewLayer *view_layer, float *light)
 {
 	Base *base_tmp = NULL;
-	int found_lamp = 0;
+	int found_light = 0;
 
 	// try to find a lamp, preferably local
 	for (base_tmp = FIRSTBASE(view_layer); base_tmp; base_tmp = base_tmp->next) {
@@ -729,14 +729,14 @@ static int get_lamp(ViewLayer *view_layer, float *light)
 				copy_v3_v3(light, base_tmp->object->obmat[3]);
 				return 1;
 			}
-			else if (!found_lamp) {
+			else if (!found_light) {
 				copy_v3_v3(light, base_tmp->object->obmat[3]);
-				found_lamp = 1;
+				found_light = 1;
 			}
 		}
 	}
 
-	return found_lamp;
+	return found_light;
 }
 
 /**********************************************************
@@ -3013,7 +3013,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_la
 	float *density = smoke_get_density(sds->fluid);
 	float correct = -7.0f * sds->dx;
 
-	if (!get_lamp(view_layer, light)) return;
+	if (!get_light(view_layer, light)) return;
 
 	/* convert light pos to sim cell space */
 	mul_m4_v3(sds->imat, light);

@@ -1016,9 +1016,9 @@ bool bc_is_animated(BCMatrixSampleMap &values)
 
 bool bc_has_animations(Object *ob)
 {
-	/* Check for object,lamp and camera transform animations */
+	/* Check for object, light and camera transform animations */
 	if ((bc_getSceneObjectAction(ob) && bc_getSceneObjectAction(ob)->curves.first) ||
-		(bc_getSceneLampAction(ob) && bc_getSceneLampAction(ob)->curves.first) ||
+		(bc_getSceneLightAction(ob) && bc_getSceneLightAction(ob)->curves.first) ||
 		(bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first))
 		return true;
 

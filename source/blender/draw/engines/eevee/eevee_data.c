@@ -32,7 +32,7 @@ void EEVEE_view_layer_data_free(void *storage)
 	EEVEE_ViewLayerData *sldata = (EEVEE_ViewLayerData *)storage;
 
 	/* Lights */
-	MEM_SAFE_FREE(sldata->lamps);
+	MEM_SAFE_FREE(sldata->lights);
 	DRW_UBO_FREE_SAFE(sldata->light_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_render_ubo);
@@ -153,30 +153,30 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob)
 
 /* Light data. */
 
-static void eevee_lamp_data_init(DrawData *dd)
+static void eevee_light_data_init(DrawData *dd)
 {
-	EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)dd;
+	EEVEE_LightEngineData *led = (EEVEE_LightEngineData *)dd;
 	led->need_update = true;
 	led->prev_cube_shadow_id = -1;
 }
 
-EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob)
+EEVEE_LightEngineData *EEVEE_light_data_get(Object *ob)
 {
 	if (ob->type != OB_LAMP) {
 		return NULL;
 	}
-	return (EEVEE_LampEngineData *)DRW_drawdata_get(
+	return (EEVEE_LightEngineData *)DRW_drawdata_get(
 	        &ob->id, &draw_engine_eevee_type);
 }
 
-EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob)
+EEVEE_LightEngineData *EEVEE_light_data_ensure(Object *ob)
 {
 	BLI_assert(ob->type == OB_LAMP);
-	return (EEVEE_LampEngineData *)DRW_drawdata_ensure(
+	return (EEVEE_LightEngineData *)DRW_drawdata_ensure(
 	        &ob->id,
 	        &draw_engine_eevee_type,
-	        sizeof(EEVEE_LampEngineData),
-	        eevee_lamp_data_init,
+	        sizeof(EEVEE_LightEngineData),
+	        eevee_light_data_init,
 	        NULL);
 }
 

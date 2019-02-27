@@ -29,7 +29,7 @@ struct LightData {
 	vec4 spotdata_radius_shadow;  /* x : spot size, y : spot blend, z : radius, w: shadow id */
 	vec4 rightvec_sizex;          /* xyz: Normalized up vector, w: area size X or spot scale X */
 	vec4 upvec_sizey;             /* xyz: Normalized right vector, w: area size Y or spot scale Y */
-	vec4 forwardvec_type;         /* xyz: Normalized forward vector, w: Lamp Type */
+	vec4 forwardvec_type;         /* xyz: Normalized forward vector, w: Light Type */
 };
 
 /* convenience aliases */

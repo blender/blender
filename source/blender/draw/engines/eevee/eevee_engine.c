@@ -368,7 +368,7 @@ static void eevee_id_object_update(void *UNUSED(vedata), Object *object)
 		ped->need_update = (ped->dd.recalc & (ID_RECALC_TRANSFORM | ID_RECALC_COPY_ON_WRITE)) != 0;
 		ped->dd.recalc = 0;
 	}
-	EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
+	EEVEE_LightEngineData *led = EEVEE_light_data_get(object);
 	if (led != NULL && led->dd.recalc != 0) {
 		led->need_update = true;
 		led->dd.recalc = 0;

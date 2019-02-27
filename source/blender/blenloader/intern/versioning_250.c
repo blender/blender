@@ -1398,7 +1398,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 		/* Blender 2.5.2 - subversion 0 introduced a new setting: V3D_RENDER_OVERRIDE.
 		 * This bit was used in the past for V3D_TRANSFORM_SNAP, which is now deprecated.
 		 * Here we clear it for old files so they don't come in with V3D_RENDER_OVERRIDE set,
-		 * which would cause cameras, lamps, etc to become invisible */
+		 * which would cause cameras, lights, etc to become invisible */
 		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 			for (sa = sc->areabase.first; sa; sa = sa->next) {

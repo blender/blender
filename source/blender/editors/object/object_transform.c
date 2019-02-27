@@ -1287,14 +1287,14 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Transform Axis Target
  *
- * Note this is an experemental operator to point lamps/cameras at objects.
+ * Note this is an experemental operator to point lights/cameras at objects.
  * We may re-work how this behaves based on user feedback.
  * - campbell.
  * \{ */
 
 /* When using multiple objects, apply their relative rotational offset to the active object. */
 #define USE_RELATIVE_ROTATION
-/* Disable overlays, ignoring user setting (lamp wire gets in the way). */
+/* Disable overlays, ignoring user setting (light wire gets in the way). */
 #define USE_RENDER_OVERRIDE
 /* Calculate a depth if the cursor isn't already over a depth (not essential but feels buggy without). */
 #define USE_FAKE_DEPTH_INIT
@@ -1366,7 +1366,7 @@ static bool object_is_target_compat(const Object *ob)
 			return true;
 		}
 	}
-	/* We might want to enable this later, for now just lamps */
+	/* We might want to enable this later, for now just lights. */
 #if 0
 	else if (ob->type == OB_CAMERA) {
 		return true;

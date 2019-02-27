@@ -165,7 +165,7 @@ void BKE_light_free(Light *la)
 
 	curvemapping_free(la->curfalloff);
 
-	/* is no lib link block, but lamp extension */
+	/* is no lib link block, but light extension */
 	if (la->nodetree) {
 		ntreeFreeNestedTree(la->nodetree);
 		MEM_freeN(la->nodetree);

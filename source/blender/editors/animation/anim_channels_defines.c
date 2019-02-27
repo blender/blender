@@ -1504,7 +1504,7 @@ static void *acf_dslight_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings s
 	}
 }
 
-/* lamp expander type define */
+/* light expander type define */
 static bAnimChannelType ACF_DSLIGHT =
 {
 	"Light Expander",               /* type name */

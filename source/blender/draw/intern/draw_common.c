@@ -59,7 +59,7 @@ void DRW_globals_update(void)
 	UI_COLOR_RGBA_FROM_U8(0x88, 0xFF, 0xFF, 155, gb->colorLibrarySelect);
 	UI_COLOR_RGBA_FROM_U8(0x55, 0xCC, 0xCC, 155, gb->colorLibrary);
 	UI_GetThemeColor4fv(TH_TRANSFORM, gb->colorTransform);
-	UI_GetThemeColor4fv(TH_LAMP, gb->colorLamp);
+	UI_GetThemeColor4fv(TH_LIGHT, gb->colorLight);
 	UI_GetThemeColor4fv(TH_SPEAKER, gb->colorSpeaker);
 	UI_GetThemeColor4fv(TH_CAMERA, gb->colorCamera);
 	UI_GetThemeColor4fv(TH_EMPTY, gb->colorEmpty);
@@ -136,11 +136,11 @@ void DRW_globals_update(void)
 
 	UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, gb->colorDeselect);
 	UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, gb->colorOutline);
-	UI_GetThemeColorShadeAlpha4fv(TH_LAMP, 0, 255, gb->colorLampNoAlpha);
+	UI_GetThemeColorShadeAlpha4fv(TH_LIGHT, 0, 255, gb->colorLightNoAlpha);
 
-	gb->sizeLampCenter = (U.obcenter_dia + 1.5f) * U.pixelsize;
-	gb->sizeLampCircle = U.pixelsize * 9.0f;
-	gb->sizeLampCircleShadow = gb->sizeLampCircle + U.pixelsize * 3.0f;
+	gb->sizeLightCenter = (U.obcenter_dia + 1.5f) * U.pixelsize;
+	gb->sizeLightCircle = U.pixelsize * 9.0f;
+	gb->sizeLightCircleShadow = gb->sizeLightCircle + U.pixelsize * 3.0f;
 
 	/* M_SQRT2 to be at least the same size of the old square */
 	gb->sizeVertex = U.pixelsize * (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
@@ -971,7 +971,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 			theme_id = (active) ? TH_ACTIVE : TH_SELECT;
 		}
 		else {
-			if (ob->type == OB_LAMP) theme_id = TH_LAMP;
+			if (ob->type == OB_LAMP) theme_id = TH_LIGHT;
 			else if (ob->type == OB_SPEAKER) theme_id = TH_SPEAKER;
 			else if (ob->type == OB_CAMERA) theme_id = TH_CAMERA;
 			else if (ob->type == OB_EMPTY) theme_id = TH_EMPTY;
@@ -1001,7 +1001,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 				case TH_SPEAKER:      *r_color = G_draw.block.colorSpeaker; break;
 				case TH_CAMERA:       *r_color = G_draw.block.colorCamera; break;
 				case TH_EMPTY:        *r_color = G_draw.block.colorEmpty; break;
-				case TH_LAMP:         *r_color = G_draw.block.colorLamp; break;
+				case TH_LIGHT:         *r_color = G_draw.block.colorLight; break;
 				default:              *r_color = G_draw.block.colorWire; break;
 			}
 		}
@@ -1024,7 +1024,7 @@ float *DRW_color_background_blend_get(int theme_id)
 		case TH_SPEAKER:      ret = colors[6]; break;
 		case TH_CAMERA:       ret = colors[7]; break;
 		case TH_EMPTY:        ret = colors[8]; break;
-		case TH_LAMP:         ret = colors[9]; break;
+		case TH_LIGHT:         ret = colors[9]; break;
 		default:              ret = colors[10]; break;
 	}
 
