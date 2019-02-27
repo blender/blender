@@ -87,10 +87,10 @@ static IDType idtypes[] = {
 	{ID_WS,   "WorkSpace",          "workspaces",      BLT_I18NCONTEXT_ID_WORKSPACE,          IDTYPE_FLAGS_ISLINKABLE},
 
 	/** Keep last, not an ID exactly, only include for completeness */
-	{ID_ID,   "ID",                 "ids",             BLT_I18NCONTEXT_ID_ID,                 0                       }, /* plural is fake */
+	{ID_LINK_PLACEHOLDER, "Link Placeholder", "link_placeholders", BLT_I18NCONTEXT_ID_ID, 0}, /* plural is fake */
 };
 
-/* -1 for ID_ID */
+/* -1 for ID_LINK_PLACEHOLDER */
 BLI_STATIC_ASSERT((ARRAY_SIZE(idtypes) - 1 == MAX_LIBARRAY), "Missing IDType");
 
 static IDType *idtype_from_name(const char *str)

@@ -3752,6 +3752,7 @@ static void write_libraries(WriteData *wd, Main *main)
 				}
 			}
 
+			/* Write link placeholders for all direct linked IDs. */
 			while (a--) {
 				for (id = lbarray[a]->first; id; id = id->next) {
 					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
@@ -3760,7 +3761,7 @@ static void write_libraries(WriteData *wd, Main *main)
 							       "but is flagged as directly linked", id->name, main->curlib->filepath);
 							BLI_assert(0);
 						}
-						writestruct(wd, ID_ID, ID, 1, id);
+						writestruct(wd, ID_LINK_PLACEHOLDER, ID, 1, id);
 					}
 				}
 			}

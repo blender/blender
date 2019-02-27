@@ -397,7 +397,7 @@ typedef enum ID_Type {
 } ID_Type;
 
 /* Only used as 'placeholder' in .blend files for directly linked datablocks. */
-#define ID_ID       MAKE_ID2('I', 'D') /* (internal use only) */
+#define ID_LINK_PLACEHOLDER  MAKE_ID2('I', 'D') /* (internal use only) */
 
 /* Deprecated. */
 #define ID_SCRN	    MAKE_ID2('S', 'N')
@@ -484,7 +484,7 @@ enum {
 	LIB_TAG_NEED_EXPAND     = 1 << 3,
 	/* RESET_AFTER_USE Flag used internally in readfile.c to mark ID
 	 * placeholders for linked datablocks needing to be read. */
-	LIB_TAG_ID_ID           = 1 << 4,
+	LIB_TAG_ID_LINK_PLACEHOLDER = 1 << 4,
 	/* RESET_AFTER_USE */
 	LIB_TAG_NEED_LINK       = 1 << 5,
 
