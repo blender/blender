@@ -192,7 +192,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		{
 			/* Default only has one window. */
 			wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
-			for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+			for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
 				WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook, workspace);
 				bScreen *screen = layout->screen;
 				BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
@@ -218,7 +218,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 	/* For 2D animation template. */
 	if (app_template && STREQ(app_template, "2D_Animation")) {
-		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
 			const char *name = workspace->id.name + 2;
 
 			if (STREQ(name, "Drawing")) {
@@ -271,7 +271,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 	if (builtin_template) {
 		/* Clear all tools to use default options instead, ignore the tool saved in the file. */
-		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
 			while (!BLI_listbase_is_empty(&workspace->tools)) {
 				BKE_workspace_tool_remove(workspace, workspace->tools.first);
 			}

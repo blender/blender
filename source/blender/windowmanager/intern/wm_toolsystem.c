@@ -546,7 +546,7 @@ void WM_toolsystem_init(bContext *C)
 
 	BLI_assert(CTX_wm_window(C) == NULL);
 
-	LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+	LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspace) {
 		LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
 			MEM_SAFE_FREE(tref->runtime);
 		}

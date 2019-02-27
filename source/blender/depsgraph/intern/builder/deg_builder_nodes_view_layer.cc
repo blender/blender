@@ -132,7 +132,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 		build_compositor(scene);
 	}
 	/* Cache file. */
-	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
+	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefile) {
 		build_cachefile(cachefile);
 	}
 	/* Masks. */

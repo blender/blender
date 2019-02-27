@@ -2981,7 +2981,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 
 	/* Cache files level animations (frame duration and such). */
 	if (!(ads->filterflag2 & ADS_FILTER_NOCACHEFILES) && !(ads->filterflag & ADS_FILTER_ONLYSEL)) {
-		CacheFile *cache_file = ac->bmain->cachefiles.first;
+		CacheFile *cache_file = ac->bmain->cachefile.first;
 		for (; cache_file; cache_file = cache_file->id.next) {
 			items += animdata_filter_ds_cachefile(ac, anim_data, ads, cache_file, filter_mode);
 		}

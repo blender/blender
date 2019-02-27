@@ -1379,7 +1379,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			sce = sce->id.next;
 		}
 
-		for (lt = bmain->latt.first; lt; lt = lt->id.next) {
+		for (lt = bmain->lattice.first; lt; lt = lt->id.next) {
 			if (lt->fu == 0.0f && lt->fv == 0.0f && lt->fw == 0.0f) {
 				calc_lat_fudu(lt->flag, lt->pntsu, &lt->fu, &lt->du);
 				calc_lat_fudu(lt->flag, lt->pntsv, &lt->fv, &lt->dv);
@@ -2402,7 +2402,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		idproperties_fix_group_lengths(bmain->mat);
 		idproperties_fix_group_lengths(bmain->tex);
 		idproperties_fix_group_lengths(bmain->image);
-		idproperties_fix_group_lengths(bmain->latt);
+		idproperties_fix_group_lengths(bmain->lattice);
 		idproperties_fix_group_lengths(bmain->light);
 		idproperties_fix_group_lengths(bmain->camera);
 		idproperties_fix_group_lengths(bmain->ipo);

@@ -177,7 +177,7 @@ void BKE_cachefile_update_frame(
 	CacheFile *cache_file;
 	char filename[FILE_MAX];
 
-	for (cache_file = bmain->cachefiles.first; cache_file; cache_file = cache_file->id.next) {
+	for (cache_file = bmain->cachefile.first; cache_file; cache_file = cache_file->id.next) {
 		/* TODO: dependency graph should be updated to do drivers on cachefile.
 		 * Execute drivers only, as animation has already been done. */
 		BKE_animsys_evaluate_animdata(depsgraph, scene, &cache_file->id, cache_file->adt, ctime, ADT_RECALC_DRIVERS);

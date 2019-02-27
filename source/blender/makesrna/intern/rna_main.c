@@ -150,10 +150,10 @@ static void rna_Main_image_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->image, NULL);
 }
 
-static void rna_Main_latt_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_lattice_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->latt, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->lattice, NULL);
 }
 
 static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -240,10 +240,10 @@ static void rna_Main_particle_begin(CollectionPropertyIterator *iter, PointerRNA
 	rna_iterator_listbase_begin(iter, &bmain->particle, NULL);
 }
 
-static void rna_Main_palettes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_palette_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->palettes, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->palette, NULL);
 }
 
 static void rna_Main_gpencil_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -276,25 +276,25 @@ static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRN
 	rna_iterator_listbase_begin(iter, &bmain->linestyle, NULL);
 }
 
-static void rna_Main_cachefiles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_cachefile_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->cachefiles, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->cachefile, NULL);
 }
 
-static void rna_Main_paintcurves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_paintcurve_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->paintcurves, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->paintcurve, NULL);
 }
 
-static void rna_Main_workspaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_workspace_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->workspaces, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->workspace, NULL);
 }
 
-static void rna_Main_lightprobes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_lightprobe_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->lightprobe, NULL);
@@ -389,10 +389,10 @@ int rna_Main_image_lookup_string(PointerRNA *ptr, const char *key, struct Pointe
 	return rna_ID_lookup_string(&bmain->image, key, r_ptr);
 }
 
-int rna_Main_latt_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
+int rna_Main_lattice_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
 {
 	Main *bmain = ptr->data;
-	return rna_ID_lookup_string(&bmain->latt, key, r_ptr);
+	return rna_ID_lookup_string(&bmain->lattice, key, r_ptr);
 }
 
 int rna_Main_curve_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
@@ -482,7 +482,7 @@ int rna_Main_particle_lookup_string(PointerRNA *ptr, const char *key, struct Poi
 int rna_Main_palette_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
 {
 	Main *bmain = ptr->data;
-	return rna_ID_lookup_string(&bmain->palettes, key, r_ptr);
+	return rna_ID_lookup_string(&bmain->palette, key, r_ptr);
 }
 
 int rna_Main_gpencil_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
@@ -512,19 +512,19 @@ int rna_Main_linestyle_lookup_string(PointerRNA *ptr, const char *key, struct Po
 int rna_Main_cachefile_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
 {
 	Main *bmain = ptr->data;
-	return rna_ID_lookup_string(&bmain->cachefiles, key, r_ptr);
+	return rna_ID_lookup_string(&bmain->cachefile, key, r_ptr);
 }
 
 int rna_Main_paintcurve_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
 {
 	Main *bmain = ptr->data;
-	return rna_ID_lookup_string(&bmain->paintcurves, key, r_ptr);
+	return rna_ID_lookup_string(&bmain->paintcurve, key, r_ptr);
 }
 
 int rna_Main_workspace_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
 {
 	Main *bmain = ptr->data;
-	return rna_ID_lookup_string(&bmain->workspaces, key, r_ptr);
+	return rna_ID_lookup_string(&bmain->workspace, key, r_ptr);
 }
 
 int rna_Main_lightprobe_lookup_string(PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr)
@@ -587,7 +587,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen data-blocks", RNA_def_main_screens, "rna_Main_screen_lookup_string"},
 		{"window_managers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager data-blocks", RNA_def_main_window_managers, "rna_Main_wm_lookup_string"},
 		{"images", "Image", "rna_Main_image_begin", "Images", "Image data-blocks", RNA_def_main_images, "rna_Main_image_lookup_string"},
-		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice data-blocks", RNA_def_main_lattices, "rna_Main_latt_lookup_string"},
+		{"lattices", "Lattice", "rna_Main_lattice_begin", "Lattices", "Lattice data-blocks", RNA_def_main_lattices, "rna_Main_lattice_lookup_string"},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve data-blocks", RNA_def_main_curves, "rna_Main_curve_lookup_string"},
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball data-blocks", RNA_def_main_metaballs, "rna_Main_mball_lookup_string"},
 		{"fonts", "VectorFont", "rna_Main_font_begin", "Vector Fonts", "Vector font data-blocks", RNA_def_main_fonts, "rna_Main_font_lookup_string"},
@@ -602,15 +602,15 @@ void RNA_def_main(BlenderRNA *brna)
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature data-blocks", RNA_def_main_armatures, "rna_Main_armature_lookup_string"},
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action data-blocks", RNA_def_main_actions, "rna_Main_action_lookup_string"},
 		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle data-blocks", RNA_def_main_particles, "rna_Main_particle_lookup_string"},
-		{"palettes", "Palette", "rna_Main_palettes_begin", "Palettes", "Palette data-blocks", RNA_def_main_palettes, "rna_Main_palette_lookup_string"},
+		{"palettes", "Palette", "rna_Main_palette_begin", "Palettes", "Palette data-blocks", RNA_def_main_palettes, "rna_Main_palette_lookup_string"},
 		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil data-blocks", RNA_def_main_gpencil, "rna_Main_gpencil_lookup_string"},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip data-blocks", RNA_def_main_movieclips, "rna_Main_movieclip_lookup_string"},
 		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks data-blocks", RNA_def_main_masks, "rna_Main_mask_lookup_string"},
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style data-blocks", RNA_def_main_linestyles, "rna_Main_linestyle_lookup_string"},
-		{"cache_files", "CacheFile", "rna_Main_cachefiles_begin", "Cache Files", "Cache Files data-blocks", RNA_def_main_cachefiles, "rna_Main_cachefile_lookup_string"},
-		{"paint_curves", "PaintCurve", "rna_Main_paintcurves_begin", "Paint Curves", "Paint Curves data-blocks", RNA_def_main_paintcurves, "rna_Main_paintcurve_lookup_string"},
-		{"workspaces", "WorkSpace", "rna_Main_workspaces_begin", "Workspaces", "Workspace data-blocks", RNA_def_main_workspaces, "rna_Main_workspace_lookup_string"},
-		{"lightprobes", "LightProbe", "rna_Main_lightprobes_begin", "LightProbes", "LightProbe data-blocks", RNA_def_main_lightprobes, "rna_Main_lightprobe_lookup_string"},
+		{"cache_files", "CacheFile", "rna_Main_cachefile_begin", "Cache Files", "Cache Files data-blocks", RNA_def_main_cachefiles, "rna_Main_cachefile_lookup_string"},
+		{"paint_curves", "PaintCurve", "rna_Main_paintcurve_begin", "Paint Curves", "Paint Curves data-blocks", RNA_def_main_paintcurves, "rna_Main_paintcurve_lookup_string"},
+		{"workspaces", "WorkSpace", "rna_Main_workspace_begin", "Workspaces", "Workspace data-blocks", RNA_def_main_workspaces, "rna_Main_workspace_lookup_string"},
+		{"lightprobes", "LightProbe", "rna_Main_lightprobe_begin", "LightProbes", "LightProbe data-blocks", RNA_def_main_lightprobes, "rna_Main_lightprobe_lookup_string"},
 		{NULL, NULL, NULL, NULL, NULL, NULL},
 	};
 

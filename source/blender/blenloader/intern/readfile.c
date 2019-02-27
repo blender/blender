@@ -2670,7 +2670,7 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 static void lib_link_palette(FileData *fd, Main *main)
 {
 	/* only link ID pointers */
-	for (Palette *palette = main->palettes.first; palette; palette = palette->id.next) {
+	for (Palette *palette = main->palette.first; palette; palette = palette->id.next) {
 		if (palette->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(palette->id.properties, fd);
 
@@ -2689,7 +2689,7 @@ static void direct_link_palette(FileData *fd, Palette *palette)
 static void lib_link_paint_curve(FileData *fd, Main *main)
 {
 	/* only link ID pointers */
-	for (PaintCurve *pc = main->paintcurves.first; pc; pc = pc->id.next) {
+	for (PaintCurve *pc = main->paintcurve.first; pc; pc = pc->id.next) {
 		if (pc->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(pc->id.properties, fd);
 
@@ -3168,7 +3168,7 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 static void lib_link_cachefiles(FileData *fd, Main *bmain)
 {
 	/* only link ID pointers */
-	for (CacheFile *cache_file = bmain->cachefiles.first; cache_file; cache_file = cache_file->id.next) {
+	for (CacheFile *cache_file = bmain->cachefile.first; cache_file; cache_file = cache_file->id.next) {
 		if (cache_file->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(cache_file->id.properties, fd);
 			lib_link_animdata(fd, &cache_file->id, cache_file->adt);
@@ -3197,7 +3197,7 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 
 static void lib_link_workspaces(FileData *fd, Main *bmain)
 {
-	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
 		ListBase *layouts = BKE_workspace_layouts_get(workspace);
 		ID *id = (ID *)workspace;
 
@@ -5142,7 +5142,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 static void lib_link_latt(FileData *fd, Main *main)
 {
-	for (Lattice *lt = main->latt.first; lt; lt = lt->id.next) {
+	for (Lattice *lt = main->lattice.first; lt; lt = lt->id.next) {
 		if (lt->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(lt->id.properties, fd);
 			lib_link_animdata(fd, &lt->id, lt->adt);
@@ -8057,7 +8057,7 @@ void blo_lib_link_restore(Main *oldmain, Main *newmain, wmWindowManager *curwm, 
 {
 	struct IDNameLib_Map *id_map = BKE_main_idmap_create(newmain, true, oldmain);
 
-	for (WorkSpace *workspace = newmain->workspaces.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = newmain->workspace.first; workspace; workspace = workspace->id.next) {
 		ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
 		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {

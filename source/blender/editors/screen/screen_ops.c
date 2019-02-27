@@ -4913,7 +4913,7 @@ static int space_workspace_cycle_invoke(bContext *C, wmOperator *op, const wmEve
 	WorkSpace *workspace_dst = NULL;
 
 	ListBase ordered;
-	BKE_id_ordered_list(&ordered, &bmain->workspaces);
+	BKE_id_ordered_list(&ordered, &bmain->workspace);
 
 	for (LinkData *link = ordered.first; link; link = link->next) {
 		if (link->data == workspace_src) {

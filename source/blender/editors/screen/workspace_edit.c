@@ -223,7 +223,7 @@ bool ED_workspace_delete(
 {
 	ID *workspace_id = (ID *)workspace;
 
-	if (BLI_listbase_is_single(&bmain->workspaces)) {
+	if (BLI_listbase_is_single(&bmain->workspace)) {
 		return false;
 	}
 
@@ -355,11 +355,11 @@ static int workspace_append_activate_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filepath);
 
 	if (workspace_append(C, filepath, idname) != OPERATOR_CANCELLED) {
-		WorkSpace *appended_workspace = BLI_findstring(&bmain->workspaces, idname, offsetof(ID, name) + 2);
+		WorkSpace *appended_workspace = BLI_findstring(&bmain->workspace, idname, offsetof(ID, name) + 2);
 		BLI_assert(appended_workspace != NULL);
 
 		/* Reorder to last position. */
-		BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, NULL, true);
+		BKE_id_reorder(&bmain->workspace, &appended_workspace->id, NULL, true);
 
 		/* Changing workspace changes context. Do delayed! */
 		WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
@@ -454,7 +454,7 @@ static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
 	if (startup_config) {
 		for (WorkSpace *workspace = startup_config->workspaces.first; workspace; workspace = workspace->id.next) {
 			uiLayout *row = uiLayoutRow(layout, false);
-			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
+			if (BLI_findstring(&bmain->workspace, workspace->id.name, offsetof(ID, name))) {
 				uiLayoutSetActive(row, false);
 			}
 
@@ -479,7 +479,7 @@ static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
 			}
 
 			uiLayout *row = uiLayoutRow(layout, false);
-			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
+			if (BLI_findstring(&bmain->workspace, workspace->id.name, offsetof(ID, name))) {
 				uiLayoutSetActive(row, false);
 			}
 
@@ -542,7 +542,7 @@ static int workspace_reorder_to_back_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain = CTX_data_main(C);
 	WorkSpace *workspace = workspace_context_get(C);
 
-	BKE_id_reorder(&bmain->workspaces, &workspace->id, NULL, true);
+	BKE_id_reorder(&bmain->workspace, &workspace->id, NULL, true);
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	return OPERATOR_INTERFACE;
@@ -565,7 +565,7 @@ static int workspace_reorder_to_front_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain = CTX_data_main(C);
 	WorkSpace *workspace = workspace_context_get(C);
 
-	BKE_id_reorder(&bmain->workspaces, &workspace->id, NULL, false);
+	BKE_id_reorder(&bmain->workspace, &workspace->id, NULL, false);
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	return OPERATOR_INTERFACE;

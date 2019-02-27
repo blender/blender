@@ -470,7 +470,7 @@ void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 
 	for (win = wm->windows.first; win; win = win->next) {
 		if (BKE_workspace_active_get(win->workspace_hook) == NULL) {
-			BKE_workspace_active_set(win->workspace_hook, bmain->workspaces.first);
+			BKE_workspace_active_set(win->workspace_hook, bmain->workspace.first);
 		}
 
 		ED_screen_refresh(wm, win);

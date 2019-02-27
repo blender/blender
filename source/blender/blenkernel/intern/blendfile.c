@@ -170,7 +170,7 @@ static void setup_app_data(
 
 		/* comes from readfile.c */
 		SWAP(ListBase, bmain->wm, bfd->main->wm);
-		SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
+		SWAP(ListBase, bmain->workspace, bfd->main->workspace);
 		SWAP(ListBase, bmain->screen, bfd->main->screen);
 
 		/* we re-use current window and screen */
@@ -573,7 +573,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
 	if (bfd) {
 		workspace_config = MEM_mallocN(sizeof(*workspace_config), __func__);
 		workspace_config->main = bfd->main;
-		workspace_config->workspaces = bfd->main->workspaces;
+		workspace_config->workspaces = bfd->main->workspace;
 
 		MEM_freeN(bfd);
 	}
@@ -588,7 +588,7 @@ bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, Rep
 
 	BKE_blendfile_write_partial_begin(bmain);
 
-	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
 		BKE_blendfile_write_partial_tag_ID(&workspace->id, true);
 	}
 

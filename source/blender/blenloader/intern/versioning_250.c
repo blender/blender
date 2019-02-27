@@ -957,7 +957,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (lt = bmain->latt.first; lt; lt = lt->id.next) {
+		for (lt = bmain->lattice.first; lt; lt = lt->id.next) {
 			if ((key = blo_do_versions_newlibadr(fd, lib, lt->key)) && key->refkey) {
 				data = key->refkey->data;
 				tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);

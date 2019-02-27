@@ -123,7 +123,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			/* fullscreen with "Back to Previous" option, don't create
 			 * a new workspace, add layout workspace containing parent */
 			workspace = BLI_findstring(
-			        &bmain->workspaces, screen_parent->id.name + 2, offsetof(ID, name) + 2);
+			        &bmain->workspace, screen_parent->id.name + 2, offsetof(ID, name) + 2);
 		}
 		else {
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
@@ -176,7 +176,7 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
  */
 static void do_version_workspaces_after_lib_link(Main *bmain)
 {
-	BLI_assert(BLI_listbase_is_empty(&bmain->workspaces));
+	BLI_assert(BLI_listbase_is_empty(&bmain->workspace));
 
 	do_version_workspaces_create_from_screens(bmain);
 
@@ -194,7 +194,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 				continue;
 			}
 
-			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, screen->id.name + 2, offsetof(ID, name) + 2);
+			WorkSpace *workspace = BLI_findstring(&bmain->workspace, screen->id.name + 2, offsetof(ID, name) + 2);
 			BLI_assert(workspace != NULL);
 			ListBase *layouts = BKE_workspace_layouts_get(workspace);
 

@@ -340,7 +340,7 @@ ListBase *which_libbase(Main *bmain, short type)
 		case ID_IM:
 			return &(bmain->image);
 		case ID_LT:
-			return &(bmain->latt);
+			return &(bmain->lattice);
 		case ID_LA:
 			return &(bmain->light);
 		case ID_CA:
@@ -386,13 +386,13 @@ ListBase *which_libbase(Main *bmain, short type)
 		case ID_LS:
 			return &(bmain->linestyle);
 		case ID_PAL:
-			return &(bmain->palettes);
+			return &(bmain->palette);
 		case ID_PC:
-			return &(bmain->paintcurves);
+			return &(bmain->paintcurve);
 		case ID_CF:
-			return &(bmain->cachefiles);
+			return &(bmain->cachefile);
 		case ID_WS:
-			return &(bmain->workspaces);
+			return &(bmain->workspace);
 	}
 	return NULL;
 }
@@ -413,7 +413,7 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 	lb[INDEX_ID_IP] = &(bmain->ipo);
 	lb[INDEX_ID_AC] = &(bmain->action); /* moved here to avoid problems when freeing with animato (aligorith) */
 	lb[INDEX_ID_KE] = &(bmain->key);
-	lb[INDEX_ID_PAL] = &(bmain->palettes); /* referenced by gpencil, so needs to be before that to avoid crashes */
+	lb[INDEX_ID_PAL] = &(bmain->palette); /* referenced by gpencil, so needs to be before that to avoid crashes */
 	lb[INDEX_ID_GD] = &(bmain->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
 	lb[INDEX_ID_NT] = &(bmain->nodetree);
 	lb[INDEX_ID_IM] = &(bmain->image);
@@ -427,20 +427,20 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 
 	lb[INDEX_ID_AR] = &(bmain->armature);
 
-	lb[INDEX_ID_CF] = &(bmain->cachefiles);
+	lb[INDEX_ID_CF] = &(bmain->cachefile);
 	lb[INDEX_ID_ME] = &(bmain->mesh);
 	lb[INDEX_ID_CU] = &(bmain->curve);
 	lb[INDEX_ID_MB] = &(bmain->mball);
 
-	lb[INDEX_ID_LT] = &(bmain->latt);
+	lb[INDEX_ID_LT] = &(bmain->lattice);
 	lb[INDEX_ID_LA] = &(bmain->light);
 	lb[INDEX_ID_CA] = &(bmain->camera);
 
 	lb[INDEX_ID_TXT] = &(bmain->text);
 	lb[INDEX_ID_SO]  = &(bmain->sound);
 	lb[INDEX_ID_GR]  = &(bmain->collection);
-	lb[INDEX_ID_PAL] = &(bmain->palettes);
-	lb[INDEX_ID_PC]  = &(bmain->paintcurves);
+	lb[INDEX_ID_PAL] = &(bmain->palette);
+	lb[INDEX_ID_PC]  = &(bmain->paintcurve);
 	lb[INDEX_ID_BR]  = &(bmain->brush);
 	lb[INDEX_ID_PA]  = &(bmain->particle);
 	lb[INDEX_ID_SPK] = &(bmain->speaker);
@@ -452,7 +452,7 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 	lb[INDEX_ID_OB]  = &(bmain->object);
 	lb[INDEX_ID_LS]  = &(bmain->linestyle); /* referenced by scenes */
 	lb[INDEX_ID_SCE] = &(bmain->scene);
-	lb[INDEX_ID_WS]  = &(bmain->workspaces); /* before wm, so it's freed after it! */
+	lb[INDEX_ID_WS]  = &(bmain->workspace); /* before wm, so it's freed after it! */
 	lb[INDEX_ID_WM]  = &(bmain->wm);
 	lb[INDEX_ID_MSK] = &(bmain->mask);
 
