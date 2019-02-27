@@ -29,6 +29,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_library.h"
 #include "BKE_gpencil.h"
 
 #include "gpencil_engine.h"
@@ -68,7 +69,7 @@ tGPencilObjectCache *gpencil_object_cache_add(
 
 	cache_elem->ob = ob;
 	cache_elem->gpd = (bGPdata *)ob->data;
-	strcpy(cache_elem->name, ob->id.name);
+	cache_elem->name = BKE_id_to_unique_string_key(&ob->id);
 
 	copy_v3_v3(cache_elem->loc, ob->obmat[3]);
 	copy_m4_m4(cache_elem->obmat, ob->obmat);

@@ -22,6 +22,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_shader_fx.h"
 
@@ -656,7 +657,8 @@ void GPENCIL_cache_finish(void *vedata)
 			cache_ob = &stl->g_data->gp_object_cache[i];
 			if (!cache_ob->is_dup_ob) {
 				ob = cache_ob->ob;
-				BLI_ghash_insert(gh_objects, ob->id.name, cache_ob->ob);
+				char *name = BKE_id_to_unique_string_key(&ob->id);
+				BLI_ghash_insert(gh_objects, name, cache_ob->ob);
 			}
 		}
 
