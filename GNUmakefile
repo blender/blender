@@ -24,6 +24,120 @@
 #   ../build_linux_i386
 # This is for users who like to configure & build blender with a single command.
 
+define HELP_TEXT
+
+Convenience Targets
+   Provided for building Blender, (multiple at once can be used).
+
+   * debug:         Build a debug binary.
+   * full:          Enable all supported dependencies & options.
+   * lite:          Disable non essential features for a smaller binary and faster build.
+   * headless:      Build without an interface (renderfarm or server automation).
+   * cycles:        Build Cycles standalone only, without Blender.
+   * bpy:           Build as a python module which can be loaded from python directly.
+   * deps:          Build library dependencies (intended only for platform maintainers).
+
+   * config:        Run cmake configuration tool to set build options.
+
+   Note: passing the argument 'BUILD_DIR=path' when calling make will override the default build dir.
+   Note: passing the argument 'BUILD_CMAKE_ARGS=args' lets you add cmake arguments.
+
+
+Project Files
+   Generate poject files for development environments.
+
+   * project_qtcreator:     QtCreator Project Files.
+   * project_netbeans:      NetBeans Project Files.
+   * project_eclipse:       Eclipse CDT4 Project Files.
+
+Package Targets
+
+   * package_debian:    Build a debian package.
+   * package_pacman:    Build an arch linux pacman package.
+   * package_archive:	Build an archive package.
+
+Testing Targets
+   Not associated with building Blender.
+
+   * test:
+     Run ctest, currently tests import/export,
+     operator execution and that python modules load
+   * test_cmake:
+     Runs our own cmake file checker
+     which detects errors in the cmake file list definitions
+   * test_pep8:
+     Checks all python script are pep8
+     which are tagged to use the stricter formatting
+   * test_deprecated:
+     Checks for deprecation tags in our code which may need to be removed
+   * test_style_c:
+     Checks C/C++ conforms with blenders style guide:
+     https://wiki.blender.org/wiki/Source/Code_Style
+   * test_style_c_qtc:
+     Same as test_style but outputs QtCreator tasks format
+   * test_style_osl:
+     Checks OpenShadingLanguage conforms with blenders style guide:
+     https://wiki.blender.org/wiki/Source/Code_Style
+   * test_style_osl_qtc:
+     Checks OpenShadingLanguage conforms with blenders style guide:
+     https://wiki.blender.org/wiki/Source/Code_Style
+
+Static Source Code Checking
+   Not associated with building Blender.
+
+   * check_cppcheck:        Run blender source through cppcheck (C & C++).
+   * check_clang_array:     Run blender source through clang array checking script (C & C++).
+   * check_splint:          Run blenders source through splint (C only).
+   * check_sparse:          Run blenders source through sparse (C only).
+   * check_smatch:          Run blenders source through smatch (C only).
+   * check_spelling_c:      Check for spelling errors (C/C++ only).
+   * check_spelling_c_qtc:  Same as check_spelling_c but outputs QtCreator tasks format.
+   * check_spelling_osl:    Check for spelling errors (OSL only).
+   * check_spelling_py:     Check for spelling errors (Python only).
+   * check_descriptions:    Check for duplicate/invalid descriptions.
+
+Utilities
+   Not associated with building Blender.
+
+   * icons:
+     Updates PNG icons from SVG files.
+     Set environment variables 'BLENDER_BIN' and 'INKSCAPE_BIN'
+     to define your own commands.
+
+   * icons_geom:
+     Updates Geometry icons from BLEND file.
+     Set environment variable 'BLENDER_BIN'
+     to define your own command.
+
+   * tgz:
+     Create a compressed archive of the source code.
+
+   * update:
+     updates git and all submodules
+
+Environment Variables
+
+   * BUILD_CMAKE_ARGS:      Arguments passed to CMake.
+   * BUILD_DIR:             Override default build path.
+   * PYTHON:                Use this for the Python command (used for checking tools).
+   * NPROCS:                Number of processes to use building (auto-detect when omitted).
+
+Documentation Targets
+   Not associated with building Blender.
+
+   * doc_py:        Generate sphinx python api docs.
+   * doc_doxy:      Generate doxygen C/C++ docs.
+   * doc_dna:       Generate blender file format reference.
+   * doc_man:       Generate manpage.
+
+Information
+
+   * help:              This help message.
+   * help_features:     Show a list of optional features when building.
+
+endef
+# HELP_TEXT (end)
+
 
 # System Vars
 OS:=$(shell uname -s)
@@ -196,87 +310,9 @@ config: .FORCE
 
 # -----------------------------------------------------------------------------
 # Help for build targets
+export HELP_TEXT
 help: .FORCE
-	@echo ""
-	@echo "Convenience targets provided for building blender, (multiple at once can be used)"
-	@echo "  * debug     - build a debug binary"
-	@echo "  * full      - enable all supported dependencies & options"
-	@echo "  * lite      - disable non essential features for a smaller binary and faster build"
-	@echo "  * headless  - build without an interface (renderfarm or server automation)"
-	@echo "  * cycles    - build Cycles standalone only, without Blender"
-	@echo "  * bpy       - build as a python module which can be loaded from python directly"
-	@echo "  * deps      - build library dependencies (intended only for platform maintainers)"
-	@echo ""
-	@echo "  * config    - run cmake configuration tool to set build options"
-	@echo ""
-	@echo "  Note, passing the argument 'BUILD_DIR=path' when calling make will override the default build dir."
-	@echo "  Note, passing the argument 'BUILD_CMAKE_ARGS=args' lets you add cmake arguments."
-	@echo ""
-	@echo ""
-	@echo "Project Files for IDE's"
-	@echo "  * project_qtcreator - QtCreator Project Files"
-	@echo "  * project_netbeans  - NetBeans Project Files"
-	@echo "  * project_eclipse   - Eclipse CDT4 Project Files"
-	@echo ""
-	@echo "Package Targets"
-	@echo "  * package_debian  - build a debian package"
-	@echo "  * package_pacman  - build an arch linux pacman package"
-	@echo "  * package_archive - build an archive package"
-	@echo ""
-	@echo "Testing Targets (not associated with building blender)"
-	@echo "  * test               - run ctest, currently tests import/export,"
-	@echo "                         operator execution and that python modules load"
-	@echo "  * test_cmake         - runs our own cmake file checker"
-	@echo "                         which detects errors in the cmake file list definitions"
-	@echo "  * test_pep8          - checks all python script are pep8"
-	@echo "                         which are tagged to use the stricter formatting"
-	@echo "  * test_deprecated    - checks for deprecation tags in our code which may need to be removed"
-	@echo "  * test_style_c       - checks C/C++ conforms with blenders style guide:"
-	@echo "                         https://wiki.blender.org/wiki/Source/Code_Style"
-	@echo "  * test_style_c_qtc   - same as test_style but outputs QtCreator tasks format"
-	@echo "  * test_style_osl     - checks OpenShadingLanguage conforms with blenders style guide:"
-	@echo "                         https://wiki.blender.org/wiki/Source/Code_Style"
-	@echo "  * test_style_osl_qtc - checks OpenShadingLanguage conforms with blenders style guide:"
-	@echo "                         https://wiki.blender.org/wiki/Source/Code_Style"
-	@echo ""
-	@echo "Static Source Code Checking (not associated with building blender)"
-	@echo "  * check_cppcheck       - run blender source through cppcheck (C & C++)"
-	@echo "  * check_clang_array    - run blender source through clang array checking script (C & C++)"
-	@echo "  * check_splint         - run blenders source through splint (C only)"
-	@echo "  * check_sparse         - run blenders source through sparse (C only)"
-	@echo "  * check_smatch         - run blenders source through smatch (C only)"
-	@echo "  * check_spelling_c     - check for spelling errors (C/C++ only)"
-	@echo "  * check_spelling_c_qtc - same as check_spelling_c but outputs QtCreator tasks format"
-	@echo "  * check_spelling_osl   - check for spelling errors (OSL only)"
-	@echo "  * check_spelling_py    - check for spelling errors (Python only)"
-	@echo "  * check_descriptions   - check for duplicate/invalid descriptions"
-	@echo ""
-	@echo "Utilities (not associated with building blender)"
-	@echo "  * icons    - Updates PNG icons from SVG files."
-	@echo "               Set environment variables 'BLENDER_BIN' and 'INKSCAPE_BIN'"
-	@echo "               to define your own commands."
-	@echo "  * icons_geom - Updates Geometry icons from BLEND file."
-	@echo "                 Set environment variable 'BLENDER_BIN'"
-	@echo "                 to define your own command."
-	@echo "  * tgz        - create a compressed archive of the source code."
-	@echo "  * update     - updates git and all submodules"
-	@echo ""
-	@echo "Environment Variables"
-	@echo "  * BUILD_CMAKE_ARGS    - arguments passed to CMake."
-	@echo "  * BUILD_DIR           - override default build path."
-	@echo "  * PYTHON              - use this for the Python command (used for checking tools)."
-	@echo "  * NPROCS              - number of processes to use building (auto-detect when omitted)."
-	@echo ""
-	@echo "Documentation Targets (not associated with building blender)"
-	@echo "  * doc_py   - generate sphinx python api docs"
-	@echo "  * doc_doxy - generate doxygen C/C++ docs"
-	@echo "  * doc_dna  - generate blender file format reference"
-	@echo "  * doc_man  - generate manpage"
-	@echo ""
-	@echo "Information"
-	@echo "  * help          - this help message"
-	@echo "  * help_features - show a list of optional features when building"
-	@echo ""
+	@echo "$$HELP_TEXT"
 
 # -----------------------------------------------------------------------------
 # Packages
