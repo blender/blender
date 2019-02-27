@@ -630,7 +630,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
 	if (sseq->mainb == SEQ_DRAW_SEQUENCE) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
 
 	if (!show_split || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE)
-		draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0, false, false);
+		sequencer_draw_preview(C, scene, ar, sseq, scene->r.cfra, 0, false, false);
 
 	if (show_split && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
 		int over_cfra;
@@ -641,7 +641,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
 			over_cfra = scene->r.cfra + scene->ed->over_ofs;
 
 		if (over_cfra != scene->r.cfra || sseq->overlay_type != SEQ_DRAW_OVERLAY_RECT)
-			draw_image_seq(C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
+			sequencer_draw_preview(C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
 	}
 
 	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {

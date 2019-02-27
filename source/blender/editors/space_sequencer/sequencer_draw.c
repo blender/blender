@@ -985,30 +985,13 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 	return scope;
 }
 
-static void sequencer_display_size(Scene *scene, SpaceSeq *sseq, float r_viewrect[2])
+static void sequencer_display_size(Scene *scene, float r_viewrect[2])
 {
-	float render_size, proxy_size;
+	r_viewrect[0] = (float)scene->r.xsch;
+	r_viewrect[1] = (float)scene->r.ysch;
 
-	if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
-		render_size = (float)scene->r.size / 100.0f;
-		proxy_size = 1.0f;
-	}
-	else {
-		render_size = (float)sseq->render_size / 100.0f;
-		proxy_size = render_size;
-	}
-
-	r_viewrect[0] = (render_size * (float)scene->r.xsch);
-	r_viewrect[1] = (render_size * (float)scene->r.ysch);
-
-	/* rectx = viewrectx + 0.5f; */ /* UNUSED */
-	/* recty = viewrecty + 0.5f; */ /* UNUSED */
-
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		r_viewrect[0] *= scene->r.xasp / scene->r.yasp;
-		r_viewrect[0] /= proxy_size;
-		r_viewrect[1] /= proxy_size;
-	}
+	/* Aspect ratio seems to have no effect on output image*/
+	/* r_viewrect[0] *= scene->r.xasp / scene->r.yasp; */
 }
 
 static void sequencer_draw_gpencil(const bContext *C)
@@ -1069,392 +1052,11 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	immUnbindProgram();
 }
 
-/* draws checkerboard background for transparent content */
-static void sequencer_draw_background(
-        const SpaceSeq *sseq, View2D *v2d, const float viewrect[2], const bool draw_overlay)
+#if 0
+void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {
-	/* setting up the view */
-	UI_view2d_totRect_set(v2d, viewrect[0] + 0.5f, viewrect[1] + 0.5f);
-	UI_view2d_curRect_validate(v2d);
-	UI_view2d_view_ortho(v2d);
-
-	/* only draw alpha for main buffer */
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		if ((sseq->flag & SEQ_USE_ALPHA) && !draw_overlay) {
-			imm_draw_box_checker_2d(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
-		}
-	}
-}
-
-void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, bool draw_overlay, bool draw_backdrop)
-{
-	struct Main *bmain = CTX_data_main(C);
-	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	struct ImBuf *ibuf = NULL;
-	struct ImBuf *scope = NULL;
-	struct View2D *v2d = &ar->v2d;
-	/* int rectx, recty; */ /* UNUSED */
-	float viewrect[2];
-	float col[3];
-	GLuint texid;
-	void *display_buffer;
-	void *cache_handle = NULL;
-	const bool is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
-	int format, type;
-	bool glsl_used = false;
-	const bool draw_gpencil = ((sseq->flag & SEQ_SHOW_GPENCIL) && sseq->gpd);
-	const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
-	bool draw_metadata = false;
-
-	if (G.is_rendering == false && (scene->r.seq_prev_type) == OB_RENDER) {
-		/* stop all running jobs, except screen one. currently previews frustrate Render
-		 * needed to make so sequencer's rendering doesn't conflict with compositor
-		 */
-		WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_COMPOSITE);
-
-		/* in case of final rendering used for preview, kill all previews,
-		 * otherwise threading conflict will happen in rendering module
-		 */
-		WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_RENDER_PREVIEW);
-	}
-
-	if ((!draw_overlay || sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE) && !draw_backdrop) {
-		UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
-		GPU_clear_color(col[0], col[1], col[2], 0.0);
-		GPU_clear(GPU_COLOR_BIT);
-	}
-
-	/* only initialize the preview if a render is in progress */
-	if (G.is_rendering)
-		return;
-
-	if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
-		return;
-	}
-
-	/* for now we only support Left/Right */
-	ibuf = sequencer_ibuf_get(bmain, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
-
-	if ((ibuf == NULL) ||
-	    (ibuf->rect == NULL && ibuf->rect_float == NULL))
-	{
-		sequencer_display_size(scene, sseq, viewrect);
-
-		sequencer_draw_background(sseq, v2d, viewrect, false);
-		sequencer_draw_borders(sseq, v2d, scene);
-
-		/* gpencil can also be drawn without a valid imbuf */
-		if ((draw_gpencil && is_imbuf) && !draw_overlay) {
-			sequencer_draw_gpencil(C);
-		}
-
-		UI_view2d_view_restore(C);
-		return;
-	}
-
-	sequencer_display_size(scene, sseq, viewrect);
-
-	if (!draw_backdrop && (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0)) {
-		SequencerScopes *scopes = &sseq->scopes;
-
-		sequencer_check_scopes(scopes, ibuf);
-
-		switch (sseq->mainb) {
-			case SEQ_DRAW_IMG_IMBUF:
-				if (!scopes->zebra_ibuf) {
-					ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
-
-					if (display_ibuf->rect_float) {
-						IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
-						                                             &scene->display_settings);
-					}
-					scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
-					IMB_freeImBuf(display_ibuf);
-				}
-				scope = scopes->zebra_ibuf;
-				break;
-			case SEQ_DRAW_IMG_WAVEFORM:
-				if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
-					if (!scopes->sep_waveform_ibuf)
-						scopes->sep_waveform_ibuf = sequencer_make_scope(scene, ibuf, make_sep_waveform_view_from_ibuf);
-					scope = scopes->sep_waveform_ibuf;
-				}
-				else {
-					if (!scopes->waveform_ibuf)
-						scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
-					scope = scopes->waveform_ibuf;
-				}
-				break;
-			case SEQ_DRAW_IMG_VECTORSCOPE:
-				if (!scopes->vector_ibuf)
-					scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
-				scope = scopes->vector_ibuf;
-				break;
-			case SEQ_DRAW_IMG_HISTOGRAM:
-				if (!scopes->histogram_ibuf)
-					scopes->histogram_ibuf = sequencer_make_scope(scene, ibuf, make_histogram_view_from_ibuf);
-				scope = scopes->histogram_ibuf;
-				break;
-		}
-
-		/* future files may have new scopes we don't catch above */
-		if (scope) {
-			scopes->reference_ibuf = ibuf;
-			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-				/* scopes drawn in image preview use viewrect from orig ibuf - currently that's only zebra */
-			}
-			else {
-				viewrect[0] = scope->x;
-				viewrect[1] = scope->y;
-			}
-		}
-		else {
-			scopes->reference_ibuf = NULL;
-		}
-	}
-
-	if (!draw_backdrop) {
-		sequencer_draw_background(sseq, v2d, viewrect, draw_overlay);
-	}
-
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
-		GPU_blend(true);
-		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-	}
-
-	/* Format needs to be created prior to any immBindProgram call.
-	 * Do it here because OCIO binds it's own shader.
-	 */
-	GPUVertFormat *imm_format = immVertexFormat();
-	uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-	uint texCoord = GPU_vertformat_attr_add(imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-	if (scope) {
-		IMB_freeImBuf(ibuf);
-		ibuf = scope;
-
-		if (ibuf->rect_float && ibuf->rect == NULL) {
-			IMB_rect_from_float(ibuf);
-		}
-
-		display_buffer = (unsigned char *)ibuf->rect;
-		format = GL_RGBA;
-		type = GL_UNSIGNED_BYTE;
-	}
-	else {
-		bool force_fallback = false;
-
-		force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
-		force_fallback |= (ibuf->dither != 0.0f);
-
-		if (force_fallback) {
-			/* Fallback to CPU based color space conversion */
-			glsl_used = false;
-			format = GL_RGBA;
-			type = GL_UNSIGNED_BYTE;
-			display_buffer = NULL;
-		}
-		else if (ibuf->rect_float) {
-			display_buffer = ibuf->rect_float;
-
-			if (ibuf->channels == 4) {
-				format = GL_RGBA;
-			}
-			else if (ibuf->channels == 3) {
-				format = GL_RGB;
-			}
-			else {
-				BLI_assert(!"Incompatible number of channels for float buffer in sequencer");
-				format = GL_RGBA;
-				display_buffer = NULL;
-			}
-
-			type = GL_FLOAT;
-
-			if (ibuf->float_colorspace) {
-				glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->float_colorspace, ibuf->dither, true);
-			}
-			else {
-				glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
-			}
-		}
-		else if (ibuf->rect) {
-			display_buffer = ibuf->rect;
-			format = GL_RGBA;
-			type = GL_UNSIGNED_BYTE;
-
-			glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->rect_colorspace, ibuf->dither, false);
-		}
-		else {
-			format = GL_RGBA;
-			type = GL_UNSIGNED_BYTE;
-			display_buffer = NULL;
-		}
-
-		/* there's a data to be displayed, but GLSL is not initialized
-		 * properly, in this case we fallback to CPU-based display transform
-		 */
-		if ((ibuf->rect || ibuf->rect_float) && !glsl_used) {
-			display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-			format = GL_RGBA;
-			type = GL_UNSIGNED_BYTE;
-		}
-	}
-
-	if (draw_backdrop) {
-		GPU_matrix_push();
-		GPU_matrix_identity_set();
-		GPU_matrix_push_projection();
-		GPU_matrix_identity_projection_set();
-	}
-
-	glGenTextures(1, (GLuint *)&texid);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texid);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	if (type == GL_FLOAT)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, ibuf->x, ibuf->y, 0, format, type, display_buffer);
-	else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
-
-	if (!glsl_used) {
-		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-		immUniformColor3f(1.0f, 1.0f, 1.0f);
-		immUniform1i("image", 0);
-	}
-
-	immBegin(GPU_PRIM_TRI_FAN, 4);
-
-	if (draw_overlay) {
-		if (sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
-			rctf tot_clip;
-			tot_clip.xmin = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmin);
-			tot_clip.ymin = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymin);
-			tot_clip.xmax = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmax);
-			tot_clip.ymax = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymax);
-
-			immAttr2f(texCoord, scene->ed->over_border.xmin, scene->ed->over_border.ymin);
-			immVertex2f(pos, tot_clip.xmin, tot_clip.ymin);
-
-			immAttr2f(texCoord, scene->ed->over_border.xmin, scene->ed->over_border.ymax);
-			immVertex2f(pos, tot_clip.xmin, tot_clip.ymax);
-
-			immAttr2f(texCoord, scene->ed->over_border.xmax, scene->ed->over_border.ymax);
-			immVertex2f(pos, tot_clip.xmax, tot_clip.ymax);
-
-			immAttr2f(texCoord, scene->ed->over_border.xmax, scene->ed->over_border.ymin);
-			immVertex2f(pos, tot_clip.xmax, tot_clip.ymin);
-		}
-		else if (sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE) {
-			immAttr2f(texCoord, 0.0f, 0.0f);
-			immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymin);
-
-			immAttr2f(texCoord, 0.0f, 1.0f);
-			immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymax);
-
-			immAttr2f(texCoord, 1.0f, 1.0f);
-			immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymax);
-
-			immAttr2f(texCoord, 1.0f, 0.0f);
-			immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymin);
-		}
-	}
-	else if (draw_backdrop) {
-		float aspect;
-		float image_aspect = viewrect[0] / viewrect[1];
-		float imagex, imagey;
-
-		aspect = BLI_rcti_size_x(&ar->winrct) / (float)BLI_rcti_size_y(&ar->winrct);
-
-		if (aspect >= image_aspect) {
-			imagex = image_aspect / aspect;
-			imagey = 1.0f;
-		}
-		else {
-			imagex = 1.0f;
-			imagey = aspect / image_aspect;
-		}
-
-		immAttr2f(texCoord, 0.0f, 0.0f);
-		immVertex2f(pos, -imagex, -imagey);
-
-		immAttr2f(texCoord, 0.0f, 1.0f);
-		immVertex2f(pos, -imagex, imagey);
-
-		immAttr2f(texCoord, 1.0f, 1.0f);
-		immVertex2f(pos, imagex, imagey);
-
-		immAttr2f(texCoord, 1.0f, 0.0f);
-		immVertex2f(pos, imagex, -imagey);
-	}
-	else {
-		draw_metadata = ((sseq->flag & SEQ_SHOW_METADATA) != 0);
-
-		immAttr2f(texCoord, 0.0f, 0.0f);
-		immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymin);
-
-		immAttr2f(texCoord, 0.0f, 1.0f);
-		immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymax);
-
-		immAttr2f(texCoord, 1.0f, 1.0f);
-		immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymax);
-
-		immAttr2f(texCoord, 1.0f, 0.0f);
-		immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymin);
-	}
-
-	immEnd();
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	if (!glsl_used) {
-		immUnbindProgram();
-	}
-
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
-		GPU_blend(false);
-	}
-
-	glDeleteTextures(1, &texid);
-
-	if (glsl_used)
-		IMB_colormanagement_finish_glsl_draw();
-
-	if (cache_handle)
-		IMB_display_buffer_release(cache_handle);
-
-	if (draw_metadata) {
-		ED_region_image_metadata_draw(0.0, 0.0, ibuf, &v2d->tot, 1.0, 1.0);
-	}
-
-	if (!scope)
-		IMB_freeImBuf(ibuf);
-
-	if (draw_backdrop) {
-		GPU_matrix_pop();
-		GPU_matrix_pop_projection();
-		return;
-	}
-
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		sequencer_draw_borders(sseq, v2d, scene);
-	}
-
-	if (draw_gpencil && is_imbuf) {
-		sequencer_draw_gpencil(C);
-	}
-	else {
-		/* ortho at pixel level */
-		UI_view2d_view_restore(C);
-	}
-
-
 	/* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,
-	 * for now just disable drawing since the strip frame will likely be offset */
+	* for now just disable drawing since the strip frame will likely be offset */
 
 	// if (sc->mode == SC_MODE_MASKEDIT)
 	if (0 && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
@@ -1470,13 +1072,369 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			height = (scene->r.size * scene->r.ysch) / 100;
 
 			ED_mask_draw_region(mask, ar,
-			                    0, 0, 0,  /* TODO */
-			                    width, height,
-			                    aspx, aspy,
-			                    false, true,
-			                    NULL, C);
+				0, 0, 0,  /* TODO */
+				width, height,
+				aspx, aspy,
+				false, true,
+				NULL, C);
 		}
 	}
+}
+#endif
+
+static void *sequencer_OCIO_transform_ibuf(const bContext *C, ImBuf *ibuf, bool *glsl_used, int *format, int *type)
+{
+	void *display_buffer;
+	void *cache_handle = NULL;
+	bool force_fallback = false;
+	*glsl_used = false;
+	force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
+	force_fallback |= (ibuf->dither != 0.0f);
+
+	if (force_fallback) {
+		/* Fallback to CPU based color space conversion */
+		*glsl_used = false;
+		*format = GL_RGBA;
+		*type = GL_UNSIGNED_BYTE;
+		display_buffer = NULL;
+	}
+	else if (ibuf->rect_float) {
+		display_buffer = ibuf->rect_float;
+
+		if (ibuf->channels == 4) {
+			*format = GL_RGBA;
+		}
+		else if (ibuf->channels == 3) {
+			*format = GL_RGB;
+		}
+		else {
+			BLI_assert(!"Incompatible number of channels for float buffer in sequencer");
+			*format = GL_RGBA;
+			display_buffer = NULL;
+		}
+
+		*type = GL_FLOAT;
+
+		if (ibuf->float_colorspace) {
+			*glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->float_colorspace, ibuf->dither, true);
+		}
+		else {
+			*glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
+		}
+	}
+	else if (ibuf->rect) {
+		display_buffer = ibuf->rect;
+		*format = GL_RGBA;
+		*type = GL_UNSIGNED_BYTE;
+
+		*glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->rect_colorspace, ibuf->dither, false);
+	}
+	else {
+		*format = GL_RGBA;
+		*type = GL_UNSIGNED_BYTE;
+		display_buffer = NULL;
+	}
+
+	/* there's a data to be displayed, but GLSL is not initialized
+	 * properly, in this case we fallback to CPU-based display transform
+	 */
+	if ((ibuf->rect || ibuf->rect_float) && !*glsl_used) {
+		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+		*format = GL_RGBA;
+		*type = GL_UNSIGNED_BYTE;
+	}
+	if (cache_handle)
+		IMB_display_buffer_release(cache_handle);
+
+	return display_buffer;
+}
+
+static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
+{
+	if (G.is_rendering == false && (scene->r.seq_prev_type) == OB_RENDER) {
+		/* stop all running jobs, except screen one. currently previews frustrate Render
+		 * needed to make so sequencer's rendering doesn't conflict with compositor
+		 */
+		WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_COMPOSITE);
+
+		/* in case of final rendering used for preview, kill all previews,
+		 * otherwise threading conflict will happen in rendering module
+		 */
+		WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_RENDER_PREVIEW);
+	}
+}
+
+static void sequencer_preview_clear()
+{
+	float col[3];
+
+	UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
+	GPU_clear_color(col[0], col[1], col[2], 0.0);
+	GPU_clear(GPU_COLOR_BIT);
+}
+
+static void sequencer_preview_get_rect(rctf *preview, Scene *scene, ARegion *ar, SpaceSeq *sseq, bool draw_overlay, bool draw_backdrop)
+{
+	struct View2D *v2d = &ar->v2d;
+	float viewrect[2];
+
+	sequencer_display_size(scene, viewrect);
+	BLI_rctf_init(preview, -1.0f, 1.0f, -1.0f, 1.0f);
+
+	if (draw_overlay && sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
+		preview->xmax = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmax);
+		preview->xmin = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmin);
+		preview->ymax = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymax);
+		preview->ymin = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymin);
+	}
+	else if (draw_backdrop) {
+		float aspect = BLI_rcti_size_x(&ar->winrct) / (float)BLI_rcti_size_y(&ar->winrct);
+		float image_aspect = viewrect[0] / viewrect[1];
+
+		if (aspect >= image_aspect) {
+			preview->xmax = image_aspect / aspect;
+			preview->xmin = -preview->xmax;
+		}
+		else {
+			preview->ymax = aspect / image_aspect;
+			preview->ymin = -preview->ymax;
+		}
+	}
+	else {
+		*preview = v2d->tot;
+	}
+}
+
+static void sequencer_draw_display_buffer(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, ImBuf *ibuf, ImBuf *scope, bool draw_overlay, bool draw_backdrop)
+{
+	void *display_buffer;
+
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
+		GPU_blend(true);
+		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+	}
+
+	/* Format needs to be created prior to any immBindProgram call.
+	 * Do it here because OCIO binds it's own shader.
+	 */
+	int format, type;
+	bool glsl_used = false;
+	GLuint texid;
+	GPUVertFormat *imm_format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint texCoord = GPU_vertformat_attr_add(imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+	if (scope) {
+		ibuf = scope;
+
+		if (ibuf->rect_float && ibuf->rect == NULL) {
+			IMB_rect_from_float(ibuf);
+		}
+
+		display_buffer = (unsigned char *)ibuf->rect;
+		format = GL_RGBA;
+		type = GL_UNSIGNED_BYTE;
+	}
+	else {
+		display_buffer = sequencer_OCIO_transform_ibuf(C, ibuf, &glsl_used, &format, &type);
+	}
+
+	if (draw_backdrop) {
+		GPU_matrix_push();
+		GPU_matrix_identity_set();
+		GPU_matrix_push_projection();
+		GPU_matrix_identity_projection_set();
+	}
+
+	glGenTextures(1, (GLuint *)&texid);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texid);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	if (type == GL_FLOAT) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, ibuf->x, ibuf->y, 0, format, type, display_buffer);
+	}
+	else {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
+	}
+
+	if (!glsl_used) {
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+		immUniformColor3f(1.0f, 1.0f, 1.0f);
+		immUniform1i("image", 0);
+	}
+
+	immBegin(GPU_PRIM_TRI_FAN, 4);
+
+	rctf preview;
+	rctf canvas;
+	sequencer_preview_get_rect(&preview, scene, ar, sseq, draw_overlay, draw_backdrop);
+
+	if (draw_overlay && sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
+		canvas = scene->ed->over_border;
+	}
+	else {
+		BLI_rctf_init(&canvas, 0.0f, 1.0f, 0.0f, 1.0f);
+	}
+
+	immAttr2f(texCoord, canvas.xmin, canvas.ymin);
+	immVertex2f(pos, preview.xmin, preview.ymin);
+
+	immAttr2f(texCoord, canvas.xmin, canvas.ymax);
+	immVertex2f(pos, preview.xmin, preview.ymax);
+
+	immAttr2f(texCoord, canvas.xmax, canvas.ymax);
+	immVertex2f(pos, preview.xmax, preview.ymax);
+
+	immAttr2f(texCoord, canvas.xmax, canvas.ymin);
+	immVertex2f(pos, preview.xmax, preview.ymin);
+
+	immEnd();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDeleteTextures(1, &texid);
+
+	if (!glsl_used) {
+		immUnbindProgram();
+	}
+	else {
+		IMB_colormanagement_finish_glsl_draw();
+	}
+
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
+		GPU_blend(false);
+	}
+
+	if (draw_backdrop) {
+		GPU_matrix_pop();
+		GPU_matrix_pop_projection();
+	}
+}
+
+static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, bool draw_backdrop)
+{
+	struct ImBuf *scope = NULL;
+	SequencerScopes *scopes = &sseq->scopes;
+
+	if (!draw_backdrop && (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0)) {
+		sequencer_check_scopes(scopes, ibuf);
+
+
+		switch (sseq->mainb) {
+		case SEQ_DRAW_IMG_IMBUF:
+			if (!scopes->zebra_ibuf) {
+				ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+
+				if (display_ibuf->rect_float) {
+					IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+						&scene->display_settings);
+				}
+				scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
+				IMB_freeImBuf(display_ibuf);
+			}
+			scope = scopes->zebra_ibuf;
+			break;
+		case SEQ_DRAW_IMG_WAVEFORM:
+			if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
+				if (!scopes->sep_waveform_ibuf)
+					scopes->sep_waveform_ibuf = sequencer_make_scope(scene, ibuf, make_sep_waveform_view_from_ibuf);
+				scope = scopes->sep_waveform_ibuf;
+			}
+			else {
+				if (!scopes->waveform_ibuf)
+					scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
+				scope = scopes->waveform_ibuf;
+			}
+			break;
+		case SEQ_DRAW_IMG_VECTORSCOPE:
+			if (!scopes->vector_ibuf)
+				scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
+			scope = scopes->vector_ibuf;
+			break;
+		case SEQ_DRAW_IMG_HISTOGRAM:
+			if (!scopes->histogram_ibuf)
+				scopes->histogram_ibuf = sequencer_make_scope(scene, ibuf, make_histogram_view_from_ibuf);
+			scope = scopes->histogram_ibuf;
+			break;
+		}
+
+		/* future files may have new scopes we don't catch above */
+		if (scope) {
+			scopes->reference_ibuf = ibuf;
+		}
+	}
+	return scope;
+}
+
+void sequencer_draw_preview(
+	const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, bool draw_overlay, bool draw_backdrop)
+{
+	struct Main *bmain = CTX_data_main(C);
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	struct View2D *v2d = &ar->v2d;
+	struct ImBuf *ibuf = NULL;
+	struct ImBuf *scope = NULL;
+	float viewrect[2];
+	const bool show_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
+	const bool draw_gpencil = ((sseq->flag & SEQ_SHOW_GPENCIL) && sseq->gpd);
+	const char *names[2] = { STEREO_LEFT_NAME, STEREO_RIGHT_NAME };
+
+	sequencer_stop_running_jobs(C, scene);
+	if (G.is_rendering) {
+		return;
+	}
+
+	if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
+		sequencer_preview_clear();
+		return;
+	}
+
+	/* Setup view */
+	sequencer_display_size(scene, viewrect);
+	UI_view2d_totRect_set(v2d, viewrect[0] + 0.5f, viewrect[1] + 0.5f);
+	UI_view2d_curRect_validate(v2d);
+	UI_view2d_view_ortho(v2d);
+
+	/* Draw background */
+	if (!draw_backdrop && (!draw_overlay || sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE)) {
+		sequencer_preview_clear();
+
+		if (sseq->flag & SEQ_USE_ALPHA) {
+			imm_draw_box_checker_2d(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
+		}
+	}
+	/* Get image */
+	ibuf = sequencer_ibuf_get(bmain, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
+
+	if (ibuf) {
+		scope = sequencer_get_scope(scene, sseq, ibuf, draw_backdrop);
+
+		/* Draw image */
+		sequencer_draw_display_buffer(C, scene, ar, sseq, ibuf, scope, draw_overlay, draw_backdrop);
+
+		/* Draw over image */
+		if (sseq->flag & SEQ_SHOW_METADATA) {
+			ED_region_image_metadata_draw(0.0, 0.0, ibuf, &v2d->tot, 1.0, 1.0);
+		}
+	}
+
+	if (draw_gpencil && show_imbuf) {
+		sequencer_draw_gpencil(C);
+	}
+
+	if (show_imbuf) {
+		sequencer_draw_borders(sseq, v2d, scene);
+	}
+
+	/* TODO */
+	/* sequencer_draw_maskedit(C, scene, ar, sseq); */
+
+	/* Scope is freed in sequencer_check_scopes when ibuf changes and scope image is to be replaced. */
+	if (ibuf) {
+		IMB_freeImBuf(ibuf);
+	}
+
+	UI_view2d_view_restore(C);
 }
 
 #if 0
@@ -1700,7 +1658,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
 	/* Only draw backdrop in pure sequence view. */
 	if (sseq->view == SEQ_VIEW_SEQUENCE && sseq->draw_flag & SEQ_DRAW_BACKDROP) {
-		draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0, false, true);
+		sequencer_draw_preview(C, scene, ar, sseq, scene->r.cfra, 0, false, true);
 		UI_view2d_view_ortho(v2d);
 	}
 

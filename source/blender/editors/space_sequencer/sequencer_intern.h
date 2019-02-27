@@ -48,7 +48,7 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void draw_image_seq(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, bool draw_overlay, bool draw_backdrop);
+void sequencer_draw_preview(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, bool draw_overlay, bool draw_backdrop);
 void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned char col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
