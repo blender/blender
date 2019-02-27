@@ -1271,8 +1271,6 @@ Object *ED_gpencil_add_object(bContext *C, Scene *UNUSED(scene), const float loc
 
 	Object *ob = ED_object_add_type(C, OB_GPENCIL, NULL, loc, rot, false, local_view_bits);
 
-	/* define size */
-	BKE_object_obdata_size_init(ob, GP_OBGPENCIL_DEFAULT_SIZE);
 	/* create default brushes and colors */
 	ED_gpencil_add_defaults(C, ob);
 

@@ -2321,14 +2321,6 @@ static void volumes_free_smoke_textures(void)
 	BLI_freelistN(&e_data.smoke_domains);
 }
 
-static void DRW_shgroup_gpencil(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer)
-{
-	float *color;
-	DRW_object_wire_theme_get(ob, view_layer, &color);
-
-	DRW_shgroup_call_dynamic_add(sgl->gpencil_axes, color, &ob->empty_drawsize, ob->obmat);
-}
-
 static void DRW_shgroup_speaker(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer)
 {
 	float *color;
@@ -3058,16 +3050,6 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				break;
 			}
 			DRW_shgroup_empty(sh_data, sgl, ob, view_layer, rv3d, draw_ctx->sh_cfg);
-			break;
-		case OB_GPENCIL:
-			if (hide_object_extra) {
-				break;
-			}
-			/* in all modes except object mode hide always */
-			if (draw_ctx->object_mode != OB_MODE_OBJECT) {
-				break;
-			}
-			DRW_shgroup_gpencil(sgl, ob, view_layer);
 			break;
 		case OB_SPEAKER:
 			if (hide_object_extra) {

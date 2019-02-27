@@ -375,8 +375,6 @@ class DATA_PT_gpencil_display(ObjectButtonsPanel, Panel):
         gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
 
-        layout.prop(ob, "empty_display_size", text="Marker Size")
-
         layout.prop(gpd, "edit_line_color", text="Edit Line Color")
         if gpl:
             layout.prop(gpd, "show_stroke_direction", text="Show Stroke Directions")

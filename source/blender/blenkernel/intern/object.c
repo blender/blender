@@ -1661,11 +1661,6 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
 			ob->empty_drawsize *= size;
 			break;
 		}
-		case OB_GPENCIL:
-		{
-			ob->empty_drawsize *= size;
-			break;
-		}
 		case OB_FONT:
 		{
 			Curve *cu = ob->data;
@@ -2560,7 +2555,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		float size[3];
 
 		copy_v3_v3(size, ob->scale);
-		if ((ob->type == OB_EMPTY) || (ob->type == OB_GPENCIL)) {
+		if (ob->type == OB_EMPTY) {
 			mul_v3_fl(size, ob->empty_drawsize);
 		}
 

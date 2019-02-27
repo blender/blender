@@ -1018,12 +1018,9 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		float radius = RNA_float_get(op->ptr, "radius");
 		ob = ED_object_add_type(C, OB_GPENCIL, ob_name, loc, rot, true, local_view_bits);
 		gpd = ob->data;
 		newob = true;
-
-		BKE_object_obdata_size_init(ob, GP_OBGPENCIL_DEFAULT_SIZE * radius);
 	}
 	else {
 		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
