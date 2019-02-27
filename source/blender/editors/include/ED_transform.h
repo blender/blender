@@ -136,6 +136,7 @@ int BIF_countTransformOrientation(const struct bContext *C);
 #define P_PROPORTIONAL  (1 << 1)
 #define P_ORIENT_AXIS (1 << 2)
 #define P_ORIENT_AXIS_ORTHO (1 << 16)
+#define P_ORIENT_MATRIX (1 << 17)
 #define P_SNAP          (1 << 3)
 #define P_GEO_SNAP      (P_SNAP | (1 << 4))
 #define P_ALIGN_SNAP    (P_GEO_SNAP | (1 << 5))

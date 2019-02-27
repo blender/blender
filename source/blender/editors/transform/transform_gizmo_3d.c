@@ -1817,15 +1817,15 @@ static void WIDGETGROUP_gizmo_invoke_prepare(
 		Scene *scene = CTX_data_scene(C);
 		wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
 		PointerRNA *ptr = &gzop->ptr;
-		PropertyRNA *prop_constraint_orientation = RNA_struct_find_property(ptr, "constraint_orientation");
+		PropertyRNA *prop_orient_type = RNA_struct_find_property(ptr, "orient_type");
 		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
 		if (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
-			RNA_property_unset(ptr, prop_constraint_orientation);
+			RNA_property_unset(ptr, prop_orient_type);
 		}
 		else {
 			/* TODO: APIfunction */
 			int index = BKE_scene_orientation_slot_get_index(orient_slot);
-			RNA_property_enum_set(ptr, prop_constraint_orientation, index);
+			RNA_property_enum_set(ptr, prop_orient_type, index);
 		}
 	}
 
@@ -2214,7 +2214,7 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 				cross_v3_v3v3(orient_matrix[0], tbounds.axis[i_ortho_a], axis);
 				copy_v3_v3(orient_matrix[1], tbounds.axis[i_ortho_a]);
 				copy_v3_v3(orient_matrix[2], axis);
-				RNA_float_set_array(&gzop->ptr, "constraint_matrix", &orient_matrix[0][0]);
+				RNA_float_set_array(&gzop->ptr, "orient_matrix", &orient_matrix[0][0]);
 				mul_v3_fl(gz->matrix_basis[0], 0.5f);
 				mul_v3_fl(gz->matrix_basis[1], 6.0f);
 			}

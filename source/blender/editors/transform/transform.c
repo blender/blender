@@ -2055,7 +2055,6 @@ static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	bool constraint_axis[3] = {false, false, false};
 	int proportional = 0;
 	PropertyRNA *prop;
 
@@ -2137,7 +2136,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		if (t->spacetype == SPACE_VIEW3D) {
-			if ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+			if ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
 			    !RNA_property_is_set(op->ptr, prop) &&
 			    (t->orientation.user != V3D_ORIENT_CUSTOM_MATRIX))
 			{
@@ -2156,6 +2155,20 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
+	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
+		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_NO_MIRROR) == 0);
+	}
+
+	short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->orientation.unset;
+	if (orientation == V3D_ORIENT_CUSTOM) {
+		const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
+		        t->scene, t->orientation.custom);
+		/* Maybe we need a t->con.custom_orientation?
+		 * Seems like it would always match t->orientation.custom. */
+		orientation = V3D_ORIENT_CUSTOM + orientation_index_custom;
+		BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
+	}
+
 	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
 		if (t->flag & T_MODAL) {
 			if (t->con.mode & CON_APPLY) {
@@ -2167,45 +2180,41 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
-		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_NO_MIRROR) == 0);
-	}
-
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
-		/* constraint orientation can be global, even if user selects something else
-		 * so use the orientation in the constraint if set */
-		short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->orientation.unset;
-
-		if (orientation == V3D_ORIENT_CUSTOM) {
-			const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
-			        t->scene, t->orientation.custom);
-
-			/* Maybe we need a t->con.custom_orientation?
-			 * Seems like it would always match t->orientation.custom. */
-			orientation = V3D_ORIENT_CUSTOM + orientation_index_custom;
-			BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
-		}
-
-		/* Use 'constraint_matrix' instead. */
-		if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
-			RNA_enum_set(op->ptr, "constraint_orientation", orientation);
-		}
-
+	if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix"))) {
 		if (t->flag & T_MODAL) {
 			if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
 				if (t->flag & T_MODAL) {
-					RNA_enum_set(op->ptr, "constraint_matrix_orientation", orientation);
+					RNA_enum_set(op->ptr, "orient_matrix_type", orientation);
 				}
 			}
 			if (t->con.mode & CON_APPLY) {
-				RNA_float_set_array(op->ptr, "constraint_matrix", &t->con.mtx[0][0]);
+				RNA_float_set_array(op->ptr, "orient_matrix", &t->con.mtx[0][0]);
 			}
 			else if (t->orient_matrix_is_set) {
-				RNA_float_set_array(op->ptr, "constraint_matrix", &t->orient_matrix[0][0]);
+				RNA_float_set_array(op->ptr, "orient_matrix", &t->orient_matrix[0][0]);
 			}
 			else {
-				RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
+				RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);
 			}
+		}
+	}
+
+
+	if ((prop = RNA_struct_find_property(op->ptr, "orient_type"))) {
+		/* constraint orientation can be global, even if user selects something else
+		 * so use the orientation in the constraint if set */
+
+		/* Use 'orient_matrix' instead. */
+		if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
+			RNA_property_enum_set(op->ptr, prop, orientation);
+		}
+	}
+
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
+		bool constraint_axis[3] = {false, false, false};
+		if (t->flag & T_MODAL) {
+			/* Only set if needed, so we can hide in the UI when nothing is set.
+			 * See 'transform_poll_property'. */
 			if (t->con.mode & CON_APPLY) {
 				if (t->con.mode & CON_AXIS0) {
 					constraint_axis[0] = true;
@@ -2217,9 +2226,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 					constraint_axis[2] = true;
 				}
 			}
-
-			/* Only set if needed, so we can hide in the UI when nothing is set.
-			 * See 'transform_poll_property'. */
 			if (ELEM(true, UNPACK3(constraint_axis))) {
 				RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
 			}

@@ -80,7 +80,7 @@ typedef struct GizmoExtrudeGroup {
 	/* Copied from the transform operator,
 	 * use to redo with the same settings. */
 	struct {
-		float constraint_matrix[3][3];
+		float orient_matrix[3][3];
 		bool  constraint_axis[3];
 		float value[4];
 	} redo_xform;
@@ -282,7 +282,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		gz_adjust = ggd->adjust[1];
 		/* We can't access this from 'ot->last_properties'
 		 * because some properties use skip-save. */
-		RNA_float_get_array(op_xform->ptr, "constraint_matrix", &ggd->redo_xform.constraint_matrix[0][0]);
+		RNA_float_get_array(op_xform->ptr, "orient_matrix", &ggd->redo_xform.orient_matrix[0][0]);
 		RNA_boolean_get_array(op_xform->ptr, "constraint_axis", ggd->redo_xform.constraint_axis);
 		RNA_float_get_array(op_xform->ptr, "value", ggd->redo_xform.value);
 
@@ -311,7 +311,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 	if (has_redo) {
 		if (gz_adjust == ggd->adjust[0]) {
-			gizmo_mesh_extrude_orientation_matrix_set_for_adjust(ggd, ggd->redo_xform.constraint_matrix);
+			gizmo_mesh_extrude_orientation_matrix_set_for_adjust(ggd, ggd->redo_xform.orient_matrix);
 			if (adjust_is_flip) {
 				negate_v3(ggd->adjust[0]->matrix_basis[2]);
 			}
@@ -390,8 +390,8 @@ static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C), wmGizmo
 		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
 		if (gz == ggd->adjust[0]) {
 			RNA_boolean_set_array(&macroptr, "constraint_axis", ggd->redo_xform.constraint_axis);
-			RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->redo_xform.constraint_matrix[0][0]);
-			RNA_enum_set(&macroptr, "constraint_orientation", V3D_ORIENT_NORMAL);
+			RNA_float_set_array(&macroptr, "orient_matrix", &ggd->redo_xform.orient_matrix[0][0]);
+			RNA_enum_set(&macroptr, "orient_type", V3D_ORIENT_NORMAL);
 		}
 		RNA_float_set_array(&macroptr, "value", ggd->redo_xform.value);
 	}
@@ -409,8 +409,8 @@ static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C), wmGizmo
 		if (use_normal_matrix) {
 			wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
 			PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
-			RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->data.normal_mat3[0][0]);
-			RNA_enum_set(&macroptr, "constraint_orientation", V3D_ORIENT_NORMAL);
+			RNA_float_set_array(&macroptr, "orient_matrix", &ggd->data.normal_mat3[0][0]);
+			RNA_enum_set(&macroptr, "orient_type", V3D_ORIENT_NORMAL);
 		}
 	}
 }

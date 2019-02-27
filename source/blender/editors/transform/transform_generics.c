@@ -1518,13 +1518,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
 
-	if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_matrix")) &&
+	if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
 	           RNA_property_is_set(op->ptr, prop)) &&
 	    ((t->flag & T_MODAL) ||
 	     /* When using redo, don't use the the custom constraint matrix
 	      * if the user selects a different orientation. */
-	     (RNA_enum_get(op->ptr, "constraint_orientation") ==
-	      RNA_enum_get(op->ptr, "constraint_matrix_orientation"))))
+	     (RNA_enum_get(op->ptr, "orient_type") ==
+	      RNA_enum_get(op->ptr, "orient_matrix_type"))))
 	{
 		RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);
 		/* Some transform modes use this to operate on an axis. */
@@ -1534,10 +1534,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->orientation.user = V3D_ORIENT_CUSTOM_MATRIX;
 		t->orientation.custom = 0;
 		if (t->flag & T_MODAL) {
-			RNA_enum_set(op->ptr, "constraint_matrix_orientation", RNA_enum_get(op->ptr, "constraint_orientation"));
+			RNA_enum_set(op->ptr, "orient_matrix_type", RNA_enum_get(op->ptr, "orient_type"));
 		}
 	}
-	else if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+	else if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
 	                RNA_property_is_set(op->ptr, prop)))
 	{
 		short orientation = RNA_property_enum_get(op->ptr, prop);

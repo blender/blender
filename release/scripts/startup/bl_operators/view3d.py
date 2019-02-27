@@ -45,7 +45,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
             bpy.ops.mesh.extrude_region_move(
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_translate={
-                    "constraint_orientation": 'NORMAL',
+                    "orient_type": 'NORMAL',
                     "constraint_axis": (False, False, True),
                 }
             )
@@ -92,7 +92,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                 bpy.ops.mesh.extrude_region_move(
                     'INVOKE_REGION_WIN',
                     TRANSFORM_OT_translate={
-                        "constraint_orientation": 'NORMAL',
+                        "orient_type": 'NORMAL',
                         "constraint_axis": (False, False, True),
                     },
                 )
@@ -103,7 +103,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                 TRANSFORM_OT_translate={
                     # Don't set the constraint axis since users will expect MMB
                     # to use the user setting, see: T61637
-                    # "constraint_orientation": 'NORMAL',
+                    # "orient_type": 'NORMAL',
                     # Not a popular choice, too restrictive for retopo.
                     # "constraint_axis": (True, True, False)})
                     "constraint_axis": (False, False, False),
