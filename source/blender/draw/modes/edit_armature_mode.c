@@ -70,8 +70,7 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 		/* Alloc transient pointers */
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
-	stl->g_data->transparent_bones = (draw_ctx->v3d->shading.type == OB_WIRE) ||
-	                                 (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
+	stl->g_data->transparent_bones = (draw_ctx->v3d->shading.type == OB_WIRE);
 
 	for (int i = 0; i < 2; ++i) {
 		/* Solid bones */

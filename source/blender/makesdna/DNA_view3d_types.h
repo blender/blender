@@ -211,7 +211,7 @@ typedef struct View3DOverlay {
 	float weight_paint_mode_opacity;
 
 	/* Armature edit/pose mode settings */
-	int arm_flag;
+	int _pad3;
 	float xray_alpha_bone;
 
 	/* Other settings */
@@ -489,11 +489,6 @@ enum {
 
 	V3D_OVERLAY_EDIT_CU_HANDLES   = (1 << 20),
 	V3D_OVERLAY_EDIT_CU_NORMALS   = (1 << 21),
-};
-
-/* View3DOverlay->arm_flag */
-enum {
-	V3D_OVERLAY_ARM_TRANSP_BONES  = (1 << 0),
 };
 
 /* View3DOverlay->paint_flag */

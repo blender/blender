@@ -111,8 +111,7 @@ static void POSE_cache_init(void *vedata)
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	POSE_PrivateData *ppd = stl->g_data;
-	ppd->transparent_bones = (draw_ctx->v3d->shading.type == OB_WIRE) ||
-	                         (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
+	ppd->transparent_bones = (draw_ctx->v3d->shading.type == OB_WIRE);
 
 	for (int i = 0; i < 2; ++i) {
 		/* Solid bones */
@@ -258,8 +257,6 @@ static void POSE_draw_scene(void *vedata)
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	const bool transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 	const bool bone_selection_overlay = POSE_is_bone_selection_overlay_active();
 
 	if (DRW_state_is_select()) {
@@ -300,11 +297,6 @@ static void POSE_draw_scene(void *vedata)
 		if (DRW_state_is_fbo()) {
 			GPU_framebuffer_bind(dfbl->default_fb);
 			GPU_framebuffer_clear_depth(dfbl->default_fb, 1.0f);
-		}
-
-		if (transparent_bones) {
-			DRW_pass_state_add(psl->bone_solid[1], DRW_STATE_BLEND);
-			DRW_pass_state_remove(psl->bone_solid[1], DRW_STATE_WRITE_DEPTH);
 		}
 
 		DRW_draw_pass(psl->bone_envelope[1]);
