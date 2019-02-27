@@ -349,22 +349,24 @@ typedef struct bNodeInstanceKey {
  * WARNING: pointers are cast to this struct internally,
  * it must be first member in hash entry structs!
  */
+#
+#
 typedef struct bNodeInstanceHashEntry {
 	bNodeInstanceKey key;
 
 	/* tags for cleaning the cache */
 	short tag;
-	short pad;
 } bNodeInstanceHashEntry;
 
 
+#
+#
 typedef struct bNodePreview {
 	/** Must be first. */
 	bNodeInstanceHashEntry hash_entry;
 
 	unsigned char *rect;
 	short xsize, ysize;
-	int pad;
 } bNodePreview;
 
 
