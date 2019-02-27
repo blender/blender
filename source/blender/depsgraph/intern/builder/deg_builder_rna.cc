@@ -287,6 +287,12 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(
 				node_identifier.type = NodeType::GEOMETRY;
 				return node_identifier;
 			}
+			else if (STREQ(prop_identifier, "hide_viewport") ||
+			         STREQ(prop_identifier, "hide_render"))
+			{
+				node_identifier.type = NodeType::OBJECT_FROM_LAYER;
+				return node_identifier;
+			}
 		}
 	}
 	else if (ptr->type == &RNA_ShapeKey) {
