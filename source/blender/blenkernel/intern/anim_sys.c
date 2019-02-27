@@ -1088,6 +1088,15 @@ static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
 	}
 }
 
+void BKE_fcurves_id_cb(ID *id, ID_FCurve_Edit_Callback func, void *user_data)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	if (adt != NULL) {
+		AllFCurvesCbWrapper wrapper = {func, user_data};
+		adt_apply_all_fcurves_cb(id, adt, &wrapper);
+	}
+}
+
 /* apply the given callback function on all F-Curves attached to data in main database */
 void BKE_fcurves_main_cb(Main *bmain, ID_FCurve_Edit_Callback func, void *user_data)
 {

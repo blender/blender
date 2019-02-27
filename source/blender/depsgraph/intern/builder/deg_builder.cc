@@ -23,6 +23,8 @@
 
 #include "intern/builder/deg_builder.h"
 
+#include <cstring>
+
 #include "DNA_anim_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_ID.h"
@@ -53,6 +55,46 @@ namespace DEG {
  * Base class for builders.
  */
 
+namespace {
+
+struct VisibilityCheckData {
+	eEvaluationMode eval_mode;
+	bool is_visibility_animated;
+};
+
+void visibility_animated_check_cb(ID * /*id*/, FCurve *fcu, void *user_data)
+{
+	VisibilityCheckData *data =
+	        reinterpret_cast<VisibilityCheckData *>(user_data);
+	if (data->is_visibility_animated) {
+		return;
+	}
+	if (data->eval_mode == DAG_EVAL_VIEWPORT) {
+		if (STREQ(fcu->rna_path, "hide_viewport")) {
+			data->is_visibility_animated = true;
+		}
+	} else if (data->eval_mode == DAG_EVAL_RENDER) {
+		if (STREQ(fcu->rna_path, "hide_render")) {
+			data->is_visibility_animated = true;
+		}
+	}
+}
+
+bool isObjectVisibilityAnimated(Depsgraph *graph, Object *object)
+{
+	AnimData* anim_data = BKE_animdata_from_id(&object->id);
+	if (anim_data == NULL) {
+		return false;
+	}
+	VisibilityCheckData data;
+	data.eval_mode = graph->mode;
+	data.is_visibility_animated = false;
+	BKE_fcurves_id_cb(&object->id, visibility_animated_check_cb, &data);
+	return data.is_visibility_animated;
+}
+
+}  // namespace
+
 DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph)
         : bmain_(bmain),
           graph_(graph) {
@@ -63,6 +105,9 @@ bool DepsgraphBuilder::needPullBaseIntoGraph(struct Base *base)
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
 	        BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	if (base->flag & base_flag) {
+		return true;
+	}
+	if (isObjectVisibilityAnimated(graph_, base->object)) {
 		return true;
 	}
 	return false;
