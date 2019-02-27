@@ -2226,8 +2226,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		 * so use the orientation in the constraint if set */
 
 		/* Use 'orient_matrix' instead. */
-		if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
-			RNA_property_enum_set(op->ptr, prop, orientation);
+		if (t->flag & T_MODAL) {
+			if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
+				RNA_property_enum_set(op->ptr, prop, orientation);
+			}
 		}
 	}
 
@@ -3459,10 +3461,6 @@ static void initShear(TransInfo *t)
 		t->orient_axis = 2;
 		t->orient_axis_ortho = 1;
 	}
-	if (t->orient_matrix_is_set == false) {
-		t->orient_matrix_is_set = true;
-		copy_m3_m3(t->orient_matrix, t->spacemtx);
-	}
 
 	initShear_mouseInputMode(t);
 
@@ -4166,18 +4164,6 @@ static void initRotation(TransInfo *t)
 
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
-
-	if ((t->options & CTX_PAINT_CURVE) == 0) {
-		if (t->orient_matrix_is_set == false) {
-			t->orient_matrix_is_set = true;
-			t->orientation.unset = V3D_ORIENT_VIEW;
-			copy_m3_m4(t->orient_matrix, t->viewinv);
-			normalize_m3(t->orient_matrix);
-			negate_m3(t->orient_matrix);
-		}
-	}
-
-	t->orient_axis = 2;
 }
 
 /* Used by Transform Rotation and Transform Normal Rotation */
@@ -4692,16 +4678,6 @@ static void initNormalRotation(TransInfo *t)
 
 		storeCustomLNorValue(tc, bm);
 	}
-
-	if (t->orient_matrix_is_set == false) {
-		t->orient_matrix_is_set = true;
-		t->orientation.unset = V3D_ORIENT_VIEW;
-		copy_m3_m4(t->orient_matrix, t->viewinv);
-		normalize_m3(t->orient_matrix);
-		negate_m3(t->orient_matrix);
-	}
-
-	t->orient_axis = 2;
 }
 
 /* Works by getting custom normal from clnor_data, transform, then store */

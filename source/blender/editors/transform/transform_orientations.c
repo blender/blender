@@ -483,6 +483,20 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			}
 			break;
 	}
+
+	if (t->orient_matrix_is_set == false) {
+		t->orient_matrix_is_set = true;
+		if (t->flag & T_MODAL) {
+			/* Rotate for example defaults to operating on the view plane. */
+			t->orientation.unset = V3D_ORIENT_VIEW;
+			copy_m3_m4(t->orient_matrix, t->viewinv);
+			normalize_m3(t->orient_matrix);
+		}
+		else {
+			copy_m3_m3(t->orient_matrix, t->spacemtx);
+		}
+		negate_m3(t->orient_matrix);
+	}
 }
 
 /**

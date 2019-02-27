@@ -1342,6 +1342,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	/* Leave 't->orient_matrix_is_set' to false,
 	 * so we overwrite it when we have a useful value. */
 
+	/* Default to rotate on the Z axis. */
+	t->orient_axis = 2;
+	t->orient_axis_ortho = 1;
+
 	/* if there's an event, we're modal */
 	if (event) {
 		t->flag |= T_MODAL;
