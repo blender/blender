@@ -1292,7 +1292,7 @@ static void gizmo_xform_message_subscribe(
 void drawDial3d(const TransInfo *t)
 {
 	if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
-		wmGizmo *gz = wm_gizmomap_highlight_get(t->ar->gizmo_map);
+		wmGizmo *gz = wm_gizmomap_modal_get(t->ar->gizmo_map);
 		if (gz == NULL) {
 			/* We only draw Dial3d if the operator has been called by a gizmo. */
 			return;
