@@ -17,8 +17,8 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LAMP_H__
-#define __BKE_LAMP_H__
+#ifndef __BKE_LIGHT_H__
+#define __BKE_LIGHT_H__
 
 /** \file
  * \ingroup bke

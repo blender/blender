@@ -21,8 +21,8 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_LAMP_TYPES_H__
-#define __DNA_LAMP_TYPES_H__
+#ifndef __DNA_LIGHT_TYPES_H__
+#define __DNA_LIGHT_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"
@@ -147,4 +147,4 @@ typedef struct Light {
 #define LA_AREA_DISK	4
 #define LA_AREA_ELLIPSE	5
 
-#endif /* __DNA_LAMP_TYPES_H__ */
+#endif /* __DNA_LIGHT_TYPES_H__ */
