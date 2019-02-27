@@ -44,6 +44,7 @@
 #include "BKE_effect.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_light.h"
 #include "BKE_lattice.h"
 #include "BKE_material.h"
@@ -427,6 +428,8 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
 	const int base_enabled_flag = (mode == DAG_EVAL_VIEWPORT)
 	        ? BASE_ENABLED_VIEWPORT
 	        : BASE_ENABLED_RENDER;
+
+	BKE_base_eval_flags(base);
 
 	/* Compute visibility for depsgraph evaluation mode. */
 	if (base->flag & base_enabled_flag) {

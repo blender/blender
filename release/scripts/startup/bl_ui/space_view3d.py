@@ -4370,13 +4370,10 @@ class VIEW3D_PT_collections(Panel):
             else:
                 has_objects = False
 
-            has_visible_objects = has_objects and child.has_visible_objects(view_layer)
-
             row = layout.row()
             sub = row.split(factor=0.98)
             subrow = sub.row()
             subrow.alignment = 'LEFT'
-            subrow.active = has_visible_objects
             subrow.operator(
                 "object.hide_collection", text=child.name, icon=icon, emboss=False,
             ).collection_index = index

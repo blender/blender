@@ -227,26 +227,6 @@ static bool rna_LayerCollection_has_objects(LayerCollection *lc)
 	return (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) != 0;
 }
 
-static bool rna_LayerCollection_has_visible_objects(LayerCollection *lc, ViewLayer *view_layer)
-{
-	if ((view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
-	    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS))
-	{
-		return false;
-	}
-	return true;
-}
-
-static bool rna_LayerCollection_has_hidden_objects(LayerCollection *lc, ViewLayer *view_layer)
-{
-	if ((view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
-	    (lc->runtime_flag & LAYER_COLLECTION_HAS_HIDDEN_OBJECTS))
-	{
-		return true;
-	}
-	return false;
-}
-
 static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc, ViewLayer *view_layer)
 {
 	return BKE_layer_collection_has_selected_objects(view_layer, lc);
@@ -317,18 +297,6 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "has_objects", "rna_LayerCollection_has_objects");
 	RNA_def_function_ui_description(func, "");
-	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
-
-	func = RNA_def_function(srna, "has_visible_objects", "rna_LayerCollection_has_visible_objects");
-	RNA_def_function_ui_description(func, "");
-	prop = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "ViewLayer the layer collection belongs to");
-	RNA_def_parameter_flags(prop, 0, PARM_REQUIRED);
-	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
-
-	func = RNA_def_function(srna, "has_hidden_objects", "rna_LayerCollection_has_hidden_objects");
-	RNA_def_function_ui_description(func, "");
-	prop = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "ViewLayer the layer collection belongs to");
-	RNA_def_parameter_flags(prop, 0, PARM_REQUIRED);
 	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
 
 	func = RNA_def_function(srna, "has_selected_objects", "rna_LayerCollection_has_selected_objects");

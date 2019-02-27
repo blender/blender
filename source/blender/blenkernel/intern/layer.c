@@ -54,6 +54,13 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Set of flags which are dependent on a collection settings. */
+static short g_base_collection_flags = (BASE_VISIBLE |
+		                                BASE_SELECTABLE |
+		                                BASE_ENABLED_VIEWPORT |
+		                                BASE_ENABLED_RENDER |
+		                                BASE_HOLDOUT |
+		                                BASE_INDIRECT_ONLY);
 
 /* prototype */
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
@@ -700,53 +707,32 @@ static short layer_collection_sync(
 				BLI_addtail(new_object_bases, base);
 			}
 
-			int object_restrict = base->object->restrictflag;
-
-			if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
-			    ((object_restrict & OB_RESTRICT_VIEW) == 0))
-			{
-				base->flag |= BASE_ENABLED_VIEWPORT;
-
+			if ((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) {
+				base->flag_from_collection |= BASE_ENABLED_VIEWPORT;
 				if ((child_layer_restrict & LAYER_COLLECTION_RESTRICT_VIEW) == 0) {
-					base->flag |= BASE_VISIBLE;
-
-					if (((child_restrict & COLLECTION_RESTRICT_SELECT) == 0) &&
-					    ((object_restrict & OB_RESTRICT_SELECT) == 0))
-					{
-						base->flag |= BASE_SELECTABLE;
+					base->flag_from_collection |= BASE_VISIBLE;
+					if (((child_restrict & COLLECTION_RESTRICT_SELECT) == 0)) {
+						base->flag_from_collection |= BASE_SELECTABLE;
 					}
 				}
 			}
 
-			if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
-			    ((object_restrict & OB_RESTRICT_RENDER) == 0))
-			{
-				base->flag |= BASE_ENABLED_RENDER;
-			}
-
-			/* Update runtime flags used for display and tools. */
-			if (base->flag & BASE_ENABLED_VIEWPORT) {
-				lc->runtime_flag |= LAYER_COLLECTION_HAS_ENABLED_OBJECTS;
-			}
-
-			if (base->flag & BASE_HIDDEN) {
-				base->flag &= ~BASE_VISIBLE;
-				view_layer->runtime_flag |= VIEW_LAYER_HAS_HIDE;
-				lc->runtime_flag |= LAYER_COLLECTION_HAS_HIDDEN_OBJECTS;
-			}
-			else if (base->flag & BASE_VISIBLE) {
-				lc->runtime_flag |= LAYER_COLLECTION_HAS_VISIBLE_OBJECTS;
+			if ((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
+				base->flag_from_collection |= BASE_ENABLED_RENDER;
 			}
 
 			/* Holdout and indirect only */
 			if (lc->flag & LAYER_COLLECTION_HOLDOUT) {
-				base->flag |= BASE_HOLDOUT;
+				base->flag_from_collection |= BASE_HOLDOUT;
 			}
 			if (lc->flag & LAYER_COLLECTION_INDIRECT_ONLY) {
-				base->flag |= BASE_INDIRECT_ONLY;
+				base->flag_from_collection |= BASE_INDIRECT_ONLY;
 			}
 
 			lc->runtime_flag |= LAYER_COLLECTION_HAS_OBJECTS;
+
+			/* Make sure flags on base are usable right away. */
+			BKE_base_eval_flags(base);
 		}
 
 		runtime_flag |= lc->runtime_flag;
@@ -781,15 +767,9 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
 	/* Clear visible and selectable flags to be reset. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		base->flag &= ~(BASE_VISIBLE |
-		                BASE_SELECTABLE |
-		                BASE_ENABLED_VIEWPORT |
-		                BASE_ENABLED_RENDER |
-		                BASE_HOLDOUT |
-		                BASE_INDIRECT_ONLY);
+		base->flag &= ~g_base_collection_flags;
+		base->flag_from_collection &= ~g_base_collection_flags;
 	}
-
-	view_layer->runtime_flag = 0;
 
 	/* Generate new layer connections and object bases when collections changed. */
 	CollectionChild child = {NULL, NULL, scene->master_collection};
@@ -1460,6 +1440,27 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 /** \} */
 
 /* Evaluation  */
+
+/* Applies object's restrict flags on top of flags coming from the collection
+ * and stores those in base->flag. */
+void BKE_base_eval_flags(Base *base)
+{
+	const int object_restrict = base->object->restrictflag;
+	base->flag &= ~g_base_collection_flags;
+	base->flag |= (base->flag_from_collection & g_base_collection_flags);
+	if (object_restrict & OB_RESTRICT_VIEW) {
+		base->flag &= ~(BASE_ENABLED_VIEWPORT | BASE_SELECTABLE);
+	}
+	if (object_restrict & OB_RESTRICT_SELECT) {
+		base->flag &= ~BASE_SELECTABLE;
+	}
+	if (object_restrict & OB_RESTRICT_RENDER) {
+		base->flag &= ~BASE_ENABLED_RENDER;
+	}
+	if (base->flag & BASE_HIDDEN) {
+		base->flag &= ~BASE_VISIBLE;
+	}
+}
 
 static void layer_eval_view_layer(
         struct Depsgraph *depsgraph,
