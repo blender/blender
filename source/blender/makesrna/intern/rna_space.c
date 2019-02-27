@@ -2857,7 +2857,8 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_face_center", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_FACE_DOT);
-	RNA_def_property_ui_text(prop, "Draw Face Center", "Display face center");
+	RNA_def_property_ui_text(prop, "Draw Face Center", "Display face center "
+	                         "(when disabled, edges display wider in edge mode)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_edge_crease", PROP_BOOLEAN, PROP_NONE);

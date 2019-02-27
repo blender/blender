@@ -4936,10 +4936,6 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub = split.column()
         sub.prop(overlay, "show_faces", text="Faces")
         sub = split.column()
-        if shading.type == 'WIREFRAME':
-            sub.active = not shading.show_xray_wireframe
-        else:
-            sub.active = not shading.show_xray
         sub.prop(overlay, "show_face_center", text="Center")
 
         row = col.row(align=True)
