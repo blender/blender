@@ -134,7 +134,8 @@ typedef struct Material {
 	/** Animation data (must be immediately after id for utilities to use it). */
 	struct AnimData *adt;
 
-	short flag, pad1[7];
+	short flag;
+	char _pad1[2];
 
 	/* Colors from Blender Internal that we are still using. */
 	float r, g, b, a;
@@ -146,13 +147,13 @@ typedef struct Material {
 	float gloss_mir  DNA_DEPRECATED;
 	float roughness;
 	float metallic;
-	float pad4;
+	char _pad0[2];
 
-	/* Ror buttons and render. */
+	/** For buttons and render. */
 	char pr_type, use_nodes;
-	short pr_light, pr_texture;
+	short pr_texture;
 
-	/* Index for render passes. */
+	/** Index for render passes. */
 	short index;
 
 	struct bNodeTree *nodetree;
@@ -169,7 +170,7 @@ typedef struct Material {
 	short paint_active_slot;
 	short paint_clone_slot;
 	short tot_slots;
-	short pad2[3];
+	char _pad2[2];
 
 	/* Transparency. */
 	float alpha_threshold;
@@ -177,7 +178,7 @@ typedef struct Material {
 	char blend_method;
 	char blend_shadow;
 	char blend_flag;
-	char pad3[5];
+	char _pad3[1];
 
 	/**
 	 * Cached slots for texture painting, must be refreshed in

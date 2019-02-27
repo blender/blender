@@ -135,7 +135,6 @@ void BKE_material_init(Material *ma)
 
 	ma->roughness = 0.25f;
 
-	ma->pr_light = 3;         /* two lights, is bits */
 	ma->pr_type = MA_SPHERE;
 
 	ma->preview = NULL;

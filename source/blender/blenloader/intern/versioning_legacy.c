@@ -1178,14 +1178,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 233) {
 		bScreen *sc;
-		Material *ma = bmain->mat.first;
-		/* Object *ob = bmain->object.first; */
-
-		while (ma) {
-			if (ma->pr_light == 0)
-				ma->pr_light = 3;
-			ma = ma->id.next;
-		}
 
 		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
