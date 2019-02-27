@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"

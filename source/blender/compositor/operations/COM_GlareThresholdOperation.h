@@ -19,7 +19,7 @@
 #ifndef __COM_GLARETHRESHOLDOPERATION_H__
 #define __COM_GLARETHRESHOLDOPERATION_H__
 #include "COM_NodeOperation.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 
 class GlareThresholdOperation : public NodeOperation {
 private:

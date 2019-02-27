@@ -44,7 +44,7 @@
 #include "BKE_effect.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
-#include "BKE_lamp.h"
+#include "BKE_light.h"
 #include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"

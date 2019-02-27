@@ -26,7 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -39,7 +39,7 @@
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_icons.h"
-#include "BKE_lamp.h"
+#include "BKE_light.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"

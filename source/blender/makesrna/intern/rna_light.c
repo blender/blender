@@ -30,7 +30,7 @@
 #include "RNA_enum_types.h"
 #include "rna_internal.h"
 
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 

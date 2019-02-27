@@ -41,7 +41,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"

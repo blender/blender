@@ -24,7 +24,7 @@
 #include "COLLADASWStreamWriter.h"
 #include "COLLADASWLibraryLights.h"
 
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

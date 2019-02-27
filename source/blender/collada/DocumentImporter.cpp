@@ -56,7 +56,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
-#include "BKE_lamp.h"
+#include "BKE_light.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_scene.h"
@@ -64,7 +64,7 @@ extern "C" {
 #include "BLI_path_util.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 
 #include "RNA_access.h"
 

@@ -36,7 +36,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

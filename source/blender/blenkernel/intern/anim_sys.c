@@ -42,7 +42,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

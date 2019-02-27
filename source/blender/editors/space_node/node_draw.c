@@ -22,7 +22,7 @@
  * \brief higher level node drawing for the node editor.
  */
 
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
 #include "DNA_screen_types.h"

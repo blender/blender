@@ -48,9 +48,9 @@ set(DEFSRC
 	rna_gpencil_modifier.c
 	rna_image.c
 	rna_key.c
-	rna_lamp.c
 	rna_lattice.c
 	rna_layer.c
+	rna_light.c
 	rna_lightprobe.c
 	rna_linestyle.c
 	rna_main.c

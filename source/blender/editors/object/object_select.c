@@ -33,7 +33,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_gpencil_types.h"
 

@@ -36,7 +36,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpu_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"

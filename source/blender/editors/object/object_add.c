@@ -32,7 +32,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -67,7 +67,7 @@
 #include "BKE_font.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
-#include "BKE_lamp.h"
+#include "BKE_light.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
@@ -114,7 +114,7 @@
 
 #include "object_intern.h"
 
-/* this is an exact copy of the define in rna_lamp.c
+/* this is an exact copy of the define in rna_light.c
  * kept here because of linking order.
  * Icons are only defined here */
 const EnumPropertyItem rna_enum_light_type_items[] = {

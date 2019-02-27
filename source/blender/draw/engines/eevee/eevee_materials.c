@@ -70,7 +70,7 @@ static struct {
 	float noise_offsets[3];
 } e_data = {NULL}; /* Engine data */
 
-extern char datatoc_lamps_lib_glsl[];
+extern char datatoc_lights_lib_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
 extern char datatoc_ambient_occlusion_lib_glsl[];
 extern char datatoc_prepass_frag_glsl[];
@@ -553,7 +553,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		        datatoc_irradiance_lib_glsl,
 		        datatoc_lightprobe_lib_glsl,
 		        datatoc_ltc_lib_glsl,
-		        datatoc_lamps_lib_glsl,
+		        datatoc_lights_lib_glsl,
 		        /* Add one for each Closure */
 		        datatoc_lit_surface_frag_glsl,
 		        datatoc_lit_surface_frag_glsl,
@@ -576,7 +576,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		        datatoc_irradiance_lib_glsl,
 		        datatoc_lightprobe_lib_glsl,
 		        datatoc_ltc_lib_glsl,
-		        datatoc_lamps_lib_glsl,
+		        datatoc_lights_lib_glsl,
 		        datatoc_volumetric_lib_glsl,
 		        datatoc_volumetric_frag_glsl);
 

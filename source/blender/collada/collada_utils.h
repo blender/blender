@@ -39,7 +39,7 @@ extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_light_types.h"
 #include "DNA_camera_types.h"
 
 #include "DNA_customdata_types.h"
