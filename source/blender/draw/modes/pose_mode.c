@@ -260,8 +260,10 @@ static void POSE_draw_scene(void *vedata)
 	const bool bone_selection_overlay = POSE_is_bone_selection_overlay_active();
 
 	if (DRW_state_is_select()) {
+		DRW_draw_pass(psl->bone_outline[0]);
 		DRW_draw_pass(psl->bone_solid[0]);
 		DRW_draw_pass(psl->bone_wire[0]);
+		DRW_draw_pass(psl->bone_outline[1]);
 		DRW_draw_pass(psl->bone_solid[1]);
 		DRW_draw_pass(psl->bone_wire[1]);
 		return;

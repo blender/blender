@@ -132,6 +132,16 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
+	if (DRW_state_is_select()) {
+		DRW_draw_pass(psl->bone_outline[0]);
+		DRW_draw_pass(psl->bone_solid[0]);
+		DRW_draw_pass(psl->bone_wire[0]);
+		DRW_draw_pass(psl->bone_outline[1]);
+		DRW_draw_pass(psl->bone_solid[1]);
+		DRW_draw_pass(psl->bone_wire[1]);
+		return;
+	}
+
 	DRW_draw_pass(psl->bone_envelope[0]);
 
 	/* For performance reason, avoid blending on MS target. */
