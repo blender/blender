@@ -37,7 +37,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_library.h"
 #include "BKE_report.h"
 
 #include "MEM_guardedalloc.h"
@@ -265,29 +264,22 @@ void ui_rna_collection_search_cb(const struct bContext *C, void *arg, const char
 				continue;
 		}
 
+		name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */
 		iconid = 0;
 		if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
-			name = MEM_malloc_arrayN(MAX_ID_FULL_NAME, sizeof(*name), __func__);
-			BKE_id_full_name_ui_prefix_get(name, itemptr.data);
 			iconid = ui_id_icon_get(C, itemptr.data, false);
-		}
-		else {
-			/* could use the string length here */
-			name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
 		}
 
 		if (name) {
 			if (skip_filter || BLI_strcasestr(name, str)) {
 				cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
 				cis->data = itemptr.data;
-				cis->name = name;  /* Still ownership of that memory. */
+				cis->name = MEM_dupallocN(name);
 				cis->index = i;
 				cis->iconid = iconid;
 				BLI_addtail(items_list, cis);
 			}
-			else {
-				MEM_freeN(name);
-			}
+			MEM_freeN(name);
 		}
 
 		i++;
