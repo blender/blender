@@ -105,7 +105,8 @@ typedef struct Ipo {
 	 * (show vertical yellow lines for editing). */
 	short blocktype, showkey;
 	/** Muteipo: either 0 or 1 (whether ipo block is muted). */
-	short muteipo, pad;
+	short muteipo;
+	char _pad[2];
 } Ipo;
 
 /* ----------- adrcodes (for matching ipo-curves to data) ------------- */

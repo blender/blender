@@ -102,7 +102,8 @@ typedef struct PartEff {
 	float force[3];
 	float damp;
 
-	float nabla, vectsize, maxlen, pad, defvec[3];
+	float nabla, vectsize, maxlen, defvec[3];
+	char _pad[4];
 
 	float mult[4], life[4];
 	short child[4], mat[4];

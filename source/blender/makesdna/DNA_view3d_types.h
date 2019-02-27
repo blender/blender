@@ -115,7 +115,7 @@ typedef struct RegionView3D {
 	char viewlock;
 	/** Options for quadview (store while out of quad view). */
 	char viewlock_quad;
-	char pad[3];
+	char _pad[3];
 	/** Normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right. */
 	float ofs_lock[2];
 
@@ -160,7 +160,7 @@ typedef struct View3DShading {
 	char background_type;
 	char cavity_type;
 	char wire_color_type;
-	char pad[6];
+	char _pad[6];
 
 	/** FILE_MAXFILE. */
 	char studio_light[256];
@@ -306,14 +306,14 @@ typedef struct View3D {
 	/* Stereoscopy settings */
 	short stereo3d_flag;
 	char stereo3d_camera;
-	char pad4;
+	char _pad4;
 	float stereo3d_convergence_factor;
 	float stereo3d_volume_alpha;
 	float stereo3d_convergence_alpha;
 
 	/* Display settings */
 	short drawtype DNA_DEPRECATED;
-	short pad5[3];
+	char _pad5[6];
 
 	View3DShading shading;
 	View3DOverlay overlay;

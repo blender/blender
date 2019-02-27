@@ -46,8 +46,9 @@ typedef struct Lattice {
 	struct AnimData *adt;
 
 	short pntsu, pntsv, pntsw, flag;
-	short opntsu, opntsv, opntsw, pad2;
-	char typeu, typev, typew, pad3;
+	short opntsu, opntsv, opntsw;
+	char _pad2[3];
+	char typeu, typev, typew;
 	/** Active element index, unset with LT_ACTBP_NONE. */
 	int actbp;
 

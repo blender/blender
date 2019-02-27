@@ -122,7 +122,7 @@ typedef struct bArmature {
 	int         drawtype;
 	/** How vertex deformation is handled in the ge. */
 	int         gevertdeformer;
-	int         pad;
+	char _pad[4];
 	short       deformflag;
 	short       pathflag;
 

@@ -46,7 +46,7 @@ typedef struct CameraStereoSettings {
 	short convergence_mode;
 	short pivot;
 	short flag;
-	short pad;
+	char _pad[2];
 	/* Cut-off angle at which interocular distance start to fade down. */
 	float pole_merge_angle_from;
 	/* Cut-off angle at which interocular distance stops to fade down. */
@@ -103,7 +103,7 @@ typedef struct Camera {
 	struct ListBase bg_images;
 
 	char sensor_fit;
-	char pad[7];
+	char _pad[7];
 
 	/* Stereo settings */
 	struct CameraStereoSettings stereo;

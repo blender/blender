@@ -128,7 +128,7 @@ typedef struct BezTriple {
 
 	/** F5: used for auto handle to distinguish between normal handle and exception (extrema). */
 	char f5;
-	char  pad[3];
+	char _pad[3];
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
@@ -139,7 +139,8 @@ typedef struct BPoint {
 	/** F1: selection status,  hide: is point hidden or not. */
 	short f1, hide;
 	/** User-set radius per point for beveling etc. */
-	float radius, pad;
+	float radius;
+	char _pad[4];
 } BPoint;
 
 /**
@@ -155,7 +156,7 @@ typedef struct Nurb {
 	short hide, flag;
 	/** Number of points in the U or V directions. */
 	int pntsu, pntsv;
-	short pad[2];
+	char _pad[4];
 	/** Tessellation resolution in the U or V directions. */
 	short resolu, resolv;
 	short orderu, orderv;
@@ -178,8 +179,7 @@ typedef struct CharInfo {
 	/** Index start at 1, unlike mesh & nurbs. */
 	short mat_nr;
 	char flag;
-	char pad;
-	short pad2;
+	char _pad[3];
 } CharInfo;
 
 typedef struct TextBox {
@@ -196,7 +196,7 @@ typedef struct EditNurb {
 	/* shape key being edited */
 	int shapenr;
 
-	char pad[4];
+	char _pad[4];
 } EditNurb;
 
 typedef struct Curve {
@@ -248,7 +248,7 @@ typedef struct Curve {
 
 	char overflow;
 	char spacemode, align_y;
-	char pad[3];
+	char _pad[3];
 
 	/* font part */
 	short lines;
@@ -288,9 +288,8 @@ typedef struct Curve {
 	float bevfac1, bevfac2;
 	char bevfac1_mapping, bevfac2_mapping;
 
-	char pad2[2];
+	char _pad2[6];
 	float fsize_realtime;
-	float pad3;
 
 	void *batch_cache;
 } Curve;

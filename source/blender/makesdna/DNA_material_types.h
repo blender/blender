@@ -96,7 +96,7 @@ typedef struct MaterialGPencilStyle {
 
 	/** Type of gradient. */
 	int gradient_type;
-	char pad[4];
+	char _pad[4];
 } MaterialGPencilStyle;
 
 /* MaterialGPencilStyle->flag */

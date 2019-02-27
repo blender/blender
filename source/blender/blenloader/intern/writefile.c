@@ -3783,10 +3783,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	char subvstr[8];
 
 	/* prevent mem checkers from complaining */
-	memset(fg.pad, 0, sizeof(fg.pad));
+	memset(fg._pad, 0, sizeof(fg._pad));
 	memset(fg.filename, 0, sizeof(fg.filename));
 	memset(fg.build_hash, 0, sizeof(fg.build_hash));
-	fg.pad1 = NULL;
+	fg._pad1 = NULL;
 
 	current_screen_compat(mainvar, is_undo, &screen, &scene, &view_layer);
 

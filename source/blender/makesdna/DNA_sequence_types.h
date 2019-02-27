@@ -71,7 +71,7 @@ typedef struct StripColorBalance {
 	float gamma[3];
 	float gain[3];
 	int flag;
-	int pad;
+	char _pad[4];
 	// float exposure;
 	// float saturation;
 } StripColorBalance;
@@ -92,7 +92,7 @@ typedef struct StripProxy {
 	                       // to build
 	short build_flags;
 	char storage;
-	char pad[5];
+	char _pad[5];
 } StripProxy;
 
 typedef struct Strip {
@@ -220,7 +220,7 @@ typedef struct Sequence {
 	int sfra;
 
 	char alpha_mode;
-	char pad[2];
+	char _pad[2];
 
 	/* Multiview */
 	char views_format;
@@ -294,7 +294,7 @@ typedef struct TransformVars {
 
 typedef struct SolidColorVars {
 	float col[3];
-	float pad;
+	char _pad[4];
 } SolidColorVars;
 
 typedef struct SpeedControlVars {
@@ -320,7 +320,7 @@ typedef struct TextVars {
 	float wrap_width;
 	char flag;
 	char align, align_y;
-	char pad[1];
+	char _pad[1];
 } TextVars;
 
 /* TextVars.flag */
@@ -401,7 +401,7 @@ typedef struct WhiteBalanceModifierData {
 	SequenceModifierData modifier;
 
 	float white_value[3];
-	float pad;
+	char _pad[4];
 } WhiteBalanceModifierData;
 
 typedef struct SequencerTonemapModifierData {

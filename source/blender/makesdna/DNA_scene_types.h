@@ -92,7 +92,7 @@ typedef struct AviCodecData {
 	unsigned int	dwFlags;
 	/** For non-video streams only. */
 	unsigned int	dwInterleaveEvery;
-	unsigned int	pad;
+	char _pad[4];
 
 	char			avicodecname[128];
 } AviCodecData;
@@ -173,7 +173,7 @@ typedef struct FFMpegCodecData {
 	int rc_buffer_size;
 	int mux_packet_size;
 	int mux_rate;
-	int pad1;
+	char _pad1[4];
 
 	IDProperty *properties;
 } FFMpegCodecData;
@@ -188,9 +188,9 @@ typedef struct AudioData {
 	float doppler_factor;
 	int distance_model;
 	short flag;
-	short pad;
+	char _pad[2];
 	float volume;
-	float pad2;
+	char _pad2[4];
 } AudioData;
 
 /* *************************************************************** */
@@ -327,8 +327,7 @@ typedef struct SceneRenderView {
 	char suffix[64];
 
 	int viewflag;
-	int pad[2];
-	char pad2[4];
+	char _pad2[4];
 
 } SceneRenderView;
 
@@ -356,7 +355,7 @@ typedef struct Stereo3dFormat {
 	char anaglyph_type;
 	/** Interlace type for the user display. */
 	char interlace_type;
-	char pad[3];
+	char _pad[3];
 } Stereo3dFormat;
 
 /* Stereo3dFormat.display_mode */
@@ -437,7 +436,7 @@ typedef struct ImageFormatData {
 	/* TIFF */
 	char tiff_codec;
 
-	char pad[4];
+	char _pad[4];
 
 	/* Multiview */
 	char views_format;
@@ -548,7 +547,7 @@ typedef struct BakeData {
 	char normal_space;
 
 	char save_mode;
-	char pad[3];
+	char _pad[3];
 
 	struct Object *cage_object;
 } BakeData;
@@ -624,7 +623,7 @@ typedef struct RenderData {
 	/** Size in %. */
 	short size;
 
-	short pad6;
+	char _pad6[2];
 
 	/* from buttons: */
 	/**
@@ -651,7 +650,7 @@ typedef struct RenderData {
 	 */
 	short displaymode;
 	char use_lock_interface;
-	char pad7;
+	char _pad7;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -674,7 +673,8 @@ typedef struct RenderData {
 	 */
 	short osa;
 
-	short frs_sec, pad[7];
+	short frs_sec;
+	char _pad[6];
 
 
 	/* safety, border and display rect */
@@ -686,7 +686,7 @@ typedef struct RenderData {
 	ListBase layers DNA_DEPRECATED;
 	/** Converted to Scene->active_layer. */
 	short actlay DNA_DEPRECATED;
-	short pad1;
+	char _pad1[2];
 
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
@@ -718,7 +718,8 @@ typedef struct RenderData {
 	/* stamps flags. */
 	int stamp;
 	/** Select one of blenders bitmap fonts. */
-	short stamp_font_id, pad3;
+	short stamp_font_id;
+	char _pad3[2];
 
 	/* stamp info user data. */
 	char stamp_udata[768];
@@ -733,7 +734,7 @@ typedef struct RenderData {
 	char seq_rend_type;
 	/** Flag use for sequence render/draw. */
 	char seq_flag;
-	char pad5[5];
+	char _pad5[5];
 
 	/* render simplify */
 	short simplify_subsurf;
@@ -750,7 +751,7 @@ typedef struct RenderData {
 
 	/* render engine */
 	char engine[32];
-	int pad2;
+	char _pad2[4];
 
 	/* Cycles baking */
 	struct BakeData bake;
@@ -794,9 +795,10 @@ typedef struct RenderProfile {
 	short particle_perc;
 	short subsurf_max;
 	short shadbufsample_max;
-	short pad1;
+	char _pad1[2];
 
-	float ao_error, pad2;
+	float ao_error;
+	char _pad2[4];
 
 } RenderProfile;
 
@@ -885,7 +887,7 @@ typedef struct Paint {
 	int symmetry_flags;
 
 	float tile_offset[3];
-	int pad2;
+	char _pad2[4];
 
 	struct Paint_Runtime runtime;
 } Paint;
@@ -920,7 +922,7 @@ typedef struct ImagePaintSettings {
 	float dither;
 	/** Display texture interpolation method. */
 	int interp;
-	int pad;
+	char _pad[4];
 } ImagePaintSettings;
 
 /* ------------------------------------------- */
@@ -987,7 +989,7 @@ typedef struct Sculpt {
 	/** Constant detail resolution (Blender unit / constant_detail). */
 	float constant_detail;
 	float detail_percent;
-	float pad;
+	char _pad[4];
 
 	struct Object *gravity_object;
 } Sculpt;
@@ -1008,7 +1010,7 @@ typedef struct GpPaint {
 typedef struct VPaint {
 	Paint paint;
 	char flag;
-	char pad[3];
+	char _pad[3];
 	/** For mirrored painting. */
 	int radial_symm[3];
 } VPaint;
@@ -1123,7 +1125,7 @@ typedef struct GP_Sculpt_Settings {
 	 */
 	/** #eGP_Sculpt_Types (weight paint). */
 	int weighttype;
-	char pad[4];
+	char _pad[4];
 	/** Multiframe edit falloff effect by frame. */
 	struct CurveMapping *cur_falloff;
 	/** Curve used for primitve tools. */
@@ -1308,7 +1310,7 @@ typedef struct CurvePaintSettings {
 	char depth_mode;
 	char surface_plane;
 	char fit_method;
-	char pad;
+	char _pad;
 	short error_threshold;
 	float radius_min, radius_max;
 	float radius_taper_start, radius_taper_end;
@@ -1502,7 +1504,8 @@ typedef struct ToolSettings {
 	char uv_relax_method;
 	/* XXX: these sculpt_paint_* fields are deprecated, use the
 	 * unified_paint_settings field instead! */
-	short sculpt_paint_settings DNA_DEPRECATED;	short pad5;
+	short sculpt_paint_settings DNA_DEPRECATED;
+	char _pad5[2];
 	int sculpt_paint_unified_size DNA_DEPRECATED;
 	float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
 	float sculpt_paint_unified_alpha DNA_DEPRECATED;
@@ -1539,7 +1542,7 @@ typedef struct UnitSettings {
 	char mass_unit;
 	char time_unit;
 
-	char pad[5];
+	char _pad[5];
 } UnitSettings;
 
 /* ------------------------------------------- */
@@ -1591,7 +1594,7 @@ typedef struct SceneEEVEE {
 	float gi_irradiance_smoothing;
 	float gi_glossy_clamp;
 	float gi_filter_quality;
-	float pad;
+	char _pad[4];
 
 	float gi_cubemap_draw_size;
 	float gi_irradiance_draw_size;
@@ -1683,13 +1686,13 @@ typedef struct Scene {
 	unsigned int lay DNA_DEPRECATED;
 	/** Active layer (deprecated) */
 	int layact DNA_DEPRECATED;
-	unsigned int pad1;
+	char _pad2[4];
 
 	/** Various settings. */
 	short flag;
 
 	char use_nodes;
-	char pad[1];
+	char _pad3[1];
 
 	struct bNodeTree *nodetree;
 
@@ -1698,7 +1701,7 @@ typedef struct Scene {
 
 	/** Default allocated now. */
 	struct ToolSettings *toolsettings;
-	void *pad2;
+	void *_pad4;
 	struct DisplaySafeAreas safe_areas;
 
 	/* migrate or replace? depends on some internal things... */
@@ -1722,7 +1725,7 @@ typedef struct Scene {
 
 	/* none of the dependency graph  vars is mean to be saved */
 	struct GHash *depsgraph_hash;
-	int pad7;
+	char _pad7[4];
 
 	/* User-Defined KeyingSets */
 	/**
@@ -1746,7 +1749,7 @@ typedef struct Scene {
 	/* Physics simulation settings */
 	struct PhysicsSettings physics_settings;
 
-	void *pad8;
+	void *_pad8;
 	/* XXX. runtime flag for drawing, actually belongs in the window,
 	 * only used by BKE_object_handle_update() */
 	uint64_t customdata_mask;

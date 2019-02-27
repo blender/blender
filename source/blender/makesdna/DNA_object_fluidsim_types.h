@@ -43,7 +43,7 @@ typedef struct FluidsimSettings {
 	struct FluidsimModifierData *fmd;
 	/* threadcont the calculation is done with */
 	int threads;
-	int pad1;
+	char _pad1[4];
 	/* domain, fluid or obstacle */
 	short type;
 	/* display advanced options in fluid sim tab (on=1, off=0)*/
@@ -71,7 +71,7 @@ typedef struct FluidsimSettings {
 	int bakeStart, bakeEnd;
 	/* offset for baked frames */
 	int frameOffset;
-	int pad2;
+	char _pad2[4];
 	/* g star param (LBM compressibility) */
 	float gstar;
 	/* activate refinement? */

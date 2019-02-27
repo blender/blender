@@ -50,7 +50,7 @@ typedef struct MovieTrackingCamera {
 	void *intrinsics;
 
 	short distortion_model;
-	short pad;
+	char _pad[2];
 
 	/** Width of CCD sensor. */
 	float sensor_width;
@@ -60,7 +60,7 @@ typedef struct MovieTrackingCamera {
 	float focal;
 	/** Units of focal length user is working with. */
 	short units;
-	short pad1;
+	char _pad1[2];
 	/** Principal point. */
 	float principal[2];
 
@@ -216,7 +216,8 @@ typedef struct MovieTrackingPlaneTrack {
 	 */
 	MovieTrackingTrack **point_tracks;
 	/** Number of tracks in point_tracks array. */
-	int point_tracksnr, pad;
+	int point_tracksnr;
+	char _pad[4];
 
 	/** Markers in the plane track. */
 	MovieTrackingPlaneMarker *markers;
@@ -279,7 +280,8 @@ typedef struct MovieTrackingSettings {
 	int reconstruction_flag;
 
 	/* which camera intrinsics to refine. uses on the REFINE_* flags */
-	short refine_camera_intrinsics, pad2;
+	short refine_camera_intrinsics;
+	char _pad2[2];
 
 	/* ** tool settings ** */
 
@@ -295,7 +297,7 @@ typedef struct MovieTrackingSettings {
 	/** Distance between two bundles used for object scaling. */
 	float object_distance;
 
-	int pad3;
+	char _pad3[4];
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
@@ -376,7 +378,7 @@ typedef struct MovieTrackingDopesheetChannel {
 
 	/** Motion track for which channel is created. */
 	MovieTrackingTrack *track;
-	int pad;
+	char _pad[4];
 
 	/** Name of channel. */
 	char name[64];
@@ -396,7 +398,7 @@ typedef struct MovieTrackingDopesheetCoverageSegment {
 	int start_frame;
 	int end_frame;
 
-	int pad;
+	char _pad[4];
 } MovieTrackingDopesheetCoverageSegment;
 
 typedef struct MovieTrackingDopesheet {
@@ -417,7 +419,7 @@ typedef struct MovieTrackingDopesheet {
 	ListBase channels;
 	int tot_channel;
 
-	int pad;
+	char _pad[4];
 } MovieTrackingDopesheet;
 
 typedef struct MovieTracking {

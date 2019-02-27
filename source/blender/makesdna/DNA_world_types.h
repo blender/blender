@@ -65,7 +65,7 @@ typedef struct World {
 	 * bit 0: Do mist
 	 */
 	short mode;
-	short pad2[3];
+	char _pad2[6];
 
 	float misi, miststa, mistdist, misthi;
 
@@ -73,11 +73,13 @@ typedef struct World {
 	float aodist, aoenergy;
 
 	/** Assorted settings. */
-	short flag, pad3[3];
+	short flag;
+	char _pad3[6];
 
 	/** Old animation system, deprecated for 2.5. */
 	struct Ipo *ipo  DNA_DEPRECATED;
-	short pr_texture, use_nodes, pad[2];
+	short pr_texture, use_nodes;
+	char _pad[4];
 
 	/* previews */
 	struct PreviewImage *preview;
@@ -86,7 +88,8 @@ typedef struct World {
 	struct bNodeTree *nodetree;
 
 	/** Runtime : miststa + mistdist, used for drawing camera. */
-	float mistend, pad1;
+	float mistend;
+	char _pad1[4];
 	/** Runtime. */
 	ListBase gpumaterial;
 } World;

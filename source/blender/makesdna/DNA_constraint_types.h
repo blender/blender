@@ -61,7 +61,7 @@ typedef struct bConstraint {
 	/** Constraint name, MAX_NAME. */
 	char		name[64];
 
-	short		pad;
+	char		_pad[2];
 
 	/** Amount of influence exherted by constraint (0.0-1.0). */
 	float		enforce;
@@ -108,7 +108,7 @@ typedef struct bConstraintTarget {
 	short rotOrder;
 	/** Weight for armature deform. */
 	float weight;
-	char pad[4];
+	char _pad[4];
 } bConstraintTarget;
 
 /* bConstraintTarget -> flag */
@@ -243,7 +243,7 @@ typedef struct bSplineIKConstraint {
 typedef struct bArmatureConstraint {
 	/** General settings/state indicators accessed by bitmapping. */
 	int flag;
-	char pad[4];
+	char _pad[4];
 
 	/** A list of targets that this constraint has (bConstraintTarget-s). */
 	ListBase targets;
@@ -263,7 +263,7 @@ typedef struct bTrackToConstraint {
 	int			reserved1;
 	int			reserved2;
 	int			flags;
-	int			pad;
+	char _pad[4];
 	/** MAX_ID_NAME-2. */
 	char		subtarget[64];
 } bTrackToConstraint;
@@ -315,7 +315,8 @@ typedef struct bMinMaxConstraint {
 	float		offset;
 	int			flag;
 	/** For backward compatibility. */
-	short		sticky, stuck, pad1, pad2;
+	short		sticky, stuck;
+	char _pad[4];
 	float		cache[3];
 	/** MAX_ID_NAME-2. */
 	char		subtarget[64];
@@ -351,7 +352,7 @@ typedef struct bLockTrackConstraint {
 typedef struct bDampTrackConstraint {
 	struct Object		*tar;
 	int			trackflag;
-	int			pad;
+	char _pad[4];
 	/** MAX_ID_NAME-2. */
 	char		subtarget[64];
 } bDampTrackConstraint;
@@ -402,9 +403,7 @@ typedef struct bRigidBodyJointConstraint {
 	float       maxLimit[6];
 	float       extraFz;
 	short		flag;
-	short		pad;
-	short		pad1;
-	short		pad2;
+	char _pad[6];
 } bRigidBodyJointConstraint;
 
 /* Clamp-To Constraint */
@@ -423,7 +422,7 @@ typedef struct bChildOfConstraint {
 	struct Object 		*tar;
 	/** Settings. */
 	int 		flag;
-	int			pad;
+	char _pad[4];
 	/** Parent-inverse matrix to use. */
 	float		invmat[4][4];
 	/** String to specify a subobject target, MAX_ID_NAME-2. */
@@ -535,7 +534,7 @@ typedef struct bDistLimitConstraint {
 	short		flag;
 	/** How to limit in relation to clamping sphere. */
 	short 		mode;
-	int 		pad;
+	char _pad[4];
 } bDistLimitConstraint;
 
 /* ShrinkWrap Constraint */
@@ -557,7 +556,7 @@ typedef struct bShrinkwrapConstraint {
 	char		flag;
 	/** Axis to align to normal. */
 	char		trackAxis;
-	char 		pad;
+	char 		_pad;
 } bShrinkwrapConstraint;
 
 /* Follow Track constraints */
@@ -576,13 +575,15 @@ typedef struct bFollowTrackConstraint {
 /* Camera Solver constraints */
 typedef struct bCameraSolverConstraint {
 	struct MovieClip	*clip;
-	int		flag, pad;
+	int		flag;
+	char _pad[4];
 } bCameraSolverConstraint;
 
 /* Camera Solver constraints */
 typedef struct bObjectSolverConstraint {
 	struct MovieClip	*clip;
-	int		flag, pad;
+	int		flag;
+	char _pad[4];
 	/** MAX_NAME. */
 	char		object[64];
 	/** Parent-inverse matrix to use. */

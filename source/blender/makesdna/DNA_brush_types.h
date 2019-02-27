@@ -44,7 +44,8 @@ typedef struct BrushClone {
 	/** Offset of clone image from canvas. */
 	float offset[2];
 	/** Transparency for drawing of clone image. */
-	float alpha, pad;
+	float alpha;
+	char _pad[4];
 } BrushClone;
 
 
@@ -82,7 +83,7 @@ typedef struct BrushGpencilSettings {
 	float fill_threshold;
 	/** Number of pixel to consider the leak is too small (x 2). */
 	short fill_leak;
-	char pad_1[6];
+	char _pad1[6];
 
 	/** Number of simplify steps. */
 	int   fill_simplylvl;
@@ -249,7 +250,7 @@ typedef struct Brush {
 	/** Source for fill tool color gradient application. */
 	char gradient_fill_mode;
 
-	char pad;
+	char _pad;
 	/** Projection shape (sphere, circle). */
 	char falloff_shape;
 	float falloff_angle;
@@ -321,7 +322,7 @@ typedef struct Palette {
 	ListBase colors;
 
 	int active_color;
-	int pad;
+	char _pad[4];
 } Palette;
 
 typedef struct PaintCurvePoint {

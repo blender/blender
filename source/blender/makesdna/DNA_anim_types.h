@@ -247,7 +247,7 @@ typedef struct FMod_Limits {
 	rctf rect;
 	/** Settings for limiting. */
 	int flag;
-	int pad;
+	char _pad[4];
 } FMod_Limits;
 
 /* limiting flags */
@@ -538,7 +538,7 @@ typedef struct FPoint {
 	float vec[2];
 	/** Selection info. */
 	int flag;
-	int pad;
+	char _pad[4];
 } FPoint;
 
 /* 'Function-Curve' - defines values over time for a given setting (fcu) */
@@ -567,7 +567,7 @@ typedef struct FCurve {
 		/* value cache + settings */
 	/** Value stored from last time curve was evaluated (not threadsafe, debug display only!). */
 	float curval;
-	char pad2[4];
+	char _pad2[4];
 	/** User-editable settings for this curve. */
 	short flag;
 	/** Value-extending mode for this curve (does not cover). */
@@ -575,7 +575,7 @@ typedef struct FCurve {
 	/** Auto-handle smoothing mode. */
 	char auto_smoothing;
 
-	char pad[3];
+	char _pad[3];
 
 		/* RNA - data link */
 	/** If applicable, the index of the RNA-array item to get. */
@@ -707,7 +707,7 @@ typedef struct NlaStrip {
 
 	/** Strip extrapolation mode (time-based mixing). */
 	short extendmode;
-	short pad1;
+	char _pad1[2];
 
 	/** Type of NLA strip. */
 	short type;
@@ -717,7 +717,7 @@ typedef struct NlaStrip {
 
 	/** Settings. */
 	int flag;
-	int pad2;
+	char _pad2[4];
 } NlaStrip;
 
 /* NLA Strip Blending Mode */
@@ -812,7 +812,7 @@ typedef struct NlaTrack {
 	/** Settings for this track. */
 	int flag;
 	/** Index of the track in the stack
-	 * \note not really useful, but we need a pad var anyways! */
+	 * \note not really useful, but we need a '_pad' var anyways! */
 	int index;
 
 	/** Short user-description of this track - MAX_ID_NAME-2. */
@@ -935,7 +935,7 @@ typedef struct KeyingSet {
 	/** (eInsertKeyFlags) for each flag set, the relevant keyingflag bit overrides the default. */
 	short keyingoverride;
 
-	char pad[6];
+	char _pad[6];
 } KeyingSet;
 
 /* KeyingSet settings */
@@ -1050,7 +1050,7 @@ typedef struct AnimData {
 		/* settings for animation evaluation */
 	/** User-defined settings. */
 	int flag;
-	int pad;
+	char _pad[4];
 
 		/* settings for active action evaluation (based on NLA strip settings) */
 	/** Accumulation mode for active action. */

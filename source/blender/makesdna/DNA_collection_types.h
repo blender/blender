@@ -58,7 +58,8 @@ typedef struct Collection {
 	unsigned int layer DNA_DEPRECATED;
 	float instance_offset[3];
 
-	short flag, pad[3];
+	short flag;
+	char _pad[6];
 
 	/* Runtime. Cache of objects in this collection and all its
 	 * children. This is created on demand when e.g. some physics

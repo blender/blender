@@ -108,7 +108,7 @@ typedef struct ModifierData {
 	int type, mode;
 	int stackindex;
 	short flag;
-	short pad;
+	char _pad[2];
 	/** MAX_NAME. */
 	char name[64];
 
@@ -162,7 +162,7 @@ typedef struct SubsurfModifierData {
 	short subdivType, levels, renderLevels, flags;
 	short uv_smooth;
 	short quality;
-	short pad[2];
+	char _pad[4];
 
 	/* TODO(sergey): Get rid of those with the old CCG subdivision code. */
 	void *emCache, *mCache;
@@ -177,7 +177,7 @@ typedef struct LatticeModifierData {
 	/** Optional vertexgroup name, MAX_VGROUP_NAME. */
 	char name[64];
 	float strength;
-	char pad[4];
+	char _pad[4];
 } LatticeModifierData;
 
 typedef struct CurveModifierData {
@@ -188,7 +188,7 @@ typedef struct CurveModifierData {
 	char name[64];
 	/** Axis along which curve deforms. */
 	short defaxis;
-	char pad[6];
+	char _pad[6];
 } CurveModifierData;
 
 /* CurveModifierData->defaxis */
@@ -379,7 +379,7 @@ typedef struct BevelModifierData {
 	/* patterns to use for mitering non-reflex and reflex miter edges */
 	short miter_inner;
 	short miter_outer;
-	short pad2;
+	char _pad0[2];
 	/** Controls profile shape (0->1, .5 is round). */
 	float profile;
 	/** if the MOD_BEVEL_ANGLE is set,
@@ -508,13 +508,14 @@ typedef struct UVProjectModifierData {
 	/* the objects which do the projecting */
 	/** MOD_UVPROJECT_MAXPROJECTORS. */
 	struct Object *projectors[10];
-	int pad2;
+	char _pad2[4];
 	int num_projectors;
 	float aspectx, aspecty;
 	float scalex, scaley;
 	/** MAX_CUSTOMDATA_LAYER_NAME. */
 	char uvlayer_name[64];
-	int uvlayer_tmp, pad;
+	int uvlayer_tmp;
+	char _pad[4];
 } UVProjectModifierData;
 
 #define MOD_UVPROJECT_MAXPROJECTORS 10
@@ -624,13 +625,14 @@ typedef struct WaveModifierData {
 	/** MAX_VGROUP_NAME. */
 	char defgrp_name[64];
 
-	short flag, pad;
+	short flag;
+	char _pad[2];
 
 	float startx, starty, height, width;
 	float narrow, speed, damp, falloff;
 
 	float timeoffs, lifetime;
-	float pad1;
+	char _pad1[4];
 } WaveModifierData;
 
 /* WaveModifierData.flag */
@@ -650,7 +652,7 @@ typedef struct ArmatureModifierData {
 
 	/** Deformflag replaces armature->deformflag. */
 	short deformflag, multi;
-	int pad2;
+	char _pad2[4];
 	struct Object *object;
 	/** Stored input of previous modifier, for vertexgroup blending. */
 	float *prevCos;
@@ -686,7 +688,7 @@ typedef struct HookModifierData {
 	char flag;
 	/** Use enums from WarpModifier (exact same functionality). */
 	char falloff_type;
-	char pad[6];
+	char _pad[6];
 	/** Matrix making current transform unmodified. */
 	float parentinv[4][4];
 	/** Visualization of hook. */
@@ -759,7 +761,7 @@ typedef struct CollisionModifierData {
 	float time_x, time_xnew;
 	/** Collider doesn't move this frame, i.e. x[].co==xnew[].co. */
 	char is_static;
-	char pad[7];
+	char _pad[7];
 
 	/** Bounding volume hierarchy for this cloth object. */
 	struct BVHTree *bvhtree;
@@ -786,7 +788,7 @@ typedef struct BooleanModifierData {
 
 	struct Object *object;
 	char operation;
-	char pad[2];
+	char _pad[2];
 	char bm_flag;
 	float double_threshold;
 } BooleanModifierData;
@@ -822,7 +824,8 @@ typedef struct MeshDeformModifierData {
 	/** Optional vertexgroup name, MAX_VGROUP_NAME. */
 	char defgrp_name[64];
 
-	short gridsize, flag, pad[2];
+	short gridsize, flag;
+	char _pad[4];
 
 	/* result of static binding */
 	/** Influences. */
@@ -882,7 +885,8 @@ typedef struct ParticleSystemModifierData {
 	/** Original mesh that particles are attached to. */
 	struct Mesh *mesh_original;
 	int totdmvert, totdmedge, totdmface;
-	short flag, pad;
+	short flag;
+	char _pad[2];
 } ParticleSystemModifierData;
 
 typedef enum {
@@ -944,12 +948,12 @@ typedef struct MultiresModifierData {
 	ModifierData modifier;
 
 	char lvl, sculptlvl, renderlvl, totlvl;
-	char simple, flags, pad[2];
+	char simple, flags, _pad[2];
 	short quality;
 	short uv_smooth;
-	short pad2[2];
+	char _pad2[4];
 	struct Subdiv *subdiv;
-	void *pad3;
+	void *_pad3;
 } MultiresModifierData;
 
 typedef enum {
@@ -992,7 +996,7 @@ typedef struct ShrinkwrapModifierData {
 	 */
 	char subsurfLevels;
 
-	char pad[2];
+	char _pad[2];
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */
@@ -1109,7 +1113,7 @@ typedef struct SolidifyModifierData {
 	float offset_fac_vg;
 	/** Clamp offset based on surrounding geometry. */
 	float offset_clamp;
-	float pad;
+	char _pad[4];
 	float crease_inner;
 	float crease_outer;
 	float crease_rim;
@@ -1142,7 +1146,7 @@ typedef struct ScrewModifierData {
 	float merge_dist;
 	short flag;
 	char axis;
-	char pad[5];
+	char _pad[5];
 } ScrewModifierData;
 
 enum {
@@ -1190,7 +1194,7 @@ typedef struct OceanModifierData {
 	char geometry_mode;
 
 	char flag;
-	char pad2;
+	char _pad2;
 
 	short repeat_x;
 	short repeat_y;
@@ -1201,7 +1205,7 @@ typedef struct OceanModifierData {
 
 	float foam_fade;
 
-	int pad;
+	char _pad[4];
 } OceanModifierData;
 
 enum {
@@ -1237,7 +1241,7 @@ typedef struct WarpModifierData {
 	/** Not used yet. */
 	char flag;
 	char falloff_type;
-	char pad[6];
+	char _pad[6];
 } WarpModifierData;
 
 #define MOD_WARP_VOLUME_PRESERVE 1
@@ -1294,7 +1298,7 @@ typedef struct WeightVGEditModifierData {
 	char mask_tex_uvlayer_name[64];
 
 	/* Padding... */
-	int pad_i1;
+	char _pad0[4];
 } WeightVGEditModifierData;
 
 /* WeightVGEdit flags. */
@@ -1322,7 +1326,7 @@ typedef struct WeightVGMixModifierData {
 	/** What vertices to affect. */
 	char mix_set;
 
-	char pad_c1[6];
+	char _pad0[6];
 
 	/* Masking options. */
 	/** The global "influence", if no vgroup nor tex is used as mask. */
@@ -1343,7 +1347,7 @@ typedef struct WeightVGMixModifierData {
 	char mask_tex_uvlayer_name[64];
 
 	/* Padding... */
-	int pad_i1;
+	char _pad1[4];
 } WeightVGMixModifierData;
 
 /* How second vgroup's weights affect first ones. */
@@ -1417,7 +1421,7 @@ typedef struct WeightVGProximityModifierData {
 	short falloff_type;
 
 	/* Padding... */
-	short pad_s1;
+	char _pad0[2];
 } WeightVGProximityModifierData;
 
 /* Modes of proximity weighting. */
@@ -1470,7 +1474,7 @@ typedef struct DynamicPaintModifierData {
 	struct DynamicPaintBrushSettings *brush;
 	/** UI display: canvas / brush. */
 	int type;
-	int pad;
+	char _pad[4];
 } DynamicPaintModifierData;
 
 /* Dynamic paint modifier flags */
@@ -1510,7 +1514,7 @@ typedef struct RemeshModifierData {
 
 	char flag;
 	char mode;
-	char pad;
+	char _pad;
 } RemeshModifierData;
 
 /* Skin modifier */
@@ -1523,7 +1527,7 @@ typedef struct SkinModifierData {
 
 	char symmetry_axes;
 
-	char pad[2];
+	char _pad[2];
 } SkinModifierData;
 
 /* SkinModifierData.symmetry_axes */
@@ -1545,7 +1549,7 @@ typedef struct TriangulateModifierData {
 	int flag;
 	int quad_method;
 	int ngon_method;
-	int pad;
+	char _pad[4];
 } TriangulateModifierData;
 
 #ifdef DNA_DEPRECATED
@@ -1571,7 +1575,8 @@ enum {
 typedef struct LaplacianSmoothModifierData {
 	ModifierData modifier;
 
-	float lambda, lambda_border, pad1;
+	float lambda, lambda_border;
+	char _pad1[4];
 	/** MAX_VGROUP_NAME. */
 	char defgrp_name[64];
 	short flag, repeat;
@@ -1600,7 +1605,7 @@ typedef struct CorrectiveSmoothModifierData {
 	float lambda;
 	short repeat, flag;
 	char smooth_type, rest_source;
-	char pad[2];
+	char _pad[2];
 
 	/** MAX_VGROUP_NAME. */
 	char defgrp_name[64];
@@ -1609,7 +1614,7 @@ typedef struct CorrectiveSmoothModifierData {
 	 * delta's between the original positions and the smoothed positions */
 	float (*delta_cache)[3];
 	unsigned int delta_cache_num;
-	char pad2[4];
+	char _pad2[4];
 } CorrectiveSmoothModifierData;
 
 enum {
@@ -1633,7 +1638,7 @@ typedef struct UVWarpModifierData {
 	ModifierData modifier;
 
 	char axis_u, axis_v;
-	char pad[6];
+	char _pad[6];
 	/** Used for rotate/scale. */
 	float center[2];
 
@@ -1671,7 +1676,7 @@ typedef struct MeshCacheModifierData {
 
 	float factor;
 	char deform_mode;
-	char pad[7];
+	char _pad[7];
 
 	/* play_mode == MOD_MESHCACHE_PLAY_CFEA */
 	float frame_start;
@@ -1723,7 +1728,8 @@ typedef struct LaplacianDeformModifierData {
 	float *vertexco;
 	/** Runtime only. */
 	void *cache_system;
-	short flag, pad[3];
+	short flag;
+	char _pad[6];
 
 } LaplacianDeformModifierData;
 
@@ -1742,7 +1748,7 @@ typedef struct WireframeModifierData {
 	float offset_fac_vg;
 	float crease_weight;
 	short flag, mat_ofs;
-	short pad[2];
+	char _pad[4];
 } WireframeModifierData;
 
 enum {
@@ -1773,7 +1779,7 @@ typedef struct DataTransferModifierData {
 	float map_ray_radius;
 	float islands_precision;
 
-	int pad_i1;
+	char _pad1[4];
 
 	/** DT_MULTILAYER_INDEX_MAX; See DT_FROMLAYERS_ enum in ED_object.h. */
 	int layers_select_src[4];
@@ -1812,11 +1818,11 @@ typedef struct NormalEditModifierData {
 	short mode;
 	short flag;
 	short mix_mode;
-	char pad[2];
+	char _pad[2];
 	float mix_factor;
 	float mix_limit;
 	float offset[3];
-	float pad_f1;
+	char _pad0[4];
 } NormalEditModifierData;
 
 /* NormalEditModifierData.mode */
@@ -1849,7 +1855,7 @@ typedef struct MeshSeqCacheModifierData {
 	char object_path[1024];
 
 	char read_flag;
-	char pad[7];
+	char _pad[7];
 } MeshSeqCacheModifierData;
 
 /* MeshSeqCacheModifierData.read_flag */
@@ -1872,7 +1878,7 @@ typedef struct SDefBind {
 typedef struct SDefVert {
 	SDefBind *binds;
 	unsigned int numbinds;
-	char pad[4];
+	char _pad[4];
 } SDefVert;
 
 typedef struct SurfaceDeformModifierData {

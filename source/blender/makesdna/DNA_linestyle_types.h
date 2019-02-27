@@ -115,7 +115,7 @@ typedef struct LineStyleAlphaModifier_AlongStroke {
 
 	struct CurveMapping	*curve;
 	int flags;
-	int pad;
+	char _pad[4];
 } LineStyleAlphaModifier_AlongStroke;
 
 typedef struct LineStyleThicknessModifier_AlongStroke {
@@ -124,7 +124,7 @@ typedef struct LineStyleThicknessModifier_AlongStroke {
 	struct CurveMapping	*curve;
 	int flags;
 	float value_min, value_max;
-	int pad;
+	char _pad[4];
 } LineStyleThicknessModifier_AlongStroke;
 
 /* Distance from Camera modifiers */
@@ -142,7 +142,7 @@ typedef struct LineStyleAlphaModifier_DistanceFromCamera {
 	struct CurveMapping	*curve;
 	int flags;
 	float range_min, range_max;
-	int pad;
+	char _pad[4];
 } LineStyleAlphaModifier_DistanceFromCamera;
 
 typedef struct LineStyleThicknessModifier_DistanceFromCamera {
@@ -152,7 +152,7 @@ typedef struct LineStyleThicknessModifier_DistanceFromCamera {
 	int flags;
 	float range_min, range_max;
 	float value_min, value_max;
-	int pad;
+	char _pad[4];
 } LineStyleThicknessModifier_DistanceFromCamera;
 
 /* Distance from Object modifiers */
@@ -172,7 +172,7 @@ typedef struct LineStyleAlphaModifier_DistanceFromObject {
 	struct CurveMapping	*curve;
 	int flags;
 	float range_min, range_max;
-	int pad;
+	char _pad[4];
 } LineStyleAlphaModifier_DistanceFromObject;
 
 typedef struct LineStyleThicknessModifier_DistanceFromObject {
@@ -183,7 +183,7 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 	int flags;
 	float range_min, range_max;
 	float value_min, value_max;
-	int pad;
+	char _pad[4];
 } LineStyleThicknessModifier_DistanceFromObject;
 
 /* 3D curvature modifiers */
@@ -202,14 +202,15 @@ typedef struct LineStyleAlphaModifier_Curvature_3D {
 	struct CurveMapping	*curve;
 	int flags;
 	float min_curvature, max_curvature;
-	int pad;
+	char _pad[4];
 } LineStyleAlphaModifier_Curvature_3D;
 
 typedef struct LineStyleThicknessModifier_Curvature_3D {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping *curve;
-	int flags, pad;
+	int flags;
+	char _pad[4];
 	float min_curvature, max_curvature;
 	float min_thickness, max_thickness;
 } LineStyleThicknessModifier_Curvature_3D;
@@ -221,7 +222,8 @@ typedef struct LineStyleColorModifier_Noise {
 
 	struct ColorBand *color_ramp;
 	float period, amplitude;
-	int seed, pad;
+	int seed;
+	char _pad[4];
 } LineStyleColorModifier_Noise;
 
 typedef struct LineStyleAlphaModifier_Noise {
@@ -256,14 +258,15 @@ typedef struct LineStyleAlphaModifier_CreaseAngle {
 	struct CurveMapping	*curve;
 	int flags;
 	float min_angle, max_angle;
-	int pad;
+	char _pad[4];
 } LineStyleAlphaModifier_CreaseAngle;
 
 typedef struct LineStyleThicknessModifier_CreaseAngle {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping *curve;
-	int flags, pad;
+	int flags;
+	char _pad[4];
 	float min_angle, max_angle;
 	float min_thickness, max_thickness;
 } LineStyleThicknessModifier_CreaseAngle;
@@ -281,7 +284,7 @@ typedef struct LineStyleAlphaModifier_Tangent {
 
 	struct CurveMapping	*curve;
 	int flags;
-	int pad;
+	char _pad[4];
 } LineStyleAlphaModifier_Tangent;
 
 typedef struct LineStyleThicknessModifier_Tangent {
@@ -290,7 +293,7 @@ typedef struct LineStyleThicknessModifier_Tangent {
 	struct CurveMapping	*curve;
 	int flags;
 	float min_thickness, max_thickness;
-	int pad;
+	char _pad[4];
 } LineStyleThicknessModifier_Tangent;
 
 /* Material modifiers */
@@ -343,21 +346,21 @@ typedef struct LineStyleGeometryModifier_Sampling {
 	struct LineStyleModifier modifier;
 
 	float sampling;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_Sampling;
 
 typedef struct LineStyleGeometryModifier_BezierCurve {
 	struct LineStyleModifier modifier;
 
 	float error;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_BezierCurve;
 
 typedef struct LineStyleGeometryModifier_SinusDisplacement {
 	struct LineStyleModifier modifier;
 
 	float wavelength, amplitude, phase;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_SinusDisplacement;
 
 /* LineStyleGeometryModifier_SpatialNoise::flags */
@@ -380,7 +383,7 @@ typedef struct LineStyleGeometryModifier_PerlinNoise1D {
 	float angle;
 	unsigned int octaves;
 	int seed;
-	int pad1;
+	char _pad1[4];
 } LineStyleGeometryModifier_PerlinNoise1D;
 
 typedef struct LineStyleGeometryModifier_PerlinNoise2D {
@@ -391,35 +394,35 @@ typedef struct LineStyleGeometryModifier_PerlinNoise2D {
 	float angle;
 	unsigned int octaves;
 	int seed;
-	int pad1;
+	char _pad1[4];
 } LineStyleGeometryModifier_PerlinNoise2D;
 
 typedef struct LineStyleGeometryModifier_BackboneStretcher {
 	struct LineStyleModifier modifier;
 
 	float backbone_length;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_BackboneStretcher;
 
 typedef struct LineStyleGeometryModifier_TipRemover {
 	struct LineStyleModifier modifier;
 
 	float tip_length;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_TipRemover;
 
 typedef struct LineStyleGeometryModifier_Polygonalization {
 	struct LineStyleModifier modifier;
 
 	float error;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_Polygonalization;
 
 typedef struct LineStyleGeometryModifier_GuidingLines {
 	struct LineStyleModifier modifier;
 
 	float offset;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_GuidingLines;
 
 /* LineStyleGeometryModifier_BluePrintLines::shape */
@@ -461,14 +464,14 @@ typedef struct LineStyleGeometryModifier_2DTransform {
 	float angle;
 	float pivot_u;
 	float pivot_x, pivot_y;
-	int pad;
+	char _pad[4];
 } LineStyleGeometryModifier_2DTransform;
 
 typedef struct LineStyleGeometryModifier_Simplification {
 	struct LineStyleModifier modifier;
 
 	float tolerance;
-	int pad;
+	char _pad[4];
 }LineStyleGeometryModifier_Simplification;
 
 /* Calligraphic thickness modifier */
@@ -479,7 +482,7 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 	float min_thickness, max_thickness;
 	/** In radians!. */
 	float orientation;
-	int pad;
+	char _pad[4];
 } LineStyleThicknessModifier_Calligraphy;
 
 /* FreestyleLineStyle::panel */
@@ -558,7 +561,8 @@ typedef struct FreestyleLineStyle {
 	int sort_key, integration_type;
 	float texstep;
 	short texact, pr_texture;
-	short use_nodes, pad[3];
+	short use_nodes;
+	char _pad[6];
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	/** For UI. */
 	int panel;

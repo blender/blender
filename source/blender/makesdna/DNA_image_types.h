@@ -48,13 +48,13 @@ typedef struct ImageUser {
 	/** Offset within movie, start frame in global time. */
 	int offset, sfra;
 	/** Cyclic flag. */
-	char _pad, cycl;
+	char _pad0, cycl;
 	char ok;
 
 	/** Multiview current eye - for internal use of drawing routines. */
 	char multiview_eye;
 	short pass;
-	short pad;
+	char _pad1[2];
 
 	/** Listbase indices, for menu browsing or retrieve buffer. */
 	short multi_index, view, layer;
@@ -125,8 +125,7 @@ typedef struct Image {
 
 	/* GPU texture flag. */
 	short gpuflag;
-	short pad2;
-	unsigned int pad3;
+	char _pad2[6];
 
 	/** Deprecated. */
 	struct PackedFile *packedfile DNA_DEPRECATED;
@@ -135,7 +134,7 @@ typedef struct Image {
 
 	int lastused;
 	short ok;
-	short pad4[3];
+	char _pad4[6];
 
 	/* for generated images */
 	int gen_x, gen_y;
@@ -150,7 +149,7 @@ typedef struct Image {
 	ColorManagedColorspaceSettings colorspace_settings;
 	char alpha_mode;
 
-	char pad[5];
+	char _pad[5];
 
 	/* Multiview */
 	/** For viewer node stereoscopy. */

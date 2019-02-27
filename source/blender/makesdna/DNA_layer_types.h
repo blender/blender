@@ -51,7 +51,7 @@ typedef struct LayerCollection {
 	struct SceneCollection *scene_collection DNA_DEPRECATED;
 	short flag;
 	short runtime_flag;
-	short pad[2];
+	char _pad[4];
 	/** Synced with collection->children. */
 	ListBase layer_collections;
 } LayerCollection;
@@ -62,7 +62,7 @@ typedef struct ViewLayer {
 	char name[64];
 	short flag;
 	short runtime_flag;
-	short pad[2];
+	char _pad[4];
 	/** ObjectBase. */
 	ListBase object_bases;
 	/** Default allocated now. */
@@ -158,7 +158,7 @@ typedef struct SceneCollection {
 	int active_object_index;
 	short flag;
 	char type;
-	char pad;
+	char _pad;
 	/** (Object *)LinkData->data. */
 	ListBase objects;
 	/** Nested collections. */

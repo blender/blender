@@ -90,7 +90,7 @@ typedef struct CurveMapping {
 	float sample[3];
 
 	short tone;
-	short pad[3];
+	char _pad[6];
 } CurveMapping;
 
 /* cumapping->flag */
@@ -170,7 +170,7 @@ typedef struct Scopes {
 	float *waveform_3;
 	float *vecscope;
 	int waveform_tot;
-	int pad;
+	char _pad[4];
 } Scopes;
 
 /* scopes->wavefrm_mode */
@@ -182,7 +182,8 @@ typedef struct Scopes {
 #define SCOPES_WAVEFRM_RGB		5
 
 typedef struct ColorManagedViewSettings {
-	int flag, pad;
+	int flag;
+	char _pad[4];
 	/** Look which is being applied when displaying buffer on the screen
 	 * (prior to view transform). */
 	char look[64];
@@ -194,7 +195,7 @@ typedef struct ColorManagedViewSettings {
 	float gamma;
 	/** Pre-display RGB curves transform. */
 	struct CurveMapping *curve_mapping;
-	void *pad2;
+	void *_pad2;
 } ColorManagedViewSettings;
 
 typedef struct ColorManagedDisplaySettings {

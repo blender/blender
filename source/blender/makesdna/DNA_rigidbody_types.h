@@ -62,7 +62,7 @@ typedef struct RigidBodyWorld {
 	/** Group containing objects to use for Rigid Body Constraint.s*/
 	struct Collection *constraints;
 
-	int pad;
+	char _pad[4];
 	/** Last frame world was evaluated for (internal). */
 	float ltime;
 
@@ -132,7 +132,7 @@ typedef struct RigidBodyOb {
 	int col_groups;
 	/** (eRigidBody_MeshSource) mesh source for mesh based collision shapes. */
 	short mesh_source;
-	short pad;
+	char _pad[2];
 
 	/* Physics Parameters */
 	/** How much object 'weighs' (i.e. absolute 'amount of stuff' it holds). */
@@ -160,7 +160,7 @@ typedef struct RigidBodyOb {
 	float orn[4];
 	/** Rigid body position. */
 	float pos[3];
-	float pad1;
+	char _pad1[4];
 
 	/** This pointer is shared between all evaluated copies. */
 	struct RigidBodyOb_Shared *shared;
@@ -252,7 +252,7 @@ typedef struct RigidBodyCon {
 	float breaking_threshold;
 	/** Spring implementation to use. */
 	char spring_type;
-	char pad[3];
+	char _pad[3];
 
 	/* limits */
 	/* translation limits */

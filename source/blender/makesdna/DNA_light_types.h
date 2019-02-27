@@ -55,7 +55,7 @@ typedef struct Light {
 	float coeff_const, coeff_lin, coeff_quad, coeff_pad;
 	struct CurveMapping *curfalloff;
 	short falloff_type;
-	short pad2;
+	char _pad2[2];
 
 	float clipsta, clipend;
 	float bias, soft, bleedbias, bleedexp;
@@ -71,7 +71,7 @@ typedef struct Light {
 	/** Old animation system, deprecated for 2.5. */
 	struct Ipo *ipo  DNA_DEPRECATED;
 	short pr_texture, use_nodes;
-	char pad6[4];
+	char _pad6[4];
 
 	/* Eevee */
 	float cascade_max_dist;

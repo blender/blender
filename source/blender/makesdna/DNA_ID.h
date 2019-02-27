@@ -73,7 +73,7 @@ typedef struct IDProperty {
 	char name[64];
 
 	/* saved is used to indicate if this struct has been saved yet.
-	 * seemed like a good idea as a pad var was needed anyway :) */
+	 * seemed like a good idea as a '_pad' var was needed anyway :) */
 	int saved;
 	/** Note, alignment for 64 bits. */
 	IDPropertyData data;
@@ -145,7 +145,7 @@ typedef struct IDOverrideStaticPropertyOperation {
 	/* Type of override. */
 	short operation;
 	short flag;
-	short pad_s1[2];
+	char _pad0[4];
 
 	/* Sub-item references, if needed (for arrays or collections only).
 	 * We need both reference and local values to allow e.g. insertion into collections (constraints, modifiers...).
@@ -208,7 +208,7 @@ typedef struct IDOverrideStatic {
 	ListBase properties;
 
 	short flag;
-	short pad[3];
+	char _pad[6];
 
 	/* Read/write data. */
 	/* Temp ID storing extra override data (used for differential operations only currently).
@@ -249,7 +249,7 @@ typedef struct ID {
 	int us;
 	int icon_id;
 	int recalc;
-	int pad;
+	char _pad[4];
 	IDProperty *properties;
 
 	/** Reference linked ID which this one overrides. */
@@ -329,7 +329,7 @@ typedef struct PreviewImage {
 
 	/** Runtime data. */
 	short tag;
-	char pad[2];
+	char _pad[2];
 } PreviewImage;
 
 #define PRV_DEFERRED_DATA(prv) \

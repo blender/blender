@@ -66,7 +66,7 @@ typedef struct bNodeStack {
 	short is_copy;
 	/** Data is used by external nodes (no freeing). */
 	short external;
-	short pad[2];
+	char _pad[4];
 } bNodeStack;
 
 /* ns->datatype, shadetree only */
@@ -119,7 +119,8 @@ typedef struct bNodeSocket {
 	short stack_index;
 	/* XXX deprecated, kept for forward compatibility */
 	short stack_type  DNA_DEPRECATED;
-	char draw_shape, pad[3];
+	char draw_shape;
+	char _pad[3];
 
 	/** Cached data from execution. */
 	void *cache;
@@ -206,7 +207,8 @@ typedef struct bNode {
 	/** MAX_NAME. */
 	char name[64];
 	int flag;
-	short type, pad;
+	short type;
+	char _pad[2];
 	/** Both for dependency and sorting. */
 	short done, level;
 	/** Lasty: check preview render status, menunr: browse ID blocks. */
@@ -273,7 +275,8 @@ typedef struct bNode {
 	/** Reserved size of the preview rect. */
 	short preview_xsize, preview_ysize;
 	/** Used at runtime when going through the tree. Initialize before use. */
-	short tmp_flag, pad2;
+	short tmp_flag;
+	char _pad2[2];
 	/** Runtime during drawing. */
 	struct uiBlock *block;
 
@@ -377,7 +380,7 @@ typedef struct bNodeLink {
 	bNodeSocket *fromsock, *tosock;
 
 	int flag;
-	int pad;
+	char _pad[4];
 } bNodeLink;
 
 /* link->flag */
@@ -435,7 +438,7 @@ typedef struct bNodeTree {
 	short is_updating;
 	/** Generic temporary flag for recursion check (DFS/BFS). */
 	short done;
-	int pad2;
+	char _pad2[4];
 
 	/** Specific node type this tree is used for. */
 	int nodetype DNA_DEPRECATED;
@@ -463,7 +466,7 @@ typedef struct bNodeTree {
 	 * in case multiple different editors are used and make context ambiguous.
 	 */
 	bNodeInstanceKey active_viewer_key;
-	int pad;
+	char _pad[4];
 
 	/* execution data */
 	/* XXX It would be preferable to completely move this data out of the underlying node tree,
@@ -549,7 +552,7 @@ typedef struct bNodeSocketValueFloat {
 
 typedef struct bNodeSocketValueBoolean {
 	char value;
-	char pad[3];
+	char _pad[3];
 } bNodeSocketValueBoolean;
 
 typedef struct bNodeSocketValueVector {
@@ -565,7 +568,7 @@ typedef struct bNodeSocketValueRGBA {
 
 typedef struct bNodeSocketValueString {
 	int subtype;
-	int pad;
+	char _pad[4];
 	/** 1024 = FILEMAX. */
 	char value[1024];
 } bNodeSocketValueString;
@@ -623,7 +626,7 @@ typedef struct NodeImageAnim {
 	int nr       DNA_DEPRECATED;
 	char cyclic  DNA_DEPRECATED;
 	char movie   DNA_DEPRECATED;
-	short pad;
+	char _pad[2];
 } NodeImageAnim;
 
 typedef struct ColorCorrectionData {
@@ -632,7 +635,7 @@ typedef struct ColorCorrectionData {
 	float gamma;
 	float gain;
 	float lift;
-	int pad;
+	char _pad[4];
 } ColorCorrectionData;
 
 typedef struct NodeColorCorrection {
@@ -658,7 +661,7 @@ typedef struct NodeBoxMask {
 	float rotation;
 	float height;
 	float width;
-	int pad;
+	char _pad[4];
 } NodeBoxMask;
 
 typedef struct NodeEllipseMask {
@@ -667,7 +670,7 @@ typedef struct NodeEllipseMask {
 	float rotation;
 	float height;
 	float width;
-	int pad;
+	char _pad[4];
 } NodeEllipseMask;
 
 /* layer info for image node outputs */
@@ -693,12 +696,13 @@ typedef struct NodeBlurData {
 typedef struct NodeDBlurData {
 	float center_x, center_y, distance, angle, spin, zoom;
 	short iter;
-	char wrap, pad;
+	char wrap, _pad;
 } NodeDBlurData;
 
 typedef struct NodeBilateralBlurData {
 	float sigma_color, sigma_space;
-	short iter, pad;
+	short iter;
+	char _pad[2];
 } NodeBilateralBlurData;
 
 /* NOTE: Only for do-version code. */
@@ -722,14 +726,14 @@ typedef struct NodeImageMultiFile {
 	int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;
 	/** Selected input in details view list. */
 	int active_input;
-	int pad;
+	char _pad[4];
 } NodeImageMultiFile;
 typedef struct NodeImageMultiFileSocket {
 	/* single layer file output */
 	short use_render_format  DNA_DEPRECATED;
 	/** Use overall node image format. */
 	short use_node_format;
-	int pad1;
+	char _pad1[4];
 	/** 1024 = FILE_MAX. */
 	char path[1024];
 	ImageFormatData format;
@@ -737,7 +741,7 @@ typedef struct NodeImageMultiFileSocket {
 	/* multilayer output */
 	/** EXR_TOT_MAXNAME-2 ('.' and channel char are appended). */
 	char layer[30];
-	char pad2[2];
+	char _pad2[2];
 } NodeImageMultiFileSocket;
 
 typedef struct NodeChroma {
@@ -762,10 +766,11 @@ typedef struct NodeVertexCol {
 
 /* qdn: Defocus blur node */
 typedef struct NodeDefocus {
-	char bktype, pad_c1, preview, gamco;
+	char bktype, _pad0, preview, gamco;
 	short samples, no_zbuf;
 	float fstop, maxblur, bthresh, scale;
-	float rotation, pad_f1;
+	float rotation;
+	char _pad1[4];
 } NodeDefocus;
 
 typedef struct NodeScriptDict {
@@ -780,9 +785,10 @@ typedef struct NodeGlare {
 	char quality, type, iter;
 	/* XXX angle is only kept for backward/forward compatibility,
 	 * was used for two different things, see T50736. */
-	char angle DNA_DEPRECATED, pad_c1, size, star_45, streaks;
+	char angle DNA_DEPRECATED, _pad0, size, star_45, streaks;
 	float colmod, mix, threshold, fade;
-	float angle_ofs, pad_f1;
+	float angle_ofs;
+	char _pad1[4];
 } NodeGlare;
 
 /* qdn: tonemap node */
@@ -794,7 +800,8 @@ typedef struct NodeTonemap {
 
 /* qdn: lens distortion node */
 typedef struct NodeLensDist {
-	short jit, proj, fit, pad;
+	short jit, proj, fit;
+	char _pad[2];
 } NodeLensDist;
 
 typedef struct NodeColorBalance {
@@ -819,7 +826,7 @@ typedef struct NodeColorspill {
 
 typedef struct NodeDilateErode {
 	char falloff;
-	char pad[7];
+	char _pad[7];
 } NodeDilateErode;
 
 typedef struct NodeMask {
@@ -847,7 +854,7 @@ typedef struct NodeTexImage {
 	float projection_blend;
 	int interpolation;
 	int extension;
-	int pad;
+	char _pad[4];
 } NodeTexImage;
 
 typedef struct NodeTexChecker {
@@ -866,13 +873,13 @@ typedef struct NodeTexEnvironment {
 	int color_space;
 	int projection;
 	int interpolation;
-	int pad;
+	char _pad[4];
 } NodeTexEnvironment;
 
 typedef struct NodeTexGradient {
 	NodeTexBase base;
 	int gradient_type;
-	int pad;
+	char _pad[4];
 } NodeTexGradient;
 
 typedef struct NodeTexNoise {
@@ -884,13 +891,13 @@ typedef struct NodeTexVoronoi {
 	int coloring;
 	int distance;
 	int feature;
-	int pad;
+	char _pad[4];
 } NodeTexVoronoi;
 
 typedef struct NodeTexMusgrave {
 	NodeTexBase base;
 	int musgrave_type;
-	int pad;
+	char _pad[4];
 } NodeTexMusgrave;
 
 typedef struct NodeTexWave {
@@ -902,7 +909,7 @@ typedef struct NodeTexWave {
 typedef struct NodeTexMagic {
 	NodeTexBase base;
 	int depth;
-	int pad;
+	char _pad[4];
 } NodeTexMagic;
 
 typedef struct NodeShaderAttribute {
@@ -912,12 +919,13 @@ typedef struct NodeShaderAttribute {
 typedef struct NodeShaderVectTransform {
 	int type;
 	int convert_from, convert_to;
-	int pad;
+	char _pad[4];
 } NodeShaderVectTransform;
 
 typedef struct NodeShaderTexPointDensity {
 	NodeTexBase base;
-	short point_source, pad;
+	short point_source;
+	char _pad[2];
 	int particle_system;
 	float radius;
 	int resolution;
@@ -930,7 +938,7 @@ typedef struct NodeShaderTexPointDensity {
 	/* Used at runtime only by sampling RNA API. */
 	PointDensity pd;
 	int cached_resolution;
-	int pad2;
+	char _pad2[4];
 } NodeShaderTexPointDensity;
 
 /* TEX_output */
@@ -963,7 +971,7 @@ typedef struct NodeTrackPosData {
 typedef struct NodeTranslateData {
 	char wrap_axis;
 	char relative;
-	char pad[6];
+	char _pad[6];
 } NodeTranslateData;
 
 typedef struct NodePlaneTrackDeformData {
@@ -971,7 +979,7 @@ typedef struct NodePlaneTrackDeformData {
 	char plane_track_name[64];
 	char flag;
 	char motion_blur_samples;
-	char pad[2];
+	char _pad[2];
 	float motion_blur_shutter;
 } NodePlaneTrackDeformData;
 
@@ -1019,7 +1027,7 @@ typedef struct NodeCryptomatte {
 	float remove[3];
 	char *matte_id;
 	int num_inputs;
-	int pad;
+	char _pad[4];
 } NodeCryptomatte;
 
 /* script node mode */

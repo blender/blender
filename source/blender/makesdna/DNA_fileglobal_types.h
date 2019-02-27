@@ -34,11 +34,11 @@ typedef struct FileGlobal {
 
 	short subversion;
 	short minversion, minsubversion;
-	char pad[6];
+	char _pad[6];
 	struct bScreen *curscreen;
 	struct Scene *curscene;
 	struct ViewLayer *cur_view_layer;
-	void *pad1;
+	void *_pad1;
 
 	int fileflags;
 	int globalf;

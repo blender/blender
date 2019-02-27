@@ -77,7 +77,7 @@ typedef struct CacheFile {
 	short flag;
 	short draw_flag;
 
-	char padding[4];
+	char _pad[4];
 } CacheFile;
 
 #ifdef __cplusplus

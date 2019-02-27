@@ -39,7 +39,7 @@ typedef struct HairKey {
 	float weight;
 	/** Saved particled edit mode flags. */
 	short editflag;
-	short pad;
+	char _pad[2];
 	float world_co[3];
 } HairKey;
 
@@ -141,7 +141,7 @@ typedef struct ParticleData {
 
 	/** Density of sph particle. */
 	float sphdensity;
-	int pad;
+	char _pad[4];
 
 	int hair_index;
 	short flag;
@@ -159,7 +159,7 @@ typedef struct SPHFluidSettings {
 	float buoyancy;
 	int flag, spring_frames;
 	short solver;
-	short pad[3];
+	char _pad[6];
 } SPHFluidSettings;
 
 /* fluid->flag */
@@ -191,7 +191,8 @@ typedef struct ParticleSettings {
 	short phystype, rotmode, avemode, reactevent;
 	int draw;
 	float draw_size;
-	short draw_as, pad1, childtype, pad2;
+	short draw_as, childtype;
+	char _pad2[4];
 	short ren_as, subframes, draw_col;
 	/* number of path segments, power of 2 except */
 	short draw_step, ren_step;
@@ -230,7 +231,7 @@ typedef struct ParticleSettings {
 	float randlength;
 	/* children */
 	int child_flag;
-	int pad3;
+	char _pad3[4];
 	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
 	float childrad, childflat;
@@ -239,7 +240,8 @@ typedef struct ParticleSettings {
 	/* kink */
 	float kink_amp, kink_freq, kink_shape, kink_flat;
 	float kink_amp_clump;
-	int kink_extra_steps, pad4;
+	int kink_extra_steps;
+	char _pad4[4];
 	float kink_axis_random, kink_amp_random;
 	/* rough */
 	float rough1, rough1_size;
@@ -280,20 +282,21 @@ typedef struct ParticleSettings {
 
 	/* modified dm support */
 	short use_modifier_stack;
-	short pad5;
+	char _pad5[2];
 
 	/* hair shape */
 	short shape_flag;
-	short pad6;
+	char _pad6[2];
 
-	float twist, pad8;
+	float twist;
+	char _pad8[4];
 
 	/* hair thickness shape */
 	float shape;
 	float rad_root, rad_tip, rad_scale;
 
 	struct CurveMapping *twistcurve;
-	void *pad7;
+	void *_pad7;
 } ParticleSettings;
 
 typedef struct ParticleSystem {
@@ -354,9 +357,8 @@ typedef struct ParticleSystem {
 	 * TODO(sergey): Use part->id.recalc instead of this duplicated flag
 	 * somehow. */
 	int recalc;
-	int pad1;
 	short target_psys, totkeyed, bakespace;
-	short pad2;
+	char _pad1[6];
 
 	/** Billboard uv name, MAX_CUSTOMDATA_LAYER_NAME. */
 	char bb_uvname[3][64];
@@ -364,7 +366,7 @@ typedef struct ParticleSystem {
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
 	/** Vertex groups, 0==disable, 1==starting index. */
 	short vgroup[13], vg_neg, rt3;
-	char pad[6];
+	char _pad[6];
 
 	/* point cache */
 	struct PointCache *pointcache;

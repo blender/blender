@@ -66,7 +66,7 @@ typedef struct bSound {
 	short flags;
 	/** Runtime only, always reset in readfile. */
 	short tags;
-	int pad;
+	char _pad[4];
 
 	/* unused currently
 	int type;
