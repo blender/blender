@@ -212,10 +212,12 @@ endif
 # -----------------------------------------------------------------------------
 # Blender binary path
 
+# Allow passing in own BLENDER_BIN so developers who don't
+# use the default build path can still use utility helpers.
 ifeq ($(OS), Darwin)
-	BLENDER_BIN="$(BUILD_DIR)/bin/blender.app/Contents/MacOS/blender"
+	BLENDER_BIN?="$(BUILD_DIR)/bin/blender.app/Contents/MacOS/blender"
 else
-	BLENDER_BIN="$(BUILD_DIR)/bin/blender"
+	BLENDER_BIN?="$(BUILD_DIR)/bin/blender"
 endif
 
 
