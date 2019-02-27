@@ -705,7 +705,7 @@ static short layer_collection_sync(
 			if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
 			    ((object_restrict & OB_RESTRICT_VIEW) == 0))
 			{
-				base->flag |= BASE_ENABLED | BASE_ENABLED_VIEWPORT;
+				base->flag |= BASE_ENABLED_VIEWPORT;
 
 				if ((child_layer_restrict & LAYER_COLLECTION_RESTRICT_VIEW) == 0) {
 					base->flag |= BASE_VISIBLE;
@@ -725,7 +725,7 @@ static short layer_collection_sync(
 			}
 
 			/* Update runtime flags used for display and tools. */
-			if (base->flag & BASE_ENABLED) {
+			if (base->flag & BASE_ENABLED_VIEWPORT) {
 				lc->runtime_flag |= LAYER_COLLECTION_HAS_ENABLED_OBJECTS;
 			}
 
@@ -782,7 +782,6 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 	/* Clear visible and selectable flags to be reset. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		base->flag &= ~(BASE_VISIBLE |
-		                BASE_ENABLED |
 		                BASE_SELECTABLE |
 		                BASE_ENABLED_VIEWPORT |
 		                BASE_ENABLED_RENDER |

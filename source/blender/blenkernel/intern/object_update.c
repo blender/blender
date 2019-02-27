@@ -430,14 +430,13 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
 
 	/* Compute visibility for depsgraph evaluation mode. */
 	if (base->flag & base_enabled_flag) {
-		base->flag |= BASE_ENABLED;
 		/* When rendering, visibility is controlled by the enable/disable option. */
 		if (mode == DAG_EVAL_RENDER) {
 			base->flag |= BASE_VISIBLE;
 		}
 	}
 	else {
-		base->flag &= ~(BASE_ENABLED | BASE_VISIBLE | BASE_SELECTABLE);
+		base->flag &= ~(BASE_VISIBLE | BASE_SELECTABLE);
 	}
 	/* If base is not selectable, clear select. */
 	if ((base->flag & BASE_SELECTABLE) == 0) {

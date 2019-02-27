@@ -111,7 +111,7 @@ enum {
 	BASE_FROM_SET         = (1 << 5), /* Object comes from set. */
 	BASE_ENABLED_VIEWPORT = (1 << 6), /* Object is enabled in viewport. */
 	BASE_ENABLED_RENDER   = (1 << 7), /* Object is enabled in final render */
-	BASE_ENABLED          = (1 << 9), /* Object is enabled. */
+	/* BASE_DEPRECATED          = (1 << 9), */
 	BASE_HOLDOUT          = (1 << 10), /* Object masked out from render */
 	BASE_INDIRECT_ONLY    = (1 << 11), /* Object only contributes indirectly to render */
 };
