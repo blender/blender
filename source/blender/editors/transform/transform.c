@@ -589,7 +589,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 			else
 				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
-			/* for realtime animation record - send notifiers recognised by animation editors */
+			/* For real-time animation record - send notifiers recognized by animation editors */
 			// XXX: is this notifier a lame duck?
 			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
 				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
@@ -2159,7 +2159,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_NO_MIRROR) == 0);
 	}
 
-	/* Orientastion used for redo. */
+	/* Orientation used for redo. */
 	short orientation;
 	if (t->con.mode & CON_APPLY) {
 		orientation = t->con.orientation;
@@ -2220,7 +2220,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			}
 		}
 	}
-
 
 	if ((prop = RNA_struct_find_property(op->ptr, "orient_type"))) {
 		/* constraint orientation can be global, even if user selects something else

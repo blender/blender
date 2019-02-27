@@ -2205,7 +2205,6 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 
 				RNA_float_set_array(&gzop->ptr, "orient_matrix", &tbounds.axis[0][0]);
 				RNA_enum_set(&gzop->ptr, "orient_type", orient_slot->type);
-				RNA_enum_set(&gzop->ptr, "orient_matrix_type", orient_slot->type);
 
 				RNA_enum_set(&gzop->ptr, "orient_axis", i_ortho_b);
 				RNA_enum_set(&gzop->ptr, "orient_axis_ortho", i_ortho_a);

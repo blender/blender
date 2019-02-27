@@ -610,7 +610,7 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 			return "shift_y";
 	}
 
-	/* unrecognised adrcode, or not-yet-handled ones! */
+	/* unrecognized adrcode, or not-yet-handled ones! */
 	return NULL;
 }
 
@@ -652,7 +652,7 @@ static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
 			return mtex_adrcodes_to_paths(adrcode, array_index);
 	}
 
-	/* unrecognised adrcode, or not-yet-handled ones! */
+	/* unrecognized adrcode, or not-yet-handled ones! */
 	return NULL;
 }
 
@@ -677,7 +677,7 @@ static const char *sound_adrcodes_to_paths(int adrcode, int *array_index)
 			return "attenuation";
 	}
 
-	/* unrecognised adrcode, or not-yet-handled ones! */
+	/* unrecognized adrcode, or not-yet-handled ones! */
 	return NULL;
 }
 

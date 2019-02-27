@@ -769,14 +769,7 @@ enum {
 
 /* transinfo->con->mode */
 enum {
-	/**
-	 * TODO(campbell): this has two meanings:
-	 * - Constraint axes.
-	 * - Transform values are evaluated in different orientation.
-	 *
-	 * We should split out this second meaning into another flag
-	 * because transform logic becomes hard to follow when we're
-	 * only want to support an alternate orientation. */
+	/** When set constraints are in use. */
 	CON_APPLY =       1 << 0,
 	/** These are only used for modal execution. */
 	CON_AXIS0 =       1 << 1,
@@ -859,7 +852,6 @@ struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 
 /*********************** transform_conversions.c ********** */
-struct ListBase;
 
 void flushTransIntFrameActionData(TransInfo *t);
 void flushTransGraphData(TransInfo *t);
