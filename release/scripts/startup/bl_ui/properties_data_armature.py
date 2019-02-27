@@ -67,7 +67,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
-    bl_label = "Display"
+    bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -317,12 +317,12 @@ class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
 classes = (
     DATA_PT_context_arm,
     DATA_PT_skeleton,
-    DATA_PT_display,
     DATA_MT_bone_group_specials,
     DATA_PT_bone_groups,
     DATA_PT_pose_library,
     DATA_PT_motion_paths,
     DATA_PT_motion_paths_display,
+    DATA_PT_display,
     DATA_PT_iksolver_itasc,
     DATA_PT_custom_props_arm,
 )

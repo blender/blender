@@ -228,7 +228,7 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_display(BoneButtonsPanel, Panel):
-    bl_label = "Display"
+    bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -414,9 +414,9 @@ classes = (
     BONE_PT_transform,
     BONE_PT_curved,
     BONE_PT_relations,
-    BONE_PT_display,
     BONE_PT_inverse_kinematics,
     BONE_PT_deform,
+    BONE_PT_display,
     BONE_PT_custom_props,
 )
 
