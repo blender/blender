@@ -1507,6 +1507,7 @@ static void mesh_render_data_edge_flag(
 {
 	const ToolSettings *ts = rdata->toolsettings;
 	const bool is_vertex_select_mode = (ts != NULL) && (ts->selectmode & SCE_SELECT_VERTEX) != 0;
+	const bool is_face_only_select_mode = (ts != NULL) && (ts->selectmode == SCE_SELECT_FACE);
 
 	if (eed == rdata->eed_act) {
 		eattr->e_flag |= VFLAG_EDGE_ACTIVE;
@@ -1529,6 +1530,20 @@ static void mesh_render_data_edge_flag(
 	if (!BM_elem_flag_test(eed, BM_ELEM_SMOOTH)) {
 		eattr->e_flag |= VFLAG_EDGE_SHARP;
 	}
+
+	/* Use active edge color for active face edges because
+	 * specular highlights make it hard to see T55456#510873.
+	 *
+	 * This isn't ideal since it can't be used when mixing edge/face modes
+     * but it's still better then not being able to see the active face. */
+	if (is_face_only_select_mode) {
+		if (rdata->efa_act != NULL) {
+			if (BM_edge_in_face(eed, rdata->efa_act)) {
+				eattr->e_flag |= VFLAG_EDGE_ACTIVE;
+			}
+		}
+	}
+
 	/* Use a byte for value range */
 	if (rdata->cd.offset.crease != -1) {
 		float crease = BM_ELEM_CD_GET_FLOAT(eed, rdata->cd.offset.crease);
