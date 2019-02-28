@@ -755,7 +755,9 @@ bool DenoiseImage::save_output(const string& out_filepath, string& error)
 
 	/* Write to temporary file path, so we denoise images in place and don't
 	 * risk destroying files when something goes wrong in file saving. */
-	string tmp_filepath = OIIO::Filesystem::temp_directory_path() + "/" + OIIO::Filesystem::unique_path() + ".exr";
+	string extension = OIIO::Filesystem::extension(out_filepath);
+	string unique_name = ".denoise-tmp-" + OIIO::Filesystem::unique_path();
+	string tmp_filepath = out_filepath + unique_name + extension;
 	unique_ptr<ImageOutput> out(ImageOutput::create(tmp_filepath));
 
 	if(!out) {
@@ -783,17 +785,17 @@ bool DenoiseImage::save_output(const string& out_filepath, string& error)
 	out.reset();
 
 	/* Copy temporary file to outputput filepath. */
-	if(ok && !OIIO::Filesystem::rename(tmp_filepath, out_filepath)) {
-		error = "Failed to save to file " + out_filepath + ": " + out->geterror();
+	string rename_error;
+	if(ok && !OIIO::Filesystem::rename(tmp_filepath, out_filepath, rename_error)) {
+		error = "Failed to move denoised image to " + out_filepath + ": " + rename_error;
 		ok = false;
 	}
 
 	if(!ok) {
 		OIIO::Filesystem::remove(tmp_filepath);
-		return false;
 	}
 
-	return true;
+	return ok;
 }
 
 /* File pattern handling and outer loop over frames */
