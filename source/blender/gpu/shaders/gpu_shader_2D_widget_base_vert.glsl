@@ -69,8 +69,8 @@ uniform vec2 triavec[43] = vec2[43](
 	vec2(0.000000, -1.000000),
 
 	/* ROUNDBOX_TRIA_MENU - menu arrows */
-	vec2(-0.51, 0.08), vec2(-0.41, 0.20), vec2(-0.05, -0.39),
-	vec2(-0.05, -0.18), vec2(0.41, 0.08), vec2(0.3, 0.20),
+	vec2(-0.51, 0.07), vec2(-0.4, 0.18), vec2(-0.05, -0.39),
+	vec2(-0.05, -0.17), vec2(0.41, 0.07), vec2(0.3, 0.18),
 
 
 	/* ROUNDBOX_TRIA_CHECK - check mark */
