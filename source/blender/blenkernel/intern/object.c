@@ -832,7 +832,7 @@ void BKE_object_init(Object *ob)
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
-	ob->dt = OB_TEXTURE;
+	ob->dt = OB_SOLID;
 	ob->empty_drawtype = OB_PLAINAXES;
 	ob->empty_drawsize = 1.0;
 	ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_DEFAULT;
