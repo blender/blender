@@ -609,9 +609,6 @@ class USERPREF_PT_viewport_quality(PreferencePanel):
         flow.prop(system, "multi_sample", text="Multisampling")
         flow.prop(system, "gpencil_multi_sample", text="Grease Pencil Multisampling")
 
-        if sys.platform == "linux" and system.multi_sample != 'NONE':
-            layout.label(text="Might fail for Mesh editing selection!")
-
 
 class USERPREF_PT_viewport_textures(PreferencePanel):
     bl_label = "Textures"
