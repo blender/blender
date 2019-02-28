@@ -477,7 +477,7 @@ class RENDER_PT_stereoscopy(RenderOutputButtonsPanel, Panel):
         basic_stereo = rd.views_format == 'STEREO_3D'
 
         row = layout.row()
-        row.prop(rd, "views_format", expand=True)
+        row.prop(rd, "views_format")
 
         if basic_stereo:
             row = layout.row()
