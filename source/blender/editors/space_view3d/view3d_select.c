@@ -2553,7 +2553,9 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 	for (const uint *col = vbuffer + 3, *col_end = col + (hits * 4); col < col_end; col += 4) {
 		Bone *bone;
 		Base *base = ED_armature_base_and_bone_from_select_buffer(bases, BLI_array_len(bases), *col, &bone);
-		base->object->id.tag |= LIB_TAG_DOIT;
+		if (base != NULL) {
+			base->object->id.tag |= LIB_TAG_DOIT;
+		}
 	}
 
 	for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
