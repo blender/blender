@@ -65,7 +65,7 @@ void main()
 	
 	if (do_select == 1) {
 		if (stroke_color.a == 0) {
-			if (check_borders(uv, 1)) {
+			if (check_borders(uv, 2)) {
 				FragColor = select_color;
 				gl_FragDepth = 0.000001;
 			}
