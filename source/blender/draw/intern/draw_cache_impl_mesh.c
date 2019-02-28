@@ -1587,9 +1587,10 @@ static bool add_edit_facedot(
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 	float pnor[3], center[3];
-	bool selected;
+	int facedot_flag;
 	if (rdata->edit_bmesh) {
-		const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, poly);
+		BMEditMesh *em = rdata->edit_bmesh;
+		const BMFace *efa = BM_face_at_index(em->bm, poly);
 		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 			return false;
 		}
@@ -1601,7 +1602,7 @@ static bool add_edit_facedot(
 			BM_face_calc_center_median(efa, center);
 			copy_v3_v3(pnor, efa->no);
 		}
-		selected = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? true : false;
+		facedot_flag = BM_elem_flag_test(efa, BM_ELEM_SELECT) ? ((efa == em->bm->act_face) ? -1 : 1) : 0;
 	}
 	else {
 		MVert *mvert = rdata->mvert;
@@ -1610,12 +1611,12 @@ static bool add_edit_facedot(
 
 		BKE_mesh_calc_poly_center(mpoly, mloop, mvert, center);
 		BKE_mesh_calc_poly_normal(mpoly, mloop, mvert, pnor);
-
-		selected = false; /* No selection if not in edit mode */
+		/* No selection if not in edit mode. */
+		facedot_flag = 0;
 	}
 
 	GPUPackedNormal nor = GPU_normal_convert_i10_v3(pnor);
-	nor.w = (selected) ? 1 : 0;
+	nor.w = facedot_flag;
 	GPU_vertbuf_attr_set(vbo, fdot_nor_flag_id, base_vert_idx, &nor);
 	GPU_vertbuf_attr_set(vbo, fdot_pos_id, base_vert_idx, center);
 
@@ -1634,7 +1635,7 @@ static bool add_edit_facedot_mapped(
 		return false;
 	}
 	BMEditMesh *em = rdata->edit_bmesh;
-	const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
+	const BMFace *efa = BM_face_at_index(em->bm, p_orig);
 	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return false;
 	}
@@ -1651,7 +1652,7 @@ static bool add_edit_facedot_mapped(
 	BKE_mesh_calc_poly_normal(mp, ml, mvert, pnor);
 
 	GPUPackedNormal nor = GPU_normal_convert_i10_v3(pnor);
-	nor.w = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? 1 : 0;
+	nor.w = BM_elem_flag_test(efa, BM_ELEM_SELECT) ? ((efa == em->bm->act_face) ? -1 : 1) : 0;
 	GPU_vertbuf_attr_set(vbo, fdot_nor_flag_id, base_vert_idx, &nor);
 	GPU_vertbuf_attr_set(vbo, fdot_pos_id, base_vert_idx, center);
 
