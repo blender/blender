@@ -164,7 +164,7 @@ static void remove_non_persistent_functions(struct Main *UNUSED(_1), struct ID *
 	}
 }
 
-static bCallbackFuncStore load_post_callback = {
+static bCallbackFuncStore load_pre_callback = {
 	NULL, NULL, /* next, prev */
 	remove_non_persistent_functions, /* func */
 	NULL, /* arg */
@@ -174,7 +174,7 @@ static bCallbackFuncStore load_post_callback = {
 static void ensure_callback_is_registered()
 {
 	if (!GlobalTimer.file_load_cb_registered) {
-		BLI_callback_add(&load_post_callback, BLI_CB_EVT_LOAD_POST);
+		BLI_callback_add(&load_pre_callback, BLI_CB_EVT_LOAD_PRE);
 		GlobalTimer.file_load_cb_registered = true;
 	}
 }
