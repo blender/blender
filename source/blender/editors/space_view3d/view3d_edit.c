@@ -1701,7 +1701,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	viewops_data_alloc(C, op);
 	viewops_data_create(
 	        C, op, event,
-	        viewops_flag_from_prefs() |
+	        (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
 	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 	vod = op->customdata;
 
@@ -2198,7 +2198,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	viewops_data_alloc(C, op);
 	viewops_data_create(
 	        C, op, event,
-	        viewops_flag_from_prefs() |
+	        (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
 	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 	vod = op->customdata;
 
@@ -2515,7 +2515,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	viewops_data_create(
 	        C, op, event,
-	        viewops_flag_from_prefs() |
+	        (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
 	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
 
@@ -4299,7 +4299,7 @@ static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	else if (pandir == V3D_VIEW_PANDOWN)   { y =  25; }
 
 	viewops_data_alloc(C, op);
-	viewops_data_create(C, op, event, viewops_flag_from_prefs());
+	viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT));
 	ViewOpsData *vod = op->customdata;
 
 	viewmove_apply(vod, vod->prev.event_xy[0] + x, vod->prev.event_xy[1] + y);
