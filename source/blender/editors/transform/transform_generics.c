@@ -1522,10 +1522,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
+	if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
 		t->orient_axis = RNA_property_enum_get(op->ptr, prop);
 	}
-	if ((prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
+	if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
 		t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
 	}
 
