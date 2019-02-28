@@ -1804,18 +1804,19 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 
 static int wm_exit_blender_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	wm_quit_with_optional_confirmation_prompt(C, CTX_wm_window(C));
+	wm_exit_schedule_delayed(C);
 	return OPERATOR_FINISHED;
 }
 
-static int wm_exit_blender_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int wm_exit_blender_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	if (U.uiflag & USER_QUIT_PROMPT) {
-		return wm_exit_blender_exec(C, op);
+		wm_quit_with_optional_confirmation_prompt(C, CTX_wm_window(C));
 	}
 	else {
-		return WM_operator_confirm(C, op, event);
+		wm_exit_schedule_delayed(C);
 	}
+	return OPERATOR_FINISHED;
 }
 
 static void WM_OT_quit_blender(wmOperatorType *ot)
