@@ -127,7 +127,8 @@ static void drw_shgroup_bone_octahedral(
 		        g_data.passes.bone_outline, geom, sh_cfg);
 	}
 	if (g_data.bone_octahedral_solid == NULL &&
-	    g_data.passes.bone_solid != NULL) {
+	    g_data.passes.bone_solid != NULL)
+	{
 		struct GPUBatch *geom = DRW_cache_bone_octahedral_get();
 		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(
 		        g_data.passes.bone_solid, geom, g_data.transparent, sh_cfg);

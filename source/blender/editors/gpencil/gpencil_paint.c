@@ -1244,7 +1244,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 	/* post process stroke */
 	if ((p->brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
-		p->brush->gpencil_settings->flag & GP_BRUSH_TRIM_STROKE) {
+	    p->brush->gpencil_settings->flag & GP_BRUSH_TRIM_STROKE)
+	{
 		BKE_gpencil_trim_stroke(gps);
 	}
 

@@ -58,7 +58,8 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph)
           graph_(graph) {
 }
 
-bool DepsgraphBuilder::needPullBaseIntoGraph(struct Base *base) {
+bool DepsgraphBuilder::needPullBaseIntoGraph(struct Base *base)
+{
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
 	        BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	if (base->flag & base_flag) {

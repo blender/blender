@@ -10960,7 +10960,7 @@ static ID *link_named_part(
 		if (id == NULL) {
 			/* not read yet */
 			const int tag = force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN;
-			read_libblock(fd, mainl, bhead, tag | LIB_TAG_NEED_EXPAND , &id);
+			read_libblock(fd, mainl, bhead, tag | LIB_TAG_NEED_EXPAND, &id);
 
 			if (id) {
 				/* sort by name in list */

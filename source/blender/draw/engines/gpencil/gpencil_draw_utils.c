@@ -251,8 +251,8 @@ static void set_wireframe_color(Object *ob, bGPDlayer *gpl, View3D *v3d,
 {
 	float color[4];
 	if (((gp_style->stroke_rgba[3] < GPENCIL_ALPHA_OPACITY_THRESH) ||
-		 (((gp_style->flag & GP_STYLE_STROKE_SHOW) == 0))) &&
-		(gp_style->fill_rgba[3] >= GPENCIL_ALPHA_OPACITY_THRESH))
+	     (((gp_style->flag & GP_STYLE_STROKE_SHOW) == 0))) &&
+	    (gp_style->fill_rgba[3] >= GPENCIL_ALPHA_OPACITY_THRESH))
 	{
 		copy_v4_v4(color, gp_style->fill_rgba);
 	}
@@ -437,7 +437,7 @@ bool DRW_gpencil_onion_active(bGPdata *gpd)
 DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass, GPUShader *shader, Object *ob,
         bGPdata *gpd, bGPDlayer *gpl, bGPDstroke *gps,
-		MaterialGPencilStyle *gp_style, int id,
+        MaterialGPencilStyle *gp_style, int id,
         bool onion, const float scale, int shading_type)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
@@ -547,8 +547,8 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass, GPUShader *shader, Object *ob,
         bGPdata *gpd, bGPDlayer *gpl,
-		MaterialGPencilStyle *gp_style, int id, bool onion,
-		const float scale, int shading_type)
+        MaterialGPencilStyle *gp_style, int id, bool onion,
+        const float scale, int shading_type)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const float *viewport_size = DRW_viewport_size_get();
@@ -886,7 +886,7 @@ static void gpencil_draw_strokes(
 
 		/* if the fill has any value, it's considered a fill and is not drawn if simplify fill is enabled */
 		if ((stl->storage->simplify_fill) &&
-			(scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_REMOVE_FILL_LINE))
+		    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_REMOVE_FILL_LINE))
 		{
 			if ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 			    (gp_style->fill_style > GP_STYLE_FILL_STYLE_SOLID) ||
@@ -917,8 +917,8 @@ static void gpencil_draw_strokes(
 			{
 				/* fill */
 				if ((gp_style->flag & GP_STYLE_FILL_SHOW) &&
-					(!stl->storage->simplify_fill) &&
-					((gps->flag & GP_STROKE_NOFILL) == 0))
+				    (!stl->storage->simplify_fill) &&
+				    ((gps->flag & GP_STROKE_NOFILL) == 0))
 				{
 					gpencil_add_fill_vertexdata(
 						cache, ob, gpl, derived_gpf, gps,
@@ -1481,7 +1481,7 @@ static void DRW_gpencil_shgroups_create(
 				shgrp = DRW_gpencil_shgroup_stroke_create(
 				        e_data, vedata, stroke_pass, e_data->gpencil_stroke_sh,
 				        ob, gpd, gpl, gps, gp_style, stl->storage->shgroup_id, elm->onion,
-						scale, cache_ob->shading_type);
+				        scale, cache_ob->shading_type);
 
 				DRW_shgroup_call_range_add(
 				        shgrp, cache->b_stroke.batch,
@@ -1499,7 +1499,7 @@ static void DRW_gpencil_shgroups_create(
 				shgrp = DRW_gpencil_shgroup_point_create(
 				        e_data, vedata, stroke_pass, e_data->gpencil_point_sh,
 				        ob, gpd, gpl, gp_style, stl->storage->shgroup_id, elm->onion,
-						scale, cache_ob->shading_type);
+				        scale, cache_ob->shading_type);
 
 				DRW_shgroup_call_range_add(
 				        shgrp, cache->b_point.batch,
@@ -1517,7 +1517,7 @@ static void DRW_gpencil_shgroups_create(
 				shgrp = DRW_gpencil_shgroup_fill_create(
 				        e_data, vedata, stroke_pass, e_data->gpencil_fill_sh,
 				        ob, gpd, gpl, gp_style, stl->storage->shgroup_id,
-						cache_ob->shading_type);
+				        cache_ob->shading_type);
 
 				DRW_shgroup_call_range_add(
 				        shgrp, cache->b_fill.batch,

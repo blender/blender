@@ -388,7 +388,9 @@ static float draw_seq_handle_size_get_clamped(Sequence *seq, const float pixelx)
 }
 
 /* draw a handle, for each end of a sequence strip */
-static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_clamped, const short direction, unsigned int pos)
+static void draw_seq_handle(
+        View2D *v2d, Sequence *seq, const float handsize_clamped,
+        const short direction, unsigned int pos)
 {
 	float v1[2], v2[2], v3[2], rx1 = 0, rx2 = 0; //for triangles and rect
 	float x1, x2, y1, y2;
@@ -478,7 +480,10 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 }
 
 /* draw info text on a sequence strip */
-static void draw_seq_text(View2D *v2d, SpaceSeq *sseq, Sequence *seq, float x1, float x2, float y1, float y2, const unsigned char background_col[3])
+static void draw_seq_text(
+        View2D *v2d, SpaceSeq *sseq, Sequence *seq,
+        float x1, float x2, float y1, float y2,
+        const unsigned char background_col[3])
 {
 	rctf rect;
 	char str[32 + FILE_MAX];
@@ -697,7 +702,9 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
  * ARegion is currently only used to get the windows width in pixels
  * so wave file sample drawing precision is zoom adjusted
  */
-static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, ARegion *ar, Sequence *seq, int outline_tint, float pixelx)
+static void draw_seq_strip(
+        const bContext *C, SpaceSeq *sseq, Scene *scene, ARegion *ar, Sequence *seq,
+        int outline_tint, float pixelx)
 {
 	View2D *v2d = &ar->v2d;
 	float x1, x2, y1, y2;
@@ -1173,7 +1180,9 @@ static void sequencer_preview_clear(void)
 	GPU_clear(GPU_COLOR_BIT);
 }
 
-static void sequencer_preview_get_rect(rctf *preview, Scene *scene, ARegion *ar, SpaceSeq *sseq, bool draw_overlay, bool draw_backdrop)
+static void sequencer_preview_get_rect(
+        rctf *preview, Scene *scene, ARegion *ar, SpaceSeq *sseq,
+        bool draw_overlay, bool draw_backdrop)
 {
 	struct View2D *v2d = &ar->v2d;
 	float viewrect[2];
@@ -1205,7 +1214,9 @@ static void sequencer_preview_get_rect(rctf *preview, Scene *scene, ARegion *ar,
 	}
 }
 
-static void sequencer_draw_display_buffer(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, ImBuf *ibuf, ImBuf *scope, bool draw_overlay, bool draw_backdrop)
+static void sequencer_draw_display_buffer(
+        const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, ImBuf *ibuf, ImBuf *scope,
+        bool draw_overlay, bool draw_backdrop)
 {
 	void *display_buffer;
 
@@ -1321,41 +1332,41 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
 
 
 		switch (sseq->mainb) {
-		case SEQ_DRAW_IMG_IMBUF:
-			if (!scopes->zebra_ibuf) {
-				ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+			case SEQ_DRAW_IMG_IMBUF:
+				if (!scopes->zebra_ibuf) {
+					ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 
-				if (display_ibuf->rect_float) {
-					IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
-						&scene->display_settings);
+					if (display_ibuf->rect_float) {
+						IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+						                                             &scene->display_settings);
+					}
+					scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
+					IMB_freeImBuf(display_ibuf);
 				}
-				scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
-				IMB_freeImBuf(display_ibuf);
-			}
-			scope = scopes->zebra_ibuf;
-			break;
-		case SEQ_DRAW_IMG_WAVEFORM:
-			if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
-				if (!scopes->sep_waveform_ibuf)
-					scopes->sep_waveform_ibuf = sequencer_make_scope(scene, ibuf, make_sep_waveform_view_from_ibuf);
-				scope = scopes->sep_waveform_ibuf;
-			}
-			else {
-				if (!scopes->waveform_ibuf)
-					scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
-				scope = scopes->waveform_ibuf;
-			}
-			break;
-		case SEQ_DRAW_IMG_VECTORSCOPE:
-			if (!scopes->vector_ibuf)
-				scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
-			scope = scopes->vector_ibuf;
-			break;
-		case SEQ_DRAW_IMG_HISTOGRAM:
-			if (!scopes->histogram_ibuf)
-				scopes->histogram_ibuf = sequencer_make_scope(scene, ibuf, make_histogram_view_from_ibuf);
-			scope = scopes->histogram_ibuf;
-			break;
+				scope = scopes->zebra_ibuf;
+				break;
+			case SEQ_DRAW_IMG_WAVEFORM:
+				if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
+					if (!scopes->sep_waveform_ibuf)
+						scopes->sep_waveform_ibuf = sequencer_make_scope(scene, ibuf, make_sep_waveform_view_from_ibuf);
+					scope = scopes->sep_waveform_ibuf;
+				}
+				else {
+					if (!scopes->waveform_ibuf)
+						scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
+					scope = scopes->waveform_ibuf;
+				}
+				break;
+			case SEQ_DRAW_IMG_VECTORSCOPE:
+				if (!scopes->vector_ibuf)
+					scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
+				scope = scopes->vector_ibuf;
+				break;
+			case SEQ_DRAW_IMG_HISTOGRAM:
+				if (!scopes->histogram_ibuf)
+					scopes->histogram_ibuf = sequencer_make_scope(scene, ibuf, make_histogram_view_from_ibuf);
+				scope = scopes->histogram_ibuf;
+				break;
 		}
 
 		/* future files may have new scopes we don't catch above */
@@ -1367,7 +1378,9 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
 }
 
 void sequencer_draw_preview(
-	const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, bool draw_overlay, bool draw_backdrop)
+        const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq,
+        int cfra, int frame_ofs,
+        bool draw_overlay, bool draw_backdrop)
 {
 	struct Main *bmain = CTX_data_main(C);
 	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
