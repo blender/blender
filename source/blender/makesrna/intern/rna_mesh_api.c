@@ -112,43 +112,11 @@ static void rna_Mesh_calc_smooth_groups(Mesh *mesh, bool use_bitflags, int *r_po
 
 static void rna_Mesh_normals_split_custom_do(Mesh *mesh, float (*custom_loopnors)[3], const bool use_vertices)
 {
-	float (*polynors)[3];
-	short (*clnors)[2];
-	const int numloops = mesh->totloop;
-	bool free_polynors = false;
-
-	clnors = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
-	if (clnors) {
-		memset(clnors, 0, sizeof(*clnors) * numloops);
-	}
-	else {
-		clnors = CustomData_add_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_DEFAULT, NULL, numloops);
-	}
-
-	if (CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
-		polynors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
-	}
-	else {
-		polynors = MEM_mallocN(sizeof(float[3]) * mesh->totpoly, __func__);
-		BKE_mesh_calc_normals_poly(
-		            mesh->mvert, NULL, mesh->totvert,
-		            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, polynors, false);
-		free_polynors = true;
-	}
-
 	if (use_vertices) {
-		BKE_mesh_normals_loop_custom_from_vertices_set(
-		        mesh->mvert, custom_loopnors, mesh->totvert, mesh->medge, mesh->totedge, mesh->mloop, mesh->totloop,
-		        mesh->mpoly, (const float (*)[3])polynors, mesh->totpoly, clnors);
+		BKE_mesh_set_custom_normals_from_vertices(mesh, custom_loopnors);
 	}
 	else {
-		BKE_mesh_normals_loop_custom_set(
-		        mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge, mesh->mloop, custom_loopnors, mesh->totloop,
-		        mesh->mpoly, (const float (*)[3])polynors, mesh->totpoly, clnors);
-	}
-
-	if (free_polynors) {
-		MEM_freeN(polynors);
+		BKE_mesh_set_custom_normals(mesh, custom_loopnors);
 	}
 }
 

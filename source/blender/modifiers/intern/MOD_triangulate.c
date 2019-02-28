@@ -66,42 +66,23 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 
 
 	if (keep_clnors) {
-		bool free_pnors = false;
-		float (*pnors)[3] = CustomData_get_layer(&result->pdata, CD_NORMAL);
-		if (pnors == NULL) {
-			pnors = MEM_mallocN(sizeof(*pnors) * result->totpoly, __func__);
-			BKE_mesh_calc_normals_poly(
-			            result->mvert, NULL, result->totvert,
-			            result->mloop, result->mpoly, result->totloop, result->totpoly, pnors, false);
-			free_pnors = true;
-		}
-
 		float (*lnors)[3] = CustomData_get_layer(&result->ldata, CD_NORMAL);
-		short (*clnors)[2] = CustomData_get_layer(&result->ldata, CD_CUSTOMLOOPNORMAL);
-		if (clnors == NULL) {
-			clnors = CustomData_add_layer(&result->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, result->totloop);
-		}
+		BLI_assert(lnors != NULL);
 
-		BKE_mesh_normals_loop_custom_set(
-		            result->mvert, result->totvert,
-		            result->medge, result->totedge,
-		            result->mloop, lnors, result->totloop,
-		            result->mpoly, pnors, result->totpoly, clnors);
+		BKE_mesh_set_custom_normals(result, lnors);
 
 		/* Do some cleanup, we do not want those temp data to stay around. */
 		CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
 		CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-		if (free_pnors) {
-			MEM_freeN(pnors);
-		}
 	}
 
 	total_edges = result->totedge;
 	me = result->medge;
 
 	/* force drawing of all edges (seems to be omitted in CDDM_from_bmesh) */
-	for (i = 0; i < total_edges; i++, me++)
+	for (i = 0; i < total_edges; i++, me++) {
 		me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
+	}
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 

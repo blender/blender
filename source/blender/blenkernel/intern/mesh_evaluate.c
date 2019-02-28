@@ -1850,6 +1850,61 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(
 	        mpolys, polynors, numPolys, r_clnors_data, true);
 }
 
+static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const bool use_vertices)
+{
+	short (*clnors)[2];
+	const int numloops = mesh->totloop;
+
+	clnors = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+	if (clnors != NULL) {
+		memset(clnors, 0, sizeof(*clnors) * (size_t)numloops);
+	}
+	else {
+		clnors = CustomData_add_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, numloops);
+	}
+
+	float (*polynors)[3] = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+	bool free_polynors = false;
+	if (polynors == NULL) {
+		polynors = MEM_mallocN(sizeof(float[3]) * (size_t)mesh->totpoly, __func__);
+		BKE_mesh_calc_normals_poly(
+		            mesh->mvert, NULL, mesh->totvert,
+		            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, polynors, false);
+		free_polynors = true;
+	}
+
+	mesh_normals_loop_custom_set(
+	            mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge, mesh->mloop, r_custom_nors, mesh->totloop,
+	            mesh->mpoly, polynors, mesh->totpoly, clnors, use_vertices);
+
+	if (free_polynors) {
+		MEM_freeN(polynors);
+	}
+}
+
+/**
+ * Higher level functions hiding most of the code needed around call to #BKE_mesh_normals_loop_custom_set().
+ *
+ * \param r_custom_loopnors is not const, since code will replace zero_v3 normals there
+ *                          with automatically computed vectors.
+ */
+void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_loopnors)[3])
+{
+	mesh_set_custom_normals(mesh, r_custom_loopnors, false);
+}
+
+/**
+ * Higher level functions hiding most of the code needed around call to #BKE_mesh_normals_loop_custom_from_vertices_set().
+ *
+ * \param r_custom_loopnors is not const, since code will replace zero_v3 normals there
+ *                          with automatically computed vectors.
+ */
+void BKE_mesh_set_custom_normals_from_vertices(Mesh *mesh, float (*r_custom_vertnors)[3])
+{
+	mesh_set_custom_normals(mesh, r_custom_vertnors, true);
+}
+
+
 /**
  * Computes average per-vertex normals from given custom loop normals.
  *
