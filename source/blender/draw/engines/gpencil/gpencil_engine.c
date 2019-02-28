@@ -830,6 +830,7 @@ void GPENCIL_draw_scene(void *ved)
 	const bool is_render = stl->storage->is_render;
 	bGPdata *gpd_act = (obact) && (obact->type == OB_GPENCIL) ? (bGPdata *)obact->data : NULL;
 	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd_act);
+	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
 
 	/* if the draw is for select, do a basic drawing and return */
 	if (DRW_state_is_select()) {
@@ -984,9 +985,11 @@ void GPENCIL_draw_scene(void *ved)
 				stl->storage->tonemapping = stl->storage->is_render ? 1 : 0;
 
 				/* active select flag and selection color */
-				stl->storage->do_select = ((ob->base_flag & BASE_SELECTED) &&
+				stl->storage->do_select = ((overlay) &&
+										   (ob->base_flag & BASE_SELECTED) &&
 										   (ob->mode == OB_MODE_OBJECT) &&
-										   (!is_render) && (!playing));
+										   (!is_render) && (!playing) &&
+										   (v3d->flag & V3D_SELECT_OUTLINE));
 
 				/* if active object is not object mode, disable for all objects */
 				if ((draw_ctx->obact) && (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
