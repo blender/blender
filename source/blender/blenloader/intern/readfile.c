@@ -10791,22 +10791,11 @@ static bool object_in_any_scene(Main *bmain, Object *ob)
 	return false;
 }
 
-static Collection *get_collection_active(
-	Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag)
-{
-	if (flag & FILE_ACTIVE_COLLECTION) {
-		LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-		return lc->collection;
-	}
-	else {
-		return BKE_collection_add(bmain, scene->master_collection, NULL);
-	}
-}
-
 static void add_loose_objects_to_scene(
         Main *mainvar, Main *bmain,
         Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *lib, const short flag)
 {
+	Collection *active_collection = NULL;
 	const bool is_link = (flag & FILE_LINK) != 0;
 
 	BLI_assert(scene);
@@ -10827,10 +10816,20 @@ static void add_loose_objects_to_scene(
 			}
 
 			if (do_it) {
+				/* Find or add collection as needed. */
+				if (active_collection == NULL) {
+					if (flag & FILE_ACTIVE_COLLECTION) {
+						LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+						active_collection = lc->collection;
+					}
+					else {
+						active_collection = BKE_collection_add(bmain, scene->master_collection, NULL);
+					}
+				}
+
 				CLAMP_MIN(ob->id.us, 0);
 				ob->mode = OB_MODE_OBJECT;
 
-				Collection *active_collection = get_collection_active(bmain, scene, view_layer, FILE_ACTIVE_COLLECTION);
 				BKE_collection_object_add(bmain, active_collection, ob);
 				Base *base = BKE_view_layer_base_find(view_layer, ob);
 
@@ -10859,7 +10858,11 @@ static void add_collections_to_scene(
         Main *mainvar, Main *bmain,
         Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *lib, const short flag)
 {
-	Collection *active_collection = get_collection_active(bmain, scene, view_layer, FILE_ACTIVE_COLLECTION);
+	Collection *active_collection = scene->master_collection;
+	if (flag & FILE_ACTIVE_COLLECTION) {
+		LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+		active_collection = lc->collection;
+	}
 
 	/* Give all objects which are tagged a base. */
 	for (Collection *collection = mainvar->collection.first; collection; collection = collection->id.next) {
