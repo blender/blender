@@ -32,7 +32,7 @@ struct Depsgraph;
 
 class DepsgraphBuilder {
 public:
-	bool needPullBaseIntoGraph(struct Base *base);
+	bool need_pull_base_into_graph(struct Base *base);
 
 protected:
 	DepsgraphBuilder(Main *bmain, Depsgraph *graph);

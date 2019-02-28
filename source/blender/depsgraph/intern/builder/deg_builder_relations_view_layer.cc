@@ -84,7 +84,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	 * passed to the evaluation functions. During relations builder we only
 	 * do NULL-pointer check of the base, so it's fine to pass original one. */
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-		if (needPullBaseIntoGraph(base)) {
+		if (need_pull_base_into_graph(base)) {
 			build_object(base, base->object);
 		}
 	}

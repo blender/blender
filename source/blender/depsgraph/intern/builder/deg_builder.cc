@@ -80,7 +80,7 @@ void visibility_animated_check_cb(ID * /*id*/, FCurve *fcu, void *user_data)
 	}
 }
 
-bool isObjectVisibilityAnimated(Depsgraph *graph, Object *object)
+bool is_object_visibility_animated(Depsgraph *graph, Object *object)
 {
 	AnimData* anim_data = BKE_animdata_from_id(&object->id);
 	if (anim_data == NULL) {
@@ -100,14 +100,14 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph)
           graph_(graph) {
 }
 
-bool DepsgraphBuilder::needPullBaseIntoGraph(struct Base *base)
+bool DepsgraphBuilder::need_pull_base_into_graph(struct Base *base)
 {
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
 	        BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	if (base->flag & base_flag) {
 		return true;
 	}
-	if (isObjectVisibilityAnimated(graph_, base->object)) {
+	if (is_object_visibility_animated(graph_, base->object)) {
 		return true;
 	}
 	return false;

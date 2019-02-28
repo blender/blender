@@ -99,7 +99,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	int base_index = 0;
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
 		/* object itself */
-		if (needPullBaseIntoGraph(base)) {
+		if (need_pull_base_into_graph(base)) {
 			/* NOTE: We consider object visible even if it's currently
 			 * restricted by the base/restriction flags. Otherwise its drivers
 			 * will never be evaluated.
