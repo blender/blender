@@ -523,6 +523,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	float (*polynors)[3] = CustomData_get_layer(pdata, CD_NORMAL);
 	if (!polynors) {
 		polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, numPolys);
+		CustomData_set_layer_flag(pdata, CD_NORMAL, CD_FLAG_TEMPORARY);
 	}
 	BKE_mesh_calc_normals_poly(mvert, NULL, numVerts, mloop, mpoly, numLoops, numPolys, polynors, false);
 
@@ -587,6 +588,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	MEM_SAFE_FREE(wn_data.mode_pair);
 	MEM_SAFE_FREE(wn_data.items_data);
 
+	/* Currently Modifier stack assumes there is no poly normal data passed around... */
+	CustomData_free_layers(pdata, CD_NORMAL, numPolys);
 	return result;
 }
 
