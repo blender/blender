@@ -617,22 +617,21 @@ class GPENCIL_MT_separate(Menu):
 
 
 class GPENCIL_MT_gpencil_draw_specials(Menu):
-    bl_label = "GPencil Draw Specials"
+    bl_label = "Draw Context Menu"
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
+        layout.operator("gpencil.blank_frame_add")
         layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
         layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
 
         layout.separator()
-        layout.operator("gpencil.primitive", text="Line", icon='IPO_CONSTANT').type = 'LINE'
-        layout.operator("gpencil.primitive", text="Rectangle", icon='UV_FACESEL').type = 'BOX'
-        layout.operator("gpencil.primitive", text="Circle", icon='ANTIALIASED').type = 'CIRCLE'
-        layout.operator("gpencil.primitive", text="Arc", icon='SPHERECURVE').type = 'ARC'
-        layout.operator("gpencil.primitive", text="Curve", icon='CURVE_BEZCURVE').type = 'CURVE'
+
+        layout.operator("gpencil.active_frames_delete_all")
+        layout.operator("gpencil.delete", text="Delete Active Frame").type = 'FRAME'
 
 
 class GPENCIL_MT_gpencil_draw_delete(Menu):
