@@ -2825,13 +2825,5 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-
-		{
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-				/* texture mode disabled for now */
-				if (ob->dt > OB_SOLID)
-					ob->dt = OB_SOLID;
-			}
-		}
 	}
 }

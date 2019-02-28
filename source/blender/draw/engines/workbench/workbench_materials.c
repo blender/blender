@@ -211,10 +211,10 @@ int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd, bool u
 	return index;
 }
 
-int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *UNUSED(ob))
+int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *ob)
 {
 	int color_type = wpd->shading.color_type;
-	if (color_type == V3D_SHADING_TEXTURE_COLOR && ima == NULL) {
+	if ((color_type == V3D_SHADING_TEXTURE_COLOR && ima == NULL) || (ob->dt < OB_TEXTURE)) {
 		color_type = V3D_SHADING_MATERIAL_COLOR;
 	}
 	return color_type;
