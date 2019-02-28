@@ -7823,7 +7823,9 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
 						v3d->localvd = NULL;
 						v3d->local_view_uuid = 0;
 
-						for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
+						/* Regionbase storage is different depending if the space is active. */
+						ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+						for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
 							if (ar->regiontype == RGN_TYPE_WINDOW) {
 								RegionView3D *rv3d = ar->regiondata;
 								if (rv3d->localvd) {
@@ -7854,8 +7856,9 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map, Main
 					v3d->camera = restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL);
 					v3d->ob_centre = restore_pointer_by_name(id_map, (ID *)v3d->ob_centre, USER_REAL);
 
-					/* free render engines for now */
-					for (ar = sa->regionbase.first; ar; ar = ar->next) {
+					/* Free render engines for now. */
+					ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+					for (ar = regionbase->first; ar; ar = ar->next) {
 						if (ar->regiontype == RGN_TYPE_WINDOW) {
 							RegionView3D *rv3d = ar->regiondata;
 							if (rv3d && rv3d->render_engine) {
