@@ -115,14 +115,20 @@ enum {
 /* Needs to be there because written to file
  * with the lightcache. */
 
+/* IMPORTANT Padding in these structs is essential. It must match
+ * GLSL struct definition in lightprobe_lib.glsl. */
+
+/* Must match CubeData. */
 typedef struct LightProbeCache {
 	float position[3], parallax_type;
 	float attenuation_fac;
 	float attenuation_type;
+	float _pad3[2];
 	float attenuationmat[4][4];
 	float parallaxmat[4][4];
 } LightProbeCache;
 
+/* Must match GridData. */
 typedef struct LightGridCache {
 	float mat[4][4];
 	/** Offset to the first irradiance sample in the pool. */
@@ -131,8 +137,8 @@ typedef struct LightGridCache {
 	/** World space vector between 2 opposite cells. */
 	float increment_x[3], attenuation_bias;
 	float increment_y[3], level_bias;
-	float increment_z[3];
-	float visibility_bias, visibility_bleed, visibility_range;
+	float increment_z[3], _pad4;
+	float visibility_bias, visibility_bleed, visibility_range, _pad5;
 } LightGridCache;
 
 /* ------ Eevee Lightcache ------- */
