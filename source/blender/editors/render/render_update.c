@@ -206,6 +206,8 @@ void ED_render_engine_changed(Main *bmain)
 
 static void material_changed(Main *UNUSED(bmain), Material *ma)
 {
+	BKE_texpaint_slot_refresh_cache(ma);
+
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
 }
@@ -266,7 +268,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 	/* glsl */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-			BKE_texpaint_slots_refresh_object(scene, ob);
+			BKE_texpaint_slots_refresh_object(ob);
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		}
 	}

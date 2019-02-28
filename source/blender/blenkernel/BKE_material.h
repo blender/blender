@@ -83,8 +83,8 @@ bool  BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
 
 struct MaterialGPencilStyle *BKE_material_gpencil_settings_get(struct Object *ob, short act);
 
-void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
-void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
+void BKE_texpaint_slot_refresh_cache(struct Material *ma);
+void BKE_texpaint_slots_refresh_object(struct Object *ob);
 
 /* rna api */
 void BKE_material_resize_id(struct Main *bmain, struct ID *id, short totcol, bool do_id_user);

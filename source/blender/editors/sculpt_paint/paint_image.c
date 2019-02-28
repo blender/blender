@@ -1095,7 +1095,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 		/* This has to stay here to regenerate the texture paint
 		 * cache in case we are loading a file */
-		BKE_texpaint_slots_refresh_object(scene, ob);
+		BKE_texpaint_slots_refresh_object(ob);
 
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 

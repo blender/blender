@@ -5757,7 +5757,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 					hasmat = true;
 					if (!ma->texpaintslot) {
 						/* refresh here just in case */
-						BKE_texpaint_slot_refresh_cache(scene, ma);
+						BKE_texpaint_slot_refresh_cache(ma);
 
 						/* if still no slots, we have to add */
 						if (ma->texpaintslot) {
@@ -6017,13 +6017,13 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 		nodePositionPropagate(out_node);
 
 		if (ima) {
-			BKE_texpaint_slot_refresh_cache(scene, ma);
+			BKE_texpaint_slot_refresh_cache(ma);
 			BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 			WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 		}
 
 		DEG_id_tag_update(&ntree->id, 0);
-		DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
+		DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
 		ED_area_tag_redraw(CTX_wm_area(C));
 
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);

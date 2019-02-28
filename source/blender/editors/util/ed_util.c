@@ -90,7 +90,7 @@ void ED_editors_init_for_undo(Main *bmain)
 			if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 				Scene *scene = WM_window_get_active_scene(win);
 
-				BKE_texpaint_slots_refresh_object(scene, ob);
+				BKE_texpaint_slots_refresh_object(ob);
 				BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 			}
 		}
