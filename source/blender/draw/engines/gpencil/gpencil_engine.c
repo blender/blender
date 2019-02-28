@@ -40,6 +40,8 @@
 #include "ED_view3d.h"
 #include "ED_screen.h"
 
+#include "UI_resources.h"
+
 
 extern char datatoc_gpencil_fill_vert_glsl[];
 extern char datatoc_gpencil_fill_frag_glsl[];
@@ -455,6 +457,8 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeColor", &e_data.input_color_tx);
 		DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeDepth", &e_data.input_depth_tx);
 		DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
+		DRW_shgroup_uniform_int(mix_shgrp, "do_select", &stl->storage->do_select, 1);
+		DRW_shgroup_uniform_vec4(mix_shgrp, "select_color", stl->storage->select_color, 1);
 
 		/* mix pass no blend used to copy between passes. A separated pass is required
 		 * because if mix_pass is used, the acumulation of blend degrade the colors.
@@ -470,6 +474,8 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeColor", &e_data.input_color_tx);
 		DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeDepth", &e_data.input_depth_tx);
 		DRW_shgroup_uniform_int(mix_shgrp_noblend, "tonemapping", &stl->storage->tonemapping, 1);
+		DRW_shgroup_uniform_int(mix_shgrp_noblend, "do_select", &stl->storage->do_select, 1);
+		DRW_shgroup_uniform_vec4(mix_shgrp_noblend, "select_color", stl->storage->select_color, 1);
 
 		/* Painting session pass (used only to speedup while the user is drawing )
 		 * This pass is used to show the snapshot of the current grease pencil strokes captured
@@ -881,6 +887,7 @@ void GPENCIL_draw_scene(void *ved)
 
 			for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
 				cache_ob = &stl->g_data->gp_object_cache[i];
+				Object *ob = cache_ob->ob;
 				bGPdata *gpd = cache_ob->gpd;
 				init_shgrp = NULL;
 				/* Render stroke in separated framebuffer */
@@ -976,7 +983,23 @@ void GPENCIL_draw_scene(void *ved)
 				/* tonemapping */
 				stl->storage->tonemapping = stl->storage->is_render ? 1 : 0;
 
+				/* active select flag and selection color */
+				stl->storage->do_select = ((ob->base_flag & BASE_SELECTED) &&
+										   (ob->mode == OB_MODE_OBJECT) &&
+										   (!is_render));
+
+				/* if active object is not object mode, disable for all objects */
+				if ((draw_ctx->obact) && (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
+					stl->storage->do_select = 0;
+				}
+				UI_GetThemeColor4fv((ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT,
+									stl->storage->select_color);
+
+				/* draw mix pass */
 				DRW_draw_pass(psl->mix_pass);
+
+				/* disable select flag */
+				stl->storage->do_select = 0;
 
 				/* prepare for fast drawing */
 				if (!is_render) {

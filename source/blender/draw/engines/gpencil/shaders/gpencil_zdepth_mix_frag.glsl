@@ -5,6 +5,8 @@ out vec4 FragColor;
 uniform sampler2D strokeColor;
 uniform sampler2D strokeDepth;
 uniform int tonemapping;
+uniform vec4 select_color;
+uniform int do_select;
 
 float srgb_to_linearrgb(float c)
 {
@@ -24,6 +26,20 @@ float linearrgb_to_srgb(float c)
 	else {
 		return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
 	}
+}
+
+bool check_borders(ivec2 uv, int size)
+{
+	for (int x = -size; x <= size; x++) { 
+		for (int y = -size; y <= size; y++) { 
+			vec4 stroke_color =  texelFetch(strokeColor, ivec2(uv.x + x, uv.y + y), 0).rgba;
+			if (stroke_color.a > 0) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }
 
 void main()
@@ -46,4 +62,13 @@ void main()
 
 	FragColor = clamp(stroke_color, 0.0, 1.0);
 	gl_FragDepth = clamp(stroke_depth, 0.0, 1.0);
+	
+	if (do_select == 1) {
+		if (stroke_color.a == 0) {
+			if (check_borders(uv, 1)) {
+				FragColor = select_color;
+				gl_FragDepth = 0.000001;
+			}
+		}
+	}
 }

@@ -146,6 +146,8 @@ typedef struct GPENCIL_Storage {
 	const float *pixsize;
 	float render_pixsize;
 	int tonemapping;
+	int do_select;
+	float select_color[4];
 	short multisamples;
 
 	short framebuffer_flag; /* flag what framebuffer need to create */
