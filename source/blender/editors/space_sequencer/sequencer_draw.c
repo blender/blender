@@ -1164,7 +1164,7 @@ static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
 	}
 }
 
-static void sequencer_preview_clear()
+static void sequencer_preview_clear(void)
 {
 	float col[3];
 
