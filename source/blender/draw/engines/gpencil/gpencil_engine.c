@@ -4,6 +4,7 @@
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -986,7 +987,7 @@ void GPENCIL_draw_scene(void *ved)
 				/* active select flag and selection color */
 				stl->storage->do_select = ((ob->base_flag & BASE_SELECTED) &&
 										   (ob->mode == OB_MODE_OBJECT) &&
-										   (!is_render));
+										   (!is_render) && (!playing));
 
 				/* if active object is not object mode, disable for all objects */
 				if ((draw_ctx->obact) && (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
