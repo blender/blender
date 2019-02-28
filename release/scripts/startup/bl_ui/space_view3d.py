@@ -4457,15 +4457,15 @@ class VIEW3D_PT_object_type_visibility(Panel):
             ("surf", "Surface"),
             ("meta", "Meta"),
             ("font", "Font"),
+            ("grease_pencil", "Grease Pencil"),
             (None, None),
             # Other
             ("armature", "Armature"),
             ("lattice", "Lattice"),
             ("empty", "Empty"),
-            ("grease_pencil", "Grease Pencil"),
-            ("camera", "Camera"),
             ("light", "Light"),
             ("light_probe", "Light Probe"),
+            ("camera", "Camera"),
             ("speaker", "Speaker"),
         )
 
