@@ -1262,7 +1262,7 @@ class USERPREF_PT_saveload_blend(PreferencePanel):
         flow.prop(paths, "use_load_ui")
         flow.prop(paths, "use_save_preview_images")
         flow.prop(paths, "use_tabs_as_spaces")
-        flow.prop(view, "use_quit_dialog")
+        flow.prop(view, "use_save_prompt")
 
         layout.separator()
 

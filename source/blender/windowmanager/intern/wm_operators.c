@@ -1810,7 +1810,7 @@ static int wm_exit_blender_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int wm_exit_blender_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-	if (U.uiflag & USER_QUIT_PROMPT) {
+	if (U.uiflag & USER_SAVE_PROMPT) {
 		wm_quit_with_optional_confirmation_prompt(C, CTX_wm_window(C));
 	}
 	else {

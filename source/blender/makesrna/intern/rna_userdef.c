@@ -3843,9 +3843,9 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Confirm Threshold",
 	                         "Distance threshold after which selection is made (zero to disable)");
 
-	prop = RNA_def_property(srna, "use_quit_dialog", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_QUIT_PROMPT);
-	RNA_def_property_ui_text(prop, "Prompt Quit",
+	prop = RNA_def_property(srna, "use_save_prompt", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SAVE_PROMPT);
+	RNA_def_property_ui_text(prop, "Save Prompt",
 	                         "Ask for confirmation when quitting with unsaved changes");
 
 	prop = RNA_def_property(srna, "show_column_layout", PROP_BOOLEAN, PROP_NONE);

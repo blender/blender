@@ -305,7 +305,7 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	DATA_SWAP(app_flag);
 
 	/* We could add others. */
-	FLAG_SWAP(uiflag, int, USER_QUIT_PROMPT);
+	FLAG_SWAP(uiflag, int, USER_SAVE_PROMPT);
 
 #undef SWAP_TYPELESS
 #undef DATA_SWAP

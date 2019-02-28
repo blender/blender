@@ -473,7 +473,7 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 	 * here (this function gets called outside of normal event handling loop). */
 	CTX_wm_window_set(C, win);
 
-	if (U.uiflag & USER_QUIT_PROMPT) {
+	if (U.uiflag & USER_SAVE_PROMPT) {
 		if (!wm->file_saved && !G.background) {
 			wm_confirm_quit(C);
 		}
