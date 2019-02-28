@@ -146,7 +146,7 @@ typedef struct GPENCIL_Storage {
 	const float *pixsize;
 	float render_pixsize;
 	int tonemapping;
-	int do_select;
+	int do_select_outline;
 	float select_color[4];
 	short multisamples;
 

@@ -457,7 +457,7 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeColor", &e_data.input_color_tx);
 		DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeDepth", &e_data.input_depth_tx);
 		DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
-		DRW_shgroup_uniform_int(mix_shgrp, "do_select", &stl->storage->do_select, 1);
+		DRW_shgroup_uniform_int(mix_shgrp, "do_select", &stl->storage->do_select_outline, 1);
 		DRW_shgroup_uniform_vec4(mix_shgrp, "select_color", stl->storage->select_color, 1);
 
 		/* mix pass no blend used to copy between passes. A separated pass is required
@@ -474,7 +474,7 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeColor", &e_data.input_color_tx);
 		DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeDepth", &e_data.input_depth_tx);
 		DRW_shgroup_uniform_int(mix_shgrp_noblend, "tonemapping", &stl->storage->tonemapping, 1);
-		DRW_shgroup_uniform_int(mix_shgrp_noblend, "do_select", &stl->storage->do_select, 1);
+		DRW_shgroup_uniform_int(mix_shgrp_noblend, "do_select", &stl->storage->do_select_outline, 1);
 		DRW_shgroup_uniform_vec4(mix_shgrp_noblend, "select_color", stl->storage->select_color, 1);
 
 		/* Painting session pass (used only to speedup while the user is drawing )
@@ -985,7 +985,7 @@ void GPENCIL_draw_scene(void *ved)
 				stl->storage->tonemapping = stl->storage->is_render ? 1 : 0;
 
 				/* active select flag and selection color */
-				stl->storage->do_select = ((overlay) &&
+				stl->storage->do_select_outline = ((overlay) &&
 										   (ob->base_flag & BASE_SELECTED) &&
 										   (ob->mode == OB_MODE_OBJECT) &&
 										   (!is_render) && (!playing) &&
@@ -993,16 +993,16 @@ void GPENCIL_draw_scene(void *ved)
 
 				/* if active object is not object mode, disable for all objects */
 				if ((draw_ctx->obact) && (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
-					stl->storage->do_select = 0;
+					stl->storage->do_select_outline = 0;
 				}
-				UI_GetThemeColor4fv((ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT,
-									stl->storage->select_color);
+				UI_GetThemeColorShadeAlpha4fv((ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT, 0, -40,
+											stl->storage->select_color);
 
 				/* draw mix pass */
 				DRW_draw_pass(psl->mix_pass);
 
 				/* disable select flag */
-				stl->storage->do_select = 0;
+				stl->storage->do_select_outline = 0;
 
 				/* prepare for fast drawing */
 				if (!is_render) {
