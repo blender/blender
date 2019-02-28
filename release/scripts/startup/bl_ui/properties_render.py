@@ -495,15 +495,32 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         props = scene.eevee
         rd = scene.render
 
-        split = layout.split()
-        split.prop(props, "use_overscan")
-        row = split.row()
-        row.active = props.use_overscan
-        row.prop(props, "overscan_size", text="")
-
         col = layout.column()
         col.prop(rd, "filter_size")
         col.prop(rd, "alpha_mode", text="Alpha")
+
+
+class RENDER_PT_eevee_film_overscan(RenderButtonsPanel, Panel):
+    bl_label = "Overscan"
+    bl_parent_id = "RENDER_PT_eevee_film"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw_header(self, context):
+
+        scene = context.scene
+        props = scene.eevee
+
+        self.layout.prop(props, "use_overscan", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+        props = scene.eevee
+
+        layout.active = props.use_overscan
+        layout.prop(props, "overscan_size", text="Size")
 
 
 class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
@@ -688,6 +705,7 @@ classes = (
     RENDER_PT_eevee_indirect_lighting,
     RENDER_PT_eevee_indirect_lighting_display,
     RENDER_PT_eevee_film,
+    RENDER_PT_eevee_film_overscan,
     RENDER_PT_opengl_lighting,
     RENDER_PT_opengl_color,
     RENDER_PT_opengl_options,

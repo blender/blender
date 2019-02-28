@@ -257,19 +257,33 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
             col.active = is_dupli
         col.prop(obj, "display_type", text="Display As")
 
-        split = flow.split(factor=0.6)
-        split.prop(obj, "show_bounds", text="Bounds")
-        row = split.row()
-        row.active = obj.show_bounds or (obj.display_type == 'BOUNDS')
-        row.prop(obj, "display_bounds_type", text="")
-
         if is_geometry or is_empty_image or is_gpencil:
             # Only useful with object having faces/materials...
             col = flow.column()
             col.prop(obj, "color")
 
 
-class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
+class OBJECT_PT_display_bounds(ObjectButtonsPanel, Panel):
+    bl_label = "Boundary"
+    bl_parent_id = "OBJECT_PT_display"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+
+        obj = context.object
+
+        self.layout.prop(obj, "show_bounds", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.object
+        layout.use_property_split = True
+
+        layout.active = obj.show_bounds or (obj.display_type == 'BOUNDS')
+        layout.prop(obj, "display_bounds_type", text="Shape")
+
+
+class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
     bl_label = "Instancing"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -287,13 +301,6 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
         if ob.instance_type == 'VERTS':
             layout.prop(ob, "use_instance_vertices_rotation", text="Rotation")
 
-        elif ob.instance_type == 'FACES':
-            col = flow.column()
-            col.prop(ob, "use_instance_faces_scale", text="Scale")
-            sub = col.column()
-            sub.active = ob.use_instance_faces_scale
-            sub.prop(ob, "instance_faces_scale", text="Inherit Scale")
-
         elif ob.instance_type == 'COLLECTION':
             col = flow.column()
             col.prop(ob, "instance_collection", text="Collection")
@@ -308,6 +315,29 @@ from .properties_animviz import (
     MotionPathButtonsPanel,
     MotionPathButtonsPanel_display,
 )
+
+
+class OBJECT_PT_instancing_size(ObjectButtonsPanel, Panel):
+    bl_label = "Size"
+    bl_parent_id = "OBJECT_PT_instancing"
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob.instance_type == 'FACES'
+
+    def draw_header(self, context):
+
+        ob = context.object
+        self.layout.prop(ob, "use_instance_faces_scale", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        ob = context.object
+        layout.use_property_split = True
+
+        layout.active = ob.use_instance_faces_scale
+        layout.prop(ob, "instance_faces_scale", text="Inherit Scale")
 
 
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
@@ -362,10 +392,12 @@ classes = (
     OBJECT_PT_relations,
     COLLECTION_MT_specials,
     OBJECT_PT_collections,
-    OBJECT_PT_duplication,
+    OBJECT_PT_instancing,
+    OBJECT_PT_instancing_size,
     OBJECT_PT_motion_paths,
     OBJECT_PT_motion_paths_display,
     OBJECT_PT_display,
+    OBJECT_PT_display_bounds,
     OBJECT_PT_custom_props,
 )
 

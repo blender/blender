@@ -1773,17 +1773,35 @@ class PARTICLE_PT_children_clumping(ParticleButtonsPanel, Panel):
         else:
             sub.prop(part, "clump_factor", slider=True)
             sub.prop(part, "clump_shape", slider=True)
-        sub = col.column(align=True)
-        sub.prop(part, "use_clump_noise")
-        subsub = sub.column()
-        subsub.enabled = part.use_clump_noise
-        subsub.prop(part, "clump_noise_size")
 
         if part.child_type == 'SIMPLE':
-            sub.prop(part, "twist")
-            sub.prop(part, "use_twist_curve")
+            col.prop(part, "twist")
+            col.prop(part, "use_twist_curve")
             if part.use_twist_curve:
-                sub.template_curve_mapping(part, "twist_curve")
+                col.template_curve_mapping(part, "twist_curve")
+
+
+class PARTICLE_PT_children_clumping_noise(ParticleButtonsPanel, Panel):
+    bl_label = "Clump Noise"
+    bl_parent_id = "PARTICLE_PT_children_clumping"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw_header(self, context):
+
+        part = particle_get_settings(context)
+
+        self.layout.prop(part, "use_clump_noise", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        part = particle_get_settings(context)
+
+        layout.use_property_split = True
+        layout.enabled = part.use_clump_noise
+
+        layout.prop(part, "clump_noise_size")
 
 
 class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
@@ -2176,6 +2194,7 @@ classes = (
     PARTICLE_PT_children,
     PARTICLE_PT_children_parting,
     PARTICLE_PT_children_clumping,
+    PARTICLE_PT_children_clumping_noise,
     PARTICLE_PT_children_roughness,
     PARTICLE_PT_children_kink,
     PARTICLE_PT_hair_shape,
