@@ -3579,7 +3579,7 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Selected Strip Proxies";
 	ot->idname = "SEQUENCER_OT_enable_proxies";
-	ot->description = "Enable selected proxies on all selected Movie strips";
+	ot->description = "Enable selected proxies on all selected Movie, Image and Meta strips";
 
 	/* api callbacks */
 	ot->invoke = sequencer_enable_proxies_invoke;

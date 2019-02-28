@@ -1145,10 +1145,31 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.prop(strip, "color_multiply", text="Multiply")
         layout.prop(strip, "use_float", text="Convert to Float")
 
+class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
+    bl_label = "Proxy settings"
+    bl_category = "Proxy"
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
 
-class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy/Timecode"
-    bl_category = "Strip"
+    def draw(self, context):
+        layout = self.layout
+
+        ed = context.scene.sequence_editor
+
+        flow = layout.column_flow()
+        flow.prop(ed, "proxy_storage", text="Storage")
+        if ed.proxy_storage == 'PROJECT':
+            flow.prop(ed, "proxy_dir", text="Directory")
+
+        col = layout.column()
+        col.operator("sequencer.enable_proxies")
+        col.operator("sequencer.rebuild_proxy")
+
+
+class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
+    bl_label = "Strip Proxy/Timecode"
+    bl_category = "Proxy"
 
     @classmethod
     def poll(cls, context):
@@ -1159,7 +1180,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM'}
+        return strip.type in {'MOVIE', 'IMAGE', 'META'}
 
     def draw_header(self, context):
         strip = act_strip(context)
@@ -1177,10 +1198,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             proxy = strip.proxy
 
             flow = layout.column_flow()
-            flow.prop(ed, "proxy_storage", text="Storage")
-            if ed.proxy_storage == 'PROJECT':
-                flow.prop(ed, "proxy_dir", text="Directory")
-            else:
+            if ed.proxy_storage == 'PER_STRIP':
                 flow.prop(proxy, "use_proxy_custom_directory")
                 flow.prop(proxy, "use_proxy_custom_file")
 
@@ -1205,10 +1223,6 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
                 col.label(text="Use timecode index:")
 
                 col.prop(proxy, "timecode")
-
-        col = layout.column()
-        col.operator("sequencer.enable_proxies")
-        col.operator("sequencer.rebuild_proxy")
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
@@ -1416,7 +1430,8 @@ classes = (
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
     SEQUENCER_PT_filter,
-    SEQUENCER_PT_proxy,
+    SEQUENCER_PT_proxy_settings,
+    SEQUENCER_PT_strip_proxy,
     SEQUENCER_PT_preview,
     SEQUENCER_PT_view,
     SEQUENCER_PT_view_safe_areas,
