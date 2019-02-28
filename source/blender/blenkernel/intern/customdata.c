@@ -1853,6 +1853,17 @@ void CustomData_set_layer_flag(struct CustomData *data, int type, int flag)
 			data->layers[i].flag |= flag;
 }
 
+void CustomData_clear_layer_flag(struct CustomData *data, int type, int flag)
+{
+	const int nflag = ~flag;
+
+	for (int i = 0; i < data->totlayer; ++i) {
+		if (data->layers[i].type == type) {
+			data->layers[i].flag &= nflag;
+		}
+	}
+}
+
 static int customData_resize(CustomData *data, int amount)
 {
 	CustomDataLayer *tmp = MEM_calloc_arrayN((data->maxlayer + amount), sizeof(*tmp),
