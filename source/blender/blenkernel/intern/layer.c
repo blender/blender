@@ -55,12 +55,13 @@
 #include "MEM_guardedalloc.h"
 
 /* Set of flags which are dependent on a collection settings. */
-static short g_base_collection_flags = (BASE_VISIBLE |
-		                                BASE_SELECTABLE |
-		                                BASE_ENABLED_VIEWPORT |
-		                                BASE_ENABLED_RENDER |
-		                                BASE_HOLDOUT |
-		                                BASE_INDIRECT_ONLY);
+static const short g_base_collection_flags = (
+        BASE_VISIBLE |
+        BASE_SELECTABLE |
+        BASE_ENABLED_VIEWPORT |
+        BASE_ENABLED_RENDER |
+        BASE_HOLDOUT |
+        BASE_INDIRECT_ONLY);
 
 /* prototype */
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
