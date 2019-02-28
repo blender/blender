@@ -1366,6 +1366,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = row.column()
         col.label(text="Quad Method:")
         col.prop(md, "quad_method", text="")
+        col.prop(md, "keep_custom_normals")
         col = row.column()
         col.label(text="Ngon Method:")
         col.prop(md, "ngon_method", text="")

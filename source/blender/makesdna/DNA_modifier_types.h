@@ -1552,11 +1552,13 @@ typedef struct TriangulateModifierData {
 	char _pad[4];
 } TriangulateModifierData;
 
-#ifdef DNA_DEPRECATED
+/* TriangulateModifierData.flag */
 enum {
-	MOD_TRIANGULATE_BEAUTY = (1 << 0), /* deprecated */
-};
+#ifdef DNA_DEPRECATED
+	MOD_TRIANGULATE_BEAUTY = (1 << 0),  /* deprecated */
 #endif
+	MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS = 1 << 1,
+};
 
 /* Triangulate methods - NGons */
 enum {

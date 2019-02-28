@@ -4353,6 +4353,13 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rna_enum_modifier_triangulate_ngon_method_items);
 	RNA_def_property_ui_text(prop, "Polygon Method", "Method for splitting the polygons into triangles");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "keep_custom_normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS);
+	RNA_def_property_ui_text(prop, "Keep Normals",
+	                         "Try to preserve custom normals (WARNING: depending on chosen triangulation method, "
+	                         "shading may not be fully preserved, 'Fixed' method usually gives the best result here)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_meshcache(BlenderRNA *brna)

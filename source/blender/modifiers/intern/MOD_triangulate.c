@@ -18,6 +18,8 @@
  * \ingroup modifiers
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -32,25 +34,67 @@
 
 #include "MOD_modifiertypes.h"
 
-static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_method)
+static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_method, const int flag)
 {
 	Mesh *result;
 	BMesh *bm;
 	int total_edges, i;
 	MEdge *me;
+	CustomDataMask cddata_masks = CD_MASK_ORIGINDEX;
+
+	bool keep_clnors = (flag & MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS) != 0;
+
+	if (keep_clnors) {
+		BKE_mesh_calc_normals_split(mesh);
+		/* We need that one to 'survive' to/from BMesh conversions. */
+		CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+		cddata_masks |= CD_MASK_NORMAL;  /* TODO: once D4421 is in, only request CD_NORMAL on loop data... */
+	}
 
 	bm = BKE_mesh_to_bmesh_ex(
 	        mesh,
 	        &((struct BMeshCreateParams){0}),
 	        &((struct BMeshFromMeshParams){
 	            .calc_face_normal = true,
-	            .cd_mask_extra = CD_MASK_ORIGINDEX,
+	            .cd_mask_extra = cddata_masks,
 	        }));
 
 	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL, NULL);
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, cddata_masks);
 	BM_mesh_free(bm);
+
+
+	if (keep_clnors) {
+		bool free_pnors = false;
+		float (*pnors)[3] = CustomData_get_layer(&result->pdata, CD_NORMAL);
+		if (pnors == NULL) {
+			pnors = MEM_mallocN(sizeof(*pnors) * result->totpoly, __func__);
+			BKE_mesh_calc_normals_poly(
+			            result->mvert, NULL, result->totvert,
+			            result->mloop, result->mpoly, result->totloop, result->totpoly, pnors, false);
+			free_pnors = true;
+		}
+
+		float (*lnors)[3] = CustomData_get_layer(&result->ldata, CD_NORMAL);
+		short (*clnors)[2] = CustomData_get_layer(&result->ldata, CD_CUSTOMLOOPNORMAL);
+		if (clnors == NULL) {
+			clnors = CustomData_add_layer(&result->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, result->totloop);
+		}
+
+		BKE_mesh_normals_loop_custom_set(
+		            result->mvert, result->totvert,
+		            result->medge, result->totedge,
+		            result->mloop, lnors, result->totloop,
+		            result->mpoly, pnors, result->totpoly, clnors);
+
+		/* Do some cleanup, we do not want those temp data to stay around. */
+		CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+		CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+		if (free_pnors) {
+			MEM_freeN(pnors);
+		}
+	}
 
 	total_edges = result->totedge;
 	me = result->medge;
@@ -82,7 +126,7 @@ static Mesh *applyModifier(
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	Mesh *result;
-	if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method))) {
+	if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->flag))) {
 		return mesh;
 	}
 
