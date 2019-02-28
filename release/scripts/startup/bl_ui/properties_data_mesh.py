@@ -183,10 +183,26 @@ class DATA_PT_normals(MeshButtonsPanel, Panel):
         col = layout.column()
         col.prop(mesh, "show_double_sided")
 
-        col.prop(mesh, "use_auto_smooth")
-        sub = col.column()
-        sub.active = mesh.use_auto_smooth and not mesh.has_custom_normals
-        sub.prop(mesh, "auto_smooth_angle", text="Angle")
+
+class DATA_PT_normals_auto_smooth(MeshButtonsPanel, Panel):
+    bl_label = "Auto Smooth"
+    bl_parent_id = "DATA_PT_normals"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw_header(self, context):
+        mesh = context.mesh
+
+        self.layout.prop(mesh, "use_auto_smooth", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        mesh = context.mesh
+
+        layout.active = mesh.use_auto_smooth and not mesh.has_custom_normals
+        layout.prop(mesh, "auto_smooth_angle", text="Angle")
 
 
 class DATA_PT_texture_space(MeshButtonsPanel, Panel):
@@ -489,6 +505,7 @@ classes = (
     DATA_PT_vertex_colors,
     DATA_PT_face_maps,
     DATA_PT_normals,
+    DATA_PT_normals_auto_smooth,
     DATA_PT_texture_space,
     DATA_PT_customdata,
     DATA_PT_custom_props_mesh,

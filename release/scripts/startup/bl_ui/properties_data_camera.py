@@ -374,12 +374,8 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col = layout.column(align=True)
 
         col.separator()
+
         col.prop(cam, "display_size", text="Size")
-        col.separator()
-        col.prop(cam, "show_passepartout", text="Passepartout")
-        sub = col.column()
-        sub.active = cam.show_passepartout
-        sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
         col.separator()
 
@@ -387,6 +383,27 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col.prop(cam, "show_mist", text="Mist")
         col.prop(cam, "show_sensor", text="Sensor")
         col.prop(cam, "show_name", text="Name")
+
+
+class DATA_PT_camera_display_passepartout(CameraButtonsPanel, Panel):
+    bl_label = "Passepartout"
+    bl_parent_id = "DATA_PT_camera_display"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw_header(self, context):
+        cam = context.camera
+
+        self.layout.prop(cam, "show_passepartout", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        cam = context.camera
+
+        layout.active = cam.show_passepartout
+        layout.prop(cam, "passepartout_alpha", text="Opacity", slider=True)
 
 
 class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
@@ -407,7 +424,41 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
         safe_data = context.scene.safe_areas
         camera = context.camera
 
-        draw_display_safe_settings(layout, safe_data, camera)
+        layout.use_property_split = True
+
+        layout.active = camera.show_safe_areas
+
+        col = layout.column()
+
+        sub = col.column()
+        sub.prop(safe_data, "title", slider=True)
+        sub.prop(safe_data, "action", slider=True)
+
+
+class DATA_PT_camera_safe_areas_center_cut(CameraButtonsPanel, Panel):
+    bl_label = "Center-Cut Safe Areas"
+    bl_parent_id = "DATA_PT_camera_safe_areas"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw_header(self, context):
+        cam = context.camera
+
+        layout = self.layout
+        layout.active = cam.show_safe_areas
+        layout.prop(cam, "show_safe_center", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        safe_data = context.scene.safe_areas
+        camera = context.camera
+
+        layout.use_property_split = True
+
+        layout.active = camera.show_safe_areas and camera.show_safe_center
+
+        col = layout.column()
+        col.prop(safe_data, "title_center", slider=True)
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
@@ -449,8 +500,10 @@ classes = (
     DATA_PT_camera,
     DATA_PT_camera_stereoscopy,
     DATA_PT_camera_safe_areas,
+    DATA_PT_camera_safe_areas_center_cut,
     DATA_PT_camera_background_image,
     DATA_PT_camera_display,
+    DATA_PT_camera_display_passepartout,
     DATA_PT_custom_props_camera,
 )
 
