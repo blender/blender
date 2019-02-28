@@ -632,9 +632,20 @@ typedef struct TransInfo {
 	float		values_modal_offset[4];
 	float		auto_values[4];
 
+	/* Axis members for modes that use an axis separate from the orientation (rotate & shear). */
+
+	/** Primary axis, rotate only uses this. */
 	int orient_axis;
+	/** Secondary axis, shear uses this. */
 	int orient_axis_ortho;
+
+	/** Often this matrix has similar usage to #TransInfo.spacemtx however this
+	 * is used to define extra axes to operate on, not necessarily a space.
+	 *
+	 * For example, by default rotation operates on the view (`orient_matrix[2]`),
+	 * even when the current space isn't set to the view. */
 	float orient_matrix[3][3];
+	/** Don't overwrite when set by operator redo defines the orientation axis. */
 	bool  orient_matrix_is_set;
 
 	/** remove elements if operator is canceled. */
