@@ -59,6 +59,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->use_color_render_settings = false;
 	}
 
+	wpd->use_color_management = BKE_scene_check_color_management_enabled(scene);
+
 	if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
 		wpd->studio_light = BKE_studiolight_find(
 		        wpd->shading.matcap, STUDIOLIGHT_TYPE_MATCAP);
@@ -103,8 +105,14 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 		/* XXX: Really quick conversion to avoid washed out background.
 		 * Needs to be addressed properly (color managed using ocio). */
-		srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
-		srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
+		if (wpd->use_color_management) {
+			srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
+			srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
+		}
+		else {
+			copy_v3_v3(wd->background_color_high, wd->background_color_high);
+			copy_v3_v3(wd->background_color_low, wd->background_color_low);
+		}
 	}
 	else {
 		zero_v3(wd->background_color_low);
@@ -126,7 +134,12 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 			wpd->world_clip_planes = rv3d->clip;
 			DRW_state_clip_planes_set_from_rv3d(rv3d);
 			UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, wpd->world_clip_planes_color);
-			srgb_to_linearrgb_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
+			if (wpd->use_color_management) {
+				srgb_to_linearrgb_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
+			}
+			else {
+				copy_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
+			}
 		}
 		else {
 			wpd->world_clip_planes = NULL;

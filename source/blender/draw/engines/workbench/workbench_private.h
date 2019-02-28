@@ -252,6 +252,7 @@ typedef struct WORKBENCH_PrivateData {
 	bool dof_enabled;
 
 	/* Color Management */
+	bool use_color_management;
 	bool use_color_render_settings;
 } WORKBENCH_PrivateData; /* Transient data */
 
