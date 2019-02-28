@@ -88,6 +88,7 @@ extern "C" {
 }
 
 #include "intern/depsgraph.h"
+#include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_nodes.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_id.h"
@@ -362,21 +363,19 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
 
 /* Makes it so given view layer only has bases corresponding to enabled
  * objects. */
-void view_layer_remove_disabled_bases(const Depsgraph * /*depsgraph*/,
+void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
                                       ViewLayer *view_layer)
 {
 	ListBase enabled_bases = {NULL, NULL};
 	LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
-		const Object *object = base->object;
-		/* NOTE: The base will point to an original object if it's not pulled
-		 * into the dependency graph, and will point to a an ID which is already
-		 * tagged as COPIED_ON_WRITE.
-		 * This looks a bit dangerous to access original data from evaluation,
-		 * but this is not specific to this place and would need to be handled
-		 * in general by, probably, running copy-on-write update phase from a
-		 * locked state or so. */
+		/* TODO(sergey): Would be cool to optimize this somehow, or make it so
+		 * builder tags bases.
+		 *
+		 * NOTE: The idea of using id's tag and check whether its copied ot not
+		 * is not reliable, since object might be indirectly linked into the
+		 * graph. */
 		const bool is_object_enabled =
-		        (object->id.tag & LIB_TAG_COPIED_ON_WRITE);
+		        deg_check_base_available_for_build(depsgraph, base);
 		if (is_object_enabled) {
 			BLI_addtail(&enabled_bases, base);
 		}

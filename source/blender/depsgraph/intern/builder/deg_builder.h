@@ -42,6 +42,8 @@ protected:
 	Depsgraph *graph_;
 };
 
+bool deg_check_base_available_for_build(const Depsgraph *graph,
+                                        Base *base);
 void deg_graph_build_finalize(struct Main *bmain, struct Depsgraph *graph);
 
 }  // namespace DEG
