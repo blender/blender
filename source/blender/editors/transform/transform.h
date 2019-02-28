@@ -115,18 +115,18 @@ typedef struct TransSnap {
 
 typedef struct TransCon {
 	short orientation;
-	/** Description of the Constraint for header_print. */
+	/** Description of the constraint for header_print. */
 	char  text[50];
-	/** Matrix of the Constraint space. */
+	/** Matrix of the constraint space. */
 	float mtx[3][3];
-	/** Inverse Matrix of the Constraint space. */
+	/** Inverse matrix of the constraint space. */
 	float imtx[3][3];
-	/** Projection Constraint Matrix (same as imtx with some axis == 0). */
+	/** Projection constraint matrix (same as #imtx with some axis == 0). */
 	float pmtx[3][3];
 	/** Initial mouse value for visual calculation
-	 * the one in TransInfo is not guarantee to stay the same (Rotates change it). */
+	 * the one in #TransInfo is not guarantee to stay the same (Rotates change it). */
 	int   imval[2];
-	/** Mode flags of the Constraint. */
+	/** Mode flags of the constraint. */
 	int   mode;
 	void  (*drawExtra)(struct TransInfo *t);
 
@@ -150,9 +150,9 @@ typedef struct TransDataExtension {
 	// float drotAngle;
 	// /* Initial object drotAxis, TODO: not yet implemented */
 	// float drotAxis[3];
-	/** Initial object dquat. */
+	/** Initial object delta quat. */
 	float dquat[4];
-	/** Initial object dscale. */
+	/** Initial object delta scale. */
 	float dscale[3];
 	/** Rotation of the data to transform. */
 	float *rot;
@@ -176,8 +176,8 @@ typedef struct TransDataExtension {
 	float  isize[3];
 	/** Object matrix. */
 	float  obmat[4][4];
-	/** Use instead of td->smtx,
-	 * It is the same but without the 'bone->bone_mat', see TD_PBONE_LOCAL_MTX_C. */
+	/** Use instead of #TransData.smtx,
+	 * It is the same but without the #Bone.bone_mat, see #TD_PBONE_LOCAL_MTX_C. */
 	float  l_smtx[3][3];
 	/** The rotscale matrix of pose bone, to allow using snap-align in translation mode,
 	 * when td->mtx is the loc pose bone matrix (and hence can't be used to apply
@@ -185,7 +185,7 @@ typedef struct TransDataExtension {
 	float  r_mtx[3][3];
 	/** Inverse of previous one. */
 	float  r_smtx[3][3];
-	/** rotation mode, as defined in eRotationModes (DNA_action_types.h). */
+	/** Rotation mode, as defined in #eRotationModes (DNA_action_types.h). */
 	int    rotOrder;
 	/** Original object transformation used for rigid bodies. */
 	float oloc[3], orot[3], oquat[4], orotAxis[3], orotAngle;
@@ -202,25 +202,28 @@ typedef struct TransData2D {
 	float ih1[2], ih2[2];
 } TransData2D;
 
-/* we need to store 2 handles for each transdata in case the other handle wasn't selected */
+/** Used to store 2 handles for each #TransData in case the other handle wasn't selected. */
 typedef struct TransDataCurveHandleFlags {
 	char ih1, ih2;
 	char *h1, *h2;
 } TransDataCurveHandleFlags;
 
-/* for sequencer transform */
+/** Used for sequencer transform. */
 typedef struct TransDataSeq {
 	struct Sequence *seq;
-	/** A copy of seq->flag that may be modified for nested strips. */
+	/** A copy of #Sequence.flag that may be modified for nested strips. */
 	int flag;
 	/** Use this so we can have transform data at the strips start,
 	 * but apply correctly to the start frame. */
 	int start_offset;
-	/** one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL. */
+	/** one of #SELECT, #SEQ_LEFTSEL and #SEQ_RIGHTSEL. */
 	short sel_flag;
 
 } TransDataSeq;
 
+/**
+ * Sequencer transform customdata (stored in #TransCustomDataContainer).
+ */
 typedef struct TransSeq {
 	TransDataSeq *tdseq;
 	int min;
@@ -228,7 +231,7 @@ typedef struct TransSeq {
 	bool snap_left;
 } TransSeq;
 
-/* for NLA transform (stored in td->extra pointer) */
+/** Used for NLA transform (stored in #TransData.extra pointer). */
 typedef struct TransDataNla {
 	/** ID-block NLA-data is attached to. */
 	ID *id;
@@ -264,7 +267,7 @@ typedef struct TransDataGenericSlideVert {
 } TransDataGenericSlideVert;
 
 typedef struct TransDataEdgeSlideVert {
-	/* TransDataGenericSlideVert */
+	/** #TransDataGenericSlideVert (header) */
 	struct BMVert *v;
 	struct LinkNode **cd_loop_groups;
 	float v_co_orig[3];
@@ -283,7 +286,7 @@ typedef struct TransDataEdgeSlideVert {
 
 /* store original data so we can correct UV's and similar when sliding */
 typedef struct SlideOrigData {
-	/* flag that is set when origfaces is initialized */
+	/** Set when #origfaces is initialized. */
 	bool use_origfaces;
 	int cd_loop_mdisp_offset;
 
@@ -328,7 +331,7 @@ typedef struct EdgeSlideParams {
 } EdgeSlideParams;
 
 typedef struct TransDataVertSlideVert {
-	/* TransDataGenericSlideVert */
+	/** #TransDataGenericSlideVert (header) */
 	struct BMVert *v;
 	struct LinkNode **cd_loop_groups;
 	float   co_orig_3d[3];
@@ -756,7 +759,7 @@ enum {
 
 /* ******************************************************************************** */
 
-/* transinfo->helpline */
+/** #TransInfo.helpline */
 enum {
 	HLP_NONE =        0,
 	HLP_SPRING =      1,
@@ -767,7 +770,7 @@ enum {
 	HLP_TRACKBALL =   6,
 };
 
-/* transinfo->con->mode */
+/** #TransCon.mode, #TransInfo.con.mode */
 enum {
 	/** When set constraints are in use. */
 	CON_APPLY =       1 << 0,
@@ -781,7 +784,7 @@ enum {
 	CON_USER =        1 << 6,
 };
 
-/* transdata->flag */
+/** #TransData.flag */
 enum {
 	TD_SELECTED =         1 << 0,
 	TD_NOACTION =         1 << 2,
@@ -817,7 +820,7 @@ enum {
 	TD_PBONE_LOCAL_MTX_C = 1 << 20,
 };
 
-/* transsnap->status */
+/** #TransSnap.status */
 enum {
 	SNAP_FORCED =     1 << 0,
 	TARGET_INIT =     1 << 1,
