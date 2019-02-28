@@ -566,7 +566,6 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 			DRW_gpencil_fx_prepare(&e_data, vedata, cache_ob);
 		}
 	}
-
 }
 
 void GPENCIL_cache_populate(void *vedata, Object *ob)
@@ -681,7 +680,6 @@ void GPENCIL_cache_finish(void *vedata)
 
 	/* create framebuffers */
 	GPENCIL_create_framebuffers(vedata);
-
 }
 
 /* helper function to sort inverse gpencil objects using qsort */
@@ -761,7 +759,6 @@ static void gpencil_draw_pass_range(
 	if ((!stl->storage->is_mat_preview) && (multi)) {
 		MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fb, txl);
 	}
-
 }
 
 /* draw strokes to use for selection */
@@ -834,11 +831,9 @@ void GPENCIL_draw_scene(void *ved)
 
 	/* if the draw is for select, do a basic drawing and return */
 	if (DRW_state_is_select()) {
-
 		drw_gpencil_select_render(stl, psl);
 		/* free memory */
 		gpencil_free_obj_runtime(stl);
-
 		return;
 	}
 
@@ -873,7 +868,6 @@ void GPENCIL_draw_scene(void *ved)
 				DRW_draw_pass(psl->grid_pass);
 			}
 		}
-
 		return;
 	}
 
@@ -881,7 +875,6 @@ void GPENCIL_draw_scene(void *ved)
 
 		/* Draw all pending objects */
 		if (stl->g_data->gp_cache_used > 0) {
-
 			/* sort by zdepth */
 			qsort(stl->g_data->gp_object_cache, stl->g_data->gp_cache_used,
 			      sizeof(tGPencilObjectCache), gpencil_object_cache_compare_zdepth);
@@ -952,7 +945,6 @@ void GPENCIL_draw_scene(void *ved)
 							/* prepare next group */
 							init_shgrp = NULL;
 						}
-
 					}
 					/* last group */
 					gpencil_draw_pass_range(
