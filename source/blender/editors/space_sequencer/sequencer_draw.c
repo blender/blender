@@ -1431,12 +1431,12 @@ void sequencer_draw_preview(
 		}
 	}
 
-	if (draw_gpencil && show_imbuf) {
-		sequencer_draw_gpencil(C);
-	}
-
 	if (show_imbuf) {
 		sequencer_draw_borders(sseq, v2d, scene);
+	}
+
+	if (draw_gpencil && show_imbuf) {
+		sequencer_draw_gpencil(C);
 	}
 
 	/* TODO */
