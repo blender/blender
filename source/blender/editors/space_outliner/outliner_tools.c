@@ -1057,6 +1057,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		DEG_relations_tag_update(bmain);
 		str = "Delete Objects";
 		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		if (basact_prev != BASACT(view_layer)) {
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 			WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
@@ -1086,7 +1087,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		DEG_relations_tag_update(bmain);
 		str = "Delete Object Hierarchy";
 		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		if (basact_prev != BASACT(view_layer)) {
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 			WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
