@@ -1227,23 +1227,27 @@ static void gizmo_xform_message_subscribe(
 	TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, orient_flag);
 	PointerRNA orient_ref_ptr;
 	RNA_pointer_create(&scene->id, &RNA_TransformOrientationSlot, orient_slot, &orient_ref_ptr);
+	const ToolSettings *ts = scene->toolsettings;
 
 	PointerRNA scene_ptr;
 	RNA_id_pointer_create(&scene->id, &scene_ptr);
 	{
-		const ToolSettings *ts = scene->toolsettings;
 		extern PropertyRNA rna_Scene_transform_orientation_slots;
-		extern PropertyRNA rna_Scene_cursor_location;
 		const PropertyRNA *props[] = {
 			&rna_Scene_transform_orientation_slots,
-			((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_ORIENT_CURSOR)) ?
-			&rna_Scene_cursor_location : NULL,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			if (props[i]) {
-				WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
-			}
+			WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
 		}
+	}
+
+	if ((ts->transform_pivot_point == V3D_AROUND_CURSOR) ||
+	    (orient_slot->type == V3D_ORIENT_CURSOR))
+	{
+		/* We could be more specific here, for now subscribe to any cursor change. */
+		PointerRNA cursor_ptr;
+		RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor, &cursor_ptr);
+		WM_msg_subscribe_rna(mbus, &cursor_ptr, NULL, &msg_sub_value_gz_tag_refresh, __func__);
 	}
 
 	{

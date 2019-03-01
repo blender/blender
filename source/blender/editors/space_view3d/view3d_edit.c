@@ -4819,8 +4819,9 @@ void ED_view3d_cursor3d_update(
 
 	{
 		struct wmMsgBus *mbus = CTX_wm_message_bus(C);
-		WM_msg_publish_rna_prop(
-		        mbus, &scene->id, scene, Scene, cursor_location);
+		wmMsgParams_RNA msg_key_params = {{{0}}};
+		RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor, &msg_key_params.ptr);
+		WM_msg_publish_rna_params(mbus, &msg_key_params);
 	}
 
 	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);

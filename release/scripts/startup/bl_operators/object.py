@@ -873,7 +873,7 @@ class DupliOffsetFromCursor(Operator):
         scene = context.scene
         collection = context.collection
 
-        collection.instance_offset = scene.cursor_location
+        collection.instance_offset = scene.cursor.location
 
         return {'FINISHED'}
 
@@ -904,7 +904,7 @@ class LoadImageAsEmpty:
     def execute(self, context):
         scene = context.scene
         space = context.space_data
-        cursor = scene.cursor_location
+        cursor = scene.cursor.location
 
         try:
             image = bpy.data.images.load(self.filepath, check_existing=True)

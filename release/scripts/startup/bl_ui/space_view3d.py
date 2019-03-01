@@ -4359,17 +4359,17 @@ class VIEW3D_PT_view3d_cursor(Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
+        cursor = context.scene.cursor
 
-        layout.column().prop(scene, "cursor_location", text="Location")
-        rotation_mode = scene.cursor_rotation_mode
+        layout.column().prop(cursor, "location", text="Location")
+        rotation_mode = cursor.rotation_mode
         if rotation_mode == 'QUATERNION':
-            layout.column().prop(scene, "cursor_rotation_quaternion", text="Rotation")
+            layout.column().prop(cursor, "rotation_quaternion", text="Rotation")
         elif rotation_mode == 'AXIS_ANGLE':
-            layout.column().prop(scene, "cursor_rotation_axis_angle", text="Rotation")
+            layout.column().prop(cursor, "rotation_axis_angle", text="Rotation")
         else:
-            layout.column().prop(scene, "cursor_rotation_euler", text="Rotation")
-        layout.prop(scene, "cursor_rotation_mode", text="")
+            layout.column().prop(cursor, "rotation_euler", text="Rotation")
+        layout.prop(cursor, "rotation_mode", text="")
 
 
 class VIEW3D_PT_collections(Panel):

@@ -1635,10 +1635,9 @@ static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_Scene_cursor_rotation_mode_set(PointerRNA *ptr, int value)
+static void rna_View3DCursor_rotation_mode_set(PointerRNA *ptr, int value)
 {
-	Scene *scene = ptr->id.data;
-	View3DCursor *cursor = &scene->cursor;
+	View3DCursor *cursor = ptr->data;
 
 	/* use API Method for conversions... */
 	BKE_rotMode_change_values(
@@ -1650,18 +1649,16 @@ static void rna_Scene_cursor_rotation_mode_set(PointerRNA *ptr, int value)
 	cursor->rotation_mode = value;
 }
 
-static void rna_Scene_cursor_rotation_axis_angle_get(PointerRNA *ptr, float *value)
+static void rna_View3DCursor_rotation_axis_angle_get(PointerRNA *ptr, float *value)
 {
-	Scene *scene = ptr->id.data;
-	View3DCursor *cursor = &scene->cursor;
+	View3DCursor *cursor = ptr->data;
 	value[0] = cursor->rotation_angle;
 	copy_v3_v3(&value[1], cursor->rotation_axis);
 }
 
-static void rna_Scene_cursor_rotation_axis_angle_set(PointerRNA *ptr, const float *value)
+static void rna_View3DCursor_rotation_axis_angle_set(PointerRNA *ptr, const float *value)
 {
-	Scene *scene = ptr->id.data;
-	View3DCursor *cursor = &scene->cursor;
+	View3DCursor *cursor = ptr->data;
 	cursor->rotation_angle = value[0];
 	copy_v3_v3(cursor->rotation_axis, &value[1]);
 }
@@ -2348,6 +2345,55 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
 	RNA_def_function_output(func, parm);
 }
 
+static void rna_def_view3d_cursor(BlenderRNA *brna)
+{
+	static float default_quat[4] = {1, 0, 0, 0};    /* default quaternion values */
+	static float default_axisAngle[4] = {0, 0, 1, 0};   /* default axis-angle rotation values */
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "View3DCursor", NULL);
+	RNA_def_struct_sdna(srna, "View3DCursor");
+	RNA_def_struct_ui_text(srna, "3D Cursor", "");
+
+	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ_LENGTH);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "location");
+	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "rotation_quaternion");
+	RNA_def_property_float_array_default(prop, default_quat);
+	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in quaternions (keep normalized)");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_float_funcs(prop, "rna_View3DCursor_rotation_axis_angle_get",
+	                             "rna_View3DCursor_rotation_axis_angle_set", NULL);
+	RNA_def_property_float_array_default(prop, default_axisAngle);
+	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "rotation_euler");
+	RNA_def_property_ui_text(prop, "Euler Rotation", "3D rotation");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "rotation_mode");
+	RNA_def_property_enum_items(prop, rna_enum_object_rotation_mode_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_View3DCursor_rotation_mode_set", NULL);
+	RNA_def_property_ui_text(prop, "Rotation Mode", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
 
 static void rna_def_tool_settings(BlenderRNA  *brna)
 {
@@ -6332,10 +6378,6 @@ void RNA_def_scene(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	static float default_quat[4] = {1, 0, 0, 0};    /* default quaternion values */
-	static float default_axisAngle[4] = {0, 0, 1, 0};   /* default axis-angle rotation values */
-
-
 	/* Struct definition */
 	srna = RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene data-block, consisting in objects and "
@@ -6362,43 +6404,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE | ND_WORLD, "rna_Scene_world_update");
-
-	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ_LENGTH);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_float_sdna(prop, NULL, "cursor.location");
-	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location");
-	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop = RNA_def_property(srna, "cursor_rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_float_sdna(prop, NULL, "cursor.rotation_quaternion");
-	RNA_def_property_float_array_default(prop, default_quat);
-	RNA_def_property_ui_text(prop, "Cursor Quaternion Rotation", "3D cursor rotation in quaternions (keep normalized)");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop = RNA_def_property(srna, "cursor_rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_float_funcs(prop, "rna_Scene_cursor_rotation_axis_angle_get",
-	                             "rna_Scene_cursor_rotation_axis_angle_set", NULL);
-	RNA_def_property_float_array_default(prop, default_axisAngle);
-	RNA_def_property_ui_text(prop, "Cursor Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop = RNA_def_property(srna, "cursor_rotation_euler", PROP_FLOAT, PROP_EULER);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_float_sdna(prop, NULL, "cursor.rotation_euler");
-	RNA_def_property_ui_text(prop, "Cursor Euler Rotation", "3D cursor rotation");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop = RNA_def_property(srna, "cursor_rotation_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_enum_sdna(prop, NULL, "cursor.rotation_mode");
-	RNA_def_property_enum_items(prop, rna_enum_object_rotation_mode_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_Scene_cursor_rotation_mode_set", NULL);
-	RNA_def_property_ui_text(prop, "Cursor Rotation Mode", "");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -6655,6 +6660,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "TransformOrientationSlot");
 	RNA_def_property_ui_text(prop, "Transform Orientation Slots", "");
 
+
+	/* 3D View Cursor */
+	prop = RNA_def_property(srna, "cursor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "cursor");
+	RNA_def_property_struct_type(prop, "View3DCursor");
+	RNA_def_property_ui_text(prop, "3D Cursor", "");
+
 	/* Audio Settings */
 	prop = RNA_def_property(srna, "use_audio", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Scene_use_audio_get", "rna_Scene_use_audio_set");
@@ -6780,6 +6793,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_scene_image_format_data(brna);
 	rna_def_transform_orientation(brna);
 	rna_def_transform_orientation_slot(brna);
+	rna_def_view3d_cursor(brna);
 	rna_def_selected_uv_element(brna);
 	rna_def_display_safe_areas(brna);
 	rna_def_scene_display(brna);

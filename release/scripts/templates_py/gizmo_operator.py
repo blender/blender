@@ -55,7 +55,7 @@ class SelectSideOfPlane(Operator):
     def invoke(self, context, event):
 
         if not self.properties.is_property_set("plane_co"):
-            self.plane_co = context.scene.cursor_location
+            self.plane_co = context.scene.cursor.location
 
         if not self.properties.is_property_set("plane_no"):
             if context.space_data.type == 'VIEW_3D':

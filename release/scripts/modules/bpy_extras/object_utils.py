@@ -61,7 +61,7 @@ def add_object_align_init(context, operator):
     if operator and properties.is_property_set("location"):
         location = Matrix.Translation(Vector(properties.location))
     else:
-        location = Matrix.Translation(context.scene.cursor_location)
+        location = Matrix.Translation(context.scene.cursor.location)
 
         if operator:
             properties.location = location.to_translation()
