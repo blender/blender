@@ -165,15 +165,14 @@ static int displist_indexbufbuilder_tess_set(
 	return v_idx;
 }
 
-void DRW_displist_vertbuf_create_pos_and_nor_and_wiredata(ListBase *lb, GPUVertBuf *vbo)
+void DRW_displist_vertbuf_create_pos_and_nor(ListBase *lb, GPUVertBuf *vbo)
 {
 	static GPUVertFormat format = { 0 };
-	static struct { uint pos, nor, wd; } attr_id;
+	static struct { uint pos, nor; } attr_id;
 	if (format.attr_len == 0) {
 		/* initialize vertex format */
 		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		attr_id.wd  = GPU_vertformat_attr_add(&format, "wd",  GPU_COMP_U8,  1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 	}
 
 	GPU_vertbuf_init_with_format(vbo, &format);
@@ -189,13 +188,10 @@ void DRW_displist_vertbuf_create_pos_and_nor_and_wiredata(ListBase *lb, GPUVertB
 			const float *fp_no = dl->nors;
 			const int vbo_end = vbo_len_used + dl_vert_len(dl);
 			while (vbo_len_used < vbo_end) {
-				uchar sharpness = 0xFF;
-				GPU_vertbuf_attr_set(vbo, attr_id.wd, vbo_len_used, &sharpness);
 				GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, fp_co);
 				if (fp_no) {
-					static short short_no[4];
-					normal_float_to_short_v3(short_no, fp_no);
-					GPU_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, short_no);
+					GPUPackedNormal vnor_pack = GPU_normal_convert_i10_v3(fp_no);
+					GPU_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, &vnor_pack);
 					if (ndata_is_single == false) {
 						fp_no += 3;
 					}
@@ -205,6 +201,22 @@ void DRW_displist_vertbuf_create_pos_and_nor_and_wiredata(ListBase *lb, GPUVertB
 			}
 		}
 	}
+}
+
+void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
+{
+	static GPUVertFormat format = { 0 };
+	static struct { uint wd; } attr_id;
+	if (format.attr_len == 0) {
+		/* initialize vertex format */
+		attr_id.wd  = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8,  1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+	}
+
+	int vbo_len_used = curve_render_surface_vert_len_get(lb);
+
+	GPU_vertbuf_init_with_format(vbo, &format);
+	GPU_vertbuf_data_alloc(vbo, vbo_len_used);
+	memset(vbo->data, 0xFF, (size_t)(vbo_len_used * format.stride));
 }
 
 void DRW_displist_indexbuf_create_triangles_in_order(ListBase *lb, GPUIndexBuf *ibo)

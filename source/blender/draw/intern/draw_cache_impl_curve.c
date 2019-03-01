@@ -346,6 +346,7 @@ static void curve_cd_calc_used_gpu_layers(int *cd_layers, struct GPUMaterial **g
 typedef struct CurveBatchCache {
 	struct {
 		GPUVertBuf *pos_nor;
+		GPUVertBuf *edge_fac;
 		GPUVertBuf *curves_pos;
 
 		GPUVertBuf *loop_pos_nor;
@@ -915,6 +916,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	if (DRW_batch_requested(cache->batch.surfaces_edges, GPU_PRIM_LINES)) {
 		DRW_ibo_request(cache->batch.surfaces_edges, &cache->ibo.surfaces_lines);
 		DRW_vbo_request(cache->batch.surfaces_edges, &cache->ordered.pos_nor);
+		DRW_vbo_request(cache->batch.surfaces_edges, &cache->ordered.edge_fac);
 	}
 	if (DRW_batch_requested(cache->batch.curves, GPU_PRIM_LINE_STRIP)) {
 		DRW_ibo_request(cache->batch.curves, &cache->ibo.curves_lines);
@@ -954,6 +956,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	/* Generate MeshRenderData flags */
 	int mr_flag = 0;
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.pos_nor, CU_DATATYPE_SURFACE);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.edge_fac, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.curves_pos, CU_DATATYPE_WIRE);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_pos_nor, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_uv, CU_DATATYPE_SURFACE);
@@ -979,7 +982,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
 	/* Generate VBOs */
 	if (DRW_vbo_requested(cache->ordered.pos_nor)) {
-		DRW_displist_vertbuf_create_pos_and_nor_and_wiredata(lb, cache->ordered.pos_nor);
+		DRW_displist_vertbuf_create_pos_and_nor(lb, cache->ordered.pos_nor);
+	}
+	if (DRW_vbo_requested(cache->ordered.edge_fac)) {
+		DRW_displist_vertbuf_create_wiredata(lb, cache->ordered.edge_fac);
 	}
 	if (DRW_vbo_requested(cache->ordered.curves_pos)) {
 		curve_create_curves_pos(rdata, cache->ordered.curves_pos);
