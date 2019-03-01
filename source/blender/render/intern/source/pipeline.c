@@ -1242,18 +1242,20 @@ static void ntree_render_scenes(Render *re)
 
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
+	GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 			if (node->id && node->id != (ID *)re->scene) {
 				Scene *scene = (Scene *)node->id;
-
-				if (render_scene_has_layers_to_render(scene, false)) {
+				if (!BLI_gset_haskey(scenes_rendered, scene) && render_scene_has_layers_to_render(scene, false)) {
 					render_scene(re, scene, cfra);
+					BLI_gset_add(scenes_rendered, scene);
 					nodeUpdate(restore_scene->nodetree, node);
 				}
 			}
 		}
 	}
+	BLI_gset_free(scenes_rendered, NULL);
 }
 
 /* bad call... need to think over proper method still */
