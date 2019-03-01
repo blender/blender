@@ -1240,8 +1240,8 @@ static void ntree_render_scenes(Render *re)
 
 	if (re->scene->nodetree == NULL) return;
 
-	/* now foreach render-result node tagged we do a full render */
-	/* results are stored in a way compisitor will find it */
+	/* now foreach render-result node we do a full render */
+	/* results are stored in a way compositor will find it */
 	GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
