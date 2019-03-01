@@ -3258,8 +3258,9 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	Object *obact = vc.obact;
 	Object *obedit = vc.obedit;
 
-	if (obedit || BKE_paint_select_elem_test(obact) ||
-	    (obact && (obact->mode & (OB_MODE_PARTICLE_EDIT | OB_MODE_POSE))) )
+	if ((obedit != NULL) ||
+	    BKE_paint_select_elem_test(obact) ||
+	    (obact && (obact->mode & OB_MODE_POSE)))
 	{
 		view3d_operator_needs_opengl(C);
 
@@ -3269,7 +3270,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 			obact = vc.obact;
 			obedit = vc.obedit;
 
-			if (CTX_data_edit_object(C)) {
+			if (obedit) {
 				obedit_circle_select(&vc, select, mval, (float)radius);
 				DEG_id_tag_update(obact->data, ID_RECALC_SELECT);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
@@ -3284,10 +3285,13 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 				pose_circle_select(&vc, select, mval, (float)radius);
 			}
 			else {
-				return PE_circle_select(C, select, mval, (float)radius);
+				BLI_assert(0);
 			}
 		}
 		FOREACH_OBJECT_IN_MODE_END;
+	}
+	else if (obact && (obact->mode & OB_MODE_PARTICLE_EDIT)) {
+		return PE_circle_select(C, select, mval, (float)radius);
 	}
 	else if (obact && obact->mode & OB_MODE_SCULPT) {
 		return OPERATOR_CANCELLED;
