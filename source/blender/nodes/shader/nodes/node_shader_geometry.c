@@ -37,11 +37,13 @@ static int node_shader_gpu_geometry(GPUMaterial *mat, bNode *node, bNodeExecData
 {
 	/* HACK: Don't request GPU_BARYCENTRIC_TEXCO if not used because it will
 	 * trigger the use of geometry shader (and the performance penalty it implies). */
-	eGPUBuiltin bary_builtin = (out[7].type == GPU_NONE) ? GPU_VIEW_NORMAL : GPU_BARYCENTRIC_TEXCO;
+	float val[2] = {0.0f, 0.0f};
+	GPUNodeLink *bary_link = (!out[5].hasoutput) ? GPU_constant(val) : GPU_builtin(GPU_BARYCENTRIC_TEXCO);
+
 	return GPU_stack_link(mat, node, "node_geometry", in, out,
 	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
 	                      GPU_attribute(CD_ORCO, ""), GPU_builtin(GPU_OBJECT_MATRIX),
-	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(bary_builtin));
+	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), bary_link);
 }
 
 /* node type definition */

@@ -889,7 +889,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 					        input->attr_id, attr_prefix_get(input->attr_type), hash);
 					/* Auto attribute can be vertex color byte buffer.
 					 * We need to know and convert them to linear space in VS. */
-					if (!use_geom && input->attr_type == CD_AUTO_FROM_NAME) {
+					if (input->attr_type == CD_AUTO_FROM_NAME) {
 						BLI_dynstr_appendf(ds, "uniform bool ba%u;\n", hash);
 						BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%u\n", input->attr_id, hash);
 					}
