@@ -187,7 +187,6 @@ class DATA_PT_normals(MeshButtonsPanel, Panel):
 class DATA_PT_normals_auto_smooth(MeshButtonsPanel, Panel):
     bl_label = "Auto Smooth"
     bl_parent_id = "DATA_PT_normals"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
