@@ -448,7 +448,6 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	TreeElement *te = outliner_active_collection(C);
-	bool hierarchy = strstr(op->idname, "hierarchy") != NULL;
 	bool linked = strstr(op->idname, "linked") != NULL;
 
 	/* Can happen when calling from a key binding. */
@@ -469,7 +468,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 		case SO_SCENES:
 		case SO_VIEW_LAYER:
 		case SO_LIBRARIES:
-			BKE_collection_duplicate(bmain, parent, collection, hierarchy, !linked);
+			BKE_collection_duplicate(bmain, parent, collection, true, !linked);
 			break;
 	}
 
@@ -484,7 +483,7 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Duplicate Collection";
 	ot->idname = "OUTLINER_OT_collection_duplicate";
-	ot->description = "Make a new collection with linked content (collection and objects)";
+	ot->description = "Duplicate all objects and collections and make them single user";
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;
@@ -494,27 +493,12 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-void OUTLINER_OT_collection_duplicate_hierarchy(wmOperatorType *ot)
+void OUTLINER_OT_collection_duplicate_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Duplicate Collection Hierarchy";
-	ot->idname = "OUTLINER_OT_collection_duplicate_hierarchy";
-	ot->description = "Duplicate entire hierarchy and make all content single user";
-
-	/* api callbacks */
-	ot->exec = collection_duplicate_exec;
-	ot->poll = ED_outliner_collections_editor_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-void OUTLINER_OT_collection_duplicate_linked_hierarchy(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Duplicate Linked Collection Hierarchy";
-	ot->idname = "OUTLINER_OT_collection_duplicate_linked_hierarchy";
-	ot->description = "Duplicate entire hierarchy with linked object data";
+	ot->name = "Duplicate Linked Collection";
+	ot->idname = "OUTLINER_OT_collection_duplicate_linked";
+	ot->description = "Duplicate all objects and collections with linked object data";
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;

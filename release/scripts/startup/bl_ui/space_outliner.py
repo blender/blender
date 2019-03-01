@@ -157,17 +157,6 @@ class OUTLINER_MT_collection_view_layer(Menu):
             layout.operator("outliner.collection_holdout_clear")
 
 
-class OUTLINER_MT_collection_duplicate(Menu):
-    bl_label = "Duplicate"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("outliner.collection_duplicate", text="Collection")
-        layout.operator("outliner.collection_duplicate_hierarchy", text="Hierarchy")
-        layout.operator("outliner.collection_duplicate_linked_hierarchy", text="Linked Hierarchy")
-
-
 class OUTLINER_MT_collection_visibility(Menu):
     bl_label = "Visibility"
 
@@ -203,7 +192,8 @@ class OUTLINER_MT_collection(Menu):
         space = context.space_data
 
         layout.operator("outliner.collection_new", text="New").nested = True
-        layout.menu("OUTLINER_MT_collection_duplicate")
+        layout.operator("outliner.collection_duplicate", text="Duplicate Collection")
+        layout.operator("outliner.collection_duplicate_linked", text="Duplicate Linked")
 
         layout.separator()
 
@@ -356,7 +346,6 @@ classes = (
     OUTLINER_MT_editor_menus,
     OUTLINER_MT_edit_datablocks,
     OUTLINER_MT_collection,
-    OUTLINER_MT_collection_duplicate,
     OUTLINER_MT_collection_new,
     OUTLINER_MT_collection_visibility,
     OUTLINER_MT_collection_view_layer,
