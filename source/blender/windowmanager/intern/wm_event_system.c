@@ -1886,24 +1886,33 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 		}
 	}
 
-	/* modifiers also check bits, so it allows modifier order */
+	/* Modifiers also check bits, so it allows modifier order.
+	 * Account for rare case of when these keys are used as the 'type' not as modifiers. */
 	if (kmi->shift != KM_ANY) {
-		if (winevent->shift != kmi->shift && !(winevent->shift & kmi->shift)) {
+		if ((winevent->shift != kmi->shift) && !(winevent->shift & kmi->shift) &&
+		    !ELEM(winevent->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
+		{
 			return false;
 		}
 	}
 	if (kmi->ctrl != KM_ANY) {
-		if (winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl)) {
+		if (winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl) &&
+		    !ELEM(winevent->type, LEFTCTRLKEY, RIGHTCTRLKEY))
+		{
 			return false;
 		}
 	}
 	if (kmi->alt != KM_ANY) {
-		if (winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) {
+		if (winevent->alt != kmi->alt && !(winevent->alt & kmi->alt) &&
+		    !ELEM(winevent->type, LEFTALTKEY, RIGHTALTKEY))
+		{
 			return false;
 		}
 	}
 	if (kmi->oskey != KM_ANY) {
-		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) {
+		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey) &&
+		    (winevent->type != OSKEY))
+		{
 			return false;
 		}
 	}
