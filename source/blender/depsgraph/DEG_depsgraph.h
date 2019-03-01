@@ -126,6 +126,7 @@ void DEG_graph_id_tag_update(struct Main *bmain,
 /* Mark a particular datablock type as having changing. This does
  * not cause any updates but is used by external render engines to detect if for
  * example a datablock was removed. */
+void DEG_graph_id_type_tag(struct Depsgraph *depsgraph, short id_type);
 void DEG_id_type_tag(struct Main *bmain, short id_type);
 
 void DEG_ids_clear_recalc(struct Main *bmain, Depsgraph *depsgraph);

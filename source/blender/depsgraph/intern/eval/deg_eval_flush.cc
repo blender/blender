@@ -237,15 +237,15 @@ void flush_engine_data_update(ID *id)
 }
 
 /* NOTE: It will also accumulate flags from changed components. */
-void flush_editors_id_update(Main *bmain,
-                             Depsgraph *graph,
+void flush_editors_id_update(Depsgraph *graph,
                              const DEGEditorUpdateContext *update_ctx)
 {
 	for (IDNode *id_node : graph->id_nodes) {
 		if (id_node->custom_flags != ID_STATE_MODIFIED) {
 			continue;
 		}
-		DEG_id_type_tag(bmain, GS(id_node->id_orig->name));
+		DEG_graph_id_type_tag(reinterpret_cast<::Depsgraph*>(graph),
+		                      GS(id_node->id_orig->name));
 		/* TODO(sergey): Do we need to pass original or evaluated ID here? */
 		ID *id_orig = id_node->id_orig;
 		ID *id_cow = id_node->id_cow;
@@ -398,7 +398,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 		}
 	}
 	/* Inform editors about all changes. */
-	flush_editors_id_update(bmain, graph, &update_ctx);
+	flush_editors_id_update(graph, &update_ctx);
 	/* Reset evaluation result tagged which is tagged for update to some state
 	 * which is obvious to catch. */
 	invalidate_tagged_evaluated_data(graph);
