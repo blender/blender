@@ -320,6 +320,9 @@ struct uiBut {
 	void *editcoba;
 	void *editcumap;
 
+	uiButPushedStateFunc pushed_state_func;
+	void *pushed_state_arg;
+
 	/* pointer back */
 	uiBlock *block;
 };

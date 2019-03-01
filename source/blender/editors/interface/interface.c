@@ -4456,6 +4456,12 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *argN)
 	but->tip_argN = argN;
 }
 
+void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, void *arg)
+{
+	but->pushed_state_func = func;
+	but->pushed_state_arg = arg;
+}
+
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip)
 {
 	uiBut *but = ui_def_but(block, UI_BTYPE_BLOCK, 0, str, x, y, width, height, arg, 0.0, 0.0, 0.0, 0.0, tip);

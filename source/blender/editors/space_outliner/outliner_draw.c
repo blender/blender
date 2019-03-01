@@ -268,6 +268,16 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
 	}
 }
 
+static int base_pushed_state_cb(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
+{
+	Base *base = poin;
+	Object *ob = base->object;
+
+	const bool is_visible = ((base->flag & BASE_HIDDEN) == 0) &&
+	                        ((ob->restrictflag & OB_RESTRICT_VIEW) == 0);
+	return !is_visible;
+}
+
 static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 {
 	wmWindow *win = CTX_wm_window(C);
@@ -331,6 +341,16 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 		DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	}
+}
+
+static int layer_collection_pushed_state_cb(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
+{
+	LayerCollection *lc = poin;
+	Collection *collection = lc->collection;
+
+	const bool is_visible = ((lc->flag & LAYER_COLLECTION_RESTRICT_VIEW) == 0) &&
+	                        ((collection->flag & COLLECTION_RESTRICT_VIEW) == 0);
+	return !is_visible;
 }
 
 static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *poin2)
@@ -602,6 +622,7 @@ static void outliner_draw_restrictbuts(
 					             "* Alt to disable for all viewports\n"
 					             "* Ctrl to isolate visibility"));
 					UI_but_func_set(bt, hidebutton_base_flag_cb, view_layer, base);
+					UI_but_func_pushed_state_set(bt, base_pushed_state_cb, base);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 				}
 				else {
@@ -731,6 +752,7 @@ static void outliner_draw_restrictbuts(
 						             "* Ctrl to isolate visibility\n"
 						             "* Shift to hide inside objects and collections"));
 						UI_but_func_set(bt, hidebutton_layer_collection_flag_cb, view_layer, lc);
+						UI_but_func_pushed_state_set(bt, layer_collection_pushed_state_cb, lc);
 						UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 					}
 					else {
