@@ -389,9 +389,9 @@ if(WITH_OPENMP)
 		message(STATUS "Using ${LIBDIR}/openmp for OpenMP")
 		set(OPENMP_CUSTOM ON)
 		set(OPENMP_FOUND ON)
-		set(OpenMP_C_FLAGS "-Xclang -fopenmp -I\"${LIBDIR}/openmp/include\"")
-		set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I\"${LIBDIR}/openmp/include\"")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L\"${LIBDIR}/openmp/lib\" -lomp")
+		set(OpenMP_C_FLAGS "-Xclang -fopenmp -I'${LIBDIR}/openmp/include'")
+		set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I'${LIBDIR}/openmp/include'")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L'${LIBDIR}/openmp/lib' -lomp")
 
 		# Copy libomp.dylib to allow executables like datatoc to work.
 		if(CMAKE_MAKE_PROGRAM MATCHES "xcodebuild")
