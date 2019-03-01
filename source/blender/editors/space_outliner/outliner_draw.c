@@ -268,7 +268,7 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
 	}
 }
 
-static int base_pushed_state_cb(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
+static int base_pushed_state_cb(bContext *UNUSED(C), void *poin)
 {
 	Base *base = poin;
 	Object *ob = base->object;
@@ -343,7 +343,7 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 	}
 }
 
-static int layer_collection_pushed_state_cb(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
+static int layer_collection_pushed_state_cb(bContext *UNUSED(C), void *poin)
 {
 	LayerCollection *lc = poin;
 	Collection *collection = lc->collection;
