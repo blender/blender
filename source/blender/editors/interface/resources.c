@@ -744,9 +744,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
  * \note: when you add new colors, created & saved themes need initialized
  * use function below, init_userdef_do_versions()
  */
-void ui_theme_init_default(void)
+void UI_theme_init_default(void)
 {
-
 	/* we search for the theme with name Default */
 	bTheme *btheme = BLI_findstring(&U.themes, "Default", offsetof(bTheme, name));
 	if (btheme == NULL) {
@@ -761,7 +760,7 @@ void ui_theme_init_default(void)
 	btheme->active_theme_area = active_theme_area;
 }
 
-void ui_style_init_default(void)
+void UI_style_init_default(void)
 {
 	BLI_freelistN(&U.uistyles);
 	/* gets automatically re-allocated */

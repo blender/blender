@@ -57,6 +57,7 @@
 #include "ED_space_api.h"
 #include "ED_sound.h"
 #include "ED_uvedit.h"
+#include "ED_userpref.h"
 #include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_logic.h"
@@ -99,6 +100,7 @@ void ED_spacetypes_init(void)
 //	...
 
 	/* register operator types for screen and all spaces */
+	ED_operatortypes_userpref();
 	ED_operatortypes_workspace();
 	ED_operatortypes_scene();
 	ED_operatortypes_screen();

@@ -694,7 +694,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
     draw = Menu.draw_preset
 
     def reset_cb(context):
-        bpy.ops.ui.reset_default_theme()
+        bpy.ops.preferences.reset_default_theme()
 
 
 class USERPREF_PT_theme(Panel):
@@ -720,7 +720,7 @@ class USERPREF_PT_theme(Panel):
 
         row = split.row(align=True)
         row.operator("preferences.theme_install", text="Install...", icon='IMPORT')
-        row.operator("ui.reset_default_theme", text="Reset", icon='LOOP_BACK')
+        row.operator("preferences.reset_default_theme", text="Reset", icon='LOOP_BACK')
 
 
 class USERPREF_PT_theme_user_interface(PreferencePanel):

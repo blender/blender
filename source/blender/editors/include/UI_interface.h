@@ -1402,6 +1402,10 @@ void UI_widgetbase_draw_cache_begin(void);
 void UI_widgetbase_draw_cache_flush(void);
 void UI_widgetbase_draw_cache_end(void);
 
+/* Use for resetting the theme. */
+void UI_theme_init_default(void);
+void UI_style_init_default(void);
+
 /* Special drawing for toolbar, mainly workarounds for inflexible icon sizing. */
 #define USE_UI_TOOLBAR_HACK
 

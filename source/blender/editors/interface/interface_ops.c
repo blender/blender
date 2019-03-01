@@ -70,31 +70,6 @@
 #include "BKE_main.h"
 #include "BLI_ghash.h"
 
-/* Reset Default Theme ------------------------ */
-
-static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	ui_theme_init_default();
-	ui_style_init_default();
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-static void UI_OT_reset_default_theme(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Reset to Default Theme";
-	ot->idname = "UI_OT_reset_default_theme";
-	ot->description = "Reset to the default theme colors";
-
-	/* callbacks */
-	ot->exec = reset_default_theme_exec;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER;
-}
-
 /* Copy Data Path Operator ------------------------ */
 
 static bool copy_data_path_button_poll(bContext *C)
@@ -1603,7 +1578,6 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 
 void ED_operatortypes_ui(void)
 {
-	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_copy_python_command_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
