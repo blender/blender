@@ -775,7 +775,7 @@ static Mesh *applyModifier(
 		for (i = 0; i < rimVerts; i++, ed++, orig_ed++) {
 			ed->v1 = new_vert_arr[i];
 			ed->v2 = (do_shell ? new_vert_arr[i] : i) + numVerts;
-			ed->flag |= ME_EDGEDRAW;
+			ed->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 
 			*orig_ed = ORIGINDEX_NONE;
 
