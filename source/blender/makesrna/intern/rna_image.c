@@ -161,6 +161,11 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
+static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	rna_ImageUser_update(bmain, scene, ptr);
+	DEG_relations_tag_update(bmain);
+}
 
 static char *rna_ImageUser_path(PointerRNA *ptr)
 {
@@ -517,7 +522,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
 	RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes");
-	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_relations_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
