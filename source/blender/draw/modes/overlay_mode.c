@@ -276,7 +276,7 @@ static void overlay_wire_color_get(
 	}
 	else {
 		*rim_col = G_draw.block.colorWire;
-		*wire_col = G_draw.block.colorWire;
+		*wire_col = G_draw.block.colorBackground;
 	}
 
 	if (v3d->shading.type == OB_WIRE) {
