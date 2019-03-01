@@ -708,7 +708,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 #ifdef NDOF_FLY_DEBUG
 	{
-		static unsigned int iteration = 1;
+		static uint iteration = 1;
 		printf("fly timer %d\n", iteration++);
 	}
 #endif

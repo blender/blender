@@ -868,7 +868,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		uiLayout *row;
 		uiBut *but;
 		bDeformGroup *dg;
-		unsigned int i;
+		uint i;
 		int subset_count, vgroup_tot;
 		const bool *vgroup_validmap;
 		eVGroupSelect subset_type = ts->vgroupsubset;

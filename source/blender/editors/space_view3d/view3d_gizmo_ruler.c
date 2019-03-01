@@ -509,8 +509,8 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 	const int arc_steps = ARC_STEPS;
 	const float color_act[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	const float color_base[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	unsigned char color_text[3];
-	unsigned char color_wire[3];
+	uchar color_text[3];
+	uchar color_wire[3];
 	float color_back[4] = {1.0f, 1.0f, 1.0f, 0.5f};
 
 	/* anti-aliased lines for more consistent appearance */

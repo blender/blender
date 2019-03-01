@@ -157,7 +157,7 @@ static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	for (unsigned int a = 0; a < CIRCLE_RESOL; a++, viter += 3) {
+	for (uint a = 0; a < CIRCLE_RESOL; a++, viter += 3) {
 		viter[0] = cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
 		viter[1] = cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
 		viter[2] = cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
@@ -178,7 +178,7 @@ void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], un
 }
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
-unsigned char view3d_camera_border_hack_col[3];
+uchar view3d_camera_border_hack_col[3];
 bool view3d_camera_border_hack_test = false;
 #endif
 

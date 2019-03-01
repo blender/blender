@@ -287,7 +287,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	else if (ob_act == NULL || ob_act->mode == OB_MODE_OBJECT) {
 		/* object mode use boundbox centers */
 		Base *base_eval;
-		unsigned int tot = 0;
+		uint tot = 0;
 		float select_center[3];
 
 		zero_v3(select_center);

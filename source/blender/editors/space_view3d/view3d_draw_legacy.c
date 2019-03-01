@@ -112,7 +112,7 @@ void ED_view3d_clipping_set(RegionView3D *rv3d)
 {
 #ifdef USE_CLIP_PLANES
 	double plane[4];
-	const unsigned int tot = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
+	const uint tot = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
 
 	for (unsigned a = 0; a < tot; a++) {
 		copy_v4db_v4fl(plane, rv3d->clip[a]);
@@ -308,7 +308,7 @@ int ED_view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
 }
 
 /* samples a single pixel (copied from vpaint) */
-unsigned int ED_view3d_backbuf_sample(
+uint ED_view3d_backbuf_sample(
         ViewContext *vc, int x, int y)
 {
 	if (x >= vc->ar->winx || y >= vc->ar->winy) {
@@ -317,7 +317,7 @@ unsigned int ED_view3d_backbuf_sample(
 
 	ED_view3d_backbuf_validate(vc);
 
-	unsigned int col;
+	uint col;
 	view3d_opengl_read_pixels(vc->ar, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
 	glReadBuffer(GL_BACK);
 
@@ -386,9 +386,9 @@ ImBuf *ED_view3d_backbuf_read(
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int ED_view3d_backbuf_sample_rect(
+uint ED_view3d_backbuf_sample_rect(
         ViewContext *vc, const int mval[2], int size,
-        unsigned int min, unsigned int max, float *r_dist)
+        uint min, uint max, float *r_dist)
 {
 	int dirvec[4][2];
 

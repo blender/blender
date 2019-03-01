@@ -271,7 +271,7 @@ void VIEW3D_GT_navigate_rotate(struct wmGizmoType *gzt);
  * any direction it starts to fail */
 #define VIEW3D_CAMERA_BORDER_HACK
 #ifdef VIEW3D_CAMERA_BORDER_HACK
-extern unsigned char view3d_camera_border_hack_col[3];
+extern uchar view3d_camera_border_hack_col[3];
 extern bool view3d_camera_border_hack_test;
 #endif
 

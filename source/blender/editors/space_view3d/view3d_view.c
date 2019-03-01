@@ -931,7 +931,7 @@ static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
 int view3d_opengl_select(
-        ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input,
+        ViewContext *vc, uint *buffer, uint bufsize, const rcti *input,
         eV3DSelectMode select_mode, eV3DSelectObjectFilter select_filter)
 {
 	struct bThemeState theme_state;
@@ -1112,12 +1112,12 @@ finally:
 /** \name Local View Operators
  * \{ */
 
-static unsigned int free_localbit(Main *bmain)
+static uint free_localbit(Main *bmain)
 {
 	ScrArea *sa;
 	bScreen *sc;
 
-	unsigned short local_view_bits = 0;
+	ushort local_view_bits = 0;
 
 	/* sometimes we loose a localview: when an area is closed */
 	/* check all areas: which localviews are in use? */
@@ -1159,7 +1159,7 @@ static bool view3d_localview_init(
 	Base *base;
 	float min[3], max[3], box[3];
 	float size = 0.0f;
-	unsigned int local_view_bit;
+	uint local_view_bit;
 	bool ok = false;
 
 	if (v3d->localvd) {

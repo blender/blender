@@ -190,7 +190,7 @@ static bool edbm_backbuf_check_and_select_verts(BMEditMesh *em, const eSelectOp 
 {
 	BMVert *eve;
 	BMIter iter;
-	unsigned int index = bm_wireoffs;
+	uint index = bm_wireoffs;
 	bool changed = false;
 
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
@@ -212,7 +212,7 @@ static bool edbm_backbuf_check_and_select_edges(BMEditMesh *em, const eSelectOp 
 {
 	BMEdge *eed;
 	BMIter iter;
-	unsigned int index = bm_solidoffs;
+	uint index = bm_solidoffs;
 	bool changed = false;
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -234,7 +234,7 @@ static bool edbm_backbuf_check_and_select_faces(BMEditMesh *em, const eSelectOp 
 {
 	BMFace *efa;
 	BMIter iter;
-	unsigned int index = 1;
+	uint index = 1;
 	bool changed = false;
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -256,7 +256,7 @@ static bool edbm_backbuf_check_and_select_faces(BMEditMesh *em, const eSelectOp 
 static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me, const eSelectOp sel_op)
 {
 	MVert *mv = me->mvert;
-	unsigned int index;
+	uint index;
 	bool changed = false;
 
 	if (mv) {
@@ -279,7 +279,7 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me, const eSelectOp
 static bool edbm_backbuf_check_and_select_tfaces(Mesh *me, const eSelectOp sel_op)
 {
 	MPoly *mpoly = me->mpoly;
-	unsigned int index;
+	uint index;
 	bool changed = false;
 
 	if (mpoly) {
@@ -1222,7 +1222,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 }
 
 static Base *object_mouse_select_menu(
-        bContext *C, ViewContext *vc, unsigned int *buffer, int hits,
+        bContext *C, ViewContext *vc, uint *buffer, int hits,
         const int mval[2], bool toggle)
 {
 	short baseCount = 0;
@@ -1305,7 +1305,7 @@ static Base *object_mouse_select_menu(
 
 static bool selectbuffer_has_bones(const uint *buffer, const uint hits)
 {
-	unsigned int i;
+	uint i;
 	for (i = 0; i < hits; i++) {
 		if (buffer[(4 * i) + 3] & 0xFFFF0000) {
 			return true;
@@ -1315,22 +1315,22 @@ static bool selectbuffer_has_bones(const uint *buffer, const uint hits)
 }
 
 /* utility function for mixed_bones_object_selectbuffer */
-static int selectbuffer_ret_hits_15(unsigned int *UNUSED(buffer), const int hits15)
+static int selectbuffer_ret_hits_15(uint *UNUSED(buffer), const int hits15)
 {
 	return hits15;
 }
 
-static int selectbuffer_ret_hits_9(unsigned int *buffer, const int hits15, const int hits9)
+static int selectbuffer_ret_hits_9(uint *buffer, const int hits15, const int hits9)
 {
 	const int offs = 4 * hits15;
-	memcpy(buffer, buffer + offs, 4 * hits9 * sizeof(unsigned int));
+	memcpy(buffer, buffer + offs, 4 * hits9 * sizeof(uint));
 	return hits9;
 }
 
-static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits15, const int hits9, const int hits5)
+static int selectbuffer_ret_hits_5(uint *buffer, const int hits15, const int hits9, const int hits5)
 {
 	const int offs = 4 * hits15 + 4 * hits9;
-	memcpy(buffer, buffer + offs, 4 * hits5  * sizeof(unsigned int));
+	memcpy(buffer, buffer + offs, 4 * hits5  * sizeof(uint));
 	return hits5;
 }
 
@@ -1339,7 +1339,7 @@ static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits15, const
  * Checks three selection levels and compare.
  */
 static int mixed_bones_object_selectbuffer(
-        ViewContext *vc, unsigned int *buffer, const int mval[2], eV3DSelectObjectFilter select_filter,
+        ViewContext *vc, uint *buffer, const int mval[2], eV3DSelectObjectFilter select_filter,
         bool do_nearest)
 {
 	rcti rect;
@@ -1399,7 +1399,7 @@ finally:
 }
 
 static int mixed_bones_object_selectbuffer_extended(
-        ViewContext *vc, unsigned int *buffer, const int mval[2], eV3DSelectObjectFilter select_filter,
+        ViewContext *vc, uint *buffer, const int mval[2], eV3DSelectObjectFilter select_filter,
         bool use_cycle, bool enumerate, bool *r_do_nearest)
 {
 	static int last_mval[2] = {-100, -100};
@@ -1463,7 +1463,7 @@ static Base *mouse_select_eval_buffer(
 	int a;
 
 	if (do_nearest) {
-		unsigned int min = 0xFFFFFFFF;
+		uint min = 0xFFFFFFFF;
 		int selcol = 0, notcol = 0;
 
 
@@ -1547,7 +1547,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 {
 	ViewContext vc;
 	Base *basact = NULL;
-	unsigned int buffer[MAXPICKBUF];
+	uint buffer[MAXPICKBUF];
 
 	/* setup view context for argument to callbacks */
 	view3d_operator_needs_opengl(C);
@@ -1690,7 +1690,7 @@ static bool ed_object_select_pick(
 		}
 	}
 	else {
-		unsigned int buffer[MAXPICKBUF];
+		uint buffer[MAXPICKBUF];
 		bool do_nearest;
 
 		// TIMEIT_START(select_time);
@@ -1921,7 +1921,7 @@ static bool ed_wpaint_vertex_select_pick(
 	const bool use_zbuf = V3D_IS_ZBUF(v3d);
 
 	Mesh *me = obact->data; /* already checked for NULL */
-	unsigned int index = 0;
+	uint index = 0;
 	MVert *mv;
 
 	if (ED_mesh_pick_vert(C, obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, use_zbuf)) {
@@ -2118,7 +2118,7 @@ static int do_paintvert_box_select(
 	Mesh *me;
 	MVert *mvert;
 	struct ImBuf *ibuf;
-	unsigned int *rt;
+	uint *rt;
 	int a, index;
 	char *selar;
 	const int size[2] = {
@@ -2383,7 +2383,7 @@ static int do_meta_box_select(
 	MetaElem *ml;
 	int a;
 
-	unsigned int buffer[MAXPICKBUF];
+	uint buffer[MAXPICKBUF];
 	int hits;
 
 	hits = view3d_opengl_select(
@@ -2454,7 +2454,7 @@ static int do_armature_box_select(
 	bool changed = false;
 	int a;
 
-	unsigned int buffer[MAXPICKBUF];
+	uint buffer[MAXPICKBUF];
 	int hits;
 
 	hits = view3d_opengl_select(

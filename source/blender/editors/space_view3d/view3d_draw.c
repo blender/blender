@@ -819,7 +819,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 	const float starty = rect->ymax - (k + UI_UNIT_Y);
 
 	float axis_pos[3][2];
-	unsigned char axis_col[3][4];
+	uchar axis_col[3][4];
 
 	int axis_order[3] = {0, 1, 2};
 	axis_sort_v3(rv3d->viewinv[2], axis_order);
@@ -1465,7 +1465,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
         Depsgraph *depsgraph, Scene *scene,
         int drawtype,
         View3D *v3d, ARegion *ar, int sizex, int sizey,
-        unsigned int flag, unsigned int draw_flags,
+        uint flag, uint draw_flags,
         int alpha_mode, int samples, const char *viewname,
         /* output vars */
         GPUOffScreen *ofs, char err_out[256])
@@ -1591,7 +1591,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			        &fx_settings, ofs, viewport);
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, rect_temp);
 
-			unsigned int i = sizex * sizey * 4;
+			uint i = sizex * sizey * 4;
 			while (i--) {
 				accum_buffer[i] += rect_temp[i];
 			}
@@ -1609,16 +1609,16 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		if (ibuf->rect_float) {
 			float *rect_float = ibuf->rect_float;
-			unsigned int i = sizex * sizey * 4;
+			uint i = sizex * sizey * 4;
 			while (i--) {
 				rect_float[i] = accum_buffer[i] / samples;
 			}
 		}
 		else {
-			unsigned char *rect_ub = (unsigned char *)ibuf->rect;
-			unsigned int i = sizex * sizey * 4;
+			uchar *rect_ub = (uchar *)ibuf->rect;
+			uint i = sizex * sizey * 4;
 			while (i--) {
-				rect_ub[i] = (unsigned char)(255.0f * accum_buffer[i] / samples);
+				rect_ub[i] = (uchar)(255.0f * accum_buffer[i] / samples);
 			}
 		}
 
@@ -1656,7 +1656,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         Depsgraph *depsgraph, Scene *scene,
         int drawtype,
         Object *camera, int width, int height,
-        unsigned int flag, unsigned int draw_flags,
+        uint flag, uint draw_flags,
         int alpha_mode, int samples, const char *viewname,
         GPUOffScreen *ofs, char err_out[256])
 {
