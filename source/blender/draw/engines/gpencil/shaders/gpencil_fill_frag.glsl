@@ -40,7 +40,8 @@ uniform vec4 wire_color;
 #define GP_DRAWMODE_2D 0
 #define GP_DRAWMODE_3D 1
 
-#define OB_WIRE 2
+#define OB_WIRE  2
+#define OB_SOLID 3
 
 in vec4 finalColor;
 in vec2 texCoord_interp;
@@ -91,7 +92,7 @@ void main()
 	vec4 chesscolor;
 
 	/* wireframe with x-ray discard */
-	if ((viewport_xray == 1) &&  (shading_type == OB_WIRE)) {
+	if ((viewport_xray == 1) && (shading_type == OB_WIRE)) {
 		discard;
 	}
 
@@ -165,10 +166,20 @@ void main()
 	else {
 		gl_FragDepth = 0.000001;
 	}
-	
-	/* if wire mode override colors */
+
+	/* if wireframe override colors */
 	if (shading_type == OB_WIRE) {
 		fragColor = wire_color;
+	}
+		/* solid with x-ray discard */
+	if (shading_type == OB_SOLID) {
+		if (viewport_xray == 1) {
+			/* use 50% of color */
+			fragColor = vec4(wire_color.rgb, wire_color.a * 0.5);
+		}
+		else {
+			fragColor = wire_color;
+		}
 	}
 
 }
