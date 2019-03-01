@@ -547,12 +547,14 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		RNA_def_property_ui_text(prop, "Axis", "");
 		RNA_def_property_enum_default(prop, 2);
 		RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
+		RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	}
 	if (flags & P_ORIENT_AXIS_ORTHO) {
 		prop = RNA_def_property(ot->srna, "orient_axis_ortho", PROP_ENUM, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Axis Ortho", "");
 		RNA_def_property_enum_default(prop, 1);
 		RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
+		RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	}
 
 	if (flags & P_ORIENT_MATRIX) {
