@@ -113,7 +113,7 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph)
           graph_(graph) {
 }
 
-bool DepsgraphBuilder::need_pull_base_into_graph(struct Base *base)
+bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
 {
 	return deg_check_base_available_for_build(graph_, base);
 }

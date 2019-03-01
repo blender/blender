@@ -373,9 +373,15 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
 		 *
 		 * NOTE: The idea of using id's tag and check whether its copied ot not
 		 * is not reliable, since object might be indirectly linked into the
-		 * graph. */
+		 * graph.
+		 *
+		 * NOTE: We are using original base since the object which evaluated base
+		 * points to is not yet copied. This is dangerous access from evaluated
+		 * domain to original one, but this is how the entire copy-on-write works:
+		 * it does need to access original for an initial copy.
+		 * */
 		const bool is_object_enabled =
-		        deg_check_base_available_for_build(depsgraph, base);
+		        deg_check_base_available_for_build(depsgraph, base->base_orig);
 		if (is_object_enabled) {
 			BLI_addtail(&enabled_bases, base);
 		}
