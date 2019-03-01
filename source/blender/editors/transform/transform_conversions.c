@@ -5816,6 +5816,10 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
 	if (skip_invert == false && constinv == false) {
 		object_eval->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc checks this */
+		/* It is possiblre to have transform data initialization prior to a
+		 * complete dependency graph evaluated. Happens, for example, when
+		 * changing transformation mode. */
+		BKE_object_tfm_copy(object_eval, ob);
 		BKE_object_where_is_calc(t->depsgraph, t->scene, object_eval);
 		object_eval->transflag &= ~OB_NO_CONSTRAINTS;
 	}
@@ -5825,11 +5829,11 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	/* Copy newly evaluated fields to the original object, similar to how
 	 * active dependency graph will do it. */
 	copy_m4_m4(ob->obmat, object_eval->obmat);
-	/* Hack over hack, looks like in some cases eval object has not yet been fully flushed or so?
-	 * In some cases, macro operators starting transform just after creating a new object (OBJECT_OT_duplicate),
-	 * if dupli flags are not protected, they can be erased here (see T61787). */
-	ob->transflag = ((object_eval->transflag & ~(OB_DUPLI | OB_DUPLIFACES_SCALE | OB_DUPLIROT)) |
-	                 (ob->transflag & (OB_DUPLI | OB_DUPLIFACES_SCALE | OB_DUPLIROT)));
+	/* Only copy negative scale flag, this is the only flag which is modifed by
+	 * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
+	 * otherwise we might loose dupli flags  (see T61787). */
+	ob->transflag &= ~OB_NEG_SCALE;
+	ob->transflag |= (object_eval->transflag & OB_NEG_SCALE);
 
 	td->ob = ob;
 

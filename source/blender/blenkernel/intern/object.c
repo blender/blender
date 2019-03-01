@@ -1855,6 +1855,30 @@ void BKE_object_tfm_protected_restore(Object *ob,
 	}
 }
 
+void BKE_object_tfm_copy(Object *object_dst, const Object *object_src)
+{
+#define TFMCPY(_v) (object_dst->_v = object_src->_v)
+#define TFMCPY3D(_v) copy_v3_v3(object_dst->_v, object_src->_v)
+#define TFMCPY4D(_v) copy_v4_v4(object_dst->_v, object_src->_v)
+
+	TFMCPY3D(loc);
+	TFMCPY3D(dloc);
+	TFMCPY3D(scale);
+	TFMCPY3D(dscale);
+	TFMCPY3D(rot);
+	TFMCPY3D(drot);
+	TFMCPY4D(quat);
+	TFMCPY4D(dquat);
+	TFMCPY3D(rotAxis);
+	TFMCPY3D(drotAxis);
+	TFMCPY(rotAngle);
+	TFMCPY(drotAngle);
+
+#undef TFMCPY
+#undef TFMCPY3D
+#undef TFMCPY4D
+}
+
 void BKE_object_to_mat3(Object *ob, float mat[3][3]) /* no parent */
 {
 	float smat[3][3];

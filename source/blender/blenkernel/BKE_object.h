@@ -209,6 +209,9 @@ void BKE_object_tfm_protected_restore(
         const ObjectTfmProtectedChannels *obtfm,
         const short protectflag);
 
+void BKE_object_tfm_copy(
+        struct Object *object_dst,
+        const struct Object *object_src);
 
 void BKE_object_eval_reset(
         struct Object *ob_eval);
