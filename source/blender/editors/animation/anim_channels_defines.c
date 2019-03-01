@@ -2028,7 +2028,7 @@ static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return 0;
+			return PART_DS_EXPAND;
 
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
@@ -2046,18 +2046,22 @@ static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 }
 
 /* get pointer to the setting */
-static void *acf_dspart_setting_ptr(bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting, short *type)
+static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
+	ParticleSettings *part = (ParticleSettings *)ale->data;
+
 	/* clear extra return data first */
 	*type = 0;
 
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return NULL;
+			return GET_ACF_FLAG_PTR(part->flag, type);
 
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (part->adt)
+				return GET_ACF_FLAG_PTR(part->adt->flag, type);
 			return NULL;
 
 		default: /* unsupported */
