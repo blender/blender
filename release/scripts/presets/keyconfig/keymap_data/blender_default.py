@@ -5223,8 +5223,10 @@ def km_3d_view_tool_select_circle(params):
         {"items": [
             ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("wait_for_input", False)]}),
+            ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
+             {"properties": [("wait_for_input", False), ("mode", 'ADD')]}),
             ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("wait_for_input", False), ("deselect", True)]}),
+             {"properties": [("wait_for_input", False), ("mode", 'SUB')]}),
         ]},
     )
 

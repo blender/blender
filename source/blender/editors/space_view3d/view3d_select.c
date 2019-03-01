@@ -3353,8 +3353,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	ViewContext vc;
 	const bool is_first = (op->customdata && (((wmGesture *)op->customdata)->is_active_prev == false));
 	const int radius = RNA_int_get(op->ptr, "radius");
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	eSelectOp sel_op = select ? SEL_OP_ADD : SEL_OP_SUB;
+	eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
 	const int mval[2] = {RNA_int_get(op->ptr, "x"),
 	                     RNA_int_get(op->ptr, "y")};
 
@@ -3436,7 +3435,8 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle_select(ot);
+	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /** \} */
