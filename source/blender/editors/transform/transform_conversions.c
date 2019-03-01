@@ -5815,9 +5815,9 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	 * object matrix via td->ob->obmat. */
 	Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
 	if (skip_invert == false && constinv == false) {
-		ob->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc checks this */
+		object_eval->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc checks this */
 		BKE_object_where_is_calc(t->depsgraph, t->scene, object_eval);
-		ob->transflag &= ~OB_NO_CONSTRAINTS;
+		object_eval->transflag &= ~OB_NO_CONSTRAINTS;
 	}
 	else {
 		BKE_object_where_is_calc(t->depsgraph, t->scene, object_eval);
