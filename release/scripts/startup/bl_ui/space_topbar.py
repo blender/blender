@@ -600,7 +600,7 @@ class TOPBAR_MT_file(Menu):
 
         layout.separator()
 
-        layout.operator("wm.app_template_install", text="Install Application Template...")
+        layout.operator("preferences.app_template_install", text="Install Application Template...")
 
         layout.separator()
 

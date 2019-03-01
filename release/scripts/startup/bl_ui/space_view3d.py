@@ -4546,7 +4546,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                     sub.prop(system, "use_studio_light_edit", text="Disable Studio Light Edit", icon='NONE', toggle=True)
 
                 col = split.column()
-                col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
+                col.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
                 split = layout.split(factor=0.9)
                 col = split.column()
@@ -4564,7 +4564,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 sub.template_icon_view(shading, "studio_light", scale_popup=3.0)
 
                 col = split.column()
-                col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
+                col.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
                 col.operator("view3d.toggle_matcap_flip", emboss=False, text="", icon='ARROW_LEFTRIGHT')
 
         elif shading.type == 'MATERIAL':
@@ -4581,7 +4581,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 sub.template_icon_view(shading, "studio_light", scale_popup=3)
 
                 col = split.column()
-                col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
+                col.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
                 if shading.selected_studio_light.type == 'WORLD':
                     split = layout.split(factor=0.9)

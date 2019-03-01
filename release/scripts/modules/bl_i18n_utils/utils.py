@@ -199,12 +199,12 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
                     if module_name not in used_ext:
                         continue
                     print("    Disabling module ", module_name)
-                    bpy.ops.wm.addon_disable(module=module_name)
+                    bpy.ops.preferences.addon_disable(module=module_name)
                 else:
                     if module_name in used_ext:
                         continue
                     print("    Enabling module ", module_name)
-                    bpy.ops.wm.addon_enable(module=module_name)
+                    bpy.ops.preferences.addon_enable(module=module_name)
             except Exception as e:  # XXX TEMP WORKAROUND
                 print(e)
 

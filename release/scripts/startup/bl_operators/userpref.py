@@ -50,8 +50,8 @@ def module_filesystem_remove(path_base, module_name):
                 os.remove(f_full)
 
 
-class WM_OT_keyconfig_activate(Operator):
-    bl_idname = "wm.keyconfig_activate"
+class PREFERENCES_OT_keyconfig_activate(Operator):
+    bl_idname = "preferences.keyconfig_activate"
     bl_label = "Activate Keyconfig"
 
     filepath: StringProperty(
@@ -65,9 +65,9 @@ class WM_OT_keyconfig_activate(Operator):
             return {'CANCELLED'}
 
 
-class WM_OT_copy_prev_settings(Operator):
+class PREFERENCES_OT_copy_prev(Operator):
     """Copy settings from previous version"""
-    bl_idname = "wm.copy_prev_settings"
+    bl_idname = "preferences.copy_prev"
     bl_label = "Copy Previous Settings"
 
     @staticmethod
@@ -126,9 +126,9 @@ class WM_OT_copy_prev_settings(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyconfig_test(Operator):
+class PREFERENCES_OT_keyconfig_test(Operator):
     """Test key-config for conflicts"""
-    bl_idname = "wm.keyconfig_test"
+    bl_idname = "preferences.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
 
     def execute(self, context):
@@ -143,9 +143,9 @@ class WM_OT_keyconfig_test(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyconfig_import(Operator):
+class PREFERENCES_OT_keyconfig_import(Operator):
     """Import key configuration from a python script"""
-    bl_idname = "wm.keyconfig_import"
+    bl_idname = "preferences.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
     filepath: StringProperty(
@@ -210,9 +210,9 @@ class WM_OT_keyconfig_import(Operator):
 # This operator is also used by interaction presets saving - AddPresetBase
 
 
-class WM_OT_keyconfig_export(Operator):
+class PREFERENCES_OT_keyconfig_export(Operator):
     """Export key configuration to a python script"""
-    bl_idname = "wm.keyconfig_export"
+    bl_idname = "preferences.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
     all: BoolProperty(
@@ -266,9 +266,9 @@ class WM_OT_keyconfig_export(Operator):
         return {'RUNNING_MODAL'}
 
 
-class WM_OT_keymap_restore(Operator):
+class PREFERENCES_OT_keymap_restore(Operator):
     """Restore key map(s)"""
-    bl_idname = "wm.keymap_restore"
+    bl_idname = "preferences.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
     all: BoolProperty(
@@ -289,9 +289,9 @@ class WM_OT_keymap_restore(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyitem_restore(Operator):
+class PREFERENCES_OT_keyitem_restore(Operator):
     """Restore key map item"""
-    bl_idname = "wm.keyitem_restore"
+    bl_idname = "preferences.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
     item_id: IntProperty(
@@ -314,9 +314,9 @@ class WM_OT_keyitem_restore(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyitem_add(Operator):
+class PREFERENCES_OT_keyitem_add(Operator):
     """Add key map item"""
-    bl_idname = "wm.keyitem_add"
+    bl_idname = "preferences.keyitem_add"
     bl_label = "Add Key Map Item"
 
     def execute(self, context):
@@ -336,9 +336,9 @@ class WM_OT_keyitem_add(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyitem_remove(Operator):
+class PREFERENCES_OT_keyitem_remove(Operator):
     """Remove key map item"""
-    bl_idname = "wm.keyitem_remove"
+    bl_idname = "preferences.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
     item_id: IntProperty(
@@ -357,9 +357,9 @@ class WM_OT_keyitem_remove(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyconfig_remove(Operator):
+class PREFERENCES_OT_keyconfig_remove(Operator):
     """Remove key config"""
-    bl_idname = "wm.keyconfig_remove"
+    bl_idname = "preferences.keyconfig_remove"
     bl_label = "Remove Key Config"
 
     @classmethod
@@ -378,9 +378,9 @@ class WM_OT_keyconfig_remove(Operator):
 # -----------------------------------------------------------------------------
 # Add-on Operators
 
-class WM_OT_addon_enable(Operator):
+class PREFERENCES_OT_addon_enable(Operator):
     """Enable an add-on"""
-    bl_idname = "wm.addon_enable"
+    bl_idname = "preferences.addon_enable"
     bl_label = "Enable Add-on"
 
     module: StringProperty(
@@ -424,9 +424,9 @@ class WM_OT_addon_enable(Operator):
             return {'CANCELLED'}
 
 
-class WM_OT_addon_disable(Operator):
+class PREFERENCES_OT_addon_disable(Operator):
     """Disable an add-on"""
-    bl_idname = "wm.addon_disable"
+    bl_idname = "preferences.addon_disable"
     bl_label = "Disable Add-on"
 
     module: StringProperty(
@@ -453,9 +453,9 @@ class WM_OT_addon_disable(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_theme_install(Operator):
+class PREFERENCES_OT_theme_install(Operator):
     """Load and apply a Blender XML theme file"""
-    bl_idname = "wm.theme_install"
+    bl_idname = "preferences.theme_install"
     bl_label = "Install Theme..."
 
     overwrite: BoolProperty(
@@ -515,9 +515,9 @@ class WM_OT_theme_install(Operator):
         return {'RUNNING_MODAL'}
 
 
-class WM_OT_addon_refresh(Operator):
+class PREFERENCES_OT_addon_refresh(Operator):
     """Scan add-on directories for new modules"""
-    bl_idname = "wm.addon_refresh"
+    bl_idname = "preferences.addon_refresh"
     bl_label = "Refresh"
 
     def execute(self, context):
@@ -528,11 +528,11 @@ class WM_OT_addon_refresh(Operator):
         return {'FINISHED'}
 
 
-# Note: shares some logic with WM_OT_app_template_install
+# Note: shares some logic with PREFERENCES_OT_app_template_install
 # but not enough to de-duplicate. Fixed here may apply to both.
-class WM_OT_addon_install(Operator):
+class PREFERENCES_OT_addon_install(Operator):
     """Install an add-on"""
-    bl_idname = "wm.addon_install"
+    bl_idname = "preferences.addon_install"
     bl_label = "Install Add-on from File..."
 
     overwrite: BoolProperty(
@@ -684,9 +684,9 @@ class WM_OT_addon_install(Operator):
         return {'RUNNING_MODAL'}
 
 
-class WM_OT_addon_remove(Operator):
+class PREFERENCES_OT_addon_remove(Operator):
     """Delete the add-on from the file system"""
-    bl_idname = "wm.addon_remove"
+    bl_idname = "preferences.addon_remove"
     bl_label = "Remove Add-on"
 
     module: StringProperty(
@@ -713,7 +713,7 @@ class WM_OT_addon_remove(Operator):
         import addon_utils
         import os
 
-        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
+        path, isdir = PREFERENCES_OT_addon_remove.path_from_addon(self.module)
         if path is None:
             self.report({'WARNING'}, "Add-on path %r could not be found" % path)
             return {'CANCELLED'}
@@ -735,7 +735,7 @@ class WM_OT_addon_remove(Operator):
     # lame confirmation check
     def draw(self, context):
         self.layout.label(text="Remove Add-on: %r?" % self.module)
-        path, _isdir = WM_OT_addon_remove.path_from_addon(self.module)
+        path, _isdir = PREFERENCES_OT_addon_remove.path_from_addon(self.module)
         self.layout.label(text="Path: %r" % path)
 
     def invoke(self, context, event):
@@ -743,9 +743,9 @@ class WM_OT_addon_remove(Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-class WM_OT_addon_expand(Operator):
+class PREFERENCES_OT_addon_expand(Operator):
     """Display information and preferences for this add-on"""
-    bl_idname = "wm.addon_expand"
+    bl_idname = "preferences.addon_expand"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
@@ -767,9 +767,9 @@ class WM_OT_addon_expand(Operator):
         return {'FINISHED'}
 
 
-class WM_OT_addon_userpref_show(Operator):
+class PREFERENCES_OT_addon_show(Operator):
     """Show add-on preferences"""
-    bl_idname = "wm.addon_userpref_show"
+    bl_idname = "preferences.addon_show"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
@@ -797,11 +797,11 @@ class WM_OT_addon_userpref_show(Operator):
         return {'FINISHED'}
 
 
-# Note: shares some logic with WM_OT_addon_install
+# Note: shares some logic with PREFERENCES_OT_addon_install
 # but not enough to de-duplicate. Fixes here may apply to both.
-class WM_OT_app_template_install(Operator):
+class PREFERENCES_OT_app_template_install(Operator):
     """Install an application-template"""
-    bl_idname = "wm.app_template_install"
+    bl_idname = "preferences.app_template_install"
     bl_label = "Install Template from File..."
 
     overwrite: BoolProperty(
@@ -900,9 +900,9 @@ class WM_OT_app_template_install(Operator):
 # -----------------------------------------------------------------------------
 # Studio Light Operations
 
-class WM_OT_studiolight_install(Operator):
+class PREFERENCES_OT_studiolight_install(Operator):
     """Install a user defined studio light"""
-    bl_idname = "wm.studiolight_install"
+    bl_idname = "preferences.studiolight_install"
     bl_label = "Install Custom Studio Light"
 
     files: CollectionProperty(
@@ -963,9 +963,9 @@ class WM_OT_studiolight_install(Operator):
         return {'RUNNING_MODAL'}
 
 
-class WM_OT_studiolight_new(Operator):
+class PREFERENCES_OT_studiolight_new(Operator):
     """Save custom studio light from the studio light editor settings"""
-    bl_idname = 'wm.studiolight_new'
+    bl_idname = 'preferences.studiolight_new'
     bl_label = "Save custom Studio light"
 
     filename: StringProperty(
@@ -994,7 +994,7 @@ class WM_OT_studiolight_new(Operator):
             else:
                 for studio_light in prefs.studio_lights:
                     if studio_light.name == filename:
-                        bpy.ops.wm.studiolight_uninstall(index=studio_light.index)
+                        bpy.ops.preferences.studiolight_uninstall(index=studio_light.index)
 
         prefs.studio_lights.new(path=filepath_final)
 
@@ -1019,9 +1019,9 @@ class WM_OT_studiolight_new(Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-class WM_OT_studiolight_uninstall(Operator):
+class PREFERENCES_OT_studiolight_uninstall(Operator):
     """Delete Studio Light"""
-    bl_idname = 'wm.studiolight_uninstall'
+    bl_idname = 'preferences.studiolight_uninstall'
     bl_label = "Uninstall Studio Light"
     index: bpy.props.IntProperty()
 
@@ -1042,9 +1042,9 @@ class WM_OT_studiolight_uninstall(Operator):
         return {'CANCELLED'}
 
 
-class WM_OT_studiolight_copy_settings(Operator):
+class PREFERENCES_OT_studiolight_copy_settings(Operator):
     """Copy Studio Light settings to the Studio light editor"""
-    bl_idname = 'wm.studiolight_copy_settings'
+    bl_idname = 'preferences.studiolight_copy_settings'
     bl_label = "Copy Studio Light settings"
     index: bpy.props.IntProperty()
 
@@ -1064,9 +1064,9 @@ class WM_OT_studiolight_copy_settings(Operator):
         return {'CANCELLED'}
 
 
-class WM_OT_studiolight_userpref_show(Operator):
+class PREFERENCES_OT_studiolight_show(Operator):
     """Show light preferences"""
-    bl_idname = "wm.studiolight_userpref_show"
+    bl_idname = "preferences.studiolight_show"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
@@ -1077,28 +1077,28 @@ class WM_OT_studiolight_userpref_show(Operator):
 
 
 classes = (
-    WM_OT_addon_disable,
-    WM_OT_addon_enable,
-    WM_OT_addon_expand,
-    WM_OT_addon_install,
-    WM_OT_addon_refresh,
-    WM_OT_addon_remove,
-    WM_OT_addon_userpref_show,
-    WM_OT_app_template_install,
-    WM_OT_copy_prev_settings,
-    WM_OT_keyconfig_activate,
-    WM_OT_keyconfig_export,
-    WM_OT_keyconfig_import,
-    WM_OT_keyconfig_remove,
-    WM_OT_keyconfig_test,
-    WM_OT_keyitem_add,
-    WM_OT_keyitem_remove,
-    WM_OT_keyitem_restore,
-    WM_OT_keymap_restore,
-    WM_OT_theme_install,
-    WM_OT_studiolight_install,
-    WM_OT_studiolight_new,
-    WM_OT_studiolight_uninstall,
-    WM_OT_studiolight_copy_settings,
-    WM_OT_studiolight_userpref_show,
+    PREFERENCES_OT_addon_disable,
+    PREFERENCES_OT_addon_enable,
+    PREFERENCES_OT_addon_expand,
+    PREFERENCES_OT_addon_install,
+    PREFERENCES_OT_addon_refresh,
+    PREFERENCES_OT_addon_remove,
+    PREFERENCES_OT_addon_show,
+    PREFERENCES_OT_app_template_install,
+    PREFERENCES_OT_copy_prev,
+    PREFERENCES_OT_keyconfig_activate,
+    PREFERENCES_OT_keyconfig_export,
+    PREFERENCES_OT_keyconfig_import,
+    PREFERENCES_OT_keyconfig_remove,
+    PREFERENCES_OT_keyconfig_test,
+    PREFERENCES_OT_keyitem_add,
+    PREFERENCES_OT_keyitem_remove,
+    PREFERENCES_OT_keyitem_restore,
+    PREFERENCES_OT_keymap_restore,
+    PREFERENCES_OT_theme_install,
+    PREFERENCES_OT_studiolight_install,
+    PREFERENCES_OT_studiolight_new,
+    PREFERENCES_OT_studiolight_uninstall,
+    PREFERENCES_OT_studiolight_copy_settings,
+    PREFERENCES_OT_studiolight_show,
 )

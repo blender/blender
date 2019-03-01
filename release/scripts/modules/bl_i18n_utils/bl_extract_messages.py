@@ -536,7 +536,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
     def _op_to_ctxt(node):
         # Some smart coders like things like:
-        #    >>> row.operator("wm.addon_disable" if is_enabled else "wm.addon_enable", ...)
+        #    >>> row.operator("preferences.addon_disable" if is_enabled else "preferences.addon_enable", ...)
         # We only take first arg into account here!
         bag = extract_strings_split(node)
         opname, _ = bag[0]

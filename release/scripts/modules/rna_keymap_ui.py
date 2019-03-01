@@ -79,7 +79,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
         subrow.alignment = 'RIGHT'
 
         if km.is_user_modified:
-            subrow.operator("wm.keymap_restore", text="Restore")
+            subrow.operator("preferences.keymap_restore", text="Restore")
         if km.is_modal:
             subrow.label(text="", icon='LINKED')
         del subrow
@@ -104,7 +104,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             # "Add New" at end of keymap item list
             subcol = _indented_layout(col, kmi_level)
             subcol = subcol.split(factor=0.2).column()
-            subcol.operator("wm.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
+            subcol.operator("preferences.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
                             icon='ADD')
 
             col.separator()
@@ -159,9 +159,9 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
         row.label()
 
     if (not kmi.is_user_defined) and kmi.is_user_modified:
-        row.operator("wm.keyitem_restore", text="", icon='BACK').item_id = kmi.id
+        row.operator("preferences.keyitem_restore", text="", icon='BACK').item_id = kmi.id
     else:
-        row.operator("wm.keyitem_remove", text="", icon='X').item_id = kmi.id
+        row.operator("preferences.keyitem_remove", text="", icon='X').item_id = kmi.id
 
     # Expanded, additional event settings
     if kmi.show_expanded:
@@ -340,7 +340,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             row.label()
 
             if km.is_user_modified:
-                row.operator("wm.keymap_restore", text="Restore")
+                row.operator("preferences.keymap_restore", text="Restore")
             else:
                 row.label()
 
@@ -350,7 +350,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             # "Add New" at end of keymap item list
             col = _indented_layout(layout, 1)
             subcol = col.split(factor=0.2).column()
-            subcol.operator("wm.keyitem_add", text="Add New", icon='ADD')
+            subcol.operator("preferences.keyitem_add", text="Add New", icon='ADD')
     return True
 
 
@@ -384,14 +384,14 @@ def draw_keymaps(context, layout):
     rowsub.operator("wm.keyconfig_preset_add", text="", icon='REMOVE').remove_active = True
 
     rowsub = split.row(align=True)
-    rowsub.operator("wm.keyconfig_import", text="Import...", icon='IMPORT')
-    rowsub.operator("wm.keyconfig_export", text="Export...", icon='EXPORT')
+    rowsub.operator("preferences.keyconfig_import", text="Import...", icon='IMPORT')
+    rowsub.operator("preferences.keyconfig_export", text="Export...", icon='EXPORT')
 
     row = layout.row()
     col = layout.column()
 
     # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
-    # row.operator("wm.keyconfig_remove", text="", icon='X')
+    # row.operator("preferences.keyconfig_remove", text="", icon='X')
     rowsub = row.split(factor=0.3, align=True)
     # postpone drawing into rowsub, so we can set alert!
 

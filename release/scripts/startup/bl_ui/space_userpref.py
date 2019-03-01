@@ -719,7 +719,7 @@ class USERPREF_PT_theme(Panel):
         row.operator("wm.interface_theme_preset_add", text="", icon='REMOVE').remove_active = True
 
         row = split.row(align=True)
-        row.operator("wm.theme_install", text="Install...", icon='IMPORT')
+        row.operator("preferences.theme_install", text="Install...", icon='IMPORT')
         row.operator("ui.reset_default_theme", text="Reset", icon='LOOP_BACK')
 
 
@@ -1570,7 +1570,7 @@ class USERPREF_PT_input_ndof(PreferencePanel):
 class USERPREF_MT_keyconfigs(Menu):
     bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
-    preset_operator = "wm.keyconfig_activate"
+    preset_operator = "preferences.keyconfig_activate"
 
     def draw(self, context):
         Menu.draw_preset(self, context)
@@ -1680,8 +1680,8 @@ class USERPREF_PT_addons(Panel):
         row.prop(context.window_manager, "addon_support", expand=True)
 
         row = split.row(align=True)
-        row.operator("wm.addon_install", icon='IMPORT', text="Install...")
-        row.operator("wm.addon_refresh", icon='FILE_REFRESH', text="Refresh")
+        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
+        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
 
         row = layout.row()
         row.prop(context.window_manager, "addon_filter", text="")
@@ -1756,13 +1756,13 @@ class USERPREF_PT_addons(Panel):
                 row = colsub.row(align=True)
 
                 row.operator(
-                    "wm.addon_expand",
+                    "preferences.addon_expand",
                     icon='DISCLOSURE_TRI_DOWN' if info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
                     emboss=False,
                 ).module = module_name
 
                 row.operator(
-                    "wm.addon_disable" if is_enabled else "wm.addon_enable",
+                    "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
                     icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
                     emboss=False,
                 ).module = module_name
@@ -1832,7 +1832,7 @@ class USERPREF_PT_addons(Panel):
                             )
                         if user_addon:
                             sub.operator(
-                                "wm.addon_remove", text="Remove", icon='CANCEL',
+                                "preferences.addon_remove", text="Remove", icon='CANCEL',
                             ).module = mod.__name__
 
                     # Show addon user preferences
@@ -1874,7 +1874,7 @@ class USERPREF_PT_addons(Panel):
 
                 if is_enabled:
                     row.operator(
-                        "wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
+                        "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
                     ).module = module_name
 
                 row.label(text=module_name, translate=False)
@@ -1913,11 +1913,11 @@ class StudioLightPanelMixin():
 
         row.template_icon(layout.icon(studio_light), scale=3.0)
         col = row.column()
-        op = col.operator("wm.studiolight_uninstall", text="", icon='REMOVE')
+        op = col.operator("preferences.studiolight_uninstall", text="", icon='REMOVE')
         op.index = studio_light.index
 
         if studio_light.type == 'STUDIO':
-            op = col.operator("wm.studiolight_copy_settings", text="", icon='IMPORT')
+            op = col.operator("preferences.studiolight_copy_settings", text="", icon='IMPORT')
             op.index = studio_light.index
 
         box.label(text=studio_light.name)
@@ -1929,7 +1929,7 @@ class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
 
     def draw_header_preset(self, context):
         layout = self.layout
-        layout.operator("wm.studiolight_install", icon='IMPORT', text="Install...").type = 'MATCAP'
+        layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...").type = 'MATCAP'
         layout.separator()
 
 
@@ -1939,7 +1939,7 @@ class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
 
     def draw_header_preset(self, context):
         layout = self.layout
-        layout.operator("wm.studiolight_install", icon='IMPORT', text="Install...").type = 'WORLD'
+        layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...").type = 'WORLD'
         layout.separator()
 
 
@@ -1949,7 +1949,7 @@ class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
 
     def draw_header_preset(self, context):
         layout = self.layout
-        op = layout.operator("wm.studiolight_install", icon='IMPORT', text="Install...")
+        op = layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...")
         op.type = 'STUDIO'
         op.filter_glob = ".sl"
         layout.separator()
@@ -1981,7 +1981,7 @@ class USERPREF_PT_studiolight_light_editor(Panel):
 
         row = layout.row()
         row.prop(system, "use_studio_light_edit", toggle=True)
-        row.operator("wm.studiolight_new", text="Save as Studio light", icon='FILE_TICK')
+        row.operator("preferences.studiolight_new", text="Save as Studio light", icon='FILE_TICK')
 
         layout.separator()
 
