@@ -216,7 +216,9 @@ void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
 
 	GPU_vertbuf_init_with_format(vbo, &format);
 	GPU_vertbuf_data_alloc(vbo, vbo_len_used);
-	memset(vbo->data, 0xFF, (size_t)(vbo_len_used * format.stride));
+
+	BLI_assert(vbo->format.stride == 1);
+	memset(vbo->data, 0xFF, (size_t)vbo_len_used);
 }
 
 void DRW_displist_indexbuf_create_triangles_in_order(ListBase *lb, GPUIndexBuf *ibo)
