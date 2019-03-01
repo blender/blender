@@ -206,7 +206,7 @@ void node_cmp_rlayers_register_pass(bNodeTree *ntree, bNode *node, Scene *scene,
 	}
 }
 
-static void cmp_node_rlayer_create_outputs_cb(RenderEngine *UNUSED(engine), Scene *scene, ViewLayer *view_layer,
+static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata), Scene *scene, ViewLayer *view_layer,
                                               const char *name, int UNUSED(channels), const char *UNUSED(chanid), int type)
 {
 	/* Register the pass in all scenes that have a render layer node for this layer.
@@ -238,7 +238,7 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree, bNode *node, LinkNo
 				node->storage = data;
 
 				RenderEngine *engine = RE_engine_create(engine_type);
-				RE_engine_update_render_passes(engine, scene, view_layer, cmp_node_rlayer_create_outputs_cb);
+				RE_engine_update_render_passes(engine, scene, view_layer, cmp_node_rlayer_create_outputs_cb, NULL);
 				RE_engine_free(engine);
 
 				MEM_freeN(data);

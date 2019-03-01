@@ -762,10 +762,7 @@ int RE_engine_render(Render *re, int do_all)
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
 	if (re->result->do_exr_tile) {
-		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-		render_result_save_empty_result_tiles(re);
 		render_result_exr_file_end(re, engine);
-		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 
 	/* re->engine becomes zero if user changed active render engine during render */
@@ -795,7 +792,7 @@ int RE_engine_render(Render *re, int do_all)
 }
 
 void RE_engine_update_render_passes(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
-                                    update_render_passes_cb_t callback)
+                                    update_render_passes_cb_t callback, void *callback_data)
 {
 	if (!(scene && view_layer && engine && callback && engine->type->update_render_passes)) {
 		return;
@@ -804,7 +801,10 @@ void RE_engine_update_render_passes(struct RenderEngine *engine, struct Scene *s
 	BLI_mutex_lock(&engine->update_render_passes_mutex);
 
 	engine->update_render_passes_cb = callback;
+	engine->update_render_passes_data = callback_data;
 	engine->type->update_render_passes(engine, scene, view_layer);
+	engine->update_render_passes_cb = NULL;
+	engine->update_render_passes_data = NULL;
 
 	BLI_mutex_unlock(&engine->update_render_passes_mutex);
 }
@@ -816,7 +816,7 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 		return;
 	}
 
-	engine->update_render_passes_cb(engine, scene, view_layer, name, channels, chanid, type);
+	engine->update_render_passes_cb(engine->update_render_passes_data, scene, view_layer, name, channels, chanid, type);
 }
 
 void RE_engine_free_blender_memory(RenderEngine *engine)

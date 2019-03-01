@@ -100,7 +100,7 @@ typedef struct RenderEngineType {
 	ExtensionRNA ext;
 } RenderEngineType;
 
-typedef void (*update_render_passes_cb_t)(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
+typedef void (*update_render_passes_cb_t)(void *userdata, struct Scene *scene, struct ViewLayer *view_layer,
                                           const char *name, int channels, const char *chanid, int type);
 
 typedef struct RenderEngine {
@@ -128,6 +128,7 @@ typedef struct RenderEngine {
 	/* callback for render pass query */
 	ThreadMutex update_render_passes_mutex;
 	update_render_passes_cb_t update_render_passes_cb;
+	void *update_render_passes_data;
 
 	rctf last_viewplane;
 	rcti last_disprect;
@@ -168,7 +169,7 @@ bool RE_engine_is_external(struct Render *re);
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
 
 void RE_engine_update_render_passes(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
-                                    update_render_passes_cb_t callback);
+                                    update_render_passes_cb_t callback, void *callback_data);
 void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
                              const char *name, int channels, const char *chanid, int type);
 

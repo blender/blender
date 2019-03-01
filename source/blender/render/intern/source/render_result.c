@@ -1058,19 +1058,28 @@ void render_result_save_empty_result_tiles(Render *re)
 	}
 }
 
-static void render_result_register_pass_cb(RenderEngine *engine, Scene *UNUSED(scene), ViewLayer *view_layer,
-                                           const char *name, int channels, const char *chanid, int UNUSED(type))
+/* Compute list of passes needed by render engine. */
+static void templates_register_pass_cb(void *userdata, Scene *UNUSED(scene), ViewLayer *UNUSED(view_layer),
+                                       const char *name, int channels, const char *chan_id, int UNUSED(type))
 {
-	RE_engine_add_pass(engine, name, channels, chanid, view_layer->name);
+	ListBase *templates = userdata;
+	RenderPass *pass = MEM_callocN(sizeof(RenderPass), "RenderPassTemplate");
+
+	pass->channels = channels;
+	BLI_strncpy(pass->name, name, sizeof(pass->name));
+	BLI_strncpy(pass->chan_id, chan_id, sizeof(pass->chan_id));
+
+	BLI_addtail(templates, pass);
 }
 
-static void render_result_create_all_passes(RenderEngine *engine, Render *re, RenderLayer *rl)
+static void render_result_get_pass_templates(RenderEngine *engine, Render *re, RenderLayer *rl, ListBase *templates)
 {
+	BLI_listbase_clear(templates);
+
 	if (engine && engine->type->update_render_passes) {
-		ViewLayer *view_layer;
-		view_layer = BLI_findstring(&re->view_layers, rl->name, offsetof(ViewLayer, name));
+		ViewLayer *view_layer = BLI_findstring(&re->view_layers, rl->name, offsetof(ViewLayer, name));
 		if (view_layer) {
-			RE_engine_update_render_passes(engine, re->scene, view_layer, render_result_register_pass_cb);
+			RE_engine_update_render_passes(engine, re->scene, view_layer, templates_register_pass_cb, templates);
 		}
 	}
 }
@@ -1078,14 +1087,27 @@ static void render_result_create_all_passes(RenderEngine *engine, Render *re, Re
 /* begin write of exr tile file */
 void render_result_exr_file_begin(Render *re, RenderEngine *engine)
 {
-	RenderResult *rr;
-	RenderLayer *rl;
 	char str[FILE_MAX];
 
-	for (rr = re->result; rr; rr = rr->next) {
-		for (rl = rr->layers.first; rl; rl = rl->next) {
-			render_result_create_all_passes(engine, re, rl);
+	for (RenderResult *rr = re->result; rr; rr = rr->next) {
+		for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next) {
+			/* Get passes needed by engine. Normally we would wait for the
+			 * engine to create them, but for EXR file we need to know in
+			 * advance. */
+			ListBase templates;
+			render_result_get_pass_templates(engine, re, rl, &templates);
 
+			/* Create render passes requested by engine. Only this part is
+			 * mutex locked to avoid deadlock with Python GIL. */
+			BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+			for (RenderPass *pass = templates.first; pass; pass = pass->next) {
+				render_result_add_pass(re->result, pass->name, pass->channels, pass->chan_id, rl->name, NULL);
+			}
+			BLI_rw_mutex_unlock(&re->resultmutex);
+
+			BLI_freelistN(&templates);
+
+			/* Open EXR file for writing. */
 			render_result_exr_file_path(re->scene, rl->name, rr->sample_nr, str);
 			printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 			IMB_exrtile_begin_write(rl->exrhandle, str, 0, rr->rectx, rr->recty, re->partx, re->party);
@@ -1096,11 +1118,9 @@ void render_result_exr_file_begin(Render *re, RenderEngine *engine)
 /* end write of exr tile file, read back first sample */
 void render_result_exr_file_end(Render *re, RenderEngine *engine)
 {
-	RenderResult *rr;
-	RenderLayer *rl;
-
-	for (rr = re->result; rr; rr = rr->next) {
-		for (rl = rr->layers.first; rl; rl = rl->next) {
+	/* Close EXR files. */
+	for (RenderResult *rr = re->result; rr; rr = rr->next) {
+		for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next) {
 			IMB_exr_close(rl->exrhandle);
 			rl->exrhandle = NULL;
 		}
@@ -1108,10 +1128,36 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
 		rr->do_exr_tile = false;
 	}
 
+	/* Create new render result in memory instead of on disk. */
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	render_result_free_list(&re->fullresult, re->result);
-	re->result = NULL;
+	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+	BLI_rw_mutex_unlock(&re->resultmutex);
 
-	render_result_exr_file_read_sample(re, 0, engine);
+	for (RenderLayer *rl = re->result->layers.first; rl; rl = rl->next) {
+		/* Get passes needed by engine. */
+		ListBase templates;
+		render_result_get_pass_templates(engine, re, rl, &templates);
+
+		/* Create render passes requested by engine. Only this part is
+		 * mutex locked to avoid deadlock with Python GIL. */
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		for (RenderPass *pass = templates.first; pass; pass = pass->next) {
+			render_result_add_pass(re->result, pass->name, pass->channels, pass->chan_id, rl->name, NULL);
+		}
+
+		BLI_freelistN(&templates);
+
+		/* Render passes contents from file. */
+		char str[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
+		render_result_exr_file_path(re->scene, rl->name, 0, str);
+		printf("read exr tmp file: %s\n", str);
+
+		if (!render_result_exr_file_read_path(re->result, rl, str)) {
+			printf("cannot read: %s\n", str);
+		}
+		BLI_rw_mutex_unlock(&re->resultmutex);
+	}
 }
 
 /* save part into exr file */
@@ -1138,31 +1184,6 @@ void render_result_exr_file_path(Scene *scene, const char *layname, int sample, 
 	BLI_filename_make_safe(name);
 
 	BLI_make_file_string("/", filepath, BKE_tempdir_session(), name);
-}
-
-/* only for temp buffer, makes exact copy of render result */
-int render_result_exr_file_read_sample(Render *re, int sample, RenderEngine *engine)
-{
-	RenderLayer *rl;
-	char str[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
-	bool success = true;
-
-	RE_FreeRenderResult(re->result);
-	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
-
-	for (rl = re->result->layers.first; rl; rl = rl->next) {
-		render_result_create_all_passes(engine, re, rl);
-
-		render_result_exr_file_path(re->scene, rl->name, sample, str);
-		printf("read exr tmp file: %s\n", str);
-
-		if (!render_result_exr_file_read_path(re->result, rl, str)) {
-			printf("cannot read: %s\n", str);
-			success = false;
-		}
-	}
-
-	return success;
 }
 
 /* called for reading temp files, and for external engines */

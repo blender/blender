@@ -85,7 +85,6 @@ struct RenderPass *gp_add_pass(struct RenderResult *rr, struct RenderLayer *rl, 
 void render_result_exr_file_merge(struct RenderResult *rr, struct RenderResult *rrpart, const char *viewname);
 
 void render_result_exr_file_path(struct Scene *scene, const char *layname, int sample, char *filepath);
-int render_result_exr_file_read_sample(struct Render *re, int sample, struct RenderEngine *engine);
 int render_result_exr_file_read_path(struct RenderResult *rr, struct RenderLayer *rl_single, const char *filepath);
 
 /* EXR cache */
