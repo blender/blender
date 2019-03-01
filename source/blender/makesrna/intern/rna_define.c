@@ -1411,6 +1411,11 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 	}
 }
 
+/* common args for defaults. */
+const float rna_default_quaternion[4] = {1, 0, 0, 0};
+const float rna_default_axis_angle[4] = {0, 0, 1, 0};
+const float rna_default_scale_3d[3] = {1, 1, 1};
+
 /* common args for length */
 const int rna_matrix_dimsize_3x3[] = {3, 3};
 const int rna_matrix_dimsize_4x4[] = {4, 4};

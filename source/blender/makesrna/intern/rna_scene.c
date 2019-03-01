@@ -2347,9 +2347,6 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
 
 static void rna_def_view3d_cursor(BlenderRNA *brna)
 {
-	static float default_quat[4] = {1, 0, 0, 0};    /* default quaternion values */
-	static float default_axisAngle[4] = {0, 0, 1, 0};   /* default axis-angle rotation values */
-
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -2367,7 +2364,7 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "rotation_quaternion");
-	RNA_def_property_float_array_default(prop, default_quat);
+	RNA_def_property_float_array_default(prop, rna_default_quaternion);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in quaternions (keep normalized)");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
@@ -2376,7 +2373,7 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_View3DCursor_rotation_axis_angle_get",
 	                             "rna_View3DCursor_rotation_axis_angle_set", NULL);
-	RNA_def_property_float_array_default(prop, default_axisAngle);
+	RNA_def_property_float_array_default(prop, rna_default_axis_angle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 

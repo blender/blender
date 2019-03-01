@@ -849,10 +849,6 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 static void rna_def_pose_channel(BlenderRNA *brna)
 {
-	static float default_quat[4] = {1, 0, 0, 0};    /* default quaternion values */
-	static float default_axisAngle[4] = {0, 0, 1, 0};   /* default axis-angle rotation values */
-	static float default_scale[3] = {1, 1, 1}; /* default scale values */
-
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -916,7 +912,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_PROPORTIONAL);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
-	RNA_def_property_float_array_default(prop, default_scale);
+	RNA_def_property_float_array_default(prop, rna_default_scale_3d);
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_IK_update");
 
@@ -924,7 +920,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
-	RNA_def_property_float_array_default(prop, default_quat);
+	RNA_def_property_float_array_default(prop, rna_default_quaternion);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
@@ -937,7 +933,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_angle_get",
 	                             "rna_PoseChannel_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
-	RNA_def_property_float_array_default(prop, default_axisAngle);
+	RNA_def_property_float_array_default(prop, rna_default_axis_angle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 

@@ -246,6 +246,10 @@ extern const int rna_matrix_dimsize_3x3[];
 extern const int rna_matrix_dimsize_4x4[];
 extern const int rna_matrix_dimsize_4x2[];
 
+extern const float rna_default_axis_angle[4];
+extern const float rna_default_quaternion[4];
+extern const float rna_default_scale_3d[3];
+
 /* max size for dynamic defined type descriptors,
  * this value is arbitrary */
 #define RNA_DYN_DESCR_MAX 240
