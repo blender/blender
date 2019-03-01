@@ -563,12 +563,11 @@ class TOPBAR_MT_file(Menu):
 
         layout.operator_context = 'INVOKE_AREA'
         layout.menu("TOPBAR_MT_file_new", text="New", icon='FILE_NEW')
-
-        layout.separator()
-
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
         layout.menu("TOPBAR_MT_file_open_recent")
-        layout.menu("TOPBAR_MT_file_recover")
+        layout.operator("wm.revert_mainfile")
+        layout.operator("wm.recover_last_session")
+        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
         layout.separator()
 
@@ -579,22 +578,8 @@ class TOPBAR_MT_file(Menu):
         layout.operator("wm.save_as_mainfile", text="Save As...")
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
-        layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
 
         layout.separator()
-
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.link", text="Link...", icon='LINK_BLEND')
-        layout.operator("wm.append", text="Append...", icon='APPEND_BLEND')
-        layout.menu("TOPBAR_MT_file_import", icon='IMPORT')
-
-        layout.separator()
-
-        layout.menu("TOPBAR_MT_file_external_data")
-        layout.menu("TOPBAR_MT_file_previews")
-
-        layout.separator()
-
         layout.operator_context = 'INVOKE_AREA'
 
         if any(bpy.utils.app_template_paths()):
@@ -616,6 +601,22 @@ class TOPBAR_MT_file(Menu):
         layout.separator()
 
         layout.operator("wm.app_template_install", text="Install Application Template...")
+
+        layout.separator()
+
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.link", text="Link...", icon='LINK_BLEND')
+        layout.operator("wm.append", text="Append...", icon='APPEND_BLEND')
+        layout.menu("TOPBAR_MT_file_previews")
+
+        layout.separator()
+
+        layout.menu("TOPBAR_MT_file_import", icon='IMPORT')
+        layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
+
+        layout.separator()
+
+        layout.menu("TOPBAR_MT_file_external_data")
 
         layout.separator()
 
@@ -685,21 +686,6 @@ class TOPBAR_MT_file_new(Menu):
 
     def draw(self, context):
         TOPBAR_MT_file_new.draw_ex(self.layout, context)
-
-
-class TOPBAR_MT_file_recover(Menu):
-    bl_label = "Recover"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
-        layout.operator("wm.recover_last_session")
-
-        layout.separator()
-
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.revert_mainfile")
 
 
 class TOPBAR_MT_templates_more(Menu):
@@ -1060,7 +1046,6 @@ classes = (
     TOPBAR_MT_editor_menus,
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
-    TOPBAR_MT_file_recover,
     TOPBAR_MT_templates_more,
     TOPBAR_MT_file_import,
     TOPBAR_MT_file_export,
