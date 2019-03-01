@@ -306,11 +306,15 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
 					break;
 				}
 				case ANIMTYPE_MASKLAYER:
+				{
 					ED_masklayer_frames_select_box(ale->data, rectf.xmin, rectf.xmax, selectmode);
 					break;
+				}
 				default:
+				{
 					ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 					break;
+				}
 			}
 		}
 
