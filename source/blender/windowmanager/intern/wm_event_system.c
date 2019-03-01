@@ -1836,58 +1836,87 @@ int WM_userdef_event_type_from_keymap_type(int kmitype)
 	return kmitype;
 }
 
-static int wm_eventmatch(const wmEvent *winevent, wmKeyMapItem *kmi)
+static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 {
-	int kmitype = WM_userdef_event_map(kmi->type);
+	if (kmi->flag & KMI_INACTIVE) {
+		return false;
+	}
 
-	if (kmi->flag & KMI_INACTIVE) return 0;
+	const int kmitype = WM_userdef_event_map(kmi->type);
 
 	/* the matching rules */
-	if (kmitype == KM_TEXTINPUT)
+	if (kmitype == KM_TEXTINPUT) {
 		if (winevent->val == KM_PRESS) {  /* prevent double clicks */
 			/* NOT using ISTEXTINPUT anymore because (at least on Windows) some key codes above 255
 			 * could have printable ascii keys - BUG [#30479] */
-			if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1;
+			if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) {
+				return true;
+			}
 		}
+	}
 
 	if (kmitype != KM_ANY) {
 		if (ELEM(kmitype, TABLET_STYLUS, TABLET_ERASER)) {
 			const wmTabletData *wmtab = winevent->tablet_data;
 
-			if (wmtab == NULL)
-				return 0;
-			else if (winevent->type != LEFTMOUSE) /* tablet events can occur on hover + keypress */
-				return 0;
-			else if ((kmitype == TABLET_STYLUS) && (wmtab->Active != EVT_TABLET_STYLUS))
-				return 0;
-			else if ((kmitype == TABLET_ERASER) && (wmtab->Active != EVT_TABLET_ERASER))
-				return 0;
+			if (wmtab == NULL) {
+				return false;
+			}
+			else if (winevent->type != LEFTMOUSE) {
+				/* tablet events can occur on hover + keypress */
+				return false;
+			}
+			else if ((kmitype == TABLET_STYLUS) && (wmtab->Active != EVT_TABLET_STYLUS)) {
+				return false;
+			}
+			else if ((kmitype == TABLET_ERASER) && (wmtab->Active != EVT_TABLET_ERASER)) {
+				return false;
+			}
 		}
 		else {
-			if (winevent->type != kmitype)
-				return 0;
+			if (winevent->type != kmitype) {
+				return false;
+			}
 		}
 	}
 
-	if (kmi->val != KM_ANY)
-		if (winevent->val != kmi->val) return 0;
+	if (kmi->val != KM_ANY) {
+		if (winevent->val != kmi->val) {
+			return false;
+		}
+	}
 
 	/* modifiers also check bits, so it allows modifier order */
-	if (kmi->shift != KM_ANY)
-		if (winevent->shift != kmi->shift && !(winevent->shift & kmi->shift)) return 0;
-	if (kmi->ctrl != KM_ANY)
-		if (winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl)) return 0;
-	if (kmi->alt != KM_ANY)
-		if (winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) return 0;
-	if (kmi->oskey != KM_ANY)
-		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
+	if (kmi->shift != KM_ANY) {
+		if (winevent->shift != kmi->shift && !(winevent->shift & kmi->shift)) {
+			return false;
+		}
+	}
+	if (kmi->ctrl != KM_ANY) {
+		if (winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl)) {
+			return false;
+		}
+	}
+	if (kmi->alt != KM_ANY) {
+		if (winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) {
+			return false;
+		}
+	}
+	if (kmi->oskey != KM_ANY) {
+		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) {
+			return false;
+		}
+	}
 
 	/* only keymap entry with keymodifier is checked, means all keys without modifier get handled too. */
 	/* that is currently needed to make overlapping events work (when you press A - G fast or so). */
-	if (kmi->keymodifier)
-		if (winevent->keymodifier != kmi->keymodifier) return 0;
+	if (kmi->keymodifier) {
+		if (winevent->keymodifier != kmi->keymodifier) {
+			return false;
+		}
+	}
 
-	return 1;
+	return true;
 }
 
 
