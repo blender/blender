@@ -93,7 +93,7 @@ typedef struct tGPencilObjectCache {
 	float scale;
 
 	/* shading type */
-	int shading_type;
+	int shading_type[2];
 
 	/* GPU data size */
 	int tot_vertex;
@@ -121,8 +121,8 @@ typedef struct GPENCIL_shgroup {
 
 	/* color of the wireframe */
 	float wire_color[4];
-	/* shading type */
-	int shading_type;
+	/* shading type and mode */
+	int shading_type[2];
 } GPENCIL_shgroup;
 
 typedef struct GPENCIL_Storage {
@@ -380,7 +380,7 @@ struct DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         struct Object *ob, struct bGPdata *gpd,
         struct bGPDlayer *gpl, struct bGPDstroke *gps,
         struct MaterialGPencilStyle *gp_style, int id, bool onion,
-        const float scale, int shading_type);
+        const float scale, const int shading_type[2]);
 void DRW_gpencil_populate_datablock(
         struct GPENCIL_e_data *e_data, void *vedata,
         struct Object *ob, struct tGPencilObjectCache *cache_ob);

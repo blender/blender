@@ -22,7 +22,7 @@ uniform sampler2D myTexture;
 uniform int texture_clamp;
 
 uniform int viewport_xray;
-uniform int shading_type;
+uniform int shading_type[2];
 uniform vec4 wire_color;
 
 /* keep this list synchronized with list in gpencil_draw_utils.c */
@@ -42,6 +42,9 @@ uniform vec4 wire_color;
 
 #define OB_WIRE  2
 #define OB_SOLID 3
+
+#define	V3D_SHADING_MATERIAL_COLOR 0
+#define	V3D_SHADING_TEXTURE_COLOR  3
 
 in vec4 finalColor;
 in vec2 texCoord_interp;
@@ -92,7 +95,7 @@ void main()
 	vec4 chesscolor;
 
 	/* wireframe with x-ray discard */
-	if ((viewport_xray == 1) && (shading_type == OB_WIRE)) {
+	if ((viewport_xray == 1) && (shading_type[0] == OB_WIRE)) {
 		discard;
 	}
 
@@ -168,17 +171,17 @@ void main()
 	}
 
 	/* if wireframe override colors */
-	if (shading_type == OB_WIRE) {
+	if (shading_type[0] == OB_WIRE) {
 		fragColor = wire_color;
 	}
-		/* solid with x-ray discard */
-	if (shading_type == OB_SOLID) {
-		if (viewport_xray == 1) {
-			/* use 50% of color */
-			fragColor = vec4(wire_color.rgb, wire_color.a * 0.5);
-		}
-		else {
+	
+	/* for solid override color */
+	if (shading_type[0] == OB_SOLID) {
+		if ((shading_type[1] != V3D_SHADING_MATERIAL_COLOR) && (shading_type[1] != V3D_SHADING_TEXTURE_COLOR)) { 
 			fragColor = wire_color;
+		}
+		if (viewport_xray == 1) {
+			fragColor.a *= 0.5;
 		}
 	}
 

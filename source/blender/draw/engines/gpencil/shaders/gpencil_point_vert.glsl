@@ -6,7 +6,7 @@ uniform int keep_size;
 uniform float objscale;
 uniform float pixfactor;
 uniform int viewport_xray;
-uniform int shading_type;
+uniform int shading_type[2];
 uniform vec4 wire_color;
 
 in vec3 pos;
@@ -22,6 +22,9 @@ out vec2 finaluvdata;
 
 #define OB_WIRE  2
 #define OB_SOLID 3
+
+#define	V3D_SHADING_MATERIAL_COLOR 0
+#define	V3D_SHADING_TEXTURE_COLOR  3
 
 float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
@@ -39,17 +42,17 @@ void main()
 	}
 	
 	/* for wireframe override size and color */
-	if (shading_type == OB_WIRE) {
+	if (shading_type[0] == OB_WIRE) {
 		finalThickness = 2.0;
 		finalColor = wire_color;
 	}
 	/* for solid override color */
-	if (shading_type == OB_SOLID) {
-		if (viewport_xray == 1) {
-			finalColor = vec4(wire_color.rgb, wire_color.a * 0.5);
-		}
-		else { 
+	if (shading_type[0] == OB_SOLID) {
+		if ((shading_type[1] != V3D_SHADING_MATERIAL_COLOR) && (shading_type[1] != V3D_SHADING_TEXTURE_COLOR)) { 
 			finalColor = wire_color;
+		}
+		if (viewport_xray == 1) {
+			finalColor.a *= 0.5;
 		}
 	}
 

@@ -85,11 +85,11 @@ tGPencilObjectCache *gpencil_object_cache_add(
 
 	/* save wire mode (object mode is always primary option) */
 	if (ob->dt == OB_WIRE) {
-		cache_elem->shading_type = (int)OB_WIRE;
+		cache_elem->shading_type[0] = (int)OB_WIRE;
 	}
 	else {
 		if (v3d) {
-			cache_elem->shading_type = (int)v3d->shading.type;
+			cache_elem->shading_type[0] = (int)v3d->shading.type;
 		}
 	}
 

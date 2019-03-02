@@ -746,7 +746,7 @@ void DRW_gpencil_fx_prepare(
         tGPencilObjectCache *cache_ob)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
-	const bool wiremode = (bool)(cache_ob->shading_type == OB_WIRE);
+	const bool wiremode = (bool)(cache_ob->shading_type[0] == OB_WIRE);
 
 	int ob_idx = cache_ob->idx;
 
