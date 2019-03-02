@@ -41,6 +41,10 @@
 
 #ifdef WITH_MEM_VALGRIND
 #  include "valgrind/memcheck.h"
+#else
+#  define VALGRIND_CREATE_MEMPOOL(pool, rzB, is_zeroed) UNUSED_VARS(pool, rzB, is_zeroed)
+#  define VALGRIND_DESTROY_MEMPOOL(pool) UNUSED_VARS(pool)
+#  define VALGRIND_MEMPOOL_ALLOC(pool, addr, size) UNUSED_VARS(pool, addr, size)
 #endif
 
 struct MemBuf {
@@ -75,9 +79,7 @@ MemArena *BLI_memarena_new(const size_t bufsize, const char *name)
 	ma->align = 8;
 	ma->name = name;
 
-#ifdef WITH_MEM_VALGRIND
 	VALGRIND_CREATE_MEMPOOL(ma, 0, false);
-#endif
 
 	return ma;
 }
@@ -101,9 +103,8 @@ void BLI_memarena_use_align(struct MemArena *ma, const size_t align)
 void BLI_memarena_free(MemArena *ma)
 {
 	memarena_buf_free_all(ma->bufs);
-#ifdef WITH_MEM_VALGRIND
+
 	VALGRIND_DESTROY_MEMPOOL(ma);
-#endif
 
 	MEM_freeN(ma);
 }
@@ -149,9 +150,7 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
 	ma->curbuf += size;
 	ma->cursize -= size;
 
-#ifdef WITH_MEM_VALGRIND
 	VALGRIND_MEMPOOL_ALLOC(ma, ptr, size);
-#endif
 
 	return ptr;
 }
@@ -197,9 +196,6 @@ void BLI_memarena_clear(MemArena *ma)
 		}
 	}
 
-#ifdef WITH_MEM_VALGRIND
 	VALGRIND_DESTROY_MEMPOOL(ma);
 	VALGRIND_CREATE_MEMPOOL(ma, 0, false);
-#endif
-
 }
