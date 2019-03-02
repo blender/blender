@@ -47,6 +47,17 @@
 #  define VALGRIND_MEMPOOL_ALLOC(pool, addr, size) UNUSED_VARS(pool, addr, size)
 #endif
 
+/* Clang defines this. */
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+#  include "sanitizer/asan_interface.h"
+#else
+#  define ASAN_POISON_MEMORY_REGION(addr, size) ((void)(addr), (void)(size))
+#  define ASAN_UNPOISON_MEMORY_REGION(addr, size) ((void)(addr), (void)(size))
+#endif
+
 struct MemBuf {
 	struct MemBuf *next;
 	uchar data[0];
@@ -143,6 +154,8 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
 		mb->next = ma->bufs;
 		ma->bufs = mb;
 
+		ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
+
 		memarena_curbuf_align(ma);
 	}
 
@@ -151,6 +164,8 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
 	ma->cursize -= size;
 
 	VALGRIND_MEMPOOL_ALLOC(ma, ptr, size);
+
+	ASAN_UNPOISON_MEMORY_REGION(ptr, size);
 
 	return ptr;
 }
@@ -194,6 +209,7 @@ void BLI_memarena_clear(MemArena *ma)
 		if (ma->use_calloc) {
 			memset(ma->curbuf, 0, curbuf_used);
 		}
+		ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
 	}
 
 	VALGRIND_DESTROY_MEMPOOL(ma);
