@@ -145,7 +145,7 @@ struct BLI_mempool {
 #define NODE_STEP_PREV(node)  ((void *)((char *)(node) - esize))
 
 /** Extra bytes implicitly used for every chunk alloc. */
-#define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD)
+#define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
 
 #ifdef USE_CHUNK_POW2
 static uint power_of_2_max_u(uint x)
@@ -290,18 +290,24 @@ BLI_mempool *BLI_mempool_create(
 	pool->chunks = NULL;
 	pool->chunk_tail = NULL;
 	pool->esize = esize;
-	pool->csize = esize * pchunk;
-
 
 	/* Optimize chunk size to powers of 2, accounting for slop-space. */
 #ifdef USE_CHUNK_POW2
 	{
-		BLI_assert(pool->csize > CHUNK_OVERHEAD);
-		pool->csize = power_of_2_max_u(pool->csize) - CHUNK_OVERHEAD;
-		pchunk = pool->csize / esize;
+		BLI_assert(power_of_2_max_u(pchunk * esize) > CHUNK_OVERHEAD);
+		pchunk = (power_of_2_max_u(pchunk * esize) - CHUNK_OVERHEAD) / esize;
 	}
 #endif
 
+	pool->csize = esize * pchunk;
+
+	/* Ensure this is a power of 2, minus the rounding by element size. */
+#ifdef USE_CHUNK_POW2
+	{
+		uint final_size = (uint)MEM_SIZE_OVERHEAD + (uint)sizeof(BLI_mempool_chunk) + pool->csize;
+		BLI_assert(((uint)power_of_2_max_u(final_size) - final_size) < pool->esize);
+	}
+#endif
 
 	pool->pchunk = pchunk;
 	pool->flag = flag;
