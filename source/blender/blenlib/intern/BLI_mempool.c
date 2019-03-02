@@ -78,9 +78,6 @@
 /* currently totalloc isnt used */
 // #define USE_TOTALLOC
 
-/* when undefined, merge the allocs for BLI_mempool_chunk and its data */
-// #define USE_DATA_PTR
-
 /* optimize pool size */
 #define USE_CHUNK_POW2
 
@@ -106,9 +103,6 @@ typedef struct BLI_freenode {
  */
 typedef struct BLI_mempool_chunk {
 	struct BLI_mempool_chunk *next;
-#ifdef USE_DATA_PTR
-	void *_data;
-#endif
 } BLI_mempool_chunk;
 
 /**
@@ -136,21 +130,13 @@ struct BLI_mempool {
 
 #define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
 
-#ifdef USE_DATA_PTR
-#  define CHUNK_DATA(chunk) (chunk)->_data
-#else
-#  define CHUNK_DATA(chunk) (CHECK_TYPE_INLINE(chunk, BLI_mempool_chunk *), (void *)((chunk) + 1))
-#endif
+#define CHUNK_DATA(chunk) (CHECK_TYPE_INLINE(chunk, BLI_mempool_chunk *), (void *)((chunk) + 1))
 
 #define NODE_STEP_NEXT(node)  ((void *)((char *)(node) + esize))
 #define NODE_STEP_PREV(node)  ((void *)((char *)(node) - esize))
 
 /* extra bytes implicitly used for every chunk alloc */
-#ifdef USE_DATA_PTR
-#  define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
-#else
-#  define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD)
-#endif
+#define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD)
 
 #ifdef USE_CHUNK_POW2
 static uint power_of_2_max_u(uint x)
@@ -186,15 +172,7 @@ BLI_INLINE uint mempool_maxchunks(const uint totelem, const uint pchunk)
 
 static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
 {
-	BLI_mempool_chunk *mpchunk;
-#ifdef USE_DATA_PTR
-	mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
-	CHUNK_DATA(mpchunk) = MEM_mallocN((size_t)pool->csize, "BLI Mempool Chunk Data");
-#else
-	mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "BLI_Mempool Chunk");
-#endif
-
-	return mpchunk;
+	return MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "BLI_Mempool Chunk");
 }
 
 /**
@@ -264,10 +242,6 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpc
 
 static void mempool_chunk_free(BLI_mempool_chunk *mpchunk)
 {
-
-#ifdef USE_DATA_PTR
-	MEM_freeN(CHUNK_DATA(mpchunk));
-#endif
 	MEM_freeN(mpchunk);
 }
 
