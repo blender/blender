@@ -267,7 +267,7 @@ void DNA_alias_maps(
 		for (int i = 0; i < ARRAY_SIZE(data); i++) {
 			const char **str_pair = MEM_mallocN(sizeof(char *) * 2, __func__);
 			str_pair[0] = BLI_ghash_lookup_default(struct_map_local, data[i][0], (void *)data[i][0]);
-			str_pair[1] = data[i][elem_key],
+			str_pair[1] = data[i][elem_key];
 			BLI_ghash_insert(elem_map, str_pair, (void *)data[i][elem_val]);
 		}
 		*r_elem_map = elem_map;
