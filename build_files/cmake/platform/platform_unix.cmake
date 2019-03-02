@@ -39,6 +39,10 @@ if(EXISTS ${LIBDIR})
 	set(WITH_OPENMP_STATIC ON)
 endif()
 
+if(WITH_STATIC_LIBS)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
+endif()
+
 # Wrapper to prefer static libraries
 macro(find_package_wrapper)
 	if(WITH_STATIC_LIBS)
