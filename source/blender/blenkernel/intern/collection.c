@@ -209,84 +209,31 @@ void BKE_collection_copy_data(
 	}
 }
 
-static void collection_duplicate_recursive(Main *bmain, GHash *visited, Collection *collection, const int dupflag)
+static Collection *collection_duplicate_recursive(
+        Main *bmain, Collection *parent, Collection *collection_old, const bool do_hierarchy, const bool do_deep_copy)
 {
-	const bool is_first_run = (visited == NULL);
-	if (is_first_run) {
-		visited = BLI_ghash_ptr_new(__func__);
-		BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
-	}
-
-	if (collection->id.tag & LIB_TAG_DOIT) {
-		return;
-	}
-	collection->id.tag |= LIB_TAG_DOIT;
-
-	ListBase collection_object_list = {NULL, NULL};
-	BLI_duplicatelist(&collection_object_list, &collection->gobject);
-	for (CollectionObject *cob = collection_object_list.first; cob; cob = cob->next) {
-		Object *ob_old = cob->ob;
-		Object *ob_new = NULL;
-		void **ob_key_p, **ob_value_p;
-
-		if (!BLI_ghash_ensure_p_ex(visited, ob_old, &ob_key_p, &ob_value_p)) {
-			ob_new = BKE_object_duplicate(bmain, ob_old, dupflag);
-			*ob_key_p = ob_old;
-			*ob_value_p = ob_new;
-		}
-		else {
-			ob_new = *ob_value_p;
-		}
-
-		collection_object_add(bmain, collection, ob_new, 0, true);
-		collection_object_remove(bmain, collection, ob_old, false);
-	}
-	BLI_freelistN(&collection_object_list);
-
-	ListBase collection_child_list = {NULL, NULL};
-	BLI_duplicatelist(&collection_child_list, &collection->children);
-	for (CollectionChild *child = collection_child_list.first; child; child = child->next) {
-		Collection *child_collection_old = child->collection;
-		Collection *child_collection_new = BKE_collection_copy(bmain, collection, child_collection_old);
-
-		collection_duplicate_recursive(bmain, visited, child_collection_new, dupflag);
-		collection_child_remove(collection, child_collection_old);
-	}
-	BLI_freelistN(&collection_child_list);
-
-	if (is_first_run) {
-		BLI_ghash_free(visited, NULL, NULL);
-	}
-}
-
-/**
- * Makes a shallow copy of a Collection
- *
- * Add a new collection in the same level as the old one, link any nested collections
- * and finally link the objects to the new collection (as oppose to copy them).
- */
-Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *collection)
-{
-	return BKE_collection_duplicate(bmain, parent, collection, false, false);
-}
-
-Collection *BKE_collection_duplicate(Main *bmain, Collection *parent, Collection *collection, const bool do_hierarchy, const bool do_deep_copy)
-{
-	/* It's not allowed to copy the master collection. */
-	if (collection->flag & COLLECTION_IS_MASTER) {
-		BLI_assert("!Master collection can't be duplicated");
-		return NULL;
-	}
-
 	Collection *collection_new;
-	BKE_id_copy(bmain, &collection->id, (ID **)&collection_new);
-	id_us_min(&collection_new->id);  /* Copying add one user by default, need to get rid of that one. */
+	bool do_full_process = false;
+	const int object_dupflag = (do_deep_copy) ? U.dupflag : 0;
 
-	/* Optionally add to parent. */
-	if (parent) {
+	if (!do_hierarchy || collection_old->id.newid == NULL) {
+		BKE_id_copy(bmain, &collection_old->id, (ID **)&collection_new);
+		id_us_min(&collection_new->id);  /* Copying add one user by default, need to get rid of that one. */
+
+		if (do_hierarchy) {
+			ID_NEW_SET(collection_old, collection_new);
+		}
+		do_full_process = true;
+	}
+	else {
+		collection_new = (Collection *)collection_old->id.newid;
+	}
+
+	/* Optionally add to parent (we always want to do that, even if collection_old had already been duplicated). */
+	if (parent != NULL) {
 		if (collection_child_add(parent, collection_new, 0, true)) {
 			/* Put collection right after existing one. */
-			CollectionChild *child = collection_find_child(parent, collection);
+			CollectionChild *child = collection_find_child(parent, collection_old);
 			CollectionChild *child_new = collection_find_child(parent, collection_new);
 
 			if (child && child_new) {
@@ -296,8 +243,80 @@ Collection *BKE_collection_duplicate(Main *bmain, Collection *parent, Collection
 		}
 	}
 
+	/* If we are not doing any kind of deep-copy, we can return immediately.
+	 * False do_full_process means collection_old had already been duplicated, no need to redo some deep-copy on it. */
+	if (!do_hierarchy || !do_full_process) {
+		return collection_new;
+	}
+
+	/* We can loop on collection_old's objects, that list is currently identical the collection_new' objects,
+	 * and won't be changed here. */
+	for (CollectionObject *cob = collection_old->gobject.first; cob; cob = cob->next) {
+		Object *ob_old = cob->ob;
+		Object *ob_new = (Object *)ob_old->id.newid;
+
+		if (ob_new == NULL) {
+			ob_new = BKE_object_duplicate(bmain, ob_old, object_dupflag);
+			ID_NEW_SET(ob_old, ob_new);
+		}
+
+		collection_object_add(bmain, collection_new, ob_new, 0, true);
+		collection_object_remove(bmain, collection_new, ob_old, false);
+	}
+
+	/* We can loop on collection_old's children, that list is currently identical the collection_new' children,
+	 * and won't be changed here. */
+	for (CollectionChild *child = collection_old->children.first; child; child = child->next) {
+		Collection *child_collection_old = child->collection;
+
+		collection_duplicate_recursive(bmain, collection_new, child_collection_old, do_hierarchy, do_deep_copy);
+		collection_child_remove(collection_new, child_collection_old);
+	}
+
+	return collection_new;
+}
+
+/**
+ * Makes a standard (aka shallow) ID copy of a Collection.
+ *
+ * Add a new collection in the same level as the old one, link any nested collections
+ * and finally link the objects to the new collection (as opposed to copying them).
+ */
+Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *collection)
+{
+	return BKE_collection_duplicate(bmain, parent, collection, false, false);
+}
+
+/**
+ * Make either a shallow copy, or deeper duplicate of given collection.
+ *
+ * If \a do_hierarchy and \a do_deep_copy are false, this is a regular (shallow) ID copy.
+ *
+ * \warning If any 'deep copy' behavior is enabled, this functions will clear all \a bmain id.idnew pointers.
+ *
+ * \param do_hierarchy If true, it will recursively make shallow copies of children collections and objects.
+ * \param do_deep_copy If true, it will also make deep duplicates of objects, using behavior defined in user settings
+ *                     (U.dupflag). This one does nothing if \a do_hierarchy is not set.
+ */
+Collection *BKE_collection_duplicate(
+        Main *bmain, Collection *parent, Collection *collection, const bool do_hierarchy, const bool do_deep_copy)
+{
+	/* It's not allowed to copy the master collection. */
+	if (collection->flag & COLLECTION_IS_MASTER) {
+		BLI_assert("!Master collection can't be duplicated");
+		return NULL;
+	}
+
 	if (do_hierarchy) {
-		collection_duplicate_recursive(bmain, NULL, collection_new, (do_deep_copy) ? U.dupflag : 0);
+		BKE_main_id_clear_newpoins(bmain);
+	}
+
+	Collection *collection_new = collection_duplicate_recursive(
+	                                 bmain, parent, collection, do_hierarchy, do_deep_copy);
+
+	if (do_hierarchy) {
+		/* Cleanup. */
+		BKE_main_id_clear_newpoins(bmain);
 	}
 
 	BKE_main_collection_sync(bmain);
