@@ -342,6 +342,11 @@ static void set_wireframe_color(Object *ob, bGPDlayer *gpl, View3D *v3d,
 	else {
 		copy_v4_v4(stl->shgroups[id].wire_color, color);
 	}
+
+	/* if solid, the alpha must be set to 1.0 */
+	if (stl->shgroups[id].shading_type[0] == OB_SOLID) {
+		stl->shgroups[id].wire_color[3] = 1.0f;
+	}
 }
 
 /* create shading group for filling */
