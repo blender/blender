@@ -1066,6 +1066,9 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
 	/* if this is a new object, initialise default stuff (colors, etc.) */
 	if (newob) {
+		/* set default viewport color to black */
+		copy_v3_fl(ob->color, 0.0f);
+
 		ED_gpencil_add_defaults(C, ob);
 	}
 
