@@ -2118,7 +2118,7 @@ static void switch_endian_structs(const struct SDNA *filesdna, BHead *bhead)
 	char *data;
 
 	data = (char *)(bhead + 1);
-	blocksize = filesdna->typelens[filesdna->structs[bhead->SDNAnr][0]];
+	blocksize = filesdna->types_size[filesdna->structs[bhead->SDNAnr][0]];
 
 	nblocks = bhead->nr;
 	while (nblocks--) {
@@ -2264,9 +2264,9 @@ static void test_pointer_array(FileData *fd, void **mat)
 	 * the new dna format.
 	 */
 	if (*mat) {
-		len = MEM_allocN_len(*mat) / fd->filesdna->pointerlen;
+		len = MEM_allocN_len(*mat) / fd->filesdna->pointer_size;
 
-		if (fd->filesdna->pointerlen == 8 && fd->memsdna->pointerlen == 4) {
+		if (fd->filesdna->pointer_size == 8 && fd->memsdna->pointer_size == 4) {
 			ipoin = imat = MEM_malloc_arrayN(len, 4, "newmatar");
 			lpoin = *mat;
 
@@ -2281,7 +2281,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 			*mat = imat;
 		}
 
-		if (fd->filesdna->pointerlen == 4 && fd->memsdna->pointerlen == 8) {
+		if (fd->filesdna->pointer_size == 4 && fd->memsdna->pointer_size == 8) {
 			lpoin = lmat = MEM_malloc_arrayN(len, 8, "newmatar");
 			ipoin = *mat;
 

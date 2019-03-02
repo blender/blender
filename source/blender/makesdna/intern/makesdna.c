@@ -147,20 +147,21 @@ static int maxdata = 500000, maxnr = 50000;
 static int nr_names = 0;
 static int nr_types = 0;
 static int nr_structs = 0;
-/** at address names[a] is string a */
+/** At address `names[a]` is string `a`. */
 static char **names;
-/** at address types[a] is string a */
+/** At address `types[a]` is string `a`. */
 static char **types;
-/** at typelens[a] is the length of type 'a' on this systems bitness (32 or 64) */
-static short *typelens_native;
-/** contains sizes as they are calculated on 32 bit systems */
-static short *typelens_32;
-/** contains sizes as they are calculated on 64 bit systems */
-static short *typelens_64;
-/** at sp = structs[a] is the first address of a struct definition
- * sp[0] is type number
- * sp[1] is amount of elements
- * sp[2] sp[3] is typenr,  namenr (etc) */
+/** At `types_size[a]` is the size of type `a` on this systems bitness (32 or 64). */
+static short *types_size_native;
+/** Contains sizes as they are calculated on 32 bit systems. */
+static short *types_size_32;
+/** Contains sizes as they are calculated on 64 bit systems. */
+static short *types_size_64;
+/** At `sp = structs[a]` is the first address of a struct definition:
+ * - `sp[0]` is type number.
+ * - `sp[1]` is the length of the element array (next).
+ * - `sp[2]` sp[3] is [(type_nr, name_nr), ..] (number of pairs is defined by `sp[1]`),
+ */
 static short **structs, *structdata;
 
 /** Versioning data */
@@ -205,7 +206,7 @@ void BLI_system_backtrace(FILE *fp)
  * \param len: The struct size in bytes.
  * \return Index in the #types array.
  */
-static int add_type(const char *str, int len);
+static int add_type(const char *str, int size);
 
 /**
  * Ensure \c str is int the #names array.
@@ -224,7 +225,7 @@ static short *add_struct(int namecode);
  * Remove comments from this buffer. Assumes that the buffer refers to
  * ascii-code text.
  */
-static int preprocess_include(char *maindata, int len);
+static int preprocess_include(char *maindata, const int maindata_len);
 
 /**
  * Scan this file for serializable types.
@@ -234,7 +235,7 @@ static int convert_include(const char *filename);
 /**
  * Determine how many bytes are needed for each struct.
  */
-static int calculate_structlens(int);
+static int calculate_struct_sizes(int);
 
 /**
  * Construct the DNA.c file
@@ -244,7 +245,7 @@ static void dna_write(FILE *file, const void *pntr, const int size);
 /**
  * Report all structures found so far, and print their lengths.
  */
-void printStructLengths(void);
+void print_struct_sizes(void);
 
 /** \} */
 
@@ -334,7 +335,7 @@ static bool is_name_legal(const char *name)
 }
 
 
-static int add_type(const char *str, int len)
+static int add_type(const char *str, int size)
 {
 	int nr;
 	char *cp;
@@ -354,10 +355,10 @@ static int add_type(const char *str, int len)
 	/* search through type array */
 	for (nr = 0; nr < nr_types; nr++) {
 		if (strcmp(str, types[nr]) == 0) {
-			if (len) {
-				typelens_native[nr] = len;
-				typelens_32[nr] = len;
-				typelens_64[nr] = len;
+			if (size) {
+				types_size_native[nr] = size;
+				types_size_32[nr] = size;
+				types_size_64[nr] = size;
 			}
 			return nr;
 		}
@@ -368,9 +369,9 @@ static int add_type(const char *str, int len)
 	cp = BLI_memarena_alloc(mem_arena, str_size);
 	memcpy(cp, str, str_size);
 	types[nr_types] = cp;
-	typelens_native[nr_types] = len;
-	typelens_32[nr_types] = len;
-	typelens_64[nr_types] = len;
+	types_size_native[nr_types] = size;
+	types_size_32[nr_types] = size;
+	types_size_64[nr_types] = size;
 
 	if (nr_types >= maxnr) {
 		printf("too many types\n");
@@ -552,22 +553,22 @@ static short *add_struct(int namecode)
 	return sp;
 }
 
-static int preprocess_include(char *maindata, int len)
+static int preprocess_include(char *maindata, const int maindata_len)
 {
 	int a, newlen, comment = 0;
 	char *cp, *temp, *md;
 
 	/* note: len + 1, last character is a dummy to prevent
 	 * comparisons using uninitialized memory */
-	temp = MEM_mallocN(len + 1, "preprocess_include");
-	temp[len] = ' ';
+	temp = MEM_mallocN(maindata_len + 1, "preprocess_include");
+	temp[maindata_len] = ' ';
 
-	memcpy(temp, maindata, len);
+	memcpy(temp, maindata, maindata_len);
 
 	/* remove all c++ comments */
 	/* replace all enters/tabs/etc with spaces */
 	cp = temp;
-	a = len;
+	a = maindata_len;
 	comment = 0;
 	while (a--) {
 		if (cp[0] == '/' && cp[1] == '/') {
@@ -586,7 +587,7 @@ static int preprocess_include(char *maindata, int len)
 	md = maindata;
 	newlen = 0;
 	comment = 0;
-	a = len;
+	a = maindata_len;
 	while (a--) {
 
 		if (cp[0] == '/' && cp[1] == '*') {
@@ -682,24 +683,24 @@ static int convert_include(const char *filename)
 	/* read include file, skip structs with a '#' before it.
 	 * store all data in temporal arrays.
 	 */
-	int filelen, count, slen, type, name, strct;
+	int maindata_len, count, slen, type, name, strct;
 	short *structpoin, *sp;
 	char *maindata, *mainend, *md, *md1;
 	bool skip_struct;
 
-	md = maindata = read_file_data(filename, &filelen);
-	if (filelen == -1) {
+	md = maindata = read_file_data(filename, &maindata_len);
+	if (maindata_len == -1) {
 		fprintf(stderr, "Can't read file %s\n", filename);
 		return 1;
 	}
 
-	filelen = preprocess_include(maindata, filelen);
-	mainend = maindata + filelen - 1;
+	maindata_len = preprocess_include(maindata, maindata_len);
+	mainend = maindata + maindata_len - 1;
 
 	/* we look for '{' and then back to 'struct' */
 	count = 0;
 	skip_struct = false;
-	while (count < filelen) {
+	while (count < maindata_len) {
 
 		/* code for skipping a struct: two hashes on 2 lines. (preprocess added a space) */
 		if (md[0] == '#' && md[1] == ' ' && md[2] == '#') {
@@ -837,17 +838,17 @@ static bool check_field_alignment(int firststruct, int structtype, int type, int
                                   const char *name, const char *detail)
 {
 	bool result = true;
-	if (type < firststruct && typelens_native[type] > 4 && (len % 8)) {
+	if (type < firststruct && types_size_native[type] > 4 && (len % 8)) {
 		fprintf(stderr, "Align 8 error (%s) in struct: %s %s (add %d padding bytes)\n",
 		        detail, types[structtype], name, len % 8);
 		result = false;
 	}
-	if (typelens_native[type] > 3 && (len % 4) ) {
+	if (types_size_native[type] > 3 && (len % 4) ) {
 		fprintf(stderr, "Align 4 error (%s) in struct: %s %s (add %d padding bytes)\n",
 		        detail, types[structtype], name, len % 4);
 		result = false;
 	}
-	if (typelens_native[type] == 2 && (len % 2) ) {
+	if (types_size_native[type] == 2 && (len % 2) ) {
 		fprintf(stderr, "Align 2 error (%s) in struct: %s %s (add %d padding bytes)\n",
 		        detail, types[structtype], name, len % 2);
 		result = false;
@@ -855,7 +856,7 @@ static bool check_field_alignment(int firststruct, int structtype, int type, int
 	return result;
 }
 
-static int calculate_structlens(int firststruct)
+static int calculate_struct_sizes(int firststruct)
 {
 	int unknown = nr_structs, lastunknown;
 	bool dna_error = false;
@@ -870,12 +871,12 @@ static int calculate_structlens(int firststruct)
 			const int    structtype = structpoin[0];
 
 			/* when length is not known... */
-			if (typelens_native[structtype] == 0) {
+			if (types_size_native[structtype] == 0) {
 
 				const short *sp = structpoin + 2;
-				int len_native = 0;
-				int len_32 = 0;
-				int len_64 = 0;
+				int size_native = 0;
+				int size_32 = 0;
+				int size_64 = 0;
 				bool has_pointer = false;
 
 				/* check all elements in struct */
@@ -901,29 +902,29 @@ static int calculate_structlens(int firststruct)
 
 						/* 4-8 aligned/ */
 						if (sizeof(void *) == 4) {
-							if (len_native % 4) {
-								fprintf(stderr, "Align pointer error in struct (len_native 4): %s %s\n",
+							if (size_native % 4) {
+								fprintf(stderr, "Align pointer error in struct (size_native 4): %s %s\n",
 								        types[structtype], cp);
 								dna_error = 1;
 							}
 						}
 						else {
-							if (len_native % 8) {
-								fprintf(stderr, "Align pointer error in struct (len_native 8): %s %s\n",
+							if (size_native % 8) {
+								fprintf(stderr, "Align pointer error in struct (size_native 8): %s %s\n",
 								        types[structtype], cp);
 								dna_error = 1;
 							}
 						}
 
-						if (len_64 % 8) {
-							fprintf(stderr, "Align pointer error in struct (len_64 8): %s %s\n",
+						if (size_64 % 8) {
+							fprintf(stderr, "Align pointer error in struct (size_64 8): %s %s\n",
 							        types[structtype], cp);
 							dna_error = 1;
 						}
 
-						len_native += sizeof(void *) * mul;
-						len_32 += 4 * mul;
-						len_64 += 8 * mul;
+						size_native += sizeof(void *) * mul;
+						size_32 += 4 * mul;
+						size_64 += 8 * mul;
 
 					}
 					else if (cp[0] == '[') {
@@ -933,7 +934,7 @@ static int calculate_structlens(int firststruct)
 						        types[structtype], cp);
 						dna_error = 1;
 					}
-					else if (typelens_native[type]) {
+					else if (types_size_native[type]) {
 						/* has the name an extra length? (array) */
 						int mul = 1;
 						if (cp[namelen - 1] == ']') {
@@ -948,7 +949,7 @@ static int calculate_structlens(int firststruct)
 
 						/* struct alignment */
 						if (type >= firststruct) {
-							if (sizeof(void *) == 8 && (len_native % 8) ) {
+							if (sizeof(void *) == 8 && (size_native % 8) ) {
 								fprintf(stderr, "Align struct error: %s %s\n",
 								        types[structtype], cp);
 								dna_error = 1;
@@ -956,46 +957,46 @@ static int calculate_structlens(int firststruct)
 						}
 
 						/* Check 2-4-8 aligned. */
-						if (!check_field_alignment(firststruct, structtype, type, len_32, cp, "32 bit")) {
+						if (!check_field_alignment(firststruct, structtype, type, size_32, cp, "32 bit")) {
 							dna_error = 1;
 						}
-						if (!check_field_alignment(firststruct, structtype, type, len_64, cp, "64 bit")) {
+						if (!check_field_alignment(firststruct, structtype, type, size_64, cp, "64 bit")) {
 							dna_error = 1;
 						}
 
-						len_native += mul * typelens_native[type];
-						len_32 += mul * typelens_32[type];
-						len_64 += mul * typelens_64[type];
+						size_native += mul * types_size_native[type];
+						size_32 += mul * types_size_32[type];
+						size_64 += mul * types_size_64[type];
 
 					}
 					else {
-						len_native = 0;
-						len_32 = 0;
-						len_64 = 0;
+						size_native = 0;
+						size_32 = 0;
+						size_64 = 0;
 						break;
 					}
 				}
 
-				if (len_native == 0) {
+				if (size_native == 0) {
 					unknown++;
 				}
 				else {
-					typelens_native[structtype] = len_native;
-					typelens_32[structtype] = len_32;
-					typelens_64[structtype] = len_64;
+					types_size_native[structtype] = size_native;
+					types_size_32[structtype] = size_32;
+					types_size_64[structtype] = size_64;
 					/* two ways to detect if a struct contains a pointer:
-					 * has_pointer is set or len_native  doesn't match any of 32/64bit lengths*/
-					if (has_pointer || len_64 != len_native || len_32 != len_native) {
-						if (len_64 % 8) {
+					 * has_pointer is set or size_native  doesn't match any of 32/64bit lengths*/
+					if (has_pointer || size_64 != size_native || size_32 != size_native) {
+						if (size_64 % 8) {
 							fprintf(stderr, "Sizeerror 8 in struct: %s (add %d bytes)\n",
-							        types[structtype], len_64 % 8);
+							        types[structtype], size_64 % 8);
 							dna_error = 1;
 						}
 					}
 
-					if (len_native % 4) {
+					if (size_native % 4) {
 						fprintf(stderr, "Sizeerror 4 in struct: %s (add %d bytes)\n",
-						       types[structtype], len_native % 4);
+						       types[structtype], size_native % 4);
 						dna_error = 1;
 					}
 
@@ -1017,7 +1018,7 @@ static int calculate_structlens(int firststruct)
 				const int    structtype = structpoin[0];
 
 				/* length unknown */
-				if (typelens_native[structtype] != 0) {
+				if (types_size_native[structtype] != 0) {
 					fprintf(stderr, "  %s\n", types[structtype]);
 				}
 			}
@@ -1031,7 +1032,7 @@ static int calculate_structlens(int firststruct)
 			const int    structtype = structpoin[0];
 
 			/* length unknown yet */
-			if (typelens_native[structtype] == 0) {
+			if (types_size_native[structtype] == 0) {
 				fprintf(stderr, "  %s\n", types[structtype]);
 			}
 		}
@@ -1062,7 +1063,7 @@ static void dna_write(FILE *file, const void *pntr, const int size)
 	}
 }
 
-void printStructLengths(void)
+void print_struct_sizes(void)
 {
 	int a, unknown = nr_structs, structtype;
 	/*int lastunknown;*/ /*UNUSED*/
@@ -1077,7 +1078,7 @@ void printStructLengths(void)
 		for (a = 0; a < nr_structs; a++) {
 			structpoin = structs[a];
 			structtype = structpoin[0];
-			printf("\t%s\t:%d\n", types[structtype], typelens_native[structtype]);
+			printf("\t%s\t:%d\n", types[structtype], types_size_native[structtype]);
 		}
 	}
 
@@ -1108,9 +1109,9 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	/* a maximum of 5000 variables, must be sufficient? */
 	names = MEM_callocN(sizeof(char *) * maxnr, "names");
 	types = MEM_callocN(sizeof(char *) * maxnr, "types");
-	typelens_native = MEM_callocN(sizeof(short) * maxnr, "typelens_native");
-	typelens_32 = MEM_callocN(sizeof(short) * maxnr, "typelens_32");
-	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
+	types_size_native = MEM_callocN(sizeof(short) * maxnr, "types_size_native");
+	types_size_32 = MEM_callocN(sizeof(short) * maxnr, "types_size_32");
+	types_size_64 = MEM_callocN(sizeof(short) * maxnr, "types_size_64");
 	structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
 
 	/* Build versioning data */
@@ -1164,7 +1165,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	}
 	DEBUG_PRINTF(0, "\tFinished scanning %d headers.\n", i);
 
-	if (calculate_structlens(firststruct)) {
+	if (calculate_struct_sizes(firststruct)) {
 		/* error */
 		return 1;
 	}
@@ -1181,7 +1182,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 		}
 		printf("\n");
 
-		sp = typelens_native;
+		sp = types_size_native;
 		for (a = 0; a < nr_types; a++, sp++) {
 			printf(" %s %d\n", types[a], *sp);
 		}
@@ -1189,7 +1190,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 
 		for (a = 0; a < nr_structs; a++) {
 			sp = structs[a];
-			printf(" struct %s elems: %d size: %d\n", types[sp[0]], sp[1], typelens_native[sp[0]]);
+			printf(" struct %s elems: %d size: %d\n", types[sp[0]], sp[1], types_size_native[sp[0]]);
 			num_types  = sp[1];
 			sp += 2;
 			/* ? num_types was elem? */
@@ -1249,7 +1250,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 
 		len = 2 * nr_types;
 		if (nr_types & 1) len += 2;
-		dna_write(file, typelens_native, len);
+		dna_write(file, types_size_native, len);
 
 		/* WRITE STRUCTS */
 		dna_write(file, "STRC", 4);
@@ -1281,7 +1282,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 				}
 
 				fprintf(fp, "main() {\n");
-				sp = typelens_native;
+				sp = types_size_native;
 				sp += firststruct;
 				for (a = firststruct; a < nr_types; a++, sp++) {
 					if (*sp) {
@@ -1338,9 +1339,9 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	MEM_freeN(structdata);
 	MEM_freeN(names);
 	MEM_freeN(types);
-	MEM_freeN(typelens_native);
-	MEM_freeN(typelens_32);
-	MEM_freeN(typelens_64);
+	MEM_freeN(types_size_native);
+	MEM_freeN(types_size_32);
+	MEM_freeN(types_size_64);
 	MEM_freeN(structs);
 
 	BLI_memarena_free(mem_arena);

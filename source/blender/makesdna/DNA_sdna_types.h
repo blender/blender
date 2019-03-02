@@ -31,7 +31,7 @@ typedef struct SDNA {
 	/** Full copy of 'encoded' data (when data_alloc is set, otherwise borrowed). */
 	const char *data;
 	/** Length of data. */
-	int datalen;
+	int data_len;
 	bool data_alloc;
 
 	/** Total number of struct members. */
@@ -40,14 +40,14 @@ typedef struct SDNA {
 	const char **names;
 
 	/** Size of a pointer in bytes. */
-	int pointerlen;
+	int pointer_size;
 
 	/** Number of basic types + struct types. */
 	int nr_types;
 	/** Type names. */
 	const char **types;
 	/** Type lengths. */
-	short *typelens;
+	short *types_size;
 
 	/** Number of struct types. */
 	int nr_structs;

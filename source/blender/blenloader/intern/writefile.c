@@ -531,7 +531,7 @@ static void writestruct_at_address_nr(
 	bh.SDNAnr = struct_nr;
 	sp = wd->sdna->structs[bh.SDNAnr];
 
-	bh.len = nr * wd->sdna->typelens[sp[0]];
+	bh.len = nr * wd->sdna->types_size[sp[0]];
 
 	if (bh.len == 0) {
 		return;
@@ -4047,7 +4047,7 @@ static bool write_file_handle(
 	 *
 	 * Note that we *borrow* the pointer to 'DNAstr',
 	 * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
-	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
+	writedata(wd, DNA1, wd->sdna->data_len, wd->sdna->data);
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
 	/* compatibility data not created on undo */
