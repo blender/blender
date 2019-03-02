@@ -206,10 +206,10 @@ void DRW_displist_vertbuf_create_pos_and_nor(ListBase *lb, GPUVertBuf *vbo)
 void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
 {
 	static GPUVertFormat format = { 0 };
-	static struct { uint wd; } attr_id;
+	// static struct { uint wd; } attr_id;  /* UNUSED */
 	if (format.attr_len == 0) {
 		/* initialize vertex format */
-		attr_id.wd  = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8,  1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		/* attr_id.wd = */ GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 	}
 
 	int vbo_len_used = curve_render_surface_vert_len_get(lb);
