@@ -1314,6 +1314,8 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DEG_relations_tag_update(bmain);
+
 	/* redraw the 3D view because the object center points are colored differently */
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
