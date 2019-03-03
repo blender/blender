@@ -55,7 +55,7 @@ typedef off_t (FileDataSeekFn)(struct FileData *filedata, off_t offset, int when
 
 typedef struct FileData {
 	/** Linked list of BHeadN's. */
-	ListBase listbase;
+	ListBase bhead_list;
 	enum eFileDataFlag flags;
 	bool is_eof;
 	int buffersize;

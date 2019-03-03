@@ -880,7 +880,7 @@ static BHeadN *get_bhead(FileData *fd)
 	 * of blocks.
 	 */
 	if (new_bhead) {
-		BLI_addtail(&fd->listbase, new_bhead);
+		BLI_addtail(&fd->bhead_list, new_bhead);
 	}
 
 	return new_bhead;
@@ -894,7 +894,7 @@ BHead *blo_bhead_first(FileData *fd)
 	/* Rewind the file
 	 * Read in a new block if necessary
 	 */
-	new_bhead = fd->listbase.first;
+	new_bhead = fd->bhead_list.first;
 	if (new_bhead == NULL) {
 		new_bhead = get_bhead(fd);
 	}
@@ -1493,10 +1493,10 @@ void blo_filedata_free(FileData *fd)
 
 		/* Free all BHeadN data blocks */
 #ifndef NDEBUG
-		BLI_freelistN(&fd->listbase);
+		BLI_freelistN(&fd->bhead_list);
 #else
 		/* Sanity check we're not keeping memory we don't need. */
-		LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->listbase) {
+		LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->bhead_list) {
 			if (fd->seek != NULL && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
 				BLI_assert(new_bhead->has_data == 0);
 			}
