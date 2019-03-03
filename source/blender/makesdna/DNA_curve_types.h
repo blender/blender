@@ -64,7 +64,7 @@ typedef struct Path {
 #
 #
 typedef struct BevPoint {
-	float vec[3], alfa, radius, weight, offset;
+	float vec[3], tilt, radius, weight, offset;
 	/** 2D Only. */
 	float sina, cosa;
 	/** 3D Only. */
@@ -87,9 +87,9 @@ typedef struct BevList {
 
 /**
  * Keyframes on F-Curves (allows code reuse of Bezier eval code) and
- * Points on Bezier Curves/Paths are generally BezTriples
+ * Points on Bezier Curves/Paths are generally BezTriples.
  *
- * \note alfa location in struct is abused by Key system
+ * \note #BezTriple.tilt location in struct is abused by Key system.
  *
  * \note vec in BezTriple looks like this:
  * - vec[0][0] = x location of handle 1
@@ -104,8 +104,12 @@ typedef struct BevList {
  */
 typedef struct BezTriple {
 	float vec[3][3];
-	/** Alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering. */
-	float alfa, weight, radius;
+	/** Tilt in 3D View. */
+	float tilt;
+	/** Used for softbody goal weight. */
+	float weight;
+	/** For bevel tapering & modifiers. */
+	float radius;
 
 	/** Ipo: interpolation mode for segment from this BezTriple to the next. */
 	char ipo;
@@ -131,11 +135,15 @@ typedef struct BezTriple {
 	char _pad[3];
 } BezTriple;
 
-/* note; alfa location in struct is abused by Key system */
+/**
+ * \note #BPoint.tilt location in struct is abused by Key system.
+ */
 typedef struct BPoint {
 	float vec[4];
-	/** Alfa: tilt in 3D View, weight: used for softbody goal weight. */
-	float alfa, weight;
+	/** Tilt in 3D View. */
+	float tilt;
+	/** Used for softbody goal weight. */
+	float weight;
 	/** F1: selection status,  hide: is point hidden or not. */
 	short f1, hide;
 	/** User-set radius per point for beveling etc. */

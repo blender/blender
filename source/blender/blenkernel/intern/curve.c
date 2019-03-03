@@ -1450,7 +1450,7 @@ void BKE_nurb_makeCurve(
 				madd_v3_v3fl(coord_fp, bp->vec, *fp);
 
 				if (tilt_fp)
-					(*tilt_fp) += (*fp) * bp->alfa;
+					(*tilt_fp) += (*fp) * bp->tilt;
 
 				if (radius_fp)
 					(*radius_fp) += (*fp) * bp->radius;
@@ -2188,8 +2188,9 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2,
 
 }
 
-static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *tilt_array, float *radius_array,
-                         float *weight_array, int resolu, int stride)
+static void tilt_bezpart(
+        BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *tilt_array, float *radius_array,
+        float *weight_array, int resolu, int stride)
 {
 	BezTriple *pprev, *next, *last;
 	float fac, dfac, t[4];
@@ -2226,12 +2227,12 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	for (a = 0; a < resolu; a++, fac += dfac) {
 		if (tilt_array) {
 			if (nu->tilt_interp == KEY_CU_EASE) { /* May as well support for tilt also 2.47 ease interp */
-				*tilt_array = prevbezt->alfa +
-				        (bezt->alfa - prevbezt->alfa) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
+				*tilt_array = prevbezt->tilt +
+				        (bezt->tilt - prevbezt->tilt) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
 			}
 			else {
 				key_curve_position_weights(fac, t, nu->tilt_interp);
-				*tilt_array = t[0] * pprev->alfa + t[1] * prevbezt->alfa + t[2] * bezt->alfa + t[3] * next->alfa;
+				*tilt_array = t[0] * pprev->tilt + t[1] * prevbezt->tilt + t[2] * bezt->tilt + t[3] * next->tilt;
 			}
 
 			tilt_array = POINTER_OFFSET(tilt_array, stride);
@@ -2342,7 +2343,7 @@ static void bevel_list_apply_tilt(BevList *bl)
 
 	nr = bl->nr;
 	while (nr--) {
-		axis_angle_to_quat(q, bevp1->dir, bevp1->alfa);
+		axis_angle_to_quat(q, bevp1->dir, bevp1->tilt);
 		mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
 		normalize_qt(bevp1->quat);
 
@@ -2626,7 +2627,7 @@ static void make_bevel_list_segment_3D(BevList *bl)
 
 	vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
 
-	axis_angle_to_quat(q, bevp1->dir, bevp1->alfa);
+	axis_angle_to_quat(q, bevp1->dir, bevp1->tilt);
 	mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
 	normalize_qt(bevp1->quat);
 	copy_v3_v3(bevp2->dir, bevp1->dir);
@@ -2846,7 +2847,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 				while (len--) {
 					copy_v3_v3(bevp->vec, bp->vec);
-					bevp->alfa = bp->alfa;
+					bevp->tilt = bp->tilt;
 					bevp->radius = bp->radius;
 					bevp->weight = bp->weight;
 					bevp->split_tag = true;
@@ -2914,7 +2915,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
 
 						copy_v3_v3(bevp->vec, prevbezt->vec[1]);
-						bevp->alfa = prevbezt->alfa;
+						bevp->tilt = prevbezt->tilt;
 						bevp->radius = prevbezt->radius;
 						bevp->weight = prevbezt->weight;
 						bevp->split_tag = true;
@@ -2943,8 +2944,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 						}
 
 						/* if both arrays are NULL do nothiong */
-						alfa_bezpart(prevbezt, bezt, nu,
-						             do_tilt    ? &bevp->alfa : NULL,
+						tilt_bezpart(prevbezt, bezt, nu,
+						             do_tilt    ? &bevp->tilt : NULL,
 						             do_radius  ? &bevp->radius : NULL,
 						             do_weight  ? &bevp->weight : NULL,
 						             resolu, sizeof(BevPoint));
@@ -2996,7 +2997,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 				if ((nu->flagu & CU_NURB_CYCLIC) == 0) {      /* not cyclic: endpoint */
 					copy_v3_v3(bevp->vec, prevbezt->vec[1]);
-					bevp->alfa = prevbezt->alfa;
+					bevp->tilt = prevbezt->tilt;
 					bevp->radius = prevbezt->radius;
 					bevp->weight = prevbezt->weight;
 
@@ -3027,7 +3028,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					segbevcount = bl->segbevcount;
 
 					BKE_nurb_makeCurve(nu, &bevp->vec[0],
-					                   do_tilt      ? &bevp->alfa : NULL,
+					                   do_tilt      ? &bevp->tilt : NULL,
 					                   do_radius    ? &bevp->radius : NULL,
 					                   do_weight    ? &bevp->weight : NULL,
 					                   resolu, sizeof(BevPoint));
@@ -4480,11 +4481,11 @@ void BKE_nurb_direction_switch(Nurb *nu)
 			if (bezt1 != bezt2) {
 				SWAP(char, bezt2->h1, bezt2->h2);
 				SWAP(char, bezt2->f1, bezt2->f3);
-				bezt1->alfa = -bezt1->alfa;
-				bezt2->alfa = -bezt2->alfa;
+				bezt1->tilt = -bezt1->tilt;
+				bezt2->tilt = -bezt2->tilt;
 			}
 			else {
-				bezt1->alfa = -bezt1->alfa;
+				bezt1->tilt = -bezt1->tilt;
 			}
 			a--;
 			bezt1++;
@@ -4499,8 +4500,8 @@ void BKE_nurb_direction_switch(Nurb *nu)
 		while (bp1 != bp2 && a > 0) {
 			SWAP(BPoint, *bp1, *bp2);
 			a--;
-			bp1->alfa = -bp1->alfa;
-			bp2->alfa = -bp2->alfa;
+			bp1->tilt = -bp1->tilt;
+			bp2->tilt = -bp2->tilt;
 			bp1++;
 			bp2--;
 		}
@@ -4508,7 +4509,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
 		 * but still need to change it's tilt.
 		 */
 		if (nu->pntsu & 1) {
-			bp1->alfa = -bp1->alfa;
+			bp1->tilt = -bp1->tilt;
 		}
 		if (nu->type == CU_NURBS) {
 			/* no knots for too short paths */
@@ -4666,7 +4667,7 @@ void BKE_curve_nurbs_keyVertexTilts_apply(ListBase *lb, float *key)
 			BezTriple *bezt = nu->bezt;
 
 			for (i = 0; i < nu->pntsu; i++, bezt++) {
-				bezt->alfa = key[9];
+				bezt->tilt = key[9];
 				bezt->radius = key[10];
 				key += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 			}
@@ -4675,7 +4676,7 @@ void BKE_curve_nurbs_keyVertexTilts_apply(ListBase *lb, float *key)
 			BPoint *bp = nu->bp;
 
 			for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-				bp->alfa = key[3];
+				bp->tilt = key[3];
 				bp->radius = key[4];
 				key += KEYELEM_FLOAT_LEN_BPOINT;
 			}

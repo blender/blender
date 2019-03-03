@@ -535,14 +535,14 @@ static void key_to_bezt(float *key, BezTriple *basebezt, BezTriple *bezt)
 {
 	memcpy(bezt, basebezt, sizeof(BezTriple));
 	memcpy(bezt->vec, key, sizeof(float) * 9);
-	bezt->alfa = key[9];
+	bezt->tilt = key[9];
 	bezt->radius = key[10];
 }
 
 static void bezt_to_key(BezTriple *bezt, float *key)
 {
 	memcpy(key, bezt->vec, sizeof(float) * 9);
-	key[9] = bezt->alfa;
+	key[9] = bezt->tilt;
 	key[10] = bezt->radius;
 }
 
@@ -642,7 +642,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 				nu = editnurb->nurbs.first;
 				while (nu) {
 					if (nu->bezt) {
-						/* Three vects to store handles and one for alfa */
+						/* Three vects to store handles and one for tilt. */
 						totvec += nu->pntsu * 4;
 					}
 					else {
@@ -668,7 +668,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									sub_v3_v3v3(ofs[i], bezt->vec[j], oldbezt->vec[j]);
 									i++;
 								}
-								ofs[i][0] = bezt->alfa - oldbezt->alfa;
+								ofs[i][0] = bezt->tilt - oldbezt->tilt;
 								ofs[i][1] = bezt->radius - oldbezt->radius;
 								i++;
 							}
@@ -685,7 +685,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 							oldbp = getKeyIndexOrig_bp(editnurb, bp);
 							if (oldbp) {
 								sub_v3_v3v3(ofs[i], bp->vec, oldbp->vec);
-								ofs[i + 1][0] = bp->alfa - oldbp->alfa;
+								ofs[i + 1][0] = bp->tilt - oldbp->tilt;
 								ofs[i + 1][1] = bp->radius - oldbp->radius;
 							}
 							i += 2;
@@ -730,11 +730,11 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									copy_v3_v3(newbezt->vec[j], oldbezt->vec[j]);
 								}
 							}
-							fp[9] = bezt->alfa;
+							fp[9] = bezt->tilt;
 							fp[10] = bezt->radius;
 
 							if (restore && oldbezt) {
-								newbezt->alfa = oldbezt->alfa;
+								newbezt->tilt = oldbezt->tilt;
 								newbezt->radius = oldbezt->radius;
 							}
 
@@ -753,12 +753,12 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 
 							copy_v3_v3(fp, bp->vec);
 
-							fp[3] = bp->alfa;
+							fp[3] = bp->tilt;
 							fp[4] = bp->radius;
 
 							if (restore && oldbp) {
 								copy_v3_v3(newbp->vec, oldbp->vec);
-								newbp->alfa = oldbp->alfa;
+								newbp->tilt = oldbp->tilt;
 								newbp->radius = oldbp->radius;
 							}
 
@@ -795,7 +795,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									fp[10] = curofp[10];
 
 									if (apply_offset) {
-										/* apply alfa offsets */
+										/* Apply tilt offsets. */
 										add_v3_v3(fp + 9, ofs[i]);
 										i++;
 									}
@@ -807,7 +807,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									for (j = 0; j < 3; j++, i++) {
 										copy_v3_v3(&fp[j * 3], bezt->vec[j]);
 									}
-									fp[9] = bezt->alfa;
+									fp[9] = bezt->tilt;
 									fp[10] = bezt->radius;
 
 									fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
@@ -834,7 +834,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 								}
 								else {
 									copy_v3_v3(fp, bp->vec);
-									fp[3] = bp->alfa;
+									fp[3] = bp->tilt;
 									fp[4] = bp->radius;
 								}
 
@@ -2926,7 +2926,7 @@ static int curve_smooth_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 
-	curve_smooth_value(editnurb, offsetof(BezTriple, alfa), offsetof(BPoint, alfa));
+	curve_smooth_value(editnurb, offsetof(BezTriple, tilt), offsetof(BPoint, tilt));
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	DEG_id_tag_update(obedit->data, 0);
@@ -6595,7 +6595,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 				bezt = nu->bezt;
 				a = nu->pntsu;
 				while (a--) {
-					if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) bezt->alfa = 0.0;
+					if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) bezt->tilt = 0.0;
 					bezt++;
 				}
 			}
@@ -6603,7 +6603,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 				bp = nu->bp;
 				a = nu->pntsu * nu->pntsv;
 				while (a--) {
-					if (bp->f1 & SELECT) bp->alfa = 0.0f;
+					if (bp->f1 & SELECT) bp->tilt = 0.0f;
 					bp++;
 				}
 			}

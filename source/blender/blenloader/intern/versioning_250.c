@@ -979,7 +979,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 							copy_v3_v3(bezt->vec[0], data); data += 3;
 							copy_v3_v3(bezt->vec[1], data); data += 3;
 							copy_v3_v3(bezt->vec[2], data); data += 3;
-							bezt->alfa = *data; data++;
+							bezt->tilt = *data; data++;
 						}
 					}
 					else if (nu->bp) {
@@ -987,7 +987,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
 						for (a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
 							copy_v3_v3(bp->vec, data); data += 3;
-							bp->alfa = *data; data++;
+							bp->tilt = *data; data++;
 						}
 					}
 				}

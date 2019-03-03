@@ -792,7 +792,7 @@ void do_versions_after_linking_280(Main *bmain)
 						for (int a = 0; a < nu->pntsu; a++, bezt++) {
 							if ((old_count -= 3) < 0) {
 								memcpy(newptr, bezt->vec, sizeof(float[3][3]));
-								newptr[3][0] = bezt->alfa;
+								newptr[3][0] = bezt->tilt;
 							}
 							else {
 								memcpy(newptr, oldptr, sizeof(float[3][4]));
@@ -810,7 +810,7 @@ void do_versions_after_linking_280(Main *bmain)
 						for (int a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
 							if (--old_count < 0) {
 								copy_v3_v3(newptr[0], bp->vec);
-								newptr[1][0] = bp->alfa;
+								newptr[1][0] = bp->tilt;
 							}
 							else {
 								memcpy(newptr, oldptr, sizeof(float[4]));

@@ -783,7 +783,6 @@ static void rna_def_bpoint(BlenderRNA *brna)
 
 	/* Number values */
 	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	RNA_def_property_range(prop, -tilt_limit, tilt_limit);
 	RNA_def_property_ui_range(prop, -tilt_limit, tilt_limit, 10, 3);
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
@@ -871,7 +870,6 @@ static void rna_def_beztriple(BlenderRNA *brna)
 
 	/* Number values */
 	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	RNA_def_property_range(prop, -tilt_limit, tilt_limit);
 	RNA_def_property_ui_range(prop, -tilt_limit, tilt_limit, 10, 3);
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");

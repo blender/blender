@@ -1688,7 +1688,7 @@ void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *n
 				for (int i = 0; i < 3; i++) {
 					copy_v3_v3(&fp[i * 3], bezt->vec[i]);
 				}
-				fp[9] = bezt->alfa;
+				fp[9] = bezt->tilt;
 				fp[10] = bezt->radius;
 				fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 			}
@@ -1696,7 +1696,7 @@ void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *n
 		else {
 			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, bp++) {
 				copy_v3_v3(fp, bp->vec);
-				fp[3] = bp->alfa;
+				fp[3] = bp->tilt;
 				fp[4] = bp->radius;
 				fp += KEYELEM_FLOAT_LEN_BPOINT;
 			}
@@ -1738,7 +1738,7 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 				for (int i = 0; i < 3; i++) {
 					copy_v3_v3(bezt->vec[i], &fp[i * 3]);
 				}
-				bezt->alfa = fp[9];
+				bezt->tilt = fp[9];
 				bezt->radius = fp[10];
 				fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 			}
@@ -1746,7 +1746,7 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 		else {
 			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a && (tot -= KEYELEM_ELEM_LEN_BPOINT) >= 0; a--, bp++) {
 				copy_v3_v3(bp->vec, fp);
-				bp->alfa = fp[3];
+				bp->tilt = fp[3];
 				bp->radius = fp[4];
 				fp += KEYELEM_FLOAT_LEN_BPOINT;
 			}

@@ -644,7 +644,7 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		}
 
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
-		pp->vec[3] = fac1 * bevp->alfa   + fac2 * bevpn->alfa;
+		pp->vec[3] = fac1 * bevp->tilt   + fac2 * bevpn->tilt;
 		pp->radius = fac1 * bevp->radius + fac2 * bevpn->radius;
 		pp->weight = fac1 * bevp->weight + fac2 * bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);

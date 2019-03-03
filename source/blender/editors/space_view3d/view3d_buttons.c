@@ -293,7 +293,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						tot++;
 						median->weight += bezt->weight;
 						median->radius += bezt->radius;
-						median->tilt += bezt->alfa;
+						median->tilt += bezt->tilt;
 						if (!totcurvedata) { /* I.e. first time... */
 							selp = bezt;
 							seltype = &RNA_BezierSplinePoint;
@@ -324,7 +324,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						tot++;
 						median->weight += bp->weight;
 						median->radius += bp->radius;
-						median->tilt += bp->alfa;
+						median->tilt += bp->tilt;
 						if (!totcurvedata) { /* I.e. first time... */
 							selp = bp;
 							seltype = &RNA_SplinePoint;
@@ -698,7 +698,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 								apply_raw_diff(&bezt->radius, tot, ve_median->radius, median->radius);
 							}
 							if (median->tilt) {
-								apply_raw_diff(&bezt->alfa, tot, ve_median->tilt, median->tilt);
+								apply_raw_diff(&bezt->tilt, tot, ve_median->tilt, median->tilt);
 							}
 						}
 						else if (apply_vcos) {
@@ -728,7 +728,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 								apply_raw_diff(&bp->radius, tot, ve_median->radius, median->radius);
 							}
 							if (median->tilt) {
-								apply_raw_diff(&bp->alfa, tot, ve_median->tilt, median->tilt);
+								apply_raw_diff(&bp->tilt, tot, ve_median->tilt, median->tilt);
 							}
 						}
 					}
