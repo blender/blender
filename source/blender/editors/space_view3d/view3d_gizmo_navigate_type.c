@@ -261,10 +261,14 @@ static void axis_geom_draw(
 	}
 #endif
 
+	/* Circle defining active area. */
+	if (color[3] != 0.0f) {
+		immUniformColor4fv(color);
+		imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
+	}
+
 	GPU_matrix_push();
 	GPU_matrix_mul(gz->matrix_offset);
-
-	bool draw_center_done = false;
 
 	for (int axis_index = 0; axis_index < ARRAY_SIZE(axis_order); axis_index++) {
 		const int index = axis_order[axis_index].index;
@@ -272,19 +276,6 @@ static void axis_geom_draw(
 		const bool is_pos = axis_order[axis_index].is_pos;
 		const bool is_highlight = index + 1 == gz->highlight_part;
 
-		/* Draw slightly before, so axis aligned arrows draw ontop. */
-		if ((draw_center_done == false) && (axis_order[axis_index].depth > -axis_depth_bias)) {
-
-			/* Circle defining active area (revert back to 2D space). */
-			if (color[3] != 0.0f) {
-				GPU_matrix_pop();
-				immUniformColor4fv(color);
-				imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
-				GPU_matrix_push();
-				GPU_matrix_mul(gz->matrix_offset);
-			}
-			draw_center_done = true;
-		}
 		UI_GetThemeColor3fv(TH_AXIS_X + axis, axis_color[axis]);
 		axis_color[axis][3] = 1.0f;
 

@@ -148,7 +148,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 
 		if (i == GZ_INDEX_ROTATE) {
 			gz->color[3] = 0.0f;
-			gz->color_hi[3] = 0.1f;
+			copy_v3_fl(gz->color_hi, 0.5f);
+			gz->color_hi[3] = 0.5f;
 		}
 		else {
 			uchar icon_color[3];
@@ -168,9 +169,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 			}
 			UI_GetThemeColorShade3fv(TH_HEADER, color_tint, gz->color);
 			UI_GetThemeColorShade3fv(TH_HEADER, color_tint_hi, gz->color_hi);
-
 		}
-
 
 		/* may be overwritten later */
 		gz->scale_basis = (GIZMO_SIZE * GIZMO_MINI_FAC) / 2;
