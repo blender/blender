@@ -261,8 +261,11 @@ static void axis_geom_draw(
 	}
 #endif
 
+	/* When the cursor is over any of the gizmos (show circle backdrop). */
+	const bool is_active = (color[3] != 0.0f);
+
 	/* Circle defining active area. */
-	if (color[3] != 0.0f) {
+	if (is_active) {
 		immUniformColor4fv(color);
 		imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
 	}
@@ -352,6 +355,18 @@ static void axis_geom_draw(
 
 				GPUBatch *sphere = GPU_batch_preset_sphere(0);
 				GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+
+				/* Black outlines for negative axis balls, otherwise they can be hard to see since
+				 * they use a faded color which can be similar to the circle backdrop in tone. */
+				if (is_active && !is_highlight && !is_pos && !select && !(axis_align == axis)) {
+					static const float axis_black_faded[4] = {0, 0, 0, 0.2f};
+					const float scale = 1.15f;
+					GPU_matrix_scale_1f(scale);
+					GPU_batch_uniform_4fv(sphere, "color", axis_black_faded);
+					GPU_batch_draw(sphere);
+					GPU_matrix_scale_1f(1.0 / scale);
+				}
+
 				GPU_batch_uniform_4fv(sphere, "color", is_pos_color ? color_current : color_current_fade);
 				GPU_batch_draw(sphere);
 				GPU_matrix_pop();
