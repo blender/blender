@@ -5522,7 +5522,7 @@ def km_3d_view_tool_edit_mesh_spin(params):
 
 def km_3d_view_tool_edit_mesh_spin_duplicate(params):
     return (
-        "3D View Tool: Edit Mesh, Spin (Duplicate)",
+        "3D View Tool: Edit Mesh, Spin Duplicates",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("mesh.spin", {"type": params.tool_tweak, "value": 'ANY'},

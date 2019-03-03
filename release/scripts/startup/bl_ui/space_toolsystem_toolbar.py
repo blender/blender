@@ -514,7 +514,7 @@ class _defs_edit_mesh:
             layout.prop(props, "axis")
 
         return dict(
-            text="Spin (Duplicate)",
+            text="Spin Duplicates",
             icon="ops.mesh.spin.duplicate",
             widget="MESH_GGT_spin",
             keymap=(),
