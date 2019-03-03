@@ -107,12 +107,7 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 
 	WM_window_set_active_scene(bmain, C, win, scene_new);
 
-	BKE_libblock_remap(bmain, scene, scene_new, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
-
-	id_us_clear_real(&scene->id);
-	if (scene->id.us == 0) {
-		BKE_id_free(bmain, scene);
-	}
+	BKE_id_delete(bmain, scene);
 
 	return true;
 }
