@@ -811,6 +811,22 @@ class _defs_edit_curve:
             keymap=(),
         )
 
+    @ToolDef.from_fn
+    def curve_vertex_randomize():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("transform.vertex_random")
+            layout.prop(props, "uniform")
+            layout.prop(props, "normal")
+            layout.prop(props, "seed")
+        return dict(
+            text="Randomize",
+            icon="ops.curve.vertex_random",
+            widget="WM_GGT_value_operator_redo",
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+
 class _defs_pose:
 
     @ToolDef.from_fn
@@ -1600,6 +1616,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_default,
             None,
             _defs_edit_curve.curve_shrink_fatten,
+            _defs_edit_curve.curve_vertex_randomize,
             _defs_edit_curve.tilt,
             _defs_edit_curve.draw,
             (

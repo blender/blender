@@ -5673,6 +5673,15 @@ def km_3d_view_tool_edit_curve_shrink_fatten(params):
         ]},
     )
 
+def km_3d_view_tool_edit_curve_randomize(params):
+    return (
+        "3D View Tool: Edit Curve, Randomize",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.vertex_random", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("offset", 0.0)]}),
+        ]},
+    )
 
 def km_3d_view_tool_edit_curve_extrude(params):
     return (
@@ -6146,6 +6155,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_curve_draw(params),
         km_3d_view_tool_edit_curve_shrink_fatten(params),
         km_3d_view_tool_edit_curve_tilt(params),
+        km_3d_view_tool_edit_curve_randomize(params),
         km_3d_view_tool_edit_curve_extrude(params),
         km_3d_view_tool_edit_curve_extrude_cursor(params),
         km_3d_view_tool_sculpt_box_hide(params),
