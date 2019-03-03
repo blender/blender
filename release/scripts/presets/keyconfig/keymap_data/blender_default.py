@@ -5663,6 +5663,17 @@ def km_3d_view_tool_edit_curve_tilt(params):
     )
 
 
+def km_3d_view_tool_edit_curve_shrink_fatten(params):
+    return (
+        "3D View Tool: Edit Curve, Shrink/Fatten",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.transform", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("mode", 'CURVE_SHRINKFATTEN'),("release_confirm", True)]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_edit_curve_extrude(params):
     return (
         "3D View Tool: Edit Curve, Extrude",
@@ -6133,6 +6144,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_mesh_rip_region(params),
         km_3d_view_tool_edit_mesh_rip_edge(params),
         km_3d_view_tool_edit_curve_draw(params),
+        km_3d_view_tool_edit_curve_shrink_fatten(params),
         km_3d_view_tool_edit_curve_tilt(params),
         km_3d_view_tool_edit_curve_extrude(params),
         km_3d_view_tool_edit_curve_extrude_cursor(params),
