@@ -352,6 +352,63 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
 	}
 }
 
+/* Apply smooth to buffer while drawing
+ * to smooth point C, use 2 before (A, B) and current point (D):
+ *
+ *   A----B-----C------D
+ *
+ * \param p: Temp data
+ * \param inf: Influence factor
+ * \param idx: Index of the last point (need minimum 3 points in the array)
+ */
+static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
+{
+	bGPdata *gpd = p->gpd;
+	short num_points = gpd->runtime.sbuffer_size;
+
+	/* Do nothing if not enough points to smooth out */
+	if ((num_points < 3) || (idx < 3) || (inf == 0.0f)) {
+		return;
+	}
+
+	tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
+	float steps = 4.0f;
+	if (idx < 4) {
+		steps--;
+	}
+
+	tGPspoint *pta = idx >= 4 ? &points[idx - 4] : NULL;
+	tGPspoint *ptb = idx >= 3 ? &points[idx - 3] : NULL;
+	tGPspoint *ptc = idx >= 2 ? &points[idx - 2] : NULL;
+	tGPspoint *ptd = &points[idx - 1];
+
+	float sco[2] = { 0.0f };
+	float a[2], b[2], c[2], d[2];
+	const float average_fac = 1.0f / steps;
+
+	/* Compute smoothed coordinate by taking the ones nearby */
+	if (pta) {
+		copy_v2_v2(a, &pta->x);
+		madd_v2_v2fl(sco, a, average_fac);
+	}
+	if (ptb) {
+		copy_v2_v2(b, &ptb->x);
+		madd_v2_v2fl(sco, b, average_fac);
+	}
+	if (ptc) {
+		copy_v2_v2(c, &ptc->x);
+		madd_v2_v2fl(sco, c, average_fac);
+	}
+	if (ptd) {
+		copy_v2_v2(d, &ptd->x);
+		madd_v2_v2fl(sco, d, average_fac);
+	}
+
+	/* Based on influence factor, blend between original and optimal smoothed coordinate */
+	interp_v2_v2v2(c, c, sco, inf);
+	copy_v2_v2(&ptc->x, c);
+}
+
 /* add current stroke-point to buffer (returns whether point was successfully added) */
 static short gp_stroke_addpoint(
         tGPsdata *p, const float mval[2], float pressure, double curtime)
@@ -416,6 +473,10 @@ static short gp_stroke_addpoint(
 
 		/* increment counters */
 		gpd->runtime.sbuffer_size++;
+		/* smooth while drawing previous points with a reduction factor for previous */
+		for (int s = 0; s < 3; s++) {
+			gp_smooth_buffer(p, 1.0f * ((3.0f - s) / 3.0f), gpd->runtime.sbuffer_size - s);
+		}
 
 		/* check if another operation can still occur */
 		if (gpd->runtime.sbuffer_size == GP_STROKE_BUFFER_MAX)
@@ -1707,19 +1768,18 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
 }
 
 /* handle draw event */
-static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsgraph *depsgraph)
+static void annotation_draw_apply_event(wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
 {
 	tGPsdata *p = op->customdata;
 	PointerRNA itemptr;
 	float mousef[2];
 	int tablet = 0;
 
-	/* convert from window-space to area-space mouse coordinates
-	 * NOTE: float to ints conversions,
-	 * +1 factor is probably used to ensure a bit more accurate rounding...
-	 */
-	p->mval[0] = event->mval[0] + 1;
-	p->mval[1] = event->mval[1] + 1;
+	 /* convert from window-space to area-space mouse coordinates
+	  * add any x,y override position for fake events
+	  */
+	p->mval[0] = (float)event->mval[0] - x;
+	p->mval[1] = (float)event->mval[1] - y;
 
 	/* verify key status for straight lines */
 	if ((event->ctrl > 0) || (event->alt > 0)) {
@@ -1966,7 +2026,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		p->status = GP_STATUS_PAINTING;
 
 		/* handle the initial drawing - i.e. for just doing a simple dot */
-		gpencil_draw_apply_event(op, event, CTX_data_depsgraph(C));
+		annotation_draw_apply_event(op, event, CTX_data_depsgraph(C), 0.0f, 0.0f);
 		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	}
 	else {
@@ -2033,6 +2093,40 @@ static void gpencil_stroke_end(wmOperator *op)
 	p->gpd = NULL;
 	p->gpl = NULL;
 	p->gpf = NULL;
+}
+
+/* add events for missing mouse movements when the artist draw very fast */
+static void annotation_add_missing_events(bContext *C, wmOperator *op, const wmEvent *event, tGPsdata *p)
+{
+	float pt[2], a[2], b[2];
+	float factor = 10.0f;
+
+	copy_v2_v2(a, p->mvalo);
+	b[0] = (float)event->mval[0] + 1.0f;
+	b[1] = (float)event->mval[1] + 1.0f;
+
+	/* get distance in pixels */
+	float dist = len_v2v2(a, b);
+
+	/* for very small distances, add a half way point */
+	if (dist <= 2.0f) {
+		interp_v2_v2v2(pt, a, b, 0.5f);
+		sub_v2_v2v2(pt, b, pt);
+		/* create fake event */
+		annotation_draw_apply_event(op, event, CTX_data_depsgraph(C),
+			pt[0], pt[1]);
+	}
+	else if (dist >= factor) {
+		int slices = 2 + (int)((dist - 1.0) / factor);
+		float n = 1.0f / slices;
+		for (int i = 1; i < slices; i++) {
+			interp_v2_v2v2(pt, a, b, n * i);
+			sub_v2_v2v2(pt, b, pt);
+			/* create fake event */
+			annotation_draw_apply_event(op, event, CTX_data_depsgraph(C),
+				pt[0], pt[1]);
+		}
+	}
 }
 
 /* events handling during interactive drawing part of operator */
@@ -2245,8 +2339,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		/* handle painting mouse-movements? */
 		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
 			/* handle drawing event */
-			/* printf("\t\tGP - add point\n"); */
-			gpencil_draw_apply_event(op, event, CTX_data_depsgraph(C));
+			if ((p->flags & GP_PAINTFLAG_FIRSTRUN) == 0) {
+				annotation_add_missing_events(C, op, event, p);
+			}
+
+			annotation_draw_apply_event(op, event, CTX_data_depsgraph(C), 0.0f, 0.0f);
 
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
