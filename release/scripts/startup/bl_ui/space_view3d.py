@@ -3624,6 +3624,7 @@ class VIEW3D_MT_edit_curve_specials(Menu):
         layout.separator()
 
         # Transform
+        layout.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
         layout.operator("transform.tilt")
         layout.operator("curve.tilt_clear")
         layout.operator("curve.smooth")
