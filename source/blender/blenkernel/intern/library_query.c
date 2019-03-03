@@ -404,7 +404,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_LI:
 			{
 				Library *lib = (Library *) id;
-				CALLBACK_INVOKE(lib->parent, IDWALK_CB_NOP);
+				CALLBACK_INVOKE(lib->parent, IDWALK_CB_NEVER_SELF);
 				break;
 			}
 			case ID_SCE:
@@ -414,7 +414,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 				CALLBACK_INVOKE(scene->camera, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(scene->world, IDWALK_CB_USER);
-				CALLBACK_INVOKE(scene->set, IDWALK_CB_NOP);
+				CALLBACK_INVOKE(scene->set, IDWALK_CB_NEVER_SELF);
 				CALLBACK_INVOKE(scene->clip, IDWALK_CB_USER);
 				CALLBACK_INVOKE(scene->r.bake.cage_object, IDWALK_CB_NOP);
 				if (scene->nodetree) {
@@ -425,7 +425,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					Sequence *seq;
 					SEQP_BEGIN(scene->ed, seq)
 					{
-						CALLBACK_INVOKE(seq->scene, IDWALK_CB_NOP);
+						CALLBACK_INVOKE(seq->scene, IDWALK_CB_NEVER_SELF);
 						CALLBACK_INVOKE(seq->scene_camera, IDWALK_CB_NOP);
 						CALLBACK_INVOKE(seq->clip, IDWALK_CB_USER);
 						CALLBACK_INVOKE(seq->mask, IDWALK_CB_USER);
@@ -543,10 +543,10 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 				data.cb_flag = data_cb_flag;
 
-				CALLBACK_INVOKE(object->parent, IDWALK_CB_NOP);
-				CALLBACK_INVOKE(object->track, IDWALK_CB_NOP);
+				CALLBACK_INVOKE(object->parent, IDWALK_CB_NEVER_SELF);
+				CALLBACK_INVOKE(object->track, IDWALK_CB_NEVER_SELF);
 				/* object->proxy is refcounted, but not object->proxy_group... *sigh* */
-				CALLBACK_INVOKE(object->proxy, IDWALK_CB_USER);
+				CALLBACK_INVOKE(object->proxy, IDWALK_CB_NEVER_SELF);
 				CALLBACK_INVOKE(object->proxy_group, IDWALK_CB_NOP);
 
 				/* Special case!
@@ -555,7 +555,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				if (object->proxy_from) {
 					data.cb_flag = ID_IS_LINKED(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
 				}
-				CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_LOOPBACK);
+				CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
 				data.cb_flag = data_cb_flag;
 
 				CALLBACK_INVOKE(object->poselib, IDWALK_CB_USER);
@@ -588,14 +588,14 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 
 				if (object->rigidbody_constraint) {
-					CALLBACK_INVOKE(object->rigidbody_constraint->ob1, IDWALK_CB_NOP);
-					CALLBACK_INVOKE(object->rigidbody_constraint->ob2, IDWALK_CB_NOP);
+					CALLBACK_INVOKE(object->rigidbody_constraint->ob1, IDWALK_CB_NEVER_SELF);
+					CALLBACK_INVOKE(object->rigidbody_constraint->ob2, IDWALK_CB_NEVER_SELF);
 				}
 
 				if (object->lodlevels.first) {
 					LodLevel *level;
 					for (level = object->lodlevels.first; level; level = level->next) {
-						CALLBACK_INVOKE(level->source, IDWALK_CB_NOP);
+						CALLBACK_INVOKE(level->source, IDWALK_CB_NEVER_SELF);
 					}
 				}
 
@@ -631,7 +631,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_ME:
 			{
 				Mesh *mesh = (Mesh *) id;
-				CALLBACK_INVOKE(mesh->texcomesh, IDWALK_CB_USER);
+				CALLBACK_INVOKE(mesh->texcomesh, IDWALK_CB_NEVER_SELF);
 				CALLBACK_INVOKE(mesh->key, IDWALK_CB_USER);
 				for (i = 0; i < mesh->totcol; i++) {
 					CALLBACK_INVOKE(mesh->mat[i], IDWALK_CB_USER);
@@ -765,10 +765,10 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					CALLBACK_INVOKE(cob->ob, IDWALK_CB_USER);
 				}
 				for (CollectionChild *child = collection->children.first; child; child = child->next) {
-					CALLBACK_INVOKE(child->collection, IDWALK_CB_USER);
+					CALLBACK_INVOKE(child->collection, IDWALK_CB_NEVER_SELF);
 				}
 				for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
-					CALLBACK_INVOKE(parent->collection, IDWALK_CB_NOP);
+					CALLBACK_INVOKE(parent->collection, IDWALK_CB_NEVER_SELF);
 				}
 				break;
 			}
