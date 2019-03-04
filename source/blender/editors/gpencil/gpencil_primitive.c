@@ -522,26 +522,16 @@ static void gp_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D)
 /* create a line */
 static void gp_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
-	if (tgpi->tot_edges == 2) {
-		int i = tgpi->tot_stored_edges;
+	const int totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
+	const float step = 1.0f / (float)(tgpi->tot_edges - 1);
+	float a = tgpi->tot_stored_edges ? step : 0.0f;
 
-		points2D[i].x = tgpi->start[0];
-		points2D[i].y = tgpi->start[1];
-
-		points2D[i + 1].x = tgpi->end[0];
-		points2D[i + 1].y = tgpi->end[1];
+	for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
+		tGPspoint *p2d = &points2D[i];
+		interp_v2_v2v2(&p2d->x, tgpi->start, tgpi->end, a);
+		a += step;
 	}
-	else {
-		const int totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
-		const float step = 1.0f / (float)(tgpi->tot_edges - 1);
-		float a = tgpi->tot_stored_edges ? step : 0.0f;
-
-		for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
-			tGPspoint *p2d = &points2D[i];
-			interp_v2_v2v2(&p2d->x, tgpi->start, tgpi->end, a);
-			a += step;
-		}
-	}
+	
 	float color[4];
 	UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
 	gp_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
