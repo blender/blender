@@ -232,7 +232,7 @@ void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Objec
 float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera, bool use_spherical_stereo) RET_ZERO
 bool RE_engine_get_spherical_stereo(struct RenderEngine *engine, struct Object *camera) RET_ZERO
 void RE_engine_update_render_passes(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl,
-                                    update_render_passes_cb_t callback) RET_NONE
+                                    update_render_passes_cb_t callback, void *callback_data) RET_NONE
 void RE_SetActiveRenderView(struct Render *re, const char *viewname) RET_NONE
 
 struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl, const char *name, const char *viewname) RET_NULL
