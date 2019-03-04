@@ -771,7 +771,7 @@ static void drw_gpencil_select_render(GPENCIL_StorageList *stl, GPENCIL_PassList
 
 	/* Draw all pending objects */
 	if ((stl->g_data->gp_cache_used > 0) &&
-		(stl->g_data->gp_object_cache))
+	    (stl->g_data->gp_object_cache))
 	{
 		/* sort by zdepth */
 		qsort(stl->g_data->gp_object_cache, stl->g_data->gp_cache_used,
@@ -977,18 +977,20 @@ void GPENCIL_draw_scene(void *ved)
 				stl->storage->tonemapping = stl->storage->is_render ? 1 : 0;
 
 				/* active select flag and selection color */
-				stl->storage->do_select_outline = ((overlay) &&
-										   (ob->base_flag & BASE_SELECTED) &&
-										   (ob->mode == OB_MODE_OBJECT) &&
-										   (!is_render) && (!playing) &&
-										   (v3d->flag & V3D_SELECT_OUTLINE));
+				stl->storage->do_select_outline = (
+				        (overlay) &&
+				        (ob->base_flag & BASE_SELECTED) &&
+				        (ob->mode == OB_MODE_OBJECT) &&
+				        (!is_render) && (!playing) &&
+				        (v3d->flag & V3D_SELECT_OUTLINE));
 
 				/* if active object is not object mode, disable for all objects */
 				if ((draw_ctx->obact) && (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
 					stl->storage->do_select_outline = 0;
 				}
-				UI_GetThemeColorShadeAlpha4fv((ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT, 0, -40,
-											stl->storage->select_color);
+				UI_GetThemeColorShadeAlpha4fv(
+				        (ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT, 0, -40,
+				        stl->storage->select_color);
 
 				/* draw mix pass */
 				DRW_draw_pass(psl->mix_pass);

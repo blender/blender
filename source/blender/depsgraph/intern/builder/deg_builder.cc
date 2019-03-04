@@ -73,7 +73,8 @@ void visibility_animated_check_cb(ID * /*id*/, FCurve *fcu, void *user_data)
 		if (STREQ(fcu->rna_path, "hide_viewport")) {
 			data->is_visibility_animated = true;
 		}
-	} else if (data->eval_mode == DAG_EVAL_RENDER) {
+	}
+	else if (data->eval_mode == DAG_EVAL_RENDER) {
 		if (STREQ(fcu->rna_path, "hide_render")) {
 			data->is_visibility_animated = true;
 		}
