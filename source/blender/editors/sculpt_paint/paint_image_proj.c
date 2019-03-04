@@ -142,13 +142,20 @@ BLI_INLINE unsigned char f_to_char(const float val)
 /* projectFaceSeamFlags options */
 //#define PROJ_FACE_IGNORE	(1<<0)	/* When the face is hidden, backfacing or occluded */
 //#define PROJ_FACE_INIT	(1<<1)	/* When we have initialized the faces data */
-#define PROJ_FACE_SEAM1 (1 << 0)  /* If this face has a seam on any of its edges */
-#define PROJ_FACE_SEAM2 (1 << 1)
-#define PROJ_FACE_SEAM3 (1 << 2)
 
-#define PROJ_FACE_NOSEAM1   (1 << 4)
-#define PROJ_FACE_NOSEAM2   (1 << 5)
-#define PROJ_FACE_NOSEAM3   (1 << 6)
+/* If this face has a seam on any of its edges. */
+#define PROJ_FACE_SEAM0 (1 << 0)
+#define PROJ_FACE_SEAM1 (1 << 1)
+#define PROJ_FACE_SEAM2 (1 << 2)
+
+#define PROJ_FACE_NOSEAM0   (1 << 4)
+#define PROJ_FACE_NOSEAM1   (1 << 5)
+#define PROJ_FACE_NOSEAM2   (1 << 6)
+
+/* If the seam is completely initialized, including adjecent seams. */
+#define PROJ_FACE_SEAM_INIT0 (1 << 8)
+#define PROJ_FACE_SEAM_INIT1 (1 << 9)
+#define PROJ_FACE_SEAM_INIT2 (1 << 10)
 
 /* face winding */
 #define PROJ_FACE_WINDING_INIT 1
@@ -379,14 +386,16 @@ typedef struct ProjPaintState {
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	/** store info about faces, if they are initialized etc*/
-	char *faceSeamFlags;
+	ushort *faceSeamFlags;
 	/** save the winding of the face in uv space,
 	 * helps as an extra validation step for seam detection. */
 	char *faceWindingFlags;
 	/** expanded UVs for faces to use as seams. */
-	float (*faceSeamUVs)[3][2];
+	float (*loopSeamUVs)[2][2];
 	/** Only needed for when seam_bleed_px is enabled, use to find UV seams. */
 	LinkNode **vertFaces;
+	/** Seams per vert, to find adjacent seams. */
+	ListBase *vertSeams;
 #endif
 
 	SpinLock *tile_lock;
@@ -394,6 +403,7 @@ typedef struct ProjPaintState {
 	Mesh *me_eval;
 	bool  me_eval_free;
 	int  totlooptri_eval;
+	int  totloop_eval;
 	int  totpoly_eval;
 	int  totedge_eval;
 	int  totvert_eval;
@@ -478,6 +488,14 @@ typedef struct {
 	ProjPaintImage *pjima;
 } TileInfo;
 
+typedef struct VertSeam {
+	struct VertSeam *next, *prev;
+	int tri;
+	uint loop;
+	float angle;
+	bool normal_cw;
+	float uv[2];
+} VertSeam;
 
 
 /* -------------------------------------------------------------------- */
@@ -1155,37 +1173,106 @@ static bool check_seam(
 	return 1;
 }
 
-#define SMALL_NUMBER  1.e-6f
-BLI_INLINE float shell_v2v2_normal_dir_to_dist(float n[2], float d[2])
+static VertSeam *find_adjacent_seam(const ProjPaintState *ps, uint loop_index, uint vert_index, VertSeam **r_seam)
 {
-	const float angle_cos = (normalize_v2(n) < SMALL_NUMBER) ? fabsf(dot_v2v2(d, n)) : 0.0f;
-	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+	ListBase *vert_seams = &ps->vertSeams[vert_index];
+	VertSeam *seam = vert_seams->first;
+	VertSeam *adjacent;
+
+	while (seam->loop != loop_index) {
+		seam = seam->next;
+	}
+
+	if (r_seam) {
+		*r_seam = seam;
+	}
+
+	/* Circulate through the (sorted) vert seam array, in the direction of the seam normal,
+	 * until we find the first opposing seam, matching in UV space. */
+	if (seam->normal_cw) {
+		LISTBASE_CIRCULAR_BACKWARD_BEGIN(vert_seams, adjacent, seam)
+		{
+			if ((adjacent->normal_cw != seam->normal_cw) &&
+			    cmp_uv(adjacent->uv, seam->uv))
+			{
+				break;
+			}
+		}
+		LISTBASE_CIRCULAR_BACKWARD_END(vert_seams, adjacent, seam);
+	}
+	else {
+		LISTBASE_CIRCULAR_FORWARD_BEGIN(vert_seams, adjacent, seam)
+		{
+			if ((adjacent->normal_cw != seam->normal_cw) &&
+			    cmp_uv(adjacent->uv, seam->uv))
+			{
+				break;
+			}
+		}
+		LISTBASE_CIRCULAR_FORWARD_END(vert_seams, adjacent, seam);
+	}
+
+	BLI_assert(adjacent);
+
+	return adjacent;
 }
-#undef SMALL_NUMBER
+
+/* Computes the normal of two seams at their intersection,
+ * and returns the angle between the seam and its normal. */
+static float compute_seam_normal(VertSeam *seam, VertSeam *adj, float r_no[2])
+{
+	const float PI_2 = M_PI * 2.0f;
+	float angle[2];
+	float angle_rel, angle_no;
+
+	if (seam->normal_cw) {
+		angle[0] = adj->angle;
+		angle[1] = seam->angle;
+	}
+	else {
+		angle[0] = seam->angle;
+		angle[1] = adj->angle;
+	}
+
+	angle_rel = angle[1] - angle[0];
+
+	if (angle_rel < 0.0f) {
+		angle_rel += PI_2;
+	}
+
+	angle_rel *= 0.5f;
+
+	angle_no = angle_rel + angle[0];
+
+	if (angle_no > M_PI) {
+		angle_no -= PI_2;
+	}
+
+	r_no[0] = cosf(angle_no);
+	r_no[1] = sinf(angle_no);
+
+	return angle_rel;
+}
 
 /* Calculate outset UV's, this is not the same as simply scaling the UVs,
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
 static void uv_image_outset(
-        float (*orig_uv)[2], float (*outset_uv)[2], const float scaler,
-        const int ibuf_x, const int ibuf_y, const bool cw)
+        const ProjPaintState *ps, float (*orig_uv)[2],
+        uint tri_index, const int ibuf_x, const int ibuf_y)
 {
-	/* disallow shell-thickness to outset extreme values,
-	 * otherwise near zero area UV's may extend thousands of pixels. */
-	const float scale_clamp = 5.0f;
+	int fidx[2];
+	uint loop_index;
+	uint vert[2];
+	const MLoopTri *ltri = &ps->mlooptri_eval[tri_index];
 
-	float a1, a2, a3;
 	/* pixelspace uv's */
 	float puv[3][2];
-	/* normals */
-	float no1[2], no2[2], no3[2];
-	float dir1[2], dir2[2], dir3[2];
 	float ibuf_inv[2];
 
 	ibuf_inv[0] = 1.0f / (float)ibuf_x;
 	ibuf_inv[1] = 1.0f / (float)ibuf_y;
 
-	/* make UV's in pixel space so we can */
 	puv[0][0] = orig_uv[0][0] * ibuf_x;
 	puv[0][1] = orig_uv[0][1] * ibuf_y;
 
@@ -1195,89 +1282,194 @@ static void uv_image_outset(
 	puv[2][0] = orig_uv[2][0] * ibuf_x;
 	puv[2][1] = orig_uv[2][1] * ibuf_y;
 
-	/* face edge directions */
-	sub_v2_v2v2(dir1, puv[1], puv[0]);
-	sub_v2_v2v2(dir2, puv[2], puv[1]);
-	sub_v2_v2v2(dir3, puv[0], puv[2]);
-	normalize_v2(dir1);
-	normalize_v2(dir2);
-	normalize_v2(dir3);
+	for (fidx[0] = 0; fidx[0] < 3; fidx[0]++) {
+		float (*seam_uvs)[2];
+		float ang[2];
 
-	/* here we just use the orthonormality property (a1, a2) dot (a2, -a1) = 0
-	 * to get normals from the edge directions based on the winding */
-	if (cw) {
-		no1[0] = -dir3[1] - dir1[1];
-		no1[1] =  dir3[0] + dir1[0];
-		no2[0] = -dir1[1] - dir2[1];
-		no2[1] =  dir1[0] + dir2[0];
-		no3[0] = -dir2[1] - dir3[1];
-		no3[1] =  dir2[0] + dir3[0];
+		if ((ps->faceSeamFlags[tri_index] & (PROJ_FACE_SEAM0 << fidx[0])) == 0) {
+			continue;
+		}
+
+		loop_index = ltri->tri[fidx[0]];
+
+		seam_uvs = ps->loopSeamUVs[loop_index];
+
+		if (seam_uvs[0][0] != FLT_MAX) {
+			continue;
+		}
+
+		fidx[1] = (fidx[0] == 2) ? 0 : fidx[0] + 1;
+
+		vert[0] = ps->mloop_eval[loop_index].v;
+		vert[1] = ps->mloop_eval[ltri->tri[fidx[1]]].v;
+
+		for (uint i = 0; i < 2; i++) {
+			VertSeam *seam;
+			VertSeam *adj = find_adjacent_seam(ps, loop_index, vert[i], &seam);
+			float no[2];
+			float len_fact;
+
+			ang[i] = compute_seam_normal(seam, adj, no);
+
+			len_fact = cosf(ang[i] - M_PI_2);
+			len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
+			len_fact = MIN2(len_fact, 5.0f);
+
+			mul_v2_fl(no, ps->seam_bleed_px * len_fact);
+
+			add_v2_v2v2(seam_uvs[i], puv[fidx[i]], no);
+
+			mul_v2_v2(seam_uvs[i], ibuf_inv);
+		}
+
+		/* Handle convergent normals (can self-intersect). */
+		if ((ang[0] + ang[1]) < M_PI) {
+			if (isect_seg_seg_v2_simple(orig_uv[fidx[0]], seam_uvs[0], orig_uv[fidx[1]], seam_uvs[1])) {
+				float isect_co[2];
+
+				isect_seg_seg_v2_point(orig_uv[fidx[0]], seam_uvs[0], orig_uv[fidx[1]], seam_uvs[1], isect_co);
+
+				copy_v2_v2(seam_uvs[0], isect_co);
+				copy_v2_v2(seam_uvs[1], isect_co);
+			}
+		}
+
 	}
-	else {
-		no1[0] =  dir3[1] + dir1[1];
-		no1[1] = -dir3[0] - dir1[0];
-		no2[0] =  dir1[1] + dir2[1];
-		no2[1] = -dir1[0] - dir2[0];
-		no3[0] =  dir2[1] + dir3[1];
-		no3[1] = -dir2[0] - dir3[0];
+}
+
+static void insert_seam_vert_array(
+        const ProjPaintState *ps, MemArena *arena, const int tri_index,
+        const int fidx1, const int ibuf_x, const int ibuf_y)
+{
+	const MLoopTri *lt = &ps->mlooptri_eval[tri_index];
+	const float *lt_tri_uv[3] = {PS_LOOPTRI_AS_UV_3(ps->poly_to_loop_uv, lt)};
+	const int fidx[2] = {fidx1, ((fidx1 + 1) % 3)};
+	float vec[2];
+
+	VertSeam *vseam = BLI_memarena_alloc(arena, sizeof(VertSeam) * 2);
+
+	vseam->prev = NULL;
+	vseam->next = NULL;
+
+	vseam->tri = tri_index;
+	vseam->loop = lt->tri[fidx[0]];
+
+	sub_v2_v2v2(vec, lt_tri_uv[fidx[1]], lt_tri_uv[fidx[0]]);
+	vec[0] *= ibuf_x;
+	vec[1] *= ibuf_y;
+	vseam->angle = atan2f(vec[1], vec[0]);
+
+	/* If face windings are not initialized, something must be wrong. */
+	BLI_assert((ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_INIT) != 0);
+	vseam->normal_cw = (ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_CW);
+
+	copy_v2_v2(vseam->uv, lt_tri_uv[fidx[0]]);
+
+	vseam[1] = vseam[0];
+	vseam[1].angle += vseam[1].angle > 0.0f ? -M_PI : M_PI;
+	vseam[1].normal_cw = !vseam[1].normal_cw;
+	copy_v2_v2(vseam[1].uv, lt_tri_uv[fidx[1]]);
+
+	for (uint i = 0; i < 2; i++) {
+		uint vert = ps->mloop_eval[lt->tri[fidx[i]]].v;
+		ListBase *list = &ps->vertSeams[vert];
+		VertSeam *item = list->first;
+
+		while (item && item->angle < vseam[i].angle) {
+			item = item->next;
+		}
+
+		BLI_insertlinkbefore(list, item, &vseam[i]);
 	}
-
-	a1 = shell_v2v2_normal_dir_to_dist(no1, dir3);
-	a2 = shell_v2v2_normal_dir_to_dist(no2, dir1);
-	a3 = shell_v2v2_normal_dir_to_dist(no3, dir2);
-
-	CLAMP_MAX(a1, scale_clamp);
-	CLAMP_MAX(a2, scale_clamp);
-	CLAMP_MAX(a3, scale_clamp);
-
-	mul_v2_fl(no1, a1 * scaler);
-	mul_v2_fl(no2, a2 * scaler);
-	mul_v2_fl(no3, a3 * scaler);
-	add_v2_v2v2(outset_uv[0], puv[0], no1);
-	add_v2_v2v2(outset_uv[1], puv[1], no2);
-	add_v2_v2v2(outset_uv[2], puv[2], no3);
-
-	mul_v2_v2(outset_uv[0], ibuf_inv);
-	mul_v2_v2(outset_uv[1], ibuf_inv);
-	mul_v2_v2(outset_uv[2], ibuf_inv);
 }
 
 /*
- * Be tricky with flags, first 4 bits are PROJ_FACE_SEAM1 to 4, last 4 bits are PROJ_FACE_NOSEAM1 to 4
+ * Be tricky with flags, first 4 bits are PROJ_FACE_SEAM0 to 4, last 4 bits are PROJ_FACE_NOSEAM0 to 4
  * 1<<i - where i is (0-3)
  *
  * If we're multithreadng, make sure threads are locked when this is called
  */
-static void project_face_seams_init(const ProjPaintState *ps, const int tri_index)
+static void project_face_seams_init(
+        const ProjPaintState *ps, MemArena *arena, const int tri_index, const uint vert_index,
+        bool init_all, const int ibuf_x, const int ibuf_y)
 {
 	/* vars for the other face, we also set its flag */
 	int other_face, other_fidx;
-	int fidx1 = 2;
 	/* next fidx in the face (0,1,2,3) -> (1,2,3,0) or (0,1,2) -> (1,2,0) for a tri */
-	int fidx2 = 0;
+	int fidx[2] = {2, 0};
+	const MLoopTri *lt = &ps->mlooptri_eval[tri_index];
+	LinkNode *node;
 
 	/* initialize face winding if needed */
 	if ((ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_INIT) == 0)
 		project_face_winding_init(ps, tri_index);
 
 	do {
-		if ((ps->faceSeamFlags[tri_index] & (1 << fidx1 | 16 << fidx1)) == 0) {
-			if (check_seam(ps, tri_index, fidx1, fidx2, &other_face, &other_fidx)) {
-				ps->faceSeamFlags[tri_index] |= 1 << fidx1;
-				if (other_face != -1)
-					ps->faceSeamFlags[other_face] |= 1 << other_fidx;
-			}
-			else {
-				ps->faceSeamFlags[tri_index] |= 16 << fidx1;
-				if (other_face != -1) {
-					/* second 4 bits for disabled */
-					ps->faceSeamFlags[other_face] |= 16 << other_fidx;
+		if (init_all ||
+		    (ps->mloop_eval[lt->tri[fidx[0]]].v == vert_index) ||
+		    (ps->mloop_eval[lt->tri[fidx[1]]].v == vert_index))
+		{
+			if ((ps->faceSeamFlags[tri_index] & (PROJ_FACE_SEAM0 << fidx[0] | PROJ_FACE_NOSEAM0 << fidx[0])) == 0) {
+				if (check_seam(ps, tri_index, fidx[0], fidx[1], &other_face, &other_fidx)) {
+					ps->faceSeamFlags[tri_index] |= PROJ_FACE_SEAM0 << fidx[0];
+					insert_seam_vert_array(ps, arena, tri_index, fidx[0], ibuf_x, ibuf_y);
+
+					if (other_face != -1) {
+						/* Check if the other seam is already set. We don't want to insert it in the list twice. */
+						if ((ps->faceSeamFlags[other_face] & (PROJ_FACE_SEAM0 << other_fidx)) == 0) {
+							ps->faceSeamFlags[other_face] |= PROJ_FACE_SEAM0 << other_fidx;
+							insert_seam_vert_array(ps, arena, other_face, other_fidx, ibuf_x, ibuf_y);
+						}
+					}
+				}
+				else {
+					ps->faceSeamFlags[tri_index] |= PROJ_FACE_NOSEAM0 << fidx[0];
+					ps->faceSeamFlags[tri_index] |= PROJ_FACE_SEAM_INIT0 << fidx[0];
+
+					if (other_face != -1) {
+						/* second 4 bits for disabled */
+						ps->faceSeamFlags[other_face] |= PROJ_FACE_NOSEAM0 << other_fidx;
+						ps->faceSeamFlags[other_face] |= PROJ_FACE_SEAM_INIT0 << other_fidx;
+					}
 				}
 			}
 		}
 
-		fidx2 = fidx1;
-	} while (fidx1--);
+		fidx[1] = fidx[0];
+	} while (fidx[0]--);
+
+	if (init_all) {
+		char checked_verts = 0;
+
+		fidx[0] = 2;
+		fidx[1] = 0;
+
+		do {
+			if ((ps->faceSeamFlags[tri_index] & (PROJ_FACE_SEAM_INIT0 << fidx[0])) == 0) {
+				for (uint i = 0; i < 2; i++) {
+					uint vert;
+
+					if ((checked_verts & (1 << fidx[i])) != 0) {
+						continue;
+					}
+
+					vert = ps->mloop_eval[lt->tri[fidx[i]]].v;
+
+					for (node = ps->vertFaces[vert]; node; node = node->next) {
+						const int tri = POINTER_AS_INT(node->link);
+
+						project_face_seams_init(ps, arena, tri, vert, false, ibuf_x, ibuf_y);
+					}
+
+					checked_verts |= 1 << fidx[i];
+				}
+
+				ps->faceSeamFlags[tri_index] |= PROJ_FACE_SEAM_INIT0 << fidx[0];
+			}
+
+			fidx[1] = fidx[0];
+		} while (fidx[0]--);
+	}
 }
 #endif // PROJ_DEBUG_NOSEAMBLEED
 
@@ -2792,16 +2984,16 @@ static void project_paint_face_init(
 		face_seam_flag = ps->faceSeamFlags[tri_index];
 
 		/* are any of our edges un-initialized? */
-		if ((face_seam_flag & (PROJ_FACE_SEAM1 | PROJ_FACE_NOSEAM1)) == 0 ||
-		    (face_seam_flag & (PROJ_FACE_SEAM2 | PROJ_FACE_NOSEAM2)) == 0 ||
-		    (face_seam_flag & (PROJ_FACE_SEAM3 | PROJ_FACE_NOSEAM3)) == 0)
+		if ((face_seam_flag & PROJ_FACE_SEAM_INIT0) == 0 ||
+		    (face_seam_flag & PROJ_FACE_SEAM_INIT1) == 0 ||
+		    (face_seam_flag & PROJ_FACE_SEAM_INIT2) == 0)
 		{
-			project_face_seams_init(ps, tri_index);
+			project_face_seams_init(ps, arena, tri_index, 0, true, ibuf->x, ibuf->y);
 			face_seam_flag = ps->faceSeamFlags[tri_index];
-			//printf("seams - %d %d %d %d\n", flag&PROJ_FACE_SEAM1, flag&PROJ_FACE_SEAM2, flag&PROJ_FACE_SEAM3);
+			//printf("seams - %d %d %d %d\n", flag&PROJ_FACE_SEAM0, flag&PROJ_FACE_SEAM1, flag&PROJ_FACE_SEAM2);
 		}
 
-		if ((face_seam_flag & (PROJ_FACE_SEAM1 | PROJ_FACE_SEAM2 | PROJ_FACE_SEAM3)) == 0) {
+		if ((face_seam_flag & (PROJ_FACE_SEAM0 | PROJ_FACE_SEAM1 | PROJ_FACE_SEAM2)) == 0) {
 
 			if (threaded) {
 				/* Other threads could be modifying these vars. */
@@ -2812,8 +3004,6 @@ static void project_paint_face_init(
 		else {
 			/* we have a seam - deal with it! */
 
-			/* Now create new UV's for the seam face */
-			float (*outset_uv)[2] = ps->faceSeamUVs[tri_index];
 			/* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in perspective view */
 			float insetCos[3][3];
 
@@ -2831,12 +3021,14 @@ static void project_paint_face_init(
 			float seam_subsection[4][2];
 			float fac1, fac2;
 
-			if (outset_uv[0][0] == FLT_MAX) /* first time initialize */
-				uv_image_outset(
-				        lt_uv_pxoffset, outset_uv, ps->seam_bleed_px,
-				        ibuf->x, ibuf->y, (ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_CW) == 0);
+			if ((ps->faceSeamFlags[tri_index] & PROJ_FACE_SEAM0) ||
+			    (ps->faceSeamFlags[tri_index] & PROJ_FACE_SEAM1) ||
+			    (ps->faceSeamFlags[tri_index] & PROJ_FACE_SEAM2))
+			{
+				uv_image_outset(ps, lt_uv_pxoffset, tri_index, ibuf->x, ibuf->y);
+			}
 
-			/* ps->faceSeamUVs cant be modified when threading, now this is done we can unlock. */
+			/* ps->loopSeamUVs cant be modified when threading, now this is done we can unlock. */
 			if (threaded) {
 				/* Other threads could be modifying these vars */
 				BLI_thread_unlock(LOCK_CUSTOM1);
@@ -2863,6 +3055,7 @@ static void project_paint_face_init(
 				{
 					/* Avoid div by zero. */
 					if (len_squared_v2v2(vCoSS[fidx1], vCoSS[fidx2]) > FLT_EPSILON) {
+						uint loop_idx = ps->mlooptri_eval[tri_index].tri[fidx1];
 
 						if (is_ortho) {
 							fac1 = line_point_factor_v2(bucket_clip_edges[0], vCoSS[fidx1], vCoSS[fidx2]);
@@ -2876,8 +3069,8 @@ static void project_paint_face_init(
 						interp_v2_v2v2(seam_subsection[0], lt_uv_pxoffset[fidx1], lt_uv_pxoffset[fidx2], fac1);
 						interp_v2_v2v2(seam_subsection[1], lt_uv_pxoffset[fidx1], lt_uv_pxoffset[fidx2], fac2);
 
-						interp_v2_v2v2(seam_subsection[2], outset_uv[fidx1], outset_uv[fidx2], fac2);
-						interp_v2_v2v2(seam_subsection[3], outset_uv[fidx1], outset_uv[fidx2], fac1);
+						interp_v2_v2v2(seam_subsection[2], ps->loopSeamUVs[loop_idx][0], ps->loopSeamUVs[loop_idx][1], fac2);
+						interp_v2_v2v2(seam_subsection[3], ps->loopSeamUVs[loop_idx][0], ps->loopSeamUVs[loop_idx][1], fac1);
 
 						/* if the bucket_clip_edges values Z values was kept we could avoid this
 						 * Inset needs to be added so occlusion tests wont hit adjacent faces */
@@ -2896,62 +3089,47 @@ static void project_paint_face_init(
 
 								has_x_isect = 0;
 								for (x = bounds_px.xmin; x < bounds_px.xmax; x++) {
+									bool in_bounds;
 									//uv[0] = (((float)x) + 0.5f) / (float)ibuf->x;
 									/* use offset uvs instead */
 									uv[0] = (float)x / ibuf_xf;
 
 									/* test we're inside uvspace bucket and triangle bounds */
-									if (isect_point_quad_v2(uv, UNPACK4(seam_subsection))) {
+									if (equals_v2v2(ps->loopSeamUVs[loop_idx][0], ps->loopSeamUVs[loop_idx][1])) {
+										in_bounds = isect_point_tri_v2(uv, UNPACK3(seam_subsection));
+									}
+									else {
+										in_bounds = isect_point_quad_v2(uv, UNPACK4(seam_subsection));
+									}
+
+									if (in_bounds) {
+										float pixel_on_edge[4];
 										float fac;
 
-										/* We need to find the closest point along the face edge,
-										 * getting the screen_px_from_*** wont work because our
-										 * actual location is not relevant, since we are outside
-										 * the face, Use VecLerpf to find our location on the side
-										 * of the face's UV */
-#if 0
-										if (is_ortho) screen_px_from_ortho(ps, uv, v1co, v2co, v3co, uv1co, uv2co, uv3co, pixelScreenCo);
-										else          screen_px_from_persp(ps, uv, v1co, v2co, v3co, uv1co, uv2co, uv3co, pixelScreenCo);
-#endif
+										if (is_ortho) {
+											screen_px_from_ortho(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
+										}
+										else {
+											screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
+										}
 
-										/* Since this is a seam we need to work out where on
-										 * the line this pixel is */
-										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
+										/* We need the coord of the pixel on the edge, for the occlusion query. */
 										fac = resolve_quad_u_v2(uv, UNPACK4(seam_subsection));
-										interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac);
+										interp_v3_v3v3(pixel_on_edge, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac);
 
 										if (!is_ortho) {
-											pixelScreenCo[3] = 1.0f;
+											pixel_on_edge[3] = 1.0f;
 											/* cast because of const */
-											mul_m4_v4((float(*)[4])ps->projectMat, pixelScreenCo);
-											pixelScreenCo[0] = (float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * pixelScreenCo[0] / pixelScreenCo[3];
-											pixelScreenCo[1] = (float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * pixelScreenCo[1] / pixelScreenCo[3];
+											mul_m4_v4((float(*)[4])ps->projectMat, pixel_on_edge);
+											pixel_on_edge[0] = (float)(ps->winx * 0.5f) + (ps->winx * 0.5f) * pixel_on_edge[0] / pixel_on_edge[3];
+											pixel_on_edge[1] = (float)(ps->winy * 0.5f) + (ps->winy * 0.5f) * pixel_on_edge[1] / pixel_on_edge[3];
 											/* Use the depth for bucket point occlusion */
-											pixelScreenCo[2] = pixelScreenCo[2] / pixelScreenCo[3];
+											pixel_on_edge[2] = pixel_on_edge[2] / pixel_on_edge[3];
 										}
 
 										if ((ps->do_occlude == false) ||
-										    !project_bucket_point_occluded(ps, bucketFaceNodes, tri_index, pixelScreenCo))
+										    !project_bucket_point_occluded(ps, bucketFaceNodes, tri_index, pixel_on_edge))
 										{
-											/* Only bother calculating the weights if we intersect */
-											if (ps->do_mask_normal || ps->poly_to_loop_uv_clone) {
-												const float uv_fac = fac1 + (fac * (fac2 - fac1));
-#if 0
-												/* get the UV on the line since we want to copy the
-												 * pixels from there for bleeding */
-												float uv_close[2];
-												interp_v2_v2v2(uv_close, lt_uv_pxoffset[fidx1], lt_uv_pxoffset[fidx2], uv_fac);
-												barycentric_weights_v2(lt_uv_pxoffset[0], lt_uv_pxoffset[1], lt_uv_pxoffset[2], uv_close, w);
-#else
-
-												/* Cheat, we know where we are along the edge
-												 * so work out the weights from that */
-												w[0] = w[1] = w[2] = 0.0;
-												w[fidx1] = 1.0f - uv_fac;
-												w[fidx2] = uv_fac;
-#endif
-											}
-
 											/* a pity we need to get the worldspace
 											 * pixel location here */
 											if (do_clip || do_3d_mapping) {
@@ -3216,7 +3394,9 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MLoopTri *
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
 		/* set as uninitialized */
-		**ps->faceSeamUVs[tri_index] = FLT_MAX;
+		**ps->loopSeamUVs[lt->tri[0]] = FLT_MAX;
+		**ps->loopSeamUVs[lt->tri[1]] = FLT_MAX;
+		**ps->loopSeamUVs[lt->tri[2]] = FLT_MAX;
 	}
 #endif
 }
@@ -3451,9 +3631,10 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 {
 	if (ps->seam_bleed_px > 0.0f) {
 		ps->vertFaces = MEM_callocN(sizeof(LinkNode *) * ps->totvert_eval, "paint-vertFaces");
-		ps->faceSeamFlags = MEM_callocN(sizeof(char) * ps->totlooptri_eval, "paint-faceSeamFlags");
+		ps->faceSeamFlags = MEM_callocN(sizeof(ushort) * ps->totlooptri_eval, "paint-faceSeamFlags");
 		ps->faceWindingFlags = MEM_callocN(sizeof(char) * ps->totlooptri_eval, "paint-faceWindindFlags");
-		ps->faceSeamUVs = MEM_mallocN(sizeof(float[3][2]) * ps->totlooptri_eval, "paint-faceSeamUVs");
+		ps->loopSeamUVs = MEM_mallocN(sizeof(float[2][2]) * ps->totloop_eval, "paint-loopSeamUVs");
+		ps->vertSeams = MEM_callocN(sizeof(ListBase) * ps->totvert_eval, "paint-vertSeams");
 	}
 }
 #endif
@@ -3603,6 +3784,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
 	ps->totvert_eval = ps->me_eval->totvert;
 	ps->totedge_eval = ps->me_eval->totedge;
 	ps->totpoly_eval = ps->me_eval->totpoly;
+	ps->totloop_eval = ps->me_eval->totloop;
 
 	ps->mlooptri_eval = BKE_mesh_runtime_looptri_ensure(ps->me_eval);
 	ps->totlooptri_eval = ps->me_eval->runtime.looptris.len;
@@ -4121,7 +4303,8 @@ static void project_paint_end(ProjPaintState *ps)
 			MEM_freeN(ps->vertFaces);
 			MEM_freeN(ps->faceSeamFlags);
 			MEM_freeN(ps->faceWindingFlags);
-			MEM_freeN(ps->faceSeamUVs);
+			MEM_freeN(ps->loopSeamUVs);
+			MEM_freeN(ps->vertSeams);
 		}
 #endif
 
