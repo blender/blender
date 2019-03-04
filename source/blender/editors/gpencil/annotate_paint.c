@@ -1188,9 +1188,6 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 
 			/* mark datablock as being used for annotations */
 			gpd->flag |= GP_DATA_ANNOTATIONS;
-
-			/* annotations always in front of all objects */
-			gpd->xray_mode = GP_XRAY_FRONT;
 		}
 		p->gpd = *gpd_ptr;
 	}

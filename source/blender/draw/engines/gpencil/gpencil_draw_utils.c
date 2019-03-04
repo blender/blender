@@ -416,7 +416,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(
 	stl->shgroups[id].texture_flip = gp_style->flag & GP_STYLE_COLOR_FLIP_FILL ? 1 : 0;
 	DRW_shgroup_uniform_int(grp, "texture_flip", &stl->shgroups[id].texture_flip, 1);
 
-	DRW_shgroup_uniform_int(grp, "xraymode", (const int *) &gpd->xray_mode, 1);
+	stl->shgroups[id].xray_mode = (ob->dtx & OB_DRAWXRAY) ? GP_XRAY_FRONT : GP_XRAY_3DSPACE;
+	DRW_shgroup_uniform_int(grp, "xraymode", &stl->shgroups[id].xray_mode, 1);
 	DRW_shgroup_uniform_int(grp, "drawmode", (const int *) &gpd->draw_mode, 1);
 
 	/* viewport x-ray */
@@ -570,7 +571,8 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 	}
 
 	if ((gpd) && (id > -1)) {
-		DRW_shgroup_uniform_int(grp, "xraymode", (const int *) &gpd->xray_mode, 1);
+		stl->shgroups[id].xray_mode = (ob->dtx & OB_DRAWXRAY) ? GP_XRAY_FRONT : GP_XRAY_3DSPACE;
+		DRW_shgroup_uniform_int(grp, "xraymode", &stl->shgroups[id].xray_mode, 1);
 	}
 	else {
 		/* for drawing always on predefined z-depth */
@@ -689,7 +691,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 	}
 
 	if (gpd) {
-		DRW_shgroup_uniform_int(grp, "xraymode", (const int *)&gpd->xray_mode, 1);
+		stl->shgroups[id].xray_mode = (ob->dtx & OB_DRAWXRAY) ? GP_XRAY_FRONT : GP_XRAY_3DSPACE;
+		DRW_shgroup_uniform_int(grp, "xraymode", (const int *)&stl->shgroups[id].xray_mode, 1);
 	}
 	else {
 		/* for drawing always on on predefined z-depth */
@@ -1495,7 +1498,7 @@ static void DRW_gpencil_shgroups_create(
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	bGPdata *gpd = (bGPdata *)ob->data;
-	DRWPass *stroke_pass = GPENCIL_3D_DRAWMODE(gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d;
+	DRWPass *stroke_pass = GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d;
 
 	GpencilBatchGroup *elm = NULL;
 	DRWShadingGroup *shgrp = NULL;

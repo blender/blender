@@ -57,13 +57,6 @@ static EnumPropertyItem rna_enum_gpencil_stroke_depth_order_items[] = {
 	{0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem rna_enum_gpencil_object_depth_order_items[] = {
-	{GP_XRAY_FRONT, "FRONT", 0, "Front", "Display all strokes in front"},
-	{GP_XRAY_3DSPACE, "3DSPACE", 0, "3D Space", "Display strokes relative to other objects in 3D space"},
-	{GP_XRAY_BACK, "BACK", 0, "Back", "Display all strokes last"},
-	{0, NULL, 0, NULL, NULL},
-};
-
 static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 	{GP_ONION_MODE_ABSOLUTE, "ABSOLUTE", 0, "Frames", "Frames in absolute range of the scene frame"},
 	{GP_ONION_MODE_RELATIVE, "RELATIVE", 0, "Keyframes", "Frames in relative range of the Grease Pencil keyframes"},
@@ -1508,12 +1501,6 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_stroke_depth_order_items);
 	RNA_def_property_ui_text(prop, "Stroke Depth Order",
 		"Defines how the strokes are ordered in 3D space");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
-
-	prop = RNA_def_property(srna, "object_depth_order", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "xray_mode");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_object_depth_order_items);
-	RNA_def_property_ui_text(prop, "Object Depth Order", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Flags */

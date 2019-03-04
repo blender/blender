@@ -411,7 +411,6 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 	/* GP object specific settings */
 	ARRAY_SET_ITEMS(gpd->line_color, 0.6f, 0.6f, 0.6f, 0.5f);
 
-	gpd->xray_mode = GP_XRAY_3DSPACE;
 	gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 
 	/* grid settings */

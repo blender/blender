@@ -35,7 +35,6 @@ uniform vec4 wire_color;
 
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1
-#define GP_XRAY_BACK  2
 
 #define GP_DRAWMODE_2D 0
 #define GP_DRAWMODE_3D 1
@@ -162,9 +161,6 @@ void main()
 		else {
 			gl_FragDepth = gl_FragCoord.z;
 		}
-	}
-	else if  (xraymode == GP_XRAY_BACK) {
-		gl_FragDepth = 0.999999;
 	}
 	else {
 		gl_FragDepth = 0.000001;

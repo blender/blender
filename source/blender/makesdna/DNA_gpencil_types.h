@@ -460,9 +460,7 @@ typedef struct bGPdata {
 	/** Settings for this datablock. */
 	int flag;
 
-	/** Xray mode for strokes (eGP_DepthOrdering). */
-	short xray_mode;
-	char _pad1[2];
+	char _pad1[4];
 
 	/* Palettes */
 	/** List of bGPDpalette's   - Deprecated (2.78 - 2.79 only). */
@@ -616,7 +614,6 @@ typedef enum eGP_OnionModes {
 typedef enum eGP_DepthOrdering {
 	GP_XRAY_FRONT = 0,
 	GP_XRAY_3DSPACE = 1,
-	GP_XRAY_BACK  = 2,
 } eGP_DepthOrdering;
 
 /* draw modes (Use 2D or 3D position) */

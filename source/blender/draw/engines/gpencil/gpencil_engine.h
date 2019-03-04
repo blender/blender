@@ -118,6 +118,7 @@ typedef struct GPENCIL_shgroup {
 	int keep_size;
 	int caps_mode[2];
 	float obj_scale;
+	int xray_mode;
 
 	/* color of the wireframe */
 	float wire_color[4];
@@ -467,8 +468,8 @@ void GPENCIL_render_to_image(void *vedata, struct RenderEngine *engine, struct R
 	} \
 }
 
-#define GPENCIL_3D_DRAWMODE(gpd) \
-	((gpd) && (gpd->draw_mode == GP_DRAWMODE_3D) && (gpd->xray_mode == GP_XRAY_3DSPACE))
+#define GPENCIL_3D_DRAWMODE(ob, gpd) \
+	((gpd) && (gpd->draw_mode == GP_DRAWMODE_3D) && (ob->dtx & OB_DRAWXRAY))
 
 #define GPENCIL_USE_SOLID(stl) \
 	((stl) && ((stl->storage->is_render) || (stl->storage->is_mat_preview)))

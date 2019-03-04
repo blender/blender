@@ -14,7 +14,6 @@ out vec2 mTexCoord;
 
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1
-#define GP_XRAY_BACK  2
 
 /* project 3d point to 2d on screen space */
 vec2 toScreenSpace(vec4 vertex)
@@ -30,9 +29,6 @@ float getZdepth(vec4 point)
 	}
 	if (xraymode == GP_XRAY_3DSPACE) {
 		return (point.z / point.w);
-	}
-	if  (xraymode == GP_XRAY_BACK) {
-		return 0.999999;
 	}
 
 	/* in front by default */

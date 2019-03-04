@@ -347,9 +347,9 @@ class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
 
         gpd = context.gpencil_data
 
-        layout.prop(gpd, "object_depth_order")
-        if gpd.object_depth_order == '3DSPACE':
-            layout.prop(gpd, "stroke_depth_order")
+        col = layout.column(align=True)
+        col.prop(gpd, "stroke_depth_order")
+        col.enabled = not ob.show_in_front
 
         col = layout.column(align=True)
         col.prop(gpd, "stroke_thickness_space")
