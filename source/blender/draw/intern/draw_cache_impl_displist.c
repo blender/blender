@@ -35,6 +35,7 @@
 #include "BKE_displist.h"
 
 #include "GPU_batch.h"
+#include "GPU_extensions.h"
 
 #include "draw_cache_impl.h"  /* own include */
 
@@ -206,10 +207,16 @@ void DRW_displist_vertbuf_create_pos_and_nor(ListBase *lb, GPUVertBuf *vbo)
 void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
 {
 	static GPUVertFormat format = { 0 };
-	// static struct { uint wd; } attr_id;  /* UNUSED */
+	static struct { uint wd; } attr_id;
 	if (format.attr_len == 0) {
 		/* initialize vertex format */
-		/* attr_id.wd = */ GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		if (!GPU_crappy_amd_driver()) {
+			/* Some AMD drivers strangely crash with a vbo with this format. */
+			attr_id.wd = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		}
+		else {
+			attr_id.wd = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+		}
 	}
 
 	int vbo_len_used = curve_render_surface_vert_len_get(lb);
@@ -217,8 +224,16 @@ void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
 	GPU_vertbuf_init_with_format(vbo, &format);
 	GPU_vertbuf_data_alloc(vbo, vbo_len_used);
 
-	BLI_assert(vbo->format.stride == 1);
-	memset(vbo->data, 0xFF, (size_t)vbo_len_used);
+	if (vbo->format.stride == 1) {
+		memset(vbo->data, 0xFF, (size_t)vbo_len_used);
+	}
+	else {
+		GPUVertBufRaw wd_step;
+		GPU_vertbuf_attr_get_raw_data(vbo, attr_id.wd, &wd_step);
+		for (int i = 0; i < vbo_len_used; i++) {
+			*((float *)GPU_vertbuf_raw_step(&wd_step)) = 1.0f;
+		}
+	}
 }
 
 void DRW_displist_indexbuf_create_triangles_in_order(ListBase *lb, GPUIndexBuf *ibo)

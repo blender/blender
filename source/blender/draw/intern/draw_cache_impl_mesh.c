@@ -52,6 +52,7 @@
 #include "bmesh.h"
 
 #include "GPU_batch.h"
+#include "GPU_extensions.h"
 #include "GPU_material.h"
 
 #include "DRW_render.h"
@@ -2671,12 +2672,34 @@ static float mesh_loop_edge_factor_get(
 	return d;
 }
 
+static void vertbuf_raw_step_u8(GPUVertBufRaw *wd_step, const uchar wiredata)
+{
+	*((uchar *)GPU_vertbuf_raw_step(wd_step)) = wiredata;
+}
+
+static void vertbuf_raw_step_u8_to_f32(GPUVertBufRaw *wd_step, const uchar wiredata)
+{
+	*((float *)GPU_vertbuf_raw_step(wd_step)) = wiredata / 255.0f;
+}
+
 static void mesh_create_loop_edge_fac(MeshRenderData *rdata, GPUVertBuf *vbo)
 {
 	static GPUVertFormat format = { 0 };
 	static struct { uint wd; } attr_id;
+	static union { float f; uchar u; } data;
+	static void (*vertbuf_raw_step)(GPUVertBufRaw *, const uchar);
 	if (format.attr_len == 0) {
-		attr_id.wd = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		if (!GPU_crappy_amd_driver()) {
+			/* Some AMD drivers strangely crash with a vbo with this format. */
+			attr_id.wd = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+			vertbuf_raw_step = vertbuf_raw_step_u8;
+			data.u = UCHAR_MAX;
+		}
+		else {
+			attr_id.wd = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+			vertbuf_raw_step = vertbuf_raw_step_u8_to_f32;
+			data.f = 1.0f;
+		}
 	}
 	const int poly_len = mesh_render_data_polys_len_get(rdata);
 	const int loop_len = mesh_render_data_loops_len_get(rdata);
@@ -2699,7 +2722,7 @@ static void mesh_create_loop_edge_fac(MeshRenderData *rdata, GPUVertBuf *vbo)
 			BM_ITER_MESH_INDEX (efa, &iter_efa, bm, BM_FACES_OF_MESH, f) {
 				BM_ITER_ELEM (loop, &iter_loop, efa, BM_LOOPS_OF_FACE) {
 					float ratio = mesh_loop_edge_factor_get(efa->no, loop->v->co, loop->v->no, loop->next->v->co);
-					*((uchar *)GPU_vertbuf_raw_step(&wd_step)) = ratio * 255;
+					vertbuf_raw_step(&wd_step, ratio * 255);
 				}
 			}
 			BLI_assert(GPU_vertbuf_raw_used(&wd_step) == loop_len);
@@ -2736,7 +2759,7 @@ static void mesh_create_loop_edge_fac(MeshRenderData *rdata, GPUVertBuf *vbo)
 					ed->flag ^= ME_EDGE_TMP_TAG;
 
 					if (use_edge_render) {
-						*((uchar *)GPU_vertbuf_raw_step(&wd_step)) = (ed->flag & ME_EDGERENDER) ? 255 : 0;
+						vertbuf_raw_step(&wd_step, (ed->flag & ME_EDGERENDER) ? 255 : 0);
 					}
 					else {
 						float vnor_f[3];
@@ -2745,7 +2768,7 @@ static void mesh_create_loop_edge_fac(MeshRenderData *rdata, GPUVertBuf *vbo)
 						                                        mvert[ml1->v].co,
 						                                        vnor_f,
 						                                        mvert[ml2->v].co);
-						*((uchar *)GPU_vertbuf_raw_step(&wd_step)) = ratio * 253 + 1;
+						vertbuf_raw_step(&wd_step, ratio * 253 + 1);
 					}
 				}
 			}
@@ -2753,7 +2776,6 @@ static void mesh_create_loop_edge_fac(MeshRenderData *rdata, GPUVertBuf *vbo)
 			for (int l = 0; l < loop_len; l++, mloop++) {
 				MEdge *ed = (MEdge *)rdata->medge + mloop->e;
 				if (ed->flag & ME_EDGE_TMP_TAG) {
-					uchar data = 255;
 					GPU_vertbuf_attr_set(vbo, attr_id.wd, l, &data);
 				}
 			}

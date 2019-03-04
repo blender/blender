@@ -211,6 +211,12 @@ bool GPU_unused_fb_slot_workaround(void)
 	return GG.unused_fb_slot_workaround;
 }
 
+bool GPU_crappy_amd_driver(void)
+{
+	/* Currently are the same drivers with the `unused_fb_slot` problem. */
+	return GPU_unused_fb_slot_workaround();
+}
+
 void gpu_extensions_init(void)
 {
 	/* during 2.8 development each platform has its own OpenGL minimum requirements
