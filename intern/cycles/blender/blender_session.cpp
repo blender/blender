@@ -416,15 +416,15 @@ void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string& view_
 	/* Write cryptomatte metadata. */
 	if(scene->film->cryptomatte_passes & CRYPT_OBJECT) {
 		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoObject",
-							  scene->object_manager->get_cryptomatte_objects(scene));
+		                      scene->object_manager->get_cryptomatte_objects(scene));
 	}
 	if(scene->film->cryptomatte_passes & CRYPT_MATERIAL) {
 		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoMaterial",
-							  scene->shader_manager->get_cryptomatte_materials(scene));
+		                      scene->shader_manager->get_cryptomatte_materials(scene));
 	}
 	if(scene->film->cryptomatte_passes & CRYPT_ASSET) {
 		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoAsset",
-							  scene->object_manager->get_cryptomatte_assets(scene));
+		                      scene->object_manager->get_cryptomatte_assets(scene));
 	}
 }
 
