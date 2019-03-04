@@ -200,20 +200,21 @@ class TEXT_MT_text(Menu):
         st = context.space_data
         text = st.text
 
-        layout.operator("text.new")
-        layout.operator("text.open")
+        layout.operator("text.new", text="New")
+        layout.operator("text.open", text="Open...", icon='FILE_FOLDER')
 
         if text:
+            layout.separator()
             layout.operator("text.reload")
 
-            layout.column()
-            layout.operator("text.save")
-            layout.operator("text.save_as")
+            layout.separator()
+            layout.operator("text.save", icon='FILE_TICK')
+            layout.operator("text.save_as", text="Save As...")
 
             if text.filepath:
                 layout.operator("text.make_internal")
 
-            layout.column()
+            layout.separator()
             layout.operator("text.run_script")
 
 

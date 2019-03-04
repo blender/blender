@@ -186,7 +186,7 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Create Text Block";
+	ot->name = "New Text";
 	ot->idname = "TEXT_OT_new";
 	ot->description = "Create a new text data-block";
 
@@ -280,7 +280,7 @@ static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 void TEXT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Open Text Block";
+	ot->name = "Open Text";
 	ot->idname = "TEXT_OT_open";
 	ot->description = "Open a new text data-block";
 
