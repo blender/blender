@@ -40,8 +40,11 @@ void main()
 	float half_size = sizeEdge * edgeScale;
 	/* Enlarge edge for flag display. */
 	half_size += (finalColorOuter_f.a > 0.0) ? max(sizeEdge * edgeScale, 1.0) : 0.0;
+
+#ifdef USE_SMOOTH_WIRE
 	/* Add 1 px for AA */
 	half_size += 0.5;
+#endif
 
 	vec3 edge_ofs = half_size * viewportSizeInv.xyy * vec3(1.0, 1.0, 0.0);
 

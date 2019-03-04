@@ -24,7 +24,7 @@ void main()
 {
 	float dist = abs(edgeCoord_f) - max(sizeEdge * edgeScale - 0.5, 0.0);
 	float dist_outer = dist - max(sizeEdge * edgeScale, 1.0);
-#if 1
+#ifdef USE_SMOOTH_WIRE
 	float mix_w = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist);
 	float mix_w_outer = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist_outer);
 #else

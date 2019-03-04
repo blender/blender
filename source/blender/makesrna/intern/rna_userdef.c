@@ -4408,6 +4408,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	                         "Enable OpenGL multi-sampling, only for systems that support it, requires restart");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
+	prop = RNA_def_property(srna, "use_edit_mode_smooth_wire", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_EDIT_MODE_SMOOTH_WIRE);
+	RNA_def_property_ui_text(prop, "Edit-Mode Smooth Wires",
+	                         "Enable Edit-Mode edge smoothing, reducing aliasing, requires restart");
+	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+
 	/* grease pencil anti-aliasing */
 	prop = RNA_def_property(srna, "gpencil_multi_sample", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_multisamples");

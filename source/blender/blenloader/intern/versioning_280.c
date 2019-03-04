@@ -2799,9 +2799,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
-	{
-		/* Versioning code until next subversion bump goes here. */
-
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 46)) {
 		/* Add wireframe color. */
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "wire_color_type")) {
 			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
@@ -2825,5 +2823,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+	}
+
+	{
+		/* Versioning code until next subversion bump goes here. */
 	}
 }
