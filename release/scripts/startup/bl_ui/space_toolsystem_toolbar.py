@@ -806,6 +806,9 @@ class _defs_edit_curve:
     def curve_radius():
         return dict(
             text="Radius",
+            description=(
+                "Expand or contract the radius of the selected curve points"
+            ),
             icon="ops.curve.radius",
             widget=None,
             keymap=(),
