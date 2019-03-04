@@ -469,7 +469,8 @@ void GPENCIL_render_to_image(void *vedata, struct RenderEngine *engine, struct R
 }
 
 #define GPENCIL_3D_DRAWMODE(ob, gpd) \
-	((gpd) && (gpd->draw_mode == GP_DRAWMODE_3D) && (ob->dtx & OB_DRAWXRAY))
+	((gpd) && (gpd->draw_mode == GP_DRAWMODE_3D) && \
+	 ((ob->dtx & OB_DRAWXRAY) == 0))
 
 #define GPENCIL_USE_SOLID(stl) \
 	((stl) && ((stl->storage->is_render) || (stl->storage->is_mat_preview)))
