@@ -3958,6 +3958,15 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 		ibuf->flags &= ~IB_zbuffloat;
 	}
 
+	/* TODO(sergey): Make this faster by either simply referencing the stamp
+	 * or by changing both ImBug and RenderResult to use same data type to
+	 * store metadata. */
+	if (ibuf->metadata != NULL) {
+		IMB_metadata_free(ibuf->metadata);
+		ibuf->metadata = NULL;
+	}
+	BKE_imbuf_stamp_info(&rres, ibuf);
+
 	BLI_thread_unlock(LOCK_COLORMANAGE);
 
 	ibuf->dither = dither;
