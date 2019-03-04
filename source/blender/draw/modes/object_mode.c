@@ -2957,16 +2957,13 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				}
 			}
 			else {
-				/* Kind of expensive in edit mode. Only show if in wireframe mode. */
 				bool has_edit_mesh_cage = false;
 				/* TODO: Should be its own function. */
 				if (is_edit_mode) {
 					BMEditMesh *embm = me->edit_mesh;
 					has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
 				}
-				if (!is_edit_mode ||
-				    (((v3d->shading.type < OB_SOLID) || (ob->dt == OB_WIRE)) && has_edit_mesh_cage))
-				{
+				if (!is_edit_mode || has_edit_mesh_cage) {
 					struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
