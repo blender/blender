@@ -716,10 +716,10 @@ bNodeSocket *nodeInsertStaticSocket(bNodeTree *ntree, bNode *node, int in_out, i
 	return sock;
 }
 
-static void node_socket_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock, bNode *UNUSED(node))
+static void node_socket_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock, bNode *UNUSED(node), const bool do_id_user)
 {
 	if (sock->prop) {
-		IDP_FreeProperty(sock->prop);
+		IDP_FreeProperty_ex(sock->prop, do_id_user);
 		MEM_freeN(sock->prop);
 	}
 
@@ -742,7 +742,7 @@ void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 	BLI_remlink(&node->inputs, sock);
 	BLI_remlink(&node->outputs, sock);
 
-	node_socket_free(ntree, sock, node);
+	node_socket_free(ntree, sock, node, true);
 	MEM_freeN(sock);
 
 	node->update |= NODE_UPDATE;
@@ -762,14 +762,14 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
 
 	for (sock = node->inputs.first; sock; sock = sock_next) {
 		sock_next = sock->next;
-		node_socket_free(ntree, sock, node);
+		node_socket_free(ntree, sock, node, true);
 		MEM_freeN(sock);
 	}
 	BLI_listbase_clear(&node->inputs);
 
 	for (sock = node->outputs.first; sock; sock = sock_next) {
 		sock_next = sock->next;
-		node_socket_free(ntree, sock, node);
+		node_socket_free(ntree, sock, node, true);
 		MEM_freeN(sock);
 	}
 	BLI_listbase_clear(&node->outputs);
@@ -1737,12 +1737,14 @@ static void node_free_node_ex(
 
 	for (sock = node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
-		node_socket_free(ntree, sock, node);
+		/* Remember, no ID user refcount management here! */
+		node_socket_free(ntree, sock, node, false);
 		MEM_freeN(sock);
 	}
 	for (sock = node->outputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
-		node_socket_free(ntree, sock, node);
+		/* Remember, no ID user refcount management here! */
+		node_socket_free(ntree, sock, node, false);
 		MEM_freeN(sock);
 	}
 
