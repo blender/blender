@@ -1438,6 +1438,8 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 					data.icon = ICON_MOD_MASK; break;
 				case ID_MC:
 					data.icon = ICON_SEQUENCE; break;
+				case ID_PC:
+					data.icon = ICON_CURVE_BEZCURVE; break;
 				default:
 					break;
 			}

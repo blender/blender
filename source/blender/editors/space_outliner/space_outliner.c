@@ -224,6 +224,11 @@ static void outliner_main_region_listener(
 				ED_region_tag_redraw(ar);
 			}
 			break;
+		case NC_PAINTCURVE:
+			if (ELEM(wmn->action, NA_ADDED)) {
+				ED_region_tag_redraw(ar);
+			}
+			break;
 	}
 
 }

@@ -166,6 +166,8 @@ static int paintcurve_new_exec(bContext *C, wmOperator *UNUSED(op))
 		p->brush->paint_curve = BKE_paint_curve_add(bmain, "PaintCurve");
 	}
 
+	WM_event_add_notifier(C, NC_PAINTCURVE | NA_ADDED, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
