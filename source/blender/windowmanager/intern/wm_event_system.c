@@ -321,7 +321,7 @@ void wm_event_do_depsgraph(bContext *C)
 
 		win_combine_v3d_datamask |= ED_view3d_screen_datamask(C, scene, screen);
 	}
-	/* Update all the dependency graphs of visible vew layers. */
+	/* Update all the dependency graphs of visible view layers. */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		Scene *scene = WM_window_get_active_scene(win);
 		ViewLayer *view_layer = WM_window_get_active_view_layer(win);
