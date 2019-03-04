@@ -231,6 +231,12 @@ typedef struct ProjStrokeHandle {
 	Brush *brush;
 } ProjStrokeHandle;
 
+typedef struct LoopSeamData {
+	float seam_uvs[2][2];
+	float seam_puvs[2][2];
+	float corner_dist_sq[2];
+} LoopSeamData;
+
 /* Main projection painting struct passed to all projection painting functions */
 typedef struct ProjPaintState {
 	View3D *v3d;
@@ -333,6 +339,7 @@ typedef struct ProjPaintState {
 	bool is_maskbrush;
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
+	float seam_bleed_px_sq;
 #endif
 	/* clone vars */
 	float cloneOffset[2];
@@ -391,7 +398,7 @@ typedef struct ProjPaintState {
 	 * helps as an extra validation step for seam detection. */
 	char *faceWindingFlags;
 	/** expanded UVs for faces to use as seams. */
-	float (*loopSeamUVs)[2][2];
+	LoopSeamData (*loopSeamData);
 	/** Only needed for when seam_bleed_px is enabled, use to find UV seams. */
 	LinkNode **vertFaces;
 	/** Seams per vert, to find adjacent seams. */
@@ -1258,7 +1265,7 @@ static float compute_seam_normal(VertSeam *seam, VertSeam *adj, float r_no[2])
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
 static void uv_image_outset(
-        const ProjPaintState *ps, float (*orig_uv)[2],
+        const ProjPaintState *ps, float (*orig_uv)[2], float (*puv)[2],
         uint tri_index, const int ibuf_x, const int ibuf_y)
 {
 	int fidx[2];
@@ -1266,23 +1273,13 @@ static void uv_image_outset(
 	uint vert[2];
 	const MLoopTri *ltri = &ps->mlooptri_eval[tri_index];
 
-	/* pixelspace uv's */
-	float puv[3][2];
 	float ibuf_inv[2];
 
 	ibuf_inv[0] = 1.0f / (float)ibuf_x;
 	ibuf_inv[1] = 1.0f / (float)ibuf_y;
 
-	puv[0][0] = orig_uv[0][0] * ibuf_x;
-	puv[0][1] = orig_uv[0][1] * ibuf_y;
-
-	puv[1][0] = orig_uv[1][0] * ibuf_x;
-	puv[1][1] = orig_uv[1][1] * ibuf_y;
-
-	puv[2][0] = orig_uv[2][0] * ibuf_x;
-	puv[2][1] = orig_uv[2][1] * ibuf_y;
-
 	for (fidx[0] = 0; fidx[0] < 3; fidx[0]++) {
+		LoopSeamData *seam_data;
 		float (*seam_uvs)[2];
 		float ang[2];
 
@@ -1292,7 +1289,8 @@ static void uv_image_outset(
 
 		loop_index = ltri->tri[fidx[0]];
 
-		seam_uvs = ps->loopSeamUVs[loop_index];
+		seam_data = &ps->loopSeamData[loop_index];
+		seam_uvs = seam_data->seam_uvs;
 
 		if (seam_uvs[0][0] != FLT_MAX) {
 			continue;
@@ -1308,18 +1306,27 @@ static void uv_image_outset(
 			VertSeam *adj = find_adjacent_seam(ps, loop_index, vert[i], &seam);
 			float no[2];
 			float len_fact;
+			float tri_ang;
 
 			ang[i] = compute_seam_normal(seam, adj, no);
+			tri_ang = ang[i] - M_PI_2;
 
-			len_fact = cosf(ang[i] - M_PI_2);
+			if (tri_ang > 0.0f) {
+				const float dist = ps->seam_bleed_px * tanf(tri_ang);
+				seam_data->corner_dist_sq[i] = SQUARE(dist);
+			}
+			else {
+				seam_data->corner_dist_sq[i] = 0.0f;
+			}
+
+			len_fact = cosf(tri_ang);
 			len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
-			len_fact = MIN2(len_fact, 5.0f);
 
 			mul_v2_fl(no, ps->seam_bleed_px * len_fact);
 
-			add_v2_v2v2(seam_uvs[i], puv[fidx[i]], no);
+			add_v2_v2v2(seam_data->seam_puvs[i], puv[fidx[i]], no);
 
-			mul_v2_v2(seam_uvs[i], ibuf_inv);
+			mul_v2_v2v2(seam_uvs[i], seam_data->seam_puvs[i], ibuf_inv);
 		}
 
 		/* Handle convergent normals (can self-intersect). */
@@ -3021,11 +3028,23 @@ static void project_paint_face_init(
 			float seam_subsection[4][2];
 			float fac1, fac2;
 
+			/* Pixelspace UVs. */
+			float lt_puv[3][2];
+
+			lt_puv[0][0] = lt_uv_pxoffset[0][0] * ibuf->x;
+			lt_puv[0][1] = lt_uv_pxoffset[0][1] * ibuf->y;
+
+			lt_puv[1][0] = lt_uv_pxoffset[1][0] * ibuf->x;
+			lt_puv[1][1] = lt_uv_pxoffset[1][1] * ibuf->y;
+
+			lt_puv[2][0] = lt_uv_pxoffset[2][0] * ibuf->x;
+			lt_puv[2][1] = lt_uv_pxoffset[2][1] * ibuf->y;
+
 			if ((ps->faceSeamFlags[tri_index] & PROJ_FACE_SEAM0) ||
 			    (ps->faceSeamFlags[tri_index] & PROJ_FACE_SEAM1) ||
 			    (ps->faceSeamFlags[tri_index] & PROJ_FACE_SEAM2))
 			{
-				uv_image_outset(ps, lt_uv_pxoffset, tri_index, ibuf->x, ibuf->y);
+				uv_image_outset(ps, lt_uv_pxoffset, lt_puv, tri_index, ibuf->x, ibuf->y);
 			}
 
 			/* ps->loopSeamUVs cant be modified when threading, now this is done we can unlock. */
@@ -3056,6 +3075,8 @@ static void project_paint_face_init(
 					/* Avoid div by zero. */
 					if (len_squared_v2v2(vCoSS[fidx1], vCoSS[fidx2]) > FLT_EPSILON) {
 						uint loop_idx = ps->mlooptri_eval[tri_index].tri[fidx1];
+						LoopSeamData *seam_data = &ps->loopSeamData[loop_idx];
+						float (*seam_uvs)[2] = seam_data->seam_uvs;
 
 						if (is_ortho) {
 							fac1 = line_point_factor_v2(bucket_clip_edges[0], vCoSS[fidx1], vCoSS[fidx2]);
@@ -3069,8 +3090,8 @@ static void project_paint_face_init(
 						interp_v2_v2v2(seam_subsection[0], lt_uv_pxoffset[fidx1], lt_uv_pxoffset[fidx2], fac1);
 						interp_v2_v2v2(seam_subsection[1], lt_uv_pxoffset[fidx1], lt_uv_pxoffset[fidx2], fac2);
 
-						interp_v2_v2v2(seam_subsection[2], ps->loopSeamUVs[loop_idx][0], ps->loopSeamUVs[loop_idx][1], fac2);
-						interp_v2_v2v2(seam_subsection[3], ps->loopSeamUVs[loop_idx][0], ps->loopSeamUVs[loop_idx][1], fac1);
+						interp_v2_v2v2(seam_subsection[2], seam_uvs[0], seam_uvs[1], fac2);
+						interp_v2_v2v2(seam_subsection[3], seam_uvs[0], seam_uvs[1], fac1);
 
 						/* if the bucket_clip_edges values Z values was kept we could avoid this
 						 * Inset needs to be added so occlusion tests wont hit adjacent faces */
@@ -3089,17 +3110,33 @@ static void project_paint_face_init(
 
 								has_x_isect = 0;
 								for (x = bounds_px.xmin; x < bounds_px.xmax; x++) {
+									float puv[2] = {(float)x, (float)y};
 									bool in_bounds;
 									//uv[0] = (((float)x) + 0.5f) / (float)ibuf->x;
 									/* use offset uvs instead */
 									uv[0] = (float)x / ibuf_xf;
 
 									/* test we're inside uvspace bucket and triangle bounds */
-									if (equals_v2v2(ps->loopSeamUVs[loop_idx][0], ps->loopSeamUVs[loop_idx][1])) {
+									if (equals_v2v2(seam_uvs[0], seam_uvs[1])) {
 										in_bounds = isect_point_tri_v2(uv, UNPACK3(seam_subsection));
 									}
 									else {
 										in_bounds = isect_point_quad_v2(uv, UNPACK4(seam_subsection));
+									}
+
+									if (in_bounds) {
+										if ((seam_data->corner_dist_sq[0] > 0.0f) &&
+										    (len_squared_v2v2(puv, seam_data->seam_puvs[0]) < seam_data->corner_dist_sq[0]) &&
+										    (len_squared_v2v2(puv, lt_puv[fidx1]) > ps->seam_bleed_px_sq))
+										{
+											in_bounds = false;
+										}
+										else if ((seam_data->corner_dist_sq[1] > 0.0f) &&
+										    (len_squared_v2v2(puv, seam_data->seam_puvs[1]) < seam_data->corner_dist_sq[1]) &&
+										    (len_squared_v2v2(puv, lt_puv[fidx2]) > ps->seam_bleed_px_sq))
+										{
+											in_bounds = false;
+										}
 									}
 
 									if (in_bounds) {
@@ -3394,9 +3431,9 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MLoopTri *
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
 		/* set as uninitialized */
-		**ps->loopSeamUVs[lt->tri[0]] = FLT_MAX;
-		**ps->loopSeamUVs[lt->tri[1]] = FLT_MAX;
-		**ps->loopSeamUVs[lt->tri[2]] = FLT_MAX;
+		ps->loopSeamData[lt->tri[0]].seam_uvs[0][0] = FLT_MAX;
+		ps->loopSeamData[lt->tri[1]].seam_uvs[0][0] = FLT_MAX;
+		ps->loopSeamData[lt->tri[2]].seam_uvs[0][0] = FLT_MAX;
 	}
 #endif
 }
@@ -3633,7 +3670,7 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 		ps->vertFaces = MEM_callocN(sizeof(LinkNode *) * ps->totvert_eval, "paint-vertFaces");
 		ps->faceSeamFlags = MEM_callocN(sizeof(ushort) * ps->totlooptri_eval, "paint-faceSeamFlags");
 		ps->faceWindingFlags = MEM_callocN(sizeof(char) * ps->totlooptri_eval, "paint-faceWindindFlags");
-		ps->loopSeamUVs = MEM_mallocN(sizeof(float[2][2]) * ps->totloop_eval, "paint-loopSeamUVs");
+		ps->loopSeamData = MEM_mallocN(sizeof(LoopSeamData) * ps->totloop_eval, "paint-loopSeamUVs");
 		ps->vertSeams = MEM_callocN(sizeof(ListBase) * ps->totvert_eval, "paint-vertSeams");
 	}
 }
@@ -4303,7 +4340,7 @@ static void project_paint_end(ProjPaintState *ps)
 			MEM_freeN(ps->vertFaces);
 			MEM_freeN(ps->faceSeamFlags);
 			MEM_freeN(ps->faceWindingFlags);
-			MEM_freeN(ps->loopSeamUVs);
+			MEM_freeN(ps->loopSeamData);
 			MEM_freeN(ps->vertSeams);
 		}
 #endif
@@ -5468,6 +5505,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	/* pixel num to bleed */
 	ps->seam_bleed_px = settings->imapaint.seam_bleed;
+	ps->seam_bleed_px_sq = SQUARE(settings->imapaint.seam_bleed);
 #endif
 
 	if (ps->do_mask_normal) {
