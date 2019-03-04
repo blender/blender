@@ -190,6 +190,7 @@ static void rna_Image_unpack(Image *image, Main *bmain, ReportList *reports, int
 static void rna_Image_reload(Image *image, Main *bmain)
 {
 	BKE_image_signal(bmain, image, NULL, IMA_SIGNAL_RELOAD);
+	WM_main_add_notifier(NC_IMAGE | NA_EDITED, image);
 }
 
 static void rna_Image_update(Image *image, ReportList *reports)
