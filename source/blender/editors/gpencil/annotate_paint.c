@@ -475,7 +475,7 @@ static short gp_stroke_addpoint(
 		gpd->runtime.sbuffer_size++;
 		/* smooth while drawing previous points with a reduction factor for previous */
 		for (int s = 0; s < 3; s++) {
-			gp_smooth_buffer(p, 1.0f * ((3.0f - s) / 3.0f), gpd->runtime.sbuffer_size - s);
+			gp_smooth_buffer(p, 0.5f * ((3.0f - s) / 3.0f), gpd->runtime.sbuffer_size - s);
 		}
 
 		/* check if another operation can still occur */
