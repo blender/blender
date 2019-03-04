@@ -965,7 +965,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
 
 class PREFERENCES_OT_studiolight_new(Operator):
     """Save custom studio light from the studio light editor settings"""
-    bl_idname = 'preferences.studiolight_new'
+    bl_idname = "preferences.studiolight_new"
     bl_label = "Save custom Studio light"
 
     filename: StringProperty(
@@ -1021,7 +1021,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
 
 class PREFERENCES_OT_studiolight_uninstall(Operator):
     """Delete Studio Light"""
-    bl_idname = 'preferences.studiolight_uninstall'
+    bl_idname = "preferences.studiolight_uninstall"
     bl_label = "Uninstall Studio Light"
     index: bpy.props.IntProperty()
 
@@ -1044,7 +1044,7 @@ class PREFERENCES_OT_studiolight_uninstall(Operator):
 
 class PREFERENCES_OT_studiolight_copy_settings(Operator):
     """Copy Studio Light settings to the Studio light editor"""
-    bl_idname = 'preferences.studiolight_copy_settings'
+    bl_idname = "preferences.studiolight_copy_settings"
     bl_label = "Copy Studio Light settings"
     index: bpy.props.IntProperty()
 

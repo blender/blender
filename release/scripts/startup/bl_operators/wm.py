@@ -1750,7 +1750,7 @@ class WM_OT_drop_blend_file(Operator):
 
     def invoke(self, context, event):
         context.window_manager.popup_menu(self.draw_menu, title=bpy.path.basename(self.filepath), icon='QUESTION')
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def draw_menu(self, menu, context):
         layout = menu.layout

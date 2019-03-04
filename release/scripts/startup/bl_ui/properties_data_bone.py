@@ -171,14 +171,14 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         col.prop(bone, "bbone_handle_type_start", text="Start Handle")
 
         col = col.column(align=True)
-        col.active = (bone.bbone_handle_type_start != "AUTO")
+        col.active = (bone.bbone_handle_type_start != 'AUTO')
         col.prop_search(bone, "bbone_custom_handle_start", arm, bone_list, text="Custom")
 
         col = topcol.column(align=True)
         col.prop(bone, "bbone_handle_type_end", text="End Handle")
 
         col = col.column(align=True)
-        col.active = (bone.bbone_handle_type_end != "AUTO")
+        col.active = (bone.bbone_handle_type_end != 'AUTO')
         col.prop_search(bone, "bbone_custom_handle_end", arm, bone_list, text="Custom")
 
 

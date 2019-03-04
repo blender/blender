@@ -219,7 +219,7 @@ class OUTLINER_MT_collection(Menu):
 
         if space.display_mode == 'VIEW_LAYER':
             layout.separator()
-            layout.menu("OUTLINER_MT_collection_view_layer", icon="RENDERLAYERS")
+            layout.menu("OUTLINER_MT_collection_view_layer", icon='RENDERLAYERS')
 
         layout.separator()
 
