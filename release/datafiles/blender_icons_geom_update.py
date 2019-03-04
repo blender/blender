@@ -40,10 +40,11 @@ blender_bin = os.environ.get("BLENDER_BIN", "blender")
 if not os.path.exists(blender_bin):
     blender_bin = os.path.join(ROOTDIR, "blender.bin")
 
-if sys.platform == 'darwin':
-    blender_app_path = '/Applications/blender.app/Contents/MacOS/blender'
-    if os.path.exists(blender_app_path):
-        blender_bin = blender_app_path
+if not os.path.exists(blender_bin):
+    if sys.platform == 'darwin':
+        blender_app_path = '/Applications/blender.app/Contents/MacOS/blender'
+        if os.path.exists(blender_app_path):
+            blender_bin = blender_app_path
 
 icons_blend = (
     os.path.join(ROOTDIR, "..", "lib", "resources", "icon_geom.blend"),
