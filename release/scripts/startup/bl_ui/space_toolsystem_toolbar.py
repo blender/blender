@@ -1250,6 +1250,16 @@ class _defs_gpencil_edit:
             keymap=(),
         )
 
+    @ToolDef.from_fn
+    def extrude():
+        return dict(
+            text="Extrude",
+            icon="ops.gpencil.extrude_move",
+            widget="VIEW3D_GGT_xform_extrude",
+            keymap=(),
+            draw_settings=_template_widget.VIEW3D_GGT_xform_extrude.draw_settings,
+        )
+
 
 class _defs_gpencil_sculpt:
 
@@ -1697,9 +1707,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_transform,
             None,
+            _defs_gpencil_edit.extrude,
             _defs_gpencil_edit.bend,
             _defs_gpencil_edit.shear,
             _defs_gpencil_edit.tosphere,
+
         ],
         'SCULPT_GPENCIL': [
             *_tools_gpencil_select,

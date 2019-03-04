@@ -2951,6 +2951,8 @@ def km_grease_pencil_stroke_edit_mode(params):
         *_grease_pencil_selection(params),
         # Duplicate and move selected points
         ("gpencil.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        # Extrude and move selected points
+        ("gpencil.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
         # Delete
         op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'X', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),

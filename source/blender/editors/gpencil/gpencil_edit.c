@@ -754,6 +754,219 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ************** Extrude Selected Strokes **************** */
+
+/* helper to copy a point to temp area */
+static void copy_point(bGPDstroke *gps,
+					bGPDspoint *temp_points,
+					MDeformVert *temp_dverts,
+					int from_idx, int to_idx)
+{
+	bGPDspoint *pt = &temp_points[from_idx];
+	bGPDspoint *pt_final = &gps->points[to_idx];
+
+	copy_v3_v3(&pt_final->x, &pt->x);
+	pt_final->pressure = pt->pressure;
+	pt_final->strength = pt->strength;
+	pt_final->time = pt->time;
+	pt_final->flag = pt->flag;
+	pt_final->uv_fac = pt->uv_fac;
+	pt_final->uv_rot = pt->uv_rot;
+
+	if (gps->dvert != NULL) {
+		MDeformVert *dvert = &temp_dverts[from_idx];
+		MDeformVert *dvert_final = &gps->dvert[to_idx];
+
+		dvert_final->totweight = dvert->totweight;
+		dvert_final->dw = dvert->dw;
+	}
+}
+
+static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
+{
+	bGPDspoint *temp_points = NULL;
+	MDeformVert *temp_dverts = NULL;
+	bGPDspoint *pt = NULL;
+	const bGPDspoint *pt_start = &gps->points[0];
+	const bGPDspoint *pt_last = &gps->points[gps->totpoints - 1];
+	const bool do_first = (pt_start->flag & GP_SPOINT_SELECT);
+	const bool do_last = ((pt_last->flag & GP_SPOINT_SELECT) && (pt_start != pt_last));
+	const bool do_stroke = (do_first || do_last);
+
+	/* review points in the midle of stroke to create new strokes */
+	for (int i = 0; i < gps->totpoints; i++) {
+		/* skip first and last point */
+		if ((i == 0) || (i == gps->totpoints - 1)) {
+			continue;
+		}
+
+		pt = &gps->points[i];
+		if (pt->flag == GP_SPOINT_SELECT) {
+			/* duplicate original stroke data */
+			bGPDstroke *gps_new = MEM_dupallocN(gps);
+			gps_new->prev = gps_new->next = NULL;
+
+			/* add new points array */
+			gps_new->totpoints = 1;
+			gps_new->points = MEM_callocN(sizeof(bGPDspoint), __func__);
+			gps_new->dvert = NULL;
+
+			if (gps->dvert != NULL) {
+				gps_new->dvert = MEM_callocN(sizeof(MDeformVert), __func__);
+			}
+
+			gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+			gps_new->triangles = NULL;
+			gps_new->tot_triangles = 0;
+			BLI_insertlinkafter(&gpf->strokes, gps, gps_new);
+
+			/* copy selected point data to new stroke */
+			copy_point(gps_new, gps->points, gps->dvert, i, 0);
+
+			/* deselect orinal point */
+			pt->flag &= ~GP_SPOINT_SELECT;
+		}
+	}
+
+	/* review first and last point to reuse same stroke */
+	int i2 = 0;
+	int totnewpoints, oldtotpoints;
+	/* if first or last, reuse stroke and resize */
+	if ((do_first) || (do_last)) {
+		totnewpoints = gps->totpoints;
+		if (do_first) {
+			totnewpoints++;
+		}
+		if (do_last) {
+			totnewpoints++;
+		}
+
+		/* duplicate points in a temp area */
+		temp_points = MEM_dupallocN(gps->points);
+		oldtotpoints = gps->totpoints;
+		if (gps->dvert != NULL) {
+			temp_dverts = MEM_dupallocN(gps->dvert);
+		}
+
+		/* if first point, need move all one position */
+		if (do_first) {
+			i2 = 1;
+		}
+
+		/* resize the points arrays */
+		gps->totpoints = totnewpoints;
+		gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+		if (gps->dvert != NULL) {
+			gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+		}
+
+		/* move points to new position */
+		for (int i = 0; i < oldtotpoints; i++) {
+			copy_point(gps, temp_points, temp_dverts, i, i2);
+			i2++;
+		}
+		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+
+		/* if first point, add new point at the begining */
+		if (do_first) {
+			copy_point(gps, temp_points, temp_dverts, 0, 0);
+			/* deselect old */
+			pt = &gps->points[1];
+			pt->flag &= ~GP_SPOINT_SELECT;
+			/* select new */
+			pt = &gps->points[0];
+			pt->flag |= GP_SPOINT_SELECT;
+		}
+
+		/* if last point, add new point at the end */
+		if (do_last) {
+			copy_point(gps, temp_points, temp_dverts,
+				oldtotpoints - 1, gps->totpoints - 1);
+
+			/* deselect old */
+			pt = &gps->points[gps->totpoints - 2];
+			pt->flag &= ~GP_SPOINT_SELECT;
+			/* select new */
+			pt = &gps->points[gps->totpoints - 1];
+			pt->flag |= GP_SPOINT_SELECT;
+		}
+
+		MEM_SAFE_FREE(temp_points);
+		MEM_SAFE_FREE(temp_dverts);
+	}
+
+	/* if the stroke is not reused, deselect */
+	if (!do_stroke) {
+		gps->flag &= ~GP_STROKE_SELECT;
+	}
+}
+
+static int gp_extrude_exec(bContext *C, wmOperator *op)
+{
+	Object *obact = CTX_data_active_object(C);
+	bGPdata *gpd = (bGPdata *)obact->data;
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+	bGPDstroke *gps = NULL;
+
+	if (gpd == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		return OPERATOR_CANCELLED;
+	}
+
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *init_gpf = gpl->actframe;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
+
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				if (gpf == NULL)
+					continue;
+
+				for (gps = gpf->strokes.first; gps; gps = gps->next) {
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					if (gps->flag & GP_STROKE_SELECT) {
+						gpencil_add_move_points(gpf, gps);
+					}
+				}
+				/* if not multiedit, exit loop*/
+				if (!is_multiedit) {
+					break;
+				}
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	/* updates */
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_extrude(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Extrude Stroke Points";
+	ot->idname = "GPENCIL_OT_extrude";
+	ot->description = "Extrude the selected Grease Pencil points";
+
+	/* callbacks */
+	ot->exec = gp_extrude_exec;
+	ot->poll = gp_stroke_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
 /* ******************* Copy/Paste Strokes ************************* */
 /* Grease Pencil stroke data copy/paste buffer:
  * - The copy operation collects all segments of selected strokes,

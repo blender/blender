@@ -254,6 +254,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_dissolve);
 	WM_operatortype_append(GPENCIL_OT_copy);
 	WM_operatortype_append(GPENCIL_OT_paste);
+	WM_operatortype_append(GPENCIL_OT_extrude);
 
 	WM_operatortype_append(GPENCIL_OT_move_to_layer);
 	WM_operatortype_append(GPENCIL_OT_layer_change);
@@ -361,6 +362,13 @@ void ED_operatormacros_gpencil(void)
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(otmacro->ptr, "gpencil_strokes", true);
 
+	/* Extrude + Move = Interactively add new points */
+	ot = WM_operatortype_append_macro("GPENCIL_OT_extrude_move", "Extrude Stroke Points",
+									  "Extrude selected points and move them",
+									  OPTYPE_UNDO | OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "GPENCIL_OT_extrude");
+	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_boolean_set(otmacro->ptr, "gpencil_strokes", true);
 }
 
 /* ****************************************** */
