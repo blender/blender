@@ -1281,9 +1281,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	if (use_tfeedback) {
 		GPU_shader_transform_feedback_disable(shgroup->shader);
 	}
-
-	/* TODO: remove, (currently causes alpha issue with sculpt, need to investigate) */
-	DRW_state_reset();
 }
 
 static void drw_update_view(void)
