@@ -2257,34 +2257,6 @@ class VIEW3D_MT_paint_vertex(Menu):
         layout.operator("paint.vertex_color_brightness_contrast", text="Bright/Contrast")
 
 
-class VIEW3D_MT_paint_vertex_specials(Menu):
-    bl_label = "Vertex Paint Context Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        # TODO: populate with useful items.
-        layout.operator("paint.vertex_color_set")
-        layout.operator("paint.vertex_color_smooth")
-        layout.operator("paint.vertex_color_dirt")
-        layout.operator("paint.vertex_color_from_weight")
-
-        layout.separator()
-
-        layout.operator("paint.vertex_color_invert", text="Invert")
-        layout.operator("paint.vertex_color_levels", text="Levels")
-        layout.operator("paint.vertex_color_hsv", text="Hue Saturation Value")
-        layout.operator("paint.vertex_color_brightness_contrast", text="Bright/Contrast")
-
-
-class VIEW3D_MT_paint_texture_specials(Menu):
-    bl_label = "Texture Paint Context Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        # TODO: populate with useful items.
-        layout.operator("image.save_dirty")
-
-
 class VIEW3D_MT_hook(Menu):
     bl_label = "Hooks"
 
@@ -2382,29 +2354,6 @@ class VIEW3D_MT_paint_weight(Menu):
         self.draw_generic(self.layout, is_editmode=False)
 
 
-class VIEW3D_MT_paint_weight_specials(Menu):
-    bl_label = "Weights Context Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        # TODO: populate with useful items.
-        layout.operator("paint.weight_set")
-        layout.separator()
-        layout.operator("object.vertex_group_normalize", text="Normalize")
-        layout.operator("object.vertex_group_clean", text="Clean")
-
-        layout.separator()
-
-        layout.operator("object.vertex_group_quantize", text="Quantize")
-        layout.operator("object.vertex_group_levels", text="Levels")
-        layout.operator("object.vertex_group_smooth", text="Smooth")
-
-        layout.separator()
-
-        layout.operator("object.vertex_group_limit_total", text="Limit Total")
-        layout.operator("object.vertex_group_fix", text="Fix Deforms")
-
-
 class VIEW3D_MT_sculpt(Menu):
     bl_label = "Sculpt"
 
@@ -2436,16 +2385,6 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "use_deform_only")
         layout.prop(sculpt, "show_diffuse_color")
         layout.prop(sculpt, "show_mask")
-
-
-class VIEW3D_MT_sculpt_specials(Menu):
-    bl_label = "Sculpt Context Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        # TODO: populate with useful items.
-        layout.operator("object.shade_smooth")
-        layout.operator("object.shade_flat")
 
 
 class VIEW3D_MT_hide_mask(Menu):
@@ -5752,6 +5691,79 @@ class VIEW3D_MT_gpencil_sculpt_specials(Menu):
         layout.operator("gpencil.stroke_simplify", text="Simplify Adaptive")
 
 
+class VIEW3D_PT_paint_vertex_specials(Panel):
+    # Only for popover, these are dummy values.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Vertex Paint Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("paint.vertex_color_set")
+        layout.operator("paint.vertex_color_smooth")
+        layout.operator("paint.vertex_color_dirt")
+        layout.operator("paint.vertex_color_from_weight")
+
+        layout.separator()
+
+        layout.operator("paint.vertex_color_invert", text="Invert")
+        layout.operator("paint.vertex_color_levels", text="Levels")
+        layout.operator("paint.vertex_color_hsv", text="Hue Saturation Value")
+        layout.operator("paint.vertex_color_brightness_contrast", text="Bright/Contrast")
+
+
+class VIEW3D_PT_paint_texture_specials(Panel):
+    # Only for popover, these are dummy values.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Texture Paint Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("image.save_dirty")
+
+
+class VIEW3D_PT_paint_weight_specials(Panel):
+    # Only for popover, these are dummy values.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Weights Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("paint.weight_set")
+        layout.separator()
+        layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_clean", text="Clean")
+
+        layout.separator()
+
+        layout.operator("object.vertex_group_quantize", text="Quantize")
+        layout.operator("object.vertex_group_levels", text="Levels")
+        layout.operator("object.vertex_group_smooth", text="Smooth")
+
+        layout.separator()
+
+        layout.operator("object.vertex_group_limit_total", text="Limit Total")
+        layout.operator("object.vertex_group_fix", text="Fix Deforms")
+
+
+class VIEW3D_PT_sculpt_specials(Panel):
+    # Only for popover, these are dummy values.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Sculpt Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        # TODO: populate with useful items.
+        layout.operator("object.shade_smooth")
+        layout.operator("object.shade_flat")
+
+
 class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -5829,14 +5841,10 @@ classes = (
     VIEW3D_MT_brush,
     VIEW3D_MT_brush_paint_modes,
     VIEW3D_MT_paint_vertex,
-    VIEW3D_MT_paint_vertex_specials,
-    VIEW3D_MT_paint_texture_specials,
     VIEW3D_MT_hook,
     VIEW3D_MT_vertex_group,
     VIEW3D_MT_paint_weight,
-    VIEW3D_MT_paint_weight_specials,
     VIEW3D_MT_sculpt,
-    VIEW3D_MT_sculpt_specials,
     VIEW3D_MT_hide_mask,
     VIEW3D_MT_particle,
     VIEW3D_MT_particle_specials,
@@ -5880,6 +5888,9 @@ classes = (
     VIEW3D_MT_gpencil_animation,
     VIEW3D_MT_gpencil_simplify,
     VIEW3D_MT_gpencil_copy_layer,
+    VIEW3D_MT_gpencil_autoweights,
+    VIEW3D_MT_gpencil_edit_specials,
+    VIEW3D_MT_gpencil_sculpt_specials,
     VIEW3D_MT_edit_curve,
     VIEW3D_MT_edit_curve_ctrlpoints,
     VIEW3D_MT_edit_curve_segments,
@@ -5917,9 +5928,6 @@ classes = (
     VIEW3D_PT_grease_pencil,
     VIEW3D_PT_annotation_onion,
     VIEW3D_PT_gpencil_multi_frame,
-    VIEW3D_MT_gpencil_autoweights,
-    VIEW3D_MT_gpencil_edit_specials,
-    VIEW3D_MT_gpencil_sculpt_specials,
     VIEW3D_PT_quad_view,
     VIEW3D_PT_view3d_stereo,
     VIEW3D_PT_shading,
@@ -5952,6 +5960,10 @@ classes = (
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,
+    VIEW3D_PT_paint_vertex_specials,
+    VIEW3D_PT_paint_texture_specials,
+    VIEW3D_PT_paint_weight_specials,
+    VIEW3D_PT_sculpt_specials,
     TOPBAR_PT_gpencil_materials,
     TOPBAR_PT_annotation_layers,
 )

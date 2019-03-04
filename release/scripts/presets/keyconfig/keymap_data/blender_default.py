@@ -3605,7 +3605,7 @@ def km_image_paint(params):
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.stroke_method')]}),
-        op_menu("VIEW3D_MT_paint_texture_specials", params.context_menu_event),
+        op_panel("VIEW3D_PT_paint_texture_specials", params.context_menu_event),
     ])
 
     return keymap
@@ -3648,7 +3648,7 @@ def km_vertex_paint(params):
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.stroke_method')]}),
-        op_menu("VIEW3D_MT_paint_vertex_specials", params.context_menu_event),
+        op_panel("VIEW3D_PT_paint_vertex_specials", params.context_menu_event),
     ])
 
     return keymap
@@ -3686,7 +3686,7 @@ def km_weight_paint(params):
          {"properties": [("data_path", 'weight_paint_object.data.use_paint_mask_vertex')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.weight_paint.brush.use_smooth_stroke')]}),
-        op_menu("VIEW3D_MT_paint_weight_specials", params.context_menu_event),
+        op_panel("VIEW3D_PT_paint_weight_specials", params.context_menu_event),
     ])
 
     if params.select_mouse == 'LEFTMOUSE':
@@ -3786,7 +3786,7 @@ def km_sculpt(params):
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.sculpt.brush.use_smooth_stroke')]}),
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
-        op_menu("VIEW3D_MT_sculpt_specials", params.context_menu_event),
+        op_panel("VIEW3D_PT_sculpt_specials", params.context_menu_event),
     ])
 
     return keymap
