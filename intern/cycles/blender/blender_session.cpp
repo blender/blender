@@ -393,6 +393,15 @@ static void add_cryptomatte_layer(BL::RenderResult& b_rr, string name, string ma
 	render_add_metadata(b_rr, prefix+"manifest", manifest);
 }
 
+/* TODO(sergey): Ideally this will be an utility function in util string.h, but
+ * currently is relying on Blender side function, so can not do that. */
+static string make_human_readable_time(double time)
+{
+	char time_str[128];
+	BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), time);
+	return time_str;
+}
+
 void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string& view_layer_name)
 {
 	BL::RenderResult b_rr = b_engine.get_result();
@@ -426,6 +435,16 @@ void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string& view_
 		add_cryptomatte_layer(b_rr, view_layer_name + ".CryptoAsset",
 		                      scene->object_manager->get_cryptomatte_assets(scene));
 	}
+
+	/* Store synchronization and bare-render times. */
+	double total_time, render_time;
+	session->progress.get_time(total_time, render_time);
+	b_rr.stamp_data_add_field((prefix + "total_time").c_str(),
+	                          make_human_readable_time(total_time).c_str());
+	b_rr.stamp_data_add_field((prefix + "render_time").c_str(),
+	                          make_human_readable_time(render_time).c_str());
+	b_rr.stamp_data_add_field((prefix + "synchronization_time").c_str(),
+	                          make_human_readable_time(total_time - render_time).c_str());
 }
 
 void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
