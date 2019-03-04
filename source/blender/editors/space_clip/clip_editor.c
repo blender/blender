@@ -958,8 +958,9 @@ static int prefetch_get_final_frame(const bContext *C)
 	/* check whether all the frames from prefetch range are cached */
 	end_frame = EFRA;
 
-	if (clip->len)
-		end_frame = min_ii(end_frame, clip->len);
+	if (clip->len) {
+		end_frame = min_ii(end_frame, SFRA + clip->len - 1);
+	}
 
 	return end_frame;
 }
