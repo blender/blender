@@ -123,16 +123,23 @@ static void fill_mapping(vector<ChannelMapping> &map, int pos, string name, stri
 }
 
 static const int INPUT_NUM_CHANNELS = 15;
+static const int INPUT_DENOISING_DEPTH = 0;
+static const int INPUT_DENOISING_NORMAL = 1;
+static const int INPUT_DENOISING_SHADOWING = 4;
+static const int INPUT_DENOISING_ALBEDO = 5;
+static const int INPUT_NOISY_IMAGE = 8;
+static const int INPUT_DENOISING_VARIANCE = 11;
+static const int INPUT_DENOISING_INTENSITY = 14;
 static vector<ChannelMapping> input_channels()
 {
 	vector<ChannelMapping> map;
-	fill_mapping(map, 0, "Denoising Depth", "Z");
-	fill_mapping(map, 1, "Denoising Normal", "XYZ");
-	fill_mapping(map, 4, "Denoising Shadowing", "X");
-	fill_mapping(map, 5, "Denoising Albedo", "RGB");
-	fill_mapping(map, 8, "Noisy Image", "RGB");
-	fill_mapping(map, 11, "Denoising Variance", "RGB");
-	fill_mapping(map, 14, "Denoising Intensity", "X");
+	fill_mapping(map, INPUT_DENOISING_DEPTH, "Denoising Depth", "Z");
+	fill_mapping(map, INPUT_DENOISING_NORMAL, "Denoising Normal", "XYZ");
+	fill_mapping(map, INPUT_DENOISING_SHADOWING, "Denoising Shadowing", "X");
+	fill_mapping(map, INPUT_DENOISING_ALBEDO, "Denoising Albedo", "RGB");
+	fill_mapping(map, INPUT_NOISY_IMAGE, "Noisy Image", "RGB");
+	fill_mapping(map, INPUT_DENOISING_VARIANCE, "Denoising Variance", "RGB");
+	fill_mapping(map, INPUT_DENOISING_INTENSITY, "Denoising Intensity", "X");
 	return map;
 }
 
@@ -261,6 +268,7 @@ bool DenoiseTask::acquire_tile(Device *device, Device *tile_device, RenderTile &
  * a different buffer to avoid having to copy an entire horizontal slice of the image. */
 void DenoiseTask::map_neighboring_tiles(RenderTile *tiles, Device *tile_device)
 {
+	/* Fill tile information. */
 	for(int i = 0; i < 9; i++) {
 		if(i == 4) {
 			continue;
@@ -278,10 +286,30 @@ void DenoiseTask::map_neighboring_tiles(RenderTile *tiles, Device *tile_device)
 		tiles[i].stride = image.width;
 	}
 
+	/* Allocate output buffer. */
 	device_vector<float> *output_mem = new device_vector<float>(tile_device, "denoising_output", MEM_READ_WRITE);
 	output_mem->alloc(OUTPUT_NUM_CHANNELS*tiles[4].w*tiles[4].h);
-	output_mem->zero_to_device();
 
+	/* Fill output buffer with noisy image, assumed by kernel_filter_finalize
+	 * when skipping denoising of some pixels. */
+	float *result = output_mem->data();
+	float *in = &image.pixels[image.num_channels*(tiles[4].y*image.width + tiles[4].x)];
+
+	const DenoiseImageLayer& layer = image.layers[current_layer];
+	const int *input_to_image_channel = layer.input_to_image_channel.data();
+
+	for(int y = 0; y < tiles[4].h; y++) {
+		for(int x = 0; x < tiles[4].w; x++, result += OUTPUT_NUM_CHANNELS) {
+			for(int i = 0; i < OUTPUT_NUM_CHANNELS; i++) {
+				result[i] = in[image.num_channels*x + input_to_image_channel[INPUT_NOISY_IMAGE + i]];
+			}
+		}
+		in += image.num_channels * image.width;
+	}
+
+	output_mem->copy_to_device();
+
+	/* Fill output tile info. */
 	tiles[9] = tiles[4];
 	tiles[9].buffer = output_mem->device_pointer;
 	tiles[9].stride = tiles[9].w;
@@ -300,6 +328,7 @@ void DenoiseTask::unmap_neighboring_tiles(RenderTile *tiles)
 	output_pixels.erase(tiles[4].tile_index);
 	output_lock.unlock();
 
+	/* Copy denoised pixels from device. */
 	output_mem->copy_from_device(0, OUTPUT_NUM_CHANNELS*tiles[9].w, tiles[9].h);
 
 	float *result = output_mem->data();
@@ -317,6 +346,7 @@ void DenoiseTask::unmap_neighboring_tiles(RenderTile *tiles)
 		out += image.num_channels * image.width;
 	}
 
+	/* Free device buffer. */
 	output_mem->free();
 	delete output_mem;
 }
