@@ -144,6 +144,11 @@ typedef struct LibraryForeachIDData {
 	BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 } LibraryForeachIDData;
 
+static void library_foreach_ID_link(
+        Main *bmain, ID *id,
+        LibraryIDLinkCallback callback, void *user_data, int flag,
+        LibraryForeachIDData *inherit_data);
+
 static void library_foreach_idproperty_ID_link(LibraryForeachIDData *data, IDProperty *prop, int flag)
 {
 	if (!prop)
@@ -331,18 +336,16 @@ static void library_foreach_ID_as_subdata_link(
 		}
 	}
 	else {
-		BKE_library_foreach_ID_link(NULL, id, callback, user_data, flag);
+		library_foreach_ID_link(NULL, id, callback, user_data, flag, data);
 	}
 
 	FOREACH_FINALIZE_VOID;
 }
 
-/**
- * Loop over all of the ID's this datablock links to.
- *
- * \note: May be extended to be recursive in the future.
- */
-void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
+static void library_foreach_ID_link(
+        Main *bmain, ID *id,
+        LibraryIDLinkCallback callback, void *user_data, int flag,
+        LibraryForeachIDData *inherit_data)
 {
 	LibraryForeachIDData data;
 	int i;
@@ -372,9 +375,21 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 	for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
 		data.self_id = id;
-		data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
-		/* When an ID is not in Main database, it should never refcount IDs it is using. */
-		data.cb_flag_clear = (id->tag & LIB_TAG_NO_MAIN) ? IDWALK_CB_USER | IDWALK_CB_USER_ONE : 0;
+
+		/* inherit_data is non-NULL when this function is called for some sub-data ID
+		 * (like root nodetree of a material).
+		 * In that case, we do not want to generate those 'generic flags' from our current sub-data ID (the node tree),
+		 * but re-use those generated for the 'owner' ID (the material)... */
+		if (inherit_data == NULL) {
+			data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
+			/* When an ID is not in Main database, it should never refcount IDs it is using.
+			 * Exceptions: NodeTrees (yeeahhh!) directly used by Materials. */
+			data.cb_flag_clear = (id->tag & LIB_TAG_NO_MAIN) ? IDWALK_CB_USER | IDWALK_CB_USER_ONE : 0;
+		}
+		else {
+			data.cb_flag = inherit_data->cb_flag;
+			data.cb_flag_clear = inherit_data->cb_flag_clear;
+		}
 
 		if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
 			/* Note that this is minor optimization, even in worst cases (like id being an object with lots of
@@ -1036,6 +1051,14 @@ FOREACH_FINALIZE:
 
 #undef FOREACH_CALLBACK_INVOKE_ID
 #undef FOREACH_CALLBACK_INVOKE
+
+/**
+ * Loop over all of the ID's this datablock links to.
+ */
+void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
+{
+	library_foreach_ID_link(bmain, id, callback, user_data, flag, NULL);
+}
 
 /**
  * re-usable function, use when replacing ID's
