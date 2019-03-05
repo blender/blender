@@ -272,6 +272,21 @@ def _template_items_tool_select_actions_simple(operator, *, type, value):
          {"properties": [("mode", 'SUB')]}),
     ]
 
+
+# This could have a more generic name, for now use for circle select.
+def _template_items_tool_select_actions_circle(operator, *, type, value):
+    kmi_args = {"type": type, "value": value}
+    return [
+        # Don't define 'SET' here, take from the tool options.
+        (operator, {"type": type, "value": value},
+         {"properties": [("wait_for_input", False)]}),
+        (operator, {"type": type, "value": value, "shift": True},
+         {"properties": [("wait_for_input", False), ("mode", 'ADD')]}),
+        (operator, {"type": type, "value": value, "ctrl": True},
+         {"properties": [("wait_for_input", False), ("mode", 'SUB')]}),
+    ]
+
+
 # ------------------------------------------------------------------------------
 # Window, Screen, Areas, Regions
 
@@ -5222,14 +5237,7 @@ def km_3d_view_tool_select_circle(params):
     return (
         "3D View Tool: Select Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("wait_for_input", False)]}),
-            ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
-             {"properties": [("wait_for_input", False), ("mode", 'ADD')]}),
-            ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("wait_for_input", False), ("mode", 'SUB')]}),
-        ]},
+        {"items": _template_items_tool_select_actions_circle("view3d.select_circle", type=params.tool_mouse, value='PRESS')},
     )
 
 
