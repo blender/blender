@@ -224,7 +224,8 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	/* Flip layout because rna enum list ordered in reverse. */
 	if ((pup->but && pup->but->type != UI_BTYPE_PULLDOWN) &&
-	    (UI_but_menutype_get(pup->but) == NULL))
+	    (UI_but_menutype_get(pup->but) == NULL) &&
+	    (UI_but_is_tool(pup->but) == false))
 	{
 		UI_block_order_flip(block);
 	}
