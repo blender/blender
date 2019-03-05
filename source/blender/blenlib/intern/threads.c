@@ -888,7 +888,7 @@ static void threadripper_put_process_on_fast_node(void)
 	if (!is_numa_available) {
 		return;
 	}
-	/* NOTE: Technically, we can use NUMA nodes 0 and 2 and usning both of
+	/* NOTE: Technically, we can use NUMA nodes 0 and 2 and using both of
 	 * them in the affinity mask will allow OS to schedule threads more
 	 * flexible,possibly increasing overall performance when multiple apps
 	 * are crunching numbers.
@@ -923,14 +923,26 @@ static void threadripper_put_thread_on_fast_node(void)
 
 void BLI_thread_put_process_on_fast_node(void)
 {
+	/* Disabled for now since this causes only 16 threads to be used on a
+	 * threadripper for computations like sculpting and fluid sim. The problem
+	 * is that all threads created as children from this thread will inherit
+	 * the NUMA node and so will end up on the same node. This can be fixed
+	 * case-by-case by assigning the NUMA node for every child thread, however
+	 * this is difficult for external libraries and OpenMP, and out of our
+	 * control for plugins like external renderers. */
+#if 0
 	if (check_is_threadripper2_alike_topology()) {
 		threadripper_put_process_on_fast_node();
 	}
+#endif
 }
 
 void BLI_thread_put_thread_on_fast_node(void)
 {
+	/* Disabled for now, see comment above. */
+#if 0
 	if (check_is_threadripper2_alike_topology()) {
 		threadripper_put_thread_on_fast_node();
 	}
+#endif
 }
