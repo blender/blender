@@ -227,12 +227,16 @@ void BKE_displist_count(ListBase *lb, int *totvert, int *totface, int *tottri)
 		int vert_tot = 0;
 		int face_tot = 0;
 		int tri_tot = 0;
+		bool cyclic_u = dl->flag & DL_CYCL_U;
+		bool cyclic_v = dl->flag & DL_CYCL_V;
 
 		switch (dl->type) {
 			case DL_SURF:
 			{
+				int segments_u = dl->nr - (cyclic_u == false);
+				int segments_v = dl->parts - (cyclic_v == false);
 				vert_tot = dl->nr * dl->parts;
-				face_tot = (dl->nr - 1) * (dl->parts - 1);
+				face_tot = segments_u * segments_v;
 				tri_tot  = face_tot * 2;
 				break;
 			}
