@@ -485,12 +485,6 @@ static void wm_file_read_post(
 
 	CTX_wm_window_set(C, wm->windows.first);
 
-	Main *bmain = CTX_data_main(C);
-	DEG_on_visible_update(bmain, true);
-	wm_event_do_depsgraph(C);
-
-	ED_editors_init(C);
-
 #ifdef WITH_PYTHON
 	if (is_startup_file) {
 		/* possible python hasn't been initialized */
@@ -519,6 +513,12 @@ static void wm_file_read_post(
 #else
 	UNUSED_VARS(is_startup_file, reset_app_template);
 #endif  /* WITH_PYTHON */
+
+	Main *bmain = CTX_data_main(C);
+	DEG_on_visible_update(bmain, true);
+	wm_event_do_depsgraph(C);
+
+	ED_editors_init(C);
 
 	WM_operatortype_last_properties_clear_all();
 
