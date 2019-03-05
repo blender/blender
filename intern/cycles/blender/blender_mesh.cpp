@@ -489,7 +489,7 @@ static void attr_create_uv_map(Scene *scene,
 				}
 				else {
 					uv_attr = mesh->attributes.add(uv_name,
-					                               TypeDesc::TypePoint,
+					                               TypeFloat2,
 					                               ATTR_ELEMENT_CORNER);
 				}
 
@@ -586,7 +586,7 @@ static void attr_create_subd_uv_map(Scene *scene,
 				if(active_render)
 					uv_attr = mesh->subd_attributes.add(uv_std, uv_name);
 				else
-					uv_attr = mesh->subd_attributes.add(uv_name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+					uv_attr = mesh->subd_attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
 
 				if(subdivide_uvs) {
 					uv_attr->flags |= ATTR_SUBDIVIDED;
