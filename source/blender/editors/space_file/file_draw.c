@@ -434,7 +434,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 
 	const char *blendfile_path = BKE_main_blendfile_path(bmain);
 	BLI_make_file_string(blendfile_path, orgname, sfile->params->dir, oldname);
-	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
+	BLI_strncpy(filename, sfile->params->renamefile, sizeof(filename));
 	BLI_filename_make_safe(filename);
 	BLI_make_file_string(blendfile_path, newname, sfile->params->dir, filename);
 
@@ -448,6 +448,17 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 				           "Could not rename: %s",
 				           errno ? strerror(errno) : "unknown error");
 				WM_report_banner_show();
+			}
+			else {
+				/* If rename is sucessfull, scroll to newly renamed entry. */
+				BLI_strncpy(sfile->params->renamefile, filename, sizeof(sfile->params->renamefile));
+				sfile->params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
+
+				if (sfile->smoothscroll_timer != NULL) {
+					WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+				}
+				sfile->smoothscroll_timer = WM_event_add_timer(wm, CTX_wm_window(C), TIMER1, 1.0 / 1000.0);
+				sfile->scroll_offset = 0;
 			}
 
 			/* to make sure we show what is on disk */
@@ -677,8 +688,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			}
 
 			but = uiDefBut(block, UI_BTYPE_TEXT, 1, "", sx, sy - layout->tile_h - 0.15f * UI_UNIT_X,
-			               width, textheight, sfile->params->renameedit, 1.0f,
-			               (float)sizeof(sfile->params->renameedit), 0, 0, "");
+			               width, textheight, sfile->params->renamefile, 1.0f,
+			               (float)sizeof(sfile->params->renamefile), 0, 0, "");
 			UI_but_func_rename_set(but, renamebutton_cb, file);
 			UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			UI_but_flag_disable(but, UI_BUT_UNDO);

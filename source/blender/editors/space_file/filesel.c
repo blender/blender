@@ -738,19 +738,33 @@ void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
  * params->renamefile name. */
 void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
 {
+	BLI_assert(params->rename_flag != 0);
+
+	if ((params->rename_flag & (FILE_PARAMS_RENAME_ACTIVE | FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE)) != 0) {
+		return;
+	}
+
 	BLI_assert(params->renamefile[0] != '\0');
 
 	const int idx = filelist_file_findpath(sfile->files, params->renamefile);
 	if (idx >= 0) {
 		FileDirEntry *file = filelist_file(sfile->files, idx);
-		if (file) {
+		BLI_assert(file != NULL);
+
+		if ((params->rename_flag & FILE_PARAMS_RENAME_PENDING) != 0) {
 			filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
+			params->rename_flag = FILE_PARAMS_RENAME_ACTIVE;
+		}
+		else if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_PENDING) != 0) {
+			filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
+			params->renamefile[0] = '\0';
+			params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
 		}
 	}
-	BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
-	/* File listing is now async, do not clear renamefile if matching entry not found
-	 * and dirlist is not finished! */
-	if (idx >= 0 || filelist_is_ready(sfile->files)) {
+	/* File listing is now async, only reset renaming if matching entry is not found
+	 * when file listing is not done. */
+	else if (filelist_is_ready(sfile->files)) {
 		params->renamefile[0] = '\0';
+		params->rename_flag = 0;
 	}
 }

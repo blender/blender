@@ -638,11 +638,10 @@ typedef struct FileSelectParams {
 	 * needs to be linked in, where foo.blend/Armature need adding
 	 */
 	char dir[1090];
-	char _pad0[2];
 	char file[256];
+
 	char renamefile[256];
-	/** Annoying but the first is only used for initialization. */
-	char renameedit[256];
+	short rename_flag;
 
 	/** List of filetypes to filter (FILE_MAXFILE). */
 	char filter_glob[256];
@@ -780,6 +779,18 @@ typedef enum eFileSel_Params_Flag {
 	FILE_PARAMS_FLAG_DEPRECATED_9   = (1 << 9),  /* cleared */
 	FILE_GROUP_INSTANCE             = (1 << 10),
 } eFileSel_Params_Flag;
+
+/* sfile->params->rename_flag */
+/* Note: short flag. Defined as bitflags, but currently only used as exclusive status markers... */
+typedef enum eFileSel_Params_RenameFlag {
+	/* Used when we only have the name of the entry we want to rename, but not yet access to its matching file entry. */
+	FILE_PARAMS_RENAME_PENDING            = 1 << 0,
+	/* We are actually renaming an entry. */
+	FILE_PARAMS_RENAME_ACTIVE             = 1 << 1,
+	/* Used to scroll to newly renamed entry. */
+	FILE_PARAMS_RENAME_POSTSCROLL_PENDING = 1 << 2,
+	FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE  = 1 << 3,
+} eFileSel_Params_RenameFlag;
 
 /* files in filesel list: file types
  * Note we could use mere values (instead of bitflags) for file types themselves,

@@ -259,7 +259,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		}
 	}
 
-	if (params->renamefile[0] != '\0') {
+	if (params->rename_flag != 0) {
 		file_params_renamefile_activate(sfile, params);
 	}
 
