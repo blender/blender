@@ -27,6 +27,7 @@
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
 struct BMEdge;
+struct BMElem;
 struct BMFace;
 struct BMVert;
 struct BPoint;
@@ -60,10 +61,12 @@ struct bPoseChannel;
 struct bScreen;
 struct rctf;
 struct rcti;
+struct wmGizmo;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
+
 enum eGPUFXFlags;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
@@ -550,5 +553,10 @@ void ED_view3d_draw_bgpic_test(
         struct Scene *scene, struct Depsgraph *depsgraph,
         struct ARegion *ar, struct View3D *v3d,
         const bool do_foreground, const bool do_camera_frame);
+
+/* view3d_gizmo_preselect_type.c */
+void ED_view3d_gizmo_mesh_preselect_get_active(
+        struct bContext *C, struct wmGizmo *gz,
+        struct Base **r_base, struct BMElem **r_ele);
 
 #endif /* __ED_VIEW3D_H__ */

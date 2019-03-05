@@ -423,3 +423,62 @@ void ED_gizmotypes_preselect_3d(void)
 }
 
 /** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Gizmo Accessors
+ *
+ * This avoids each user of the gizmo needing to write their own look-ups to access
+ * the information from this gizmo.
+ * \{ */
+
+void ED_view3d_gizmo_mesh_preselect_get_active(
+        bContext *C, wmGizmo *gz,
+        Base **r_base, BMElem **r_ele)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	const int object_index = RNA_int_get(gz->ptr, "object_index");
+
+	/* weak, allocate an array just to access the index. */
+	Base *base = NULL;
+	Object *obedit = NULL;
+	{
+		uint bases_len;
+		Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, CTX_wm_view3d(C), &bases_len);
+		if (object_index < bases_len) {
+			base = bases[object_index];
+			obedit = base->object;
+		}
+		MEM_freeN(bases);
+	}
+
+	*r_base = base;
+	*r_ele = NULL;
+
+	if (obedit) {
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		PropertyRNA *prop;
+
+		/* Ring select only defines edge, check properties exist first. */
+		prop = RNA_struct_find_property(gz->ptr, "vert_index");
+		const int vert_index = prop ? RNA_property_int_get(gz->ptr, prop) : -1;
+		prop = RNA_struct_find_property(gz->ptr, "edge_index");
+		const int edge_index = prop ? RNA_property_int_get(gz->ptr, prop) : -1;
+		prop = RNA_struct_find_property(gz->ptr, "face_index");
+		const int face_index = prop ? RNA_property_int_get(gz->ptr, prop) : -1;
+
+		if (vert_index != -1) {
+			*r_ele = (BMElem *)BM_vert_at_index_find(bm, vert_index);
+		}
+		else if (edge_index != -1) {
+			*r_ele = (BMElem *)BM_edge_at_index_find(bm, edge_index);
+		}
+		else if (face_index != -1) {
+			*r_ele = (BMElem *)BM_face_at_index_find(bm, face_index);
+		}
+	}
+}
+
+/** \} */
