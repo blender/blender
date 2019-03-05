@@ -66,22 +66,80 @@ public:
 	size_t element_size(Mesh *mesh, AttributePrimitive prim) const;
 	size_t buffer_size(Mesh *mesh, AttributePrimitive prim) const;
 
-	char *data() { return (buffer.size())? &buffer[0]: NULL; };
-	float2 *data_float2() { return (float2*)data(); }
-	float3 *data_float3() { return (float3*)data(); }
-	float4 *data_float4() { return (float4*)data(); }
-	float *data_float() { return (float*)data(); }
-	uchar4 *data_uchar4() { return (uchar4*)data(); }
-	Transform *data_transform() { return (Transform*)data(); }
-	VoxelAttribute *data_voxel()  { return ( VoxelAttribute*)data(); }
+	char *data()
+	{
+		return (buffer.size())? &buffer[0]: NULL;
+	}
+	float2 *data_float2()
+	{
+		assert(data_sizeof() == sizeof(float2));
+		return (float2*)data();
+	}
+	float3 *data_float3()
+	{
+		assert(data_sizeof() == sizeof(float3));
+		return (float3*)data();
+	}
+	float4 *data_float4()
+	{
+		assert(data_sizeof() == sizeof(float4));
+		return (float4*)data();
+	}
+	float *data_float()
+	{
+		assert(data_sizeof() == sizeof(float));
+		return (float*)data();
+	}
+	uchar4 *data_uchar4()
+	{
+		assert(data_sizeof() == sizeof(uchar4));
+		return (uchar4*)data();
+	}
+	Transform *data_transform()
+	{
+		assert(data_sizeof() == sizeof(Transform));
+		return (Transform*)data();
+	}
+	VoxelAttribute *data_voxel()
+	{
+		assert(data_sizeof() == sizeof(VoxelAttribute));
+		return ( VoxelAttribute*)data();
+	}
 
-	const char *data() const { return (buffer.size())? &buffer[0]: NULL; }
-	const float2 *data_float2() const { return (const float2*)data(); }
-	const float3 *data_float3() const { return (const float3*)data(); }
-	const float4 *data_float4() const { return (const float4*)data(); }
-	const float *data_float() const { return (const float*)data(); }
-	const Transform *data_transform() const { return (const Transform*)data(); }
-	const VoxelAttribute *data_voxel() const { return (const VoxelAttribute*)data(); }
+	const char *data() const
+	{
+		return (buffer.size())? &buffer[0]: NULL;
+	}
+	const float2 *data_float2() const
+	{
+		assert(data_sizeof() == sizeof(float2));
+		return (const float2*)data();
+	}
+	const float3 *data_float3() const
+	{
+		assert(data_sizeof() == sizeof(float3));
+		return (const float3*)data();
+	}
+	const float4 *data_float4() const
+	{
+		assert(data_sizeof() == sizeof(float4));
+		return (const float4*)data();
+	}
+	const float *data_float() const
+	{
+		assert(data_sizeof() == sizeof(float));
+		return (const float*)data();
+	}
+	const Transform *data_transform() const
+	{
+		assert(data_sizeof() == sizeof(Transform));
+		return (const Transform*)data();
+	}
+	const VoxelAttribute *data_voxel() const
+	{
+		assert(data_sizeof() == sizeof(VoxelAttribute));
+		return (const VoxelAttribute*)data();
+	}
 
 	void zero_data(void* dst);
 	void add_with_weight(void* dst, void* src, float weight);

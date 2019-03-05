@@ -69,6 +69,8 @@ void Attribute::resize(size_t num_elements)
 
 void Attribute::add(const float& f)
 {
+	assert(data_sizeof() == sizeof(float));
+
 	char *data = (char*)&f;
 	size_t size = sizeof(f);
 
@@ -78,6 +80,19 @@ void Attribute::add(const float& f)
 
 void Attribute::add(const uchar4& f)
 {
+	assert(data_sizeof() == sizeof(uchar4));
+
+	char *data = (char*)&f;
+	size_t size = sizeof(f);
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
+void Attribute::add(const float2& f)
+{
+	assert(data_sizeof() == sizeof(float2));
+
 	char *data = (char*)&f;
 	size_t size = sizeof(f);
 
@@ -87,6 +102,8 @@ void Attribute::add(const uchar4& f)
 
 void Attribute::add(const float3& f)
 {
+	assert(data_sizeof() == sizeof(float3));
+
 	char *data = (char*)&f;
 	size_t size = sizeof(f);
 
@@ -96,6 +113,8 @@ void Attribute::add(const float3& f)
 
 void Attribute::add(const Transform& f)
 {
+	assert(data_sizeof() == sizeof(Transform));
+
 	char *data = (char*)&f;
 	size_t size = sizeof(f);
 
@@ -105,6 +124,8 @@ void Attribute::add(const Transform& f)
 
 void Attribute::add(const VoxelAttribute& f)
 {
+	assert(data_sizeof() == sizeof(VoxelAttribute));
+
 	char *data = (char*)&f;
 	size_t size = sizeof(f);
 
@@ -128,6 +149,8 @@ size_t Attribute::data_sizeof() const
 		return sizeof(uchar4);
 	else if(type == TypeDesc::TypeFloat)
 		return sizeof(float);
+	else if(type == TypeFloat2)
+		return sizeof(float2);
 	else if(type == TypeDesc::TypeMatrix)
 		return sizeof(Transform);
 	else
