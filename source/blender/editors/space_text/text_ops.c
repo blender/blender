@@ -84,7 +84,7 @@ static bool text_edit_poll(bContext *C)
 		return 0;
 
 	if (ID_IS_LINKED(text)) {
-		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
 		return 0;
 	}
 
@@ -100,7 +100,7 @@ bool text_space_edit_poll(bContext *C)
 		return 0;
 
 	if (ID_IS_LINKED(text)) {
-		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
 		return 0;
 	}
 
@@ -120,7 +120,7 @@ static bool text_region_edit_poll(bContext *C)
 		return 0;
 
 	if (ID_IS_LINKED(text)) {
-		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
 		return 0;
 	}
 

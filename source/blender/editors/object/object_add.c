@@ -2444,7 +2444,7 @@ static int join_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
+		BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
 		return OPERATOR_CANCELLED;
 	}
 	else if (ob->type == OB_GPENCIL) {
@@ -2506,7 +2506,7 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
+		BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
 		return OPERATOR_CANCELLED;
 	}
 

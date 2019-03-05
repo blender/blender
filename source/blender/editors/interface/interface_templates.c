@@ -1323,7 +1323,7 @@ void uiTemplatePathBuilder(
 
 /************************ Modifier Template *************************/
 
-#define ERROR_LIBDATA_MESSAGE IFACE_("Can't edit external libdata")
+#define ERROR_LIBDATA_MESSAGE IFACE_("Can't edit external library data")
 
 static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 {
