@@ -61,6 +61,8 @@ bool ED_space_clip_color_sample(struct SpaceClip *sc, struct ARegion *ar, int mv
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 bool ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, bool fit);
 
+void ED_clip_select_all(struct SpaceClip *sc, int action, bool *r_has_selection);
+
 void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(struct SpaceClip *sc, struct ARegion *ar, float x, float y, float *xr, float *yr);
 void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc, struct ARegion *ar, const float co[2], float r_co[2]);

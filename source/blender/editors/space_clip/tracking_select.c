@@ -792,90 +792,12 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track = NULL;   /* selected track */
-	MovieTrackingPlaneTrack *plane_track = NULL;   /* selected plane track */
-	MovieTrackingMarker *marker;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+
 	int action = RNA_enum_get(op->ptr, "action");
-	int framenr = ED_space_clip_get_clip_frame_number(sc);
+
 	bool has_selection = false;
 
-	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-
-		for (track = tracksbase->first; track; track = track->next) {
-			if (TRACK_VIEW_SELECTED(sc, track)) {
-				marker = BKE_tracking_marker_get(track, framenr);
-
-				if (MARKER_VISIBLE(sc, track, marker)) {
-					action = SEL_DESELECT;
-					break;
-				}
-			}
-		}
-
-		for (plane_track = plane_tracks_base->first;
-		     plane_track;
-		     plane_track = plane_track->next)
-		{
-			if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-				action = SEL_DESELECT;
-				break;
-			}
-		}
-	}
-
-	for (track = tracksbase->first; track; track = track->next) {
-		if ((track->flag & TRACK_HIDDEN) == 0) {
-			marker = BKE_tracking_marker_get(track, framenr);
-
-			if (MARKER_VISIBLE(sc, track, marker)) {
-				switch (action) {
-					case SEL_SELECT:
-						track->flag |= SELECT;
-						track->pat_flag |= SELECT;
-						track->search_flag |= SELECT;
-						break;
-					case SEL_DESELECT:
-						track->flag &= ~SELECT;
-						track->pat_flag &= ~SELECT;
-						track->search_flag &= ~SELECT;
-						break;
-					case SEL_INVERT:
-						track->flag ^= SELECT;
-						track->pat_flag ^= SELECT;
-						track->search_flag ^= SELECT;
-						break;
-				}
-			}
-		}
-
-		if (TRACK_VIEW_SELECTED(sc, track))
-			has_selection = true;
-	}
-
-	for (plane_track = plane_tracks_base->first;
-	     plane_track;
-	     plane_track = plane_track->next)
-	{
-		if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
-			switch (action) {
-				case SEL_SELECT:
-					plane_track->flag |= SELECT;
-					break;
-				case SEL_DESELECT:
-					plane_track->flag &= ~SELECT;
-					break;
-				case SEL_INVERT:
-					plane_track->flag ^= SELECT;
-					break;
-			}
-			if (plane_track->flag & SELECT) {
-				has_selection = true;
-			}
-		}
-	}
+	ED_clip_select_all(sc, action, &has_selection);
 
 	if (!has_selection)
 		sc->flag &= ~SC_LOCK_SELECTION;
