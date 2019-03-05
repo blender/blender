@@ -10899,7 +10899,8 @@ static void add_collections_to_scene(
 			ob->transflag |= OB_DUPLICOLLECTION;
 			copy_v3_v3(ob->loc, scene->cursor.location);
 		}
-		else {
+		/* We do not want to force instantiation of indirectly linked collections... */
+		else if ((collection->id.tag & LIB_TAG_INDIRECT) == 0) {
 			bool do_add_collection = (collection->id.tag & LIB_TAG_DOIT) != 0;
 			if (!do_add_collection) {
 				/* We need to check that objects in that collections are already instantiated in a scene.
@@ -10911,6 +10912,7 @@ static void add_collections_to_scene(
 					Object *ob = coll_ob->ob;
 					if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 &&
 					    (ob->id.tag & LIB_TAG_DOIT) == 0 &&
+					    (ob->id.tag & LIB_TAG_INDIRECT) == 0 &&
 					    (ob->id.lib == lib) &&
 					    (object_in_any_scene(bmain, ob) == 0))
 					{
