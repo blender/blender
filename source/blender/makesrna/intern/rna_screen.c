@@ -524,7 +524,6 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Screen_layout_name_get", "rna_Screen_layout_name_length",
 	                              "rna_Screen_layout_name_set");
 	RNA_def_property_ui_text(prop, "Layout Name", "The name of the layout that refers to the screen");
-	RNA_def_struct_name_property(srna, prop);
 
 	/* collections */
 	prop = RNA_def_property(srna, "areas", PROP_COLLECTION, PROP_NONE);
