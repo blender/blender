@@ -678,8 +678,10 @@ void GPENCIL_cache_finish(void *vedata)
 		stl->storage->framebuffer_flag |= GP_FRAMEBUFFER_DRAW;
 	}
 
-	/* create framebuffers */
-	GPENCIL_create_framebuffers(vedata);
+	/* create framebuffers (only for normal drawing) */
+	if (!DRW_state_is_select()) {
+		GPENCIL_create_framebuffers(vedata);
+	}
 }
 
 /* helper function to sort inverse gpencil objects using qsort */
