@@ -95,44 +95,6 @@ static int rna_region_alignment_get(PointerRNA *ptr)
 	return (region->alignment & ~RGN_SPLIT_PREV);
 }
 
-static void rna_Screen_layout_name_get(PointerRNA *ptr, char *value)
-{
-	const bScreen *screen = ptr->data;
-	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, NULL);
-
-	if (layout) {
-		const char *name = BKE_workspace_layout_name_get(layout);
-		strcpy(value, name);
-	}
-	else {
-		value[0] = '\0';
-	}
-}
-
-static int rna_Screen_layout_name_length(PointerRNA *ptr)
-{
-	const bScreen *screen = ptr->data;
-	const WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, NULL);
-
-	if (layout) {
-		const char *name = BKE_workspace_layout_name_get(layout);
-		return strlen(name);
-	}
-
-	return 0;
-}
-
-static void rna_Screen_layout_name_set(PointerRNA *ptr, const char *value)
-{
-	bScreen *screen = ptr->data;
-	WorkSpace *workspace;
-	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(G_MAIN, screen, &workspace);
-
-	if (layout) {
-		BKE_workspace_layout_name_set(workspace, layout, value);
-	}
-}
-
 static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
 	bScreen *sc = (bScreen *)ptr->data;
@@ -529,11 +491,6 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Screen"); /* it is actually bScreen but for 2.5 the dna is patched! */
 	RNA_def_struct_ui_text(srna, "Screen", "Screen data-block, defining the layout of areas in a window");
 	RNA_def_struct_ui_icon(srna, ICON_WORKSPACE);
-
-	prop = RNA_def_property(srna, "layout_name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_Screen_layout_name_get", "rna_Screen_layout_name_length",
-	                              "rna_Screen_layout_name_set");
-	RNA_def_property_ui_text(prop, "Layout Name", "The name of the layout that refers to the screen");
 
 	/* collections */
 	prop = RNA_def_property(srna, "areas", PROP_COLLECTION, PROP_NONE);
