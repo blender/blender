@@ -149,7 +149,12 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	rcti color_rect;
 	char str[256];
 	int dx = 6;
-	const int dy = 0.3f * UI_UNIT_Y;
+	/* local coordinate visible rect inside region, to accommodate overlapping ui */
+	rcti rect;
+	ED_region_visible_rect(ar, &rect);
+	const int ymin = rect.ymin;
+	const int dy = ymin + 0.3f * UI_UNIT_Y;
+
 	/* text colors */
 	/* XXX colored text not allowed in Blender UI */
 #if 0
@@ -172,7 +177,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
 	immUniformColor4ub(0, 0, 0, 190);
-	immRecti(pos, 0, 0, BLI_rcti_size_x(&ar->winrct) + 1, UI_UNIT_Y);
+	immRecti(pos, 0, ymin, BLI_rcti_size_x(&ar->winrct) + 1, ymin + UI_UNIT_Y);
 
 	immUnbindProgram();
 
@@ -320,7 +325,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	GPU_blend(false);
 	dx += 0.25f * UI_UNIT_X;
 
-	BLI_rcti_init(&color_rect, dx, dx + (1.5f * UI_UNIT_X), 0.15f * UI_UNIT_Y, 0.85f * UI_UNIT_Y);
+	BLI_rcti_init(&color_rect, dx, dx + (1.5f * UI_UNIT_X), ymin + 0.15f * UI_UNIT_Y, ymin + 0.85f * UI_UNIT_Y);
 
 	/* BLF uses immediate mode too, so we must reset our vertex format */
 	pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
