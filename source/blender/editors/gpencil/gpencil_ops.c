@@ -361,6 +361,8 @@ void ED_operatormacros_gpencil(void)
 	WM_operatortype_macro_define(ot, "GPENCIL_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(otmacro->ptr, "gpencil_strokes", true);
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", false);
 
 	/* Extrude + Move = Interactively add new points */
 	ot = WM_operatortype_append_macro("GPENCIL_OT_extrude_move", "Extrude Stroke Points",
@@ -369,6 +371,8 @@ void ED_operatormacros_gpencil(void)
 	WM_operatortype_macro_define(ot, "GPENCIL_OT_extrude");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(otmacro->ptr, "gpencil_strokes", true);
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
 /* ****************************************** */
