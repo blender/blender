@@ -6185,7 +6185,7 @@ static void sample_detail(bContext *C, int mx, int my)
 
 	if (srd.hit && srd.edge_length > 0.0f) {
 		/* Convert edge length to world space detail resolution. */
-		sd->constant_detail = mat4_to_scale(ob->obmat) / srd.edge_length;
+		sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->obmat));
 	}
 
 	/* Restore context. */
