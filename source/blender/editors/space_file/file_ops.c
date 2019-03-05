@@ -1581,7 +1581,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	ARegion *ar, *oldar = CTX_wm_region(C);
 	int offset;
 	int numfiles, numfiles_layout;
-	int edit_idx = 0;
+	int edit_idx = -1;
 	int i;
 
 	/* escape if not our timer */
@@ -1589,6 +1589,13 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		return OPERATOR_PASS_THROUGH;
 
 	numfiles = filelist_files_ensure(sfile->files);
+
+	/* Due to async nature of file listing, we may execute this code before `file_refresh()`
+	 * editing entry is available in our listing, so we also have to handle switching to rename mode here. */
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	if (params->renamefile[0] != '\0') {
+		file_params_renamefile_activate(sfile, params);
+	}
 
 	/* check if we are editing a name */
 	for (i = 0; i < numfiles; ++i) {
@@ -1599,9 +1606,13 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	}
 
 	/* if we are not editing, we are done */
-	if (0 == edit_idx) {
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
-		sfile->smoothscroll_timer = NULL;
+	if (edit_idx == -1) {
+		/* Do not invalidate timer if filerename is still pending, we might still be building the filelist
+		 * and yet have to find edited entry... */
+		if (params->renamefile[0] == '\0') {
+			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+			sfile->smoothscroll_timer = NULL;
+		}
 		return OPERATOR_PASS_THROUGH;
 	}
 
@@ -1671,7 +1682,6 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 void FILE_OT_smoothscroll(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name = "Smooth Scroll";
 	ot->idname = "FILE_OT_smoothscroll";

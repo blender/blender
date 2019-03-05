@@ -260,19 +260,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	}
 
 	if (params->renamefile[0] != '\0') {
-		int idx = filelist_file_findpath(sfile->files, params->renamefile);
-		if (idx >= 0) {
-			FileDirEntry *file = filelist_file(sfile->files, idx);
-			if (file) {
-				filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
-			}
-		}
-		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
-		/* File listing is now async, do not clear renamefile if matching entry not found
-		 * and dirlist is not finished! */
-		if (idx >= 0 || filelist_is_ready(sfile->files)) {
-			params->renamefile[0] = '\0';
-		}
+		file_params_renamefile_activate(sfile, params);
 	}
 
 	if (sfile->layout) {

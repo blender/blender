@@ -732,5 +732,25 @@ void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
 		MEM_freeN(sfile->files);
 		sfile->files = NULL;
 	}
+}
 
+/** Helper used by both main update code, and smoothscroll timer, to try to enable rename editing from
+ * params->renamefile name. */
+void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
+{
+	BLI_assert(params->renamefile[0] != '\0');
+
+	const int idx = filelist_file_findpath(sfile->files, params->renamefile);
+	if (idx >= 0) {
+		FileDirEntry *file = filelist_file(sfile->files, idx);
+		if (file) {
+			filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
+		}
+	}
+	BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
+	/* File listing is now async, do not clear renamefile if matching entry not found
+	 * and dirlist is not finished! */
+	if (idx >= 0 || filelist_is_ready(sfile->files)) {
+		params->renamefile[0] = '\0';
+	}
 }

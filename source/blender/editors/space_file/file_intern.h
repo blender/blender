@@ -28,6 +28,7 @@
 
 struct ARegion;
 struct ARegionType;
+struct FileSelectParams;
 struct SpaceFile;
 
 /* file_ops.c */
@@ -106,7 +107,6 @@ void file_sfile_to_operator_ex(bContext *C, struct wmOperator *op, struct SpaceF
 void file_sfile_to_operator(bContext *C, struct wmOperator *op, struct SpaceFile *sfile);
 void file_operator_to_sfile(bContext *C, struct SpaceFile *sfile, struct wmOperator *op);
 
-
 /* filesel.c */
 void fileselect_file_set(SpaceFile *sfile, const int index);
 float file_string_width(const char *str);
@@ -115,6 +115,8 @@ float file_font_pointsize(void);
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file);
 int autocomplete_directory(struct bContext *C, char *str, void *arg_v);
 int autocomplete_file(struct bContext *C, char *str, void *arg_v);
+
+void file_params_renamefile_activate(struct SpaceFile *sfile, struct FileSelectParams *params);
 
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);
