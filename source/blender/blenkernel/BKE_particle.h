@@ -353,6 +353,8 @@ void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct ParticleSimulationData *sim, const bool use_render_params);
 
+void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname);
+
 void psys_cache_paths(struct ParticleSimulationData *sim, float cfra, const bool use_render_params);
 void psys_cache_edit_paths(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct PTCacheEdit *edit, float cfra, const bool use_render_params);
 void psys_cache_child_paths(struct ParticleSimulationData *sim, float cfra, const bool editupdate, const bool use_render_params);

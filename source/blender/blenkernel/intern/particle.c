@@ -3062,6 +3062,10 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
 	if (!ob || ob->type != OB_MESH)
 		return NULL;
 
+	if (name == NULL) {
+		name = DATA_("ParticleSettings");
+	}
+
 	psys = ob->particlesystem.first;
 	for (; psys; psys = psys->next)
 		psys->flag &= ~PSYS_CURRENT;
@@ -3069,20 +3073,12 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
 	psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
 	psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 	BLI_addtail(&ob->particlesystem, psys);
+	psys_unique_name(ob, psys, name);
 
-	psys->part = BKE_particlesettings_add(bmain, DATA_("ParticleSettings"));
-
-	if (BLI_listbase_count_at_most(&ob->particlesystem, 2) > 1)
-		BLI_snprintf(psys->name, sizeof(psys->name), DATA_("ParticleSystem %i"), BLI_listbase_count(&ob->particlesystem));
-	else
-		BLI_strncpy(psys->name, DATA_("ParticleSystem"), sizeof(psys->name));
+	psys->part = BKE_particlesettings_add(bmain, psys->name);
 
 	md = modifier_new(eModifierType_ParticleSystem);
-
-	if (name)
-		BLI_strncpy_utf8(md->name, name, sizeof(md->name));
-	else
-		BLI_snprintf(md->name, sizeof(md->name), DATA_("ParticleSystem %i"), BLI_listbase_count(&ob->particlesystem));
+	BLI_strncpy(md->name, psys->name, sizeof(md->name));
 	modifier_unique_name(&ob->modifiers, md);
 
 	psmd = (ParticleSystemModifierData *) md;
