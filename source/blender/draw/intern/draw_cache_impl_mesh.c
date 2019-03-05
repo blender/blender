@@ -3587,7 +3587,7 @@ static void mesh_create_loops_tris(
 				if (BM_elem_flag_test(bm_face, BM_ELEM_HIDDEN)) {
 					continue;
 				}
-				int mat = (ibo_len > 1) ? bm_face->mat_nr : 0;
+				int mat = min_ii(ibo_len - 1, bm_face->mat_nr);
 				GPU_indexbuf_add_tri_verts(
 				        &elb[mat],
 				        BM_elem_index_get(bm_looptri[0]),
@@ -3602,7 +3602,7 @@ static void mesh_create_loops_tris(
 				if (use_hide && (mp->flag & ME_HIDE)) {
 					continue;
 				}
-				int mat = (ibo_len > 1) ? mp->mat_nr : 0;
+				int mat = min_ii(ibo_len - 1, mp->mat_nr);
 				GPU_indexbuf_add_tri_verts(&elb[mat], mlt->tri[0], mlt->tri[1], mlt->tri[2]);
 			}
 		}
@@ -3620,7 +3620,7 @@ static void mesh_create_loops_tris(
 				/* Assume 'use_hide' */
 				BMFace *efa = BM_face_at_index(bm, p_orig);
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-					int mat = (ibo_len > 1) ? efa->mat_nr : 0;
+					int mat = min_ii(ibo_len - 1, efa->mat_nr);
 					GPU_indexbuf_add_tri_verts(&elb[mat], mlt->tri[0], mlt->tri[1], mlt->tri[2]);
 				}
 			}
