@@ -3364,7 +3364,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	Object *obedit = vc.obedit;
 
 	if (obedit || BKE_paint_select_elem_test(obact) ||
-	    (obact && (obact->mode & (OB_MODE_PARTICLE_EDIT | OB_MODE_POSE))) )
+	    (obact && (obact->mode & OB_MODE_POSE)))
 	{
 		view3d_operator_needs_opengl(C);
 
