@@ -299,6 +299,10 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 		sd->ob_tfm  = lamp_fetch_transform(kg, lamp, false);
 		sd->ob_itfm = lamp_fetch_transform(kg, lamp, true);
 		sd->lamp = lamp;
+#else
+	}
+	else if(lamp != LAMP_NONE) {
+		sd->lamp = lamp;
 #endif
 	}
 
