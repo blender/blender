@@ -266,4 +266,6 @@ int ED_gpencil_select_stroke_segment(
 	bool select, bool insert, const float scale,
 	float r_hita[3], float r_hitb[3]);
 
+void ED_gpencil_select_toggle_all(struct bContext *C, int action);
+
 #endif /*  __ED_GPENCIL_H__ */

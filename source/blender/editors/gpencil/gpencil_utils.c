@@ -71,6 +71,7 @@
 #include "ED_view3d.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -2349,5 +2350,93 @@ int ED_gpencil_select_stroke_segment(
 	}
 	else {
 		return 0;
+	}
+}
+
+void ED_gpencil_select_toggle_all(bContext *C, int action)
+{
+	/* for "toggle", test for existing selected strokes */
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+
+		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+		{
+			if (gps->flag & GP_STROKE_SELECT) {
+				action = SEL_DESELECT;
+				break; // XXX: this only gets out of the inner loop...
+			}
+		}
+		CTX_DATA_END;
+	}
+
+	/* if deselecting, we need to deselect strokes across all frames
+	 * - Currently, an exception is only given for deselection
+	 *   Selecting and toggling should only affect what's visible,
+	 *   while deselecting helps clean up unintended/forgotten
+	 *   stuff on other frames
+	 */
+	if (action == SEL_DESELECT) {
+		/* deselect strokes across editable layers
+		 * NOTE: we limit ourselves to editable layers, since once a layer is "locked/hidden
+		 *       nothing should be able to touch it
+		 */
+		CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+		{
+			bGPDframe *gpf;
+
+			/* deselect all strokes on all frames */
+			for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+				bGPDstroke *gps;
+
+				for (gps = gpf->strokes.first; gps; gps = gps->next) {
+					bGPDspoint *pt;
+					int i;
+
+					/* only edit strokes that are valid in this view... */
+					if (ED_gpencil_stroke_can_use(C, gps)) {
+						for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+							pt->flag &= ~GP_SPOINT_SELECT;
+						}
+
+						gps->flag &= ~GP_STROKE_SELECT;
+					}
+				}
+			}
+		}
+		CTX_DATA_END;
+	}
+	else {
+		/* select or deselect all strokes */
+		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+		{
+			bGPDspoint *pt;
+			int i;
+			bool selected = false;
+
+			/* Change selection status of all points, then make the stroke match */
+			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+				switch (action) {
+					case SEL_SELECT:
+						pt->flag |= GP_SPOINT_SELECT;
+						break;
+					//case SEL_DESELECT:
+					//	pt->flag &= ~GP_SPOINT_SELECT;
+					//	break;
+					case SEL_INVERT:
+						pt->flag ^= GP_SPOINT_SELECT;
+						break;
+				}
+
+				if (pt->flag & GP_SPOINT_SELECT)
+					selected = true;
+			}
+
+			/* Change status of stroke */
+			if (selected)
+				gps->flag |= GP_STROKE_SELECT;
+			else
+				gps->flag &= ~GP_STROKE_SELECT;
+		}
+		CTX_DATA_END;
 	}
 }
