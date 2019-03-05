@@ -256,6 +256,16 @@ static int rna_Area_ui_type_get(PointerRNA *ptr)
 {
 	int value = rna_Area_type_get(ptr) << 16;
 	ScrArea *sa = ptr->data;
+	/* sa->type can be NULL (when not yet initialized), try to do it now. */
+	/* Copied from `ED_area_initialize()`.*/
+	if (sa->type == NULL) {
+		sa->type = BKE_spacetype_from_id(sa->spacetype);
+		if (sa->type == NULL) {
+			sa->spacetype = SPACE_VIEW3D;
+			sa->type = BKE_spacetype_from_id(sa->spacetype);
+		}
+		BLI_assert(sa->type != NULL);
+	}
 	if (sa->type->space_subtype_item_extend != NULL) {
 		value |= sa->type->space_subtype_get(sa);
 	}
