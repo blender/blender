@@ -208,6 +208,9 @@ def generate(context, space_type):
                             properties=kmi_hack_brush_select_properties,
                             include={'KEYBOARD'},
                         )[1]
+                    elif mode == 'PARTICLE_EDIT':
+                        # Doesn't use brushes
+                        pass
                     else:
                         print("Unsupported mode:", mode)
                     del mode, attr

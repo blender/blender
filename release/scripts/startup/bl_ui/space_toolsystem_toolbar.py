@@ -1671,7 +1671,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
         ],
         'PARTICLE': [
+            *_tools_select,
             _defs_view3d_generic.cursor,
+            None,
             _defs_particle.generate_from_brushes,
         ],
         'SCULPT': [
