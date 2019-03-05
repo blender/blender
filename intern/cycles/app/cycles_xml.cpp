@@ -442,7 +442,7 @@ static void xml_read_mesh(const XMLReadState& state, xml_node node)
 		if(xml_read_float_array(UV, node, "UV")) {
 			ustring name = ustring("UVMap");
 			Attribute *attr = mesh->attributes.add(ATTR_STD_UV, name);
-			float3 *fdata = attr->data_float3();
+			float2 *fdata = attr->data_float2();
 
 			/* loop over the triangles */
 			index_offset = 0;
@@ -456,9 +456,9 @@ static void xml_read_mesh(const XMLReadState& state, xml_node node)
 					assert(v1*2+1 < (int)UV.size());
 					assert(v2*2+1 < (int)UV.size());
 
-					fdata[0] = make_float3(UV[v0*2], UV[v0*2+1], 0.0);
-					fdata[1] = make_float3(UV[v1*2], UV[v1*2+1], 0.0);
-					fdata[2] = make_float3(UV[v2*2], UV[v2*2+1], 0.0);
+					fdata[0] = make_float2(UV[v0*2], UV[v0*2+1]);
+					fdata[1] = make_float2(UV[v1*2], UV[v1*2+1]);
+					fdata[2] = make_float2(UV[v2*2], UV[v2*2+1]);
 					fdata += 3;
 				}
 
