@@ -332,11 +332,35 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 	return result;
 }
 
+/* For the given scene get view layer which corresponds to an original for the
+ * scene's evaluated one. This depends on how the scene is pulled into the
+ * dependency  graph. */
+ViewLayer *get_original_view_layer(const Depsgraph *depsgraph,
+                                   const IDNode *id_node)
+{
+	if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {
+		return depsgraph->view_layer;
+	}
+	else if (id_node->linked_state == DEG_ID_LINKED_VIA_SET) {
+		Scene *scene_orig = reinterpret_cast<Scene *>(id_node->id_orig);
+		return BKE_view_layer_default_render(scene_orig);
+	}
+	/* Is possible to have scene linked indirectly (i.e. via the driver) which
+	 * we need to support. Currently there aer issues somewhere else, which
+	 * makes testing hard. This is a reported problem, so will eventually be
+	 * properly fixed.
+	 *
+	 * TODO(sergey): Support indirectly linked scene. */
+	return NULL;
+}
+
 /* Remove all view layers but the one which corresponds to an input one. */
 void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
+                                     const IDNode *id_node,
                                      Scene *scene_cow)
 {
-	ViewLayer *view_layer_input = depsgraph->view_layer;
+	const ViewLayer *view_layer_input = get_original_view_layer(
+	        depsgraph, id_node);
 	ViewLayer *view_layer_eval = NULL;
 	/* Find evaluated view layer. At the same time we free memory used by
 	 * all other of the view layers. */
@@ -378,8 +402,7 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
 		 * NOTE: We are using original base since the object which evaluated base
 		 * points to is not yet copied. This is dangerous access from evaluated
 		 * domain to original one, but this is how the entire copy-on-write works:
-		 * it does need to access original for an initial copy.
-		 * */
+		 * it does need to access original for an initial copy. */
 		const bool is_object_enabled =
 		        deg_check_base_available_for_build(depsgraph, base->base_orig);
 		if (is_object_enabled) {
@@ -395,7 +418,7 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
 	view_layer->object_bases = enabled_bases;
 }
 
-void view_layer_update_orig_base_pointers(ViewLayer *view_layer_orig,
+void view_layer_update_orig_base_pointers(const ViewLayer *view_layer_orig,
                                           ViewLayer *view_layer_eval)
 {
 	Base *base_orig =
@@ -407,22 +430,25 @@ void view_layer_update_orig_base_pointers(ViewLayer *view_layer_orig,
 }
 
 void scene_setup_view_layers_before_remap(const Depsgraph *depsgraph,
+                                          const IDNode *id_node,
                                           Scene *scene_cow)
 {
-	scene_remove_unused_view_layers(depsgraph, scene_cow);
-	/* TODO(sergey): Remove objects from collections as well.
-	 * Not a HUGE deal for now, nobody is looking into those CURRENTLY.
-	 * Still not an excuse to have those. */
+	scene_remove_unused_view_layers(depsgraph, id_node, scene_cow);
 }
 
 void scene_setup_view_layers_after_remap(const Depsgraph *depsgraph,
-                                        Scene *scene_cow)
+                                         const IDNode *id_node,
+                                         Scene *scene_cow)
 {
-	ViewLayer *view_layer_orig = depsgraph->view_layer;
+	const ViewLayer *view_layer_orig = get_original_view_layer(
+	        depsgraph, id_node);
 	ViewLayer *view_layer_eval =
 	        reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first);
 	view_layer_update_orig_base_pointers(view_layer_orig, view_layer_eval);
 	view_layer_remove_disabled_bases(depsgraph, view_layer_eval);
+	/* TODO(sergey): Remove objects from collections as well.
+	 * Not a HUGE deal for now, nobody is looking into those CURRENTLY.
+	 * Still not an excuse to have those. */
 }
 
 /* Check whether given ID is expanded or still a shallow copy. */
@@ -537,7 +563,7 @@ void update_mball_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 }
 
 void update_lattice_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
-                                     const ID *id_orig, ID *id_cow)
+                                       const ID *id_orig, ID *id_cow)
 {
 	const Lattice *lt_orig = (const Lattice *)id_orig;
 	Lattice *lt_cow = (Lattice *)id_cow;
@@ -636,6 +662,7 @@ void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
  * Only use for the newly created CoW datablocks.
  */
 void update_id_after_copy(const Depsgraph *depsgraph,
+                          const IDNode *id_node,
                           const ID *id_orig, ID *id_cow)
 {
 	const ID_Type type = GS(id_orig->name);
@@ -670,7 +697,8 @@ void update_id_after_copy(const Depsgraph *depsgraph,
 			const Scene *scene_orig = (const Scene *)id_orig;
 			scene_cow->toolsettings = scene_orig->toolsettings;
 			scene_cow->eevee.light_cache = scene_orig->eevee.light_cache;
-			scene_setup_view_layers_after_remap(depsgraph, (Scene *)id_cow);
+			scene_setup_view_layers_after_remap(
+			        depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
 			break;
 		}
 		default:
@@ -750,7 +778,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 				/* NOTE: This is important to do before remap, because this
 				 * function will make it so less IDs are to be remapped. */
 				scene_setup_view_layers_before_remap(
-				        depsgraph, (Scene *)id_cow);
+				        depsgraph, id_node, (Scene *)id_cow);
 			}
 			break;
 		}
@@ -791,7 +819,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	                            IDWALK_NOP);
 	/* Correct or tweak some pointers which are not taken care by foreach
 	 * from above. */
-	update_id_after_copy(depsgraph, id_orig, id_cow);
+	update_id_after_copy(depsgraph, id_node, id_orig, id_cow);
 	id_cow->recalc = id_orig->recalc | id_cow_recalc;
 	return id_cow;
 }

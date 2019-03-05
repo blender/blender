@@ -83,7 +83,8 @@ void DepsgraphNodeBuilder::build_view_layer(
 	 * only one view layer in there. */
 	view_layer_index_ = 0;
 	/* Scene ID block. */
-	add_id_node(&scene->id);
+	IDNode *id_node = add_id_node(&scene->id);
+	id_node->linked_state = linked_state;
 	/* Time source. */
 	add_time_source();
 	/* Setup currently building context. */
