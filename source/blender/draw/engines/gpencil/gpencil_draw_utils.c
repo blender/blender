@@ -565,9 +565,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 
 		/* viewport x-ray */
 		DRW_shgroup_uniform_int(grp, "viewport_xray", &stl->storage->is_xray, 1);
-
-		stl->shgroups[id].shading_type[0] = (int)OB_RENDER;
-		DRW_shgroup_uniform_int(grp, "shading_type", &stl->shgroups[id].shading_type[0], 2);
+		DRW_shgroup_uniform_int(grp, "shading_type", (const int *)&stl->storage->shade_render, 2);
 	}
 
 	if ((gpd) && (id > -1)) {
@@ -1347,7 +1345,6 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 	bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
 
 	MaterialGPencilStyle *gp_style = NULL;
-	const int shade_render[2] = { OB_RENDER, 0 };
 	float obscale = mat4_to_scale(ob->obmat);
 
 	/* use the brush material */
@@ -1375,12 +1372,12 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_stroke_create(
 						e_data, vedata, psl->drawing_pass, e_data->gpencil_stroke_sh, NULL,
-						gpd, NULL, NULL, gp_style, -1, false, 1.0f, shade_render);
+						gpd, NULL, NULL, gp_style, -1, false, 1.0f, stl->storage->shade_render);
 				}
 				else {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_point_create(
 						e_data, vedata, psl->drawing_pass, e_data->gpencil_point_sh, NULL,
-						gpd, NULL, gp_style, -1, false, 1.0f, shade_render);
+						gpd, NULL, gp_style, -1, false, 1.0f, stl->storage->shade_render);
 				}
 
 				/* clean previous version of the batch */

@@ -248,6 +248,8 @@ void GPENCIL_engine_init(void *vedata)
 
 		/* unit matrix */
 		unit_m4(stl->storage->unit_matrix);
+		stl->storage->shade_render[0] = OB_RENDER;
+		stl->storage->shade_render[1] = 0;
 	}
 
 	stl->storage->multisamples = U.gpencil_multisamples;
