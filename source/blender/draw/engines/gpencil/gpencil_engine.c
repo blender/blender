@@ -620,7 +620,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 
 		/* grid */
 		if ((v3d) &&
-		    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		    ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 		    (v3d->gp_flag & V3D_GP_SHOW_GRID) &&
 		    (ob->type == OB_GPENCIL) && (ob == draw_ctx->obact))
 		{
@@ -828,7 +828,7 @@ void GPENCIL_draw_scene(void *ved)
 	const bool is_render = stl->storage->is_render;
 	bGPdata *gpd_act = (obact) && (obact->type == OB_GPENCIL) ? (bGPdata *)obact->data : NULL;
 	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd_act);
-	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
 
 	/* if the draw is for select, do a basic drawing and return */
 	if (DRW_state_is_select()) {
@@ -840,7 +840,7 @@ void GPENCIL_draw_scene(void *ved)
 
 	/* paper pass to display a comfortable area to draw over complex scenes with geometry */
 	if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
-		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 		    (v3d->gp_flag & V3D_GP_SHOW_PAPER))
 		{
 			DRW_draw_pass(psl->paper_pass);
@@ -863,7 +863,7 @@ void GPENCIL_draw_scene(void *ved)
 
 		/* grid pass */
 		if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
-			if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+			if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 			    (v3d->gp_flag & V3D_GP_SHOW_GRID))
 			{
 				DRW_draw_pass(psl->grid_pass);
@@ -1017,7 +1017,7 @@ void GPENCIL_draw_scene(void *ved)
 		}
 		/* grid pass */
 		if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
-			if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+			if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 			    (v3d->gp_flag & V3D_GP_SHOW_GRID))
 			{
 				DRW_draw_pass(psl->grid_pass);

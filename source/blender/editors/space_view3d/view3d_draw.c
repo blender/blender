@@ -509,7 +509,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 	}
 
 	/* When overlays are disabled, only show camera outline & passepartout. */
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+	if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
 		return;
 	}
 
@@ -1273,7 +1273,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	BLF_batch_draw_begin();
 
 	if ((U.uiflag & USER_SHOW_GIZMO_AXIS) ||
-	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->flag2 & V3D_HIDE_OVERLAYS) ||
 	    /* No need to display gizmo and this info. */
 	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{
@@ -1286,7 +1286,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	int xoffset = rect.xmin + U.widget_unit;
 	int yoffset = rect.ymax;
 
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0 &&
+	if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 &&
 	    (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0)
 	{
 		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
@@ -1671,7 +1671,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 	v3d.camera = camera;
 	v3d.shading.type = drawtype;
-	v3d.flag2 = V3D_RENDER_OVERRIDE;
+	v3d.flag2 = V3D_HIDE_OVERLAYS;
 
 	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {
 		v3d.flag2 |= V3D_SHOW_ANNOTATION;

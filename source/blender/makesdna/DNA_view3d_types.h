@@ -374,7 +374,7 @@ typedef struct View3D {
 	(((view) >= RV3D_VIEW_FRONT) && ((view) <= RV3D_VIEW_BOTTOM))
 
 /* View3d->flag2 (int) */
-#define V3D_RENDER_OVERRIDE     (1 << 2)
+#define V3D_HIDE_OVERLAYS       (1 << 2)
 #define V3D_FLAG2_DEPRECATED_3  (1 << 3)   /* cleared */
 #define V3D_SHOW_ANNOTATION     (1 << 4)
 #define V3D_LOCK_CAMERA         (1 << 5)

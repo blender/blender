@@ -734,7 +734,7 @@ void ED_view3d_draw_bgpic_test(
 	/* disabled - mango request, since footage /w only render is quite useful
 	 * and this option is easy to disable all background images at once */
 #if 0
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
+	if (v3d->flag2 & V3D_HIDE_OVERLAYS)
 		return;
 #endif
 

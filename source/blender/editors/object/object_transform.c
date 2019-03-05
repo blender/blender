@@ -1468,7 +1468,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 
 #ifdef USE_RENDER_OVERRIDE
 	int flag2_prev = vc.v3d->flag2;
-	vc.v3d->flag2 |= V3D_RENDER_OVERRIDE;
+	vc.v3d->flag2 |= V3D_HIDE_OVERLAYS;
 #endif
 
 	ED_view3d_autodist_init(vc.depsgraph, vc.ar, vc.v3d, 0);

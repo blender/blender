@@ -154,7 +154,7 @@ GPUBatch *DRW_draw_background_clipping_batch_from_rv3d(const RegionView3D *rv3d)
 static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, ViewLayer *view_layer)
 {
 	View3D *v3d = draw_ctx->v3d;
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
+	if ((v3d->flag2 & V3D_HIDE_OVERLAYS) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
 		return false;
 	}
 

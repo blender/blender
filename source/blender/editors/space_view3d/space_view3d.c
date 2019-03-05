@@ -1322,7 +1322,7 @@ static void space_view3d_listener(
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_WORLD:
-					if (v3d->flag2 & V3D_RENDER_OVERRIDE)
+					if (v3d->flag2 & V3D_HIDE_OVERLAYS)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}

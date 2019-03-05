@@ -77,7 +77,7 @@ static void gpencil_calc_vertex(
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool main_onion = draw_ctx->v3d != NULL ? (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
 	const bool playing = stl->storage->is_playing;
-	const bool overlay = draw_ctx->v3d != NULL ? (bool)((draw_ctx->v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+	const bool overlay = draw_ctx->v3d != NULL ? (bool)((draw_ctx->v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
 	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) &&
 		overlay && main_onion && DRW_gpencil_onion_active(gpd) && !playing;
 
@@ -865,7 +865,7 @@ static void gpencil_add_editpoints_vertexdata(
 
 		if (cache->is_dirty) {
 			if ((obact == ob) &&
-			    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+			    ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 			    (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES))
 			{
 				/* line of the original stroke */
@@ -1340,7 +1340,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
-	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
 	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	bGPdata *gpd_eval = ob->data;
 	/* need the original to avoid cow overhead while drawing */
@@ -1734,7 +1734,7 @@ void DRW_gpencil_populate_datablock(
 	const bool main_onion = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
 	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) &&
 		main_onion && DRW_gpencil_onion_active(gpd);
-	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
 	const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
 
 	float opacity;

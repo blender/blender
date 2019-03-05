@@ -3062,7 +3062,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_ARMATURE:
 		{
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+			if ((v3d->flag2 & V3D_HIDE_OVERLAYS) ||
 			    (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) ||
 			    ((ob->dt < OB_WIRE) && !DRW_state_is_select()))
 			{

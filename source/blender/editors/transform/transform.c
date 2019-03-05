@@ -1946,7 +1946,7 @@ static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegi
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = sa->spacedata.first;
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+			if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
 				ok = true;
 			}
 		}

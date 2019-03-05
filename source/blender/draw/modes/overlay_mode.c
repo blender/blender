@@ -164,7 +164,7 @@ static void overlay_cache_init(void *vedata)
 	View3D *v3d = DCS->v3d;
 	if (v3d) {
 		g_data->overlay = v3d->overlay;
-		g_data->show_overlays = (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
+		g_data->show_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
 	}
 	else {
 		memset(&g_data->overlay, 0, sizeof(g_data->overlay));

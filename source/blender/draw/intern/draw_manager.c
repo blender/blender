@@ -1417,7 +1417,7 @@ void DRW_draw_view(const bContext *C)
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
 	DST.options.draw_text = (
-	        (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0 &&
+	        (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 &&
 	        (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
 	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
 }
@@ -1437,7 +1437,7 @@ void DRW_draw_render_loop_ex(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
-	bool do_annotations = (((v3d->flag2 & V3D_SHOW_ANNOTATION) != 0) && ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0));
+	bool do_annotations = (((v3d->flag2 & V3D_SHOW_ANNOTATION) != 0) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0));
 
 	DST.draw_ctx.evil_C = evil_C;
 	DST.viewport = viewport;
@@ -1572,7 +1572,7 @@ void DRW_draw_render_loop_ex(
 
 	if (DST.draw_ctx.evil_C) {
 		/* needed so gizmo isn't obscured */
-		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 		    ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0))
 		{
 			glDisable(GL_DEPTH_TEST);
@@ -1583,7 +1583,7 @@ void DRW_draw_render_loop_ex(
 
 		/* annotations - temporary drawing buffer (screenspace) */
 		/* XXX: Or should we use a proper draw/overlay engine for this case? */
-		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 		    (do_annotations))
 		{
 			glDisable(GL_DEPTH_TEST);
@@ -1592,7 +1592,7 @@ void DRW_draw_render_loop_ex(
 			glEnable(GL_DEPTH_TEST);
 		}
 
-		if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+		if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
 			/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
 			 * 'DRW_draw_region_info' sets the projection in pixel-space. */
 			glDisable(GL_DEPTH_TEST);
@@ -2065,7 +2065,7 @@ void DRW_draw_select_loop(
 		}
 	}
 	if (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT) {
-		if (!(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+		if (!(v3d->flag2 & V3D_HIDE_OVERLAYS)) {
 			/* Note: don't use "BKE_object_pose_armature_get" here, it breaks selection. */
 			Object *obpose = OBPOSE_FROM_OBACT(obact);
 			if (obpose) {
@@ -2487,7 +2487,7 @@ bool DRW_state_draw_support(void)
 	View3D *v3d = DST.draw_ctx.v3d;
 	return (DRW_state_is_scene_render() == false) &&
 	        (v3d != NULL) &&
-	        ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0);
+	        ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
 }
 
 /**

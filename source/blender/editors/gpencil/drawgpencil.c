@@ -1668,7 +1668,7 @@ void ED_gpencil_draw_view3d(
 		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 	}
 
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+	if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
 		/* don't draw status text when "only render" flag is set */
 		dflag |= GP_DRAWDATA_NOSTATUS;
 	}
@@ -1724,7 +1724,7 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 	}
 
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+	if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
 		/* don't draw status text when "only render" flag is set */
 		dflag |= GP_DRAWDATA_NOSTATUS;
 	}

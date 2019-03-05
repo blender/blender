@@ -92,7 +92,7 @@ static bool edbm_preselect_or_active(
 {
 	ARegion *ar = CTX_wm_region(C);
 	const bool show_gizmo = !(
-	        (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	        (v3d->flag2 & V3D_HIDE_OVERLAYS) ||
 	        (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)));
 
 	wmGizmoMap *gzmap = show_gizmo ? ar->gizmo_map : NULL;

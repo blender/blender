@@ -121,7 +121,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (((U.uiflag & USER_SHOW_GIZMO_AXIS) == 0) ||
-	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->flag2 & V3D_HIDE_OVERLAYS) ||
 	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{
 		return false;
