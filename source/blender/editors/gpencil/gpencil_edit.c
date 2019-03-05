@@ -757,10 +757,11 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 /* ************** Extrude Selected Strokes **************** */
 
 /* helper to copy a point to temp area */
-static void copy_point(bGPDstroke *gps,
-					bGPDspoint *temp_points,
-					MDeformVert *temp_dverts,
-					int from_idx, int to_idx)
+static void copy_point(
+        bGPDstroke *gps,
+        bGPDspoint *temp_points,
+        MDeformVert *temp_dverts,
+        int from_idx, int to_idx)
 {
 	bGPDspoint *pt = &temp_points[from_idx];
 	bGPDspoint *pt_final = &gps->points[to_idx];

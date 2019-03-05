@@ -1647,7 +1647,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 	/* check if we have reached our final scroll position */
 	if ((sfile->scroll_offset >= offset + numfiles_layout_margin) &&
-	    (sfile->scroll_offset < offset + numfiles_layout - numfiles_layout_margin)) {
+	    (sfile->scroll_offset < offset + numfiles_layout - numfiles_layout_margin))
+	{
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
 		sfile->smoothscroll_timer = NULL;
 		/* Postscroll (after rename has been validated by user) is done, rename process is totally finisehd, cleanup. */

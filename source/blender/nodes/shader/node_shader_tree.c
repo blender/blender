@@ -290,7 +290,7 @@ static bNode *ntree_shader_output_node_from_group(bNodeTree *ntree, int target)
 
 	/* Search if node groups do not contain valid output nodes (recursively). */
 	for (bNode *node = ntree->nodes.first; node; node = node->next) {
-		if (!ELEM(node->type, NODE_GROUP)){
+		if (!ELEM(node->type, NODE_GROUP)) {
 			continue;
 		}
 		if (node->id != NULL) {

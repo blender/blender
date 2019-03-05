@@ -3132,8 +3132,8 @@ static void project_paint_face_init(
 											in_bounds = false;
 										}
 										else if ((seam_data->corner_dist_sq[1] > 0.0f) &&
-										    (len_squared_v2v2(puv, seam_data->seam_puvs[1]) < seam_data->corner_dist_sq[1]) &&
-										    (len_squared_v2v2(puv, lt_puv[fidx2]) > ps->seam_bleed_px_sq))
+										         (len_squared_v2v2(puv, seam_data->seam_puvs[1]) < seam_data->corner_dist_sq[1]) &&
+										         (len_squared_v2v2(puv, lt_puv[fidx2]) > ps->seam_bleed_px_sq))
 										{
 											in_bounds = false;
 										}

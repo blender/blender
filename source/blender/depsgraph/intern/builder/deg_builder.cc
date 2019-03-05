@@ -83,7 +83,7 @@ void visibility_animated_check_cb(ID * /*id*/, FCurve *fcu, void *user_data)
 
 bool is_object_visibility_animated(const Depsgraph *graph, Object *object)
 {
-	AnimData* anim_data = BKE_animdata_from_id(&object->id);
+	AnimData *anim_data = BKE_animdata_from_id(&object->id);
 	if (anim_data == NULL) {
 		return false;
 	}

@@ -97,8 +97,7 @@ void drw_state_set(DRWState state)
 
 	/* Raster Discard */
 	{
-		if (CHANGED_ANY(DRW_STATE_RASTERIZER_ENABLED))
-		{
+		if (CHANGED_ANY(DRW_STATE_RASTERIZER_ENABLED)) {
 			if ((state & DRW_STATE_RASTERIZER_ENABLED) != 0) {
 				glDisable(GL_RASTERIZER_DISCARD);
 			}
