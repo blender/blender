@@ -66,6 +66,7 @@ DeviceScene::DeviceScene(Device *device)
   camera_motion(device, "__camera_motion", MEM_TEXTURE),
   attributes_map(device, "__attributes_map", MEM_TEXTURE),
   attributes_float(device, "__attributes_float", MEM_TEXTURE),
+  attributes_float2(device, "__attributes_float2", MEM_TEXTURE),
   attributes_float3(device, "__attributes_float3", MEM_TEXTURE),
   attributes_uchar4(device, "__attributes_uchar4", MEM_TEXTURE),
   light_distribution(device, "__light_distribution", MEM_TEXTURE),

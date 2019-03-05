@@ -363,7 +363,15 @@ ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack
 	float3 attribute_value;
 	const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
 	if (desc.offset != ATTR_STD_NOT_FOUND) {
-		attribute_value = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
+		if(desc.type == NODE_ATTR_FLOAT2) {
+			float2 value = primitive_surface_attribute_float2(kg, sd, desc, NULL, NULL);
+			attribute_value.x = value.x;
+			attribute_value.y = value.y;
+			attribute_value.z = 0.0f;
+		}
+		else {
+			attribute_value = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
+		}
 	}
 
 

@@ -56,6 +56,7 @@ KERNEL_TEX(uint, __patches)
 /* attributes */
 KERNEL_TEX(uint4, __attributes_map)
 KERNEL_TEX(float, __attributes_float)
+KERNEL_TEX(float2, __attributes_float2)
 KERNEL_TEX(float4, __attributes_float3)
 KERNEL_TEX(uchar4, __attributes_uchar4)
 

@@ -392,6 +392,44 @@ bool OSLRenderServices::get_array_attribute(OSL::ShaderGlobals *sg, bool derivat
 	return false;
 }
 
+static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, void *val)
+{
+	if(type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+	   type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor)
+	{
+		float *fval = (float *)val;
+
+		fval[0] = f[0].x;
+		fval[1] = f[0].y;
+		fval[2] = 0.0f;
+
+		if(derivatives) {
+			fval[3] = f[1].x;
+			fval[4] = f[1].y;
+			fval[5] = 0.0f;
+
+			fval[6] = f[2].x;
+			fval[7] = f[2].y;
+			fval[8] = 0.0f;
+		}
+
+		return true;
+	}
+	else if(type == TypeDesc::TypeFloat) {
+		float *fval = (float *)val;
+		fval[0] = average(f[0]);
+
+		if(derivatives) {
+			fval[1] = average(f[1]);
+			fval[2] = average(f[2]);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
 	if(type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
@@ -571,6 +609,12 @@ static bool get_primitive_attribute(KernelGlobals *kg, const ShaderData *sd, con
 		fval[0] = primitive_attribute_float3(kg, sd, attr.desc,
 		                                     (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		return set_attribute_float3(fval, type, derivatives, val);
+	}
+	else if(attr.type == TypeFloat2) {
+		float2 fval[2];
+		fval[0] = primitive_attribute_float2(kg, sd, attr.desc,
+		                                      (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		return set_attribute_float2(fval, type, derivatives, val);
 	}
 	else if(attr.type == TypeDesc::TypeFloat) {
 		float fval[3];

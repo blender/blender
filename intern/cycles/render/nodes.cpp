@@ -3483,7 +3483,7 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 		}
 		else {
 			int attr = compiler.attribute(ATTR_STD_UV);
-			compiler.add_node(attr_node, attr, compiler.stack_assign(out), NODE_ATTR_FLOAT3);
+			compiler.add_node(attr_node, attr, compiler.stack_assign(out), NODE_ATTR_FLOAT2);
 		}
 	}
 

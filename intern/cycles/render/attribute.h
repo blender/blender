@@ -67,6 +67,7 @@ public:
 	size_t buffer_size(Mesh *mesh, AttributePrimitive prim) const;
 
 	char *data() { return (buffer.size())? &buffer[0]: NULL; };
+	float2 *data_float2() { return (float2*)data(); }
 	float3 *data_float3() { return (float3*)data(); }
 	float4 *data_float4() { return (float4*)data(); }
 	float *data_float() { return (float*)data(); }
@@ -75,6 +76,7 @@ public:
 	VoxelAttribute *data_voxel()  { return ( VoxelAttribute*)data(); }
 
 	const char *data() const { return (buffer.size())? &buffer[0]: NULL; }
+	const float2 *data_float2() const { return (const float2*)data(); }
 	const float3 *data_float3() const { return (const float3*)data(); }
 	const float4 *data_float4() const { return (const float4*)data(); }
 	const float *data_float() const { return (const float*)data(); }
@@ -85,6 +87,7 @@ public:
 	void add_with_weight(void* dst, void* src, float weight);
 
 	void add(const float& f);
+	void add(const float2& f);
 	void add(const float3& f);
 	void add(const uchar4& f);
 	void add(const Transform& f);
