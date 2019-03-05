@@ -222,14 +222,6 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
 
-	/* Flip layout because rna enum list ordered in reverse. */
-	if ((pup->but && pup->but->type != UI_BTYPE_PULLDOWN) &&
-	    (UI_but_menutype_get(pup->but) == NULL) &&
-	    (UI_but_is_tool(pup->but) == false))
-	{
-		UI_block_order_flip(block);
-	}
-
 	if (pup->popup) {
 		uiBut *bt;
 		int offset[2];
