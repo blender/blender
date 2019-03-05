@@ -1372,12 +1372,14 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_stroke_create(
 						e_data, vedata, psl->drawing_pass, e_data->gpencil_stroke_sh, NULL,
-						gpd, NULL, NULL, gp_style, -1, false, 1.0f, stl->storage->shade_render);
+						gpd, NULL, NULL, gp_style, -1,
+						false, 1.0f, (const int *)stl->storage->shade_render);
 				}
 				else {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_point_create(
 						e_data, vedata, psl->drawing_pass, e_data->gpencil_point_sh, NULL,
-						gpd, NULL, gp_style, -1, false, 1.0f, stl->storage->shade_render);
+						gpd, NULL, gp_style, -1,
+						false, 1.0f, (const int *)stl->storage->shade_render);
 				}
 
 				/* clean previous version of the batch */
