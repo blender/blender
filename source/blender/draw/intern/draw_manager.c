@@ -1553,10 +1553,10 @@ void DRW_draw_render_loop_ex(
 	/* annotations - temporary drawing buffer (3d space) */
 	/* XXX: Or should we use a proper draw/overlay engine for this case? */
 	if (do_annotations) {
-		glDisable(GL_DEPTH_TEST);
+		GPU_depth_test(false);
 		/* XXX: as scene->gpd is not copied for COW yet */
 		ED_gpencil_draw_view3d_annotations(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, true);
-		glEnable(GL_DEPTH_TEST);
+		GPU_depth_test(true);
 	}
 
 	DRW_draw_callbacks_post_scene();
@@ -1572,9 +1572,9 @@ void DRW_draw_render_loop_ex(
 
 	drw_debug_draw();
 
-	glDisable(GL_DEPTH_TEST);
+	GPU_depth_test(false);
 	drw_engines_draw_text();
-	glEnable(GL_DEPTH_TEST);
+	GPU_depth_test(true);
 
 	if (DST.draw_ctx.evil_C) {
 		/* needed so gizmo isn't obscured */
@@ -1592,18 +1592,18 @@ void DRW_draw_render_loop_ex(
 		if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 		    (do_annotations))
 		{
-			glDisable(GL_DEPTH_TEST);
+			GPU_depth_test(false);
 			/* XXX: as scene->gpd is not copied for COW yet */
 			ED_gpencil_draw_view3d_annotations(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, false);
-			glEnable(GL_DEPTH_TEST);
+			GPU_depth_test(true);
 		}
 
 		if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
 			/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
 			 * 'DRW_draw_region_info' sets the projection in pixel-space. */
-			glDisable(GL_DEPTH_TEST);
+			GPU_depth_test(false);
 			DRW_draw_gizmo_2d();
-			glEnable(GL_DEPTH_TEST);
+			GPU_depth_test(true);
 		}
 	}
 
@@ -1614,11 +1614,11 @@ void DRW_draw_render_loop_ex(
 	}
 
 	if (G.debug_value > 20 && G.debug_value < 30) {
-		glDisable(GL_DEPTH_TEST);
+		GPU_depth_test(false);
 		rcti rect; /* local coordinate visible rect inside region, to accommodate overlapping ui */
 		ED_region_visible_rect(DST.draw_ctx.ar, &rect);
 		DRW_stats_draw(&rect);
-		glEnable(GL_DEPTH_TEST);
+		GPU_depth_test(true);
 	}
 
 	if (WM_draw_region_get_bound_viewport(ar)) {
