@@ -97,15 +97,9 @@ void drw_state_set(DRWState state)
 
 	/* Raster Discard */
 	{
-		if (CHANGED_ANY(DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
-		                DRW_STATE_WRITE_STENCIL |
-		                DRW_STATE_WRITE_STENCIL_SHADOW_PASS |
-		                DRW_STATE_WRITE_STENCIL_SHADOW_FAIL))
+		if (CHANGED_ANY(DRW_STATE_RASTERIZER_ENABLED))
 		{
-			if ((state & (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
-			              DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW_PASS |
-			              DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)) != 0)
-			{
+			if ((state & DRW_STATE_RASTERIZER_ENABLED) != 0) {
 				glDisable(GL_RASTERIZER_DISCARD);
 			}
 			else {
@@ -1353,6 +1347,13 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	if (DST.shader) {
 		GPU_shader_unbind();
 		DST.shader = NULL;
+	}
+
+	/* HACK: Rasterized discard can affect clear commands which are not
+	 * part of a DRWPass (as of now). So disable rasterized discard here
+	 * if it has been enabled. */
+	if ((DST.state & DRW_STATE_RASTERIZER_ENABLED) == 0) {
+		drw_state_set((DST.state & ~DRW_STATE_RASTERIZER_ENABLED) | DRW_STATE_DEFAULT);
 	}
 
 	DRW_stats_query_end();
