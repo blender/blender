@@ -48,6 +48,19 @@
 
 #include "BLI_strict_flags.h" /* keep last */
 
+/* TODO: Valgrind. */
+
+/* Clang defines this. */
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+#  include "sanitizer/asan_interface.h"
+#else
+#  define ASAN_POISON_MEMORY_REGION(addr, size) UNUSED_VARS(addr, size)
+#  define ASAN_UNPOISON_MEMORY_REGION(addr, size) UNUSED_VARS(addr, size)
+#endif
+
 typedef uintptr_t data_t;
 typedef intptr_t offset_t;
 
@@ -100,6 +113,9 @@ BLI_INLINE uint data_offset_from_size(uint size)
 static void memiter_set_rewind_offset(BLI_memiter *mi)
 {
 	BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
+
+	ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem));
+
 	elem->size = (offset_t)(((data_t *)mi->tail) - mi->data_curr);
 	BLI_assert(elem->size < 0);
 }
@@ -182,11 +198,16 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 		mi->data_curr = chunk->data;
 		mi->data_last = chunk->data + (chunk_size - 1);
 		data_curr_next = mi->data_curr + (1 + data_offset);
+
+		ASAN_POISON_MEMORY_REGION(chunk->data, chunk_size * sizeof(data_t));
 	}
 
 	BLI_assert(data_curr_next <= mi->data_last);
 
 	BLI_memiter_elem *elem      = (BLI_memiter_elem *)mi->data_curr;
+
+	ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem) + elem_size);
+
 	elem->size = (offset_t)elem_size;
 	mi->data_curr = data_curr_next;
 
