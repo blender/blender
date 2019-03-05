@@ -148,8 +148,8 @@ struct DRWShadingGroup *shgroup_instance_bone_envelope_outline(struct DRWPass *p
 struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass, bool transp);
 struct DRWShadingGroup *shgroup_instance_bone_shape_outline(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_shape_solid(struct DRWPass *pass, struct GPUBatch *geom, bool transp, eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass);
-struct DRWShadingGroup *shgroup_instance_bone_sphere_solid(struct DRWPass *pass, bool transp);
+struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
+struct DRWShadingGroup *shgroup_instance_bone_sphere_solid(struct DRWPass *pass, bool transp, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_stick(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct GPUBatch *geom);
 

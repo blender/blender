@@ -785,13 +785,16 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp)
+DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp, eGPUShaderConfig sh_cfg)
 {
 	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
 	if (sh_data->bone_sphere == NULL) {
-		sh_data->bone_sphere = DRW_shader_create(
-		        datatoc_armature_sphere_solid_vert_glsl, NULL,
-		        datatoc_armature_sphere_solid_frag_glsl, NULL);
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
+		sh_data->bone_sphere = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_sphere_solid_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_armature_sphere_solid_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone, {
@@ -805,17 +808,22 @@ DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp)
 	        pass, DRW_cache_bone_point_get(), g_formats.instance_bone);
 	/* More transparent than the shape to be less distractive. */
 	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.4f : 1.0f);
-
+	if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass, eGPUShaderConfig sh_cfg)
 {
 	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
 	if (sh_data->bone_sphere_outline == NULL) {
-		sh_data->bone_sphere_outline = DRW_shader_create(
-		        datatoc_armature_sphere_outline_vert_glsl, NULL,
-		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
+		sh_data->bone_sphere_outline = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_sphere_outline_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_outline, {
@@ -828,7 +836,9 @@ DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 	        pass, DRW_cache_bone_point_wire_outline_get(),
 	        g_formats.instance_bone_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
-
+	if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

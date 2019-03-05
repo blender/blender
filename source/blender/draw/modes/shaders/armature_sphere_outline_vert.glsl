@@ -99,4 +99,9 @@ void main()
 	gl_Position.xy += t * edge_dir;
 
 	finalColor = vec4(outlineColorSize.rgb, 1.0);
+
+#ifdef USE_WORLD_CLIP_PLANES
+	vec4 worldPosition = InstanceModelMatrix * vec4(cam_pos0, 1.0);
+	world_clip_planes_calc_clip_distance(worldPosition.xyz);
+#endif
 }

@@ -232,15 +232,16 @@ static void drw_shgroup_bone_envelope_distance(
 static void drw_shgroup_bone_envelope(
         const float (*bone_mat)[4],
         const float bone_color[4], const float hint_color[4], const float outline_color[4],
-        const float *radius_head, const float *radius_tail)
+        const float *radius_head, const float *radius_tail,
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_point_wire == NULL) {
-		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire);
+		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire, sh_cfg);
 	}
 	if (g_data.bone_point_solid == NULL &&
 	    g_data.passes.bone_solid != NULL)
 	{
-		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent, sh_cfg);
 	}
 	if (g_data.bone_envelope_wire == NULL) {
 		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_outline(g_data.passes.bone_wire);
@@ -393,15 +394,16 @@ static void drw_shgroup_bone_custom_wire(
 /* Head and tail sphere */
 static void drw_shgroup_bone_point(
         const float (*bone_mat)[4],
-        const float bone_color[4], const float hint_color[4], const float outline_color[4])
+        const float bone_color[4], const float hint_color[4], const float outline_color[4],
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_point_wire == NULL) {
-		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire);
+		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire, sh_cfg);
 	}
 	if (g_data.bone_point_solid == NULL &&
 	    g_data.passes.bone_solid != NULL)
 	{
-		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent, sh_cfg);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -1183,7 +1185,7 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 static void draw_points(
         const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
         const int boneflag, const short constflag,
-        const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	float col_solid_root[4], col_solid_tail[4], col_wire_root[4], col_wire_tail[4];
 	float col_hint_root[4], col_hint_tail[4];
@@ -1230,10 +1232,10 @@ static void draw_points(
 				if (is_envelope_draw) {
 					drw_shgroup_bone_envelope(
 					        eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-					        &eBone->rad_head, &envelope_ignore);
+					        &eBone->rad_head, &envelope_ignore, sh_cfg);
 				}
 				else {
-					drw_shgroup_bone_point(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root);
+					drw_shgroup_bone_point(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);
 				}
 			}
 		}
@@ -1243,10 +1245,10 @@ static void draw_points(
 				if (is_envelope_draw) {
 					drw_shgroup_bone_envelope(
 					        pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-					        &bone->rad_head, &envelope_ignore);
+					        &bone->rad_head, &envelope_ignore, sh_cfg);
 				}
 				else {
-					drw_shgroup_bone_point(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root);
+					drw_shgroup_bone_point(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);
 				}
 			}
 		}
@@ -1261,10 +1263,10 @@ static void draw_points(
 		const float *rad_tail = eBone ? &eBone->rad_tail : &pchan->bone->rad_tail;
 		drw_shgroup_bone_envelope(
 		        BONE_VAR(eBone, pchan, disp_mat), col_solid_tail, col_hint_tail, col_wire_tail,
-		        &envelope_ignore, rad_tail);
+		        &envelope_ignore, rad_tail, sh_cfg);
 	}
 	else {
-		drw_shgroup_bone_point(BONE_VAR(eBone, pchan, disp_tail_mat), col_solid_tail, col_hint_tail, col_wire_tail);
+		drw_shgroup_bone_point(BONE_VAR(eBone, pchan, disp_tail_mat), col_solid_tail, col_hint_tail, col_wire_tail, sh_cfg);
 	}
 
 	if (select_id != -1) {
@@ -1308,7 +1310,7 @@ static void draw_bone_custom_shape(
 static void draw_bone_envelope(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	const float *col_solid = get_bone_solid_with_consts_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
@@ -1339,13 +1341,13 @@ static void draw_bone_envelope(
 
 	drw_shgroup_bone_envelope(
 	        BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire,
-	        rad_head, rad_tail);
+	        rad_head, rad_tail, sh_cfg);
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
 	}
 
-	draw_points(eBone, pchan, arm, boneflag, constflag, select_id);
+	draw_points(eBone, pchan, arm, boneflag, constflag, sh_cfg, select_id);
 }
 
 static void draw_bone_line(
@@ -1438,7 +1440,7 @@ static void draw_bone_wire(
 	}
 
 	if (eBone) {
-		draw_points(eBone, pchan, arm, boneflag, constflag, select_id);
+		draw_points(eBone, pchan, arm, boneflag, constflag, sh_cfg, select_id);
 	}
 }
 
@@ -1474,7 +1476,7 @@ static void draw_bone_box(
 	}
 
 	if (eBone) {
-		draw_points(eBone, pchan, arm, boneflag, constflag, select_id);
+		draw_points(eBone, pchan, arm, boneflag, constflag, sh_cfg, select_id);
 	}
 }
 
@@ -1497,7 +1499,7 @@ static void draw_bone_octahedral(
 		DRW_select_load_id(-1);
 	}
 
-	draw_points(eBone, pchan, arm, boneflag, constflag, select_id);
+	draw_points(eBone, pchan, arm, boneflag, constflag, sh_cfg, select_id);
 }
 
 /** \} */
@@ -1741,7 +1743,7 @@ static void draw_armature_edit(Object *ob)
 
 				if (arm->drawtype == ARM_ENVELOPE) {
 					draw_bone_update_disp_matrix_default(eBone, NULL);
-					draw_bone_envelope(eBone, NULL, arm, boneflag, constflag, select_id);
+					draw_bone_envelope(eBone, NULL, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_LINE) {
 					draw_bone_update_disp_matrix_default(eBone, NULL);
@@ -1856,7 +1858,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				}
 				else if (arm->drawtype == ARM_ENVELOPE) {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
-					draw_bone_envelope(NULL, pchan, arm, boneflag, constflag, select_id);
+					draw_bone_envelope(NULL, pchan, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_LINE) {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
