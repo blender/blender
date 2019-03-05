@@ -5189,6 +5189,12 @@ def km_node_editor_tool_select_lasso(params):
         ]},
     )
 
+def km_node_editor_tool_select_circle(params):
+    return (
+        "Node Tool: Select Circle",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select_actions_circle("node.select_circle", type=params.tool_mouse, value='PRESS')},
+    )
 
 def km_node_editor_tool_links_cut(params):
     return (
@@ -6110,6 +6116,7 @@ def generate_keymaps(params=None):
         km_node_editor_tool_select(params),
         km_node_editor_tool_select_box(params),
         km_node_editor_tool_select_lasso(params),
+        km_node_editor_tool_select_circle(params),
         km_node_editor_tool_links_cut(params),
         km_3d_view_tool_cursor(params),
         km_3d_view_tool_select(params),

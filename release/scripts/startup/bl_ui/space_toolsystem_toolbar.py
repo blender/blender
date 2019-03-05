@@ -1331,6 +1331,20 @@ class _defs_node_select:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def circle():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("node.select_circle")
+            layout.prop(props, "mode", expand=True)
+            layout.prop(props, "radius")
+        return dict(
+            text="Select Circle",
+            icon="ops.generic.select_circle",
+            widget=None,
+            keymap="Node Tool: Select Circle",
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_node_edit:
 
@@ -1455,6 +1469,7 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_node_select.select,
             _defs_node_select.box,
             _defs_node_select.lasso,
+            _defs_node_select.circle,
         ),
     )
 
