@@ -302,7 +302,7 @@ BLI_mempool *BLI_mempool_create(
 	pool->csize = esize * pchunk;
 
 	/* Ensure this is a power of 2, minus the rounding by element size. */
-#ifdef USE_CHUNK_POW2
+#if defined(USE_CHUNK_POW2) && !defined(NDEBUG)
 	{
 		uint final_size = (uint)MEM_SIZE_OVERHEAD + (uint)sizeof(BLI_mempool_chunk) + pool->csize;
 		BLI_assert(((uint)power_of_2_max_u(final_size) - final_size) < pool->esize);
