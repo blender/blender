@@ -612,8 +612,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	const int y = RNA_int_get(op->ptr, "y");
 	const int radius = RNA_int_get(op->ptr, "radius");
 
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-
 	/* compute ellipse and position in unified coordinates */
 	ED_mask_get_size(sa, &width, &height);
 	ED_mask_zoom(sa, ar, &zoomx, &zoomy);
@@ -623,6 +621,15 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	ellipse[1] = height * zoomy / radius;
 
 	ED_mask_point_pos(sa, ar, x, y, &offset[0], &offset[1]);
+
+	const eSelectOp sel_op = ED_select_op_modal(
+	        RNA_enum_get(op->ptr, "mode"), WM_gesture_is_modal_first(op->customdata));
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_mask_select_toggle_all(mask, SEL_DESELECT);
+		ED_mask_select_flush_all(mask);
+		changed = true;
+	}
 
 	/* do actual selection */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -677,7 +684,8 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle_select(ot);
+	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)

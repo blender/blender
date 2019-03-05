@@ -69,6 +69,19 @@ int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select,
 	return -1;
 }
 
+/**
+ * Utility to use for selection operations that run multiple times (circle select).
+ */
+eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first)
+{
+	if (sel_op == SEL_OP_SET) {
+		if (is_first == false) {
+			return SEL_OP_ADD;
+		}
+	}
+	return sel_op;
+}
+
 int ED_select_similar_compare_float(const float delta, const float thresh, const int compare)
 {
 	switch (compare) {

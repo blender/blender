@@ -3351,17 +3351,12 @@ static bool object_circle_select(ViewContext *vc, const eSelectOp sel_op, const 
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
 	ViewContext vc;
-	const bool is_first = (op->customdata && (((wmGesture *)op->customdata)->is_active_prev == false));
 	const int radius = RNA_int_get(op->ptr, "radius");
-	eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
 	const int mval[2] = {RNA_int_get(op->ptr, "x"),
 	                     RNA_int_get(op->ptr, "y")};
 
-	if (is_first == false) {
-		if (sel_op == SEL_OP_SET) {
-			sel_op = SEL_OP_ADD;
-		}
-	}
+	const eSelectOp sel_op = ED_select_op_modal(
+	        RNA_enum_get(op->ptr, "mode"), WM_gesture_is_modal_first(op->customdata));
 
 	ED_view3d_viewcontext_init(C, &vc);
 

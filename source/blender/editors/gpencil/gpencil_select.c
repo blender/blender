@@ -906,8 +906,6 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	const int my = RNA_int_get(op->ptr, "y");
 	const int radius = RNA_int_get(op->ptr, "radius");
 
-	bool select = !RNA_boolean_get(op->ptr, "deselect");
-
 	GP_SpaceConversion gsc = {NULL};
 	/* for bounding rect around circle (for quicky intersection testing) */
 	rcti rect = {0};
@@ -919,6 +917,14 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	if (sa == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active area");
 		return OPERATOR_CANCELLED;
+	}
+
+	const eSelectOp sel_op = ED_select_op_modal(
+	        RNA_enum_get(op->ptr, "mode"), WM_gesture_is_modal_first(op->customdata));
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_gpencil_select_toggle_all(C, SEL_DESELECT);
+		changed = true;
 	}
 
 	/* init space conversion stuff */
@@ -973,7 +979,8 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
-	WM_operator_properties_gesture_circle_select(ot);
+	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /** \} */

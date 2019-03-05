@@ -56,4 +56,7 @@ int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select,
 
 int ED_select_similar_compare_float(const float delta, const float thresh, const int compare);
 bool ED_select_similar_compare_float_tree(const struct KDTree *tree, const float length, const float thresh, const int compare);
+
+eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first);
+
 #endif  /* __ED_SELECT_UTILS_H__ */

@@ -116,6 +116,13 @@ void WM_gestures_remove(bContext *C)
 		WM_gesture_end(C, win->gesture.first);
 }
 
+bool WM_gesture_is_modal_first(const wmGesture *gesture)
+{
+	if (gesture == NULL) {
+		return true;
+	}
+	return (gesture->is_active_prev == false);
+}
 
 /* tweak and line gestures */
 int wm_gesture_evaluate(wmGesture *gesture)

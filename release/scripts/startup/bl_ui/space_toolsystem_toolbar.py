@@ -1073,6 +1073,7 @@ class _defs_image_uv_select:
     def circle():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("uv.select_circle")
+            layout.prop(props, "mode", expand=True)
             layout.prop(props, "radius")
         return dict(
             text="Select Circle",
@@ -1223,6 +1224,9 @@ class _defs_gpencil_edit:
     @ToolDef.from_fn
     def circle_select():
         def draw_settings(context, layout, tool):
+            props = tool.operator_properties("gpencil.select_circle")
+            layout.prop(props, "mode", expand=True)
+            layout.prop(props, "radius")
             layout.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
         return dict(
             text="Select Circle",

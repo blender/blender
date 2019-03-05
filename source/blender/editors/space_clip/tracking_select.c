@@ -698,7 +698,13 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	const int y = RNA_int_get(op->ptr, "y");
 	const int radius = RNA_int_get(op->ptr, "radius");
 
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const eSelectOp sel_op = ED_select_op_modal(
+	        RNA_enum_get(op->ptr, "mode"), WM_gesture_is_modal_first(op->customdata));
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_clip_select_all(sc, SEL_DESELECT, NULL);
+		changed = true;
+	}
 
 	/* compute ellipse and position in unified coordinates */
 	ED_space_clip_get_size(sc, &width, &height);
@@ -782,7 +788,8 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle_select(ot);
+	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /********************** select all operator *********************/

@@ -375,9 +375,7 @@ void        WM_operator_properties_gesture_lasso_ex(struct wmOperatorType *ot, b
 void        WM_operator_properties_gesture_lasso(struct wmOperatorType *ot);
 void        WM_operator_properties_gesture_lasso_select(struct wmOperatorType *ot);
 void        WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
-void        WM_operator_properties_gesture_circle_ex(struct wmOperatorType *ot, bool deselect);
 void        WM_operator_properties_gesture_circle(struct wmOperatorType *ot);
-void        WM_operator_properties_gesture_circle_select(struct wmOperatorType *ot);
 void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
 void        WM_operator_properties_select_all(struct wmOperatorType *ot);
 void        WM_operator_properties_select_action(struct wmOperatorType *ot, int default_action);
@@ -483,6 +481,7 @@ void		WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
 struct wmGesture *WM_gesture_new(struct bContext *C, const struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 void		WM_gestures_remove(struct bContext *C);
+bool		WM_gesture_is_modal_first(const struct wmGesture *gesture);
 
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);

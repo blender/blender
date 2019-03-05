@@ -619,7 +619,12 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
 
 	float zoom  = (float)(BLI_rcti_size_x(&ar->winrct)) / (float)(BLI_rctf_size_x(&ar->v2d.cur));
 
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const eSelectOp sel_op = ED_select_op_modal(
+	        RNA_enum_get(op->ptr, "mode"), WM_gesture_is_modal_first(op->customdata));
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+	}
 
 	/* get operator properties */
 	x = RNA_int_get(op->ptr, "x");
@@ -657,7 +662,8 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle_select(ot);
+	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /* ****** Lasso Select ****** */

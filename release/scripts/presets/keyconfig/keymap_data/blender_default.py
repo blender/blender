@@ -5141,12 +5141,7 @@ def km_image_editor_tool_uv_select_circle(params):
     return (
         "Image Editor Tool: Uv, Select Circle",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            ("uv.select_circle", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("wait_for_input", False), ("deselect", False)]}),
-            ("uv.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("wait_for_input", False), ("deselect", True)]}),
-        ]},
+        {"items": _template_items_tool_select_actions_circle("uv.select_circle", type=params.tool_mouse, value='PRESS')},
     )
 
 
@@ -5885,11 +5880,7 @@ def km_3d_view_tool_edit_gpencil_select_circle(params):
     return (
         "3D View Tool: Edit Gpencil, Select Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            ("gpencil.select_circle", {"type": params.tool_tweak, "value": 'ANY'}, None),
-            ("gpencil.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("deselect", True)]}),
-        ]},
+        {"items": _template_items_tool_select_actions_circle("gpencil.select_circle", type=params.tool_mouse, value='PRESS')},
     )
 
 
