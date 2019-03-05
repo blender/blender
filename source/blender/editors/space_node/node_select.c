@@ -763,29 +763,9 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ListBase *node_lb = &snode->edittree->nodes;
-	bNode *node;
 	int action = RNA_enum_get(op->ptr, "action");
 
-	if (action == SEL_TOGGLE) {
-		if (ED_node_select_check(node_lb))
-			action = SEL_DESELECT;
-		else
-			action = SEL_SELECT;
-	}
-
-	for (node = node_lb->first; node; node = node->next) {
-		switch (action) {
-			case SEL_SELECT:
-				nodeSetSelected(node, true);
-				break;
-			case SEL_DESELECT:
-				nodeSetSelected(node, false);
-				break;
-			case SEL_INVERT:
-				nodeSetSelected(node, !(node->flag & SELECT));
-				break;
-		}
-	}
+	ED_node_select_all(node_lb, action);
 
 	ED_node_sort(snode->edittree);
 

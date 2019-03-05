@@ -48,6 +48,7 @@
 
 
 #include "ED_node.h"  /* own include */
+#include "ED_select_utils.h"
 #include "ED_screen.h"
 #include "ED_render.h"
 
@@ -1216,18 +1217,38 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 }
 
 bool ED_node_select_check(ListBase *lb)
-
-
 {
-	bNode *node;
-
-	for (node = lb->first; node; node = node->next) {
+	for (bNode *node = lb->first; node; node = node->next) {
 		if (node->flag & NODE_SELECT) {
 			return true;
 		}
 	}
 
 	return false;
+}
+
+void ED_node_select_all(ListBase *lb, int action)
+{
+	if (action == SEL_TOGGLE) {
+		if (ED_node_select_check(lb))
+			action = SEL_DESELECT;
+		else
+			action = SEL_SELECT;
+	}
+
+	for (bNode *node = lb->first; node; node = node->next) {
+		switch (action) {
+			case SEL_SELECT:
+				nodeSetSelected(node, true);
+				break;
+			case SEL_DESELECT:
+				nodeSetSelected(node, false);
+				break;
+			case SEL_INVERT:
+				nodeSetSelected(node, !(node->flag & SELECT));
+				break;
+		}
+	}
 }
 
 /* ******************************** */
