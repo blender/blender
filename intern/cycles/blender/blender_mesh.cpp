@@ -66,7 +66,7 @@ struct MikkUserData {
 		else {
 			Attribute *attr_uv = attributes.find(ustring(layer_name));
 			if(attr_uv != NULL) {
-				texface = attr_uv->data_float3();
+				texface = attr_uv->data_float2();
 			}
 		}
 	}
@@ -75,7 +75,7 @@ struct MikkUserData {
 	int num_faces;
 
 	float3 *vertex_normal;
-	float3 *texface;
+	float2 *texface;
 	float3 *orco;
 	float3 orco_loc, orco_size;
 
@@ -150,7 +150,7 @@ static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context,
 	const Mesh *mesh = userdata->mesh;
 	if(userdata->texface != NULL) {
 		const int corner_index = mikk_corner_index(mesh, face_num, vert_num);
-		float3 tfuv = userdata->texface[corner_index];
+		float2 tfuv = userdata->texface[corner_index];
 		uv[0] = tfuv.x;
 		uv[1] = tfuv.y;
 	}
@@ -435,13 +435,13 @@ static void attr_create_uv_map(Scene *scene,
 				}
 
 				BL::Mesh::loop_triangles_iterator t;
-				float3 *fdata = uv_attr->data_float3();
+				float2 *fdata = uv_attr->data_float2();
 
 				for(b_mesh.loop_triangles.begin(t); t != b_mesh.loop_triangles.end(); ++t) {
 					int3 li = get_int3(t->loops());
-					fdata[0] = get_float3(l->data[li[0]].uv());
-					fdata[1] = get_float3(l->data[li[1]].uv());
-					fdata[2] = get_float3(l->data[li[2]].uv());
+					fdata[0] = get_float2(l->data[li[0]].uv());
+					fdata[1] = get_float2(l->data[li[1]].uv());
+					fdata[2] = get_float2(l->data[li[2]].uv());
 					fdata += 3;
 				}
 			}
@@ -516,12 +516,12 @@ static void attr_create_subd_uv_map(Scene *scene,
 				}
 
 				BL::Mesh::polygons_iterator p;
-				float3 *fdata = uv_attr->data_float3();
+				float2 *fdata = uv_attr->data_float2();
 
 				for(b_mesh.polygons.begin(p); p != b_mesh.polygons.end(); ++p) {
 					int n = p->loop_total();
 					for(int j = 0; j < n; j++) {
-						*(fdata++) = get_float3(l->data[p->loop_start() + j].uv());
+						*(fdata++) = get_float2(l->data[p->loop_start() + j].uv());
 					}
 				}
 			}

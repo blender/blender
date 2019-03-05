@@ -89,6 +89,37 @@ ccl_device_inline float primitive_volume_attribute_float(KernelGlobals *kg,
 }
 #endif
 
+ccl_device_inline float2 primitive_attribute_float2(KernelGlobals *kg,
+                                                    const ShaderData *sd,
+                                                    const AttributeDescriptor desc,
+                                                    float2 *dx, float2 *dy)
+{
+	if(sd->type & PRIMITIVE_ALL_TRIANGLE) {
+		if(subd_triangle_patch(kg, sd) == ~0)
+			return triangle_attribute_float2(kg, sd, desc, dx, dy);
+		else
+			return subd_triangle_attribute_float2(kg, sd, desc, dx, dy);
+	}
+#ifdef __HAIR__
+	else if(sd->type & PRIMITIVE_ALL_CURVE) {
+		return curve_attribute_float2(kg, sd, desc, dx, dy);
+	}
+#endif
+#ifdef __VOLUME__
+	else if(sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
+		kernel_assert(0);
+		if(dx) *dx = make_float2(0.0f, 0.0f);
+		if(dy) *dy = make_float2(0.0f, 0.0f);
+		return make_float2(0.0f, 0.0f);
+	}
+#endif
+	else {
+		if(dx) *dx = make_float2(0.0f, 0.0f);
+		if(dy) *dy = make_float2(0.0f, 0.0f);
+		return make_float2(0.0f, 0.0f);
+	}
+}
+
 ccl_device_inline float3 primitive_attribute_float3(KernelGlobals *kg,
                                                     const ShaderData *sd,
                                                     const AttributeDescriptor desc,
@@ -116,6 +147,29 @@ ccl_device_inline float3 primitive_attribute_float3(KernelGlobals *kg,
 		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
 		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 		return make_float3(0.0f, 0.0f, 0.0f);
+	}
+}
+
+ccl_device_inline float2 primitive_surface_attribute_float2(KernelGlobals *kg,
+                                                            const ShaderData *sd,
+                                                            const AttributeDescriptor desc,
+                                                            float2 *dx, float2 *dy)
+{
+	if(sd->type & PRIMITIVE_ALL_TRIANGLE) {
+		if(subd_triangle_patch(kg, sd) == ~0)
+			return triangle_attribute_float2(kg, sd, desc, dx, dy);
+		else
+			return subd_triangle_attribute_float2(kg, sd, desc, dx, dy);
+	}
+#ifdef __HAIR__
+	else if(sd->type & PRIMITIVE_ALL_CURVE) {
+		return curve_attribute_float2(kg, sd, desc, dx, dy);
+	}
+#endif
+	else {
+		if(dx) *dx = make_float2(0.0f, 0.0f);
+		if(dy) *dy = make_float2(0.0f, 0.0f);
+		return make_float2(0.0f, 0.0f);
 	}
 }
 

@@ -48,7 +48,8 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 	/* string and matrix not supported! */
 	assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
 		type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-		type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix);
+		type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix ||
+		type == TypeFloat2);
 }
 
 void Attribute::resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only)
@@ -400,7 +401,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 				attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
 				break;
 			case ATTR_STD_UV:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+				attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
 				break;
 			case ATTR_STD_UV_TANGENT:
 				attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
