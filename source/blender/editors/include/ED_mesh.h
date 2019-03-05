@@ -316,14 +316,14 @@ void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose, bool calc_tessface);
 
 void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name);
-int  ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set);
+int  ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set, const bool do_init);
 bool ED_mesh_uv_texture_remove_index(struct Mesh *me, const int n);
 bool ED_mesh_uv_texture_remove_active(struct Mesh *me);
 bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name);
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
 void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum);
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name);
-int  ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set);
+int  ED_mesh_color_add(struct Mesh *me, const char *name, const bool active_set, const bool do_init);
 bool ED_mesh_color_remove_index(struct Mesh *me, const int n);
 bool ED_mesh_color_remove_active(struct Mesh *me);
 bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);

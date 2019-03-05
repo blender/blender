@@ -1368,12 +1368,12 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 	return me->edit_mesh ? me->edit_mesh->bm->totfacesel : 0;
 }
 
-static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, const char *name)
+static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, const char *name, const bool do_init)
 {
 	PointerRNA ptr;
 	CustomData *ldata;
 	CustomDataLayer *cdl = NULL;
-	int index = ED_mesh_color_add(me, name, false);
+	int index = ED_mesh_color_add(me, name, false, do_init);
 
 	if (index != -1) {
 		ldata = rna_mesh_ldata_helper(me);
@@ -1415,12 +1415,12 @@ DEFINE_CUSTOMDATA_PROPERTY_API(polygon, int, CD_PROP_INT, pdata, totpoly, MeshPo
 DEFINE_CUSTOMDATA_PROPERTY_API(polygon, string, CD_PROP_STR, pdata, totpoly, MeshPolygonStringPropertyLayer)
 #undef DEFINE_CUSTOMDATA_PROPERTY_API
 
-static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me, const char *name)
+static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me, const char *name, const bool do_init)
 {
 	PointerRNA ptr;
 	CustomData *ldata;
 	CustomDataLayer *cdl = NULL;
-	int index = ED_mesh_uv_texture_add(me, name, false);
+	int index = ED_mesh_uv_texture_add(me, name, false, do_init);
 
 	if (index != -1) {
 		ldata = rna_mesh_ldata_helper(me);
@@ -2213,6 +2213,8 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
 	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
+	RNA_def_boolean(func, "do_init", true, "",
+	                "Whether new layer's data should be initialized by copying current active one");
 	parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The newly created layer");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
@@ -2255,6 +2257,9 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_Mesh_uv_layers_new");
 	RNA_def_function_ui_description(func, "Add a UV map layer to Mesh");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
+	RNA_def_boolean(func, "do_init", true, "",
+	                "Whether new layer's data should be initialized by copying current active one, "
+	                "or if none is active, with a default UVmap");
 	parm = RNA_def_pointer(func, "layer", "MeshUVLoopLayer", "", "The newly created layer");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);

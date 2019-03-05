@@ -250,7 +250,7 @@ void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 }
 
 /* note: keep in sync with ED_mesh_color_add */
-int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
+int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set, const bool do_init)
 {
 	BMEditMesh *em;
 	int layernum_dst;
@@ -267,7 +267,7 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 		/* CD_MLOOPUV */
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPUV, name);
 		/* copy data from active UV */
-		if (layernum_dst) {
+		if (layernum_dst && do_init) {
 			const int layernum_src = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPUV);
 			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum_src, layernum_dst);
 
@@ -282,7 +282,7 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 		if (layernum_dst >= MAX_MTFACE)
 			return -1;
 
-		if (me->mloopuv) {
+		if (me->mloopuv && do_init) {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
 			is_init = true;
@@ -301,7 +301,7 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 	}
 
 	/* don't overwrite our copied coords */
-	if (is_init == false) {
+	if (!is_init && do_init) {
 		ED_mesh_uv_loop_reset_ex(me, layernum_dst);
 	}
 
@@ -321,12 +321,12 @@ void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name)
 
 		layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
 		if (layernum_dst == 0)
-			ED_mesh_uv_texture_add(me, name, true);
+			ED_mesh_uv_texture_add(me, name, true, true);
 	}
 	else {
 		layernum_dst = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 		if (layernum_dst == 0)
-			ED_mesh_uv_texture_add(me, name, true);
+			ED_mesh_uv_texture_add(me, name, true, true);
 	}
 }
 
@@ -377,7 +377,7 @@ bool ED_mesh_uv_texture_remove_named(Mesh *me, const char *name)
 }
 
 /* note: keep in sync with ED_mesh_uv_texture_add */
-int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
+int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set, const bool do_init)
 {
 	BMEditMesh *em;
 	int layernum;
@@ -393,7 +393,7 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 		/* CD_MLOOPCOL */
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPCOL, name);
 		/* copy data from active vertex color layer */
-		if (layernum) {
+		if (layernum && do_init) {
 			const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPCOL);
 			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPCOL, layernum_dst, layernum);
 		}
@@ -407,7 +407,7 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 			return -1;
 		}
 
-		if (me->mloopcol) {
+		if (me->mloopcol && do_init) {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mcol, me->totface, name);
 		}
@@ -499,7 +499,7 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_context(C);
 	Mesh *me = ob->data;
 
-	if (ED_mesh_uv_texture_add(me, NULL, true) == -1)
+	if (ED_mesh_uv_texture_add(me, NULL, true, true) == -1)
 		return OPERATOR_CANCELLED;
 
 	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
@@ -565,7 +565,7 @@ static int mesh_vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_context(C);
 	Mesh *me = ob->data;
 
-	if (ED_mesh_color_add(me, NULL, true) == -1)
+	if (ED_mesh_color_add(me, NULL, true, true) == -1)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
