@@ -5535,6 +5535,7 @@ class VIEW3D_PT_view3d_stereo(Panel):
         split = row.split()
         split.prop(view, "show_stereo_3d_volume")
         split = row.split()
+        split.active = view.show_stereo_3d_volume
         split.prop(view, "stereo_3d_volume_alpha", text="Alpha")
 
 
