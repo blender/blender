@@ -112,15 +112,10 @@ static uint kdtree_balance(KDTreeNode *nodes, uint totnode, uint axis, const uin
 	float co;
 	uint left, right, median, i, j;
 
-	if (totnode <= 0) {
+	if (totnode <= 0)
 		return KD_NODE_UNSET;
-	}
-	else if (totnode == 1) {
-		node = nodes + ofs;
-		node->left = KD_NODE_UNSET;
-		node->right = KD_NODE_UNSET;
+	else if (totnode == 1)
 		return 0 + ofs;
-	}
 
 	/* quicksort style sorting around median */
 	left = 0;
