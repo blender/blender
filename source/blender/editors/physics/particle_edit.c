@@ -2915,10 +2915,6 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleBrushData *brush;
 
-	if (pset->brushtype < 0) {
-		return;
-	}
-
 	if (!WM_toolsystem_active_tool_is_brush(C)) {
 		return;
 	}
@@ -4082,15 +4078,10 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = CTX_data_active_object(C);
-	ParticleEditSettings *pset = PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	ARegion *ar = CTX_wm_region(C);
 	BrushEdit *bedit;
 	float min[3], max[3];
-
-	if (pset->brushtype < 0) {
-		return 0;
-	}
 
 	if (!WM_toolsystem_active_tool_is_brush(C)) {
 		return 0;
