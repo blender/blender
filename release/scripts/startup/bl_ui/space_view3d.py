@@ -630,7 +630,7 @@ class VIEW3D_MT_view(Menu):
         layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu("VIEW3D_MT_view_borders", text="View Borders")
+        layout.menu("VIEW3D_MT_view_regions", text="View Regions")
 
         layout.separator()
 
@@ -784,13 +784,13 @@ class VIEW3D_MT_view_align_selected(Menu):
         props.type = 'LEFT'
 
 
-class VIEW3D_MT_view_borders(Menu):
-    bl_label = "View Borders"
+class VIEW3D_MT_view_regions(Menu):
+    bl_label = "View Regions"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.clip_border", text="Clipping Border...")
-        layout.operator("view3d.render_border", text="Render Border...")
+        layout.operator("view3d.clip_border", text="Clipping Region...")
+        layout.operator("view3d.render_border", text="Render Region...")
 
         layout.separator()
 
@@ -5784,7 +5784,7 @@ classes = (
     VIEW3D_MT_view_align,
     VIEW3D_MT_view_align_selected,
     VIEW3D_MT_view_viewpoint,
-    VIEW3D_MT_view_borders,
+    VIEW3D_MT_view_regions,
     VIEW3D_MT_select_object,
     VIEW3D_MT_select_object_more_less,
     VIEW3D_MT_select_pose,

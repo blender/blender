@@ -3293,7 +3293,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Set Render Border";
+	ot->name = "Set Render Region";
 	ot->description = "Set the boundaries of the border render and enable border render";
 	ot->idname = "VIEW3D_OT_render_border";
 
@@ -3353,7 +3353,7 @@ static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Render Border";
+	ot->name = "Clear Render Region";
 	ot->description = "Clear the boundaries of the border render and disable border render";
 	ot->idname = "VIEW3D_OT_clear_render_border";
 
@@ -4599,8 +4599,8 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name = "Clipping Border";
-	ot->description = "Set the view clipping border";
+	ot->name = "Clipping Region";
+	ot->description = "Set the view clipping region";
 	ot->idname = "VIEW3D_OT_clip_border";
 
 	/* api callbacks */

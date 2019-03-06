@@ -3764,8 +3764,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Render Border";
-	ot->description = "Set the boundaries of the border render and enable border render";
+	ot->name = "Render Region";
+	ot->description = "Set the boundaries of the render region and enable render region";
 	ot->idname = "IMAGE_OT_render_border";
 
 	/* api callbacks */
@@ -3797,8 +3797,8 @@ static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_clear_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Render Border";
-	ot->description = "Clear the boundaries of the border render and disable border render";
+	ot->name = "Clear Render Region";
+	ot->description = "Clear the boundaries of the render region and disable render region";
 	ot->idname = "IMAGE_OT_clear_render_border";
 
 	/* api callbacks */

@@ -124,10 +124,10 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
         col.prop(rd, "pixel_aspect_y", text="Y")
 
         col = layout.column(align=True)
-        col.prop(rd, "use_border", text="Border")
+        col.prop(rd, "use_border")
         sub = col.column(align=True)
         sub.active = rd.use_border
-        sub.prop(rd, "use_crop_to_border", text="Crop")
+        sub.prop(rd, "use_crop_to_border")
 
         col = layout.column(align=True)
         col.prop(scene, "frame_start", text="Frame Start")

@@ -2608,12 +2608,12 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_instance_vertices_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
-	RNA_def_property_ui_text(prop, "Instance Verts Rotation", "Rotate instance according to vertex normal");
+	RNA_def_property_ui_text(prop, "Orient with Normals", "Rotate instance according to vertex normal");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "use_instance_faces_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES_SCALE);
-	RNA_def_property_ui_text(prop, "Instance Faces Inherit Scale", "Scale instance based on face size");
+	RNA_def_property_ui_text(prop, "Scale to Face Sizes", "Scale instance based on face size");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "instance_faces_scale", PROP_FLOAT, PROP_NONE);
