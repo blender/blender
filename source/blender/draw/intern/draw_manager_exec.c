@@ -1315,6 +1315,10 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 
 	drw_update_view();
 
+	/* GPU_framebuffer_clear calls can change the state outside the DRW module.
+	 * Force reset the affected states to avoid problems later. */
+	drw_state_set(DST.state | DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
+
 	drw_state_set(pass->state);
 
 	DRW_stats_query_start(pass->name);
