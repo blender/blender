@@ -1696,7 +1696,7 @@ def km_info(params):
 
     items.extend([
         ("info.select_pick", {"type": params.select_mouse, "value": 'PRESS'}, None),
-        ("info.select_all_toggle", {"type": 'A', "value": 'PRESS'}, None),
+        *_template_items_select_actions(params, "info.select_all"),
         ("info.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("info.report_replay", {"type": 'R', "value": 'PRESS'}, None),
         ("info.report_delete", {"type": 'X', "value": 'PRESS'}, None),

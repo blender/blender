@@ -187,7 +187,7 @@ static void info_operatortypes(void)
 
 	/* info_report.c */
 	WM_operatortype_append(INFO_OT_select_pick);
-	WM_operatortype_append(INFO_OT_select_all_toggle);
+	WM_operatortype_append(INFO_OT_select_all);
 	WM_operatortype_append(INFO_OT_select_box);
 
 	WM_operatortype_append(INFO_OT_report_replay);

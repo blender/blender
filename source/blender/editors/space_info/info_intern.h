@@ -53,7 +53,7 @@ void info_textview_main(struct SpaceInfo *sinfo, struct ARegion *ar, struct Repo
 /* info_report.c */
 int info_report_mask(struct SpaceInfo *sinfo);
 void INFO_OT_select_pick(struct wmOperatorType *ot); /* report selection */
-void INFO_OT_select_all_toggle(struct wmOperatorType *ot);
+void INFO_OT_select_all(struct wmOperatorType *ot);
 void INFO_OT_select_box(struct wmOperatorType *ot);
 
 void INFO_OT_report_replay(struct wmOperatorType *ot);

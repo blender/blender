@@ -35,6 +35,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -154,34 +155,39 @@ void INFO_OT_select_pick(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "report_index", 0, 0, INT_MAX, "Report", "Index of the report", 0, INT_MAX);
 }
 
-
-
-static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int report_select_all_exec(bContext *C, wmOperator *op)
 {
 	SpaceInfo *sinfo = CTX_wm_space_info(C);
 	ReportList *reports = CTX_wm_reports(C);
-	int report_mask = info_report_mask(sinfo);
-	int deselect = 0;
+	const int report_mask = info_report_mask(sinfo);
 
-	Report *report;
+	int action = RNA_enum_get(op->ptr, "action");
 
-	for (report = reports->list.last; report; report = report->prev) {
-		if ((report->type & report_mask) && (report->flag & SELECT)) {
-			deselect = 1;
-			break;
+	if (action == SEL_TOGGLE) {
+		for (Report *report = reports->list.last; report; report = report->prev) {
+			if ((report->type & report_mask) && (report->flag & SELECT)) {
+				action = SEL_DESELECT;
+				break;
+			}
 		}
 	}
 
-
-	if (deselect) {
-		for (report = reports->list.last; report; report = report->prev)
-			if (report->type & report_mask)
-				report->flag &= ~SELECT;
-	}
-	else {
-		for (report = reports->list.last; report; report = report->prev)
-			if (report->type & report_mask)
-				report->flag |= SELECT;
+	for (Report *report = reports->list.last; report; report = report->prev) {
+		if (report->type & report_mask) {
+			switch (action) {
+				case SEL_SELECT:
+					report->flag = SELECT;
+					break;
+				case SEL_DESELECT:
+					report->flag = ~SELECT;
+					break;
+				case SEL_INVERT:
+					report->flag ^= SELECT;
+					break;
+				default:
+					BLI_assert(0);
+			}
+		}
 	}
 
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -189,21 +195,19 @@ static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void INFO_OT_select_all_toggle(wmOperatorType *ot)
+void INFO_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "(De)select All";
-	ot->description = "Select or deselect all reports";
-	ot->idname = "INFO_OT_select_all_toggle";
+	ot->description = "Change selection of all visible reports";
+	ot->idname = "INFO_OT_select_all";
 
 	/* api callbacks */
 	ot->poll = ED_operator_info_active;
-	ot->exec = report_select_all_toggle_exec;
-
-	/* flags */
-	/*ot->flag = OPTYPE_REGISTER;*/
+	ot->exec = report_select_all_exec;
 
 	/* properties */
+	WM_operator_properties_select_action(ot, SEL_SELECT);
 }
 
 /* box_select operator */
