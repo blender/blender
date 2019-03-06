@@ -2160,6 +2160,9 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	/* Orientation used for redo. */
+	const bool use_orient_axis = (
+	        t->orient_matrix_is_set &&
+	        (RNA_struct_find_property(op->ptr, "orient_axis") != NULL));
 	short orientation;
 	if (t->con.mode & CON_APPLY) {
 		orientation = t->con.orientation;
@@ -2177,9 +2180,12 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	{
 		orientation = RNA_property_enum_get(op->ptr, prop);
 	}
-	else {
+	else if (use_orient_axis) {
 		/* We're not using an orientation, use the fallback. */
 		orientation = t->orientation.unset;
+	}
+	else {
+		orientation = V3D_ORIENT_GLOBAL;
 	}
 
 
@@ -2212,7 +2218,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			if (t->con.mode & CON_APPLY) {
 				RNA_float_set_array(op->ptr, "orient_matrix", &t->con.mtx[0][0]);
 			}
-			else if (t->orient_matrix_is_set) {
+			else if (use_orient_axis) {
 				RNA_float_set_array(op->ptr, "orient_matrix", &t->orient_matrix[0][0]);
 			}
 			else {
