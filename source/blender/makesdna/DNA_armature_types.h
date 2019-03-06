@@ -137,13 +137,13 @@ typedef struct bArmature {
 typedef enum eArmature_Flag {
 	ARM_RESTPOS         = (1<<0),
 	/** XRAY is here only for backwards converting */
-	ARM_DRAWXRAY        = (1<<1),
+	ARM_FLAG_DEPRECATED_1 = (1 << 1),  /* cleared */
 	ARM_DRAWAXES        = (1<<2),
 	ARM_DRAWNAMES       = (1<<3),
 	ARM_POSEMODE        = (1<<4),
-	ARM_EDITMODE        = (1<<5),
+	ARM_FLAG_DEPRECATED_5 = (1<<5),  /* cleared */
 	ARM_DELAYDEFORM     = (1<<6),
-	ARM_DONT_USE        = (1<<7),
+	ARM_FLAG_DEPRECATED_7 = (1 << 7),  /* cleared */
 	ARM_MIRROR_EDIT     = (1<<8),
 	ARM_AUTO_IK         = (1<<9),
 	/** made option negative, for backwards compat */
@@ -151,7 +151,7 @@ typedef enum eArmature_Flag {
 	/** draw custom colors  */
 	ARM_COL_CUSTOM      = (1<<11),
 	/** when ghosting, only show selected bones (this should belong to ghostflag instead) */
-	ARM_GHOST_ONLYSEL   = (1<<12), /* XXX deprecated */
+	ARM_FLAG_DEPRECATED_12 = (1 << 12), /* cleared */
 	/** dopesheet channel is expanded */
 	ARM_DS_EXPAND       = (1<<13),
 	/** other objects are used for visualizing various states (hack for efficient updates) */

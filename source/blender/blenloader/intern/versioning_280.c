@@ -53,6 +53,7 @@
 #include "DNA_key_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_action.h"
 #include "BKE_cloth.h"
@@ -2822,6 +2823,53 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					scene->cursor.rotation_axis[1] = 1.0f;
 				}
 			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 47)) {
+		LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+			ParticleEditSettings *pset = &scene->toolsettings->particle;
+			if (pset->brushtype < 0) {
+				pset->brushtype = PE_BRUSH_COMB;
+			}
+		}
+
+		LISTBASE_FOREACH (Object *, ob, &bmain->object) {
+			{
+				enum { PARCURVE = 1, PARKEY = 2, PAR_DEPRECATED = 16};
+				if (ELEM(ob->partype, PARCURVE, PARKEY, PAR_DEPRECATED)) {
+					ob->partype = PAROBJECT;
+				}
+			}
+
+			{
+				enum { OB_WAVE = 21, OB_LIFE = 23, OB_SECTOR = 24};
+				if (ELEM(ob->type, OB_WAVE, OB_LIFE, OB_SECTOR)) {
+					ob->type = OB_EMPTY;
+				}
+			}
+
+			ob->transflag &= ~(
+			        OB_TRANSFLAG_DEPRECATED_0 |
+			        OB_TRANSFLAG_DEPRECATED_1 |
+			        OB_TRANSFLAG_DEPRECATED_3 |
+			        OB_TRANSFLAG_DEPRECATED_6 |
+			        OB_TRANSFLAG_DEPRECATED_12);
+
+			ob->nlaflag &= ~(OB_ADS_DEPRECATED_1 | OB_ADS_DEPRECATED_2);
+		}
+
+		LISTBASE_FOREACH (bArmature *, arm, &bmain->armature) {
+			arm->flag &= ~(
+			        ARM_FLAG_DEPRECATED_1 |
+			        ARM_FLAG_DEPRECATED_5 |
+			        ARM_FLAG_DEPRECATED_7 |
+			        ARM_FLAG_DEPRECATED_12);
+		}
+
+		LISTBASE_FOREACH (Text *, text, &bmain->text) {
+			enum { TXT_READONLY = 1 << 8, TXT_FOLLOW = 1 << 9};
+			text->flags &= ~(TXT_READONLY | TXT_FOLLOW);
 		}
 	}
 

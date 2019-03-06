@@ -1545,6 +1545,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 			if (ob->parent) {
 				Object *parent = (Object *)blo_do_versions_newlibadr(fd, lib, ob->parent);
 				if (parent) { /* parent may not be in group */
+					enum { PARCURVE = 1 };
 					if (parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
 						ArmatureModifierData *amd;
 						bArmature *arm = (bArmature *)blo_do_versions_newlibadr(fd, lib, parent->data);

@@ -48,7 +48,6 @@
 #include "bmesh.h"
 
 const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
-	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
 	{PE_BRUSH_ADD, "ADD", 0, "Add", "Add hairs"},
@@ -136,7 +135,6 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UN
 }
 
 const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[] = {
-	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter"},
@@ -146,7 +144,6 @@ const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[] = 
 };
 
 static const EnumPropertyItem particle_edit_cache_brush_items[] = {
-	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb paths"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth paths"},
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make paths longer or shorter"},
@@ -158,8 +155,7 @@ static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 	ParticleBrushData *brush = NULL;
 
-	if (pset->brushtype != PE_BRUSH_NONE)
-		brush = &pset->brush[pset->brushtype];
+	brush = &pset->brush[pset->brushtype];
 
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleBrush, brush);
 }

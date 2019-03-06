@@ -622,8 +622,9 @@ static void disconnect_hair(
 
 	psys->flag |= PSYS_GLOBAL_HAIR;
 
-	if (ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF))
-		pset->brushtype = PE_BRUSH_NONE;
+	if (ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF)) {
+		pset->brushtype = PE_BRUSH_COMB;
+	}
 
 	PE_update_object(depsgraph, scene, ob, 0);
 }

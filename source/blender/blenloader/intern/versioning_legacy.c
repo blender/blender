@@ -1305,6 +1305,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 				/* new generic xray option */
 				arm = blo_do_versions_newlibadr(fd, lib, ob->data);
+				enum { ARM_DRAWXRAY = (1 << 1) };
 				if (arm->flag & ARM_DRAWXRAY) {
 					ob->dtx |= OB_DRAWXRAY;
 				}
@@ -2319,7 +2320,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				pset->emitterdist = 0.25f;
 				pset->totrekey = 5;
 				pset->totaddkey = 5;
-				pset->brushtype = PE_BRUSH_NONE;
 
 				for (a = 0; a < ARRAY_SIZE(pset->brush); a++) {
 					pset->brush[a].strength = 50;

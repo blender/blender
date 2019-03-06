@@ -63,8 +63,6 @@ typedef struct Text {
 #define TXT_ISMEM               (1 << 2)
 #define TXT_ISEXT               (1 << 3)
 #define TXT_ISSCRIPT            (1 << 4) /* used by space handler scriptlinks */
-// #define TXT_READONLY            (1 << 8)
-// #define TXT_FOLLOW              (1 << 9) /* always follow cursor (console) */
 #define TXT_TABSTOSPACES        (1 << 10) /* use space instead of tabs */
 
 #endif  /* __DNA_TEXT_TYPES_H__ */

@@ -356,13 +356,13 @@ typedef enum eBrushGradientSourceFill {
 /* Brush.flag */
 typedef enum eBrushFlags {
 	BRUSH_AIRBRUSH = (1 << 0),
-	BRUSH_FLAG_DEPRECATED_1 = (1 << 1),
+	BRUSH_FLAG_DEPRECATED_1 = (1 << 1),  /* cleared */
 	BRUSH_ALPHA_PRESSURE = (1 << 2),
 	BRUSH_SIZE_PRESSURE = (1 << 3),
 	BRUSH_JITTER_PRESSURE = (1 << 4),
 	BRUSH_SPACING_PRESSURE = (1 << 5),
-	BRUSH_FLAG_DEPRECATED_2 = (1 << 6),
-	BRUSH_FLAG_DEPRECATED_3 = (1 << 7),
+	BRUSH_FLAG_DEPRECATED_6 = (1 << 6),  /* cleared */
+	BRUSH_FLAG_DEPRECATED_7 = (1 << 7),  /* cleared */
 	BRUSH_ANCHORED = (1 << 8),
 	BRUSH_DIR_IN = (1 << 9),
 	BRUSH_SPACE = (1 << 10),
@@ -372,7 +372,7 @@ typedef enum eBrushFlags {
 	BRUSH_LOCK_ALPHA = (1 << 14),
 	BRUSH_ORIGINAL_NORMAL = (1 << 15),
 	BRUSH_OFFSET_PRESSURE = (1 << 16),
-	BRUSH_FLAG_DEPRECATED_4 = (1 << 17),
+	BRUSH_FLAG_DEPRECATED_17 = (1 << 17),  /* cleared */
 	BRUSH_SPACE_ATTEN = (1 << 18),
 	BRUSH_ADAPTIVE_SPACE = (1 << 19),
 	BRUSH_LOCK_SIZE = (1 << 20),
