@@ -683,17 +683,15 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 		}
 		/* viewport x-ray */
 		DRW_shgroup_uniform_int(grp, "viewport_xray", &stl->storage->is_xray, 1);
-
-		stl->shgroups[id].shading_type[0] = (int)OB_RENDER;
-		DRW_shgroup_uniform_int(grp, "shading_type", &stl->shgroups[id].shading_type[0], 2);
+		DRW_shgroup_uniform_int(grp, "shading_type", (const int *)&stl->storage->shade_render, 2);
 	}
 
-	if (gpd) {
+	if ((gpd) && (id > -1)) {
 		stl->shgroups[id].xray_mode = (ob->dtx & OB_DRAWXRAY) ? GP_XRAY_FRONT : GP_XRAY_3DSPACE;
 		DRW_shgroup_uniform_int(grp, "xraymode", (const int *)&stl->shgroups[id].xray_mode, 1);
 	}
 	else {
-		/* for drawing always on on predefined z-depth */
+		/* for drawing always on predefined z-depth */
 		DRW_shgroup_uniform_int(grp, "xraymode", &stl->storage->xray, 1);
 	}
 
