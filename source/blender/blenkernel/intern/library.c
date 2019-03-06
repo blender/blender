@@ -1595,8 +1595,8 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
 	BLI_strncpy(name, tname, sizeof(name));
 
 	if (name[0] == '\0') {
-		/* disallow empty names */
-		BLI_strncpy(name, DATA_(ID_FALLBACK_NAME), sizeof(name));
+		/* Disallow empty names. */
+		BLI_strncpy(name, DATA_(BKE_idcode_to_name(GS(id->name))), sizeof(name));
 	}
 	else {
 		/* disallow non utf8 chars,

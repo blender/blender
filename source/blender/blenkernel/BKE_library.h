@@ -227,9 +227,6 @@ bool BKE_id_is_in_global_main(struct ID *id);
 void BKE_id_ordered_list(struct ListBase *ordered_lb, const struct ListBase *lb);
 void BKE_id_reorder(const struct ListBase *lb, struct ID *id, struct ID *relative, bool after);
 
-/* use when "" is given to BKE_id_new_name_validate() */
-#define ID_FALLBACK_NAME N_("Untitled")
-
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->tag & LIB_TAG_DOIT))
 
 #ifdef __cplusplus
