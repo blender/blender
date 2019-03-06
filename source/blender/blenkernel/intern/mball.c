@@ -56,6 +56,8 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 
+#include "DEG_depsgraph.h"
+
 /* Functions */
 
 /** Free (or release) any data used by this mball (does not free the mball itself). */
@@ -388,6 +390,7 @@ void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 					mb->rendersize = active_mball->rendersize;
 					mb->thresh = active_mball->thresh;
 					mb->flag = active_mball->flag;
+					DEG_id_tag_update(&mb->id, 0);
 				}
 			}
 		}
