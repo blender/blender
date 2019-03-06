@@ -67,7 +67,7 @@
 #define SEGMENTS_VALUE 3
 #define NUM_VALUE_KINDS 4
 
-static const char *value_rna_name[NUM_VALUE_KINDS] = {"offset", "offset", "profile", "segments"};
+static const char *value_rna_name[NUM_VALUE_KINDS] = {"offset", "offset_pct", "profile", "segments"};
 static const float value_clamp_min[NUM_VALUE_KINDS] = {0.0f, 0.0f, PROFILE_HARD_MIN, 1.0f};
 static const float value_clamp_max[NUM_VALUE_KINDS] = {1e6, 100.0f, 1.0f, SEGMENTS_HARD_MAX};
 static const float value_start[NUM_VALUE_KINDS] = {0.0f, 0.0f, 0.5f, 1.0f};
@@ -85,6 +85,7 @@ typedef struct {
 	NumInput num_input[NUM_VALUE_KINDS];
 	/** The current value when shift is pressed. Negative when shift not active. */
 	float shift_value[NUM_VALUE_KINDS];
+	float max_obj_scale;
 	bool is_modal;
 
 	BevelObjectStore *ob_store;
@@ -116,6 +117,17 @@ enum {
 	BEV_MODAL_INNER_MITER_CHANGE,
 };
 
+static float get_bevel_offset(wmOperator *op)
+{
+	float val;
+
+	if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT)
+		val = RNA_float_get(op->ptr, "offset_pct");
+	else
+		val = RNA_float_get(op->ptr, "offset");
+	return val;
+}
+
 static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 {
 	char header[UI_MAX_DRAW_STR];
@@ -123,7 +135,6 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 	char *p = buf;
 	int available_len = sizeof(buf);
 	Scene *sce = CTX_data_scene(C);
-	BevelData *opdata = op->customdata;
 	char offset_str[NUM_STR_REP_LEN];
 	const char *mode_str, *omiter_str, *imiter_str;
 	PropertyRNA *prop;
@@ -131,11 +142,12 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 #define WM_MODALKEY(_id) \
 	WM_modalkeymap_operator_items_to_string_buf(op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
-	if (hasNumInput(&opdata->num_input[OFFSET_VALUE])) {
-		outputNumInput(&opdata->num_input[OFFSET_VALUE], offset_str, &sce->unit);
+	if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
+		BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
 	}
 	else {
-		BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));
+		bUnit_AsString2(offset_str, NUM_STR_REP_LEN, (double)RNA_float_get(op->ptr, "offset"), 3,
+			B_UNIT_LENGTH, &sce->unit, true);
 	}
 
 	prop = RNA_struct_find_property(op->ptr, "offset_type");
@@ -149,13 +161,13 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 		IFACE_("%s: confirm, "
 			"%s: cancel, "
 			"%s: mode (%s), "
-			"%s: offset (%s), "
+			"%s: width (%s), "
 			"%s: segments (%d), "
 			"%s: profile (%.3f), "
 			"%s: clamp overlap (%s), "
 			"%s: vertex only (%s), "
 			"%s: outer miter (%s), "
-			"%s: inner imter (%s), "
+			"%s: inner miter (%s), "
 			"%s: harden normals (%s), "
 			"%s: mark seam (%s), "
 			"%s: mark sharp (%s)"
@@ -201,10 +213,13 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 
 	if (is_modal) {
 		RNA_float_set(op->ptr, "offset", 0.0f);
+		RNA_float_set(op->ptr, "offset_pct", 0.0f);
+		RNA_enum_set(op->ptr, "offset_type", BEVEL_AMT_OFFSET);
 	}
 
 	op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
 	uint objects_used_len = 0;
+	opdata->max_obj_scale = FLT_MIN;
 
 	{
 		uint ob_store_len = 0;
@@ -213,6 +228,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
 		for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
 			Object *obedit = objects[ob_index];
+			float scale = mat4_to_scale(obedit->obmat);
+			opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
 			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 			if (em->bm->totvertsel > 0) {
 				opdata->ob_store[objects_used_len].em = em;
@@ -275,7 +292,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 	BMOperator bmop;
 	bool changed = false;
 
-	const float offset = RNA_float_get(op->ptr, "offset");
+	const float offset = get_bevel_offset(op);
 	const int offset_type = RNA_enum_get(op->ptr, "offset_type");
 	const int segments = RNA_int_get(op->ptr, "segments");
 	const float profile = RNA_float_get(op->ptr, "profile");
@@ -449,6 +466,8 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* for OFFSET_VALUE only, the scale is the size of a pixel under the mouse in 3d space */
 	opdata->scale[OFFSET_VALUE] = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
+	/* since we are affecting untransformed object but seeing in transformed space, compensate for that */
+	opdata->scale[OFFSET_VALUE] /= opdata->max_obj_scale;
 
 	edbm_bevel_calc_initial_length(op, event, false);
 
@@ -523,6 +542,23 @@ static void edbm_bevel_numinput_set_value(wmOperator *op)
 	}
 }
 
+/* Hide one of offset or offset_pct, depending on offset_type */
+static bool edbm_bevel_poll_property(const bContext *UNUSED(C), wmOperator *op, const PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+
+	if (STRPREFIX(prop_id, "offset")) {
+		int offset_type = RNA_enum_get(op->ptr, "offset_type");
+
+		if (STREQ(prop_id, "offset") && offset_type == BEVEL_AMT_PERCENT)
+			return false;
+		else if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT)
+			return false;
+	}
+
+	return true;
+}
+
 wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
 {
 	static const EnumPropertyItem modal_items[] = {
@@ -586,7 +622,9 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	    eval = BEV_MODAL_CONFIRM;
 	}
 	/* Modal numinput active, try to handle numeric inputs first... */
-	if (etype != EVT_MODAL_MAP && eval == KM_PRESS && has_numinput && handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+	if (etype != EVT_MODAL_MAP && eval == KM_PRESS && has_numinput &&
+				handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
+	{
 		edbm_bevel_numinput_set_value(op);
 		edbm_bevel_calc(op);
 		edbm_bevel_update_header(C, op);
@@ -772,17 +810,6 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void mesh_ot_bevel_offset_range_func(PointerRNA *ptr, PropertyRNA *UNUSED(prop),
-                                            float *min, float *max, float *softmin, float *softmax)
-{
-	const int offset_type = RNA_enum_get(ptr, "offset_type");
-
-	*min = -FLT_MAX;
-	*max = FLT_MAX;
-	*softmin = 0.0f;
-	*softmax = (offset_type == BEVEL_AMT_PERCENT) ? 100.0f : 1.0f;
-}
-
 void MESH_OT_bevel(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -827,14 +854,20 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->modal = edbm_bevel_modal;
 	ot->cancel = edbm_bevel_cancel;
 	ot->poll = ED_operator_editmesh;
+	ot->poll_property = edbm_bevel_poll_property;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR | OPTYPE_BLOCKING;
 
-	RNA_def_enum(ot->srna, "offset_type", offset_type_items, 0, "Amount Type", "What distance Amount measures");
-	prop = RNA_def_float(ot->srna, "offset", 0.0f, -1e6f, 1e6f, "Amount", "", 0.0f, 100.0f);
-	RNA_def_property_float_array_funcs_runtime(prop, NULL, NULL, mesh_ot_bevel_offset_range_func);
-	RNA_def_int(ot->srna, "segments", 1, 1, SEGMENTS_HARD_MAX, "Segments", "Segments for curved edge", 1, 8);
+	RNA_def_enum(ot->srna, "offset_type", offset_type_items, 0, "Width Type", "What distance Width measures");
+	prop = RNA_def_property(ot->srna, "offset", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_range(prop, 0.0, 1e6);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0, 1, 3);
+	RNA_def_property_ui_text(prop, "Width", "Bevel amount");
+	prop = RNA_def_property(ot->srna, "offset_pct", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_range(prop, 0.0, 100);
+	RNA_def_property_ui_text(prop, "Width Percent", "Bevel amount for percentage method");
+	RNA_def_int(ot->srna, "segments", 1, 1, SEGMENTS_HARD_MAX, "Segments", "Segments for curved edge", 1, 100);
 	RNA_def_float(ot->srna, "profile", 0.5f, PROFILE_HARD_MIN, 1.0f, "Profile",
 		"Controls profile shape (0.5 = round)", PROFILE_HARD_MIN, 1.0f);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex Only", "Bevel only vertices");

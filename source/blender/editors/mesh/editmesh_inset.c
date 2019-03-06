@@ -64,6 +64,7 @@ typedef struct {
 	bool is_modal;
 	bool shift;
 	float shift_amount;
+	float max_obj_scale;
 	NumInput num_input;
 
 	InsetObjectStore *ob_store;
@@ -126,12 +127,16 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 
 	uint objects_used_len = 0;
 
+	opdata->max_obj_scale = FLT_MIN;
+
 	{
 		uint ob_store_len = 0;
 		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &ob_store_len);
 		opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
 		for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
 			Object *obedit = objects[ob_index];
+			float scale = mat4_to_scale(obedit->obmat);
+			opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
 			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 			if (em->bm->totvertsel > 0) {
 				opdata->ob_store[objects_used_len].em = em;
@@ -379,9 +384,11 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
 					if (opdata->modify_depth)
-						amount = opdata->old_depth     + ((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size);
+						amount = opdata->old_depth +
+							((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size) / opdata->max_obj_scale;
 					else
-						amount = opdata->old_thickness - ((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size);
+						amount = opdata->old_thickness -
+							((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size) / opdata->max_obj_scale;
 
 					/* Fake shift-transform... */
 					if (opdata->shift)
