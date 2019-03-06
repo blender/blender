@@ -219,12 +219,24 @@ static void gp_session_validatebuffer(tGPsdata *p);
 /* check if context is suitable for drawing */
 static bool gpencil_draw_poll(bContext *C)
 {
+	/* if is inside grease pencil draw mode cannot use annotations */
+	Object *obact = CTX_data_active_object(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if ((sa) && (sa->spacetype == SPACE_VIEW3D)) {
+		if ((obact) && (obact->type == OB_GPENCIL)
+			&& (obact->mode == OB_MODE_PAINT_GPENCIL)) {
+			CTX_wm_operator_poll_msg_set(C,
+				"Annotation cannot be used in grease pencil draw mode");
+			return false;
+		}
+	}
+
 	if (ED_operator_regionactive(C)) {
 		/* check if current context can support GPencil data */
 		if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
 			/* check if Grease Pencil isn't already running */
 			if (ED_gpencil_session_active() == 0)
-				return 1;
+				return true;
 			else
 				CTX_wm_operator_poll_msg_set(C, "Annotation operator is already active");
 		}
@@ -236,7 +248,7 @@ static bool gpencil_draw_poll(bContext *C)
 		CTX_wm_operator_poll_msg_set(C, "Active region not set");
 	}
 
-	return 0;
+	return false;
 }
 
 /* check if projecting strokes into 3d-geometry in the 3D-View */
