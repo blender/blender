@@ -2919,6 +2919,10 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		return;
 	}
 
+	if (!WM_toolsystem_active_tool_is_brush(C)) {
+		return;
+	}
+
 	brush = &pset->brush[pset->brushtype];
 
 	if (brush) {
@@ -4084,8 +4088,13 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 	BrushEdit *bedit;
 	float min[3], max[3];
 
-	if (pset->brushtype < 0)
+	if (pset->brushtype < 0) {
 		return 0;
+	}
+
+	if (!WM_toolsystem_active_tool_is_brush(C)) {
+		return 0;
+	}
 
 	/* set the 'distance factor' for grabbing (used in comb etc) */
 	INIT_MINMAX(min, max);
