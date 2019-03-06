@@ -318,7 +318,7 @@ from .properties_animviz import (
 
 
 class OBJECT_PT_instancing_size(ObjectButtonsPanel, Panel):
-    bl_label = "Scale to Face Size"
+    bl_label = "Scale by Face Size"
     bl_parent_id = "OBJECT_PT_instancing"
 
     @classmethod
