@@ -2015,9 +2015,8 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 	/* search for id */
 	idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);
 	if (idtest != NULL) {
-		if (!BKE_id_new_name_validate(lb, idtest, idtest->name + 2)) {
-			id_sort_by_name(lb, idtest);
-		}
+		/* BKE_id_new_name_validate also takes care of sorting. */
+		BKE_id_new_name_validate(lb, idtest, NULL);
 		bmain->is_memfile_undo_written = false;
 	}
 }
