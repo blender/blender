@@ -241,6 +241,7 @@ typedef struct OBJECT_ShadingGroupList {
 	DRWShadingGroup *camera_mist;
 	DRWShadingGroup *camera_mist_points;
 	DRWShadingGroup *camera_stereo_plane;
+	DRWShadingGroup *camera_stereo_plane_wires;
 	DRWShadingGroup *camera_stereo_volume;
 	DRWShadingGroup *camera_stereo_volume_wires;
 	ListBase camera_path;
@@ -1260,6 +1261,10 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->camera_clip_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 		sgl->camera_mist_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
+		geom = DRW_cache_quad_wires_get();
+		sgl->camera_stereo_plane_wires = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		DRW_shgroup_state_enable(sgl->camera_stereo_plane_wires, DRW_STATE_WIRE);
+
 		geom = DRW_cache_empty_cube_get();
 		sgl->camera_stereo_volume_wires = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
@@ -1741,51 +1746,38 @@ static void camera_stereo3d(
 
 	/* Draw convergence plane. */
 	if (is_stereo3d_plane && !is_select) {
-		static float convergence_distance_neg;
-		float axis_center[3];
 		float convergence_plane[4][2];
-		float offset;
-
-		mid_v3_v3v3(axis_center, origin[0], origin[1]);
+		const float offset = cam->stereo.convergence_distance / cam->runtime.drw_depth[0];
 
 		for (int i = 0; i < 4; i++) {
 			mid_v2_v2v2(convergence_plane[i], cam->runtime.drw_corners[0][i], cam->runtime.drw_corners[1][i]);
-		}
-
-		offset = cam->stereo.convergence_distance / cam->runtime.drw_depth[0];
-
-		for (int i = 0; i < 4; i++) {
-			convergence_plane[i][0] -= 2.0f * cam->shiftx;
-			convergence_plane[i][1] -= 2.0f * cam->shifty;
 			mul_v2_fl(convergence_plane[i], offset);
 		}
 
-		convergence_distance_neg = -cam->stereo.convergence_distance;
-		DRW_shgroup_call_dynamic_add(
-		        sgl->camera_frame, color, convergence_plane,
-		        &convergence_distance_neg, cam->runtime.drw_tria, cam->runtime.drw_normalmat);
+		/* We are using a -1,1 quad for this shading group, so we need to
+		 * scale and transform it to match the convergence plane border. */
+		static float one = 1.0f;
+		float plane_mat[4][4], scale_mat[4][4];
+		float scale_factor[3] = {1.0f, 1.0f, 1.0f};
+		float color_plane[2][4] = {{0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha},
+		                           {0.0f, 0.0f, 0.0f, 1.0f}};
+
+		const float height = convergence_plane[1][1] - convergence_plane[0][1];
+		const float width = convergence_plane[2][0] - convergence_plane[0][0];
+
+		scale_factor[0] = width * 0.5f;
+		scale_factor[1] = height * 0.5f;
+
+		copy_m4_m4(plane_mat, cam->runtime.drw_normalmat);
+		translate_m4(plane_mat, 0.0f, 0.0f, -cam->stereo.convergence_distance);
+		size_to_mat4(scale_mat, scale_factor);
+		mul_m4_m4_post(plane_mat, scale_mat);
+		translate_m4(plane_mat, 2.0f * cam->shiftx, (width / height) * 2.0f * cam->shifty, 0.0f);
 
 		if (v3d->stereo3d_convergence_alpha > 0.0f) {
-			/* We are using a -1,1 quad for this shading group, so we need to
-			 * scale and transform it to match the convergence plane border. */
-			static float one = 1.0f;
-			float plane_mat[4][4], scale_mat[4][4];
-			float scale_factor[3] = {1.0f, 1.0f, 1.0f};
-			float color_plane[4] = {0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha};
-
-			const float height = convergence_plane[1][1] - convergence_plane[0][1];
-			const float width = convergence_plane[2][0] - convergence_plane[0][0];
-
-			scale_factor[0] = width * 0.5f;
-			scale_factor[1] = height * 0.5f;
-
-			copy_m4_m4(plane_mat, cam->runtime.drw_normalmat);
-			translate_m4(plane_mat, 0.0f, 0.0f, -cam->stereo.convergence_distance);
-			size_to_mat4(scale_mat, scale_factor);
-			mul_m4_m4_post(plane_mat, scale_mat);
-
-			DRW_shgroup_call_dynamic_add(sgl->camera_stereo_plane, color_plane, &one, plane_mat);
+			DRW_shgroup_call_dynamic_add(sgl->camera_stereo_plane, color_plane[0], &one, plane_mat);
 		}
+		DRW_shgroup_call_dynamic_add(sgl->camera_stereo_plane_wires, color_plane[1], &one, plane_mat);
 	}
 
 	/* Draw convergence volume. */

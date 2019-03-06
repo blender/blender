@@ -39,6 +39,7 @@ struct GPUBatch *DRW_cache_cursor_get(bool crosshair_lines);
 struct GPUBatch *DRW_cache_grid_get(void);
 struct GPUBatch *DRW_cache_fullscreen_quad_get(void);
 struct GPUBatch *DRW_cache_quad_get(void);
+struct GPUBatch *DRW_cache_quad_wires_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);
 struct GPUBatch *DRW_cache_sphere_get(void);
 struct GPUBatch *DRW_cache_single_vert_get(void);

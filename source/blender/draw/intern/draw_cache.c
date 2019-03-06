@@ -53,6 +53,7 @@ static struct DRWShapeCache {
 	GPUBatch *drw_fullscreen_quad;
 	GPUBatch *drw_fullscreen_quad_texcoord;
 	GPUBatch *drw_quad;
+	GPUBatch *drw_quad_wires;
 	GPUBatch *drw_grid;
 	GPUBatch *drw_sphere;
 	GPUBatch *drw_screenspace_circle;
@@ -322,6 +323,32 @@ GPUBatch *DRW_cache_quad_get(void)
 		SHC.drw_quad = GPU_batch_create_ex(GPU_PRIM_TRI_FAN, vbo, NULL, GPU_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_quad;
+}
+
+/* Just a regular quad with 4 vertices - wires. */
+GPUBatch *DRW_cache_quad_wires_get(void)
+{
+	if (!SHC.drw_quad_wires) {
+		float pos[4][2] = {{-1.0f, -1.0f}, { 1.0f, -1.0f}, {1.0f,  1.0f}, {-1.0f,  1.0f}};
+
+		/* Position Only 2D format */
+		static GPUVertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, 8);
+
+		for (int i = 0; i < 4; i++) {
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 2,     pos[i % 4]);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 2 + 1, pos[(i + 1) % 4]);
+		}
+
+		SHC.drw_quad_wires = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_quad_wires;
 }
 
 /* Grid */
