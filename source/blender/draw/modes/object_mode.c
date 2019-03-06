@@ -1790,7 +1790,7 @@ static void camera_stereo3d(
 		static float one = 1.0f;
 		float color_volume[3][4] = {{0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha},
 		                            {1.0f, 0.0f, 0.0f, v3d->stereo3d_volume_alpha},
-		                            {0.0f, 0.0f, 0.0f, 0.0f}};
+		                            {0.0f, 0.0f, 0.0f, 1.0f}};
 
 		for (int eye = 0; eye < 2; eye++) {
 			float winmat[4][4], viewinv[4][4], viewmat[4][4], persmat[4][4], persinv[4][4];
@@ -1803,7 +1803,9 @@ static void camera_stereo3d(
 			mul_m4_m4m4(persmat, winmat, viewmat);
 			invert_m4_m4(persinv, persmat);
 
-			DRW_shgroup_call_dynamic_add(sgl->camera_stereo_volume, color_volume[eye], &one, persinv);
+			if (v3d->stereo3d_volume_alpha > 0.0f) {
+				DRW_shgroup_call_dynamic_add(sgl->camera_stereo_volume, color_volume[eye], &one, persinv);
+			}
 			DRW_shgroup_call_dynamic_add(sgl->camera_stereo_volume_wires, color_volume[2], &one, persinv);
 		}
 	}
