@@ -1322,6 +1322,9 @@ static void uv_image_outset(
 			len_fact = cosf(tri_ang);
 			len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
 
+			/* Clamp the length factor, see: T62236. */
+			len_fact = MIN2(len_fact, 5.0f);
+
 			mul_v2_fl(no, ps->seam_bleed_px * len_fact);
 
 			add_v2_v2v2(seam_data->seam_puvs[i], puv[fidx[i]], no);
