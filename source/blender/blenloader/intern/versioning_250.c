@@ -441,7 +441,7 @@ static void versions_gpencil_add_main(ListBase *lb, ID *id, const char *name)
 	id->flag = LIB_FAKEUSER;
 	*( (short *)id->name) = ID_GD;
 
-	new_id(lb, id, name);
+	BKE_id_new_name_validate(lb, id, name);
 	/* alphabetic insertion: is in new_id */
 
 	if (G.debug & G_DEBUG)
