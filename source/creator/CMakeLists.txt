@@ -505,17 +505,6 @@ if(UNIX AND NOT APPLE)
 			DESTINATION share/applications
 		)
 		install(
-			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/16x16
-				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/22x22
-				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/24x24
-				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/32x32
-				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/48x48
-				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/256x256
-			DESTINATION share/icons/hicolor
-			PATTERN "*.svg" EXCLUDE
-		)
-		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
 			DESTINATION share/icons/hicolor/scalable/apps
 		)
