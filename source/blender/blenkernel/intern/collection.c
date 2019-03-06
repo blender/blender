@@ -211,11 +211,12 @@ void BKE_collection_copy_data(
 }
 
 static Collection *collection_duplicate_recursive(
-        Main *bmain, Collection *parent, Collection *collection_old, const bool do_hierarchy, const bool do_deep_copy)
+        Main *bmain, Collection *parent, Collection *collection_old,
+        const bool do_hierarchy, const bool do_objects, const bool do_obdata)
 {
 	Collection *collection_new;
 	bool do_full_process = false;
-	const int object_dupflag = (do_deep_copy) ? U.dupflag : 0;
+	const int object_dupflag = (do_obdata) ? U.dupflag : 0;
 
 	if (!do_hierarchy || collection_old->id.newid == NULL) {
 		BKE_id_copy(bmain, &collection_old->id, (ID **)&collection_new);
@@ -250,19 +251,21 @@ static Collection *collection_duplicate_recursive(
 		return collection_new;
 	}
 
-	/* We can loop on collection_old's objects, that list is currently identical the collection_new' objects,
-	 * and won't be changed here. */
-	for (CollectionObject *cob = collection_old->gobject.first; cob; cob = cob->next) {
-		Object *ob_old = cob->ob;
-		Object *ob_new = (Object *)ob_old->id.newid;
+	if (do_objects) {
+		/* We can loop on collection_old's objects, that list is currently identical the collection_new' objects,
+		 * and won't be changed here. */
+		for (CollectionObject *cob = collection_old->gobject.first; cob; cob = cob->next) {
+			Object *ob_old = cob->ob;
+			Object *ob_new = (Object *)ob_old->id.newid;
 
-		if (ob_new == NULL) {
-			ob_new = BKE_object_duplicate(bmain, ob_old, object_dupflag);
-			ID_NEW_SET(ob_old, ob_new);
+			if (ob_new == NULL) {
+				ob_new = BKE_object_duplicate(bmain, ob_old, object_dupflag);
+				ID_NEW_SET(ob_old, ob_new);
+			}
+
+			collection_object_add(bmain, collection_new, ob_new, 0, true);
+			collection_object_remove(bmain, collection_new, ob_old, false);
 		}
-
-		collection_object_add(bmain, collection_new, ob_new, 0, true);
-		collection_object_remove(bmain, collection_new, ob_old, false);
 	}
 
 	/* We can loop on collection_old's children, that list is currently identical the collection_new' children,
@@ -270,7 +273,7 @@ static Collection *collection_duplicate_recursive(
 	for (CollectionChild *child = collection_old->children.first; child; child = child->next) {
 		Collection *child_collection_old = child->collection;
 
-		collection_duplicate_recursive(bmain, collection_new, child_collection_old, do_hierarchy, do_deep_copy);
+		collection_duplicate_recursive(bmain, collection_new, child_collection_old, do_hierarchy, do_objects, do_obdata);
 		collection_child_remove(collection_new, child_collection_old);
 	}
 
@@ -285,7 +288,7 @@ static Collection *collection_duplicate_recursive(
  */
 Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *collection)
 {
-	return BKE_collection_duplicate(bmain, parent, collection, false, false);
+	return BKE_collection_duplicate(bmain, parent, collection, false, false, false);
 }
 
 /**
@@ -296,11 +299,12 @@ Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *col
  * \warning If any 'deep copy' behavior is enabled, this functions will clear all \a bmain id.idnew pointers.
  *
  * \param do_hierarchy If true, it will recursively make shallow copies of children collections and objects.
- * \param do_deep_copy If true, it will also make deep duplicates of objects, using behavior defined in user settings
- *                     (U.dupflag). This one does nothing if \a do_hierarchy is not set.
+ * \param do_obdata If true, it will also make deep duplicates of objects, using behavior defined in user settings
+ *                  (U.dupflag). This one does nothing if \a do_hierarchy is not set.
  */
 Collection *BKE_collection_duplicate(
-        Main *bmain, Collection *parent, Collection *collection, const bool do_hierarchy, const bool do_deep_copy)
+        Main *bmain, Collection *parent, Collection *collection,
+        const bool do_hierarchy, const bool do_objects, const bool do_obdata)
 {
 	/* It's not allowed to copy the master collection. */
 	if (collection->flag & COLLECTION_IS_MASTER) {
@@ -314,7 +318,7 @@ Collection *BKE_collection_duplicate(
 	}
 
 	Collection *collection_new = collection_duplicate_recursive(
-	                                 bmain, parent, collection, do_hierarchy, do_deep_copy);
+	                                 bmain, parent, collection, do_hierarchy, do_objects, do_obdata);
 
 	/* This code will follows into all ID links using an ID tagged with LIB_TAG_NEW.*/
 	BKE_libblock_relink_to_newid(&collection_new->id);

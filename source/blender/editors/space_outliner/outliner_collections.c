@@ -448,7 +448,8 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	TreeElement *te = outliner_active_collection(C);
-	bool linked = strstr(op->idname, "linked") != NULL;
+	const bool hierarchy = strstr(op->idname, "hierarchy") != NULL;
+	const bool linked = strstr(op->idname, "linked") != NULL;
 
 	/* Can happen when calling from a key binding. */
 	if (te == NULL) {
@@ -468,7 +469,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 		case SO_SCENES:
 		case SO_VIEW_LAYER:
 		case SO_LIBRARIES:
-			BKE_collection_duplicate(bmain, parent, collection, true, !linked);
+			BKE_collection_duplicate(bmain, parent, collection, true, !hierarchy, !linked);
 			break;
 	}
 
@@ -478,12 +479,12 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
+void OUTLINER_OT_collection_duplicate_hierarchy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Duplicate Collection";
-	ot->idname = "OUTLINER_OT_collection_duplicate";
-	ot->description = "Duplicate all objects and collections and make them single user";
+	ot->name = "Duplicate Collection Hierarchy";
+	ot->idname = "OUTLINER_OT_collection_duplicate_hierarchy";
+	ot->description = "Recursively duplicate the collection and all its children, with linked objects";
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;
@@ -498,7 +499,22 @@ void OUTLINER_OT_collection_duplicate_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Duplicate Linked Collection";
 	ot->idname = "OUTLINER_OT_collection_duplicate_linked";
-	ot->description = "Duplicate all objects and collections with linked object data";
+	ot->description = "Recursively duplicate the collection, all its children and objects, with linked object data";
+
+	/* api callbacks */
+	ot->exec = collection_duplicate_exec;
+	ot->poll = ED_outliner_collections_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Duplicate Collection";
+	ot->idname = "OUTLINER_OT_collection_duplicate";
+	ot->description = "Recursively duplicate the collection, all its children, objects and object data";
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;
