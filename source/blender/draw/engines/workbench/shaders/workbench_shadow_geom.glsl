@@ -34,7 +34,7 @@ in VertexData {
 	vec4 backPosition;
 } vData[];
 
-#define DEGENERATE_THRESHOLD 1e-12
+#define DEGENERATE_TRIS_WORKAROUND
 
 #define len_sqr(a) dot(a, a)
 
@@ -58,10 +58,10 @@ void main()
 	vec3 n1 = cross(v12, v10);
 	vec3 n2 = cross(v13, v12);
 
-#ifdef DEGENERATE_THRESHOLD
+#ifdef DEGENERATE_TRIS_WORKAROUND
 	/* Check if area is null */
 	vec2 faces_area = vec2(len_sqr(n1), len_sqr(n2));
-	bvec2 degen_faces = lessThan(abs(faces_area), vec2(DEGENERATE_THRESHOLD));
+	bvec2 degen_faces = equal(abs(faces_area), vec2(0.0));
 
 	/* Both triangles are degenerate, abort. */
 	if (all(degen_faces)) {
@@ -77,7 +77,7 @@ void main()
 
 	bvec2 backface = greaterThan(facing, vec2(0.0));
 
-#ifdef DEGENERATE_THRESHOLD
+#ifdef DEGENERATE_TRIS_WORKAROUND
 #  ifndef DOUBLE_MANIFOLD
 	/* If the mesh is known to be manifold and we don't use double count,
 	 * only create an quad if the we encounter a facing geom. */
