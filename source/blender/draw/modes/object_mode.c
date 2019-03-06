@@ -96,7 +96,7 @@ extern char datatoc_gpu_shader_3D_vert_glsl[];
 typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes[2];
 	struct DRWPass *image_empties[2];
-	struct DRWPass *spot_shapes[2];
+	struct DRWPass *transp_shapes[2];
 	struct DRWPass *ob_center;
 	struct DRWPass *outlines;
 	struct DRWPass *outlines_search;
@@ -160,7 +160,7 @@ typedef struct OBJECT_ShadingGroupList {
 	/* Reference only */
 	struct DRWPass *non_meshes;
 	struct DRWPass *image_empties;
-	struct DRWPass *spot_shapes;
+	struct DRWPass *transp_shapes;
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;
@@ -1260,12 +1260,6 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->camera_clip_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 		sgl->camera_mist_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		geom = DRW_cache_quad_get();
-		sgl->camera_stereo_plane = shgroup_instance_alpha(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-		geom = DRW_cache_cube_get();
-		sgl->camera_stereo_volume = shgroup_instance_alpha(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
 		geom = DRW_cache_empty_cube_get();
 		sgl->camera_stereo_volume_wires = shgroup_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
@@ -1376,25 +1370,33 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_field_cone_limit_get();
 		sgl->field_cone_limit = shgroup_instance_scaled(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
-		/* Spot shapes */
+		/* Transparent Shapes */
 		state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND | DRW_STATE_CULL_FRONT;
-		sgl->spot_shapes = psl->spot_shapes[i] = DRW_pass_create("Spot Shape Pass", state);
+		sgl->transp_shapes = psl->transp_shapes[i] = DRW_pass_create("Transparent Shapes", state);
 
+		/* Spot cones */
 		geom = DRW_cache_light_spot_volume_get();
-		sgl->light_spot_volume = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		sgl->light_spot_volume = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_light_spot_square_volume_get();
-		sgl->light_spot_volume_rect = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		sgl->light_spot_volume_rect = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_light_spot_volume_get();
-		sgl->light_spot_volume_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		sgl->light_spot_volume_outside = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
 		DRW_shgroup_state_disable(sgl->light_spot_volume_outside, DRW_STATE_CULL_FRONT);
 		DRW_shgroup_state_enable(sgl->light_spot_volume_outside, DRW_STATE_CULL_BACK);
 
 		geom = DRW_cache_light_spot_square_volume_get();
-		sgl->light_spot_volume_rect_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, draw_ctx->sh_cfg);
+		sgl->light_spot_volume_rect_outside = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
 		DRW_shgroup_state_disable(sgl->light_spot_volume_rect_outside, DRW_STATE_CULL_FRONT);
 		DRW_shgroup_state_enable(sgl->light_spot_volume_rect_outside, DRW_STATE_CULL_BACK);
+
+		/* Camera stereo volumes */
+		geom = DRW_cache_cube_get();
+		sgl->camera_stereo_volume = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
+
+		geom = DRW_cache_quad_get();
+		sgl->camera_stereo_plane = shgroup_instance_alpha(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 	}
 
 	{
@@ -3205,11 +3207,12 @@ static void OBJECT_draw_scene(void *vedata)
 
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
+	/* Don't draw Transparent passes in MSAA buffer. */
 //	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
+	DRW_draw_pass(stl->g_data->sgl.transp_shapes);
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-	DRW_draw_pass(stl->g_data->sgl.spot_shapes);
 	DRW_draw_pass(stl->g_data->sgl.bone_solid);
 	DRW_draw_pass(stl->g_data->sgl.bone_wire);
 	DRW_draw_pass(stl->g_data->sgl.bone_outline);
@@ -3305,7 +3308,7 @@ static void OBJECT_draw_scene(void *vedata)
 			GPU_depth_range(0.0f, 0.01f);
 		}
 
-		DRW_draw_pass(stl->g_data->sgl_ghost.spot_shapes);
+		DRW_draw_pass(stl->g_data->sgl_ghost.transp_shapes);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_solid);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_wire);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_outline);
