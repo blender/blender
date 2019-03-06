@@ -62,7 +62,6 @@ class Params:
             # User preferences.
             spacebar_action='TOOL',
             use_select_all_toggle=False,
-            use_pie_on_tab=False,
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
             use_pie_click_drag=False,
@@ -278,11 +277,11 @@ def _template_items_tool_select_actions_circle(operator, *, type, value):
     kmi_args = {"type": type, "value": value}
     return [
         # Don't define 'SET' here, take from the tool options.
-        (operator, {"type": type, "value": value},
+        (operator, kmi_args,
          {"properties": [("wait_for_input", False)]}),
-        (operator, {"type": type, "value": value, "shift": True},
+        (operator, {**kmi_args, "shift": True},
          {"properties": [("wait_for_input", False), ("mode", 'ADD')]}),
-        (operator, {"type": type, "value": value, "ctrl": True},
+        (operator, {**kmi_args, "ctrl": True},
          {"properties": [("wait_for_input", False), ("mode", 'SUB')]}),
     ]
 
@@ -1440,7 +1439,7 @@ def km_graph_editor(params):
     return keymap
 
 
-def km_image_generic(params):
+def km_image_generic(_params):
     items = []
     keymap = (
         "Image Generic",
@@ -2864,7 +2863,7 @@ def km_animation_channels(params):
 # Modes
 
 
-def km_grease_pencil(params):
+def km_grease_pencil(_params):
     items = []
     keymap = (
         "Grease Pencil",
@@ -5040,7 +5039,7 @@ def km_backdrop_transform_widget(_params):
 # ------------------------------------------------------------------------------
 # Popup Keymaps
 
-def km_popup_toolbar(params):
+def km_popup_toolbar(_params):
     return (
         "Toolbar Popup",
         {"space_type": 'EMPTY', "region_type": 'TEMPORARY'},
@@ -5183,9 +5182,9 @@ def km_node_editor_tool_select_lasso(params):
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("node.select_lasso", {"type": params.tool_mouse, "value": 'PRESS'},
-              {"properties": [("deselect", False), ("tweak", True)]}),
+             {"properties": [("deselect", False), ("tweak", True)]}),
             ("node.select_lasso", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-              {"properties": [("deselect", True), ("tweak", True)]}),
+             {"properties": [("deselect", True), ("tweak", True)]}),
         ]},
     )
 
@@ -5680,7 +5679,7 @@ def km_3d_view_tool_edit_curve_radius(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.transform", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("mode", 'CURVE_SHRINKFATTEN'),("release_confirm", True)]}),
+             {"properties": [("mode", 'CURVE_SHRINKFATTEN'), ("release_confirm", True)]}),
         ]},
     )
 
