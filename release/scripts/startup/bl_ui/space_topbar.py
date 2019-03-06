@@ -396,6 +396,9 @@ class _draw_left_context_mode:
 
         @staticmethod
         def PARTICLE(context, layout, tool):
+            if (tool is None) or (not tool.has_datablock):
+                return
+
             # See: 'VIEW3D_PT_tools_brush', basically a duplicate
             settings = context.tool_settings.particle_edit
             brush = settings.brush
