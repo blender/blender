@@ -372,5 +372,4 @@ private:
 	bool motifIsFullScreen() const;
 };
 
-
 #endif // __GHOST_WINDOWX11_H__
