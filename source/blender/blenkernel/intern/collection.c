@@ -339,11 +339,6 @@ Collection *BKE_collection_copy_master(Main *bmain, Collection *collection, cons
 	return collection_dst;
 }
 
-void BKE_collection_copy_full(Main *UNUSED(bmain), Collection *UNUSED(collection))
-{
-	// TODO: implement full scene copy
-}
-
 void BKE_collection_make_local(Main *bmain, Collection *collection, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &collection->id, true, lib_local);

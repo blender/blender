@@ -59,7 +59,6 @@ void               BKE_collection_make_local(struct Main *bmain, struct Collecti
 
 struct Collection *BKE_collection_duplicate(struct Main *bmain, struct Collection *parent, struct Collection *collection, const bool do_hierarchy, const bool do_deep_copy);
 struct Collection *BKE_collection_copy_master(struct Main *bmain, struct Collection *collection, const int flag);
-void               BKE_collection_copy_full(struct Main *bmain, struct Collection *collection);
 
 /* Master Collection for Scene */
 
