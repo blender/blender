@@ -33,6 +33,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_rigidbody.h"
@@ -308,14 +309,19 @@ Collection *BKE_collection_duplicate(
 	}
 
 	if (do_hierarchy) {
+		BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
 		BKE_main_id_clear_newpoins(bmain);
 	}
 
 	Collection *collection_new = collection_duplicate_recursive(
 	                                 bmain, parent, collection, do_hierarchy, do_deep_copy);
 
+	/* This code will follows into all ID links using an ID tagged with LIB_TAG_NEW.*/
+	BKE_libblock_relink_to_newid(&collection_new->id);
+
 	if (do_hierarchy) {
 		/* Cleanup. */
+		BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
 		BKE_main_id_clear_newpoins(bmain);
 	}
 

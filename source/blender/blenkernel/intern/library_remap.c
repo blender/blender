@@ -679,7 +679,7 @@ static int id_relink_to_newid_looper(void *UNUSED(user_data), ID *UNUSED(self_id
 
 /** Similar to libblock_relink_ex, but is remapping IDs to their newid value if non-NULL, in given \a id.
  *
- * Very specific usage, not sure we'll keep it on the long run, currently only used in Object duplication code...
+ * Very specific usage, not sure we'll keep it on the long run, currently only used in Object/Collection duplication code...
  */
 void BKE_libblock_relink_to_newid(ID *id)
 {
