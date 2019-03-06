@@ -1396,7 +1396,8 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->camera_stereo_volume = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
 
 		geom = DRW_cache_quad_get();
-		sgl->camera_stereo_plane = shgroup_instance_alpha(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+		sgl->camera_stereo_plane = shgroup_instance_alpha(sgl->transp_shapes, geom, draw_ctx->sh_cfg);
+		DRW_shgroup_state_disable(sgl->camera_stereo_plane, DRW_STATE_CULL_FRONT);
 	}
 
 	{
