@@ -1867,10 +1867,10 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	cam->runtime.drw_tria[1][0] = shift[0];
 	cam->runtime.drw_tria[1][1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
 
-	if (look_through && !is_stereo3d_cameras) {
+	if (look_through) {
 		/* Only draw the frame. */
 		float mat[4][4];
-		if (is_stereo3d) {
+		if (is_stereo3d_view) {
 			const bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
 			const char *view_name = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
 			BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat);
@@ -1888,7 +1888,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		        sgl->camera_frame, color, cam->runtime.drw_corners[0],
 		        &cam->runtime.drw_depth[0], cam->runtime.drw_tria, mat);
 	}
-	else if (!look_through) {
+	else {
 		if (!is_stereo3d_cameras) {
 			DRW_shgroup_call_dynamic_add(
 			        sgl->camera, color, cam->runtime.drw_corners[0],
@@ -1944,7 +1944,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	}
 
 	/* Stereo cameras drawing. */
-	if (is_stereo3d) {
+	if (is_stereo3d && !look_through) {
 		camera_stereo3d(sgl, scene, view_layer, v3d, ob, cam, vec, drawsize, scale);
 	}
 
