@@ -841,6 +841,7 @@ void BLI_threaded_malloc_end(void)
 
 /* **** Special functions to help performance on crazy NUMA setups. **** */
 
+#if 0  /* UNUSED */
 static bool check_is_threadripper2_alike_topology(void)
 {
 	/* NOTE: We hope operating system does not support CPU hotswap to
@@ -920,6 +921,7 @@ static void threadripper_put_thread_on_fast_node(void)
 	/* See additional note about NUMA disabled in BIOS above. */
 	numaAPI_RunThreadOnNode(0);
 }
+#endif  /* UNUSED */
 
 void BLI_thread_put_process_on_fast_node(void)
 {
