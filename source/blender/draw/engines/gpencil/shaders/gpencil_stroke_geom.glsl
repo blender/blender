@@ -158,25 +158,24 @@ void main(void)
 	}
 
 	/* generate the start endcap */
-	if ((caps_mode[0] != GPENCIL_FLATCAP) && is_equal(P0,P2) &&
-		(color_type == GPENCIL_COLOR_SOLID))
+	if ((caps_mode[0] != GPENCIL_FLATCAP) && is_equal(P0,P2))
 	{
 		vec4 cap_color = finalColor[1];
 
-		mTexCoord = vec2(2.0, 1.0);
+		mTexCoord = vec2(2.0, 0.5);
 		mColor = cap_color;
 		vec2 svn1 =  normalize(sp1 - sp2) * length_a * 4.0;
 		uvfac = vec2(0.0, 1.0);
 		gl_Position = vec4((sp1 + svn1) / Viewport, getZdepth(P1), 1.0);
 		EmitVertex();
 
-		mTexCoord = vec2(0.0, 0.0);
+		mTexCoord = vec2(0.0, -0.5);
 		mColor = cap_color;
 		uvfac = vec2(0.0, 1.0);
 		gl_Position = vec4((sp1 - (length_a * 2.0) * miter_a) / Viewport, getZdepth(P1), 1.0);
 		EmitVertex();
 
-		mTexCoord = vec2(0.0, 2.0);
+		mTexCoord = vec2(0.0, 1.5);
 		mColor = cap_color;
 		uvfac = vec2(0.0, 1.0);
 		gl_Position = vec4((sp1 + (length_a * 2.0) * miter_a) / Viewport, getZdepth(P1), 1.0);
@@ -206,24 +205,23 @@ void main(void)
 	EmitVertex();
 
 	/* generate the end endcap */
-	if ((caps_mode[1] != GPENCIL_FLATCAP) && is_equal(P1,P3) &&
-		(color_type == GPENCIL_COLOR_SOLID) && (finaluvdata[2].x > 0))
+	if ((caps_mode[1] != GPENCIL_FLATCAP) && is_equal(P1,P3) && (finaluvdata[2].x > 0))
 	{
 		vec4 cap_color = finalColor[2];
 
-		mTexCoord = vec2(finaluvdata[2].x, 2.0);
+		mTexCoord = vec2(finaluvdata[2].x, 1.5);
 		mColor = cap_color;
 		uvfac = vec2(finaluvdata[2].x, 1.0);
 		gl_Position = vec4((sp2 + (length_b * 2.0) * miter_b) / Viewport, getZdepth(P2), 1.0);
 		EmitVertex();
 
-		mTexCoord = vec2(finaluvdata[2].x, 0.0);
+		mTexCoord = vec2(finaluvdata[2].x, -0.5);
 		mColor = cap_color;
 		uvfac = vec2(finaluvdata[2].x, 1.0);
 		gl_Position = vec4((sp2 - (length_b * 2.0) * miter_b) / Viewport, getZdepth(P2), 1.0);
 		EmitVertex();
 
-		mTexCoord = vec2(finaluvdata[2].x + 2, 1.0);
+		mTexCoord = vec2(finaluvdata[2].x + 2, 0.5);
 		mColor = cap_color;
 		uvfac = vec2(finaluvdata[2].x, 1.0);
 		vec2 svn2 =  normalize(sp2 - sp1) * length_b * 4.0;
