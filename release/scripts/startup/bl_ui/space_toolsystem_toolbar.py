@@ -1013,6 +1013,19 @@ class _defs_image_generic:
             keymap=(),
         )
 
+    # Currently a place holder so we can switch away from the annotation tool.
+    # Falls back to default image editor action.
+    @ToolDef.from_fn
+    def measure():
+        return dict(
+            text="Measure",
+            description=(
+                "Measure pixel values under the cursor"
+            ),
+            icon="ops.view3d.ruler",  # XXX, needs own icon.
+            keymap=(),
+        )
+
 
 class _defs_image_uv_transform:
 
@@ -1413,6 +1426,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             # for all modes
         ],
         'VIEW': [
+            _defs_image_generic.measure,
+            *_tools_annotate,
         ],
         'UV': [
             *_tools_select,
