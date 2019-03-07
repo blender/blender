@@ -628,7 +628,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	const bool select = (sel_op != SEL_OP_SUB);
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		ED_mask_select_toggle_all(mask, SEL_DESELECT);
-		ED_mask_select_flush_all(mask);
 		changed = true;
 	}
 
