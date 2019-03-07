@@ -311,10 +311,9 @@ class DATA_PT_gpencil_onionpanel_display(Panel):
 
         col = layout.column(align=True)
         col.prop(gpd, "use_onion_fade", text="Fade")
-        if hasattr(gpd, "use_onion_loop"):  # XXX
-            sub = layout.column()
-            sub.active = gpd.onion_mode in {'RELATIVE', 'SELECTED'}
-            sub.prop(gpd, "use_onion_loop", text="Loop")
+        sub = layout.column()
+        sub.active = gpd.onion_mode in {'RELATIVE', 'SELECTED'}
+        sub.prop(gpd, "use_onion_loop", text="Loop")
 
 
 class GPENCIL_MT_gpencil_vertex_group(Menu):
