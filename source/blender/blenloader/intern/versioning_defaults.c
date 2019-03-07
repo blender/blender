@@ -140,7 +140,7 @@ static ID *rename_id_for_versioning(Main *bmain, const short id_type, const char
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
 	/* For all startup.blend files. */
-	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+	for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 				/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
@@ -192,7 +192,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		{
 			/* Default only has one window. */
 			wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
-			for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+			for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 				WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook, workspace);
 				bScreen *screen = layout->screen;
 				BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
@@ -202,7 +202,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 		{
 			/* 'UV Editing' should use UV mode. */
-			bScreen *screen = BLI_findstring(&bmain->screen, "UV Editing", offsetof(ID, name) + 2);
+			bScreen *screen = BLI_findstring(&bmain->screens, "UV Editing", offsetof(ID, name) + 2);
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_IMAGE) {
@@ -218,7 +218,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 	/* For 2D animation template. */
 	if (app_template && STREQ(app_template, "2D_Animation")) {
-		for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 			const char *name = workspace->id.name + 2;
 
 			if (STREQ(name, "Drawing")) {
@@ -226,7 +226,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			}
 		}
 		/* set object in drawing mode */
-		for (Object *object = bmain->object.first; object; object = object->id.next) {
+		for (Object *object = bmain->objects.first; object; object = object->id.next) {
 			if (object->type == OB_GPENCIL) {
 				bGPdata *gpd = (bGPdata *)object->data;
 				object->mode = OB_MODE_PAINT_GPENCIL;
@@ -236,7 +236,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		}
 
 		/* Be sure curfalloff and primitive are initializated */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			ToolSettings *ts = scene->toolsettings;
 			if (ts->gp_sculpt.cur_falloff == NULL) {
 				ts->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -271,13 +271,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 	if (builtin_template) {
 		/* Clear all tools to use default options instead, ignore the tool saved in the file. */
-		for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 			while (!BLI_listbase_is_empty(&workspace->tools)) {
 				BKE_workspace_tool_remove(workspace, workspace->tools.first);
 			}
 		}
 
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			/* Hide channels in timelines. */
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				SpaceAction *saction = (sa->spacetype == SPACE_ACTION) ? sa->spacedata.first : NULL;
@@ -292,7 +292,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			}
 		}
 
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 
 			scene->r.cfra = 1.0f;
@@ -330,13 +330,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		rename_id_for_versioning(bmain, ID_OB, "Light", "Light");
 		rename_id_for_versioning(bmain, ID_LA, "Light", "Light");
 
-		for (Mesh *mesh = bmain->mesh.first; mesh; mesh = mesh->id.next) {
+		for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
 			/* Match default for new meshes. */
 			mesh->smoothresh = DEG2RADF(30);
 		}
 	}
 
-	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+	for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
 		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				if (sl->spacetype == SPACE_VIEW3D) {
@@ -347,7 +347,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		}
 	}
 
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		copy_v3_v3(scene->display.light_direction, (float[3]){M_SQRT1_3, M_SQRT1_3, M_SQRT1_3});
 		copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);
 		copy_v2_fl2(scene->safe_areas.action, 0.035f, 0.035f);

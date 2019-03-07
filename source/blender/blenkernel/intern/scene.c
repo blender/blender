@@ -998,7 +998,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	BKE_scene_validate_setscene(bmain, scene);
 
 	/* deselect objects (for dataselect) */
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
+	for (ob = bmain->objects.first; ob; ob = ob->id.next)
 		ob->flag &= ~SELECT;
 
 	/* copy layers and flags from bases to objects */
@@ -1097,7 +1097,7 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
 			else {
 				if (iter->phase != F_DUPLI) {
 					if (depsgraph && (*base)->object->transflag & OB_DUPLI) {
-						/* collections cannot be duplicated for mballs yet,
+						/* collections cannot be duplicated for metaballs yet,
 						 * this enters eternal loop because of
 						 * makeDispListMBall getting called inside of collection_duplilist */
 						if ((*base)->object->instance_collection == NULL) {
@@ -1155,7 +1155,7 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
 
 Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection)
 {
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		for (ViewLayer *layer = scene->view_layers.first; layer; layer = layer->next) {
 			if (BKE_view_layer_has_collection(layer, collection)) {
 				return scene;
@@ -1291,7 +1291,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 	int a, totscene;
 
 	if (sce->set == NULL) return true;
-	totscene = BLI_listbase_count(&bmain->scene);
+	totscene = BLI_listbase_count(&bmain->scenes);
 
 	for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
 		/* more iterations than scenes means we have a cycle */
@@ -1393,10 +1393,10 @@ int BKE_scene_orientation_slot_get_index(const TransformOrientationSlot *orient_
 static void scene_armature_depsgraph_workaround(Main *bmain, Depsgraph *depsgraph)
 {
 	Object *ob;
-	if (BLI_listbase_is_empty(&bmain->armature) || !DEG_id_type_updated(depsgraph, ID_OB)) {
+	if (BLI_listbase_is_empty(&bmain->armatures) || !DEG_id_type_updated(depsgraph, ID_OB)) {
 		return;
 	}
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->type == OB_ARMATURE && ob->adt) {
 			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
 				BKE_pose_rebuild(bmain, ob, ob->data, true);

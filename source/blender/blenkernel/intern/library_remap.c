@@ -320,14 +320,14 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *o
 	BKE_main_collection_sync_remap(bmain);
 
 	if (old_ob == NULL) {
-		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob != NULL; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis(ob)) {
 				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 		}
 	}
 	else {
-		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob != NULL; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
 				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 				break;  /* There is only one basis... */
@@ -536,7 +536,7 @@ void BKE_libblock_remap_locked(
 		case ID_CU:
 		case ID_MB:
 			if (new_id) {  /* Only affects us in case obdata was relinked (changed). */
-				for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 					libblock_remap_data_postprocess_obdata_relink(bmain, ob, new_id);
 				}
 			}

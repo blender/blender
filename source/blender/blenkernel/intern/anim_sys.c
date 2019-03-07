@@ -1135,70 +1135,70 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
 	} (void)0
 
 	/* nodes */
-	ANIMDATA_IDS_CB(bmain->nodetree.first);
+	ANIMDATA_IDS_CB(bmain->nodetrees.first);
 
 	/* textures */
-	ANIMDATA_NODETREE_IDS_CB(bmain->tex.first, Tex);
+	ANIMDATA_NODETREE_IDS_CB(bmain->textures.first, Tex);
 
 	/* lights */
-	ANIMDATA_NODETREE_IDS_CB(bmain->light.first, Light);
+	ANIMDATA_NODETREE_IDS_CB(bmain->lights.first, Light);
 
 	/* materials */
-	ANIMDATA_NODETREE_IDS_CB(bmain->mat.first, Material);
+	ANIMDATA_NODETREE_IDS_CB(bmain->materials.first, Material);
 
 	/* cameras */
-	ANIMDATA_IDS_CB(bmain->camera.first);
+	ANIMDATA_IDS_CB(bmain->cameras.first);
 
 	/* shapekeys */
-	ANIMDATA_IDS_CB(bmain->key.first);
+	ANIMDATA_IDS_CB(bmain->shapekeys.first);
 
 	/* metaballs */
-	ANIMDATA_IDS_CB(bmain->mball.first);
+	ANIMDATA_IDS_CB(bmain->metaballs.first);
 
 	/* curves */
-	ANIMDATA_IDS_CB(bmain->curve.first);
+	ANIMDATA_IDS_CB(bmain->curves.first);
 
 	/* armatures */
-	ANIMDATA_IDS_CB(bmain->armature.first);
+	ANIMDATA_IDS_CB(bmain->armatures.first);
 
 	/* lattices */
-	ANIMDATA_IDS_CB(bmain->lattice.first);
+	ANIMDATA_IDS_CB(bmain->lattices.first);
 
 	/* meshes */
-	ANIMDATA_IDS_CB(bmain->mesh.first);
+	ANIMDATA_IDS_CB(bmain->meshes.first);
 
 	/* particles */
-	ANIMDATA_IDS_CB(bmain->particle.first);
+	ANIMDATA_IDS_CB(bmain->particles.first);
 
 	/* speakers */
-	ANIMDATA_IDS_CB(bmain->speaker.first);
+	ANIMDATA_IDS_CB(bmain->speakers.first);
 
 	/* movie clips */
-	ANIMDATA_IDS_CB(bmain->movieclip.first);
+	ANIMDATA_IDS_CB(bmain->movieclips.first);
 
 	/* objects */
-	ANIMDATA_IDS_CB(bmain->object.first);
+	ANIMDATA_IDS_CB(bmain->objects.first);
 
 	/* masks */
-	ANIMDATA_IDS_CB(bmain->mask.first);
+	ANIMDATA_IDS_CB(bmain->masks.first);
 
 	/* worlds */
-	ANIMDATA_NODETREE_IDS_CB(bmain->world.first, World);
+	ANIMDATA_NODETREE_IDS_CB(bmain->worlds.first, World);
 
 	/* scenes */
-	ANIMDATA_NODETREE_IDS_CB(bmain->scene.first, Scene);
+	ANIMDATA_NODETREE_IDS_CB(bmain->scenes.first, Scene);
 
 	/* line styles */
-	ANIMDATA_IDS_CB(bmain->linestyle.first);
+	ANIMDATA_IDS_CB(bmain->linestyles.first);
 
 	/* grease pencil */
-	ANIMDATA_IDS_CB(bmain->gpencil.first);
+	ANIMDATA_IDS_CB(bmain->gpencils.first);
 
 	/* palettes */
-	ANIMDATA_IDS_CB(bmain->palette.first);
+	ANIMDATA_IDS_CB(bmain->palettes.first);
 
 	/* cache files */
-	ANIMDATA_IDS_CB(bmain->cachefile.first);
+	ANIMDATA_IDS_CB(bmain->cachefiles.first);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
@@ -1234,67 +1234,67 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const cha
 	} (void)0
 
 	/* nodes */
-	RENAMEFIX_ANIM_IDS(bmain->nodetree.first);
+	RENAMEFIX_ANIM_IDS(bmain->nodetrees.first);
 
 	/* textures */
-	RENAMEFIX_ANIM_NODETREE_IDS(bmain->tex.first, Tex);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->textures.first, Tex);
 
 	/* lights */
-	RENAMEFIX_ANIM_NODETREE_IDS(bmain->light.first, Light);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->lights.first, Light);
 
 	/* materials */
-	RENAMEFIX_ANIM_NODETREE_IDS(bmain->mat.first, Material);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->materials.first, Material);
 
 	/* cameras */
-	RENAMEFIX_ANIM_IDS(bmain->camera.first);
+	RENAMEFIX_ANIM_IDS(bmain->cameras.first);
 
 	/* shapekeys */
-	RENAMEFIX_ANIM_IDS(bmain->key.first);
+	RENAMEFIX_ANIM_IDS(bmain->shapekeys.first);
 
 	/* metaballs */
-	RENAMEFIX_ANIM_IDS(bmain->mball.first);
+	RENAMEFIX_ANIM_IDS(bmain->metaballs.first);
 
 	/* curves */
-	RENAMEFIX_ANIM_IDS(bmain->curve.first);
+	RENAMEFIX_ANIM_IDS(bmain->curves.first);
 
 	/* armatures */
-	RENAMEFIX_ANIM_IDS(bmain->armature.first);
+	RENAMEFIX_ANIM_IDS(bmain->armatures.first);
 
 	/* lattices */
-	RENAMEFIX_ANIM_IDS(bmain->lattice.first);
+	RENAMEFIX_ANIM_IDS(bmain->lattices.first);
 
 	/* meshes */
-	RENAMEFIX_ANIM_IDS(bmain->mesh.first);
+	RENAMEFIX_ANIM_IDS(bmain->meshes.first);
 
 	/* particles */
-	RENAMEFIX_ANIM_IDS(bmain->particle.first);
+	RENAMEFIX_ANIM_IDS(bmain->particles.first);
 
 	/* speakers */
-	RENAMEFIX_ANIM_IDS(bmain->speaker.first);
+	RENAMEFIX_ANIM_IDS(bmain->speakers.first);
 
 	/* movie clips */
-	RENAMEFIX_ANIM_IDS(bmain->movieclip.first);
+	RENAMEFIX_ANIM_IDS(bmain->movieclips.first);
 
 	/* objects */
-	RENAMEFIX_ANIM_IDS(bmain->object.first);
+	RENAMEFIX_ANIM_IDS(bmain->objects.first);
 
 	/* masks */
-	RENAMEFIX_ANIM_IDS(bmain->mask.first);
+	RENAMEFIX_ANIM_IDS(bmain->masks.first);
 
 	/* worlds */
-	RENAMEFIX_ANIM_NODETREE_IDS(bmain->world.first, World);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->worlds.first, World);
 
 	/* linestyles */
-	RENAMEFIX_ANIM_IDS(bmain->linestyle.first);
+	RENAMEFIX_ANIM_IDS(bmain->linestyles.first);
 
 	/* grease pencil */
-	RENAMEFIX_ANIM_IDS(bmain->gpencil.first);
+	RENAMEFIX_ANIM_IDS(bmain->gpencils.first);
 
 	/* cache files */
-	RENAMEFIX_ANIM_IDS(bmain->cachefile.first);
+	RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
 
 	/* scenes */
-	RENAMEFIX_ANIM_NODETREE_IDS(bmain->scene.first, Scene);
+	RENAMEFIX_ANIM_NODETREE_IDS(bmain->scenes.first, Scene);
 }
 
 /* *********************************** */
@@ -3608,7 +3608,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, Scene 
 	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
 	 * set correctly, so this optimization must be skipped in that case...
 	 */
-	if (BLI_listbase_is_empty(&main->action) && BLI_listbase_is_empty(&main->curve)) {
+	if (BLI_listbase_is_empty(&main->actions) && BLI_listbase_is_empty(&main->curves)) {
 		if (G.debug & G_DEBUG)
 			printf("\tNo Actions, so no animation needs to be evaluated...\n");
 
@@ -3616,74 +3616,74 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, Scene 
 	}
 
 	/* nodes */
-	EVAL_ANIM_IDS(main->nodetree.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->nodetrees.first, ADT_RECALC_ANIM);
 
 	/* textures */
-	EVAL_ANIM_NODETREE_IDS(main->tex.first, Tex, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->textures.first, Tex, ADT_RECALC_ANIM);
 
 	/* lights */
-	EVAL_ANIM_NODETREE_IDS(main->light.first, Light, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->lights.first, Light, ADT_RECALC_ANIM);
 
 	/* materials */
-	EVAL_ANIM_NODETREE_IDS(main->mat.first, Material, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->materials.first, Material, ADT_RECALC_ANIM);
 
 	/* cameras */
-	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->cameras.first, ADT_RECALC_ANIM);
 
 	/* shapekeys */
-	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->shapekeys.first, ADT_RECALC_ANIM);
 
 	/* metaballs */
-	EVAL_ANIM_IDS(main->mball.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->metaballs.first, ADT_RECALC_ANIM);
 
 	/* curves */
-	EVAL_ANIM_IDS(main->curve.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->curves.first, ADT_RECALC_ANIM);
 
 	/* armatures */
-	EVAL_ANIM_IDS(main->armature.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->armatures.first, ADT_RECALC_ANIM);
 
 	/* lattices */
-	EVAL_ANIM_IDS(main->lattice.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->lattices.first, ADT_RECALC_ANIM);
 
 	/* meshes */
-	EVAL_ANIM_IDS(main->mesh.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->meshes.first, ADT_RECALC_ANIM);
 
 	/* particles */
-	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->particles.first, ADT_RECALC_ANIM);
 
 	/* speakers */
-	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->speakers.first, ADT_RECALC_ANIM);
 
 	/* movie clips */
-	EVAL_ANIM_IDS(main->movieclip.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->movieclips.first, ADT_RECALC_ANIM);
 
 	/* linestyles */
-	EVAL_ANIM_IDS(main->linestyle.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->linestyles.first, ADT_RECALC_ANIM);
 
 	/* grease pencil */
-	EVAL_ANIM_IDS(main->gpencil.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->gpencils.first, ADT_RECALC_ANIM);
 
 	/* palettes */
-	EVAL_ANIM_IDS(main->palette.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->palettes.first, ADT_RECALC_ANIM);
 
 	/* cache files */
-	EVAL_ANIM_IDS(main->cachefile.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->cachefiles.first, ADT_RECALC_ANIM);
 
 	/* objects */
 	/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets
 	 * this tagged by Depsgraph on framechange. This optimization means that objects
 	 * linked from other (not-visible) scenes will not need their data calculated.
 	 */
-	EVAL_ANIM_IDS(main->object.first, 0);
+	EVAL_ANIM_IDS(main->objects.first, 0);
 
 	/* masks */
-	EVAL_ANIM_IDS(main->mask.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_IDS(main->masks.first, ADT_RECALC_ANIM);
 
 	/* worlds */
-	EVAL_ANIM_NODETREE_IDS(main->world.first, World, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->worlds.first, World, ADT_RECALC_ANIM);
 
 	/* scenes */
-	EVAL_ANIM_NODETREE_IDS(main->scene.first, Scene, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->scenes.first, Scene, ADT_RECALC_ANIM);
 }
 
 /* ***************************************** */

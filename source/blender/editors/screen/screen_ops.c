@@ -3353,7 +3353,7 @@ static int spacedata_cleanup_exec(bContext *C, wmOperator *op)
 	ScrArea *sa;
 	int tot = 0;
 
-	for (screen = bmain->screen.first; screen; screen = screen->id.next) {
+	for (screen = bmain->screens.first; screen; screen = screen->id.next) {
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			if (sa->spacedata.first != sa->spacedata.last) {
 				SpaceLink *sl = sa->spacedata.first;
@@ -4913,7 +4913,7 @@ static int space_workspace_cycle_invoke(bContext *C, wmOperator *op, const wmEve
 	WorkSpace *workspace_dst = NULL;
 
 	ListBase ordered;
-	BKE_id_ordered_list(&ordered, &bmain->workspace);
+	BKE_id_ordered_list(&ordered, &bmain->workspaces);
 
 	for (LinkData *link = ordered.first; link; link = link->next) {
 		if (link->data == workspace_src) {

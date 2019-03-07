@@ -82,7 +82,7 @@ static void clean_paths(Main *main)
 
 	BKE_bpath_traverse_main(main, clean_paths_visit_cb, BKE_BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
 
-	for (scene = main->scene.first; scene; scene = scene->id.next) {
+	for (scene = main->scenes.first; scene; scene = scene->id.next) {
 		BLI_path_native_slash(scene->r.pic);
 	}
 }
@@ -127,7 +127,7 @@ static void setup_app_data(
 		BKE_report(reports, RPT_WARNING, "Library file, loading empty scene");
 		mode = LOAD_UI_OFF;
 	}
-	else if (BLI_listbase_is_empty(&bfd->main->screen)) {
+	else if (BLI_listbase_is_empty(&bfd->main->screens)) {
 		mode = LOAD_UNDO;
 	}
 	else if ((G.fileflags & G_FILE_NO_UI) && (is_startup == false)) {
@@ -170,8 +170,8 @@ static void setup_app_data(
 
 		/* comes from readfile.c */
 		SWAP(ListBase, bmain->wm, bfd->main->wm);
-		SWAP(ListBase, bmain->workspace, bfd->main->workspace);
-		SWAP(ListBase, bmain->screen, bfd->main->screen);
+		SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
+		SWAP(ListBase, bmain->screens, bfd->main->screens);
 
 		/* we re-use current window and screen */
 		win = CTX_wm_window(C);
@@ -183,7 +183,7 @@ static void setup_app_data(
 		track_undo_scene = (mode == LOAD_UNDO && curscreen && curscene && bfd->main->wm.first);
 
 		if (curscene == NULL) {
-			curscene = bfd->main->scene.first;
+			curscene = bfd->main->scenes.first;
 		}
 		/* empty file, we add a scene to make Blender work */
 		if (curscene == NULL) {
@@ -278,10 +278,10 @@ static void setup_app_data(
 		wmWindow *win = CTX_wm_window(C);
 
 		/* in case we don't even have a local scene, add one */
-		if (!bmain->scene.first)
+		if (!bmain->scenes.first)
 			BKE_scene_add(bmain, "Empty");
 
-		CTX_data_scene_set(C, bmain->scene.first);
+		CTX_data_scene_set(C, bmain->scenes.first);
 		win->scene = CTX_data_scene(C);
 		curscene = CTX_data_scene(C);
 	}
@@ -441,8 +441,8 @@ bool BKE_blendfile_read_from_memfile(
 		/* remove the unused screens and wm */
 		while (bfd->main->wm.first)
 			BKE_id_free(bfd->main, bfd->main->wm.first);
-		while (bfd->main->screen.first)
-			BKE_id_free(bfd->main, bfd->main->screen.first);
+		while (bfd->main->screens.first)
+			BKE_id_free(bfd->main, bfd->main->screens.first);
 
 		setup_app_data(C, bfd, "<memory1>", params->is_startup, reports);
 	}
@@ -573,7 +573,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
 	if (bfd) {
 		workspace_config = MEM_mallocN(sizeof(*workspace_config), __func__);
 		workspace_config->main = bfd->main;
-		workspace_config->workspaces = bfd->main->workspace;
+		workspace_config->workspaces = bfd->main->workspaces;
 
 		MEM_freeN(bfd);
 	}
@@ -588,7 +588,7 @@ bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, Rep
 
 	BKE_blendfile_write_partial_begin(bmain);
 
-	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		BKE_blendfile_write_partial_tag_ID(&workspace->id, true);
 	}
 

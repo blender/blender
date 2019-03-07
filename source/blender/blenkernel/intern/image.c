@@ -556,7 +556,7 @@ Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
 	BLI_path_abs(str, BKE_main_blendfile_path_from_global());
 
 	/* first search an identical filepath */
-	for (ima = bmain->image.first; ima; ima = ima->id.next) {
+	for (ima = bmain->images.first; ima; ima = ima->id.next) {
 		if (ima->source != IMA_SRC_VIEWER && ima->source != IMA_SRC_GENERATED) {
 			STRNCPY(strtest, ima->name);
 			BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &ima->id));
@@ -912,12 +912,12 @@ void BKE_image_print_memlist(Main *bmain)
 	Image *ima;
 	uintptr_t size, totsize = 0;
 
-	for (ima = bmain->image.first; ima; ima = ima->id.next)
+	for (ima = bmain->images.first; ima; ima = ima->id.next)
 		totsize += image_mem_size(ima);
 
 	printf("\ntotal image memory len: %.3f MB\n", (double)totsize / (double)(1024 * 1024));
 
-	for (ima = bmain->image.first; ima; ima = ima->id.next) {
+	for (ima = bmain->images.first; ima; ima = ima->id.next) {
 		size = image_mem_size(ima);
 
 		if (size)
@@ -940,14 +940,14 @@ void BKE_image_free_all_textures(Main *bmain)
 	uintptr_t tot_freed_size = 0;
 #endif
 
-	for (ima = bmain->image.first; ima; ima = ima->id.next)
+	for (ima = bmain->images.first; ima; ima = ima->id.next)
 		ima->id.tag &= ~LIB_TAG_DOIT;
 
-	for (tex = bmain->tex.first; tex; tex = tex->id.next)
+	for (tex = bmain->textures.first; tex; tex = tex->id.next)
 		if (tex->ima)
 			tex->ima->id.tag |= LIB_TAG_DOIT;
 
-	for (ima = bmain->image.first; ima; ima = ima->id.next) {
+	for (ima = bmain->images.first; ima; ima = ima->id.next) {
 		if (ima->cache && (ima->id.tag & LIB_TAG_DOIT)) {
 #ifdef CHECK_FREED_SIZE
 			uintptr_t old_size = image_mem_size(ima);
@@ -987,7 +987,7 @@ void BKE_image_all_free_anim_ibufs(Main *bmain, int cfra)
 {
 	Image *ima;
 
-	for (ima = bmain->image.first; ima; ima = ima->id.next)
+	for (ima = bmain->images.first; ima; ima = ima->id.next)
 		if (BKE_image_is_animated(ima))
 			BKE_image_free_anim_ibufs(ima, cfra);
 }
@@ -2570,7 +2570,7 @@ Image *BKE_image_verify_viewer(Main *bmain, int type, const char *name)
 {
 	Image *ima;
 
-	for (ima = bmain->image.first; ima; ima = ima->id.next)
+	for (ima = bmain->images.first; ima; ima = ima->id.next)
 		if (ima->source == IMA_SRC_VIEWER)
 			if (ima->type == type)
 				break;
@@ -2759,27 +2759,27 @@ void BKE_image_walk_id_all_users(ID *id, void *customdata,
 void BKE_image_walk_all_users(const Main *mainp, void *customdata,
                               void callback(Image *ima, ImageUser *iuser, void *customdata))
 {
-	for (Scene *scene = mainp->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = mainp->scenes.first; scene; scene = scene->id.next) {
 		BKE_image_walk_id_all_users(&scene->id, customdata, callback);
 	}
 
-	for (Object *ob = mainp->object.first; ob; ob = ob->id.next) {
+	for (Object *ob = mainp->objects.first; ob; ob = ob->id.next) {
 		BKE_image_walk_id_all_users(&ob->id, customdata, callback);
 	}
 
-	for (bNodeTree *ntree = mainp->nodetree.first; ntree; ntree = ntree->id.next) {
+	for (bNodeTree *ntree = mainp->nodetrees.first; ntree; ntree = ntree->id.next) {
 		BKE_image_walk_id_all_users(&ntree->id, customdata, callback);
 	}
 
-	for (Material *ma = mainp->mat.first; ma; ma = ma->id.next) {
+	for (Material *ma = mainp->materials.first; ma; ma = ma->id.next) {
 		BKE_image_walk_id_all_users(&ma->id, customdata, callback);
 	}
 
-	for (Tex *tex = mainp->tex.first; tex; tex = tex->id.next) {
+	for (Tex *tex = mainp->textures.first; tex; tex = tex->id.next) {
 		BKE_image_walk_id_all_users(&tex->id, customdata, callback);
 	}
 
-	for (Camera *cam = mainp->camera.first; cam; cam = cam->id.next) {
+	for (Camera *cam = mainp->cameras.first; cam; cam = cam->id.next) {
 		BKE_image_walk_id_all_users(&cam->id, customdata, callback);
 	}
 
@@ -2949,7 +2949,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 	 * this also makes sure all scenes are accounted for. */
 	{
 		Scene *scene;
-		for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			if (scene->nodetree) {
 				nodeUpdateID(scene->nodetree, &ima->id);
 			}

@@ -992,7 +992,7 @@ static GHash *gp_strokes_copypastebuf_colors_material_to_name_create(Main *bmain
 {
 	GHash *ma_to_name = BLI_ghash_ptr_new(__func__);
 
-	for (Material *ma = bmain->mat.first; ma != NULL; ma = ma->id.next) {
+	for (Material *ma = bmain->materials.first; ma != NULL; ma = ma->id.next) {
 		char *name = BKE_id_to_unique_string_key(&ma->id);
 		BLI_ghash_insert(ma_to_name, ma, name);
 	}
@@ -1009,7 +1009,7 @@ static GHash *gp_strokes_copypastebuf_colors_name_to_material_create(Main *bmain
 {
 	GHash *name_to_ma = BLI_ghash_str_new(__func__);
 
-	for (Material *ma = bmain->mat.first; ma != NULL; ma = ma->id.next) {
+	for (Material *ma = bmain->materials.first; ma != NULL; ma = ma->id.next) {
 		char *name = BKE_id_to_unique_string_key(&ma->id);
 		BLI_ghash_insert(name_to_ma, name, ma);
 	}

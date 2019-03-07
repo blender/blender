@@ -95,7 +95,7 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	/* cheating way for importers to avoid slow updates */
 	if (mb->id.us > 0) {
-		for (ob = bmain->object.first; ob; ob = ob->id.next)
+		for (ob = bmain->objects.first; ob; ob = ob->id.next)
 			if (ob->data == mb)
 				BKE_mball_properties_copy(scene, ob);
 

@@ -147,7 +147,7 @@ static void view_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, V
 {
 	int act_layer_index = BLI_findindex(&scene->view_layers, layer);
 
-	for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
+	for (Scene *sce = bmain->scenes.first; sce; sce = sce->id.next) {
 		if (sce->nodetree) {
 			BKE_nodetree_remove_layer_n(sce->nodetree, scene, act_layer_index);
 		}

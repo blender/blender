@@ -208,7 +208,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	}
 
 	// release materials
-	Link *lnk = (Link *)freestyle_bmain->mat.first;
+	Link *lnk = (Link *)freestyle_bmain->materials.first;
 
 	while (lnk)
 	{

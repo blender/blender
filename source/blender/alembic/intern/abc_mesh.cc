@@ -682,7 +682,7 @@ namespace utils {
 
 static void build_mat_map(const Main *bmain, std::map<std::string, Material *> &mat_map)
 {
-	Material *material = static_cast<Material *>(bmain->mat.first);
+	Material *material = static_cast<Material *>(bmain->materials.first);
 
 	for (; material; material = static_cast<Material *>(material->id.next)) {
 		mat_map[material->id.name + 2] = material;

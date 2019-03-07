@@ -113,7 +113,7 @@ static bScreen *screen_parent_find(const bScreen *screen)
 
 static void do_version_workspaces_create_from_screens(Main *bmain)
 {
-	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+	for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
 		WorkSpace *workspace;
 		if (screen->temp) {
@@ -124,7 +124,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			/* fullscreen with "Back to Previous" option, don't create
 			 * a new workspace, add layout workspace containing parent */
 			workspace = BLI_findstring(
-			        &bmain->workspace, screen_parent->id.name + 2, offsetof(ID, name) + 2);
+			        &bmain->workspaces, screen_parent->id.name + 2, offsetof(ID, name) + 2);
 		}
 		else {
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
@@ -177,7 +177,7 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
  */
 static void do_version_workspaces_after_lib_link(Main *bmain)
 {
-	BLI_assert(BLI_listbase_is_empty(&bmain->workspace));
+	BLI_assert(BLI_listbase_is_empty(&bmain->workspaces));
 
 	do_version_workspaces_create_from_screens(bmain);
 
@@ -195,7 +195,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 				continue;
 			}
 
-			WorkSpace *workspace = BLI_findstring(&bmain->workspace, screen->id.name + 2, offsetof(ID, name) + 2);
+			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, screen->id.name + 2, offsetof(ID, name) + 2);
 			BLI_assert(workspace != NULL);
 			ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
@@ -219,7 +219,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 		}
 	}
 
-	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+	for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 		/* Deprecated from now on! */
 		BLI_freelistN(&screen->scene->transform_spaces);
 		screen->scene = NULL;
@@ -571,7 +571,7 @@ void do_versions_after_linking_280(Main *bmain)
 		use_collection_compat_28 = false;
 
 		/* Convert group layer visibility flags to hidden nested collection. */
-		for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+		for (Collection *collection = bmain->collections.first; collection; collection = collection->id.next) {
 			/* Add fake user for all existing groups. */
 			id_fake_user_set(&collection->id);
 
@@ -612,18 +612,18 @@ void do_versions_after_linking_280(Main *bmain)
 		/* We need to assign lib pointer to generated hidden collections *after* all have been created, otherwise we'll
 		 * end up with several datablocks sharing same name/library, which is FORBIDDEN!
 		 * Note: we need this to be recursive, since a child collection may be sorted before its parent in bmain... */
-		for (Collection *collection = bmain->collection.first; collection != NULL; collection = collection->id.next) {
+		for (Collection *collection = bmain->collections.first; collection != NULL; collection = collection->id.next) {
 			do_version_collection_propagate_lib_to_children(collection);
 		}
 
 		/* Convert layers to collections. */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			do_version_layers_to_collections(bmain, scene);
 		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			/* same render-layer as do_version_workspaces_after_lib_link will activate,
 			 * so same layer as BKE_view_layer_default_view would return */
 			ViewLayer *layer = screen->scene->view_layers.first;
@@ -664,7 +664,7 @@ void do_versions_after_linking_280(Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 2)) {
 		/* Cleanup any remaining SceneRenderLayer data for files that were created
 		 * with Blender 2.8 before the SceneRenderLayer > RenderLayer refactor. */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 				if (srl->prop) {
 					IDP_FreeProperty(srl->prop);
@@ -679,7 +679,7 @@ void do_versions_after_linking_280(Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
 		/* Due to several changes to particle RNA and draw code particles from older files may no longer
 		 * be visible. Here we correct this by setting a default draw size for those files. */
-		for (Object *object = bmain->object.first; object; object = object->id.next) {
+		for (Object *object = bmain->objects.first; object; object = object->id.next) {
 			for (ParticleSystem *psys = object->particlesystem.first; psys; psys = psys->next) {
 				if (psys->part->draw_size == 0.0f) {
 					psys->part->draw_size = 0.1f;
@@ -689,7 +689,7 @@ void do_versions_after_linking_280(Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 4)) {
-		for (Object *object = bmain->object.first; object; object = object->id.next) {
+		for (Object *object = bmain->objects.first; object; object = object->id.next) {
 			if (object->particlesystem.first) {
 				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
 				for (ParticleSystem *psys = object->particlesystem.first; psys; psys = psys->next) {
@@ -708,7 +708,7 @@ void do_versions_after_linking_280(Main *bmain)
 		}
 
 		/* Cleanup deprecated flag from particlesettings data-blocks. */
-		for (ParticleSettings *part = bmain->particle.first; part; part = part->id.next) {
+		for (ParticleSettings *part = bmain->particles.first; part; part = part->id.next) {
 			part->draw &= ~PART_DRAW_EMITTER;
 		}
 	}
@@ -716,7 +716,7 @@ void do_versions_after_linking_280(Main *bmain)
 	/* SpaceTime & SpaceLogic removal/replacing */
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 9)) {
 		const wmWindowManager *wm = bmain->wm.first;
-		const Scene *scene = bmain->scene.first;
+		const Scene *scene = bmain->scenes.first;
 
 		if (wm != NULL) {
 			/* Action editors need a scene for creation. First, update active
@@ -736,7 +736,7 @@ void do_versions_after_linking_280(Main *bmain)
 			}
 		}
 		if (scene != NULL) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 					if (ELEM(area->butspacetype, SPACE_TIME, SPACE_LOGIC)) {
 						/* Areas that were already handled won't be handled again */
@@ -752,11 +752,11 @@ void do_versions_after_linking_280(Main *bmain)
 
 #ifdef USE_COLLECTION_COMPAT_28
 	if (use_collection_compat_28 && !MAIN_VERSION_ATLEAST(bmain, 280, 14)) {
-		for (Collection *group = bmain->collection.first; group; group = group->id.next) {
+		for (Collection *group = bmain->collections.first; group; group = group->id.next) {
 			do_version_group_collection_to_collection(bmain, group);
 		}
 
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			do_version_scene_collection_to_collection(bmain, scene);
 		}
 	}
@@ -764,7 +764,7 @@ void do_versions_after_linking_280(Main *bmain)
 
 	/* Update Curve object Shape Key data layout to include the Radius property */
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 23)) {
-		for (Curve *cu = bmain->curve.first; cu; cu = cu->id.next) {
+		for (Curve *cu = bmain->curves.first; cu; cu = cu->id.next) {
 			if (!cu->key || cu->key->elemsize != sizeof(float[4]))
 				continue;
 
@@ -832,7 +832,7 @@ void do_versions_after_linking_280(Main *bmain)
 
 	/* Move B-Bone custom handle settings from bPoseChannel to Bone. */
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 25)) {
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			bArmature *arm = ob->data;
 
 			/* If it is an armature from the same file. */
@@ -865,7 +865,7 @@ void do_versions_after_linking_280(Main *bmain)
 
 				/* Tag pose rebuild for all objects that use this armature. */
 				if (rebuild) {
-					for (Object *ob2 = bmain->object.first; ob2; ob2 = ob2->id.next) {
+					for (Object *ob2 = bmain->objects.first; ob2; ob2 = ob2->id.next) {
 						if (ob2->pose && ob2->data == arm) {
 							ob2->pose->flag |= POSE_RECALC;
 						}
@@ -876,7 +876,7 @@ void do_versions_after_linking_280(Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 30)) {
-		for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+		for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
 			if (brush->gpencil_settings != NULL) {
 				brush->gpencil_tool = brush->gpencil_settings->brush_type;
 			}
@@ -886,7 +886,7 @@ void do_versions_after_linking_280(Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 38)) {
 		/* Ensure we get valid rigidbody object/constraint data in relevant collections' objects. */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			RigidBodyWorld *rbw = scene->rigidbody_world;
 
 			if (rbw == NULL) {
@@ -918,20 +918,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 		use_collection_compat_28 = false;
 
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			scene->r.gauss = 1.5f;
 		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "bleedexp")) {
-			for (Light *la = bmain->light.first; la; la = la->id.next) {
+			for (Light *la = bmain->lights.first; la; la = la->id.next) {
 				la->bleedexp = 2.5f;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
-			for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
+			for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
 				ca->gpu_dof.ratio = 1.0f;
 			}
 		}
@@ -939,7 +939,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		/* MTexPoly now removed. */
 		if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
 			const int cd_mtexpoly = 15;  /* CD_MTEXPOLY, deprecated */
-			for (Mesh *me = bmain->mesh.first; me; me = me->id.next) {
+			for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
 				/* If we have UV's, so this file will have MTexPoly layers too! */
 				if (me->mloopuv != NULL) {
 					CustomData_update_typemap(&me->pdata);
@@ -952,7 +952,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 2)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "cascade_max_dist")) {
-			for (Light *la = bmain->light.first; la; la = la->id.next) {
+			for (Light *la = bmain->lights.first; la; la = la->id.next) {
 				la->cascade_max_dist = 1000.0f;
 				la->cascade_count = 4;
 				la->cascade_exponent = 0.8f;
@@ -961,7 +961,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "contact_dist")) {
-			for (Light *la = bmain->light.first; la; la = la->id.next) {
+			for (Light *la = bmain->lights.first; la; la = la->id.next) {
 				la->contact_dist = 0.2f;
 				la->contact_bias = 0.03f;
 				la->contact_spread = 0.2f;
@@ -970,7 +970,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "vis_bias")) {
-			for (LightProbe *probe = bmain->lightprobe.first; probe; probe = probe->id.next) {
+			for (LightProbe *probe = bmain->lightprobes.first; probe; probe = probe->id.next) {
 				probe->vis_bias = 1.0f;
 				probe->vis_blur = 0.2f;
 			}
@@ -1038,7 +1038,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		    (DNA_struct_elem_find(fd->filesdna, "ViewLayer", "FreestyleConfig", "freestyle_config") == false) &&
 		    DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "view_layers"))
 		{
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				ViewLayer *view_layer;
 				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 					view_layer->flag |= VIEW_LAYER_FREESTYLE;
@@ -1054,7 +1054,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		{
 			/* Grease pencil sculpt and paint cursors */
 			if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "int", "weighttype")) {
-				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 					/* sculpt brushes */
 					GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 					if (gset) {
@@ -1069,7 +1069,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
 				GP_Sculpt_Data *gp_brush;
 
-				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 					ToolSettings *ts = scene->toolsettings;
 					/* sculpt brushes */
 					GP_Sculpt_Settings *gset = &ts->gp_sculpt;
@@ -1084,21 +1084,21 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 			/* Init grease pencil edit line color */
 			if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "line_color[4]")) {
-				for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+				for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 					ARRAY_SET_ITEMS(gpd->line_color, 0.6f, 0.6f, 0.6f, 0.5f);
 				}
 			}
 
 			/* Init grease pencil pixel size factor */
 			if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "int", "pixfactor")) {
-				for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+				for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 					gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 				}
 			}
 
 			/* Grease pencil multiframe falloff curve */
 			if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_falloff")) {
-				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 					/* sculpt brushes */
 					GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 					if ((gset) && (gset->cur_falloff == NULL)) {
@@ -1116,14 +1116,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 #ifdef USE_COLLECTION_COMPAT_28
 	if (use_collection_compat_28 && !MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			ViewLayer *view_layer;
 			for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 				do_version_view_layer_visibility(view_layer);
 			}
 		}
 
-		for (Collection *group = bmain->collection.first; group; group = group->id.next) {
+		for (Collection *group = bmain->collections.first; group; group = group->id.next) {
 			if (group->view_layer != NULL) {
 				do_version_view_layer_visibility(group->view_layer);
 			}
@@ -1134,7 +1134,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
 		/* init grease pencil grids and paper */
 		if (!DNA_struct_elem_find(fd->filesdna, "gp_paper_opacity", "float", "gpencil_paper_color[3]")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 					for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1155,7 +1155,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			SpaceLink *sl;
 
 			/* Update files using invalid (outdated) outlinevis Outliner values. */
-			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+			for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 				for (sa = sc->areabase.first; sa; sa = sa->next) {
 					for (sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_OUTLINER) {
@@ -1177,12 +1177,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
-			for (LightProbe *probe = bmain->lightprobe.first; probe; probe = probe->id.next) {
+			for (LightProbe *probe = bmain->lightprobes.first; probe; probe = probe->id.next) {
 				probe->intensity = 1.0f;
 			}
 		}
 
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			bConstraint *con, *con_next;
 			con = ob->constraints.first;
 			while (con) {
@@ -1196,7 +1196,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
 			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -1220,7 +1220,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		 * development, we assume any files saved in 2.8 had Eevee set
 		 * as scene render engine. */
 		if (MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 			}
 		}
@@ -1228,7 +1228,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 8)) {
 		/* Blender Internal removal */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			if (STREQ(scene->r.engine, "BLENDER_RENDER") ||
 			    STREQ(scene->r.engine, "BLENDER_GAME"))
 			{
@@ -1238,7 +1238,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			scene->r.bake_mode = 0;
 		}
 
-		for (Tex *tex = bmain->tex.first; tex; tex = tex->id.next) {
+		for (Tex *tex = bmain->textures.first; tex; tex = tex->id.next) {
 			/* Removed envmap, pointdensity, voxeldata, ocean textures. */
 			if (ELEM(tex->type, 10, 14, 15, 16)) {
 				tex->type = 0;
@@ -1250,7 +1250,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 11)) {
 
 		/* Remove info editor, but only if at the top of the window. */
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			/* Calculate window width/height from screen vertices */
 			int win_width = 0, win_height = 0;
 			for (ScrVert *vert = screen->vertbase.first; vert; vert = vert->next) {
@@ -1281,7 +1281,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 11)) {
-		for (Light *la = bmain->light.first; la; la = la->id.next) {
+		for (Light *la = bmain->lights.first; la; la = la->id.next) {
 			if (la->mode & (1 << 13)) { /* LA_SHAD_RAY */
 				la->mode |= LA_SHADOW;
 				la->mode &= ~(1 << 13);
@@ -1291,7 +1291,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 12)) {
 		/* Remove tool property regions. */
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_CLIP)) {
@@ -1314,13 +1314,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 13)) {
 		/* Initialize specular factor. */
 		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "spec_fac")) {
-			for (Light *la = bmain->light.first; la; la = la->id.next) {
+			for (Light *la = bmain->lights.first; la; la = la->id.next) {
 				la->spec_fac = 1.0f;
 			}
 		}
 
 		/* Initialize new view3D options. */
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -1342,24 +1342,24 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 14)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "SceneDisplay", "display")) {
 			/* Initialize new scene.SceneDisplay */
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				copy_v3_v3(scene->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "shadow_shift")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->display.shadow_shift = 0.1;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEDIAN;
 			}
 		}
 
 		if (!DNA_struct_find(fd->filesdna, "SceneEEVEE")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				/* First set the default for all the properties. */
 
 				scene->eevee.gi_diffuse_bounces = 3;
@@ -1540,13 +1540,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 
 		if (!MAIN_VERSION_ATLEAST(bmain, 280, 15)) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->display.matcap_ssao_distance = 0.2f;
 				scene->display.matcap_ssao_attenuation = 1.0f;
 				scene->display.matcap_ssao_samples = 16;
 			}
 
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_OUTLINER) {
@@ -1558,7 +1558,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				switch (scene->toolsettings->snap_mode) {
 					case 0: scene->toolsettings->snap_mode = SCE_SNAP_MODE_INCREMENT; break;
 					case 1: scene->toolsettings->snap_mode = SCE_SNAP_MODE_VERTEX   ; break;
@@ -1579,7 +1579,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 
 			ParticleSettings *part;
-			for (part = bmain->particle.first; part; part = part->id.next) {
+			for (part = bmain->particles.first; part; part = part->id.next) {
 				part->shape_flag = PART_SHAPE_CLOSE_TIP;
 				part->shape = 0.0f;
 				part->rad_root = 1.0f;
@@ -1592,7 +1592,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 18)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "roughness")) {
-			for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
+			for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
 				if (mat->use_nodes) {
 					if (MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 						mat->roughness = mat->gloss_mir;
@@ -1607,7 +1607,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				mat->metallic = mat->ray_mirror;
 			}
 
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1620,7 +1620,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "xray_alpha")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1635,7 +1635,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			StudioLight *default_matcap = BKE_studiolight_find_default(STUDIOLIGHT_TYPE_MATCAP);
 			/* when loading the internal file is loaded before the matcaps */
 			if (default_matcap) {
-				for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 					for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 						for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 							if (sl->spacetype == SPACE_VIEW3D) {
@@ -1648,7 +1648,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_threshold")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1660,7 +1660,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "cavity_valley_factor")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1673,7 +1673,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "xray_alpha_bone")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1688,7 +1688,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 19)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "renderslot")) {
-			for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
+			for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
 				if (ima->type == IMA_TYPE_R_RESULT) {
 					for (int i = 0; i < 8; i++) {
 						RenderSlot *slot = MEM_callocN(sizeof(RenderSlot), "Image Render Slot Init");
@@ -1699,7 +1699,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "SpaceAction", "char", "mode_prev")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_ACTION) {
@@ -1714,7 +1714,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -1732,14 +1732,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 21)) {
-		for (Scene *sce = bmain->scene.first; sce != NULL; sce = sce->id.next) {
+		for (Scene *sce = bmain->scenes.first; sce != NULL; sce = sce->id.next) {
 			if (sce->ed != NULL && sce->ed->seqbase.first != NULL) {
 				do_versions_seq_unique_name_all_strips(sce, &sce->ed->seqbase);
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "texture_paint_mode_opacity")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1756,7 +1756,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "background_type")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1769,20 +1769,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->eevee.gi_irradiance_draw_size = 0.1f;
 				scene->eevee.gi_cubemap_draw_size = 0.3f;
 			}
 		}
 
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			if (scene->toolsettings->gizmo_flag == 0) {
 				scene->toolsettings->gizmo_flag = SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "RigidBodyWorld", "RigidBodyWorld_Shared", "*shared")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				RigidBodyWorld *rbw = scene->rigidbody_world;
 
 				if (rbw == NULL) {
@@ -1808,7 +1808,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SoftBody", "SoftBody_Shared", "*shared")) {
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 				SoftBody *sb = ob->soft;
 				if (sb == NULL) {
 					continue;
@@ -1827,7 +1827,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "short", "type")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1844,13 +1844,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "View3DShading", "shading")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				BKE_screen_view3d_shading_init(&scene->display.shading);
 			}
 		}
 		/* initialize grease pencil view data */
 		if (!DNA_struct_elem_find(fd->filesdna, "SpaceView3D", "float", "vertex_opacity")) {
-			for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+			for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
 				for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1867,13 +1867,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 22)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "annotate_v3d_align")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->toolsettings->annotate_v3d_align = GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR;
 				scene->toolsettings->annotate_thickness = 3;
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "short", "line_change")) {
-			for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+			for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 					gpl->line_change = gpl->thickness;
 					if ((gpl->thickness < 1) || (gpl->thickness > 10)) {
@@ -1883,7 +1883,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_paper_opacity")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1895,7 +1895,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_grid_opacity")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -1909,7 +1909,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* default loc axis */
 		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "int", "lock_axis")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				/* lock axis */
 				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 				if (gset) {
@@ -1920,7 +1920,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Versioning code for Subsurf modifier. */
 		if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "uv_smooth")) {
-			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
+			for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
 				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_Subsurf) {
 						SubsurfModifierData *smd = (SubsurfModifierData *)md;
@@ -1936,7 +1936,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "quality")) {
-			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
+			for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
 				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_Subsurf) {
 						SubsurfModifierData *smd = (SubsurfModifierData *)md;
@@ -1947,7 +1947,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 		/* Versioning code for Multires modifier. */
 		if (!DNA_struct_elem_find(fd->filesdna, "MultiresModifier", "short", "quality")) {
-			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
+			for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
 				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_Multires) {
 						MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -1964,7 +1964,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "ClothSimSettings", "short", "bending_model")) {
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 					ClothModifierData *clmd = NULL;
 					if (md->type == eModifierType_Cloth) {
@@ -1993,7 +1993,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "era_strength_f")) {
-			for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+			for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
 				if (brush->gpencil_settings != NULL) {
 					BrushGpencilSettings *gp = brush->gpencil_settings;
 					if (gp->brush_type == GPAINT_TOOL_ERASE) {
@@ -2004,7 +2004,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_Cloth) {
 					ClothModifierData *clmd = (ClothModifierData *)md;
@@ -2033,7 +2033,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 24)) {
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -2054,7 +2054,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "ShrinkwrapModifierData", "char", "shrinkMode")) {
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_Shrinkwrap) {
 						ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
@@ -2068,7 +2068,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "PartDeflect", "float", "pdef_cfrict")) {
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 				if (ob->pd) {
 					ob->pd->pdef_cfrict = 5.0f;
 				}
@@ -2084,7 +2084,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "xray_alpha_wire")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -2095,7 +2095,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -2109,7 +2109,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 25)) {
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			UnitSettings *unit = &scene->unit;
 			if (unit->system != USER_UNIT_NONE) {
 				unit->length_unit = bUnit_GetBaseUnitOfType(scene->unit.system, B_UNIT_LENGTH);
@@ -2119,7 +2119,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		/* gpencil grid settings */
-		for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+		for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 			ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); // Color
 			ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f); // Scale
 			gpd->grid.lines = GP_DEFAULT_GRID_LINES; // Number of lines
@@ -2127,7 +2127,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 29)) {
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
@@ -2142,7 +2142,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_PROPERTIES) {
@@ -2168,7 +2168,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* grease pencil fade layer opacity */
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_fade_layer")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -2183,7 +2183,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 30)) {
 		/* grease pencil main material show switches */
-		for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
+		for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
 			if (mat->gp_style) {
 				mat->gp_style->flag |= GP_STYLE_STROKE_SHOW;
 				mat->gp_style->flag |= GP_STYLE_FILL_SHOW;
@@ -2198,7 +2198,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
 			ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
 
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				/* sculpt brushes */
 				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 				if (gset) {
@@ -2215,12 +2215,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "overscan")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->eevee.overscan = 3.0f;
 			}
 		}
 
-		for (Light *la = bmain->light.first; la; la = la->id.next) {
+		for (Light *la = bmain->lights.first; la; la = la->id.next) {
 			/* Removed Hemi lights. */
 			if (!ELEM(la->type, LA_LOCAL, LA_SUN, LA_SPOT, LA_AREA)) {
 				la->type = LA_SUN;
@@ -2228,25 +2228,25 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "light_threshold")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->eevee.light_threshold = 0.01f;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_irradiance_smoothing")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->eevee.gi_irradiance_smoothing = 0.1f;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_filter_quality")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->eevee.gi_filter_quality = 1.0f;
 			}
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "att_dist")) {
-			for (Light *la = bmain->light.first; la; la = la->id.next) {
+			for (Light *la = bmain->lights.first; la; la = la->id.next) {
 				la->att_dist = la->clipend;
 			}
 		}
@@ -2276,7 +2276,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 #define PAINT_BLEND_ALPHA_SUB 19
 #define PAINT_BLEND_ALPHA_ADD 20
 
-			for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+			for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
 				if (brush->ob_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 					const char tool_init = brush->vertexpaint_tool;
 					bool is_blend = false;
@@ -2352,7 +2352,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 34)) {
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 				for (SpaceLink *slink = area->spacedata.first; slink; slink = slink->next) {
 					if (slink->spacetype == SPACE_USERPREF) {
@@ -2377,7 +2377,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 36)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "curvature_ridge_factor")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -2391,7 +2391,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		/* Rename OpenGL to Workbench. */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			if (STREQ(scene->r.engine, "BLENDER_OPENGL")) {
 				STRNCPY(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH);
 			}
@@ -2399,7 +2399,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* init Annotations onion skin */
 		if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "int", "gstep")) {
-			for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+			for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 					ARRAY_SET_ITEMS(gpl->gcolor_prev, 0.302f, 0.851f, 0.302f);
 					ARRAY_SET_ITEMS(gpl->gcolor_next, 0.250f, 0.1f, 1.0f);
@@ -2409,7 +2409,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Move studio_light selection to lookdev_light. */
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "lookdev_light[256]")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -2423,7 +2423,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Change Solid mode shadow orientation. */
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "shadow_focus")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				float *dir = scene->display.light_direction;
 				SWAP(float, dir[2], dir[1]);
 				dir[2] = -dir[2];
@@ -2433,10 +2433,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 37)) {
-		for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
+		for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
 			ca->drawsize *= 2.0f;
 		}
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->type != OB_EMPTY) {
 				if (UNLIKELY(ob->transflag & OB_DUPLICOLLECTION)) {
 					BKE_object_type_set_empty_for_versioning(ob);
@@ -2446,7 +2446,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Grease pencil primitive curve */
 		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_primitive")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 				if ((gset) && (gset->cur_primitive == NULL)) {
 					gset->cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -2464,7 +2464,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 38)) {
 		if (DNA_struct_elem_find(fd->filesdna, "Object", "char", "empty_image_visibility_flag")) {
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 				ob->empty_image_visibility_flag ^= (
 				        OB_EMPTY_IMAGE_HIDE_PERSPECTIVE |
 				        OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC |
@@ -2472,7 +2472,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
 					switch (sl->spacetype) {
@@ -2562,7 +2562,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			scene->r.mode &= ~(
 			        R_MODE_DEPRECATED_1 |
 			        R_MODE_DEPRECATED_2 |
@@ -2615,7 +2615,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (World *world = bmain->world.first; world; world = world->id.next) {
+		for (World *world = bmain->worlds.first; world; world = world->id.next) {
 			world->flag &= ~(
 			        WO_MODE_DEPRECATED_1 |
 			        WO_MODE_DEPRECATED_2 |
@@ -2625,7 +2625,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        WO_MODE_DEPRECATED_7);
 		}
 
-		for (Image *image = bmain->image.first; image; image = image->id.next) {
+		for (Image *image = bmain->images.first; image; image = image->id.next) {
 			image->flag &= ~(
 			        IMA_FLAG_DEPRECATED_0 |
 			        IMA_FLAG_DEPRECATED_1 |
@@ -2636,7 +2636,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        IMA_FLAG_DEPRECATED_16);
 		}
 
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ob->flag &= ~(
 			        OB_FLAG_DEPRECATED_11 |
 			        OB_FLAG_DEPRECATED_12);
@@ -2646,7 +2646,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			ob->shapeflag &= ~OB_SHAPE_FLAG_DEPRECATED_1;
 		}
 
-		for (Mesh *me = bmain->mesh.first; me; me = me->id.next) {
+		for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
 			me->flag &= ~(
 			        ME_FLAG_DEPRECATED_0 |
 			        ME_FLAG_DEPRECATED_1 |
@@ -2657,7 +2657,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        ME_FLAG_DEPRECATED_8);
 		}
 
-		for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
+		for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
 			mat->blend_flag &= ~(
 			        MA_BL_FLAG_DEPRECATED_2);
 		}
@@ -2665,13 +2665,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 40)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "snap_transform_mode_flag")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				scene->toolsettings->snap_transform_mode_flag =
 					SCE_SNAP_TRANSFORM_MODE_TRANSLATE;
 			}
 		}
 
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
 					switch (sl->spacetype) {
@@ -2691,7 +2691,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_find(fd->filesdna, "TransformOrientationSlot")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				for (int i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
 					scene->orientation_slots[i].index_custom = -1;
 				}
@@ -2700,7 +2700,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Grease pencil target weight  */
 		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "weight")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				/* sculpt brushes */
 				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 				if (gset) {
@@ -2714,7 +2714,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Grease pencil cutter/select segment intersection threshold  */
 		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 				if (gset) {
 					gset->isect_threshold = 0.1f;
@@ -2723,13 +2723,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		/* Fix anamorphic bokeh eevee rna limits.*/
-		for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
+		for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
 			if (ca->gpu_dof.ratio < 0.01f) {
 				ca->gpu_dof.ratio = 0.01f;
 			}
 		}
 
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_USERPREF) {
@@ -2762,12 +2762,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 44)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "a")) {
-			for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
+			for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
 				mat->a = 1.0f;
 			}
 		}
 
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			enum {
 				R_ALPHAKEY = 2,
 			};
@@ -2788,7 +2788,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 45)) {
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_SEQ) {
@@ -2803,7 +2803,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 46)) {
 		/* Add wireframe color. */
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "wire_color_type")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
@@ -2816,7 +2816,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DCursor", "short", "rotation_mode")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				if (is_zero_v3(scene->cursor.rotation_axis)) {
 					scene->cursor.rotation_mode = ROT_MODE_XYZ;
 					scene->cursor.rotation_quaternion[0] = 1.0f;
@@ -2827,14 +2827,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 47)) {
-		LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+		LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
 			ParticleEditSettings *pset = &scene->toolsettings->particle;
 			if (pset->brushtype < 0) {
 				pset->brushtype = PE_BRUSH_COMB;
 			}
 		}
 
-		LISTBASE_FOREACH (Object *, ob, &bmain->object) {
+		LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
 			{
 				enum { PARCURVE = 1, PARKEY = 2, PAR_DEPRECATED = 16};
 				if (ELEM(ob->partype, PARCURVE, PARKEY, PAR_DEPRECATED)) {
@@ -2859,7 +2859,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			ob->nlaflag &= ~(OB_ADS_DEPRECATED_1 | OB_ADS_DEPRECATED_2);
 		}
 
-		LISTBASE_FOREACH (bArmature *, arm, &bmain->armature) {
+		LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
 			arm->flag &= ~(
 			        ARM_FLAG_DEPRECATED_1 |
 			        ARM_FLAG_DEPRECATED_5 |
@@ -2867,7 +2867,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        ARM_FLAG_DEPRECATED_12);
 		}
 
-		LISTBASE_FOREACH (Text *, text, &bmain->text) {
+		LISTBASE_FOREACH (Text *, text, &bmain->texts) {
 			enum { TXT_READONLY = 1 << 8, TXT_FOLLOW = 1 << 9};
 			text->flags &= ~(TXT_READONLY | TXT_FOLLOW);
 		}

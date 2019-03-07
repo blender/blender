@@ -1964,7 +1964,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 				tselem->flag &= ~TSE_CLOSED;
 		}
 
-		for (lib = mainvar->library.first; lib; lib = lib->id.next) {
+		for (lib = mainvar->libraries.first; lib; lib = lib->id.next) {
 			ten = outliner_add_library_contents(mainvar, soops, &soops->tree, lib);
 			if (ten) {
 				lib->id.newid = (ID *)ten;
@@ -1999,13 +1999,13 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 			}
 		}
 		/* restore newid pointers */
-		for (lib = mainvar->library.first; lib; lib = lib->id.next)
+		for (lib = mainvar->libraries.first; lib; lib = lib->id.next)
 			lib->id.newid = NULL;
 
 	}
 	else if (soops->outlinevis == SO_SCENES) {
 		Scene *sce;
-		for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
+		for (sce = mainvar->scenes.first; sce; sce = sce->id.next) {
 			te = outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem = TREESTORE(te);
 

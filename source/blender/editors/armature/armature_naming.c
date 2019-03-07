@@ -177,7 +177,7 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 		DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 
 		/* do entire dbase - objects */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 
 			/* we have the object using the armature */
@@ -207,7 +207,7 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 				}
 
 				/* Update any object constraints to use the new bone name */
-				for (cob = bmain->object.first; cob; cob = cob->id.next) {
+				for (cob = bmain->objects.first; cob; cob = cob->id.next) {
 					if (cob->constraints.first)
 						constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
 					if (cob->pose) {
@@ -320,7 +320,7 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 		/* correct view locking */
 		{
 			bScreen *screen;
-			for (screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (screen = bmain->screens.first; screen; screen = screen->id.next) {
 				ScrArea *sa;
 				/* add regions */
 				for (sa = screen->areabase.first; sa; sa = sa->next) {

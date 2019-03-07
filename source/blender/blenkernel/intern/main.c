@@ -322,77 +322,77 @@ ListBase *which_libbase(Main *bmain, short type)
 {
 	switch ((ID_Type)type) {
 		case ID_SCE:
-			return &(bmain->scene);
+			return &(bmain->scenes);
 		case ID_LI:
-			return &(bmain->library);
+			return &(bmain->libraries);
 		case ID_OB:
-			return &(bmain->object);
+			return &(bmain->objects);
 		case ID_ME:
-			return &(bmain->mesh);
+			return &(bmain->meshes);
 		case ID_CU:
-			return &(bmain->curve);
+			return &(bmain->curves);
 		case ID_MB:
-			return &(bmain->mball);
+			return &(bmain->metaballs);
 		case ID_MA:
-			return &(bmain->mat);
+			return &(bmain->materials);
 		case ID_TE:
-			return &(bmain->tex);
+			return &(bmain->textures);
 		case ID_IM:
-			return &(bmain->image);
+			return &(bmain->images);
 		case ID_LT:
-			return &(bmain->lattice);
+			return &(bmain->lattices);
 		case ID_LA:
-			return &(bmain->light);
+			return &(bmain->lights);
 		case ID_CA:
-			return &(bmain->camera);
+			return &(bmain->cameras);
 		case ID_IP:
 			return &(bmain->ipo);
 		case ID_KE:
-			return &(bmain->key);
+			return &(bmain->shapekeys);
 		case ID_WO:
-			return &(bmain->world);
+			return &(bmain->worlds);
 		case ID_SCR:
-			return &(bmain->screen);
+			return &(bmain->screens);
 		case ID_VF:
-			return &(bmain->vfont);
+			return &(bmain->fonts);
 		case ID_TXT:
-			return &(bmain->text);
+			return &(bmain->texts);
 		case ID_SPK:
-			return &(bmain->speaker);
+			return &(bmain->speakers);
 		case ID_LP:
-			return &(bmain->lightprobe);
+			return &(bmain->lightprobes);
 		case ID_SO:
-			return &(bmain->sound);
+			return &(bmain->sounds);
 		case ID_GR:
-			return &(bmain->collection);
+			return &(bmain->collections);
 		case ID_AR:
-			return &(bmain->armature);
+			return &(bmain->armatures);
 		case ID_AC:
-			return &(bmain->action);
+			return &(bmain->actions);
 		case ID_NT:
-			return &(bmain->nodetree);
+			return &(bmain->nodetrees);
 		case ID_BR:
-			return &(bmain->brush);
+			return &(bmain->brushes);
 		case ID_PA:
-			return &(bmain->particle);
+			return &(bmain->particles);
 		case ID_WM:
 			return &(bmain->wm);
 		case ID_GD:
-			return &(bmain->gpencil);
+			return &(bmain->gpencils);
 		case ID_MC:
-			return &(bmain->movieclip);
+			return &(bmain->movieclips);
 		case ID_MSK:
-			return &(bmain->mask);
+			return &(bmain->masks);
 		case ID_LS:
-			return &(bmain->linestyle);
+			return &(bmain->linestyles);
 		case ID_PAL:
-			return &(bmain->palette);
+			return &(bmain->palettes);
 		case ID_PC:
-			return &(bmain->paintcurve);
+			return &(bmain->paintcurves);
 		case ID_CF:
-			return &(bmain->cachefile);
+			return &(bmain->cachefiles);
 		case ID_WS:
-			return &(bmain->workspace);
+			return &(bmain->workspaces);
 	}
 	return NULL;
 }
@@ -409,52 +409,52 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
 	 * This is important because freeing data decreases usercounts of other datablocks,
 	 * if this data is its self freed it can crash. */
-	lb[INDEX_ID_LI] = &(bmain->library);  /* Libraries may be accessed from pretty much any other ID... */
+	lb[INDEX_ID_LI] = &(bmain->libraries);  /* Libraries may be accessed from pretty much any other ID... */
 	lb[INDEX_ID_IP] = &(bmain->ipo);
-	lb[INDEX_ID_AC] = &(bmain->action); /* moved here to avoid problems when freeing with animato (aligorith) */
-	lb[INDEX_ID_KE] = &(bmain->key);
-	lb[INDEX_ID_PAL] = &(bmain->palette); /* referenced by gpencil, so needs to be before that to avoid crashes */
-	lb[INDEX_ID_GD] = &(bmain->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
-	lb[INDEX_ID_NT] = &(bmain->nodetree);
-	lb[INDEX_ID_IM] = &(bmain->image);
-	lb[INDEX_ID_TE] = &(bmain->tex);
-	lb[INDEX_ID_MA] = &(bmain->mat);
-	lb[INDEX_ID_VF] = &(bmain->vfont);
+	lb[INDEX_ID_AC] = &(bmain->actions); /* moved here to avoid problems when freeing with animato (aligorith) */
+	lb[INDEX_ID_KE] = &(bmain->shapekeys);
+	lb[INDEX_ID_PAL] = &(bmain->palettes); /* referenced by gpencil, so needs to be before that to avoid crashes */
+	lb[INDEX_ID_GD] = &(bmain->gpencils); /* referenced by nodes, objects, view, scene etc, before to free after. */
+	lb[INDEX_ID_NT] = &(bmain->nodetrees);
+	lb[INDEX_ID_IM] = &(bmain->images);
+	lb[INDEX_ID_TE] = &(bmain->textures);
+	lb[INDEX_ID_MA] = &(bmain->materials);
+	lb[INDEX_ID_VF] = &(bmain->fonts);
 
 	/* Important!: When adding a new object type,
 	 * the specific data should be inserted here
 	 */
 
-	lb[INDEX_ID_AR] = &(bmain->armature);
+	lb[INDEX_ID_AR] = &(bmain->armatures);
 
-	lb[INDEX_ID_CF] = &(bmain->cachefile);
-	lb[INDEX_ID_ME] = &(bmain->mesh);
-	lb[INDEX_ID_CU] = &(bmain->curve);
-	lb[INDEX_ID_MB] = &(bmain->mball);
+	lb[INDEX_ID_CF] = &(bmain->cachefiles);
+	lb[INDEX_ID_ME] = &(bmain->meshes);
+	lb[INDEX_ID_CU] = &(bmain->curves);
+	lb[INDEX_ID_MB] = &(bmain->metaballs);
 
-	lb[INDEX_ID_LT] = &(bmain->lattice);
-	lb[INDEX_ID_LA] = &(bmain->light);
-	lb[INDEX_ID_CA] = &(bmain->camera);
+	lb[INDEX_ID_LT] = &(bmain->lattices);
+	lb[INDEX_ID_LA] = &(bmain->lights);
+	lb[INDEX_ID_CA] = &(bmain->cameras);
 
-	lb[INDEX_ID_TXT] = &(bmain->text);
-	lb[INDEX_ID_SO]  = &(bmain->sound);
-	lb[INDEX_ID_GR]  = &(bmain->collection);
-	lb[INDEX_ID_PAL] = &(bmain->palette);
-	lb[INDEX_ID_PC]  = &(bmain->paintcurve);
-	lb[INDEX_ID_BR]  = &(bmain->brush);
-	lb[INDEX_ID_PA]  = &(bmain->particle);
-	lb[INDEX_ID_SPK] = &(bmain->speaker);
-	lb[INDEX_ID_LP]  = &(bmain->lightprobe);
+	lb[INDEX_ID_TXT] = &(bmain->texts);
+	lb[INDEX_ID_SO]  = &(bmain->sounds);
+	lb[INDEX_ID_GR]  = &(bmain->collections);
+	lb[INDEX_ID_PAL] = &(bmain->palettes);
+	lb[INDEX_ID_PC]  = &(bmain->paintcurves);
+	lb[INDEX_ID_BR]  = &(bmain->brushes);
+	lb[INDEX_ID_PA]  = &(bmain->particles);
+	lb[INDEX_ID_SPK] = &(bmain->speakers);
+	lb[INDEX_ID_LP]  = &(bmain->lightprobes);
 
-	lb[INDEX_ID_WO]  = &(bmain->world);
-	lb[INDEX_ID_MC]  = &(bmain->movieclip);
-	lb[INDEX_ID_SCR] = &(bmain->screen);
-	lb[INDEX_ID_OB]  = &(bmain->object);
-	lb[INDEX_ID_LS]  = &(bmain->linestyle); /* referenced by scenes */
-	lb[INDEX_ID_SCE] = &(bmain->scene);
-	lb[INDEX_ID_WS]  = &(bmain->workspace); /* before wm, so it's freed after it! */
+	lb[INDEX_ID_WO]  = &(bmain->worlds);
+	lb[INDEX_ID_MC]  = &(bmain->movieclips);
+	lb[INDEX_ID_SCR] = &(bmain->screens);
+	lb[INDEX_ID_OB]  = &(bmain->objects);
+	lb[INDEX_ID_LS]  = &(bmain->linestyles); /* referenced by scenes */
+	lb[INDEX_ID_SCE] = &(bmain->scenes);
+	lb[INDEX_ID_WS]  = &(bmain->workspaces); /* before wm, so it's freed after it! */
 	lb[INDEX_ID_WM]  = &(bmain->wm);
-	lb[INDEX_ID_MSK] = &(bmain->mask);
+	lb[INDEX_ID_MSK] = &(bmain->masks);
 
 	lb[INDEX_ID_NULL] = NULL;
 

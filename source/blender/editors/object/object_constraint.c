@@ -154,7 +154,7 @@ static void validate_pyconstraint_cb(Main *bmain, void *arg1, void *arg2)
 	/* exception for no script */
 	if (index) {
 		/* innovative use of a for...loop to search */
-		for (text = bmain->text.first, i = 1; text && index != i; i++, text = text->id.next) ;
+		for (text = bmain->texts.first, i = 1; text && index != i; i++, text = text->id.next) ;
 	}
 	data->text = text;
 }
@@ -177,7 +177,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
 		*pyconindex = 0;
 
 	/* loop through markers, adding them */
-	for (text = bmain->text.first, i = 1; text; i++, text = text->id.next) {
+	for (text = bmain->texts.first, i = 1; text; i++, text = text->id.next) {
 		/* this is important to ensure that right script is shown as active */
 		if (text == con_text) *pyconindex = i;
 

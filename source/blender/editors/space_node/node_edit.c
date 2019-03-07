@@ -641,11 +641,11 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				Material *ma;
 				World *wo;
 
-				for (ma = bmain->mat.first; ma; ma = ma->id.next)
+				for (ma = bmain->materials.first; ma; ma = ma->id.next)
 					if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree))
 						GPU_material_free(&ma->gpumaterial);
 
-				for (wo = bmain->world.first; wo; wo = wo->id.next)
+				for (wo = bmain->worlds.first; wo; wo = wo->id.next)
 					if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree))
 						GPU_material_free(&wo->gpumaterial);
 
@@ -1266,7 +1266,7 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	/* first tag scenes unread */
-	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+	for (scene = bmain->scenes.first; scene; scene = scene->id.next)
 		scene->id.tag |= LIB_TAG_DOIT;
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {

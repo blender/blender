@@ -157,7 +157,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain, Scene *U
 
 	if (ma->texpaintslot) {
 		Image *image = ma->texpaintslot[ma->paint_active_slot].ima;
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			wmWindow *win = ED_screen_window_find(sc, bmain->wm.first);
 			if (win == NULL) {
 				continue;

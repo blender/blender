@@ -91,7 +91,7 @@ bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, b
 	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* first search an identical filepath */
-	for (sound = bmain->sound.first; sound; sound = sound->id.next) {
+	for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
 		BLI_strncpy(strtest, sound->name, sizeof(sound->name));
 		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
 
@@ -192,7 +192,7 @@ static void sound_sync_callback(void *data, int mode, float time)
 	struct Main *bmain = (struct Main *)data;
 	struct Scene *scene;
 
-	scene = bmain->scene.first;
+	scene = bmain->scenes.first;
 	while (scene) {
 		if (scene->audio.flag & AUDIO_SYNC) {
 			if (mode)
@@ -606,7 +606,7 @@ void BKE_sound_update_sequencer(struct Main *main, bSound *sound)
 {
 	struct Scene *scene;
 
-	for (scene = main->scene.first; scene; scene = scene->id.next) {
+	for (scene = main->scenes.first; scene; scene = scene->id.next) {
 		BKE_sequencer_update_sound(scene, sound);
 	}
 }
@@ -686,7 +686,7 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
 	}
 
 	animation_playing = 0;
-	for (screen = bmain->screen.first; screen; screen = screen->id.next) {
+	for (screen = bmain->screens.first; screen; screen = screen->id.next) {
 		if (screen->animtimer) {
 			animation_playing = 1;
 			break;
@@ -883,8 +883,8 @@ void BKE_sound_update_scene(Main *bmain, Scene *scene)
 	float quat[4];
 
 	/* cheap test to skip looping over all objects (no speakers is a common case) */
-	if (!BLI_listbase_is_empty(&bmain->speaker)) {
-		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
+	if (!BLI_listbase_is_empty(&bmain->speakers)) {
+		BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
 
 		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 			for (base = view_layer->object_bases.first; base; base = base->next) {

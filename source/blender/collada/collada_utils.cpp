@@ -190,7 +190,7 @@ std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool al
 		Main *bmain = CTX_data_main(C);
 		ID *id;
 
-		for (id = (ID *)bmain->action.first; id; id = (ID *)(id->next)) {
+		for (id = (ID *)bmain->actions.first; id; id = (ID *)(id->next)) {
 			bAction *act = (bAction *)id;
 			/* XXX This currently creates too many actions.
 			   TODO Need to check if the action is compatible to the given object

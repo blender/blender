@@ -479,7 +479,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
-		Tex *tex = bmain->tex.first;
+		Tex *tex = bmain->textures.first;
 		while (tex) {
 			if (tex->id.tag & LIB_TAG_NEED_LINK) {
 
@@ -500,7 +500,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 101) {
 		/* frame mapping */
-		Scene *sce = bmain->scene.first;
+		Scene *sce = bmain->scenes.first;
 		while (sce) {
 			sce->r.framapto = 100;
 			sce->r.images = 100;
@@ -511,7 +511,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 103) {
 		/* new variable in object: colbits */
-		Object *ob = bmain->object.first;
+		Object *ob = bmain->objects.first;
 		int a;
 		while (ob) {
 			ob->colbits = 0;
@@ -527,7 +527,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 104) {
 		/* timeoffs moved */
-		Object *ob = bmain->object.first;
+		Object *ob = bmain->objects.first;
 		while (ob) {
 			if (ob->transflag & 1) {
 				ob->transflag -= 1;
@@ -538,7 +538,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 106) {
 		/* mcol changed */
-		Mesh *me = bmain->mesh.first;
+		Mesh *me = bmain->meshes.first;
 		while (me) {
 			if (me->mcol)
 				vcol_to_fcol(me);
@@ -549,7 +549,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 107) {
 		Object *ob;
-		ob = bmain->object.first;
+		ob = bmain->objects.first;
 		while (ob) {
 			if (ob->dt == 0)
 				ob->dt = OB_SOLID;
@@ -560,7 +560,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 109) {
 		/* new variable: gridlines */
-		bScreen *sc = bmain->screen.first;
+		bScreen *sc = bmain->screens.first;
 		while (sc) {
 			ScrArea *sa = sc->areabase.first;
 			while (sa) {
@@ -581,7 +581,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 134) {
-		Tex *tex = bmain->tex.first;
+		Tex *tex = bmain->textures.first;
 		while (tex) {
 			if ((tex->rfac == 0.0f) &&
 			    (tex->gfac == 0.0f) &&
@@ -598,7 +598,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 140) {
 		/* r-g-b-fac in texture */
-		Tex *tex = bmain->tex.first;
+		Tex *tex = bmain->textures.first;
 		while (tex) {
 			if ((tex->rfac == 0.0f) &&
 			    (tex->gfac == 0.0f) &&
@@ -614,7 +614,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 153) {
-		Scene *sce = bmain->scene.first;
+		Scene *sce = bmain->scenes.first;
 		while (sce) {
 			if (sce->r.blurfac == 0.0f)
 				sce->r.blurfac = 1.0f;
@@ -623,7 +623,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 163) {
-		Scene *sce = bmain->scene.first;
+		Scene *sce = bmain->scenes.first;
 		while (sce) {
 			if (sce->r.frs_sec == 0)
 				sce->r.frs_sec = 25;
@@ -632,7 +632,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 164) {
-		Mesh *me = bmain->mesh.first;
+		Mesh *me = bmain->meshes.first;
 		while (me) {
 			me->smoothresh = 30;
 			me = me->id.next;
@@ -640,7 +640,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 165) {
-		Mesh *me = bmain->mesh.first;
+		Mesh *me = bmain->meshes.first;
 		TFace *tface;
 		int nr;
 		char *cp;
@@ -667,7 +667,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 169) {
-		Mesh *me = bmain->mesh.first;
+		Mesh *me = bmain->meshes.first;
 		while (me) {
 			if (me->subdiv == 0)
 				me->subdiv = 1;
@@ -676,7 +676,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 169) {
-		bScreen *sc = bmain->screen.first;
+		bScreen *sc = bmain->screens.first;
 		while (sc) {
 			ScrArea *sa = sc->areabase.first;
 			while (sa) {
@@ -695,7 +695,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 170) {
-		Object *ob = bmain->object.first;
+		Object *ob = bmain->objects.first;
 		PartEff *paf;
 		while (ob) {
 			paf = blo_do_version_give_parteff_245(ob);
@@ -709,7 +709,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 171) {
-		bScreen *sc = bmain->screen.first;
+		bScreen *sc = bmain->screens.first;
 		while (sc) {
 			ScrArea *sa = sc->areabase.first;
 			while (sa) {
@@ -729,7 +729,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 173) {
 		int a, b;
-		Mesh *me = bmain->mesh.first;
+		Mesh *me = bmain->meshes.first;
 		while (me) {
 			if (me->tface) {
 				TFace *tface = me->tface;
@@ -747,7 +747,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if (bmain->versionfile <= 204) {
 		bSound *sound;
 
-		sound = bmain->sound.first;
+		sound = bmain->sounds.first;
 		while (sound) {
 			if (sound->volume < 0.01f) {
 				sound->volume = 1.0f;
@@ -760,7 +760,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bSound *sound;
 		Mesh *me;
 
-		sound = bmain->sound.first;
+		sound = bmain->sounds.first;
 		while (sound) {
 			sound->max_gain = 1.0;
 			sound->min_gain = 0.0;
@@ -779,7 +779,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		 * it a subsurf, and reset the subdiv level because subsurf
 		 * takes a lot more work to calculate.
 		 */
-		for (me = bmain->mesh.first; me; me = me->id.next) {
+		for (me = bmain->meshes.first; me; me = me->id.next) {
 			enum {
 				ME_SMESH = (1 << 6),
 				ME_SUBSURF = (1 << 7),
@@ -806,7 +806,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		 * old file vertex colors are undefined, reset them
 		 * to be fully opaque. -zr
 		 */
-		for (me = bmain->mesh.first; me; me = me->id.next) {
+		for (me = bmain->meshes.first; me; me = me->id.next) {
 			if (me->mcol) {
 				int i;
 
@@ -833,7 +833,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 223) {
 		VFont *vf;
-		for (vf = bmain->vfont.first; vf; vf = vf->id.next) {
+		for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
 			if (STREQ(vf->name + strlen(vf->name) - 6, ".Bfont")) {
 				strcpy(vf->name, FO_BUILTIN_NAME);
 			}
@@ -846,7 +846,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Mesh *me;
 		bScreen *sc;
 
-		for (sound = bmain->sound.first; sound; sound = sound->id.next) {
+		for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
 			if (sound->packedfile) {
 				if (sound->newpackedfile == NULL) {
 					sound->newpackedfile = sound->packedfile;
@@ -855,19 +855,19 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 		/* Make sure that old subsurf meshes don't have zero subdivision level for rendering */
-		for (me = bmain->mesh.first; me; me = me->id.next) {
+		for (me = bmain->meshes.first; me; me = me->id.next) {
 			enum { ME_SUBSURF = (1 << 7) };
 			if ((me->flag & ME_SUBSURF) && (me->subdivr == 0)) {
 				me->subdivr = me->subdiv;
 			}
 		}
 
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			sce->r.stereomode = 1;  // no stereo
 		}
 
 		/* some oldfile patch, moved from set_func_space */
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
@@ -891,7 +891,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* As of now, this insures that the transition from the old Track system
 		 * to the new full constraint Track is painless for everyone. - theeth
 		 */
-		ob = bmain->object.first;
+		ob = bmain->objects.first;
 
 		while (ob) {
 			ListBase *list;
@@ -934,13 +934,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			ob = ob->id.next;
 		}
 
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			sce->audio.mixrate = 48000;
 			sce->audio.flag |= AUDIO_SCRUB;
 		}
 
 		/* patch for old wrong max view2d settings, allows zooming out more */
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
@@ -967,7 +967,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* As of now, this insures that the transition from the old Track system
 		 * to the new full constraint Track is painless for everyone.
 		 */
-		ob = bmain->object.first;
+		ob = bmain->objects.first;
 
 		while (ob) {
 			ListBase *list;
@@ -1007,7 +1007,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 
 		/* convert old mainb values for new button panels */
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
@@ -1077,7 +1077,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bScreen *sc;
 
 		/* new variable blockscale, for panels in any area */
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
@@ -1095,7 +1095,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 231) {
-		bScreen *sc = bmain->screen.first;
+		bScreen *sc = bmain->screens.first;
 
 		/* new bit flags for showing/hiding grid floor and axes */
 
@@ -1123,8 +1123,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 232) {
-		Tex *tex = bmain->tex.first;
-		World *wrld = bmain->world.first;
+		Tex *tex = bmain->textures.first;
+		World *wrld = bmain->worlds.first;
 		bScreen *sc;
 
 		while (tex) {
@@ -1161,7 +1161,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* new variable blockscale, for panels in any area, do again because new
 		 * areas didnt initialize it to 0.7 yet
 		 */
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
@@ -1179,7 +1179,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if (bmain->versionfile <= 233) {
 		bScreen *sc;
 
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
@@ -1196,7 +1196,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if (bmain->versionfile <= 234) {
 		bScreen *sc;
 
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
@@ -1212,8 +1212,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 235) {
-		Tex *tex = bmain->tex.first;
-		Scene *sce = bmain->scene.first;
+		Tex *tex = bmain->textures.first;
+		Scene *sce = bmain->scenes.first;
 		Sequence *seq;
 		Editing *ed;
 
@@ -1238,7 +1238,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile <= 236) {
 		Object *ob;
-		Camera *cam = bmain->camera.first;
+		Camera *cam = bmain->cameras.first;
 
 		while (cam) {
 			if (cam->ortho_scale == 0.0f) {
@@ -1252,7 +1252,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* set time line var */
 
 		/* softbody init new vars */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->soft) {
 				if (ob->soft->defgoal == 0.0f)
 					ob->soft->defgoal = 0.7f;
@@ -1282,13 +1282,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Bone *bone;
 
 		/* armature recode checks */
-		for (arm = bmain->armature.first; arm; arm = arm->id.next) {
+		for (arm = bmain->armatures.first; arm; arm = arm->id.next) {
 			BKE_armature_where_is(arm);
 
 			for (bone = arm->bonebase.first; bone; bone = bone->next)
 				do_version_bone_head_tail_237(bone);
 		}
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->parent) {
 				Object *parent = blo_do_versions_newlibadr(fd, lib, ob->parent);
 				if (parent && parent->type == OB_LATTICE)
@@ -1362,7 +1362,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bArmature *arm;
 		Mesh *me;
 		Key *key;
-		Scene *sce = bmain->scene.first;
+		Scene *sce = bmain->scenes.first;
 
 		while (sce) {
 			if (sce->toolsettings == NULL) {
@@ -1372,7 +1372,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			sce = sce->id.next;
 		}
 
-		for (lt = bmain->lattice.first; lt; lt = lt->id.next) {
+		for (lt = bmain->lattices.first; lt; lt = lt->id.next) {
 			if (lt->fu == 0.0f && lt->fv == 0.0f && lt->fw == 0.0f) {
 				calc_lat_fudu(lt->flag, lt->pntsu, &lt->fu, &lt->du);
 				calc_lat_fudu(lt->flag, lt->pntsv, &lt->fv, &lt->dv);
@@ -1380,7 +1380,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			PartEff *paf;
 
@@ -1447,12 +1447,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (arm = bmain->armature.first; arm; arm = arm->id.next) {
+		for (arm = bmain->armatures.first; arm; arm = arm->id.next) {
 			bone_version_238(&arm->bonebase);
 			arm->deformflag |= ARM_DEF_VGROUP;
 		}
 
-		for (me = bmain->mesh.first; me; me = me->id.next) {
+		for (me = bmain->meshes.first; me; me = me->id.next) {
 			if (!me->medge) {
 				BKE_mesh_calc_edges_legacy(me, true);  /* true = use mface->edcode */
 			}
@@ -1461,7 +1461,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (key = bmain->key.first; key; key = key->id.next) {
+		for (key = bmain->shapekeys.first; key; key = key->id.next) {
 			KeyBlock *kb;
 			int index = 1;
 
@@ -1483,12 +1483,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if (bmain->versionfile <= 239) {
 		bArmature *arm;
 		Object *ob;
-		Scene *sce = bmain->scene.first;
-		Camera *cam = bmain->camera.first;
+		Scene *sce = bmain->scenes.first;
+		Camera *cam = bmain->cameras.first;
 		int set_passepartout = 0;
 
 		/* deformflag is local in modifier now */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 
 			for (md = ob->modifiers.first; md; md = md->next) {
@@ -1504,7 +1504,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 
 		/* updating stepsize for ghost drawing */
-		for (arm = bmain->armature.first; arm; arm = arm->id.next) {
+		for (arm = bmain->armatures.first; arm; arm = arm->id.next) {
 			bone_version_239(&arm->bonebase);
 			if (arm->layer == 0)
 				arm->layer = 1;
@@ -1539,12 +1539,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bNodeTree *ntree;
 
 		/* updating layers still */
-		for (arm = bmain->armature.first; arm; arm = arm->id.next) {
+		for (arm = bmain->armatures.first; arm; arm = arm->id.next) {
 			bone_version_239(&arm->bonebase);
 			if (arm->layer == 0)
 				arm->layer = 1;
 		}
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			if (sce->audio.mixrate == 0)
 				sce->audio.mixrate = 48000;
 
@@ -1571,15 +1571,15 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next)
+		for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next)
 			ntree_version_241(ntree);
 
-		for (la = bmain->light.first; la; la = la->id.next)
+		for (la = bmain->lights.first; la; la = la->id.next)
 			if (la->buffers == 0)
 				la->buffers = 1;
 
 		/* for empty drawsize and drawtype */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->empty_drawsize == 0.0f) {
 				ob->empty_drawtype = OB_ARROWS;
 				ob->empty_drawsize = 1.0;
@@ -1589,7 +1589,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* during 2.41 images with this name were used for viewer node output, lets fix that */
 		if (bmain->versionfile == 241) {
 			Image *ima;
-			for (ima = bmain->image.first; ima; ima = ima->id.next) {
+			for (ima = bmain->images.first; ima; ima = ima->id.next) {
 				if (STREQ(ima->name, "Compositor")) {
 					strcpy(ima->id.name + 2, "Viewer Node");
 					strcpy(ima->name, "Viewer Node");
@@ -1612,7 +1612,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bNodeTree *ntree;
 		int a;
 
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 			sa = sc->areabase.first;
 			while (sa) {
@@ -1629,7 +1629,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			enum {
 				R_THREADS = (1 << 19),
 			};
@@ -1645,11 +1645,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				ntree_version_242(sce->nodetree);
 		}
 
-		for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next)
+		for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next)
 			ntree_version_242(ntree);
 
 		/* add default radius values to old curve points */
-		for (cu = bmain->curve.first; cu; cu = cu->id.next) {
+		for (cu = bmain->curves.first; cu; cu = cu->id.next) {
 			for (nu = cu->nurb.first; nu; nu = nu->next) {
 				if (nu) {
 					if (nu->bezt) {
@@ -1668,7 +1668,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			ListBase *list;
 			list = &ob->constraints;
@@ -1756,15 +1756,15 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 		}
 
-		for (ma = bmain->mat.first; ma; ma = ma->id.next) {
+		for (ma = bmain->materials.first; ma; ma = ma->id.next) {
 			if (ma->nodetree)
 				ntree_version_242(ma->nodetree);
 		}
 
-		for (me = bmain->mesh.first; me; me = me->id.next)
+		for (me = bmain->meshes.first; me; me = me->id.next)
 			customdata_version_242(me);
 
-		for (collection = bmain->collection.first; collection; collection = collection->id.next)
+		for (collection = bmain->collections.first; collection; collection = collection->id.next)
 			if (collection->layer == 0)
 				collection->layer = (1 << 20) - 1;
 
@@ -1774,7 +1774,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			Tex *tex;
 
 			/* Image refactor initialize */
-			for (ima = bmain->image.first; ima; ima = ima->id.next) {
+			for (ima = bmain->images.first; ima; ima = ima->id.next) {
 				ima->source = IMA_SRC_FILE;
 				ima->type = IMA_TYPE_IMAGE;
 
@@ -1791,7 +1791,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				}
 
 			}
-			for (tex = bmain->tex.first; tex; tex = tex->id.next) {
+			for (tex = bmain->textures.first; tex; tex = tex->id.next) {
 				enum {
 					TEX_ANIMCYCLIC = (1 << 6),
 					TEX_ANIM5 = (1 << 7),
@@ -1808,19 +1808,19 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				tex->iuser.sfra = tex->sfra;
 				tex->iuser.cycl = (tex->imaflag & TEX_ANIMCYCLIC) != 0;
 			}
-			for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+			for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 				if (sce->nodetree)
 					do_version_ntree_242_2(sce->nodetree);
 			}
-			for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next)
+			for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next)
 				do_version_ntree_242_2(ntree);
-			for (ma = bmain->mat.first; ma; ma = ma->id.next)
+			for (ma = bmain->materials.first; ma; ma = ma->id.next)
 				if (ma->nodetree)
 					do_version_ntree_242_2(ma->nodetree);
 		}
 
 		if (bmain->subversionfile < 4) {
-			for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+			for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 				sce->r.bake_mode = 1;   /* prevent to include render stuff here */
 				sce->r.bake_filter = 16;
 				sce->r.bake_flag = R_BAKE_CLEAR;
@@ -1829,7 +1829,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile <= 243) {
-		Object *ob = bmain->object.first;
+		Object *ob = bmain->objects.first;
 
 		for (; ob; ob = ob->id.next) {
 			bDeformGroup *curdef;
@@ -1870,7 +1870,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		/* render layer added, this is not the active layer */
 		if (bmain->versionfile <= 243 || bmain->subversionfile < 2) {
 			Mesh *me;
-			for (me = bmain->mesh.first; me; me = me->id.next)
+			for (me = bmain->meshes.first; me; me = me->id.next)
 				customdata_version_243(me);
 		}
 
@@ -1881,7 +1881,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 		if (bmain->versionfile != 244 || bmain->subversionfile < 2) {
 			/* correct older action editors - incorrect scrolling */
-			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+			for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 				ScrArea *sa;
 				sa = sc->areabase.first;
 				while (sa) {
@@ -1921,7 +1921,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		if (!(bmain->versionfile == 244 && bmain->subversionfile == 3) &&
 		    ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile == 0)) )
 		{
-			for (ob = bmain->object.first; ob; ob = ob->id.next) {
+			for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 				ListBase *list;
 				list = &ob->constraints;
 
@@ -1991,13 +1991,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		if (bmain->versionfile != 245) {
 
 			/* repair preview from 242 - 244*/
-			for (ima = bmain->image.first; ima; ima = ima->id.next) {
+			for (ima = bmain->images.first; ima; ima = ima->id.next) {
 				ima->preview = NULL;
 			}
 		}
 
 		/* add point caches */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->soft && !ob->soft->pointcache)
 				ob->soft->pointcache = BKE_ptcache_add(&ob->soft->ptcaches);
 
@@ -2025,7 +2025,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 		/* Copy over old per-level multires vertex data
 		 * into a single vertex array in struct Multires */
-		for (me = bmain->mesh.first; me; me = me->id.next) {
+		for (me = bmain->meshes.first; me; me = me->id.next) {
 			if (me->mr && !me->mr->verts) {
 				MultiresLevel *lvl = me->mr->levels.last;
 				if (lvl) {
@@ -2041,7 +2041,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 
 		if (bmain->versionfile != 245 || bmain->subversionfile < 1) {
-			for (la = bmain->light.first; la; la = la->id.next) {
+			for (la = bmain->lights.first; la; la = la->id.next) {
 				la->falloff_type = LA_FALLOFF_INVLINEAR;
 
 				if (la->curfalloff == NULL) {
@@ -2051,18 +2051,18 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (ma = bmain->mat.first; ma; ma = ma->id.next) {
+		for (ma = bmain->materials.first; ma; ma = ma->id.next) {
 			if (ma->gloss_mir == 0.0f) {
 				ma->gloss_mir = 1.0f;
 			}
 		}
 
-		for (part = bmain->particle.first; part; part = part->id.next) {
+		for (part = bmain->particles.first; part; part = part->id.next) {
 			if (part->ren_child_nbr == 0)
 				part->ren_child_nbr = part->child_nbr;
 		}
 
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			if (sce->nodetree)
 				ntree_version_245(fd, lib, sce->nodetree);
 
@@ -2072,18 +2072,18 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next)
+		for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next)
 			ntree_version_245(fd, lib, ntree);
 
 		/* fix for temporary flag changes during 245 cycle */
-		for (ima = bmain->image.first; ima; ima = ima->id.next) {
+		for (ima = bmain->images.first; ima; ima = ima->id.next) {
 			if (ima->flag & IMA_OLD_PREMUL) {
 				ima->flag &= ~IMA_OLD_PREMUL;
 				ima->alpha_mode = IMA_ALPHA_STRAIGHT;
 			}
 		}
 
-		for (tex = bmain->tex.first; tex; tex = tex->id.next) {
+		for (tex = bmain->textures.first; tex; tex = tex->id.next) {
 			if (tex->iuser.flag & IMA_OLD_PREMUL) {
 				tex->iuser.flag &= ~IMA_OLD_PREMUL;
 			}
@@ -2100,7 +2100,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Image *ima;
 
 		/* initialize 1:1 Aspect */
-		for (ima = bmain->image.first; ima; ima = ima->id.next) {
+		for (ima = bmain->images.first; ima; ima = ima->id.next) {
 			ima->aspx = ima->aspy = 1.0f;
 		}
 	}
@@ -2110,10 +2110,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		ModifierData *md;
 		Object *ob;
 
-		for (arm = bmain->armature.first; arm; arm = arm->id.next)
+		for (arm = bmain->armatures.first; arm; arm = arm->id.next)
 			arm->deformflag |= ARM_DEF_B_BONE_REST;
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			for (md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_Armature)
 					((ArmatureModifierData *)md)->deformflag |= ARM_DEF_B_BONE_REST;
@@ -2124,7 +2124,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 5)) {
 		/* foreground color needs to be something other then black */
 		Scene *sce;
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;
 			sce->r.fg_stamp[3] = 1.0f; /* don't use text alpha yet */
 			sce->r.bg_stamp[3] = 0.25f; /* make sure the background has full alpha */
@@ -2135,7 +2135,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 6)) {
 		Scene *sce;
 		/* fix frs_sec_base */
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			if (sce->r.frs_sec_base == 0) {
 				sce->r.frs_sec_base = 1;
 			}
@@ -2146,7 +2146,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Object *ob;
 		bPoseChannel *pchan;
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->pose) {
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					do_version_constraints_245(&pchan->constraints);
@@ -2176,7 +2176,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Object *ob;
 		PartEff *paf = NULL;
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->soft && ob->soft->keys) {
 				SoftBody *sb = ob->soft;
 				int k;
@@ -2283,7 +2283,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 				/* dupliobjects */
 				if (ob->transflag & OB_DUPLIVERTS) {
-					Object *dup = bmain->object.first;
+					Object *dup = bmain->objects.first;
 
 					for (; dup; dup = dup->id.next) {
 						if (ob == blo_do_versions_newlibadr(fd, lib, dup->parent)) {
@@ -2311,7 +2311,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			ParticleEditSettings *pset = &sce->toolsettings->particle;
 			int a;
 
@@ -2336,7 +2336,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Object *ob;
 
 		/* dupliface scale */
-		for (ob = bmain->object.first; ob; ob = ob->id.next)
+		for (ob = bmain->objects.first; ob; ob = ob->id.next)
 			ob->instance_faces_scale = 1.0f;
 	}
 
@@ -2345,7 +2345,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bActionStrip *strip;
 
 		/* nla-strips - scale */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			for (strip = ob->nlastrips.first; strip; strip = strip->next) {
 				float length, actlength, repeat;
 
@@ -2374,7 +2374,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Scene *sce;
 		Sequence *seq;
 
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			SEQ_BEGIN (sce->ed, seq)
 			{
 				if (seq->blend_mode == 0)
@@ -2385,38 +2385,38 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	/* fix broken group lengths in id properties */
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 15)) {
-		idproperties_fix_group_lengths(bmain->scene);
-		idproperties_fix_group_lengths(bmain->library);
-		idproperties_fix_group_lengths(bmain->object);
-		idproperties_fix_group_lengths(bmain->mesh);
-		idproperties_fix_group_lengths(bmain->curve);
-		idproperties_fix_group_lengths(bmain->mball);
-		idproperties_fix_group_lengths(bmain->mat);
-		idproperties_fix_group_lengths(bmain->tex);
-		idproperties_fix_group_lengths(bmain->image);
-		idproperties_fix_group_lengths(bmain->lattice);
-		idproperties_fix_group_lengths(bmain->light);
-		idproperties_fix_group_lengths(bmain->camera);
+		idproperties_fix_group_lengths(bmain->scenes);
+		idproperties_fix_group_lengths(bmain->libraries);
+		idproperties_fix_group_lengths(bmain->objects);
+		idproperties_fix_group_lengths(bmain->meshes);
+		idproperties_fix_group_lengths(bmain->curves);
+		idproperties_fix_group_lengths(bmain->metaballs);
+		idproperties_fix_group_lengths(bmain->materials);
+		idproperties_fix_group_lengths(bmain->textures);
+		idproperties_fix_group_lengths(bmain->images);
+		idproperties_fix_group_lengths(bmain->lattices);
+		idproperties_fix_group_lengths(bmain->lights);
+		idproperties_fix_group_lengths(bmain->cameras);
 		idproperties_fix_group_lengths(bmain->ipo);
-		idproperties_fix_group_lengths(bmain->key);
-		idproperties_fix_group_lengths(bmain->world);
-		idproperties_fix_group_lengths(bmain->screen);
-		idproperties_fix_group_lengths(bmain->vfont);
-		idproperties_fix_group_lengths(bmain->text);
-		idproperties_fix_group_lengths(bmain->sound);
-		idproperties_fix_group_lengths(bmain->collection);
-		idproperties_fix_group_lengths(bmain->armature);
-		idproperties_fix_group_lengths(bmain->action);
-		idproperties_fix_group_lengths(bmain->nodetree);
-		idproperties_fix_group_lengths(bmain->brush);
-		idproperties_fix_group_lengths(bmain->particle);
+		idproperties_fix_group_lengths(bmain->shapekeys);
+		idproperties_fix_group_lengths(bmain->worlds);
+		idproperties_fix_group_lengths(bmain->screens);
+		idproperties_fix_group_lengths(bmain->fonts);
+		idproperties_fix_group_lengths(bmain->texts);
+		idproperties_fix_group_lengths(bmain->sounds);
+		idproperties_fix_group_lengths(bmain->collections);
+		idproperties_fix_group_lengths(bmain->armatures);
+		idproperties_fix_group_lengths(bmain->actions);
+		idproperties_fix_group_lengths(bmain->nodetrees);
+		idproperties_fix_group_lengths(bmain->brushes);
+		idproperties_fix_group_lengths(bmain->particles);
 	}
 
 	/* convert fluids to modifier */
 	if (bmain->versionfile < 246 || (bmain->versionfile == 246 && bmain->subversionfile < 1)) {
 		Object *ob;
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->fluidsimSettings) {
 				FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifier_new(eModifierType_Fluidsim);
 				BLI_addhead(&ob->modifiers, (ModifierData *)fluidmd);
@@ -2435,7 +2435,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 	if (bmain->versionfile < 246 || (bmain->versionfile == 246 && bmain->subversionfile < 1)) {
 		Object *ob;
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->pd && (ob->pd->forcefield == PFIELD_WIND))
 				ob->pd->f_noise = 0.0f;
 		}
@@ -2446,7 +2446,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Curve *cu;
 		Nurb *nu;
 
-		for (cu = bmain->curve.first; cu; cu = cu->id.next) {
+		for (cu = bmain->curves.first; cu; cu = cu->id.next) {
 			for (nu = cu->nurb.first; nu; nu = nu->next) {
 				if (nu) {
 					nu->radius_interp = 3;
@@ -2468,7 +2468,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		Scene *sce;
 
 		/* Note, these will need to be added for painting */
-		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 			sce->toolsettings->imapaint.seam_bleed = 2;
 			sce->toolsettings->imapaint.normal_angle = 80;
 		}
@@ -2478,7 +2478,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		bScreen *sc;
 
 		/* adjust default settings for Animation Editors */
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
@@ -2515,7 +2515,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	/* correct introduce of seed for wind force */
 	if (bmain->versionfile < 249 && bmain->subversionfile < 1) {
 		Object *ob;
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->pd)
 				ob->pd->seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
 		}
@@ -2523,7 +2523,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 	}
 
 	if (bmain->versionfile < 249 && bmain->subversionfile < 2) {
-		Scene *sce = bmain->scene.first;
+		Scene *sce = bmain->scenes.first;
 		Sequence *seq;
 		Editing *ed;
 

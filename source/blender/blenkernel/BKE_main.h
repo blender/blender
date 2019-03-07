@@ -84,42 +84,42 @@ typedef struct Main {
 	BlendThumbnail *blen_thumb;
 
 	struct Library *curlib;
-	ListBase scene;
-	ListBase library;
-	ListBase object;
-	ListBase mesh;
-	ListBase curve;
-	ListBase mball;
-	ListBase mat;
-	ListBase tex;
-	ListBase image;
-	ListBase lattice;
-	ListBase light;
-	ListBase camera;
-	ListBase ipo;   // XXX deprecated
-	ListBase key;
-	ListBase world;
-	ListBase screen;
-	ListBase vfont;
-	ListBase text;
-	ListBase speaker;
-	ListBase lightprobe;
-	ListBase sound;
-	ListBase collection;
-	ListBase armature;
-	ListBase action;
-	ListBase nodetree;
-	ListBase brush;
-	ListBase particle;
-	ListBase palette;
-	ListBase paintcurve;
-	ListBase wm;
-	ListBase gpencil;
-	ListBase movieclip;
-	ListBase mask;
-	ListBase linestyle;
-	ListBase cachefile;
-	ListBase workspace;
+	ListBase scenes;
+	ListBase libraries;
+	ListBase objects;
+	ListBase meshes;
+	ListBase curves;
+	ListBase metaballs;
+	ListBase materials;
+	ListBase textures;
+	ListBase images;
+	ListBase lattices;
+	ListBase lights;
+	ListBase cameras;
+	ListBase ipo;  /* Deprecated (only for versioning). */
+	ListBase shapekeys;
+	ListBase worlds;
+	ListBase screens;
+	ListBase fonts;
+	ListBase texts;
+	ListBase speakers;
+	ListBase lightprobes;
+	ListBase sounds;
+	ListBase collections;
+	ListBase armatures;
+	ListBase actions;
+	ListBase nodetrees;
+	ListBase brushes;
+	ListBase particles;
+	ListBase palettes;
+	ListBase paintcurves;
+	ListBase wm;  /* Singleton (exception). */
+	ListBase gpencils;
+	ListBase movieclips;
+	ListBase masks;
+	ListBase linestyles;
+	ListBase cachefiles;
+	ListBase workspaces;
 
 	/* Must be generated, used and freed by same code - never assume this is valid data unless you know
 	 * when, who and how it was created.

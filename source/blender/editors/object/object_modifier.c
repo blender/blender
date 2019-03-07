@@ -233,7 +233,7 @@ bool ED_object_iter_other(
 		Object *ob;
 		int totfound = include_orig ? 0 : 1;
 
-		for (ob = bmain->object.first; ob && totfound < users;
+		for (ob = bmain->objects.first; ob && totfound < users;
 		     ob = ob->id.next)
 		{
 			if (((ob != orig_ob) || include_orig) &&

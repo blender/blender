@@ -1206,7 +1206,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
 	/* XXX in future, handle multiple windows with multiple screens? */
 	current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
-	for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
+	for (sce = mainvar->scenes.first; sce; sce = sce->id.next) {
 		if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
 			data.sfra = sce->r.sfra;
 			data.efra = sce->r.efra;

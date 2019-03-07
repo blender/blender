@@ -75,7 +75,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+	for (Collection *collection = bmain->collections.first; collection; collection = collection->id.next) {
 		for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
 			Object *object = cob->ob;
 

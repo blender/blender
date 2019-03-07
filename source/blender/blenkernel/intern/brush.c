@@ -527,7 +527,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 
 void BKE_brush_update_material(Main *bmain, Material *ma, Brush *exclude_brush)
 {
-	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+	for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
 		if ((exclude_brush != NULL) && (brush == exclude_brush)) {
 			continue;
 		}
@@ -547,7 +547,7 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
 {
 	Brush *brush;
 
-	for (brush = bmain->brush.first; brush; brush = brush->id.next) {
+	for (brush = bmain->brushes.first; brush; brush = brush->id.next) {
 		if (brush->ob_mode & ob_mode)
 			return brush;
 	}

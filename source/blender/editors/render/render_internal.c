@@ -261,7 +261,7 @@ static void screen_render_single_layer_set(wmOperator *op, Main *mainp, ViewLaye
 		char scene_name[MAX_ID_NAME - 2];
 
 		RNA_string_get(op->ptr, "scene", scene_name);
-		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
+		scn = (Scene *)BLI_findstring(&mainp->scenes, scene_name, offsetof(ID, name) + 2);
 
 		if (scn) {
 			/* camera switch wont have updated */
@@ -817,7 +817,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
 	Base *base;
 
 	/* Tag all the available objects. */
-	BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
+	BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
 
 	/* Go over all the visible objects. */
 	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {

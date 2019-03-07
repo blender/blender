@@ -90,166 +90,166 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
 }
 #endif
 
-static void rna_Main_scene_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_scenes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->scene, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->scenes, NULL);
 }
 
-static void rna_Main_object_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->object, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->objects, NULL);
 }
 
-static void rna_Main_light_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_lights_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->light, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->lights, NULL);
 }
 
-static void rna_Main_library_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_libraries_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->library, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->libraries, NULL);
 }
 
-static void rna_Main_mesh_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_meshes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->mesh, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->meshes, NULL);
 }
 
-static void rna_Main_curve_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_curves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->curve, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->curves, NULL);
 }
 
-static void rna_Main_mball_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_metaballs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->mball, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->metaballs, NULL);
 }
 
-static void rna_Main_mat_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_materials_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->mat, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->materials, NULL);
 }
 
-static void rna_Main_tex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_textures_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->tex, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->textures, NULL);
 }
 
-static void rna_Main_image_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_images_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->image, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->images, NULL);
 }
 
-static void rna_Main_lattice_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_lattices_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lattice, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->lattices, NULL);
 }
 
-static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_cameras_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->camera, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->cameras, NULL);
 }
 
-static void rna_Main_key_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_shapekeys_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->key, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->shapekeys, NULL);
 }
 
-static void rna_Main_world_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_worlds_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->world, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->worlds, NULL);
 }
 
-static void rna_Main_screen_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_screens_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->screen, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->screens, NULL);
 }
 
-static void rna_Main_font_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_fonts_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->vfont, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->fonts, NULL);
 }
 
-static void rna_Main_text_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_texts_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->text, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->texts, NULL);
 }
 
-static void rna_Main_speaker_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_speakers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->speaker, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->speakers, NULL);
 }
 
-static void rna_Main_sound_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_sounds_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->sound, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->sounds, NULL);
 }
 
-static void rna_Main_collection_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->collection, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->collections, NULL);
 }
 
-static void rna_Main_armature_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_armatures_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->armature, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->armatures, NULL);
 }
 
-static void rna_Main_action_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_actions_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->action, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->actions, NULL);
 }
 
-static void rna_Main_nodetree_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_nodetrees_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->nodetree, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->nodetrees, NULL);
 }
 
-static void rna_Main_brush_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_brushes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->brush, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->brushes, NULL);
 }
 
-static void rna_Main_particle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_particles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->particle, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->particles, NULL);
 }
 
-static void rna_Main_palette_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_palettes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->palette, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->palettes, NULL);
 }
 
-static void rna_Main_gpencil_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_gpencils_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->gpencil, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->gpencils, NULL);
 }
 
 static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -261,43 +261,43 @@ static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 static void rna_Main_movieclips_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->movieclip, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->movieclips, NULL);
 }
 
 static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->mask, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->masks, NULL);
 }
 
-static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_linestyles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->linestyle, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->linestyles, NULL);
 }
 
-static void rna_Main_cachefile_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_cachefiles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->cachefile, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->cachefiles, NULL);
 }
 
-static void rna_Main_paintcurve_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_paintcurves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->paintcurve, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->paintcurves, NULL);
 }
 
-static void rna_Main_workspace_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_workspaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->workspace, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->workspaces, NULL);
 }
 
-static void rna_Main_lightprobe_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_lightprobes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lightprobe, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->lightprobes, NULL);
 }
 
 static void rna_Main_version_get(PointerRNA *ptr, int *value)
@@ -342,41 +342,41 @@ void RNA_def_main(BlenderRNA *brna)
 
 	/* plural must match idtypes in readblenentry.c */
 	MainCollectionDef lists[] = {
-		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera data-blocks", RNA_def_main_cameras},
-		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene data-blocks", RNA_def_main_scenes},
-		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object data-blocks", RNA_def_main_objects},
-		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material data-blocks", RNA_def_main_materials},
-		{"node_groups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group data-blocks", RNA_def_main_node_groups},
-		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh data-blocks", RNA_def_main_meshes},
-		{"lights", "Light", "rna_Main_light_begin", "Lights", "Light data-blocks", RNA_def_main_lights},
-		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library data-blocks", RNA_def_main_libraries},
-		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen data-blocks", RNA_def_main_screens},
+		{"cameras", "Camera", "rna_Main_cameras_begin", "Cameras", "Camera data-blocks", RNA_def_main_cameras},
+		{"scenes", "Scene", "rna_Main_scenes_begin", "Scenes", "Scene data-blocks", RNA_def_main_scenes},
+		{"objects", "Object", "rna_Main_objects_begin", "Objects", "Object data-blocks", RNA_def_main_objects},
+		{"materials", "Material", "rna_Main_materials_begin", "Materials", "Material data-blocks", RNA_def_main_materials},
+		{"node_groups", "NodeTree", "rna_Main_nodetrees_begin", "Node Groups", "Node group data-blocks", RNA_def_main_node_groups},
+		{"meshes", "Mesh", "rna_Main_meshes_begin", "Meshes", "Mesh data-blocks", RNA_def_main_meshes},
+		{"lights", "Light", "rna_Main_lights_begin", "Lights", "Light data-blocks", RNA_def_main_lights},
+		{"libraries", "Library", "rna_Main_libraries_begin", "Libraries", "Library data-blocks", RNA_def_main_libraries},
+		{"screens", "Screen", "rna_Main_screens_begin", "Screens", "Screen data-blocks", RNA_def_main_screens},
 		{"window_managers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager data-blocks", RNA_def_main_window_managers},
-		{"images", "Image", "rna_Main_image_begin", "Images", "Image data-blocks", RNA_def_main_images},
-		{"lattices", "Lattice", "rna_Main_lattice_begin", "Lattices", "Lattice data-blocks", RNA_def_main_lattices},
-		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve data-blocks", RNA_def_main_curves},
-		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball data-blocks", RNA_def_main_metaballs},
-		{"fonts", "VectorFont", "rna_Main_font_begin", "Vector Fonts", "Vector font data-blocks", RNA_def_main_fonts},
-		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture data-blocks", RNA_def_main_textures},
-		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush data-blocks", RNA_def_main_brushes},
-		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World data-blocks", RNA_def_main_worlds},
-		{"collections", "Collection", "rna_Main_collection_begin", "Collections", "Collection data-blocks", RNA_def_main_collections},
-		{"shape_keys", "Key", "rna_Main_key_begin", "Shape Keys", "Shape Key data-blocks", NULL},
-		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text data-blocks", RNA_def_main_texts},
-		{"speakers", "Speaker", "rna_Main_speaker_begin", "Speakers", "Speaker data-blocks", RNA_def_main_speakers},
-		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound data-blocks", RNA_def_main_sounds},
-		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature data-blocks", RNA_def_main_armatures},
-		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action data-blocks", RNA_def_main_actions},
-		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle data-blocks", RNA_def_main_particles},
-		{"palettes", "Palette", "rna_Main_palette_begin", "Palettes", "Palette data-blocks", RNA_def_main_palettes},
-		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil data-blocks", RNA_def_main_gpencil},
+		{"images", "Image", "rna_Main_images_begin", "Images", "Image data-blocks", RNA_def_main_images},
+		{"lattices", "Lattice", "rna_Main_lattices_begin", "Lattices", "Lattice data-blocks", RNA_def_main_lattices},
+		{"curves", "Curve", "rna_Main_curves_begin", "Curves", "Curve data-blocks", RNA_def_main_curves},
+		{"metaballs", "MetaBall", "rna_Main_metaballs_begin", "Metaballs", "Metaball data-blocks", RNA_def_main_metaballs},
+		{"fonts", "VectorFont", "rna_Main_fonts_begin", "Vector Fonts", "Vector font data-blocks", RNA_def_main_fonts},
+		{"textures", "Texture", "rna_Main_textures_begin", "Textures", "Texture data-blocks", RNA_def_main_textures},
+		{"brushes", "Brush", "rna_Main_brushes_begin", "Brushes", "Brush data-blocks", RNA_def_main_brushes},
+		{"worlds", "World", "rna_Main_worlds_begin", "Worlds", "World data-blocks", RNA_def_main_worlds},
+		{"collections", "Collection", "rna_Main_collections_begin", "Collections", "Collection data-blocks", RNA_def_main_collections},
+		{"shape_keys", "Key", "rna_Main_shapekeys_begin", "Shape Keys", "Shape Key data-blocks", NULL},
+		{"texts", "Text", "rna_Main_texts_begin", "Texts", "Text data-blocks", RNA_def_main_texts},
+		{"speakers", "Speaker", "rna_Main_speakers_begin", "Speakers", "Speaker data-blocks", RNA_def_main_speakers},
+		{"sounds", "Sound", "rna_Main_sounds_begin", "Sounds", "Sound data-blocks", RNA_def_main_sounds},
+		{"armatures", "Armature", "rna_Main_armatures_begin", "Armatures", "Armature data-blocks", RNA_def_main_armatures},
+		{"actions", "Action", "rna_Main_actions_begin", "Actions", "Action data-blocks", RNA_def_main_actions},
+		{"particles", "ParticleSettings", "rna_Main_particles_begin", "Particles", "Particle data-blocks", RNA_def_main_particles},
+		{"palettes", "Palette", "rna_Main_palettes_begin", "Palettes", "Palette data-blocks", RNA_def_main_palettes},
+		{"grease_pencil", "GreasePencil", "rna_Main_gpencils_begin", "Grease Pencil", "Grease Pencil data-blocks", RNA_def_main_gpencil},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip data-blocks", RNA_def_main_movieclips},
 		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks data-blocks", RNA_def_main_masks},
-		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style data-blocks", RNA_def_main_linestyles},
-		{"cache_files", "CacheFile", "rna_Main_cachefile_begin", "Cache Files", "Cache Files data-blocks", RNA_def_main_cachefiles},
-		{"paint_curves", "PaintCurve", "rna_Main_paintcurve_begin", "Paint Curves", "Paint Curves data-blocks", RNA_def_main_paintcurves},
-		{"workspaces", "WorkSpace", "rna_Main_workspace_begin", "Workspaces", "Workspace data-blocks", RNA_def_main_workspaces},
-		{"lightprobes", "LightProbe", "rna_Main_lightprobe_begin", "LightProbes", "LightProbe data-blocks", RNA_def_main_lightprobes},
+		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyles_begin", "Line Styles", "Line Style data-blocks", RNA_def_main_linestyles},
+		{"cache_files", "CacheFile", "rna_Main_cachefiles_begin", "Cache Files", "Cache Files data-blocks", RNA_def_main_cachefiles},
+		{"paint_curves", "PaintCurve", "rna_Main_paintcurves_begin", "Paint Curves", "Paint Curves data-blocks", RNA_def_main_paintcurves},
+		{"workspaces", "WorkSpace", "rna_Main_workspaces_begin", "Workspaces", "Workspace data-blocks", RNA_def_main_workspaces},
+		{"lightprobes", "LightProbe", "rna_Main_lightprobes_begin", "LightProbes", "LightProbe data-blocks", RNA_def_main_lightprobes},
 		{NULL, NULL, NULL, NULL, NULL, NULL},
 	};
 

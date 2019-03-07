@@ -1266,7 +1266,7 @@ void WM_gizmoconfig_update(struct Main *bmain)
 
 void WM_reinit_gizmomap_all(Main *bmain)
 {
-	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+	for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;

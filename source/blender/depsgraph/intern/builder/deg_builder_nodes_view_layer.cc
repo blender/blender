@@ -132,15 +132,15 @@ void DepsgraphNodeBuilder::build_view_layer(
 		build_compositor(scene);
 	}
 	/* Cache file. */
-	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefile) {
+	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
 		build_cachefile(cachefile);
 	}
 	/* Masks. */
-	LISTBASE_FOREACH (Mask *, mask, &bmain_->mask) {
+	LISTBASE_FOREACH (Mask *, mask, &bmain_->masks) {
 		build_mask(mask);
 	}
 	/* Movie clips. */
-	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
+	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclips) {
 		build_movieclip(clip);
 	}
 	/* Material override. */

@@ -1499,7 +1499,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
 static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	ListBase *markers = ED_context_get_markers(C);
-	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
+	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scenes, RNA_enum_get(op->ptr, "scene"));
 	TimeMarker *marker, *marker_new;
 
 	if (scene_to == NULL) {

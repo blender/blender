@@ -822,7 +822,7 @@ void BKE_main_collection_sync(const Main *bmain)
 
 	/* TODO: optimize for file load so only linked collections get checked? */
 
-	for (const Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		BKE_scene_collection_sync(scene);
 	}
 }
@@ -832,7 +832,7 @@ void BKE_main_collection_sync_remap(const Main *bmain)
 	/* On remapping of object or collection pointers free caches. */
 	/* TODO: try to make this faster */
 
-	for (const Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 			MEM_SAFE_FREE(view_layer->object_bases_array);
 
@@ -843,7 +843,7 @@ void BKE_main_collection_sync_remap(const Main *bmain)
 		}
 	}
 
-	for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+	for (Collection *collection = bmain->collections.first; collection; collection = collection->id.next) {
 		BKE_collection_object_cache_free(collection);
 		DEG_id_tag_update_ex((Main *)bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
 	}

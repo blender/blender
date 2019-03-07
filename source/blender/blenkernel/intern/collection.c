@@ -517,7 +517,7 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
 bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection *collection)
 {
 	/* first flag all collections */
-	BKE_main_id_tag_listbase(&bmain->collection, LIB_TAG_DOIT, true);
+	BKE_main_id_tag_listbase(&bmain->collections, LIB_TAG_DOIT, true);
 
 	return collection_object_cyclic_check_internal(object, collection);
 }
@@ -548,7 +548,7 @@ Collection *BKE_collection_object_find(Main *bmain, Collection *collection, Obje
 	if (collection)
 		collection = collection->id.next;
 	else
-		collection = bmain->collection.first;
+		collection = bmain->collections.first;
 
 	while (collection) {
 		if (BKE_collection_has_object(collection, ob))
@@ -737,11 +737,11 @@ static void collection_object_remove_nulls(Collection *collection)
 
 void BKE_collections_object_remove_nulls(Main *bmain)
 {
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		collection_object_remove_nulls(scene->master_collection);
 	}
 
-	for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+	for (Collection *collection = bmain->collections.first; collection; collection = collection->id.next) {
 		collection_object_remove_nulls(collection);
 	}
 }
@@ -785,17 +785,17 @@ void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
 		 * otherwise we can miss some cases...
 		 * Also, master collections are not in bmain, so we also need to loop over scenes.
 		 */
-		for (collection = bmain->collection.first; collection != NULL; collection = collection->id.next) {
+		for (collection = bmain->collections.first; collection != NULL; collection = collection->id.next) {
 			collection_null_children_remove(collection);
 		}
-		for (Scene *scene = bmain->scene.first; scene != NULL; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
 			collection_null_children_remove(BKE_collection_master(scene));
 		}
 
-		for (collection = bmain->collection.first; collection != NULL; collection = collection->id.next) {
+		for (collection = bmain->collections.first; collection != NULL; collection = collection->id.next) {
 			collection_missing_parents_remove(collection);
 		}
-		for (Scene *scene = bmain->scene.first; scene != NULL; scene = scene->id.next) {
+		for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
 			collection_missing_parents_remove(BKE_collection_master(scene));
 		}
 	}

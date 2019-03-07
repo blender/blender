@@ -1133,7 +1133,7 @@ static int editsource_text_edit(
 	/* Developers may wish to copy-paste to an external editor. */
 	printf("%s:%d\n", filepath, line);
 
-	for (text = bmain->text.first; text; text = text->id.next) {
+	for (text = bmain->texts.first; text; text = text->id.next) {
 		if (text->name && BLI_path_cmp(text->name, filepath) == 0) {
 			break;
 		}

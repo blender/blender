@@ -408,7 +408,7 @@ static void ignore_parent_tx(const bContext *C, Main *bmain, Scene *scene, Objec
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	/* a change was made, adjust the children to compensate */
-	for (ob_child = bmain->object.first; ob_child; ob_child = ob_child->id.next) {
+	for (ob_child = bmain->objects.first; ob_child; ob_child = ob_child->id.next) {
 		if (ob_child->parent == ob) {
 			BKE_object_apply_mat4(ob_child, ob_child->obmat, true, false);
 			BKE_object_workob_calc_parent(depsgraph, scene, ob_child, &workob);
@@ -901,7 +901,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		BLI_listbase_rotate_first(&ctx_data_list, (LinkData *)ctx_ob_act);
 	}
 
-	for (tob = bmain->object.first; tob; tob = tob->id.next) {
+	for (tob = bmain->objects.first; tob; tob = tob->id.next) {
 		if (tob->data)
 			((ID *)tob->data)->tag &= ~LIB_TAG_DOIT;
 		if (tob->instance_collection)
@@ -1221,7 +1221,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	}
 	BLI_freelistN(&ctx_data_list);
 
-	for (tob = bmain->object.first; tob; tob = tob->id.next) {
+	for (tob = bmain->objects.first; tob; tob = tob->id.next) {
 		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT)) {
 			BKE_object_batch_cache_dirty_tag(tob);
 			DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

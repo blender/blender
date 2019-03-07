@@ -1112,7 +1112,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		}
 
 		if (ima) {
-			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+			for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 				ScrArea *sa;
 				for (sa = sc->areabase.first; sa; sa = sa->next) {
 					SpaceLink *sl;

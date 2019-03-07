@@ -1697,7 +1697,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	/* ----------- Animation Attached to Data -------------- */
 
 	/* objects */
-	for (id = bmain->object.first; id; id = id->next) {
+	for (id = bmain->objects.first; id; id = id->next) {
 		Object *ob = (Object *)id;
 		bPoseChannel *pchan;
 		bConstraint *con;
@@ -1824,7 +1824,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* shapekeys */
-	for (id = bmain->key.first; id; id = id->next) {
+	for (id = bmain->shapekeys.first; id; id = id->next) {
 		Key *key = (Key *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting key %s\n", id->name + 2);
@@ -1849,7 +1849,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* materials */
-	for (id = bmain->mat.first; id; id = id->next) {
+	for (id = bmain->materials.first; id; id = id->next) {
 		Material *ma = (Material *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting material %s\n", id->name + 2);
@@ -1871,7 +1871,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* worlds */
-	for (id = bmain->world.first; id; id = id->next) {
+	for (id = bmain->worlds.first; id; id = id->next) {
 		World *wo = (World *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting world %s\n", id->name + 2);
@@ -1893,7 +1893,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* sequence strips */
-	for (id = bmain->scene.first; id; id = id->next) {
+	for (id = bmain->scenes.first; id; id = id->next) {
 		Scene *scene = (Scene *)id;
 		Editing *ed = scene->ed;
 		if (ed && ed->seqbasep) {
@@ -1946,7 +1946,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 
 
 	/* textures */
-	for (id = bmain->tex.first; id; id = id->next) {
+	for (id = bmain->textures.first; id; id = id->next) {
 		Tex *te = (Tex *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting texture %s\n", id->name + 2);
@@ -1968,7 +1968,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* cameras */
-	for (id = bmain->camera.first; id; id = id->next) {
+	for (id = bmain->cameras.first; id; id = id->next) {
 		Camera *ca = (Camera *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting camera %s\n", id->name + 2);
@@ -1990,7 +1990,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* lights */
-	for (id = bmain->light.first; id; id = id->next) {
+	for (id = bmain->lights.first; id; id = id->next) {
 		Light *la = (Light *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting light %s\n", id->name + 2);
@@ -2012,7 +2012,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	}
 
 	/* curves */
-	for (id = bmain->curve.first; id; id = id->next) {
+	for (id = bmain->curves.first; id; id = id->next) {
 		Curve *cu = (Curve *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting curve %s\n", id->name + 2);
@@ -2045,7 +2045,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	 */
 
 	/* actions */
-	for (id = bmain->action.first; id; id = id->next) {
+	for (id = bmain->actions.first; id; id = id->next) {
 		bAction *act = (bAction *)id;
 
 		if (G.debug & G_DEBUG) printf("\tconverting action %s\n", id->name + 2);

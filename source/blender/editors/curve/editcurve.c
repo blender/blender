@@ -1132,7 +1132,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
 		return;
 	}
 
-	for (object = bmain->object.first; object; object = object->id.next) {
+	for (object = bmain->objects.first; object; object = object->id.next) {
 		ModifierData *md;
 		int index;
 		if ((object->parent) &&

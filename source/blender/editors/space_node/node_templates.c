@@ -301,7 +301,7 @@ static void ui_node_link_items(NodeLinkArg *arg, int in_out, NodeLinkItem **r_it
 		bNodeTree *ngroup;
 		int i;
 
-		for (ngroup = arg->bmain->nodetree.first; ngroup; ngroup = ngroup->id.next) {
+		for (ngroup = arg->bmain->nodetrees.first; ngroup; ngroup = ngroup->id.next) {
 			ListBase *lb = ((in_out == SOCK_IN) ? &ngroup->inputs : &ngroup->outputs);
 			totitems += BLI_listbase_count(lb);
 		}
@@ -310,7 +310,7 @@ static void ui_node_link_items(NodeLinkArg *arg, int in_out, NodeLinkItem **r_it
 			items = MEM_callocN(sizeof(NodeLinkItem) * totitems, "ui node link items");
 
 			i = 0;
-			for (ngroup = arg->bmain->nodetree.first; ngroup; ngroup = ngroup->id.next) {
+			for (ngroup = arg->bmain->nodetrees.first; ngroup; ngroup = ngroup->id.next) {
 				ListBase *lb = (in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
 				bNodeSocket *stemp;
 				int index;

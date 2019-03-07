@@ -176,7 +176,7 @@ void ED_render_engine_area_exit(Main *bmain, ScrArea *sa)
 void ED_render_engine_changed(Main *bmain)
 {
 	/* on changing the render engine type, clear all running render engines */
-	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+	for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
 		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 			ED_render_engine_area_exit(bmain, sa);
 		}
@@ -185,7 +185,7 @@ void ED_render_engine_changed(Main *bmain)
 	/* Inform all render engines and draw managers. */
 	DEGEditorUpdateContext update_ctx = {NULL};
 	update_ctx.bmain = bmain;
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		update_ctx.scene = scene;
 		LISTBASE_FOREACH(ViewLayer *, view_layer, &scene->view_layers) {
 			/* TDODO(sergey): Iterate over depsgraphs instead? */
@@ -225,7 +225,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
 
-	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		/* paint overlays */
 		for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 			BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
@@ -254,7 +254,7 @@ static void image_changed(Main *bmain, Image *ima)
 	BKE_icon_changed(BKE_icon_id_ensure(&ima->id));
 
 	/* textures */
-	for (tex = bmain->tex.first; tex; tex = tex->id.next)
+	for (tex = bmain->textures.first; tex; tex = tex->id.next)
 		if (tex->ima == ima)
 			texture_changed(bmain, tex);
 }
@@ -264,7 +264,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 	Object *ob;
 
 	/* glsl */
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 			BKE_texpaint_slots_refresh_object(scene, ob);
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);

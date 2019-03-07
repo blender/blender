@@ -753,7 +753,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 	if (RNA_struct_property_is_set(op->ptr, "id")) {
 		char sndname[MAX_ID_NAME - 2];
 		RNA_string_get(op->ptr, "id", sndname);
-		sound = BLI_findstring(&bmain->sound, sndname, offsetof(ID, name) + 2);
+		sound = BLI_findstring(&bmain->sounds, sndname, offsetof(ID, name) + 2);
 	}
 
 	if (!sound || !sound->packedfile)

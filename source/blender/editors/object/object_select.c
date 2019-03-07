@@ -788,7 +788,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	for (collection = CTX_data_main(C)->collection.first; collection && collection_count < COLLECTION_MENU_MAX; collection = collection->id.next) {
+	for (collection = CTX_data_main(C)->collections.first; collection && collection_count < COLLECTION_MENU_MAX; collection = collection->id.next) {
 		if (BKE_collection_has_object(collection, ob)) {
 			ob_collections[collection_count] = collection;
 			collection_count++;

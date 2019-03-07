@@ -518,7 +518,7 @@ static bool python_script_exec(
 			if (do_jump) {
 				/* ensure text is valid before use, the script may have freed its self */
 				Main *bmain_new = CTX_data_main(C);
-				if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->text, text) != -1)) {
+				if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->texts, text) != -1)) {
 					python_script_error_jump_text(text);
 				}
 			}
@@ -761,7 +761,7 @@ void BPY_modules_load_user(bContext *C)
 
 	bpy_context_set(C, &gilstate);
 
-	for (text = bmain->text.first; text; text = text->id.next) {
+	for (text = bmain->texts.first; text; text = text->id.next) {
 		if (text->flags & TXT_ISSCRIPT && BLI_path_extension_check(text->id.name + 2, ".py")) {
 			if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
 				if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {

@@ -1761,7 +1761,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 
 		/* Grab all Grease Pencil datablocks directly from main,
 		 * but only those that seem to be useful somewhere */
-		for (gpd = ac->bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+		for (gpd = ac->bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 			/* only show if gpd is used by something... */
 			if (ID_REAL_USERS(gpd) < 1)
 				continue;
@@ -1884,7 +1884,7 @@ static size_t animdata_filter_mask(Main *bmain, ListBase *anim_data, void *UNUSE
 
 	/* for now, grab mask datablocks directly from main */
 	// XXX: this is not good...
-	for (mask = bmain->mask.first; mask; mask = mask->id.next) {
+	for (mask = bmain->masks.first; mask; mask = mask->id.next) {
 		ListBase tmp_data = {NULL, NULL};
 		size_t tmp_items = 0;
 
@@ -2841,7 +2841,7 @@ static size_t animdata_filter_dopesheet_movieclips(bAnimContext *ac, ListBase *a
 {
 	size_t items = 0;
 	MovieClip *clip;
-	for (clip = ac->bmain->movieclip.first; clip != NULL; clip = clip->id.next) {
+	for (clip = ac->bmain->movieclips.first; clip != NULL; clip = clip->id.next) {
 		/* only show if gpd is used by something... */
 		if (ID_REAL_USERS(clip) < 1) {
 			continue;
@@ -2981,7 +2981,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 
 	/* Cache files level animations (frame duration and such). */
 	if (!(ads->filterflag2 & ADS_FILTER_NOCACHEFILES) && !(ads->filterflag & ADS_FILTER_ONLYSEL)) {
-		CacheFile *cache_file = ac->bmain->cachefile.first;
+		CacheFile *cache_file = ac->bmain->cachefiles.first;
 		for (; cache_file; cache_file = cache_file->id.next) {
 			items += animdata_filter_ds_cachefile(ac, anim_data, ads, cache_file, filter_mode);
 		}

@@ -132,7 +132,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* now add all selected objects to the collection(s) */
-	for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+	for (collection = bmain->collections.first; collection; collection = collection->id.next) {
 		if (single_collection && collection != single_collection)
 			continue;
 		if (!BKE_collection_has_object(collection, ob))
@@ -207,7 +207,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	/* linking to same collection requires its own loop so we can avoid
 	 * looking up the active objects collections each time */
 
-	for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+	for (collection = bmain->collections.first; collection; collection = collection->id.next) {
 		if (single_collection && collection != single_collection)
 			continue;
 
@@ -299,7 +299,7 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
-	for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+	for (collection = bmain->collections.first; collection; collection = collection->id.next) {
 		if (single_collection && collection != single_collection)
 			continue;
 		if (!BKE_collection_has_object(collection, ob))
@@ -429,7 +429,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
-	Collection *collection = BLI_findlink(&bmain->collection, RNA_enum_get(op->ptr, "collection"));
+	Collection *collection = BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection"));
 
 	if (ELEM(NULL, ob, collection))
 		return OPERATOR_CANCELLED;

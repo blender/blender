@@ -573,7 +573,7 @@ void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 static void sync_viewport_camera_smoothview(bContext *C, View3D *v3d, Object *ob, const int smooth_viewtx)
 {
 	Main *bmain = CTX_data_main(C);
-	for (bScreen *screen = bmain->screen.first; screen != NULL; screen = screen->id.next) {
+	for (bScreen *screen = bmain->screens.first; screen != NULL; screen = screen->id.next) {
 		for (ScrArea *area = screen->areabase.first; area != NULL; area = area->next) {
 			for (SpaceLink *space_link = area->spacedata.first; space_link != NULL; space_link = space_link->next) {
 				if (space_link->spacetype == SPACE_VIEW3D) {
@@ -1121,7 +1121,7 @@ static uint free_localbit(Main *bmain)
 
 	/* sometimes we loose a localview: when an area is closed */
 	/* check all areas: which localviews are in use? */
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+	for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			SpaceLink *sl = sa->spacedata.first;
 			for (; sl; sl = sl->next) {

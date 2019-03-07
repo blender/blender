@@ -1005,7 +1005,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 	Object *ob;
 
 	/* flag for full recalc */
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ID_IS_LINKED(ob)) {
 			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 		}
@@ -1308,7 +1308,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
 	/* Grrrrrrrrr... Not adding 'root' nodetrees to bmain.... grrrrrrrrrrrrrrrrrrrr! */
 	/* This is taken from original ntree copy code, might be weak actually? */
 	const bool use_nodetree_alloc_exception = ((GS(id->name) == ID_NT) && (bmain != NULL) &&
-	                                           (BLI_findindex(&bmain->nodetree, id) < 0));
+	                                           (BLI_findindex(&bmain->nodetrees, id) < 0));
 
 	BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
 	BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
@@ -1970,14 +1970,14 @@ void BKE_library_make_local(
 	 * and evaluation code ends up trying to evaluate a not-yet-updated armature object's deformations.
 	 * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */
 	/* Also, use this object loop to we handle rigid body resetting. */
-	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL && ob->pose->flag & POSE_RECALC) {
 			BKE_pose_rebuild(bmain, ob, ob->data, true);
 		}
 
 		/* If there was ever any rigidbody settings in the object, we reset it. */
 		if (ob->rigidbody_object) {
-			for (Scene *scene_iter = bmain->scene.first; scene_iter; scene_iter = scene_iter->id.next) {
+			for (Scene *scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
 				if (scene_iter->rigidbody_world) {
 					BKE_rigidbody_remove_object(bmain, scene_iter, ob);
 				}

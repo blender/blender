@@ -274,7 +274,7 @@ void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
 	Main *bmain = G_MAIN;
 	bScreen *sc;
 
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+	for (sc = bmain->screens.first; sc; sc = sc->id.next) {
 		ScrArea *sa;
 
 		for (sa = sc->areabase.first; sa; sa = sa->next) {

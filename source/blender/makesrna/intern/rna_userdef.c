@@ -167,7 +167,7 @@ static void rna_userdef_update_ui(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 static void rna_userdef_update_ui_header_default(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if (U.uiflag & USER_HEADER_FROM_PREF) {
-		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			BKE_screen_header_alignment_reset(screen);
 		}
 		rna_userdef_update_ui(bmain, scene, ptr);
@@ -336,7 +336,7 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 {
 	Object *ob;
 
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
 			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
@@ -478,7 +478,7 @@ static void rna_userdef_opensubdiv_update(Main *bmain, Scene *UNUSED(scene), Poi
 {
 	Object *object;
 
-	for (object = bmain->object.first;
+	for (object = bmain->objects.first;
 	     object;
 	     object = object->id.next)
 	{

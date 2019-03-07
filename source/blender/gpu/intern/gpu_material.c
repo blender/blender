@@ -754,10 +754,10 @@ void GPU_materials_free(Main *bmain)
 	World *wo;
 	extern Material defmaterial;
 
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
+	for (ma = bmain->materials.first; ma; ma = ma->id.next)
 		GPU_material_free(&ma->gpumaterial);
 
-	for (wo = bmain->world.first; wo; wo = wo->id.next)
+	for (wo = bmain->worlds.first; wo; wo = wo->id.next)
 		GPU_material_free(&wo->gpumaterial);
 
 	GPU_material_free(&defmaterial.gpumaterial);

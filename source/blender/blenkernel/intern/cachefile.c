@@ -177,7 +177,7 @@ void BKE_cachefile_update_frame(
 	CacheFile *cache_file;
 	char filename[FILE_MAX];
 
-	for (cache_file = bmain->cachefile.first; cache_file; cache_file = cache_file->id.next) {
+	for (cache_file = bmain->cachefiles.first; cache_file; cache_file = cache_file->id.next) {
 		/* TODO: dependency graph should be updated to do drivers on cachefile.
 		 * Execute drivers only, as animation has already been done. */
 		BKE_animsys_evaluate_animdata(depsgraph, scene, &cache_file->id, cache_file->adt, ctime, ADT_RECALC_DRIVERS);
@@ -231,7 +231,7 @@ float BKE_cachefile_time_offset(CacheFile *cache_file, const float time, const f
 /* TODO(kevin): replace this with some depsgraph mechanism, or something similar. */
 void BKE_cachefile_clean(struct Main *bmain, CacheFile *cache_file)
 {
-	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 		ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);
 
 		if (md) {

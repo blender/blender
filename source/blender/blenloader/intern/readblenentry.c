@@ -439,7 +439,7 @@ BlendFileData *BLO_read_from_memfile(
 			}
 			/* In any case, we need to move all lib datablocks themselves - those are 'first level data',
 			 * getting rid of them would imply updating spaces & co to prevent invalid pointers access. */
-			BLI_movelisttolist(&newmain->library, &oldmain->library);
+			BLI_movelisttolist(&newmain->libraries, &oldmain->libraries);
 
 			blo_join_main(&new_mainlist);
 		}

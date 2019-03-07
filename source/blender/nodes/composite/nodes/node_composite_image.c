@@ -216,7 +216,7 @@ static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata), Scene *sce
 	 * unless we want to register that for every other temp Main we could generate??? */
 	ntreeCompositRegisterPass(scene->nodetree, scene, view_layer, name, type);
 
-	for (Scene *sce = G_MAIN->scene.first; sce; sce = sce->id.next) {
+	for (Scene *sce = G_MAIN->scenes.first; sce; sce = sce->id.next) {
 		if (sce->nodetree && sce != scene) {
 			ntreeCompositRegisterPass(sce->nodetree, scene, view_layer, name, type);
 		}
@@ -409,7 +409,7 @@ static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntre
 		 * Render layers node can only be used in local scene->nodetree,
 		 * since it directly links to the scene.
 		 */
-		for (scene = G.main->scene.first; scene; scene = scene->id.next)
+		for (scene = G.main->scenes.first; scene; scene = scene->id.next)
 			if (scene->nodetree == ntree)
 				break;
 

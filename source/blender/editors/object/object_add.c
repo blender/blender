@@ -1201,7 +1201,7 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else
-		collection = BLI_findlink(&CTX_data_main(C)->collection, RNA_enum_get(op->ptr, "collection"));
+		collection = BLI_findlink(&CTX_data_main(C)->collections, RNA_enum_get(op->ptr, "collection"));
 
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, &local_view_bits, NULL)) {
 		return OPERATOR_CANCELLED;
@@ -1381,7 +1381,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		/* remove from Grease Pencil parent */
 		/* XXX This is likely not correct? Will also remove parent from grease pencil from other scenes,
 		 *     even when use_global is false... */
-		for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+		for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 				if (gpl->parent != NULL) {
 					if (gpl->parent == ob) {
@@ -1397,7 +1397,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 
 		if (use_global) {
 			Scene *scene_iter;
-			for (scene_iter = bmain->scene.first; scene_iter; scene_iter = scene_iter->id.next) {
+			for (scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
 				if (scene_iter != scene && !ID_IS_LINKED(scene_iter)) {
 					if (is_indirectly_used && ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0) {
 						BKE_reportf(op->reports, RPT_WARNING,
@@ -1420,7 +1420,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	}
 
 	/* delete has to handle all open scenes */
-	BKE_main_id_tag_listbase(&bmain->scene, LIB_TAG_DOIT, true);
+	BKE_main_id_tag_listbase(&bmain->scenes, LIB_TAG_DOIT, true);
 	for (win = wm->windows.first; win; win = win->next) {
 		scene = WM_window_get_active_scene(win);
 
@@ -1687,7 +1687,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	}
 
 	if (base->object->transflag & OB_DUPLICOLLECTION && base->object->instance_collection) {
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (ob->proxy_group == base->object) {
 				ob->proxy = NULL;
 				ob->proxy_from = NULL;
@@ -2021,7 +2021,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			if (!keep_original) {
 				/* other users */
 				if (cu->id.us > 1) {
-					for (ob1 = bmain->object.first; ob1; ob1 = ob1->id.next) {
+					for (ob1 = bmain->objects.first; ob1; ob1 = ob1->id.next) {
 						if (ob1->data == ob->data) {
 							ob1->type = OB_CURVE;
 							DEG_id_tag_update(&ob1->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
@@ -2241,7 +2241,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 		// XXX: is 2) really a good measure here?
 		if (ob->rigidbody_object || ob->rigidbody_constraint) {
 			Collection *collection;
-			for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+			for (collection = bmain->collections.first; collection; collection = collection->id.next) {
 				if (BKE_collection_has_object(collection, ob))
 					BKE_collection_object_add(bmain, collection, obn);
 			}

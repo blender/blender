@@ -118,7 +118,7 @@ void ED_editors_init(bContext *C)
 	 * active object in this scene. */
 	Object *obact = CTX_data_active_object(C);
 	if (obact != NULL) {
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			int mode = ob->mode;
 			if (mode == OB_MODE_OBJECT) {
 				continue;
@@ -206,7 +206,7 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
 		}
 	}
 
-	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			if (me->edit_mesh) {
@@ -238,7 +238,7 @@ bool ED_editors_flush_edits(Main *bmain, bool for_render)
 	/* loop through all data to find edit mode or object mode, because during
 	 * exiting we might not have a context for edit object and multiple sculpt
 	 * objects can exist at the same time */
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_SCULPT) {
 			/* Don't allow flushing while in the middle of a stroke (frees data in use).
 			 * Auto-save prevents this from happening but scripts

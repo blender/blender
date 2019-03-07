@@ -186,7 +186,7 @@ PyObject *bpy_text_import_name(const char *name, int *found)
 	memcpy(txtname, name, namelen);
 	memcpy(&txtname[namelen], ".py", 4);
 
-	text = BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
+	text = BLI_findstring(&maggie->texts, txtname, offsetof(ID, name) + 2);
 
 	if (text) {
 		*found = 1;
@@ -196,7 +196,7 @@ PyObject *bpy_text_import_name(const char *name, int *found)
 	/* If we still haven't found the module try additional modules form bpy_import_main_list */
 	maggie = bpy_import_main_list.first;
 	while (maggie && !text) {
-		text = BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
+		text = BLI_findstring(&maggie->texts, txtname, offsetof(ID, name) + 2);
 		maggie = maggie->next;
 	}
 
@@ -245,7 +245,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	}
 
 	/* look up the text object */
-	text = BLI_findstring(&maggie->text, BLI_path_basename(filepath), offsetof(ID, name) + 2);
+	text = BLI_findstring(&maggie->texts, BLI_path_basename(filepath), offsetof(ID, name) + 2);
 
 	/* uh-oh.... didn't find it */
 	if (!text)

@@ -572,7 +572,7 @@ NodeType geometry_tag_to_component(const ID *id)
 void id_tag_update(Main *bmain, ID *id, int flag, eUpdateSource update_source)
 {
 	graph_id_tag_update(bmain, NULL, id, flag, update_source);
-	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
 		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
 			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
@@ -701,7 +701,7 @@ void DEG_graph_id_type_tag(Depsgraph *depsgraph, short id_type)
 
 void DEG_id_type_tag(Main *bmain, short id_type)
 {
-	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
 		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
 			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
@@ -731,7 +731,7 @@ void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph)
 
 void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
 {
-	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
 		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
 			        (Depsgraph *)BKE_scene_get_depsgraph(scene,

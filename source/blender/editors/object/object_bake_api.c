@@ -547,7 +547,7 @@ static bool bake_objects_check(Main *bmain, ViewLayer *view_layer, Object *ob, L
 static void bake_images_clear(Main *bmain, const bool is_tangent)
 {
 	Image *image;
-	for (image = bmain->image.first; image; image = image->id.next) {
+	for (image = bmain->images.first; image; image = image->id.next) {
 		if ((image->id.tag & LIB_TAG_DOIT) != 0) {
 			RE_bake_ibuf_clear(image, is_tangent);
 		}
@@ -764,7 +764,7 @@ static int bake(
 		}
 
 		if (is_cage && custom_cage[0] != '\0') {
-			ob_cage = BLI_findstring(&bmain->object, custom_cage, offsetof(ID, name) + 2);
+			ob_cage = BLI_findstring(&bmain->objects, custom_cage, offsetof(ID, name) + 2);
 
 			if (ob_cage == NULL || ob_cage->type != OB_MESH) {
 				BKE_report(reports, RPT_ERROR, "No valid cage object");

@@ -233,7 +233,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				DupliContext pctx;
 				copy_dupli_context(&pctx, ctx, ctx->object, NULL, _base_id);
 
-				/* mballs have a different dupli handling */
+				/* metaballs have a different dupli handling */
 				if (ob->type != OB_MBALL) {
 					ob->flag |= OB_DONE;  /* doesn't render */
 				}
@@ -251,7 +251,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				DupliContext pctx;
 				copy_dupli_context(&pctx, ctx, ctx->object, NULL, baseid);
 
-				/* mballs have a different dupli handling */
+				/* metaballs have a different dupli handling */
 				if (ob->type != OB_MBALL)
 					ob->flag |= OB_DONE;  /* doesn't render */
 
@@ -445,7 +445,7 @@ static Object *find_family_object(Main *bmain, const char *family, size_t family
 		ch_utf8[ch_utf8_len] = '\0';
 		ch_utf8_len += 1;  /* compare with null terminator */
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			if (STREQLEN(ob->id.name + 2 + family_len, ch_utf8, ch_utf8_len)) {
 				if (STREQLEN(ob->id.name + 2, family, family_len)) {
 					break;

@@ -3692,13 +3692,13 @@ void free_nodesystem(void)
 
 void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain)
 {
-	ntreeiter->ngroup = bmain->nodetree.first;
-	ntreeiter->scene = bmain->scene.first;
-	ntreeiter->mat = bmain->mat.first;
-	ntreeiter->tex = bmain->tex.first;
-	ntreeiter->light = bmain->light.first;
-	ntreeiter->world = bmain->world.first;
-	ntreeiter->linestyle = bmain->linestyle.first;
+	ntreeiter->ngroup = bmain->nodetrees.first;
+	ntreeiter->scene = bmain->scenes.first;
+	ntreeiter->mat = bmain->materials.first;
+	ntreeiter->tex = bmain->textures.first;
+	ntreeiter->light = bmain->lights.first;
+	ntreeiter->world = bmain->worlds.first;
+	ntreeiter->linestyle = bmain->linestyles.first;
 }
 bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
                              bNodeTree **r_nodetree, struct ID **r_id)

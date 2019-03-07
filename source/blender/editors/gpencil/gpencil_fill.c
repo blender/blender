@@ -1124,9 +1124,9 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
 
 		/* delete temp image */
 		if (tgpf->ima) {
-			for (Image *ima = bmain->image.first; ima; ima = ima->id.next) {
+			for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
 				if (ima == tgpf->ima) {
-					BLI_remlink(&bmain->image, ima);
+					BLI_remlink(&bmain->images, ima);
 					BKE_image_free(tgpf->ima);
 					MEM_SAFE_FREE(tgpf->ima);
 					break;

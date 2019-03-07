@@ -1070,7 +1070,7 @@ void BKE_sequencer_clear_scene_in_allseqs(Main *bmain, Scene *scene)
 	Scene *scene_iter;
 
 	/* when a scene is deleted: test all seqs */
-	for (scene_iter = bmain->scene.first; scene_iter; scene_iter = scene_iter->id.next) {
+	for (scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
 		if (scene_iter != scene && scene_iter->ed) {
 			BKE_sequencer_base_recursive_apply(&scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
 		}
@@ -5716,7 +5716,7 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int cfra)
 void BKE_sequencer_all_free_anim_ibufs(Main *bmain, int cfra)
 {
 	BKE_sequencer_cache_cleanup();
-	for (Scene *scene = bmain->scene.first;
+	for (Scene *scene = bmain->scenes.first;
 	     scene != NULL;
 	     scene = scene->id.next)
 	{

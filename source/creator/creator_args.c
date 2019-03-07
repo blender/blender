@@ -401,7 +401,7 @@ static void arg_py_context_restore(
 	}
 
 	if ((c_py->scene == NULL) ||
-	    BLI_findindex(&G_MAIN->scene, c_py->scene) != -1)
+	    BLI_findindex(&G_MAIN->scenes, c_py->scene) != -1)
 	{
 		CTX_data_scene_set(C, c_py->scene);
 	}

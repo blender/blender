@@ -424,7 +424,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain, S
 		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 
 		/* Color management can be baked into shaders, need to refresh. */
-		for (Material *ma = bmain->mat.first; ma; ma = ma->id.next) {
+		for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
 			DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}

@@ -749,7 +749,7 @@ bool BKE_object_exists_check(Main *bmain, const Object *obtest)
 
 	if (obtest == NULL) return false;
 
-	ob = bmain->object.first;
+	ob = bmain->objects.first;
 	while (ob) {
 		if (ob == obtest) return true;
 		ob = ob->id.next;
@@ -3772,7 +3772,7 @@ bool BKE_object_is_animated(Scene *scene, Object *ob)
 int BKE_object_scenes_users_get(Main *bmain, Object *ob)
 {
 	int num_scenes = 0;
-	for (Scene *scene = bmain->scene.first; scene != NULL; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
 		if (BKE_collection_has_object_recursive(BKE_collection_master(scene), ob)) {
 			num_scenes++;
 		}

@@ -645,7 +645,7 @@ void test_all_objects_materials(Main *bmain, ID *id)
 	}
 
 	BKE_main_lock(bmain);
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->data == id) {
 			BKE_material_resize_object(bmain, ob, *totcol, false);
 		}
@@ -972,7 +972,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
 	actcol = ob->actcol;
 
-	for (Object *obt = bmain->object.first; obt; obt = obt->id.next) {
+	for (Object *obt = bmain->objects.first; obt; obt = obt->id.next) {
 		if (obt->data == ob->data) {
 			/* Can happen when object material lists are used, see: T52953 */
 			if (actcol > obt->totcol) {

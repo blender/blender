@@ -74,7 +74,7 @@ static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Objec
 	Object workob, *ob;
 
 	/* go through all objects in database */
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		/* if parent is bone in this armature, apply corrections */
 		if ((ob->parent == armob) && (ob->partype == PARBONE)) {
 			/* apply current transform from parent (not yet destroyed),
@@ -471,8 +471,8 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 	Object ob_copy = *ob;
 	bArmature arm_copy = *((bArmature *)ob->data);
 	ob_copy.data = &arm_copy;
-	BLI_addtail(&temp_bmain->object, &ob_copy);
-	BLI_addtail(&temp_bmain->armature, &arm_copy);
+	BLI_addtail(&temp_bmain->objects, &ob_copy);
+	BLI_addtail(&temp_bmain->armatures, &arm_copy);
 	/* begin copy buffer on a temp bmain. */
 	BKE_copybuffer_begin(temp_bmain);
 	/* Store the whole object to the copy buffer because pose can't be
@@ -485,8 +485,8 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 	 * This is required because objects in temp bmain shares same pointers
 	 * as the real ones.
 	 */
-	BLI_listbase_clear(&temp_bmain->object);
-	BLI_listbase_clear(&temp_bmain->armature);
+	BLI_listbase_clear(&temp_bmain->objects);
+	BLI_listbase_clear(&temp_bmain->armatures);
 	BKE_main_free(temp_bmain);
 	/* We are all done! */
 	BKE_report(op->reports, RPT_INFO, "Copied pose to buffer");
@@ -536,13 +536,13 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	/* Make sure data from this file is usable for pose paste. */
-	if (BLI_listbase_count_at_most(&tmp_bmain->object, 2) != 1) {
+	if (BLI_listbase_count_at_most(&tmp_bmain->objects, 2) != 1) {
 		BKE_report(op->reports, RPT_ERROR, "Copy buffer is not from pose mode");
 		BKE_main_free(tmp_bmain);
 		return OPERATOR_CANCELLED;
 	}
 
-	Object *object_from = tmp_bmain->object.first;
+	Object *object_from = tmp_bmain->objects.first;
 	bPose *pose_from = object_from->pose;
 	if (pose_from == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Copy buffer has no pose");

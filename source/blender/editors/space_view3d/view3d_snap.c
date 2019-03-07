@@ -391,7 +391,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 		CTX_data_selected_editable_objects(C, &ctx_data_list);
 
 		/* reset flags */
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ob->flag &= ~OB_DONE;
 		}
 

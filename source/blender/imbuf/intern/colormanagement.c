@@ -1133,7 +1133,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		return;
 	}
 
-	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		ColorManagedColorspaceSettings *sequencer_colorspace_settings;
 
 		/* check scene color management settings */
@@ -1159,11 +1159,11 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
 	/* ** check input color space settings ** */
 
-	for (image = bmain->image.first; image; image = image->id.next) {
+	for (image = bmain->images.first; image; image = image->id.next) {
 		colormanage_check_colorspace_settings(&image->colorspace_settings, "image");
 	}
 
-	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
+	for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
 		colormanage_check_colorspace_settings(&clip->colorspace_settings, "clip");
 	}
 }

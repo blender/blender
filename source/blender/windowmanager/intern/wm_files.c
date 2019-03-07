@@ -447,7 +447,7 @@ void wm_file_read_report(bContext *C, Main *bmain)
 	ReportList *reports = NULL;
 	Scene *sce;
 
-	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+	for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
 		if (sce->r.engine[0] &&
 		    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
 		{
@@ -1266,7 +1266,7 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
 	 * its handy for scripts to save to a predefined name without blender editing it */
 
 	/* send the OnSave event */
-	for (li = bmain->library.first; li; li = li->id.next) {
+	for (li = bmain->libraries.first; li; li = li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
 			BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
 			return ok;

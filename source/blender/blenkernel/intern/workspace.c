@@ -123,7 +123,7 @@ static bool UNUSED_FUNCTION(workspaces_is_screen_used)
 #endif
         (const Main *bmain, bScreen *screen)
 {
-	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		if (workspace_layout_find_exec(workspace, screen)) {
 			return true;
 		}
@@ -185,7 +185,7 @@ WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain)
 	WorkSpaceInstanceHook *hook = MEM_callocN(sizeof(WorkSpaceInstanceHook), __func__);
 
 	/* set an active screen-layout for each possible window/workspace combination */
-	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		BKE_workspace_hook_layout_for_workspace_set(hook, workspace, workspace->layouts.first);
 	}
 
@@ -194,10 +194,10 @@ WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain)
 void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *hook)
 {
 	/* workspaces should never be freed before wm (during which we call this function) */
-	BLI_assert(!BLI_listbase_is_empty(&bmain->workspace));
+	BLI_assert(!BLI_listbase_is_empty(&bmain->workspaces));
 
 	/* Free relations for this hook */
-	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first, *relation_next;
 		     relation;
 		     relation = relation_next)
@@ -287,7 +287,7 @@ WorkSpaceLayout *BKE_workspace_layout_find_global(
 		*r_workspace = NULL;
 	}
 
-	for (WorkSpace *workspace = bmain->workspace.first; workspace; workspace = workspace->id.next) {
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		if ((layout = workspace_layout_find_exec(workspace, screen))) {
 			if (r_workspace) {
 				*r_workspace = workspace;

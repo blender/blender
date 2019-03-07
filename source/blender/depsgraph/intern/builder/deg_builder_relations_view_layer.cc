@@ -111,11 +111,11 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 		build_compositor(scene);
 	}
 	/* Masks. */
-	LISTBASE_FOREACH (Mask *, mask, &bmain_->mask) {
+	LISTBASE_FOREACH (Mask *, mask, &bmain_->masks) {
 		build_mask(mask);
 	}
 	/* Movie clips. */
-	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
+	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclips) {
 		build_movieclip(clip);
 	}
 	/* Material override. */

@@ -619,7 +619,7 @@ void BKE_mesh_from_nurbs_displist(
 	ob->type = OB_MESH;
 
 	/* other users */
-	ob1 = bmain->object.first;
+	ob1 = bmain->objects.first;
 	while (ob1) {
 		if (ob1->data == cu) {
 			ob1->type = OB_MESH;

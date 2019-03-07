@@ -1175,7 +1175,7 @@ void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld 
 
 void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collection, Object *object)
 {
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		RigidBodyWorld *rbw = scene->rigidbody_world;
 
 		if (rbw == NULL) {

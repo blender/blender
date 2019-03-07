@@ -1531,7 +1531,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
 	/* get action to use */
-	act = BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
+	act = BLI_findlink(&CTX_data_main(C)->actions, RNA_enum_get(op->ptr, "action"));
 
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid action to add");

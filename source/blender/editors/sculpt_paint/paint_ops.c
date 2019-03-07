@@ -348,7 +348,7 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
 {
 	Brush *brush, *first_brush;
 
-	if (!brush_orig && !(brush_orig = bmain->brush.first)) {
+	if (!brush_orig && !(brush_orig = bmain->brushes.first)) {
 		return NULL;
 	}
 
@@ -362,7 +362,7 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
 		/* Try to tool-slot first. */
 		first_brush = BKE_paint_toolslots_brush_get(paint, tool);
 		if (first_brush == NULL) {
-			first_brush = bmain->brush.first;
+			first_brush = bmain->brushes.first;
 		}
 	}
 	else {
@@ -370,7 +370,7 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
 		 * currently active brush do a cycling via all possible
 		 * brushes with requested tool.
 		 */
-		first_brush = brush_orig->id.next ? brush_orig->id.next : bmain->brush.first;
+		first_brush = brush_orig->id.next ? brush_orig->id.next : bmain->brushes.first;
 	}
 
 	/* get the next brush with the active tool */
@@ -382,7 +382,7 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
 			return brush;
 		}
 
-		brush = brush->id.next ? brush->id.next : bmain->brush.first;
+		brush = brush->id.next ? brush->id.next : bmain->brushes.first;
 	} while (brush != first_brush);
 
 	return NULL;

@@ -1299,7 +1299,7 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene_to = BLI_findlink(&bmain->scene, RNA_enum_get(op->ptr, "scene"));
+	Scene *scene_to = BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene"));
 
 	if (scene_to == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Could not find scene");
@@ -1633,7 +1633,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 #if 0
 	if (copy_collections) {
 		Collection *collection, *collectionn;
-		for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+		for (collection = bmain->collections.first; collection; collection = collection->id.next) {
 			bool all_duplicated = true;
 			bool any_duplicated = false;
 
@@ -1791,7 +1791,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 	}
 	FOREACH_OBJECT_FLAG_END;
 
-	me = bmain->mesh.first;
+	me = bmain->meshes.first;
 	while (me) {
 		ID_NEW_REMAP(me->texcomesh);
 		me = me->id.next;
@@ -1850,23 +1850,23 @@ static void single_mat_users_expand(Main *bmain)
 	MetaBall *mb;
 	bGPdata *gpd;
 
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
+	for (ob = bmain->objects.first; ob; ob = ob->id.next)
 		if (ob->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, ob->mat, ob->totcol);
 
-	for (me = bmain->mesh.first; me; me = me->id.next)
+	for (me = bmain->meshes.first; me; me = me->id.next)
 		if (me->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, me->mat, me->totcol);
 
-	for (cu = bmain->curve.first; cu; cu = cu->id.next)
+	for (cu = bmain->curves.first; cu; cu = cu->id.next)
 		if (cu->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, cu->mat, cu->totcol);
 
-	for (mb = bmain->mball.first; mb; mb = mb->id.next)
+	for (mb = bmain->metaballs.first; mb; mb = mb->id.next)
 		if (mb->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, mb->mat, mb->totcol);
 
-	for (gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next)
+	for (gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next)
 		if (gpd->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, gpd->mat, gpd->totcol);
 }
@@ -1970,7 +1970,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
 	/* Also forbid making objects local if other library objects are using
 	 * them for modifiers or constraints.
 	 */
-	for (Object *object = bmain->object.first; object; object = object->id.next) {
+	for (Object *object = bmain->objects.first; object; object = object->id.next) {
 		if ((object->id.tag & LIB_TAG_DOIT) == 0) {
 			BKE_library_foreach_ID_link(NULL, &object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
 		}
@@ -1994,7 +1994,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, ViewLayer *vie
 	Object *ob;
 	bool changed = false;
 
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ID_IS_LINKED(ob) && (ob->id.us == 0)) {
 			Base *base;
 
@@ -2323,7 +2323,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		/* Cleanup. */
 		BKE_main_id_clear_newpoins(bmain);
-		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, false);
+		BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, false);
 	}
 	/* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
 	else if (obact->type == OB_ARMATURE) {
@@ -2331,7 +2331,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		obact->id.tag |= LIB_TAG_DOIT;
 
-		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
+		for (Object *ob = bmain->objects.first; ob != NULL; ob = ob->id.next) {
 			make_override_static_tag_object(obact, ob);
 		}
 
@@ -2342,7 +2342,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		/* Cleanup. */
 		BKE_main_id_clear_newpoins(bmain);
-		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, false);
+		BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, false);
 	}
 	/* TODO: probably more cases where we want to do automated smart things in the future! */
 	else {

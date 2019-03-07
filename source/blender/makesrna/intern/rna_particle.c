@@ -625,7 +625,7 @@ static void rna_Particle_change_type(Main *bmain, Scene *UNUSED(scene), PointerR
 	ParticleSettings *part = ptr->id.data;
 
 	/* Iterating over all object is slow, but no better solution exists at the moment. */
-	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
 			if (psys->part == part) {
 				psys_changed_type(ob, psys);

@@ -249,7 +249,7 @@ static Scene *preview_get_scene(Main *pr_main)
 {
 	if (pr_main == NULL) return NULL;
 
-	return pr_main->scene.first;
+	return pr_main->scenes.first;
 }
 
 static const char *preview_collection_name(const char pr_type)
@@ -307,7 +307,7 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
 		return sp->worldcopy;
 	}
 	sp->worldcopy = BKE_world_localize(world);
-	BLI_addtail(&sp->pr_main->world, sp->worldcopy);
+	BLI_addtail(&sp->pr_main->worlds, sp->worldcopy);
 	return sp->worldcopy;
 }
 
@@ -359,7 +359,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_BUTS_PREVIEW;
 		/* set world always back, is used now */
-		sce->world = pr_main->world.first;
+		sce->world = pr_main->worlds.first;
 		/* now: exposure copy */
 		if (scene->world) {
 			sce->world->exp = scene->world->exp;
@@ -407,7 +407,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_assert(sp->id_copy != NULL);
 				mat = sp->matcopy = (Material *)sp->id_copy;
 				sp->id_copy = NULL;
-				BLI_addtail(&pr_main->mat, mat);
+				BLI_addtail(&pr_main->materials, mat);
 
 				/* use current scene world to light sphere */
 				if (mat->pr_type == MA_SPHERE_A && sp->pr_method == PR_BUTS_RENDER) {
@@ -467,7 +467,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_assert(sp->id_copy != NULL);
 				tex = sp->texcopy = (Tex *)sp->id_copy;
 				sp->id_copy = NULL;
-				BLI_addtail(&pr_main->tex, tex);
+				BLI_addtail(&pr_main->textures, tex);
 			}
 			set_preview_collection(sce, view_layer, MA_TEXTURE);
 
@@ -486,7 +486,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_assert(sp->id_copy != NULL);
 				la = sp->lampcopy = (Light *)sp->id_copy;
 				sp->id_copy = NULL;
-				BLI_addtail(&pr_main->light, la);
+				BLI_addtail(&pr_main->lights, la);
 			}
 
 			set_preview_collection(sce, view_layer, MA_LAMP);
@@ -520,7 +520,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_assert(sp->id_copy != NULL);
 				wrld = sp->worldcopy = (World *)sp->id_copy;
 				sp->id_copy = NULL;
-				BLI_addtail(&pr_main->world, wrld);
+				BLI_addtail(&pr_main->worlds, wrld);
 			}
 
 			set_preview_collection(sce, view_layer, MA_SKY);
@@ -900,19 +900,19 @@ static void shader_preview_free(void *customdata)
 
 	if (sp->matcopy) {
 		sp->id_copy = (ID *)sp->matcopy;
-		BLI_remlink(&pr_main->mat, sp->matcopy);
+		BLI_remlink(&pr_main->materials, sp->matcopy);
 	}
 	if (sp->texcopy) {
 		sp->id_copy = (ID *)sp->texcopy;
-		BLI_remlink(&pr_main->tex, sp->texcopy);
+		BLI_remlink(&pr_main->textures, sp->texcopy);
 	}
 	if (sp->worldcopy) {
 		sp->id_copy = (ID *)sp->worldcopy;
-		BLI_remlink(&pr_main->world, sp->worldcopy);
+		BLI_remlink(&pr_main->worlds, sp->worldcopy);
 	}
 	if (sp->lampcopy) {
 		sp->id_copy = (ID *)sp->lampcopy;
-		BLI_remlink(&pr_main->light, sp->lampcopy);
+		BLI_remlink(&pr_main->lights, sp->lampcopy);
 	}
 	if (sp->id_copy) {
 		/* node previews */

@@ -765,7 +765,7 @@ MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, b
 	BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
 	/* first search an identical filepath */
-	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
+	for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
 		BLI_strncpy(strtest, clip->name, sizeof(clip->name));
 		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &clip->id));
 
@@ -1370,7 +1370,7 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
 	 */
 	{
 		Scene *scene;
-		for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			if (scene->nodetree) {
 				nodeUpdateID(scene->nodetree, &clip->id);
 			}

@@ -665,7 +665,7 @@ static int text_refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUS
 	short update;
 
 	/* check all pyconstraints */
-	for (ob = CTX_data_main(C)->object.first; ob; ob = ob->id.next) {
+	for (ob = CTX_data_main(C)->objects.first; ob; ob = ob->id.next) {
 		update = 0;
 		if (ob->type == OB_ARMATURE && ob->pose) {
 			bPoseChannel *pchan;
@@ -3041,7 +3041,7 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 		if (text->id.next)
 			text = st->text = text->id.next;
 		else
-			text = st->text = bmain->text.first;
+			text = st->text = bmain->texts.first;
 		txt_move_toline(text, 0, 0);
 		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);

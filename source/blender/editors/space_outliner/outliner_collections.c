@@ -284,7 +284,7 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 		Collection *collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
 
 		/* Test in case collection got deleted as part of another one. */
-		if (BLI_findindex(&bmain->collection, collection) != -1) {
+		if (BLI_findindex(&bmain->collections, collection) != -1) {
 			BKE_collection_delete(bmain, collection, hierarchy);
 		}
 	}

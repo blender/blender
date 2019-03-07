@@ -50,7 +50,7 @@ static void paint_toolslots_init(Main *bmain, Paint *paint)
 	}
 	const eObjectMode ob_mode = paint->runtime.ob_mode;
 	BLI_assert(paint->runtime.tool_offset && ob_mode);
-	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+	for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
 		if (brush->ob_mode & ob_mode) {
 			const int slot_index = BKE_brush_tool_get(brush, paint);
 			BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
@@ -64,7 +64,7 @@ static void paint_toolslots_init(Main *bmain, Paint *paint)
 
 void BKE_paint_toolslots_init_from_main(struct Main *bmain)
 {
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+	for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		ToolSettings *ts = scene->toolsettings;
 		paint_toolslots_init(bmain, &ts->imapaint.paint);
 		paint_toolslots_init(bmain, &ts->sculpt->paint);
