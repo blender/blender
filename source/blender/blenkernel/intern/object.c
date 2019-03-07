@@ -2849,9 +2849,23 @@ void BKE_object_empty_draw_type_set(Object *ob, const int value)
 	}
 }
 
-bool BKE_object_empty_image_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d)
+bool BKE_object_empty_image_frame_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d)
 {
-	char visibility_flag = ob->empty_image_visibility_flag;
+	const char visibility_flag = ob->empty_image_visibility_flag;
+	if (rv3d->is_persp) {
+		return (visibility_flag & OB_EMPTY_IMAGE_HIDE_PERSPECTIVE) == 0;
+	}
+	else {
+		return (visibility_flag & OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC) == 0;
+	}
+}
+
+bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d)
+{
+	/* Caller is expected to check this. */
+	BLI_assert(BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d));
+
+	const char visibility_flag = ob->empty_image_visibility_flag;
 
 	if ((visibility_flag & (OB_EMPTY_IMAGE_HIDE_BACK | OB_EMPTY_IMAGE_HIDE_FRONT)) != 0) {
 		float eps, dot;
@@ -2880,12 +2894,7 @@ bool BKE_object_empty_image_is_visible_in_view3d(const Object *ob, const RegionV
 		}
 	}
 
-	if (rv3d->is_persp) {
-		return (visibility_flag & OB_EMPTY_IMAGE_HIDE_PERSPECTIVE) == 0;
-	}
-	else {
-		return (visibility_flag & OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC) == 0;
-	}
+	return true;
 }
 
 bool BKE_object_minmax_dupli(Depsgraph *depsgraph, Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)

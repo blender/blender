@@ -118,7 +118,7 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 		Object *ob = base->object;
 		if (ob->type == OB_EMPTY) {
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-				return BKE_object_empty_image_is_visible_in_view3d(ob, rv3d);
+				return BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d);
 			}
 		}
 	}
