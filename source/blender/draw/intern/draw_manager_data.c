@@ -22,6 +22,7 @@
 
 #include "draw_manager.h"
 
+#include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -326,13 +327,10 @@ static void drw_call_state_update_matflag(DRWCallState *state, DRWShadingGroup *
 	if ((new_flags & DRW_CALL_OBJECTINFO) != 0) {
 		state->objectinfo[0] = ob ? ob->index : 0;
 		uint random;
-#if 0 /* TODO(fclem) handle dupli objects */
-		if (GMS.dob) {
-			random = GMS.dob->random_id;
+		if (DST.dupli_source) {
+			random = DST.dupli_source->random_id;
 		}
-		else
-#endif
-		{
+		else {
 			random = BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
 		}
 		state->objectinfo[1] = random * (1.0f / (float)0xFFFFFFFF);
