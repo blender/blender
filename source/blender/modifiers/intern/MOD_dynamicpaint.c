@@ -64,10 +64,9 @@ static void freeData(ModifierData *md)
 	dynamicPaint_Modifier_free(pmd);
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	if (pmd->canvas) {
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
@@ -76,21 +75,20 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
 			    surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE)
 			{
-				dataMask |= CD_MASK_MLOOPUV;
+				r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
 			}
 			/* mcol */
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
 			    surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR)
 			{
-				dataMask |= CD_MASK_MLOOPCOL;
+				r_cddata_masks->lmask |= CD_MASK_MLOOPCOL;
 			}
 			/* CD_MDEFORMVERT */
 			if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-				dataMask |= CD_MASK_MDEFORMVERT;
+				r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 			}
 		}
 	}
-	return dataMask;
 }
 
 static Mesh *applyModifier(

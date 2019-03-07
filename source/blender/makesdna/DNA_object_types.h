@@ -28,6 +28,7 @@
 #include "DNA_object_enums.h"
 
 #include "DNA_defs.h"
+#include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_action_types.h" /* bAnimVizSettings */
@@ -122,13 +123,15 @@ typedef struct LodLevel {
  * TODO(sergey): Consider moving it to more appropriate place. */
 struct ObjectBBoneDeform;
 
+struct CustomData_MeshMasks;
+
 /* Not saved in file! */
 typedef struct Object_Runtime {
 	/**
 	 * The custom data layer mask that was last used
 	 * to calculate mesh_eval and mesh_deform_eval.
 	 */
-	uint64_t last_data_mask;
+	CustomData_MeshMasks last_data_mask;
 
 	/** Did last modifier stack generation need mapping support? */
 	char last_need_mapping;

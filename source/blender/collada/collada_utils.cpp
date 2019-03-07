@@ -256,19 +256,19 @@ Mesh *bc_get_mesh_copy(
 	bool apply_modifiers,
 	bool triangulate)
 {
-	CustomDataMask mask = CD_MASK_MESH;
+	CustomData_MeshMasks mask = CD_MASK_MESH;
 	Mesh *tmpmesh = NULL;
 	if (apply_modifiers) {
 #if 0  /* Not supported by new system currently... */
 		switch (export_mesh_type) {
 			case BC_MESH_TYPE_VIEW:
 			{
-				dm = mesh_create_derived_view(depsgraph, scene, ob, mask);
+				dm = mesh_create_derived_view(depsgraph, scene, ob, &mask);
 				break;
 			}
 			case BC_MESH_TYPE_RENDER:
 			{
-				dm = mesh_create_derived_render(depsgraph, scene, ob, mask);
+				dm = mesh_create_derived_render(depsgraph, scene, ob, &mask);
 				break;
 			}
 		}
@@ -276,7 +276,7 @@ Mesh *bc_get_mesh_copy(
 		Depsgraph *depsgraph = blender_context.get_depsgraph();
 		Scene *scene_eval = blender_context.get_evaluated_scene();
 		Object *ob_eval = blender_context.get_evaluated_object(ob);
-		tmpmesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, mask);
+		tmpmesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &mask);
 #endif
 	}
 	else {

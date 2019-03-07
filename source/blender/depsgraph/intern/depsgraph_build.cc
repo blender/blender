@@ -211,10 +211,12 @@ void DEG_add_special_eval_flag(struct DepsNodeHandle *node_handle,
 
 void DEG_add_customdata_mask(struct DepsNodeHandle *node_handle,
                              struct Object *object,
-                             uint64_t mask)
+                             const CustomData_MeshMasks *masks)
 {
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
-	deg_node_handle->builder->add_customdata_mask(object, mask);
+	deg_node_handle->builder->add_customdata_mask(
+	            object,
+	            DEG::DEGCustomDataMeshMasks(masks));
 }
 
 struct ID *DEG_get_id_from_handle(struct DepsNodeHandle *node_handle)

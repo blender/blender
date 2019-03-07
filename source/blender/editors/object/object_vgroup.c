@@ -1289,7 +1289,7 @@ static void moveCloserToDistanceFromPlane(
 	float originalDistToBe = distToBe;
 	do {
 		wasChange = false;
-		me_deform = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		me_deform = mesh_get_eval_deform(depsgraph, scene, ob, &CD_MASK_BAREMESH);
 		m = me_deform->mvert[index];
 		copy_v3_v3(oldPos, m.co);
 		distToStart = dot_v3v3(norm, oldPos) + d;
@@ -1329,7 +1329,7 @@ static void moveCloserToDistanceFromPlane(
 				if (dw->weight > 1) {
 					dw->weight = 1;
 				}
-				me_deform = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+				me_deform = mesh_get_eval_deform(depsgraph, scene, ob, &CD_MASK_BAREMESH);
 				m = me_deform->mvert[index];
 				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
 				dw->weight = oldw;
@@ -1459,7 +1459,7 @@ static void vgroup_fix(const bContext *C, Scene *scene, Object *ob, float distTo
 				MVert *p = MEM_callocN(sizeof(MVert) * (count), "deformedPoints");
 				int k;
 
-				Mesh *me_deform = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+				Mesh *me_deform = mesh_get_eval_deform(depsgraph, scene, ob, &CD_MASK_BAREMESH);
 				k = count;
 				while (k--) {
 					p[k] = me_deform->mvert[verts[k]];

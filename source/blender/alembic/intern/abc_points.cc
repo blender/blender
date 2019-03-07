@@ -174,7 +174,7 @@ void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSel
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 	Mesh *read_mesh = this->read_mesh(mesh, sample_sel, 0, NULL);
 
-	BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, CD_MASK_MESH, true);
+	BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
 
 	if (m_settings->validate_meshes) {
 		BKE_mesh_validate(mesh, false, false);

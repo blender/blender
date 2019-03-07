@@ -65,22 +65,23 @@ static void initData(ModifierData *md)
 	dmd->space = MOD_DISP_SPACE_LOCAL;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (dmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-
-	/* ask for UV coordinates if we need them */
-	if (dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= CD_MASK_MTFACE;
-
-	if (dmd->direction == MOD_DISP_DIR_CLNOR) {
-		dataMask |= CD_MASK_CUSTOMLOOPNORMAL;
+	if (dmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 	}
 
-	return dataMask;
+	/* ask for UV coordinates if we need them */
+	if (dmd->texmapping == MOD_DISP_MAP_UV) {
+		r_cddata_masks->fmask |= CD_MASK_MTFACE;
+	}
+
+	if (dmd->direction == MOD_DISP_DIR_CLNOR) {
+		r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
+	}
 }
 
 static bool dependsOnTime(ModifierData *md)

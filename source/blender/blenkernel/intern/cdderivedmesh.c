@@ -582,15 +582,16 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numTessFaces, int numLoops
 
 DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 {
-	return CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_MESH);
+	return CDDM_from_mesh_ex(mesh, CD_REFERENCE, &CD_MASK_MESH);
 }
 
-DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, eCDAllocType alloctype, CustomDataMask mask)
+DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, eCDAllocType alloctype, const CustomData_MeshMasks *mask)
 {
 	CDDerivedMesh *cddm = cdDM_create(__func__);
 	DerivedMesh *dm = &cddm->dm;
+	CustomData_MeshMasks cddata_masks = *mask;
 
-	mask &= ~CD_MASK_MDISPS;
+	cddata_masks.lmask &= ~CD_MASK_MDISPS;
 
 	/* this does a referenced copy, with an exception for fluidsim */
 
@@ -608,15 +609,15 @@ DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, eCDAllocType alloctype, CustomDataMas
 	}
 	/* TODO DM_DIRTY_TESS_CDLAYERS ? Maybe not though, since we probably want to switch to looptris ? */
 
-	CustomData_merge(&mesh->vdata, &dm->vertData, mask, alloctype,
+	CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype,
 	                 mesh->totvert);
-	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
+	CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype,
 	                 mesh->totedge);
-	CustomData_merge(&mesh->fdata, &dm->faceData, mask | CD_MASK_ORIGINDEX, alloctype,
+	CustomData_merge(&mesh->fdata, &dm->faceData, cddata_masks.fmask | CD_MASK_ORIGINDEX, alloctype,
 	                 0 /* mesh->totface */);
-	CustomData_merge(&mesh->ldata, &dm->loopData, mask, alloctype,
+	CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, alloctype,
 	                 mesh->totloop);
-	CustomData_merge(&mesh->pdata, &dm->polyData, mask, alloctype,
+	CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype,
 	                 mesh->totpoly);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
@@ -767,7 +768,7 @@ static DerivedMesh *cddm_from_bmesh_ex(
 	int numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 	int numUV  = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 	int *index, add_orig;
-	CustomDataMask mask;
+	CustomData_MeshMasks mask = {0};
 	unsigned int i, j;
 
 	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
@@ -779,18 +780,21 @@ static DerivedMesh *cddm_from_bmesh_ex(
 	/* don't add origindex layer if one already exists */
 	add_orig = !CustomData_has_layer(&bm->pdata, CD_ORIGINDEX);
 
-	mask = use_mdisps ? CD_MASK_DERIVEDMESH | CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
+	mask = CD_MASK_DERIVEDMESH;
+	if (use_mdisps) {
+		mask.lmask |= CD_MASK_MDISPS;
+	}
 
 	/* don't process shapekeys, we only feed them through the modifier stack as needed,
 	 * e.g. for applying modifiers or the like*/
-	mask &= ~CD_MASK_SHAPEKEY;
-	CustomData_merge(&bm->vdata, &dm->vertData, mask,
+	mask.vmask &= ~CD_MASK_SHAPEKEY;
+	CustomData_merge(&bm->vdata, &dm->vertData, mask.vmask,
 	                 CD_CALLOC, dm->numVertData);
-	CustomData_merge(&bm->edata, &dm->edgeData, mask,
+	CustomData_merge(&bm->edata, &dm->edgeData, mask.emask,
 	                 CD_CALLOC, dm->numEdgeData);
-	CustomData_merge(&bm->ldata, &dm->loopData, mask,
+	CustomData_merge(&bm->ldata, &dm->loopData, mask.lmask,
 	                 CD_CALLOC, dm->numLoopData);
-	CustomData_merge(&bm->pdata, &dm->polyData, mask,
+	CustomData_merge(&bm->pdata, &dm->polyData, mask.pmask,
 	                 CD_CALLOC, dm->numPolyData);
 
 	/* add tessellation mface layers */
@@ -974,11 +978,10 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 
 /* note, the CD_ORIGINDEX layers are all 0, so if there is a direct
  * relationship between mesh data this needs to be set by the caller. */
-DerivedMesh *CDDM_from_template_ex(
-        DerivedMesh *source,
+DerivedMesh *CDDM_from_template_ex(DerivedMesh *source,
         int numVerts, int numEdges, int numTessFaces,
         int numLoops, int numPolys,
-        CustomDataMask mask)
+        const CustomData_MeshMasks *mask)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_template dest");
 	DerivedMesh *dm = &cddm->dm;
@@ -1026,7 +1029,7 @@ DerivedMesh *CDDM_from_template(
 	return CDDM_from_template_ex(
 	        source, numVerts, numEdges, numTessFaces,
 	        numLoops, numPolys,
-	        CD_MASK_DERIVEDMESH);
+	        &CD_MASK_DERIVEDMESH);
 }
 
 void CDDM_apply_vert_coords(DerivedMesh *dm, float (*vertCoords)[3])

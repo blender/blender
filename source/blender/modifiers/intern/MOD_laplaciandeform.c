@@ -716,12 +716,13 @@ static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool
 	return 1;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
-	CustomDataMask dataMask = 0;
-	if (lmd->anchor_grp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-	return dataMask;
+
+	if (lmd->anchor_grp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static void deformVerts(

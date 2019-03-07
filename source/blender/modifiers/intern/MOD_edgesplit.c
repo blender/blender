@@ -60,7 +60,7 @@ static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd)
 	            .add_key_index = false,
 	            .use_shapekey = false,
 	            .active_shapekey = 0,
-	            .cd_mask_extra = CD_MASK_ORIGINDEX,
+	            .cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
 	        });
 
 	if (do_split_angle) {
@@ -100,7 +100,7 @@ static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd)
 
 	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

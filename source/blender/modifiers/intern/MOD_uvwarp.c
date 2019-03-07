@@ -62,16 +62,14 @@ static void initData(ModifierData *md)
 	copy_v2_fl(umd->center, 0.5f);
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (umd->vgroup_name[0])
-		dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	if (umd->vgroup_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonename)

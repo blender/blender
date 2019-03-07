@@ -1875,7 +1875,7 @@ static Mesh *base_skin(Mesh *origmesh,
 	if (!bm)
 		return NULL;
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
@@ -1926,10 +1926,9 @@ static Mesh *applyModifier(ModifierData *md,
 	return result;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob),
-                                       ModifierData *UNUSED(md))
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
-	return CD_MASK_MVERT_SKIN | CD_MASK_MDEFORMVERT;
+	r_cddata_masks->vmask |= CD_MASK_MVERT_SKIN | CD_MASK_MDEFORMVERT;
 }
 
 ModifierTypeInfo modifierType_Skin = {

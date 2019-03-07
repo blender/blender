@@ -36,19 +36,21 @@ extern "C" {
 
 struct BMesh;
 struct CustomData;
+struct CustomData_MeshMasks;
 struct ID;
 typedef uint64_t CustomDataMask;
 
 /*a data type large enough to hold 1 element from any customdata layer type*/
 typedef struct {unsigned char data[64]; } CDBlockBytes;
 
-extern const CustomDataMask CD_MASK_BAREMESH;
-extern const CustomDataMask CD_MASK_MESH;
-extern const CustomDataMask CD_MASK_EDITMESH;
-extern const CustomDataMask CD_MASK_DERIVEDMESH;
-extern const CustomDataMask CD_MASK_BMESH;
-extern const CustomDataMask CD_MASK_FACECORNERS;
-extern const CustomDataMask CD_MASK_EVERYTHING;
+extern const CustomData_MeshMasks CD_MASK_BAREMESH;
+extern const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX;
+extern const CustomData_MeshMasks CD_MASK_MESH;
+extern const CustomData_MeshMasks CD_MASK_EDITMESH;
+extern const CustomData_MeshMasks CD_MASK_DERIVEDMESH;
+extern const CustomData_MeshMasks CD_MASK_BMESH;
+extern const CustomData_MeshMasks CD_MASK_FACECORNERS;
+extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
 
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
@@ -69,11 +71,14 @@ typedef enum eCDAllocType {
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
-void customData_mask_layers__print(CustomDataMask mask);
+void customData_mask_layers__print(const struct CustomData_MeshMasks *mask);
 
 typedef void (*cd_interp)(const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
 typedef void (*cd_copy)(const void *source, void *dest, int count);
 typedef bool (*cd_validate)(void *item, const uint totitems, const bool do_fixes);
+
+void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst, const CustomData_MeshMasks *mask_src);
+bool CustomData_MeshMasks_are_matching(const CustomData_MeshMasks *mask_ref, const CustomData_MeshMasks *mask_required);
 
 /**
  * Checks if the layer at physical offset \a layer_n (in data->layers) support math

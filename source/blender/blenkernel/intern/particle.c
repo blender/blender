@@ -1625,39 +1625,40 @@ static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index),
 /*			Particles on emitter				*/
 /************************************************/
 
-CustomDataMask psys_emitter_customdata_mask(ParticleSystem *psys)
+void psys_emitter_customdata_mask(ParticleSystem *psys, CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask dataMask = 0;
 	MTex *mtex;
 	int i;
 
 	if (!psys->part)
-		return 0;
+		return;
 
 	for (i = 0; i < MAX_MTEX; i++) {
 		mtex = psys->part->mtex[i];
 		if (mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
-			dataMask |= CD_MASK_MTFACE;
+			r_cddata_masks->fmask |= CD_MASK_MTFACE;
 	}
 
 	if (psys->part->tanfac != 0.0f)
-		dataMask |= CD_MASK_MTFACE;
+		r_cddata_masks->fmask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
 	for (i = 0; i < PSYS_TOT_VG; i++) {
 		if (psys->vgroup[i]) {
-			dataMask |= CD_MASK_MDEFORMVERT;
+			r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 			break;
 		}
 	}
 
 	/* particles only need this if they are after a non deform modifier, and
 	 * the modifier stack will only create them in that case. */
-	dataMask |= CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORIGINDEX;
+	r_cddata_masks->lmask |= CD_MASK_ORIGSPACE_MLOOP;
+	/* XXX Check we do need all those? */
+	r_cddata_masks->vmask |= CD_MASK_ORIGINDEX;
+	r_cddata_masks->emask |= CD_MASK_ORIGINDEX;
+	r_cddata_masks->pmask |= CD_MASK_ORIGINDEX;
 
-	dataMask |= CD_MASK_ORCO;
-
-	return dataMask;
+	r_cddata_masks->vmask |= CD_MASK_ORCO;
 }
 
 void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int index, int index_dmcache,

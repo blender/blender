@@ -592,7 +592,7 @@ void BKE_mesh_from_nurbs_displist(
 	else {
 		me = BKE_mesh_add(bmain, obdata_name);
 		ob->runtime.mesh_eval = NULL;
-		BKE_mesh_nomain_to_mesh(me_eval, me, ob, CD_MASK_MESH, false);
+		BKE_mesh_nomain_to_mesh(me_eval, me, ob, &CD_MASK_MESH, false);
 	}
 
 	me->totcol = cu->totcol;
@@ -817,7 +817,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), 
 	/* make new mesh data from the original copy */
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_MESH);
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
 	ListBase nurblist = {NULL, NULL};
 
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 0);
@@ -981,22 +981,22 @@ Mesh *BKE_mesh_new_from_object(
 			else {
 				/* Make a dummy mesh, saves copying */
 				Mesh *me_eval;
-				/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
-				CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
-				                                     * for example, needs CD_MASK_MDEFORMVERT */
+				CustomData_MeshMasks mask = CD_MASK_MESH; /* this seems more suitable, exporter,
+				                                       * for example, needs CD_MASK_MDEFORMVERT */
 
-				if (calc_undeformed)
-					mask |= CD_MASK_ORCO;
+				if (calc_undeformed) {
+					mask.vmask |= CD_MASK_ORCO;
+				}
 
 				if (render) {
-					me_eval = mesh_create_eval_final_render(depsgraph, sce, ob, mask);
+					me_eval = mesh_create_eval_final_render(depsgraph, sce, ob, &mask);
 				}
 				else {
-					me_eval = mesh_create_eval_final_view(depsgraph, sce, ob, mask);
+					me_eval = mesh_create_eval_final_view(depsgraph, sce, ob, &mask);
 				}
 
 				tmpmesh = BKE_mesh_add(bmain, ((ID *)ob->data)->name + 2);
-				BKE_mesh_nomain_to_mesh(me_eval, tmpmesh, ob, mask, true);
+				BKE_mesh_nomain_to_mesh(me_eval, tmpmesh, ob, &mask, true);
 
 				/* Copy autosmooth settings from original mesh. */
 				Mesh *me = (Mesh *)ob->data;
@@ -1228,7 +1228,8 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 
 
 /* This is a Mesh-based copy of DM_to_mesh() */
-void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, CustomDataMask mask, bool take_ownership)
+void BKE_mesh_nomain_to_mesh(
+        Mesh *mesh_src, Mesh *mesh_dst, Object *ob, const CustomData_MeshMasks *mask, bool take_ownership)
 {
 	/* mesh_src might depend on mesh_dst, so we need to do everything with a local copy */
 	/* TODO(Sybren): the above claim came from DM_to_mesh(); check whether it is still true with Mesh */
@@ -1262,10 +1263,10 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, CustomD
 	totpoly = tmp.totpoly = mesh_src->totpoly;
 	tmp.totface = 0;
 
-	CustomData_copy(&mesh_src->vdata, &tmp.vdata, mask, alloctype, totvert);
-	CustomData_copy(&mesh_src->edata, &tmp.edata, mask, alloctype, totedge);
-	CustomData_copy(&mesh_src->ldata, &tmp.ldata, mask, alloctype, totloop);
-	CustomData_copy(&mesh_src->pdata, &tmp.pdata, mask, alloctype, totpoly);
+	CustomData_copy(&mesh_src->vdata, &tmp.vdata, mask->vmask, alloctype, totvert);
+	CustomData_copy(&mesh_src->edata, &tmp.edata, mask->emask, alloctype, totedge);
+	CustomData_copy(&mesh_src->ldata, &tmp.ldata, mask->lmask, alloctype, totloop);
+	CustomData_copy(&mesh_src->pdata, &tmp.pdata, mask->pmask, alloctype, totpoly);
 	tmp.cd_flag = mesh_src->cd_flag;
 	tmp.runtime.deformed_only = mesh_src->runtime.deformed_only;
 
@@ -1370,10 +1371,10 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, CustomD
 
 	if (take_ownership) {
 		if (alloctype == CD_ASSIGN) {
-			CustomData_free_typemask(&mesh_src->vdata, mesh_src->totvert, ~mask);
-			CustomData_free_typemask(&mesh_src->edata, mesh_src->totedge, ~mask);
-			CustomData_free_typemask(&mesh_src->ldata, mesh_src->totloop, ~mask);
-			CustomData_free_typemask(&mesh_src->pdata, mesh_src->totpoly, ~mask);
+			CustomData_free_typemask(&mesh_src->vdata, mesh_src->totvert, ~mask->vmask);
+			CustomData_free_typemask(&mesh_src->edata, mesh_src->totedge, ~mask->emask);
+			CustomData_free_typemask(&mesh_src->ldata, mesh_src->totloop, ~mask->lmask);
+			CustomData_free_typemask(&mesh_src->pdata, mesh_src->totpoly, ~mask->pmask);
 		}
 		BKE_id_free(NULL, mesh_src);
 	}

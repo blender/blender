@@ -288,21 +288,19 @@ static void initData(ModifierData *md)
 	wmd->max_dist             = 1.0f; /* vert arbitrary distance, but don't use 0 */
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
-	CustomDataMask dataMask = 0;
 
 	/* We need vertex groups! */
-	dataMask |= CD_MASK_MDEFORMVERT;
+	r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 
 	/* Ask for UV coordinates if we need them. */
-	if (wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
-		dataMask |= CD_MASK_MTFACE;
+	if (wmd->mask_tex_mapping == MOD_DISP_MAP_UV) {
+		r_cddata_masks->fmask |= CD_MASK_MTFACE;
+	}
 
 	/* No need to ask for CD_PREVIEW_MLOOPCOL... */
-
-	return dataMask;
 }
 
 static bool dependsOnTime(ModifierData *md)

@@ -40,7 +40,7 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 	BMesh *bm;
 	int total_edges, i;
 	MEdge *me;
-	CustomDataMask cddata_masks = CD_MASK_ORIGINDEX;
+	CustomData_MeshMasks cddata_masks = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX};
 
 	bool keep_clnors = (flag & MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS) != 0;
 
@@ -48,7 +48,7 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 		BKE_mesh_calc_normals_split(mesh);
 		/* We need that one to 'survive' to/from BMesh conversions. */
 		CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-		cddata_masks |= CD_MASK_NORMAL;  /* TODO: once D4421 is in, only request CD_NORMAL on loop data... */
+		cddata_masks.lmask |= CD_MASK_NORMAL;
 	}
 
 	bm = BKE_mesh_to_bmesh_ex(
@@ -61,7 +61,7 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 
 	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL, NULL);
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, cddata_masks);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cddata_masks);
 	BM_mesh_free(bm);
 
 

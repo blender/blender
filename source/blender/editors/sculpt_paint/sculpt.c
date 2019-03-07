@@ -5532,13 +5532,13 @@ void sculpt_dynamic_topology_disable_ex(
 		me->totpoly = unode->bm_enter_totpoly;
 		me->totedge = unode->bm_enter_totedge;
 		me->totface = 0;
-		CustomData_copy(&unode->bm_enter_vdata, &me->vdata, CD_MASK_MESH,
+		CustomData_copy(&unode->bm_enter_vdata, &me->vdata, CD_MASK_MESH.vmask,
 		                CD_DUPLICATE, unode->bm_enter_totvert);
-		CustomData_copy(&unode->bm_enter_edata, &me->edata, CD_MASK_MESH,
+		CustomData_copy(&unode->bm_enter_edata, &me->edata, CD_MASK_MESH.emask,
 		                CD_DUPLICATE, unode->bm_enter_totedge);
-		CustomData_copy(&unode->bm_enter_ldata, &me->ldata, CD_MASK_MESH,
+		CustomData_copy(&unode->bm_enter_ldata, &me->ldata, CD_MASK_MESH.lmask,
 		                CD_DUPLICATE, unode->bm_enter_totloop);
-		CustomData_copy(&unode->bm_enter_pdata, &me->pdata, CD_MASK_MESH,
+		CustomData_copy(&unode->bm_enter_pdata, &me->pdata, CD_MASK_MESH.pmask,
 		                CD_DUPLICATE, unode->bm_enter_totpoly);
 
 		BKE_mesh_update_customdata_pointers(me, false);

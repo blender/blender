@@ -29,6 +29,7 @@ extern "C" {
 #include <string.h> // XXX: memcpy
 
 #include "BLI_utildefines.h"
+#include "BKE_customdata.h"
 #include "BKE_idcode.h"
 #include "BKE_main.h"
 #include "BLI_listbase.h"
@@ -114,7 +115,7 @@ uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 	return id_node->eval_flags;
 }
 
-uint64_t DEG_get_customdata_mask_for_object(const Depsgraph *graph, Object *ob)
+void DEG_get_customdata_mask_for_object(const Depsgraph *graph, Object *ob, CustomData_MeshMasks *r_mask)
 {
 	if (graph == NULL) {
 		/* Happens when converting objects to mesh from a python script
@@ -122,17 +123,21 @@ uint64_t DEG_get_customdata_mask_for_object(const Depsgraph *graph, Object *ob)
 		 *
 		 * Currently harmless because it's only called for temporary
 		 * objects which are out of the DAG anyway. */
-		return 0;
+		return;
 	}
 
 	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
 	const DEG::IDNode *id_node = deg_graph->find_id_node(DEG_get_original_id(&ob->id));
 	if (id_node == NULL) {
 		/* TODO(sergey): Does it mean we need to check set scene? */
-		return 0;
+		return;
 	}
 
-	return id_node->customdata_mask;
+	r_mask->vmask |= id_node->customdata_masks.vert_mask;
+	r_mask->emask |= id_node->customdata_masks.edge_mask;
+	r_mask->fmask |= id_node->customdata_masks.face_mask;
+	r_mask->lmask |= id_node->customdata_masks.loop_mask;
+	r_mask->pmask |= id_node->customdata_masks.poly_mask;
 }
 
 Scene *DEG_get_evaluated_scene(const Depsgraph *graph)

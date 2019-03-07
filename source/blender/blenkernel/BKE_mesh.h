@@ -27,7 +27,7 @@
 #include "BLI_compiler_compat.h"
 
 /* defines CustomDataMask */
-#include "BKE_customdata.h"
+//#include "BKE_customdata.h"
 
 struct BLI_Stack;
 struct BMEditMesh;
@@ -37,6 +37,7 @@ struct BMeshFromMeshParams;
 struct BMeshToMeshParams;
 struct BoundBox;
 struct CustomData;
+struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EdgeHash;
 struct ID;
@@ -83,10 +84,10 @@ struct BMesh *BKE_mesh_to_bmesh(
         const bool add_key_index, const struct BMeshCreateParams *params);
 
 struct Mesh *BKE_mesh_from_bmesh_nomain(struct BMesh *bm, const struct BMeshToMeshParams *params);
-struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm, const int64_t cd_mask_extra);
+struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm, const struct CustomData_MeshMasks *cd_mask_extra);
 
 struct Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
-        struct BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3]);
+        struct BMEditMesh *em, const struct CustomData_MeshMasks *data_mask, float (*vertexCos)[3]);
 
 int poly_find_loop_from_vert(
         const struct MPoly *poly,
@@ -179,7 +180,7 @@ struct Mesh *BKE_mesh_create_derived_for_modifier(
 
 /* Copies a nomain-Mesh into an existing Mesh. */
 void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob,
-                             CustomDataMask mask, bool take_ownership);
+                             const struct CustomData_MeshMasks *mask, bool take_ownership);
 void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
 
 

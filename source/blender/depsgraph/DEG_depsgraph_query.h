@@ -33,6 +33,7 @@ struct ID;
 
 struct BLI_Iterator;
 struct Base;
+struct CustomData_MeshMasks;
 struct Depsgraph;
 struct DupliObject;
 struct ListBase;
@@ -66,9 +67,10 @@ bool DEG_id_type_any_updated(const struct Depsgraph *depsgraph);
 /* Get additional evaluation flags for the given ID. */
 uint32_t DEG_get_eval_flags_for_id(const struct Depsgraph *graph, struct ID *id);
 
-/* Get additional mesh CustomDataMask flags for the given object. */
-uint64_t DEG_get_customdata_mask_for_object(const struct Depsgraph *graph,
-                                            struct Object *object);
+/* Get additional mesh CustomData_MeshMasks flags for the given object. */
+void DEG_get_customdata_mask_for_object(const struct Depsgraph *graph,
+                                        struct Object *object,
+                                        struct CustomData_MeshMasks *r_mask);
 
 /* Get scene the despgraph is created for. */
 struct Scene *DEG_get_evaluated_scene(const struct Depsgraph *graph);

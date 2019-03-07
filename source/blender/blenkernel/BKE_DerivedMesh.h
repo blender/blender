@@ -75,6 +75,7 @@
 struct BMEditMesh;
 struct CCGElem;
 struct CCGKey;
+struct CustomData_MeshMasks;
 struct Depsgraph;
 struct MEdge;
 struct MFace;
@@ -348,7 +349,7 @@ void DM_from_template_ex(
         DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
         int numVerts, int numEdges, int numTessFaces,
         int numLoops, int numPolys,
-        CustomDataMask mask);
+        const struct CustomData_MeshMasks *mask);
 void DM_from_template(
         DerivedMesh *dm, DerivedMesh *source,
         DerivedMeshType type,
@@ -362,10 +363,11 @@ int DM_release(DerivedMesh *dm);
 
 /** utility function to convert a DerivedMesh to a Mesh
  */
-void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob, CustomDataMask mask, bool take_ownership);
+void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob,
+                const struct CustomData_MeshMasks *mask, bool take_ownership);
 
 
-void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
+void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
 
 /* adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
  * backed by an external data array
@@ -488,27 +490,27 @@ void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const
 
 DerivedMesh *mesh_create_derived_render(
         struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, CustomDataMask dataMask);
+        struct Object *ob, const struct CustomData_MeshMasks *dataMask);
 
 /* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived(struct Mesh *me, float (*vertCos)[3]);
 
 struct Mesh *editbmesh_get_eval_cage(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,
-        struct BMEditMesh *em, CustomDataMask dataMask);
+        struct BMEditMesh *em, const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_from_orig(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,
-        struct BMEditMesh *em, CustomDataMask dataMask);
+        struct BMEditMesh *em, const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_and_final(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,
-        struct BMEditMesh *em, CustomDataMask dataMask,
+        struct BMEditMesh *em, const struct CustomData_MeshMasks *dataMask,
         struct Mesh **r_final);
 
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *r_numVerts))[3];
 bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, bool has_prev_mesh);
 void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
-        CustomDataMask dataMask, const bool build_shapekey_layers);
+        const struct CustomData_MeshMasks *dataMask, const bool build_shapekey_layers);
 
 void DM_add_named_tangent_layer_for_uv(
         CustomData *uv_data, CustomData *tan_data, int numLoopData,

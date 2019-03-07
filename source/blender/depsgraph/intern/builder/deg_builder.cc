@@ -203,7 +203,7 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 			flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
 		}
 		/* Tag rebuild if the custom data mask changed. */
-		if (id_node->customdata_mask != id_node->previous_customdata_mask) {
+		if (id_node->customdata_masks != id_node->previous_customdata_masks) {
 			flag |= ID_RECALC_GEOMETRY;
 		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {

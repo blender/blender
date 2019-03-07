@@ -57,17 +57,14 @@ static void initData(ModifierData *md)
 	dmd->defgrp_factor = 1.0;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (dmd->defgrp_name[0] && (dmd->defgrp_factor > 0.0f)) {
-		dataMask |= CD_MASK_MDEFORMVERT;
+	if (dmd->defgrp_name[0] != '\0' && (dmd->defgrp_factor > 0.0f)) {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 	}
-
-	return dataMask;
 }
 
 static DecimateModifierData *getOriginalModifierData(
@@ -166,7 +163,7 @@ static Mesh *applyModifier(
 	        &(struct BMeshCreateParams){0},
 	        &(struct BMeshFromMeshParams){
 	            .calc_face_normal = calc_face_normal,
-	            .cd_mask_extra = CD_MASK_ORIGINDEX,
+	            .cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
 	        });
 
 	switch (dmd->mode) {
@@ -199,7 +196,7 @@ static Mesh *applyModifier(
 
 	updateFaceCount(ctx, dmd, bm->totface);
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */

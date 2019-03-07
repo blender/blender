@@ -150,22 +150,17 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 }
 
 #ifdef WITH_OCEANSIM
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	OceanModifierData *omd = (OceanModifierData *)md;
-	CustomDataMask dataMask = 0;
 
-	if (omd->flag & MOD_OCEAN_GENERATE_FOAM)
-		dataMask |= CD_MASK_MCOL;
-
-	return dataMask;
+	if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
+		r_cddata_masks->fmask |= CD_MASK_MCOL;  /* XXX Should be loop cddata I guess? */
+	}
 }
 #else /* WITH_OCEANSIM */
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *UNUSED(r_cddata_masks))
 {
-	/* unused */
-	(void)md;
-	return 0;
 }
 #endif /* WITH_OCEANSIM */
 

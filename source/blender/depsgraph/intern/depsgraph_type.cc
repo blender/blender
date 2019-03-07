@@ -29,8 +29,11 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "DNA_customdata_types.h"
+
 #include "DEG_depsgraph.h"
 
+#include "intern/depsgraph_type.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_factory.h"
@@ -47,5 +50,14 @@ void DEG_register_node_types(void)
 
 /* Free registry on exit */
 void DEG_free_node_types(void)
+{
+}
+
+DEG::DEGCustomDataMeshMasks::DEGCustomDataMeshMasks(const CustomData_MeshMasks *other) :
+    vert_mask(other->vmask),
+    edge_mask(other->emask),
+    face_mask(other->fmask),
+    loop_mask(other->lmask),
+    poly_mask(other->pmask)
 {
 }

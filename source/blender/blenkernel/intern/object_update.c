@@ -168,18 +168,20 @@ void BKE_object_handle_data_update(
 			}
 #endif
 
-			uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
+			CustomData_MeshMasks cddata_masks = scene->customdata_mask;
+			CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
 #ifdef WITH_FREESTYLE
 			/* make sure Freestyle edge/face marks appear in DM for render (see T40315) */
 			if (DEG_get_mode(depsgraph) != DAG_EVAL_VIEWPORT) {
-				data_mask |= CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
+				cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
+				cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
 			}
 #endif
 			if (em) {
-				makeDerivedMesh(depsgraph, scene, ob, em,  data_mask, false); /* was CD_MASK_BAREMESH */
+				makeDerivedMesh(depsgraph, scene, ob, em,  &cddata_masks, false); /* was CD_MASK_BAREMESH */
 			}
 			else {
-				makeDerivedMesh(depsgraph, scene, ob, NULL, data_mask, false);
+				makeDerivedMesh(depsgraph, scene, ob, NULL, &cddata_masks, false);
 			}
 			break;
 		}

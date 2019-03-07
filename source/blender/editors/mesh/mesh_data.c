@@ -911,7 +911,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 		return;
 
 	totvert = mesh->totvert + len;
-	CustomData_copy(&mesh->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
+	CustomData_copy(&mesh->vdata, &vdata, CD_MASK_MESH.vmask, CD_DEFAULT, totvert);
 	CustomData_copy_data(&mesh->vdata, &vdata, 0, 0, mesh->totvert);
 
 	if (!CustomData_has_layer(&vdata, CD_MVERT))
@@ -944,7 +944,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 	totedge = mesh->totedge + len;
 
 	/* update customdata  */
-	CustomData_copy(&mesh->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
+	CustomData_copy(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
 	CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
 	if (!CustomData_has_layer(&edata, CD_MEDGE))
@@ -974,7 +974,7 @@ static void mesh_add_tessfaces(Mesh *mesh, int len)
 	totface = mesh->totface + len;   /* new face count */
 
 	/* update customdata */
-	CustomData_copy(&mesh->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
+	CustomData_copy(&mesh->fdata, &fdata, CD_MASK_MESH.fmask, CD_DEFAULT, totface);
 	CustomData_copy_data(&mesh->fdata, &fdata, 0, 0, mesh->totface);
 
 	if (!CustomData_has_layer(&fdata, CD_MFACE))
@@ -1003,7 +1003,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 	totloop = mesh->totloop + len;   /* new face count */
 
 	/* update customdata */
-	CustomData_copy(&mesh->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
+	CustomData_copy(&mesh->ldata, &ldata, CD_MASK_MESH.lmask, CD_DEFAULT, totloop);
 	CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
 
 	if (!CustomData_has_layer(&ldata, CD_MLOOP))
@@ -1028,7 +1028,7 @@ static void mesh_add_polys(Mesh *mesh, int len)
 	totpoly = mesh->totpoly + len;   /* new face count */
 
 	/* update customdata */
-	CustomData_copy(&mesh->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
+	CustomData_copy(&mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_DEFAULT, totpoly);
 	CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
 
 	if (!CustomData_has_layer(&pdata, CD_MPOLY))

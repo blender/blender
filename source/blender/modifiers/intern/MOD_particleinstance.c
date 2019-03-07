@@ -63,19 +63,15 @@ static void initData(ModifierData *md)
 	STRNCPY(pimd->value_layer_name, "");
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	if (pimd->index_layer_name[0] != '\0' ||
 	    pimd->value_layer_name[0] != '\0')
 	{
-		dataMask |= CD_MASK_MLOOPCOL;
+		r_cddata_masks->lmask |= CD_MASK_MLOOPCOL;
 	}
-
-	return dataMask;
-
 }
 
 static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRenderParams)

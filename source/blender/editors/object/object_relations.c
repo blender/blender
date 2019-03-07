@@ -153,7 +153,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
 		/* derivedMesh might be needed for solving parenting,
 		 * so re-create it here */
-		makeDerivedMesh(depsgraph, scene, obedit, em, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX, false);
+		makeDerivedMesh(depsgraph, scene, obedit, em, &CD_MASK_BAREMESH_ORIGINDEX, false);
 
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {

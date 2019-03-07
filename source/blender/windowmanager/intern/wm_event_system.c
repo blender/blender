@@ -47,6 +47,7 @@
 #include "BLI_timer.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -314,12 +315,12 @@ void wm_event_do_depsgraph(bContext *C)
 		return;
 	}
 	/* Combine datamasks so 1 win doesn't disable UV's in another [#26448]. */
-	uint64_t win_combine_v3d_datamask = 0;
+	CustomData_MeshMasks win_combine_v3d_datamask = {0};
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		const Scene *scene = WM_window_get_active_scene(win);
 		const bScreen *screen = WM_window_get_active_screen(win);
 
-		win_combine_v3d_datamask |= ED_view3d_screen_datamask(C, scene, screen);
+		ED_view3d_screen_datamask(C, scene, screen, &win_combine_v3d_datamask);
 	}
 	/* Update all the dependency graphs of visible view layers. */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
@@ -329,7 +330,7 @@ void wm_event_do_depsgraph(bContext *C)
 		/* Copied to set's in scene_update_tagged_recursive() */
 		scene->customdata_mask = win_combine_v3d_datamask;
 		/* XXX, hack so operators can enforce datamasks [#26482], gl render */
-		scene->customdata_mask |= scene->customdata_mask_modal;
+		CustomData_MeshMasks_update(&scene->customdata_mask, &scene->customdata_mask_modal);
 		/* TODO(sergey): For now all dependency graphs which are evaluated from
 		 * workspace are considered active. This will work all fine with "locked"
 		 * view layer and time across windows. This is to be granted separately,

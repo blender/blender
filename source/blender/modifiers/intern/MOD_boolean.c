@@ -301,7 +301,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 				MEM_freeN(looptris);
 			}
 
-			result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+			result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 
 			BM_mesh_free(bm);
 
@@ -321,13 +321,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	return result;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask dataMask = CD_MASK_MTFACE | CD_MASK_MEDGE;
-
-	dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	r_cddata_masks->emask |= CD_MASK_MEDGE;
+	r_cddata_masks->fmask |= CD_MASK_MTFACE;
 }
 
 ModifierTypeInfo modifierType_Boolean = {

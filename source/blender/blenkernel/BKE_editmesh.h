@@ -61,7 +61,7 @@ typedef struct BMEditMesh {
 	struct Mesh *mesh_eval_final, *mesh_eval_cage;
 
 	/*derivedmesh stuff*/
-	CustomDataMask lastDataMask;
+	CustomData_MeshMasks lastDataMask;
 	unsigned char (*derivedVertColor)[4];
 	int derivedVertColorLen;
 	unsigned char (*derivedFaceColor)[4];

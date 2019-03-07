@@ -40,6 +40,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 
@@ -888,12 +889,15 @@ bool BKE_mesh_validate_all_customdata(
 	bool is_valid = true;
 	bool is_change_v, is_change_e, is_change_l, is_change_p;
 	int tot_uvloop, tot_vcolloop;
-	CustomDataMask mask = check_meshmask ? CD_MASK_MESH : 0;
+	CustomData_MeshMasks mask = {0};
+	if (check_meshmask) {
+		mask = CD_MASK_MESH;
+	}
 
-	is_valid &= mesh_validate_customdata(vdata, mask, totvert, do_verbose, do_fixes, &is_change_v);
-	is_valid &= mesh_validate_customdata(edata, mask, totedge, do_verbose, do_fixes, &is_change_e);
-	is_valid &= mesh_validate_customdata(ldata, mask, totloop, do_verbose, do_fixes, &is_change_l);
-	is_valid &= mesh_validate_customdata(pdata, mask, totpoly, do_verbose, do_fixes, &is_change_p);
+	is_valid &= mesh_validate_customdata(vdata, mask.vmask, totvert, do_verbose, do_fixes, &is_change_v);
+	is_valid &= mesh_validate_customdata(edata, mask.emask, totedge, do_verbose, do_fixes, &is_change_e);
+	is_valid &= mesh_validate_customdata(ldata, mask.lmask, totloop, do_verbose, do_fixes, &is_change_l);
+	is_valid &= mesh_validate_customdata(pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
 	tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 	tot_vcolloop = CustomData_number_of_layers(ldata, CD_MLOOPCOL);

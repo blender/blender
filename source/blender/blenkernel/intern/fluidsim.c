@@ -54,7 +54,7 @@ void initElbeemMesh(struct Depsgraph *depsgraph, struct Scene *scene, struct Obj
 	float *verts;
 	int *tris;
 
-	mesh = mesh_create_eval_final_index_render(depsgraph, scene, ob, CD_MASK_BAREMESH, modifierIndex);
+	mesh = mesh_create_eval_final_index_render(depsgraph, scene, ob, &CD_MASK_BAREMESH, modifierIndex);
 
 	mvert = mesh->mvert;
 	mloop = mesh->mloop;

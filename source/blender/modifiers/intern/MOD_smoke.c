@@ -75,22 +75,20 @@ static void freeData(ModifierData *md)
 	smokeModifier_free(smd);
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	SmokeModifierData *smd  = (SmokeModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
 		if (smd->flow->source == MOD_SMOKE_FLOW_SOURCE_MESH) {
 			/* vertex groups */
 			if (smd->flow->vgroup_density)
-				dataMask |= CD_MASK_MDEFORMVERT;
+				r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 			/* uv layer */
 			if (smd->flow->texture_type == MOD_SMOKE_FLOW_TEXTURE_MAP_UV)
-				dataMask |= CD_MASK_MTFACE;
+				r_cddata_masks->fmask |= CD_MASK_MTFACE;
 		}
 	}
-	return dataMask;
 }
 
 static Mesh *applyModifier(

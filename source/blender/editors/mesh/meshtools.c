@@ -97,7 +97,7 @@ static void join_mesh_single(
 		((Mesh *)ob_dst->data)->cd_flag |= me->cd_flag;
 
 		/* standard data */
-		CustomData_merge(&me->vdata, vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
+		CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_DEFAULT, totvert);
 		CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
 		/* vertex groups */
@@ -191,7 +191,7 @@ static void join_mesh_single(
 	}
 
 	if (me->totedge) {
-		CustomData_merge(&me->edata, edata, CD_MASK_MESH, CD_DEFAULT, totedge);
+		CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
 		CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
 		for (a = 0; a < me->totedge; a++, medge++) {
@@ -213,7 +213,7 @@ static void join_mesh_single(
 			}
 		}
 
-		CustomData_merge(&me->ldata, ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
+		CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_DEFAULT, totloop);
 		CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
 		for (a = 0; a < me->totloop; a++, mloop++) {
@@ -237,7 +237,7 @@ static void join_mesh_single(
 			}
 		}
 
-		CustomData_merge(&me->pdata, pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
+		CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_DEFAULT, totpoly);
 		CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
 		for (a = 0; a < me->totpoly; a++, mpoly++) {
@@ -665,7 +665,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 				Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
 
-				me_deformed = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
+				me_deformed = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
 
 				if (!me_deformed) {
 					continue;
@@ -1087,7 +1087,7 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		struct ARegion *ar = CTX_wm_region(C);
 
 		/* derived mesh to find deformed locations */
-		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH_ORIGINDEX);
 
 		int v_idx_best = ORIGINDEX_NONE;
 
@@ -1216,7 +1216,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 		Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
 
 		/* derived mesh to find deformed locations */
-		Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
+		Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
 		ARegion *ar = vc.ar;
 		RegionView3D *rv3d = ar->regiondata;
 

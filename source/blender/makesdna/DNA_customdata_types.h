@@ -190,6 +190,19 @@ typedef enum CustomDataType {
 #define CD_MASK_TESSLOOPNORMAL  (1LL << CD_TESSLOOPNORMAL)
 #define CD_MASK_CUSTOMLOOPNORMAL (1LL << CD_CUSTOMLOOPNORMAL)
 
+/** Data types that may be defined for all mesh elements types. */
+#define CD_MASK_GENERIC_DATA (CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR)
+
+
+typedef struct CustomData_MeshMasks {
+	uint64_t vmask;
+	uint64_t emask;
+	uint64_t fmask;
+	uint64_t pmask;
+	uint64_t lmask;
+} CustomData_MeshMasks;
+
+
 /* CustomData.flag */
 enum {
 	/* Indicates layer should not be copied by CustomData_from_template or CustomData_copy_data */

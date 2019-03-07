@@ -65,14 +65,10 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	tamd->prevCos = NULL;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask dataMask = 0;
-
 	/* ask for vertexgroups */
-	dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))

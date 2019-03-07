@@ -861,7 +861,7 @@ static Subdiv *multires_create_subdiv_for_reshape(
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
 	Mesh *deformed_mesh = mesh_get_eval_deform(
-	        depsgraph, scene_eval, object_eval, CD_MASK_BAREMESH);
+	        depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
 	SubdivSettings subdiv_settings;
 	BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
 	Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, deformed_mesh);
@@ -965,7 +965,7 @@ bool multiresModifier_reshapeFromObject(
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Object *src_eval = DEG_get_evaluated_object(depsgraph, src);
 	Mesh *src_mesh_eval = mesh_get_eval_final(
-	        depsgraph, scene_eval, src_eval, CD_MASK_BAREMESH);
+	        depsgraph, scene_eval, src_eval, &CD_MASK_BAREMESH);
 	int num_deformed_verts;
 	float (*deformed_verts)[3] = BKE_mesh_vertexCos_get(
 	        src_mesh_eval, &num_deformed_verts);

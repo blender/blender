@@ -309,16 +309,18 @@ void DepsgraphRelationBuilder::add_modifier_to_transform_relation(
 	        transform_operation_node, geometry_operation_node, description);
 }
 
-void DepsgraphRelationBuilder::add_customdata_mask(Object *object, uint64_t mask)
+void DepsgraphRelationBuilder::add_customdata_mask(
+        Object *object,
+        const DEGCustomDataMeshMasks &customdata_masks)
 {
-	if (mask != 0 && object != NULL && object->type == OB_MESH) {
+	if (customdata_masks != DEGCustomDataMeshMasks() && object != NULL && object->type == OB_MESH) {
 		DEG::IDNode *id_node = graph_->find_id_node(&object->id);
 
 		if (id_node == NULL) {
 			BLI_assert(!"ID should always be valid");
 		}
 		else {
-			id_node->customdata_mask |= mask;
+			id_node->customdata_masks |= customdata_masks;
 		}
 	}
 }
@@ -864,7 +866,11 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 			 * TODO(sergey): This optimization got lost at 2.8, so either verify
 			 * we can get rid of this mask here, or bring the optimization
 			 * back. */
-			add_customdata_mask(object->parent, CD_MASK_ORIGINDEX);
+			add_customdata_mask(object->parent,
+			                    DEGCustomDataMeshMasks::MaskVert(CD_MASK_ORIGINDEX) |
+			                    DEGCustomDataMeshMasks::MaskEdge(CD_MASK_ORIGINDEX) |
+			                    DEGCustomDataMeshMasks::MaskFace(CD_MASK_ORIGINDEX) |
+			                    DEGCustomDataMeshMasks::MaskPoly(CD_MASK_ORIGINDEX));
 			ComponentKey transform_key(parent_id, NodeType::TRANSFORM);
 			add_relation(transform_key, ob_key, "Vertex Parent TFM");
 			break;
@@ -1118,7 +1124,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					        target_transform_key, constraint_op_key, cti->name);
 					add_relation(
 					        target_geometry_key, constraint_op_key, cti->name);
-					add_customdata_mask(ct->tar, CD_MASK_MDEFORMVERT);
+					add_customdata_mask(ct->tar, DEGCustomDataMeshMasks::MaskVert(CD_MASK_MDEFORMVERT));
 				}
 				else if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
 					bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
@@ -1131,7 +1137,9 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					if (ct->tar->type == OB_MESH && scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
 						bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
 						if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
-							add_customdata_mask(ct->tar, CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL);
+							add_customdata_mask(ct->tar,
+							                    DEGCustomDataMeshMasks::MaskVert(CD_MASK_NORMAL) |
+							                    DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
 						}
 						if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
 							add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);

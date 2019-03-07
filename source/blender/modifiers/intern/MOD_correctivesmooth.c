@@ -105,15 +105,14 @@ static void freeData(ModifierData *md)
 }
 
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
-	CustomDataMask dataMask = 0;
+
 	/* ask for vertex groups if we need them */
-	if (csmd->defgrp_name[0]) {
-		dataMask |= CD_MASK_MDEFORMVERT;
+	if (csmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 	}
-	return dataMask;
 }
 
 

@@ -35,6 +35,7 @@ struct Base;
 struct BezTriple;
 struct BoundBox;
 struct Camera;
+struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EditBone;
 struct GPUFX;
@@ -486,8 +487,12 @@ char ED_view3d_lock_view_from_index(int index);
 char ED_view3d_axis_view_opposite(char view);
 bool ED_view3d_lock(struct RegionView3D *rv3d);
 
-uint64_t ED_view3d_datamask(const struct bContext *C, const struct Scene *scene, const struct View3D *v3d);
-uint64_t ED_view3d_screen_datamask(const struct bContext *C, const struct Scene *scene, const struct bScreen *screen);
+void ED_view3d_datamask(
+        const struct bContext *C, const struct Scene *scene, const struct View3D *v3d,
+        struct CustomData_MeshMasks *r_cddata_masks);
+void ED_view3d_screen_datamask(
+        const struct bContext *C, const struct Scene *scene, const struct bScreen *screen,
+        struct CustomData_MeshMasks *r_cddata_masks);
 
 bool ED_view3d_offset_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
 void ED_view3d_persp_switch_from_camera(

@@ -32,6 +32,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_task.h"
 
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_key.h"
 #include "BKE_subdiv.h"

@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 #include "DNA_color_types.h"  /* color management */
+#include "DNA_customdata_types.h"  /* Scene's runtime cddata masks. */
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -50,6 +51,7 @@ struct Brush;
 struct Collection;
 struct ColorSpace;
 struct CurveMapping;
+struct CustomData_MeshMasks;
 struct Editing;
 struct Image;
 struct MovieClip;
@@ -1752,10 +1754,9 @@ typedef struct Scene {
 	void *_pad8;
 	/* XXX. runtime flag for drawing, actually belongs in the window,
 	 * only used by BKE_object_handle_update() */
-	uint64_t customdata_mask;
+	struct CustomData_MeshMasks customdata_mask;
 	/* XXX. same as above but for temp operator use (gl renders) */
-	uint64_t customdata_mask_modal;
-
+	struct CustomData_MeshMasks customdata_mask_modal;
 
 	/* Color Management */
 	ColorManagedViewSettings view_settings;

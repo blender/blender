@@ -61,6 +61,7 @@
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"
+#include "BKE_customdata.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -3780,17 +3781,26 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
 		return false;
 	}
 
+	CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
+	cddata_masks.fmask |= CD_MASK_MTFACE;
+	cddata_masks.lmask |= CD_MASK_MLOOPUV;
+
 	/* Workaround for subsurf selection, try the display mesh first */
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
 		ps->me_eval = mesh_create_eval_final_render(
-		             depsgraph, scene_eval, ob_eval, scene_eval->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE);
+		             depsgraph, scene_eval, ob_eval, &cddata_masks);
 		ps->me_eval_free = true;
 	}
 	else {
+		if (ps->do_face_sel) {
+			cddata_masks.vmask |= CD_MASK_ORIGINDEX;
+			cddata_masks.emask |= CD_MASK_ORIGINDEX;
+			cddata_masks.pmask |= CD_MASK_ORIGINDEX;
+		}
 		ps->me_eval = mesh_get_eval_final(
 		        depsgraph, scene_eval, ob_eval,
-		        scene_eval->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
+		        &cddata_masks);
 		ps->me_eval_free = false;
 	}
 

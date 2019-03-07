@@ -18,15 +18,16 @@
  * \ingroup bli
  */
 
-#include "DNA_meshdata_types.h"
-
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_task.h"
+
+#include "DNA_meshdata_types.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"

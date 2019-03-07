@@ -535,22 +535,22 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	me_dst->runtime.is_original = false;
 
 	const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0)); /* only do tessface if we have no polys */
-	CustomDataMask mask = CD_MASK_MESH;
+	CustomData_MeshMasks mask = CD_MASK_MESH;
 
 	if (me_src->id.tag & LIB_TAG_NO_MAIN) {
 		/* For copies in depsgraph, keep data like origindex and orco. */
-		mask |= CD_MASK_DERIVEDMESH;
+		CustomData_MeshMasks_update(&mask, &CD_MASK_DERIVEDMESH);
 	}
 
 	me_dst->mat = MEM_dupallocN(me_src->mat);
 
 	const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, alloc_type, me_dst->totvert);
-	CustomData_copy(&me_src->edata, &me_dst->edata, mask, alloc_type, me_dst->totedge);
-	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, alloc_type, me_dst->totloop);
-	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, alloc_type, me_dst->totpoly);
+	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, alloc_type, me_dst->totvert);
+	CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, alloc_type, me_dst->totedge);
+	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, alloc_type, me_dst->totloop);
+	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, alloc_type, me_dst->totpoly);
 	if (do_tessface) {
-		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, alloc_type, me_dst->totface);
+		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, alloc_type, me_dst->totface);
 	}
 	else {
 		mesh_tessface_clear_intern(me_dst, false);
@@ -629,7 +629,7 @@ static Mesh *mesh_new_nomain_from_template_ex(
         const Mesh *me_src,
         int verts_len, int edges_len, int tessface_len,
         int loops_len, int polys_len,
-        CustomDataMask mask)
+        CustomData_MeshMasks mask)
 {
 	/* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
 	const bool do_tessface = (tessface_len ||
@@ -648,12 +648,12 @@ static Mesh *mesh_new_nomain_from_template_ex(
 
 	me_dst->cd_flag = me_src->cd_flag;
 
-	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, CD_CALLOC, verts_len);
-	CustomData_copy(&me_src->edata, &me_dst->edata, mask, CD_CALLOC, edges_len);
-	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, CD_CALLOC, loops_len);
-	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, CD_CALLOC, polys_len);
+	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_CALLOC, verts_len);
+	CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_CALLOC, edges_len);
+	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_CALLOC, loops_len);
+	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_CALLOC, polys_len);
 	if (do_tessface) {
-		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, CD_CALLOC, tessface_len);
+		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, CD_CALLOC, tessface_len);
 	}
 	else {
 		mesh_tessface_clear_intern(me_dst, false);
@@ -736,7 +736,7 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm, const struct BMeshToMeshParams *para
 	return mesh;
 }
 
-Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const int64_t cd_mask_extra)
+Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const CustomData_MeshMasks *cd_mask_extra)
 {
 	Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
 	BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
@@ -747,7 +747,7 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const int64_t cd_mask_extra
  * TODO(campbell): support mesh with only an edit-mesh which is lazy initialized.
  */
 Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
-        BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3])
+        BMEditMesh *em, const CustomData_MeshMasks *data_mask, float (*vertexCos)[3])
 {
 	Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, data_mask);
 	/* Use editmesh directly where possible. */

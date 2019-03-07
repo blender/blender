@@ -1886,8 +1886,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 			DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 		}
 
-		uint64_t customdata_mask_prev = scene->customdata_mask;
-		scene->customdata_mask |= CD_MASK_MESH;
+		CustomData_MeshMasks customdata_mask_prev = scene->customdata_mask;
+		CustomData_MeshMasks_update(&scene->customdata_mask, &CD_MASK_MESH);
 		BKE_scene_graph_update_tagged(depsgraph, bmain);
 		scene->customdata_mask = customdata_mask_prev;
 	}
@@ -1966,9 +1966,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 			 */
 			Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
 			Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_MESH);
+			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
 			me_eval = BKE_mesh_copy_for_eval(me_eval, false);
-			BKE_mesh_nomain_to_mesh(me_eval, newob->data, newob, CD_MASK_MESH, true);
+			BKE_mesh_nomain_to_mesh(me_eval, newob->data, newob, &CD_MASK_MESH, true);
 			BKE_object_free_modifiers(newob, 0);   /* after derivedmesh calls! */
 		}
 		else if (ob->type == OB_FONT) {

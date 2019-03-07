@@ -941,7 +941,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 	bool use_deform = true;
 	bool use_cage   = false;
 	bool use_fnorm  = true;
-	const int mask = CD_MASK_BMESH;
+	CustomData_MeshMasks data_masks = CD_MASK_BMESH;
 
 	BPY_BM_CHECK_OBJ(self);
 
@@ -976,15 +976,15 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 				return NULL;
 			}
 			else {
-				me_eval = mesh_create_eval_final_render(depsgraph, scene_eval, ob_eval, mask);
+				me_eval = mesh_create_eval_final_render(depsgraph, scene_eval, ob_eval, &data_masks);
 			}
 		}
 		else {
 			if (use_cage) {
-				me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, mask);
+				me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
 			}
 			else {
-				me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, mask);
+				me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &data_masks);
 			}
 		}
 	}
@@ -996,10 +996,10 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 			return NULL;
 		}
 		else if (use_render) {
-			me_eval = mesh_create_eval_no_deform_render(depsgraph, scene_eval, ob, NULL, mask);
+			me_eval = mesh_create_eval_no_deform_render(depsgraph, scene_eval, ob, NULL, &data_masks);
 		}
 		else {
-			me_eval = mesh_create_eval_no_deform(depsgraph, scene_eval, ob, NULL, mask);
+			me_eval = mesh_create_eval_no_deform(depsgraph, scene_eval, ob, NULL, &data_masks);
 		}
 	}
 

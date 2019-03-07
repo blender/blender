@@ -1045,7 +1045,7 @@ static Mesh *bvh_get_mesh(
 {
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	/* we only need minimum mesh data for topology and vertex locations */
-	CustomDataMask mask = CD_MASK_BAREMESH;
+	CustomData_MeshMasks data_masks = CD_MASK_BAREMESH;
 	const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 	*r_free_mesh = false;
 
@@ -1059,15 +1059,15 @@ static Mesh *bvh_get_mesh(
 			}
 			else {
 				*r_free_mesh = true;
-				return mesh_create_eval_final_render(depsgraph, scene, ob, mask);
+				return mesh_create_eval_final_render(depsgraph, scene, ob, &data_masks);
 			}
 		}
 		else if (ob_eval != NULL) {
 			if (use_cage) {
-				return mesh_get_eval_deform(depsgraph, scene, ob_eval, mask);  /* ob->derivedDeform */
+				return mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);  /* ob->derivedDeform */
 			}
 			else {
-				return mesh_get_eval_final(depsgraph, scene, ob_eval, mask);  /* ob->derivedFinal */
+				return mesh_get_eval_final(depsgraph, scene, ob_eval, &data_masks);  /* ob->derivedFinal */
 			}
 		}
 		else {
@@ -1086,7 +1086,7 @@ static Mesh *bvh_get_mesh(
 			}
 			else {
 				*r_free_mesh = true;
-				return mesh_create_eval_no_deform_render(depsgraph, scene, ob, NULL, mask);
+				return mesh_create_eval_no_deform_render(depsgraph, scene, ob, NULL, &data_masks);
 			}
 		}
 		else {
@@ -1097,7 +1097,7 @@ static Mesh *bvh_get_mesh(
 			}
 			else {
 				*r_free_mesh = true;
-				return mesh_create_eval_no_deform(depsgraph, scene, ob, NULL, mask);
+				return mesh_create_eval_no_deform(depsgraph, scene, ob, NULL, &data_masks);
 			}
 		}
 	}

@@ -119,21 +119,19 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	WaveModifierData *wmd = (WaveModifierData *)md;
-	CustomDataMask dataMask = 0;
-
 
 	/* ask for UV coordinates if we need them */
-	if (wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV)
-		dataMask |= CD_MASK_MTFACE;
+	if (wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV) {
+		r_cddata_masks->fmask |= CD_MASK_MTFACE;
+	}
 
 	/* ask for vertexgroups if we need them */
-	if (wmd->defgrp_name[0])
-		dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	if (wmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static bool dependsOnNormals(ModifierData *md)

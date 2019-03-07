@@ -127,18 +127,17 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	DEG_add_modifier_to_transform_relation(ctx->node, "Cloth Modifier");
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask dataMask = 0;
 	ClothModifierData *clmd = (ClothModifierData *)md;
 
-	if (cloth_uses_vgroup(clmd))
-		dataMask |= CD_MASK_MDEFORMVERT;
+	if (cloth_uses_vgroup(clmd)) {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 
-	if (clmd->sim_parms->shapekey_rest != 0)
-		dataMask |= CD_MASK_CLOTH_ORCO;
-
-	return dataMask;
+	if (clmd->sim_parms->shapekey_rest != 0) {
+		r_cddata_masks->vmask |= CD_MASK_CLOTH_ORCO;
+	}
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)

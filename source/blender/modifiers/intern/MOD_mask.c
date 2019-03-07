@@ -49,9 +49,9 @@
 
 #include "BLI_strict_flags.h"
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
-	return CD_MASK_MDEFORMVERT;
+	r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
 static void foreachObjectLink(

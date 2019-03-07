@@ -1153,7 +1153,7 @@ static void surfacedeformModifier_do(
 	if (target == NULL && smd->verts == NULL && ob == DEG_get_original_object(ob)) {
 		/* Special case, binding happens outside of depsgraph evaluation, so we can build our own
 		 * target mesh if needed. */
-		target = mesh_create_eval_final_view(ctx->depsgraph, DEG_get_input_scene(ctx->depsgraph), smd->target, 0);
+		target = mesh_create_eval_final_view(ctx->depsgraph, DEG_get_input_scene(ctx->depsgraph), smd->target, CD_MASK_BAREMESH);
 		free_target = target != NULL;
 	}
 #endif

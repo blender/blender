@@ -226,7 +226,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	MultiresModifierData tmp_mmd = *mmd;
 	DerivedMesh *cddm = CDDM_from_mesh(me);
 
-	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+	DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 
 	if (mmd->lvl == 0) {
 		dm = CDDM_copy(cddm);
@@ -252,13 +252,13 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 	DerivedMesh *cddm = CDDM_from_mesh(me);
 	DerivedMesh *dm;
 
-	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+	DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 
 	/* TODO: DM_set_only_copy wouldn't set mask for loop and poly data,
 	 *       but we really need BAREMESH only to save lots of memory
 	 */
-	CustomData_set_only_copy(&cddm->loopData, CD_MASK_BAREMESH);
-	CustomData_set_only_copy(&cddm->polyData, CD_MASK_BAREMESH);
+	CustomData_set_only_copy(&cddm->loopData, CD_MASK_BAREMESH.lmask);
+	CustomData_set_only_copy(&cddm->polyData, CD_MASK_BAREMESH.pmask);
 
 	*lvl = mmd->totlvl;
 	*simple = mmd->simple != 0;

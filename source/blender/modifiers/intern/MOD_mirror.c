@@ -95,7 +95,7 @@ static Mesh *doBiscetOnMirrorPlane(
 		&(struct BMeshCreateParams){0},
 		&(struct BMeshFromMeshParams){
 			.calc_face_normal = true,
-			.cd_mask_extra = CD_MASK_ORIGINDEX,
+			.cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
 		});
 
 	/* Define bisecting plane (aka mirror plane). */
@@ -122,7 +122,7 @@ static Mesh *doBiscetOnMirrorPlane(
 		}
 	}
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 	BM_mesh_free(bm);
 
 	return result;

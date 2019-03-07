@@ -57,14 +57,10 @@ static void initData(ModifierData *md)
 	umd->scalex = umd->scaley = 1.0f;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask dataMask = 0;
-
 	/* ask for UV coordinates */
-	dataMask |= CD_MLOOPUV;
-
-	return dataMask;
+	r_cddata_masks->lmask |= CD_MLOOPUV;
 }
 
 static void foreachObjectLink(

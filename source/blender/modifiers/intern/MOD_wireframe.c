@@ -39,16 +39,14 @@ static void initData(ModifierData *md)
 	wmd->crease_weight = 1.0f;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	WireframeModifierData *wmd = (WireframeModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (wmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
-
+	if (wmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static bool dependsOnNormals(ModifierData *UNUSED(md))
@@ -71,7 +69,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 	            .add_key_index = false,
 	            .use_shapekey = false,
 	            .active_shapekey = 0,
-	            .cd_mask_extra = CD_MASK_ORIGINDEX,
+	            .cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
 	        });
 
 	BM_mesh_wireframe(
@@ -89,7 +87,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 	       MAX2(ob->totcol - 1, 0),
 	       false);
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

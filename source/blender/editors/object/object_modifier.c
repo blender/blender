@@ -96,7 +96,7 @@ static void modifier_skin_customdata_delete(struct Object *ob);
 static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	if (ob->type == OB_MESH) {
-		Mesh *me_eval = mesh_create_eval_final_view(depsgraph, scene, ob, 0);
+		Mesh *me_eval = mesh_create_eval_final_view(depsgraph, scene, ob, &CD_MASK_BAREMESH);
 		BKE_id_free(NULL, me_eval);
 	}
 	else if (ob->type == OB_LATTICE) {
@@ -637,7 +637,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 				return 0;
 			}
 
-			BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, CD_MASK_MESH, true);
+			BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
 
 			if (md->type == eModifierType_Multires)
 				multires_customdata_delete(me);
@@ -1353,7 +1353,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 		BLI_path_rel(path, BKE_main_blendfile_path(bmain));
 
 	CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, path);
-	CustomData_external_write(&me->ldata, &me->id, CD_MASK_MESH, me->totloop, 0);
+	CustomData_external_write(&me->ldata, &me->id, CD_MASK_MESH.lmask, me->totloop, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -1748,7 +1748,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, skin_ob);
 
-	me_eval_deform = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
+	me_eval_deform = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
 	mvert = me_eval_deform->mvert;
 
 	/* add vertex weights to original mesh */

@@ -24,6 +24,7 @@
  * \ingroup bmesh
  */
 
+struct CustomData_MeshMasks;
 struct Main;
 struct Mesh;
 
@@ -39,7 +40,7 @@ struct BMeshFromMeshParams {
 	uint use_shapekey : 1;
 	/* define the active shape key (index + 1) */
 	int active_shapekey;
-	int64_t cd_mask_extra;
+	struct CustomData_MeshMasks cd_mask_extra;
 };
 void BM_mesh_bm_from_me(
         BMesh *bm, const struct Mesh *me,
@@ -49,7 +50,7 @@ ATTR_NONNULL(1, 3);
 struct BMeshToMeshParams {
 	/** Update object hook indices & vertex parents. */
 	uint calc_object_remap : 1;
-	int64_t cd_mask_extra;
+	struct CustomData_MeshMasks cd_mask_extra;
 };
 void BM_mesh_bm_to_me(
         struct Main *bmain, BMesh *bm, struct Mesh *me,
@@ -57,7 +58,7 @@ void BM_mesh_bm_to_me(
 ATTR_NONNULL(2, 3, 4);
 
 void BM_mesh_bm_to_me_for_eval(
-        BMesh *bm, struct Mesh *me, const int64_t cd_mask_extra)
+        BMesh *bm, struct Mesh *me, const struct CustomData_MeshMasks *cd_mask_extra)
 ATTR_NONNULL(1, 2);
 
 

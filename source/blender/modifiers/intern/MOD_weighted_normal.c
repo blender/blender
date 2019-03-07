@@ -602,20 +602,19 @@ static void initData(ModifierData *md)
 	wnmd->flag = 0;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	WeightedNormalModifierData *wnmd = (WeightedNormalModifierData *)md;
-	CustomDataMask dataMask = CD_MASK_CUSTOMLOOPNORMAL;
 
-	if (wnmd->defgrp_name[0]) {
-		dataMask |= CD_MASK_MDEFORMVERT;
+	r_cddata_masks->lmask = CD_MASK_CUSTOMLOOPNORMAL;
+
+	if (wnmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 	}
 
 	if (wnmd->flag & MOD_WEIGHTEDNORMAL_FACE_INFLUENCE) {
-		dataMask |= CD_MASK_PROP_INT;
+		r_cddata_masks->pmask |= CD_MASK_PROP_INT;
 	}
-
-	return dataMask;
 }
 
 static bool dependsOnNormals(ModifierData *UNUSED(md))

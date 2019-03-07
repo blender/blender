@@ -51,7 +51,6 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 #include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
@@ -1030,7 +1029,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	ParticleSystem *psys_start = NULL, *psys, *psys_from;
 	ParticleSystem **tmp_psys;
 	Mesh *final_mesh;
-	CustomDataMask cdmask;
+	CustomData_MeshMasks cdmask = {0};
 	int i, totpsys;
 
 	if (ob_to->type != OB_MESH)
@@ -1052,7 +1051,6 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
 	tmp_psys = MEM_mallocN(sizeof(ParticleSystem *) * totpsys, "temporary particle system array");
 
-	cdmask = 0;
 	for (psys_from = PSYS_FROM_FIRST, i = 0;
 	     psys_from;
 	     psys_from = PSYS_FROM_NEXT(psys_from), ++i)
@@ -1063,7 +1061,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		if (psys_start == NULL)
 			psys_start = psys;
 
-		cdmask |= psys_emitter_customdata_mask(psys);
+		psys_emitter_customdata_mask(psys, &cdmask);
 	}
 	/* to iterate source and target psys in sync,
 	 * we need to know where the newly added psys start
@@ -1071,8 +1069,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
 
 	/* Get the evaluated mesh (psys and their modifiers have not been appended yet) */
-	Object *ob_to_eval = DEG_get_evaluated_object(depsgraph, ob_to);
-	final_mesh = mesh_get_eval_final(depsgraph, scene, ob_to_eval, cdmask);
+	final_mesh = mesh_get_eval_final(depsgraph, scene, ob_to, &cdmask);
 
 	/* now append psys to the object and make modifiers */
 	for (i = 0, psys_from = PSYS_FROM_FIRST;
@@ -1085,7 +1082,6 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
 		/* append to the object */
 		BLI_addtail(&ob_to->particlesystem, psys);
-		psys_unique_name(ob_to, psys, "");
 
 		/* add a particle system modifier for each system */
 		md = modifier_new(eModifierType_ParticleSystem);
@@ -1093,7 +1089,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		/* push on top of the stack, no use trying to reproduce old stack order */
 		BLI_addtail(&ob_to->modifiers, md);
 
-		BLI_strncpy(md->name, psys->name, sizeof(md->name));
+		BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", i);
 		modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 
 		psmd->psys = psys;

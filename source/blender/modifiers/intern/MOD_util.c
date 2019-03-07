@@ -179,7 +179,7 @@ Mesh *MOD_deform_mesh_eval_get(
 	}
 	else if (ob->type == OB_MESH) {
 		if (em) {
-			mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, 0);
+			mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL);
 		}
 		else {
 			/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether

@@ -69,15 +69,14 @@ static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int
 	modifier_copyData_generic(md_src, md_dst, flag);
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	BevelModifierData *bmd = (BevelModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (bmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	if (bmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 /*
@@ -117,7 +116,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	            .add_key_index = false,
 	            .use_shapekey = false,
 	            .active_shapekey = 0,
-	            .cd_mask_extra = CD_MASK_ORIGINDEX,
+	             /* XXX We probably can use CD_MASK_BAREMESH_ORIGDINDEX here instead (also for other modifiers cases)? */
+	            .cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
 	        });
 
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
@@ -188,7 +188,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	              harden_normals, face_strength_mode,
 	              miter_outer, miter_inner, spread, mesh->smoothresh);
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&

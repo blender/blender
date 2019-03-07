@@ -42,6 +42,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -603,11 +604,12 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->rv3d = oglrender->ar->regiondata;
 
 		/* MUST be cleared on exit */
-		oglrender->scene->customdata_mask_modal = ED_view3d_datamask(C, oglrender->scene, oglrender->v3d);
+		memset(&oglrender->scene->customdata_mask_modal, 0, sizeof(oglrender->scene->customdata_mask_modal));
+		ED_view3d_datamask(C, oglrender->scene, oglrender->v3d, &oglrender->scene->customdata_mask_modal);
 
 		/* apply immediately in case we're rendering from a script,
 		 * running notifiers again will overwrite */
-		oglrender->scene->customdata_mask |= oglrender->scene->customdata_mask_modal;
+		CustomData_MeshMasks_update(&oglrender->scene->customdata_mask, &oglrender->scene->customdata_mask_modal);
 	}
 
 	/* create render */
@@ -738,7 +740,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 		MEM_freeN(oglrender->seq_data.ibufs_arr);
 	}
 
-	oglrender->scene->customdata_mask_modal = 0;
+	memset(&oglrender->scene->customdata_mask_modal, 0, sizeof(oglrender->scene->customdata_mask_modal));
 
 	CTX_wm_area_set(C, oglrender->prevsa);
 	CTX_wm_region_set(C, oglrender->prevar);

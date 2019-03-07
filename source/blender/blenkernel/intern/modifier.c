@@ -478,8 +478,8 @@ bool modifier_isEnabled(const struct Scene *scene, ModifierData *md, int require
 }
 
 CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md,
-                                    CustomDataMask dataMask, int required_mode,
-                                    ModifierData *previewmd, CustomDataMask previewmask)
+                                    const CustomData_MeshMasks *dataMask, int required_mode,
+                                    ModifierData *previewmd, const CustomData_MeshMasks *previewmask)
 {
 	CDMaskLink *dataMasks = NULL;
 	CDMaskLink *curr, *prev;
@@ -492,10 +492,10 @@ CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierDat
 
 		if (modifier_isEnabled(scene, md, required_mode)) {
 			if (mti->requiredDataMask)
-				curr->mask = mti->requiredDataMask(ob, md);
+				 mti->requiredDataMask(ob, md, &curr->mask);
 
-			if (previewmd == md) {
-				curr->mask |= previewmask;
+			if (previewmd == md && previewmask != NULL) {
+				CustomData_MeshMasks_update(&curr->mask, previewmask);
 			}
 		}
 
@@ -512,15 +512,10 @@ CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierDat
 	 */
 	for (curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
 		if (prev) {
-			CustomDataMask prev_mask = prev->mask;
-			CustomDataMask curr_mask = curr->mask;
-
-			curr->mask = curr_mask | prev_mask;
+			CustomData_MeshMasks_update(&curr->mask, &prev->mask);
 		}
 		else {
-			CustomDataMask curr_mask = curr->mask;
-
-			curr->mask = curr_mask | dataMask;
+			CustomData_MeshMasks_update(&curr->mask, dataMask);
 		}
 	}
 
@@ -877,13 +872,13 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(
 	Mesh *mesh = NULL;
 	if (dm != NULL) {
 		mesh = BKE_id_new_nomain(ID_ME, NULL);
-		DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
+		DM_to_mesh(dm, mesh, ctx->object, &CD_MASK_EVERYTHING, false);
 	}
 
 	struct Mesh *new_mesh = mti->applyModifier(md, ctx, mesh);
 
 	/* Make a DM that doesn't reference new_mesh so we can free the latter. */
-	DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE, CD_MASK_EVERYTHING);
+	DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE, &CD_MASK_EVERYTHING);
 
 	if (new_mesh != mesh) {
 		BKE_id_free(NULL, new_mesh);

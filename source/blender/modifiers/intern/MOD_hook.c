@@ -67,16 +67,20 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (hmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-	if (hmd->indexar) dataMask |= CD_MASK_ORIGINDEX;
-
-	return dataMask;
+	if (hmd->name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
+	if (hmd->indexar != NULL) {
+		/* TODO check which origindex are actually needed? */
+		r_cddata_masks->vmask |= CD_MASK_ORIGINDEX;
+		r_cddata_masks->emask |= CD_MASK_ORIGINDEX;
+		r_cddata_masks->pmask |= CD_MASK_ORIGINDEX;
+	}
 }
 
 static void freeData(ModifierData *md)

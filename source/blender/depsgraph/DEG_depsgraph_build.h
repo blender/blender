@@ -35,6 +35,7 @@ struct Depsgraph;
 
 struct CacheFile;
 struct Collection;
+struct CustomData_MeshMasks;
 struct EffectorWeights;
 struct ID;
 struct Main;
@@ -161,7 +162,7 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
                                         const char *description);
 
 void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, struct ID *id, uint32_t flag);
-void DEG_add_customdata_mask(struct DepsNodeHandle *handle, struct Object *object, uint64_t mask);
+void DEG_add_customdata_mask(struct DepsNodeHandle *handle, struct Object *object, const struct CustomData_MeshMasks *masks);
 
 struct ID *DEG_get_id_from_handle(struct DepsNodeHandle *node_handle);
 struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);

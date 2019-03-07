@@ -363,18 +363,21 @@ static void pointdensity_cache_object(PointDensity *pd,
 {
 	float *data_color;
 	int i;
-	CustomDataMask mask = CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL;
 	MVert *mvert = NULL, *mv;
 	Mesh *mesh = ob->data;
 
+#if 0  /* UNUSED */
+	CustomData_MeshMasks mask = CD_MASK_BAREMESH;
+	mask.fmask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	switch (pd->ob_color_source) {
 		case TEX_PD_COLOR_VERTCOL:
-			mask |= CD_MASK_MLOOPCOL;
+			mask.lmask |= CD_MASK_MLOOPCOL;
 			break;
 		case TEX_PD_COLOR_VERTWEIGHT:
-			mask |= CD_MASK_MDEFORMVERT;
+			mask.vmask |= CD_MASK_MDEFORMVERT;
 			break;
 	}
+#endif
 
 	mvert = mesh->mvert; /* local object space */
 	pd->totpoints = mesh->totvert;

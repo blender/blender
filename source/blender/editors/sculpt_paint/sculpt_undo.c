@@ -845,13 +845,13 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 			 * dynamic-topology immediately does topological edits
 			 * (converting polys to triangles) that the BMLog can't
 			 * fully restore from */
-			CustomData_copy(&me->vdata, &unode->bm_enter_vdata, CD_MASK_MESH,
+			CustomData_copy(&me->vdata, &unode->bm_enter_vdata, CD_MASK_MESH.vmask,
 			                CD_DUPLICATE, me->totvert);
-			CustomData_copy(&me->edata, &unode->bm_enter_edata, CD_MASK_MESH,
+			CustomData_copy(&me->edata, &unode->bm_enter_edata, CD_MASK_MESH.emask,
 			                CD_DUPLICATE, me->totedge);
-			CustomData_copy(&me->ldata, &unode->bm_enter_ldata, CD_MASK_MESH,
+			CustomData_copy(&me->ldata, &unode->bm_enter_ldata, CD_MASK_MESH.lmask,
 			                CD_DUPLICATE, me->totloop);
-			CustomData_copy(&me->pdata, &unode->bm_enter_pdata, CD_MASK_MESH,
+			CustomData_copy(&me->pdata, &unode->bm_enter_pdata, CD_MASK_MESH.pmask,
 			                CD_DUPLICATE, me->totpoly);
 			unode->bm_enter_totvert = me->totvert;
 			unode->bm_enter_totedge = me->totedge;

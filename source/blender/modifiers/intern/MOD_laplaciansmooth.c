@@ -69,7 +69,7 @@ struct BLaplacianSystem {
 };
 typedef struct BLaplacianSystem LaplacianSystem;
 
-static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
+static void required_data_mask(Object *ob, ModifierData *md, CustomData_MeshMasks *r_cddata_masks);
 static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, bool useRenderParams);
 static float compute_volume(const float center[3], float (*vertexCos)[3], const MPoly *mpoly, int numPolys, const MLoop *mloop);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts);
@@ -476,15 +476,14 @@ static bool is_disabled(const struct Scene *UNUSED(scene), ModifierData *md, boo
 	return 0;
 }
 
-static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
+static void required_data_mask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	if (smd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static void deformVerts(

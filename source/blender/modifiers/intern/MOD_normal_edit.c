@@ -499,17 +499,16 @@ static void initData(ModifierData *md)
 	enmd->mix_limit = M_PI;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *)md;
-	CustomDataMask dataMask = CD_MASK_CUSTOMLOOPNORMAL;
+
+	r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
 
 	/* Ask for vertexgroups if we need them. */
-	if (enmd->defgrp_name[0]) {
-		dataMask |= (CD_MASK_MDEFORMVERT);
+	if (enmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 	}
-
-	return dataMask;
 }
 
 static bool dependsOnNormals(ModifierData *UNUSED(md))

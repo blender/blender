@@ -1100,7 +1100,7 @@ void BKE_sculpt_update_mesh_elements(
 
 	ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, CD_MASK_BAREMESH);
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &CD_MASK_BAREMESH);
 
 	/* VWPaint require mesh info for loop lookup, so require sculpt mode here */
 	if (mmd && ob->mode & OB_MODE_SCULPT) {
@@ -1397,7 +1397,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 		}
 		else if (ob->type == OB_MESH) {
 			Mesh *me_eval_deform = mesh_get_eval_deform(
-			        depsgraph, DEG_get_evaluated_scene(depsgraph), object_eval, CD_MASK_BAREMESH);
+			        depsgraph, DEG_get_evaluated_scene(depsgraph), object_eval, &CD_MASK_BAREMESH);
 			pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
 		}
 	}

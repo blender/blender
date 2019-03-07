@@ -76,15 +76,13 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 {
 	return true;
 }
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	ExplodeModifierData *emd = (ExplodeModifierData *) md;
-	CustomDataMask dataMask = 0;
 
-	if (emd->vgroup)
-		dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	if (emd->vgroup) {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static void createFacepa(

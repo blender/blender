@@ -50,15 +50,14 @@ static void initData(ModifierData *md)
 	cmd->defaxis = MOD_CURVE_POSX;
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void  requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	CurveModifierData *cmd = (CurveModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (cmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
+	if (cmd->name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 }
 
 static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(userRenderParams))

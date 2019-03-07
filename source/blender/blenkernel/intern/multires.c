@@ -280,7 +280,7 @@ Mesh *BKE_multires_create_mesh(
         Object *ob)
 {
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene, ob_eval, CD_MASK_BAREMESH);
+	Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene, ob_eval, &CD_MASK_BAREMESH);
 	ModifierEvalContext modifier_ctx = {
 		.depsgraph = depsgraph,
 		.object = ob_eval,
@@ -759,7 +759,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
 
 	/* generate highest level with displacements */
 	cddm = CDDM_from_mesh(me);
-	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+	DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 	dispdm = multires_dm_create_local(scene, ob, cddm, totlvl, totlvl, 0, 0, MULTIRES_IGNORE_SIMPLIFY);
 	cddm->release(cddm);
 
@@ -855,7 +855,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
 
 	/* subdivide the mesh to highest level without displacements */
 	cddm = CDDM_from_mesh(me);
-	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+	DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 	origdm = subsurf_dm_create_local(
 	        scene, ob, cddm, totlvl, 0, 0, mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
 	        0, false, SUBSURF_IGNORE_SIMPLIFY);
@@ -898,7 +898,7 @@ static void multires_subdivide(
 
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me);
-		DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+		DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 		highdm = subsurf_dm_create_local(
 		        NULL, ob, cddm, totlvl, simple, 0, mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
 		        has_mask, false, SUBSURF_IGNORE_SIMPLIFY);
@@ -1220,7 +1220,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
 			/* create subsurf DM from original mesh at high level */
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me);
-			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+			DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 
 			highdm = subsurf_dm_create_local(
 			        scene, ob, cddm, totlvl, mmd->simple, 0, mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
@@ -1284,7 +1284,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
 
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me);
-			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+			DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
 
 			subdm = subsurf_dm_create_local(
 			        scene, ob, cddm, mmd->totlvl, mmd->simple, 0, mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,

@@ -69,19 +69,19 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	twmd->curfalloff = curvemapping_copy(wmd->curfalloff);
 }
 
-static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
 	WarpModifierData *wmd = (WarpModifierData *)md;
-	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (wmd->defgrp_name[0]) dataMask |= (CD_MASK_MDEFORMVERT);
-	dataMask |= (CD_MASK_MDEFORMVERT);
+	if (wmd->defgrp_name[0] != '\0') {
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+	}
 
 	/* ask for UV coordinates if we need them */
-	if (wmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
-
-	return dataMask;
+	if (wmd->texmapping == MOD_DISP_MAP_UV) {
+		r_cddata_masks->fmask |= CD_MASK_MTFACE;
+	}
 }
 
 static bool dependsOnTime(ModifierData *md)

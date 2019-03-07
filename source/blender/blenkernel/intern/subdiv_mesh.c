@@ -32,6 +32,7 @@
 #include "BLI_alloca.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_key.h"
 #include "BKE_subdiv.h"
@@ -224,7 +225,7 @@ static void vertex_interpolation_init(
 		/* Allocate storage for loops corresponding to ptex corners. */
 		CustomData_copy(&ctx->coarse_mesh->vdata,
 		                &vertex_interpolation->vertex_data_storage,
-		                CD_MASK_EVERYTHING,
+		                CD_MASK_EVERYTHING.vmask,
 		                CD_CALLOC,
 		                4);
 		/* Initialize indices. */
@@ -355,7 +356,7 @@ static void loop_interpolation_init(
 		/* Allocate storage for loops corresponding to ptex corners. */
 		CustomData_copy(&ctx->coarse_mesh->ldata,
 		                &loop_interpolation->loop_data_storage,
-		                CD_MASK_EVERYTHING,
+		                CD_MASK_EVERYTHING.lmask,
 		                CD_CALLOC,
 		                4);
 		/* Initialize indices. */

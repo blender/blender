@@ -879,40 +879,37 @@ void ED_view3d_draw_depth_gpencil(
 
 /* *********************** customdata **************** */
 
-CustomDataMask ED_view3d_datamask(const bContext *C, const Scene *UNUSED(scene), const View3D *v3d)
+void ED_view3d_datamask(
+        const bContext *C, const Scene *UNUSED(scene), const View3D *v3d, CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask mask = 0;
 	const int drawtype = view3d_effective_drawtype(v3d);
 
 	if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL)) {
-		mask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
+		r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 
 		if (drawtype == OB_MATERIAL)
-			mask |= CD_MASK_ORCO;
+			r_cddata_masks->vmask |= CD_MASK_ORCO;
 	}
 
 	if ((CTX_data_mode_enum(C) == CTX_MODE_EDIT_MESH) &&
 	    (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT))
 	{
-		mask |= CD_MASK_MDEFORMVERT;
+		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 	}
-
-	return mask;
 }
 
 /* goes over all modes and view3d settings */
-CustomDataMask ED_view3d_screen_datamask(const bContext *C, const Scene *scene, const bScreen *screen)
+void ED_view3d_screen_datamask(
+        const bContext *C, const Scene *scene, const bScreen *screen, CustomData_MeshMasks *r_cddata_masks)
 {
-	CustomDataMask mask = CD_MASK_BAREMESH;
+	CustomData_MeshMasks_update(r_cddata_masks, &CD_MASK_BAREMESH);
 
 	/* check if we need tfaces & mcols due to view mode */
 	for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		if (sa->spacetype == SPACE_VIEW3D) {
-			mask |= ED_view3d_datamask(C, scene, sa->spacedata.first);
+			ED_view3d_datamask(C, scene, sa->spacedata.first, r_cddata_masks);
 		}
 	}
-
-	return mask;
 }
 
 /**

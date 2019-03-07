@@ -69,7 +69,7 @@ void AbcHairWriter::do_write()
 	if (!m_psys) {
 		return;
 	}
-	Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, m_settings.scene, m_object, CD_MASK_MESH);
+	Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, m_settings.scene, m_object, &CD_MASK_MESH);
 	BKE_mesh_tessface_ensure(mesh);
 
 	std::vector<Imath::V3f> verts;

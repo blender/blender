@@ -526,7 +526,7 @@ float (*BKE_editmesh_vertexCos_get(struct Depsgraph *depsgraph, BMEditMesh *em, 
 	struct CageUserData data;
 	float (*cos_cage)[3];
 
-	cage = editbmesh_get_eval_cage(depsgraph, scene, em->ob, em, CD_MASK_BAREMESH);
+	cage = editbmesh_get_eval_cage(depsgraph, scene, em->ob, em, &CD_MASK_BAREMESH);
 	cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
