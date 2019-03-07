@@ -2705,6 +2705,9 @@ void DRW_opengl_context_disable_ex(bool restore)
 
 void DRW_opengl_context_enable(void)
 {
+	if (G.background && DST.gl_context == NULL) {
+		WM_init_opengl(G_MAIN);
+	}
 	DRW_opengl_context_enable_ex(true);
 }
 
