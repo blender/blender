@@ -624,6 +624,9 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 			wmWindow *window = CTX_wm_window(C);
 			WM_paint_cursor_tag_redraw(window, t->ar);
 		}
+		else if (t->flag & T_CURSOR) {
+			ED_area_tag_redraw(t->sa);
+		}
 		else {
 			// XXX how to deal with lock?
 			SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
