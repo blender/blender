@@ -2735,10 +2735,9 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 		zero_v3(min);
 		zero_v3(max);
 		zero_v3(cursor->location);
-		unit_qt(cursor->rotation_quaternion);
-		zero_v3(cursor->rotation_euler);
-		ARRAY_SET_ITEMS(cursor->rotation_axis, 0.0f, 1.0f, 0.0f);
-		cursor->rotation_angle = 0.0f;
+		float mat3[3][3];
+		unit_m3(mat3);
+		BKE_scene_cursor_mat3_to_rot(cursor, mat3, false);
 	}
 	else {
 		INIT_MINMAX(min, max);
