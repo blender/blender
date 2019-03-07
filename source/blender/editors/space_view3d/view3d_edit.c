@@ -2724,7 +2724,6 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 
 	for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
 		if (BASE_VISIBLE(v3d, base_eval)) {
-			changed = true;
 
 			Object *ob = DEG_get_original_object(base_eval->object);
 			if (skip_camera && ob == v3d->camera) {
@@ -2739,6 +2738,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 			}
 
 			BKE_object_minmax(base_eval->object, min, max, false);
+			changed = true;
 		}
 	}
 
