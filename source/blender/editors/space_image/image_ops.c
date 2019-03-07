@@ -3011,7 +3011,7 @@ static void image_sample_rect_color_ubyte(
         const ImBuf *ibuf, const rcti *rect,
         uchar r_col[4], float r_col_linear[4])
 {
-	uint col_accum_ub[4];
+	uint col_accum_ub[4] = {0, 0, 0, 0};
 	zero_v4(r_col_linear);
 	int col_tot = 0;
 	int coord[2];

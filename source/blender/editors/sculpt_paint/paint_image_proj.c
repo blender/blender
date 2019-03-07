@@ -1185,7 +1185,7 @@ static VertSeam *find_adjacent_seam(const ProjPaintState *ps, uint loop_index, u
 {
 	ListBase *vert_seams = &ps->vertSeams[vert_index];
 	VertSeam *seam = vert_seams->first;
-	VertSeam *adjacent;
+	VertSeam *adjacent = NULL;
 
 	while (seam->loop != loop_index) {
 		seam = seam->next;
