@@ -1994,6 +1994,7 @@ void ED_gpencil_update_color_uv(Main *bmain, Material *mat)
 					}
 				}
 			}
+			DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		}
 	}
 }
