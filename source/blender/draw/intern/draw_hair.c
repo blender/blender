@@ -58,6 +58,8 @@ typedef struct ParticleRefineCall {
 } ParticleRefineCall;
 
 static ParticleRefineCall *g_tf_calls = NULL;
+static int g_tf_id_offset;
+static int g_tf_target_width;
 static int g_tf_target_height;
 #endif
 
@@ -204,6 +206,8 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 		pr_call->vert_len = final_points_len;
 		g_tf_calls = pr_call;
 		DRW_shgroup_uniform_int(tf_shgrp, "targetHeight", &g_tf_target_height, 1);
+		DRW_shgroup_uniform_int(tf_shgrp, "targetWidth", &g_tf_target_width, 1);
+		DRW_shgroup_uniform_int(tf_shgrp, "idOffset", &g_tf_id_offset, 1);
 #endif
 
 		DRW_shgroup_uniform_texture(tf_shgrp, "hairPointBuffer", hair_cache->point_tex);
@@ -255,9 +259,13 @@ void DRW_hair_update(void)
 	}
 
 	/* Create target Texture / Framebuffer */
-	int height = (1 + max_size / 8192);
-	GPUTexture *tex = DRW_texture_pool_query_2D(8192, height, GPU_RGBA32F, (void *)DRW_hair_update);
+	/* Don't use max size as it can be really heavy and fail.
+	 * Do chunks of maximum 2048 * 2048 hair points. */
+	int width = 2048;
+	int height = min_ii(width, 1 + max_size / width);
+	GPUTexture *tex = DRW_texture_pool_query_2D(width, height, GPU_RGBA32F, (void *)DRW_hair_update);
 	g_tf_target_height = height;
+	g_tf_target_width = width;
 
 	GPUFrameBuffer *fb = NULL;
 	GPU_framebuffer_ensure_config(&fb, {
@@ -265,18 +273,30 @@ void DRW_hair_update(void)
 		GPU_ATTACHMENT_TEXTURE(tex),
 	});
 
-	float *data = MEM_mallocN(sizeof(float) * 4 * 8192 * height, "tf fallback buffer");
+	float *data = MEM_mallocN(sizeof(float) * 4 * width * height, "tf fallback buffer");
 
 	GPU_framebuffer_bind(fb);
 	while (g_tf_calls != NULL) {
 		ParticleRefineCall *pr_call = g_tf_calls;
 		g_tf_calls = g_tf_calls->next;
-		DRW_draw_pass_subset(g_tf_pass, pr_call->shgrp, pr_call->shgrp);
-		/* Readback result to main memory. */
-		GPU_framebuffer_read_color(fb, 0, 0, 8192, height, 4, 0, data);
-		/* Upload back to VBO. */
-		GPU_vertbuf_use(pr_call->vbo);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 4 * pr_call->vert_len, data);
+
+		g_tf_id_offset = 0;
+		while (pr_call->vert_len > 0) {
+			int max_read_px_len = min_ii(width * height, pr_call->vert_len);
+
+			DRW_draw_pass_subset(g_tf_pass, pr_call->shgrp, pr_call->shgrp);
+			/* Readback result to main memory. */
+			GPU_framebuffer_read_color(fb, 0, 0, width, height, 4, 0, data);
+			/* Upload back to VBO. */
+			GPU_vertbuf_use(pr_call->vbo);
+			glBufferSubData(GL_ARRAY_BUFFER,
+			                sizeof(float) * 4 * g_tf_id_offset,
+			                sizeof(float) * 4 * max_read_px_len,
+			                data);
+
+			g_tf_id_offset += max_read_px_len;
+			pr_call->vert_len -= max_read_px_len;
+		}
 
 		MEM_freeN(pr_call);
 	}

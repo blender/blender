@@ -45,7 +45,9 @@ vec4 interp_data(vec4 v0, vec4 v1, vec4 v2, vec4 v3, vec4 w)
 }
 
 #ifdef TF_WORKAROUND
+uniform int targetWidth;
 uniform int targetHeight;
+uniform int idOffset;
 #endif
 
 void main(void)
@@ -58,8 +60,9 @@ void main(void)
 	finalColor = interp_data(data0, data1, data2, data3, weights);
 
 #ifdef TF_WORKAROUND
-	gl_Position.x = ((float(gl_VertexID % 8192) + 0.5) / 8192.0) * 2.0 - 1.0;
-	gl_Position.y = ((float(gl_VertexID / 8192) + 0.5) / float(targetHeight)) * 2.0 - 1.0;
+	int id = gl_VertexID - idOffset;
+	gl_Position.x = ((float(id % targetWidth) + 0.5) / float(targetWidth)) * 2.0 - 1.0;
+	gl_Position.y = ((float(id / targetWidth) + 0.5) / float(targetHeight)) * 2.0 - 1.0;
 	gl_Position.z = 0.0;
 	gl_Position.w = 1.0;
 
