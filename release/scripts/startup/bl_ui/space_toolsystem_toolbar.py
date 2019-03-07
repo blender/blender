@@ -1351,8 +1351,7 @@ class _defs_node_select:
     def lasso():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("node.select_lasso")
-            layout.prop(props, "deselect")
-            pass
+            layout.prop(props, "mode", expand=True)
         return dict(
             text="Select Lasso",
             icon="ops.generic.select_lasso",

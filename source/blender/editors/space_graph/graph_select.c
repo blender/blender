@@ -420,9 +420,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf rect_fl;
 
-	short selectmode;
 	bool incl_handles;
-	bool extend;
 
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -433,15 +431,11 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 	if (data_lasso.mcords == NULL)
 		return OPERATOR_CANCELLED;
 
-	/* clear all selection if not extending selection */
-	extend = RNA_boolean_get(op->ptr, "extend");
-	if (!extend)
-		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
-
-	if (!RNA_boolean_get(op->ptr, "deselect"))
-		selectmode = SELECT_ADD;
-	else
-		selectmode = SELECT_SUBTRACT;
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const short selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		deselect_graph_keys(&ac, 0, SELECT_SUBTRACT, true);
+	}
 
 	{
 		SpaceGraph *sipo = (SpaceGraph *)ac.sl;
@@ -487,7 +481,8 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_lasso_select(ot);
+	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /* ------------------- */

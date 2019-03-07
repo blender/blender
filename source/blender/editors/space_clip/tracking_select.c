@@ -622,10 +622,15 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 	int mcords_tot;
 	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
-	if (mcords) {
-		bool select;
 
-		select = !RNA_boolean_get(op->ptr, "deselect");
+	if (mcords) {
+		const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+		const bool select = (sel_op != SEL_OP_SUB);
+		if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+			SpaceClip *sc = CTX_wm_space_clip(C);
+			ED_clip_select_all(sc, SEL_DESELECT, NULL);
+		}
+
 		do_lasso_select_marker(C, mcords, mcords_tot, select);
 
 		MEM_freeN((void *)mcords);
@@ -653,7 +658,8 @@ void CLIP_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_lasso_select(ot);
+	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /********************** circle select operator *********************/
