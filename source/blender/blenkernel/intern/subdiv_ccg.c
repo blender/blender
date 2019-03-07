@@ -665,6 +665,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(
 	if (has_mask) {
 		mask_evaluator.free(&mask_evaluator);
 	}
+	material_flags_evaluator.free(&material_flags_evaluator);
 	if (subdiv_ccg == NULL) {
 		return NULL;
 	}
