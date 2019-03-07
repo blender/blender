@@ -229,7 +229,6 @@ Material *BKE_material_localize(Material *ma)
 	Material *man = BKE_libblock_copy_for_localize(&ma->id);
 
 	man->texpaintslot = NULL;
-	man->tot_slots = 0;
 	man->preview = NULL;
 
 	if (ma->nodetree != NULL) {
@@ -1048,7 +1047,7 @@ static int count_texture_nodes_recursive(bNodeTree *nodetree)
 	return tex_nodes;
 }
 
-static void fill_texpaint_slots_recursive(bNodeTree *nodetree, bNode *active_node, Material *ma, TexPaintSlot *slots, int *index)
+static void fill_texpaint_slots_recursive(bNodeTree *nodetree, bNode *active_node, Material *ma, int *index)
 {
 	for (bNode *node = nodetree->nodes.first; node; node = node->next) {
 		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
@@ -1056,76 +1055,98 @@ static void fill_texpaint_slots_recursive(bNodeTree *nodetree, bNode *active_nod
 				ma->paint_active_slot = *index;
 			}
 
-			slots[*index].ima = (Image *)node->id;
-			slots[*index].interp = ((NodeTexImage *)node->storage)->interpolation;
+			ma->texpaintslot[*index].ima = (Image *)node->id;
+			ma->texpaintslot[*index].interp = ((NodeTexImage *)node->storage)->interpolation;
 
 			/* for new renderer, we need to traverse the treeback in search of a UV node */
 			bNode *uvnode = nodetree_uv_node_recursive(node);
 
 			if (uvnode) {
 				NodeShaderUVMap *storage = (NodeShaderUVMap *)uvnode->storage;
-				slots[*index].uvname = storage->uv_map;
+				ma->texpaintslot[*index].uvname = storage->uv_map;
 				/* set a value to index so UI knows that we have a valid pointer for the mesh */
-				slots[*index].valid = true;
+				ma->texpaintslot[*index].valid = true;
 			}
 			else {
 				/* just invalidate the index here so UV map does not get displayed on the UI */
-				slots[*index].valid = false;
+				ma->texpaintslot[*index].valid = false;
 			}
 			(*index)++;
 		}
 		else if (node->type == NODE_GROUP && node->id) {
 			/* recurse into the node group and see if it contains any textures */
-			fill_texpaint_slots_recursive((bNodeTree *)node->id, active_node, ma, slots, index);
+			fill_texpaint_slots_recursive((bNodeTree *)node->id, active_node, ma, index);
 		}
 	}
 }
 
-void BKE_texpaint_slot_refresh_cache(Material *ma)
+void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 {
-	if (ma == NULL) {
+	int count = 0;
+	int index = 0;
+
+	if (!ma)
+		return;
+
+	/* COW needed when adding texture slot on an object with no materials. */
+	DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
+
+	if (ma->texpaintslot) {
+		MEM_freeN(ma->texpaintslot);
+		ma->tot_slots = 0;
+		ma->texpaintslot = NULL;
+	}
+
+	if (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_IMAGE) {
+		ma->paint_active_slot = 0;
+		ma->paint_clone_slot = 0;
 		return;
 	}
 
-	/* Compute texture paint slots. */
-	TexPaintSlot *texpaintslot = NULL;
-	int tot_slots = (ma->nodetree) ? count_texture_nodes_recursive(ma->nodetree) : 0;
-
-	if (tot_slots) {
-		texpaintslot = MEM_callocN(sizeof(*texpaintslot) * tot_slots, "texpaint_slots");
-
-		bNode *active_node = nodeGetActiveTexture(ma->nodetree);
-		int index = 0;
-		fill_texpaint_slots_recursive(ma->nodetree, active_node, ma, texpaintslot, &index);
+	if (!(ma->nodetree)) {
+		ma->paint_active_slot = 0;
+		ma->paint_clone_slot = 0;
+		return;
 	}
 
-	/* Keep active slots within range. */
-	if (ma->paint_active_slot >= tot_slots) {
-		ma->paint_active_slot = MAX2(tot_slots - 1, 0);
+	count = count_texture_nodes_recursive(ma->nodetree);
+
+	if (count == 0) {
+		ma->paint_active_slot = 0;
+		ma->paint_clone_slot = 0;
+		return;
 	}
 
-	if (ma->paint_clone_slot >= tot_slots) {
-		ma->paint_clone_slot = MAX2(tot_slots - 1, 0);
+	ma->texpaintslot = MEM_callocN(sizeof(*ma->texpaintslot) * count, "texpaint_slots");
+
+	bNode *active_node = nodeGetActiveTexture(ma->nodetree);
+
+	fill_texpaint_slots_recursive(ma->nodetree, active_node, ma, &index);
+
+	ma->tot_slots = count;
+
+
+	if (ma->paint_active_slot >= count) {
+		ma->paint_active_slot = count - 1;
 	}
 
-	/* Replace slots. */
-	if (ma->texpaintslot) {
-		MEM_freeN(ma->texpaintslot);
+	if (ma->paint_clone_slot >= count) {
+		ma->paint_clone_slot = count - 1;
 	}
 
-	ma->texpaintslot = texpaintslot;
-	ma->tot_slots = tot_slots;
+	return;
 }
 
-void BKE_texpaint_slots_refresh_object(struct Object *ob)
+void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
 {
 	int i;
 
 	for (i = 1; i < ob->totcol + 1; i++) {
 		Material *ma = give_current_material(ob, i);
-		BKE_texpaint_slot_refresh_cache(ma);
+		BKE_texpaint_slot_refresh_cache(scene, ma);
 	}
 }
+
 
 /* r_col = current value, col = new value, (fac == 0) is no change */
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3])

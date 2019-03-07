@@ -4513,7 +4513,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 	direct_link_animdata(fd, ma->adt);
 
 	ma->texpaintslot = NULL;
-	ma->tot_slots = 0;
 
 	ma->nodetree = newdataadr(fd, ma->nodetree);
 	if (ma->nodetree) {
