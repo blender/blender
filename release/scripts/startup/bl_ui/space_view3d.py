@@ -4254,7 +4254,7 @@ class VIEW3D_PT_view3d_camera_lock(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "View"
-    bl_label = "Camera Lock"
+    bl_label = "View Lock"
     bl_parent_id = "VIEW3D_PT_view3d_properties"
 
     def draw(self, context):
