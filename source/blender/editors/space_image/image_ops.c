@@ -65,6 +65,7 @@
 #include "DEG_depsgraph.h"
 
 #include "GPU_draw.h"
+#include "GPU_immediate.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -2873,6 +2874,9 @@ typedef struct ImageSampleInfo {
 	int x, y;
 	int channels;
 
+	int width, height;
+	int sample_radius;
+
 	unsigned char col[4];
 	float colf[4];
 	float linearcol[4];
@@ -2892,11 +2896,44 @@ typedef struct ImageSampleInfo {
 static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info = arg_info;
-	if (info->draw) {
-		Scene *scene = CTX_data_scene(C);
+	if (!info->draw) {
+		return;
+	}
 
-		ED_image_draw_info(scene, ar, info->color_manage, info->use_default_view, info->channels,
-		                   info->x, info->y, info->colp, info->colfp, info->linearcol, info->zp, info->zfp);
+	Scene *scene = CTX_data_scene(C);
+	ED_image_draw_info(
+	        scene, ar, info->color_manage, info->use_default_view, info->channels,
+	        info->x, info->y, info->colp, info->colfp, info->linearcol, info->zp, info->zfp);
+
+	if (info->sample_radius) {
+		const wmWindow *win = CTX_wm_window(C);
+		const wmEvent *event = win->eventstate;
+
+		SpaceImage *sima = CTX_wm_space_image(C);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+		const float color[3] = {1, 1, 1};
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor3fv(color);
+
+		rctf sample_rect_fl;
+		BLI_rctf_init_pt_radius(
+		        &sample_rect_fl,
+		        (float[2]){event->x - ar->winrct.xmin, event->y - ar->winrct.ymin},
+		        info->sample_radius * sima->zoom);
+
+		glEnable(GL_COLOR_LOGIC_OP);
+		glLogicOp(GL_XOR);
+		imm_draw_box_wire_2d(
+		        pos,
+		        (float)sample_rect_fl.xmin,
+		        (float)sample_rect_fl.ymin,
+		        (float)sample_rect_fl.xmax,
+		        (float)sample_rect_fl.ymax);
+		glDisable(GL_COLOR_LOGIC_OP);
+
+		immUnbindProgram();
 	}
 }
 
@@ -2940,6 +2977,85 @@ bool ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], flo
 	return ret;
 }
 
+
+/* -------------------------------------------------------------------- */
+/** \name Image Pixel Sample
+ * \{ */
+
+static void image_sample_pixel_color_ubyte(
+        const ImBuf *ibuf, const int coord[2],
+        uchar r_col[4], float r_col_linear[4])
+{
+	const uchar *cp = (unsigned char *)(ibuf->rect + coord[1] * ibuf->x + coord[0]);
+	copy_v4_v4_uchar(r_col, cp);
+	rgba_uchar_to_float(r_col_linear, r_col);
+	IMB_colormanagement_colorspace_to_scene_linear_v4(r_col_linear, false, ibuf->rect_colorspace);
+}
+
+static void image_sample_pixel_color_float(
+        ImBuf *ibuf, const int coord[2],
+        float r_col[4])
+{
+	const float *cp = ibuf->rect_float + (ibuf->channels) * (coord[1] * ibuf->x + coord[0]);
+	copy_v4_v4(r_col, cp);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Pixel Region Sample
+ * \{ */
+
+static void image_sample_rect_color_ubyte(
+        const ImBuf *ibuf, const rcti *rect,
+        uchar r_col[4], float r_col_linear[4])
+{
+	uint col_accum_ub[4];
+	zero_v4(r_col_linear);
+	int col_tot = 0;
+	int coord[2];
+	for (coord[0] = rect->xmin; coord[0] <= rect->xmax; coord[0]++) {
+		for (coord[1] = rect->ymin; coord[1] <= rect->ymax; coord[1]++) {
+			float col_temp_fl[4];
+			uchar col_temp_ub[4];
+			image_sample_pixel_color_ubyte(ibuf, coord, col_temp_ub, col_temp_fl);
+			add_v4_v4(r_col_linear, col_temp_fl);
+			col_accum_ub[0] += (uint)col_temp_ub[0];
+			col_accum_ub[1] += (uint)col_temp_ub[1];
+			col_accum_ub[2] += (uint)col_temp_ub[2];
+			col_accum_ub[3] += (uint)col_temp_ub[3];
+			col_tot += 1;
+		}
+	}
+	mul_v4_fl(r_col_linear, 1.0 / (float)col_tot);
+
+	r_col[0] = MIN2(col_accum_ub[0] / col_tot, 255);
+	r_col[1] = MIN2(col_accum_ub[1] / col_tot, 255);
+	r_col[2] = MIN2(col_accum_ub[2] / col_tot, 255);
+	r_col[3] = MIN2(col_accum_ub[3] / col_tot, 255);
+}
+
+
+static void image_sample_rect_color_float(
+        ImBuf *ibuf, const rcti *rect,
+        float r_col[4])
+{
+	zero_v4(r_col);
+	int col_tot = 0;
+	int coord[2];
+	for (coord[0] = rect->xmin; coord[0] <= rect->xmax; coord[0]++) {
+		for (coord[1] = rect->ymin; coord[1] <= rect->ymax; coord[1]++) {
+			float col_temp_fl[4];
+			image_sample_pixel_color_float(ibuf, coord, col_temp_fl);
+			add_v4_v4(r_col, col_temp_fl);
+			col_tot += 1;
+		}
+	}
+	mul_v4_fl(r_col, 1.0 / (float)col_tot);
+}
+
+/** \} */
+
 static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -2960,16 +3076,17 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
-		const float *fp;
-		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 		Image *image = ED_space_image(sima);
 
 		CLAMP(x, 0, ibuf->x - 1);
 		CLAMP(y, 0, ibuf->y - 1);
 
+		info->width = ibuf->x;
+		info->height = ibuf->y;
 		info->x = x;
 		info->y = y;
+
 		info->draw = true;
 		info->channels = ibuf->channels;
 
@@ -2980,45 +3097,32 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 
 		info->use_default_view = (image->flag & IMA_VIEW_AS_RENDER) ? false : true;
 
+		rcti sample_rect;
+		BLI_rcti_init_pt_radius(&sample_rect, (int[2]){x, y}, info->sample_radius);
+		BLI_rcti_isect(
+		        &(rcti){ .xmin = 0, .ymin = 0, .xmax = ibuf->x - 1, .ymax = ibuf->y - 1},
+		        &sample_rect, &sample_rect);
+
 		if (ibuf->rect) {
-			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			image_sample_rect_color_ubyte(ibuf, &sample_rect, info->col, info->linearcol);
+			rgba_uchar_to_float(info->colf, info->col);
 
-			info->col[0] = cp[0];
-			info->col[1] = cp[1];
-			info->col[2] = cp[2];
-			info->col[3] = cp[3];
 			info->colp = info->col;
-
-			info->colf[0] = (float)cp[0] / 255.0f;
-			info->colf[1] = (float)cp[1] / 255.0f;
-			info->colf[2] = (float)cp[2] / 255.0f;
-			info->colf[3] = (float)cp[3] / 255.0f;
 			info->colfp = info->colf;
-
-			copy_v4_v4(info->linearcol, info->colf);
-			IMB_colormanagement_colorspace_to_scene_linear_v4(info->linearcol, false, ibuf->rect_colorspace);
-
 			info->color_manage = true;
 		}
 		if (ibuf->rect_float) {
-			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+			image_sample_rect_color_float(ibuf, &sample_rect, info->colf);
 
 			if (ibuf->channels == 4) {
-				info->colf[0] = fp[0];
-				info->colf[1] = fp[1];
-				info->colf[2] = fp[2];
-				info->colf[3] = fp[3];
+				/* pass */
 			}
 			else if (ibuf->channels == 3) {
-				info->colf[0] = fp[0];
-				info->colf[1] = fp[1];
-				info->colf[2] = fp[2];
 				info->colf[3] = 1.0f;
 			}
 			else {
-				info->colf[0] = fp[0];
-				info->colf[1] = fp[0];
-				info->colf[2] = fp[0];
+				info->colf[1] = info->colf[0];
+				info->colf[2] = info->colf[0];
 				info->colf[3] = 1.0f;
 			}
 			info->colfp = info->colf;
@@ -3029,6 +3133,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 		}
 
 		if (ibuf->zbuf) {
+			/* TODO, blend depth (not urgent). */
 			info->z = ibuf->zbuf[y * ibuf->x + x];
 			info->zp = &info->z;
 			if (ibuf->zbuf == (int *)ibuf->rect) {
@@ -3036,6 +3141,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 			}
 		}
 		if (ibuf->zbuf_float) {
+			/* TODO, blend depth (not urgent). */
 			info->zf = ibuf->zbuf_float[y * ibuf->x + x];
 			info->zfp = &info->zf;
 			if (ibuf->zbuf_float == ibuf->rect_float) {
@@ -3108,8 +3214,10 @@ static int image_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		return OPERATOR_CANCELLED;
 
 	info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
+
 	info->art = ar->type;
 	info->draw_handle = ED_region_draw_cb_activate(ar->type, image_sample_draw, info, REGION_DRAW_POST_PIXEL);
+	info->sample_radius = RNA_int_get(op->ptr, "radius");
 	op->customdata = info;
 
 	image_sample_apply(C, op, event);
@@ -3157,6 +3265,11 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;
+
+	PropertyRNA *prop;
+	prop = RNA_def_int(ot->srna, "radius", 0, 0, 64, "Radius", "", 0, 32);
+	RNA_def_property_subtype(prop, PROP_PIXEL);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /******************** sample line operator ********************/

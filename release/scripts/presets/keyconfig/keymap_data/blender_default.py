@@ -5108,6 +5108,17 @@ def km_generic_tool_annotate_eraser(params):
         ]},
     )
 
+
+def km_image_editor_tool_generic_sample(params):
+    return (
+        "Image Editor Tool: Sample",
+        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("image.sample", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+        ]},
+    )
+
+
 def km_image_editor_tool_uv_cursor(params):
     return (
         "Image Editor Tool: Uv, Cursor",
@@ -6103,6 +6114,7 @@ def generate_keymaps(params=None):
         km_generic_tool_annotate_polygon(params),
         km_generic_tool_annotate_eraser(params),
 
+        km_image_editor_tool_generic_sample(params),
         km_image_editor_tool_uv_cursor(params),
         km_image_editor_tool_uv_select(params),
         km_image_editor_tool_uv_select_box(params),
