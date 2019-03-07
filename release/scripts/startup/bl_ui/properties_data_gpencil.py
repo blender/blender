@@ -262,7 +262,7 @@ class DATA_PT_gpencil_onionpanel(Panel):
             col = layout.column(align=True)
             col.prop(gpd, "ghost_before_range", text="Frames Before")
             col.prop(gpd, "ghost_after_range", text="Frames After")
-        if gpd.onion_mode == 'RELATIVE':
+        elif gpd.onion_mode == 'RELATIVE':
             col = layout.column(align=True)
             col.prop(gpd, "ghost_before_range", text="Keyframes Before")
             col.prop(gpd, "ghost_after_range", text="Keyframes After")
@@ -277,7 +277,6 @@ class DATA_PT_gpencil_onionpanel_custom_colors(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
-
         gpd = context.gpencil_data
 
         self.layout.prop(gpd, "use_ghost_custom_colors", text="")
@@ -314,7 +313,7 @@ class DATA_PT_gpencil_onionpanel_display(Panel):
         col.prop(gpd, "use_onion_fade", text="Fade")
         if hasattr(gpd, "use_onion_loop"):  # XXX
             sub = layout.column()
-            sub.active = gpd.onion_mode in ('RELATIVE', 'SELECTED')
+            sub.active = gpd.onion_mode in {'RELATIVE', 'SELECTED'}
             sub.prop(gpd, "use_onion_loop", text="Loop")
 
 
