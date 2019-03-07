@@ -860,65 +860,70 @@ class GreasePencilMaterialsPanel:
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return ob and ob.type == 'GPENCIL'
+        ma = context.material
+        return (ob and ob.type == 'GPENCIL') or (ma and ma.grease_pencil)
 
     @staticmethod
     def draw(self, context):
         layout = self.layout
         show_full_ui = (self.bl_space_type == 'PROPERTIES')
 
-        gpd = context.gpencil_data
-
         ob = context.object
-
-        is_sortable = len(ob.material_slots) > 1
-        rows = 7
+        gpd = context.gpencil
+        space = context.space_data
 
         row = layout.row()
 
-        row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+        if ob:
+            is_sortable = len(ob.material_slots) > 1
+            rows = 7
 
-        col = row.column(align=True)
-        if show_full_ui:
-            col.operator("object.material_slot_add", icon='ADD', text="")
-            col.operator("object.material_slot_remove", icon='REMOVE', text="")
+            row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
-        col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
+            col = row.column(align=True)
+            if show_full_ui:
+                col.operator("object.material_slot_add", icon='ADD', text="")
+                col.operator("object.material_slot_remove", icon='REMOVE', text="")
 
-        if is_sortable:
-            col.separator()
+            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
 
-            col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
-            col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            if is_sortable:
+                col.separator()
 
-            col.separator()
+                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            sub = col.column(align=True)
-            sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
-            sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+                col.separator()
 
-        if show_full_ui:
-            row = layout.row()
+                sub = col.column(align=True)
+                sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
 
-            row.template_ID(ob, "active_material", new="material.new", live_icon=True)
+            if show_full_ui:
+                row = layout.row()
 
-            slot = context.material_slot
-            if slot:
-                icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
-                row.prop(slot, "link", icon=icon_link, icon_only=True)
+                row.template_ID(ob, "active_material", new="material.new", live_icon=True)
 
-            if gpd.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.operator("gpencil.stroke_change_color", text="Assign")
-                row.operator("gpencil.color_select", text="Select").deselect = False
-                row.operator("gpencil.color_select", text="Deselect").deselect = True
+                slot = context.material_slot
+                if slot:
+                    icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
+                    row.prop(slot, "link", icon=icon_link, icon_only=True)
+
+                if gpd and gpd.use_stroke_edit_mode:
+                    row = layout.row(align=True)
+                    row.operator("gpencil.stroke_change_color", text="Assign")
+                    row.operator("gpencil.color_select", text="Select").deselect = False
+                    row.operator("gpencil.color_select", text="Deselect").deselect = True
+
+        else:
+            row.template_ID(space, "pin_id")
 
 
 class GPENCIL_UL_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
-        gpd = context.gpencil_data
+        gpd = context.gpencil
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if gpl.lock:

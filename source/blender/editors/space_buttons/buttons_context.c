@@ -494,7 +494,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	wmWindow *window = CTX_wm_window(C);
 	Scene *scene = WM_window_get_active_scene(window);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(window);
-	Object *ob = OBACT(view_layer);
 	ID *id;
 	int found;
 
@@ -562,14 +561,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found = buttons_context_path_particle(path);
 			break;
 		case BCONTEXT_MATERIAL:
-			/* NOTE: Grease Pencil materials use different panels... */
-			if (ob && ob->type == OB_GPENCIL) {
-				/* XXX: Why path_data? */
-				found = buttons_context_path_data(path, -1);
-			}
-			else {
-				found = buttons_context_path_material(path);
-			}
+			found = buttons_context_path_material(path);
 			break;
 		case BCONTEXT_TEXTURE:
 			found = buttons_context_path_texture(C, path, sbuts->texuser);
@@ -708,7 +700,7 @@ const char *buttons_context_dir[] = {
 	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint",
-	"line_style", "collection", NULL,
+	"line_style", "collection", "gpencil", NULL,
 };
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -979,6 +971,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if (CTX_data_equals(member, "line_style")) {
 		set_pointer_type(path, result, &RNA_FreestyleLineStyle);
+		return 1;
+	}
+	else if (CTX_data_equals(member, "gpencil")) {
+		set_pointer_type(path, result, &RNA_GreasePencil);
 		return 1;
 	}
 	else {

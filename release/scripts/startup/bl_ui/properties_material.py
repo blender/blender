@@ -60,7 +60,8 @@ class MaterialButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        return context.material and (context.engine in cls.COMPAT_ENGINES)
+        mat = context.material
+        return mat and (context.engine in cls.COMPAT_ENGINES) and not mat.grease_pencil
 
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
@@ -86,11 +87,8 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.active_object and context.active_object.type == 'GPENCIL':
-            return False
-        else:
-            engine = context.engine
-            return (context.material or context.object) and (engine in cls.COMPAT_ENGINES)
+        mat = context.material
+        return (context.object or mat) and (context.engine in cls.COMPAT_ENGINES) and not mat.grease_pencil
 
     def draw(self, context):
         layout = self.layout
@@ -161,11 +159,6 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
     bl_context = "material"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
-    @classmethod
-    def poll(cls, context):
-        engine = context.engine
-        return context.material and (engine in cls.COMPAT_ENGINES)
-
     def draw(self, context):
         layout = self.layout
 
@@ -194,7 +187,7 @@ class EEVEE_MATERIAL_PT_volume(MaterialButtonsPanel, Panel):
     def poll(cls, context):
         engine = context.engine
         mat = context.material
-        return mat and mat.use_nodes and (engine in cls.COMPAT_ENGINES)
+        return mat and mat.use_nodes and (engine in cls.COMPAT_ENGINES) and not mat.grease_pencil
 
     def draw(self, context):
         layout = self.layout
@@ -208,11 +201,6 @@ class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "material"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
-
-    @classmethod
-    def poll(cls, context):
-        engine = context.engine
-        return context.material and (engine in cls.COMPAT_ENGINES)
 
     @staticmethod
     def draw_shared(self, mat):
@@ -247,7 +235,8 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.material
+        mat = context.material
+        return mat and not mat.grease_pencil
 
     @staticmethod
     def draw_shared(self, mat):
