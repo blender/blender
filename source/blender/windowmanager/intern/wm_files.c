@@ -514,20 +514,22 @@ static void wm_file_read_post(
 	UNUSED_VARS(is_startup_file, reset_app_template);
 #endif  /* WITH_PYTHON */
 
-	Main *bmain = CTX_data_main(C);
-	DEG_on_visible_update(bmain, true);
-	wm_event_do_depsgraph(C);
-
-	ED_editors_init(C);
-
 	WM_operatortype_last_properties_clear_all();
 
 	/* important to do before NULL'ing the context */
+	Main *bmain = CTX_data_main(C);
 	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
 	if (is_factory_startup) {
 		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST);
 	}
+
+	/* After load post, so for example the driver namespace can be filled
+	 * before evaluating the depsgraph. */
+	DEG_on_visible_update(bmain, true);
+	wm_event_do_depsgraph(C);
+
+	ED_editors_init(C);
 
 #if 1
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
