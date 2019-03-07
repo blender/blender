@@ -91,6 +91,9 @@ struct wmGizmoMap {
 	/* private, update tagging (enum defined in C source). */
 	char update_flag[WM_GIZMOMAP_DRAWSTEP_MAX];
 
+	/** Private, true when not yet used. */
+	bool is_init;
+
 	/**
 	 * \brief Gizmo map runtime context
 	 *

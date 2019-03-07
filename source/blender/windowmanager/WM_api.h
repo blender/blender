@@ -102,6 +102,7 @@ void		WM_init_splash		(struct bContext *C);
 void		WM_init_opengl		(struct Main *bmain);
 
 void		WM_check			(struct bContext *C);
+void		WM_reinit_gizmomap_all(struct Main *bmain);
 
 int WM_window_pixels_x(const struct wmWindow *win);
 int WM_window_pixels_y(const struct wmWindow *win);

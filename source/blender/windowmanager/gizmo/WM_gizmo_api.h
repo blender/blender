@@ -246,6 +246,7 @@ int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr);
 
 struct wmGizmoMap *WM_gizmomap_new_from_type(
         const struct wmGizmoMapType_Params *gzmap_params);
+void WM_gizmomap_reinit(struct wmGizmoMap *gzmap);
 const struct ListBase *WM_gizmomap_group_list(struct wmGizmoMap *gzmap);
 struct wmGizmoGroup *WM_gizmomap_group_find(
         struct wmGizmoMap *gzmap,

@@ -30,6 +30,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "ED_screen.h"
 #include "ED_select_utils.h"
@@ -156,17 +157,12 @@ void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz)
  *
  * \{ */
 
-/**
- * Creates a gizmo-map with all registered gizmos for that type
- */
-wmGizmoMap *WM_gizmomap_new_from_type(
-        const struct wmGizmoMapType_Params *gzmap_params)
+static wmGizmoMap *wm_gizmomap_new_from_type_ex(
+        struct wmGizmoMapType *gzmap_type,
+        wmGizmoMap *gzmap)
 {
-	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(gzmap_params);
-	wmGizmoMap *gzmap;
-
-	gzmap = MEM_callocN(sizeof(wmGizmoMap), "GizmoMap");
 	gzmap->type = gzmap_type;
+	gzmap->is_init = true;
 	WM_gizmomap_tag_refresh(gzmap);
 
 	/* create all gizmo-groups for this gizmo-map. We may create an empty one
@@ -178,7 +174,19 @@ wmGizmoMap *WM_gizmomap_new_from_type(
 	return gzmap;
 }
 
-void wm_gizmomap_remove(wmGizmoMap *gzmap)
+/**
+ * Creates a gizmo-map with all registered gizmos for that type
+ */
+wmGizmoMap *WM_gizmomap_new_from_type(
+        const struct wmGizmoMapType_Params *gzmap_params)
+{
+	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(gzmap_params);
+	wmGizmoMap *gzmap = MEM_callocN(sizeof(wmGizmoMap), "GizmoMap");
+	wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
+	return gzmap;
+}
+
+static void wm_gizmomap_free_data(wmGizmoMap *gzmap)
 {
 	/* Clear first so further calls don't waste time trying to maintain correct array state. */
 	wm_gizmomap_select_array_clear(gzmap);
@@ -189,10 +197,22 @@ void wm_gizmomap_remove(wmGizmoMap *gzmap)
 		wm_gizmogroup_free(NULL, gzgroup);
 	}
 	BLI_assert(BLI_listbase_is_empty(&gzmap->groups));
+}
 
+void wm_gizmomap_remove(wmGizmoMap *gzmap)
+{
+	wm_gizmomap_free_data(gzmap);
 	MEM_freeN(gzmap);
 }
 
+/** Re-create the gizmos (use when changing theme settings). */
+void WM_gizmomap_reinit(wmGizmoMap *gzmap)
+{
+	wmGizmoMapType *gzmap_type = gzmap->type;
+	wm_gizmomap_free_data(gzmap);
+	memset(gzmap, 0x0, sizeof(*gzmap));
+	wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
+}
 
 wmGizmoGroup *WM_gizmomap_group_find(
         struct wmGizmoMap *gzmap,
@@ -326,6 +346,9 @@ static void gizmomap_prepare_drawing(
 {
 	if (!gzmap || BLI_listbase_is_empty(&gzmap->groups))
 		return;
+
+	gzmap->is_init = false;
+
 	wmGizmo *gz_modal = gzmap->gzmap_context.modal;
 
 	/* only active gizmo needs updating */
@@ -1229,6 +1252,32 @@ void WM_gizmoconfig_update(struct Main *bmain)
 		}
 
 		wm_gzmap_type_update_flag &= ~WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT;
+	}
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recreate All Gizmos
+ *
+ * Use when adjusting themes.
+ *
+ * \{ */
+
+void WM_reinit_gizmomap_all(Main *bmain)
+{
+	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+				ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+				for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
+					wmGizmoMap *gzmap = ar->gizmo_map;
+					if ((gzmap != NULL) && (gzmap->is_init == false)) {
+						WM_gizmomap_reinit(gzmap);
+					}
+				}
+			}
+		}
 	}
 }
 
