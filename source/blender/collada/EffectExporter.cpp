@@ -114,11 +114,10 @@ void EffectsExporter::set_diffuse_color(COLLADASW::EffectProfile &ep, Material *
 	ep.setDiffuse(cot, false, "diffuse");
 }
 
-void EffectsExporter::set_specular_color(COLLADASW::EffectProfile &ep, Material *ma)
+void EffectsExporter::set_reflectivity(COLLADASW::EffectProfile &ep, Material *ma)
 {
-	bool use_fallback = ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT;
-	COLLADASW::ColorOrTexture cot = bc_get_specular_color(ma, use_fallback);
-	ep.setSpecular(cot, false, "specular");
+	double reflectivity = bc_get_reflectivity(ma);
+	ep.setReflectivity(reflectivity, false, "specular");
 }
 
 void EffectsExporter::set_emission(COLLADASW::EffectProfile &ep, Material *ma)
@@ -182,7 +181,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	set_transparency(ep, ma);
 	set_diffuse_color(ep, ma);
-	set_specular_color(ep, ma);
+	set_reflectivity(ep, ma);
 	set_emission(ep, ma);
 
 	get_images(ma, material_image_map);
