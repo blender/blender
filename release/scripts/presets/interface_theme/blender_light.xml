@@ -1419,8 +1419,8 @@
         shadow="3"
         shadow_offset_x="0"
         shadow_offset_y="-1"
-        shadow_alpha="0.5"
-        shadow_value="0"
+        shadow_alpha="0.3"
+        shadow_value="0.7"
         >
       </ThemeFontStyle>
     </panel_title>
@@ -1431,8 +1431,8 @@
         shadow="3"
         shadow_offset_x="0"
         shadow_offset_y="-1"
-        shadow_alpha="0.5"
-        shadow_value="0"
+        shadow_alpha="0.3"
+        shadow_value="0.7"
         >
       </ThemeFontStyle>
     </widget_label>
@@ -1443,8 +1443,8 @@
         shadow="1"
         shadow_offset_x="0"
         shadow_offset_y="-1"
-        shadow_alpha="0.5"
-        shadow_value="0"
+        shadow_alpha="0.3"
+        shadow_value="0.7"
         >
       </ThemeFontStyle>
     </widget>
