@@ -21,7 +21,6 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from .properties_grease_pencil_common import (
-    GreasePencilOnionPanel,
     GPENCIL_UL_layer,
 )
 
@@ -255,7 +254,68 @@ class DATA_PT_gpencil_onionpanel(Panel):
         if gpd.users > 1:
             layout.label(text="Multiuser datablock not supported", icon='ERROR')
 
-        GreasePencilOnionPanel.draw_settings(layout, gpd)
+        col = layout.column()
+        col.prop(gpd, "onion_mode")
+        col.prop(gpd, "onion_factor", text="Opacity", slider=True)
+
+        if gpd.onion_mode == 'ABSOLUTE':
+            col = layout.column(align=True)
+            col.prop(gpd, "ghost_before_range", text="Frames Before")
+            col.prop(gpd, "ghost_after_range", text="Frames After")
+        if gpd.onion_mode == 'RELATIVE':
+            col = layout.column(align=True)
+            col.prop(gpd, "ghost_before_range", text="Keyframes Before")
+            col.prop(gpd, "ghost_after_range", text="Keyframes After")
+
+
+class DATA_PT_gpencil_onionpanel_custom_colors(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+    bl_parent_id = "DATA_PT_gpencil_onionpanel"
+    bl_label = "Custom Colors"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+
+        gpd = context.gpencil_data
+
+        self.layout.prop(gpd, "use_ghost_custom_colors", text="")
+
+    def draw(self, context):
+        gpd = context.gpencil_data
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.enabled = gpd.users <= 1 and gpd.use_ghost_custom_colors
+
+        layout.prop(gpd, "before_color", text="Before")
+        layout.prop(gpd, "after_color", text="After")
+
+
+class DATA_PT_gpencil_onionpanel_display(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+    bl_parent_id = "DATA_PT_gpencil_onionpanel"
+    bl_label = "Display"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        gpd = context.gpencil_data
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.enabled = gpd.users <= 1
+
+        layout.prop(gpd, "use_ghosts_always", text="View In Render")
+
+        col = layout.column(align=True)
+        col.prop(gpd, "use_onion_fade", text="Fade")
+        if hasattr(gpd, "use_onion_loop"):  # XXX
+            sub = layout.column()
+            sub.active = gpd.onion_mode in ('RELATIVE', 'SELECTED')
+            sub.prop(gpd, "use_onion_loop", text="Loop")
 
 
 class GPENCIL_MT_gpencil_vertex_group(Menu):
@@ -413,6 +473,8 @@ classes = (
     DATA_PT_gpencil,
     DATA_PT_gpencil_datapanel,
     DATA_PT_gpencil_onionpanel,
+    DATA_PT_gpencil_onionpanel_custom_colors,
+    DATA_PT_gpencil_onionpanel_display,
     DATA_PT_gpencil_layer_optionpanel,
     DATA_PT_gpencil_parentpanel,
     DATA_PT_gpencil_vertexpanel,

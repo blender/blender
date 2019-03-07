@@ -814,41 +814,6 @@ class AnnotationOnionSkin:
         row.prop(gpl, "annotation_onion_after_color", text="")
         sub.prop(gpl, "annotation_onion_after_range", text="After")
 
-
-class GreasePencilOnionPanel:
-    @staticmethod
-    def draw_settings(layout, gp):
-        col = layout.column()
-        col.prop(gp, "onion_mode")
-        col.prop(gp, "onion_factor", text="Opacity", slider=True)
-
-        if gp.onion_mode == 'ABSOLUTE':
-            col = layout.column(align=True)
-            col.prop(gp, "ghost_before_range", text="Frames Before")
-            col.prop(gp, "ghost_after_range", text="Frames After")
-        if gp.onion_mode == 'RELATIVE':
-            col = layout.column(align=True)
-            col.prop(gp, "ghost_before_range", text="Keyframes Before")
-            col.prop(gp, "ghost_after_range", text="Keyframes After")
-
-        layout.prop(gp, "use_ghost_custom_colors", text="Use Custom Colors")
-
-        if gp.use_ghost_custom_colors:
-            col = layout.column(align=True)
-            col.active = gp.use_ghost_custom_colors
-            col.prop(gp, "before_color", text="Color Before")
-            col.prop(gp, "after_color", text="After")
-
-        layout.prop(gp, "use_ghosts_always", text="View In Render")
-
-        col = layout.column(align=True)
-        col.prop(gp, "use_onion_fade", text="Fade")
-        if hasattr(gp, "use_onion_loop"):  # XXX
-            sub = layout.column()
-            sub.active = gp.onion_mode in ('RELATIVE', 'SELECTED')
-            sub.prop(gp, "use_onion_loop", text="Loop")
-
-
 class GreasePencilToolsPanel:
     # For use in "2D" Editors without their own toolbar
     # subclass must set
