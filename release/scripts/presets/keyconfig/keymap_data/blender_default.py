@@ -260,29 +260,17 @@ def _template_items_tool_select_actions(operator, *, type, value):
     ]
 
 
-def _template_items_tool_select_actions_simple(operator, *, type, value):
-    kmi_args = {"type": type, "value": value}
-    return [
-        (operator, kmi_args,
-         {"properties": [("mode", 'SET')]}),
-        (operator, {**kmi_args, "shift": True},
-         {"properties": [("mode", 'ADD')]}),
-        (operator, {**kmi_args, "ctrl": True},
-         {"properties": [("mode", 'SUB')]}),
-    ]
-
-
 # This could have a more generic name, for now use for circle select.
-def _template_items_tool_select_actions_circle(operator, *, type, value):
+def _template_items_tool_select_actions_simple(operator, *, type, value, properties=[]):
     kmi_args = {"type": type, "value": value}
     return [
         # Don't define 'SET' here, take from the tool options.
         (operator, kmi_args,
-         {"properties": [("wait_for_input", False)]}),
+         {"properties": properties}),
         (operator, {**kmi_args, "shift": True},
-         {"properties": [("wait_for_input", False), ("mode", 'ADD')]}),
+         {"properties": [*properties, ("mode", 'ADD')]}),
         (operator, {**kmi_args, "ctrl": True},
-         {"properties": [("wait_for_input", False), ("mode", 'SUB')]}),
+         {"properties": [*properties, ("mode", 'SUB')]}),
     ]
 
 
@@ -5151,7 +5139,10 @@ def km_image_editor_tool_uv_select_circle(params):
     return (
         "Image Editor Tool: Uv, Select Circle",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select_actions_circle("uv.select_circle", type=params.tool_mouse, value='PRESS')},
+        {"items": _template_items_tool_select_actions_simple(
+            "uv.select_circle", type=params.tool_mouse, value='PRESS',
+            properties=[("wait_for_input", True)],
+        )},
     )
 
 
@@ -5178,14 +5169,10 @@ def km_node_editor_tool_select_box(params):
     return (
         "Node Tool: Select Box",
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            ("node.select_box", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("tweak", True)]}),
-            ("node.select_box", {"type": params.tool_tweak, "value": 'ANY', "shift": True},
-             {"properties": [("tweak", True), ("mode", 'ADD')]}),
-            ("node.select_box", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
-             {"properties": [("tweak", True), ("mode", 'SUB')]}),
-        ]},
+        {"items": _template_items_tool_select_actions_simple(
+            "node.select_box", type=params.tool_tweak, value='ANY',
+            properties=[("tweak", True)],
+        )},
     )
 
 
@@ -5205,7 +5192,10 @@ def km_node_editor_tool_select_circle(params):
     return (
         "Node Tool: Select Circle",
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select_actions_circle("node.select_circle", type=params.tool_mouse, value='PRESS')},
+        {"items": _template_items_tool_select_actions_simple(
+            "node.select_circle", type=params.tool_mouse, value='PRESS',
+            properties=[("wait_for_input", False)],
+        )},
     )
 
 def km_node_editor_tool_links_cut(params):
@@ -5250,7 +5240,10 @@ def km_3d_view_tool_select_circle(params):
     return (
         "3D View Tool: Select Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select_actions_circle("view3d.select_circle", type=params.tool_mouse, value='PRESS')},
+        {"items": _template_items_tool_select_actions_simple(
+            "view3d.select_circle", type=params.tool_mouse, value='PRESS',
+            properties=[("wait_for_input", False)],
+        )},
     )
 
 
@@ -5898,7 +5891,10 @@ def km_3d_view_tool_edit_gpencil_select_circle(params):
     return (
         "3D View Tool: Edit Gpencil, Select Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select_actions_circle("gpencil.select_circle", type=params.tool_mouse, value='PRESS')},
+        {"items": _template_items_tool_select_actions_simple(
+            "gpencil.select_circle", type=params.tool_mouse, value='PRESS',
+            properties=[("wait_for_input", False)],
+        )},
     )
 
 
@@ -5963,7 +5959,10 @@ def km_3d_view_tool_sculpt_gpencil_select_circle(params):
     return (
         "3D View Tool: Sculpt Gpencil, Select Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select_actions_circle("gpencil.select_circle", type=params.tool_mouse, value='PRESS')},
+        {"items": _template_items_tool_select_actions_simple(
+            "gpencil.select_circle", type=params.tool_mouse, value='PRESS',
+            properties=[("wait_for_input", False)],
+        )},
     )
 
 
