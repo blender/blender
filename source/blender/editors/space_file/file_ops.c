@@ -42,6 +42,7 @@
 
 #include "ED_screen.h"
 #include "ED_fileselect.h"
+#include "ED_select_utils.h"
 
 #include "UI_interface.h"
 
@@ -424,12 +425,12 @@ static int file_box_select_exec(bContext *C, wmOperator *op)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	rcti rect;
 	FileSelect ret;
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	WM_operator_properties_border_to_rcti(op, &rect);
 
-	if (!extend) {
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		file_deselect_all(sfile, FILE_SEL_SELECTED);
 	}
 
@@ -465,7 +466,8 @@ void FILE_OT_select_box(wmOperatorType *ot)
 	ot->cancel = WM_gesture_box_cancel;
 
 	/* properties */
-	WM_operator_properties_gesture_box_select(ot);
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)

@@ -540,15 +540,18 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
-	bNode *node;
 	rctf rectf;
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	WM_operator_properties_border_to_rctf(op, &rectf);
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
-	for (node = snode->edittree->nodes.first; node; node = node->next) {
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+	}
+
+	for (bNode *node = snode->edittree->nodes.first; node; node = node->next) {
 		bool is_inside;
 		if (node->type == NODE_FRAME) {
 			is_inside = BLI_rctf_inside_rctf(&rectf, &node->totr);
@@ -559,9 +562,6 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
 
 		if (is_inside) {
 			nodeSetSelected(node, select);
-		}
-		else if (!extend) {
-			nodeSetSelected(node, false);
 		}
 	}
 
@@ -601,9 +601,11 @@ void NODE_OT_select_box(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* rna */
-	WM_operator_properties_gesture_box_select(ot);
+	/* properties */
 	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
+
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /* ****** Circle Select ****** */

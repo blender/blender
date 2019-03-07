@@ -443,8 +443,12 @@ static int box_select_exec(bContext *C, wmOperator *op)
 	ED_clip_point_stable_pos(sc, ar, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	ED_clip_point_stable_pos(sc, ar, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_clip_select_all(sc, SEL_DESELECT, NULL);
+		changed = true;
+	}
 
 	/* do actual selection */
 	track = tracksbase->first;
@@ -461,10 +465,6 @@ static int box_select_exec(bContext *C, wmOperator *op)
 						BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 					}
 				}
-				else if (!extend) {
-					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-				}
-
 				changed = true;
 			}
 		}
@@ -490,11 +490,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 						plane_track->flag &= ~SELECT;
 					}
 				}
-				else if (!extend) {
-					plane_track->flag &= ~SELECT;
-				}
 			}
-
 			changed = true;
 		}
 	}
@@ -528,7 +524,8 @@ void CLIP_OT_select_box(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_box_select(ot);
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /********************** lasso select operator *********************/

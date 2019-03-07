@@ -1173,9 +1173,9 @@ void GPENCIL_OT_select_box(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
-	/* rna */
-	WM_operator_properties_select_operation(ot);
+	/* properties */
 	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation(ot);
 }
 
 /** \} */

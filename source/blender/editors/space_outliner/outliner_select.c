@@ -1262,14 +1262,18 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
-	TreeElement *te;
 	rctf rectf;
-	bool select = !RNA_boolean_get(op->ptr, "deselect");
+
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
+	}
 
 	WM_operator_properties_border_to_rctf(op, &rectf);
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
-	for (te = soops->tree.first; te; te = te->next) {
+	for (TreeElement *te = soops->tree.first; te; te = te->next) {
 		outliner_item_box_select(soops, scene, &rectf, te, select);
 	}
 
@@ -1298,8 +1302,9 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* rna */
-	WM_operator_properties_gesture_box_ex(ot, true, false);
+	/* properties */
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /* ****************************************************** */

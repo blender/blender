@@ -881,29 +881,27 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
+	if (ed == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
 	View2D *v2d = UI_view2d_fromcontext(C);
 
-	Sequence *seq;
-	rctf rectf, rq;
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_sequencer_deselect_all(scene);
+	}
 
-	if (ed == NULL)
-		return OPERATOR_CANCELLED;
-
+	rctf rectf;
 	WM_operator_properties_border_to_rctf(op, &rectf);
 	UI_view2d_region_to_view_rctf(v2d, &rectf, &rectf);
 
-	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+	for (Sequence *seq = ed->seqbasep->first; seq; seq = seq->next) {
+		rctf rq;
 		seq_rectf(seq, &rq);
-
 		if (BLI_rctf_isect(&rq, &rectf, NULL)) {
-			if (select) seq->flag |= SELECT;
-			else seq->flag &= ~SEQ_ALLSEL;
-			recurs_sel_seq(seq);
-		}
-		else if (!extend) {
-			seq->flag &= ~SEQ_ALLSEL;
+			SET_FLAG_FROM_TEST(seq->flag, select, SELECT);
 			recurs_sel_seq(seq);
 		}
 	}
@@ -933,8 +931,9 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* rna */
-	WM_operator_properties_gesture_box_select(ot);
+	/* properties */
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /* ****** Selected Grouped ****** */

@@ -288,6 +288,28 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
 		add_marker_to_cfra_elem(lb, marker, only_sel);
 }
 
+void ED_markers_deselect_all(ListBase *markers, int action)
+{
+	if (action == SEL_TOGGLE) {
+		action = ED_markers_get_first_selected(markers) ? SEL_DESELECT : SEL_SELECT;
+	}
+
+	for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+		if (action == SEL_SELECT) {
+			marker->flag |= SELECT;
+		}
+		else if (action == SEL_DESELECT) {
+			marker->flag &= ~SELECT;
+		}
+		else if (action == SEL_INVERT) {
+			marker->flag ^= SELECT;
+		}
+		else {
+			BLI_assert(0);
+		}
+	}
+}
+
 /* --------------------------------- */
 
 /* Get the first selected marker */
@@ -1279,9 +1301,6 @@ static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
 {
 	View2D *v2d = UI_view2d_fromcontext(C);
 	ListBase *markers = ED_context_get_markers(C);
-	TimeMarker *marker;
-	bool select = !RNA_boolean_get(op->ptr, "deselect");
-	bool extend = RNA_boolean_get(op->ptr, "extend");
 	rctf rect;
 
 	WM_operator_properties_border_to_rctf(op, &rect);
@@ -1290,18 +1309,15 @@ static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
 	if (markers == NULL)
 		return 0;
 
-	/* XXX marker context */
-	for (marker = markers->first; marker; marker = marker->next) {
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const bool select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		ED_markers_deselect_all(markers, SEL_DESELECT);
+	}
+
+	for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
 		if (BLI_rctf_isect_x(&rect, marker->frame)) {
-			if (select) {
-				marker->flag |= SELECT;
-			}
-			else {
-				marker->flag &= ~SELECT;
-			}
-		}
-		else if (!extend) {
-			marker->flag &= ~SELECT;
+			SET_FLAG_FROM_TEST(marker->flag, select, SELECT);
 		}
 	}
 
@@ -1334,8 +1350,9 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* rna */
-	WM_operator_properties_gesture_box_select(ot);
+	/* properties */
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
 
 /* *********************** (de)select all ***************** */
@@ -1343,29 +1360,12 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
 static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 {
 	ListBase *markers = ED_context_get_markers(C);
-	TimeMarker *marker;
-	int action = RNA_enum_get(op->ptr, "action");
-
-	if (markers == NULL)
+	if (markers == NULL) {
 		return OPERATOR_CANCELLED;
-
-	if (action == SEL_TOGGLE) {
-		action = (ED_markers_get_first_selected(markers) != NULL) ? SEL_DESELECT : SEL_SELECT;
 	}
 
-	for (marker = markers->first; marker; marker = marker->next) {
-		switch (action) {
-			case SEL_SELECT:
-				marker->flag |= SELECT;
-				break;
-			case SEL_DESELECT:
-				marker->flag &= ~SELECT;
-				break;
-			case SEL_INVERT:
-				marker->flag ^= SELECT;
-				break;
-		}
-	}
+	int action = RNA_enum_get(op->ptr, "action");
+	ED_markers_deselect_all(markers, action);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);

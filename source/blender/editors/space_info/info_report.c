@@ -217,25 +217,18 @@ static int box_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	ReportList *reports = CTX_wm_reports(C);
 	int report_mask = info_report_mask(sinfo);
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
-	Report *report_min, *report_max, *report;
-
-	//View2D *v2d = UI_view2d_fromcontext(C);
-
-
+	Report *report_min, *report_max;
 	rcti rect;
-	//rctf rectf, rq;
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	//int mval[2];
 
 	WM_operator_properties_border_to_rcti(op, &rect);
 
-	if (!extend) {
-		for (report = reports->list.first; report; report = report->next) {
-
-			if ((report->type & report_mask) == 0)
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+	const int select = (sel_op != SEL_OP_SUB);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		for (Report *report = reports->list.first; report; report = report->next) {
+			if ((report->type & report_mask) == 0) {
 				continue;
-
+			}
 			report->flag &= ~SELECT;
 		}
 	}
@@ -246,7 +239,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 	/* get the first report if none found */
 	if (report_min == NULL) {
 		// printf("find_min\n");
-		for (report = reports->list.first; report; report = report->next) {
+		for (Report *report = reports->list.first; report; report = report->next) {
 			if (report->type & report_mask) {
 				report_min = report;
 				break;
@@ -256,7 +249,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 
 	if (report_max == NULL) {
 		// printf("find_max\n");
-		for (report = reports->list.last; report; report = report->prev) {
+		for (Report *report = reports->list.last; report; report = report->prev) {
 			if (report->type & report_mask) {
 				report_max = report;
 				break;
@@ -264,18 +257,15 @@ static int box_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (report_min == NULL || report_max == NULL)
+	if (report_min == NULL || report_max == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
-	for (report = report_min; (report != report_max->next); report = report->next) {
-
-		if ((report->type & report_mask) == 0)
+	for (Report *report = report_min; (report != report_max->next); report = report->next) {
+		if ((report->type & report_mask) == 0) {
 			continue;
-
-		if (select)
-			report->flag |= SELECT;
-		else
-			report->flag &= ~SELECT;
+		}
+		SET_FLAG_FROM_TEST(report->flag, select, SELECT);
 	}
 
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -303,11 +293,10 @@ void INFO_OT_select_box(wmOperatorType *ot)
 	/* flags */
 	/* ot->flag = OPTYPE_REGISTER; */
 
-	/* rna */
-	WM_operator_properties_gesture_box_select(ot);
+	/* properties */
+	WM_operator_properties_gesture_box(ot);
+	WM_operator_properties_select_operation_simple(ot);
 }
-
-
 
 static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {

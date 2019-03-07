@@ -5180,9 +5180,11 @@ def km_node_editor_tool_select_box(params):
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("node.select_box", {"type": params.tool_tweak, "value": 'ANY'},
-              {"properties": [("tweak", True)]}),
+             {"properties": [("tweak", True)]}),
+            ("node.select_box", {"type": params.tool_tweak, "value": 'ANY', "shift": True},
+             {"properties": [("tweak", True), ("mode", 'ADD')]}),
             ("node.select_box", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
-              {"properties": [("deselect", True), ("tweak", True)]}),
+             {"properties": [("tweak", True), ("mode", 'SUB')]}),
         ]},
     )
 

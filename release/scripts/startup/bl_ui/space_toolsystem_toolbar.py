@@ -1324,7 +1324,7 @@ class _defs_node_select:
     def box():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("node.select_box")
-            layout.prop(props, "deselect")
+            layout.prop(props, "mode", expand=True)
             pass
         return dict(
             text="Select Box",
