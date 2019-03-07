@@ -5056,21 +5056,43 @@ void sculpt_update_object_bounding_box(Object *ob)
 
 static void sculpt_flush_update(bContext *C)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	SculptSession *ss = ob->sculpt;
 	ARegion *ar = CTX_wm_region(C);
+	bScreen *screen = CTX_wm_screen(C);
 	MultiresModifierData *mmd = ss->multires;
 
 	if (mmd != NULL) {
 		/* NOTE: SubdivCCG is living in the evaluated object. */
-		Depsgraph *depsgraph = CTX_data_depsgraph(C);
-		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 		multires_mark_as_modified(ob_eval, MULTIRES_COORDS_MODIFIED);
 	}
 
 	DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
-	if (ss->kb || ss->modifiers_active) {
+	bool use_shaded_mode = false;
+	if (mmd || (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH)) {
+		/* Multres or dyntopo are drawn directly by EEVEE,
+		 * no need for hacks in this case. */
+	}
+	else {
+		/* We search if an area of the current window is in lookdev/rendered
+		 * display mode. In this case, for changes to show up, we need to
+		 * tag for ID_RECALC_GEOMETRY. */
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_VIEW3D) {
+					View3D *v3d = (View3D *)sl;
+					if (v3d->shading.type > OB_SOLID) {
+						use_shaded_mode = true;
+					}
+				}
+			}
+		}
+	}
+
+	if (ss->kb || ss->modifiers_active || use_shaded_mode) {
 		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		ED_region_tag_redraw(ar);
 	}
@@ -5101,9 +5123,6 @@ static void sculpt_flush_update(bContext *C)
 			ED_region_tag_redraw_partial(ar, &r);
 		}
 	}
-
-	/* 2.8x - avoid full mesh update! */
-	BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_SCULPT_COORDS);
 }
 
 /* Returns whether the mouse/stylus is over the mesh (1)
