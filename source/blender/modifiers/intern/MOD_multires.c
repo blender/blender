@@ -34,6 +34,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
+#include "BKE_paint.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_mesh.h"
@@ -168,6 +169,14 @@ static Mesh *applyModifier(ModifierData *md,
 		/* NOTE: CCG takes ownership over Subdiv. */
 		result = multires_as_ccg(mmd, ctx, mesh, subdiv);
 		result->runtime.subdiv_ccg_tot_level = mmd->totlvl;
+		/* TODO(sergey): Usually it is sculpt stroke's update variants which
+		 * takes care of this, but is possible that we need this before the
+		 * stroke: i.e. when exiting blender right after stroke is done.
+		 * Annoying and not so much black-boxed as far as sculpting goes, and
+		 * surely there is a better way of solving this. */
+		if (ctx->object->sculpt != NULL) {
+			ctx->object->sculpt->subdiv_ccg = result->runtime.subdiv_ccg;
+		}
 		/* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
 		 * this pointer. Not sure if it's needed, but might have a second look
 		 * on the ownership model here. */
