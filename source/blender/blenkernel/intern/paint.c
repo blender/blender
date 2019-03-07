@@ -1381,7 +1381,16 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 	}
 	PBVH *pbvh = ob->sculpt->pbvh;
 	if (pbvh != NULL) {
-		/* Nothing to do, PBVH is already up to date. */
+		/* NOTE: It is possible that grids were re-allocated due to modifier
+		 * stack. Need to update those pointers. */
+		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
+			Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+			Mesh *mesh_eval = object_eval->data;
+			SubdivCCG *subdiv_ccg = mesh_eval->runtime.subdiv_ccg;
+			if (subdiv_ccg != NULL) {
+				BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
+			}
+		}
 		return pbvh;
 	}
 
@@ -1404,4 +1413,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
 	ob->sculpt->pbvh = pbvh;
 	return pbvh;
+}
+
+void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
+{
+	BKE_pbvh_grids_update(pbvh, subdiv_ccg->grids, (void **)subdiv_ccg->grid_faces,
+	                      subdiv_ccg->grid_flag_mats, subdiv_ccg->grid_hidden);
 }

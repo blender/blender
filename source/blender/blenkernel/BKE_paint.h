@@ -56,6 +56,7 @@ struct UnifiedPaintSettings;
 struct ViewLayer;
 struct bContext;
 struct bToolRef;
+struct SubdivCCG;
 
 enum eOverlayFlags;
 
@@ -286,6 +287,8 @@ int BKE_sculpt_mask_layers_ensure(struct Object *ob,
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 
 struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct Object *ob);
+
+void BKE_sculpt_bvh_update_from_ccg(struct PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 
 enum {
 	SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
