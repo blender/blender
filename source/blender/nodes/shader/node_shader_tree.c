@@ -445,6 +445,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 {
 	bNode *value_node, *group_node;
 	bNodeSocket *value_socket;
+	bNodeSocketValueVector *src_vector;
 	bNodeSocketValueRGBA *src_rgba, *dst_rgba;
 	bNodeSocketValueFloat *src_float, *dst_float;
 	bool link_added = false;
@@ -468,6 +469,14 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 
 			switch (group_socket->type) {
 				case SOCK_VECTOR:
+					value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
+					value_socket = ntree_shader_node_find_output(value_node, "Color");
+					BLI_assert(value_socket != NULL);
+					src_vector = group_socket->default_value;
+					dst_rgba = value_socket->default_value;
+					copy_v3_v3(dst_rgba->value, src_vector->value);
+					dst_rgba->value[3] = 1.0f; /* should never be read */
+					break;
 				case SOCK_RGBA:
 					value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
 					value_socket = ntree_shader_node_find_output(value_node, "Color");
