@@ -2692,6 +2692,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
@@ -2727,6 +2728,13 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 
 			Object *ob = DEG_get_original_object(base_eval->object);
 			if (skip_camera && ob == v3d->camera) {
+				continue;
+			}
+
+			if ((ob->type == OB_EMPTY) &&
+			    (ob->empty_drawtype == OB_EMPTY_IMAGE) &&
+			    !BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d))
+			{
 				continue;
 			}
 
