@@ -1281,8 +1281,6 @@ static void drw_engines_enable_from_mode(int mode)
 			BLI_assert(!"Draw mode invalid");
 			break;
 	}
-	/* grease pencil */
-	use_drw_engine(&draw_engine_gpencil_type);
 }
 
 static void drw_engines_enable_from_overlays(int UNUSED(overlay_flag))
@@ -1306,6 +1304,8 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	const bool use_xray = XRAY_ENABLED(v3d);
 
 	drw_engines_enable_from_engine(engine_type, drawtype, use_xray);
+	/* grease pencil */
+	use_drw_engine(&draw_engine_gpencil_type);
 
 	if (DRW_state_draw_support()) {
 		/* Draw paint modes first so that they are drawn below the wireframes. */
@@ -1319,7 +1319,7 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 		if (v3d->shading.type == OB_WIRE) {
 			drw_engines_enable_from_overlays(v3d->overlay.flag);
 		}
-		/* if gpencil must draw the strokes, but not the object */
+
 		drw_engines_enable_from_mode(mode);
 	}
 }
