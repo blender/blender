@@ -169,6 +169,10 @@ class RandomizeLocRotSize(Operator):
         default=(1.0, 1.0, 1.0),
     )
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
+
     def execute(self, context):
         seed = self.random_seed
 
