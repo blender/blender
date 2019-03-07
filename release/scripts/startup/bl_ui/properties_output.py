@@ -270,9 +270,9 @@ class RENDER_PT_stamp_burn(RenderOutputButtonsPanel, Panel):
         col = layout.column()
         col.active = rd.use_stamp
         col.prop(rd, "stamp_font_size", text="Font Size")
-        col.prop(rd, "use_stamp_labels", text="Draw Labels")
         col.column().prop(rd, "stamp_foreground", slider=True)
         col.column().prop(rd, "stamp_background", slider=True)
+        col.prop(rd, "use_stamp_labels", text="Include Labels")
 
 
 class RENDER_PT_output(RenderOutputButtonsPanel, Panel):
