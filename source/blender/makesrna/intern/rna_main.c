@@ -369,7 +369,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"actions", "Action", "rna_Main_actions_begin", "Actions", "Action data-blocks", RNA_def_main_actions},
 		{"particles", "ParticleSettings", "rna_Main_particles_begin", "Particles", "Particle data-blocks", RNA_def_main_particles},
 		{"palettes", "Palette", "rna_Main_palettes_begin", "Palettes", "Palette data-blocks", RNA_def_main_palettes},
-		{"grease_pencil", "GreasePencil", "rna_Main_gpencils_begin", "Grease Pencil", "Grease Pencil data-blocks", RNA_def_main_gpencil},
+		{"grease_pencils", "GreasePencil", "rna_Main_gpencils_begin", "Grease Pencil", "Grease Pencil data-blocks", RNA_def_main_gpencil},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip data-blocks", RNA_def_main_movieclips},
 		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks data-blocks", RNA_def_main_masks},
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyles_begin", "Line Styles", "Line Style data-blocks", RNA_def_main_linestyles},
