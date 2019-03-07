@@ -1176,7 +1176,8 @@ static void mesh_calc_modifiers(
 
 	/* Generic preview only in object mode! */
 	const bool do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
-	const bool do_loop_normals = (((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) != 0;
+	const bool do_loop_normals = ((((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) != 0 ||
+	                              (dataMask->lmask & CD_MASK_NORMAL) != 0);
 
 	VirtualModifierData virtualModifierData;
 
@@ -1705,7 +1706,8 @@ static void editbmesh_calc_modifiers(
 	const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
 	const ModifierEvalContext mectx_cache = {depsgraph, ob, MOD_APPLY_USECACHE};
 
-	const bool do_loop_normals = (((Mesh *)(ob->data))->flag & ME_AUTOSMOOTH) != 0;
+	const bool do_loop_normals = ((((Mesh *)(ob->data))->flag & ME_AUTOSMOOTH) != 0 ||
+	                              (dataMask->lmask & CD_MASK_NORMAL) != 0);
 
 	modifiers_clearErrors(ob);
 
