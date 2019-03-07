@@ -2596,6 +2596,28 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
  * Move & Zoom the view to fit all of it's contents.
  * \{ */
 
+static bool view3d_object_skip_minmax(
+        const View3D *v3d, const RegionView3D *rv3d, const Object *ob, const bool skip_camera,
+        bool *r_only_center)
+{
+	BLI_assert(ob->id.orig_id == NULL);
+	*r_only_center = false;
+
+	if (skip_camera && (ob == v3d->camera)) {
+		return true;
+	}
+
+	if ((ob->type == OB_EMPTY) &&
+	    (ob->empty_drawtype == OB_EMPTY_IMAGE) &&
+	    !BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d))
+	{
+		*r_only_center = true;
+		return false;
+	}
+
+	return false;
+}
+
 static void view3d_from_minmax(
         bContext *C, View3D *v3d, ARegion *ar,
         const float min[3], const float max[3],
@@ -2724,20 +2746,18 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 
 	for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
 		if (BASE_VISIBLE(v3d, base_eval)) {
-
+			bool only_center = false;
 			Object *ob = DEG_get_original_object(base_eval->object);
-			if (skip_camera && ob == v3d->camera) {
+			if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
 				continue;
 			}
 
-			if ((ob->type == OB_EMPTY) &&
-			    (ob->empty_drawtype == OB_EMPTY_IMAGE) &&
-			    !BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d))
-			{
-				continue;
+			if (only_center) {
+				minmax_v3v3_v3(min, max, base_eval->object->obmat[3]);
 			}
-
-			BKE_object_minmax(base_eval->object, min, max, false);
+			else {
+				BKE_object_minmax(base_eval->object, min, max, false);
+			}
 			changed = true;
 		}
 	}
@@ -2801,6 +2821,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
@@ -2897,16 +2918,21 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		Base *base_eval;
 		for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
 			if (BASE_SELECTED(v3d, base_eval)) {
-
+				bool only_center = false;
 				Object *ob = DEG_get_original_object(base_eval->object);
-				if (skip_camera && ob == v3d->camera) {
+				if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
 					continue;
 				}
 
 				/* account for duplis */
 				if (BKE_object_minmax_dupli(depsgraph, scene, base_eval->object, min, max, false) == 0) {
 					/* use if duplis not found */
-					BKE_object_minmax(base_eval->object, min, max, false);
+					if (only_center) {
+						minmax_v3v3_v3(min, max, base_eval->object->obmat[3]);
+					}
+					else {
+						BKE_object_minmax(base_eval->object, min, max, false);
+					}
 				}
 
 				ok = 1;
