@@ -4250,7 +4250,7 @@ class VIEW3D_PT_view3d_properties(Panel):
         subcol.active = view.region_3d.view_perspective != 'CAMERA'
 
 
-class VIEW3D_PT_view3d_camera_lock(Panel):
+class VIEW3D_PT_view3d_lock(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "View"
@@ -5917,7 +5917,7 @@ classes = (
     VIEW3D_MT_orientations_pie,
     VIEW3D_MT_proportional_editing_falloff_pie,
     VIEW3D_PT_view3d_properties,
-    VIEW3D_PT_view3d_camera_lock,
+    VIEW3D_PT_view3d_lock,
     VIEW3D_PT_view3d_cursor,
     VIEW3D_PT_collections,
     VIEW3D_PT_object_type_visibility,
