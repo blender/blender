@@ -2875,7 +2875,7 @@ typedef struct ImageSampleInfo {
 	int channels;
 
 	int width, height;
-	int sample_radius;
+	int sample_size;
 
 	unsigned char col[4];
 	float colf[4];
@@ -2905,7 +2905,7 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	        scene, ar, info->color_manage, info->use_default_view, info->channels,
 	        info->x, info->y, info->colp, info->colfp, info->linearcol, info->zp, info->zfp);
 
-	if (info->sample_radius) {
+	if (info->sample_size > 1) {
 		const wmWindow *win = CTX_wm_window(C);
 		const wmEvent *event = win->eventstate;
 
@@ -2917,11 +2917,12 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3fv(color);
 
+		/* TODO(campbell): lock to pixels. */
 		rctf sample_rect_fl;
 		BLI_rctf_init_pt_radius(
 		        &sample_rect_fl,
 		        (float[2]){event->x - ar->winrct.xmin, event->y - ar->winrct.ymin},
-		        info->sample_radius * sima->zoom);
+		        (float)(info->sample_size / 2.0f) * sima->zoom);
 
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(GL_XOR);
@@ -3098,10 +3099,10 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 		info->use_default_view = (image->flag & IMA_VIEW_AS_RENDER) ? false : true;
 
 		rcti sample_rect;
-		BLI_rcti_init_pt_radius(&sample_rect, (int[2]){x, y}, info->sample_radius);
-		BLI_rcti_isect(
-		        &(rcti){ .xmin = 0, .ymin = 0, .xmax = ibuf->x - 1, .ymax = ibuf->y - 1},
-		        &sample_rect, &sample_rect);
+		sample_rect.xmin = max_ii(0, x - info->sample_size / 2);
+		sample_rect.ymin = max_ii(0, y - info->sample_size / 2);
+		sample_rect.xmax = min_ii(ibuf->x, sample_rect.xmin + info->sample_size) - 1;
+		sample_rect.ymax = min_ii(ibuf->y, sample_rect.ymin + info->sample_size) - 1;
 
 		if (ibuf->rect) {
 			image_sample_rect_color_ubyte(ibuf, &sample_rect, info->col, info->linearcol);
@@ -3217,7 +3218,7 @@ static int image_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 	info->art = ar->type;
 	info->draw_handle = ED_region_draw_cb_activate(ar->type, image_sample_draw, info, REGION_DRAW_POST_PIXEL);
-	info->sample_radius = RNA_int_get(op->ptr, "radius");
+	info->sample_size = RNA_int_get(op->ptr, "size");
 	op->customdata = info;
 
 	image_sample_apply(C, op, event);
@@ -3267,7 +3268,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING;
 
 	PropertyRNA *prop;
-	prop = RNA_def_int(ot->srna, "radius", 0, 0, 64, "Radius", "", 0, 32);
+	prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
 	RNA_def_property_subtype(prop, PROP_PIXEL);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

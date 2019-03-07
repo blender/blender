@@ -1019,7 +1019,7 @@ class _defs_image_generic:
     def sample():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("image.sample")
-            layout.prop(props, "radius")
+            layout.prop(props, "size")
         return dict(
             text="Sample",
             description=(
