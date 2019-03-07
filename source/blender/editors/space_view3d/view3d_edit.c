@@ -2898,7 +2898,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
 			if (BASE_SELECTED(v3d, base_eval)) {
 
-				if (skip_camera && base_eval->object == v3d->camera) {
+				Object *ob = DEG_get_original_object(base_eval->object);
+				if (skip_camera && ob == v3d->camera) {
 					continue;
 				}
 
