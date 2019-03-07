@@ -3056,6 +3056,61 @@ void UI_block_theme_style_set(uiBlock *block, char theme_style)
 	block->theme_style = theme_style;
 }
 
+static void ui_but_build_drawstr_float(uiBut *but, double value)
+{
+	size_t slen = 0;
+	STR_CONCAT(but->drawstr, slen, but->str);
+
+	PropertySubType subtype = PROP_NONE;
+	if (but->rnaprop) {
+		subtype = RNA_property_subtype(but->rnaprop);
+	}
+
+	if (value == (double)FLT_MAX) {
+		STR_CONCAT(but->drawstr, slen, "inf");
+	}
+	else if (value == (double)-FLT_MIN) {
+		STR_CONCAT(but->drawstr, slen, "-inf");
+	}
+	else if (subtype == PROP_PERCENTAGE) {
+		int prec = ui_but_calc_float_precision(but, value);
+		STR_CONCATF(but->drawstr, slen, "%.*f %%", prec, value);
+	}
+	else if (subtype == PROP_PIXEL) {
+		int prec = ui_but_calc_float_precision(but, value);
+		STR_CONCATF(but->drawstr, slen, "%.*f px", prec, value);
+	}
+	else if (ui_but_is_unit(but)) {
+		char new_str[sizeof(but->drawstr)];
+		ui_get_but_string_unit(but, new_str, sizeof(new_str), value, true, -1);
+		STR_CONCAT(but->drawstr, slen, new_str);
+	}
+	else {
+		int prec = ui_but_calc_float_precision(but, value);
+		STR_CONCATF(but->drawstr, slen, "%.*f", prec, value);
+	}
+}
+
+static void ui_but_build_drawstr_int(uiBut *but, int value)
+{
+	size_t slen = 0;
+	STR_CONCAT(but->drawstr, slen, but->str);
+
+	PropertySubType subtype = PROP_NONE;
+	if (but->rnaprop) {
+		subtype = RNA_property_subtype(but->rnaprop);
+	}
+
+	STR_CONCATF(but->drawstr, slen, "%d", value);
+
+	if (subtype == PROP_PERCENTAGE) {
+		STR_CONCAT(but->drawstr, slen, "%");
+	}
+	else if (subtype == PROP_PIXEL) {
+		STR_CONCAT(but->drawstr, slen, " px");
+	}
+}
+
 /**
  * \param but: Button to update.
  * \param validate: When set, this function may change the button value.
@@ -3145,52 +3200,15 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 
 		case UI_BTYPE_NUM:
 		case UI_BTYPE_NUM_SLIDER:
-
-			if (!but->editstr) {
-				const char *drawstr_suffix = NULL;
-				size_t slen;
-
-				UI_GET_BUT_VALUE_INIT(but, value);
-
-				slen = BLI_strncpy_rlen(but->drawstr, but->str, sizeof(but->drawstr));
-
-				if (ui_but_is_float(but)) {
-					if (value == (double) FLT_MAX) {
-						slen += BLI_strncpy_rlen(but->drawstr + slen, "inf", sizeof(but->drawstr) - slen);
-					}
-					else if (value == (double) -FLT_MAX) {
-						slen += BLI_strncpy_rlen(but->drawstr + slen, "-inf", sizeof(but->drawstr) - slen);
-					}
-					/* support length type buttons */
-					else if (ui_but_is_unit(but)) {
-						char new_str[sizeof(but->drawstr)];
-						ui_get_but_string_unit(but, new_str, sizeof(new_str), value, true, -1);
-						slen += BLI_strncpy_rlen(but->drawstr + slen, new_str, sizeof(but->drawstr) - slen);
-					}
-					else {
-						const int prec = ui_but_calc_float_precision(but, value);
-						slen += BLI_snprintf_rlen(but->drawstr + slen, sizeof(but->drawstr) - slen, "%.*f", prec, value);
-					}
-				}
-				else {
-					slen += BLI_snprintf_rlen(but->drawstr + slen, sizeof(but->drawstr) - slen, "%d", (int)value);
-				}
-
-				if (but->rnaprop) {
-					PropertySubType pstype = RNA_property_subtype(but->rnaprop);
-
-					if (pstype == PROP_PERCENTAGE) {
-						drawstr_suffix = "%";
-					}
-					else if (pstype == PROP_PIXEL) {
-						drawstr_suffix = " px";
-					}
-				}
-
-				if (drawstr_suffix) {
-					BLI_strncpy(but->drawstr + slen, drawstr_suffix, sizeof(but->drawstr) - slen);
-				}
-
+			if (but->editstr) {
+				break;
+			}
+			UI_GET_BUT_VALUE_INIT(but, value);
+			if (ui_but_is_float(but)) {
+				ui_but_build_drawstr_float(but, value);
+			}
+			else {
+				ui_but_build_drawstr_int(but, (int)value);
 			}
 			break;
 

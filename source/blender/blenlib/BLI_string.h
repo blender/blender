@@ -111,6 +111,10 @@ int BLI_string_find_split_words(
     BLI_snprintf(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
 #define SNPRINTF_RLEN(dst, format, ...) \
     BLI_snprintf_rlen(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define STR_CONCAT(dst, len, suffix) \
+    len += BLI_strncpy_rlen(dst + len, suffix, ARRAY_SIZE(dst) - len)
+#define STR_CONCATF(dst, len, format, ...) \
+    len += BLI_snprintf_rlen(dst + len, ARRAY_SIZE(dst) - len, format, __VA_ARGS__)
 /** \} */
 
 #ifdef __cplusplus
