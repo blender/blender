@@ -1300,7 +1300,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	}
 	else if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = sa->spacedata.first;
-		ED_space_image_set(bmain, sima, scene, obedit, ima);
+		ED_space_image_set(bmain, sima, obedit, ima);
 		iuser = &sima->iuser;
 	}
 	else {
@@ -2405,7 +2405,6 @@ static void image_new_free(wmOperator *op)
 static int image_new_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima;
-	Scene *scene;
 	Object *obedit;
 	Image *ima;
 	Main *bmain;
@@ -2418,7 +2417,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
-	scene = CTX_data_scene(C);
 	obedit = CTX_data_edit_object(C);
 	bmain = CTX_data_main(C);
 
@@ -2463,7 +2461,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
 	}
 	else if (sima) {
-		ED_space_image_set(bmain, sima, scene, obedit, ima);
+		ED_space_image_set(bmain, sima, obedit, ima);
 	}
 
 	BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
@@ -3802,7 +3800,7 @@ static int image_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ima = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
 	if (sima->image == NULL) {
-		ED_space_image_set(bmain, sima, scene, NULL, ima);
+		ED_space_image_set(bmain, sima, NULL, ima);
 	}
 
 	RE_ReadRenderResult(scene, scene);
