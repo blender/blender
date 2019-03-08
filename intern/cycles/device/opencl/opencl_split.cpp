@@ -91,8 +91,8 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	}
 	else if (opencl_program_name == "bake") {
 		/* Note: get_build_options for bake is only requested when baking is enabled.
-		   displace and background are always requested.
-		   `__SPLIT_KERNEL__` must not be present in the compile directives for bake */
+		 * displace and background are always requested.
+		 * `__SPLIT_KERNEL__` must not be present in the compile directives for bake */
 		DeviceRequestedFeatures features(requested_features);
 		features.use_denoising = false;
 		features.use_object_motion = false;
@@ -101,7 +101,7 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	}
 	else if (opencl_program_name == "displace") {
 		/* As displacement does not use any nodes from the Shading group (eg BSDF).
-		   We disable all features that are related to shading. */
+		 * We disable all features that are related to shading. */
 		DeviceRequestedFeatures features(requested_features);
 		features.use_denoising = false;
 		features.use_object_motion = false;
@@ -118,15 +118,15 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	}
 	else if (opencl_program_name == "background") {
 		/* Background uses Background shading
-		   It is save to disable shadow features, subsurface and volumetric. */
+		 * It is save to disable shadow features, subsurface and volumetric. */
 		DeviceRequestedFeatures features(requested_features);
 		features.use_baking = false;
 		features.use_transparent = false;
 		features.use_shadow_tricks = false;
 		features.use_denoising = false;
 		/* NOTE: currently possible to use surface nodes like `Hair Info`, `Bump` node.
-		   Perhaps we should remove them in UI as it does not make any sense when
-		   rendering background. */
+		 * Perhaps we should remove them in UI as it does not make any sense when
+		 * rendering background. */
 		features.nodes_features &= ~NODE_FEATURE_VOLUME;
 		features.use_subsurface = false;
 		features.use_volume = false;
@@ -149,19 +149,19 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	}
 	else if (opencl_program_name == "split_subsurface_scatter" && !requested_features.use_subsurface) {
 		/* When subsurface is off, the kernel updates indexes and does not need any
-		   Compile directives */
+		 * Compile directives */
 		build_options += nofeatures.get_build_options();
 	}
 	else {
 		DeviceRequestedFeatures features(requested_features);
 
 		/* Always turn off baking at this point. Baking is only usefull when building the bake kernel.
-		   this also makes sure that the kernels that are build during baking can be reused
-		   when not doing any baking. */
+		 * this also makes sure that the kernels that are build during baking can be reused
+		 * when not doing any baking. */
 		features.use_baking = false;
 
 		/* Do not vary on shaders when program doesn't do any shading.
-		   We have bundled them in a single program. */
+		 * We have bundled them in a single program. */
 		if (opencl_program_name == "split_bundle") {
 			features.max_nodes_group = 0;
 			features.nodes_features = 0;
@@ -720,7 +720,7 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 		ADD_SPLIT_KERNEL_SPLIT_PROGRAM(shader_eval);
 
 		/* Quick kernels bundled in a single program to reduce overhead of starting
-			* Blender processes. */
+		 * Blender processes. */
 		program_split = OpenCLDevice::OpenCLProgram(this,
 		                                            "split_bundle" ,
 		                                            "kernel_split_bundle.cl",
@@ -1230,13 +1230,13 @@ void OpenCLDevice::thread_run(DeviceTask *task)
 
 				/* Complete kernel execution before release tile. */
 				/* This helps in multi-device render;
-					* The device that reaches the critical-section function
-					* release_tile waits (stalling other devices from entering
-					* release_tile) for all kernels to complete. If device1 (a
-					* slow-render device) reaches release_tile first then it would
-					* stall device2 (a fast-render device) from proceeding to render
-					* next tile.
-					*/
+				 * The device that reaches the critical-section function
+				 * release_tile waits (stalling other devices from entering
+				 * release_tile) for all kernels to complete. If device1 (a
+				 * slow-render device) reaches release_tile first then it would
+				 * stall device2 (a fast-render device) from proceeding to render
+				 * next tile.
+				 */
 				clFinish(cqCommandQueue);
 			}
 			else if(tile.task == RenderTile::DENOISE) {
