@@ -622,8 +622,12 @@ void graph_id_tag_update(Main *bmain,
 	/* Special case for nested node tree datablocks. */
 	id_tag_update_ntree_special(bmain, graph, id, flag, update_source);
 	/* Direct update tags means that something outside of simulated/cached
-	 * physics did change and that cache is to be invalidated. */
-	if (update_source == DEG_UPDATE_SOURCE_USER_EDIT) {
+	 * physics did change and that cache is to be invalidated.
+	 * This is only needed if data changes. If it's just a drawing, we keep the
+	 * point cache. */
+	if (update_source == DEG_UPDATE_SOURCE_USER_EDIT &&
+	    flag != ID_RECALC_SHADING)
+	{
 		graph_id_tag_update_single_flag(
 		        bmain, graph, id, id_node, ID_RECALC_POINT_CACHE, update_source);
 	}
