@@ -1090,7 +1090,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 
 			/* Init grease pencil pixel size factor */
-			if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "int", "pixfactor")) {
+			if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "pixfactor")) {
 				for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
 					gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 				}
