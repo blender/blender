@@ -1728,20 +1728,22 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'PAINT_WEIGHT': [
-            # TODO, check for mixed pose mode
-            _defs_view3d_generic.cursor,
             _defs_weight_paint.generate_from_brushes,
+            _defs_weight_paint.gradient,
             None,
+            (
             _defs_weight_paint.sample_weight,
             _defs_weight_paint.sample_weight_group,
+            ),
+            None,
+            # TODO, check for mixed pose mode
+            _defs_view3d_generic.cursor,
             None,
             lambda context: (
                 VIEW3D_PT_tools_active._tools_select
                 if _defs_weight_paint.poll_select_mask(context)
                 else ()
             ),
-            None,
-            _defs_weight_paint.gradient,
         ],
         'PAINT_GPENCIL': [
             _defs_view3d_generic.cursor,
