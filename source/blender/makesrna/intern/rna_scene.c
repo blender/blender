@@ -5568,7 +5568,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_simplify_smoke_highres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "simplify_smoke_ignore_highres", 1);
-	RNA_def_property_ui_text(prop, "Use Smoke Highres", "Allow drawing high-res smoke in viewport");
+	RNA_def_property_ui_text(prop, "Use High-resolution Smoke", "Display high-resolution smoke in the viewport");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	/* Grease Pencil - Simplify Options */

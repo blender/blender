@@ -632,7 +632,7 @@ class RENDER_PT_simplify_viewport(RenderButtonsPanel, Panel):
         col.prop(rd, "simplify_child_particles", text="Max Child Particles")
 
         col = flow.column()
-        col.prop(rd, "use_simplify_smoke_highres")
+        col.prop(rd, "use_simplify_smoke_highres", text="High-resolution Smoke")
 
 
 class RENDER_PT_simplify_render(RenderButtonsPanel, Panel):
