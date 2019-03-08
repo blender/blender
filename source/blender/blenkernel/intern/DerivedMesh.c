@@ -1178,6 +1178,10 @@ static void mesh_calc_modifiers(
 	const bool do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
 	const bool do_loop_normals = ((((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) != 0 ||
 	                              (dataMask->lmask & CD_MASK_NORMAL) != 0);
+	/* Some modifiers may need this info from their target (other) object, simpler to generate it here as well.
+	 * Note that they will always be generated when no loop normals are comptuted,
+	 * since they are needed by drawing code. */
+	const bool do_poly_normals = ((dataMask->pmask & CD_MASK_NORMAL) != 0);
 
 	VirtualModifierData virtualModifierData;
 
@@ -1580,6 +1584,12 @@ static void mesh_calc_modifiers(
 	}
 
 	if (do_loop_normals) {
+		/* In case we also need poly normals, add the layer here, then BKE_mesh_calc_normals_split() will fill it. */
+		if (do_poly_normals) {
+			if (!CustomData_has_layer(&(*r_final)->pdata, CD_NORMAL)) {
+				CustomData_add_layer(&(*r_final)->pdata, CD_NORMAL, CD_CALLOC, NULL, (*r_final)->totpoly);
+			}
+		}
 		/* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
 		BKE_mesh_calc_normals_split(*r_final);
 		BKE_mesh_tessface_clear(*r_final);
@@ -1708,6 +1718,8 @@ static void editbmesh_calc_modifiers(
 
 	const bool do_loop_normals = ((((Mesh *)(ob->data))->flag & ME_AUTOSMOOTH) != 0 ||
 	                              (dataMask->lmask & CD_MASK_NORMAL) != 0);
+	/* Some modifiers may need this info from their target (other) object, simpler to generate it here as well. */
+	const bool do_poly_normals = ((dataMask->pmask & CD_MASK_NORMAL) != 0);
 
 	modifiers_clearErrors(ob);
 
@@ -1920,6 +1932,17 @@ static void editbmesh_calc_modifiers(
 	}
 
 	if (do_loop_normals) {
+		/* In case we also need poly normals, add the layer here, then BKE_mesh_calc_normals_split() will fill it. */
+		if (do_poly_normals) {
+			if (!CustomData_has_layer(&(*r_final)->pdata, CD_NORMAL)) {
+				CustomData_add_layer(&(*r_final)->pdata, CD_NORMAL, CD_CALLOC, NULL, (*r_final)->totpoly);
+			}
+			if (r_cage && *r_cage && (*r_cage != *r_final)) {
+				if (!CustomData_has_layer(&(*r_cage)->pdata, CD_NORMAL)) {
+					CustomData_add_layer(&(*r_cage)->pdata, CD_NORMAL, CD_CALLOC, NULL, (*r_cage)->totpoly);
+				}
+			}
+		}
 		/* Compute loop normals */
 		BKE_mesh_calc_normals_split(*r_final);
 		BKE_mesh_tessface_clear(*r_final);
