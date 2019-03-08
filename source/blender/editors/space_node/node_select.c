@@ -54,7 +54,9 @@
 
 #include "node_intern.h"  /* own include */
 
-/* ****** helpers ****** */
+/* -------------------------------------------------------------------- */
+/** \name Public Node Selection API
+ * \{ */
 
 static bNode *node_under_mouse_select(bNodeTree *ntree, int mx, int my)
 {
@@ -225,6 +227,12 @@ void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_node
 	}
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Grouped Operator
+ * \{ */
+
 /* Return true if we need redraw, otherwise false. */
 
 static bool node_select_grouped_type(SpaceNode *snode, bNode *node_act)
@@ -377,6 +385,12 @@ void NODE_OT_select_grouped(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select (Cursor Pick) Operator
+ * \{ */
+
 void node_select_single(bContext *C, bNode *node)
 {
 	Main *bmain = CTX_data_main(C);
@@ -395,8 +409,6 @@ void node_select_single(bContext *C, bNode *node)
 
 	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 }
-
-/* ****** Click Select ****** */
 
 static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const int mval[2], short extend)
 {
@@ -534,7 +546,11 @@ void NODE_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
-/* ****** Box Select ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
 
 static int node_box_select_exec(bContext *C, wmOperator *op)
 {
@@ -608,7 +624,11 @@ void NODE_OT_select_box(wmOperatorType *ot)
 	WM_operator_properties_select_operation_simple(ot);
 }
 
-/* ****** Circle Select ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Select Operator
+ * \{ */
 
 static int node_circleselect_exec(bContext *C, wmOperator *op)
 {
@@ -668,7 +688,11 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 	WM_operator_properties_select_operation_simple(ot);
 }
 
-/* ****** Lasso Select ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lasso Select Operator
+ * \{ */
 
 static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -769,7 +793,11 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 	WM_operator_properties_select_operation_simple(ot);
 }
 
-/* ****** Select/Deselect All ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name (De)select All Operator
+ * \{ */
 
 static int node_select_all_exec(bContext *C, wmOperator *op)
 {
@@ -802,7 +830,11 @@ void NODE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* ****** Select Linked To ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked To Operator
+ * \{ */
 
 static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -846,7 +878,11 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ****** Select Linked From ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked From Operator
+ * \{ */
 
 static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -889,6 +925,12 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Same Type Step Operator
+ * \{ */
 
 static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 {
@@ -979,7 +1021,11 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
 
 }
 
-/* *************** find a node **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Find Node by Name Operator
+ * \{ */
 
 /* generic  search invoke */
 static void node_find_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
@@ -1078,3 +1124,5 @@ void NODE_OT_find_node(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "prev", 0, "Previous", "");
 
 }
+
+/** \} */
