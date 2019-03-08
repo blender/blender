@@ -3641,6 +3641,19 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
 		{
 			keeplayer = false; /* multiple layers of which we only support one */
 		}
+		/* This is a pre-emptive fix for cases that should not happen (layers that should not be written
+		 * in .blend files), but can happen due to bugs (see e.g. T62318).
+		 * Also for forward compatibility, in future, we may put into .blend file some currently un-written data types,
+		 * this should cover that case as well.
+		 * Better to be safe here, and fix issue on the fly rather than crash... */
+		/* 0 structnum is used in writing code to tag layer types that should not be written. */
+		else if (typeInfo->structnum == 0 &&
+		         /* XXX Not sure why those two are exception, maybe that should be fixed? */
+		         !ELEM(layer->type, CD_PAINT_MASK, CD_FACEMAP))
+		{
+			keeplayer = false;
+			CLOG_WARN(&LOG, ".blend file read: removing a data layer that should not have been written");
+		}
 	}
 
 	if (!keeplayer) {
