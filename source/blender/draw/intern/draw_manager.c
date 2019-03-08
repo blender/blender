@@ -1439,7 +1439,10 @@ void DRW_draw_render_loop_ex(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
-	bool do_annotations = (((v3d->flag2 & V3D_SHOW_ANNOTATION) != 0) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0));
+	const bool do_annotations = (
+	        ((v3d->flag2 & V3D_SHOW_ANNOTATION) != 0) &&
+	        ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0));
+	const bool do_camera_frame = !DST.options.is_image_render;
 
 	DST.draw_ctx.evil_C = evil_C;
 	DST.viewport = viewport;
@@ -1535,7 +1538,7 @@ void DRW_draw_render_loop_ex(
 	GPU_framebuffer_bind(DST.default_framebuffer);
 
 	if (do_bg_image) {
-		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
+		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, do_camera_frame);
 	}
 
 	DRW_draw_callbacks_pre_scene();
@@ -1610,7 +1613,7 @@ void DRW_draw_render_loop_ex(
 	DRW_stats_reset();
 
 	if (do_bg_image) {
-		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, true);
+		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, do_camera_frame);
 	}
 
 	if (G.debug_value > 20 && G.debug_value < 30) {
