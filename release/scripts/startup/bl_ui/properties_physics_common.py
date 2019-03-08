@@ -189,12 +189,12 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
             flow.enabled = enabled and is_saved
 
-            col = flow.column()
+            col = flow.column(align=True)
             col.prop(cache, "use_disk_cache")
 
             subcol = col.column()
             subcol.active = cache.use_disk_cache
-            subcol.prop(cache, "use_library_path", text="Use Lib Path")
+            subcol.prop(cache, "use_library_path", text="Use Library Path")
 
             col = flow.column()
             col.active = cache.use_disk_cache
