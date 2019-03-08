@@ -448,7 +448,6 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	TreeElement *te = outliner_active_collection(C);
-	const bool hierarchy = strstr(op->idname, "hierarchy") != NULL;
 	const bool linked = strstr(op->idname, "linked") != NULL;
 
 	/* Can happen when calling from a key binding. */
@@ -469,7 +468,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 		case SO_SCENES:
 		case SO_VIEW_LAYER:
 		case SO_LIBRARIES:
-			BKE_collection_duplicate(bmain, parent, collection, true, !hierarchy, !linked);
+			BKE_collection_duplicate(bmain, parent, collection, true, true, !linked);
 			break;
 	}
 
@@ -477,21 +476,6 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
-}
-
-void OUTLINER_OT_collection_duplicate_hierarchy(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Duplicate Collection Hierarchy";
-	ot->idname = "OUTLINER_OT_collection_duplicate_hierarchy";
-	ot->description = "Recursively duplicate the collection and all its children, with linked objects";
-
-	/* api callbacks */
-	ot->exec = collection_duplicate_exec;
-	ot->poll = ED_outliner_collections_editor_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 void OUTLINER_OT_collection_duplicate_linked(wmOperatorType *ot)
