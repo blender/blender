@@ -1449,10 +1449,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 						wm_event_do_handlers(C);
 						wm_event_do_notifiers(C);
 						wm_draw_update(C);
-
-						/* Warning! code above nulls 'C->wm.window', causing BGE to quit, see: T45699.
-						 * Further, its easier to match behavior across platforms, so restore the window. */
-						CTX_wm_window_set(C, win);
 #endif
 					}
 				}
@@ -1473,14 +1469,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			case GHOST_kEventOpenMainFile:
 			{
 				PointerRNA props_ptr;
-				wmWindow *oldWindow;
 				const char *path = GHOST_GetEventData(evt);
 
 				if (path) {
 					wmOperatorType *ot = WM_operatortype_find("WM_OT_open_mainfile", false);
 					/* operator needs a valid window in context, ensures
 					 * it is correctly set */
-					oldWindow = CTX_wm_window(C);
 					CTX_wm_window_set(C, win);
 
 					WM_operator_properties_create_ptr(&props_ptr, ot);
@@ -1488,7 +1482,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr);
 					WM_operator_properties_free(&props_ptr);
 
-					CTX_wm_window_set(C, oldWindow);
+					CTX_wm_window_set(C, NULL);
 				}
 				break;
 			}
@@ -1557,10 +1551,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
 					// close all popups since they are positioned with the pixel
 					// size baked in and it's difficult to correct them
-					wmWindow *oldWindow = CTX_wm_window(C);
 					CTX_wm_window_set(C, win);
 					UI_popup_handlers_remove_all(C, &win->modalhandlers);
-					CTX_wm_window_set(C, oldWindow);
+					CTX_wm_window_set(C, NULL);
 
 					wm_window_make_drawable(wm, win);
 
