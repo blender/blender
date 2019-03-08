@@ -221,20 +221,31 @@ WorkSpace *ED_workspace_duplicate(
 bool ED_workspace_delete(
         WorkSpace *workspace, Main *bmain, bContext *C, wmWindowManager *wm)
 {
-	ID *workspace_id = (ID *)workspace;
-
 	if (BLI_listbase_is_single(&bmain->workspaces)) {
 		return false;
 	}
 
-	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		WorkSpace *prev = workspace_id->prev;
-		WorkSpace *next = workspace_id->next;
-
-		ED_workspace_change((prev != NULL) ? prev : next, C, wm, win);
+	ListBase ordered;
+	BKE_id_ordered_list(&ordered, &bmain->workspaces);
+	WorkSpace *prev = NULL, *next = NULL;
+	for (LinkData *link = ordered.first; link; link = link->next) {
+		if (link->data == workspace) {
+			prev = link->prev ? link->prev->data : NULL;
+			next = link->next ? link->next->data : NULL;
+			break;
+		}
 	}
-	BKE_id_free(bmain, workspace_id);
+	BLI_freelistN(&ordered);
+	BLI_assert((prev != NULL) || (next != NULL));
 
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		WorkSpace *workspace_active = WM_window_get_active_workspace(win);
+		if (workspace_active == workspace) {
+			ED_workspace_change((prev != NULL) ? prev : next, C, wm, win);
+		}
+	}
+
+	BKE_id_free(bmain, &workspace->id);
 	return true;
 }
 
