@@ -85,7 +85,7 @@ class GPMaterialButtonsPanel:
         return ma and ma.grease_pencil
 
 
-class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, Panel):
+class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, GPMaterialButtonsPanel, Panel):
     bl_label = "Grease Pencil Material Slots"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

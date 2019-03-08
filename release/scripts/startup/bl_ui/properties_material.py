@@ -87,8 +87,13 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
+        ob = context.object
         mat = context.material
-        return (context.object or mat) and (context.engine in cls.COMPAT_ENGINES) and not mat.grease_pencil
+
+        if (ob and ob.type == 'GPENCIL') or (mat and mat.grease_pencil):
+            return False
+
+        return (ob or mat) and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

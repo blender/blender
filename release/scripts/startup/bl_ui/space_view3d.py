@@ -5766,6 +5766,11 @@ class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
     bl_label = "Materials"
     bl_ui_units_x = 14
 
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and ob.type == 'GPENCIL'
+
 
 classes = (
     VIEW3D_HT_header,

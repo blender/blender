@@ -856,21 +856,16 @@ class GreasePencilToolsPanel:
 
 class GreasePencilMaterialsPanel:
     # Mix-in, use for properties editor and top-bar.
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        ma = context.material
-        return (ob and ob.type == 'GPENCIL') or (ma and ma.grease_pencil)
-
     @staticmethod
     def draw(self, context):
         layout = self.layout
         show_full_ui = (self.bl_space_type == 'PROPERTIES')
 
         ob = context.object
-        gpd = context.gpencil
-        space = context.space_data
+        if hasattr(context, "gpencil"):
+            gpd = context.gpencil
+        else:
+            gpd = context.gpencil_data
 
         row = layout.row()
 
@@ -916,6 +911,7 @@ class GreasePencilMaterialsPanel:
                     row.operator("gpencil.color_select", text="Deselect").deselect = True
 
         else:
+            space = context.space_data
             row.template_ID(space, "pin_id")
 
 
