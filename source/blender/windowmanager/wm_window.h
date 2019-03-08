@@ -48,7 +48,6 @@ void		wm_window_title				(wmWindowManager *wm, wmWindow *win);
 void		wm_window_ghostwindows_ensure(wmWindowManager *wm);
 void		wm_window_ghostwindows_remove_invalid(bContext *C, wmWindowManager *wm);
 void		wm_window_process_events	(const bContext *C);
-void		wm_window_process_events_nosleep(void);
 
 void		wm_window_clear_drawable(wmWindowManager *wm);
 void		wm_window_make_drawable(wmWindowManager *wm, wmWindow *win);
@@ -65,8 +64,6 @@ bool		wm_window_get_swap_interval(wmWindow *win, int *intervalOut);
 void		wm_get_cursor_position			(wmWindow *win, int *x, int *y);
 void		wm_cursor_position_from_ghost	(wmWindow *win, int *x, int *y);
 void		wm_cursor_position_to_ghost		(wmWindow *win, int *x, int *y);
-
-void		wm_window_testbreak		(void);
 
 #ifdef WITH_INPUT_IME
 void		wm_window_IME_begin	(wmWindow *win, int x, int y, int w, int h, bool complete);

@@ -325,27 +325,6 @@ void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
 	MEM_freeN(userdef);
 }
 
-/* *****************  testing for break ************* */
-
-static void (*blender_test_break_cb)(void) = NULL;
-
-void BKE_blender_callback_test_break_set(void (*func)(void))
-{
-	blender_test_break_cb = func;
-}
-
-
-int BKE_blender_test_break(void)
-{
-	if (!G.background) {
-		if (blender_test_break_cb)
-			blender_test_break_cb();
-	}
-
-	return (G.is_break == true);
-}
-
-
 /** \name Blender's AtExit
  *
  * \note Don't use MEM_mallocN so functions can be registered at any time.
