@@ -3899,8 +3899,10 @@ static int view_camera_exec(bContext *C, wmOperator *op)
 				return OPERATOR_CANCELLED;
 
 			/* important these don't get out of sync for locked scenes */
-			if (v3d->scenelock)
+			if (v3d->scenelock && scene->camera != v3d->camera) {
 				scene->camera = v3d->camera;
+				DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+			}
 
 			/* finally do snazzy view zooming */
 			rv3d->persp = RV3D_CAMOB;
