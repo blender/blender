@@ -219,6 +219,12 @@ void BM_mesh_bm_from_me(
 		CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_CALLOC, 0);
 		CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_CALLOC, 0);
 	}
+	else {
+		CustomData_bmesh_merge(&me->vdata, &bm->vdata, mask.vmask, CD_CALLOC, bm, BM_VERT);
+		CustomData_bmesh_merge(&me->edata, &bm->edata, mask.emask, CD_CALLOC, bm, BM_EDGE);
+		CustomData_bmesh_merge(&me->ldata, &bm->ldata, mask.lmask, CD_CALLOC, bm, BM_LOOP);
+		CustomData_bmesh_merge(&me->pdata, &bm->pdata, mask.pmask, CD_CALLOC, bm, BM_FACE);
+	}
 
 	/* -------------------------------------------------------------------- */
 	/* Shape Key */
