@@ -40,7 +40,7 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 	BMesh *bm;
 	int total_edges, i;
 	MEdge *me;
-	CustomData_MeshMasks cddata_masks = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX};
+	CustomData_MeshMasks cddata_masks = {.vmask = CD_MASK_ORIGINDEX, .emask = CD_MASK_ORIGINDEX, .pmask = CD_MASK_ORIGINDEX};
 
 	bool keep_clnors = (flag & MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS) != 0;
 

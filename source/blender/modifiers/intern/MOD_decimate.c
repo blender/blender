@@ -163,7 +163,7 @@ static Mesh *applyModifier(
 	        &(struct BMeshCreateParams){0},
 	        &(struct BMeshFromMeshParams){
 	            .calc_face_normal = calc_face_normal,
-	            .cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
+	            .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX, .emask = CD_MASK_ORIGINDEX, .pmask = CD_MASK_ORIGINDEX},
 	        });
 
 	switch (dmd->mode) {

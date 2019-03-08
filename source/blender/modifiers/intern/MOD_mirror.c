@@ -91,12 +91,12 @@ static Mesh *doBiscetOnMirrorPlane(
 	BMVert *v, *v_next;
 
 	bm = BKE_mesh_to_bmesh_ex(
-		mesh,
-		&(struct BMeshCreateParams){0},
-		&(struct BMeshFromMeshParams){
-			.calc_face_normal = true,
-			.cd_mask_extra = {.vmask=CD_MASK_ORIGINDEX, .emask=CD_MASK_ORIGINDEX, .pmask=CD_MASK_ORIGINDEX},
-		});
+	        mesh,
+	        &(struct BMeshCreateParams){0},
+	        &(struct BMeshFromMeshParams){
+	            .calc_face_normal = true,
+	            .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX, .emask = CD_MASK_ORIGINDEX, .pmask = CD_MASK_ORIGINDEX},
+	        });
 
 	/* Define bisecting plane (aka mirror plane). */
 	float plane[4];
