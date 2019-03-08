@@ -90,215 +90,49 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
 }
 #endif
 
-static void rna_Main_scenes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->scenes, NULL);
-}
+#define RNA_MAIN_LISTBASE_FUNCS_DEF(_listbase_name) \
+	static void rna_Main_##_listbase_name##_begin(CollectionPropertyIterator *iter, PointerRNA *ptr) \
+	{ \
+		rna_iterator_listbase_begin(iter, &((Main *)ptr->data)->_listbase_name, NULL); \
+	}
 
-static void rna_Main_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->objects, NULL);
-}
+RNA_MAIN_LISTBASE_FUNCS_DEF(actions)
+RNA_MAIN_LISTBASE_FUNCS_DEF(armatures)
+RNA_MAIN_LISTBASE_FUNCS_DEF(brushes)
+RNA_MAIN_LISTBASE_FUNCS_DEF(cachefiles)
+RNA_MAIN_LISTBASE_FUNCS_DEF(cameras)
+RNA_MAIN_LISTBASE_FUNCS_DEF(collections)
+RNA_MAIN_LISTBASE_FUNCS_DEF(curves)
+RNA_MAIN_LISTBASE_FUNCS_DEF(fonts)
+RNA_MAIN_LISTBASE_FUNCS_DEF(gpencils)
+RNA_MAIN_LISTBASE_FUNCS_DEF(images)
+RNA_MAIN_LISTBASE_FUNCS_DEF(lattices)
+RNA_MAIN_LISTBASE_FUNCS_DEF(libraries)
+RNA_MAIN_LISTBASE_FUNCS_DEF(lightprobes)
+RNA_MAIN_LISTBASE_FUNCS_DEF(lights)
+RNA_MAIN_LISTBASE_FUNCS_DEF(linestyles)
+RNA_MAIN_LISTBASE_FUNCS_DEF(masks)
+RNA_MAIN_LISTBASE_FUNCS_DEF(materials)
+RNA_MAIN_LISTBASE_FUNCS_DEF(meshes)
+RNA_MAIN_LISTBASE_FUNCS_DEF(metaballs)
+RNA_MAIN_LISTBASE_FUNCS_DEF(movieclips)
+RNA_MAIN_LISTBASE_FUNCS_DEF(nodetrees)
+RNA_MAIN_LISTBASE_FUNCS_DEF(objects)
+RNA_MAIN_LISTBASE_FUNCS_DEF(paintcurves)
+RNA_MAIN_LISTBASE_FUNCS_DEF(palettes)
+RNA_MAIN_LISTBASE_FUNCS_DEF(particles)
+RNA_MAIN_LISTBASE_FUNCS_DEF(scenes)
+RNA_MAIN_LISTBASE_FUNCS_DEF(screens)
+RNA_MAIN_LISTBASE_FUNCS_DEF(shapekeys)
+RNA_MAIN_LISTBASE_FUNCS_DEF(sounds)
+RNA_MAIN_LISTBASE_FUNCS_DEF(speakers)
+RNA_MAIN_LISTBASE_FUNCS_DEF(texts)
+RNA_MAIN_LISTBASE_FUNCS_DEF(textures)
+RNA_MAIN_LISTBASE_FUNCS_DEF(wm)
+RNA_MAIN_LISTBASE_FUNCS_DEF(workspaces)
+RNA_MAIN_LISTBASE_FUNCS_DEF(worlds)
 
-static void rna_Main_lights_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lights, NULL);
-}
-
-static void rna_Main_libraries_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->libraries, NULL);
-}
-
-static void rna_Main_meshes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->meshes, NULL);
-}
-
-static void rna_Main_curves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->curves, NULL);
-}
-
-static void rna_Main_metaballs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->metaballs, NULL);
-}
-
-static void rna_Main_materials_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->materials, NULL);
-}
-
-static void rna_Main_textures_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->textures, NULL);
-}
-
-static void rna_Main_images_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->images, NULL);
-}
-
-static void rna_Main_lattices_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lattices, NULL);
-}
-
-static void rna_Main_cameras_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->cameras, NULL);
-}
-
-static void rna_Main_shapekeys_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->shapekeys, NULL);
-}
-
-static void rna_Main_worlds_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->worlds, NULL);
-}
-
-static void rna_Main_screens_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->screens, NULL);
-}
-
-static void rna_Main_fonts_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->fonts, NULL);
-}
-
-static void rna_Main_texts_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->texts, NULL);
-}
-
-static void rna_Main_speakers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->speakers, NULL);
-}
-
-static void rna_Main_sounds_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->sounds, NULL);
-}
-
-static void rna_Main_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->collections, NULL);
-}
-
-static void rna_Main_armatures_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->armatures, NULL);
-}
-
-static void rna_Main_actions_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->actions, NULL);
-}
-
-static void rna_Main_nodetrees_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->nodetrees, NULL);
-}
-
-static void rna_Main_brushes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->brushes, NULL);
-}
-
-static void rna_Main_particles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->particles, NULL);
-}
-
-static void rna_Main_palettes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->palettes, NULL);
-}
-
-static void rna_Main_gpencils_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->gpencils, NULL);
-}
-
-static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->wm, NULL);
-}
-
-static void rna_Main_movieclips_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->movieclips, NULL);
-}
-
-static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->masks, NULL);
-}
-
-static void rna_Main_linestyles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->linestyles, NULL);
-}
-
-static void rna_Main_cachefiles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->cachefiles, NULL);
-}
-
-static void rna_Main_paintcurves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->paintcurves, NULL);
-}
-
-static void rna_Main_workspaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->workspaces, NULL);
-}
-
-static void rna_Main_lightprobes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lightprobes, NULL);
-}
+#undef RNA_MAIN_LISTBASE_FUNCS_DEF
 
 static void rna_Main_version_get(PointerRNA *ptr, int *value)
 {
