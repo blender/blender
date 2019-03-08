@@ -209,12 +209,11 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 	BevelData *opdata;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	float pixels_per_inch;
-	int i;
+	int i, otype;
 
 	if (is_modal) {
 		RNA_float_set(op->ptr, "offset", 0.0f);
 		RNA_float_set(op->ptr, "offset_pct", 0.0f);
-		RNA_enum_set(op->ptr, "offset_type", BEVEL_AMT_OFFSET);
 	}
 
 	op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
@@ -241,7 +240,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 	}
 
 	opdata->is_modal = is_modal;
-	opdata->value_mode = OFFSET_VALUE;
+	otype = RNA_enum_get(op->ptr, "offset_type");
+	opdata->value_mode = (otype == BEVEL_AMT_PERCENT) ? OFFSET_VALUE_PERCENT : OFFSET_VALUE;
 	opdata->segments = (float) RNA_int_get(op->ptr, "segments");
 	pixels_per_inch = U.dpi * U.pixelsize;
 
