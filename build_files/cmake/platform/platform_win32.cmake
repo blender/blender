@@ -427,6 +427,7 @@ endif()
 
 if(WITH_LLVM)
 	set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+	set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH	"Path to the LLVM include directory")
 	file(GLOB LLVM_LIBRARY_OPTIMIZED ${LLVM_ROOT_DIR}/lib/*.lib)
 
 	if(EXISTS ${LLVM_ROOT_DIR}/debug/lib)
