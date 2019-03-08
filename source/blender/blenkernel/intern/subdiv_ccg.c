@@ -1072,7 +1072,7 @@ static void subdiv_ccg_average_grids_boundary(
 		/* Nothing to average with. */
 		return;
 	}
-	/* Incrementall average result to elements of a first adjacent face.
+	/* Incremental average result to elements of a first adjacent face.
 	 *
 	 * Arguably, this is less precise than accumulating and then diving once,
 	 * but on another hand this is more stable when coordinates are big. */
@@ -1137,7 +1137,7 @@ static void subdiv_ccg_average_grids_corners(
 		/* Nothing to average with. */
 		return;
 	}
-	/* Incrementall average result to elements of a first adjacent face.
+	/* Incremental average result to elements of a first adjacent face.
 	 * See comment to the boundary averaging. */
 	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
 		CCGElem *grid_element_0 =
