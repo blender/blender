@@ -164,6 +164,7 @@ static int report_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
 		for (Report *report = reports->list.last; report; report = report->prev) {
 			if ((report->type & report_mask) && (report->flag & SELECT)) {
 				action = SEL_DESELECT;
