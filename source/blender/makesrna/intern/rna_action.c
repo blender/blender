@@ -47,8 +47,11 @@
 
 #include "BKE_fcurve.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_keyframing.h"
 
+#include "WM_api.h"
 
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 {
@@ -94,6 +97,9 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
 
 	MEM_freeN(agrp);
 	RNA_POINTER_INVALIDATE(agrp_ptr);
+
+	DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
+	WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
 static FCurve *rna_Action_fcurve_new(bAction *act, Main *bmain, ReportList *reports, const char *data_path,
@@ -150,6 +156,9 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 		free_fcurve(fcu);
 		RNA_POINTER_INVALIDATE(fcu_ptr);
 	}
+
+	DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
+	WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
