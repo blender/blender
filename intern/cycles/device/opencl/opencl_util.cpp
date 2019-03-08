@@ -691,11 +691,6 @@ bool OpenCLInfo::use_debug()
 	return DebugFlags().opencl.debug;
 }
 
-bool OpenCLInfo::use_single_program()
-{
-	return DebugFlags().opencl.single_program;
-}
-
 bool OpenCLInfo::kernel_use_advanced_shading(const string& platform)
 {
 	/* keep this in sync with kernel_types.h! */
