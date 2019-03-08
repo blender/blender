@@ -301,6 +301,7 @@ static int workspace_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	WorkSpace *workspace = workspace_context_get(C);
 	WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, workspace);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	return OPERATOR_FINISHED;
 }
