@@ -45,6 +45,10 @@
 
 #include "mask_intern.h"  /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Public Mask Selection API
+ * \{ */
+
 /* 'check' select */
 bool ED_mask_spline_select_check(MaskSpline *spline)
 {
@@ -201,7 +205,11 @@ void ED_mask_select_flush_all(Mask *mask)
 	}
 }
 
-/******************** toggle selection *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name (De)select All Operator
+ * \{ */
 
 static int select_all_exec(bContext *C, wmOperator *op)
 {
@@ -234,7 +242,11 @@ void MASK_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/******************** select *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select (Cursor Pick) Operator
+ * \{ */
 
 static int select_exec(bContext *C, wmOperator *op)
 {
@@ -386,9 +398,11 @@ void MASK_OT_select(wmOperatorType *ot)
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
+/** \} */
 
-
-/********************** box select operator *********************/
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
 
 static int box_select_exec(bContext *C, wmOperator *op)
 {
@@ -473,6 +487,12 @@ void MASK_OT_select_box(wmOperatorType *ot)
 	WM_operator_properties_gesture_box(ot);
 	WM_operator_properties_select_operation_simple(ot);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lasso Select Operator
+ * \{ */
 
 static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, const eSelectOp sel_op)
 {
@@ -582,7 +602,11 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 	WM_operator_properties_select_operation_simple(ot);
 }
 
-/********************** circle select operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Select Operator
+ * \{ */
 
 static int mask_spline_point_inside_ellipse(BezTriple *bezt, const float offset[2], const float ellipse[2])
 {
@@ -688,6 +712,12 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	WM_operator_properties_select_operation_simple(ot);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked (Cursor Pick) Operator
+ * \{ */
+
 static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -742,6 +772,12 @@ void MASK_OT_select_linked_pick(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked Operator
+ * \{ */
+
 static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
@@ -791,7 +827,11 @@ void MASK_OT_select_linked(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/**************** Select more/less **************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select More/Less Operators
+ * \{ */
 
 static int mask_select_more_less(bContext *C, bool more)
 {
@@ -907,3 +947,6 @@ void MASK_OT_select_less(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+
+/** \} */
