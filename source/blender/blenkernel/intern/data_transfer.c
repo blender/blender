@@ -278,6 +278,7 @@ static void data_transfer_dtdata_type_preprocess(
 		/* This should be ensured by cddata_masks we pass to code generating/giving us me_src now. */
 		BLI_assert(CustomData_get_layer(&me_src->ldata, CD_NORMAL) != NULL);
 		BLI_assert(CustomData_get_layer(&me_src->pdata, CD_NORMAL) != NULL);
+		(void)me_src;
 
 		float (*poly_nors_dst)[3];
 		float (*loop_nors_dst)[3];
