@@ -303,6 +303,22 @@ void BKE_mesh_remap_find_best_match_from_mesh(
 /** \name Mesh to mesh mapping
  * \{ */
 
+void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
+        const int UNUSED(vert_mode), const int UNUSED(edge_mode), const int loop_mode, const int UNUSED(poly_mode),
+        CustomData_MeshMasks *cddata_mask)
+{
+	/* vert, edge and poly mapping modes never need extra cddata from source object. */
+	const bool need_lnors_src = (loop_mode & MREMAP_USE_LOOP) && (loop_mode & MREMAP_USE_NORMAL);
+	const bool need_pnors_src = need_lnors_src || ((loop_mode & MREMAP_USE_POLY) && (loop_mode & MREMAP_USE_NORMAL));
+
+	if (need_lnors_src) {
+		cddata_mask->lmask |= CD_MASK_NORMAL;
+	}
+	if (need_pnors_src) {
+		cddata_mask->pmask |= CD_MASK_NORMAL;
+	}
+}
+
 void BKE_mesh_remap_init(MeshPairRemap *map, const int items_num)
 {
 	MemArena *mem = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
