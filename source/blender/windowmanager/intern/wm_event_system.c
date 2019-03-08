@@ -1933,6 +1933,8 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 /* operator exists */
 static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event, bool *dbl_click_disabled)
 {
+	wmOperator *op_init = op;
+
 	/* support for modal keymap in macros */
 	if (op->opm)
 		op = op->opm;
@@ -1954,6 +1956,18 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 				}
 			}
 		}
+
+		/* If double click isn't handled, re-run this function with with press. */
+		if ((event->type != EVT_MODAL_MAP) &&
+		    (event->val == KM_DBL_CLICK))
+		{
+			event->val = KM_PRESS;
+			wm_event_modalkeymap(C, op_init, event, NULL);
+			if (event->type != EVT_MODAL_MAP) {
+				event->val = KM_DBL_CLICK;
+			}
+		}
+
 	}
 	else {
 		/* modal keymap checking returns handled events fine, but all hardcoded modal
