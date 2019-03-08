@@ -321,7 +321,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Array = {
 	/* structName */        "ArrayGpencilModifierData",
 	/* structSize */        sizeof(ArrayGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             0,
+	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 

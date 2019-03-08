@@ -329,7 +329,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
 	/* structName */        "HookGpencilModifierData",
 	/* structSize */        sizeof(HookGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             0,
+	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 
