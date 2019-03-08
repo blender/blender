@@ -142,7 +142,7 @@ typedef struct WorkSpace {
 
 	/**
 	 * BAD DESIGN WARNING:
-	 * This is a workaround for the topbar not knowing which tools spac */
+	 * This is a workaround for the topbar not knowing which tools spec. */
 	char tools_space_type;
 	/** Type is different for each space-type. */
 	char tools_mode;

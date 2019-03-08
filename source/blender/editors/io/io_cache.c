@@ -100,8 +100,8 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
 		/* hook into UI */
 		PropertyPointerRNA *pprop = op->customdata;
 		if (pprop->prop) {
-			/* when creating new ID blocks, use is already 1, but RNA
-			 * pointer se also increases user, so this compensates it */
+			/* When creating new ID blocks, use is already 1, but RNA
+			 * pointer see also increases user, so this compensates it. */
 			id_us_min(&cache_file->id);
 
 			PointerRNA idptr;

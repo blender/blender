@@ -1611,15 +1611,15 @@ static void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert
 		return;
 	}
 
-	/* Project the direction to the vertex normal and create an aditional
+	/* Project the direction to the vertex normal and create an additional
 	 * parallel vector. */
 	float dir_a[3], dir_b[3];
 	cross_v3_v3v3(dir_a, direction, v->no);
 	cross_v3_v3v3(dir_b, dir_a, v->no);
 
 	/* The four vectors which will be used for smoothing.
-	 * Ocasionally less than 4 verts match the requirements in that case
-	 * use v as fallback. */
+	 * Occasionally less than 4 verts match the requirements in that case
+	 * use 'v' as fallback. */
 	BMVert *pos_a = v;
 	BMVert *neg_a = v;
 	BMVert *pos_b = v;

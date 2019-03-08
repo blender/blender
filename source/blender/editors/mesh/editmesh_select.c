@@ -3605,7 +3605,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
  * \{ */
 
 /**
- * Check if we're connected to another selected efge.
+ * Check if we're connected to another selected edge.
  */
 static bool bm_edge_is_select_isolated(BMEdge *e)
 {

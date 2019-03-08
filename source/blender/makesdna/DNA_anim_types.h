@@ -751,7 +751,7 @@ typedef enum eNlaStrip_Flag {
 //  NLASTRIP_FLAG_SELECT_R      = (1<<3),   // right handle selected
 
 	/* NLA strip uses the same action that the action being tweaked uses
-	 * (not set for the twaking one though) */
+	 * (not set for the tweaking one though). */
 	NLASTRIP_FLAG_TWEAKUSER     = (1<<4),
 
 	/* controls driven by local F-Curves */

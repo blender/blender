@@ -707,7 +707,7 @@ enum {
 	T_POINTS =        1 << 6,
 	/**
 	 * Apply matrix #TransDataContainer.matrix, this avoids having to have duplicate check all over
-	 * that happen to apply to spesiifc modes (edit & pose for eg). */
+	 * that happen to apply to specific modes (edit & pose for eg). */
 	T_LOCAL_MATRIX =  1 << 7,
 
     /** restrictions flags */

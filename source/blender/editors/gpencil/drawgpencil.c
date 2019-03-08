@@ -1730,7 +1730,7 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 	}
 
 	if ((wm == NULL) || ED_screen_animation_playing(wm)) {
-		/* don't show onionskins during animation playback/scrub (i.e. it obscures the poses)
+		/* don't show onion-skins during animation playback/scrub (i.e. it obscures the poses)
 		 * OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes)
 		 */
 		dflag |= GP_DRAWDATA_NO_ONIONS;

@@ -4163,8 +4163,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		 */
 		ED_refresh_viewport_fps(C);
 
-		/* recalculate the timestep for the timer now that we've finished calculating this,
-		 * since the frames-per-second value may have been changed
+		/* Recalculate the time-step for the timer now that we've finished calculating this,
+		 * since the frames-per-second value may have been changed.
 		 */
 		/* TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this? */
 		wt->timestep = (1.0 / FPS);

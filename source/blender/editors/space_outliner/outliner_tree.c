@@ -204,8 +204,8 @@ void outliner_cleanup_tree(SpaceOutliner *soops)
 /**
  * Free \a element and its sub-tree and remove its link in \a parent_subtree.
  *
- * \note Does not remove the TreeStoreElem of \a element!
- * \param parent_subtree: Subtree of the parent element, so the list containing \a element.
+ * \note Does not remove the #TreeStoreElem of \a element!
+ * \param parent_subtree: Sub-tree of the parent element, so the list containing \a element.
  */
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
 {
@@ -1619,7 +1619,7 @@ static TreeElement *outliner_find_first_desired_element_at_y_recursive(
  * Find the first element that passes a test starting from a reference vertical coordinate
  *
  * If the element that is in the position is not what we are looking for, keep looking for its
- * children, siblings, and eventually, aunts, cousins, disntant families, ...
+ * children, siblings, and eventually, aunts, cousins, distant families, ... etc.
  *
  * Basically we keep going up and down the outliner tree from that point forward, until we find
  * what we are looking for. If we are past the visible range and we can't find a valid element

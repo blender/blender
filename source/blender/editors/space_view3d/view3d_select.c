@@ -1171,8 +1171,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
-		/* this is a bit dodjy, there should only be ONE object with this name,
-		 * but library objects can mess this up */
+		/* This is a bit dodgy, there should only be ONE object with this name,
+		 * but library objects can mess this up. */
 		if (STREQ(name, base->object->id.name + 2)) {
 			ED_object_base_activate(C, base);
 			ED_object_base_select(base, BA_SELECT);

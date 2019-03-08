@@ -1350,9 +1350,10 @@ static void gp_free_stroke(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps)
 	gp_update_cache(gpd);
 }
 
-/* analyze points to be removed when soft eraser is used
- * to avoid that segments gets the end points rounded. This
- * round cpas breaks the artistic effect.
+/**
+ * Analyze points to be removed when soft eraser is used
+ * to avoid that segments gets the end points rounded.
+ * The round caps breaks the artistic effect.
  */
 static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
 {
@@ -2020,7 +2021,7 @@ static tGPsdata *gp_session_initpaint(bContext *C, wmOperator *op)
 	/* Create new context data */
 	p = MEM_callocN(sizeof(tGPsdata), "GPencil Drawing Data");
 
-	/* Try to initialise context data
+	/* Try to initialize context data
 	 * WARNING: This may not always succeed (e.g. using GP in an annotation-only context)
 	 */
 	if (gp_session_initdata(C, op, p) == 0) {

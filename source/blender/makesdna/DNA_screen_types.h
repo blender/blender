@@ -141,7 +141,7 @@ typedef struct Panel {
 
 	/** Defined as UI_MAX_NAME_STR. */
 	char panelname[64], tabname[64];
-	/** Panelname is identifier for restoring location. */
+	/** Panel name is identifier for restoring location. */
 	char drawname[64];
 	/** Offset within the region. */
 	int ofsx, ofsy;
@@ -154,7 +154,7 @@ typedef struct Panel {
 	short flag, runtime_flag;
 	short control;
 	short snap;
-	/** Panels are aligned according to increasing sortorder. */
+	/** Panels are aligned according to increasing sort-order. */
 	int sortorder;
 	/** This panel is tabbed in *paneltab. */
 	struct Panel *paneltab;
@@ -165,15 +165,16 @@ typedef struct Panel {
 } Panel;
 
 
-/* Notes on Panel Catogories:
+/**
+ * Notes on Panel Categories:
  *
- * ar->panels_category (PanelCategoryDyn) is a runtime only list of categories collected during draw.
+ * - #ARegion.panels_category (#PanelCategoryDyn) is a runtime only list of categories collected during draw.
  *
- * ar->panels_category_active (PanelCategoryStack) is basically a list of strings (category id's).
+ * - #ARegion.panels_category_active (#PanelCategoryStack) is basically a list of strings (category id's).
  *
  * Clicking on a tab moves it to the front of ar->panels_category_active,
  * If the context changes so this tab is no longer displayed,
- * then the first-most tab in ar->panels_category_active is used.
+ * then the first-most tab in #ARegion.panels_category_active is used.
  *
  * This way you can change modes and always have the tab you last clicked on.
  */
@@ -634,4 +635,5 @@ enum {
 #define RGN_DRAWING			4
 #define RGN_DRAW_REFRESH_UI	8  /* re-create uiBlock's where possible */
 #define RGN_DRAW_NO_REBUILD	16
-#endif
+
+#endif  /* __DNA_SCREEN_TYPES_H__ */
