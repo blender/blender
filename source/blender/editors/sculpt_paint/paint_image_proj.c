@@ -5367,17 +5367,8 @@ static void paint_proj_stroke_ps(
 		ps->blend = IMB_BLEND_ERASE_ALPHA;
 
 	/* handle gradient and inverted stroke color here */
-	if (ps->tool == PAINT_TOOL_DRAW) {
+	if (ELEM(ps->tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL)) {
 		paint_brush_color_get(scene, brush, false, ps->mode == BRUSH_STROKE_INVERT, distance, pressure,  ps->paint_color, NULL);
-		if (ps->use_colormanagement) {
-			srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
-		}
-		else {
-			copy_v3_v3(ps->paint_color_linear, ps->paint_color);
-		}
-	}
-	else if (ps->tool == PAINT_TOOL_FILL) {
-		copy_v3_v3(ps->paint_color, BKE_brush_color_get(scene, brush));
 		if (ps->use_colormanagement) {
 			srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
 		}

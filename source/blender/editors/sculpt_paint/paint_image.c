@@ -585,8 +585,12 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		else {
 			if (pop->mode == PAINT_MODE_2D) {
 				float color[3];
-
-				srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
+				if (paint_stroke_inverted(stroke)) {
+					srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, brush));
+				}
+				else {
+					srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
+				}
 				paint_2d_bucket_fill(C, color, brush, pop->prevmouse, pop->custom_paint);
 			}
 			else {
@@ -1196,7 +1200,7 @@ static bool brush_colors_flip_poll(bContext *C)
 {
 	if (image_paint_poll(C)) {
 		Brush *br = image_paint_brush(C);
-		if (br->imagepaint_tool == PAINT_TOOL_DRAW)
+		if (ELEM(br->imagepaint_tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL))
 			return true;
 	}
 	else {

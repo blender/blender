@@ -1365,6 +1365,11 @@ bool paint_stroke_flipped(struct PaintStroke *stroke)
 	return stroke->pen_flip;
 }
 
+bool paint_stroke_inverted(struct PaintStroke *stroke)
+{
+	return stroke->stroke_mode == BRUSH_STROKE_INVERT;
+}
+
 float paint_stroke_distance_get(struct PaintStroke *stroke)
 {
 	return stroke->stroke_distance;
