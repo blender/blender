@@ -85,6 +85,8 @@ static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_Me
 	}
 
 	BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, r_cddata_masks);
+	BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
+	            dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode, r_cddata_masks);
 }
 
 static bool dependsOnNormals(ModifierData *md)

@@ -257,7 +257,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
 
 static void data_transfer_dtdata_type_preprocess(
         Mesh *me_src, Mesh *me_dst,
-        const int dtdata_type, const bool dirty_nors_dst, const bool is_modifier)
+        const int dtdata_type, const bool dirty_nors_dst)
 {
 	if (dtdata_type == DT_TYPE_LNOR) {
 		/* Compute custom normals into regular loop normals, which will be used for the transfer. */
@@ -275,9 +275,9 @@ static void data_transfer_dtdata_type_preprocess(
 		const bool use_split_nors_dst = (me_dst->flag & ME_AUTOSMOOTH) != 0;
 		const float split_angle_dst = me_dst->smoothresh;
 
-		if (!is_modifier) {
-			BKE_mesh_calc_normals_split(me_src);
-		}
+		/* This should be ensured by cddata_masks we pass to code generating/giving us me_src now. */
+		BLI_assert(CustomData_get_layer(&me_src->ldata, CD_NORMAL) != NULL);
+		BLI_assert(CustomData_get_layer(&me_src->pdata, CD_NORMAL) != NULL);
 
 		float (*poly_nors_dst)[3];
 		float (*loop_nors_dst)[3];
@@ -1121,6 +1121,8 @@ bool BKE_object_data_transfer_ex(
 
 	/* Get source evaluated mesh.*/
 	BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
+	BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
+	            map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode, &me_src_mask);
 	if (is_modifier) {
 		me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src, false);
 
@@ -1155,7 +1157,7 @@ bool BKE_object_data_transfer_ex(
 			continue;
 		}
 
-		data_transfer_dtdata_type_preprocess(me_src, me_dst, dtdata_type, dirty_nors_dst, is_modifier);
+		data_transfer_dtdata_type_preprocess(me_src, me_dst, dtdata_type, dirty_nors_dst);
 
 		cddata_type = BKE_object_data_transfer_dttype_to_cdtype(dtdata_type);
 

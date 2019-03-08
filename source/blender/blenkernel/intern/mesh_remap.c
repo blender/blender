@@ -1251,18 +1251,13 @@ void BKE_mesh_remap_calc_loops_from_mesh(
 				}
 			}
 			if (need_pnors_src || need_lnors_src) {
-				/* Simpler for now, calcNormals never stores pnors :( */
-				if (!CustomData_has_layer(&me_src->pdata, CD_NORMAL)) {
-					CustomData_add_layer(&me_src->pdata, CD_NORMAL, CD_CALLOC, NULL, me_src->totpoly);
-					CustomData_set_layer_flag(&me_src->pdata, CD_NORMAL, CD_FLAG_TEMPORARY);
-				}
-				BKE_mesh_calc_normals_split(me_src);
-
 				if (need_pnors_src) {
 					poly_nors_src = CustomData_get_layer(&me_src->pdata, CD_NORMAL);
+					BLI_assert(poly_nors_src != NULL);
 				}
 				if (need_lnors_src) {
 					loop_nors_src = CustomData_get_layer(&me_src->ldata, CD_NORMAL);
+					BLI_assert(loop_nors_src != NULL);
 				}
 			}
 		}
