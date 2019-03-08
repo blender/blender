@@ -333,6 +333,13 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(
 		node_identifier.type = NodeType::GEOMETRY;
 		return node_identifier;
 	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_ImageUser)) {
+		if (GS(node_identifier.id->name) == ID_NT) {
+			node_identifier.type = NodeType::ANIMATION;
+		node_identifier.operation_code = OperationCode::IMAGE_ANIMATION;
+		}
+		return node_identifier;
+	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		if (RNA_property_is_idprop(prop)) {
