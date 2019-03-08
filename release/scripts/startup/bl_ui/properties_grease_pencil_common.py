@@ -862,11 +862,6 @@ class GreasePencilMaterialsPanel:
         show_full_ui = (self.bl_space_type == 'PROPERTIES')
 
         ob = context.object
-        if hasattr(context, "gpencil"):
-            gpd = context.gpencil
-        else:
-            gpd = context.gpencil_data
-
         row = layout.row()
 
         if ob:
@@ -904,7 +899,7 @@ class GreasePencilMaterialsPanel:
                     icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
                     row.prop(slot, "link", icon=icon_link, icon_only=True)
 
-                if gpd and gpd.use_stroke_edit_mode:
+                if ob.data.use_stroke_edit_mode:
                     row = layout.row(align=True)
                     row.operator("gpencil.stroke_change_color", text="Assign")
                     row.operator("gpencil.color_select", text="Select").deselect = False
