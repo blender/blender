@@ -838,23 +838,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	                                          create_placeholders);
 }
 
-static void deg_update_copy_on_write_animation(const Depsgraph *depsgraph,
-                                               const IDNode *id_node)
-{
-	DEG_debug_print_eval((::Depsgraph *)depsgraph,
-	                     __func__,
-	                     id_node->id_orig->name,
-	                     id_node->id_cow);
-	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, LIB_ID_CREATE_NO_USER_REFCOUNT);
-	RemapCallbackUserData user_data = {NULL};
-	user_data.depsgraph = depsgraph;
-	BKE_library_foreach_ID_link(NULL,
-	                            id_node->id_cow,
-	                            foreach_libblock_remap_callback,
-	                            (void *)&user_data,
-	                            IDWALK_NOP);
-}
-
 typedef struct ObjectRuntimeBackup {
 	Object_Runtime runtime;
 	short base_flag;
@@ -937,50 +920,18 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * - Free previously expanded data, if any.
 	 * - Perform full datablock copy.
 	 *
-	 * Note that we never free GPU materials from here since that's not
-	 * safe for threading and GPU materials are likely to be re-used. */
+	 * Note that we never free GPU draw data from here since that's not
+	 * safe for threading and draw data is likely to be re-used. */
 	/* TODO(sergey): Either move this to an utility function or redesign
 	 * Copy-on-Write components in a way that only needed parts are being
 	 * copied over. */
-	/* TODO(sergey): Wrap GPU material backup and object runtime backup to a
+	/* TODO(sergey): Wrap GPU draw data backup and object runtime backup to a
 	 * generic backup structure. */
-	ListBase gpumaterial_backup;
-	ListBase *gpumaterial_ptr = NULL;
 	DrawDataList drawdata_backup;
 	DrawDataList *drawdata_ptr = NULL;
 	ObjectRuntimeBackup object_runtime_backup = {{0}};
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
-			case ID_MA:
-			{
-				Material *material = (Material *)id_cow;
-				gpumaterial_ptr = &material->gpumaterial;
-				break;
-			}
-			case ID_WO:
-			{
-				World *world = (World *)id_cow;
-				gpumaterial_ptr = &world->gpumaterial;
-				break;
-			}
-			case ID_NT:
-			{
-				/* Node trees should try to preserve their socket pointers
-				 * as much as possible. This is due to UBOs code in GPU,
-				 * which references sockets from trees.
-				 *
-				 * These flags CURRENTLY don't need full datablock update,
-				 * everything is done by node tree update function which
-				 * only copies socket values. */
-				const int ignore_flag = (ID_RECALC_SHADING |
-				                         ID_RECALC_ANIMATION |
-				                         ID_RECALC_COPY_ON_WRITE);
-				if ((id_cow->recalc & ~ignore_flag) == 0) {
-					deg_update_copy_on_write_animation(depsgraph, id_node);
-					return id_cow;
-				}
-				break;
-			}
 			case ID_OB:
 			{
 				Object *ob = (Object *)id_cow;
@@ -990,10 +941,6 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 			default:
 				break;
 		}
-		if (gpumaterial_ptr != NULL) {
-			gpumaterial_backup = *gpumaterial_ptr;
-			gpumaterial_ptr->first = gpumaterial_ptr->last = NULL;
-		}
 		drawdata_ptr = DRW_drawdatalist_from_id(id_cow);
 		if (drawdata_ptr != NULL) {
 			drawdata_backup = *drawdata_ptr;
@@ -1002,10 +949,6 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	}
 	deg_free_copy_on_write_datablock(id_cow);
 	deg_expand_copy_on_write_datablock(depsgraph, id_node);
-	/* Restore GPU materials. */
-	if (gpumaterial_ptr != NULL) {
-		*gpumaterial_ptr = gpumaterial_backup;
-	}
 	/* Restore DrawData. */
 	if (drawdata_ptr != NULL) {
 		*drawdata_ptr = drawdata_backup;
