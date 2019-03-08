@@ -2587,6 +2587,13 @@ void DRW_engines_register(void)
 
 void DRW_engines_free(void)
 {
+	if (DST.gl_context == NULL) {
+		/* Nothing has been setup. Nothing to clear.
+		 * Otherwise, DRW_opengl_context_enable can
+		 * create a context in background mode. (see T62355) */
+		return;
+	}
+
 	DRW_opengl_context_enable();
 
 	DRW_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
