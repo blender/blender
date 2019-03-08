@@ -139,7 +139,6 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 			ext_rgba[a][1] = 0.0f;
 			ext_rgba[a][3] = 0.0f;
 		}
-		print_v4_id(ext_rgba[a]);
 	}
 
 	return GPU_stack_link(mat, node, "curves_rgb", in, out, tex,
