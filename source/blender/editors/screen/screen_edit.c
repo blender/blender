@@ -1527,7 +1527,8 @@ void ED_screen_restore_temp_type(bContext *C, ScrArea *sa)
 
 	if (sa->flag & AREA_FLAG_TEMP_TYPE) {
 		ED_area_prevspace(C, sa);
-		sa->flag &= ~AREA_FLAG_TEMP_TYPE;
+		/* Flag should be cleared now. */
+		BLI_assert((sa->flag & AREA_FLAG_TEMP_TYPE) == 0);
 	}
 
 	if (sa->full) {
