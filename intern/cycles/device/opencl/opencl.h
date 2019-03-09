@@ -95,7 +95,6 @@ public:
 	                              cl_device_id device_id);
 	static void get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices,
 	                               bool force_all = false);
-	static bool use_single_program();
 
 	/* ** Some handy shortcuts to low level cl*GetInfo() functions. ** */
 
@@ -371,9 +370,9 @@ public:
 	bool load_kernels(const DeviceRequestedFeatures& requested_features);
 
 	/* Get the name of the opencl program for the given kernel */
-	const string get_opencl_program_name(bool single_program, const string& kernel_name);
+	const string get_opencl_program_name(const string& kernel_name);
 	/* Get the program file name to compile (*.cl) for the given kernel */
-	const string get_opencl_program_filename(bool single_program, const string& kernel_name);
+	const string get_opencl_program_filename(const string& kernel_name);
 	string get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name);
 
 	void mem_alloc(device_memory& mem);

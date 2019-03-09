@@ -90,8 +90,7 @@ void DebugFlags::CUDA::reset()
 
 DebugFlags::OpenCL::OpenCL()
   : device_type(DebugFlags::OpenCL::DEVICE_ALL),
-    debug(false),
-    single_program(false)
+    debug(false)
 {
 	reset();
 }
@@ -123,7 +122,6 @@ void DebugFlags::OpenCL::reset()
 	}
 	/* Initialize other flags from environment variables. */
 	debug = (getenv("CYCLES_OPENCL_DEBUG") != NULL);
-	single_program = (getenv("CYCLES_OPENCL_SINGLE_PROGRAM") != NULL);
 }
 
 DebugFlags::DebugFlags()
@@ -179,7 +177,6 @@ std::ostream& operator <<(std::ostream &os,
 	os << "OpenCL flags:\n"
 	   << "  Device type    : " << opencl_device_type << "\n"
 	   << "  Debug          : " << string_from_bool(debug_flags.opencl.debug) << "\n"
-	   << "  Single program : " << string_from_bool(debug_flags.opencl.single_program) << "\n"
 	   << "  Memory limit   : " << string_human_readable_size(debug_flags.opencl.mem_limit) << "\n";
 	return os;
 }

@@ -1937,7 +1937,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 		/* no change */
 		return;
 	}
-	sa->flag &= ~AREA_FLAG_STACKED_FULLSCREEN;
+	sa->flag &= ~(AREA_FLAG_STACKED_FULLSCREEN | AREA_FLAG_TEMP_TYPE);
 
 	ED_area_tag_redraw(sa);
 

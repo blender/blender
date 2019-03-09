@@ -1932,7 +1932,6 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.label(text='OpenCL Flags:')
         col.prop(cscene, "debug_opencl_device_type", text="Device")
-        col.prop(cscene, "debug_opencl_kernel_single_program", text="Single Program")
         col.prop(cscene, "debug_use_opencl_debug", text="Debug")
         col.prop(cscene, "debug_opencl_mem_limit")
 

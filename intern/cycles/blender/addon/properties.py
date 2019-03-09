@@ -722,11 +722,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         update=_devices_update_callback
     )
 
-    debug_opencl_kernel_single_program: BoolProperty(
-        name="Single Program",
-        default=False,
-        update=_devices_update_callback,
-    )
     del _devices_update_callback
 
     debug_use_opencl_debug: BoolProperty(name="Debug OpenCL", default=False)
