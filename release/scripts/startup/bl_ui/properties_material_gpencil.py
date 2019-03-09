@@ -85,12 +85,19 @@ class GPMaterialButtonsPanel:
         return ma and ma.grease_pencil
 
 
-class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, GPMaterialButtonsPanel, Panel):
+class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, Panel):
     bl_label = "Grease Pencil Material Slots"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        ma = context.material
+
+        return (ma and ma.grease_pencil) or (ob and ob.type == 'GPENCIL')
 
 
 # Used as parent for "Stroke" and "Fill" panels
