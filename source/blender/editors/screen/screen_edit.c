@@ -1154,6 +1154,9 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		sc = sa->full;       /* the old screen to restore */
 		oldscreen = WM_window_get_active_screen(win); /* the one disappearing */
 
+		BLI_assert(BKE_workspace_layout_screen_get(layout_old) != sc);
+		BLI_assert(BKE_workspace_layout_screen_get(layout_old)->state != SCREENNORMAL);
+
 		sc->state = SCREENNORMAL;
 		sc->flag = oldscreen->flag;
 

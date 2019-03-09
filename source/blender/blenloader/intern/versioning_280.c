@@ -197,12 +197,13 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 
 			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, screen->id.name + 2, offsetof(ID, name) + 2);
 			BLI_assert(workspace != NULL);
-			ListBase *layouts = BKE_workspace_layouts_get(workspace);
+			WorkSpaceLayout *layout = BKE_workspace_layout_find(workspace, win->screen);
+			BLI_assert(layout != NULL);
 
 			win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
 
 			BKE_workspace_active_set(win->workspace_hook, workspace);
-			BKE_workspace_active_layout_set(win->workspace_hook, layouts->first);
+			BKE_workspace_active_layout_set(win->workspace_hook, layout);
 
 			/* Move scene and view layer to window. */
 			Scene *scene = screen->scene;
