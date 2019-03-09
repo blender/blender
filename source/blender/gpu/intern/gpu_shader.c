@@ -271,6 +271,14 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
 	else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
 		strcat(defines, "#define GPU_INTEL\n");
 
+	/* some useful defines to detect OS type */
+	if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_WIN, GPU_DRIVER_ANY))
+		strcat(defines, "#define OS_WIN\n");
+	else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY))
+		strcat(defines, "#define OS_MAC\n");
+	else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_ANY))
+		strcat(defines, "#define OS_UNIX\n");
+
 	return;
 }
 
