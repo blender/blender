@@ -631,6 +631,10 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 		ED_view3d_viewcontext_init_object(&vc, basact->object);
 		bArmature *arm = vc.obedit->data;
 
+		if (!EBONE_SELECTABLE(arm, nearBone)) {
+			return false;
+		}
+
 		if (!extend && !deselect && !toggle) {
 			uint objects_len = 0;
 			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, vc.v3d, &objects_len);
