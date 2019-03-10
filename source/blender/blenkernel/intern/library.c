@@ -770,9 +770,8 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 		/* if property isn't editable, we're going to have an extra block hanging around until we save */
 		if (RNA_property_editable(ptr, prop)) {
 			Main *bmain = CTX_data_main(C);
-			if (BKE_id_copy(bmain, id, &newid) && newid) {
-				/* copy animation actions too */
-				BKE_animdata_copy_id_action(bmain, id, false);
+			/* copy animation actions too */
+			if (BKE_id_copy_ex(bmain, id, &newid, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS) && newid) {
 				/* us is 1 by convention with new IDs, but RNA_property_pointer_set
 				 * will also increment it, decrement it here. */
 				id_us_min(newid);
