@@ -35,7 +35,12 @@ void DeviceManager::registerDevice(std::string name, std::shared_ptr<IDeviceFact
 
 std::shared_ptr<IDeviceFactory> DeviceManager::getDeviceFactory(std::string name)
 {
-	return m_factories[name];
+	auto it = m_factories.find(name);
+
+	if(it == m_factories.end())
+		return nullptr;
+
+	return it->second;
 }
 
 std::shared_ptr<IDeviceFactory> DeviceManager::getDefaultDeviceFactory()

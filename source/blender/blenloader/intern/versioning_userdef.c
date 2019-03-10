@@ -493,9 +493,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	if (userdef->image_draw_method == 0)
 		userdef->image_draw_method = IMAGE_DRAW_METHOD_2DTEXTURE;
 
-	// we default to the first audio device
-	userdef->audiodevice = 0;
-
 	for (bTheme *btheme = userdef->themes.first; btheme; btheme = btheme->next) {
 		do_versions_theme(userdef, btheme);
 	}
