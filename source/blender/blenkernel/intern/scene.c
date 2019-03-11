@@ -780,6 +780,18 @@ void BKE_scene_init(Scene *sce)
 	BLI_strncpy(sce->sequencer_colorspace_settings.name, colorspace_name,
 	            sizeof(sce->sequencer_colorspace_settings.name));
 
+	/* Those next two sets (render and baking settings) are not currently in use,
+	 * but are exposed to RNA API and hence must have valid data. */
+	BKE_color_managed_display_settings_init(&sce->r.im_format.display_settings);
+	BKE_color_managed_view_settings_init_render(&sce->r.im_format.view_settings,
+	                                            &sce->r.im_format.display_settings,
+	                                            "Filmic");
+
+	BKE_color_managed_display_settings_init(&sce->r.bake.im_format.display_settings);
+	BKE_color_managed_view_settings_init_render(&sce->r.bake.im_format.view_settings,
+	                                            &sce->r.bake.im_format.display_settings,
+	                                            "Filmic");
+
 	/* Safe Areas */
 	copy_v2_fl2(sce->safe_areas.title, 10.0f / 100.0f, 5.0f / 100.0f);
 	copy_v2_fl2(sce->safe_areas.action, 3.5f / 100.0f, 3.5f / 100.0f);
