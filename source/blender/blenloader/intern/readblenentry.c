@@ -200,13 +200,9 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 					if (prv) {
 						memcpy(new_prv, prv, sizeof(PreviewImage));
 						if (prv->rect[0] && prv->w[0] && prv->h[0]) {
-							uint *rect = NULL;
-							size_t len = new_prv->w[0] * new_prv->h[0] * sizeof(uint);
-							new_prv->rect[0] = MEM_callocN(len, __func__);
 							bhead = blo_bhead_next(fd, bhead);
-							rect = BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect");
-							BLI_assert(len == bhead->len);
-							memcpy(new_prv->rect[0], rect, len);
+							BLI_assert((new_prv->w[0] * new_prv->h[0] * sizeof(uint)) == bhead->len);
+							new_prv->rect[0] = BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect");
 						}
 						else {
 							/* This should not be needed, but can happen in 'broken' .blend files,
@@ -217,13 +213,9 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 						}
 
 						if (prv->rect[1] && prv->w[1] && prv->h[1]) {
-							uint *rect = NULL;
-							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(uint);
-							new_prv->rect[1] = MEM_callocN(len, __func__);
 							bhead = blo_bhead_next(fd, bhead);
-							rect = BLO_library_read_struct(fd, bhead, "PreviewImage Image Rect");
-							BLI_assert(len == bhead->len);
-							memcpy(new_prv->rect[1], rect, len);
+							BLI_assert((new_prv->w[1] * new_prv->h[1] * sizeof(uint)) == bhead->len);
+							new_prv->rect[1] = BLO_library_read_struct(fd, bhead, "PreviewImage Image Rect");
 						}
 						else {
 							/* This should not be needed, but can happen in 'broken' .blend files,
