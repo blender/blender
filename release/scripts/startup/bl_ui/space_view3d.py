@@ -2959,7 +2959,9 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
             col.operator("mesh.bevel", text="Bevel Edges").vertex_only = False
             if selected_edges_len >= 2:
                 col.operator("mesh.bridge_edge_loops")
+            if selected_edges_len >= 1:
                 col.operator("mesh.edge_face_add", text="New Face from Edges")
+            if selected_edges_len >= 2:
                 col.operator("mesh.fill")
 
             col.separator()
