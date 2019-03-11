@@ -3148,7 +3148,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 
 		/* Don't draw bounding box again if draw type is bound box. */
-		if (ob->dtx & OB_DRAWBOUNDOX && ob->dt != OB_BOUNDBOX) {
+		if ((ob->type == OB_EMPTY) &&
+		    (ob->dtx & OB_DRAWBOUNDOX) &&
+		    (ob->dt != OB_BOUNDBOX))
+		{
 			DRW_shgroup_bounds(sgl, ob, theme_id);
 		}
 
