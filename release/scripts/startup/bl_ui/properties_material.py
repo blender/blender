@@ -24,7 +24,7 @@ from bpy.app.translations import pgettext_iface as iface_
 from bpy_extras.node_utils import find_node_input
 
 
-class MATERIAL_MT_specials(Menu):
+class MATERIAL_MT_context_menu(Menu):
     bl_label = "Material Specials"
 
     def draw(self, context):
@@ -119,7 +119,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
             col.separator()
 
-            col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
+            col.menu("MATERIAL_MT_context_menu", icon='DOWNARROW_HLT', text="")
 
             if is_sortable:
                 col.separator()
@@ -258,7 +258,7 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
 
 
 classes = (
-    MATERIAL_MT_specials,
+    MATERIAL_MT_context_menu,
     MATERIAL_UL_matslots,
     MATERIAL_PT_preview,
     EEVEE_MATERIAL_PT_context_material,

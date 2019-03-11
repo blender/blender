@@ -35,7 +35,7 @@ from rna_prop_ui import PropertyPanel
 from .properties_paint_common import brush_texture_settings
 
 
-class TEXTURE_MT_specials(Menu):
+class TEXTURE_MT_context_menu(Menu):
     bl_label = "Texture Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -913,7 +913,7 @@ class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    TEXTURE_MT_specials,
+    TEXTURE_MT_context_menu,
     TEXTURE_UL_texslots,
     TEXTURE_PT_preview,
     TEXTURE_PT_context,

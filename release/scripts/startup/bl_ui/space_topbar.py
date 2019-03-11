@@ -527,7 +527,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
 
         gpl = context.active_gpencil_layer
         if gpl:
-            sub.menu("GPENCIL_MT_layer_specials", icon='DOWNARROW_HLT', text="")
+            sub.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
 
             if len(gpd.layers) > 1:
                 col.separator()
@@ -930,7 +930,7 @@ class TOPBAR_MT_help(Menu):
         layout.operator("wm.splash", icon='BLENDER')
 
 
-class TOPBAR_MT_file_specials(Menu):
+class TOPBAR_MT_file_context_menu(Menu):
     bl_label = "File Context Menu"
 
     def draw(self, context):
@@ -951,7 +951,7 @@ class TOPBAR_MT_file_specials(Menu):
         layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
 
 
-class TOPBAR_MT_window_specials(Menu):
+class TOPBAR_MT_window_context_menu(Menu):
     bl_label = "Window Context Menu"
 
     def draw(self, context):
@@ -1043,8 +1043,8 @@ class TOPBAR_PT_gpencil_primitive(Panel):
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
-    TOPBAR_MT_file_specials,
-    TOPBAR_MT_window_specials,
+    TOPBAR_MT_file_context_menu,
+    TOPBAR_MT_window_context_menu,
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
     TOPBAR_MT_file,

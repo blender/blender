@@ -857,7 +857,7 @@ class GreasePencilMaterialsPanel:
                 col.operator("object.material_slot_add", icon='ADD', text="")
                 col.operator("object.material_slot_remove", icon='REMOVE', text="")
 
-            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
+            col.menu("GPENCIL_MT_color_context_menu", icon='DOWNARROW_HLT', text="")
 
             if is_sortable:
                 col.separator()

@@ -22,7 +22,7 @@ from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 
-class MESH_MT_vertex_group_specials(Menu):
+class MESH_MT_vertex_group_context_menu(Menu):
     bl_label = "Vertex Group Specials"
 
     def draw(self, context):
@@ -48,7 +48,7 @@ class MESH_MT_vertex_group_specials(Menu):
         layout.operator("object.vertex_group_lock", text="Lock Invert All").action = 'INVERT'
 
 
-class MESH_MT_shape_key_specials(Menu):
+class MESH_MT_shape_key_context_menu(Menu):
     bl_label = "Shape Key Specials"
 
     def draw(self, context):
@@ -256,7 +256,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
         col.separator()
 
-        col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
+        col.menu("MESH_MT_vertex_group_context_menu", icon='DOWNARROW_HLT', text="")
 
         if group:
             col.separator()
@@ -360,7 +360,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         col.separator()
 
-        col.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
+        col.menu("MESH_MT_shape_key_context_menu", icon='DOWNARROW_HLT', text="")
 
         if kb:
             col.separator()
@@ -490,8 +490,8 @@ class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    MESH_MT_vertex_group_specials,
-    MESH_MT_shape_key_specials,
+    MESH_MT_vertex_group_context_menu,
+    MESH_MT_shape_key_context_menu,
     MESH_UL_vgroups,
     MESH_UL_fmaps,
     MESH_UL_shape_keys,

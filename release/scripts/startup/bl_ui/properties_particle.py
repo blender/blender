@@ -65,7 +65,7 @@ def particle_get_settings(context):
     return None
 
 
-class PARTICLE_MT_specials(Menu):
+class PARTICLE_MT_context_menu(Menu):
     bl_label = "Particle Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -179,7 +179,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
 
             col.separator()
 
-            col.menu("PARTICLE_MT_specials", icon='DOWNARROW_HLT', text="")
+            col.menu("PARTICLE_MT_context_menu", icon='DOWNARROW_HLT', text="")
 
         if psys is None:
             part = particle_get_settings(context)
@@ -2107,7 +2107,7 @@ class PARTICLE_PT_textures(ParticleButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
         col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
-        col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
+        col.menu("TEXTURE_MT_context_menu", icon='DOWNARROW_HLT', text="")
 
         if not part.active_texture:
             layout.template_ID(part, "active_texture", new="texture.new")
@@ -2152,7 +2152,7 @@ class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    PARTICLE_MT_specials,
+    PARTICLE_MT_context_menu,
     PARTICLE_PT_hair_dynamics_presets,
     PARTICLE_UL_particle_systems,
     PARTICLE_PT_context_particles,

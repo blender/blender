@@ -80,7 +80,7 @@ class DATA_PT_context_gpencil(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class GPENCIL_MT_layer_specials(Menu):
+class GPENCIL_MT_layer_context_menu(Menu):
     bl_label = "Layer"
 
     def draw(self, context):
@@ -154,7 +154,7 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
         sub.operator("gpencil.layer_remove", icon='REMOVE', text="")
 
         if gpl:
-            sub.menu("GPENCIL_MT_layer_specials", icon='DOWNARROW_HLT', text="")
+            sub.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
 
             if len(gpd.layers) > 1:
                 col.separator()
@@ -461,7 +461,7 @@ classes = (
 
     GPENCIL_UL_vgroups,
 
-    GPENCIL_MT_layer_specials,
+    GPENCIL_MT_layer_context_menu,
     GPENCIL_MT_gpencil_vertex_group,
 )
 

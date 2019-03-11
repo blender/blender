@@ -1008,7 +1008,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             sub.operator("clip.stabilize_2d_add", icon='ADD', text="")
             sub.operator("clip.stabilize_2d_remove", icon='REMOVE', text="")
 
-            sub.menu('CLIP_MT_stabilize_2d_specials', text="",
+            sub.menu('CLIP_MT_stabilize_2d_context_menu', text="",
                      icon='DOWNARROW_HLT')
 
             # Usually we don't hide things from iterface, but here every pixel of
@@ -1025,7 +1025,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
                 sub.operator("clip.stabilize_2d_rotation_add", icon='ADD', text="")
                 sub.operator("clip.stabilize_2d_rotation_remove", icon='REMOVE', text="")
 
-                sub.menu('CLIP_MT_stabilize_2d_rotation_specials', text="",
+                sub.menu('CLIP_MT_stabilize_2d_rotation_context_menu', text="",
                          icon='DOWNARROW_HLT')
 
         col = layout.column()
@@ -1430,7 +1430,7 @@ class CLIP_MT_select_grouped(Menu):
         layout.operator_enum("clip.select_grouped", "group")
 
 
-class CLIP_MT_tracking_specials(Menu):
+class CLIP_MT_tracking_context_menu(Menu):
     bl_label = "Specials"
 
     @classmethod
@@ -1484,7 +1484,7 @@ class CLIP_PT_tracking_settings_presets(PresetMenu):
     preset_add_operator = "clip.tracking_settings_preset_add"
 
 
-class CLIP_MT_stabilize_2d_specials(Menu):
+class CLIP_MT_stabilize_2d_context_menu(Menu):
     bl_label = "Translation Track Specials"
 
     def draw(self, context):
@@ -1493,7 +1493,7 @@ class CLIP_MT_stabilize_2d_specials(Menu):
         layout.operator("clip.stabilize_2d_select")
 
 
-class CLIP_MT_stabilize_2d_rotation_specials(Menu):
+class CLIP_MT_stabilize_2d_rotation_context_menu(Menu):
     bl_label = "Rotation Track Specials"
 
     def draw(self, context):
@@ -1563,12 +1563,12 @@ classes = (
     CLIP_MT_track_transform,
     CLIP_MT_select,
     CLIP_MT_select_grouped,
-    CLIP_MT_tracking_specials,
+    CLIP_MT_tracking_context_menu,
     CLIP_PT_camera_presets,
     CLIP_PT_track_color_presets,
     CLIP_PT_tracking_settings_presets,
-    CLIP_MT_stabilize_2d_specials,
-    CLIP_MT_stabilize_2d_rotation_specials,
+    CLIP_MT_stabilize_2d_context_menu,
+    CLIP_MT_stabilize_2d_rotation_context_menu,
     CLIP_MT_pivot_pie,
 )
 

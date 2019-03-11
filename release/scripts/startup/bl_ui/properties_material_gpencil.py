@@ -27,7 +27,7 @@ from .properties_grease_pencil_common import (
 )
 
 
-class GPENCIL_MT_color_specials(Menu):
+class GPENCIL_MT_color_context_menu(Menu):
     bl_label = "Layer"
 
     def draw(self, context):
@@ -264,7 +264,7 @@ class MATERIAL_PT_gpencil_material_presets(PresetMenu):
 
 classes = (
     GPENCIL_UL_matslots,
-    GPENCIL_MT_color_specials,
+    GPENCIL_MT_color_context_menu,
     MATERIAL_PT_gpencil_slots,
     MATERIAL_PT_gpencil_preview,
     MATERIAL_PT_gpencil_material_presets,

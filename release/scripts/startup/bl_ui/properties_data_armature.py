@@ -89,7 +89,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         flow.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
-class DATA_MT_bone_group_specials(Menu):
+class DATA_MT_bone_group_context_menu(Menu):
     bl_label = "Bone Group Specials"
 
     def draw(self, context):
@@ -124,7 +124,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
         col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ADD', text="")
         col.operator("pose.group_remove", icon='REMOVE', text="")
-        col.menu("DATA_MT_bone_group_specials", icon='DOWNARROW_HLT', text="")
+        col.menu("DATA_MT_bone_group_context_menu", icon='DOWNARROW_HLT', text="")
         if group:
             col.separator()
             col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
@@ -317,7 +317,7 @@ class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
 classes = (
     DATA_PT_context_arm,
     DATA_PT_skeleton,
-    DATA_MT_bone_group_specials,
+    DATA_MT_bone_group_context_menu,
     DATA_PT_bone_groups,
     DATA_PT_pose_library,
     DATA_PT_motion_paths,

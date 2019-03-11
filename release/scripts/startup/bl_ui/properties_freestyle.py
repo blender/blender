@@ -100,7 +100,7 @@ class VIEWLAYER_UL_linesets(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class RENDER_MT_lineset_specials(Menu):
+class RENDER_MT_lineset_context_menu(Menu):
     bl_label = "Lineset Specials"
 
     def draw(self, context):
@@ -195,7 +195,7 @@ class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel
         sub = row.column(align=True)
         sub.operator("scene.freestyle_lineset_add", icon='ADD', text="")
         sub.operator("scene.freestyle_lineset_remove", icon='REMOVE', text="")
-        sub.menu("RENDER_MT_lineset_specials", icon='DOWNARROW_HLT', text="")
+        sub.menu("RENDER_MT_lineset_context_menu", icon='DOWNARROW_HLT', text="")
         if lineset:
             sub.separator()
             sub.separator()
@@ -828,7 +828,7 @@ class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
 classes = (
     RENDER_PT_freestyle,
     VIEWLAYER_UL_linesets,
-    RENDER_MT_lineset_specials,
+    RENDER_MT_lineset_context_menu,
     VIEWLAYER_PT_freestyle,
     VIEWLAYER_PT_freestyle_lineset,
     VIEWLAYER_PT_freestyle_linestyle,

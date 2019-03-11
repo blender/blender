@@ -1767,7 +1767,7 @@ class VIEW3D_MT_object_clear(Menu):
         layout.operator("object.origin_clear", text="Origin")
 
 
-class VIEW3D_MT_object_specials(Menu):
+class VIEW3D_MT_object_context_menu(Menu):
     bl_label = "Object Context Menu"
 
     def draw(self, context):
@@ -2468,7 +2468,7 @@ class VIEW3D_MT_particle(Menu):
         layout.operator("particle.delete")
 
 
-class VIEW3D_MT_particle_specials(Menu):
+class VIEW3D_MT_particle_context_menu(Menu):
     bl_label = "Particle Context Menu"
 
     def draw(self, context):
@@ -2729,7 +2729,7 @@ class VIEW3D_MT_pose_apply(Menu):
         props.process_bones = True
 
 
-class VIEW3D_MT_pose_specials(Menu):
+class VIEW3D_MT_pose_context_menu(Menu):
     bl_label = "Pose Context Menu"
 
     def draw(self, context):
@@ -2865,7 +2865,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_edit_mesh_delete")
 
 
-class VIEW3D_MT_edit_mesh_specials(Menu):
+class VIEW3D_MT_edit_mesh_context_menu(Menu):
     bl_label = ""
 
     def draw(self, context):
@@ -3559,7 +3559,7 @@ class VIEW3D_MT_edit_curve_clean(Menu):
         layout.operator("curve.decimate")
 
 
-class VIEW3D_MT_edit_curve_specials(Menu):
+class VIEW3D_MT_edit_curve_context_menu(Menu):
     bl_label = "Curve Context Menu"
 
     def draw(self, context):
@@ -3807,7 +3807,7 @@ class VIEW3D_MT_edit_armature(Menu):
         layout.menu("VIEW3D_MT_edit_armature_delete")
 
 
-class VIEW3D_MT_armature_specials(Menu):
+class VIEW3D_MT_armature_context_menu(Menu):
     bl_label = "Armature Context Menu"
 
     def draw(self, context):
@@ -5616,7 +5616,7 @@ class VIEW3D_PT_gpencil_multi_frame(Panel):
             layout.template_curve_mapping(settings, "multiframe_falloff_curve", brush=True)
 
 
-class VIEW3D_MT_gpencil_edit_specials(Menu):
+class VIEW3D_MT_gpencil_edit_context_menu(Menu):
     bl_label = "Edit Context Menu"
 
     def draw(self, context):
@@ -5672,7 +5672,7 @@ class VIEW3D_MT_gpencil_edit_specials(Menu):
         layout.menu("VIEW3D_MT_edit_gpencil_delete")
 
 
-class VIEW3D_PT_gpencil_sculpt_specials(Panel):
+class VIEW3D_PT_gpencil_sculpt_context_menu(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_label = "Sculpt Context Menu"
@@ -5704,7 +5704,7 @@ class VIEW3D_PT_gpencil_sculpt_specials(Panel):
         layout.operator("gpencil.active_frames_delete_all", text="Delete All Active Layers", icon='REMOVE')
 
 
-class VIEW3D_PT_gpencil_draw_specials(Panel):
+class VIEW3D_PT_gpencil_draw_context_menu(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_label = "Draw Context Menu"
@@ -5737,7 +5737,7 @@ class VIEW3D_PT_gpencil_draw_specials(Panel):
         layout.operator("gpencil.active_frames_delete_all", text="Delete All Active Layers", icon='REMOVE')
 
 
-class VIEW3D_PT_paint_vertex_specials(Panel):
+class VIEW3D_PT_paint_vertex_context_menu(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -5762,7 +5762,7 @@ class VIEW3D_PT_paint_vertex_specials(Panel):
             layout.prop(brush, "strength")
 
 
-class VIEW3D_PT_paint_texture_specials(Panel):
+class VIEW3D_PT_paint_texture_context_menu(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -5787,7 +5787,7 @@ class VIEW3D_PT_paint_texture_specials(Panel):
             layout.prop(brush, "strength")
 
 
-class VIEW3D_PT_paint_weight_specials(Panel):
+class VIEW3D_PT_paint_weight_context_menu(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -5817,7 +5817,7 @@ class VIEW3D_PT_paint_weight_specials(Panel):
             layout.prop(brush, "strength")
 
 
-class VIEW3D_PT_sculpt_specials(Panel):
+class VIEW3D_PT_sculpt_context_menu(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -5909,7 +5909,7 @@ classes = (
     VIEW3D_MT_object_animation,
     VIEW3D_MT_object_rigid_body,
     VIEW3D_MT_object_clear,
-    VIEW3D_MT_object_specials,
+    VIEW3D_MT_object_context_menu,
     VIEW3D_MT_object_shading,
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_relations,
@@ -5930,7 +5930,7 @@ classes = (
     VIEW3D_MT_sculpt,
     VIEW3D_MT_hide_mask,
     VIEW3D_MT_particle,
-    VIEW3D_MT_particle_specials,
+    VIEW3D_MT_particle_context_menu,
     VIEW3D_MT_particle_showhide,
     VIEW3D_MT_pose,
     VIEW3D_MT_pose_transform,
@@ -5943,11 +5943,11 @@ classes = (
     VIEW3D_MT_pose_constraints,
     VIEW3D_MT_pose_showhide,
     VIEW3D_MT_pose_apply,
-    VIEW3D_MT_pose_specials,
+    VIEW3D_MT_pose_context_menu,
     VIEW3D_MT_bone_options_toggle,
     VIEW3D_MT_bone_options_enable,
     VIEW3D_MT_bone_options_disable,
-    VIEW3D_MT_edit_mesh_specials,
+    VIEW3D_MT_edit_mesh_context_menu,
     VIEW3D_MT_edit_mesh_select_mode,
     VIEW3D_MT_edit_mesh_select_linked,
     VIEW3D_MT_edit_mesh_select_loops,
@@ -5972,12 +5972,12 @@ classes = (
     VIEW3D_MT_gpencil_simplify,
     VIEW3D_MT_gpencil_copy_layer,
     VIEW3D_MT_gpencil_autoweights,
-    VIEW3D_MT_gpencil_edit_specials,
+    VIEW3D_MT_gpencil_edit_context_menu,
     VIEW3D_MT_edit_curve,
     VIEW3D_MT_edit_curve_ctrlpoints,
     VIEW3D_MT_edit_curve_segments,
     VIEW3D_MT_edit_curve_clean,
-    VIEW3D_MT_edit_curve_specials,
+    VIEW3D_MT_edit_curve_context_menu,
     VIEW3D_MT_edit_curve_delete,
     VIEW3D_MT_edit_curve_showhide,
     VIEW3D_MT_edit_surface,
@@ -5987,7 +5987,7 @@ classes = (
     VIEW3D_MT_edit_meta_showhide,
     VIEW3D_MT_edit_lattice,
     VIEW3D_MT_edit_armature,
-    VIEW3D_MT_armature_specials,
+    VIEW3D_MT_armature_context_menu,
     VIEW3D_MT_edit_armature_parent,
     VIEW3D_MT_edit_armature_roll,
     VIEW3D_MT_edit_armature_names,
@@ -6042,12 +6042,12 @@ classes = (
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,
-    VIEW3D_PT_paint_vertex_specials,
-    VIEW3D_PT_paint_texture_specials,
-    VIEW3D_PT_paint_weight_specials,
-    VIEW3D_PT_gpencil_sculpt_specials,
-    VIEW3D_PT_gpencil_draw_specials,
-    VIEW3D_PT_sculpt_specials,
+    VIEW3D_PT_paint_vertex_context_menu,
+    VIEW3D_PT_paint_texture_context_menu,
+    VIEW3D_PT_paint_weight_context_menu,
+    VIEW3D_PT_gpencil_sculpt_context_menu,
+    VIEW3D_PT_gpencil_draw_context_menu,
+    VIEW3D_PT_sculpt_context_menu,
     TOPBAR_PT_gpencil_materials,
     TOPBAR_PT_annotation_layers,
 )
