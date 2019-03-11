@@ -305,6 +305,24 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 	return numleft;
 }
 
+/* Crazyspace evaluation needs to have an object which has all the fields
+ * evaluated, but the mesh data being at undeformed state. This way it can
+ * re-apply modifiers and also have proper pointers to key data blocks.
+ *
+ * Similar to BKE_object_eval_reset(), but does not modify the actual evaluated
+ * object. */
+static void crazyspace_init_object_for_eval(
+        struct Depsgraph *depsgraph,
+        Object *object,
+        Object *object_crazy)
+{
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+	*object_crazy = *object_eval;
+	if (object_crazy->runtime.mesh_orig != NULL) {
+		object_crazy->data = object_crazy->runtime.mesh_orig;
+	}
+}
+
 int BKE_sculpt_get_first_deform_matrices(
         struct Depsgraph *depsgraph, Scene *scene,
         Object *object, float (**deformmats)[3][3], float (**deformcos)[3])
@@ -315,10 +333,11 @@ int BKE_sculpt_get_first_deform_matrices(
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 	int numleft = 0;
 	VirtualModifierData virtualModifierData;
-	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
-	MultiresModifierData *mmd = get_multires_modifier(scene, object_eval, 0);
+	Object object_eval;
+	crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
+	MultiresModifierData *mmd = get_multires_modifier(scene, &object_eval, 0);
 	const bool has_multires = mmd != NULL && mmd->sculptlvl > 0;
-	const ModifierEvalContext mectx = {depsgraph, object_eval, 0};
+	const ModifierEvalContext mectx = {depsgraph, &object_eval, 0};
 
 	if (has_multires) {
 		*deformmats = NULL;
@@ -327,7 +346,8 @@ int BKE_sculpt_get_first_deform_matrices(
 	}
 
 	me_eval = NULL;
-	md = modifiers_getVirtualModifierList(object_eval, &virtualModifierData);
+
+	md = modifiers_getVirtualModifierList(&object_eval, &virtualModifierData);
 
 	for (; md; md = md->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -336,8 +356,9 @@ int BKE_sculpt_get_first_deform_matrices(
 
 		if (mti->type == eModifierTypeType_OnlyDeform) {
 			if (!defmats) {
-				/* NOTE: Need to start with original undeformed mesh. */
-				Mesh *me = object->data;
+				/* NOTE: Evaluated object si re-set to its original undeformed
+				 * state. */
+				Mesh *me = object_eval.data;
 				me_eval = BKE_mesh_copy_for_eval(me, true);
 				deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 				defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
@@ -387,9 +408,10 @@ void BKE_crazyspace_build_sculpt(
 		float (*quats)[4];
 		int i, deformed = 0;
 		VirtualModifierData virtualModifierData;
-		Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
-		ModifierData *md = modifiers_getVirtualModifierList(object_eval, &virtualModifierData);
-		const ModifierEvalContext mectx = {depsgraph, object_eval, 0};
+		Object object_eval;
+		crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
+		ModifierData *md = modifiers_getVirtualModifierList(&object_eval, &virtualModifierData);
+		const ModifierEvalContext mectx = {depsgraph, &object_eval, 0};
 		Mesh *mesh = (Mesh *)object->data;
 
 		for (; md; md = md->next) {
