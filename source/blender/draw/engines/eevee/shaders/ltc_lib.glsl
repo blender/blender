@@ -15,17 +15,18 @@ uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
 /* Diffuse *clipped* sphere integral. */
-float diffuse_sphere_integral_lut(float avg_dir_z, float form_factor)
+float diffuse_sphere_integral(float avg_dir_z, float form_factor)
 {
+#if 1
+	/* use tabulated horizon-clipped sphere */
 	vec2 uv = vec2(avg_dir_z * 0.5 + 0.5, form_factor);
 	uv = uv * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
 
-	return texture(utilTex, vec3(uv, 1.0)).w;
-}
-
-float diffuse_sphere_integral_cheap(float avg_dir_z, float form_factor)
-{
+	return texture(utilTex, vec3(uv, 3.0)).x;
+#else
+	/* Cheap approximation. Less smooth and have energy issues. */
 	return max((form_factor * form_factor + avg_dir_z) / (form_factor + 1.0), 0.0);
+#endif
 }
 
 /**
@@ -143,9 +144,9 @@ mat3 ltc_matrix(vec4 lut)
 {
 	/* load inverse matrix */
 	mat3 Minv = mat3(
-		vec3(  1,   0, lut.y),
-		vec3(  0, lut.z,   0),
-		vec3(lut.w,   0, lut.x)
+		vec3(lut.x, 0, lut.y),
+		vec3(    0, 1,     0),
+		vec3(lut.z, 0, lut.w)
 	);
 
 	return Minv;
@@ -185,12 +186,7 @@ float ltc_evaluate_quad(vec3 corners[4], vec3 N)
 
 	float form_factor = length(avg_dir);
 	float avg_dir_z = dot(N, avg_dir / form_factor);
-
-#if 1 /* use tabulated horizon-clipped sphere */
-	return form_factor * diffuse_sphere_integral_lut(avg_dir_z, form_factor);
-#else /* Less accurate version, a bit cheaper. */
-	return form_factor * diffuse_sphere_integral_cheap(avg_dir_z, form_factor);
-#endif
+	return form_factor * diffuse_sphere_integral(avg_dir_z, form_factor);
 }
 
 /* If disk does not need to be transformed and is already front facing. */
@@ -199,12 +195,7 @@ float ltc_evaluate_disk_simple(float disk_radius, float NL)
 	float r_sqr = disk_radius * disk_radius;
 	float one_r_sqr = 1.0 + r_sqr;
 	float form_factor = r_sqr * inversesqrt(one_r_sqr * one_r_sqr);
-
-#if 1 /* use tabulated horizon-clipped sphere */
-	return form_factor * diffuse_sphere_integral_lut(NL, form_factor);
-#else /* Less accurate version, a bit cheaper. */
-	return form_factor * diffuse_sphere_integral_cheap(NL, form_factor);
-#endif
+	return form_factor * diffuse_sphere_integral(NL, form_factor);
 }
 
 /* disk_points are WS vectors from the shading point to the disk "bounding domain" */
@@ -315,10 +306,5 @@ float ltc_evaluate_disk(vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
 
 	/* Find the sphere and compute lighting. */
 	float form_factor = max(0.0, L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2)));
-
-#if 1 /* use tabulated horizon-clipped sphere */
-	return form_factor * diffuse_sphere_integral_lut(avg_dir.z, form_factor);
-#else /* Less accurate version, a bit cheaper. */
-	return form_factor * diffuse_sphere_integral_cheap(avg_dir.z, form_factor);
-#endif
+	return form_factor * diffuse_sphere_integral(avg_dir.z, form_factor);
 }
