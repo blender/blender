@@ -30,15 +30,15 @@ float linearrgb_to_srgb(float c)
 
 bool check_borders(ivec2 uv, int size)
 {
-	for (int x = -size; x <= size; x++) { 
-		for (int y = -size; y <= size; y++) { 
+	for (int x = -size; x <= size; x++) {
+		for (int y = -size; y <= size; y++) {
 			vec4 stroke_color =  texelFetch(strokeColor, ivec2(uv.x + x, uv.y + y), 0).rgba;
 			if (stroke_color.a > 0) {
 				return true;
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -62,7 +62,7 @@ void main()
 
 	FragColor = clamp(stroke_color, 0.0, 1.0);
 	gl_FragDepth = clamp(stroke_depth, 0.0, 1.0);
-	
+
 	if (do_select == 1) {
 		if (stroke_color.a == 0) {
 			if (check_borders(uv, 2)) {

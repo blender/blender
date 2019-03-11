@@ -5684,7 +5684,7 @@ class VIEW3D_PT_gpencil_sculpt_specials(Panel):
 
         layout.separator()
 
-        # Frames 
+        # Frames
         layout.label(text="Frames:")
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -5717,7 +5717,7 @@ class VIEW3D_PT_gpencil_draw_specials(Panel):
 
         layout.separator()
 
-        # Frames 
+        # Frames
         layout.label(text="Frames:")
 
         layout.operator_context = 'INVOKE_REGION_WIN'

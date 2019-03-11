@@ -48,7 +48,7 @@ void main(void)
 	}
 	/* for solid override color */
 	if (shading_type[0] == OB_SOLID) {
-		if ((shading_type[1] != V3D_SHADING_MATERIAL_COLOR) && (shading_type[1] != V3D_SHADING_TEXTURE_COLOR)) { 
+		if ((shading_type[1] != V3D_SHADING_MATERIAL_COLOR) && (shading_type[1] != V3D_SHADING_TEXTURE_COLOR)) {
 			finalColor = wire_color;
 		}
 		if (viewport_xray == 1) {

@@ -31,7 +31,7 @@ void main()
 	if (color_type == GPENCIL_COLOR_SOLID) {
 		fragColor = tColor;
 	}
-	
+
 	/* texture for endcaps */
 	vec4 text_color;
 	if (uvfac[1] == ENDCAP) {
@@ -40,7 +40,7 @@ void main()
 	else {
 		text_color = texture2D(myTexture, mTexCoord);
 	}
-	
+
 	/* texture */
 	if (color_type == GPENCIL_COLOR_TEXTURE) {
 		fragColor =  text_color;
