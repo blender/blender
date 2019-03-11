@@ -1446,6 +1446,11 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	/* nodetree itself */
 	add_id_node(&ntree->id);
 	bNodeTree *ntree_cow = get_cow_datablock(ntree);
+	/* General parameters. */
+	OperationNode *op_node;
+	op_node = add_operation_node(
+	        &ntree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+	op_node->set_as_exit();
 	/* Animation, */
 	build_animdata(&ntree->id);
 	/* Shading update. */
