@@ -515,7 +515,7 @@ static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **i
 
 bool BKE_id_copy_is_allowed(const ID *id)
 {
-#define LIB_ID_TYPES_NOCOPY ID_LI, ID_SCR, ID_WM,  /* Not supported */ \
+#define LIB_ID_TYPES_NOCOPY ID_LI, ID_SCR, ID_WM, ID_WS,  /* Not supported */ \
                             ID_IP  /* Deprecated */
 
 	return !ELEM(GS(id->name), LIB_ID_TYPES_NOCOPY);
