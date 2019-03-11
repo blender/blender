@@ -57,9 +57,13 @@ Image *ED_space_image(SpaceImage *sima)
 	return sima->image;
 }
 
-/* called to assign images to UV faces */
-void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *ima)
+void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *ima, bool automatic)
 {
+	/* Automatically pin image when manually assigned, otherwise it follows object. */
+	if (!automatic && sima->image != ima && sima->mode == SI_MODE_UV) {
+		sima->pin = true;
+	}
+
 	/* change the space ima after because uvedit_face_visible_test uses the space ima
 	 * to check if the face is displayed in UV-localview */
 	sima->image = ima;
@@ -79,6 +83,38 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *im
 		WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
 
 	WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
+}
+
+void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
+{
+	if (sima->mode != SI_MODE_UV || sima->pin) {
+		return;
+	}
+
+	/* Track image assigned to active face in edit mode. */
+	Object *ob = CTX_data_active_object(C);
+	if (!(ob && (ob->mode & OB_MODE_EDIT) && ED_space_image_show_uvedit(sima, ob))) {
+		return;
+	}
+
+	BMEditMesh *em = BKE_editmesh_from_object(ob);
+	BMesh *bm = em->bm;
+	BMFace *efa = BM_mesh_active_face_get(bm, true, false);
+	if (efa == NULL) {
+		return;
+	}
+
+	Image *ima = NULL;
+	ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
+
+	if (ima != sima->image) {
+		sima->image = ima;
+
+		if (sima->image) {
+			Main *bmain = CTX_data_main(C);
+			BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+		}
+	}
 }
 
 Mask *ED_space_image_get_mask(SpaceImage *sima)

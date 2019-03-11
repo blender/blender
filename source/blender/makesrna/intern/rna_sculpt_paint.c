@@ -490,7 +490,7 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
 					SpaceImage *sima = (SpaceImage *)slink;
 
 					if (!sima->pin)
-						ED_space_image_set(bmain, sima, obedit, ima);
+						ED_space_image_set(bmain, sima, obedit, ima, true);
 				}
 			}
 		}

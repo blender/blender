@@ -176,7 +176,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain, Scene *U
 					if (sl->spacetype == SPACE_IMAGE) {
 						SpaceImage *sima = (SpaceImage *)sl;
 						if (!sima->pin) {
-							ED_space_image_set(bmain, sima, obedit, image);
+							ED_space_image_set(bmain, sima, obedit, image, true);
 						}
 					}
 				}
