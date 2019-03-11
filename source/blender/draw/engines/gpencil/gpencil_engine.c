@@ -583,12 +583,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
 
-	/* bound box object are not visible, only external box*/
 	if (ob->type == OB_GPENCIL && ob->data) {
-		if (ob->dt == OB_BOUNDBOX) {
-			return;
-		}
-
 		bGPdata *gpd = (bGPdata *)ob->data;
 
 		/* enable multisample and basic framebuffer creation */
@@ -602,19 +597,21 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 		}
 
 		if ((stl->g_data->session_flag & GP_DRW_PAINT_READY) == 0) {
+			/* bound box object are not visible, only external box*/
+			if (ob->dt != OB_BOUNDBOX) {
+				/* save gp objects for drawing later */
+				stl->g_data->gp_object_cache = gpencil_object_cache_add(
+					stl->g_data->gp_object_cache, ob,
+					&stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
 
-			/* save gp objects for drawing later */
-			stl->g_data->gp_object_cache = gpencil_object_cache_add(
-				stl->g_data->gp_object_cache, ob,
-				&stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
+				/* enable instance loop */
+				if (!stl->g_data->do_instances) {
+					stl->g_data->do_instances = ob->base_flag & BASE_FROM_DUPLI;
+				}
 
-			/* enable instance loop */
-			if (!stl->g_data->do_instances) {
-				stl->g_data->do_instances = ob->base_flag & BASE_FROM_DUPLI;
+				/* load drawing data */
+				gpencil_add_draw_data(vedata, ob);
 			}
-
-			/* load drawing data */
-			gpencil_add_draw_data(vedata, ob);
 		}
 
 		/* draw current painting strokes
@@ -861,8 +858,9 @@ void GPENCIL_draw_scene(void *ved)
 		GPU_framebuffer_bind(dfbl->default_fb);
 
 		MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
-
-		DRW_draw_pass(psl->background_pass);
+		if (obact->dt != OB_BOUNDBOX) {
+			DRW_draw_pass(psl->background_pass);
+		}
 		DRW_draw_pass(psl->drawing_pass);
 
 		MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, dfbl->default_fb, txl);
