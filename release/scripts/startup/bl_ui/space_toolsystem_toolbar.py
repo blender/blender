@@ -924,6 +924,12 @@ class _defs_vertex_paint:
 class _defs_texture_paint:
 
     @staticmethod
+    def poll_select_mask(context):
+        ob = context.active_object
+        return (ob.type == 'MESH' and
+                (ob.data.use_paint_mask))
+
+    @staticmethod
     def generate_from_brushes(context):
         return generate_from_enum_ex(
             context,
@@ -1717,6 +1723,12 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PAINT_TEXTURE': [
             _defs_texture_paint.generate_from_brushes,
+            None,
+            lambda context: (
+                VIEW3D_PT_tools_active._tools_select
+                if _defs_texture_paint.poll_select_mask(context)
+                else ()
+            ),
         ],
         'PAINT_VERTEX': [
             _defs_vertex_paint.generate_from_brushes,
