@@ -146,7 +146,13 @@ ccl_device_noinline float3 svm_bevel(
 			}
 #endif  /* __OBJECT_MOTION__ */
 
+			/* Get geometric normal. */
 			float3 hit_Ng = isect.Ng[hit];
+			int object = (isect.hits[hit].object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, isect.hits[hit].prim): isect.hits[hit].object;
+			int object_flag = kernel_tex_fetch(__object_flag, object);
+			if(object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+				hit_Ng = -hit_Ng;
+			}
 
 			/* Compute smooth normal. */
 			float3 N = hit_Ng;
@@ -168,7 +174,7 @@ ccl_device_noinline float3 svm_bevel(
 			}
 
 			/* Transform normals to world space. */
-			if(isect.hits[hit].object != OBJECT_NONE) {
+			if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 				object_normal_transform(kg, sd, &N);
 				object_normal_transform(kg, sd, &hit_Ng);
 			}
