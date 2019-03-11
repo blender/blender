@@ -204,7 +204,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							size_t len = new_prv->w[0] * new_prv->h[0] * sizeof(uint);
 							new_prv->rect[0] = MEM_callocN(len, __func__);
 							bhead = blo_bhead_next(fd, bhead);
-							rect = (uint *)(bhead + 1);
+							rect = BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect");
 							BLI_assert(len == bhead->len);
 							memcpy(new_prv->rect[0], rect, len);
 						}
@@ -221,7 +221,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(uint);
 							new_prv->rect[1] = MEM_callocN(len, __func__);
 							bhead = blo_bhead_next(fd, bhead);
-							rect = (uint *)(bhead + 1);
+							rect = BLO_library_read_struct(fd, bhead, "PreviewImage Image Rect");
 							BLI_assert(len == bhead->len);
 							memcpy(new_prv->rect[1], rect, len);
 						}
