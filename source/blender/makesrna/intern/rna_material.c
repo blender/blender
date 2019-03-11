@@ -91,7 +91,7 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 {
 	Material *ma = ptr->id.data;
 
-	DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
 
@@ -125,7 +125,7 @@ static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
 	Material *ma = ptr->id.data;
 
-	DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 }
 
