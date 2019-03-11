@@ -1131,8 +1131,7 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 		return NULL;
 
 	bGPdata *gpd = (bGPdata *)ob->data;
-	if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0))
-	{
+	if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
 		return ob->runtime.bb;
 	}
 

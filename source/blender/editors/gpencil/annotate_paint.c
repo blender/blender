@@ -223,8 +223,9 @@ static bool gpencil_draw_poll(bContext *C)
 	Object *obact = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
 	if ((sa) && (sa->spacetype == SPACE_VIEW3D)) {
-		if ((obact) && (obact->type == OB_GPENCIL)
-			&& (obact->mode == OB_MODE_PAINT_GPENCIL)) {
+		if ((obact) && (obact->type == OB_GPENCIL) &&
+		    (obact->mode == OB_MODE_PAINT_GPENCIL))
+		{
 			CTX_wm_operator_poll_msg_set(C,
 				"Annotation cannot be used in grease pencil draw mode");
 			return false;

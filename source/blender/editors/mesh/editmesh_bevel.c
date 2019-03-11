@@ -623,7 +623,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 	/* Modal numinput active, try to handle numeric inputs first... */
 	if (etype != EVT_MODAL_MAP && eval == KM_PRESS && has_numinput &&
-				handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
+	    handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
 	{
 		edbm_bevel_numinput_set_value(op);
 		edbm_bevel_calc(op);

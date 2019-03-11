@@ -509,7 +509,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
 	        NULL, em->bm, &um->me, (&(struct BMeshToMeshParams){
 	            /* Undo code should not be manipulating 'G_MAIN->object' hooks/vertex-parent. */
 	            .calc_object_remap = false,
-	            .cd_mask_extra = {.vmask=CD_MASK_SHAPE_KEYINDEX},
+	            .cd_mask_extra = {.vmask = CD_MASK_SHAPE_KEYINDEX},
 	        }));
 
 	um->selectmode = em->selectmode;

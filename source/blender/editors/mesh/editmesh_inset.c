@@ -383,12 +383,14 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					mdiff[0] = opdata->mcenter[0] - event->mval[0];
 					mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
-					if (opdata->modify_depth)
+					if (opdata->modify_depth) {
 						amount = opdata->old_depth +
 							((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size) / opdata->max_obj_scale;
-					else
+					}
+					else {
 						amount = opdata->old_thickness -
 							((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size) / opdata->max_obj_scale;
+					}
 
 					/* Fake shift-transform... */
 					if (opdata->shift)
