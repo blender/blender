@@ -1748,8 +1748,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_weight_paint.sample_weight_group,
             ),
             None,
-            # TODO, check for mixed pose mode
-            _defs_view3d_generic.cursor,
+            lambda context: (
+                (_defs_view3d_generic.cursor,)
+                if context.pose_object
+                else ()
+            ),
             None,
             lambda context: (
                 VIEW3D_PT_tools_active._tools_select
