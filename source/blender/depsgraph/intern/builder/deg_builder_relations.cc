@@ -2437,6 +2437,8 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 		ComponentKey animation_key(&ntree->id, NodeType::ANIMATION);
 		add_relation(animation_key, shading_parameters_key, "NTree Shading Parameters");
 	}
+	ComponentKey parameters_key(&ntree->id, NodeType::PARAMETERS);
+	add_relation(parameters_key, shading_parameters_key, "NTree Shading Parameters");
 }
 
 /* Recursively build graph for material */
