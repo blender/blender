@@ -3684,7 +3684,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* handle drawing event */
 			/* printf("\t\tGP - add point\n"); */
 
-			if ((!(p->flags & GP_PAINTFLAG_FIRSTRUN)) && guide->use_guide) {
+			if (((p->flags & GP_PAINTFLAG_FIRSTRUN) == 0) || (guide->use_guide)) {
 				gpencil_add_missing_events(C, op, event, p);
 			}
 
