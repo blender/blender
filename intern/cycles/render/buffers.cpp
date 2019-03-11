@@ -184,6 +184,7 @@ bool RenderBuffers::get_denoising_pass_rect(int type, float exposure, int sample
 	if(type == DENOISING_PASS_CLEAN) {
 		/* The clean pass isn't changed by prefiltering, so we use the original one there. */
 		offset = type + params.get_denoising_offset();
+		scale /= sample;
 	}
 	else if (type == DENOISING_PASS_PREFILTERED_COLOR && !params.denoising_prefiltered_pass) {
 		/* If we're not saving the prefiltering result, return the original noisy pass. */
