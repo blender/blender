@@ -203,6 +203,9 @@ WorkSpace *ED_workspace_duplicate(
 	ListBase *layouts_old = BKE_workspace_layouts_get(workspace_old);
 	WorkSpace *workspace_new = ED_workspace_add(bmain, workspace_old->id.name + 2);
 
+	workspace_new->flags = workspace_old->flags;
+	BLI_duplicatelist(&workspace_new->owner_ids, &workspace_old->owner_ids);
+
 	/* TODO(campbell): tools */
 
 	for (WorkSpaceLayout *layout_old = layouts_old->first; layout_old; layout_old = layout_old->next) {
