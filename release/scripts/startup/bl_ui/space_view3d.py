@@ -5682,6 +5682,22 @@ class VIEW3D_PT_gpencil_sculpt_specials(Panel):
         layout.prop(brush, "size", slider=True)
         layout.prop(brush, "strength")
 
+        layout.separator()
+
+        # Frames 
+        layout.label(text="Frames:")
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("gpencil.blank_frame_add", text="Insert Blank", icon='ADD')
+        layout.operator("gpencil.frame_duplicate", text="Duplicate Active", icon='DUPLICATE')
+        layout.operator("gpencil.frame_duplicate", text="Duplicate for All Layers", icon='DUPLICATE').mode = 'ALL'
+
+        layout.separator()
+
+        layout.operator("gpencil.delete", text="Delete Active", icon='REMOVE').type = 'FRAME'
+        layout.operator("gpencil.active_frames_delete_all", text="Delete All Active Layers", icon='REMOVE')
+
 
 class VIEW3D_PT_gpencil_draw_specials(Panel):
     bl_space_type = 'VIEW_3D'
@@ -5698,6 +5714,22 @@ class VIEW3D_PT_gpencil_draw_specials(Panel):
             layout.prop(brush, "size", slider=True)
         if brush.gpencil_tool not in {'ERASE', 'FILL', 'CUTTER'}:
             layout.prop(gp_settings, "pen_strength")
+
+        layout.separator()
+
+        # Frames 
+        layout.label(text="Frames:")
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("gpencil.blank_frame_add", text="Insert Blank", icon='ADD')
+        layout.operator("gpencil.frame_duplicate", text="Duplicate Active", icon='DUPLICATE')
+        layout.operator("gpencil.frame_duplicate", text="Duplicate for All Layers", icon='DUPLICATE').mode = 'ALL'
+
+        layout.separator()
+
+        layout.operator("gpencil.delete", text="Delete Active", icon='REMOVE').type = 'FRAME'
+        layout.operator("gpencil.active_frames_delete_all", text="Delete All Active Layers", icon='REMOVE')
 
 
 class VIEW3D_PT_paint_vertex_specials(Panel):
