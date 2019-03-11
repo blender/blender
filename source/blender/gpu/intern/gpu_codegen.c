@@ -1978,14 +1978,14 @@ void GPU_pass_compile(GPUPass *pass, const char *shname)
 			}
 			pass->shader = NULL;
 		}
-		pass->compiled = true;
-
-		if (!BLI_thread_is_main()) {
+		else if (!BLI_thread_is_main()) {
 			/* For some drivers, you must use the program at least once in the
 			 * rendering context that it is created. */
 			glUseProgram(GPU_shader_get_program(pass->shader));
 			glUseProgram(0);
 		}
+
+		pass->compiled = true;
 	}
 }
 
