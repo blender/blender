@@ -425,9 +425,12 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer *g
 
 			if (mti && mti->deformStroke) {
 				mti->deformStroke(md, depsgraph, ob, gpl, gps);
-
+				/* subdivide allways requires update */
+				if (md->type == eGpencilModifierType_Subdiv) {
+					gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+				}
 				/* some modifiers could require a recalc of fill triangulation data */
-				if (gpd->flag & GP_DATA_STROKE_FORCE_RECALC) {
+				else if (gpd->flag & GP_DATA_STROKE_FORCE_RECALC) {
 					if (ELEM(md->type,
 					         eGpencilModifierType_Armature,
 					         eGpencilModifierType_Hook,
