@@ -116,18 +116,22 @@ static int txtfmt_py_find_specialvar(const char *string)
 
 static int txtfmt_py_find_decorator(const char *string)
 {
-	if (string[0] == '@') {
-		int i = 1;
-		/* Whitespace is ok '@  foo' */
-		while (text_check_whitespace(string[i])) {
-			i++;
-		}
-		while (text_check_identifier(string[i])) {
-			i++;
-		}
-		return i;
+	if (string[0] != '@') {
+		return -1;
 	}
-	return -1;
+	if (!text_check_identifier(string[1])) {
+		return -1;
+	}
+	/* Interpret as matrix multiplication when followed by whitespace. */
+	if (text_check_whitespace(string[1])) {
+		return -1;
+	}
+
+	int i = 1;
+	while (text_check_identifier(string[i])) {
+		i++;
+	}
+	return i;
 }
 
 static int txtfmt_py_find_bool(const char *string)
