@@ -503,7 +503,7 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 	radius = RNA_float_get(op->ptr, "radius");
 
 	ob = ED_object_add_type(C, OB_LIGHTPROBE, get_lightprobe_defname(type), loc, rot, false, local_view_bits);
-	BKE_object_obdata_size_init(ob, radius);
+	copy_v3_fl(ob->scale, radius);
 
 	probe = (LightProbe *)ob->data;
 	probe->type = type;
