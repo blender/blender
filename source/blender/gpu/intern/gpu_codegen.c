@@ -1254,8 +1254,6 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 	if (!shader)
 		return;
 
-	GPU_shader_bind(shader);
-
 	for (node = nodes->first; node; node = node->next) {
 		int z = 0;
 		for (input = node->inputs.first; input; input = next, z++) {
@@ -1284,8 +1282,6 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 			}
 		}
 	}
-
-	GPU_shader_unbind();
 }
 
 /* Node Link Functions */
@@ -1983,6 +1979,13 @@ void GPU_pass_compile(GPUPass *pass, const char *shname)
 			pass->shader = NULL;
 		}
 		pass->compiled = true;
+
+		if (!BLI_thread_is_main()) {
+			/* For some drivers, you must use the program at least once in the
+			 * rendering context that it is created. */
+			glUseProgram(GPU_shader_get_program(pass->shader));
+			glUseProgram(0);
+		}
 	}
 }
 
