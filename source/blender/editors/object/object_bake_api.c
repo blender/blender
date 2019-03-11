@@ -192,7 +192,7 @@ static bool write_internal_bake_pixels(
 		RE_bake_mask_fill(pixel_array, num_pixels, mask_buffer);
 	}
 
-	is_float = (ibuf->flags & IB_rectfloat);
+	is_float = (ibuf->rect_float != NULL);
 
 	/* colormanagement conversions */
 	if (!is_noncolor) {

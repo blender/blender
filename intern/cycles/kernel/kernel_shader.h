@@ -56,7 +56,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 	PROFILING_INIT(kg, PROFILING_SHADER_SETUP);
 
 #ifdef __INSTANCING__
-	sd->object = (isect->object == PRIM_NONE)? kernel_tex_fetch(__prim_object, isect->prim): isect->object;
+	sd->object = (isect->object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, isect->prim): isect->object;
 #endif
 	sd->lamp = LAMP_NONE;
 
@@ -411,7 +411,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	sd->ray_length = 0.0f;
 
 #ifdef __INSTANCING__
-	sd->object = PRIM_NONE;
+	sd->object = OBJECT_NONE;
 #endif
 	sd->lamp = LAMP_NONE;
 	sd->prim = PRIM_NONE;
@@ -457,7 +457,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 	sd->ray_length = 0.0f; /* todo: can we set this to some useful value? */
 
 #  ifdef __INSTANCING__
-	sd->object = PRIM_NONE; /* todo: fill this for texture coordinates */
+	sd->object = OBJECT_NONE; /* todo: fill this for texture coordinates */
 #  endif
 	sd->lamp = LAMP_NONE;
 	sd->prim = PRIM_NONE;
