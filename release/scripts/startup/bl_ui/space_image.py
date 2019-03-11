@@ -730,12 +730,6 @@ class IMAGE_PT_view_display(Panel):
             col.prop(ima, "display_aspect", text="Aspect Ratio")
             col.prop(sima, "show_repeat", text="Repeat Image")
 
-        if show_uvedit or show_maskedit:
-            col.separator()
-
-            col = layout.column()
-            col.prop(sima, "cursor_location", text="Cursor Location")
-
         if show_uvedit:
             col.prop(uvedit, "show_pixel_coords", text="Pixel Coordinates")
 
@@ -1286,6 +1280,33 @@ class IMAGE_PT_scope_sample(ImageScopesPanel, Panel):
         col.prop(sima.scopes, "accuracy")
 
 
+class IMAGE_PT_uv_cursor(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Image"
+    bl_label = "3D Cursor"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+
+        return (sima and (sima.show_uvedit) or (sima.show_maskedit))
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        ima = sima.image
+
+
+        uvedit = sima.uv_editor
+
+        col = layout.column()
+
+        col = layout.column()
+        col.prop(sima, "cursor_location", text="Cursor Location")
+
+
 # Grease Pencil properties
 class IMAGE_PT_grease_pencil(AnnotationDataPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -1343,6 +1364,7 @@ classes = (
     IMAGE_PT_view_vectorscope,
     IMAGE_PT_sample_line,
     IMAGE_PT_scope_sample,
+    IMAGE_PT_uv_cursor,
     IMAGE_PT_grease_pencil,
 )
 
