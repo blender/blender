@@ -5728,23 +5728,16 @@ class VIEW3D_PT_paint_weight_specials(Panel):
     bl_label = "Weights Context Menu"
 
     def draw(self, context):
+        brush = context.tool_settings.weight_paint.brush
+        capabilities = brush.weight_paint_capabilities
+        ups = context.tool_settings.unified_paint_settings
+
+
         layout = self.layout
-        # TODO: populate with useful items.
-        layout.operator("paint.weight_set")
-        layout.separator()
-        layout.operator("object.vertex_group_normalize", text="Normalize")
-        layout.operator("object.vertex_group_clean", text="Clean")
-
-        layout.separator()
-
-        layout.operator("object.vertex_group_quantize", text="Quantize")
-        layout.operator("object.vertex_group_levels", text="Levels")
-        layout.operator("object.vertex_group_smooth", text="Smooth")
-
-        layout.separator()
-
-        layout.operator("object.vertex_group_limit_total", text="Limit Total")
-        layout.operator("object.vertex_group_fix", text="Fix Deforms")
+        if capabilities.has_weight or brush.use_gradient:
+            layout.prop(ups, "weight")
+        layout.prop(ups, "size", slider=True)
+        layout.prop(ups, "strength")
 
 
 class VIEW3D_PT_sculpt_specials(Panel):
