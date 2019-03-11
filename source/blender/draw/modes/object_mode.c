@@ -2732,7 +2732,7 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
 	BoundBox *bb = BKE_object_boundbox_get(ob);
 
 	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT,
-	                    OB_MBALL, OB_ARMATURE, OB_LATTICE))
+	                    OB_MBALL, OB_ARMATURE, OB_LATTICE, OB_GPENCIL))
 	{
 		const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 		bb = &bb_local;

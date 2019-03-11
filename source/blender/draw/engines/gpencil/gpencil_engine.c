@@ -583,7 +583,12 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
 
+	/* bound box object are not visible, only external box*/
 	if (ob->type == OB_GPENCIL && ob->data) {
+		if (ob->dt == OB_BOUNDBOX) {
+			return;
+		}
+
 		bGPdata *gpd = (bGPdata *)ob->data;
 
 		/* enable multisample and basic framebuffer creation */

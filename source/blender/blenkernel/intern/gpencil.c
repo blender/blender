@@ -1127,14 +1127,11 @@ static void boundbox_gpencil(Object *ob)
 /* get bounding box */
 BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 {
-	bGPdata *gpd;
-
 	if (ELEM(NULL, ob, ob->data))
 		return NULL;
 
-	gpd = ob->data;
-	if ((ob->runtime.bb) && ((ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) &&
-	    ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0))
+	bGPdata *gpd = (bGPdata *)ob->data;
+	if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0))
 	{
 		return ob->runtime.bb;
 	}
