@@ -194,7 +194,7 @@ static bool sculpt_undo_restore_coords(bContext *C, SculptUndoNode *unode)
 
 			/* pbvh uses it's own mvert array, so coords should be */
 			/* propagated to pbvh here */
-			BKE_pbvh_apply_vertCos(ss->pbvh, vertCos, unode->totvert);
+			BKE_pbvh_apply_vertCos(ss->pbvh, vertCos, ss->kb->totelem);
 
 			MEM_freeN(vertCos);
 		}
