@@ -1284,13 +1284,13 @@ class IMAGE_PT_uv_cursor(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Image"
-    bl_label = "3D Cursor"
+    bl_label = "2D Cursor"
 
     @classmethod
     def poll(cls, context):
         sima = context.space_data
 
-        return (sima and (sima.show_uvedit) or (sima.show_maskedit))
+        return (sima and (sima.show_uvedit or sima.show_maskedit))
 
     def draw(self, context):
         layout = self.layout
