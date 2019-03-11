@@ -1005,7 +1005,7 @@ static void gpencil_draw_strokes(
 				    ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 				     (gpl->blend_mode == eGplBlendMode_Normal)))
 				{
-					/* recalc strokes uv (geometry be changed by modifiers) */
+					/* recalc strokes uv (geometry can be changed by modifiers) */
 					if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
 						ED_gpencil_calc_stroke_uv(ob, gps);
 					}
