@@ -4135,10 +4135,7 @@ class VIEW3D_MT_shading_ex_pie(Menu):
         pie.prop_enum(view.shading, "type", value='SOLID')
 
         # Note this duplicates "view3d.toggle_xray" logic, so we can see the active item: T58661.
-        if (
-                (context.mode == 'POSE') or
-                ((context.mode == 'WEIGHT_PAINT') and (context.active_object.find_armature()))
-        ):
+        if context.pose_object:
             pie.prop(view.overlay, "show_xray_bone", icon='XRAY')
         else:
             xray_active = (
@@ -5158,7 +5155,7 @@ class VIEW3D_PT_overlay_pose(Panel):
         mode = context.mode
         return (
             (mode == 'POSE') or
-            (mode == 'PAINT_WEIGHT' and context.active_object.find_armature())
+            (mode == 'PAINT_WEIGHT' and context.pose_object)
         )
 
     def draw(self, context):
