@@ -5655,36 +5655,37 @@ class VIEW3D_MT_gpencil_edit_specials(Menu):
         layout.menu("VIEW3D_MT_edit_gpencil_delete")
 
 
-class VIEW3D_MT_gpencil_sculpt_specials(Menu):
+class VIEW3D_PT_gpencil_sculpt_specials(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
     bl_label = "Sculpt Context Menu"
 
     def draw(self, context):
+        brush = context.tool_settings.gpencil_sculpt.brush
+
         layout = self.layout
 
-        layout.operator_context = 'INVOKE_REGION_WIN'
-
-        # Add
-        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
-
-        layout.separator()
-
-        # Modify
-        layout.menu("VIEW3D_MT_assign_material")
-
-        layout.separator()
-
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
-
         if context.mode == 'WEIGHT_GPENCIL':
-            layout.separator()
-            layout.menu("VIEW3D_MT_gpencil_autoweights")
+            layout.prop(brush, "weight")
+        layout.prop(brush, "size", slider=True)
+        layout.prop(brush, "strength")
 
-        layout.separator()
 
-        # Remove
-        layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
-        layout.operator("gpencil.stroke_simplify", text="Simplify Adaptive")
+class VIEW3D_PT_gpencil_draw_specials(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Draw Context Menu"
+
+    def draw(self, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+
+        layout = self.layout
+
+        if brush.gpencil_tool not in {'FILL', 'CUTTER'}:
+            layout.prop(brush, "size", slider=True)
+        if brush.gpencil_tool not in {'ERASE', 'FILL', 'CUTTER'}:
+            layout.prop(gp_settings, "pen_strength")
 
 
 class VIEW3D_PT_paint_vertex_specials(Panel):
@@ -5926,7 +5927,6 @@ classes = (
     VIEW3D_MT_gpencil_copy_layer,
     VIEW3D_MT_gpencil_autoweights,
     VIEW3D_MT_gpencil_edit_specials,
-    VIEW3D_MT_gpencil_sculpt_specials,
     VIEW3D_MT_edit_curve,
     VIEW3D_MT_edit_curve_ctrlpoints,
     VIEW3D_MT_edit_curve_segments,
@@ -5999,6 +5999,8 @@ classes = (
     VIEW3D_PT_paint_vertex_specials,
     VIEW3D_PT_paint_texture_specials,
     VIEW3D_PT_paint_weight_specials,
+    VIEW3D_PT_gpencil_sculpt_specials,
+    VIEW3D_PT_gpencil_draw_specials,
     VIEW3D_PT_sculpt_specials,
     TOPBAR_PT_gpencil_materials,
     TOPBAR_PT_annotation_layers,

@@ -616,24 +616,6 @@ class GPENCIL_MT_separate(Menu):
         layout.operator("gpencil.stroke_separate", text="Active Layer").mode = 'LAYER'
 
 
-class GPENCIL_MT_gpencil_draw_specials(Menu):
-    bl_label = "Draw Context Menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("gpencil.blank_frame_add")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
-
-        layout.separator()
-
-        layout.operator("gpencil.active_frames_delete_all")
-        layout.operator("gpencil.delete", text="Delete Active Frame").type = 'FRAME'
-
-
 class GPENCIL_MT_gpencil_draw_delete(Menu):
     bl_label = "GPencil Draw Delete"
 
@@ -960,7 +942,6 @@ classes = (
     GPENCIL_MT_separate,
     GPENCIL_MT_cleanup,
 
-    GPENCIL_MT_gpencil_draw_specials,
     GPENCIL_MT_gpencil_draw_delete,
 
     GPENCIL_UL_annotation_layer,

@@ -3047,7 +3047,7 @@ def km_grease_pencil_stroke_paint_mode(params):
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_paint.brush.size')]}),
         # Draw context menu
-        op_menu("GPENCIL_MT_gpencil_draw_specials", params.context_menu_event),
+        op_panel("VIEW3D_PT_gpencil_draw_specials", params.context_menu_event),
         # Draw delete menu
         op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'X', "value": 'PRESS'}),
     ])
@@ -3187,7 +3187,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.brush.size')]}),
         # Context menu
-        op_menu("VIEW3D_MT_gpencil_sculpt_specials", params.context_menu_event),
+        op_panel("VIEW3D_PT_gpencil_sculpt_specials", params.context_menu_event),
         # Display
         *_grease_pencil_display(),
     ])
