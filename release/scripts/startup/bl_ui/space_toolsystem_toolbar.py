@@ -1387,7 +1387,7 @@ class _defs_node_edit:
     def links_cut():
         return dict(
             text="Links Cut",
-            icon="ops.mesh.knife_tool",
+            icon="ops.node.links_cut",
             widget=None,
             keymap="Node Tool: Links Cut",
         )
