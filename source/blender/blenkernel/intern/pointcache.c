@@ -3202,7 +3202,7 @@ int  BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 	if (cfra<pid->cache->startframe || cfra > pid->cache->endframe)
 		return 0;
 
-	if (pid->cache->cached_frames &&	pid->cache->cached_frames[cfra-pid->cache->startframe]==0)
+	if (pid->cache->cached_frames && pid->cache->cached_frames[cfra-pid->cache->startframe]==0)
 		return 0;
 
 	if (pid->cache->flag & PTCACHE_DISK_CACHE) {
@@ -3258,9 +3258,10 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 
 	/* verify cached_frames array is up to date */
 	if (cache->cached_frames) {
-		if (MEM_allocN_len(cache->cached_frames) != sizeof(char) * (cache->endframe-cache->startframe+1)) {
+		if (cache->cached_frames_len != (cache->endframe - cache->startframe + 1)) {
 			MEM_freeN(cache->cached_frames);
 			cache->cached_frames = NULL;
+			cache->cached_frames_len = 0;
 		}
 	}
 
@@ -3268,7 +3269,8 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		unsigned int sta=cache->startframe;
 		unsigned int end=cache->endframe;
 
-		cache->cached_frames = MEM_callocN(sizeof(char) * (cache->endframe-cache->startframe+1), "cached frames array");
+		cache->cached_frames_len = cache->endframe - cache->startframe + 1;
+		cache->cached_frames = MEM_callocN(sizeof(char) * cache->cached_frames_len, "cached frames array");
 
 		if (pid->cache->flag & PTCACHE_DISK_CACHE) {
 			/* mode is same as fopen's modes */
@@ -3544,6 +3546,7 @@ static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
 
 	if (copy_data == false) {
 		ncache->cached_frames = NULL;
+		ncache->cached_frames_len = 0;
 
 		/* flag is a mix of user settings and simulator/baking state */
 		ncache->flag= ncache->flag & (PTCACHE_DISK_CACHE|PTCACHE_EXTERNAL|PTCACHE_IGNORE_LIBPATH);
@@ -3902,7 +3905,8 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 
 	if (cache->cached_frames) {
 		MEM_freeN(cache->cached_frames);
-		cache->cached_frames=NULL;
+		cache->cached_frames = NULL;
+		cache->cached_frames_len = 0;
 	}
 
 	if (cache->flag & PTCACHE_DISK_CACHE)
@@ -4082,7 +4086,8 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 	/* make sure all new frames are loaded */
 	if (cache->cached_frames) {
 		MEM_freeN(cache->cached_frames);
-		cache->cached_frames=NULL;
+		cache->cached_frames = NULL;
+		cache->cached_frames_len = 0;
 	}
 	BKE_ptcache_update_info(pid);
 }
