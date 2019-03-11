@@ -5826,9 +5826,6 @@ class VIEW3D_PT_sculpt_specials(Panel):
 
         layout = self.layout
 
-        # Direction
-        layout.prop(brush, "direction", expand=True)
-
         # Size
         if ups.use_unified_size:
             layout.prop(ups, "size", slider=True)
