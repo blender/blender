@@ -339,6 +339,8 @@ void DRW_transform_to_display(GPUTexture *tex, bool use_view_transform, bool use
 /* Draw texture to framebuffer without any color transforms */
 void DRW_transform_none(GPUTexture *tex)
 {
+	drw_state_set(DRW_STATE_WRITE_COLOR);
+
 	/* Draw as texture for final render (without immediate mode). */
 	GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 	GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_IMAGE_COLOR);
