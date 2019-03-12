@@ -89,6 +89,18 @@
 /* Datablock Operators */
 
 /* ******************* Add New Data ************************ */
+bool gp_data_add_poll(bContext *C)
+{
+	Object *obact = CTX_data_active_object(C);
+	if (obact && obact->type == OB_GPENCIL) {
+		if (obact->mode != OB_MODE_OBJECT) {
+			return false;
+		}
+	}
+
+	/* the base line we have is that we have somewhere to add Grease Pencil data */
+	return ED_gpencil_data_get_pointers(C, NULL) != NULL;
+}
 
 /* add new datablock - wrapper around API */
 static int gp_data_add_exec(bContext *C, wmOperator *op)
@@ -153,7 +165,7 @@ void GPENCIL_OT_data_add(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = gp_data_add_exec;
-	ot->poll = gp_add_poll;
+	ot->poll = gp_data_add_poll;
 }
 
 /* ******************* Unlink Data ************************ */
