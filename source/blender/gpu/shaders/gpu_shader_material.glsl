@@ -1780,7 +1780,7 @@ void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
 void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
 {
 #ifndef VOLUMETRICS
-	N = normalize(worldNormal);
+	N = normalize(gl_FrontFacing ? worldNormal : -worldNormal);
 #else
 	N = (toworld * vec4(N, 0.0)).xyz;
 #endif
@@ -1809,8 +1809,7 @@ void node_geometry(
 
 	position = worldPosition;
 #  ifndef VOLUMETRICS
-	normal = normalize(worldNormal);
-
+	normal = normalize(gl_FrontFacing ? worldNormal : -worldNormal);
 	vec3 B = dFdx(worldPosition);
 	vec3 T = dFdy(worldPosition);
 	true_normal = normalize(cross(B, T));
