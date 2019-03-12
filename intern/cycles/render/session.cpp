@@ -658,11 +658,6 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	scene->shader_manager->get_requested_features(
 	        scene,
 	        &requested_features);
-	if(!params.background) {
-		/* Avoid too much re-compilations for viewport render. */
-		requested_features.max_nodes_group = NODE_GROUP_LEVEL_MAX;
-		requested_features.nodes_features = NODE_FEATURE_ALL;
-	}
 
 	/* This features are not being tweaked as often as shaders,
 	 * so could be done selective magic for the viewport as well.
