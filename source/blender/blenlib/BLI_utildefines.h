@@ -36,6 +36,13 @@ extern "C" {
 /* We could remove in future. */
 #include "BLI_assert.h"
 
+/* include after _VA_NARGS macro */
+#include "BLI_compiler_typecheck.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Min/Max Macros
+ * \{ */
+
 /* useful for finding bad use of min/max */
 #if 0
 /* gcc only */
@@ -43,9 +50,6 @@ extern "C" {
 #  define MIN2(x, y)          (_TYPECHECK(x, y), (((x) < (y) ? (x) : (y))))
 #  define MAX2(x, y)          (_TYPECHECK(x, y), (((x) > (y) ? (x) : (y))))
 #endif
-
-/* include after _VA_NARGS macro */
-#include "BLI_compiler_typecheck.h"
 
 /* min/max */
 #if defined(__GNUC__) || defined(__clang__)
@@ -129,8 +133,11 @@ extern "C" {
 		if ((max)[1] < (vec)[1] ) (max)[1] = (vec)[1];                        \
 	} (void)0
 
-/* some math and copy defines */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Swap/Shift Macros
+ * \{ */
 
 #define SWAP(type, a, b)  {    \
 	type sw_ap;                \
@@ -149,6 +156,37 @@ extern "C" {
 	(a) = (b);                    \
 	(b) = (tval);                 \
 } (void)0
+
+/* shift around elements */
+#define SHIFT3(type, a, b, c)  {                                              \
+	type tmp;                                                                 \
+	CHECK_TYPE(a, type);                                                      \
+	CHECK_TYPE(b, type);                                                      \
+	CHECK_TYPE(c, type);                                                      \
+	tmp = a;                                                                  \
+	a = c;                                                                    \
+	c = b;                                                                    \
+	b = tmp;                                                                  \
+} (void)0
+
+#define SHIFT4(type, a, b, c, d)  {                                           \
+	type tmp;                                                                 \
+	CHECK_TYPE(a, type);                                                      \
+	CHECK_TYPE(b, type);                                                      \
+	CHECK_TYPE(c, type);                                                      \
+	CHECK_TYPE(d, type);                                                      \
+	tmp = a;                                                                  \
+	a = d;                                                                    \
+	d = c;                                                                    \
+	c = b;                                                                    \
+	b = tmp;                                                                  \
+} (void)0
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Equal to Any Element (ELEM) Macro
+ * \{ */
 
 /* ELEM#(v, ...): is the first arg equal any others? */
 /* internal helpers*/
@@ -188,35 +226,11 @@ extern "C" {
 /* reusable ELEM macro */
 #define ELEM(...) VA_NARGS_CALL_OVERLOAD(_VA_ELEM, __VA_ARGS__)
 
-/* no-op for expressions we don't want to instansiate, but must remian valid */
-#define EXPR_NOP(expr) (void)(0 ? ((void)(expr), 1) : 0)
+/** \} */
 
-/* shift around elements */
-#define SHIFT3(type, a, b, c)  {                                              \
-	type tmp;                                                                 \
-	CHECK_TYPE(a, type);                                                      \
-	CHECK_TYPE(b, type);                                                      \
-	CHECK_TYPE(c, type);                                                      \
-	tmp = a;                                                                  \
-	a = c;                                                                    \
-	c = b;                                                                    \
-	b = tmp;                                                                  \
-} (void)0
-
-#define SHIFT4(type, a, b, c, d)  {                                           \
-	type tmp;                                                                 \
-	CHECK_TYPE(a, type);                                                      \
-	CHECK_TYPE(b, type);                                                      \
-	CHECK_TYPE(c, type);                                                      \
-	CHECK_TYPE(d, type);                                                      \
-	tmp = a;                                                                  \
-	a = d;                                                                    \
-	d = c;                                                                    \
-	c = b;                                                                    \
-	b = tmp;                                                                  \
-} (void)0
-
-/* some misc stuff.... */
+/* -------------------------------------------------------------------- */
+/** \name Simple Math Macros
+ * \{ */
 
 /* avoid multiple access for supported compilers */
 #if defined(__GNUC__) || defined(__clang__)
@@ -238,6 +252,36 @@ extern "C" {
 #define CUBE(a)  ((a) * (a) * (a))
 
 #endif
+
+/* Float equality checks. */
+
+#define IS_EQ(a, b)  ( \
+	CHECK_TYPE_INLINE(a, double), CHECK_TYPE_INLINE(b, double), \
+	((fabs((double)((a) - (b))) >= (double) FLT_EPSILON) ? false : true))
+
+#define IS_EQF(a, b)  ( \
+	CHECK_TYPE_INLINE(a, float), CHECK_TYPE_INLINE(b, float), \
+	((fabsf((float)((a) - (b))) >= (float) FLT_EPSILON) ? false : true))
+
+#define IS_EQT(a, b, c)        (((a) > (b)) ? ((((a) - (b)) <= (c))) : (((((b) - (a)) <= (c)))))
+#define IN_RANGE(a, b, c)      (((b) < (c)) ? (((b) <  (a) && (a) <  (c))) : (((c) <  (a) && (a) <  (b))))
+#define IN_RANGE_INCL(a, b, c) (((b) < (c)) ? (((b) <= (a) && (a) <= (c))) : (((c) <= (a) && (a) <= (b))))
+
+/**
+ * Expands to an integer constant expression evaluating to a close upper bound
+ * on the number the number of decimal digits in a value expressible in the
+ * integer type given by the argument (if it is a type name) or the integer
+ * type of the argument (if it is an expression). The meaning of the resulting
+ * expression is unspecified for other arguments.
+ * i.e: `DECIMAL_DIGITS_BOUND(uchar)` is equal to 3.
+ */
+#define DECIMAL_DIGITS_BOUND(t) (241 * sizeof(t) / 100 + 1)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clamp Macros
+ * \{ */
 
 #define CLAMPIS(a, b, c)  ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 
@@ -308,17 +352,11 @@ extern "C" {
 	CLAMP_MAX((vec)[3], b); \
 } (void)0
 
-#define IS_EQ(a, b)  ( \
-	CHECK_TYPE_INLINE(a, double), CHECK_TYPE_INLINE(b, double), \
-	((fabs((double)((a) - (b))) >= (double) FLT_EPSILON) ? false : true))
+/** \} */
 
-#define IS_EQF(a, b)  ( \
-	CHECK_TYPE_INLINE(a, float), CHECK_TYPE_INLINE(b, float), \
-	((fabsf((float)((a) - (b))) >= (float) FLT_EPSILON) ? false : true))
-
-#define IS_EQT(a, b, c)        (((a) > (b)) ? ((((a) - (b)) <= (c))) : (((((b) - (a)) <= (c)))))
-#define IN_RANGE(a, b, c)      (((b) < (c)) ? (((b) <  (a) && (a) <  (c))) : (((c) <  (a) && (a) <  (b))))
-#define IN_RANGE_INCL(a, b, c) (((b) < (c)) ? (((b) <= (a) && (a) <= (c))) : (((c) <= (a) && (a) <= (b))))
+/* -------------------------------------------------------------------- */
+/** \name Array Unpacking Macros
+ * \{ */
 
 /* unpack vector for args */
 #define UNPACK2(a)  ((a)[0]),   ((a)[1])
@@ -328,6 +366,12 @@ extern "C" {
 #define UNPACK2_EX(pre, a, post)  (pre((a)[0])post),        (pre((a)[1])post)
 #define UNPACK3_EX(pre, a, post)  UNPACK2_EX(pre, a, post), (pre((a)[2])post)
 #define UNPACK4_EX(pre, a, post)  UNPACK3_EX(pre, a, post), (pre((a)[3])post)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Array Macros
+ * \{ */
 
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, arr_len) \
@@ -420,6 +464,12 @@ extern "C" {
 /* reusable ARRAY_SET_ITEMS macro */
 #define ARRAY_SET_ITEMS(...) { VA_NARGS_CALL_OVERLOAD(_VA_ARRAY_SET_ITEMS, __VA_ARGS__); } (void)0
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pointer Macros
+ * \{ */
+
 #if defined(__GNUC__) || defined(__clang__)
 #define POINTER_OFFSET(v, ofs) \
 	((typeof(v))((char *)(v) + (ofs)))
@@ -427,6 +477,24 @@ extern "C" {
 #define POINTER_OFFSET(v, ofs) \
 	((void *)((char *)(v) + (ofs)))
 #endif
+
+/* Warning-free macros for storing ints in pointers. Use these _only_
+ * for storing an int in a pointer, not a pointer in an int (64bit)! */
+#define POINTER_FROM_INT(i)    ((void *)(intptr_t)(i))
+#define POINTER_AS_INT(i)  ((void)0, ((int)(intptr_t)(i)))
+
+#define POINTER_FROM_UINT(i)    ((void *)(uintptr_t)(i))
+#define POINTER_AS_UINT(i)  ((void)0, ((unsigned int)(uintptr_t)(i)))
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Struct After Macros
+ *
+ * Typically used to copy/clear polymorphic structs which have a generic
+ * member at the start which needs to be left as-is.
+ *
+ * \{ */
 
 /** Performs `offsetof(typeof(data), member) + sizeof((data)->member)` for non-gcc compilers. */
 #define OFFSETOF_STRUCT_AFTER(_struct, _member) \
@@ -463,24 +531,11 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 	       (const char *)(struct_var)  + OFFSETOF_STRUCT_AFTER(struct_var, member), \
 	       sizeof(*(struct_var))       - OFFSETOF_STRUCT_AFTER(struct_var, member)))
 
-/* Warning-free macros for storing ints in pointers. Use these _only_
- * for storing an int in a pointer, not a pointer in an int (64bit)! */
-#define POINTER_FROM_INT(i)    ((void *)(intptr_t)(i))
-#define POINTER_AS_INT(i)  ((void)0, ((int)(intptr_t)(i)))
+/** \} */
 
-#define POINTER_FROM_UINT(i)    ((void *)(uintptr_t)(i))
-#define POINTER_AS_UINT(i)  ((void)0, ((unsigned int)(uintptr_t)(i)))
-
-/* Set flag from a single test */
-#define SET_FLAG_FROM_TEST(value, test, flag) \
-{ \
-	if (test) { \
-		(value) |=  (flag); \
-	} \
-	else { \
-		(value) &= ~(flag); \
-	} \
-} ((void)0)
+/* -------------------------------------------------------------------- */
+/** \name String Macros
+ * \{ */
 
 /* Macro to convert a value to string in the preprocessor
  * STRINGIFY_ARG: gives the argument as a string
@@ -504,9 +559,12 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #define STRCASEEQLEN(a, b, n) (strncasecmp(a, b, n) == 0)
 
 #define STRPREFIX(a, b) (strncmp((a), (b), strlen(b)) == 0)
-/* useful for debugging */
-#define AT __FILE__ ":" STRINGIFY(__LINE__)
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unused Function/Argument Macros
+ * \{ */
 
 /* UNUSED macro, for function argument */
 #if defined(__GNUC__) || defined(__clang__)
@@ -577,6 +635,12 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #  define UNUSED_VARS_NDEBUG UNUSED_VARS
 #endif
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Branch Prediction Macros
+ * \{ */
+
 /* hints for branch prediction, only use in code that runs a _lot_ where */
 #ifdef __GNUC__
 #  define LIKELY(x)       __builtin_expect(!!(x), 1)
@@ -586,13 +650,36 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #  define UNLIKELY(x)     (x)
 #endif
 
-/* Expands to an integer constant expression evaluating to a close upper bound
- * on the number the number of decimal digits in a value expressible in the
- * integer type given by the argument (if it is a type name) or the integer
- * type of the argument (if it is an expression). The meaning of the resulting
- * expression is unspecified for other arguments.
- * i.e: DECIMAL_DIGITS_BOUND(uchar) is equal to 3. */
-#define DECIMAL_DIGITS_BOUND(t) (241 * sizeof(t) / 100 + 1)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flag Macros
+ * \{ */
+
+/* Set flag from a single test */
+#define SET_FLAG_FROM_TEST(value, test, flag) \
+{ \
+	if (test) { \
+		(value) |=  (flag); \
+	} \
+	else { \
+		(value) &= ~(flag); \
+	} \
+} ((void)0)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Misc Macros
+ * \{ */
+
+/** Useful for debugging. */
+#define AT __FILE__ ":" STRINGIFY(__LINE__)
+
+/** No-op for expressions we don't want to instansiate, but must remian valid. */
+#define EXPR_NOP(expr) (void)(0 ? ((void)(expr), 1) : 0)
+
+/** \} */
 
 #ifdef __cplusplus
 }
