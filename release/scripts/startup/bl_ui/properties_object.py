@@ -257,7 +257,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
             col.active = is_dupli
         col.prop(obj, "display_type", text="Display As")
 
-        if is_geometry or is_empty_image or is_gpencil:
+        if is_geometry or is_dupli or is_empty_image or is_gpencil:
             # Only useful with object having faces/materials...
             col = flow.column()
             col.prop(obj, "color")

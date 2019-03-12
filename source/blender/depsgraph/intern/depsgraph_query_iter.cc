@@ -149,6 +149,7 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROM_DUPLI;
 		temp_dupli_object->base_local_view_bits = dupli_parent->base_local_view_bits;
 		temp_dupli_object->dt = dupli_parent->dt;
+		copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
 
 		/* Duplicated elements shouldn't care whether their original collection is visible or not. */
 		temp_dupli_object->base_flag |= BASE_VISIBLE;
