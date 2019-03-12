@@ -3317,7 +3317,7 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
 	iuser_t.view = view_id;
 	BKE_image_user_file_path(&iuser_t, ima, name);
 
-	flag = IB_rect | IB_multilayer;
+	flag = IB_rect | IB_multilayer | IB_metadata;
 	flag |= imbuf_alpha_flags_for_image(ima);
 
 	/* read ibuf */
