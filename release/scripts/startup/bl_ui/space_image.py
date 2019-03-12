@@ -1148,12 +1148,12 @@ class IMAGE_PT_uv_sculpt(Panel):
                 col = layout.column()
 
                 row = col.row(align=True)
-                UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
-                UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size")
+                UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
+                UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
 
                 row = col.row(align=True)
-                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
-                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
+                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True)
+                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
 
         col = layout.column()
         col.prop(tool_settings, "uv_sculpt_lock_borders")

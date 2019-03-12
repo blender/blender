@@ -5747,8 +5747,8 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.vertex_paint.brush
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
 
 
 class VIEW3D_PT_paint_texture_context_menu(Panel):
@@ -5761,8 +5761,8 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.image_paint.brush
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
 
 
 class VIEW3D_PT_paint_weight_context_menu(Panel):
@@ -5775,9 +5775,9 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.weight_paint.brush
-        UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", text="Weight", slider=True)
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
+        UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True)
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
 
 
 class VIEW3D_PT_sculpt_context_menu(Panel):
@@ -5791,8 +5791,8 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         brush = context.tool_settings.sculpt.brush
 
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
 
 
 class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):

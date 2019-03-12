@@ -441,12 +441,12 @@ class _draw_left_context_mode:
                         from .properties_paint_common import UnifiedPaintPanel
 
                         row = layout.row(align=True)
-                        UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
-                        UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size")
+                        UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
+                        UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
 
                         row = layout.row(align=True)
-                        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
-                        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
+                        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True)
+                        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
 
         @staticmethod
         def PAINT(context, layout, tool):
