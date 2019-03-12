@@ -288,18 +288,46 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 static int material_slot_de_select(bContext *C, bool select)
 {
 	bool changed_multi = false;
+	Object *obact = CTX_data_active_object(C);
+	const Material *mat_active = obact ? give_current_material(obact, obact->actcol) : NULL;
 
 	uint objects_len = 0;
 	Object **objects = object_array_for_shading(C, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
+		short mat_nr_active = -1;
+
+		if (ob->totcol == 0) {
+			continue;
+		}
+		if (obact && (mat_active == give_current_material(ob, obact->actcol))) {
+			/* Avoid searching since there may be multiple slots with the same material.
+			 * For the active object or duplicates: match the material slot index first. */
+			mat_nr_active = obact->actcol - 1;
+		}
+		else {
+			/* Find the first matching material.
+			 * Note: there may be multiple but thats not a common use case. */
+			for (short i = 0; i < ob->totcol; i++) {
+				const Material *mat = give_current_material(ob, i + 1);
+				if (mat_active == mat) {
+					mat_nr_active = i;
+					break;
+				}
+			}
+			if (mat_nr_active == -1) {
+				continue;
+			}
+		}
+
+
 		bool changed = false;
 
 		if (ob->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(ob);
 
 			if (em) {
-				changed = EDBM_deselect_by_material(em, ob->actcol - 1, select);
+				changed = EDBM_deselect_by_material(em, mat_nr_active, select);
 			}
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -311,7 +339,7 @@ static int material_slot_de_select(bContext *C, bool select)
 
 			if (nurbs) {
 				for (nu = nurbs->first; nu; nu = nu->next) {
-					if (nu->mat_nr == ob->actcol - 1) {
+					if (nu->mat_nr == mat_nr_active) {
 						if (nu->bezt) {
 							a = nu->pntsu;
 							bezt = nu->bezt;
