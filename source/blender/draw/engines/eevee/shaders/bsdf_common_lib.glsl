@@ -783,14 +783,16 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 Closure closure_add(Closure cl1, Closure cl2)
 {
 	Closure cl = (cl1.ssr_id == outputSsrId) ? cl1 : cl2;
+	cl.radiance = cl1.radiance + cl2.radiance;
 #  ifdef USE_SSS
 	cl.sss_data = (cl1.sss_data.a > 0.0) ? cl1.sss_data : cl2.sss_data;
+	/* Add radiance that was supposed to be filtered but was rejected. */
+	cl.radiance += (cl1.sss_data.a > 0.0) ? cl2.sss_data.rgb : cl1.sss_data.rgb;
 #    ifdef USE_SSS_ALBEDO
 	/* TODO Find a solution to this. Dither? */
 	cl.sss_albedo = (cl1.sss_data.a > 0.0) ? cl1.sss_albedo : cl2.sss_albedo;
 #    endif
 #  endif
-	cl.radiance = cl1.radiance + cl2.radiance;
 	cl.opacity = saturate(cl1.opacity + cl2.opacity);
 	return cl;
 }
