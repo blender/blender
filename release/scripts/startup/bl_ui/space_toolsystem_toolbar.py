@@ -148,9 +148,9 @@ class _defs_annotate:
             else:
                 text = ""
 
-            layout.label(text="Annotation:")
             gpl = context.active_gpencil_layer
             if gpl is not None:
+                layout.label(text="Annotation:")
                 sub = layout.row(align=True)
                 sub.ui_units_x = 8
 
