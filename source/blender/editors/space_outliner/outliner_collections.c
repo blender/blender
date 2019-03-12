@@ -446,7 +446,6 @@ static TreeElement *outliner_active_collection(bContext *C)
 static int collection_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	TreeElement *te = outliner_active_collection(C);
 	const bool linked = strstr(op->idname, "linked") != NULL;
 
@@ -486,13 +485,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 		           "it won't be linked to any view layer");
 	}
 
-	switch (soops->outlinevis) {
-		case SO_SCENES:
-		case SO_VIEW_LAYER:
-		case SO_LIBRARIES:
-			BKE_collection_duplicate(bmain, parent, collection, true, true, !linked);
-			break;
-	}
+	BKE_collection_duplicate(bmain, parent, collection, true, true, !linked);
 
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));
