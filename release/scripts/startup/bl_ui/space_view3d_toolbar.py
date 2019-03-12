@@ -1256,7 +1256,7 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
-    bl_label = "Project Paint"
+    bl_label = "Projection Paint"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1273,15 +1273,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        row = layout.row()
-        row.prop(ipaint, "use_normal_falloff")
-
-        sub = row.row()
-        sub.active = (ipaint.use_normal_falloff)
-        sub.prop(ipaint, "normal_angle", text="")
-
         layout.prop(ipaint, "seam_bleed")
-        layout.prop(ipaint, "dither")
+        layout.prop(ipaint, "dither", slider=True)
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
@@ -1289,7 +1282,32 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         col.prop(ipaint, "use_occlude")
 
         col = flow.column()
-        col.prop(ipaint, "use_backface_culling")
+        col.prop(ipaint, "use_backface_culling", text="Backface Culling")
+
+
+class VIEW3D_PT_tools_projectpaint_normal(View3DPaintPanel, Panel):
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
+    bl_label = "Normal"
+    bl_parent_id = "VIEW3D_PT_tools_projectpaint"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
+
+        self.layout.prop(ipaint, "use_normal_falloff", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
+
+        layout.active = ipaint.use_normal_falloff
+        layout.prop(ipaint, "normal_angle", text="Angle")
 
 
 class VIEW3D_PT_tools_projectpaint_unified(Panel, View3DPaintPanel):
@@ -1849,9 +1867,10 @@ classes = (
     VIEW3D_PT_tools_imagepaint_external,
     VIEW3D_PT_tools_imagepaint_symmetry,
     VIEW3D_PT_tools_projectpaint,
-    VIEW3D_PT_tools_projectpaint_unified,
+    VIEW3D_PT_tools_projectpaint_normal,
     VIEW3D_PT_tools_projectpaint_cavity,
     VIEW3D_MT_tools_projectpaint_stencil,
+    VIEW3D_PT_tools_projectpaint_unified,
     VIEW3D_PT_tools_particlemode,
 
     VIEW3D_PT_gpencil_brush_presets,
