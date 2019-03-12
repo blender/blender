@@ -26,6 +26,8 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_global.h"
+#include "BKE_layer.h"
+#include "BKE_report.h"
 
 #include "ED_screen.h"
 #include "ED_text.h"
@@ -57,6 +59,54 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 	}
 }
 
+static void rna_RegionView3D_local_view_add(
+        ID *id, RegionView3D *rv3d,
+        bContext *C,
+        ReportList *reports,
+        Object *ob)
+{
+	bScreen *sc = (bScreen *)id;
+
+	ScrArea *sa;
+	ARegion *ar;
+
+	area_region_from_regiondata(sc, rv3d, &sa, &ar);
+
+	if (sa && ar && sa->spacetype == SPACE_VIEW3D) {
+		View3D *v3d = sa->spacedata.first;
+
+		if (v3d->localvd == NULL) {
+			BKE_report(reports, RPT_ERROR, "3D Viewport not in local view");
+			return;
+		}
+
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wmWindow *win;
+
+		for (win = wm->windows.first; win; win = win->next) {
+			if (WM_window_get_active_screen(win) == sc) {
+				Scene *scene = WM_window_get_active_scene(win);
+				ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+
+				Base *base = BKE_view_layer_base_find(view_layer, ob);
+				if (base) {
+					base->local_view_bits |= v3d->local_view_uuid;
+					ED_area_tag_redraw(sa);
+					DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+				}
+				else {
+					BKE_reportf(reports,
+					            RPT_WARNING,
+					            "Object %s not in view layer %s",
+					            ob->id.name + 2,
+					            view_layer->name);
+				}
+				break;
+			}
+		}
+	}
+}
+
 static void rna_SpaceTextEditor_region_location_from_cursor(
         ID *id, SpaceText *st,
         int line, int column, int r_pixel_pos[2])
@@ -75,10 +125,17 @@ static void rna_SpaceTextEditor_region_location_from_cursor(
 void RNA_api_region_view3d(StructRNA *srna)
 {
 	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	func = RNA_def_function(srna, "update", "rna_RegionView3D_update");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Recalculate the view matrices");
+
+	func = RNA_def_function(srna, "local_view_add", "rna_RegionView3D_local_view_add");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "object", "Object", "Object", "Object to add to current local view");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_function_ui_description(func, "Add object to viewport's local view");
 }
 
 void RNA_api_space_node(StructRNA *srna)

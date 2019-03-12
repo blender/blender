@@ -133,6 +133,11 @@ def object_data_add(context, obdata, operator=None, name=None):
     obj_new.select_set(True)
     obj_new.matrix_world = add_object_align_init(context, operator)
 
+    space_data = context.space_data
+    if space_data.type == 'VIEW_3D':
+        if space_data.local_view:
+            space_data.region_3d.local_view_add(obj_new)
+
     if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
         bpy.ops.mesh.select_all(action='DESELECT')
         obj_act.select_set(True)
