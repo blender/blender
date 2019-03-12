@@ -72,7 +72,7 @@ struct Scene *BKE_collection_master_scene_search(const struct Main *bmain, const
 
 bool               BKE_collection_has_object(struct Collection *collection, struct Object *ob);
 bool               BKE_collection_has_object_recursive(struct Collection *collection, struct Object *ob);
-struct Collection *BKE_collection_object_find(struct Main *bmain, struct Collection *collection, struct Object *ob);
+struct Collection *BKE_collection_object_find(struct Main *bmain, struct Scene *scene, struct Collection *collection, struct Object *ob);
 bool               BKE_collection_is_empty(struct Collection *collection);
 
 bool BKE_collection_object_add(struct Main *bmain, struct Collection *collection, struct Object *ob);
@@ -178,6 +178,32 @@ void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
 #define FOREACH_SCENE_COLLECTION_END                                          \
 	ITER_END
+
+#define FOREACH_COLLECTION_BEGIN(_bmain, _scene, Type, _instance)             \
+{                                                                             \
+	Type _instance;                                                           \
+	Collection *_instance_next;                                               \
+	bool is_scene_collection = (_scene) != NULL;                              \
+                                                                              \
+	if (_scene) {                                                             \
+		_instance_next = BKE_collection_master(_scene);                       \
+	}                                                                         \
+	else {                                                                    \
+		_instance_next = (_bmain)->collections.first;                         \
+	}                                                                         \
+                                                                              \
+	while ((_instance = _instance_next)) {                                    \
+		if (is_scene_collection) {                                            \
+			_instance_next = (_bmain)->collections.first;                     \
+			is_scene_collection = false;                                      \
+		}                                                                     \
+		else {                                                                \
+			_instance_next = _instance->id.next;                              \
+		}
+
+#define FOREACH_COLLECTION_END                                                \
+	}                                                                         \
+}
 
 #define FOREACH_SCENE_OBJECT_BEGIN(scene, _instance)                          \
 	ITER_BEGIN(BKE_scene_objects_iterator_begin,                              \

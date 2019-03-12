@@ -3944,21 +3944,21 @@ LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer, eObjectSe
 /**
  * return all groups this object is apart of, caller must free.
  */
-struct LinkNode *BKE_object_groups(Main *bmain, Object *ob)
+struct LinkNode *BKE_object_groups(Main *bmain, Scene *scene, Object *ob)
 {
 	LinkNode *collection_linknode = NULL;
 	Collection *collection = NULL;
-	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
+	while ((collection = BKE_collection_object_find(bmain, scene, collection, ob))) {
 		BLI_linklist_prepend(&collection_linknode, collection);
 	}
 
 	return collection_linknode;
 }
 
-void BKE_object_groups_clear(Main *bmain, Object *ob)
+void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *ob)
 {
 	Collection *collection = NULL;
-	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
+	while ((collection = BKE_collection_object_find(bmain, scene, collection, ob))) {
 		BKE_collection_object_remove(bmain, collection, ob, false);
 		DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
 	}
