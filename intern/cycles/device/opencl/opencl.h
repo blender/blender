@@ -374,6 +374,8 @@ public:
 	/* Get the program file name to compile (*.cl) for the given kernel */
 	const string get_opencl_program_filename(const string& kernel_name);
 	string get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name);
+	/* Enable the default features to reduce recompilation events */
+	void enable_default_features(DeviceRequestedFeatures& features);
 
 	void mem_alloc(device_memory& mem);
 	void mem_copy_to(device_memory& mem);

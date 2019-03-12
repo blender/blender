@@ -73,6 +73,25 @@ const string OpenCLDevice::get_opencl_program_filename(const string& kernel_name
 	}
 }
 
+/* Enable features that we always want to compile to reduce recompilation events */
+void OpenCLDevice::enable_default_features(DeviceRequestedFeatures& features)
+{
+	features.use_transparent = true;
+	features.use_shadow_tricks = true;
+	features.use_principled = true;
+	features.use_denoising = true;
+
+	if (!background)
+	{
+		features.max_nodes_group = NODE_GROUP_LEVEL_MAX;
+		features.nodes_features = NODE_FEATURE_ALL;
+		features.use_hair = true;
+		features.use_subsurface = true;
+		features.use_camera_motion = false;
+		features.use_object_motion = false;
+	}
+}
+
 string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name)
 {
 	/* first check for non-split kernel programs */
@@ -84,15 +103,22 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 		 * displace and background are always requested.
 		 * `__SPLIT_KERNEL__` must not be present in the compile directives for bake */
 		DeviceRequestedFeatures features(requested_features);
+		enable_default_features(features);
 		features.use_denoising = false;
 		features.use_object_motion = false;
 		features.use_camera_motion = false;
+		features.use_hair = true;
+		features.use_subsurface = true;
+		features.max_nodes_group = NODE_GROUP_LEVEL_MAX;
+		features.nodes_features = NODE_FEATURE_ALL;
+		features.use_integrator_branched = false;
 		return features.get_build_options();
 	}
 	else if (opencl_program_name == "displace") {
 		/* As displacement does not use any nodes from the Shading group (eg BSDF).
 		 * We disable all features that are related to shading. */
 		DeviceRequestedFeatures features(requested_features);
+		enable_default_features(features);
 		features.use_denoising = false;
 		features.use_object_motion = false;
 		features.use_camera_motion = false;
@@ -104,13 +130,17 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 		features.nodes_features &= ~NODE_FEATURE_VOLUME;
 		features.use_denoising = false;
 		features.use_principled = false;
+		features.use_integrator_branched = false;
 		return features.get_build_options();
 	}
 	else if (opencl_program_name == "background") {
 		/* Background uses Background shading
 		 * It is save to disable shadow features, subsurface and volumetric. */
 		DeviceRequestedFeatures features(requested_features);
+		enable_default_features(features);
 		features.use_baking = false;
+		features.use_object_motion = false;
+		features.use_camera_motion = false;
 		features.use_transparent = false;
 		features.use_shadow_tricks = false;
 		features.use_denoising = false;
@@ -120,11 +150,13 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 		features.nodes_features &= ~NODE_FEATURE_VOLUME;
 		features.use_subsurface = false;
 		features.use_volume = false;
+		features.use_shader_raytrace = false;
+		features.use_patch_evaluation = false;
+		features.use_integrator_branched = false;
 		return features.get_build_options();
 	}
 
 	string build_options = "-D__SPLIT_KERNEL__ ";
-	DeviceRequestedFeatures nofeatures;
 	/* Set compute device build option. */
 	cl_device_type device_type;
 	OpenCLInfo::get_device_type(this->cdDevice, &device_type, &this->ciErr);
@@ -133,17 +165,16 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 		build_options += "-D__COMPUTE_DEVICE_GPU__ ";
 	}
 
+	DeviceRequestedFeatures nofeatures;
+	enable_default_features(nofeatures);
+
 	/* Add program specific optimized compile directives */
 	if (opencl_program_name == "split_do_volume" && !requested_features.use_volume) {
 		build_options += nofeatures.get_build_options();
 	}
-	else if (opencl_program_name == "split_subsurface_scatter" && !requested_features.use_subsurface) {
-		/* When subsurface is off, the kernel updates indexes and does not need any
-		 * Compile directives */
-		build_options += nofeatures.get_build_options();
-	}
 	else {
 		DeviceRequestedFeatures features(requested_features);
+		enable_default_features(features);
 
 		/* Always turn off baking at this point. Baking is only usefull when building the bake kernel.
 		 * this also makes sure that the kernels that are build during baking can be reused
@@ -155,6 +186,7 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 		if (opencl_program_name == "split_bundle") {
 			features.max_nodes_group = 0;
 			features.nodes_features = 0;
+			features.use_shader_raytrace = false;
 		}
 
 		/* No specific settings, just add the regular ones */
