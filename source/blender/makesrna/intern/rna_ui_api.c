@@ -452,8 +452,12 @@ static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propna
 
 static void api_ui_item_common_text(FunctionRNA *func)
 {
-	RNA_def_string(func, "text", NULL, 0, "", "Override automatic text of the item");
-	RNA_def_string(func, "text_ctxt", NULL, 0, "", "Override automatic translation context of the given text");
+	PropertyRNA *prop;
+
+	prop = RNA_def_string(func, "text", NULL, 0, "", "Override automatic text of the item");
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+	prop = RNA_def_string(func, "text_ctxt", NULL, 0, "", "Override automatic translation context of the given text");
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
 	RNA_def_boolean(func, "translate", true, "", "Translate the given text, when UI translation is enabled");
 }
 
