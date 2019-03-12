@@ -1367,7 +1367,7 @@ void BKE_mesh_nomain_to_mesh(
 	}
 
 	/* skip the listbase */
-	MEMCPY_STRUCT_OFS(mesh_dst, &tmp, id.prev);
+	MEMCPY_STRUCT_AFTER(mesh_dst, &tmp, id.prev);
 
 	if (take_ownership) {
 		if (alloctype == CD_ASSIGN) {

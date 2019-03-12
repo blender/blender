@@ -624,7 +624,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, const CustomData_MeshMask
 	}
 
 	/* skip the listbase */
-	MEMCPY_STRUCT_OFS(me, &tmp, id.prev);
+	MEMCPY_STRUCT_AFTER(me, &tmp, id.prev);
 
 	if (take_ownership) {
 		if (alloctype == CD_ASSIGN) {

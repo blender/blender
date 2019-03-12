@@ -46,7 +46,7 @@
 
 void BKE_light_init(Light *la)
 {
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(la, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(la, id));
 
 	la->r = la->g = la->b = la->k = 1.0f;
 	la->energy = 10.0f;

@@ -428,29 +428,29 @@ extern "C" {
 	((void *)((char *)(v) + (ofs)))
 #endif
 
-/* Like offsetof(typeof(), member), for non-gcc compilers */
-#define OFFSETOF_STRUCT(_struct, _member) \
-	((((char *)&((_struct)->_member)) - ((char *)(_struct))) + sizeof((_struct)->_member))
+/** Performs `offsetof(typeof(data), member) + sizeof((data)->member)` for non-gcc compilers. */
+#define OFFSETOF_STRUCT_AFTER(_struct, _member) \
+	((((const char *)&((_struct)->_member)) - ((const char *)(_struct))) + sizeof((_struct)->_member))
 
 /**
  * memcpy helper, skipping the first part of a struct,
  * ensures 'struct_dst' isn't const and the offset can be computed at compile time.
  * This isn't inclusive, the value of \a member isn't copied.
  */
-#define MEMCPY_STRUCT_OFS(struct_dst, struct_src, member)  { \
+#define MEMCPY_STRUCT_AFTER(struct_dst, struct_src, member)  { \
 	CHECK_TYPE_NONCONST(struct_dst); \
 	((void)(struct_dst == struct_src), \
-	 memcpy((char *)(struct_dst)  + OFFSETOF_STRUCT(struct_dst, member), \
-	        (char *)(struct_src)  + OFFSETOF_STRUCT(struct_dst, member), \
-	        sizeof(*(struct_dst)) - OFFSETOF_STRUCT(struct_dst, member))); \
-} (void)0
+	 memcpy((char *)(struct_dst)       + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
+	        (const char *)(struct_src) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
+	        sizeof(*(struct_dst))      - OFFSETOF_STRUCT_AFTER(struct_dst, member))); \
+} ((void)0)
 
-#define MEMSET_STRUCT_OFS(struct_var, value, member)  { \
+#define MEMSET_STRUCT_AFTER(struct_var, value, member)  { \
 	CHECK_TYPE_NONCONST(struct_var); \
-	memset((char *)(struct_var)  + OFFSETOF_STRUCT(struct_var, member), \
+	memset((char *)(struct_var)  + OFFSETOF_STRUCT_AFTER(struct_var, member), \
 	       value, \
-	       sizeof(*(struct_var)) - OFFSETOF_STRUCT(struct_var, member)); \
-} (void)0
+	       sizeof(*(struct_var)) - OFFSETOF_STRUCT_AFTER(struct_var, member)); \
+} ((void)0)
 
 /* defined
  * in memory_utils.c for now. I do not know where we should put it actually... */
@@ -458,10 +458,10 @@ extern "C" {
 extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #endif
 
-#define MEMCMP_STRUCT_OFS_IS_ZERO(struct_var, member) \
+#define MEMCMP_STRUCT_AFTER_IS_ZERO(struct_var, member) \
 	(BLI_memory_is_zero( \
-	       (char *)(struct_var)  + OFFSETOF_STRUCT(struct_var, member), \
-	       sizeof(*(struct_var)) - OFFSETOF_STRUCT(struct_var, member)))
+	       (const char *)(struct_var)  + OFFSETOF_STRUCT_AFTER(struct_var, member), \
+	       sizeof(*(struct_var))       - OFFSETOF_STRUCT_AFTER(struct_var, member)))
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */

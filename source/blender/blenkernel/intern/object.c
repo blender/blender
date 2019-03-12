@@ -808,7 +808,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
 
 void BKE_object_init(Object *ob)
 {
-	/* BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(ob, id)); */  /* ob->type is already initialized... */
+	/* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ob, id)); */  /* ob->type is already initialized... */
 
 	copy_v4_fl(ob->color, 1.0f);
 

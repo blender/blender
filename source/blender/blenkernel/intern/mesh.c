@@ -492,7 +492,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 
 void BKE_mesh_init(Mesh *me)
 {
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(me, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(me, id));
 
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
 	me->smoothresh = DEG2RADF(30);

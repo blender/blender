@@ -381,10 +381,10 @@ typedef struct ProjPaintState {
 	 */
 
 #define PROJ_PAINT_STATE_SHARED_MEMCPY(ps_dst, ps_src) \
-	MEMCPY_STRUCT_OFS(ps_dst, ps_src, is_shared_user)
+	MEMCPY_STRUCT_AFTER(ps_dst, ps_src, is_shared_user)
 
 #define PROJ_PAINT_STATE_SHARED_CLEAR(ps) \
-	MEMSET_STRUCT_OFS(ps, 0, is_shared_user)
+	MEMSET_STRUCT_AFTER(ps, 0, is_shared_user)
 
 	bool is_shared_user;
 

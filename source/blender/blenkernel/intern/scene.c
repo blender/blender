@@ -542,7 +542,7 @@ void BKE_scene_init(Scene *sce)
 	SceneRenderView *srv;
 	CurveMapping *mblur_shutter_curve;
 
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(sce, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(sce, id));
 
 
 	sce->cursor.rotation_mode = ROT_MODE_XYZ;

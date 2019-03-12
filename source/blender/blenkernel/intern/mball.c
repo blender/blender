@@ -75,7 +75,7 @@ void BKE_mball_free(MetaBall *mb)
 
 void BKE_mball_init(MetaBall *mb)
 {
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(mb, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mb, id));
 
 	mb->size[0] = mb->size[1] = mb->size[2] = 1.0;
 	mb->texflag = MB_AUTOSPACE;

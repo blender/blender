@@ -210,7 +210,7 @@ void BKE_texture_free(Tex *tex)
 
 void BKE_texture_default(Tex *tex)
 {
-	/* BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(tex, id)); */  /* Not here, can be called with some pointers set. :/ */
+	/* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tex, id)); */  /* Not here, can be called with some pointers set. :/ */
 
 	tex->type = TEX_IMAGE;
 	tex->ima = NULL;

@@ -33,7 +33,7 @@
 
 void BKE_lightprobe_init(LightProbe *probe)
 {
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(probe, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(probe, id));
 
 	probe->grid_resolution_x = probe->grid_resolution_y = probe->grid_resolution_z = 4;
 	probe->distinf = 2.5f;

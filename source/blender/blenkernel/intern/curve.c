@@ -138,7 +138,7 @@ void BKE_curve_free(Curve *cu)
 
 void BKE_curve_init(Curve *cu)
 {
-	/* BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(cu, id)); */  /* cu->type is already initialized... */
+	/* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cu, id)); */  /* cu->type is already initialized... */
 
 	copy_v3_fl(cu->size, 1.0f);
 	cu->flag = CU_FRONT | CU_BACK | CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;

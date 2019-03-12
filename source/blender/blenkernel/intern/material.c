@@ -127,7 +127,7 @@ void BKE_material_init_gpencil_settings(Material *ma)
 
 void BKE_material_init(Material *ma)
 {
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(ma, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ma, id));
 
 	ma->r = ma->g = ma->b = 0.8;
 	ma->specr = ma->specg = ma->specb = 1.0;

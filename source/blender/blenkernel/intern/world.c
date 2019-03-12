@@ -70,7 +70,7 @@ void BKE_world_free(World *wrld)
 
 void BKE_world_init(World *wrld)
 {
-	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(wrld, id));
+	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
 
 	wrld->horr = 0.05f;
 	wrld->horg = 0.05f;
