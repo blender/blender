@@ -704,7 +704,9 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph,
 	}
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	float imat[4][4];
-	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
+	DEG_debug_print_eval_subdata(
+	        depsgraph, __func__, object->id.name, object,
+	        "pchan", pchan->name, pchan);
 	if (pchan->bone) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
@@ -731,7 +733,9 @@ void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
 		return;
 	}
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
-	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
+	DEG_debug_print_eval_subdata(
+	        depsgraph, __func__, object->id.name, object,
+	        "pchan", pchan->name, pchan);
 	if (pchan->bone != NULL && pchan->bone->segments > 1) {
 		BKE_pchan_bbone_segments_cache_compute(pchan);
 		if (DEG_is_active(depsgraph)) {
@@ -862,8 +866,10 @@ void BKE_pose_eval_proxy_copy_bone(
 		return;
 	}
 	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
-	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
+	DEG_debug_print_eval_subdata(
+	        depsgraph, __func__, object->id.name, object,
+	        "pchan", pchan->name, pchan);
 	/* TODO(sergey): Use indexec lookup, once it's guaranteed to be kept
 	 * around for the time while proxies are evaluating.
 	 */
