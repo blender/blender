@@ -200,7 +200,8 @@ vec3 probe_evaluate_planar(
 
 	/* TODO: If we support non-ssr planar reflection, we should blur them with gaussian
 	 * and chose the right mip depending on the cone footprint after projection */
-	vec3 sample = textureLod(probePlanars, vec3(refco.xy * 0.5 + 0.5, id), 0.0).rgb;
+	/* NOTE: X is inverted here to compensate inverted drawing.  */
+	vec3 sample = textureLod(probePlanars, vec3(refco.xy * vec2(-0.5, 0.5) + 0.5, id), 0.0).rgb;
 
 	return sample;
 }
