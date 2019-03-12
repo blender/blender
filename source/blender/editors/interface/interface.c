@@ -163,7 +163,9 @@ float ui_block_to_window_scale(const ARegion *ar, uiBlock *block)
 	/* We could have function for this to avoid dummy arg. */
 	float dummy_x;
 	float min_y = 0, max_y = 1;
+	dummy_x = 0.0f;
 	ui_block_to_window_fl(ar, block, &dummy_x, &min_y);
+	dummy_x = 0.0f;
 	ui_block_to_window_fl(ar, block, &dummy_x, &max_y);
 	return max_y - min_y;
 }
