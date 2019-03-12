@@ -58,5 +58,5 @@ void main() {
 	background_color = color;
 #endif
 
-	FragColor = vec4(clamp(background_color, vec3(0.0), vec3(1e10)), backgroundAlpha);
+	FragColor = vec4(clamp(background_color, vec3(0.0), vec3(1e10)), 1.0) * backgroundAlpha;
 }

@@ -3070,7 +3070,7 @@ uniform float backgroundAlpha;
 void node_output_world(Closure surface, Closure volume, out Closure result)
 {
 #ifndef VOLUMETRICS
-	result.radiance = surface.radiance;
+	result.radiance = surface.radiance * backgroundAlpha;
 	result.opacity = backgroundAlpha;
 #else
 	result = volume;

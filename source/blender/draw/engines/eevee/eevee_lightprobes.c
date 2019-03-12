@@ -314,7 +314,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		const float *col = G_draw.block.colorBackground;
 
 		/* LookDev */
-		EEVEE_lookdev_cache_init(vedata, &grp, psl->probe_background, wo, pinfo);
+		EEVEE_lookdev_cache_init(vedata, &grp, psl->probe_background, 1.0f, wo, pinfo);
 		/* END */
 		if (!grp && wo) {
 			col = &wo->horr;
@@ -328,7 +328,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 				switch (status) {
 					case GPU_MAT_SUCCESS:
 						grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
-						DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+						DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
 						/* TODO (fclem): remove those (need to clean the GLSL files). */
 						DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 						DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
@@ -349,7 +349,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		if (grp == NULL) {
 			grp = DRW_shgroup_create(EEVEE_shaders_probe_default_sh_get(), psl->probe_background);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
-			DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+			DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
 			DRW_shgroup_call_add(grp, geom, NULL);
 		}
 	}
@@ -891,6 +891,8 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 
 	GPU_framebuffer_bind(fbl->planarref_fb);
 	GPU_framebuffer_clear_depth(fbl->planarref_fb, 1.0);
+
+	vedata->stl->g_data->background_alpha = 1.0f;
 
 	/* Slight modification: we handle refraction as normal
 	 * shading and don't do SSRefraction. */

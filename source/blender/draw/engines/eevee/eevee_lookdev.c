@@ -52,6 +52,7 @@ static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
 
 void EEVEE_lookdev_cache_init(
         EEVEE_Data *vedata, DRWShadingGroup **grp, DRWPass *pass,
+        float background_alpha,
         World *UNUSED(world), EEVEE_LightProbesInfo *pinfo)
 {
 	EEVEE_StorageList *stl = vedata->stl;
@@ -114,7 +115,7 @@ void EEVEE_lookdev_cache_init(
 			*grp = DRW_shgroup_create(shader, pass);
 			axis_angle_to_mat3_single(stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
 			DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
-			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+			DRW_shgroup_uniform_float_copy(*grp, "backgroundAlpha", background_alpha);
 			DRW_shgroup_uniform_vec3(*grp, "color", background_color, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
 			if (!pinfo) {
