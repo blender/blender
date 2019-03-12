@@ -31,6 +31,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -2957,7 +2958,9 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 					}
 				}
 				else {
-					if (!defaultfound) {
+					if (!defaultfound &&
+					    !(eprop->itemf && eprop->item == DummyRNA_NULL_items))
+					{
 						CLOG_ERROR(&LOG, "%s%s.%s, enum default is not in items.",
 						           srna->identifier, errnest, prop->identifier);
 						DefRNA.error = 1;
