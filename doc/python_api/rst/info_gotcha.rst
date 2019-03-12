@@ -633,6 +633,7 @@ Here are some general hints to avoid running into these problems.
   fetch data from the context each time the script is activated.
 - Crashes may not happen every time, they may happen more on some configurations/operating-systems.
 - Be wary of recursive patterns, those are very efficient at hiding the issues described here.
+- See last sub-section about `Unfortunate Corner Cases`_ for some known breaking exceptions.
 
 .. note::
 
@@ -825,6 +826,17 @@ the next example will still crash.
    vertices = mesh.vertices
    bpy.data.meshes.remove(mesh)
    print(vertices)  # <- this may crash
+
+
+Unfortunate Corner Cases
+------------------------
+
+Besides all expected cases listed above, there are a few others that should not be
+an issue but, due to internal implementation details, currently are:
+
+- ``Object.hide_viewport``, ``Object.hide_select`` and ``Object.hide_render``:
+  Setting any of those booleans will trigger a rebuild of Collection caches, hence breaking
+  any current iteration over ``Collection.all_objects``.
 
 
 sys.exit
