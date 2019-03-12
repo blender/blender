@@ -151,5 +151,8 @@ vec4 volumetric_resolve(vec4 scene_color, vec2 frag_uvs, float frag_depth)
 	vec3 scattering = texture(inScattering, volume_cos).rgb;
 	vec3 transmittance = texture(inTransmittance, volume_cos).rgb;
 
-	return vec4(scene_color.rgb * transmittance + scattering, scene_color.a);
+	/* Approximate volume alpha by using a monochromatic transmitance
+	 * and adding it to the scene alpha. */
+	float final_alpha = mix(1.0, scene_color.a, dot(transmittance, vec3(1.0 / 3.0)));
+	return vec4(scene_color.rgb * transmittance + scattering, final_alpha);
 }

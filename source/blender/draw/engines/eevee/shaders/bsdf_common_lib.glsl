@@ -834,7 +834,8 @@ void main()
 #    if defined(USE_ALPHA_BLEND_VOLUMETRICS)
 	/* XXX fragile, better use real viewport resolution */
 	vec2 uvs = gl_FragCoord.xy / vec2(2 * textureSize(maxzBuffer, 0).xy);
-	fragColor = volumetric_resolve(vec4(cl.radiance, cl.opacity), uvs, gl_FragCoord.z);
+	fragColor.rgb = volumetric_resolve(vec4(cl.radiance, cl.opacity), uvs, gl_FragCoord.z).rgb;
+	fragColor.a = cl.opacity;
 #    else
 	fragColor = vec4(cl.radiance, cl.opacity);
 #    endif
