@@ -89,7 +89,7 @@
 /* Datablock Operators */
 
 /* ******************* Add New Data ************************ */
-bool gp_data_add_poll(bContext *C)
+static bool gp_data_add_poll(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
 	if (obact && obact->type == OB_GPENCIL) {
