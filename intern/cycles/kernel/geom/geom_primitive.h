@@ -219,9 +219,8 @@ ccl_device_inline float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 	if(desc.offset == ATTR_STD_NOT_FOUND)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float3 uv = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
-	uv.z = 1.0f;
-	return uv;
+	float2 uv = primitive_surface_attribute_float2(kg, sd, desc, NULL, NULL);
+	return make_float3(uv.x, uv.y, 1.0f);
 }
 
 /* Ptex coordinates */
