@@ -84,7 +84,8 @@ typedef enum eGPencil_PaintStatus {
 	GP_STATUS_IDLING = 0,   /* stroke isn't in progress yet */
 	GP_STATUS_PAINTING,     /* a stroke is in progress */
 	GP_STATUS_ERROR,        /* something wasn't correctly set up */
-	GP_STATUS_DONE          /* painting done */
+	GP_STATUS_DONE,         /* painting done */
+	GP_STATUS_CAPTURE       /* capture event, but cancel */
 } eGPencil_PaintStatus;
 
 /* Return flags for adding points to stroke buffer */
@@ -1329,7 +1330,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 		}
 
 		if (has_layer_to_erase == false) {
-			p->status = GP_STATUS_ERROR;
+			p->status = GP_STATUS_CAPTURE;
 			//if (G.debug & G_DEBUG)
 				printf("Error: Eraser will not be affecting anything (gpencil_paint_init)\n");
 			return;
@@ -2013,6 +2014,14 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	}
 	else
 		p = op->customdata;
+
+	/* if empty erase capture and finish */
+	if (p->status == GP_STATUS_CAPTURE) {
+		gpencil_draw_exit(C, op);
+
+		BKE_report(op->reports, RPT_ERROR, "Nothing to erase");
+		return OPERATOR_FINISHED;
+	}
 
 	/* TODO: set any additional settings that we can take from the events?
 	 * TODO? if tablet is erasing, force eraser to be on? */
