@@ -1876,6 +1876,9 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 		BLI_rcti_init(&render_rect, 0, size[0], 0, size[1]);
 	}
 
+	/* Reset state before drawing */
+	DRW_state_reset();
+
 	/* Init render result. */
 	RenderResult *render_result = RE_engine_begin_result(
 	        engine,
@@ -1895,6 +1898,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 		engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
 		/* grease pencil: render result is merged in the previous render result. */
 		if (DRW_render_check_grease_pencil(depsgraph)) {
+			DRW_state_reset();
 			DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
 		}
 		DST.buffer_finish_called = false;
@@ -1912,6 +1916,9 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	/* Avoid accidental reuse. */
 	drw_state_ensure_not_reused(&DST);
 #endif
+
+	/* Reset state after drawing */
+	DRW_state_reset();
 
 	/* Changing Context */
 	if (re_gl_context != NULL) {
