@@ -2809,6 +2809,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "annotation_stroke_placement_view3d", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "annotate_v3d_align");
 	RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
+	RNA_def_property_enum_default(prop, GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR);
 	RNA_def_property_ui_text(prop, "Annotation Stroke Placement (3D View)", "How annotation strokes are orientated in 3D space");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
