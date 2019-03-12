@@ -459,9 +459,31 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	Collection *collection = outliner_collection_from_tree_element(te);
 	Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) : NULL;
 
+	/* We are allowed to duplicated linked collections (they will become local IDs then),
+	 * but we should not allow its parent to be a linked ID, ever.
+	 * This can happen when a whole scene is linked e.g. */
+	if (parent != NULL && ID_IS_LINKED(parent)) {
+		Scene *scene = CTX_data_scene(C);
+		parent = ID_IS_LINKED(scene) ? NULL : BKE_collection_master(scene);
+	}
+	else if (parent != NULL && (parent->flag & COLLECTION_IS_MASTER) != 0) {
+		Scene *scene = BKE_collection_master_scene_search(bmain, parent);
+		BLI_assert(scene != NULL);
+		if (ID_IS_LINKED(scene)) {
+			scene = CTX_data_scene(C);
+			parent = ID_IS_LINKED(scene) ? NULL : BKE_collection_master(scene);
+		}
+	}
+
 	if (collection->flag & COLLECTION_IS_MASTER) {
 		BKE_report(op->reports, RPT_ERROR, "Can't duplicate the master collection");
 		return OPERATOR_CANCELLED;
+	}
+
+	if (parent == NULL) {
+		BKE_report(op->reports, RPT_WARNING,
+		           "Could not find a valid parent collection for the new duplicate, "
+		           "it won't be linked to any view layer");
 	}
 
 	switch (soops->outlinevis) {
