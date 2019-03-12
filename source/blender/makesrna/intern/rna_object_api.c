@@ -74,6 +74,7 @@ static const EnumPropertyItem space_items[] = {
 #include "BKE_report.h"
 
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
@@ -214,6 +215,61 @@ static bool rna_Object_indirect_only_get(Object *ob, bContext *C, ReportList *re
 	}
 
 	return ((base->flag & BASE_INDIRECT_ONLY) != 0);
+}
+
+static Base *rna_Object_local_view_property_helper(bScreen *sc, View3D *v3d, Object *ob, ReportList *reports, Scene **r_scene)
+{
+	if (v3d->localvd == NULL) {
+		BKE_report(reports, RPT_ERROR, "Viewport not in local view");
+		return NULL;
+	}
+
+	wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
+	if (base == NULL) {
+		BKE_reportf(reports,
+		            RPT_WARNING,
+		            "Object %s not in view layer %s",
+		            ob->id.name + 2,
+		            view_layer->name);
+
+	}
+	if (r_scene) {
+		*r_scene = win->scene;
+	}
+	return base;
+}
+
+static bool rna_Object_local_view_get(Object *ob, ReportList *reports, PointerRNA *v3d_ptr)
+{
+	bScreen *sc = v3d_ptr->id.data;
+	View3D *v3d = v3d_ptr->data;
+	Base *base = rna_Object_local_view_property_helper(sc, v3d, ob, reports, NULL);
+	if (base == NULL) {
+		return false; /* Error reported. */
+	}
+	return (base->local_view_bits & v3d->local_view_uuid) != 0;
+}
+
+static void rna_Object_local_view_set(Object *ob, ReportList *reports, PointerRNA *v3d_ptr, bool state)
+{
+	bScreen *sc = v3d_ptr->id.data;
+	View3D *v3d = v3d_ptr->data;
+	Scene *scene;
+	Base *base = rna_Object_local_view_property_helper(sc, v3d, ob, reports, &scene);
+	if (base == NULL) {
+		return; /* Error reported. */
+	}
+	const short local_view_bits_prev = base->local_view_bits;
+	SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uuid);
+	if (local_view_bits_prev != base->local_view_bits) {
+		DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+		ScrArea *sa = ED_screen_area_find_with_spacedata(sc, (SpaceLink *)v3d, true);
+		if (sa) {
+			ED_area_tag_redraw(sa);
+		}
+	}
 }
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
@@ -610,6 +666,23 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
 	parm = RNA_def_boolean(func, "result", 0, "", "Object indirect only");
 	RNA_def_function_return(func, parm);
+
+	/* Local View */
+	func = RNA_def_function(srna, "local_view_get", "rna_Object_local_view_get");
+	RNA_def_function_ui_description(func, "Get the local view state for this object");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_REQUIRED);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object local view state");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "local_view_set", "rna_Object_local_view_set");
+	RNA_def_function_ui_description(func, "Set the local view state for this object");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_REQUIRED);
+	parm = RNA_def_boolean(func, "state", 0, "", "Local view state to define");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* Matrix space conversion */
 	func = RNA_def_function(srna, "convert_space", "rna_Object_mat_convert_space");

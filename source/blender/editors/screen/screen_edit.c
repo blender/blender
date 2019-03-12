@@ -1539,6 +1539,24 @@ Scene *ED_screen_scene_find_with_window(const bScreen *screen, const wmWindowMan
 	return NULL;
 }
 
+ScrArea *ED_screen_area_find_with_spacedata(const bScreen *screen, const SpaceLink *sl, const bool only_visible)
+{
+	if (only_visible) {
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			if (sa->spacedata.first == sl) {
+				return sa;
+			}
+		}
+	}
+	else {
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			if (BLI_findindex(&sa->spacedata, sl) != -1) {
+				return sa;
+			}
+		}
+	}
+	return NULL;
+}
 
 Scene *ED_screen_scene_find(const bScreen *screen, const wmWindowManager *wm)
 {
