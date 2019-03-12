@@ -1443,23 +1443,35 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 /* Evaluation  */
 
 /* Applies object's restrict flags on top of flags coming from the collection
- * and stores those in base->flag. */
+ * and stores those in base->flag. BASE_VISIBLE is based on viewport visibility. */
 void BKE_base_eval_flags(Base *base)
 {
-	const int object_restrict = base->object->restrictflag;
+	/* Apply collection flags. */
 	base->flag &= ~g_base_collection_flags;
 	base->flag |= (base->flag_from_collection & g_base_collection_flags);
+
+	/* Apply object restrictions. */
+	const int object_restrict = base->object->restrictflag;
 	if (object_restrict & OB_RESTRICT_VIEW) {
-		base->flag &= ~(BASE_ENABLED_VIEWPORT | BASE_SELECTABLE);
-	}
-	if (object_restrict & OB_RESTRICT_SELECT) {
-		base->flag &= ~BASE_SELECTABLE;
+		base->flag &= ~BASE_ENABLED_VIEWPORT;
 	}
 	if (object_restrict & OB_RESTRICT_RENDER) {
 		base->flag &= ~BASE_ENABLED_RENDER;
 	}
-	if (base->flag & BASE_HIDDEN) {
-		base->flag &= ~BASE_VISIBLE;
+	if (object_restrict & OB_RESTRICT_SELECT) {
+		base->flag &= ~BASE_SELECTABLE;
+	}
+
+	/* Apply viewport visibility by default. The dependency graph for render
+	 * can change these again, but for tools we always want the viewport
+	 * visibility to be in sync regardless if depsgraph was evaluated. */
+	if (!(base->flag & BASE_ENABLED_VIEWPORT) || (base->flag & BASE_HIDDEN)) {
+		base->flag &= ~(BASE_VISIBLE | BASE_SELECTABLE);
+	}
+
+	/* Deselect unselectable objects. */
+	if (!(base->flag & BASE_SELECTABLE)) {
+		base->flag &= ~BASE_SELECTED;
 	}
 }
 
