@@ -5744,22 +5744,11 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
     bl_label = "Vertex Paint Context Menu"
 
     def draw(self, context):
-        brush = context.tool_settings.vertex_paint.brush
-        ups = context.tool_settings.unified_paint_settings
-
         layout = self.layout
 
-        # Size
-        if ups.use_unified_size:
-            layout.prop(ups, "size", slider=True)
-        else:
-            layout.prop(brush, "size", slider=True)
-
-        # Strength
-        if ups.use_unified_strength:
-            layout.prop(ups, "strength")
-        else:
-            layout.prop(brush, "strength")
+        brush = context.tool_settings.vertex_paint.brush
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
 
 
 class VIEW3D_PT_paint_texture_context_menu(Panel):
@@ -5769,22 +5758,11 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
     bl_label = "Texture Paint Context Menu"
 
     def draw(self, context):
-        brush = context.tool_settings.image_paint.brush
-        ups = context.tool_settings.unified_paint_settings
-
         layout = self.layout
 
-        # Size
-        if ups.use_unified_size:
-            layout.prop(ups, "size", slider=True)
-        else:
-            layout.prop(brush, "size", slider=True)
-
-        # Strength
-        if ups.use_unified_strength:
-            layout.prop(ups, "strength")
-        else:
-            layout.prop(brush, "strength")
+        brush = context.tool_settings.image_paint.brush
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
 
 
 class VIEW3D_PT_paint_weight_context_menu(Panel):
@@ -5794,27 +5772,12 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
     bl_label = "Weights Context Menu"
 
     def draw(self, context):
-        brush = context.tool_settings.weight_paint.brush
-        capabilities = brush.weight_paint_capabilities
-        ups = context.tool_settings.unified_paint_settings
-
         layout = self.layout
 
-        # Weight
-        if capabilities.has_weight or brush.use_gradient:
-            layout.prop(ups, "weight")
-
-        # Size
-        if ups.use_unified_size:
-            layout.prop(ups, "size", slider=True)
-        else:
-            layout.prop(brush, "size", slider=True)
-
-        # Strength
-        if ups.use_unified_strength:
-            layout.prop(ups, "strength")
-        else:
-            layout.prop(brush, "strength")
+        brush = context.tool_settings.weight_paint.brush
+        UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", text="Weight", slider=True)
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
 
 
 class VIEW3D_PT_sculpt_context_menu(Panel):
@@ -5824,22 +5787,12 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
     bl_label = "Sculpt Context Menu"
 
     def draw(self, context):
-        brush = context.tool_settings.sculpt.brush
-        ups = context.tool_settings.unified_paint_settings
-
         layout = self.layout
 
-        # Size
-        if ups.use_unified_size:
-            layout.prop(ups, "size", slider=True)
-        else:
-            layout.prop(brush, "size", slider=True)
+        brush = context.tool_settings.sculpt.brush
 
-        # Strength
-        if ups.use_unified_strength:
-            layout.prop(ups, "strength")
-        else:
-            layout.prop(brush, "strength")
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", text="Size", slider=True)
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", text="Strength")
 
 
 class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
