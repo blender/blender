@@ -1259,6 +1259,8 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 	else if (STREQ(imtype_arg, "TIFF")) return R_IMF_IMTYPE_TIFF;
 #endif
 #ifdef WITH_OPENEXR
+	else if (STREQ(imtype_arg, "OPEN_EXR")) return R_IMF_IMTYPE_OPENEXR;
+	else if (STREQ(imtype_arg, "OPEN_EXR_MULTILAYER")) return R_IMF_IMTYPE_MULTILAYER;
 	else if (STREQ(imtype_arg, "EXR")) return R_IMF_IMTYPE_OPENEXR;
 	else if (STREQ(imtype_arg, "MULTILAYER")) return R_IMF_IMTYPE_MULTILAYER;
 #endif

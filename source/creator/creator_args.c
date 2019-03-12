@@ -1308,8 +1308,8 @@ static const char arg_handle_image_type_set_doc[] =
 "\tSet the render format.\n"
 "\tValid options are 'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'\n"
 "\n"
-"\tFormats that can be compiled into Blender, not available on all systems: 'HDR' 'TIFF' 'EXR' 'MULTILAYER'\n"
-"\t'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2'"
+"\tFormats that can be compiled into Blender, not available on all systems: 'HDR' 'TIFF' 'OPEN_EXR'\n"
+"\t'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2'"
 ;
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
