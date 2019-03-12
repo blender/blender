@@ -2448,7 +2448,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	};
 
 	static const EnumPropertyItem gpencil_stroke_snap_items[] = {
-		{0, "NONE", 0, "All points", "No snap"},
+		{0, "NONE", 0, "All points", "Snap to all points"},
 		{GP_PROJECT_DEPTH_STROKE_ENDPOINTS, "ENDS", 0, "End points", "Snap to first and last points and interpolate" },
 		{GP_PROJECT_DEPTH_STROKE_FIRST, "FIRST", 0, "First point", "Snap to first point" },
 		{0, NULL, 0, NULL, NULL},
