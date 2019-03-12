@@ -290,7 +290,39 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 
 		/* Test in case collection got deleted as part of another one. */
 		if (BLI_findindex(&bmain->collections, collection) != -1) {
-			BKE_collection_delete(bmain, collection, hierarchy);
+			/* We cannot allow to delete collections that are indirectly linked, or that are used by (linked to...)
+			 * other linked scene/collection. */
+			bool skip = false;
+			if (ID_IS_LINKED(collection)) {
+				if (collection->id.tag & LIB_TAG_INDIRECT) {
+					skip = true;
+				}
+				else {
+					for (CollectionParent *cparent = collection->parents.first; cparent; cparent = cparent->next) {
+						Collection *parent = cparent->collection;
+						if (ID_IS_LINKED(parent)) {
+							skip = true;
+							break;
+						}
+						else if (parent->flag & COLLECTION_IS_MASTER) {
+							Scene *parent_scene = BKE_collection_master_scene_search(bmain, parent);
+							if (ID_IS_LINKED(parent_scene)) {
+								skip = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (!skip) {
+				BKE_collection_delete(bmain, collection, hierarchy);
+			}
+			else {
+				BKE_reportf(op->reports, RPT_WARNING,
+				            "Cannot delete linked collection '%s', it is used by other linked scenes/collections",
+				            collection->id.name + 2);
+			}
 		}
 	}
 
