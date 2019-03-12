@@ -562,13 +562,20 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
 
 /**************************** Link Collection ******************************/
 
-static int collection_link_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_link_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Collection *active_collection = CTX_data_layer_collection(C)->collection;
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 	struct CollectionEditData data = {.scene = scene, .soops = soops,};
+
+	if (ID_IS_LINKED(active_collection) ||
+	    ((active_collection->flag & COLLECTION_IS_MASTER) && ID_IS_LINKED(scene)))
+	{
+		BKE_report(op->reports, RPT_ERROR, "Cannot add a colection to a linked collection/scene");
+		return OPERATOR_CANCELLED;
+	}
 
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
