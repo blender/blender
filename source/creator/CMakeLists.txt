@@ -823,6 +823,15 @@ elseif(WIN32)
 		DESTINATION "."
 	)
 
+	install(
+		FILES
+			${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu.cmd
+			${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu_glitchworkaround.cmd
+			${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_log.cmd
+			${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
+		DESTINATION "."
+	)
+
 elseif(APPLE)
 
 	# handy install macro to exclude files, we use \$ escape for the "to"
