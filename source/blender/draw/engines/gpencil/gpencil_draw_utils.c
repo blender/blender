@@ -421,7 +421,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(
 	DRW_shgroup_uniform_int(grp, "drawmode", (const int *) &gpd->draw_mode, 1);
 
 	/* viewport x-ray */
-	DRW_shgroup_uniform_int(grp, "viewport_xray", &stl->storage->is_xray, 1);
+	stl->shgroups[id].is_xray = (ob->dt == OB_WIRE) ? 1 : stl->storage->is_xray;
+	DRW_shgroup_uniform_int(grp, "viewport_xray", (const int *)&stl->shgroups[id].is_xray, 1);
 
 	/* shading type */
 	stl->shgroups[id].shading_type[0] = GPENCIL_USE_SOLID(stl) ? (int)OB_RENDER : shading_type[0];
@@ -532,7 +533,8 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 		DRW_shgroup_uniform_int(grp, "caps_mode", &stl->shgroups[id].caps_mode[0], 2);
 
 		/* viewport x-ray */
-		DRW_shgroup_uniform_int(grp, "viewport_xray", &stl->storage->is_xray, 1);
+		stl->shgroups[id].is_xray = (ob->dt == OB_WIRE) ? 1 : stl->storage->is_xray;
+		DRW_shgroup_uniform_int(grp, "viewport_xray", (const int *)&stl->shgroups[id].is_xray, 1);
 
 		stl->shgroups[id].shading_type[0] = (GPENCIL_USE_SOLID(stl) || onion) ? (int)OB_RENDER : shading_type[0];
 		if (v3d) {
@@ -650,7 +652,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 		DRW_shgroup_uniform_float(grp, "pixfactor", &gpd->pixfactor, 1);
 
 		/* viewport x-ray */
-		DRW_shgroup_uniform_int(grp, "viewport_xray", &stl->storage->is_xray, 1);
+		stl->shgroups[id].is_xray = (ob->dt == OB_WIRE) ? 1 : stl->storage->is_xray;
+		DRW_shgroup_uniform_int(grp, "viewport_xray", (const int *)&stl->shgroups[id].is_xray, 1);
 
 		stl->shgroups[id].shading_type[0] = (GPENCIL_USE_SOLID(stl) || onion) ? (int)OB_RENDER : shading_type[0];
 		if (v3d) {
@@ -682,7 +685,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 			DRW_shgroup_uniform_float(grp, "pixfactor", &stl->storage->pixfactor, 1);
 		}
 		/* viewport x-ray */
-		DRW_shgroup_uniform_int(grp, "viewport_xray", &stl->storage->is_xray, 1);
+		stl->shgroups[id].is_xray = (ob->dt == OB_WIRE) ? 1 : stl->storage->is_xray;
+		DRW_shgroup_uniform_int(grp, "viewport_xray", (const int *)&stl->shgroups[id].is_xray, 1);
 		DRW_shgroup_uniform_int(grp, "shading_type", (const int *)&stl->storage->shade_render, 2);
 	}
 

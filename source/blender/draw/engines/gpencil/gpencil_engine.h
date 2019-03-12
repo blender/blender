@@ -124,6 +124,7 @@ typedef struct GPENCIL_shgroup {
 	float wire_color[4];
 	/* shading type and mode */
 	int shading_type[2];
+	int is_xray;
 } GPENCIL_shgroup;
 
 typedef struct GPENCIL_Storage {
