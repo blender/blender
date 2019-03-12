@@ -195,8 +195,13 @@ static int collection_new_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (data.collection == NULL) {
+	if (data.collection == NULL || ID_IS_LINKED(data.collection)) {
 		data.collection = BKE_collection_master(scene);
+	}
+
+	if (ID_IS_LINKED(scene)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't add a new collection to linked scene/collection");
+		return OPERATOR_CANCELLED;
 	}
 
 	BKE_collection_add(
