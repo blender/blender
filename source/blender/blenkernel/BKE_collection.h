@@ -66,6 +66,7 @@ struct Collection *BKE_collection_copy_master(struct Main *bmain, struct Collect
 
 struct Collection *BKE_collection_master(const struct Scene *scene);
 struct Collection *BKE_collection_master_add(void);
+struct Scene *BKE_collection_master_scene_search(const struct Main *bmain, const struct Collection *master_collection);
 
 /* Collection Objects */
 

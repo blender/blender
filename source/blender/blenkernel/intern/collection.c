@@ -483,6 +483,19 @@ Collection *BKE_collection_master(const Scene *scene)
 	return scene->master_collection;
 }
 
+Scene *BKE_collection_master_scene_search(const Main *bmain, const Collection *master_collection)
+{
+	BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
+
+	for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+		if (scene->master_collection == master_collection) {
+			return scene;
+		}
+	}
+
+	return NULL;
+}
+
 /*********************** Cyclic Checks ************************/
 
 static bool collection_object_cyclic_check_internal(Object *object, Collection *collection)
