@@ -735,6 +735,12 @@ static int posemode_exec(bContext *C, wmOperator *op)
 {
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Base *base = CTX_data_active_base(C);
+
+	/* If the base is NULL it means we have an active object, but the object itself is hidden. */
+	if (base == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
 	Object *obact = base->object;
 	const int mode_flag = OB_MODE_POSE;
 	bool is_mode_set = (obact->mode & mode_flag) != 0;
