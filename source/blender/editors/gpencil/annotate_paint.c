@@ -1719,8 +1719,6 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 			/* clear status string */
 			ED_workspace_status_text(C, NULL);
 			break;
-		case GP_STATUS_CAPTURE:
-			break;
 	}
 }
 
