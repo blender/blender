@@ -344,8 +344,8 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
 
 	prop = RNA_def_property(srna, "ui_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);  /* infact dummy */
-	RNA_def_property_enum_default(prop, 0);
+	RNA_def_property_enum_items(prop, DummyRNA_NULL_items);  /* infact dummy */
+	RNA_def_property_enum_default(prop, SPACE_VIEW3D << 16);
 	RNA_def_property_enum_funcs(prop, "rna_Area_ui_type_get", "rna_Area_ui_type_set", "rna_Area_ui_type_itemf");
 	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
