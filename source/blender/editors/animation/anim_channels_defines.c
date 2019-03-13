@@ -4059,13 +4059,13 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
 	}
 
-	/* tag copy-on-write flushing (so that the settings will have an effect) */
+	/* Tag for full animation update, so that the settings will have an effect. */
 	if (ale_setting->id) {
-		DEG_id_tag_update(ale_setting->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update(ale_setting->id, ID_RECALC_ANIMATION);
 	}
 	if (ale_setting->adt && ale_setting->adt->action) {
-		/* action is it's own datablock, so has to be tagged specifically... */
-		DEG_id_tag_update(&ale_setting->adt->action->id, ID_RECALC_COPY_ON_WRITE);
+		/* Action is it's own datablock, so has to be tagged specifically. */
+		DEG_id_tag_update(&ale_setting->adt->action->id, ID_RECALC_ANIMATION);
 	}
 
 	/* verify animation context */
@@ -4109,7 +4109,7 @@ static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *
 	BKE_nlatrack_solo_toggle(adt, nlt);
 
 	/* send notifiers */
-	DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
 }
 

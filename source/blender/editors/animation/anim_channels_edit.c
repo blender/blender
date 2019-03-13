@@ -1350,7 +1350,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 			switch (ac.datatype) {
 				case ANIMCONT_NLA: /* NLA-tracks only */
 					rearrange_nla_channels(&ac, adt, mode);
-					DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
+					DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
 					break;
 
 				case ANIMCONT_DRIVERS: /* Drivers list only */
@@ -1637,7 +1637,7 @@ static void update_dependencies_on_delete(bAnimListElem *ale)
 	if (adt != NULL) {
 		DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 		if (adt->action != NULL) {
-			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION);
 		}
 	}
 	/* Deals with NLA and drivers.
@@ -1693,7 +1693,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				/* free the group itself */
 				if (adt->action) {
 					BLI_freelinkN(&adt->action->groups, agrp);
-					DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_COPY_ON_WRITE);
+					DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
 				}
 				else
 					MEM_freeN(agrp);

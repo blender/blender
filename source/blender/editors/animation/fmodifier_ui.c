@@ -100,7 +100,7 @@ static void delete_fmodifier_cb(bContext *C, void *ctx_v, void *fcm_v)
 	/* send notifiers */
 	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-	DEG_id_tag_update(ctx->fcurve_owner_id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(ctx->fcurve_owner_id, ID_RECALC_ANIMATION);
 }
 
 /* --------------- */

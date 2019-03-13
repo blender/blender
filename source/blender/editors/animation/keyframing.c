@@ -157,7 +157,7 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
 		DEG_relations_tag_update(bmain);
 	}
 
-	DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
 
 	/* return the action */
 	return adt->action;
@@ -1317,10 +1317,10 @@ short insert_keyframe(
 
 	if (ret) {
 		if (act != NULL) {
-			DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
+			DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 		}
 		if (adt != NULL && adt->action != NULL && adt->action != act) {
-			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
 		}
 	}
 
@@ -1371,11 +1371,11 @@ static void deg_tag_after_keyframe_delete(Main *bmain, ID *id, AnimData *adt)
 		/* In the case last f-curve wes removed need to inform dependency graph
 		 * about relations update, since it needs to get rid of animation operation
 		 * for this datablock. */
-		DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION_NO_FLUSH);
 		DEG_relations_tag_update(bmain);
 	}
 	else {
-		DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
 	}
 }
 

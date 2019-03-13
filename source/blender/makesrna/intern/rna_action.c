@@ -98,7 +98,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
 	MEM_freeN(agrp);
 	RNA_POINTER_INVALIDATE(agrp_ptr);
 
-	DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 	WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
@@ -157,7 +157,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 		RNA_POINTER_INVALIDATE(fcu_ptr);
 	}
 
-	DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 	WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 

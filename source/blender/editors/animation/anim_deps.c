@@ -72,13 +72,13 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 	if (adt) {
 		DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 		if (adt->action != NULL) {
-			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION);
 		}
 	}
 
 	/* Tag copy on the main object if updating anything directly inside AnimData */
 	if (ELEM(ale->type, ANIMTYPE_ANIMDATA, ANIMTYPE_NLAACTION, ANIMTYPE_NLATRACK, ANIMTYPE_NLACURVE)) {
-		DEG_id_tag_update(id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 		return;
 	}
 
