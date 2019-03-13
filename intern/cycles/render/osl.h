@@ -70,6 +70,8 @@ public:
 	OSLShaderManager();
 	~OSLShaderManager();
 
+	static void free_memory();
+
 	void reset(Scene *scene);
 
 	bool use_osl() { return true; }
