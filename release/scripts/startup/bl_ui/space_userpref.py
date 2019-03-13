@@ -1044,7 +1044,6 @@ class PreferenceThemeSpacePanel:
 
 
 class ThemeGenericClassGenerator():
-    generated_classes = []
 
     @staticmethod
     def generate_panel_classes_for_wcols():
@@ -1073,14 +1072,12 @@ class ThemeGenericClassGenerator():
 
         for (name, wcol) in wcols:
             panel_id = "USERPREF_PT_theme_interface_" + wcol
-            paneltype = type(panel_id, (PreferenceThemeWidgetColorPanel, Panel), {
+            yield type(panel_id, (PreferenceThemeWidgetColorPanel, Panel), {
                 "bl_label": name,
                 "bl_options": {'DEFAULT_CLOSED'},
                 "draw": PreferenceThemeWidgetColorPanel.draw,
                 "wcol": wcol,
             })
-
-            ThemeGenericClassGenerator.generated_classes.append(paneltype)
 
     @staticmethod
     def generate_theme_area_child_panel_classes(parent_id, rna_type, theme_area, datapath):
@@ -1098,7 +1095,7 @@ class ThemeGenericClassGenerator():
                     for prop in props_ls:
                         new_datapath = datapath + "." + prop.identifier if datapath else prop.identifier
                         panel_id = parent_id + "_" + prop.identifier
-                        paneltype = type(panel_id, (PreferenceThemeSpacePanel, Panel), {
+                        yield type(panel_id, (PreferenceThemeSpacePanel, Panel), {
                             "bl_label": rna_type.properties[prop.identifier].name,
                             "bl_parent_id": parent_id,
                             "bl_options": {'DEFAULT_CLOSED'},
@@ -1107,10 +1104,9 @@ class ThemeGenericClassGenerator():
                             "datapath": new_datapath,
                         })
 
-                        ThemeGenericClassGenerator.generated_classes.append(paneltype)
-                        generate_child_panel_classes_recurse(panel_id, prop.fixed_type, theme_area, new_datapath)
+                        yield from generate_child_panel_classes_recurse(panel_id, prop.fixed_type, theme_area, new_datapath)
 
-        generate_child_panel_classes_recurse(parent_id, rna_type, theme_area, datapath)
+        yield from generate_child_panel_classes_recurse(parent_id, rna_type, theme_area, datapath)
 
     @staticmethod
     def generate_panel_classes_from_theme_areas():
@@ -1122,7 +1118,7 @@ class ThemeGenericClassGenerator():
 
             panel_id = "USERPREF_PT_theme_" + theme_area.identifier.lower()
             # Generate panel-class from theme_area
-            paneltype = type(panel_id, (PreferenceThemeSpacePanel, Panel), {
+            yield type(panel_id, (PreferenceThemeSpacePanel, Panel), {
                 "bl_label": theme_area.name,
                 "bl_options": {'DEFAULT_CLOSED'},
                 "draw_header": PreferenceThemeSpacePanel.draw_header,
@@ -1132,8 +1128,7 @@ class ThemeGenericClassGenerator():
                 "datapath": theme_area.identifier.lower(),
             })
 
-            ThemeGenericClassGenerator.generated_classes.append(paneltype)
-            ThemeGenericClassGenerator.generate_theme_area_child_panel_classes(
+            yield from ThemeGenericClassGenerator.generate_theme_area_child_panel_classes(
                 panel_id, Theme.bl_rna.properties[theme_area.identifier.lower()].fixed_type,
                 theme_area, theme_area.identifier.lower())
 
@@ -2009,12 +2004,11 @@ class USERPREF_PT_studiolight_light_editor(Panel):
         layout.prop(system, "light_ambient")
 
 
-ThemeGenericClassGenerator.generate_panel_classes_for_wcols()
-
-# Order of registration defines order in UI, so dynamically generated classes are 'injected' in the intended order.
-classes = (USERPREF_PT_theme_user_interface,) + tuple(ThemeGenericClassGenerator.generated_classes)
-
-classes += (
+# Order of registration defines order in UI,
+# so dynamically generated classes are 'injected' in the intended order.
+classes = (
+    USERPREF_PT_theme_user_interface,
+    *ThemeGenericClassGenerator.generate_panel_classes_for_wcols(),
     USERPREF_HT_header,
     USERPREF_PT_navigation_bar,
     USERPREF_PT_save_preferences,
@@ -2089,12 +2083,11 @@ classes += (
     USERPREF_PT_studiolight_light_editor,
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
-)
 
-# Add dynamically generated editor theme panels last, so they show up last in the theme section.
-ThemeGenericClassGenerator.generated_classes.clear()
-ThemeGenericClassGenerator.generate_panel_classes_from_theme_areas()
-classes += tuple(ThemeGenericClassGenerator.generated_classes)
+    # Add dynamically generated editor theme panels last,
+    # so they show up last in the theme section.
+    *ThemeGenericClassGenerator.generate_panel_classes_from_theme_areas(),
+)
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
