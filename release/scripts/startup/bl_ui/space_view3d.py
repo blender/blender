@@ -4035,7 +4035,6 @@ class VIEW3D_MT_gpencil_animation(Menu):
         ob = context.active_object
         return ob and ob.type == 'GPENCIL' and ob.mode != 'OBJECT'
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
 
@@ -5359,7 +5358,6 @@ class VIEW3D_PT_gpencil_guide(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Guides"
 
-    @staticmethod
     def draw(self, context):
         from math import pi
         settings = context.tool_settings.gpencil_sculpt.guide
@@ -5588,7 +5586,6 @@ class VIEW3D_PT_gpencil_multi_frame(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Multi Frame"
 
-    @staticmethod
     def draw(self, context):
         gpd = context.gpencil_data
         settings = context.tool_settings.gpencil_sculpt

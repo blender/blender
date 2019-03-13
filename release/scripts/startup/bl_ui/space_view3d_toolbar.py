@@ -1481,7 +1481,6 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
         else:
             return True
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1527,7 +1526,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
     def draw_header_preset(self, context):
         VIEW3D_PT_gpencil_brush_presets.draw_panel_header(self.layout)
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1565,7 +1563,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
         gp_settings = brush.gpencil_settings
         self.layout.prop(gp_settings, "use_settings_stabilizer", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1595,7 +1592,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
         gp_settings = brush.gpencil_settings
         self.layout.prop(gp_settings, "use_settings_postprocess", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1637,7 +1633,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         gp_settings = brush.gpencil_settings
         self.layout.prop(gp_settings, "use_settings_random", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1667,7 +1662,6 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
         brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL'}
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
 
@@ -1677,7 +1671,6 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
     bl_label = "Sensitivity"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1693,7 +1686,6 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
     bl_label = "Strength"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1709,7 +1701,6 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
     bl_label = "Jitter"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1739,7 +1730,6 @@ class VIEW3D_PT_tools_grease_pencil_interpolate(Panel):
         gpd = context.gpencil_data
         return bool(context.editable_gpencil_strokes) and bool(gpd.use_stroke_edit_mode)
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         settings = context.tool_settings.gpencil_interpolate
@@ -1785,7 +1775,6 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
     bl_category = "Tools"
     bl_label = "Brush"
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True

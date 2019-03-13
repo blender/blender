@@ -107,7 +107,6 @@ class MATERIAL_PT_gpencil_surface(GPMaterialButtonsPanel, Panel):
     def draw_header_preset(self, context):
         MATERIAL_PT_gpencil_material_presets.draw_panel_header(self.layout)
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -123,7 +122,6 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
             gpcolor = ma.grease_pencil
             self.layout.prop(gpcolor, "show_stroke", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -160,7 +158,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
         gpcolor = ma.grease_pencil
         self.layout.prop(gpcolor, "show_fill", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -244,7 +241,6 @@ class MATERIAL_PT_gpencil_options(GPMaterialButtonsPanel, Panel):
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True

@@ -487,7 +487,6 @@ class TOPBAR_PT_gpencil_layers(Panel):
 
         return False
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         gpd = context.gpencil_data
@@ -1031,7 +1030,6 @@ class TOPBAR_PT_gpencil_primitive(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Primitives"
 
-    @staticmethod
     def draw(self, context):
         settings = context.tool_settings.gpencil_sculpt
 

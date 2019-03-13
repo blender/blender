@@ -88,7 +88,6 @@ class AnnotationDrawingToolsPanel:
     def poll(cls, context):
         return True
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
 
@@ -160,7 +159,6 @@ class GreasePencilStrokeEditPanel:
         gpd = context.gpencil_data
         return bool(context.editable_gpencil_strokes) and bool(gpd.use_stroke_edit_mode)
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
 
@@ -245,7 +243,6 @@ class GreasePencilStrokeSculptPanel:
     bl_label = "Sculpt Strokes"
     bl_category = "Tools"
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -274,7 +271,6 @@ class GreasePencilSculptOptionsPanel:
 
         return bool(tool in {'SMOOTH', 'RANDOMIZE', 'SMOOTH'})
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -305,7 +301,6 @@ class GreasePencilAppearancePanel:
         ob = context.active_object
         return ob and ob.type == 'GPENCIL'
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -679,12 +674,10 @@ class AnnotationDataPanel:
         else:
             return True
 
-    @staticmethod
     def draw_header(self, context):
         if context.space_data.type not in {'VIEW_3D', 'TOPBAR'}:
             self.layout.prop(context.space_data, "show_annotation", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_decorate = False
@@ -769,12 +762,10 @@ class AnnotationOnionSkin:
 
             return True
 
-    @staticmethod
     def draw_header(self, context):
         gpl = context.active_gpencil_layer
         self.layout.prop(gpl, "use_annotation_onion_skinning", text="")
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         layout.use_property_decorate = False
@@ -811,7 +802,6 @@ class GreasePencilToolsPanel:
 
         return (context.gpencil_data is not None)
 
-    @staticmethod
     def draw(self, context):
         layout = self.layout
 
@@ -838,7 +828,6 @@ class GreasePencilToolsPanel:
 
 class GreasePencilMaterialsPanel:
     # Mix-in, use for properties editor and top-bar.
-    @staticmethod
     def draw(self, context):
         layout = self.layout
         show_full_ui = (self.bl_space_type == 'PROPERTIES')
