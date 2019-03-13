@@ -18,6 +18,7 @@ uniform float noiseOfs = 0.0f;
 uniform float stepLength; /* Step length in local space. */
 uniform float densityScale; /* Simple Opacity multiplicator. */
 uniform vec4 viewvecs[3];
+uniform vec3 activeColor;
 
 uniform float slicePosition;
 uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
@@ -135,7 +136,7 @@ void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
 	float shadows = sample_volume_texture(shadowTexture, co).r;
 	vec4 density = sample_volume_texture(densityTexture, co); /* rgb: color, a: density */
 
-	scattering = density.rgb * (density.a * densityScale);
+	scattering = density.rgb * (density.a * densityScale) * activeColor;
 	extinction = max(1e-4, dot(scattering, vec3(0.33333)));
 
 	/* Scale shadows in log space and clamp them to avoid completely black shadows. */

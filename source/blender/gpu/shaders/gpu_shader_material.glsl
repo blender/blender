@@ -1701,6 +1701,8 @@ void node_attribute_volume_density(sampler3D tex, out vec4 outcol, out vec3 outv
 	outf = dot(vec3(1.0 / 3.0), outvec);
 }
 
+uniform vec3 volumeColor = vec3(1.0);
+
 void node_attribute_volume_color(sampler3D tex, out vec4 outcol, out vec3 outvec, out float outf)
 {
 #if defined(MESH_SHADER) && defined(VOLUMETRICS)
@@ -1714,7 +1716,7 @@ void node_attribute_volume_color(sampler3D tex, out vec4 outcol, out vec3 outvec
 	if (value.a > 1e-8)
 		value.rgb /= value.a;
 
-	outvec = value.rgb;
+	outvec = value.rgb * volumeColor;
 	outcol = vec4(outvec, 1.0);
 	outf = dot(vec3(1.0 / 3.0), outvec);
 }
