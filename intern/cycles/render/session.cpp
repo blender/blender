@@ -212,6 +212,11 @@ void Session::run_gpu()
 		/* advance to next tile */
 		bool no_tiles = !tile_manager.next();
 
+		DeviceKernelStatus kernel_state = DEVICE_KERNEL_UNKNOWN;
+		if (no_tiles) {
+			kernel_state = device->get_active_kernel_switch_state();
+		}
+
 		if(params.background) {
 			/* if no work left and in background mode, we can stop immediately */
 			if(no_tiles) {
@@ -219,6 +224,16 @@ void Session::run_gpu()
 				break;
 			}
 		}
+
+		/* Don't go in pause mode when image was rendered with preview kernels
+		 * When feature kernels become available the session will be resetted. */
+		else if (no_tiles && kernel_state == DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL) {
+			time_sleep(0.1);
+		}
+		else if (no_tiles && kernel_state == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE) {
+			reset_gpu(tile_manager.params, params.samples);
+		}
+
 		else {
 			/* if in interactive mode, and we are either paused or done for now,
 			 * wait for pause condition notify to wake up again */
@@ -540,6 +555,11 @@ void Session::run_cpu()
 		bool no_tiles = !tile_manager.next();
 		bool need_tonemap = false;
 
+		DeviceKernelStatus kernel_state = DEVICE_KERNEL_UNKNOWN;
+		if (no_tiles) {
+			kernel_state = device->get_active_kernel_switch_state();
+		}
+
 		if(params.background) {
 			/* if no work left and in background mode, we can stop immediately */
 			if(no_tiles) {
@@ -547,6 +567,16 @@ void Session::run_cpu()
 				break;
 			}
 		}
+
+		/* Don't go in pause mode when preview kernels are used
+		 * When feature kernels become available the session will be resetted. */
+		else if (no_tiles && kernel_state == DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL) {
+			time_sleep(0.1);
+		}
+		else if (no_tiles && kernel_state == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE) {
+			reset_cpu(tile_manager.params, params.samples);
+		}
+
 		else {
 			/* if in interactive mode, and we are either paused or done for now,
 			 * wait for pause condition notify to wake up again */
@@ -699,7 +729,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	return requested_features;
 }
 
-void Session::load_kernels(bool lock_scene)
+bool Session::load_kernels(bool lock_scene)
 {
 	thread_scoped_lock scene_lock;
 	if(lock_scene) {
@@ -722,7 +752,7 @@ void Session::load_kernels(bool lock_scene)
 			progress.set_error(message);
 			progress.set_status("Error", message);
 			progress.set_update();
-			return;
+			return false;
 		}
 
 		progress.add_skip_time(timer, false);
@@ -730,14 +760,13 @@ void Session::load_kernels(bool lock_scene)
 
 		kernels_loaded = true;
 		loaded_kernel_features = requested_features;
+		return true;
 	}
+	return false;
 }
 
 void Session::run()
 {
-	/* load kernels */
-	load_kernels();
-
 	if(params.use_profiling && (params.device.type == DEVICE_CPU)) {
 		profiler.start();
 	}
@@ -879,7 +908,7 @@ bool Session::update_scene()
 
 	/* update scene */
 	if(scene->need_update()) {
-		load_kernels(false);
+		bool new_kernels_needed = load_kernels(false);
 
 		/* Update max_closures. */
 		KernelIntegrator *kintegrator = &scene->dscene.data.integrator;
@@ -894,6 +923,21 @@ bool Session::update_scene()
 		progress.set_status("Updating Scene");
 		MEM_GUARDED_CALL(&progress, scene->device_update, device, progress);
 
+		DeviceKernelStatus kernel_switch_status = device->get_active_kernel_switch_state();
+		bool kernel_switch_needed = kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE ||
+		                            kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_INVALID;
+		if (kernel_switch_status == DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL) {
+			progress.set_kernel_status("Compiling render kernels");
+		}
+		if (new_kernels_needed || kernel_switch_needed) {
+			progress.set_kernel_status("Compiling render kernels");
+			device->wait_for_availability(loaded_kernel_features);
+			progress.set_kernel_status("");
+		}
+
+		if (kernel_switch_needed) {
+			reset(tile_manager.params, params.samples);
+		}
 		return true;
 	}
 	return false;

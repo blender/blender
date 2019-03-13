@@ -162,7 +162,7 @@ public:
 	void set_pause(bool pause);
 
 	bool update_scene();
-	void load_kernels(bool lock_scene=true);
+	bool load_kernels(bool lock_scene=true);
 
 	void device_free();
 

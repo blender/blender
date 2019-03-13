@@ -261,16 +261,22 @@ class OpenCLDevice : public Device
 {
 public:
 	DedicatedTaskPool task_pool;
+
+	/* Task pool for required kernels (base, AO kernels during foreground rendering) */
+	TaskPool load_required_kernel_task_pool;
+	/* Task pool for optional kernels (feature kernels during foreground rendering) */
+	TaskPool load_kernel_task_pool;
 	cl_context cxContext;
 	cl_command_queue cqCommandQueue;
 	cl_platform_id cpPlatform;
 	cl_device_id cdDevice;
 	cl_int ciErr;
 	int device_num;
+	bool use_preview_kernels;
 
 	class OpenCLProgram {
 	public:
-		OpenCLProgram() : loaded(false), program(NULL), device(NULL) {}
+		OpenCLProgram() : loaded(false), needs_compiling(true), program(NULL), device(NULL) {}
 		OpenCLProgram(OpenCLDevice *device,
 		              const string& program_name,
 		              const string& kernel_name,
@@ -279,11 +285,23 @@ public:
 		~OpenCLProgram();
 
 		void add_kernel(ustring name);
-		void load();
+
+		/* Try to load the program from device cache or disk */
+		bool load();
+		/* Compile the kernel (first separate, failback to local) */
+		void compile();
+		/* Create the OpenCL kernels after loading or compiling */
+		void create_kernels();
 
 		bool is_loaded() const { return loaded; }
 		const string& get_log() const { return log; }
 		void report_error();
+
+		/* Wait until this kernel is available to be used 
+		 * It will return true when the kernel is available.
+		 * It will return false when the kernel is not available 
+		 * or could not be loaded. */
+		bool wait_for_availability();
 
 		cl_kernel operator()();
 		cl_kernel operator()(ustring name);
@@ -308,6 +326,8 @@ public:
 		void add_error(const string& msg);
 
 		bool loaded;
+		bool needs_compiling;
+
 		cl_program program;
 		OpenCLDevice *device;
 
@@ -323,25 +343,41 @@ public:
 		map<ustring, cl_kernel> kernels;
 	};
 
+	/* Container for all types of split programs. */
+	class OpenCLSplitPrograms {
+		public:
+			OpenCLDevice *device;
+			OpenCLProgram program_split;
+			OpenCLProgram program_lamp_emission;
+			OpenCLProgram program_do_volume;
+			OpenCLProgram program_indirect_background;
+			OpenCLProgram program_shader_eval;
+			OpenCLProgram program_holdout_emission_blurring_pathtermination_ao;
+			OpenCLProgram program_subsurface_scatter;
+			OpenCLProgram program_direct_lighting;
+			OpenCLProgram program_shadow_blocked_ao;
+			OpenCLProgram program_shadow_blocked_dl;
+
+			OpenCLSplitPrograms(OpenCLDevice *device);
+			~OpenCLSplitPrograms();
+
+			/* Load the kernels and put the created kernels in the given `programs`
+			 * paramter. */
+			void load_kernels(vector<OpenCLProgram*> &programs,
+			                  const DeviceRequestedFeatures& requested_features,
+			                  bool is_preview=false);
+	};
+
 	DeviceSplitKernel *split_kernel;
-
-	OpenCLProgram program_split;
-
-	OpenCLProgram program_lamp_emission;
-	OpenCLProgram program_do_volume;
-	OpenCLProgram program_indirect_background;
-	OpenCLProgram program_shader_eval;
-	OpenCLProgram program_holdout_emission_blurring_pathtermination_ao;
-	OpenCLProgram program_subsurface_scatter;
-	OpenCLProgram program_direct_lighting;
-	OpenCLProgram program_shadow_blocked_ao;
-	OpenCLProgram program_shadow_blocked_dl;
 
 	OpenCLProgram base_program;
 	OpenCLProgram bake_program;
 	OpenCLProgram displace_program;
 	OpenCLProgram background_program;
 	OpenCLProgram denoising_program;
+
+	OpenCLSplitPrograms kernel_programs;
+	OpenCLSplitPrograms preview_programs;
 
 	typedef map<string, device_vector<uchar>*> ConstMemMap;
 	typedef map<string, device_ptr> MemMap;
@@ -358,22 +394,30 @@ public:
 	void opencl_error(const string& message);
 	void opencl_assert_err(cl_int err, const char* where);
 
-	OpenCLDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_);
+	OpenCLDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
 	~OpenCLDevice();
 
 	static void CL_CALLBACK context_notify_callback(const char *err_info,
 		const void * /*private_info*/, size_t /*cb*/, void *user_data);
 
 	bool opencl_version_check();
+	OpenCLSplitPrograms* get_split_programs();
 
 	string device_md5_hash(string kernel_custom_build_options = "");
 	bool load_kernels(const DeviceRequestedFeatures& requested_features);
+	void load_required_kernels(const DeviceRequestedFeatures& requested_features);
+	void load_preview_kernels();
+
+	bool wait_for_availability(const DeviceRequestedFeatures& requested_features);
+	DeviceKernelStatus get_active_kernel_switch_state();
 
 	/* Get the name of the opencl program for the given kernel */
 	const string get_opencl_program_name(const string& kernel_name);
 	/* Get the program file name to compile (*.cl) for the given kernel */
 	const string get_opencl_program_filename(const string& kernel_name);
-	string get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name);
+	string get_build_options(const DeviceRequestedFeatures& requested_features,
+	                         const string& opencl_program_name,
+	                         bool preview_kernel=false);
 	/* Enable the default features to reduce recompilation events */
 	void enable_default_features(DeviceRequestedFeatures& features);
 
