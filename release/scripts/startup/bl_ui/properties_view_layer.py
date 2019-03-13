@@ -47,7 +47,7 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        layer = bpy.context.view_layer
+        layer = context.view_layer
 
         col = flow.column()
         col.prop(layer, "use", text="Use for Rendering")
