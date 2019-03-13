@@ -728,20 +728,20 @@ def main(context,
     USER_FILL_HOLES_QUALITY = 50  # Only for hole filling.
     USER_VIEW_INIT = 0  # Only for hole filling.
 
-    obList = [ob for ob in context.selected_editable_objects if ob and ob.type == 'MESH']
-    is_editmode = (context.active_object.mode == 'EDIT')
+    is_editmode = (context.mode == 'EDIT_MESH')
+    if is_editmode:
+        obList = context.objects_in_mode_unique_data
+    else:
+        obList = [
+            ob for ob in context.selected_editable_objects
+            if ob.type == 'MESH' and ob.data.library is None
+        ]
 
     if not is_editmode:
         USER_ONLY_SELECTED_FACES = False
 
     if not obList:
         raise Exception("error, no selected mesh objects")
-
-    # Reuse variable
-    if len(obList) == 1:
-        ob = "Unwrap %i Selected Mesh"
-    else:
-        ob = "Unwrap %i Selected Meshes"
 
     # Convert from being button types
     USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
