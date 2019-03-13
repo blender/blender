@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 from .properties_physics_common import (
     point_cache_ui,
@@ -95,7 +95,7 @@ class PARTICLE_MT_context_menu(Menu):
         )
 
 
-class PARTICLE_PT_hair_dynamics_presets(PresetMenu):
+class PARTICLE_PT_hair_dynamics_presets(PresetPanel, Panel):
     bl_label = "Hair Dynamics Presets"
     preset_subdir = "hair_dynamics"
     preset_operator = "script.execute_preset"

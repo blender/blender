@@ -23,10 +23,10 @@ from bpy.types import (
     Panel,
 )
 from bpy.app.translations import pgettext_iface as iface_
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 
-class FLUID_PT_presets(PresetMenu):
+class FLUID_PT_presets(PresetPanel, Panel):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
     preset_operator = "script.execute_preset"

@@ -21,7 +21,7 @@ import bpy
 import nodeitems_utils
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 from .properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
@@ -304,7 +304,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_viewlayers")
 
 
-class NODE_PT_node_color_presets(PresetMenu):
+class NODE_PT_node_color_presets(PresetPanel, Panel):
     """Predefined node color"""
     bl_label = "Color Presets"
     preset_subdir = "node_color"

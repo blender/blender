@@ -25,7 +25,6 @@ from bpy.types import (
 )
 
 from rna_prop_ui import PropertyPanel
-from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
     point_cache_ui,

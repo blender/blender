@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 
 class CameraButtonsPanel:
@@ -34,7 +34,7 @@ class CameraButtonsPanel:
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class CAMERA_PT_presets(PresetMenu):
+class CAMERA_PT_presets(PresetPanel, Panel):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
     preset_operator = "script.execute_preset"
@@ -42,7 +42,7 @@ class CAMERA_PT_presets(PresetMenu):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
 
-class SAFE_AREAS_PT_presets(PresetMenu):
+class SAFE_AREAS_PT_presets(PresetPanel, Panel):
     bl_label = "Camera Presets"
     preset_subdir = "safe_areas"
     preset_operator = "script.execute_preset"

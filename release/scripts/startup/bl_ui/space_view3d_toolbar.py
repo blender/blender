@@ -31,7 +31,7 @@ from .properties_paint_common import (
     brush_texpaint_common,
     brush_texture_settings,
 )
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 
 class View3DPanel:
@@ -1816,7 +1816,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_appearance(GreasePencilAppearancePane
     bl_label = "Appearance"
 
 
-class VIEW3D_PT_gpencil_brush_presets(PresetMenu):
+class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):
     """Brush settings"""
     bl_label = "Brush Presets"
     preset_subdir = "gpencil_brush"

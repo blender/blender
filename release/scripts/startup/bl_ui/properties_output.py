@@ -20,17 +20,17 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel, UIList
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 
-class RENDER_PT_presets(PresetMenu):
+class RENDER_PT_presets(PresetPanel, Panel):
     bl_label = "Render Presets"
     preset_subdir = "render"
     preset_operator = "script.execute_preset"
     preset_add_operator = "render.preset_add"
 
 
-class RENDER_PT_ffmpeg_presets(PresetMenu):
+class RENDER_PT_ffmpeg_presets(PresetPanel, Panel):
     bl_label = "FFMPEG Presets"
     preset_subdir = "ffmpeg"
     preset_operator = "script.python_file_run"

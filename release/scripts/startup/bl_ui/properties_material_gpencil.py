@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 from .properties_grease_pencil_common import (
     GreasePencilMaterialsPanel,
@@ -250,7 +250,7 @@ class MATERIAL_PT_gpencil_options(GPMaterialButtonsPanel, Panel):
         layout.prop(gpcolor, "pass_index")
 
 
-class MATERIAL_PT_gpencil_material_presets(PresetMenu):
+class MATERIAL_PT_gpencil_material_presets(PresetPanel, Panel):
     """Material settings"""
     bl_label = "Material Presets"
     preset_subdir = "gpencil_material"

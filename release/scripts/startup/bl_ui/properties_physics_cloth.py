@@ -22,7 +22,7 @@ import bpy
 from bpy.types import (
     Panel,
 )
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 
 from .properties_physics_common import (
     point_cache_ui,
@@ -34,7 +34,7 @@ def cloth_panel_enabled(md):
     return md.point_cache.is_baked is False
 
 
-class CLOTH_PT_presets(PresetMenu):
+class CLOTH_PT_presets(PresetPanel, Panel):
     bl_label = "Cloth Presets"
     preset_subdir = "cloth"
     preset_operator = "script.execute_preset"

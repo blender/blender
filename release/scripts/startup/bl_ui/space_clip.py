@@ -21,7 +21,7 @@
 import bpy
 from bpy.types import Panel, Header, Menu, UIList
 from bpy.app.translations import pgettext_iface as iface_
-from bl_operators.presets import PresetMenu
+from bl_ui.utils import PresetPanel
 from .properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
@@ -1460,7 +1460,7 @@ class CLIP_MT_tracking_context_menu(Menu):
                         text="Unlock Tracks").action = 'UNLOCK'
 
 
-class CLIP_PT_camera_presets(PresetMenu):
+class CLIP_PT_camera_presets(PresetPanel, Panel):
     """Predefined tracking camera intrinsics"""
     bl_label = "Camera Presets"
     preset_subdir = "tracking_camera"
@@ -1468,7 +1468,7 @@ class CLIP_PT_camera_presets(PresetMenu):
     preset_add_operator = "clip.camera_preset_add"
 
 
-class CLIP_PT_track_color_presets(PresetMenu):
+class CLIP_PT_track_color_presets(PresetPanel, Panel):
     """Predefined track color"""
     bl_label = "Color Presets"
     preset_subdir = "tracking_track_color"
@@ -1476,7 +1476,7 @@ class CLIP_PT_track_color_presets(PresetMenu):
     preset_add_operator = "clip.track_color_preset_add"
 
 
-class CLIP_PT_tracking_settings_presets(PresetMenu):
+class CLIP_PT_tracking_settings_presets(PresetPanel, Panel):
     """Predefined tracking settings"""
     bl_label = "Tracking Presets"
     preset_subdir = "tracking_settings"
