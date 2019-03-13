@@ -37,7 +37,7 @@ def act_strip(context):
 
 def selected_sequences_len(context):
     selected_sequences = getattr(context, "selected_sequences", None)
-    if not selected_sequences:
+    if selected_sequences is None:
         return 0
     return len(selected_sequences)
 
