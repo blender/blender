@@ -72,15 +72,11 @@ static SpaceLink *topbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
 	ar->alignment = RGN_ALIGN_RIGHT | RGN_SPLIT_PREV;
 
 	/* main regions */
-	ar = MEM_callocN(sizeof(ARegion), "left aligned main region for topbar");
-	BLI_addtail(&stopbar->regionbase, ar);
-	ar->regiontype = RGN_TYPE_WINDOW;
-	ar->alignment = RGN_ALIGN_LEFT;
 	ar = MEM_callocN(sizeof(ARegion), "right aligned main region for topbar");
 	BLI_addtail(&stopbar->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
 	ar->alignment = RGN_ALIGN_RIGHT;
-	ar = MEM_callocN(sizeof(ARegion), "center main region for topbar");
+	ar = MEM_callocN(sizeof(ARegion), "main region of topbar");
 	BLI_addtail(&stopbar->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
 
@@ -117,7 +113,7 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
 	wmKeyMap *keymap;
 
 	/* force delayed UI_view2d_region_reinit call */
-	if (ELEM(region->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+	if (ELEM(region->alignment, RGN_ALIGN_RIGHT)) {
 		region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 	}
 	UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);

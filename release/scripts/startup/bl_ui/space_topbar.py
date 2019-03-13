@@ -90,12 +90,10 @@ class TOPBAR_HT_lower_bar(Header):
     def draw(self, context):
         region = context.region
 
-        if region.alignment == 'LEFT':
-            self.draw_left(context)
-        elif region.alignment == 'RIGHT':
+        if region.alignment == 'RIGHT':
             self.draw_right(context)
         else:
-            self.draw_center(context)
+            self.draw_left(context)
 
     def draw_left(self, context):
         layout = self.layout
@@ -158,9 +156,6 @@ class TOPBAR_HT_lower_bar(Header):
                     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common_2d", category="")
             elif context.uv_sculpt_object is not None:
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
-
-    def draw_center(self, context):
-        pass
 
     def draw_right(self, context):
         layout = self.layout
