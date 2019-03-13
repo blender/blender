@@ -1766,7 +1766,7 @@ class VIEW3D_PT_tools_grease_pencil_interpolate(Panel):
 
             if settings.type == 'BACK':
                 layout.prop(settings, "back")
-            elif setting.type == 'ELASTIC':
+            elif settings.type == 'ELASTIC':
                 sub = layout.column(align=True)
                 sub.prop(settings, "amplitude")
                 sub.prop(settings, "period")
