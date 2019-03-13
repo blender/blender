@@ -693,6 +693,14 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 	copy_v3_v3(evli->upvec, mat[1]);
 	normalize_v3(evli->upvec);
 
+	/* Make sure we have a consistent Right Hand coord frame.
+	 * (in case of negatively scaled Z axis) */
+	float cross[3];
+	cross_v3_v3v3(cross, evli->rightvec, evli->forwardvec);
+	if (dot_v3v3(cross, evli->upvec) < 0.0) {
+		negate_v3(evli->upvec);
+	}
+
 	light_shape_parameters_set(evli, la, scale);
 
 	/* Light Type */
