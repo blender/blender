@@ -57,6 +57,8 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 
 BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr);
 
+void BM_edge_verts_swap(BMEdge *e);
+
 bool    BM_face_validate(BMFace *face, FILE *err);
 
 void    BM_edge_calc_rotate(

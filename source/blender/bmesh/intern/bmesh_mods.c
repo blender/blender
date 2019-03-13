@@ -716,6 +716,17 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr)
 	return v_new;
 }
 
+/**
+ * Swap v1 & v2
+ *
+ * \note Typically we shouldn't care about this, however it's used when extruding wire edges.
+ */
+void BM_edge_verts_swap(BMEdge *e)
+{
+	SWAP(BMVert *, e->v1, e->v2);
+	SWAP(BMDiskLink, e->v1_disk_link, e->v2_disk_link);
+}
+
 #if 0
 /**
  * Checks if a face is valid in the data structure
