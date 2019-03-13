@@ -2143,11 +2143,21 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle, const uiWidgetColor
 		rect->xmin += icon_size + icon_padding;
 	}
 
-	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
-		rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+	int text_padding = (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+	if (but->editstr) {
+		rect->xmin += text_padding;
 	}
-	else if ((but->drawflag & UI_BUT_TEXT_RIGHT)) {
-		rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+	else if (but->flag & UI_BUT_DRAG_MULTI) {
+		bool text_is_edited = ui_but_drag_multi_edit_get(but) != NULL;
+		if (text_is_edited) {
+			rect->xmin += text_padding;
+		}
+	}
+	else if (but->drawflag & UI_BUT_TEXT_LEFT) {
+		rect->xmin += text_padding;
+	}
+	else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
+		rect->xmax -= text_padding;
 	}
 
 	/* Menu contains sub-menu items with triangle icon on their right. Shortcut
