@@ -141,7 +141,7 @@ void BKE_curve_init(Curve *cu)
 	/* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cu, id)); */  /* cu->type is already initialized... */
 
 	copy_v3_fl(cu->size, 1.0f);
-	cu->flag = CU_FRONT | CU_BACK | CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;
+	cu->flag = CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;
 	cu->pathlen = 100;
 	cu->resolu = cu->resolv = (cu->type == OB_SURF) ? 4 : 12;
 	cu->width = 1.0;
@@ -157,6 +157,7 @@ void BKE_curve_init(Curve *cu)
 	cu->bevfac2 = 1.0f;
 	cu->bevfac1_mapping = CU_BEVFAC_MAP_RESOLU;
 	cu->bevfac2_mapping = CU_BEVFAC_MAP_RESOLU;
+	cu->bevresol = 4;
 
 	cu->bb = BKE_boundbox_alloc_unit();
 
