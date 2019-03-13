@@ -858,7 +858,7 @@ static bool undosys_ID_map_lookup_index(const UndoIDPtrMap *map, const void *key
 	const UndoIDPtrMapItem *pmap = map->pmap;
 	const uint len = map->len;
 	if (len == 0) {
-		if (*r_index) {
+		if (r_index) {
 			*r_index = 0;
 		}
 		return false;
