@@ -88,6 +88,8 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
 	{0, "", 0, N_("Relationship"), ""},
 	{CONSTRAINT_TYPE_ACTION,     "ACTION", ICON_CONSTRAINT, "Action",
 	                             "Use transform property of target to look up pose for owner from an Action"},
+	{CONSTRAINT_TYPE_ARMATURE,   "ARMATURE", ICON_CONSTRAINT, "Armature",
+	                             "Apply weight-blended transformation from multiple bones like the Armature modifier"},
 	{CONSTRAINT_TYPE_CHILDOF,    "CHILD_OF", ICON_CONSTRAINT, "Child Of",
 	                             "Make target the 'detachable' parent of owner"},
 	{CONSTRAINT_TYPE_MINMAX,     "FLOOR", ICON_CONSTRAINT, "Floor",
@@ -102,8 +104,6 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
 	                             "Custom constraint(s) written in Python (Not yet implemented)"}, */
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT, "Shrinkwrap",
 	                             "Restrict movements to surface of target mesh"},
-	{CONSTRAINT_TYPE_ARMATURE, "ARMATURE", ICON_CONSTRAINT, "Armature",
-	                           "Apply weight-blended transformation from multiple bones like the Armature modifier"},
 	{0, NULL, 0, NULL, NULL},
 };
 
