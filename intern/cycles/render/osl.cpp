@@ -66,6 +66,10 @@ OSLShaderManager::~OSLShaderManager()
 {
 	shading_system_free();
 	texture_system_free();
+}
+
+void OSLShaderManager::free_memory()
+{
 #ifdef OSL_HAS_BLENDER_CLEANUP_FIX
 	/* There is a problem with llvm+osl: The order global destructors across
 	 * different compilation units run cannot be guaranteed, on windows this means

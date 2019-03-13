@@ -693,6 +693,10 @@ void ShaderManager::get_requested_features(Scene *scene,
 void ShaderManager::free_memory()
 {
 	beckmann_table.free_memory();
+
+#ifdef WITH_OSL
+	OSLShaderManager::free_memory();
+#endif
 }
 
 float ShaderManager::linear_rgb_to_gray(float3 c)
