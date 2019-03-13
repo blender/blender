@@ -593,20 +593,6 @@ class VIEW3D_MT_uv_map(Menu):
         layout.operator("uv.reset")
 
 
-class VIEW3D_MT_edit_proportional(Menu):
-    bl_label = "Proportional Editing"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.props_enum(tool_settings, "proportional_edit")
-
-        layout.separator()
-
-        layout.label(text="Falloff:")
-        layout.props_enum(tool_settings, "proportional_edit_falloff")
-
-
 # ********** View menus **********
 
 
@@ -5817,7 +5803,6 @@ classes = (
     VIEW3D_MT_mirror,
     VIEW3D_MT_snap,
     VIEW3D_MT_uv_map,
-    VIEW3D_MT_edit_proportional,
     VIEW3D_MT_view,
     VIEW3D_MT_view_local,
     VIEW3D_MT_view_cameras,
