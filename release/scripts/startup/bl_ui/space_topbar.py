@@ -868,6 +868,10 @@ class TOPBAR_MT_help(Menu):
     bl_label = "Help"
 
     def draw(self, context):
+        # If 'url_prefill_from_blender' becomes slow it could be made into a separate operator
+        # to avoid constructing the bug report just to show this menu.
+        from bl_ui_utils.bug_report_url import url_prefill_from_blender
+
         layout = self.layout
 
         show_developer = context.preferences.view.show_developer_ui
@@ -878,7 +882,7 @@ class TOPBAR_MT_help(Menu):
 
         layout.operator(
             "wm.url_open", text="Report a Bug", icon='URL',
-        ).url = "https://developer.blender.org/maniphest/task/edit/form/1"
+        ).url = url_prefill_from_blender()
 
         layout.separator()
 
