@@ -757,7 +757,9 @@ typedef struct UserDef {
 	/** #eMultiSample_Type, amount of samples for Grease Pencil. */
 	short gpencil_multisamples;
 
-	char _pad5[4];
+	char factor_display_type;
+
+	char _pad5[3];
 } UserDef;
 
 /* from blenkernel blender.c */
@@ -1110,6 +1112,12 @@ typedef enum eOpensubdiv_Computee_Type {
 	USER_OPENSUBDIV_COMPUTE_GLSL_TRANSFORM_FEEDBACK = 5,
 	USER_OPENSUBDIV_COMPUTE_GLSL_COMPUTE = 6,
 } eOpensubdiv_Computee_Type;
+
+/** #UserDef.factor_display_type */
+typedef enum eUserpref_FactorDisplay {
+	USER_FACTOR_AS_FACTOR = 0,
+	USER_FACTOR_AS_PERCENTAGE = 1,
+} eUserpref_FactorDisplay;
 
 #ifdef __cplusplus
 }

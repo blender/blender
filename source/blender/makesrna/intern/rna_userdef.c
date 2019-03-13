@@ -3775,6 +3775,17 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	                         "Show the frames per second screen refresh rate, while animation is played back");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	static const EnumPropertyItem factor_display_items[] = {
+		{USER_FACTOR_AS_FACTOR, "FACTOR", 0, "Factor", "Display factors as values between 0 and 1"},
+		{USER_FACTOR_AS_PERCENTAGE, "PERCENTAGE", 0, "Percentage", "Display factors as percentages"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
+	prop = RNA_def_property(srna, "factor_display_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, factor_display_items);
+	RNA_def_property_ui_text(prop, "Factor Display Type", "How factor values are displayed");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	/* Weight Paint */
 
 	prop = RNA_def_property(srna, "use_weight_color_range", PROP_BOOLEAN, PROP_NONE);
