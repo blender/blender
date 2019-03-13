@@ -435,14 +435,8 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 			// Needed for MapVirtualKey or if we ever need to get chars from wm_ime_char or similar.
 			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
+			hasEventHandled = true;
 		}
-
-		if (hasEventHandled == false) {
-			// Check if we have events handled by the system
-			// (for example the `GHOST_kEventWindowClose`).
-			hasEventHandled = m_eventManager->getNumEvents() != 0;
-		}
-
 	} while (waitForEvent && !hasEventHandled);
 
 	return hasEventHandled;
@@ -1105,7 +1099,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 #ifdef WITH_INPUT_NDOF
 						case RIM_TYPEHID:
 							if (system->processNDOF(raw)) {
-								system->m_ndofManager->sendMotionEvent();
 								eventHandled = true;
 							}
 							break;
