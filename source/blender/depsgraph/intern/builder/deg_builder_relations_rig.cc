@@ -456,7 +456,8 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			                             NodeType::BONE,
 			                             pchan->name,
 			                             OperationCode::BONE_CONSTRAINTS);
-			add_relation(bone_pose_key, constraints_key, "Constraints Stack");
+			add_relation(bone_pose_key, constraints_key, "Pose -> Constraints Stack");
+			add_relation(bone_local_key, constraints_key, "Local -> Constraints Stack");
 			/* Constraints -> ready/ */
 			/* TODO(sergey): When constraint stack is exploded, this step should
 			 * occur before the first IK solver.  */
@@ -518,9 +519,15 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			add_relation(bone_done_key,
 			             pose_done_key,
 			             "PoseEval Result-Bone Link");
+
+			/* Bones must be traversed before cleanup. */
 			add_relation(bone_done_key,
 			             pose_cleanup_key,
-			             "Cleanup dependency");
+			             "Done -> Cleanup");
+
+			add_relation(bone_ready_key,
+			             pose_cleanup_key,
+			             "Ready -> Cleanup");
 		}
 		/* Custom shape. */
 		if (pchan->custom != NULL) {
