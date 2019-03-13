@@ -178,9 +178,19 @@ static void hud_region_layout(const bContext *C, ARegion *ar)
 	ED_region_panels_layout(C, ar);
 
 	if (ar->panels.first && (ar->sizey != size_y)) {
+		int winx_new = UI_DPI_FAC * (ar->sizex + 0.5f);
+		int winy_new = UI_DPI_FAC * (ar->sizey + 0.5f);
 		View2D *v2d = &ar->v2d;
-		ar->winx = ar->sizex * UI_DPI_FAC;
-		ar->winy = ar->sizey * UI_DPI_FAC;
+
+		if (ar->flag & RGN_FLAG_SIZE_CLAMP_X) {
+			CLAMP_MAX(winx_new, ar->winx);
+		}
+		if (ar->flag & RGN_FLAG_SIZE_CLAMP_Y) {
+			CLAMP_MAX(winy_new, ar->winy);
+		}
+
+		ar->winx = winx_new;
+		ar->winy = winy_new;
 
 		ar->winrct.xmax = (ar->winrct.xmin + ar->winx) - 1;
 		ar->winrct.ymax = (ar->winrct.ymin + ar->winy) - 1;

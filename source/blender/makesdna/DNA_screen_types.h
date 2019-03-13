@@ -625,6 +625,9 @@ enum {
 	RGN_FLAG_TEMP_REGIONDATA    = (1 << 3),
 	/* The region must either use its prefsizex/y or be hidden. */
 	RGN_FLAG_PREFSIZE_OR_HIDDEN = (1 << 4),
+	/** Size has been clamped (floating regions only). */
+	RGN_FLAG_SIZE_CLAMP_X      = (1 << 5),
+	RGN_FLAG_SIZE_CLAMP_Y      = (1 << 6),
 };
 
 /** #ARegion.do_draw */
