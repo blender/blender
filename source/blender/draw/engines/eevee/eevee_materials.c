@@ -38,6 +38,8 @@
 
 #include "GPU_material.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_engine.h"
 #include "eevee_lut.h"
 #include "eevee_private.h"
@@ -1649,9 +1651,6 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 					continue;
 				}
 				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-				if (!psys_check_enabled(ob, psys, false)) {
-					continue;
-				}
 				if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
 					continue;
 				}

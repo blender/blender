@@ -843,9 +843,6 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			continue;
 		}
 		ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-		if (!psys_check_enabled(ob, psys, false)) {
-			continue;
-		}
 		if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
 			continue;
 		}

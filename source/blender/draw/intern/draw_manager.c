@@ -217,6 +217,13 @@ bool DRW_object_is_visible_psys_in_active_context(
         const Object *object,
         const ParticleSystem *psys)
 {
+	const bool for_render = DRW_state_is_image_render();
+	/* NOTE: psys_check_enabled is using object and particle system for only
+	 * reading, but is using some other functions which are more generic and
+	 * which are hard to make const-pointer. */
+	if (!psys_check_enabled((Object *)object, (ParticleSystem *)psys, for_render)) {
+		return false;
+	}
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene = draw_ctx->scene;
 	if (object == draw_ctx->object_edit) {
