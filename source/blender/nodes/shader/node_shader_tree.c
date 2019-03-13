@@ -448,6 +448,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 	bNodeSocketValueVector *src_vector;
 	bNodeSocketValueRGBA *src_rgba, *dst_rgba;
 	bNodeSocketValueFloat *src_float, *dst_float;
+	bNodeSocketValueInt *src_int;
 	bool link_added = false;
 
 	for (group_node = localtree->nodes.first; group_node; group_node = group_node->next) {
@@ -484,6 +485,15 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 					src_rgba = group_socket->default_value;
 					dst_rgba = value_socket->default_value;
 					copy_v4_v4(dst_rgba->value, src_rgba->value);
+					break;
+				case SOCK_INT:
+					/* HACK: Support as float. */
+					value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
+					value_socket = ntree_shader_node_find_output(value_node, "Value");
+					BLI_assert(value_socket != NULL);
+					src_int = group_socket->default_value;
+					dst_float = value_socket->default_value;
+					dst_float->value = (float)(src_int->value);
 					break;
 				case SOCK_FLOAT:
 					value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
