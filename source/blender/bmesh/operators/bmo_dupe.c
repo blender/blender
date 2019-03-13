@@ -121,6 +121,12 @@ static BMEdge *bmo_edge_copy(
 	/* Mark the edge for output */
 	BMO_edge_flag_enable(bm_dst, e_dst, DUPE_NEW);
 
+	/* Take winding from previous face (if we had one),
+	 * otherwise extruding a duplicated edges gives bad normals, see: T62487. */
+	if (BM_edge_is_boundary(e_src) && (e_src->l->v == e_src->v1)) {
+		BM_edge_verts_swap(e_dst);
+	}
+
 	return e_dst;
 }
 
