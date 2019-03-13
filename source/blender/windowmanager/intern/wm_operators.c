@@ -789,7 +789,9 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg)
 	/* fake button, it holds space for search items */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), width, height, NULL, 0, 0, 0, 0, NULL);
 
-	UI_block_bounds_set_popup(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
+	/* Move it downwards, mouse over button. */
+	UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
+
 	UI_but_focus_on_enter_event(win, but);
 
 	return block;
@@ -1062,7 +1064,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		        UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
 	}
 
-	UI_block_bounds_set_popup(block, 4, 0, 0);
+	UI_block_bounds_set_popup(block, 4, NULL);
 
 	return block;
 }
@@ -1150,7 +1152,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	}
 
 	/* center around the mouse */
-	UI_block_bounds_set_popup(block, 4, data->width / -2, data->height / 2);
+	UI_block_bounds_set_popup(block, 4, (const int[2]){data->width / -2, data->height / 2});
 
 	return block;
 }
@@ -1175,7 +1177,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 
 	UI_block_func_set(block, NULL, NULL, NULL);
 
-	UI_block_bounds_set_popup(block, 4, 0, 0);
+	UI_block_bounds_set_popup(block, 4, NULL);
 
 	return block;
 }
@@ -1597,7 +1599,8 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *userdata)
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - init_data->size[1],
 	         init_data->size[0], init_data->size[1], NULL, 0, 0, 0, 0, NULL);
 
-	UI_block_bounds_set_popup(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
+	/* Move it downwards, mouse over button. */
+	UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
 
 	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;

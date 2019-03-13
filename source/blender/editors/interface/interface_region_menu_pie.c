@@ -85,8 +85,8 @@ static uiBlock *ui_block_func_PIE(bContext *UNUSED(C), uiPopupBlockHandle *handl
 
 	block->minbounds = minwidth;
 	block->bounds = 1;
-	block->mx = 0;
-	block->my = 0;
+	block->bounds_offset[0] = 0;
+	block->bounds_offset[1] = 0;
 	block->bounds_type = UI_BLOCK_BOUNDS_PIE_CENTER;
 
 	block->pie_data.pie_center_spawned[0] = pie->mx;

@@ -495,8 +495,8 @@ static void ui_block_bounds_calc_popup(
 
 	/* offset block based on mouse position, user offset is scaled
 	 * along in case we resized the block in ui_block_bounds_calc_text */
-	raw_x = rect.xmin = xy[0] + block->rect.xmin + (block->mx * width) / oldwidth;
-	raw_y = rect.ymin = xy[1] + block->rect.ymin + (block->my * height) / oldheight;
+	raw_x = rect.xmin = xy[0] + block->rect.xmin + (block->bounds_offset[0] * width) / oldwidth;
+	raw_y = rect.ymin = xy[1] + block->rect.ymin + (block->bounds_offset[1] * height) / oldheight;
 	rect.xmax = rect.xmin + width;
 	rect.ymax = rect.ymin + height;
 
@@ -538,21 +538,33 @@ void UI_block_bounds_set_text(uiBlock *block, int addval)
 }
 
 /* used for block popups */
-void UI_block_bounds_set_popup(uiBlock *block, int addval, int mx, int my)
+void UI_block_bounds_set_popup(uiBlock *block, int addval, const int bounds_offset[2])
 {
 	block->bounds = addval;
 	block->bounds_type = UI_BLOCK_BOUNDS_POPUP_MOUSE;
-	block->mx = mx;
-	block->my = my;
+	if (bounds_offset != NULL) {
+		block->bounds_offset[0] = bounds_offset[0];
+		block->bounds_offset[1] = bounds_offset[1];
+	}
+	else {
+		block->bounds_offset[0] = 0;
+		block->bounds_offset[1] = 0;
+	}
 }
 
 /* used for menu popups */
-void UI_block_bounds_set_menu(uiBlock *block, int addval, int mx, int my)
+void UI_block_bounds_set_menu(uiBlock *block, int addval, const int bounds_offset[2])
 {
 	block->bounds = addval;
 	block->bounds_type = UI_BLOCK_BOUNDS_POPUP_MENU;
-	block->mx = mx;
-	block->my = my;
+	if (bounds_offset != NULL) {
+		block->bounds_offset[0] = bounds_offset[0];
+		block->bounds_offset[1] = bounds_offset[1];
+	}
+	else {
+		block->bounds_offset[0] = 0;
+		block->bounds_offset[1] = 0;
+	}
 }
 
 /* used for centered popups, i.e. splash */

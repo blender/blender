@@ -1086,7 +1086,8 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
 	/* fake button, it holds space for search items */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
 
-	UI_block_bounds_set_popup(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
+	/* Move it downwards, mouse over button. */
+	UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
 
 	//	UI_but_active_only(C, ar, block, but); XXX using this here makes Blender hang - investigate
 	wm_event_init_from_window(win, &event);

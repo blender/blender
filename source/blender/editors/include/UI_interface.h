@@ -594,8 +594,8 @@ typedef enum {
 
 void UI_block_bounds_set_normal(struct uiBlock *block, int addval);
 void UI_block_bounds_set_text(uiBlock *block, int addval);
-void UI_block_bounds_set_popup(uiBlock *block, int addval, int mx, int my);
-void UI_block_bounds_set_menu(uiBlock *block, int addvall, int mx, int my);
+void UI_block_bounds_set_popup(uiBlock *block, int addval, const int bounds_offset[2]);
+void UI_block_bounds_set_menu(uiBlock *block, int addval, const int bounds_offset[2]);
 void UI_block_bounds_set_centered(uiBlock *block, int addval);
 void UI_block_bounds_set_explicit(uiBlock *block, int minx, int miny, int maxx, int maxy);
 

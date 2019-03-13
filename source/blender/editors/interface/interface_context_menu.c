@@ -110,7 +110,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 
 	uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
-	UI_block_bounds_set_popup(block, 6, -50, 26);
+	UI_block_bounds_set_popup(block, 6, (const int[2]){-50, 26});
 
 	return block;
 }
@@ -159,7 +159,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 
 	uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
-	UI_block_bounds_set_popup(block, 6, -50, 26);
+	UI_block_bounds_set_popup(block, 6, (const int[2]){-50, 26});
 
 #ifdef USE_KEYMAP_ADD_HACK
 	g_kmi_id_hack = kmi_id;

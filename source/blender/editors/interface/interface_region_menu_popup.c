@@ -272,7 +272,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		}
 
 		block->minbounds = minwidth;
-		UI_block_bounds_set_menu(block, 1, offset[0], offset[1]);
+		UI_block_bounds_set_menu(block, 1, offset);
 	}
 	else {
 		/* for a header menu we set the direction automatic */

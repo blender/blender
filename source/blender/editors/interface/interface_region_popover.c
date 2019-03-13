@@ -48,6 +48,7 @@
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -161,12 +162,12 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 			ui_block_to_window_fl(handle->ctx_region, pup->but->block, &center[0], &center[1]);
 			/* These variables aren't used for popovers,
 			 * we could add new variables if there is a conflict. */
-			handle->prev_mx = block->mx = (int)center[0];
-			handle->prev_my = block->my = (int)center[1];
+			block->bounds_offset[0] = (int)center[0];
+			block->bounds_offset[1] = (int)center[1];
+			copy_v2_v2_int(handle->prev_bounds_offset, block->bounds_offset);
 		}
 		else {
-			block->mx = handle->prev_mx;
-			block->my = handle->prev_my;
+			copy_v2_v2_int(block->bounds_offset, handle->prev_bounds_offset);
 		}
 
 		if (!slideout) {
@@ -213,7 +214,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 			}
 		}
 
-		UI_block_bounds_set_popup(block, block_margin, offset[0], offset[1]);
+		UI_block_bounds_set_popup(block, block_margin, offset);
 	}
 
 	return block;

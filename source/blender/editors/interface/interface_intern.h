@@ -440,7 +440,8 @@ struct uiBlock {
 
 	/** for doing delayed */
 	eBlockBoundsCalc bounds_type;
-	int mx, my;
+	/** Offset to use when calculating bounds (in pixels). */
+	int bounds_offset[2];
 	/** for doing delayed */
 	int bounds, minbounds;
 
@@ -613,7 +614,7 @@ struct uiPopupBlockHandle {
 	rctf prev_block_rect;
 	rctf prev_butrct;
 	short prev_dir1, prev_dir2;
-	int prev_mx, prev_my;
+	int prev_bounds_offset[2];
 
 	/* Maximum estimated size to avoid having to reposition on refresh. */
 	float max_size_x, max_size_y;
