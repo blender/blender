@@ -263,8 +263,7 @@ class FollowActiveQuads(Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return (obj is not None and obj.type == 'MESH')
+        return context.mode == 'EDIT_MESH'
 
     def execute(self, context):
         main(context, self)
