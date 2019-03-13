@@ -403,9 +403,8 @@ typedef struct ARegion {
 	/** Hide, .... */
 	short flag;
 
-	/** Current split size in float (unused). */
-	float fsize;
-	/** Current split size in pixels (if zero it uses regiontype). */
+	/** Current split size in unscaled pixels (if zero it uses regiontype).
+	 * To convert to pixels use: `UI_DPI_FAC * ar->sizex + 0.5f`. */
 	short sizex, sizey;
 
 	/** Private, cached notifier events. */
@@ -416,7 +415,6 @@ typedef struct ARegion {
 	short overlap;
 	/** Temporary copy of flag settings for clean fullscreen. */
 	short flagfullscreen;
-	char _pad[4];
 
 	/** Callbacks for this region type. */
 	struct ARegionType *type;
