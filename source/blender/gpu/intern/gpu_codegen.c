@@ -1001,7 +1001,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 			if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
 				if (input->attr_type == CD_TANGENT) { /* silly exception */
 					BLI_dynstr_appendf(
-					        ds, "\tvar%d%s.xyz = normalize(NormalMatrix * att%d.xyz);\n",
+					        ds, "\tvar%d%s.xyz = NormalMatrix * att%d.xyz;\n",
 					        input->attr_id, use_geom ? "g" : "", input->attr_id);
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s.w = att%d.w;\n",
