@@ -2392,6 +2392,8 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 		gpencil_undo_finish();
 
 		/* cleanup */
+		WM_cursor_modal_set(p->win, CURSOR_STD);
+
 		gp_paint_cleanup(p);
 		gp_session_cleanup(p);
 		ED_gpencil_toggle_brush_cursor(C, true, NULL);
