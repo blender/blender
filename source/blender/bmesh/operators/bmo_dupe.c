@@ -75,7 +75,8 @@ static BMEdge *bmo_edge_copy(
         BMOpSlot *slot_boundarymap_out,
         BMesh *bm_dst, BMesh *bm_src,
         BMEdge *e_src,
-        GHash *vhash, GHash *ehash)
+        GHash *vhash, GHash *ehash,
+        const bool use_edge_flip_from_face)
 {
 	BMEdge *e_dst;
 	BMVert *e_dst_v1, *e_dst_v2;
@@ -121,10 +122,12 @@ static BMEdge *bmo_edge_copy(
 	/* Mark the edge for output */
 	BMO_edge_flag_enable(bm_dst, e_dst, DUPE_NEW);
 
-	/* Take winding from previous face (if we had one),
-	 * otherwise extruding a duplicated edges gives bad normals, see: T62487. */
-	if (BM_edge_is_boundary(e_src) && (e_src->l->v == e_src->v1)) {
-		BM_edge_verts_swap(e_dst);
+	if (use_edge_flip_from_face) {
+		/* Take winding from previous face (if we had one),
+		 * otherwise extruding a duplicated edges gives bad normals, see: T62487. */
+		if (BM_edge_is_boundary(e_src) && (e_src->l->v == e_src->v1)) {
+			BM_edge_verts_swap(e_dst);
+		}
 	}
 
 	return e_dst;
@@ -190,6 +193,7 @@ static BMFace *bmo_face_copy(
 static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 {
 	const bool use_select_history = BMO_slot_bool_get(op->slots_in, "use_select_history");
+	const bool use_edge_flip_from_face = BMO_slot_bool_get(op->slots_in, "use_edge_flip_from_face");
 
 	BMVert *v = NULL, *v2;
 	BMEdge *e = NULL;
@@ -259,7 +263,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 			}
 			/* now copy the actual edge */
 			bmo_edge_copy(op, slot_edge_map_out, slot_boundary_map_out,
-			              bm_dst, bm_src, e, vhash, ehash);
+			              bm_dst, bm_src, e, vhash, ehash, use_edge_flip_from_face);
 			BMO_edge_flag_enable(bm_src, e, DUPE_DONE);
 		}
 	}
@@ -279,7 +283,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 			BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {
 				if (!BMO_edge_flag_test(bm_src, e, DUPE_DONE)) {
 					bmo_edge_copy(op, slot_edge_map_out, slot_boundary_map_out,
-					              bm_dst, bm_src, e, vhash, ehash);
+					              bm_dst, bm_src, e, vhash, ehash, use_edge_flip_from_face);
 					BMO_edge_flag_enable(bm_src, e, DUPE_DONE);
 				}
 			}

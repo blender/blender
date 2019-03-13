@@ -1748,8 +1748,8 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 
 		EDBM_op_init(
 		        em, &bmop, op,
-		        "duplicate geom=%hvef use_select_history=%b",
-		        BM_ELEM_SELECT, true);
+		        "duplicate geom=%hvef use_select_history=%b use_edge_flip_from_face=%b",
+		        BM_ELEM_SELECT, true, true);
 
 		BMO_op_exec(bm, &bmop);
 
