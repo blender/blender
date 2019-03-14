@@ -196,8 +196,6 @@ struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, c
 void BKE_image_init_imageuser(struct Image *ima, struct ImageUser *iuser);
 void BKE_image_signal(struct Main *bmain, struct Image *ima, struct ImageUser *iuser, int signal);
 
-void BKE_image_walk_id_all_users(struct ID *id, void *customdata,
-                                 void callback(struct Image *ima, struct ImageUser *iuser, void *customdata));
 void BKE_image_walk_all_users(const struct Main *mainp, void *customdata,
                               void callback(struct Image *ima, struct ImageUser *iuser, void *customdata));
 
