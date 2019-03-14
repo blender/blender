@@ -750,6 +750,10 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 		return;
 	}
 
+	if (screen->temp) {
+		return;
+	}
+
 	float coords[4][4] = {
 	    /* Bottom-left. */
 	    {sa->totrct.xmin - U.pixelsize,

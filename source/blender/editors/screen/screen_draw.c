@@ -27,6 +27,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
@@ -367,6 +368,10 @@ void ED_screen_draw_edges(wmWindow *win)
 	screen->do_draw = false;
 
 	if (screen->state == SCREENFULL) {
+		return;
+	}
+
+	if (screen->temp && BLI_listbase_is_single(&screen->areabase)) {
 		return;
 	}
 
