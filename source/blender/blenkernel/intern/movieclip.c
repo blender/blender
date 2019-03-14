@@ -66,6 +66,7 @@
 #include "IMB_moviecache.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_OPENEXR
 #  include "intern/openexr/openexr_multi.h"
@@ -1720,6 +1721,10 @@ void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, MovieClip *clip)
 {
 	DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
 	BKE_tracking_dopesheet_tag_update(&clip->tracking);
+	if (DEG_is_active(depsgraph)) {
+		MovieClip *clip_orig = (MovieClip *)DEG_get_original_id(&clip->id);
+		BKE_tracking_dopesheet_tag_update(&clip_orig->tracking);
+	}
 }
 
 void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, MovieClip *clip)
