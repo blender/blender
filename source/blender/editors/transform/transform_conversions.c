@@ -2255,7 +2255,7 @@ void flushTransParticles(TransInfo *t)
 		}
 
 		PE_update_object(t->depsgraph, scene, OBACT(view_layer), 1);
-		DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+		DEG_id_tag_update(&ob->id, ID_RECALC_PSYS_REDO);
 	}
 }
 
