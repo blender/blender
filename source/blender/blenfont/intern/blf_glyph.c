@@ -437,10 +437,24 @@ static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
 	rect->ymax = rect->ymin - (float)g->height;
 }
 
+static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
+{
+	/* intentionally check clipping without shadow offset and negative kerning */
+	rect->xmin = floorf(x + MAX2(0.0f, g->pos_x));
+	rect->xmax = rect->xmin + (float)g->width;
+	rect->ymin = floorf(y + MAX2(0.0f, g->pos_y));
+	rect->ymax = rect->ymin - (float)g->height;
+}
+
+static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y, FontBLF *font)
+{
+	blf_glyph_calc_rect(rect, g,
+	        x + (float)font->shadow_x,
+	        y + (float)font->shadow_y);
+}
+
 void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 {
-	rctf rect;
-
 	if ((!g->width) || (!g->height))
 		return;
 
@@ -496,11 +510,9 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		g->build_tex = 1;
 	}
 
-	blf_glyph_calc_rect(&rect, g, x, y);
-
 	if (font->flags & BLF_CLIPPING) {
-		/* intentionally check clipping without shadow offset */
-		rctf rect_test = rect;
+		rctf rect_test;
+		blf_glyph_calc_rect_test(&rect_test, g, x, y);
 		BLI_rctf_translate(&rect_test, font->pos[0], font->pos[1]);
 
 		if (!BLI_rctf_inside_rctf(&font->clip_rec, &rect_test)) {
@@ -518,9 +530,7 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 
 	if (font->flags & BLF_SHADOW) {
 		rctf rect_ofs;
-		blf_glyph_calc_rect(&rect_ofs, g,
-		                    x + (float)font->shadow_x,
-		                    y + (float)font->shadow_y);
+		blf_glyph_calc_rect_shadow(&rect_ofs, g, x, y, font);
 
 		if (font->shadow == 0) {
 			blf_texture_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
@@ -534,6 +544,9 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			                  rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 	}
+
+	rctf rect;
+	blf_glyph_calc_rect(&rect, g, x, y);
 
 #if BLF_BLUR_ENABLE
 	switch (font->blur) {
