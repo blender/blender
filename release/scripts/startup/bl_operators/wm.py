@@ -656,10 +656,11 @@ class WM_OT_context_collection_boolean_set(Operator):
 
     type: EnumProperty(
         name="Type",
-        items=(('TOGGLE', "Toggle", ""),
-               ('ENABLE', "Enable", ""),
-               ('DISABLE', "Disable", ""),
-               ),
+        items=(
+            ('TOGGLE', "Toggle", ""),
+            ('ENABLE', "Enable", ""),
+            ('DISABLE', "Disable", ""),
+        ),
     )
 
     def execute(self, context):

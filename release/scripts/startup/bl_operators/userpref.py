@@ -542,8 +542,10 @@ class PREFERENCES_OT_addon_install(Operator):
     )
     target: EnumProperty(
         name="Target Path",
-        items=(('DEFAULT', "Default", ""),
-               ('PREFS', "User Prefs", "")),
+        items=(
+            ('DEFAULT', "Default", ""),
+            ('PREFS', "User Prefs", ""),
+        ),
     )
 
     filepath: StringProperty(

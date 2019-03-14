@@ -111,9 +111,11 @@ def extend(obj, operator, EXTEND_MODE):
             else:
                 break
 
-    def extrapolate_uv(fac,
-                       l_a_outer, l_a_inner,
-                       l_b_outer, l_b_inner):
+    def extrapolate_uv(
+            fac,
+            l_a_outer, l_a_inner,
+            l_b_outer, l_b_inner,
+    ):
         l_b_inner[:] = l_a_inner
         l_b_outer[:] = l_a_inner + ((l_a_inner - l_a_outer) * fac)
 
@@ -254,10 +256,11 @@ class FollowActiveQuads(Operator):
     mode: bpy.props.EnumProperty(
         name="Edge Length Mode",
         description="Method to space UV edge loops",
-        items=(('EVEN', "Even", "Space all UVs evenly"),
-               ('LENGTH', "Length", "Average space UVs edge length of each loop"),
-               ('LENGTH_AVERAGE', "Length Average", "Average space UVs edge length of each loop"),
-               ),
+        items=(
+            ('EVEN', "Even", "Space all UVs evenly"),
+            ('LENGTH', "Length", "Average space UVs edge length of each loop"),
+            ('LENGTH_AVERAGE', "Length Average", "Average space UVs edge length of each loop"),
+        ),
         default='LENGTH_AVERAGE',
     )
 
