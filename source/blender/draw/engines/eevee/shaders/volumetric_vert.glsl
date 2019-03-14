@@ -24,4 +24,8 @@ void main()
 	vPos.y = float(v_id % 2) * 4.0 - 1.0;
 	vPos.z = float(t_id);
 	vPos.w = 1.0;
+
+#ifdef USE_ATTR
+	pass_attr(vec3(0.0));
+#endif
 }
