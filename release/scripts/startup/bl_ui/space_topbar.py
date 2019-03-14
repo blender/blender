@@ -19,9 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from .properties_grease_pencil_common import (
-    GPENCIL_UL_layer,
-)
 
 
 class TOPBAR_HT_upper_bar(Header):

@@ -23,7 +23,6 @@ from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
 from bl_ui.utils import PresetPanel
 from .properties_grease_pencil_common import (
-    AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
     GreasePencilToolsPanel,
 )

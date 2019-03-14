@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 

@@ -18,8 +18,6 @@
 
 # <pep8 compliant>
 
-import bpy
-import math
 from bpy.types import (
     Header,
     Menu,

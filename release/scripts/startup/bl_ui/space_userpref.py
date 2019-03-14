@@ -601,7 +601,6 @@ class USERPREF_PT_viewport_quality(PreferencePanel, Panel):
         return (prefs.active_section == 'VIEWPORT')
 
     def draw_props(self, context, layout):
-        import sys
         prefs = context.preferences
         system = prefs.system
 

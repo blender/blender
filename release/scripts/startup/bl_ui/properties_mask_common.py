@@ -21,7 +21,6 @@
 # panels get subclassed (not registered directly)
 # menus are referenced `as is`
 
-import bpy
 from bpy.types import Menu, UIList
 
 

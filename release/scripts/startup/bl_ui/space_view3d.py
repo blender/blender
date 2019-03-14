@@ -5359,7 +5359,6 @@ class VIEW3D_PT_gpencil_guide(Panel):
     bl_label = "Guides"
 
     def draw(self, context):
-        from math import pi
         settings = context.tool_settings.gpencil_sculpt.guide
 
         layout = self.layout

@@ -17,8 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
-from bpy.types import Panel, UIList
+from bpy.types import Panel
 
 
 class ViewLayerButtonsPanel:

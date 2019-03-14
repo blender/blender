@@ -116,7 +116,7 @@ def from_dict(kw_args):
     kw.update(kw_args)
 
     keymap = kw["keymap"]
-    if kw["keymap"] is None:
+    if keymap is None:
         pass
     elif type(keymap) is tuple:
         keymap = [_keymap_fn_from_seq(keymap)]

@@ -20,7 +20,6 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
-from bpy.app.translations import pgettext_iface as iface_
 from bpy_extras.node_utils import find_node_input
 
 

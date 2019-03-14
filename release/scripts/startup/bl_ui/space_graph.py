@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 
-import bpy
 from bpy.types import Header, Menu, Panel
 from .space_dopesheet import (
     DopesheetFilterPopoverBase,

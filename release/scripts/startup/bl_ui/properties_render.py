@@ -18,8 +18,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
-from bpy.types import Menu, Panel, UIList
+from bpy.types import Panel
 from .space_view3d import (
     VIEW3D_PT_shading_lighting,
     VIEW3D_PT_shading_color,
