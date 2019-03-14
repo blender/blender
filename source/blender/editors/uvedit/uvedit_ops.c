@@ -2695,7 +2695,8 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Image *ima = CTX_data_edit_image(C);
 	float limit[2];
-	int extend, deselect;
+	bool extend = true;
+	bool deselect = false;
 	bool select_faces = (ts->uv_flag & UV_SYNC_SELECTION) && (ts->selectmode & SCE_SELECT_FACE);
 
 	UvNearestHit hit = UV_NEAREST_HIT_INIT;
@@ -2705,8 +2706,10 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 		return OPERATOR_CANCELLED;
 	}
 
-	extend = RNA_boolean_get(op->ptr, "extend");
-	deselect = RNA_boolean_get(op->ptr, "deselect");
+	if (pick) {
+		extend = RNA_boolean_get(op->ptr, "extend");
+		deselect = RNA_boolean_get(op->ptr, "deselect");
+	}
 	uvedit_pixel_to_float(sima, limit, 0.05f);
 
 	uint objects_len = 0;
@@ -2775,11 +2778,6 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = uv_select_linked_exec;
 	ot->poll = ED_operator_uvedit;    /* requires space image */
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0,
-	                "Extend", "Extend selection rather than clearing the existing selection");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked UV vertices rather than selecting them");
 }
 
 /** \} */
