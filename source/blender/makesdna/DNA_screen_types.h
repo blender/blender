@@ -286,8 +286,7 @@ typedef struct ScrGlobalAreaData {
 	 * and winx/winy don't) */
 	short cur_fixed_height;
 	/* For global areas, this is the min and max size they can use depending on
-	 * if they are 'collapsed' or not. Value is set on area creation and not
-	 * touched afterwards. */
+	 * if they are 'collapsed' or not. */
 	short size_min, size_max;
 	/** GlobalAreaAlign. */
 	short align;
