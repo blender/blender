@@ -179,10 +179,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (((scene_eval->eevee.taa_samples != 1) &&
-	    /* FIXME the motion blur camera evaluation is tagging view_updated
-	     * thus making the TAA always reset and never stopping rendering. */
-	    (effects->enabled_effects & EFFECT_MOTION_BLUR) == 0) ||
+	if ((scene_eval->eevee.taa_samples != 1) ||
 	    DRW_state_is_image_render())
 	{
 		float persmat[4][4], viewmat[4][4];
