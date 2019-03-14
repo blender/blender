@@ -227,7 +227,7 @@ class ToolSelectPanelHelper:
                 i = 0
                 for sub_item in item:
                     if sub_item is None:
-                        yield None
+                        yield None, -1
                     elif _item_is_fn(sub_item):
                         for item_dyn in sub_item(context):
                             yield item_dyn, i
@@ -585,7 +585,7 @@ class WM_MT_toolsystem_submenu(Menu):
             for item_group in cls.tools_from_context(context):
                 if type(item_group) is tuple:
                     for sub_item in item_group:
-                        if sub_item.text == button_text:
+                        if (sub_item is not None) and (sub_item.text == button_text):
                             return cls, item_group
         return None, None
 
