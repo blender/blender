@@ -187,14 +187,6 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Assign Image
- * \{ */
-
-//#define USE_SWITCH_ASPECT
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Space Conversion
  * \{ */
 
@@ -2135,7 +2127,6 @@ static void UV_OT_weld(wmOperatorType *ot)
 /** \name (De)Select All Operator
  * \{ */
 
-
 static bool uv_select_is_any_selected(Scene *scene, Image *ima, Object *obedit)
 {
 	ToolSettings *ts = scene->toolsettings;
@@ -2791,6 +2782,12 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked UV vertices rather than selecting them");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked (Cursor Pick) Operator
+ * \{ */
+
 static int uv_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	return uv_select_linked_internal(C, op, event, 1);
@@ -2821,6 +2818,12 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Split Operator
+ * \{ */
 
 /* note: this is based on similar use case to MESH_OT_split(), which has a similar effect
  * but in this case they are not joined to begin with (only having the behavior of being joined)
