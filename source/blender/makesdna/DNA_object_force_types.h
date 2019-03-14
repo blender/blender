@@ -382,18 +382,18 @@ typedef struct SoftBody {
 	/* self collision*/
 	/** Fixed collision ball size if > 0. */
 	float colball;
-	/** Cooling down collision response . */
+	/** Cooling down collision response. */
 	float balldamp;
-	/** Pressure the ball is loaded with . */
+	/** Pressure the ball is loaded with. */
 	float ballstiff;
 	short sbc_mode;
-	short aeroedge,
-		minloops,
-		maxloops,
-		choke,
-		solver_ID,
-		plastic, springpreload
-		;
+	short aeroedge;
+	short minloops;
+	short maxloops;
+	short choke;
+	short solver_ID;
+	short plastic;
+	short springpreload;
 
 	/** Scratchpad/cache on live time not saved in file. */
 	struct SBScratch *scratch;

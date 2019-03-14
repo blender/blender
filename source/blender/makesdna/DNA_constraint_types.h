@@ -694,17 +694,16 @@ typedef enum eBConstraint_Flags {
 
 /* bConstraint->ownspace/tarspace */
 typedef enum eBConstraint_SpaceTypes {
-		/* default for all - worldspace */
+	/** Default for all - worldspace. */
 	CONSTRAINT_SPACE_WORLD = 0,
-		/* for objects (relative to parent/without parent influence),
-		 * for bones (along normals of bone, without parent/restpositions)
-		 */
+	/** For objects (relative to parent/without parent influence),
+	 * for bones (along normals of bone, without parent/restpositions). */
 	CONSTRAINT_SPACE_LOCAL = 1,
-		/* for posechannels - pose space  */
+	/** For posechannels - pose space. */
 	CONSTRAINT_SPACE_POSE = 2,
-		 /* for posechannels - local with parent  */
+	/** For posechannels - local with parent. */
 	CONSTRAINT_SPACE_PARLOCAL = 3,
-		/* for files from between 2.43-2.46 (should have been parlocal) */
+	/** For files from between 2.43-2.46 (should have been parlocal). */
 	CONSTRAINT_SPACE_INVALID = 4 /* do not exchange for anything! */
 } eBConstraint_SpaceTypes;
 
@@ -733,7 +732,7 @@ typedef enum eCopyLocation_Flags {
 	LOCLIKE_X			= (1<<0),
 	LOCLIKE_Y			= (1<<1),
 	LOCLIKE_Z			= (1<<2),
-		/* LOCLIKE_TIP is a deprecated option... use headtail=1.0f instead */
+	/** LOCLIKE_TIP is a deprecated option... use headtail=1.0f instead */
 	LOCLIKE_TIP			= (1<<3),
 	LOCLIKE_X_INVERT	= (1<<4),
 	LOCLIKE_Y_INVERT	= (1<<5),
