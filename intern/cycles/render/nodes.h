@@ -668,6 +668,7 @@ public:
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 	bool has_attribute_dependency() { return true; }
 	bool has_spatial_varying() { return true; }
+	int get_group();
 
 	float3 normal_osl;
 };

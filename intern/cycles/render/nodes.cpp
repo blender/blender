@@ -3381,6 +3381,20 @@ void GeometryNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_geometry");
 }
 
+int GeometryNode::get_group()
+{
+	ShaderOutput *out;
+	int result = ShaderNode::get_group();
+
+	/* Backfacing uses NODE_LIGHT_PATH */
+	out = output("Backfacing");
+	if (!out->links.empty()) {
+		result = max(result, NODE_GROUP_LEVEL_1);
+	}
+
+	return result;
+}
+
 /* TextureCoordinate */
 
 NODE_DEFINE(TextureCoordinateNode)
