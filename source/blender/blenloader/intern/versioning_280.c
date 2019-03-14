@@ -2869,8 +2869,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		LISTBASE_FOREACH (Text *, text, &bmain->texts) {
-			enum { TXT_READONLY = 1 << 8, TXT_FOLLOW = 1 << 9};
-			text->flags &= ~(TXT_READONLY | TXT_FOLLOW);
+			text->flags &= ~(TXT_FLAG_DEPRECATED_8 | TXT_FLAG_DEPRECATED_9);
 		}
 	}
 

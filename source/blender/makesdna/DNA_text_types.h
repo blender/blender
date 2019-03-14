@@ -59,10 +59,18 @@ typedef struct Text {
 #define TXT_MAX_UNDO	(TXT_INIT_UNDO*TXT_INIT_UNDO)
 
 /* text flags */
-#define TXT_ISDIRTY             (1 << 0)
-#define TXT_ISMEM               (1 << 2)
-#define TXT_ISEXT               (1 << 3)
-#define TXT_ISSCRIPT            (1 << 4) /* used by space handler scriptlinks */
-#define TXT_TABSTOSPACES        (1 << 10) /* use space instead of tabs */
+enum {
+	TXT_ISDIRTY             = 1 << 0,
+	TXT_ISMEM               = 1 << 2,
+	TXT_ISEXT               = 1 << 3,
+	/** Used by space handler scriptlinks. */
+	TXT_ISSCRIPT            = 1 << 4,
+
+	TXT_FLAG_DEPRECATED_8   = 1 << 8,  /* cleared */
+	TXT_FLAG_DEPRECATED_9   = 1 << 9,  /* cleared */
+
+	/** Use space instead of tabs. */
+	TXT_TABSTOSPACES        = 1 << 10,
+};
 
 #endif  /* __DNA_TEXT_TYPES_H__ */
