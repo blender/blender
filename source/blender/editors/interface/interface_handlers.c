@@ -6979,6 +6979,12 @@ bool ui_but_is_active(ARegion *ar)
 	return (ui_but_find_active_in_region(ar) != NULL);
 }
 
+bool ui_but_is_editing(uiBut *but)
+{
+	uiHandleButtonData *data = but->active;
+	return (data && ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING));
+}
+
 /* is called by notifier */
 void UI_screen_free_active_but(const bContext *C, bScreen *screen)
 {

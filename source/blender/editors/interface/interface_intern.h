@@ -523,7 +523,6 @@ extern uiButExtraIconType ui_but_icon_extra_get(uiBut *but);
 
 extern void ui_but_default_set(struct bContext *C, const bool all, const bool use_afterfunc);
 
-extern void ui_but_update_ex(uiBut *but, const bool validate);
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
 extern bool ui_but_is_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
@@ -728,6 +727,7 @@ extern void ui_but_execute_begin(struct bContext *C, struct ARegion *ar, uiBut *
 extern void ui_but_execute_end(struct bContext *C, struct ARegion *ar, uiBut *but, void *active_back);
 extern void ui_but_active_free(const struct bContext *C, uiBut *but);
 extern bool ui_but_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_but_is_editing(uiBut *but);
 extern int ui_but_menu_direction(uiBut *but);
 extern void ui_but_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);

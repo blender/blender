@@ -3191,7 +3191,7 @@ static void ui_but_build_drawstr_int(uiBut *but, int value)
  * \param validate: When set, this function may change the button value.
  * Otherwise treat the button value as read-only.
  */
-void ui_but_update_ex(uiBut *but, const bool validate)
+static void ui_but_update_ex(uiBut *but, const bool validate)
 {
 	/* if something changed in the button */
 	double value = UI_BUT_VALUE_UNSET;
@@ -3199,7 +3199,7 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 	ui_but_update_select_flag(but, &value);
 
 	/* only update soft range while not editing */
-	if (!(but->editval || but->editstr || but->editvec)) {
+	if (!ui_but_is_editing(but)) {
 		if ((but->rnaprop != NULL) ||
 		    (but->poin && (but->pointype & UI_BUT_POIN_TYPES)))
 		{

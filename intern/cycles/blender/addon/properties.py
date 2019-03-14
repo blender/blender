@@ -192,13 +192,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     samples: IntProperty(
         name="Samples",
         description="Number of samples to render for each pixel",
-        min=1, max=2147483647,
+        min=1, max=(1 << 24),
         default=128,
     )
     preview_samples: IntProperty(
         name="Preview Samples",
         description="Number of samples to render in the viewport, unlimited if 0",
-        min=0, max=2147483647,
+        min=0, max=(1 << 24),
         default=32,
     )
     preview_pause: BoolProperty(

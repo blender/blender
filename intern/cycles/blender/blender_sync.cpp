@@ -769,6 +769,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		}
 	}
 
+	/* Clamp samples. */
+	params.samples = min(params.samples, Integrator::MAX_SAMPLES);
+
 	/* tiles */
 	const bool is_cpu = (params.device.type == DEVICE_CPU);
 	if(!is_cpu && !background) {
