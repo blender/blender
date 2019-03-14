@@ -476,10 +476,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		        GP_PAINT_DEPRECATED_0);
 	}
 
-	if (!USER_VERSION_ATLEAST(280, 46)) {
-		userdef->uiflag2 |= USER_EDIT_MODE_SMOOTH_WIRE;
-	}
-
 	/**
 	 * Include next version bump.
 	 */

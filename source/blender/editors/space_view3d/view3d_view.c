@@ -944,7 +944,7 @@ int view3d_opengl_select(
 	rcti rect;
 	int hits = 0;
 	const bool use_obedit_skip = (OBEDIT_FROM_VIEW_LAYER(vc->view_layer) != NULL) && (vc->obedit == NULL);
-	const bool is_pick_select = (U.gpu_select_pick_deph != 0);
+	const bool is_pick_select = (U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0;
 	const bool do_passes = (
 	        (is_pick_select == false) &&
 	        (select_mode == VIEW3D_SELECT_PICK_NEAREST));

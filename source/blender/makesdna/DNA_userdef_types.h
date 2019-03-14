@@ -573,7 +573,9 @@ typedef struct UserDef {
 	/** #eUserpref_UI_Flag. */
 	int uiflag;
 	/** #eUserpref_UI_Flag2. */
-	int uiflag2;
+	char uiflag2;
+	char gpu_flag;
+	char _pad8[2];
 	/* Experimental flag for app-templates to make changes to behavior
 	 * which are outside the scope of typical preferences. */
 	short app_flag;
@@ -664,8 +666,7 @@ typedef struct UserDef {
 	char  ipo_new;
 	/** Handle types for newly added keyframes. */
 	char  keyhandles_new;
-	char  gpu_select_pick_deph;
-	char  _pad11[2];
+	char  _pad11[3];
 	/** #eZoomFrame_Mode. */
 	char  view_frame_type;
 
@@ -896,13 +897,20 @@ typedef enum eUserpref_UI_Flag {
 	USER_HIDE_SYSTEM_BOOKMARKS  = (1u << 31),
 } eUserpref_UI_Flag;
 
-/** #UserDef.uiflag2 */
+/** #UserDef.uiflag2
+ *
+ * \note don't add new flags here, use 'uiflag' which has flags free. */
 typedef enum eUserpref_UI_Flag2 {
-	USER_UIFLAG2_DEPRECATED_0   = (1 << 0),
+	USER_UIFLAG2_DEPRECATED_0   = (1 << 0),  /* cleared */
 	USER_REGION_OVERLAP			= (1 << 1),
 	USER_TRACKPAD_NATURAL		= (1 << 2),
-	USER_EDIT_MODE_SMOOTH_WIRE	= (1 << 3),
+	USER_UIFLAG2_DEPRECATED_3	= (1 << 3),  /* dirty */
 } eUserpref_UI_Flag2;
+
+typedef enum eUserpref_GPU_Flag {
+	USER_GPU_FLAG_NO_DEPT_PICK              = (1 << 0),
+	USER_GPU_FLAG_NO_EDIT_MODE_SMOOTH_WIRE  = (1 << 1),
+} eUserpref_GPU_Flag;
 
 /** #UserDef.tablet_api */
 typedef enum eUserpref_TableAPI {

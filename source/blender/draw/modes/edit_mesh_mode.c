@@ -197,7 +197,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 			geom_sh_code[0] = NULL;
 		}
 		const char *use_geom_def = use_geom_shader ? "#define USE_GEOM_SHADER\n" : "";
-		const char *use_smooth_def = (U.uiflag2 & USER_EDIT_MODE_SMOOTH_WIRE) ? "#define USE_SMOOTH_WIRE\n" : "";
+		const char *use_smooth_def = (U.gpu_flag & USER_GPU_FLAG_NO_EDIT_MODE_SMOOTH_WIRE) ? "" : "#define USE_SMOOTH_WIRE\n";
 		sh_data->overlay_face = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
