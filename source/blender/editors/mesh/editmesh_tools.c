@@ -8197,7 +8197,7 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 						if (!is_zero_v3(vnors[v_index])) {
 							short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
 							BKE_lnor_space_custom_normal_to_data(
-								bm->lnor_spacearr->lspacearr[l_index], vnors[v_index], clnors);
+							        bm->lnor_spacearr->lspacearr[l_index], vnors[v_index], clnors);
 
 							if (bm->lnor_spacearr->lspacearr[l_index]->flags & MLNOR_SPACE_IS_SINGLE) {
 								BLI_BITMAP_ENABLE(loop_set, l_index);

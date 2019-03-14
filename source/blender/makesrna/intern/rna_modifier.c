@@ -122,9 +122,9 @@ const EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[] = {
 	{MOD_TRIANGULATE_QUAD_BEAUTY, "BEAUTY", 0, "Beauty ", "Split the quads in nice triangles, slower method"},
 	{MOD_TRIANGULATE_QUAD_FIXED, "FIXED", 0, "Fixed", "Split the quads on the first and third vertices"},
 	{MOD_TRIANGULATE_QUAD_ALTERNATE, "FIXED_ALTERNATE", 0, "Fixed Alternate",
-		                             "Split the quads on the 2nd and 4th vertices"},
+	 "Split the quads on the 2nd and 4th vertices"},
 	{MOD_TRIANGULATE_QUAD_SHORTEDGE, "SHORTEST_DIAGONAL", 0, "Shortest Diagonal",
-		                             "Split the quads based on the distance between the vertices"},
+	 "Split the quads based on the distance between the vertices"},
 	{0, NULL, 0, NULL, NULL},
 };
 
@@ -3043,7 +3043,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{ MOD_BEVEL_FACE_STRENGTH_NONE, "FSTR_NONE", 0, "None", "Do not set face strength" },
 		{ MOD_BEVEL_FACE_STRENGTH_NEW, "FSTR_NEW", 0, "New", "Set face strength on new faces only" },
 		{ MOD_BEVEL_FACE_STRENGTH_AFFECTED, "FSTR_AFFECTED", 0, "Affected",
-			"Set face strength on new and affected faces only" },
+		  "Set face strength on new and affected faces only" },
 		{ MOD_BEVEL_FACE_STRENGTH_ALL, "FSTR_ALL", 0, "All", "Set face strength on all faces" },
 		{ 0, NULL, 0, NULL, NULL },
 	};
@@ -3144,8 +3144,9 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "harden_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_HARDEN_NORMALS);
-	RNA_def_property_ui_text(prop, "Harden Normals",
-		"Match normals of new faces to adjacent faces");
+	RNA_def_property_ui_text(
+	        prop, "Harden Normals",
+	        "Match normals of new faces to adjacent faces");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "face_strength_mode", PROP_ENUM, PROP_NONE);

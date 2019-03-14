@@ -465,10 +465,12 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	const char *axis = NULL;
 	int matSize;
 	double angle; /* use double because of precision problems at high values */
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-		             0.0f, 0.0f, 0.0f, 0.0f,
-		             0.0f, 0.0f, 0.0f, 0.0f,
-		             0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	};
 
 	if (!PyArg_ParseTuple(args, "di|O:Matrix.Rotation", &angle, &matSize, &vec)) {
 		return NULL;

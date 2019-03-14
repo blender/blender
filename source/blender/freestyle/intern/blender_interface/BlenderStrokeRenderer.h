@@ -87,8 +87,9 @@ protected:
 	float get_stroke_vertex_z(void) const;
 	unsigned int get_stroke_mesh_id(void) const;
 	bool test_triangle_visibility(StrokeVertexRep *svRep[3]) const;
-	void test_strip_visibility(Strip::vertex_container& strip_vertices,
-		int *visible_faces, int *visible_segments) const;
+	void test_strip_visibility(
+	        Strip::vertex_container& strip_vertices,
+	        int *visible_faces, int *visible_segments) const;
 
 	vector<StrokeRep *> _strokeReps;
 

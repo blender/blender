@@ -337,18 +337,20 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer,
 		buf = imb_alloc_pixels(movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "avi.avi_converter_to_mjpeg 1");
 
 		if (buf) {
-			Compress_JPEG(movie->streams[stream].sh.Quality / 100,
-				      buf, buffer,
-				      movie->header->Width,
-				      movie->header->Height / 2,
-				      bufsize / 2);
+			Compress_JPEG(
+			        movie->streams[stream].sh.Quality / 100,
+			        buf, buffer,
+			        movie->header->Width,
+			        movie->header->Height / 2,
+			        bufsize / 2);
 			*size += numbytes;
 			numbytes = 0;
-			Compress_JPEG(movie->streams[stream].sh.Quality / 100,
-				      buf + *size, buffer + (size_t)(movie->header->Height / 2) * (size_t)movie->header->Width * 3,
-				      movie->header->Width,
-				      movie->header->Height / 2,
-				      bufsize / 2);
+			Compress_JPEG(
+			        movie->streams[stream].sh.Quality / 100,
+			        buf + *size, buffer + (size_t)(movie->header->Height / 2) * (size_t)movie->header->Width * 3,
+			        movie->header->Width,
+			        movie->header->Height / 2,
+			        bufsize / 2);
 			*size += numbytes;
 		}
 	}

@@ -4145,19 +4145,19 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 
 	static const EnumPropertyItem particle_color_source_items[] = {
 		{SHD_POINTDENSITY_COLOR_PARTAGE, "PARTICLE_AGE", 0, "Particle Age",
-		                                 "Lifetime mapped as 0.0 - 1.0 intensity"},
+		 "Lifetime mapped as 0.0 - 1.0 intensity"},
 		{SHD_POINTDENSITY_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed",
-		                                   "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
+		 "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
 		{SHD_POINTDENSITY_COLOR_PARTVEL, "PARTICLE_VELOCITY", 0, "Particle Velocity",
-		                                 "XYZ velocity mapped to RGB colors"},
+		 "XYZ velocity mapped to RGB colors"},
 		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem vertex_color_source_items[] = {
-	    {SHD_POINTDENSITY_COLOR_VERTCOL, "VERTEX_COLOR", 0, "Vertex Color", "Vertex color layer"},
-	    {SHD_POINTDENSITY_COLOR_VERTWEIGHT, "VERTEX_WEIGHT", 0, "Vertex Weight", "Vertex group weight"},
-	    {SHD_POINTDENSITY_COLOR_VERTNOR, "VERTEX_NORMAL", 0, "Vertex Normal",
-	                                     "XYZ normal vector mapped to RGB colors"},
+		{SHD_POINTDENSITY_COLOR_VERTCOL, "VERTEX_COLOR", 0, "Vertex Color", "Vertex color layer"},
+		{SHD_POINTDENSITY_COLOR_VERTWEIGHT, "VERTEX_WEIGHT", 0, "Vertex Weight", "Vertex group weight"},
+		{SHD_POINTDENSITY_COLOR_VERTNOR, "VERTEX_NORMAL", 0, "Vertex Normal",
+		 "XYZ normal vector mapped to RGB colors"},
 		{0, NULL, 0, NULL, NULL},
 	};
 

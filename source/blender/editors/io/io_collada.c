@@ -500,11 +500,13 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Export also the curve handles (if available) (this does only work when the inverse parent matrix "
 	                "is the unity matrix, otherwise you may end up with odd results)");
 
-	RNA_def_boolean(func, "keep_keyframes", 0, "Keep Keyframes",
-		"Use existing keyframes as additional sample points (this helps when you want to keep manual tweaks)");
+	RNA_def_boolean(
+	        func, "keep_keyframes", 0, "Keep Keyframes",
+	        "Use existing keyframes as additional sample points (this helps when you want to keep manual tweaks)");
 
-	RNA_def_boolean(func, "keep_flat_curves", 0, "All keyed curves",
-		"Export also curves which have only one key or are totally flat");
+	RNA_def_boolean(
+	        func, "keep_flat_curves", 0, "All keyed curves",
+	        "Export also curves which have only one key or are totally flat");
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");

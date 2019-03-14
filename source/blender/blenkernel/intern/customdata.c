@@ -2319,8 +2319,8 @@ static void CustomData_copy_data_layer(
 	if (!count || !src_data || !dst_data) {
 		if (count && !(src_data == NULL && dst_data == NULL)) {
 			CLOG_WARN(&LOG, "null data for %s type (%p --> %p), skipping",
-				      layerType_getName(source->layers[src_i].type),
-				      (void *)src_data, (void *)dst_data);
+			          layerType_getName(source->layers[src_i].type),
+			          (void *)src_data, (void *)dst_data);
 		}
 		return;
 	}

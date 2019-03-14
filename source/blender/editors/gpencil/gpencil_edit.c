@@ -881,8 +881,9 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
 
 		/* if last point, add new point at the end */
 		if (do_last) {
-			copy_point(gps, temp_points, temp_dverts,
-				oldtotpoints - 1, gps->totpoints - 1);
+			copy_point(
+			        gps, temp_points, temp_dverts,
+			        oldtotpoints - 1, gps->totpoints - 1);
 
 			/* deselect old */
 			pt = &gps->points[gps->totpoints - 2];
@@ -2600,8 +2601,9 @@ void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "use_offset", true, "With Offset",
-		"Offset the entire stroke instead of selected points only");
+	ot->prop = RNA_def_boolean(
+	        ot->srna, "use_offset", true, "With Offset",
+	        "Offset the entire stroke instead of selected points only");
 }
 
 /* ------------------------------- */
@@ -3333,8 +3335,9 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 
 				/* Project stroke in one axis */
 				if (ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP)) {
-					ED_gp_get_drawing_reference(scene, ob, gpl,
-						ts->gpencil_v3d_align, origin);
+					ED_gp_get_drawing_reference(
+					        scene, ob, gpl,
+					        ts->gpencil_v3d_align, origin);
 
 					int axis = 0;
 					switch (mode) {
@@ -3360,8 +3363,9 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 						}
 					}
 
-					ED_gp_project_point_to_plane(ob, rv3d, origin,
-						axis, &pt2);
+					ED_gp_project_point_to_plane(
+					        ob, rv3d, origin,
+					        axis, &pt2);
 
 					copy_v3_v3(&pt->x, &pt2.x);
 
@@ -3666,8 +3670,9 @@ void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, 2.0f, "Smooth", "", 0.0f, 2.0f);
 	prop = RNA_def_int(ot->srna, "repeat", 1, 1, 10, "Repeat", "", 1, 5);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	RNA_def_boolean(ot->srna, "only_selected", true, "Selected Points",
-		"Smooth only selected points in the stroke");
+	RNA_def_boolean(
+	        ot->srna, "only_selected", true, "Selected Points",
+	        "Smooth only selected points in the stroke");
 	RNA_def_boolean(ot->srna, "smooth_position", true, "Position", "");
 	RNA_def_boolean(ot->srna, "smooth_thickness", true, "Thickness", "");
 	RNA_def_boolean(ot->srna, "smooth_strength", false, "Strength", "");
@@ -4224,8 +4229,9 @@ void GPENCIL_OT_stroke_smooth(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 2.0f, "Factor", "", 0.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "only_selected", true, "Selected Points",
-		"Smooth only selected points in the stroke");
+	RNA_def_boolean(
+	        ot->srna, "only_selected", true, "Selected Points",
+	        "Smooth only selected points in the stroke");
 	RNA_def_boolean(ot->srna, "smooth_position", true, "Position", "");
 	RNA_def_boolean(ot->srna, "smooth_thickness", true, "Thickness", "");
 	RNA_def_boolean(ot->srna, "smooth_strength", false, "Strength", "");
@@ -4306,7 +4312,7 @@ static void gpencil_cutter_dissolve(bGPDlayer *hit_layer, bGPDstroke *hit_stroke
 			}
 		}
 		gp_stroke_delete_tagged_points(
-			hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
+		        hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
 	}
 }
 
@@ -4365,7 +4371,7 @@ static int gpencil_cutter_lasso_select(
 				float r_hita[3], r_hitb[3];
 				if (gps->totpoints > 1) {
 					ED_gpencil_select_stroke_segment(
-						gpl, gps, pt, true, true, scale, r_hita, r_hitb);
+					        gpl, gps, pt, true, true, scale, r_hita, r_hitb);
 				}
 				/* avoid infinite loops */
 				if (gps->totpoints > oldtot) {

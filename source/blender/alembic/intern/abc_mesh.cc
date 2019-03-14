@@ -1101,10 +1101,10 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
 	catch(Alembic::Util::Exception &ex) {
 		*err_str = "Error reading mesh sample; more detail on the console";
 		printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-			   m_iobject.getFullName().c_str(),
-			   m_schema.getName().c_str(),
-			   sample_sel.getRequestedTime(),
-			   ex.what());
+		       m_iobject.getFullName().c_str(),
+		       m_schema.getName().c_str(),
+		       sample_sel.getRequestedTime(),
+		       ex.what());
 		return existing_mesh;
 	}
 
@@ -1350,10 +1350,10 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 	}
 	catch(Alembic::Util::Exception &ex) {
 		printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-			   m_iobject.getFullName().c_str(),
-			   m_schema.getName().c_str(),
-			   sample_sel.getRequestedTime(),
-			   ex.what());
+		       m_iobject.getFullName().c_str(),
+		       m_schema.getName().c_str(),
+		       sample_sel.getRequestedTime(),
+		       ex.what());
 		return;
 	}
 
@@ -1398,10 +1398,10 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 	catch(Alembic::Util::Exception &ex) {
 		*err_str = "Error reading mesh sample; more detail on the console";
 		printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-			   m_iobject.getFullName().c_str(),
-			   m_schema.getName().c_str(),
-			   sample_sel.getRequestedTime(),
-			   ex.what());
+		       m_iobject.getFullName().c_str(),
+		       m_schema.getName().c_str(),
+		       sample_sel.getRequestedTime(),
+		       ex.what());
 		return existing_mesh;
 	}
 

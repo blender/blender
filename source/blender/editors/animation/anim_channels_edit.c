@@ -1258,8 +1258,9 @@ static void rearrange_nla_control_channels(bAnimContext *ac, AnimData *adt, eRea
 	/* we cannot rearrange between strips, but within each strip, we can rearrange those curves */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
-			rearrange_animchannel_islands(&strip->fcurves, rearrange_func, mode, ANIMTYPE_NLACURVE,
-				                          &anim_data_visible);
+			rearrange_animchannel_islands(
+			        &strip->fcurves, rearrange_func, mode, ANIMTYPE_NLACURVE,
+			        &anim_data_visible);
 		}
 	}
 

@@ -898,10 +898,12 @@ static int light_cache_bake_invoke(bContext *C, wmOperator *op, const wmEvent *U
 void SCENE_OT_light_cache_bake(wmOperatorType *ot)
 {
 	static const EnumPropertyItem light_cache_subset_items[] = {
-		{LIGHTCACHE_SUBSET_ALL, "ALL", 0, "All LightProbes", "Bake both irradiance grids and reflection cubemaps"},
-		{LIGHTCACHE_SUBSET_DIRTY, "DIRTY", 0, "Dirty Only", "Only bake lightprobes that are marked as dirty"},
-		{LIGHTCACHE_SUBSET_CUBE, "CUBEMAPS", 0, "Cubemaps Only", "Try to only bake reflection cubemaps if irradiance "
-	                                                             "grids are up to date"},
+		{LIGHTCACHE_SUBSET_ALL, "ALL", 0, "All LightProbes",
+		 "Bake both irradiance grids and reflection cubemaps"},
+		{LIGHTCACHE_SUBSET_DIRTY, "DIRTY", 0, "Dirty Only",
+		 "Only bake lightprobes that are marked as dirty"},
+		{LIGHTCACHE_SUBSET_CUBE, "CUBEMAPS", 0, "Cubemaps Only",
+		 "Try to only bake reflection cubemaps if irradiance grids are up to date"},
 		{0, NULL, 0, NULL, NULL},
 	};
 

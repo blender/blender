@@ -156,9 +156,10 @@ void EffectsExporter::create_image_samplers(COLLADASW::EffectProfile &ep, KeyIma
 		std::string uid(id_name(image));
 		std::string key = translate_id(uid);
 
-		COLLADASW::Sampler *sampler = new COLLADASW::Sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-			key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
-			key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+		COLLADASW::Sampler *sampler = new COLLADASW::Sampler(
+		        COLLADASW::Sampler::SAMPLER_TYPE_2D,
+		        key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+		        key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
 
 		sampler->setImageId(key);
 
@@ -203,9 +204,10 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		// create only one <sampler>/<surface> pair for each unique image
 		if (im_samp_map.find(key) == im_samp_map.end()) {
 			//<newparam> <sampler> <source>
-			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-				key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
-				key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+			COLLADASW::Sampler sampler(
+			        COLLADASW::Sampler::SAMPLER_TYPE_2D,
+			        key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+			        key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
 			sampler.setImageId(key);
 			// copy values to arrays since they will live longer
 			samplers[a] = sampler;

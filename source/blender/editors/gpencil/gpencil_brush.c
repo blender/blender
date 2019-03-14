@@ -1269,7 +1269,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 			if (found == false) {
 				/* STOP HERE! Nothing to paste! */
 				BKE_report(op->reports, RPT_ERROR,
-					   "Copy some strokes to the clipboard before using the Clone brush to paste copies of them");
+				           "Copy some strokes to the clipboard before using the Clone brush to paste copies of them");
 
 				MEM_freeN(gso);
 				op->customdata = NULL;
@@ -1853,8 +1853,7 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
 	/* the operator cannot work while play animation */
 	if (is_playing) {
-		BKE_report(op->reports, RPT_ERROR,
-			"Cannot sculpt while play animation");
+		BKE_report(op->reports, RPT_ERROR, "Cannot sculpt while play animation");
 
 		return OPERATOR_CANCELLED;
 	}

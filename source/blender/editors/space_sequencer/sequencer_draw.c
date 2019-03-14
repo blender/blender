@@ -982,8 +982,9 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 	ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 	ImBuf *scope;
 
-	IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
-		                                             &scene->display_settings);
+	IMB_colormanagement_imbuf_make_display_space(
+	        display_ibuf, &scene->view_settings,
+	        &scene->display_settings);
 
 	scope = make_scope_cb(display_ibuf);
 
@@ -1078,12 +1079,13 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *ar, Space
 			width = (scene->r.size * scene->r.xsch) / 100;
 			height = (scene->r.size * scene->r.ysch) / 100;
 
-			ED_mask_draw_region(mask, ar,
-				0, 0, 0,  /* TODO */
-				width, height,
-				aspx, aspy,
-				false, true,
-				NULL, C);
+			ED_mask_draw_region(
+			        mask, ar,
+			        0, 0, 0,  /* TODO */
+			        width, height,
+			        aspx, aspy,
+			        false, true,
+			        NULL, C);
 		}
 	}
 }

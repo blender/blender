@@ -175,11 +175,11 @@ public:
 	void add_object(Object *ob);
 
 	void sample_scene(
-		int sampling_rate,
-		int keyframe_at_end,
-		bool for_opensim,
-		bool keep_keyframes,
-		BC_export_animation_type export_animation_type);
+	        int sampling_rate,
+	        int keyframe_at_end,
+	        bool for_opensim,
+	        bool keep_keyframes,
+	        BC_export_animation_type export_animation_type);
 
 	BCAnimationCurveMap *get_curves(Object *ob);
 	void get_object_frames(BCFrames &frames, Object *ob);

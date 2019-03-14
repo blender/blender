@@ -570,8 +570,9 @@ static int gp_set_filling_texture(Image *image, short flag)
 		return (int)GL_INVALID_OPERATION;
 	}
 
-	GPU_create_gl_tex(bind, ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, GL_TEXTURE_2D,
-		false, false, image);
+	GPU_create_gl_tex(
+	        bind, ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, GL_TEXTURE_2D,
+	        false, false, image);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1099,9 +1100,10 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 				/* 3D Lines - OpenGL primitives-based */
 				if (gps->totpoints == 1) {
 					if (tgpw->disable_fill != 1) {
-						gp_draw_stroke_point(gps->points, sthickness, tgpw->dflag, gps->flag,
-							tgpw->offsx, tgpw->offsy, tgpw->winx, tgpw->winy,
-							tgpw->diff_mat, ink);
+						gp_draw_stroke_point(
+						        gps->points, sthickness, tgpw->dflag, gps->flag,
+						        tgpw->offsx, tgpw->offsy, tgpw->winx, tgpw->winy,
+						        tgpw->diff_mat, ink);
 					}
 				}
 				else {
@@ -1740,8 +1742,7 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 	ToolSettings *ts = scene->toolsettings;
 	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	if (brush != NULL) {
-		gp_draw_data(rv3d, brush, 1.0f, ob, gpd,
-			offsx, offsy, winx, winy, CFRA, dflag);
+		gp_draw_data(rv3d, brush, 1.0f, ob, gpd, offsx, offsy, winx, winy, CFRA, dflag);
 	}
 }
 

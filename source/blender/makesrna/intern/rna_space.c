@@ -2974,26 +2974,30 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	/* grease pencil paper settings */
 	prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_ANNOTATION);
-	RNA_def_property_ui_text(prop, "Show Annotation",
-		"Show annotations for this view");
+	RNA_def_property_ui_text(
+	        prop, "Show Annotation",
+	        "Show annotations for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "use_gpencil_paper", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_PAPER);
-	RNA_def_property_ui_text(prop, "Use Paper",
-		"Cover all viewport with a full color layer to improve visibility while drawing over complex scenes");
+	RNA_def_property_ui_text(
+	        prop, "Use Paper",
+	        "Cover all viewport with a full color layer to improve visibility while drawing over complex scenes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "use_gpencil_grid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_GRID);
-	RNA_def_property_ui_text(prop, "Use Grid",
-		"Display a grid over grease pencil paper");
+	RNA_def_property_ui_text(
+	        prop, "Use Grid",
+	        "Display a grid over grease pencil paper");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "use_gpencil_fade_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_FADE_NOACTIVE_LAYERS);
-	RNA_def_property_ui_text(prop, "Fade Layers",
-		"Toggle fading of Grease Pencil layers except the active one");
+	RNA_def_property_ui_text(
+	        prop, "Fade Layers",
+	        "Toggle fading of Grease Pencil layers except the active one");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
@@ -3016,8 +3020,9 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_fade_layer");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_ui_text(prop, "Opacity",
-		"Fade layer opacity for Grease Pencil layers except the active one");
+	RNA_def_property_ui_text(
+	        prop, "Opacity",
+	        "Fade layer opacity for Grease Pencil layers except the active one");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
 	/* show edit lines */
@@ -4421,24 +4426,24 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem file_filter_idcategories_items[] = {
-	    {FILTER_ID_SCE,
-	     "SCENE", ICON_SCENE_DATA, "Scenes", "Show/hide scenes"},
-	    {FILTER_ID_AC,
-	     "ANIMATION", ICON_ANIM_DATA, "Animations", "Show/hide animation data"},
+		{FILTER_ID_SCE,
+		 "SCENE", ICON_SCENE_DATA, "Scenes", "Show/hide scenes"},
+		{FILTER_ID_AC,
+		 "ANIMATION", ICON_ANIM_DATA, "Animations", "Show/hide animation data"},
 		{FILTER_ID_OB | FILTER_ID_GR,
-	     "OBJECT", ICON_GROUP, "Objects & Collections", "Show/hide objects and groups"},
+		 "OBJECT", ICON_GROUP, "Objects & Collections", "Show/hide objects and groups"},
 		{FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME,
-	     "GEOMETRY", ICON_MESH_DATA, "Geometry", "Show/hide meshes, curves, lattice, armatures and metaballs data"},
+		 "GEOMETRY", ICON_MESH_DATA, "Geometry", "Show/hide meshes, curves, lattice, armatures and metaballs data"},
 		{FILTER_ID_LS | FILTER_ID_MA | FILTER_ID_NT | FILTER_ID_TE,
-	     "SHADING", ICON_MATERIAL_DATA, "Shading",
-	     "Show/hide materials, nodetrees, textures and Freestyle's linestyles"},
+		 "SHADING", ICON_MATERIAL_DATA, "Shading",
+		 "Show/hide materials, nodetrees, textures and Freestyle's linestyles"},
 		{FILTER_ID_IM | FILTER_ID_MC | FILTER_ID_MSK | FILTER_ID_SO,
-	     "IMAGE", ICON_IMAGE_DATA, "Images & Sounds", "Show/hide images, movie clips, sounds and masks"},
+		 "IMAGE", ICON_IMAGE_DATA, "Images & Sounds", "Show/hide images, movie clips, sounds and masks"},
 		{FILTER_ID_CA | FILTER_ID_LA | FILTER_ID_SPK | FILTER_ID_WO | FILTER_ID_WS,
-	     "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lights, cameras and speakers"},
+		 "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lights, cameras and speakers"},
 		{FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_CF,
-	     "MISC", ICON_GREASEPENCIL, "Miscellaneous", "Show/hide other data types"},
-	    {0, NULL, 0, NULL, NULL},
+		 "MISC", ICON_GREASEPENCIL, "Miscellaneous", "Show/hide other data types"},
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "FileSelectParams", NULL);

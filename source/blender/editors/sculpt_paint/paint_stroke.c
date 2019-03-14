@@ -808,9 +808,9 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 
 	if (stroke->timer) {
 		WM_event_remove_timer(
-			CTX_wm_manager(C),
-			CTX_wm_window(C),
-			stroke->timer);
+		        CTX_wm_manager(C),
+		        CTX_wm_window(C),
+		        stroke->timer);
 	}
 
 	if (stroke->rng) {

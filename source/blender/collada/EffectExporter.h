@@ -60,11 +60,12 @@ private:
 	void get_images(Material *ma, KeyImageMap &uid_image_map);
 	void create_image_samplers(COLLADASW::EffectProfile &ep, KeyImageMap &uid_image_map, std::string &active_uv);
 
-	void writeTextures(COLLADASW::EffectProfile &ep,
-			std::string &key,
-			COLLADASW::Sampler *sampler,
-			MTex *t, Image *ima,
-			std::string &uvname );
+	void writeTextures(
+	        COLLADASW::EffectProfile &ep,
+	        std::string &key,
+	        COLLADASW::Sampler *sampler,
+	        MTex *t, Image *ima,
+	        std::string &uvname );
 
 	bool hasEffects(Scene *sce);
 

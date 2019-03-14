@@ -61,10 +61,10 @@ public:
 	{}
 
 	void add_armature_bones(
-		Object *ob_arm,
-		ViewLayer *view_layer,
-		SceneExporter *se,
-		std::vector<Object *>& child_objects);
+	        Object *ob_arm,
+	        ViewLayer *view_layer,
+	        SceneExporter *se,
+	        std::vector<Object *>& child_objects);
 
 	bool add_instance_controller(Object *ob);
 
@@ -85,10 +85,10 @@ private:
 	// Scene, SceneExporter and the list of child_objects
 	// are required for writing bone parented objects
 	void add_bone_node(
-		Bone *bone,
-		Object *ob_arm,
-		SceneExporter *se,
-		std::vector<Object *>& child_objects);
+	        Bone *bone,
+	        Object *ob_arm,
+	        SceneExporter *se,
+	        std::vector<Object *>& child_objects);
 
 	void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node);
 

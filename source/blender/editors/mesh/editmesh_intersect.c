@@ -884,8 +884,8 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 								float v_pivot_co[3];
 								float v_pivot_fac;
 								BMEdge *e_split = bm_face_split_edge_find(
-									e, f, v_pivot, bm->ftable, bm->totface,
-									v_pivot_co, &v_pivot_fac);
+								        e, f, v_pivot, bm->ftable, bm->totface,
+								        v_pivot_co, &v_pivot_fac);
 
 								if (e_split) {
 									/* for degenerate cases this vertex may be in one
@@ -918,9 +918,9 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 					struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
 
 					bm_face_split_by_edges_island_connect(
-						bm, f,
-						e_ls_base->list, e_ls_base->list_len,
-						mem_arena_edgenet);
+					        bm, f,
+					        e_ls_base->list, e_ls_base->list_len,
+					        mem_arena_edgenet);
 
 					BLI_memarena_clear(mem_arena_edgenet);
 				}

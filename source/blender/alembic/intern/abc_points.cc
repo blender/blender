@@ -223,10 +223,10 @@ struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
 	catch(Alembic::Util::Exception &ex) {
 		*err_str = "Error reading points sample; more detail on the console";
 		printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
-			   m_iobject.getFullName().c_str(),
-			   m_schema.getName().c_str(),
-			   sample_sel.getRequestedTime(),
-			   ex.what());
+		       m_iobject.getFullName().c_str(),
+		       m_schema.getName().c_str(),
+		       sample_sel.getRequestedTime(),
+		       ex.what());
 		return existing_mesh;
 	}
 

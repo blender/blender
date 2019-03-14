@@ -368,12 +368,12 @@ static bool cast_ray_highpoly(
 
 		/* compute barycentric differentials from position differentials */
 		barycentric_differentials_from_position(
-			hits[hit_mesh].co, triangle_high->mverts[0]->co,
-			triangle_high->mverts[1]->co, triangle_high->mverts[2]->co,
-			dxco, dyco, triangle_high->normal, true,
-			&pixel_high->uv[0], &pixel_high->uv[1],
-			&pixel_high->du_dx, &pixel_high->dv_dx,
-			&pixel_high->du_dy, &pixel_high->dv_dy);
+		        hits[hit_mesh].co, triangle_high->mverts[0]->co,
+		        triangle_high->mverts[1]->co, triangle_high->mverts[2]->co,
+		        dxco, dyco, triangle_high->normal, true,
+		        &pixel_high->uv[0], &pixel_high->uv[1],
+		        &pixel_high->du_dx, &pixel_high->dv_dx,
+		        &pixel_high->du_dy, &pixel_high->dv_dy);
 
 		/* verify we have valid uvs */
 		BLI_assert(pixel_high->uv[0] >= -1e-3f &&

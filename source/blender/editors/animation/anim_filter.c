@@ -1418,10 +1418,11 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 				 * - as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
 				 *   overwrite this with the real value - REVIEW THIS...
 				 */
-				ANIMCHANNEL_NEW_CHANNEL_FULL((void *)(&adt->action), ANIMTYPE_NLAACTION, owner_id, NULL,
-					{
-						ale->data = adt->action ? adt->action : NULL;
-					});
+				ANIMCHANNEL_NEW_CHANNEL_FULL(
+				        (void *)(&adt->action), ANIMTYPE_NLAACTION, owner_id, NULL,
+				        {
+				            ale->data = adt->action ? adt->action : NULL;
+				        });
 			}
 		}
 
@@ -1551,26 +1552,27 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 		 * in a few places in the rest of the code still - notably for the few cases where special mode-based
 		 * different types of data expanders are required.
 		 */
-		ANIMDATA_FILTER_CASES(iat,
-			{ /* AnimData */
-				/* specifically filter animdata block */
-				if (ANIMCHANNEL_SELOK(SEL_ANIMDATA(adt)) ) {
-					ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_ANIMDATA, id, NULL);
-				}
-			},
-			{ /* NLA */
-				items += animfilter_nla(ac, anim_data, ads, adt, filter_mode, id);
-			},
-			{ /* Drivers */
-				items += animfilter_fcurves(anim_data, ads, adt->drivers.first, ANIMTYPE_FCURVE,
-				                            filter_mode, NULL, id, id);
-			},
-			{ /* NLA Control Keyframes */
-				items += animfilter_nla_controls(anim_data, ads, adt, filter_mode, id);
-			},
-			{ /* Keyframes */
-				items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
-			}
+		ANIMDATA_FILTER_CASES(
+		        iat,
+		        { /* AnimData */
+		            /* specifically filter animdata block */
+		            if (ANIMCHANNEL_SELOK(SEL_ANIMDATA(adt)) ) {
+		                ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_ANIMDATA, id, NULL);
+		            }
+		        },
+		        { /* NLA */
+		            items += animfilter_nla(ac, anim_data, ads, adt, filter_mode, id);
+		        },
+		        { /* Drivers */
+		            items += animfilter_fcurves(anim_data, ads, adt->drivers.first, ANIMTYPE_FCURVE,
+		                                        filter_mode, NULL, id, id);
+		        },
+		        { /* NLA Control Keyframes */
+		            items += animfilter_nla_controls(anim_data, ads, adt, filter_mode, id);
+		        },
+		        { /* Keyframes */
+		            items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
+		        }
 		);
 	}
 
@@ -2531,20 +2533,21 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 
 	/* determine the type of expander channels to use */
 	/* this is the best way to do this for now... */
-	ANIMDATA_FILTER_CASES(ob,
-		{ /* AnimData - no channel, but consider data */ },
-		{ /* NLA - no channel, but consider data */ },
-		{ /* Drivers */
-			type = ANIMTYPE_FILLDRIVERS;
-			cdata = adt;
-			expanded = EXPANDED_DRVD(adt);
-		},
-		{ /* NLA Strip Controls - no dedicated channel for now (XXX) */ },
-		{ /* Keyframes */
-			type = ANIMTYPE_FILLACTD;
-			cdata = adt->action;
-			expanded = EXPANDED_ACTC(adt->action);
-		});
+	ANIMDATA_FILTER_CASES(
+	        ob,
+	        { /* AnimData - no channel, but consider data */ },
+	        { /* NLA - no channel, but consider data */ },
+	        { /* Drivers */
+	            type = ANIMTYPE_FILLDRIVERS;
+	            cdata = adt;
+	            expanded = EXPANDED_DRVD(adt);
+	        },
+	        { /* NLA Strip Controls - no dedicated channel for now (XXX) */ },
+	        { /* Keyframes */
+	            type = ANIMTYPE_FILLACTD;
+	            cdata = adt->action;
+	            expanded = EXPANDED_ACTC(adt->action);
+	        });
 
 	/* add object-level animation channels */
 	BEGIN_ANIMFILTER_SUBCHANNELS(expanded)
@@ -2701,20 +2704,21 @@ static size_t animdata_filter_ds_scene(bAnimContext *ac, ListBase *anim_data, bD
 
 	/* determine the type of expander channels to use */
 	// this is the best way to do this for now...
-	ANIMDATA_FILTER_CASES(sce,
-		{ /* AnimData - no channel, but consider data */},
-		{ /* NLA - no channel, but consider data */},
-		{ /* Drivers */
-			type = ANIMTYPE_FILLDRIVERS;
-			cdata = adt;
-			expanded = EXPANDED_DRVD(adt);
-		},
-		{ /* NLA Strip Controls - no dedicated channel for now (XXX) */ },
-		{ /* Keyframes */
-			type = ANIMTYPE_FILLACTD;
-			cdata = adt->action;
-			expanded = EXPANDED_ACTC(adt->action);
-		});
+	ANIMDATA_FILTER_CASES(
+	        sce,
+	        { /* AnimData - no channel, but consider data */},
+	        { /* NLA - no channel, but consider data */},
+	        { /* Drivers */
+	            type = ANIMTYPE_FILLDRIVERS;
+	            cdata = adt;
+	            expanded = EXPANDED_DRVD(adt);
+	        },
+	        { /* NLA Strip Controls - no dedicated channel for now (XXX) */ },
+	        { /* Keyframes */
+	            type = ANIMTYPE_FILLACTD;
+	            cdata = adt->action;
+	            expanded = EXPANDED_ACTC(adt->action);
+	        });
 
 	/* add scene-level animation channels */
 	BEGIN_ANIMFILTER_SUBCHANNELS(expanded)

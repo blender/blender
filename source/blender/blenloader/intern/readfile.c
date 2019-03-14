@@ -6745,15 +6745,13 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 					seq->strip->stripdata = NULL;
 				}
 				if (seq->flag & SEQ_USE_CROP) {
-					seq->strip->crop = newdataadr(
-						fd, seq->strip->crop);
+					seq->strip->crop = newdataadr(fd, seq->strip->crop);
 				}
 				else {
 					seq->strip->crop = NULL;
 				}
 				if (seq->flag & SEQ_USE_TRANSFORM) {
-					seq->strip->transform = newdataadr(
-						fd, seq->strip->transform);
+					seq->strip->transform = newdataadr(fd, seq->strip->transform);
 				}
 				else {
 					seq->strip->transform = NULL;

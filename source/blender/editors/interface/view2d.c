@@ -1328,8 +1328,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
-	int vertical_minor_step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC),
-		horizontal_major_step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
+	int vertical_minor_step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
+	int horizontal_major_step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
 	uchar grid_line_color[3];
 
 	/* check for grid first, as it may not exist */

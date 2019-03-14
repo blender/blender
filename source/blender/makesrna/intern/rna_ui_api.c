@@ -770,9 +770,9 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "separator", "uiItemS_ex");
 	RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items");
 	RNA_def_float(
-		func, "factor", 1.0f, 0.0f, FLT_MAX, "Percentage",
-		"Percentage of width to space (leave unset for default space)",
-		0.0f, FLT_MAX);
+	        func, "factor", 1.0f, 0.0f, FLT_MAX, "Percentage",
+	        "Percentage of width to space (leave unset for default space)",
+	        0.0f, FLT_MAX);
 
 	func = RNA_def_function(srna, "separator_spacer", "uiItemSpacer");
 	RNA_def_function_ui_description(func, "Item. Inserts horizontal spacing empty space into the layout between items");
@@ -892,8 +892,9 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_int(func, "rows", 0, 0, INT_MAX, "Number of thumbnail preview rows to display", "", 0, INT_MAX);
 	RNA_def_int(func, "cols", 0, 0, INT_MAX, "Number of thumbnail preview columns to display", "", 0, INT_MAX);
 	RNA_def_float(func, "scale", 1.0f, 0.1f, 1.5f, "Scale of the image thumbnails", "", 0.5f, 1.0f);
-	RNA_def_enum(func, "filter", id_template_filter_items, UI_TEMPLATE_ID_FILTER_ALL,
-		"", "Optionally limit the items which can be selected");
+	RNA_def_enum(
+	        func, "filter", id_template_filter_items, UI_TEMPLATE_ID_FILTER_ALL,
+	        "", "Optionally limit the items which can be selected");
 
 	func = RNA_def_function(srna, "template_constraint", "uiTemplateConstraint");
 	RNA_def_function_ui_description(func, "Generates the UI layout for constraints");

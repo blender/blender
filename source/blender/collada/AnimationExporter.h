@@ -145,48 +145,48 @@ protected:
 
 	/* export animation as separate trans/rot/scale curves */
 	void export_curve_animation_set(
-		Object *ob,
-		BCAnimationSampler &sampler,
-		bool export_tm_curves);
+	        Object *ob,
+	        BCAnimationSampler &sampler,
+	        bool export_tm_curves);
 
 	/* export one single curve */
 	void export_curve_animation(
-		Object *ob,
-		BCAnimationCurve &curve);
+	        Object *ob,
+	        BCAnimationCurve &curve);
 
 	/* export animation as matrix data */
 	void export_matrix_animation(
-		Object *ob,
-		BCAnimationSampler &sampler);
+	        Object *ob,
+	        BCAnimationSampler &sampler);
 
 	/* step through the bone hierarchy */
 	void export_bone_animations_recursive(
-		Object *ob_arm,
-		Bone *bone,
-		BCAnimationSampler &sampler);
+	        Object *ob_arm,
+	        Bone *bone,
+	        BCAnimationSampler &sampler);
 
 	/* Export for one bone */
 	void export_bone_animation(
-		Object *ob,
-		Bone *bone,
-		BCFrames &frames,
-		BCMatrixSampleMap &outmats);
+	        Object *ob,
+	        Bone *bone,
+	        BCFrames &frames,
+	        BCMatrixSampleMap &outmats);
 
 	/* call to the low level collada exporter */
 	void export_collada_curve_animation(
-		std::string id,
-		std::string name,
-		std::string target,
-		std::string axis,
-		BCAnimationCurve &curve);
+	        std::string id,
+	        std::string name,
+	        std::string target,
+	        std::string axis,
+	        BCAnimationCurve &curve);
 
 	/* call to the low level collada exporter */
 	void export_collada_matrix_animation(
-		std::string id,
-		std::string name,
-		std::string target,
-		BCFrames &frames,
-		BCMatrixSampleMap &outmats);
+	        std::string id,
+	        std::string name,
+	        std::string target,
+	        BCFrames &frames,
+	        BCMatrixSampleMap &outmats);
 
 	BCAnimationCurve *get_modified_export_curve(Object *ob, BCAnimationCurve &curve, BCAnimationCurveMap &curves);
 
@@ -197,40 +197,41 @@ protected:
 
 	/* Input and Output sources (single valued) */
 	std::string collada_source_from_values(
-		BC_animation_source_type tm_channel,
-		COLLADASW::InputSemantic::Semantics semantic,
-		std::vector<float> &values,
-		const std::string& anim_id,
-		const std::string axis_name);
+	        BC_animation_source_type tm_channel,
+	        COLLADASW::InputSemantic::Semantics semantic,
+	        std::vector<float> &values,
+	        const std::string& anim_id,
+	        const std::string axis_name);
 
 	/* Output sources (matrix data) */
 	std::string collada_source_from_values(
-		BCMatrixSampleMap &samples,
-		const std::string& anim_id);
+	        BCMatrixSampleMap &samples,
+	        const std::string& anim_id);
 
 	/* Interpolation sources */
 	std::string collada_linear_interpolation_source(
-		int tot,
-		const std::string& anim_id);
+	        int tot,
+	        const std::string& anim_id);
 
 	/* source ID = animation_name + semantic_suffix */
 
 	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);
 
-	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-		COLLADASW::InputSemantic::Semantics semantic,
-		bool is_rot,
-		const std::string axis,
-		bool transform);
+	void add_source_parameters(
+	        COLLADASW::SourceBase::ParameterNameList& param,
+	        COLLADASW::InputSemantic::Semantics semantic,
+	        bool is_rot,
+	        const std::string axis,
+	        bool transform);
 
 	int get_point_in_curve(BCBezTriple &bezt, COLLADASW::InputSemantic::Semantics semantic, bool is_angle, float *values);
 	int get_point_in_curve(const BCAnimationCurve &curve, float sample_frame, COLLADASW::InputSemantic::Semantics semantic, bool is_angle, float *values);
 
 	std::string collada_tangent_from_curve(
-		COLLADASW::InputSemantic::Semantics semantic,
-		BCAnimationCurve &curve,
-		const std::string& anim_id,
-		const std::string axis_name);
+	        COLLADASW::InputSemantic::Semantics semantic,
+	        BCAnimationCurve &curve,
+	        const std::string& anim_id,
+	        const std::string axis_name);
 
 	std::string collada_interpolation_source(const BCAnimationCurve &curve, const std::string& anim_id, std::string axis_name, bool *has_tangents);
 
@@ -251,8 +252,8 @@ protected:
 
 #ifdef WITH_MORPH_ANIMATION
 	void export_morph_animation(
-		Object *ob,
-		BCAnimationSampler &sampler);
+	        Object *ob,
+	        BCAnimationSampler &sampler);
 #endif
 
 };

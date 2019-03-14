@@ -95,9 +95,9 @@ const bool BCSample::get_value(std::string channel_target, const int array_index
 	else if (channel_target == "scale") {
 		*val = obmat.scale()[array_index];
 	}
-	else if (
-		channel_target == "rotation" ||
-		channel_target == "rotation_euler") {
+	else if (channel_target == "rotation" ||
+	         channel_target == "rotation_euler")
+	{
 		*val = obmat.rotation()[array_index];
 	}
 	else if (channel_target == "rotation_quat") {

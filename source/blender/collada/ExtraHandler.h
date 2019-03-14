@@ -53,16 +53,16 @@ public:
 
 	/** Method to ask, if the current callback handler want to read the data of the given extra element. */
 	bool parseElement (
-		const char* profileName,
-		const unsigned long& elementHash,
-		const COLLADAFW::UniqueId& uniqueId,
-		COLLADAFW::Object* object);
+	        const char* profileName,
+	        const unsigned long& elementHash,
+	        const COLLADAFW::UniqueId& uniqueId,
+	        COLLADAFW::Object* object);
 
 	/** For backwards compatibility with older OpenCollada, new version added object parameter */
 	bool parseElement (
-		const char* profileName,
-		const unsigned long& elementHash,
-		const COLLADAFW::UniqueId& uniqueId);
+	        const char* profileName,
+	        const unsigned long& elementHash,
+	        const COLLADAFW::UniqueId& uniqueId);
 private:
 	/** Disable default copy constructor. */
 	ExtraHandler(const ExtraHandler& pre);

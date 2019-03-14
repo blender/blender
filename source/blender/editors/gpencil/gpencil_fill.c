@@ -349,8 +349,8 @@ static void gp_render_offscreen(tGPDfill *tgpf)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	ED_view3d_update_viewmat(
-		tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar,
-		NULL, winmat, NULL);
+	        tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar,
+	        NULL, winmat, NULL);
 	/* set for opengl */
 	GPU_matrix_projection_set(tgpf->rv3d->winmat);
 	GPU_matrix_set(tgpf->rv3d->viewmat);

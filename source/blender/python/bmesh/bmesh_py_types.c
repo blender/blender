@@ -67,7 +67,7 @@ PyC_FlagSet bpy_bm_htype_vert_edge_face_flags[] = {
 	{BM_VERT, "VERT"},
 	{BM_EDGE, "EDGE"},
 	{BM_FACE, "FACE"},
-		{0, NULL},
+	{0, NULL},
 };
 
 PyC_FlagSet bpy_bm_htype_all_flags[] = {

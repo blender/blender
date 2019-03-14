@@ -475,9 +475,9 @@ static void stats_string(ViewLayer *view_layer)
 	}
 	else if ((ob) && (ob->type == OB_GPENCIL)) {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-			IFACE_("Layers:%s | Frames:%s | Strokes:%s | Points:%s | Objects:%s/%s"),
-			stats_fmt.totgplayer, stats_fmt.totgpframe, stats_fmt.totgpstroke,
-			stats_fmt.totgppoint, stats_fmt.totobjsel, stats_fmt.totobj);
+		                    IFACE_("Layers:%s | Frames:%s | Strokes:%s | Points:%s | Objects:%s/%s"),
+		                    stats_fmt.totgplayer, stats_fmt.totgpframe, stats_fmt.totgpstroke,
+		                    stats_fmt.totgppoint, stats_fmt.totobjsel, stats_fmt.totobj);
 
 		ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
 		ofs += BLI_strncpy_rlen(s + ofs, gpumemstr, MAX_INFO_LEN - ofs);

@@ -405,9 +405,10 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		if (grp == NULL) {
 			/* If no world or volume material is present just clear the buffer with this drawcall */
-			grp = DRW_shgroup_empty_tri_batch_create(e_data.volumetric_clear_sh,
-				                                     psl->volumetric_world_ps,
-				                                     common_data->vol_tex_size[2]);
+			grp = DRW_shgroup_empty_tri_batch_create(
+			        e_data.volumetric_clear_sh,
+			        psl->volumetric_world_ps,
+			        common_data->vol_tex_size[2]);
 
 			DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		}

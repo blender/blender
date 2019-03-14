@@ -519,10 +519,10 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 			MLoopCol *mlc = mloopcol + mpoly->loopstart;
 			for (int j = 0; j < mpoly->totloop; j++, mlc++) {
 				source.appendValues(
-						mlc->r / 255.0f,
-						mlc->g / 255.0f,
-						mlc->b / 255.0f,
-						mlc->a / 255.0f
+				        mlc->r / 255.0f,
+				        mlc->g / 255.0f,
+				        mlc->b / 255.0f,
+				        mlc->a / 255.0f
 				);
 			}
 		}

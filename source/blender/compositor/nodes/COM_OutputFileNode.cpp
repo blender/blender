@@ -55,8 +55,8 @@ void OutputFileNode::convertToOperations(NodeConverter &converter, const Composi
 		}
 		else {
 			outputOperation = new OutputOpenExrMultiLayerOperation(
-		          context.getRenderData(), context.getbNodeTree(), storage->base_path,
-		          storage->format.exr_codec, use_half_float, context.getViewName());
+			        context.getRenderData(), context.getbNodeTree(), storage->base_path,
+			        storage->format.exr_codec, use_half_float, context.getViewName());
 		}
 		converter.addOperation(outputOperation);
 

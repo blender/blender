@@ -92,11 +92,11 @@ bool AnimationExporter::exportAnimations()
 
 		try {
 			animation_sampler.sample_scene(
-				export_settings->sampling_rate,
-				/*keyframe_at_end = */ true,
-				export_settings->open_sim,
-				export_settings->keep_keyframes,
-				export_settings->export_animation_type
+			        export_settings->sampling_rate,
+			        /*keyframe_at_end = */ true,
+			        export_settings->open_sim,
+			        export_settings->keep_keyframes,
+			        export_settings->export_animation_type
 			);
 
 			openLibrary();

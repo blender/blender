@@ -2914,9 +2914,9 @@ static void OBJECT_gpencil_color_names(Object *ob, struct DRWTextStore *dt, ucha
 					if (pt->flag & GP_SPOINT_SELECT) {
 						mul_v3_m4v3(fpt, ob->obmat, &pt->x);
 						DRW_text_cache_add(
-							dt, fpt,
-							ma->id.name + 2, strlen(ma->id.name + 2),
-							10, 0, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
+						        dt, fpt,
+						        ma->id.name + 2, strlen(ma->id.name + 2),
+						        10, 0, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 						break;
 					}
 				}

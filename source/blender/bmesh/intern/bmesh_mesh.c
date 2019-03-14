@@ -1074,7 +1074,7 @@ void BM_lnorspacearr_store(BMesh *bm, float(*r_lnors)[3])
 	int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
 	BM_loops_calc_normal_vcos(
-		bm, NULL, NULL, NULL, true, M_PI, r_lnors, bm->lnor_spacearr, NULL, cd_loop_clnors_offset, false);
+	        bm, NULL, NULL, NULL, true, M_PI, r_lnors, bm->lnor_spacearr, NULL, cd_loop_clnors_offset, false);
 	bm->spacearr_dirty &= ~(BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL);
 }
 
@@ -1188,7 +1188,7 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 		BKE_lnor_spacearr_clear(bm->lnor_spacearr);
 	}
 	BM_loops_calc_normal_vcos(
-		bm, NULL, NULL, NULL, true, M_PI, r_lnors, bm->lnor_spacearr, NULL, cd_loop_clnors_offset, true);
+	        bm, NULL, NULL, NULL, true, M_PI, r_lnors, bm->lnor_spacearr, NULL, cd_loop_clnors_offset, true);
 	MEM_freeN(r_lnors);
 
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
@@ -1352,17 +1352,17 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
 			while ((ese_prev = ese_prev->prev)) {
 				if (ese_prev->htype == BM_VERT) {
 					bm_loop_normal_mark_indiv_do_loop(
-						BM_face_vert_share_loop((BMFace *)ese->ele, (BMVert *)ese_prev->ele),
-						loops, bm->lnor_spacearr, &totloopsel);
+					        BM_face_vert_share_loop((BMFace *)ese->ele, (BMVert *)ese_prev->ele),
+					        loops, bm->lnor_spacearr, &totloopsel);
 				}
 				else if (ese_prev->htype == BM_EDGE) {
 					bm_loop_normal_mark_indiv_do_loop(
-						BM_face_vert_share_loop((BMFace *)ese->ele, ((BMEdge *)ese_prev->ele)->v1),
-						loops, bm->lnor_spacearr, &totloopsel);
+					        BM_face_vert_share_loop((BMFace *)ese->ele, ((BMEdge *)ese_prev->ele)->v1),
+					        loops, bm->lnor_spacearr, &totloopsel);
 
 					bm_loop_normal_mark_indiv_do_loop(
-						BM_face_vert_share_loop((BMFace *)ese->ele, ((BMEdge *)ese_prev->ele)->v2),
-						loops, bm->lnor_spacearr, &totloopsel);
+					        BM_face_vert_share_loop((BMFace *)ese->ele, ((BMEdge *)ese_prev->ele)->v2),
+					        loops, bm->lnor_spacearr, &totloopsel);
 				}
 			}
 		}

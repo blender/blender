@@ -327,7 +327,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
 			G.f |= G_FLAG_RENDER_VIEWPORT;
 			ED_gpencil_draw_ex(
-				view_layer, rv3d, scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
+			        view_layer, rv3d, scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
 			G.f &= ~G_FLAG_RENDER_VIEWPORT;
 
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");

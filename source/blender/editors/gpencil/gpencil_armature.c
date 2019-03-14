@@ -576,14 +576,14 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 		GpencilModifierData *md = BKE_gpencil_modifiers_findByType(ob_eval, eGpencilModifierType_Armature);
 		if (md == NULL) {
 			BKE_report(op->reports, RPT_ERROR,
-				"The grease pencil object need an Armature modifier");
+			           "The grease pencil object need an Armature modifier");
 			return OPERATOR_CANCELLED;
 		}
 
 		ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 		if (mmd->object == NULL) {
 			BKE_report(op->reports, RPT_ERROR,
-				"Armature modifier is not valid or wrong defined");
+			           "Armature modifier is not valid or wrong defined");
 			return OPERATOR_CANCELLED;
 		}
 

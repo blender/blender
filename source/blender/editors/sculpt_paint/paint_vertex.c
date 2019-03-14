@@ -890,7 +890,7 @@ static void do_weight_paint_vertex_multi(
 		}
 
 		oldw = BKE_defvert_multipaint_collective_weight(
-			dv_prev, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+		        dv_prev, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
 	}
 	else {
 		oldw = curw;

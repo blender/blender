@@ -497,7 +497,8 @@ void DepsgraphNodeBuilder::build_collection(
 			 * might become visible too. */
 		}
 		else if (from_layer_collection == NULL &&
-		         !id_node->is_collection_fully_expanded) {
+		         !id_node->is_collection_fully_expanded)
+		{
 			/* Initially collection was built from layer now, and was requested
 			 * to not recurs into object. But nw it's asked to recurs into all
 			 * objects. */

@@ -999,8 +999,8 @@ static void gpencil_draw_strokes(
 				    ((gps->flag & GP_STROKE_NOFILL) == 0))
 				{
 					gpencil_add_fill_vertexdata(
-						cache, ob, gpl, derived_gpf, gps,
-						opacity, tintcolor, false, custonion);
+					        cache, ob, gpl, derived_gpf, gps,
+					        opacity, tintcolor, false, custonion);
 				}
 				/* stroke */
 				/* No fill strokes, must show stroke always */
@@ -1015,8 +1015,8 @@ static void gpencil_draw_strokes(
 					}
 
 					gpencil_add_stroke_vertexdata(
-						cache, ob, gpl, derived_gpf, gps,
-						opacity, tintcolor, false, custonion);
+					        cache, ob, gpl, derived_gpf, gps,
+					        opacity, tintcolor, false, custonion);
 				}
 			}
 		}
@@ -1378,15 +1378,15 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 			if (gpd->runtime.sbuffer_size > 1) {
 				if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_stroke_create(
-						e_data, vedata, psl->drawing_pass, e_data->gpencil_stroke_sh, NULL,
-						gpd, NULL, NULL, gp_style, -1,
-						false, 1.0f, (const int *)stl->storage->shade_render);
+					        e_data, vedata, psl->drawing_pass, e_data->gpencil_stroke_sh, NULL,
+					        gpd, NULL, NULL, gp_style, -1,
+					        false, 1.0f, (const int *)stl->storage->shade_render);
 				}
 				else {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_point_create(
-						e_data, vedata, psl->drawing_pass, e_data->gpencil_point_sh, NULL,
-						gpd, NULL, gp_style, -1,
-						false, 1.0f, (const int *)stl->storage->shade_render);
+					        e_data, vedata, psl->drawing_pass, e_data->gpencil_point_sh, NULL,
+					        gpd, NULL, gp_style, -1,
+					        false, 1.0f, (const int *)stl->storage->shade_render);
 				}
 
 				/* clean previous version of the batch */
@@ -1399,18 +1399,18 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				/* use unit matrix because the buffer is in screen space and does not need conversion */
 				if (gpd->runtime.mode == GP_STYLE_MODE_LINE) {
 					e_data->batch_buffer_stroke = DRW_gpencil_get_buffer_stroke_geom(
-						gpd, lthick);
+					        gpd, lthick);
 				}
 				else {
 					e_data->batch_buffer_stroke = DRW_gpencil_get_buffer_point_geom(
-						gpd, lthick);
+					        gpd, lthick);
 				}
 
 				/* buffer strokes, must show stroke always */
 				DRW_shgroup_call_add(
-					    stl->g_data->shgrps_drawing_stroke,
-					    e_data->batch_buffer_stroke,
-					    stl->storage->unit_matrix);
+				        stl->g_data->shgrps_drawing_stroke,
+				        e_data->batch_buffer_stroke,
+				        stl->storage->unit_matrix);
 
 				if ((gpd->runtime.sbuffer_size >= 3) &&
 				    (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
@@ -1423,7 +1423,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 						gpd->runtime.sfill[3] = 0.5f;
 					}
 					stl->g_data->shgrps_drawing_fill = DRW_shgroup_create(
-						e_data->gpencil_drawing_fill_sh, psl->drawing_pass);
+					        e_data->gpencil_drawing_fill_sh, psl->drawing_pass);
 
 					/* clean previous version of the batch */
 					if (stl->storage->buffer_fill) {
@@ -1453,7 +1453,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 	    ((gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0))
 	{
 		DRWShadingGroup *shgrp = DRW_shgroup_create(
-			e_data->gpencil_edit_point_sh, psl->drawing_pass);
+		        e_data->gpencil_edit_point_sh, psl->drawing_pass);
 		const float *viewport_size = DRW_viewport_size_get();
 		DRW_shgroup_uniform_vec2(shgrp, "Viewport", viewport_size, 1);
 

@@ -1443,13 +1443,14 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 			if (bs->springtype == SB_EDGE) {
 				/* +++ springs colliding */
 				if (ob->softflag & OB_SB_EDGECOLL) {
-					if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos,
-						&damp, feedback, ob, timenow)) {
-							add_v3_v3(bs->ext_force, feedback);
-							bs->flag |= BSF_INTERSECT;
-							//bs->cf=damp;
-							bs->cf=sb->choke*0.01f;
-
+					if (sb_detect_edge_collisionCached(
+					            sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos,
+					            &damp, feedback, ob, timenow))
+					{
+						add_v3_v3(bs->ext_force, feedback);
+						bs->flag |= BSF_INTERSECT;
+						//bs->cf=damp;
+						bs->cf=sb->choke*0.01f;
 					}
 				}
 				/* ---- springs colliding */

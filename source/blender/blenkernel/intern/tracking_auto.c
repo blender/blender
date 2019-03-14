@@ -538,7 +538,7 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
 		for (track = 0; track < context->num_tracks; ++track) {
 			AutoTrackOptions *options = &context->options[track];
 			int track_frame = BKE_movieclip_remap_scene_to_clip_frame(
-				context->clips[options->clip_index], frame);
+			        context->clips[options->clip_index], frame);
 			if (options->is_failed) {
 				if (options->failed_frame == track_frame) {
 					MovieTrackingMarker *prev_marker =

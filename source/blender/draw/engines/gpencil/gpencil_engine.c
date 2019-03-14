@@ -125,10 +125,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			        size[0], size[1], fb_format,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
-				&fbl->temp_fb_a, {
-					GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_a),
-					GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_a)
-				});
+			        &fbl->temp_fb_a, {
+			            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_a),
+			            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_a),
+			        });
 
 			e_data.temp_depth_tx_b = DRW_texture_pool_query_2D(
 			        size[0], size[1], GPU_DEPTH_COMPONENT24,
@@ -137,10 +137,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			        size[0], size[1], fb_format,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
-				&fbl->temp_fb_b, {
-					GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_b),
-					GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_b)
-				});
+			        &fbl->temp_fb_b, {
+			            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_b),
+			            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_b),
+			        });
 
 			/* used for FX effects and Layer blending */
 			e_data.temp_depth_tx_fx = DRW_texture_pool_query_2D(
@@ -150,10 +150,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			        size[0], size[1], fb_format,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
-				&fbl->temp_fb_fx, {
-					GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_fx),
-					GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_fx),
-				});
+			        &fbl->temp_fb_fx, {
+			            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_fx),
+			            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_fx),
+			        });
 		}
 
 		/* background framebuffer to speed up drawing process (always 16 bits) */
@@ -165,10 +165,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			        size[0], size[1], GPU_RGBA32F,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
-				&fbl->background_fb, {
-					GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
-					GPU_ATTACHMENT_TEXTURE(e_data.background_color_tx)
-				});
+			        &fbl->background_fb, {
+			            GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
+			            GPU_ATTACHMENT_TEXTURE(e_data.background_color_tx),
+			        });
 		}
 	}
 }
@@ -345,8 +345,8 @@ void GPENCIL_cache_init(void *vedata)
 		stl->storage->shgroup_id = 0;
 		/* Stroke pass 3D */
 		psl->stroke_pass_3d = DRW_pass_create(
-			"GPencil Stroke Pass",
-			DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
+		        "GPencil Stroke Pass",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 		stl->storage->shgroup_id = 0;
 
 		/* edit pass */
@@ -518,8 +518,8 @@ void GPENCIL_cache_init(void *vedata)
 
 		/* blend layers pass */
 		psl->blend_pass = DRW_pass_create(
-			"GPencil Blend Layers Pass",
-			DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		        "GPencil Blend Layers Pass",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		DRWShadingGroup *blend_shgrp = DRW_shgroup_create(e_data.gpencil_blend_fullscreen_sh, psl->blend_pass);
 		DRW_shgroup_call_add(blend_shgrp, quad, NULL);
 		DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeColor", &e_data.temp_color_tx_a);
@@ -601,8 +601,8 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			if (ob->dt != OB_BOUNDBOX) {
 				/* save gp objects for drawing later */
 				stl->g_data->gp_object_cache = gpencil_object_cache_add(
-					stl->g_data->gp_object_cache, ob,
-					&stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
+				        stl->g_data->gp_object_cache, ob,
+				        &stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
 
 				/* enable instance loop */
 				if (!stl->g_data->do_instances) {
@@ -759,8 +759,8 @@ static void gpencil_draw_pass_range(
 	}
 
 	DRW_draw_pass_subset(
-		GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
-		init_shgrp, end_shgrp);
+	        GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
+	        init_shgrp, end_shgrp);
 
 	if ((!stl->storage->is_mat_preview) && (multi)) {
 		MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fb, txl);
@@ -781,7 +781,7 @@ static void drw_gpencil_select_render(GPENCIL_StorageList *stl, GPENCIL_PassList
 	{
 		/* sort by zdepth */
 		qsort(stl->g_data->gp_object_cache, stl->g_data->gp_cache_used,
-			sizeof(tGPencilObjectCache), gpencil_object_cache_compare_zdepth);
+		      sizeof(tGPencilObjectCache), gpencil_object_cache_compare_zdepth);
 
 		for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
 			cache_ob = &stl->g_data->gp_object_cache[i];
@@ -799,8 +799,8 @@ static void drw_gpencil_select_render(GPENCIL_StorageList *stl, GPENCIL_PassList
 					}
 					/* draw group */
 					DRW_draw_pass_subset(
-						GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
-						init_shgrp, end_shgrp);
+					        GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
+					        init_shgrp, end_shgrp);
 				}
 				/* the cache must be dirty for next loop */
 				gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
@@ -918,8 +918,8 @@ void GPENCIL_draw_scene(void *ved)
 							use_blend = true;
 							/* draw pending groups */
 							gpencil_draw_pass_range(
-								fbl, stl, psl, txl, fbl->temp_fb_a,
-								ob, gpd, init_shgrp, end_shgrp, is_last);
+							        fbl, stl, psl, txl, fbl->temp_fb_a,
+							        ob, gpd, init_shgrp, end_shgrp, is_last);
 
 							/* draw current group in separated texture */
 							init_shgrp = array_elm->init_shgrp;

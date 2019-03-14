@@ -717,8 +717,8 @@ static void gp_draw_strokes_edit(
 /* ----- General Drawing ------ */
 /* draw onion-skinning for a layer */
 static void gp_draw_onionskins(
-	bGPdata *gpd, bGPDlayer *gpl, bGPDframe *gpf, int offsx, int offsy, int winx, int winy,
-	int UNUSED(cfra), int dflag)
+        bGPdata *gpd, bGPDlayer *gpl, bGPDframe *gpf, int offsx, int offsy, int winx, int winy,
+        int UNUSED(cfra), int dflag)
 {
 	const float alpha = 1.0f;
 	float color[4];
@@ -738,8 +738,8 @@ static void gp_draw_onionskins(
 				fac = 1.0f - ((float)(gpf->framenum - gf->framenum) / (float)(gpl->gstep + 1));
 				color[3] = alpha * fac * 0.66f;
 				gp_draw_strokes(
-					gpd, gpl, gf, offsx, offsy, winx, winy, dflag,
-					gpl->thickness, color);
+				        gpd, gpl, gf, offsx, offsy, winx, winy, dflag,
+				        gpl->thickness, color);
 			}
 			else
 				break;
@@ -750,8 +750,8 @@ static void gp_draw_onionskins(
 		if (gpf->prev) {
 			color[3] = (alpha / 7);
 			gp_draw_strokes(
-				gpd, gpl, gpf->prev, offsx, offsy, winx, winy, dflag,
-				gpl->thickness, color);
+			        gpd, gpl, gpf->prev, offsx, offsy, winx, winy, dflag,
+			        gpl->thickness, color);
 		}
 	}
 	else {
@@ -774,8 +774,8 @@ static void gp_draw_onionskins(
 				fac = 1.0f - ((float)(gf->framenum - gpf->framenum) / (float)(gpl->gstep_next + 1));
 				color[3] = alpha * fac * 0.66f;
 				gp_draw_strokes(
-					gpd, gpl, gf, offsx, offsy, winx, winy, dflag,
-					gpl->thickness, color);
+				        gpd, gpl, gf, offsx, offsy, winx, winy, dflag,
+				        gpl->thickness, color);
 			}
 			else
 				break;
@@ -786,8 +786,8 @@ static void gp_draw_onionskins(
 		if (gpf->next) {
 			color[3] = (alpha / 4);
 			gp_draw_strokes(
-				gpd, gpl, gpf->next, offsx, offsy, winx, winy, dflag,
-				gpl->thickness, color);
+			        gpd, gpl, gpf->next, offsx, offsy, winx, winy, dflag,
+			        gpl->thickness, color);
 		}
 	}
 	else {

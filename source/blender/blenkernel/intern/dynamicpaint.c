@@ -2402,13 +2402,14 @@ static float dist_squared_to_looptri_uv_edges(const MLoopTri *mlooptri, const ML
 
 	for (int i = 0; i < 3; i++) {
 		const float dist_squared = dist_squared_to_line_segment_v2(
-			point,
-			mloopuv[mlooptri[tri_index].tri[(i + 0)]].uv,
-			mloopuv[mlooptri[tri_index].tri[(i + 1) % 3]].uv
+		        point,
+		        mloopuv[mlooptri[tri_index].tri[(i + 0)]].uv,
+		        mloopuv[mlooptri[tri_index].tri[(i + 1) % 3]].uv
 		);
 
-		if (dist_squared < min_distance)
+		if (dist_squared < min_distance) {
 			min_distance = dist_squared;
+		}
 	}
 
 	return min_distance;

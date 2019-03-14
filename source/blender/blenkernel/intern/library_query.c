@@ -1204,9 +1204,9 @@ static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_i
 		if (*id_p == iter->id) {
 #if 0
 			printf("%s uses %s (refcounted: %d, userone: %d, used_one: %d, used_one_active: %d, indirect_usage: %d)\n",
-				   iter->curr_id->name, iter->id->name, (cb_flag & IDWALK_USER) ? 1 : 0, (cb_flag & IDWALK_USER_ONE) ? 1 : 0,
-				   (iter->id->tag & LIB_TAG_EXTRAUSER) ? 1 : 0, (iter->id->tag & LIB_TAG_EXTRAUSER_SET) ? 1 : 0,
-				   (cb_flag & IDWALK_INDIRECT_USAGE) ? 1 : 0);
+			       iter->curr_id->name, iter->id->name, (cb_flag & IDWALK_USER) ? 1 : 0, (cb_flag & IDWALK_USER_ONE) ? 1 : 0,
+			       (iter->id->tag & LIB_TAG_EXTRAUSER) ? 1 : 0, (iter->id->tag & LIB_TAG_EXTRAUSER_SET) ? 1 : 0,
+			       (cb_flag & IDWALK_INDIRECT_USAGE) ? 1 : 0);
 #endif
 			if (cb_flag & IDWALK_CB_INDIRECT_USAGE) {
 				iter->count_indirect++;

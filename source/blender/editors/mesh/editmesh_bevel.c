@@ -146,8 +146,9 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 		BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
 	}
 	else {
-		bUnit_AsString2(offset_str, NUM_STR_REP_LEN, (double)RNA_float_get(op->ptr, "offset"), 3,
-			B_UNIT_LENGTH, &sce->unit, true);
+		bUnit_AsString2(
+		        offset_str, NUM_STR_REP_LEN, (double)RNA_float_get(op->ptr, "offset"), 3,
+		        B_UNIT_LENGTH, &sce->unit, true);
 	}
 
 	prop = RNA_struct_find_property(op->ptr, "offset_type");
@@ -157,46 +158,47 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 	prop = RNA_struct_find_property(op->ptr, "miter_inner");
 	RNA_property_enum_name_gettexted(C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &imiter_str);
 
-	BLI_snprintf(header, sizeof(header),
-		IFACE_("%s: confirm, "
-			"%s: cancel, "
-			"%s: mode (%s), "
-			"%s: width (%s), "
-			"%s: segments (%d), "
-			"%s: profile (%.3f), "
-			"%s: clamp overlap (%s), "
-			"%s: vertex only (%s), "
-			"%s: outer miter (%s), "
-			"%s: inner miter (%s), "
-			"%s: harden normals (%s), "
-			"%s: mark seam (%s), "
-			"%s: mark sharp (%s)"
-		),
-		WM_MODALKEY(BEV_MODAL_CONFIRM),
-		WM_MODALKEY(BEV_MODAL_CANCEL),
-		WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),
-		mode_str,
-		WM_MODALKEY(BEV_MODAL_VALUE_OFFSET),
-		offset_str,
-		WM_MODALKEY(BEV_MODAL_VALUE_SEGMENTS),
-		RNA_int_get(op->ptr, "segments"),
-		WM_MODALKEY(BEV_MODAL_VALUE_PROFILE),
-		RNA_float_get(op->ptr, "profile"),
-		WM_MODALKEY(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
-		WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
-		WM_MODALKEY(BEV_MODAL_VERTEX_ONLY_TOGGLE),
-		WM_bool_as_string(RNA_boolean_get(op->ptr, "vertex_only")),
-		WM_MODALKEY(BEV_MODAL_OUTER_MITER_CHANGE),
-		omiter_str,
-		WM_MODALKEY(BEV_MODAL_INNER_MITER_CHANGE),
-		imiter_str,
-		WM_MODALKEY(BEV_MODAL_HARDEN_NORMALS_TOGGLE),
-		WM_bool_as_string(RNA_boolean_get(op->ptr, "harden_normals")),
-		WM_MODALKEY(BEV_MODAL_MARK_SEAM_TOGGLE),
-		WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_seam")),
-		WM_MODALKEY(BEV_MODAL_MARK_SHARP_TOGGLE),
-		WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_sharp"))
-		);
+	BLI_snprintf(
+	        header, sizeof(header),
+	        IFACE_("%s: confirm, "
+	               "%s: cancel, "
+	               "%s: mode (%s), "
+	               "%s: width (%s), "
+	               "%s: segments (%d), "
+	               "%s: profile (%.3f), "
+	               "%s: clamp overlap (%s), "
+	               "%s: vertex only (%s), "
+	               "%s: outer miter (%s), "
+	               "%s: inner miter (%s), "
+	               "%s: harden normals (%s), "
+	               "%s: mark seam (%s), "
+	               "%s: mark sharp (%s)"
+	        ),
+	        WM_MODALKEY(BEV_MODAL_CONFIRM),
+	        WM_MODALKEY(BEV_MODAL_CANCEL),
+	        WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),
+	        mode_str,
+	        WM_MODALKEY(BEV_MODAL_VALUE_OFFSET),
+	        offset_str,
+	        WM_MODALKEY(BEV_MODAL_VALUE_SEGMENTS),
+	        RNA_int_get(op->ptr, "segments"),
+	        WM_MODALKEY(BEV_MODAL_VALUE_PROFILE),
+	        RNA_float_get(op->ptr, "profile"),
+	        WM_MODALKEY(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
+	        WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
+	        WM_MODALKEY(BEV_MODAL_VERTEX_ONLY_TOGGLE),
+	        WM_bool_as_string(RNA_boolean_get(op->ptr, "vertex_only")),
+	        WM_MODALKEY(BEV_MODAL_OUTER_MITER_CHANGE),
+	        omiter_str,
+	        WM_MODALKEY(BEV_MODAL_INNER_MITER_CHANGE),
+	        imiter_str,
+	        WM_MODALKEY(BEV_MODAL_HARDEN_NORMALS_TOGGLE),
+	        WM_bool_as_string(RNA_boolean_get(op->ptr, "harden_normals")),
+	        WM_MODALKEY(BEV_MODAL_MARK_SEAM_TOGGLE),
+	        WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_seam")),
+	        WM_MODALKEY(BEV_MODAL_MARK_SHARP_TOGGLE),
+	        WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_sharp"))
+	);
 
 #undef WM_MODALKEY
 
@@ -223,7 +225,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 	{
 		uint ob_store_len = 0;
 		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-			view_layer, CTX_wm_view3d(C), &ob_store_len);
+		        view_layer, CTX_wm_view3d(C), &ob_store_len);
 		opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
 		for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
 			Object *obedit = objects[ob_index];
@@ -272,8 +274,9 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
 			opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(opdata->ob_store[ob_index].em);
 		}
-		opdata->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ED_region_draw_mouse_line_cb,
-			opdata->mcenter, REGION_DRAW_POST_PIXEL);
+		opdata->draw_handle_pixel = ED_region_draw_cb_activate(
+		        ar->type, ED_region_draw_mouse_line_cb,
+		        opdata->mcenter, REGION_DRAW_POST_PIXEL);
 		G.moving = G_TRANSFORM_EDIT;
 
 		if (v3d) {
@@ -565,31 +568,31 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
 		{BEV_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel bevel"},
 		{BEV_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", "Confirm bevel"},
 		{BEV_MODAL_VALUE_OFFSET, "VALUE_OFFSET", 0, "Value is offset",
-			"Value changes offset"},
+		 "Value changes offset"},
 		{BEV_MODAL_VALUE_PROFILE, "VALUE_PROFILE", 0, "Value is profile",
-			"Value changes profile"},
+		 "Value changes profile"},
 		{BEV_MODAL_VALUE_SEGMENTS, "VALUE_SEGMENTS", 0, "Value is segments",
-			"Value changes segments"},
+		 "Value changes segments"},
 		{BEV_MODAL_SEGMENTS_UP, "SEGMENTS_UP", 0, "Increase segments",
-			"Increase segments"},
+		 "Increase segments"},
 		{BEV_MODAL_SEGMENTS_DOWN, "SEGMENTS_DOWN", 0, "Decrease segments",
-			"Decrease segments"},
+		 "Decrease segments"},
 		{BEV_MODAL_OFFSET_MODE_CHANGE, "OFFSET_MODE_CHANGE", 0, "Change offset mode",
-			"Cycle through offset modes"},
+		 "Cycle through offset modes"},
 		{BEV_MODAL_CLAMP_OVERLAP_TOGGLE, "CLAMP_OVERLAP_TOGGLE", 0, "Toggle clamp overlap",
-			"Toggle clamp overlap flag"},
+		 "Toggle clamp overlap flag"},
 		{BEV_MODAL_VERTEX_ONLY_TOGGLE, "VERTEX_ONLY_TOGGLE", 0, "Toggle vertex only",
-			"Toggle vertex only flag"},
+		 "Toggle vertex only flag"},
 		{BEV_MODAL_HARDEN_NORMALS_TOGGLE, "HARDEN_NORMALS_TOGGLE", 0, "Toggle harden normals",
-			"Toggle harden normals flag"},
+		 "Toggle harden normals flag"},
 		{BEV_MODAL_MARK_SEAM_TOGGLE, "MARK_SEAM_TOGGLE", 0, "Toggle mark seam",
-			"Toggle mark seam flag"},
+		 "Toggle mark seam flag"},
 		{BEV_MODAL_MARK_SHARP_TOGGLE, "MARK_SHARP_TOGGLE", 0, "Toggle mark sharp",
-			"Toggle mark sharp flag"},
+		 "Toggle mark sharp flag"},
 		{BEV_MODAL_OUTER_MITER_CHANGE, "OUTER_MITER_CHANGE", 0, "Change outer miter",
-			"Cycle through outer miter kinds"},
+		 "Cycle through outer miter kinds"},
 		{BEV_MODAL_INNER_MITER_CHANGE, "INNER_MITER_CHANGE", 0, "Change inner miter",
-			"Cycle through inner miter kinds"},
+		 "Cycle through inner miter kinds"},
 		{0, NULL, 0, NULL, NULL},
 	};
 
@@ -868,26 +871,34 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_property_range(prop, 0.0, 100);
 	RNA_def_property_ui_text(prop, "Width Percent", "Bevel amount for percentage method");
 	RNA_def_int(ot->srna, "segments", 1, 1, SEGMENTS_HARD_MAX, "Segments", "Segments for curved edge", 1, 100);
-	RNA_def_float(ot->srna, "profile", 0.5f, PROFILE_HARD_MIN, 1.0f, "Profile",
-		"Controls profile shape (0.5 = round)", PROFILE_HARD_MIN, 1.0f);
+	RNA_def_float(
+	        ot->srna, "profile", 0.5f, PROFILE_HARD_MIN, 1.0f, "Profile",
+	        "Controls profile shape (0.5 = round)", PROFILE_HARD_MIN, 1.0f);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex Only", "Bevel only vertices");
-	RNA_def_boolean(ot->srna, "clamp_overlap", false, "Clamp Overlap",
-		"Do not allow beveled edges/vertices to overlap each other");
+	RNA_def_boolean(
+	        ot->srna, "clamp_overlap", false, "Clamp Overlap",
+	        "Do not allow beveled edges/vertices to overlap each other");
 	RNA_def_boolean(ot->srna, "loop_slide", true, "Loop Slide", "Prefer slide along edge to even widths");
 	RNA_def_boolean(ot->srna, "mark_seam", false, "Mark Seams", "Mark Seams along beveled edges");
 	RNA_def_boolean(ot->srna, "mark_sharp", false, "Mark Sharp", "Mark beveled edges as sharp");
-	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material",
-		"Material for bevel faces (-1 means use adjacent faces)", -1, 100);
-	RNA_def_boolean(ot->srna, "harden_normals", false, "Harden Normals",
-		"Match normals of new faces to adjacent faces");
-	RNA_def_enum(ot->srna, "face_strength_mode", face_strength_mode_items, BEVEL_FACE_STRENGTH_NONE,
-		"Face Strength Mode", "Whether to set face strength, and which faces to set face strength on");
-	RNA_def_enum(ot->srna, "miter_outer", miter_outer_items, BEVEL_MITER_SHARP,
-		"Outer Miter", "Pattern to use for outside of miters");
-	RNA_def_enum(ot->srna, "miter_inner", miter_inner_items, BEVEL_MITER_SHARP,
-		"Inner Miter", "Pattern to use for inside of miters");
-	RNA_def_float(ot->srna, "spread", 0.1f, 0.0f, 1e6f, "Spread",
-		"Amount to spread arcs for arc inner miters", 0.0f, 100.0f);
+	RNA_def_int(
+	        ot->srna, "material", -1, -1, INT_MAX, "Material",
+	        "Material for bevel faces (-1 means use adjacent faces)", -1, 100);
+	RNA_def_boolean(
+	        ot->srna, "harden_normals", false, "Harden Normals",
+	        "Match normals of new faces to adjacent faces");
+	RNA_def_enum(
+	        ot->srna, "face_strength_mode", face_strength_mode_items, BEVEL_FACE_STRENGTH_NONE,
+	        "Face Strength Mode", "Whether to set face strength, and which faces to set face strength on");
+	RNA_def_enum(
+	        ot->srna, "miter_outer", miter_outer_items, BEVEL_MITER_SHARP,
+	        "Outer Miter", "Pattern to use for outside of miters");
+	RNA_def_enum(
+	        ot->srna, "miter_inner", miter_inner_items, BEVEL_MITER_SHARP,
+	        "Inner Miter", "Pattern to use for inside of miters");
+	RNA_def_float(
+	        ot->srna, "spread", 0.1f, 0.0f, 1e6f, "Spread",
+	        "Amount to spread arcs for arc inner miters", 0.0f, 100.0f);
 	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 

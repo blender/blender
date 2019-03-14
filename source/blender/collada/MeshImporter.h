@@ -105,23 +105,26 @@ private:
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom; //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
 
-	bool set_poly_indices(MPoly *mpoly,
-						  MLoop *mloop,
-						  int loop_index,
-						  unsigned int *indices,
-						  int loop_count);
+	bool set_poly_indices(
+	        MPoly *mpoly,
+	        MLoop *mloop,
+	        int loop_index,
+	        unsigned int *indices,
+	        int loop_count);
 
-	void set_face_uv(MLoopUV *mloopuv,
-					 UVDataWrapper &uvs,
-					 int loop_index,
-					 COLLADAFW::IndexList& index_list,
-					 int count);
+	void set_face_uv(
+	        MLoopUV *mloopuv,
+	        UVDataWrapper &uvs,
+	        int loop_index,
+	        COLLADAFW::IndexList& index_list,
+	        int count);
 
-	void set_vcol(MLoopCol *mloopcol,
-		          VCOLDataWrapper &vob,
-		          int loop_index,
-		          COLLADAFW::IndexList& index_list,
-		          int count);
+	void set_vcol(
+	        MLoopCol *mloopcol,
+	        VCOLDataWrapper &vob,
+	        int loop_index,
+	        COLLADAFW::IndexList& index_list,
+	        int count);
 
 #ifdef COLLADA_DEBUG
 	void print_index_list(COLLADAFW::IndexList& index_list);

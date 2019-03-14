@@ -164,7 +164,7 @@ typedef struct GpencilModifierTypeInfo {
 	 * This function is optional.
 	 */
 	int (*remapTime)(struct GpencilModifierData *md, struct Depsgraph *depsgraph,
-		struct Scene *scene, struct Object *ob, struct bGPDlayer *gpl, int cfra);
+	                 struct Scene *scene, struct Object *ob, struct bGPDlayer *gpl, int cfra);
 
 	/**
 	 * Initialize new instance data for this modifier type, this function

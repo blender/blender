@@ -474,10 +474,10 @@ void DocumentImporter::report_unknown_reference(const COLLADAFW::Node &node, con
 	std::string id = node.getOriginalId();
 	std::string name = node.getName();
 	fprintf(stderr,
-		"error: node id=\"%s\", name=\"%s\" refers to an undefined %s.\n",
-		id.c_str(),
-		name.c_str(),
-		object_type.c_str());
+	        "error: node id=\"%s\", name=\"%s\" refers to an undefined %s.\n",
+	        id.c_str(),
+	        name.c_str(),
+	        object_type.c_str());
 }
 
 std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
@@ -496,10 +496,10 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 	std::vector<Object *> *root_objects = new std::vector<Object *>();
 
 	fprintf(stderr,
-		"| %s id='%s', name='%s'\n",
-		is_joint ? "JOINT" : "NODE ",
-		id.c_str(),
-        name.c_str() );
+	        "| %s id='%s', name='%s'\n",
+	        is_joint ? "JOINT" : "NODE ",
+	        id.c_str(),
+	        name.c_str() );
 
 	if (is_joint) {
 		if (parent_node == NULL && !is_library_node) {

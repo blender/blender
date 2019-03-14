@@ -879,11 +879,11 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(
 				tc_frameno = context->frameno_gapless;
 
 			IMB_index_builder_proc_frame(
-				context->indexer[i],
-				curr_packet->data,
-				curr_packet->size,
-				tc_frameno,
-				s_pos, s_dts, pts);
+			        context->indexer[i],
+			        curr_packet->data,
+			        curr_packet->size,
+			        tc_frameno,
+			        s_pos, s_dts, pts);
 		}
 	}
 
@@ -937,7 +937,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 
 		if (frame_finished) {
 			index_rebuild_ffmpeg_proc_decoded_frame(
-				context, &next_packet, in_frame);
+			        context, &next_packet, in_frame);
 		}
 		av_free_packet(&next_packet);
 	}
@@ -957,12 +957,12 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 			frame_finished = 0;
 
 			avcodec_decode_video2(
-				context->iCodecCtx, in_frame, &frame_finished,
-				&next_packet);
+			        context->iCodecCtx, in_frame, &frame_finished,
+			        &next_packet);
 
 			if (frame_finished) {
 				index_rebuild_ffmpeg_proc_decoded_frame(
-					context, &next_packet, in_frame);
+				        context, &next_packet, in_frame);
 			}
 		} while (frame_finished);
 	}

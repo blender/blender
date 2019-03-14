@@ -187,7 +187,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 				 * to put them into from here...
 				 */
 				printf("WARNING: Old Grease Pencil data ('%s') still exists on Object '%s'\n",
-					ob->gpd->id.name + 2, ob->id.name + 2);
+				       ob->gpd->id.name + 2, ob->id.name + 2);
 			}
 		}
 	}

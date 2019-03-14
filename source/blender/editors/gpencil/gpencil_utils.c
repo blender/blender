@@ -796,8 +796,9 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc, Scene *scene, const float 
 	const RegionView3D *rv3d = gsc->ar->regiondata;
 	float rvec[3];
 
-	ED_gp_get_drawing_reference(scene, gsc->ob, gsc->gpl,
-		scene->toolsettings->gpencil_v3d_align, rvec);
+	ED_gp_get_drawing_reference(
+	        scene, gsc->ob, gsc->gpl,
+	        scene->toolsettings->gpencil_v3d_align, rvec);
 
 	float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
@@ -2217,8 +2218,8 @@ int ED_gpencil_select_stroke_segment(
 	int direction = 0;
 	float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints, "GP Stroke temp 2d points");
 	BKE_gpencil_stroke_2d_flat_ref(
-		gps->points, gps->totpoints,
-		gps->points, gps->totpoints, points2d, scale, &direction);
+	        gps->points, gps->totpoints,
+	        gps->points, gps->totpoints, points2d, scale, &direction);
 
 	GHash *all_2d = BLI_ghash_ptr_new(__func__);
 
@@ -2229,9 +2230,9 @@ int ED_gpencil_select_stroke_segment(
 		/* the extremes of the stroke are scaled to improve collision detection
 		 * for near lines */
 		BKE_gpencil_stroke_2d_flat_ref(
-			gps->points, gps->totpoints,
-			gps_iter->points, gps_iter->totpoints, points2d_iter,
-			scale, &direction);
+		        gps->points, gps->totpoints,
+		        gps_iter->points, gps_iter->totpoints, points2d_iter,
+		        scale, &direction);
 		BLI_ghash_insert(all_2d, gps_iter, points2d_iter);
 	}
 
@@ -2255,7 +2256,7 @@ int ED_gpencil_select_stroke_segment(
 			copy_v2_v2(p2d_a2, points2d[i2]);
 
 			hit_a = gpencil_check_collision(
-				gps, gps_array, all_2d, totstrokes, p2d_a1, p2d_a2, r_hit2d);
+			        gps, gps_array, all_2d, totstrokes, p2d_a1, p2d_a2, r_hit2d);
 
 			if (select) {
 				pta1->flag |= GP_SPOINT_SELECT;
@@ -2289,7 +2290,7 @@ int ED_gpencil_select_stroke_segment(
 		copy_v2_v2(p2d_a2, points2d[i2]);
 
 		hit_b = gpencil_check_collision(
-			gps, gps_array, all_2d, totstrokes, p2d_a1, p2d_a2, r_hit2d);
+		        gps, gps_array, all_2d, totstrokes, p2d_a1, p2d_a2, r_hit2d);
 
 		if (select) {
 			pta1->flag |= GP_SPOINT_SELECT;

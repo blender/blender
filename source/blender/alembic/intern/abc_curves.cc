@@ -449,10 +449,10 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
 	catch(Alembic::Util::Exception &ex) {
 		*err_str = "Error reading curve sample; more detail on the console";
 		printf("Alembic: error reading curve sample for '%s/%s' at time %f: %s\n",
-			   m_iobject.getFullName().c_str(),
-			   m_curves_schema.getName().c_str(),
-			   sample_sel.getRequestedTime(),
-			   ex.what());
+		       m_iobject.getFullName().c_str(),
+		       m_curves_schema.getName().c_str(),
+		       sample_sel.getRequestedTime(),
+		       ex.what());
 		return existing_mesh;
 	}
 

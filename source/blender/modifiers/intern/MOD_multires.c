@@ -99,7 +99,7 @@ static Mesh *multires_as_mesh(MultiresModifierData *mmd,
 	Object *object = ctx->object;
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
-        &mesh_settings, scene, object, mmd, use_render_params, ignore_simplify);
+	        &mesh_settings, scene, object, mmd, use_render_params, ignore_simplify);
 	if (mesh_settings.resolution < 3) {
 		return result;
 	}

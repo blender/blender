@@ -4189,7 +4189,7 @@ static void headerRotation(TransInfo *t, char str[UI_MAX_DRAW_STR], float final)
 	}
 	else {
 		ofs += BLI_snprintf(str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Rot: %.2f%s %s"),
-			RAD2DEGF(final), t->con.text, t->proptext);
+		                    RAD2DEGF(final), t->con.text, t->proptext);
 	}
 
 	if (t->flag & T_PROP_EDIT_ALL) {
@@ -4650,7 +4650,7 @@ void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData
 		/* Restore custom loop normal on cancel */
 		for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
 			BKE_lnor_space_custom_normal_to_data(
-				bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->niloc, lnor_ed->clnors_data);
+			        bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->niloc, lnor_ed->clnors_data);
 		}
 	}
 
@@ -4727,7 +4727,7 @@ static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
 			mul_v3_m3v3(lnor_ed->nloc, mat, lnor_ed->niloc);
 
 			BKE_lnor_space_custom_normal_to_data(
-				bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->nloc, lnor_ed->clnors_data);
+			        bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->nloc, lnor_ed->clnors_data);
 		}
 	}
 

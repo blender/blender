@@ -281,9 +281,9 @@ static float newPerlin(float x, float y, float z)
 {
 	int A, AA, AB, B, BA, BB;
 	float u = floor(x), v = floor(y), w = floor(z);
-	int X = ((int)u) & 255,
-		Y = ((int)v) & 255,
-		Z = ((int)w) & 255;   /* FIND UNIT CUBE THAT CONTAINS POINT */
+	int X = ((int)u) & 255;
+	int Y = ((int)v) & 255;
+	int Z = ((int)w) & 255;   /* FIND UNIT CUBE THAT CONTAINS POINT */
 	x -= u;             /* FIND RELATIVE X,Y,Z */
 	y -= v;             /* OF POINT IN CUBE. */
 	z -= w;

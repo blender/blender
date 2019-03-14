@@ -283,8 +283,7 @@ static bool object_modifier_safe_to_delete(Main *bmain, Object *ob,
 	ModifierType type)
 {
 	return (!object_has_modifier(ob, exclude, type) &&
-		!ED_object_iter_other(bmain, ob, false,
-			object_has_modifier_cb, &type));
+	        !ED_object_iter_other(bmain, ob, false, object_has_modifier_cb, &type));
 }
 
 static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
@@ -1182,9 +1181,10 @@ static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 
 	multiresModifier_del_levels(mmd, scene, ob, 1);
 
-	ED_object_iter_other(CTX_data_main(C), ob, true,
-		ED_object_multires_update_totlevels_cb,
-		&mmd->totlvl);
+	ED_object_iter_other(
+	        CTX_data_main(C), ob, true,
+	        ED_object_multires_update_totlevels_cb,
+	        &mmd->totlvl);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
@@ -1227,9 +1227,10 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
 	multiresModifier_subdivide(mmd, scene, ob, 0, mmd->simple);
 
-	ED_object_iter_other(CTX_data_main(C), ob, true,
-		ED_object_multires_update_totlevels_cb,
-		&mmd->totlvl);
+	ED_object_iter_other(
+	        CTX_data_main(C), ob, true,
+	        ED_object_multires_update_totlevels_cb,
+	        &mmd->totlvl);
 
 	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -1404,8 +1405,8 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	WM_operator_properties_filesel(
-		ot, FILE_TYPE_FOLDER | FILE_TYPE_BTX, FILE_SPECIAL, FILE_SAVE,
-		WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+	        ot, FILE_TYPE_FOLDER | FILE_TYPE_BTX, FILE_SPECIAL, FILE_SAVE,
+	        WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 	edit_modifier_properties(ot);
 }
 
@@ -1769,8 +1770,9 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 	arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
 
 	mvert_skin = CustomData_get_layer(&me->vdata, CD_MVERT_SKIN);
-	BKE_mesh_vert_edge_map_create(&emap, &emap_mem,
-		me->medge, me->totvert, me->totedge);
+	BKE_mesh_vert_edge_map_create(
+	        &emap, &emap_mem,
+	        me->medge, me->totvert, me->totedge);
 
 	edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 
@@ -2174,9 +2176,10 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 
-	och = BKE_ocean_init_cache(omd->cachepath, modifier_path_relbase(bmain, ob),
-		omd->bakestart, omd->bakeend, omd->wave_scale,
-		omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
+	och = BKE_ocean_init_cache(
+	        omd->cachepath, modifier_path_relbase(bmain, ob),
+	        omd->bakestart, omd->bakeend, omd->wave_scale,
+	        omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 
 	och->time = MEM_mallocN(och->duration * sizeof(float), "foam bake time");
 
@@ -2213,8 +2216,9 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	scene->r.cfra = cfra;
 
 	/* setup job */
-	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
-		WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
+	wm_job = WM_jobs_get(
+	        CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
+	        WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
 	oj = MEM_callocN(sizeof(OceanBakeJob), "ocean bake job");
 	oj->owner = ob;
 	oj->ocean = ocean;

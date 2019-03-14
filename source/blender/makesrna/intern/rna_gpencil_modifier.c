@@ -892,8 +892,9 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_custom_frame_range", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TIME_CUSTOM_RANGE);
-	RNA_def_property_ui_text(prop, "Custom Range",
-		"Define a custom range of frames to use in modifier");
+	RNA_def_property_ui_text(
+	        prop, "Custom Range",
+	        "Define a custom range of frames to use in modifier");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 
@@ -1071,9 +1072,10 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 	/* Offset parameters */
 	prop = RNA_def_property(srna, "offset_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
-	RNA_def_property_ui_text(prop, "Object Offset",
-		"Use the location and rotation of another object to determine the distance and "
-		"rotational change between arrayed items");
+	RNA_def_property_ui_text(
+	        prop, "Object Offset",
+	        "Use the location and rotation of another object to determine the distance and "
+	        "rotational change between arrayed items");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
@@ -1152,8 +1154,9 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "keep_on_top", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_ARRAY_KEEP_ONTOP);
-	RNA_def_property_ui_text(prop, "Keep On Top",
-		"Keep the original stroke in front of new instances (only affect by layer)");
+	RNA_def_property_ui_text(
+	        prop, "Keep On Top",
+	        "Keep the original stroke in front of new instances (only affect by layer)");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 
@@ -1431,8 +1434,9 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "subtarget");
-	RNA_def_property_ui_text(prop, "Sub-Target",
-		"Name of Parent Bone for hook (if applicable), also recalculates and clears offset");
+	RNA_def_property_ui_text(
+	        prop, "Sub-Target",
+	        "Name of Parent Bone for hook (if applicable), also recalculates and clears offset");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
 	prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
@@ -1554,15 +1558,17 @@ static void rna_def_modifier_gpencilarmature(BlenderRNA *brna)
 #if 0 /* GPXX keep disabled now */
 	prop = RNA_def_property(srna, "use_multi_modifier", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "multi", 0);
-	RNA_def_property_ui_text(prop, "Multi Modifier",
-		"Use same input as previous modifier, and mix results using overall vgroup");
+	RNA_def_property_ui_text(
+	        prop, "Multi Modifier",
+	        "Use same input as previous modifier, and mix results using overall vgroup");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 #endif
 
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vgname");
-	RNA_def_property_ui_text(prop, "Vertex Group",
-		"Name of Vertex Group which determines influence of modifier per point");
+	RNA_def_property_ui_text(
+	        prop, "Vertex Group",
+	        "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ArmatureGpencilModifier_vgname_set");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 

@@ -100,8 +100,9 @@ private:
 	JointData *get_joint_data(COLLADAFW::Node *node);
 #endif
 
-	int create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
-		float parent_mat[4][4], bArmature *arm, std::vector<std::string> &layer_labels);
+	int create_bone(
+	        SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
+	        float parent_mat[4][4], bArmature *arm, std::vector<std::string> &layer_labels);
 
 	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node, int sibcount, std::vector<std::string> &layer_labels, BoneExtensionMap &extended_bones);
 

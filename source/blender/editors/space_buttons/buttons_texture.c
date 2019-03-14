@@ -156,8 +156,9 @@ static void buttons_texture_modifier_gpencil_foreach(void *userData, Object *ob,
 	RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
 	prop = RNA_struct_find_property(&ptr, propname);
 
-	buttons_texture_user_property_add(users, &ob->id, ptr, prop,
-		N_("Grease Pencil Modifiers"), RNA_struct_ui_icon(ptr.type), md->name);
+	buttons_texture_user_property_add(
+	        users, &ob->id, ptr, prop,
+	        N_("Grease Pencil Modifiers"), RNA_struct_ui_icon(ptr.type), md->name);
 }
 
 static void buttons_texture_users_from_context(ListBase *users, const bContext *C, SpaceProperties *sbuts)

@@ -135,8 +135,7 @@ static void BKE_gpencil_instance_modifier_instance_tfm(
 		add_v3_v3(mat_offset[3], mmd->offset);
 		invert_m4_m4(obinv, ob->obmat);
 
-		mul_m4_series(r_offset, mat_offset,
-			obinv, mmd->object->obmat);
+		mul_m4_series(r_offset, mat_offset, obinv, mmd->object->obmat);
 		copy_m4_m4(mat_offset, r_offset);
 
 		/* clear r_mat locations to avoid double transform */

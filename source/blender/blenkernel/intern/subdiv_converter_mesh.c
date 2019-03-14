@@ -324,12 +324,12 @@ static void initialize_manifold_index_array(const BLI_bitmap *used_map,
 	int *indices = NULL;
 	if (indices_r != NULL) {
 		indices = MEM_malloc_arrayN(
-	        num_elements, sizeof(int), "manifold indices");
+		        num_elements, sizeof(int), "manifold indices");
 	}
 	int *indices_reverse = NULL;
 	if (indices_reverse_r != NULL) {
 		indices_reverse = MEM_malloc_arrayN(
-	        num_elements, sizeof(int), "manifold indices reverse");
+		        num_elements, sizeof(int), "manifold indices reverse");
 	}
 	int offset = 0;
 	for (int i = 0; i < num_elements; i++) {
