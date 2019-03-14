@@ -84,7 +84,7 @@ public:
 
 		progressive = false;
 		experimental = false;
-		samples = INT_MAX;
+		samples = 1024;
 		tile_size = make_int2(64, 64);
 		start_resolution = INT_MAX;
 		pixel_size = 1;
