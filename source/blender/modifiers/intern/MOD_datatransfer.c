@@ -85,8 +85,6 @@ static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_Me
 	}
 
 	BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, r_cddata_masks);
-	BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-	            dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode, r_cddata_masks);
 }
 
 static bool dependsOnNormals(ModifierData *md)
@@ -124,6 +122,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if (dtmd->ob_source != NULL) {
 		CustomData_MeshMasks cddata_masks = {0};
 		BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, &cddata_masks);
+		BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
+		            dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode, &cddata_masks);
 
 		DEG_add_object_relation(ctx->node, dtmd->ob_source, DEG_OB_COMP_GEOMETRY, "DataTransfer Modifier");
 		DEG_add_customdata_mask(ctx->node, dtmd->ob_source, &cddata_masks);
