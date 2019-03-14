@@ -84,6 +84,9 @@ typedef struct PaintCurveUndoStep {
 
 static bool paintcurve_undosys_poll(bContext *C)
 {
+	if (C == NULL || !paint_curve_poll(C)) {
+		return false;
+	}
 	Paint *p = BKE_paint_get_active_from_context(C);
 	return (p->brush && p->brush->paint_curve);
 }
@@ -96,6 +99,9 @@ static void paintcurve_undosys_step_encode_init(struct bContext *C, UndoStep *us
 
 static bool paintcurve_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
+	if (C == NULL || !paint_curve_poll(C)) {
+		return false;
+	}
 	Paint *p = BKE_paint_get_active_from_context(C);
 	PaintCurve *pc = p ? (p->brush ? p->brush->paint_curve : NULL) : NULL;
 	if (pc == NULL) {
