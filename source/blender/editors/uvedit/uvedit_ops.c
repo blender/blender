@@ -159,7 +159,17 @@ bool ED_object_get_active_image(
 
 	if (node && is_image_texture_node(node)) {
 		if (r_ima) *r_ima = (Image *)node->id;
-		if (r_iuser) *r_iuser = NULL;
+		if (r_iuser) {
+			if (node->type == SH_NODE_TEX_IMAGE) {
+				*r_iuser = &((NodeTexImage *)node->storage)->iuser;
+			}
+			else if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+				*r_iuser = &((NodeTexEnvironment *)node->storage)->iuser;
+			}
+			else {
+				*r_iuser = NULL;
+			}
+		}
 		if (r_node) *r_node = node;
 		if (r_ntree) *r_ntree = ntree;
 		return true;

@@ -278,6 +278,7 @@ typedef struct WORKBENCH_MaterialData {
 	int color_type;
 	int interp;
 	Image *ima;
+	ImageUser *iuser;
 
 	/* Linked shgroup for drawing */
 	DRWShadingGroup *shgrp;
@@ -322,7 +323,7 @@ void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
 void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd);
 void workbench_forward_choose_shaders(WORKBENCH_PrivateData *wpd);
 WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
-        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int color_type, int interp);
+        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, ImageUser *iuser, int color_type, int interp);
 
 /* workbench_effect_aa.c */
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
@@ -350,7 +351,7 @@ void workbench_dof_draw_pass(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *ob);
-void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_image, int *r_interp, Material **r_mat);
+void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);

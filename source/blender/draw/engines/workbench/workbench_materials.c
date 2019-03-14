@@ -220,11 +220,11 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *i
 	return color_type;
 }
 
-void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_image, int *r_interp, Material **r_mat)
+void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat)
 {
 	bNode *node;
 	*r_mat = give_current_material(ob, mat_nr);
-	ED_object_get_active_image(ob, mat_nr, r_image, NULL, &node, NULL);
+	ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, NULL);
 	if (node && *r_image) {
 		switch (node->type) {
 			case SH_NODE_TEX_IMAGE:
@@ -258,11 +258,11 @@ void workbench_material_shgroup_uniform(
 	}
 
 	if (workbench_material_determine_color_type(wpd, material->ima, ob) == V3D_SHADING_TEXTURE_COLOR) {
-		ImBuf *ibuf = BKE_image_acquire_ibuf(material->ima, NULL, NULL);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(material->ima, material->iuser, NULL);
 		const bool do_color_correction = wpd->use_color_management &&
 		                                 (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0);
 		BKE_image_release_ibuf(material->ima, ibuf, NULL);
-		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false);
+		GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D, false);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
 		DRW_shgroup_uniform_bool_copy(grp, "imageSrgb", do_color_correction);
 		DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
@@ -296,4 +296,5 @@ void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBE
 	dest_material->metallic = source_material->metallic;
 	dest_material->roughness = source_material->roughness;
 	dest_material->ima = source_material->ima;
+	dest_material->iuser = source_material->iuser;
 }

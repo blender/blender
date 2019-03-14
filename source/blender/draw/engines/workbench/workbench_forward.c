@@ -138,7 +138,7 @@ static void workbench_init_object_data(DrawData *dd)
 }
 
 WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
-        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int color_type, int interp)
+        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, ImageUser *iuser, int color_type, int interp)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -154,6 +154,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
 	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
 	material_template.color_type = color_type;
 	material_template.ima = ima;
+	material_template.iuser = iuser;
 	material_template.interp = interp;
 	uint hash = workbench_material_get_hash(&material_template, false);
 
@@ -189,7 +190,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
 		if (workbench_material_determine_color_type(wpd, material->ima, ob) == V3D_SHADING_TEXTURE_COLOR) {
 			material->shgrp_object_outline = DRW_shgroup_create(
 			        e_data.object_outline_texture_sh, psl->object_outline_pass);
-			GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false);
+			GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D, false);
 			DRW_shgroup_uniform_texture(material->shgrp_object_outline, "image", tex);
 		}
 		else {
@@ -457,10 +458,11 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 		if (draw_as == PART_DRAW_PATH) {
 			Material *mat;
 			Image *image;
+			ImageUser *iuser;
 			int interp;
-			workbench_material_get_image_and_mat(ob, part->omat, &image, &interp, &mat);
+			workbench_material_get_image_and_mat(ob, part->omat, &image, &iuser, &interp, &mat);
 			int color_type = workbench_material_determine_color_type(wpd, image, ob);
-			WORKBENCH_MaterialData *material = workbench_forward_get_or_create_material_data(vedata, ob, mat, image, color_type, interp);
+			WORKBENCH_MaterialData *material = workbench_forward_get_or_create_material_data(vedata, ob, mat, image, iuser, color_type, interp);
 
 			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR)
 			                           ? wpd->transparent_accum_hair_sh
@@ -538,10 +540,11 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				for (int i = 0; i < materials_len; i++) {
 					Material *mat;
 					Image *image;
+					ImageUser *iuser;
 					int interp;
-					workbench_material_get_image_and_mat(ob, i + 1, &image, &interp, &mat);
+					workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
 					int color_type = workbench_material_determine_color_type(wpd, image, ob);
-					material = workbench_forward_get_or_create_material_data(vedata, ob, mat, image, color_type, interp);
+					material = workbench_forward_get_or_create_material_data(vedata, ob, mat, image, iuser, color_type, interp);
 					DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
 					DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 				}
@@ -557,7 +560,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				/* No material split needed */
 				struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
-					material = workbench_forward_get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
+					material = workbench_forward_get_or_create_material_data(vedata, ob, NULL, NULL, NULL, wpd->shading.color_type, 0);
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 						if (!is_wire) {
@@ -588,7 +591,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 						}
 
 						Material *mat = give_current_material(ob, i + 1);
-						material = workbench_forward_get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
+						material = workbench_forward_get_or_create_material_data(vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 							if (!is_wire) {
