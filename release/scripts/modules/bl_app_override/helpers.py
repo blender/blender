@@ -100,7 +100,6 @@ class AppOverrideState:
 
     def _setup_addons(self):
         import sys
-        import os
 
         sys_path = []
         if self.addon_paths is not None:

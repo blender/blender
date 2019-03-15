@@ -443,7 +443,6 @@ def triangle_random_points(num_points, loop_triangles):
     """
 
     from random import random
-    from mathutils.geometry import area_tri
 
     # For each triangle, generate the required number of random points
     sampled_points = [None] * (num_points * len(loop_triangles))

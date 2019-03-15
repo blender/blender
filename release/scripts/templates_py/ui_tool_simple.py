@@ -1,7 +1,6 @@
 # This example adds an object mode tool to the toolbar.
 # This is just the circle-select and lasso tools tool.
 import bpy
-from bpy.utils.toolsystem import ToolDef
 from bpy.types import WorkSpaceTool
 
 class MyTool(WorkSpaceTool):
