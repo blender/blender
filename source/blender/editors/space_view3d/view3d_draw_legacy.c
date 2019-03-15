@@ -267,7 +267,7 @@ void ED_view3d_backbuf_depth_validate(ViewContext *vc)
 			draw_object_depth(rv3d, obact_eval);
 
 			if (rv3d->rflag & RV3D_CLIPPING) {
-				ED_view3d_clipping_disable(rv3d);
+				ED_view3d_clipping_disable();
 			}
 
 			GPU_depth_test(false);
