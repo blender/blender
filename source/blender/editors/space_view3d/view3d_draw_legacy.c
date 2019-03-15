@@ -346,7 +346,7 @@ uint *ED_view3d_select_id_read(
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 uint ED_view3d_select_id_read_nearest(
-        struct ViewContext *vc, const int mval[2],
+        struct ViewContext *UNUSED(vc), const int mval[2],
         const uint min, const uint max, uint *r_dist)
 {
 	uint index = 0;
