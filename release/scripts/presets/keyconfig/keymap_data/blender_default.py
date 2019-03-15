@@ -810,7 +810,7 @@ def km_uv_editor(params):
         # Quick switch to select tool, since left select can't easily
         # select with any tool active.
         items.extend([
-            op_tool_cycle("Select Box", {"type": 'W', "value": 'PRESS'}),
+            op_tool_cycle("builtin.select_box", {"type": 'W', "value": 'PRESS'}),
         ])
 
     return keymap
@@ -1173,7 +1173,7 @@ def km_view3d(params):
         # Quick switch to select tool, since left select can't easily
         # select with any tool active.
         items.extend([
-            op_tool_cycle("Select Box", {"type": 'W', "value": 'PRESS'}),
+            op_tool_cycle("builtin.select_box", {"type": 'W', "value": 'PRESS'}),
         ])
 
     return keymap
