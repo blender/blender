@@ -355,6 +355,7 @@ static int layer_collection_pushed_state_cb(bContext *UNUSED(C), void *poin)
 
 static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *poin2)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = poin;
@@ -384,7 +385,8 @@ static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *p
 	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
 	if (depsgraph_changed) {
-		DEG_relations_tag_update(CTX_data_main(C));
+		BKE_main_collection_sync_remap(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
