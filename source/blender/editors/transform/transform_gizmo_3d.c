@@ -1620,18 +1620,18 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		ScrArea *sa = CTX_wm_area(C);
 		const bToolRef *tref = sa->runtime.tool;
 
-		if (tref == NULL || STREQ(tref->idname, "Transform")) {
+		if (tref == NULL || STREQ(tref->idname, "builtin.transform")) {
 			/* Setup all gizmos, they can be toggled via 'ToolSettings.gizmo_flag' */
 			ggd->twtype = SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE;
 			ggd->use_twtype_refresh = true;
 		}
-		else if (STREQ(tref->idname, "Move")) {
+		else if (STREQ(tref->idname, "builtin.move")) {
 			ggd->twtype |= SCE_GIZMO_SHOW_TRANSLATE;
 		}
-		else if (STREQ(tref->idname, "Rotate")) {
+		else if (STREQ(tref->idname, "builtin.rotate")) {
 			ggd->twtype |= SCE_GIZMO_SHOW_ROTATE;
 		}
-		else if (STREQ(tref->idname, "Scale")) {
+		else if (STREQ(tref->idname, "builtin.scale")) {
 			ggd->twtype |= SCE_GIZMO_SHOW_SCALE;
 		}
 		BLI_assert(ggd->twtype != 0);

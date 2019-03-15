@@ -2893,6 +2893,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 49)) {
+		/* All tool names changed, reset to defaults. */
+		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+			while (!BLI_listbase_is_empty(&workspace->tools)) {
+				BKE_workspace_tool_remove(workspace, workspace->tools.first);
+			}
+		}
+	}
+
 	{
 		/* Versioning code until next subversion bump goes here. */
 	}

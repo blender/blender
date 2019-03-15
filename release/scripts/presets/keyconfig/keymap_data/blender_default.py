@@ -5029,9 +5029,9 @@ def km_popup_toolbar(_params):
         "Toolbar Popup",
         {"space_type": 'EMPTY', "region_type": 'TEMPORARY'},
         {"items": [
-            op_tool("Select", {"type": 'W', "value": 'PRESS'}),
-            op_tool("Transform", {"type": 'T', "value": 'PRESS'}),
-            op_tool("Measure", {"type": 'M', "value": 'PRESS'}),
+            op_tool("builtin.select", {"type": 'W', "value": 'PRESS'}),
+            op_tool("builtin.transform", {"type": 'T', "value": 'PRESS'}),
+            op_tool("builtin.measure", {"type": 'M', "value": 'PRESS'}),
         ]},
     )
 

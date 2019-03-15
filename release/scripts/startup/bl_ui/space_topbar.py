@@ -296,7 +296,7 @@ class _draw_left_context_mode:
 
             is_paint = True
             # FIXME: tools must use their own UI drawing!
-            if tool.idname in {"Line", "Box", "Circle", "Arc", "Curve"}:
+            if tool.idname in {"builtin.line", "builtin.box", "builtin.circle", "builtin.arc", "builtin.curve"}:
                 is_paint = False
             elif tool.idname == "Cutter":
                 row = layout.row(align=True)
@@ -351,7 +351,7 @@ class _draw_left_context_mode:
             brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
 
             # FIXME: tools must use their own UI drawing!
-            if tool.idname in {"Arc", "Curve", "Line", "Box", "Circle"}:
+            if tool.idname in {"builtin.arc", "builtin.curve", "builtin.line", "builtin.box", "builtin.circle"}:
                 settings = context.tool_settings.gpencil_sculpt
                 row = layout.row(align=True)
                 row.prop(settings, "use_thickness_curve", text="", icon='CURVE_DATA')

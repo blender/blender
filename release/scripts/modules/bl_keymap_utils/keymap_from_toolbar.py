@@ -68,7 +68,7 @@ def generate(context, space_type):
     # a shortcut based workflow (before the tool system was added).
     use_tap_reset = True
     # TODO: support other tools for modes which don't use this tool.
-    tap_reset_tool = "Cursor"
+    tap_reset_tool = "builtin.cursor"
     # Check the tool is available in the current context.
     if tap_reset_tool not in items_all_id:
         use_tap_reset = False
@@ -317,7 +317,7 @@ def generate(context, space_type):
     # -------------------------------------------------------------------------
     # Assign A-Z to Keys
     #
-    # When th keys are free.
+    # When the keys are free.
 
     if use_auto_keymap_alpha:
         # Map all unmapped keys to numbers,
