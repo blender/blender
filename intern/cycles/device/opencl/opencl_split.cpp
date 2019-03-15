@@ -40,7 +40,13 @@ struct texture_slot_t {
 	int slot;
 };
 
-static const string fast_compiled_kernels =
+static const string NON_SPLIT_KERNELS =
+	"denoising "
+	"base "
+	"background "
+	"displace ";
+
+static const string SPLIT_BUNDLE_KERNELS =
 	"data_init "
 	"path_init "
 	"state_buffer_size "
@@ -55,7 +61,10 @@ static const string fast_compiled_kernels =
 
 const string OpenCLDevice::get_opencl_program_name(const string& kernel_name)
 {
-	if (fast_compiled_kernels.find(kernel_name) != std::string::npos) {
+	if (NON_SPLIT_KERNELS.find(kernel_name) != std::string::npos) {
+		return kernel_name;
+	}
+	else if (SPLIT_BUNDLE_KERNELS.find(kernel_name) != std::string::npos) {
 		return "split_bundle";
 	}
 	else {
@@ -65,7 +74,10 @@ const string OpenCLDevice::get_opencl_program_name(const string& kernel_name)
 
 const string OpenCLDevice::get_opencl_program_filename(const string& kernel_name)
 {
-	if (fast_compiled_kernels.find(kernel_name) != std::string::npos) {
+	if (kernel_name == "denoising") {
+		return "filter.cl";
+	}
+	else if (SPLIT_BUNDLE_KERNELS.find(kernel_name) != std::string::npos) {
 		return "kernel_split_bundle.cl";
 	}
 	else {
