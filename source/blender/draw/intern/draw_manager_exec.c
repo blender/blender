@@ -803,6 +803,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 		copy_m3_m4(st->normalview, st->modelview);
 		invert_m3(st->normalview);
 		transpose_m3(st->normalview);
+		normalize_m3(st->normalview);
 	}
 	if (st->matflag & DRW_CALL_EYEVEC) {
 		/* Used by orthographic wires */
@@ -821,6 +822,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 		copy_m3_m4(st->normalworld, st->model);
 		invert_m3(st->normalworld);
 		transpose_m3(st->normalworld);
+		normalize_m3(st->normalworld);
 		st->matflag &= ~DRW_CALL_NORMALWORLD;
 	}
 }

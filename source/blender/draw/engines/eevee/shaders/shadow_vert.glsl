@@ -24,8 +24,8 @@ void main() {
 #ifdef MESH_SHADER
 	viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
 	worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
-	viewNormal = normalize(NormalMatrix * nor);
-	worldNormal = normalize(WorldNormalMatrix * nor);
+	viewNormal = NormalMatrix * nor;
+	worldNormal = WorldNormalMatrix * nor;
 #ifdef USE_ATTR
 	pass_attr(pos);
 #endif
