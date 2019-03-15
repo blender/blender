@@ -318,6 +318,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	}
 
 	sce_dst->eevee.light_cache = NULL;
+	sce_dst->eevee.light_cache_info[0] = '\0';
 	/* TODO Copy the cache. */
 }
 
@@ -339,6 +340,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		sce_copy->unit = sce->unit;
 		sce_copy->physics_settings = sce->physics_settings;
 		sce_copy->audio = sce->audio;
+		sce_copy->eevee = sce->eevee;
+		sce_copy->eevee.light_cache = NULL;
+		sce_copy->eevee.light_cache_info[0] = '\0';
 
 		if (sce->id.properties)
 			sce_copy->id.properties = IDP_CopyProperty(sce->id.properties);
