@@ -59,7 +59,7 @@ def generate(context, space_type):
         for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
         if item is not None
     ]
-    items_all_text = {item_container[0].text for item_container in items_all}
+    items_all_id = {item_container[0].idname for item_container in items_all}
 
     # Press the toolbar popup key again to set the default tool,
     # this is useful because the select box tool is useful as a way
@@ -70,7 +70,7 @@ def generate(context, space_type):
     # TODO: support other tools for modes which don't use this tool.
     tap_reset_tool = "Cursor"
     # Check the tool is available in the current context.
-    if tap_reset_tool not in items_all_text:
+    if tap_reset_tool not in items_all_id:
         use_tap_reset = False
 
     from bl_operators.wm import use_toolbar_release_hack
@@ -102,13 +102,13 @@ def generate(context, space_type):
         for kmi_src in keymap_src.keymap_items:
             # Skip tools that aren't currently shown.
             if (
-                    (kmi_src.idname == "wm.tool_set_by_name") and
-                    (kmi_src.properties.name not in items_all_text)
+                    (kmi_src.idname == "wm.tool_set_by_id") and
+                    (kmi_src.properties.name not in items_all_id)
             ):
                 continue
             keymap.keymap_items.new_from_item(kmi_src)
     del keymap_src
-    del items_all_text
+    del items_all_id
 
 
     kmi_unique_args = set()
@@ -122,7 +122,7 @@ def generate(context, space_type):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
     if use_hack_properties:
-        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_name", 'NONE', 'PRESS')
+        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_id", 'NONE', 'PRESS')
         kmi_hack_properties = kmi_hack.properties
         kmi_hack.active = False
 
@@ -148,9 +148,9 @@ def generate(context, space_type):
             # First check for direct assignment, if this tool already has a key, no need to add a new one.
             kmi_hack_properties.name = tap_reset_tool
             kmi_found = wm.keyconfigs.find_item_from_operator(
-                idname="wm.tool_set_by_name",
+                idname="wm.tool_set_by_id",
                 context='INVOKE_REGION_WIN',
-                # properties={"name": item.text},
+                # properties={"name": item.idname},
                 properties=kmi_hack_properties,
                 include={'KEYBOARD'},
             )[1]
@@ -165,7 +165,7 @@ def generate(context, space_type):
         items_all[:] = [
             item_container
             for item_container in items_all
-            if item_container[0].text != tap_reset_tool
+            if item_container[0].idname != tap_reset_tool
         ]
 
     # -----------------------
@@ -179,11 +179,11 @@ def generate(context, space_type):
         # Only check the first item in the tools key-map (a little arbitrary).
         if use_hack_properties:
             # First check for direct assignment.
-            kmi_hack_properties.name = item.text
+            kmi_hack_properties.name = item.idname
             kmi_found = wm.keyconfigs.find_item_from_operator(
-                idname="wm.tool_set_by_name",
+                idname="wm.tool_set_by_id",
                 context='INVOKE_REGION_WIN',
-                # properties={"name": item.text},
+                # properties={"name": item.idname},
                 properties=kmi_hack_properties,
                 include={'KEYBOARD'},
             )[1]
@@ -229,7 +229,7 @@ def generate(context, space_type):
         elif item.keymap is not None:
             km = keyconf_user.keymaps.get(item.keymap[0])
             if km is None:
-                print("Keymap", repr(item.keymap[0]), "not found for tool", item.text)
+                print("Keymap", repr(item.keymap[0]), "not found for tool", item.idname)
                 kmi_found = None
             else:
                 kmi_first = km.keymap_items
@@ -274,12 +274,12 @@ def generate(context, space_type):
         if (
                 (len(kmi_found_type) == 1) or
                 # When a tool is being activated instead of running an operator, just copy the shortcut.
-                (kmi_found.idname in {"wm.tool_set_by_name", "WM_OT_tool_set_by_name"})
+                (kmi_found.idname in {"wm.tool_set_by_id", "WM_OT_tool_set_by_id"})
         ):
             kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
             if kmi_unique_or_pass(kmi_args):
-                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
-                kmi.properties.name = item.text
+                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                kmi.properties.name = item.idname
                 item_container[2] = kmi
 
     # -------------------------------------------------------------------------
@@ -310,8 +310,8 @@ def generate(context, space_type):
                 kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
                 del kmi_args["key_modifier"]
                 if kmi_unique_or_pass(kmi_args):
-                    kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
-                    kmi.properties.name = item.text
+                    kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                    kmi.properties.name = item.idname
                     item_container[2] = kmi
 
     # -------------------------------------------------------------------------
@@ -331,16 +331,16 @@ def generate(context, space_type):
             item, kmi_found, kmi_exist = item_container
             if kmi_exist:
                 continue
-            kmi_type = item.text[0].upper()
+            kmi_type = item.label[0].upper()
             kmi_tuple = kmi_type_alpha_args_tuple.get(kmi_type)
             if kmi_tuple and kmi_tuple not in kmi_unique_args:
                 kmi_unique_args.add(kmi_tuple)
                 kmi = keymap.keymap_items.new(
-                    idname="wm.tool_set_by_name",
+                    idname="wm.tool_set_by_id",
                     value='PRESS',
                     **kmi_type_alpha_args[kmi_type],
                 )
-                kmi.properties.name = item.text
+                kmi.properties.name = item.idname
                 item_container[2] = kmi
         del kmi_type_alpha_char, kmi_type_alpha_args, kmi_type_alpha_args_tuple
 
@@ -388,8 +388,8 @@ def generate(context, space_type):
                     break
 
             if kmi_args is not None:
-                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
-                kmi.properties.name = item.text
+                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                kmi.properties.name = item.idname
                 item_container[2] = kmi
                 kmi_unique_args.add(kmi_tuple)
 
@@ -398,8 +398,8 @@ def generate(context, space_type):
                     kmi_args["type"] = key
                     kmi_tuple = dict_as_tuple(kmi_args)
                     if not kmi_tuple in kmi_unique_args:
-                        kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
-                        kmi.properties.name = item.text
+                        kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                        kmi.properties.name = item.idname
                         kmi_unique_args.add(kmi_tuple)
 
 
@@ -426,7 +426,7 @@ def generate(context, space_type):
             del kmi_toolbar_tuple
 
         kmi = keymap.keymap_items.new(
-            "wm.tool_set_by_name",
+            "wm.tool_set_by_id",
             value='PRESS' if use_toolbar_release_hack else 'DOUBLE_CLICK',
             **kmi_toolbar_args_available,
         )
@@ -445,7 +445,7 @@ def generate(context, space_type):
             # ... or pass through to let the toolbar know we're released.
             # Let the operator know we're released.
             kmi = keymap.keymap_items.new(
-                "wm.tool_set_by_name",
+                "wm.tool_set_by_id",
                 type=kmi_toolbar_type,
                 value='RELEASE',
                 any=True,

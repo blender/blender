@@ -143,11 +143,11 @@ def op_panel(menu, kmi_args, kmi_data=()):
 
 
 def op_tool(tool, kmi_args):
-    return ("wm.tool_set_by_name", kmi_args, {"properties": [("name", tool)]})
+    return ("wm.tool_set_by_id", kmi_args, {"properties": [("name", tool)]})
 
 
 def op_tool_cycle(tool, kmi_args):
-    return ("wm.tool_set_by_name", kmi_args, {"properties": [("name", tool), ("cycle", True)]})
+    return ("wm.tool_set_by_id", kmi_args, {"properties": [("name", tool), ("cycle", True)]})
 
 
 # ------------------------------------------------------------------------------

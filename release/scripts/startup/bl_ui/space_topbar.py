@@ -295,9 +295,10 @@ class _draw_left_context_mode:
                 return
 
             is_paint = True
-            if tool.name in {"Line", "Box", "Circle", "Arc", "Curve"}:
+            # FIXME: tools must use their own UI drawing!
+            if tool.idname in {"Line", "Box", "Circle", "Arc", "Curve"}:
                 is_paint = False
-            elif tool.name == "Cutter":
+            elif tool.idname == "Cutter":
                 row = layout.row(align=True)
                 row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
                 return
@@ -349,7 +350,8 @@ class _draw_left_context_mode:
             )
             brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
 
-            if tool.name in {"Arc", "Curve", "Line", "Box", "Circle"}:
+            # FIXME: tools must use their own UI drawing!
+            if tool.idname in {"Arc", "Curve", "Line", "Box", "Circle"}:
                 settings = context.tool_settings.gpencil_sculpt
                 row = layout.row(align=True)
                 row.prop(settings, "use_thickness_curve", text="", icon='CURVE_DATA')

@@ -234,9 +234,8 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Work Space Tool", "");
 
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "idname");
-	RNA_def_property_ui_text(prop, "Name", "");
+	prop = RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Identifier", "");
 	RNA_def_struct_name_property(srna, prop);
 
 	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);

@@ -728,11 +728,11 @@ static void toolsystem_refresh_screen_from_active_tool(
 	}
 }
 
-bToolRef *WM_toolsystem_ref_set_by_name(
+bToolRef *WM_toolsystem_ref_set_by_id(
         bContext *C, WorkSpace *workspace, const bToolKey *tkey,
         const char *name, bool cycle)
 {
-	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
+	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_id", false);
 	/* On startup, Python operatores are not yet loaded. */
 	if (ot == NULL) {
 		return NULL;
@@ -775,7 +775,7 @@ static void toolsystem_reinit_with_toolref(
 		.space_type = tref->space_type,
 		.mode = tref->mode,
 	};
-	WM_toolsystem_ref_set_by_name(C, workspace, &tkey, tref->idname, false);
+	WM_toolsystem_ref_set_by_id(C, workspace, &tkey, tref->idname, false);
 }
 
 static const char *toolsystem_default_tool(const bToolKey *tkey)

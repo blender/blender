@@ -69,7 +69,7 @@ wmKeyMapItem *WM_keymap_add_panel(wmKeyMap *keymap, const char *idname, int type
 /* tool wrapper for WM_keymap_add_item */
 wmKeyMapItem *WM_keymap_add_tool(wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {
-	wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_tool_set_by_name", type, val, modifier, keymodifier);
+	wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_tool_set_by_id", type, val, modifier, keymodifier);
 	RNA_string_set(kmi->ptr, "name", idname);
 	return kmi;
 }
@@ -169,7 +169,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	if (STRPREFIX(opname, "WM_OT") ||
 	    STRPREFIX(opname, "ED_OT_undo"))
 	{
-		if (STREQ(opname, "WM_OT_tool_set_by_name")) {
+		if (STREQ(opname, "WM_OT_tool_set_by_id")) {
 			km = WM_keymap_guess_from_context(C);
 		}
 

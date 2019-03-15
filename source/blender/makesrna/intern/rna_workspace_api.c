@@ -133,7 +133,7 @@ void RNA_api_workspace_tool(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Set the tool settings");
 
-	parm = RNA_def_string(func, "name", NULL, KMAP_MAX_NAME, "Name", "");
+	parm = RNA_def_string(func, "idname", NULL, MAX_NAME, "Identifier", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* 'bToolRef_Runtime' */
