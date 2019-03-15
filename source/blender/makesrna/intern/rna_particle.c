@@ -108,7 +108,6 @@ static const EnumPropertyItem part_ren_as_items[] = {
 	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
 	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
 	{PART_DRAW_GR, "COLLECTION", 0, "Collection", ""},
-	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
 	{0, NULL, 0, NULL, NULL},
 };
 
@@ -2062,30 +2061,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	static const EnumPropertyItem bb_align_items[] = {
-		{PART_BB_X, "X", 0, "X", ""},
-		{PART_BB_Y, "Y", 0, "Y", ""},
-		{PART_BB_Z, "Z", 0, "Z", ""},
-		{PART_BB_VIEW, "VIEW", 0, "View", ""},
-		{PART_BB_VEL, "VEL", 0, "Velocity", ""},
-		{0, NULL, 0, NULL, NULL},
-	};
-
-	static const EnumPropertyItem bb_anim_items[] = {
-		{PART_BB_ANIM_NONE, "NONE", 0, "None", ""},
-		{PART_BB_ANIM_AGE, "AGE", 0, "Age", ""},
-		{PART_BB_ANIM_FRAME, "FRAME", 0, "Frame", ""},
-		{PART_BB_ANIM_ANGLE, "ANGLE", 0, "Angle", ""},
-		{0, NULL, 0, NULL, NULL},
-	};
-
-	static const EnumPropertyItem bb_split_offset_items[] = {
-		{PART_BB_OFF_NONE, "NONE", 0, "None", ""},
-		{PART_BB_OFF_LINEAR, "LINEAR", 0, "Linear", ""},
-		{PART_BB_OFF_RANDOM, "RANDOM", 0, "Random", ""},
-		{0, NULL, 0, NULL, NULL},
-	};
-
 	static const EnumPropertyItem draw_col_items[] = {
 		{PART_DRAW_COL_NONE, "NONE", 0, "None", ""},
 		{PART_DRAW_COL_MAT, "MATERIAL", 0, "Material", ""},
@@ -2481,77 +2456,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Which axis to use for offset");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	/* billboards */
-	prop = RNA_def_property(srna, "lock_billboard", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
-	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_align", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "bb_align");
-	RNA_def_property_enum_items(prop, bb_align_items);
-	RNA_def_property_ui_text(prop, "Align to", "In respect to what the billboards are aligned");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_uv_split", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "bb_uv_split");
-	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_range(prop, 1, 10, 1, -1);
-	RNA_def_property_ui_text(prop, "UV Split", "Number of rows/columns to split UV coordinates for billboards");
-
-	prop = RNA_def_property(srna, "billboard_animation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "bb_anim");
-	RNA_def_property_enum_items(prop, bb_anim_items);
-	RNA_def_property_ui_text(prop, "Animate", "How to animate billboard textures");
-
-	prop = RNA_def_property(srna, "billboard_offset_split", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "bb_split_offset");
-	RNA_def_property_enum_items(prop, bb_split_offset_items);
-	RNA_def_property_ui_text(prop, "Offset", "How to offset billboard textures");
-
-	prop = RNA_def_property(srna, "billboard_tilt", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "bb_tilt");
-	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Tilt", "Tilt of the billboards");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
 	prop = RNA_def_property(srna, "color_maximum", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "color_vec_max");
 	RNA_def_property_range(prop, 0.01f, 100.0f);
 	RNA_def_property_ui_text(prop, "Color Maximum", "Maximum length of the particle color vector");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_tilt_random", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "bb_rand_tilt");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Random Tilt", "Random tilt of the billboards");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_offset", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "bb_offset");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_range(prop, -100.0f, 100.0f);
-	RNA_def_property_ui_range(prop, -1.0, 1.0, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Billboard Offset", "");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_size", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "bb_size");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_range(prop, 0.001f, 10.0f);
-	RNA_def_property_ui_text(prop, "Billboard Scale", "Scale billboards relative to particle size");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_velocity_head", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "bb_vel_head");
-	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Billboard Velocity Head", "Scale billboards by velocity");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	prop = RNA_def_property(srna, "billboard_velocity_tail", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "bb_vel_tail");
-	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Billboard Velocity Tail", "Scale billboards by velocity");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	/* general values */
@@ -3123,13 +3031,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Instance Object", "Show this Object in place of particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_dependency");
 
-	prop = RNA_def_property(srna, "billboard_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "bb_ob");
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Billboard Object", "Billboards face this object (default is active camera)");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
 	/* boids */
 	prop = RNA_def_property(srna, "boids", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoidSettings");
@@ -3380,22 +3281,6 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	                           "rna_ParticleSystem_active_particle_target_index_set",
 	                           "rna_ParticleSystem_active_particle_target_index_range");
 	RNA_def_property_ui_text(prop, "Active Particle Target Index", "");
-
-	/* billboard */
-	prop = RNA_def_property(srna, "billboard_normal_uv", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "bb_uvname[0]");
-	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Billboard Normal UV", "UV map to control billboard normals");
-
-	prop = RNA_def_property(srna, "billboard_time_index_uv", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "bb_uvname[1]");
-	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Billboard Time Index UV", "UV map to control billboard time index (X-Y)");
-
-	prop = RNA_def_property(srna, "billboard_split_uv", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "bb_uvname[2]");
-	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Billboard Split UV", "UV map to control billboard splitting");
 
 	/* vertex groups */
 

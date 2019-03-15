@@ -3150,8 +3150,6 @@ static void default_particle_settings(ParticleSettings *part)
 	part->draw_as = PART_DRAW_REND;
 	part->ren_as = PART_DRAW_HALO;
 	part->bb_uv_split = 1;
-	part->bb_align = PART_BB_VIEW;
-	part->bb_split_offset = PART_BB_OFF_LINEAR;
 	part->flag = PART_EDISTR | PART_TRAND | PART_HIDE_ADVANCED_HAIR;
 
 	part->sta = 1.0;
@@ -4205,88 +4203,6 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	}
 
 	*scale = len;
-}
-
-void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3])
-{
-	float onevec[3] = {0.0f, 0.0f, 0.0f}, tvec[3], tvec2[3];
-
-	xvec[0] = 1.0f; xvec[1] = 0.0f; xvec[2] = 0.0f;
-	yvec[0] = 0.0f; yvec[1] = 1.0f; yvec[2] = 0.0f;
-
-	/* can happen with bad pointcache or physics calculation
-	 * since this becomes geometry, nan's and inf's crash raytrace code.
-	 * better not allow this. */
-	if (!is_finite_v3(bb->vec) || !is_finite_v3(bb->vec)) {
-		zero_v3(bb->vec);
-		zero_v3(bb->vel);
-
-		zero_v3(xvec);
-		zero_v3(yvec);
-		zero_v3(zvec);
-		zero_v3(center);
-
-		return;
-	}
-
-	if (bb->align < PART_BB_VIEW)
-		onevec[bb->align] = 1.0f;
-
-	if (bb->lock && (bb->align == PART_BB_VIEW)) {
-		normalize_v3_v3(xvec, bb->ob->obmat[0]);
-		normalize_v3_v3(yvec, bb->ob->obmat[1]);
-		normalize_v3_v3(zvec, bb->ob->obmat[2]);
-	}
-	else if (bb->align == PART_BB_VEL) {
-		float temp[3];
-
-		normalize_v3_v3(temp, bb->vel);
-
-		sub_v3_v3v3(zvec, bb->ob->obmat[3], bb->vec);
-
-		if (bb->lock) {
-			float fac = -dot_v3v3(zvec, temp);
-
-			madd_v3_v3fl(zvec, temp, fac);
-		}
-		normalize_v3(zvec);
-
-		cross_v3_v3v3(xvec, temp, zvec);
-		normalize_v3(xvec);
-
-		cross_v3_v3v3(yvec, zvec, xvec);
-	}
-	else {
-		sub_v3_v3v3(zvec, bb->ob->obmat[3], bb->vec);
-		if (bb->lock)
-			zvec[bb->align] = 0.0f;
-		normalize_v3(zvec);
-
-		if (bb->align < PART_BB_VIEW)
-			cross_v3_v3v3(xvec, onevec, zvec);
-		else
-			cross_v3_v3v3(xvec, bb->ob->obmat[1], zvec);
-		normalize_v3(xvec);
-
-		cross_v3_v3v3(yvec, zvec, xvec);
-	}
-
-	copy_v3_v3(tvec, xvec);
-	copy_v3_v3(tvec2, yvec);
-
-	mul_v3_fl(xvec, cosf(bb->tilt * (float)M_PI));
-	mul_v3_fl(tvec2, sinf(bb->tilt * (float)M_PI));
-	add_v3_v3(xvec, tvec2);
-
-	mul_v3_fl(yvec, cosf(bb->tilt * (float)M_PI));
-	mul_v3_fl(tvec, -sinf(bb->tilt * (float)M_PI));
-	add_v3_v3(yvec, tvec);
-
-	mul_v3_fl(xvec, bb->size[0]);
-	mul_v3_fl(yvec, bb->size[1]);
-
-	madd_v3_v3v3fl(center, bb->vec, xvec, bb->offset[0]);
-	madd_v3_v3fl(center, yvec, bb->offset[1]);
 }
 
 void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys)

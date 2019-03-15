@@ -2910,5 +2910,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	{
 		/* Versioning code until next subversion bump goes here. */
+
+		LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
+			/* Replace deprecated PART_DRAW_BB by PART_DRAW_NOT */
+			if (part->ren_as == PART_DRAW_BB) {
+				part->ren_as = PART_DRAW_NOT;
+			}
+			if (part->draw_as == PART_DRAW_BB) {
+				part->draw_as = PART_DRAW_NOT;
+			}
+		}
 	}
 }

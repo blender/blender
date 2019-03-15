@@ -206,8 +206,8 @@ typedef struct ParticleSettings {
 	short kink, kink_axis;
 
 	/* billboards */
-	short bb_align, bb_uv_split, bb_anim, bb_split_offset;
-	float bb_tilt, bb_rand_tilt, bb_offset[2], bb_size[2], bb_vel_head, bb_vel_tail;
+	short bb_align, bb_uv_split, bb_anim, bb_split_offset DNA_DEPRECATED;
+	float bb_tilt, bb_rand_tilt, bb_offset[2], bb_size[2], bb_vel_head, bb_vel_tail DNA_DEPRECATED;
 
 	/* draw color */
 	float color_vec_max;
@@ -362,7 +362,7 @@ typedef struct ParticleSystem {
 	char _pad1[6];
 
 	/** Billboard uv name, MAX_CUSTOMDATA_LAYER_NAME. */
-	char bb_uvname[3][64];
+	char bb_uvname[3][64] DNA_DEPRECATED;
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
 	/** Vertex groups, 0==disable, 1==starting index. */
@@ -412,7 +412,7 @@ typedef enum eParticleDrawFlag {
 	PART_DRAW_HEALTH        = (1 << 4),
 	PART_ABS_PATH_TIME      = (1 << 5),
 	PART_DRAW_COUNT_GR      = (1 << 6),
-	PART_DRAW_BB_LOCK       = (1 << 7), /* used with billboards */
+	PART_DRAW_BB_LOCK       = (1 << 7), /* used with billboards */ /* DEPRECATED */
 	PART_DRAW_ROTATE_OB     = (1 << 7), /* used with instance object/collection */
 	PART_DRAW_PARENT        = (1 << 8),
 	PART_DRAW_NUM           = (1 << 9),
@@ -530,24 +530,6 @@ typedef enum eParticleShapeFlag {
 /* part->time_flag */
 #define PART_TIME_AUTOSF	1 /* Automatic subframes */
 
-/* part->bb_align */
-#define PART_BB_X		0
-#define PART_BB_Y		1
-#define PART_BB_Z		2
-#define PART_BB_VIEW	3
-#define PART_BB_VEL		4
-
-/* part->bb_anim */
-#define PART_BB_ANIM_NONE	0
-#define PART_BB_ANIM_AGE	1
-#define PART_BB_ANIM_ANGLE	2
-#define PART_BB_ANIM_FRAME	3
-
-/* part->bb_split_offset */
-#define PART_BB_OFF_NONE	0
-#define PART_BB_OFF_LINEAR	1
-#define PART_BB_OFF_RANDOM	2
-
 /* part->draw_as */
 /* part->ren_as*/
 #define PART_DRAW_NOT		0
@@ -560,7 +542,7 @@ typedef enum eParticleShapeFlag {
 #define PART_DRAW_PATH		6
 #define PART_DRAW_OB		7
 #define PART_DRAW_GR		8
-#define PART_DRAW_BB		9
+#define PART_DRAW_BB		9 /* deprecated */
 #define PART_DRAW_REND		10
 
 /* part->integrator */
