@@ -685,7 +685,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 			DRW_shgroup_uniform_float(grp, "pixfactor", &stl->storage->pixfactor, 1);
 		}
 		/* viewport x-ray */
-		stl->shgroups[id].is_xray = (ob->dt == OB_WIRE) ? 1 : stl->storage->is_xray;
+		stl->shgroups[id].is_xray = ((ob) && (ob->dt == OB_WIRE)) ? 1 : stl->storage->is_xray;
 		DRW_shgroup_uniform_int(grp, "viewport_xray", (const int *)&stl->shgroups[id].is_xray, 1);
 		DRW_shgroup_uniform_int(grp, "shading_type", (const int *)&stl->storage->shade_render, 2);
 	}
