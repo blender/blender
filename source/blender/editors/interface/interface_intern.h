@@ -900,4 +900,8 @@ typedef struct uiRNACollectionSearch {
 } uiRNACollectionSearch;
 void ui_rna_collection_search_cb(const struct bContext *C, void *arg, const char *str, uiSearchItems *items);
 
+/* interface_ops.c */
+bool ui_jump_to_target_button_poll(struct bContext *C);
+
+
 #endif  /* __INTERFACE_INTERN_H__ */

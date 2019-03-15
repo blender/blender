@@ -949,7 +949,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
 	return false;
 }
 
-static bool jump_to_target_button_poll(bContext *C)
+bool ui_jump_to_target_button_poll(bContext *C)
 {
 	return jump_to_target_button(C, true);
 }
@@ -969,7 +969,7 @@ static void UI_OT_jump_to_target_button(wmOperatorType *ot)
 	ot->description = "Switch to the target object or bone";
 
 	/* callbacks */
-	ot->poll = jump_to_target_button_poll;
+	ot->poll = ui_jump_to_target_button_poll;
 	ot->exec = jump_to_target_button_exec;
 
 	/* flags */
