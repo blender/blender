@@ -120,6 +120,37 @@ public:
 		return true;
 	}
 
+	bool wait_for_availability(const DeviceRequestedFeatures& requested_features)
+	{
+		foreach(SubDevice& sub, devices)
+			if(!sub.device->wait_for_availability(requested_features))
+				return false;
+
+		return true;
+	}
+
+	DeviceKernelStatus get_active_kernel_switch_state()
+	{
+		DeviceKernelStatus result = DEVICE_KERNEL_USING_FEATURE_KERNEL;
+
+		foreach(SubDevice& sub, devices) {
+			DeviceKernelStatus subresult = sub.device->get_active_kernel_switch_state();
+			switch (subresult) {
+				case DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL:
+					result = subresult;
+					break;
+
+				case DEVICE_KERNEL_FEATURE_KERNEL_INVALID:
+				case DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE:
+					return subresult;
+
+				case DEVICE_KERNEL_USING_FEATURE_KERNEL:
+					break;
+			}
+		}
+		return result;
+	}
+
 	void mem_alloc(device_memory& mem)
 	{
 		device_ptr key = unique_key++;

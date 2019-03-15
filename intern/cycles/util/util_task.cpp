@@ -148,6 +148,12 @@ bool TaskPool::canceled()
 	return do_cancel;
 }
 
+bool TaskPool::finished()
+{
+	thread_scoped_lock num_lock(num_mutex);
+	return num == 0;
+}
+
 void TaskPool::num_decrease(int done)
 {
 	num_mutex.lock();

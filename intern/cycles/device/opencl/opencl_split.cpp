@@ -40,7 +40,13 @@ struct texture_slot_t {
 	int slot;
 };
 
-static const string fast_compiled_kernels =
+static const string NON_SPLIT_KERNELS =
+	"denoising "
+	"base "
+	"background "
+	"displace ";
+
+static const string SPLIT_BUNDLE_KERNELS =
 	"data_init "
 	"path_init "
 	"state_buffer_size "
@@ -55,7 +61,10 @@ static const string fast_compiled_kernels =
 
 const string OpenCLDevice::get_opencl_program_name(const string& kernel_name)
 {
-	if (fast_compiled_kernels.find(kernel_name) != std::string::npos) {
+	if (NON_SPLIT_KERNELS.find(kernel_name) != std::string::npos) {
+		return kernel_name;
+	}
+	else if (SPLIT_BUNDLE_KERNELS.find(kernel_name) != std::string::npos) {
 		return "split_bundle";
 	}
 	else {
@@ -65,7 +74,10 @@ const string OpenCLDevice::get_opencl_program_name(const string& kernel_name)
 
 const string OpenCLDevice::get_opencl_program_filename(const string& kernel_name)
 {
-	if (fast_compiled_kernels.find(kernel_name) != std::string::npos) {
+	if (kernel_name == "denoising") {
+		return "filter.cl";
+	}
+	else if (SPLIT_BUNDLE_KERNELS.find(kernel_name) != std::string::npos) {
 		return "kernel_split_bundle.cl";
 	}
 	else {
@@ -92,7 +104,7 @@ void OpenCLDevice::enable_default_features(DeviceRequestedFeatures& features)
 	}
 }
 
-string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name)
+string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_features, const string& opencl_program_name, bool preview_kernel)
 {
 	/* first check for non-split kernel programs */
 	if (opencl_program_name == "base" || opencl_program_name == "denoising") {
@@ -169,7 +181,13 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	enable_default_features(nofeatures);
 
 	/* Add program specific optimized compile directives */
-	if (opencl_program_name == "split_do_volume" && !requested_features.use_volume) {
+	if (preview_kernel) {
+		DeviceRequestedFeatures preview_features;
+		preview_features.use_hair = true;
+		build_options += "-D__KERNEL_OPENCL_PREVIEW__ ";
+		build_options += preview_features.get_build_options();
+	}
+	else if (opencl_program_name == "split_do_volume" && !requested_features.use_volume) {
 		build_options += nofeatures.get_build_options();
 	}
 	else {
@@ -194,6 +212,77 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	}
 
 	return build_options;
+}
+
+OpenCLDevice::OpenCLSplitPrograms::OpenCLSplitPrograms(OpenCLDevice *device_)
+{
+	device = device_;
+}
+
+OpenCLDevice::OpenCLSplitPrograms::~OpenCLSplitPrograms()
+{
+	program_split.release();
+	program_lamp_emission.release();
+	program_do_volume.release();
+	program_indirect_background.release();
+	program_shader_eval.release();
+	program_holdout_emission_blurring_pathtermination_ao.release();
+	program_subsurface_scatter.release();
+	program_direct_lighting.release();
+	program_shadow_blocked_ao.release();
+	program_shadow_blocked_dl.release();
+}
+
+void OpenCLDevice::OpenCLSplitPrograms::load_kernels(vector<OpenCLProgram*> &programs, const DeviceRequestedFeatures& requested_features, bool is_preview)
+{
+	if (!requested_features.use_baking) {
+#define ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(kernel_name) program_split.add_kernel(ustring("path_trace_"#kernel_name));
+#define ADD_SPLIT_KERNEL_PROGRAM(kernel_name) \
+		const string program_name_##kernel_name = "split_"#kernel_name; \
+		program_##kernel_name = \
+			OpenCLDevice::OpenCLProgram(device, \
+			                            program_name_##kernel_name, \
+			                            "kernel_"#kernel_name".cl", \
+			                            device->get_build_options(requested_features, program_name_##kernel_name, is_preview)); \
+		program_##kernel_name.add_kernel(ustring("path_trace_"#kernel_name)); \
+		programs.push_back(&program_##kernel_name);
+
+		/* Ordered with most complex kernels first, to reduce overall compile time. */
+		ADD_SPLIT_KERNEL_PROGRAM(subsurface_scatter);
+		if (requested_features.use_volume || is_preview) {
+			ADD_SPLIT_KERNEL_PROGRAM(do_volume);
+		}
+		ADD_SPLIT_KERNEL_PROGRAM(shadow_blocked_dl);
+		ADD_SPLIT_KERNEL_PROGRAM(shadow_blocked_ao);
+		ADD_SPLIT_KERNEL_PROGRAM(holdout_emission_blurring_pathtermination_ao);
+		ADD_SPLIT_KERNEL_PROGRAM(lamp_emission);
+		ADD_SPLIT_KERNEL_PROGRAM(direct_lighting);
+		ADD_SPLIT_KERNEL_PROGRAM(indirect_background);
+		ADD_SPLIT_KERNEL_PROGRAM(shader_eval);
+
+		/* Quick kernels bundled in a single program to reduce overhead of starting
+			* Blender processes. */
+		program_split = OpenCLDevice::OpenCLProgram(device,
+		                                            "split_bundle" ,
+		                                            "kernel_split_bundle.cl",
+		                                            device->get_build_options(requested_features, "split_bundle", is_preview));
+
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(data_init);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(state_buffer_size);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(path_init);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(scene_intersect);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(queue_enqueue);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(shader_setup);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(shader_sort);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(enqueue_inactive);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(next_iteration_setup);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(indirect_subsurface);
+		ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(buffer_update);
+		programs.push_back(&program_split);
+
+#undef ADD_SPLIT_KERNEL_PROGRAM
+#undef ADD_SPLIT_KERNEL_BUNDLE_PROGRAM
+	}
 }
 
 namespace {
@@ -307,7 +396,9 @@ public:
 			OpenCLDevice::OpenCLProgram(device,
 			                            program_name,
 			                            device->get_opencl_program_filename(kernel_name),
-			                            device->get_build_options(requested_features, program_name));
+			                            device->get_build_options(requested_features, 
+			                                                      program_name, 
+			                                                      device->use_preview_kernels));
 
 		kernel->program.add_kernel(ustring("path_trace_" + kernel_name));
 		kernel->program.load();
@@ -327,7 +418,8 @@ public:
 		size_buffer.zero_to_device();
 
 		uint threads = num_threads;
-		cl_kernel kernel_state_buffer_size = device->program_split(ustring("path_trace_state_buffer_size"));
+		OpenCLDevice::OpenCLSplitPrograms *programs = device->get_split_programs();
+		cl_kernel kernel_state_buffer_size = programs->program_split(ustring("path_trace_state_buffer_size"));
 		device->kernel_set_args(kernel_state_buffer_size, 0, kg, data, threads, size_buffer);
 
 		size_t global_size = 64;
@@ -377,7 +469,8 @@ public:
 		cl_int start_sample = rtile.start_sample;
 		cl_int end_sample = rtile.start_sample + rtile.num_samples;
 
-		cl_kernel kernel_data_init = device->program_split(ustring("path_trace_data_init"));
+		OpenCLDevice::OpenCLSplitPrograms *programs = device->get_split_programs();
+		cl_kernel kernel_data_init = programs->program_split(ustring("path_trace_data_init"));
 
 		cl_uint start_arg_index =
 			device->kernel_set_args(kernel_data_init,
@@ -510,6 +603,8 @@ void OpenCLDevice::opencl_assert_err(cl_int err, const char* where)
 
 OpenCLDevice::OpenCLDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background)
 : Device(info, stats, profiler, background),
+  kernel_programs(this),
+  preview_programs(this),
   memory_manager(this),
   texture_info(this, "__texture_info", MEM_TEXTURE)
 {
@@ -520,6 +615,7 @@ OpenCLDevice::OpenCLDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, b
 	null_mem = 0;
 	device_initialized = false;
 	textures_need_update = true;
+	use_preview_kernels = !background;
 
 	vector<OpenCLPlatformDevice> usable_devices;
 	OpenCLInfo::get_usable_devices(&usable_devices);
@@ -583,11 +679,16 @@ OpenCLDevice::OpenCLDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, b
 	device_initialized = true;
 
 	split_kernel = new OpenCLSplitKernel(this);
+	if (!background) {
+		load_preview_kernels();
+	}
 }
 
 OpenCLDevice::~OpenCLDevice()
 {
 	task_pool.stop();
+	load_required_kernel_task_pool.stop();
+	load_kernel_task_pool.stop();
 
 	memory_manager.free();
 
@@ -603,7 +704,7 @@ OpenCLDevice::~OpenCLDevice()
 	bake_program.release();
 	displace_program.release();
 	background_program.release();
-	program_split.release();
+	denoising_program.release();
 
 	if(cqCommandQueue)
 		clReleaseCommandQueue(cqCommandQueue);
@@ -669,8 +770,51 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 	/* Verify we have right opencl version. */
 	if(!opencl_version_check())
 		return false;
+	
+	load_required_kernels(requested_features);
 
 	vector<OpenCLProgram*> programs;
+	kernel_programs.load_kernels(programs, requested_features, false);
+
+	if (!requested_features.use_baking && requested_features.use_denoising) {
+		denoising_program = OpenCLProgram(this, "denoising", "filter.cl", get_build_options(requested_features, "denoising"));
+		denoising_program.add_kernel(ustring("filter_divide_shadow"));
+		denoising_program.add_kernel(ustring("filter_get_feature"));
+		denoising_program.add_kernel(ustring("filter_write_feature"));
+		denoising_program.add_kernel(ustring("filter_detect_outliers"));
+		denoising_program.add_kernel(ustring("filter_combine_halves"));
+		denoising_program.add_kernel(ustring("filter_construct_transform"));
+		denoising_program.add_kernel(ustring("filter_nlm_calc_difference"));
+		denoising_program.add_kernel(ustring("filter_nlm_blur"));
+		denoising_program.add_kernel(ustring("filter_nlm_calc_weight"));
+		denoising_program.add_kernel(ustring("filter_nlm_update_output"));
+		denoising_program.add_kernel(ustring("filter_nlm_normalize"));
+		denoising_program.add_kernel(ustring("filter_nlm_construct_gramian"));
+		denoising_program.add_kernel(ustring("filter_finalize"));
+		programs.push_back(&denoising_program);
+	}
+
+	load_required_kernel_task_pool.wait_work();
+
+	/* Parallel compilation of Cycles kernels, this launches multiple
+	 * processes to workaround OpenCL frameworks serializing the calls
+	 * internally within a single process. */
+	foreach(OpenCLProgram *program, programs) {
+		if (!program->load()) {
+			load_kernel_task_pool.push(function_bind(&OpenCLProgram::compile, program));
+		}
+	}
+	return true;
+}
+
+void OpenCLDevice::load_required_kernels(const DeviceRequestedFeatures& requested_features)
+{
+	vector<OpenCLProgram*> programs;
+	base_program = OpenCLProgram(this, "base", "kernel_base.cl", get_build_options(requested_features, "base"));
+	base_program.add_kernel(ustring("convert_to_byte"));
+	base_program.add_kernel(ustring("convert_to_half_float"));
+	base_program.add_kernel(ustring("zero_buffer"));
+	programs.push_back(&base_program);
 
 	if (requested_features.use_true_displacement) {
 		displace_program = OpenCLProgram(this, "displace", "kernel_displace.cl", get_build_options(requested_features, "displace"));
@@ -684,99 +828,87 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 		programs.push_back(&background_program);
 	}
 
-#define ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(kernel_name) program_split.add_kernel(ustring("path_trace_"#kernel_name));
-#define ADD_SPLIT_KERNEL_PROGRAM(kernel_name) \
-		const string program_name_##kernel_name = "split_"#kernel_name; \
-		program_##kernel_name = \
-			OpenCLDevice::OpenCLProgram(this, \
-			                            program_name_##kernel_name, \
-			                            "kernel_"#kernel_name".cl", \
-			                            get_build_options(requested_features, program_name_##kernel_name)); \
-		program_##kernel_name.add_kernel(ustring("path_trace_"#kernel_name)); \
-		programs.push_back(&program_##kernel_name);
-
-	/* Ordered with most complex kernels first, to reduce overall compile time. */
-	ADD_SPLIT_KERNEL_PROGRAM(subsurface_scatter);
-	if (requested_features.use_volume) {
-		ADD_SPLIT_KERNEL_PROGRAM(do_volume);
-	}
-	ADD_SPLIT_KERNEL_PROGRAM(shadow_blocked_dl);
-	ADD_SPLIT_KERNEL_PROGRAM(shadow_blocked_ao);
-	ADD_SPLIT_KERNEL_PROGRAM(holdout_emission_blurring_pathtermination_ao);
-	ADD_SPLIT_KERNEL_PROGRAM(lamp_emission);
-	ADD_SPLIT_KERNEL_PROGRAM(direct_lighting);
-	ADD_SPLIT_KERNEL_PROGRAM(indirect_background);
-	ADD_SPLIT_KERNEL_PROGRAM(shader_eval);
-
-	/* Quick kernels bundled in a single program to reduce overhead of starting
-		* Blender processes. */
-	program_split = OpenCLDevice::OpenCLProgram(this,
-												"split_bundle" ,
-												"kernel_split_bundle.cl",
-												get_build_options(requested_features, "split_bundle"));
-
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(data_init);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(state_buffer_size);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(path_init);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(scene_intersect);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(queue_enqueue);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(shader_setup);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(shader_sort);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(enqueue_inactive);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(next_iteration_setup);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(indirect_subsurface);
-	ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(buffer_update);
-	programs.push_back(&program_split);
-
-#undef ADD_SPLIT_KERNEL_PROGRAM
-#undef ADD_SPLIT_KERNEL_BUNDLE_PROGRAM
-
-	base_program = OpenCLProgram(this, "base", "kernel_base.cl", get_build_options(requested_features, "base"));
-	base_program.add_kernel(ustring("convert_to_byte"));
-	base_program.add_kernel(ustring("convert_to_half_float"));
-	base_program.add_kernel(ustring("zero_buffer"));
-	programs.push_back(&base_program);
-
 	if (requested_features.use_baking) {
 		bake_program = OpenCLProgram(this, "bake", "kernel_bake.cl", get_build_options(requested_features, "bake"));
 		bake_program.add_kernel(ustring("bake"));
 		programs.push_back(&bake_program);
 	}
 
-	denoising_program = OpenCLProgram(this, "denoising", "filter.cl", get_build_options(requested_features, "denoising"));
-	denoising_program.add_kernel(ustring("filter_divide_shadow"));
-	denoising_program.add_kernel(ustring("filter_get_feature"));
-	denoising_program.add_kernel(ustring("filter_write_feature"));
-	denoising_program.add_kernel(ustring("filter_detect_outliers"));
-	denoising_program.add_kernel(ustring("filter_combine_halves"));
-	denoising_program.add_kernel(ustring("filter_construct_transform"));
-	denoising_program.add_kernel(ustring("filter_nlm_calc_difference"));
-	denoising_program.add_kernel(ustring("filter_nlm_blur"));
-	denoising_program.add_kernel(ustring("filter_nlm_calc_weight"));
-	denoising_program.add_kernel(ustring("filter_nlm_update_output"));
-	denoising_program.add_kernel(ustring("filter_nlm_normalize"));
-	denoising_program.add_kernel(ustring("filter_nlm_construct_gramian"));
-	denoising_program.add_kernel(ustring("filter_finalize"));
-	programs.push_back(&denoising_program);
-
-	/* Parallel compilation of Cycles kernels, this launches multiple
-	 * processes to workaround OpenCL frameworks serializing the calls
-	 * internally within a single process. */
-	TaskPool task_pool;
 	foreach(OpenCLProgram *program, programs) {
-		task_pool.push(function_bind(&OpenCLProgram::load, program));
-	}
-	task_pool.wait_work();
-
-	foreach(OpenCLProgram *program, programs) {
-		VLOG(2) << program->get_log();
-		if(!program->is_loaded()) {
-			program->report_error();
-			return false;
+		if (!program->load()) {
+			load_required_kernel_task_pool.push(function_bind(&OpenCLProgram::compile, program));
 		}
 	}
+}
 
+void OpenCLDevice::load_preview_kernels()
+{
+	DeviceRequestedFeatures no_features;
+	vector<OpenCLProgram*> programs;
+	preview_programs.load_kernels(programs, no_features, true);
+
+	foreach(OpenCLProgram *program, programs) {
+		if (!program->load()) {
+			load_required_kernel_task_pool.push(function_bind(&OpenCLProgram::compile, program));
+		}
+	}
+}
+
+bool OpenCLDevice::wait_for_availability(const DeviceRequestedFeatures& requested_features)
+{
+	if (background) {
+		load_kernel_task_pool.wait_work();
+		use_preview_kernels = false;
+	}
+	else {
+		/* We use a device setting to determine to load preview kernels or not
+		 * Better to check on device level than per kernel as mixing preview and
+		 * non-preview kernels does not work due to different data types */
+		if (use_preview_kernels) {
+			use_preview_kernels = !load_kernel_task_pool.finished();
+		}
+	}
 	return split_kernel->load_kernels(requested_features);
+}
+
+OpenCLDevice::OpenCLSplitPrograms* OpenCLDevice::get_split_programs()
+{
+	return use_preview_kernels?&preview_programs:&kernel_programs;
+}
+
+DeviceKernelStatus OpenCLDevice::get_active_kernel_switch_state()
+{
+	/* Do not switch kernels for background renderings
+	 * We do foreground rendering but use the preview kernels
+	 * Check for the optimized kernels 
+	 *
+	 * This works also the other way around, where we are using
+	 * optimized kernels but new ones are being compiled due
+	 * to other features that are needed */
+	if (background) {
+		/* The if-statements below would find the same result,
+		 * But as the `finished` method uses a mutex we added
+		 * this as an early exit */
+		return DEVICE_KERNEL_USING_FEATURE_KERNEL;
+	}
+	
+	bool other_kernels_finished = load_kernel_task_pool.finished();
+	if (use_preview_kernels) {
+		if (other_kernels_finished) {
+			return DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE;
+		}
+		else {
+			return DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL;
+		}
+	}
+	else {
+		if (other_kernels_finished) {
+			return DEVICE_KERNEL_USING_FEATURE_KERNEL;
+		}
+		else {
+			return DEVICE_KERNEL_FEATURE_KERNEL_INVALID;
+		}
+	}
 }
 
 void OpenCLDevice::mem_alloc(device_memory& mem)
@@ -880,6 +1012,7 @@ void OpenCLDevice::mem_copy_from(device_memory& mem, int y, int w, int h, int el
 
 void OpenCLDevice::mem_zero_kernel(device_ptr mem, size_t size)
 {
+	base_program.wait_for_availability();
 	cl_kernel ckZeroBuffer = base_program(ustring("zero_buffer"));
 
 	size_t global_size[] = {1024, 1024};
@@ -1707,17 +1840,15 @@ void OpenCLDevice::shader(DeviceTask& task)
 	cl_int d_shader_w = task.shader_w;
 	cl_int d_offset = task.offset;
 
-	cl_kernel kernel;
-
+	OpenCLDevice::OpenCLProgram *program = &background_program;
 	if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
-		kernel = bake_program(ustring("bake"));
+		program = &bake_program;
 	}
 	else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
-		kernel = displace_program(ustring("displace"));
+		program = &displace_program;
 	}
-	else {
-		kernel = background_program(ustring("background"));
-	}
+	program->wait_for_availability();
+	cl_kernel kernel = (*program)();
 
 	cl_uint start_arg_index =
 		kernel_set_args(kernel,

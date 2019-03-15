@@ -987,6 +987,11 @@ void BlenderSession::get_status(string& status, string& substatus)
 	session->progress.get_status(status, substatus);
 }
 
+void BlenderSession::get_kernel_status(string& kernel_status)
+{
+	session->progress.get_kernel_status(kernel_status);
+}
+
 void BlenderSession::get_progress(float& progress, double& total_time, double& render_time)
 {
 	session->progress.get_time(total_time, render_time);
@@ -1005,7 +1010,7 @@ void BlenderSession::update_bake_progress()
 
 void BlenderSession::update_status_progress()
 {
-	string timestatus, status, substatus;
+	string timestatus, status, substatus, kernel_status;
 	string scene_status = "";
 	float progress;
 	double total_time, remaining_time = 0, render_time;
@@ -1014,6 +1019,7 @@ void BlenderSession::update_status_progress()
 	float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
 
 	get_status(status, substatus);
+	get_kernel_status(kernel_status);
 	get_progress(progress, total_time, render_time);
 
 	if(progress > 0)
@@ -1038,6 +1044,8 @@ void BlenderSession::update_status_progress()
 			status = " | " + status;
 		if(substatus.size() > 0)
 			status += " | " + substatus;
+		if(kernel_status.size() > 0)
+			status += " | " + kernel_status;
 	}
 
 	double current_time = time_dt();

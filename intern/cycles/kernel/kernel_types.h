@@ -121,52 +121,62 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_OPENCL__
 
+#  if defined(__KERNEL_OPENCL_AMD__) || defined(__KERNEL_OPENCL_INTEL_CPU__)
+#    define __CL_USE_NATIVE__
+#  endif
+
+/* Preview kernel is used as a small kernel when the optimized kernel is still being compiled. */
+#  ifdef __KERNEL_OPENCL_PREVIEW__
+#    define __AO__
+#    define __PASSES__
+#    define __HAIR__
+#  else
+
 /* keep __KERNEL_ADV_SHADING__ in sync with opencl_kernel_use_advanced_shading! */
 
-#  ifdef __KERNEL_OPENCL_NVIDIA__
-#    define __KERNEL_SHADING__
-#    define __KERNEL_ADV_SHADING__
-#    define __SUBSURFACE__
-#    define __PRINCIPLED__
-#    define __VOLUME__
-#    define __VOLUME_SCATTER__
-#    define __SHADOW_RECORD_ALL__
-#    define __CMJ__
-#    define __BRANCHED_PATH__
-#  endif  /* __KERNEL_OPENCL_NVIDIA__ */
+#    ifdef __KERNEL_OPENCL_NVIDIA__
+#      define __KERNEL_SHADING__
+#      define __KERNEL_ADV_SHADING__
+#      define __SUBSURFACE__
+#      define __PRINCIPLED__
+#      define __VOLUME__
+#      define __VOLUME_SCATTER__
+#      define __SHADOW_RECORD_ALL__
+#      define __CMJ__
+#      define __BRANCHED_PATH__
+#    endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
-#  ifdef __KERNEL_OPENCL_APPLE__
-#    define __KERNEL_SHADING__
-#    define __KERNEL_ADV_SHADING__
-#    define __PRINCIPLED__
-#    define __CMJ__
+#    ifdef __KERNEL_OPENCL_APPLE__
+#      define __KERNEL_SHADING__
+#      define __KERNEL_ADV_SHADING__
+#      define __PRINCIPLED__
+#      define __CMJ__
 /* TODO(sergey): Currently experimental section is ignored here,
  * this is because megakernel in device_opencl does not support
  * custom cflags depending on the scene features.
  */
-#  endif  /* __KERNEL_OPENCL_APPLE__ */
+#    endif  /* __KERNEL_OPENCL_APPLE__ */
 
-#  ifdef __KERNEL_OPENCL_AMD__
-#    define __CL_USE_NATIVE__
-#    define __KERNEL_SHADING__
-#    define __KERNEL_ADV_SHADING__
-#    define __SUBSURFACE__
-#    define __PRINCIPLED__
-#    define __VOLUME__
-#    define __VOLUME_SCATTER__
-#    define __SHADOW_RECORD_ALL__
-#    define __CMJ__
-#    define __BRANCHED_PATH__
-#  endif  /* __KERNEL_OPENCL_AMD__ */
+#    ifdef __KERNEL_OPENCL_AMD__
+#      define __KERNEL_SHADING__
+#      define __KERNEL_ADV_SHADING__
+#      define __SUBSURFACE__
+#      define __PRINCIPLED__
+#      define __VOLUME__
+#      define __VOLUME_SCATTER__
+#      define __SHADOW_RECORD_ALL__
+#      define __CMJ__
+#      define __BRANCHED_PATH__
+#    endif  /* __KERNEL_OPENCL_AMD__ */
 
-#  ifdef __KERNEL_OPENCL_INTEL_CPU__
-#    define __CL_USE_NATIVE__
-#    define __KERNEL_SHADING__
-#    define __KERNEL_ADV_SHADING__
-#    define __PRINCIPLED__
-#    define __CMJ__
-#  endif  /* __KERNEL_OPENCL_INTEL_CPU__ */
+#    ifdef __KERNEL_OPENCL_INTEL_CPU__
+#      define __KERNEL_SHADING__
+#      define __KERNEL_ADV_SHADING__
+#      define __PRINCIPLED__
+#      define __CMJ__
+#    endif  /* __KERNEL_OPENCL_INTEL_CPU__ */
 
+#  endif  /* KERNEL_OPENCL_PREVIEW__ */
 #endif  /* __KERNEL_OPENCL__ */
 
 /* Kernel features */
