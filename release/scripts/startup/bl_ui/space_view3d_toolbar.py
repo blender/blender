@@ -582,9 +582,9 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 
 
 # TODO, move to space_view3d.py
-class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
+class VIEW3D_PT_tools_brush_display(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
-    bl_label = "Overlay"
+    bl_label = "Display"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1051,7 +1051,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Appearance"
-    bl_parent_id = "VIEW3D_PT_tools_brush_overlay"
+    bl_parent_id = "VIEW3D_PT_tools_brush_display"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1834,7 +1834,7 @@ classes = (
     TEXTURE_UL_texpaintslots,
     VIEW3D_MT_tools_projectpaint_uvlayer,
     VIEW3D_PT_stencil_projectpaint,
-    VIEW3D_PT_tools_brush_overlay,
+    VIEW3D_PT_tools_brush_display,
     VIEW3D_PT_tools_brush_texture,
     VIEW3D_PT_tools_mask_texture,
     VIEW3D_PT_tools_brush_stroke,

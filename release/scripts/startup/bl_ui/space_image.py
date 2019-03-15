@@ -849,8 +849,8 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
             brush_texpaint_common(self, context, layout, brush, settings)
 
 
-class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
-    bl_label = "Overlay"
+class IMAGE_PT_tools_brush_display(BrushButtonsPanel, Panel):
+    bl_label = "Display"
     bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Options"
@@ -1065,7 +1065,7 @@ class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
     bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Options"
-    bl_parent_id = "IMAGE_PT_tools_brush_overlay"
+    bl_parent_id = "IMAGE_PT_tools_brush_display"
 
     def draw(self, context):
         layout = self.layout
@@ -1348,7 +1348,7 @@ classes = (
     IMAGE_PT_view_display_uv_edit_overlays,
     IMAGE_PT_view_display_uv_edit_overlays_advanced,
     IMAGE_PT_paint,
-    IMAGE_PT_tools_brush_overlay,
+    IMAGE_PT_tools_brush_display,
     IMAGE_PT_tools_brush_texture,
     IMAGE_PT_tools_mask_texture,
     IMAGE_PT_paint_stroke,
