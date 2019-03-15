@@ -1014,7 +1014,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
  *
  * \return boolean true == Found
  */
-bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int dist_px)
+bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, uint dist_px)
 {
 	ViewContext vc;
 	Mesh *me = ob->data;
@@ -1076,7 +1076,7 @@ static void ed_mesh_pick_face_vert__mpoly_find(
  * Use when the back buffer stores face index values. but we want a vert.
  * This gets the face then finds the closest vertex to mval.
  */
-bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int dist_px)
+bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], uint *r_index, uint dist_px)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	unsigned int poly_index;
@@ -1134,7 +1134,7 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 			}
 		}
 
-		/* map 'dm -> me' index if possible */
+		/* map 'dm -> me' r_index if possible */
 		if (v_idx_best != ORIGINDEX_NONE) {
 			const int *index_mv_to_orig;
 			index_mv_to_orig = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
@@ -1144,7 +1144,7 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		}
 
 		if ((v_idx_best != ORIGINDEX_NONE) && (v_idx_best < me->totvert)) {
-			*index = v_idx_best;
+			*r_index = v_idx_best;
 			return true;
 		}
 	}
@@ -1184,7 +1184,7 @@ static void ed_mesh_pick_vert__mapFunc(void *userData, int index, const float co
 		}
 	}
 }
-bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int dist_px, bool use_zbuf)
+bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], uint *r_index, uint dist_px, bool use_zbuf)
 {
 	ViewContext vc;
 	Mesh *me = ob->data;
@@ -1203,18 +1203,19 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 			ED_view3d_select_id_validate(&vc);
 
-			*index = ED_view3d_select_id_read_nearest(
+			*r_index = ED_view3d_select_id_read_nearest(
 			        &vc, mval, 1, me->totvert + 1, &dist_px);
 		}
 		else {
 			/* sample only on the exact position */
-			*index = ED_view3d_select_id_sample(&vc, mval[0], mval[1]);
+			*r_index = ED_view3d_select_id_sample(&vc, mval[0], mval[1]);
 		}
 
-		if ((*index) == 0 || (*index) > (unsigned int)me->totvert)
+		if ((*r_index) == 0 || (*r_index) > (uint)me->totvert) {
 			return false;
+		}
 
-		(*index)--;
+		(*r_index)--;
 	}
 	else {
 		Scene *scene_eval = DEG_get_evaluated_scene(vc.depsgraph);
@@ -1250,7 +1251,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 			return false;
 		}
 
-		*index = data.v_idx_best;
+		*r_index = data.v_idx_best;
 	}
 
 	return true;

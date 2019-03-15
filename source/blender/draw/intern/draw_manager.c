@@ -2053,10 +2053,9 @@ static void draw_select_framebuffer_depth_only_setup(const rcti *rect)
 		        g_select_buffer.texture_depth, 0, 0);
 
 		GPU_framebuffer_check_valid(
-		        g_select_buffer.framebuffer_depth_only, __func__);
-
+		        g_select_buffer.framebuffer_depth_only, NULL);
 		GPU_framebuffer_check_valid(
-		        g_select_buffer.framebuffer_select_id, __func__);
+		        g_select_buffer.framebuffer_select_id, NULL);
 	}
 }
 
@@ -2085,7 +2084,7 @@ static void draw_select_framebuffer_select_id_setup(const rcti *rect)
 		        g_select_buffer.texture_u32, 0, 0);
 
 		GPU_framebuffer_check_valid(
-		        g_select_buffer.framebuffer_select_id, __func__);
+		        g_select_buffer.framebuffer_select_id, NULL);
 	}
 }
 

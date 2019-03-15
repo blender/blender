@@ -365,9 +365,9 @@ int *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em, struct Me
 
 int ED_mesh_mirror_get_vert(struct Object *ob, int index);
 
-bool ED_mesh_pick_vert(struct bContext *C,      struct Object *ob, const int mval[2], unsigned int *index, int dist_px, bool use_zbuf);
-bool ED_mesh_pick_face(struct bContext *C,      struct Object *ob, const int mval[2], unsigned int *index, int dist_px);
-bool ED_mesh_pick_face_vert(struct bContext *C, struct Object *ob, const int mval[2], unsigned int *index, int dist_px);
+bool ED_mesh_pick_vert(struct bContext *C,      struct Object *ob, const int mval[2], uint *r_index, uint dist_px, bool use_zbuf);
+bool ED_mesh_pick_face(struct bContext *C,      struct Object *ob, const int mval[2], uint *r_index, uint dist_px);
+bool ED_mesh_pick_face_vert(struct bContext *C, struct Object *ob, const int mval[2], uint *r_index, uint dist_px);
 
 
 struct MDeformVert *ED_mesh_active_dvert_get_em(struct Object *ob, struct BMVert **r_eve);
