@@ -116,23 +116,6 @@ if 'cmake' in builder:
             cmake_extra_options.extend(["-DCMAKE_C_COMPILER=/usr/bin/gcc-7",
                                         "-DCMAKE_CXX_COMPILER=/usr/bin/g++-7"])
 
-    # Workaround to build only sm_7x kernels with CUDA 10, until
-    # older kernels work well with this version.
-    if builder.startswith('win'):
-        cmake_extra_options.append('-DCUDA_VERSION=9.1')
-        cmake_extra_options.append('-DCUDA_TOOLKIT_INCLUDE:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v9.1/include')
-        cmake_extra_options.append('-DCUDA_TOOLKIT_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v9.1')
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v9.1/bin/nvcc.exe')
-        cmake_extra_options.append('-DCUDA10_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin/nvcc.exe')
-        cmake_extra_options.append('-DCUDA10_TOOLKIT_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0')
-    elif builder.startswith('linux'):
-        cmake_extra_options.append('-DCUDA_VERSION=9.1')
-        cmake_extra_options.append('-DCUDA_TOOLKIT_INCLDUE:PATH=/usr/local/cuda-9.1/include')
-        cmake_extra_options.append('-DCUDA_TOOLKIT_ROOT_DIR:PATH=/usr/local/cuda-9.1')
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=/usr/local/cuda-9.1/bin/nvcc')
-        cmake_extra_options.append('-DCUDA10_NVCC_EXECUTABLE:FILEPATH=/usr/local/cuda-10.0/bin/nvcc')
-        cmake_extra_options.append('-DCUDA10_TOOLKIT_ROOT_DIR:PATH=/usr/local/cuda-10.0')
-
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
     # Prepare CMake options needed to configure cuda binaries compilation, 64bit only.

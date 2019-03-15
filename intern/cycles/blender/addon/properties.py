@@ -1453,10 +1453,11 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 # Update name in case it changed
                 entry.name = device[0]
 
-    def get_devices(self):
+    # Gets all devices types by default.
+    def get_devices(self, compute_device_type=''):
         import _cycles
         # Layout of the device tuples: (Name, Type, Persistent ID)
-        device_list = _cycles.available_devices(self.compute_device_type)
+        device_list = _cycles.available_devices(compute_device_type)
         # Make sure device entries are up to date and not referenced before
         # we know we don't add new devices. This way we guarantee to not
         # hold pointers to a resized array.
@@ -1513,7 +1514,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         row = layout.row()
         row.prop(self, "compute_device_type", expand=True)
 
-        cuda_devices, opencl_devices = self.get_devices()
+        cuda_devices, opencl_devices = self.get_devices(self.compute_device_type)
         row = layout.row()
         if self.compute_device_type == 'CUDA':
             self._draw_devices(row, 'CUDA', cuda_devices)

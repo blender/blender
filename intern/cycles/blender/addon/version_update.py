@@ -253,7 +253,7 @@ def do_versions(self):
                 pass
 
             # Init device list for UI
-            prop.get_devices()
+            prop.get_devices(prop.compute_device_type)
 
     # We don't modify startup file because it assumes to
     # have all the default values only.
