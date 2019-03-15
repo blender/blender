@@ -574,7 +574,7 @@ typedef struct EEVEE_EffectsInfo {
 	struct GPUTexture *velocity_tx; /* Texture from pool */
 	/* Depth Of Field */
 	float dof_near_far[2];
-	float dof_params[3];
+	float dof_params[2];
 	float dof_bokeh[4];
 	float dof_bokeh_sides[4];
 	int dof_target_size[2];

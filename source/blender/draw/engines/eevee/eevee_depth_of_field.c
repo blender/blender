@@ -153,9 +153,10 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 				sensor_scaled *= rv3d->viewcamtexcofac[0];
 			}
 
-			effects->dof_params[0] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
-			effects->dof_params[1] = -focus_dist;
-			effects->dof_params[2] = viewport_size[0] / sensor_scaled;
+			effects->dof_params[1] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
+			effects->dof_params[1] *= viewport_size[0] / sensor_scaled;
+			effects->dof_params[0] = -focus_dist * effects->dof_params[1];
+
 			effects->dof_bokeh[0] = rotation;
 			effects->dof_bokeh[1] = ratio;
 			effects->dof_bokeh[2] = scene_eval->eevee.bokeh_max_size;
@@ -204,7 +205,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
-		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
+		DRW_shgroup_uniform_vec2(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->dof_scatter = DRW_pass_create("DoF Scatter", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL);
@@ -226,7 +227,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
-		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
+		DRW_shgroup_uniform_vec2(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		if (use_alpha) {
