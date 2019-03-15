@@ -60,7 +60,7 @@
 #define GIZMO_RESIZER_SIZE 10.0f
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 
-static void gizmo_calc_rect_view_scale(
+static bool gizmo_calc_rect_view_scale(
         const wmGizmo *gz, const float dims[2], float scale[2])
 {
 	float matrix_final_no_offset[4][4];
@@ -79,11 +79,19 @@ static void gizmo_calc_rect_view_scale(
 	mul_v2_v2(x_axis, asp);
 	mul_v2_v2(y_axis, asp);
 
-	scale[0] = 1.0f / len_v3(x_axis);
-	scale[1] = 1.0f / len_v3(y_axis);
+	float len_x_axis = len_v3(x_axis);
+	float len_y_axis = len_v3(y_axis);
+
+	if (len_x_axis == 0.0f || len_y_axis == 0.0f) {
+		return false;
+	}
+
+	scale[0] = 1.0f / len_x_axis;
+	scale[1] = 1.0f / len_y_axis;
+	return true;
 }
 
-static void gizmo_calc_rect_view_margin(
+static bool gizmo_calc_rect_view_margin(
         const wmGizmo *gz, const float dims[2], float margin[2])
 {
 	float handle_size;
@@ -95,9 +103,12 @@ static void gizmo_calc_rect_view_margin(
 	}
 	handle_size *= gz->scale_final;
 	float scale_xy[2];
-	gizmo_calc_rect_view_scale(gz, dims, scale_xy);
+	if (!gizmo_calc_rect_view_scale(gz, dims, scale_xy)) {
+		return false;
+	};
 	margin[0] = ((handle_size * scale_xy[0]));
 	margin[1] = ((handle_size * scale_xy[1]));
+	return true;
 }
 
 /* -------------------------------------------------------------------- */
@@ -725,7 +736,10 @@ static int gizmo_cage2d_test_select(
 	}
 
 	float margin[2];
-	gizmo_calc_rect_view_margin(gz, dims, margin);
+	if (!gizmo_calc_rect_view_margin(gz, dims, margin)) {
+		return -1;
+	}
+
 	/* expand for hotspot */
 	const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
 
