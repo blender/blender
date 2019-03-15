@@ -698,12 +698,6 @@ def km_outliner(params):
         ("outliner.collection_exclude_clear", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("outliner.hide", {"type": 'H', "value": 'PRESS'}, None),
         ("outliner.unhide_all", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("object.hide_view_clear", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": [("select", False)]}),
-        ("object.hide_view_set", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("object.hide_view_set", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
     ])
 
     return keymap
