@@ -400,9 +400,9 @@ public:
 			       major, minor);
 			return false;
 		}
-		else if(cuda_version != 80) {
+		else if(cuda_version != 101) {
 			printf("CUDA version %d.%d detected, build may succeed but only "
-			       "CUDA 8.0 is officially supported.\n",
+			       "CUDA 10.1 is officially supported.\n",
 			       major, minor);
 		}
 		return true;
