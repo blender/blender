@@ -99,11 +99,6 @@ void GPU_create_smoke_velocity(struct SmokeModifierData *smd);
 void GPU_free_unused_buffers(struct Main *bmain);
 
 /* utilities */
-void	GPU_select_index_set(int index);
-void	GPU_select_index_get(int index, int *r_col);
-int		GPU_select_to_index(unsigned int col);
-void	GPU_select_to_index_array(unsigned int *col, const unsigned int size);
-
 typedef enum eGPUAttrMask {
 	GPU_DEPTH_BUFFER_BIT = (1 << 0),
 	GPU_ENABLE_BIT = (1 << 1),

@@ -272,7 +272,7 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
 	if (me == NULL || me->totpoly == 0) return;
 
 	if (mval) {
-		if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+		if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_DIST)) {
 			return;
 		}
 	}
@@ -374,7 +374,7 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
-	if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
+	if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_DIST))
 		return false;
 
 	if (index >= me->totpoly)
@@ -418,22 +418,17 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	return true;
 }
 
-int do_paintface_box_select(ViewContext *vc, rcti *rect, int sel_op)
+int do_paintface_box_select(ViewContext *vc, const rcti *rect, int sel_op)
 {
 	Object *ob = vc->obact;
 	Mesh *me;
 	MPoly *mpoly;
-	struct ImBuf *ibuf;
-	unsigned int *rt;
+	uint *rt;
 	char *selar;
 	int a, index;
-	const int size[2] = {
-	    BLI_rcti_size_x(rect) + 1,
-	    BLI_rcti_size_y(rect) + 1};
 
 	me = BKE_mesh_from_object(ob);
-
-	if ((me == NULL) || (me->totpoly == 0) || (size[0] * size[1] <= 0)) {
+	if ((me == NULL) || (me->totpoly == 0) || BLI_rcti_is_empty(rect)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -443,17 +438,12 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int sel_op)
 		paintface_deselect_all_visible(vc->C, vc->obact, SEL_DESELECT, false);
 	}
 
-	ED_view3d_backbuf_validate(vc);
+	uint buf_len;
+	uint *buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
 
-	ibuf = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
-	rt = ibuf->rect;
-	view3d_opengl_read_pixels(vc->ar, rect->xmin, rect->ymin, size[0], size[1], GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-	if (ENDIAN_ORDER == B_ENDIAN) {
-		IMB_convert_rgba_to_abgr(ibuf);
-	}
-	GPU_select_to_index_array(ibuf->rect, size[0] * size[1]);
+	rt = buf;
 
-	a = size[0] * size[1];
+	a = buf_len;
 	while (a--) {
 		if (*rt) {
 			index = *rt;
@@ -476,7 +466,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int sel_op)
 		}
 	}
 
-	IMB_freeImBuf(ibuf);
+	MEM_freeN(buf);
 	MEM_freeN(selar);
 
 #ifdef __APPLE__

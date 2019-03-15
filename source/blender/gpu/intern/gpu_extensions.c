@@ -67,7 +67,6 @@ static struct GPUGlobal {
 	GLint maxtexturesvert;
 	GLint maxubosize;
 	GLint maxubobinds;
-	int colordepth;
 	int samples_color_texture_max;
 	eGPUDeviceType device;
 	eGPUOSType os;
@@ -252,12 +251,6 @@ void gpu_extensions_init(void)
 	BLI_assert(ret == GL_FRAMEBUFFER_DEFAULT);
 #endif
 
-	GLint r, g, b;
-	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, &r);
-	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, &g);
-	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, &b);
-	GG.colordepth = r + g + b; /* Assumes same depth for RGB. */
-
 	glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
 
 	const char *vendor = (const char *)glGetString(GL_VENDOR);
@@ -400,11 +393,6 @@ void gpu_extensions_init(void)
 void gpu_extensions_exit(void)
 {
 	GPU_invalid_tex_free();
-}
-
-int GPU_color_depth(void)
-{
-	return GG.colordepth;
 }
 
 bool GPU_mem_stats_supported(void)

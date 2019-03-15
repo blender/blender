@@ -7,17 +7,13 @@ in vec3 pos;
 uniform uint offset;
 in uint color;
 
-flat out vec4 id;
+flat out uint id;
 #endif
 
 void main()
 {
 #ifndef UNIFORM_ID
-	id = vec4(
-		(((color + offset)       ) & 0xFFu) * (1.0f / 255.0f),
-		(((color + offset) >>  8u) & 0xFFu) * (1.0f / 255.0f),
-		(((color + offset) >> 16u) & 0xFFu) * (1.0f / 255.0f),
-		(((color + offset) >> 24u)        ) * (1.0f / 255.0f));
+	id = offset + color;
 #endif
 
 	vec4 pos_4d = vec4(pos, 1.0);

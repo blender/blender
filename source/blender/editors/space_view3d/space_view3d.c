@@ -536,11 +536,6 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 	RegionView3D *rv3d = ar->regiondata;
 
 	ED_view3d_stop_render_preview(wm, ar);
-
-	if (rv3d->gpuoffscreen) {
-		GPU_offscreen_free(rv3d->gpuoffscreen);
-		rv3d->gpuoffscreen = NULL;
-	}
 }
 
 static bool view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
@@ -729,9 +724,6 @@ static void view3d_main_region_free(ARegion *ar)
 		if (rv3d->sms) {
 			MEM_freeN(rv3d->sms);
 		}
-		if (rv3d->gpuoffscreen) {
-			GPU_offscreen_free(rv3d->gpuoffscreen);
-		}
 
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;
@@ -751,7 +743,6 @@ static void *view3d_main_region_duplicate(void *poin)
 			new->clipbb = MEM_dupallocN(rv3d->clipbb);
 
 		new->depths = NULL;
-		new->gpuoffscreen = NULL;
 		new->render_engine = NULL;
 		new->sms = NULL;
 		new->smooth_timer = NULL;

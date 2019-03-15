@@ -348,16 +348,24 @@ float ED_view3d_radius_to_dist(
 void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos);
 
 /* backbuffer select and draw support */
-void          ED_view3d_backbuf_validate_with_select_mode(struct ViewContext *vc, short select_mode);
-void          ED_view3d_backbuf_validate(struct ViewContext *vc);
-struct ImBuf *ED_view3d_backbuf_read(
-        struct ViewContext *vc, int xmin, int ymin, int xmax, int ymax);
-unsigned int  ED_view3d_backbuf_sample_rect(
-        struct ViewContext *vc, const int mval[2], int size,
-        unsigned int min, unsigned int max, float *r_dist);
-int          ED_view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
-unsigned int ED_view3d_backbuf_sample(
+void  ED_view3d_backbuf_depth_validate(struct ViewContext *vc);
+int   ED_view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
+
+void  ED_view3d_select_id_validate(struct ViewContext *vc);
+void  ED_view3d_select_id_validate_with_select_mode(
+        struct ViewContext *vc, short select_mode);
+
+uint ED_view3d_select_id_sample(
         struct ViewContext *vc, int x, int y);
+uint *ED_view3d_select_id_read(
+        struct ViewContext *vc,
+        int xmin, int ymin, int xmax, int ymax,
+        uint *r_buf_len);
+uint *ED_view3d_select_id_read_rect(
+        struct ViewContext *vc, const struct rcti *rect, uint *r_buf_len);
+uint ED_view3d_select_id_read_nearest(
+        struct ViewContext *vc, const int mval[2],
+        const uint min, const uint max, uint *r_dist);
 
 bool ED_view3d_autodist(
         struct Depsgraph *depsgraph, struct ARegion *ar, struct View3D *v3d,

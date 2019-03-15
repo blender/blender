@@ -149,7 +149,7 @@ void ED_view3d_clipping_enable(void)
 
 /* *********************** backdraw for selection *************** */
 
-static void backdrawview3d(
+static void validate_object_select_id(
         struct Depsgraph *depsgraph, Scene *scene,
         ARegion *ar, View3D *v3d,
         Object *obact, Object *obedit,
@@ -203,81 +203,24 @@ static void backdrawview3d(
 	if (v3d->shading.type > OB_WIRE) v3d->zbuf = true;
 #endif
 
-	/* dithering and AA break color coding, so disable */
-	glDisable(GL_DITHER);
-
-	if (false) {
-		/* for multisample we use an offscreen FBO. multisample drawing can fail
-		 * with color coded selection drawing, and reading back depths from such
-		 * a buffer can also cause a few seconds freeze on OS X / NVidia.
-		 *
-		 * NOTE: code is no longer used now, but offscreen drawing is likely
-		 * what we will always want to do for the new viewport. */
-		int w = BLI_rcti_size_x(&ar->winrct);
-		int h = BLI_rcti_size_y(&ar->winrct);
-		char error[256];
-
-		if (rv3d->gpuoffscreen) {
-			if (GPU_offscreen_width(rv3d->gpuoffscreen)  != w ||
-			    GPU_offscreen_height(rv3d->gpuoffscreen) != h)
-			{
-				GPU_offscreen_free(rv3d->gpuoffscreen);
-				rv3d->gpuoffscreen = NULL;
-			}
-		}
-
-		if (!rv3d->gpuoffscreen) {
-			rv3d->gpuoffscreen = GPU_offscreen_create(w, h, 0, true, false, error);
-
-			if (!rv3d->gpuoffscreen)
-				fprintf(stderr, "Failed to create offscreen selection buffer for multisample: %s\n", error);
-		}
-	}
-
-	if (rv3d->gpuoffscreen)
-		GPU_offscreen_bind(rv3d->gpuoffscreen, true);
-	else
-		GPU_scissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
-
-	GPU_clear_color(0.0, 0.0, 0.0, 0.0);
-	GPU_depth_test(true);
-	GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
-
-	if (rv3d->rflag & RV3D_CLIPPING)
-		ED_view3d_clipping_set(rv3d);
-
 	G.f |= G_FLAG_BACKBUFSEL;
 
 	if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
-		draw_object_backbufsel(depsgraph, scene_eval, v3d, rv3d, obact_eval, select_mode);
+		DRW_framebuffer_select_id_setup(ar, true);
+		draw_object_select_id(depsgraph, scene_eval, v3d, rv3d, obact_eval, select_mode);
+		DRW_framebuffer_select_id_release(ar);
 	}
 
-	if (rv3d->gpuoffscreen)
-		GPU_offscreen_unbind(rv3d->gpuoffscreen, true);
-
+	/* TODO: Create a flag in `DRW_manager` because the drawing is no longer
+	 *       made on the backbuffer in this case. */
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
 
 	G.f &= ~G_FLAG_BACKBUFSEL;
-	GPU_depth_test(false);
-	glEnable(GL_DITHER);
-
-	if (rv3d->rflag & RV3D_CLIPPING)
-		ED_view3d_clipping_disable();
 }
 
 void view3d_opengl_read_pixels(ARegion *ar, int x, int y, int w, int h, int format, int type, void *data)
 {
-	RegionView3D *rv3d = ar->regiondata;
-
-	if (rv3d->gpuoffscreen) {
-		GPU_offscreen_bind(rv3d->gpuoffscreen, true);
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		glReadPixels(x, y, w, h, format, type, data);
-		GPU_offscreen_unbind(rv3d->gpuoffscreen, true);
-	}
-	else {
-		glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
-	}
+	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
 }
 
 /* XXX depth reading exception, for code not using gpu offscreen */
@@ -286,16 +229,70 @@ static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h,
 	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
 }
 
-void ED_view3d_backbuf_validate_with_select_mode(ViewContext *vc, short select_mode)
+void ED_view3d_select_id_validate_with_select_mode(ViewContext *vc, short select_mode)
 {
+	/* TODO: Create a flag in `DRW_manager` because the drawing is no longer
+	 *       made on the backbuffer in this case. */
 	if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
-		backdrawview3d(vc->depsgraph, vc->scene, vc->ar, vc->v3d, vc->obact, vc->obedit, select_mode);
+		validate_object_select_id(
+		        vc->depsgraph, vc->scene, vc->ar, vc->v3d,
+		        vc->obact, vc->obedit, select_mode);
 	}
 }
 
-void ED_view3d_backbuf_validate(ViewContext *vc)
+void ED_view3d_select_id_validate(ViewContext *vc)
 {
-	ED_view3d_backbuf_validate_with_select_mode(vc, -1);
+	ED_view3d_select_id_validate_with_select_mode(vc, -1);
+}
+
+void ED_view3d_backbuf_depth_validate(ViewContext *vc)
+{
+	if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
+		ARegion *ar = vc->ar;
+		RegionView3D *rv3d = ar->regiondata;
+		Object *obact_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
+
+		if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
+			GPU_scissor(ar->winrct.xmin, ar->winrct.ymin,
+			            BLI_rcti_size_x(&ar->winrct),
+			            BLI_rcti_size_y(&ar->winrct));
+
+			GPU_depth_test(true);
+			GPU_clear(GPU_DEPTH_BIT);
+
+			if (rv3d->rflag & RV3D_CLIPPING) {
+				ED_view3d_clipping_set(rv3d);
+			}
+
+			draw_object_depth(rv3d, obact_eval);
+
+			if (rv3d->rflag & RV3D_CLIPPING) {
+				ED_view3d_clipping_disable(rv3d);
+			}
+
+			GPU_depth_test(false);
+		}
+
+		vc->v3d->flag &= ~V3D_INVALID_BACKBUF;
+	}
+}
+
+uint *ED_view3d_select_id_read_rect(ViewContext *vc, const rcti *clip, uint *r_buf_len)
+{
+	ED_view3d_select_id_validate(vc);
+
+	uint width = BLI_rcti_size_x(clip);
+	uint height = BLI_rcti_size_y(clip);
+	uint buf_len = width * height;
+	uint *buf = MEM_mallocN(buf_len * sizeof(*buf), __func__);
+
+	DRW_framebuffer_select_id_read(clip, buf);
+
+	if (r_buf_len) {
+		*r_buf_len = buf_len;
+	}
+
+	return buf;
 }
 
 /**
@@ -308,111 +305,81 @@ int ED_view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
 }
 
 /* samples a single pixel (copied from vpaint) */
-uint ED_view3d_backbuf_sample(
+uint ED_view3d_select_id_sample(
         ViewContext *vc, int x, int y)
 {
 	if (x >= vc->ar->winx || y >= vc->ar->winy) {
 		return 0;
 	}
 
-	ED_view3d_backbuf_validate(vc);
+	uint buf_len;
+	uint *buf = ED_view3d_select_id_read(vc, x, y, x, y, &buf_len);
+	BLI_assert(0 != buf_len);
+	uint ret = buf[0];
+	MEM_freeN(buf);
 
-	uint col;
-	view3d_opengl_read_pixels(vc->ar, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
-	glReadBuffer(GL_BACK);
-
-	if (ENDIAN_ORDER == B_ENDIAN) {
-		BLI_endian_switch_uint32(&col);
-	}
-
-	return GPU_select_to_index(col);
+	return ret;
 }
 
 /* reads full rect, converts indices */
-ImBuf *ED_view3d_backbuf_read(
-        ViewContext *vc, int xmin, int ymin, int xmax, int ymax)
+uint *ED_view3d_select_id_read(
+        ViewContext *vc, int xmin, int ymin, int xmax, int ymax, uint *r_buf_len)
 {
-	/* clip */
-	const rcti clip = {
-	    max_ii(xmin, 0), min_ii(xmax, vc->ar->winx - 1),
-	    max_ii(ymin, 0), min_ii(ymax, vc->ar->winy - 1)};
-	const int size_clip[2] = {
-	    BLI_rcti_size_x(&clip) + 1,
-	    BLI_rcti_size_y(&clip) + 1};
-
-	if (UNLIKELY((clip.xmin > clip.xmax) ||
-	             (clip.ymin > clip.ymax)))
-	{
+	if (UNLIKELY((xmin > xmax) || (ymin > ymax))) {
 		return NULL;
 	}
 
-	ImBuf *ibuf_clip = IMB_allocImBuf(size_clip[0], size_clip[1], 32, IB_rect);
+	const rcti rect = {
+		.xmin = xmin, .xmax = xmax + 1,
+		.ymin = ymin, .ymax = ymax + 1,
+	};
 
-	ED_view3d_backbuf_validate(vc);
+	uint buf_len;
+	uint *buf = ED_view3d_select_id_read_rect(vc, &rect, &buf_len);
 
-	view3d_opengl_read_pixels(vc->ar, clip.xmin, clip.ymin, size_clip[0], size_clip[1], GL_RGBA, GL_UNSIGNED_BYTE, ibuf_clip->rect);
-
-	glReadBuffer(GL_BACK);
-
-	if (ENDIAN_ORDER == B_ENDIAN) {
-		IMB_convert_rgba_to_abgr(ibuf_clip);
+	if (r_buf_len) {
+		*r_buf_len = buf_len;
 	}
 
-	GPU_select_to_index_array(ibuf_clip->rect, size_clip[0] * size_clip[1]);
-
-	if ((clip.xmin == xmin) &&
-	    (clip.xmax == xmax) &&
-	    (clip.ymin == ymin) &&
-	    (clip.ymax == ymax))
-	{
-		return ibuf_clip;
-	}
-	else {
-		/* put clipped result into a non-clipped buffer */
-		const int size[2] = {
-		    (xmax - xmin + 1),
-		    (ymax - ymin + 1)};
-
-		ImBuf *ibuf_full = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
-
-		IMB_rectcpy(
-		        ibuf_full, ibuf_clip,
-		        clip.xmin - xmin, clip.ymin - ymin,
-		        0, 0,
-		        size_clip[0], size_clip[1]);
-		IMB_freeImBuf(ibuf_clip);
-		return ibuf_full;
-	}
+	return buf;
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-uint ED_view3d_backbuf_sample_rect(
-        ViewContext *vc, const int mval[2], int size,
-        uint min, uint max, float *r_dist)
+uint ED_view3d_select_id_read_nearest(
+        struct ViewContext *vc, const int mval[2],
+        const uint min, const uint max, uint *r_dist)
 {
+	uint index = 0;
+
 	int dirvec[4][2];
 
-	const int amount = (size - 1) / 2;
+	rcti rect;
+	BLI_rcti_init_pt_radius(&rect, mval, *r_dist);
+	rect.xmax += 1;
+	rect.ymax += 1;
 
-	const int minx = mval[0] - (amount + 1);
-	const int miny = mval[1] - (amount + 1);
-	ImBuf *buf = ED_view3d_backbuf_read(vc, minx, miny, minx + size - 1, miny + size - 1);
-	if (!buf) return 0;
+	uint width, height;
+	width = height = BLI_rcti_size_x(&rect);
 
-	unsigned index = 0;
+	uint buf_len = width * height;
+	uint *buf = MEM_mallocN(buf_len * sizeof(*buf), __func__);
+
+	DRW_framebuffer_select_id_read(&rect, buf);
+
+	BLI_assert(width == height); /* This algorithm doesn't work well with rectangles */
+
 	int rc = 0;
 
 	dirvec[0][0] = 1; dirvec[0][1] = 0;
-	dirvec[1][0] = 0; dirvec[1][1] = -size;
+	dirvec[1][0] = 0; dirvec[1][1] = -height;
 	dirvec[2][0] = -1; dirvec[2][1] = 0;
-	dirvec[3][0] = 0; dirvec[3][1] = size;
+	dirvec[3][0] = 0; dirvec[3][1] = height;
 
-	const unsigned *bufmin = buf->rect;
-	const unsigned *tbuf = buf->rect;
-	const unsigned *bufmax = buf->rect + size * size;
-	tbuf += amount * size + amount;
+	const uint *bufmin = buf;
+	const uint *bufmax = buf + buf_len;
+	const uint *tbuf = buf + (height * (int)(width / 2) + height / 2 - 1);
 
-	for (int nr = 1; nr <= size; nr++) {
+	for (int nr = 1; nr <= height; nr++) {
 		for (int a = 0; a < 2; a++) {
 			for (int b = 0; b < nr; b++) {
 				if (*tbuf && *tbuf >= min && *tbuf < max) {
@@ -421,8 +388,8 @@ uint ED_view3d_backbuf_sample_rect(
 					/* get x,y pixel coords from the offset
 					 * (manhatten distance in keeping with other screen-based selection) */
 					*r_dist = (float)(
-					        abs(((int)(tbuf - buf->rect) % size) - (size / 2)) +
-					        abs(((int)(tbuf - buf->rect) / size) - (size / 2)));
+					        abs(((int)(tbuf - buf) % height) - (height / 2)) +
+					        abs(((int)(tbuf - buf) / height) - (height / 2)));
 
 					/* indices start at 1 here */
 					index = (*tbuf - min) + 1;
@@ -441,7 +408,7 @@ uint ED_view3d_backbuf_sample_rect(
 	}
 
 exit:
-	IMB_freeImBuf(buf);
+	MEM_freeN(buf);
 	return index;
 }
 

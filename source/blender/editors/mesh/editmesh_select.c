@@ -213,32 +213,29 @@ bool EDBM_backbuf_border_init(
         ViewContext *vc, short xmin,
         short ymin, short xmax, short ymax)
 {
-	struct ImBuf *buf;
-	unsigned int *dr;
-	int a;
+	uint *buf, *dr, buf_len;
 
 	if (vc->obedit == NULL || !V3D_IS_ZBUF(vc->v3d)) {
 		return false;
 	}
 
-	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_select_id_read(vc, xmin, ymin, xmax, ymax, &buf_len);
 	if ((buf == NULL) || (bm_vertoffs == 0)) {
 		return false;
 	}
 
-	dr = buf->rect;
+	dr = buf;
 
 	/* build selection lookup */
 	selbuf = edbm_backbuf_alloc(bm_vertoffs + 1);
 
-	a = (xmax - xmin + 1) * (ymax - ymin + 1);
-	while (a--) {
+	while (buf_len--) {
 		if (*dr > 0 && *dr <= bm_vertoffs) {
 			BLI_BITMAP_ENABLE(selbuf, *dr);
 		}
 		dr++;
 	}
-	IMB_freeImBuf(buf);
+	MEM_freeN(buf);
 	return true;
 }
 
@@ -286,9 +283,7 @@ static void edbm_mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
  */
 bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *dr, *dr_mask, *dr_mask_arr;
-	struct ImBuf *buf;
-	int a;
+	uint *buf, *dr, *dr_mask, *dr_mask_arr, buf_len;
 	struct LassoMaskData lasso_mask_data;
 
 	/* method in use for face selecting too */
@@ -301,14 +296,14 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 		return false;
 	}
 
-	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_select_id_read(vc, xmin, ymin, xmax, ymax, &buf_len);
 	if ((buf == NULL) || (bm_vertoffs == 0)) {
 		return false;
 	}
 
-	dr = buf->rect;
+	dr = buf;
 
-	dr_mask = dr_mask_arr = MEM_callocN(sizeof(*dr_mask) * buf->x * buf->y, __func__);
+	dr_mask = dr_mask_arr = MEM_callocN(sizeof(*dr_mask) * buf_len, __func__);
 	lasso_mask_data.px = dr_mask;
 	lasso_mask_data.width = (xmax - xmin) + 1;
 
@@ -320,14 +315,13 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 	/* build selection lookup */
 	selbuf = edbm_backbuf_alloc(bm_vertoffs + 1);
 
-	a = (xmax - xmin + 1) * (ymax - ymin + 1);
-	while (a--) {
+	while (buf_len--) {
 		if (*dr > 0 && *dr <= bm_vertoffs && *dr_mask == true) {
 			BLI_BITMAP_ENABLE(selbuf, *dr);
 		}
 		dr++; dr_mask++;
 	}
-	IMB_freeImBuf(buf);
+	MEM_freeN(buf);
 	MEM_freeN(dr_mask_arr);
 
 	return true;
@@ -338,8 +332,7 @@ bool EDBM_backbuf_circle_init(
         ViewContext *vc,
         short xs, short ys, short rads)
 {
-	struct ImBuf *buf;
-	unsigned int *dr;
+	uint *buf, *dr;
 	short xmin, ymin, xmax, ymax, xc, yc;
 	int radsq;
 
@@ -355,12 +348,12 @@ bool EDBM_backbuf_circle_init(
 
 	xmin = xs - rads; xmax = xs + rads;
 	ymin = ys - rads; ymax = ys + rads;
-	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_select_id_read(vc, xmin, ymin, xmax, ymax, NULL);
 	if ((buf == NULL) || (bm_vertoffs == 0)) {
 		return false;
 	}
 
-	dr = buf->rect;
+	dr = buf;
 
 	/* build selection lookup */
 	selbuf = edbm_backbuf_alloc(bm_vertoffs + 1);
@@ -375,7 +368,7 @@ bool EDBM_backbuf_circle_init(
 		}
 	}
 
-	IMB_freeImBuf(buf);
+	MEM_freeN(buf);
 	return true;
 
 }
@@ -472,26 +465,24 @@ BMVert *EDBM_vert_find_nearest_ex(
 	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
-		const int dist_px = ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
-		float dist_test;
+		uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		unsigned int index;
 		BMVert *eve;
 
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
 		{
 			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_VERTEX);
-			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
+			ED_view3d_select_id_validate_with_select_mode(vc, select_mode);
 
-			index = ED_view3d_backbuf_sample_rect(
-			            vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &dist_test);
+			index = ED_view3d_select_id_read_nearest(vc, vc->mval, bm_wireoffs, 0xFFFFFF, &dist_px);
 			eve = index ? BM_vert_at_index_find_or_table(bm, index - 1) : NULL;
 
 			FAKE_SELECT_MODE_END(vc, fake_select_mode);
 		}
 
 		if (eve) {
-			if (dist_test < *r_dist) {
-				*r_dist = dist_test;
+			if (dist_px < *r_dist) {
+				*r_dist = dist_px;
 				return eve;
 			}
 		}
@@ -665,17 +656,16 @@ BMEdge *EDBM_edge_find_nearest_ex(
 	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
-		const int dist_px = ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
-		float dist_test = 0.0f;
+		uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		unsigned int index;
 		BMEdge *eed;
 
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
 		{
 			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_EDGE);
-			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
+			ED_view3d_select_id_validate_with_select_mode(vc, select_mode);
 
-			index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
+			index = ED_view3d_select_id_read_nearest(vc, vc->mval, bm_solidoffs, bm_wireoffs, &dist_px);
 			eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
 
 			FAKE_SELECT_MODE_END(vc, fake_select_mode);
@@ -703,8 +693,8 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		/* end exception */
 
 		if (eed) {
-			if (dist_test < *r_dist) {
-				*r_dist = dist_test;
+			if (dist_px < *r_dist) {
+				*r_dist = dist_px;
 				return eed;
 			}
 		}
@@ -842,9 +832,9 @@ BMFace *EDBM_face_find_nearest_ex(
 
 		{
 			FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_FACE);
-			ED_view3d_backbuf_validate_with_select_mode(vc, select_mode);
+			ED_view3d_select_id_validate_with_select_mode(vc, select_mode);
 
-			index = ED_view3d_backbuf_sample(vc, vc->mval[0], vc->mval[1]);
+			index = ED_view3d_select_id_sample(vc, vc->mval[0], vc->mval[1]);
 			efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
 
 			FAKE_SELECT_MODE_END(vc, fake_select_mode);
@@ -974,7 +964,6 @@ static bool unified_findnearest(
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
 			BLI_assert(vc->em->selectmode == em->selectmode);
-			ED_view3d_backbuf_validate(vc);
 			BMFace *efa_zbuf = NULL;
 			BMFace *efa_test = EDBM_face_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf);
 			if (efa_test && dist_center_p) {
@@ -999,7 +988,6 @@ static bool unified_findnearest(
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
-			ED_view3d_backbuf_validate(vc);
 			BMEdge *eed_zbuf = NULL;
 			BMEdge *eed_test = EDBM_edge_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &eed_zbuf);
 			if (eed_test && dist_center_p) {
@@ -1021,7 +1009,6 @@ static bool unified_findnearest(
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
-			ED_view3d_backbuf_validate(vc);
 			BMVert *eve_test = EDBM_vert_find_nearest_ex(vc, &dist, true, use_cycle);
 			if (eve_test) {
 				hit.v.base_index = base_index;

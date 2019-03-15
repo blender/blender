@@ -1014,7 +1014,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
  *
  * \return boolean true == Found
  */
-bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
+bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int dist_px)
 {
 	ViewContext vc;
 	Mesh *me = ob->data;
@@ -1026,16 +1026,18 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 	ED_view3d_viewcontext_init(C, &vc);
 
-	if (size) {
+	if (dist_px) {
 		/* sample rect to increase chances of selecting, so that when clicking
 		 * on an edge in the backbuf, we can still select a face */
 
-		float dummy_dist;
-		*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist);
+		ED_view3d_select_id_validate(&vc);
+
+		*index = ED_view3d_select_id_read_nearest(
+		        &vc, mval, 1, me->totpoly + 1, &dist_px);
 	}
 	else {
 		/* sample only on the exact position */
-		*index = ED_view3d_backbuf_sample(&vc, mval[0], mval[1]);
+		*index = ED_view3d_select_id_sample(&vc, mval[0], mval[1]);
 	}
 
 	if ((*index) == 0 || (*index) > (unsigned int)me->totpoly)
@@ -1045,6 +1047,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 	return true;
 }
+
 static void ed_mesh_pick_face_vert__mpoly_find(
         /* context */
         struct ARegion *ar, const float mval[2],
@@ -1073,7 +1076,7 @@ static void ed_mesh_pick_face_vert__mpoly_find(
  * Use when the back buffer stores face index values. but we want a vert.
  * This gets the face then finds the closest vertex to mval.
  */
-bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
+bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int dist_px)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	unsigned int poly_index;
@@ -1081,7 +1084,7 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 
 	BLI_assert(me && GS(me->id.name) == ID_ME);
 
-	if (ED_mesh_pick_face(C, ob, mval, &poly_index, size)) {
+	if (ED_mesh_pick_face(C, ob, mval, &poly_index, dist_px)) {
 		Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 		struct ARegion *ar = CTX_wm_region(C);
@@ -1181,7 +1184,7 @@ static void ed_mesh_pick_vert__mapFunc(void *userData, int index, const float co
 		}
 	}
 }
-bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size, bool use_zbuf)
+bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int dist_px, bool use_zbuf)
 {
 	ViewContext vc;
 	Mesh *me = ob->data;
@@ -1194,16 +1197,18 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 	ED_view3d_viewcontext_init(C, &vc);
 
 	if (use_zbuf) {
-		if (size > 0) {
+		if (dist_px > 0) {
 			/* sample rect to increase chances of selecting, so that when clicking
 			 * on an face in the backbuf, we can still select a vert */
 
-			float dummy_dist;
-			*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist);
+			ED_view3d_select_id_validate(&vc);
+
+			*index = ED_view3d_select_id_read_nearest(
+			        &vc, mval, 1, me->totvert + 1, &dist_px);
 		}
 		else {
 			/* sample only on the exact position */
-			*index = ED_view3d_backbuf_sample(&vc, mval[0], mval[1]);
+			*index = ED_view3d_select_id_sample(&vc, mval[0], mval[1]);
 		}
 
 		if ((*index) == 0 || (*index) > (unsigned int)me->totvert)

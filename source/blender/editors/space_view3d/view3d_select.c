@@ -1924,7 +1924,7 @@ static bool ed_wpaint_vertex_select_pick(
 	uint index = 0;
 	MVert *mv;
 
-	if (ED_mesh_pick_vert(C, obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, use_zbuf)) {
+	if (ED_mesh_pick_vert(C, obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_DIST, use_zbuf)) {
 		mv = &me->mvert[index];
 		if (extend) {
 			mv->flag |= SELECT;
@@ -2112,22 +2112,17 @@ static void do_paintvert_box_select__doSelectVert(void *userData, MVert *mv, con
 	}
 }
 static int do_paintvert_box_select(
-        ViewContext *vc, rcti *rect, const eSelectOp sel_op)
+        ViewContext *vc, const rcti *rect, const eSelectOp sel_op)
 {
 	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
 	Mesh *me;
 	MVert *mvert;
-	struct ImBuf *ibuf;
-	uint *rt;
+	unsigned int *rt;
 	int a, index;
 	char *selar;
-	const int size[2] = {
-	    BLI_rcti_size_x(rect) + 1,
-	    BLI_rcti_size_y(rect) + 1};
 
 	me = vc->obact->data;
-
-	if ((me == NULL) || (me->totvert == 0) || (size[0] * size[1] <= 0)) {
+	if ((me == NULL) || (me->totvert == 0) || BLI_rcti_is_empty(rect)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2137,20 +2132,13 @@ static int do_paintvert_box_select(
 
 	if (use_zbuf) {
 		selar = MEM_callocN(me->totvert + 1, "selar");
-		ED_view3d_backbuf_validate(vc);
 
-		ibuf = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
-		rt = ibuf->rect;
-		glReadPixels(
-		        rect->xmin + vc->ar->winrct.xmin,
-		        rect->ymin + vc->ar->winrct.ymin,
-		        size[0], size[1], GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-		if (ENDIAN_ORDER == B_ENDIAN) {
-			IMB_convert_rgba_to_abgr(ibuf);
-		}
-		GPU_select_to_index_array(ibuf->rect, size[0] * size[1]);
+		uint buf_len;
+		uint *buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
 
-		a = size[0] * size[1];
+		rt = buf;
+
+		a = buf_len;
 		while (a--) {
 			if (*rt) {
 				index = *rt;
@@ -2173,7 +2161,7 @@ static int do_paintvert_box_select(
 			}
 		}
 
-		IMB_freeImBuf(ibuf);
+		MEM_freeN(buf);
 		MEM_freeN(selar);
 
 #ifdef __APPLE__

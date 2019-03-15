@@ -362,7 +362,7 @@ static int imapaint_pick_face(
 		return 0;
 
 	/* sample only on the exact position */
-	*r_index = ED_view3d_backbuf_sample(vc, mval[0], mval[1]);
+	*r_index = ED_view3d_select_id_sample(vc, mval[0], mval[1]);
 
 	if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
 		return 0;
