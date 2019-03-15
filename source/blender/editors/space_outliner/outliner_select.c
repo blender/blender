@@ -522,7 +522,7 @@ static eOLDrawState tree_element_active_defgroup(
 	return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState UNUSED_FUNCTION(tree_element_active_gplayer)(
+static eOLDrawState tree_element_active_gplayer(
         bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tselem, const eOLSetState set)
 {
 	bGPdata *gpd = (bGPdata *)tselem->id;
@@ -980,7 +980,7 @@ eOLDrawState tree_element_type_active(
 		case TSE_KEYMAP_ITEM:
 			return tree_element_active_keymap_item(C, scene, view_layer, te, tselem, set);
 		case TSE_GP_LAYER:
-			//return tree_element_active_gplayer(C, scene, s, te, tselem, set);
+			return tree_element_active_gplayer(C, scene, te, tselem, set);
 			break;
 		case TSE_VIEW_COLLECTION_BASE:
 			return tree_element_active_master_collection(C, te, set);
