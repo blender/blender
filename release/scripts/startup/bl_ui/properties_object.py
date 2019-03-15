@@ -264,7 +264,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_display_bounds(ObjectButtonsPanel, Panel):
-    bl_label = "Boundary"
+    bl_label = "Bounds"
     bl_parent_id = "OBJECT_PT_display"
     bl_options = {'DEFAULT_CLOSED'}
 
