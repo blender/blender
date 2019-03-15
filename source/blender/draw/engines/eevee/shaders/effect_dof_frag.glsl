@@ -29,7 +29,7 @@ uniform vec2 nearFar; /* Near & far view depths values */
 
 #define linear_depth(z) ((ProjectionMatrix[3][3] == 0.0) \
 		? (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) \
-		: (z * 2.0 - 1.0) * nearFar.y)
+		: z * (nearFar.y - nearFar.x) + nearFar.x) /* Only true for camera view! */
 
 #define weighted_sum(a, b, c, d, e) (a * e.x + b * e.y + c * e.z + d * e.w) / max(1e-6, dot(e, vec4(1.0)));
 
