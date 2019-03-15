@@ -445,6 +445,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		const eGPUTextureFormat nor_tex_format = NORMAL_ENCODING_ENABLED() ? GPU_RG16 : GPU_RGBA32F;
 		const eGPUTextureFormat comp_tex_format = DRW_state_is_image_render() ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
+		const eGPUTextureFormat col_tex_format = DRW_state_is_image_render() ? GPU_RGBA16F : GPU_RGBA8;
 		const eGPUTextureFormat id_tex_format = OBJECT_ID_PASS_ENABLED(wpd) ? GPU_R32UI : GPU_R8;
 
 		e_data.object_id_tx = NULL;
@@ -456,7 +457,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], comp_tex_format, &draw_engine_workbench_solid);
 
 		if (MATDATA_PASS_ENABLED(wpd) || GPU_unused_fb_slot_workaround()) {
-			e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
+			e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], col_tex_format, &draw_engine_workbench_solid);
 		}
 		if (OBJECT_ID_PASS_ENABLED(wpd) || GPU_unused_fb_slot_workaround()) {
 			e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], id_tex_format, &draw_engine_workbench_solid);
@@ -488,7 +489,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		});
 
 		if (!MATDATA_PASS_ENABLED(wpd) && !GPU_unused_fb_slot_workaround()) {
-			e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
+			e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], col_tex_format, &draw_engine_workbench_solid);
 		}
 
 		GPU_framebuffer_ensure_config(&fbl->effect_fb, {
