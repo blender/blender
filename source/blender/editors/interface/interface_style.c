@@ -182,17 +182,15 @@ void UI_fontstyle_draw_ex(
 
 	if (fs_params->align == UI_STYLE_TEXT_CENTER) {
 		xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len)));
-		/* don't center text if it chops off the start of the text, 2 gives some margin */
-		if (xofs < 2) {
-			xofs = 2;
-		}
 	}
 	else if (fs_params->align == UI_STYLE_TEXT_RIGHT) {
-		xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len) - 0.1f * U.widget_unit;
+		xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len);
 	}
 
-	/* clip is very strict, so we give it some space */
-	BLF_clipping(fs->uifont_id, rect->xmin - 2, rect->ymin - 4, rect->xmax + 1, rect->ymax + 4);
+	yofs = MAX2(0, yofs);
+	xofs = MAX2(0, xofs);
+
+	BLF_clipping(fs->uifont_id, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
 	BLF_color4ubv(fs->uifont_id, col);
 
