@@ -207,11 +207,12 @@ static void drw_shgroup_bone_stick(
 /* Envelope */
 static void drw_shgroup_bone_envelope_distance(
         const float (*bone_mat)[4],
-        const float *radius_head, const float *radius_tail, const float *distance)
+        const float *radius_head, const float *radius_tail, const float *distance,
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.passes.bone_envelope != NULL) {
 		if (g_data.bone_envelope_distance == NULL) {
-			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_distance(g_data.passes.bone_envelope);
+			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_distance(g_data.passes.bone_envelope, sh_cfg);
 			/* passes.bone_envelope should have the DRW_STATE_CULL_FRONT state enabled. */
 		}
 		float head_sphere[4] = {0.0f, 0.0f, 0.0f, 1.0f}, tail_sphere[4] = {0.0f, 1.0f, 0.0f, 1.0f};
@@ -244,12 +245,12 @@ static void drw_shgroup_bone_envelope(
 		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent, sh_cfg);
 	}
 	if (g_data.bone_envelope_wire == NULL) {
-		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_outline(g_data.passes.bone_wire);
+		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_outline(g_data.passes.bone_wire, sh_cfg);
 	}
 	if (g_data.bone_envelope_solid == NULL &&
 	    g_data.passes.bone_solid != NULL)
 	{
-		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.passes.bone_solid, g_data.transparent);
+		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.passes.bone_solid, g_data.transparent, sh_cfg);
 		/* We can have a lot of overdraw if we don't do this. Also envelope are not subject to
 		 * inverted matrix. */
 		DRW_shgroup_state_enable(g_data.bone_envelope_solid, DRW_STATE_CULL_BACK);
@@ -1332,7 +1333,7 @@ static void draw_bone_envelope(
 	    (boneflag & BONE_NO_DEFORM) == 0 &&
 	    ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
 	{
-		drw_shgroup_bone_envelope_distance(BONE_VAR(eBone, pchan, disp_mat), rad_head, rad_tail, distance);
+		drw_shgroup_bone_envelope_distance(BONE_VAR(eBone, pchan, disp_mat), rad_head, rad_tail, distance, sh_cfg);
 	}
 
 	if (select_id != -1) {

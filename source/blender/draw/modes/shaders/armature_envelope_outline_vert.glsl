@@ -3,6 +3,9 @@ uniform mat4 ViewMatrix;
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 ProjectionMatrix;
+#ifdef USE_WORLD_CLIP_PLANES
+uniform mat4 ModelMatrix;
+#endif
 
 uniform vec2 viewportSize;
 uniform float lineThickness = 2.0;
@@ -130,7 +133,13 @@ void main()
 	vec3 wpos1 = get_outline_point(pos1, sph_near, sph_far, mat_near, mat_far, z_ofs_near, z_ofs_far, b);
 	vec3 wpos2 = get_outline_point(pos2, sph_near, sph_far, mat_near, mat_far, z_ofs_near, z_ofs_far, b);
 
-	vec4 V  = ViewMatrix * vec4(wpos1, 1.0);
+
+	vec4 pos_4d = vec4(wpos1, 1.0);
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+#endif
+
+	vec4 V  = ViewMatrix * pos_4d;
 	float pres_fac = (ProjectionMatrix[3][3] == 0.0) ? abs(V.z) : 1.0;
 
 	vec4 p0 = ViewProjectionMatrix * vec4(wpos0, 1.0);
