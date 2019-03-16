@@ -98,13 +98,13 @@ typedef struct World {
 
 /* mode */
 #define WO_MIST                   (1 << 0)
-#define WO_MODE_DEPRECATED_1      (1 << 1)  /* cleared */
-#define WO_MODE_DEPRECATED_2      (1 << 2)  /* cleared */
-#define WO_MODE_DEPRECATED_3      (1 << 3)  /* cleared */
-#define WO_MODE_DEPRECATED_4      (1 << 4)  /* cleared */
-#define WO_MODE_DEPRECATED_5      (1 << 5)  /* cleared */
+#define WO_MODE_UNUSED_1          (1 << 1)  /* cleared */
+#define WO_MODE_UNUSED_2          (1 << 2)  /* cleared */
+#define WO_MODE_UNUSED_3          (1 << 3)  /* cleared */
+#define WO_MODE_UNUSED_4          (1 << 4)  /* cleared */
+#define WO_MODE_UNUSED_5          (1 << 5)  /* cleared */
 #define WO_AMB_OCC                (1 << 6)
-#define WO_MODE_DEPRECATED_7      (1 << 7)  /* cleared */
+#define WO_MODE_UNUSED_7          (1 << 7)  /* cleared */
 
 enum {
 	WO_MIST_QUADRATIC          = 0,

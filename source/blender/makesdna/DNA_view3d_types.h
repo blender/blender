@@ -325,14 +325,14 @@ typedef struct View3D {
 #define V3D_S3D_DISPVOLUME      (1 << 2)
 
 /* View3D->flag (short) */
-#define V3D_FLAG_DEPRECATED_0   (1 << 0)  /* cleared */
-#define V3D_FLAG_DEPRECATED_1   (1 << 1)  /* cleared */
+#define V3D_FLAG_UNUSED_0       (1 << 0)  /* cleared */
+#define V3D_FLAG_UNUSED_1       (1 << 1)  /* cleared */
 #define V3D_HIDE_HELPLINES      (1 << 2)
 #define V3D_INVALID_BACKBUF     (1 << 3)
 
-#define V3D_FLAG_DEPRECATED_10  (1 << 10)  /* cleared */
+#define V3D_FLAG_UNUSED_10      (1 << 10)  /* cleared */
 #define V3D_SELECT_OUTLINE      (1 << 11)
-#define V3D_FLAG_DEPRECATED_12  (1 << 12)  /* cleared */
+#define V3D_FLAG_UNUSED_12      (1 << 12)  /* cleared */
 #define V3D_GLOBAL_STATS        (1 << 13)
 #define V3D_DRAW_CENTERS        (1 << 15)
 
@@ -374,19 +374,19 @@ typedef struct View3D {
 
 /* View3d->flag2 (int) */
 #define V3D_HIDE_OVERLAYS       (1 << 2)
-#define V3D_FLAG2_DEPRECATED_3  (1 << 3)   /* cleared */
+#define V3D_FLAG2_UNUSED_3      (1 << 3)   /* cleared */
 #define V3D_SHOW_ANNOTATION     (1 << 4)
 #define V3D_LOCK_CAMERA         (1 << 5)
-#define V3D_FLAG2_DEPRECATED_6  (1 << 6)   /* cleared */
+#define V3D_FLAG2_UNUSED_6      (1 << 6)   /* cleared */
 #define V3D_SHOW_RECONSTRUCTION (1 << 7)
 #define V3D_SHOW_CAMERAPATH     (1 << 8)
 #define V3D_SHOW_BUNDLENAME     (1 << 9)
-#define V3D_FLAG2_DEPRECATED_10 (1 << 10)  /* cleared */
+#define V3D_FLAG2_UNUSED_10     (1 << 10)  /* cleared */
 #define V3D_RENDER_BORDER       (1 << 11)
-#define V3D_FLAG2_DEPRECATED_12 (1 << 12)  /* cleared */
-#define V3D_FLAG2_DEPRECATED_13 (1 << 13)  /* cleared */
-#define V3D_FLAG2_DEPRECATED_14 (1 << 14)  /* cleared */
-#define V3D_FLAG2_DEPRECATED_15 (1 << 15)  /* cleared */
+#define V3D_FLAG2_UNUSED_12     (1 << 12)  /* cleared */
+#define V3D_FLAG2_UNUSED_13     (1 << 13)  /* cleared */
+#define V3D_FLAG2_UNUSED_14     (1 << 14)  /* cleared */
+#define V3D_FLAG2_UNUSED_15     (1 << 15)  /* cleared */
 
 /* View3d->gp_flag (short) */
 #define V3D_GP_SHOW_PAPER            (1 << 0) /* Activate paper to cover all viewport */

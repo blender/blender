@@ -2487,44 +2487,44 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						{
 							SpaceImage *sima = (SpaceImage *)sl;
 							sima->flag &= ~(
-							        SI_FLAG_DEPRECATED_0 |
-							        SI_FLAG_DEPRECATED_1 |
-							        SI_FLAG_DEPRECATED_3 |
-							        SI_FLAG_DEPRECATED_6 |
-							        SI_FLAG_DEPRECATED_7 |
-							        SI_FLAG_DEPRECATED_8 |
-							        SI_FLAG_DEPRECATED_17 |
-							        SI_FLAG_DEPRECATED_18 |
-							        SI_FLAG_DEPRECATED_23 |
-							        SI_FLAG_DEPRECATED_24);
+							        SI_FLAG_UNUSED_0 |
+							        SI_FLAG_UNUSED_1 |
+							        SI_FLAG_UNUSED_3 |
+							        SI_FLAG_UNUSED_6 |
+							        SI_FLAG_UNUSED_7 |
+							        SI_FLAG_UNUSED_8 |
+							        SI_FLAG_UNUSED_17 |
+							        SI_FLAG_UNUSED_18 |
+							        SI_FLAG_UNUSED_23 |
+							        SI_FLAG_UNUSED_24);
 							break;
 						}
 						case SPACE_VIEW3D:
 						{
 							View3D *v3d = (View3D *)sl;
 							v3d->flag &= ~(
-							        V3D_FLAG_DEPRECATED_0 |
-							        V3D_FLAG_DEPRECATED_1 |
-							        V3D_FLAG_DEPRECATED_10 |
-							        V3D_FLAG_DEPRECATED_12);
+							        V3D_FLAG_UNUSED_0 |
+							        V3D_FLAG_UNUSED_1 |
+							        V3D_FLAG_UNUSED_10 |
+							        V3D_FLAG_UNUSED_12);
 							v3d->flag2 &= ~(
-							        V3D_FLAG2_DEPRECATED_3 |
-							        V3D_FLAG2_DEPRECATED_6 |
-							        V3D_FLAG2_DEPRECATED_12 |
-							        V3D_FLAG2_DEPRECATED_13 |
-							        V3D_FLAG2_DEPRECATED_14 |
-							        V3D_FLAG2_DEPRECATED_15);
+							        V3D_FLAG2_UNUSED_3 |
+							        V3D_FLAG2_UNUSED_6 |
+							        V3D_FLAG2_UNUSED_12 |
+							        V3D_FLAG2_UNUSED_13 |
+							        V3D_FLAG2_UNUSED_14 |
+							        V3D_FLAG2_UNUSED_15);
 							break;
 						}
 						case SPACE_OUTLINER:
 						{
 							SpaceOutliner *so = (SpaceOutliner *)sl;
 							so->filter &= ~(
-							        SO_FILTER_DEPRECATED_1 |
-							        SO_FILTER_DEPRECATED_5 |
-							        SO_FILTER_DEPRECATED_12);
+							        SO_FILTER_UNUSED_1 |
+							        SO_FILTER_UNUSED_5 |
+							        SO_FILTER_UNUSED_12);
 							so->storeflag &= ~(
-							        SO_TREESTORE_DEPRECATED_1);
+							        SO_TREESTORE_UNUSED_1);
 							break;
 						}
 						case SPACE_FILE:
@@ -2532,9 +2532,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							SpaceFile *sfile = (SpaceFile *)sl;
 							if (sfile->params) {
 								sfile->params->flag &= ~(
-								        FILE_PARAMS_FLAG_DEPRECATED_1 |
-								        FILE_PARAMS_FLAG_DEPRECATED_6 |
-								        FILE_PARAMS_FLAG_DEPRECATED_9);
+								        FILE_PARAMS_FLAG_UNUSED_1 |
+								        FILE_PARAMS_FLAG_UNUSED_6 |
+								        FILE_PARAMS_FLAG_UNUSED_9);
 							}
 							break;
 						}
@@ -2542,26 +2542,26 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						{
 							SpaceNode *snode = (SpaceNode *)sl;
 							snode->flag &= ~(
-							        SNODE_FLAG_DEPRECATED_6 |
-							        SNODE_FLAG_DEPRECATED_10 |
-							        SNODE_FLAG_DEPRECATED_11);
+							        SNODE_FLAG_UNUSED_6 |
+							        SNODE_FLAG_UNUSED_10 |
+							        SNODE_FLAG_UNUSED_11);
 							break;
 						}
 						case SPACE_PROPERTIES:
 						{
 							SpaceProperties *sbuts = (SpaceProperties *)sl;
 							sbuts->flag &= ~(
-							        SB_FLAG_DEPRECATED_2 |
-							        SB_FLAG_DEPRECATED_3);
+							        SB_FLAG_UNUSED_2 |
+							        SB_FLAG_UNUSED_3);
 							break;
 						}
 						case SPACE_NLA:
 						{
 							SpaceNla *snla = (SpaceNla *)sl;
 							snla->flag &= ~(
-							        SNLA_FLAG_DEPRECATED_0 |
-							        SNLA_FLAG_DEPRECATED_1 |
-							        SNLA_FLAG_DEPRECATED_3);
+							        SNLA_FLAG_UNUSED_0 |
+							        SNLA_FLAG_UNUSED_1 |
+							        SNLA_FLAG_UNUSED_3);
 							break;
 						}
 					}
@@ -2571,37 +2571,37 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 			scene->r.mode &= ~(
-			        R_MODE_DEPRECATED_1 |
-			        R_MODE_DEPRECATED_2 |
-			        R_MODE_DEPRECATED_3 |
-			        R_MODE_DEPRECATED_4 |
-			        R_MODE_DEPRECATED_5 |
-			        R_MODE_DEPRECATED_6 |
-			        R_MODE_DEPRECATED_7 |
-			        R_MODE_DEPRECATED_8 |
-			        R_MODE_DEPRECATED_10 |
-			        R_MODE_DEPRECATED_13 |
-			        R_MODE_DEPRECATED_16 |
-			        R_MODE_DEPRECATED_17 |
-			        R_MODE_DEPRECATED_18 |
-			        R_MODE_DEPRECATED_19 |
-			        R_MODE_DEPRECATED_20 |
-			        R_MODE_DEPRECATED_21 |
-			        R_MODE_DEPRECATED_27);
+			        R_MODE_UNUSED_1 |
+			        R_MODE_UNUSED_2 |
+			        R_MODE_UNUSED_3 |
+			        R_MODE_UNUSED_4 |
+			        R_MODE_UNUSED_5 |
+			        R_MODE_UNUSED_6 |
+			        R_MODE_UNUSED_7 |
+			        R_MODE_UNUSED_8 |
+			        R_MODE_UNUSED_10 |
+			        R_MODE_UNUSED_13 |
+			        R_MODE_UNUSED_16 |
+			        R_MODE_UNUSED_17 |
+			        R_MODE_UNUSED_18 |
+			        R_MODE_UNUSED_19 |
+			        R_MODE_UNUSED_20 |
+			        R_MODE_UNUSED_21 |
+			        R_MODE_UNUSED_27);
 
 			scene->r.scemode &= ~(
-			        R_SCEMODE_DEPRECATED_8 |
-			        R_SCEMODE_DEPRECATED_11 |
-			        R_SCEMODE_DEPRECATED_13 |
-			        R_SCEMODE_DEPRECATED_16 |
-			        R_SCEMODE_DEPRECATED_17 |
-			        R_SCEMODE_DEPRECATED_19);
+			        R_SCEMODE_UNUSED_8 |
+			        R_SCEMODE_UNUSED_11 |
+			        R_SCEMODE_UNUSED_13 |
+			        R_SCEMODE_UNUSED_16 |
+			        R_SCEMODE_UNUSED_17 |
+			        R_SCEMODE_UNUSED_19);
 
 			if (scene->toolsettings->sculpt) {
 				scene->toolsettings->sculpt->flags &= ~(
-				        SCULPT_FLAG_DEPRECATED_0 |
-				        SCULPT_FLAG_DEPRECATED_1 |
-				        SCULPT_FLAG_DEPRECATED_2);
+				        SCULPT_FLAG_UNUSED_0 |
+				        SCULPT_FLAG_UNUSED_1 |
+				        SCULPT_FLAG_UNUSED_2);
 			}
 
 			if (scene->ed) {
@@ -2609,14 +2609,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				SEQ_BEGIN (scene->ed, seq)
 				{
 					seq->flag &= ~(
-					        SEQ_FLAG_DEPRECATED_6 |
-					        SEQ_FLAG_DEPRECATED_18 |
-					        SEQ_FLAG_DEPRECATED_19 |
-					        SEQ_FLAG_DEPRECATED_21);
+					        SEQ_FLAG_UNUSED_6 |
+					        SEQ_FLAG_UNUSED_18 |
+					        SEQ_FLAG_UNUSED_19 |
+					        SEQ_FLAG_UNUSED_21);
 					if (seq->type == SEQ_TYPE_SPEED) {
 						SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
 						s->flags &= ~(
-						        SEQ_SPEED_DEPRECATED_1);
+						        SEQ_SPEED_UNUSED_1);
 					}
 				} SEQ_END;
 			}
@@ -2624,49 +2624,49 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		for (World *world = bmain->worlds.first; world; world = world->id.next) {
 			world->flag &= ~(
-			        WO_MODE_DEPRECATED_1 |
-			        WO_MODE_DEPRECATED_2 |
-			        WO_MODE_DEPRECATED_3 |
-			        WO_MODE_DEPRECATED_4 |
-			        WO_MODE_DEPRECATED_5 |
-			        WO_MODE_DEPRECATED_7);
+			        WO_MODE_UNUSED_1 |
+			        WO_MODE_UNUSED_2 |
+			        WO_MODE_UNUSED_3 |
+			        WO_MODE_UNUSED_4 |
+			        WO_MODE_UNUSED_5 |
+			        WO_MODE_UNUSED_7);
 		}
 
 		for (Image *image = bmain->images.first; image; image = image->id.next) {
 			image->flag &= ~(
-			        IMA_FLAG_DEPRECATED_0 |
-			        IMA_FLAG_DEPRECATED_1 |
-			        IMA_FLAG_DEPRECATED_4 |
-			        IMA_FLAG_DEPRECATED_6 |
-			        IMA_FLAG_DEPRECATED_8 |
-			        IMA_FLAG_DEPRECATED_15 |
-			        IMA_FLAG_DEPRECATED_16);
+			        IMA_FLAG_UNUSED_0 |
+			        IMA_FLAG_UNUSED_1 |
+			        IMA_FLAG_UNUSED_4 |
+			        IMA_FLAG_UNUSED_6 |
+			        IMA_FLAG_UNUSED_8 |
+			        IMA_FLAG_UNUSED_15 |
+			        IMA_FLAG_UNUSED_16);
 		}
 
 		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 			ob->flag &= ~(
-			        OB_FLAG_DEPRECATED_11 |
-			        OB_FLAG_DEPRECATED_12);
+			        OB_FLAG_UNUSED_11 |
+			        OB_FLAG_UNUSED_12);
 			ob->transflag &= ~(
-			        OB_TRANSFLAG_DEPRECATED_0 |
-			        OB_TRANSFLAG_DEPRECATED_1);
-			ob->shapeflag &= ~OB_SHAPE_FLAG_DEPRECATED_1;
+			        OB_TRANSFLAG_UNUSED_0 |
+			        OB_TRANSFLAG_UNUSED_1);
+			ob->shapeflag &= ~OB_SHAPE_FLAG_UNUSED_1;
 		}
 
 		for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
 			me->flag &= ~(
-			        ME_FLAG_DEPRECATED_0 |
-			        ME_FLAG_DEPRECATED_1 |
-			        ME_FLAG_DEPRECATED_3 |
-			        ME_FLAG_DEPRECATED_4 |
-			        ME_FLAG_DEPRECATED_6 |
-			        ME_FLAG_DEPRECATED_7 |
-			        ME_FLAG_DEPRECATED_8);
+			        ME_FLAG_UNUSED_0 |
+			        ME_FLAG_UNUSED_1 |
+			        ME_FLAG_UNUSED_3 |
+			        ME_FLAG_UNUSED_4 |
+			        ME_FLAG_UNUSED_6 |
+			        ME_FLAG_UNUSED_7 |
+			        ME_FLAG_UNUSED_8);
 		}
 
 		for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
 			mat->blend_flag &= ~(
-			        MA_BL_FLAG_DEPRECATED_2);
+			        MA_BL_FLAG_UNUSED_2);
 		}
 	}
 
@@ -2779,17 +2779,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				R_ALPHAKEY = 2,
 			};
 			scene->r.seq_flag &= ~(
-			        R_SEQ_DEPRECATED_0 |
-			        R_SEQ_DEPRECATED_1 |
-			        R_SEQ_DEPRECATED_2);
-			scene->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT_DEPRECATED_1;
+			        R_SEQ_UNUSED_0 |
+			        R_SEQ_UNUSED_1 |
+			        R_SEQ_UNUSED_2);
+			scene->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT_UNUSED_1;
 			if (scene->r.alphamode == R_ALPHAKEY) {
 				scene->r.alphamode = R_ADDSKY;
 			}
 			ToolSettings *ts = scene->toolsettings;
-			ts->particle.flag &= ~PE_DEPRECATED_6;
+			ts->particle.flag &= ~PE_UNUSED_6;
 			if (ts->sculpt != NULL) {
-				ts->sculpt->flags &= ~SCULPT_FLAG_DEPRECATED_6;
+				ts->sculpt->flags &= ~SCULPT_FLAG_UNUSED_6;
 			}
 		}
 	}
@@ -2857,25 +2857,25 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 
 			ob->transflag &= ~(
-			        OB_TRANSFLAG_DEPRECATED_0 |
-			        OB_TRANSFLAG_DEPRECATED_1 |
-			        OB_TRANSFLAG_DEPRECATED_3 |
-			        OB_TRANSFLAG_DEPRECATED_6 |
-			        OB_TRANSFLAG_DEPRECATED_12);
+			        OB_TRANSFLAG_UNUSED_0 |
+			        OB_TRANSFLAG_UNUSED_1 |
+			        OB_TRANSFLAG_UNUSED_3 |
+			        OB_TRANSFLAG_UNUSED_6 |
+			        OB_TRANSFLAG_UNUSED_12);
 
-			ob->nlaflag &= ~(OB_ADS_DEPRECATED_1 | OB_ADS_DEPRECATED_2);
+			ob->nlaflag &= ~(OB_ADS_UNUSED_1 | OB_ADS_UNUSED_2);
 		}
 
 		LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
 			arm->flag &= ~(
-			        ARM_FLAG_DEPRECATED_1 |
-			        ARM_FLAG_DEPRECATED_5 |
-			        ARM_FLAG_DEPRECATED_7 |
-			        ARM_FLAG_DEPRECATED_12);
+			        ARM_FLAG_UNUSED_1 |
+			        ARM_FLAG_UNUSED_5 |
+			        ARM_FLAG_UNUSED_7 |
+			        ARM_FLAG_UNUSED_12);
 		}
 
 		LISTBASE_FOREACH (Text *, text, &bmain->texts) {
-			text->flags &= ~(TXT_FLAG_DEPRECATED_8 | TXT_FLAG_DEPRECATED_9);
+			text->flags &= ~(TXT_FLAG_UNUSED_8 | TXT_FLAG_UNUSED_9);
 		}
 	}
 

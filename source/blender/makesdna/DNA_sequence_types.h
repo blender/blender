@@ -446,7 +446,7 @@ typedef struct SequencerScopes {
 
 /* SpeedControlVars->flags */
 #define SEQ_SPEED_INTEGRATE      (1 << 0)
-#define SEQ_SPEED_DEPRECATED_1   (1 << 1)  /* cleared */
+#define SEQ_SPEED_UNUSED_1       (1 << 1)  /* cleared */
 #define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
 
 /* ***************** SEQUENCE ****************** */
@@ -460,7 +460,7 @@ enum {
 	SEQ_OVERLAP                 = (1 << 3),
 	SEQ_FILTERY                 = (1 << 4),
 	SEQ_MUTE                    = (1 << 5),
-	SEQ_FLAG_DEPRECATED_6       = (1 << 6),  /* cleared */
+	SEQ_FLAG_UNUSED_6           = (1 << 6),  /* cleared */
 	SEQ_REVERSE_FRAMES          = (1 << 7),
 	SEQ_IPO_FRAME_LOCKED        = (1 << 8),
 	SEQ_EFFECT_NOT_LOADED       = (1 << 9),
@@ -472,9 +472,9 @@ enum {
 	SEQ_USE_PROXY               = (1 << 15),
 	SEQ_USE_TRANSFORM           = (1 << 16),
 	SEQ_USE_CROP                = (1 << 17),
-	SEQ_FLAG_DEPRECATED_18      = (1 << 18),  /* cleared */
-	SEQ_FLAG_DEPRECATED_19      = (1 << 19),  /* cleared */
-	SEQ_FLAG_DEPRECATED_21      = (1 << 21),  /* cleared */
+	SEQ_FLAG_UNUSED_18          = (1 << 18),  /* cleared */
+	SEQ_FLAG_UNUSED_19          = (1 << 19),  /* cleared */
+	SEQ_FLAG_UNUSED_21          = (1 << 21),  /* cleared */
 
 	SEQ_USE_EFFECT_DEFAULT_FADE = (1 << 22),
 	SEQ_USE_LINEAR_MODIFIERS    = (1 << 23),

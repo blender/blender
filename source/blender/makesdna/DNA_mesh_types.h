@@ -233,15 +233,15 @@ enum {
 
 /* me->flag */
 enum {
-	ME_FLAG_DEPRECATED_0       = 1 << 0,  /* cleared */
-	ME_FLAG_DEPRECATED_1       = 1 << 1,  /* cleared */
+	ME_FLAG_UNUSED_0           = 1 << 0,  /* cleared */
+	ME_FLAG_UNUSED_1           = 1 << 1,  /* cleared */
 	ME_TWOSIDED                = 1 << 2,
-	ME_FLAG_DEPRECATED_3       = 1 << 3,  /* cleared */
-	ME_FLAG_DEPRECATED_4       = 1 << 4,  /* cleared */
+	ME_FLAG_UNUSED_3           = 1 << 3,  /* cleared */
+	ME_FLAG_UNUSED_4           = 1 << 4,  /* cleared */
 	ME_AUTOSMOOTH              = 1 << 5,
-	ME_FLAG_DEPRECATED_6       = 1 << 6,  /* cleared */
-	ME_FLAG_DEPRECATED_7       = 1 << 7,  /* cleared */
-	ME_FLAG_DEPRECATED_8       = 1 << 8,  /* cleared */
+	ME_FLAG_UNUSED_6           = 1 << 6,  /* cleared */
+	ME_FLAG_UNUSED_7           = 1 << 7,  /* cleared */
+	ME_FLAG_UNUSED_8           = 1 << 8,  /* cleared */
 	ME_DS_EXPAND               = 1 << 9,
 	ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
 };

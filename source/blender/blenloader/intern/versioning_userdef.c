@@ -356,14 +356,14 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	if (!USER_VERSION_ATLEAST(278, 6)) {
 		/* Clear preference flags for re-use. */
 		userdef->flag &= ~(
-		    USER_FLAG_NUMINPUT_ADVANCED | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
-		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
-		    USER_FLAG_DEPRECATED_9 | USER_DEVELOPER_UI);
+		    USER_FLAG_NUMINPUT_ADVANCED | USER_FLAG_UNUSED_2 | USER_FLAG_UNUSED_3 |
+		    USER_FLAG_UNUSED_6 | USER_FLAG_UNUSED_7 |
+		    USER_FLAG_UNUSED_9 | USER_DEVELOPER_UI);
 		userdef->uiflag &= ~(
 		    USER_HEADER_BOTTOM);
 		userdef->transopts &= ~(
-		    USER_TR_DEPRECATED_2 | USER_TR_DEPRECATED_3 | USER_TR_DEPRECATED_4 |
-		    USER_TR_DEPRECATED_6 | USER_TR_DEPRECATED_7);
+		    USER_TR_UNUSED_2 | USER_TR_UNUSED_3 | USER_TR_UNUSED_4 |
+		    USER_TR_UNUSED_6 | USER_TR_UNUSED_7);
 
 		userdef->uiflag |= USER_LOCK_CURSOR_ADJUST;
 	}
@@ -451,12 +451,12 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		copy_v4_fl4(userdef->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
 
 		userdef->flag &= ~(
-		        USER_FLAG_DEPRECATED_4);
+		        USER_FLAG_UNUSED_4);
 
 		userdef->uiflag &= ~(
 		        USER_HEADER_FROM_PREF |
-		        USER_UIFLAG_DEPRECATED_12 |
-		        USER_UIFLAG_DEPRECATED_22);
+		        USER_UIFLAG_UNUSED_12 |
+		        USER_UIFLAG_UNUSED_22);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 41)) {
@@ -469,11 +469,11 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 
 	if (!USER_VERSION_ATLEAST(280, 44)) {
 		userdef->uiflag &= ~(
-		        USER_UIFLAG_DEPRECATED_0 | USER_UIFLAG_DEPRECATED_1);
+		        USER_UIFLAG_UNUSED_0 | USER_UIFLAG_UNUSED_1);
 		userdef->uiflag2 &= ~(
-		        USER_UIFLAG2_DEPRECATED_0);
+		        USER_UIFLAG2_UNUSED_0);
 		userdef->gp_settings &= ~(
-		        GP_PAINT_DEPRECATED_0);
+		        GP_PAINT_UNUSED_0);
 	}
 
 	/**

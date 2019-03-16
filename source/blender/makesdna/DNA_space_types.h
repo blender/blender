@@ -205,8 +205,8 @@ typedef enum eSpaceButtons_Context {
 typedef enum eSpaceButtons_Flag {
 	SB_PRV_OSA = (1 << 0),
 	SB_PIN_CONTEXT = (1 << 1),
-	SB_FLAG_DEPRECATED_2 = (1 << 2),
-	SB_FLAG_DEPRECATED_3 = (1 << 3),
+	SB_FLAG_UNUSED_2 = (1 << 2),
+	SB_FLAG_UNUSED_3 = (1 << 3),
 	/** Do not add materials, particles, etc. in TemplateTextureUser list. */
 	SB_TEX_USER_LIMITED = (1 << 3),
 	SB_SHADING_CONTEXT = (1 << 4),
@@ -270,12 +270,12 @@ typedef enum eSpaceOutliner_Flag {
 /* SpaceOutliner.filter */
 typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_SEARCH           = (1 << 0),  /* Run-time flag. */
-	SO_FILTER_DEPRECATED_1     = (1 << 1),  /* cleared */
+	SO_FILTER_UNUSED_1         = (1 << 1),  /* cleared */
 	SO_FILTER_NO_OBJECT        = (1 << 2),
 	SO_FILTER_NO_OB_CONTENT    = (1 << 3), /* Not only mesh, but modifiers, constraints, ... */
 	SO_FILTER_NO_CHILDREN      = (1 << 4),
 
-	SO_FILTER_DEPRECATED_5     = (1 << 5),  /* cleared */
+	SO_FILTER_UNUSED_5         = (1 << 5),  /* cleared */
 	SO_FILTER_NO_OB_MESH       = (1 << 6),
 	SO_FILTER_NO_OB_ARMATURE   = (1 << 7),
 	SO_FILTER_NO_OB_EMPTY      = (1 << 8),
@@ -283,7 +283,7 @@ typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_NO_OB_CAMERA     = (1 << 10),
 	SO_FILTER_NO_OB_OTHERS     = (1 << 11),
 
-	SO_FILTER_DEPRECATED_12     = (1 << 12),  /* cleared */
+	SO_FILTER_UNUSED_12         = (1 << 12),  /* cleared */
 	SO_FILTER_OB_STATE_VISIBLE  = (1 << 13), /* Not set via DNA. */
 	SO_FILTER_OB_STATE_SELECTED = (1 << 14), /* Not set via DNA. */
 	SO_FILTER_OB_STATE_ACTIVE   = (1 << 15), /* Not set via DNA. */
@@ -341,7 +341,7 @@ typedef enum eSpaceOutliner_Mode {
 typedef enum eSpaceOutliner_StoreFlag {
 	/* cleanup tree */
 	SO_TREESTORE_CLEANUP    = (1 << 0),
-	SO_TREESTORE_DEPRECATED_1 = (1 << 1),  /* cleared */
+	SO_TREESTORE_UNUSED_1 = (1 << 1),  /* cleared */
 	/* rebuild the tree, similar to cleanup,
 	 * but defer a call to BKE_outliner_treehash_rebuild_from_treestore instead */
 	SO_TREESTORE_REBUILD    = (1 << 2),
@@ -487,11 +487,11 @@ typedef struct SpaceNla {
 
 /* SpaceNla.flag */
 typedef enum eSpaceNla_Flag {
-	SNLA_FLAG_DEPRECATED_0 = (1 << 0),
-	SNLA_FLAG_DEPRECATED_1 = (1 << 1),
+	SNLA_FLAG_UNUSED_0 = (1 << 0),
+	SNLA_FLAG_UNUSED_1 = (1 << 1),
 	/* draw timing in seconds instead of frames */
 	SNLA_DRAWTIME          = (1 << 2),
-	SNLA_FLAG_DEPRECATED_3 = (1 << 3),
+	SNLA_FLAG_UNUSED_3 = (1 << 3),
 	/* don't draw frame number beside frame indicator */
 	SNLA_NODRAWCFRANUM     = (1 << 4),
 	/* don't draw influence curves on strips */
@@ -767,16 +767,16 @@ typedef enum eFileSel_Action {
 /* Note: short flag, also used as 16 lower bits of flags in link/append code
  *       (WM and BLO code area, see BLO_LibLinkFlags in BLO_readfile.h). */
 typedef enum eFileSel_Params_Flag {
-	FILE_PARAMS_FLAG_DEPRECATED_1   = (1 << 0),  /* cleared */
+	FILE_PARAMS_FLAG_UNUSED_1       = (1 << 0),  /* cleared */
 	FILE_RELPATH                    = (1 << 1),
 	FILE_LINK                       = (1 << 2),
 	FILE_HIDE_DOT                   = (1 << 3),
 	FILE_AUTOSELECT                 = (1 << 4),
 	FILE_ACTIVE_COLLECTION          = (1 << 5),
-	FILE_PARAMS_FLAG_DEPRECATED_6	= (1 << 6),  /* cleared */
+	FILE_PARAMS_FLAG_UNUSED_6       = (1 << 6),  /* cleared */
 	FILE_DIRSEL_ONLY                = (1 << 7),
 	FILE_FILTER                     = (1 << 8),
-	FILE_PARAMS_FLAG_DEPRECATED_9   = (1 << 9),  /* cleared */
+	FILE_PARAMS_FLAG_UNUSED_9       = (1 << 9),  /* cleared */
 	FILE_GROUP_INSTANCE             = (1 << 10),
 } eFileSel_Params_Flag;
 
@@ -1062,17 +1062,17 @@ typedef enum eSpaceImage_Sticky {
 
 /* SpaceImage.flag */
 typedef enum eSpaceImage_Flag {
-	SI_FLAG_DEPRECATED_0  = (1 << 0),  /* cleared */
-	SI_FLAG_DEPRECATED_1  = (1 << 1),  /* cleared */
+	SI_FLAG_UNUSED_0      = (1 << 0),  /* cleared */
+	SI_FLAG_UNUSED_1      = (1 << 1),  /* cleared */
 	SI_CLIP_UV            = (1 << 2),
-	SI_FLAG_DEPRECATED_3  = (1 << 3),  /* cleared */
+	SI_FLAG_UNUSED_3      = (1 << 3),  /* cleared */
 	SI_NO_DRAWFACES       = (1 << 4),
 	SI_DRAWSHADOW         = (1 << 5),
-	SI_FLAG_DEPRECATED_6  = (1 << 6),  /* cleared */
-	SI_FLAG_DEPRECATED_7  = (1 << 7),  /* cleared */
-	SI_FLAG_DEPRECATED_8  = (1 << 8),  /* cleared */
+	SI_FLAG_UNUSED_6      = (1 << 6),  /* cleared */
+	SI_FLAG_UNUSED_7      = (1 << 7),  /* cleared */
+	SI_FLAG_UNUSED_8      = (1 << 8),  /* cleared */
 	SI_COORDFLOATS        = (1 << 9),
-	SI_FLAG_DEPRECATED_10 = (1 << 10),
+	SI_FLAG_UNUSED_10     = (1 << 10),
 	SI_LIVE_UNWRAP        = (1 << 11),
 	SI_USE_ALPHA          = (1 << 12),
 	SI_SHOW_ALPHA         = (1 << 13),
@@ -1082,8 +1082,8 @@ typedef enum eSpaceImage_Flag {
 	SI_PREVSPACE          = (1 << 15),
 	SI_FULLWINDOW         = (1 << 16),
 
-	SI_FLAG_DEPRECATED_17 = (1 << 17),  /* cleared */
-	SI_FLAG_DEPRECATED_18 = (1 << 18),  /* cleared */
+	SI_FLAG_UNUSED_17 = (1 << 17),  /* cleared */
+	SI_FLAG_UNUSED_18 = (1 << 18),  /* cleared */
 
 	/* this means that the image is drawn until it reaches the view edge,
 	 * in the image view, it's unrelated to the 'tile' mode for texface
@@ -1092,9 +1092,9 @@ typedef enum eSpaceImage_Flag {
 	SI_SMOOTH_UV          = (1 << 20),
 	SI_DRAW_STRETCH       = (1 << 21),
 	SI_SHOW_GPENCIL       = (1 << 22),
-	SI_FLAG_DEPRECATED_23 = (1 << 23),  /* cleared */
+	SI_FLAG_UNUSED_23     = (1 << 23),  /* cleared */
 
-	SI_FLAG_DEPRECATED_24 = (1 << 24),
+	SI_FLAG_UNUSED_24     = (1 << 24),
 
 	SI_NO_DRAW_TEXPAINT   = (1 << 25),
 	SI_DRAW_METADATA      = (1 << 26),
@@ -1103,7 +1103,7 @@ typedef enum eSpaceImage_Flag {
 	SI_SHOW_G             = (1 << 28),
 	SI_SHOW_B             = (1 << 29),
 
-	SI_NO_DRAWEDGES         = (1 << 30),
+	SI_NO_DRAWEDGES       = (1 << 30),
 } eSpaceImage_Flag;
 
 /* SpaceImage.other_uv_filter */
@@ -1332,9 +1332,9 @@ typedef enum eSpaceNode_Flag {
 	SNODE_SHOW_G         = (1 << 8),
 	SNODE_SHOW_B         = (1 << 9),
 	SNODE_AUTO_RENDER    = (1 << 5),
-	SNODE_FLAG_DEPRECATED_6  = (1 << 6),   /* cleared */
-	SNODE_FLAG_DEPRECATED_10 = (1 << 10),  /* cleared */
-	SNODE_FLAG_DEPRECATED_11 = (1 << 11),  /* cleared */
+	SNODE_FLAG_UNUSED_6  = (1 << 6),   /* cleared */
+	SNODE_FLAG_UNUSED_10 = (1 << 10),  /* cleared */
+	SNODE_FLAG_UNUSED_11 = (1 << 11),  /* cleared */
 	SNODE_PIN            = (1 << 12),
 	/** automatically offset following nodes in a chain on insertion */
 	SNODE_SKIP_INSOFFSET = (1 << 13),

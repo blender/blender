@@ -475,20 +475,20 @@ enum {
 
 /* (short) transflag */
 enum {
-	OB_TRANSFLAG_DEPRECATED_0 = 1 << 0,  /* cleared */
-	OB_TRANSFLAG_DEPRECATED_1 = 1 << 1,  /* cleared */
+	OB_TRANSFLAG_UNUSED_0 = 1 << 0,  /* cleared */
+	OB_TRANSFLAG_UNUSED_1 = 1 << 1,  /* cleared */
 	OB_NEG_SCALE        = 1 << 2,
-	OB_TRANSFLAG_DEPRECATED_3 = 1 << 3,  /* cleared */
+	OB_TRANSFLAG_UNUSED_3 = 1 << 3,  /* cleared */
 	OB_DUPLIVERTS       = 1 << 4,
 	OB_DUPLIROT         = 1 << 5,
-	OB_TRANSFLAG_DEPRECATED_6 = 1 << 6,  /* cleared */
+	OB_TRANSFLAG_UNUSED_6 = 1 << 6,  /* cleared */
 	/* runtime, calculate derivedmesh for dupli before it's used */
 	OB_DUPLICALCDERIVED = 1 << 7,
 	OB_DUPLICOLLECTION  = 1 << 8,
 	OB_DUPLIFACES       = 1 << 9,
 	OB_DUPLIFACES_SCALE = 1 << 10,
 	OB_DUPLIPARTS       = 1 << 11,
-	OB_TRANSFLAG_DEPRECATED_12 = 1 << 12,  /* cleared */
+	OB_TRANSFLAG_UNUSED_12 = 1 << 12,  /* cleared */
 	/* runtime constraints disable */
 	OB_NO_CONSTRAINTS   = 1 << 13,
 	/* hack to work around particle issue */
@@ -597,8 +597,8 @@ enum {
 #define OB_FROMDUPLI        (1 << 9)
 #define OB_DONE             (1 << 10)  /* unknown state, clear before use */
 #ifdef DNA_DEPRECATED_ALLOW
-#  define OB_FLAG_DEPRECATED_11        (1 << 11)  /* cleared */
-#  define OB_FLAG_DEPRECATED_12        (1 << 12)  /* cleared */
+#  define OB_FLAG_UNUSED_11        (1 << 11)  /* cleared */
+#  define OB_FLAG_UNUSED_12        (1 << 12)  /* cleared */
 #endif
 
 /* ob->restrictflag */
@@ -612,15 +612,15 @@ enum {
 enum {
 	OB_SHAPE_LOCK       = 1 << 0,
 #ifdef DNA_DEPRECATED_ALLOW
-	OB_SHAPE_FLAG_DEPRECATED_1   = 1 << 1,  /* cleared */
+	OB_SHAPE_FLAG_UNUSED_1   = 1 << 1,  /* cleared */
 #endif
 	OB_SHAPE_EDIT_MODE  = 1 << 2,
 };
 
 /* ob->nlaflag */
 enum {
-	OB_ADS_DEPRECATED_1    = 1 << 0,  /* cleared */
-	OB_ADS_DEPRECATED_2    = 1 << 1,  /* cleared */
+	OB_ADS_UNUSED_1    = 1 << 0,  /* cleared */
+	OB_ADS_UNUSED_2    = 1 << 1,  /* cleared */
 	/* object-channel expanded status */
 	OB_ADS_COLLAPSED    = 1 << 10,
 	/* object's ipo-block */

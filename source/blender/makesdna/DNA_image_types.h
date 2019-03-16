@@ -90,8 +90,8 @@ typedef struct RenderSlot {
 
 /* iuser->flag */
 #define IMA_ANIM_ALWAYS         (1 << 0)
-/* #define IMA_DEPRECATED_1     (1 << 1) */
-/* #define IMA_DEPRECATED_2     (1 << 2) */
+/* #define IMA_UNUSED_1         (1 << 1) */
+/* #define IMA_UNUSED_2         (1 << 2) */
 #define IMA_NEED_FRAME_RECALC   (1 << 3)
 #define IMA_SHOW_STEREO         (1 << 4)
 
@@ -165,16 +165,16 @@ typedef struct Image {
 
 /* Image.flag */
 enum {
-	IMA_FLAG_DEPRECATED_0   = (1 << 0),  /* cleared */
-	IMA_FLAG_DEPRECATED_1   = (1 << 1),  /* cleared */
+	IMA_FLAG_UNUSED_0   = (1 << 0),  /* cleared */
+	IMA_FLAG_UNUSED_1   = (1 << 1),  /* cleared */
 #ifdef DNA_DEPRECATED
 	IMA_DO_PREMUL           = (1 << 2),
 #endif
-	IMA_FLAG_DEPRECATED_4   = (1 << 4),  /* cleared */
+	IMA_FLAG_UNUSED_4   = (1 << 4),  /* cleared */
 	IMA_NOCOLLECT           = (1 << 5),
-	IMA_FLAG_DEPRECATED_6   = (1 << 6),  /* cleared */
+	IMA_FLAG_UNUSED_6   = (1 << 6),  /* cleared */
 	IMA_OLD_PREMUL          = (1 << 7),
-	IMA_FLAG_DEPRECATED_8   = (1 << 8),  /* cleared */
+	IMA_FLAG_UNUSED_8   = (1 << 8),  /* cleared */
 	IMA_USED_FOR_RENDER     = (1 << 9),
 	/** For image user, but these flags are mixed. */
 	IMA_USER_FRAME_IN_RANGE = (1 << 10),
@@ -182,8 +182,8 @@ enum {
 	IMA_IGNORE_ALPHA        = (1 << 12),
 	IMA_DEINTERLACE         = (1 << 13),
 	IMA_USE_VIEWS           = (1 << 14),
-	IMA_FLAG_DEPRECATED_15  = (1 << 15),  /* cleared */
-	IMA_FLAG_DEPRECATED_16  = (1 << 16),  /* cleared */
+	IMA_FLAG_UNUSED_15  = (1 << 15),  /* cleared */
+	IMA_FLAG_UNUSED_16  = (1 << 16),  /* cleared */
 };
 
 /* Image.gpuflag */

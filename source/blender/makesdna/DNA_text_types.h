@@ -66,8 +66,8 @@ enum {
 	/** Used by space handler scriptlinks. */
 	TXT_ISSCRIPT            = 1 << 4,
 
-	TXT_FLAG_DEPRECATED_8   = 1 << 8,  /* cleared */
-	TXT_FLAG_DEPRECATED_9   = 1 << 9,  /* cleared */
+	TXT_FLAG_UNUSED_8       = 1 << 8,  /* cleared */
+	TXT_FLAG_UNUSED_9       = 1 << 9,  /* cleared */
 
 	/** Use space instead of tabs. */
 	TXT_TABSTOSPACES        = 1 << 10,

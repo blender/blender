@@ -1709,8 +1709,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
 				br->falloff_angle = DEG2RADF(80);
 				br->flag &= ~(
-				        BRUSH_FLAG_DEPRECATED_1 | BRUSH_FLAG_DEPRECATED_6 |
-				        BRUSH_FLAG_DEPRECATED_7 | BRUSH_FLAG_DEPRECATED_17 |
+				        BRUSH_FLAG_UNUSED_1 | BRUSH_FLAG_UNUSED_6 |
+				        BRUSH_FLAG_UNUSED_7 | BRUSH_FLAG_UNUSED_17 |
 				        BRUSH_FRONTFACE_FALLOFF);
 			}
 
