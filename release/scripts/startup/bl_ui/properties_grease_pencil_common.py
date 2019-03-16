@@ -885,7 +885,6 @@ class GPENCIL_UL_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
-        gpd = context.gpencil
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if gpl.lock:
