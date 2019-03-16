@@ -124,6 +124,7 @@ static void workbench_render_framebuffers_finish(void)
 
 void workbench_render(WORKBENCH_Data *data, RenderEngine *engine, RenderLayer *render_layer, const rcti *rect)
 {
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene = draw_ctx->scene;
 	Depsgraph *depsgraph = draw_ctx->depsgraph;
@@ -145,6 +146,10 @@ void workbench_render(WORKBENCH_Data *data, RenderEngine *engine, RenderLayer *r
 		DRW_render_object_iter(data, engine, depsgraph, workbench_render_deferred_cache);
 		workbench_deferred_cache_finish(data);
 		DRW_render_instance_buffer_finish();
+
+		/* Also we weed to have a correct fbo bound for DRW_hair_update */
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_hair_update();
 
 		/* Draw. */
 		int num_samples = workbench_taa_calculate_num_iterations(data);
@@ -171,6 +176,10 @@ void workbench_render(WORKBENCH_Data *data, RenderEngine *engine, RenderLayer *r
 		workbench_forward_cache_finish(data);
 		DRW_render_instance_buffer_finish();
 
+		/* Also we weed to have a correct fbo bound for DRW_hair_update */
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_hair_update();
+
 		/* Draw. */
 		int num_samples = workbench_taa_calculate_num_iterations(data);
 		for (int sample = 0; sample < num_samples; sample++) {
@@ -189,7 +198,6 @@ void workbench_render(WORKBENCH_Data *data, RenderEngine *engine, RenderLayer *r
 	const char *viewname = RE_GetActiveRenderView(engine->re);
 	RenderPass *rp = RE_pass_find_by_name(render_layer, RE_PASSNAME_COMBINED, viewname);
 
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	GPU_framebuffer_bind(dfbl->color_only_fb);
 	GPU_framebuffer_read_color(dfbl->color_only_fb,
 	                           rect->xmin, rect->ymin,
