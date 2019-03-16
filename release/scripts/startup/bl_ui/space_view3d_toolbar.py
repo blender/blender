@@ -1550,7 +1550,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_option'
-    bl_label = "Stabilizer Settings"
+    bl_label = "Stabilize"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1579,7 +1579,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_option'
-    bl_label = "Post-processing Settings"
+    bl_label = "Post-Processing"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1620,7 +1620,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_option'
-    bl_label = "Random Settings"
+    bl_label = "Randomize"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
