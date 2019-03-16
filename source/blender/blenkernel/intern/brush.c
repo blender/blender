@@ -415,7 +415,6 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_sensitivity = 1.0f;
 
 	brush->gpencil_settings->draw_strength = 1.0f;
-	brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
 
 	brush->gpencil_settings->draw_random_press = 0.0f;
 
