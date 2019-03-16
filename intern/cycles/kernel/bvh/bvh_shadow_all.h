@@ -219,10 +219,7 @@ ccl_device_inline
                                                  object,
                                                  prim_addr,
                                                  ray->time,
-                                                 curve_type,
-                                                 NULL,
-                                                 0,
-                                                 0);
+                                                 curve_type);
                 }
                 else {
                   hit = curve_intersect(kg,
@@ -233,10 +230,7 @@ ccl_device_inline
                                         object,
                                         prim_addr,
                                         ray->time,
-                                        curve_type,
-                                        NULL,
-                                        0,
-                                        0);
+                                        curve_type);
                 }
                 break;
               }

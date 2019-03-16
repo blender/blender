@@ -34,10 +34,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
                                                      int object,
                                                      int curveAddr,
                                                      float time,
-                                                     int type,
-                                                     uint *lcg_state,
-                                                     float difl,
-                                                     float extmax)
+                                                     int type)
 {
   const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
@@ -239,9 +236,6 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
     return false;
 
   /* minimum width extension */
-  float mw_extension = min(difl * fabsf(upper), extmax);
-  float r_ext = mw_extension + r_curr;
-
   float xextrem[4];
   curvebounds(&lower,
               &upper,
@@ -253,7 +247,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
               curve_coef[1].x,
               curve_coef[2].x,
               curve_coef[3].x);
-  if (lower > r_ext || upper < -r_ext)
+  if (lower > r_curr || upper < -r_curr)
     return false;
 
   float yextrem[4];
@@ -267,7 +261,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
               curve_coef[1].y,
               curve_coef[2].y,
               curve_coef[3].y);
-  if (lower > r_ext || upper < -r_ext)
+  if (lower > r_curr || upper < -r_curr)
     return false;
 
   /* setup recurrent loop */
@@ -340,12 +334,8 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
     float r2 = r_st + (r_en - r_st) * i_en;
     r_curr = max(r1, r2);
 
-    mw_extension = min(difl * fabsf(bmaxz), extmax);
-    float r_ext = mw_extension + r_curr;
-    float coverage = 1.0f;
-
-    if (bminz - r_curr > isect->t || bmaxz + r_curr < epsilon || bminx > r_ext || bmaxx < -r_ext ||
-        bminy > r_ext || bmaxy < -r_ext) {
+    if (bminz - r_curr > isect->t || bmaxz + r_curr < epsilon || bminx > r_curr ||
+        bmaxx < -r_curr || bminy > r_curr || bmaxy < -r_curr) {
       /* the bounding box does not overlap the square centered at O */
       tree += level;
       level = tree & -tree;
@@ -404,31 +394,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
           continue;
         }
 
-        /* compute coverage */
-        float r_ext = r_curr;
-        coverage = 1.0f;
-        if (difl != 0.0f) {
-          mw_extension = min(difl * fabsf(bmaxz), extmax);
-          r_ext = mw_extension + r_curr;
-#  ifdef __KERNEL_SSE__
-          const float3 p_curr_sq = p_curr * p_curr;
-          const float3 dxxx(_mm_sqrt_ss(_mm_hadd_ps(p_curr_sq.m128, p_curr_sq.m128)));
-          float d = dxxx.x;
-#  else
-          float d = sqrtf(p_curr.x * p_curr.x + p_curr.y * p_curr.y);
-#  endif
-          float d0 = d - r_curr;
-          float d1 = d + r_curr;
-          float inv_mw_extension = 1.0f / mw_extension;
-          if (d0 >= 0)
-            coverage = (min(d1 * inv_mw_extension, 1.0f) - min(d0 * inv_mw_extension, 1.0f)) *
-                       0.5f;
-          else  // inside
-            coverage = (min(d1 * inv_mw_extension, 1.0f) + min(-d0 * inv_mw_extension, 1.0f)) *
-                       0.5f;
-        }
-
-        if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_ext * r_ext || p_curr.z <= epsilon ||
+        if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_curr * r_curr || p_curr.z <= epsilon ||
             isect->t < p_curr.z) {
           tree++;
           level = tree & -tree;
@@ -436,41 +402,23 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
         }
 
         t = p_curr.z;
-
-        /* stochastic fade from minimum width */
-        if (difl != 0.0f && lcg_state) {
-          if (coverage != 1.0f && (lcg_step_float(lcg_state) > coverage))
-            return hit;
-        }
       }
       else {
         float l = len(p_en - p_st);
-        /* minimum width extension */
-        float or1 = r1;
-        float or2 = r2;
-
-        if (difl != 0.0f) {
-          mw_extension = min(len(p_st - P) * difl, extmax);
-          or1 = r1 < mw_extension ? mw_extension : r1;
-          mw_extension = min(len(p_en - P) * difl, extmax);
-          or2 = r2 < mw_extension ? mw_extension : r2;
-        }
-        /* --- */
         float invl = 1.0f / l;
         float3 tg = (p_en - p_st) * invl;
-        gd = (or2 - or1) * invl;
+        gd = (r2 - r1) * invl;
         float difz = -dot(p_st, tg);
         float cyla = 1.0f - (tg.z * tg.z * (1 + gd * gd));
         float invcyla = 1.0f / cyla;
-        float halfb = (-p_st.z - tg.z * (difz + gd * (difz * gd + or1)));
+        float halfb = (-p_st.z - tg.z * (difz + gd * (difz * gd + r1)));
         float tcentre = -halfb * invcyla;
         float zcentre = difz + (tg.z * tcentre);
         float3 tdif = -p_st;
         tdif.z += tcentre;
         float tdifz = dot(tdif, tg);
-        float tb = 2 * (tdif.z - tg.z * (tdifz + gd * (tdifz * gd + or1)));
-        float tc = dot(tdif, tdif) - tdifz * tdifz * (1 + gd * gd) - or1 * or1 -
-                   2 * or1 * tdifz * gd;
+        float tb = 2 * (tdif.z - tg.z * (tdifz + gd * (tdifz * gd + r1)));
+        float tc = dot(tdif, tdif) - tdifz * tdifz * (1 + gd * gd) - r1 * r1 - 2 * r1 * tdifz * gd;
         float td = tb * tb - 4 * cyla * tc;
         if (td < 0.0f) {
           tree++;
@@ -507,16 +455,6 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
         w = saturate(w);
         /* compute u on the curve segment */
         u = i_st * (1 - w) + i_en * w;
-
-        /* stochastic fade from minimum width */
-        if (difl != 0.0f && lcg_state) {
-          r_curr = r1 + (r2 - r1) * w;
-          r_ext = or1 + (or2 - or1) * w;
-          coverage = r_curr / r_ext;
-
-          if (coverage != 1.0f && (lcg_step_float(lcg_state) > coverage))
-            return hit;
-        }
       }
       /* we found a new intersection */
 
@@ -556,10 +494,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
                                             int object,
                                             int curveAddr,
                                             float time,
-                                            int type,
-                                            uint *lcg_state,
-                                            float difl,
-                                            float extmax)
+                                            int type)
 {
   /* define few macros to minimize code duplication for SSE */
 #  ifndef __KERNEL_SSE2__
@@ -600,23 +535,14 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     motion_curve_keys(kg, fobject, prim, time, k0, k1, P_curve);
   }
 
-  float or1 = P_curve[0].w;
-  float or2 = P_curve[1].w;
+  float r1 = P_curve[0].w;
+  float r2 = P_curve[1].w;
   float3 p1 = float4_to_float3(P_curve[0]);
   float3 p2 = float4_to_float3(P_curve[1]);
 
   /* minimum width extension */
-  float r1 = or1;
-  float r2 = or2;
   float3 dif = P - p1;
   float3 dif_second = P - p2;
-  if (difl != 0.0f) {
-    float pixelsize = min(len3(dif) * difl, extmax);
-    r1 = or1 < pixelsize ? pixelsize : or1;
-    pixelsize = min(len3(dif_second) * difl, extmax);
-    r2 = or2 < pixelsize ? pixelsize : or2;
-  }
-  /* --- */
 
   float3 p21_diff = p2 - p1;
   float3 sphere_dif1 = (dif + dif_second) * 0.5f;
@@ -635,20 +561,10 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     motion_curve_keys(kg, fobject, prim, time, k0, k1, (float4 *)&P_curve);
   }
 
-  const ssef or12 = shuffle<3, 3, 3, 3>(P_curve[0], P_curve[1]);
-
-  ssef r12 = or12;
+  ssef r12 = shuffle<3, 3, 3, 3>(P_curve[0], P_curve[1]);
   const ssef vP = load4f(P);
   const ssef dif = vP - P_curve[0];
   const ssef dif_second = vP - P_curve[1];
-  if (difl != 0.0f) {
-    const ssef len1_sq = len3_squared_splat(dif);
-    const ssef len2_sq = len3_squared_splat(dif_second);
-    const ssef len12 = mm_sqrt(shuffle<0, 0, 0, 0>(len1_sq, len2_sq));
-    const ssef pixelsize12 = min(len12 * difl, ssef(extmax));
-    r12 = max(or12, pixelsize12);
-  }
-  float or1 = extract<0>(or12), or2 = extract<0>(shuffle<2>(or12));
   float r1 = extract<0>(r12), r2 = extract<0>(shuffle<2>(r12));
 
   const ssef p21_diff = P_curve[1] - P_curve[0];
@@ -753,15 +669,6 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
       t = tcentre + correction;
       z = zcentre + (dirz * correction);
     }
-
-    /* stochastic fade from minimum width */
-    float adjradius = or1 + z * (or2 - or1) * invl;
-    adjradius = adjradius / (r1 + z * gd);
-    if (lcg_state && adjradius != 1.0f) {
-      if (lcg_step_float(lcg_state) > adjradius)
-        return false;
-    }
-    /* --- */
 
     if (t > 0.0f && t < isect->t && z >= 0 && z <= l) {
 

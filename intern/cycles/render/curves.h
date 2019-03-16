@@ -92,9 +92,6 @@ class CurveSystemManager {
   int resolution;
   int subdivisions;
 
-  float minimum_width;
-  float maximum_width;
-
   bool use_curves;
   bool use_encasing;
   bool use_backfacing;

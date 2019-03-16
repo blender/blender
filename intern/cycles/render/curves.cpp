@@ -88,9 +88,6 @@ CurveSystemManager::CurveSystemManager()
   resolution = 3;
   subdivisions = 3;
 
-  minimum_width = 0.0f;
-  maximum_width = 0.0f;
-
   use_curves = true;
   use_encasing = true;
   use_backfacing = false;
@@ -138,8 +135,6 @@ void CurveSystemManager::device_update(Device *device,
     if (use_encasing)
       kcurve->curveflags |= CURVE_KN_ENCLOSEFILTER;
 
-    kcurve->minimum_width = minimum_width;
-    kcurve->maximum_width = maximum_width;
     kcurve->subdivisions = subdivisions;
   }
 
@@ -160,8 +155,6 @@ bool CurveSystemManager::modified(const CurveSystemManager &CurveSystemManager)
       line_method == CurveSystemManager.line_method && primitive == CurveSystemManager.primitive &&
       use_encasing == CurveSystemManager.use_encasing &&
       use_tangent_normal_geometry == CurveSystemManager.use_tangent_normal_geometry &&
-      minimum_width == CurveSystemManager.minimum_width &&
-      maximum_width == CurveSystemManager.maximum_width &&
       use_backfacing == CurveSystemManager.use_backfacing &&
       triangle_method == CurveSystemManager.triangle_method &&
       resolution == CurveSystemManager.resolution && use_curves == CurveSystemManager.use_curves &&

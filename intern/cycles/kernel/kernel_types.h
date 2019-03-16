@@ -1372,8 +1372,7 @@ typedef struct KernelCurves {
   int curveflags;
   int subdivisions;
 
-  float minimum_width;
-  float maximum_width;
+  int pad1, pad2;
 } KernelCurves;
 static_assert_align(KernelCurves, 16);
 

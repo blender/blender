@@ -1192,20 +1192,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         min=3, max=64,
         default=3,
     )
-    minimum_width: FloatProperty(
-        name="Minimal width",
-        description="Minimal pixel width for strands (0 - deactivated)",
-        min=0.0, max=100.0,
-        default=0.0,
-        subtype='PIXEL'
-    )
-    maximum_width: FloatProperty(
-        name="Maximal width",
-        description="Maximum extension that strand radius can be increased by",
-        min=0.0, max=100.0,
-        default=0.1,
-        subtype='PIXEL'
-    )
     subdivisions: IntProperty(
         name="Subdivisions",
         description="Number of subdivisions used in Cardinal curve intersection (power of 2)",

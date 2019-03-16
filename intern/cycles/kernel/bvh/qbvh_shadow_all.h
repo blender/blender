@@ -293,10 +293,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                                  object,
                                                  prim_addr,
                                                  ray->time,
-                                                 curve_type,
-                                                 NULL,
-                                                 0,
-                                                 0);
+                                                 curve_type);
                 }
                 else {
                   hit = curve_intersect(kg,
@@ -307,10 +304,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                         object,
                                         prim_addr,
                                         ray->time,
-                                        curve_type,
-                                        NULL,
-                                        0,
-                                        0);
+                                        curve_type);
                 }
                 break;
               }

@@ -57,7 +57,7 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__HAIR__)
 #  define BVH_FUNCTION_NAME bvh_intersect_hair
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR | BVH_HAIR_MINIMUM_WIDTH
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
 #  include "kernel/bvh/bvh_traversal.h"
 #endif
 
@@ -69,7 +69,7 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #  define BVH_FUNCTION_NAME bvh_intersect_hair_motion
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR | BVH_HAIR_MINIMUM_WIDTH | BVH_MOTION
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR | BVH_MOTION
 #  include "kernel/bvh/bvh_traversal.h"
 #endif
 
@@ -181,10 +181,7 @@ ccl_device_inline bool scene_intersect_valid(const Ray *ray)
 ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
                                           const Ray ray,
                                           const uint visibility,
-                                          Intersection *isect,
-                                          uint *lcg_state,
-                                          float difl,
-                                          float extmax)
+                                          Intersection *isect)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT);
 
@@ -211,7 +208,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
   if (kernel_data.bvh.have_motion) {
 #  ifdef __HAIR__
     if (kernel_data.bvh.have_curves)
-      return bvh_intersect_hair_motion(kg, &ray, isect, visibility, lcg_state, difl, extmax);
+      return bvh_intersect_hair_motion(kg, &ray, isect, visibility);
 #  endif /* __HAIR__ */
 
     return bvh_intersect_motion(kg, &ray, isect, visibility);
@@ -220,7 +217,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 
 #ifdef __HAIR__
   if (kernel_data.bvh.have_curves)
-    return bvh_intersect_hair(kg, &ray, isect, visibility, lcg_state, difl, extmax);
+    return bvh_intersect_hair(kg, &ray, isect, visibility);
 #endif /* __HAIR__ */
 
 #ifdef __KERNEL_CPU__

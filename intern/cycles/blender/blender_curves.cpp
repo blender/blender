@@ -897,8 +897,6 @@ void BlenderSync::sync_curve_settings()
   CurveSystemManager prev_curve_system_manager = *curve_system_manager;
 
   curve_system_manager->use_curves = get_boolean(csscene, "use_curves");
-  curve_system_manager->minimum_width = get_float(csscene, "minimum_width");
-  curve_system_manager->maximum_width = get_float(csscene, "maximum_width");
 
   curve_system_manager->primitive = (CurvePrimitiveType)get_enum(
       csscene, "primitive", CURVE_NUM_PRIMITIVE_TYPES, CURVE_LINE_SEGMENTS);

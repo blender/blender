@@ -358,8 +358,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         layout.active = ccscene.use_curves
 
         col = layout.column()
-        col.prop(ccscene, "minimum_width", text="Min Pixels")
-        col.prop(ccscene, "maximum_width", text="Max Extension")
         col.prop(ccscene, "shape", text="Shape")
         if not (ccscene.primitive in {'CURVE_SEGMENTS', 'LINE_SEGMENTS'} and ccscene.shape == 'RIBBONS'):
             col.prop(ccscene, "cull_backfacing", text="Cull back-faces")

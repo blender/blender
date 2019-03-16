@@ -38,7 +38,6 @@ CCL_NAMESPACE_BEGIN
 #define BVH_INSTANCING 1
 #define BVH_MOTION 2
 #define BVH_HAIR 4
-#define BVH_HAIR_MINIMUM_WIDTH 8
 
 #define BVH_NAME_JOIN(x, y) x##_##y
 #define BVH_NAME_EVAL(x, y) BVH_NAME_JOIN(x, y)

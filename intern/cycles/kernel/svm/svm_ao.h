@@ -70,7 +70,7 @@ ccl_device_noinline float svm_ao(KernelGlobals *kg,
     }
     else {
       Intersection isect;
-      if (!scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f)) {
+      if (!scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect)) {
         unoccluded++;
       }
     }

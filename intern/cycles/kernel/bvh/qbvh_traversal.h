@@ -20,29 +20,19 @@
  *
  * BVH_INSTANCING: object instancing
  * BVH_HAIR: hair curve rendering
- * BVH_HAIR_MINIMUM_WIDTH: hair curve rendering with minimum width
  * BVH_MOTION: motion blur rendering
  */
 
 #if BVH_FEATURE(BVH_HAIR)
 #  define NODE_INTERSECT qbvh_node_intersect
-#  define NODE_INTERSECT_ROBUST qbvh_node_intersect_robust
 #else
 #  define NODE_INTERSECT qbvh_aligned_node_intersect
-#  define NODE_INTERSECT_ROBUST qbvh_aligned_node_intersect_robust
 #endif
 
 ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              const Ray *ray,
                                              Intersection *isect,
-                                             const uint visibility
-#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-                                             ,
-                                             uint *lcg_state,
-                                             float difl,
-                                             float extmax
-#endif
-)
+                                             const uint visibility)
 {
   /* TODO(sergey):
    * - Test if pushing distance on the stack helps (for non shadow rays).
@@ -126,38 +116,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
         BVH_DEBUG_NEXT_NODE();
 
-#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-        if (difl != 0.0f) {
-          /* NOTE: We extend all the child BB instead of fetching
-           * and checking visibility flags for each of the,
-           *
-           * Need to test if doing opposite would be any faster.
-           */
-          child_mask = NODE_INTERSECT_ROBUST(kg,
-                                             tnear,
-                                             tfar,
-#  ifdef __KERNEL_AVX2__
-                                             P_idir4,
-#  endif
-#  if BVH_FEATURE(BVH_HAIR) || !defined(__KERNEL_AVX2__)
-                                             org4,
-#  endif
-#  if BVH_FEATURE(BVH_HAIR)
-                                             dir4,
-#  endif
-                                             idir4,
-                                             near_x,
-                                             near_y,
-                                             near_z,
-                                             far_x,
-                                             far_y,
-                                             far_z,
-                                             node_addr,
-                                             difl,
-                                             &dist);
-        }
-        else
-#endif /* BVH_HAIR_MINIMUM_WIDTH */
         {
           child_mask = NODE_INTERSECT(kg,
                                       tnear,
@@ -364,32 +322,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                 kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
                 bool hit;
                 if (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-                  hit = cardinal_curve_intersect(kg,
-                                                 isect,
-                                                 P,
-                                                 dir,
-                                                 visibility,
-                                                 object,
-                                                 prim_addr,
-                                                 ray->time,
-                                                 curve_type,
-                                                 lcg_state,
-                                                 difl,
-                                                 extmax);
+                  hit = cardinal_curve_intersect(
+                      kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 }
                 else {
-                  hit = curve_intersect(kg,
-                                        isect,
-                                        P,
-                                        dir,
-                                        visibility,
-                                        object,
-                                        prim_addr,
-                                        ray->time,
-                                        curve_type,
-                                        lcg_state,
-                                        difl,
-                                        extmax);
+                  hit = curve_intersect(
+                      kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 }
                 if (hit) {
                   tfar = ssef(isect->t);
@@ -480,4 +418,3 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 }
 
 #undef NODE_INTERSECT
-#undef NODE_INTERSECT_ROBUST

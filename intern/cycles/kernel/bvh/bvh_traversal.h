@@ -26,10 +26,8 @@
 
 #if BVH_FEATURE(BVH_HAIR)
 #  define NODE_INTERSECT bvh_node_intersect
-#  define NODE_INTERSECT_ROBUST bvh_node_intersect_robust
 #else
 #  define NODE_INTERSECT bvh_aligned_node_intersect
-#  define NODE_INTERSECT_ROBUST bvh_aligned_node_intersect_robust
 #endif
 
 /* This is a template BVH traversal function, where various features can be
@@ -38,21 +36,13 @@
  *
  * BVH_INSTANCING: object instancing
  * BVH_HAIR: hair curve rendering
- * BVH_HAIR_MINIMUM_WIDTH: hair curve rendering with minimum width
  * BVH_MOTION: motion blur rendering
  */
 
 ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                                      const Ray *ray,
                                                      Intersection *isect,
-                                                     const uint visibility
-#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-                                                     ,
-                                                     uint *lcg_state,
-                                                     float difl,
-                                                     float extmax
-#endif
-)
+                                                     const uint visibility)
 {
   /* todo:
    * - test if pushing distance on the stack helps (for non shadow rays)
@@ -117,23 +107,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
         float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
 
 #if !defined(__KERNEL_SSE2__)
-#  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-        if (difl != 0.0f) {
-          traverse_mask = NODE_INTERSECT_ROBUST(kg,
-                                                P,
-#    if BVH_FEATURE(BVH_HAIR)
-                                                dir,
-#    endif
-                                                idir,
-                                                isect->t,
-                                                difl,
-                                                extmax,
-                                                node_addr,
-                                                visibility,
-                                                dist);
-        }
-        else
-#  endif
         {
           traverse_mask = NODE_INTERSECT(kg,
                                          P,
@@ -147,27 +120,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                          dist);
         }
 #else  // __KERNEL_SSE2__
-#  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-        if (difl != 0.0f) {
-          traverse_mask = NODE_INTERSECT_ROBUST(kg,
-                                                P,
-                                                dir,
-#    if BVH_FEATURE(BVH_HAIR)
-                                                tnear,
-                                                tfar,
-#    endif
-                                                tsplat,
-                                                Psplat,
-                                                idirsplat,
-                                                shufflexyz,
-                                                difl,
-                                                extmax,
-                                                node_addr,
-                                                visibility,
-                                                dist);
-        }
-        else
-#  endif
         {
           traverse_mask = NODE_INTERSECT(kg,
                                          P,
@@ -287,32 +239,12 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                 kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
                 bool hit;
                 if (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-                  hit = cardinal_curve_intersect(kg,
-                                                 isect,
-                                                 P,
-                                                 dir,
-                                                 visibility,
-                                                 object,
-                                                 prim_addr,
-                                                 ray->time,
-                                                 curve_type,
-                                                 lcg_state,
-                                                 difl,
-                                                 extmax);
+                  hit = cardinal_curve_intersect(
+                      kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 }
                 else {
-                  hit = curve_intersect(kg,
-                                        isect,
-                                        P,
-                                        dir,
-                                        visibility,
-                                        object,
-                                        prim_addr,
-                                        ray->time,
-                                        curve_type,
-                                        lcg_state,
-                                        difl,
-                                        extmax);
+                  hit = curve_intersect(
+                      kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 }
                 if (hit) {
                   /* shadow ray early termination */
@@ -408,56 +340,19 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
                                          Intersection *isect,
-                                         const uint visibility
-#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-                                         ,
-                                         uint *lcg_state,
-                                         float difl,
-                                         float extmax
-#endif
-)
+                                         const uint visibility)
 {
   switch (kernel_data.bvh.bvh_layout) {
 #ifdef __KERNEL_AVX2__
     case BVH_LAYOUT_BVH8:
-      return BVH_FUNCTION_FULL_NAME(OBVH)(kg,
-                                          ray,
-                                          isect,
-                                          visibility
-#  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-                                          ,
-                                          lcg_state,
-                                          difl,
-                                          extmax
-#  endif
-      );
+      return BVH_FUNCTION_FULL_NAME(OBVH)(kg, ray, isect, visibility);
 #endif
 #ifdef __QBVH__
     case BVH_LAYOUT_BVH4:
-      return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
-                                          ray,
-                                          isect,
-                                          visibility
-#  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-                                          ,
-                                          lcg_state,
-                                          difl,
-                                          extmax
-#  endif
-      );
+      return BVH_FUNCTION_FULL_NAME(QBVH)(kg, ray, isect, visibility);
 #endif /* __QBVH__ */
     case BVH_LAYOUT_BVH2:
-      return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-                                         ray,
-                                         isect,
-                                         visibility
-#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-                                         ,
-                                         lcg_state,
-                                         difl,
-                                         extmax
-#endif
-      );
+      return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, isect, visibility);
   }
   kernel_assert(!"Should not happen");
   return false;
@@ -466,4 +361,3 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES
 #undef NODE_INTERSECT
-#undef NODE_INTERSECT_ROBUST

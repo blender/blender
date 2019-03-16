@@ -103,8 +103,7 @@ ccl_device bool shadow_blocked_opaque(KernelGlobals *kg,
                                       Intersection *isect,
                                       float3 *shadow)
 {
-  const bool blocked = scene_intersect(
-      kg, *ray, visibility & PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f);
+  const bool blocked = scene_intersect(kg, *ray, visibility & PATH_RAY_SHADOW_OPAQUE, isect);
 #ifdef __VOLUME__
   if (!blocked && state->volume_stack[0].shader != SHADER_NONE) {
     /* Apply attenuation from current volume shader. */
@@ -319,8 +318,7 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(KernelGlobals *kg,
       if (bounce >= kernel_data.integrator.transparent_max_bounce) {
         return true;
       }
-      if (!scene_intersect(
-              kg, *ray, visibility & PATH_RAY_SHADOW_TRANSPARENT, isect, NULL, 0.0f, 0.0f)) {
+      if (!scene_intersect(kg, *ray, visibility & PATH_RAY_SHADOW_TRANSPARENT, isect)) {
         break;
       }
       if (!shader_transparent_shadow(kg, isect)) {
@@ -376,8 +374,7 @@ ccl_device bool shadow_blocked_transparent_stepped(KernelGlobals *kg,
                                                    Intersection *isect,
                                                    float3 *shadow)
 {
-  bool blocked = scene_intersect(
-      kg, *ray, visibility & PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f);
+  bool blocked = scene_intersect(kg, *ray, visibility & PATH_RAY_SHADOW_OPAQUE, isect);
   bool is_transparent_isect = blocked ? shader_transparent_shadow(kg, isect) : false;
   return shadow_blocked_transparent_stepped_loop(
       kg, sd, shadow_sd, state, visibility, ray, isect, blocked, is_transparent_isect, shadow);
@@ -436,8 +433,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
    * TODO(sergey): Check why using record-all behavior causes slowdown in such
    * cases. Could that be caused by a higher spill pressure?
    */
-  const bool blocked = scene_intersect(
-      kg, *ray, visibility & PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
+  const bool blocked = scene_intersect(kg, *ray, visibility & PATH_RAY_SHADOW_OPAQUE, &isect);
   const bool is_transparent_isect = blocked ? shader_transparent_shadow(kg, &isect) : false;
   if (!blocked || !is_transparent_isect || max_hits + 1 >= SHADOW_STACK_MAX_HITS) {
     return shadow_blocked_transparent_stepped_loop(
