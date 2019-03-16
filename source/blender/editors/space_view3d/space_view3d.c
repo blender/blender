@@ -533,8 +533,6 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 {
-	RegionView3D *rv3d = ar->regiondata;
-
 	ED_view3d_stop_render_preview(wm, ar);
 }
 

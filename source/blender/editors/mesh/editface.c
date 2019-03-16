@@ -272,7 +272,7 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
 	if (me == NULL || me->totpoly == 0) return;
 
 	if (mval) {
-		if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_DIST)) {
+		if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
 			return;
 		}
 	}
@@ -374,11 +374,13 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
-	if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_DIST))
+	if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
 		return false;
+	}
 
-	if (index >= me->totpoly)
+	if (index >= me->totpoly) {
 		return false;
+	}
 
 	mpoly_sel = me->mpoly + index;
 	if (mpoly_sel->flag & ME_HIDE) return false;

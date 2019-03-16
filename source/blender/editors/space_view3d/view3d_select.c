@@ -1924,7 +1924,7 @@ static bool ed_wpaint_vertex_select_pick(
 	uint index = 0;
 	MVert *mv;
 
-	if (ED_mesh_pick_vert(C, obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_DIST, use_zbuf)) {
+	if (ED_mesh_pick_vert(C, obact, mval, ED_MESH_PICK_DEFAULT_VERT_DIST, use_zbuf, &index)) {
 		mv = &me->mvert[index];
 		if (extend) {
 			mv->flag |= SELECT;
