@@ -30,6 +30,10 @@ void main()
 	gl_Position = v1;
 	color_geom = color_vert[0];
 	distance_along_line = 0.0f;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[0].gl_ClipDistance);
+#endif
 	EmitVertex();
 
 	gl_Position = v2;
@@ -47,6 +51,10 @@ void main()
 
 		distance_along_line = distance(p1, p2);
 	}
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
+#endif
 	EmitVertex();
 
 	EndPrimitive();

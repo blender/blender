@@ -321,9 +321,9 @@ DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass, eGPUShaderConfig sh_
 	return grp;
 }
 
-DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, const float color[4])
+DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, const float color[4], eGPUShaderConfig sh_cfg)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+	GPUShader *sh = GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR, sh_cfg);
 
 	static float dash_width = 6.0f;
 	static float dash_factor = 0.5f;
@@ -333,7 +333,9 @@ DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, const floa
 	DRW_shgroup_uniform_float(grp, "dash_width", &dash_width, 1);
 	DRW_shgroup_uniform_float(grp, "dash_factor", &dash_factor, 1);
 	DRW_shgroup_uniform_int_copy(grp, "colors_len", 0); /* "simple" mode */
-
+	if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

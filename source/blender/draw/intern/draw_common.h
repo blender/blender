@@ -125,7 +125,7 @@ void DRW_globals_free(void);
 void DRW_shgroup_world_clip_planes_from_rv3d(struct DRWShadingGroup *shgrp, const RegionView3D *rv3d);
 
 struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass, const float color[4]);
+struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass, const float color[4], eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, const float color[4], const float *size, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass, const float color[4], eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_groundpoints_uniform_color(struct DRWPass *pass, const float color[4], eGPUShaderConfig sh_cfg);

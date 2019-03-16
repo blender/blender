@@ -1359,8 +1359,8 @@ static void OBJECT_cache_init(void *vedata)
 		/* -------- STIPPLES ------- */
 
 		/* Relationship Lines */
-		sgl->relationship_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, gb->colorWire);
-		sgl->constraint_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, gb->colorGridAxisZ);
+		sgl->relationship_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, gb->colorWire, draw_ctx->sh_cfg);
+		sgl->constraint_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, gb->colorGridAxisZ, draw_ctx->sh_cfg);
 
 		/* Force Field Curve Guide End (here because of stipple) */
 		/* TODO port to shader stipple */
