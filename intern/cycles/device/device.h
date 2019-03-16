@@ -73,7 +73,6 @@ public:
 	string id; /* used for user preferences, should stay fixed with changing hardware config */
 	int num;
 	bool display_device;            /* GPU is used as a display device. */
-	bool advanced_shading;          /* Supports full shading system. */
 	bool has_half_images;           /* Support half-float textures. */
 	bool has_volume_decoupled;      /* Decoupled volume shading. */
 	bool has_osl;                   /* Support Open Shading Language. */
@@ -89,7 +88,6 @@ public:
 		num = 0;
 		cpu_threads = 0;
 		display_device = false;
-		advanced_shading = true;
 		has_half_images = false;
 		has_volume_decoupled = false;
 		has_osl = false;

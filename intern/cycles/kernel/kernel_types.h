@@ -90,7 +90,6 @@ CCL_NAMESPACE_BEGIN
 #    define __QBVH__
 #  endif
 #  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
 #  define __BRANCHED_PATH__
 #  ifdef WITH_OSL
 #    define __OSL__
@@ -107,7 +106,6 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_CUDA__
 #  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
 #  define __VOLUME__
 #  define __VOLUME_SCATTER__
 #  define __SUBSURFACE__
@@ -132,49 +130,25 @@ CCL_NAMESPACE_BEGIN
 #    define __HAIR__
 #  else
 
-/* keep __KERNEL_ADV_SHADING__ in sync with opencl_kernel_use_advanced_shading! */
+#    define __KERNEL_SHADING__
+#    define __PRINCIPLED__
+#    define __CMJ__
 
 #    ifdef __KERNEL_OPENCL_NVIDIA__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
 #      define __SUBSURFACE__
-#      define __PRINCIPLED__
 #      define __VOLUME__
 #      define __VOLUME_SCATTER__
 #      define __SHADOW_RECORD_ALL__
-#      define __CMJ__
 #      define __BRANCHED_PATH__
 #    endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
-#    ifdef __KERNEL_OPENCL_APPLE__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
-#      define __PRINCIPLED__
-#      define __CMJ__
-/* TODO(sergey): Currently experimental section is ignored here,
- * this is because megakernel in device_opencl does not support
- * custom cflags depending on the scene features.
- */
-#    endif  /* __KERNEL_OPENCL_APPLE__ */
-
 #    ifdef __KERNEL_OPENCL_AMD__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
 #      define __SUBSURFACE__
-#      define __PRINCIPLED__
 #      define __VOLUME__
 #      define __VOLUME_SCATTER__
 #      define __SHADOW_RECORD_ALL__
-#      define __CMJ__
 #      define __BRANCHED_PATH__
 #    endif  /* __KERNEL_OPENCL_AMD__ */
-
-#    ifdef __KERNEL_OPENCL_INTEL_CPU__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
-#      define __PRINCIPLED__
-#      define __CMJ__
-#    endif  /* __KERNEL_OPENCL_INTEL_CPU__ */
 
 #  endif  /* KERNEL_OPENCL_PREVIEW__ */
 #endif  /* __KERNEL_OPENCL__ */
@@ -202,9 +176,6 @@ CCL_NAMESPACE_BEGIN
 #  define __TEXTURES__
 #  define __EXTRA_NODES__
 #  define __HOLDOUT__
-#endif
-
-#ifdef __KERNEL_ADV_SHADING__
 #  define __MULTI_CLOSURE__
 #  define __TRANSPARENT_SHADOWS__
 #  define __PASSES__

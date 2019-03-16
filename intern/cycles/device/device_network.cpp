@@ -308,7 +308,6 @@ void device_network_info(vector<DeviceInfo>& devices)
 	info.num = 0;
 
 	/* todo: get this info from device */
-	info.advanced_shading = true;
 	info.has_volume_decoupled = false;
 	info.has_osl = false;
 
