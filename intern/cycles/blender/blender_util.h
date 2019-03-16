@@ -324,46 +324,6 @@ static inline int4 get_int4(const BL::Array<int, 4>& array)
 	return make_int4(array[0], array[1], array[2], array[3]);
 }
 
-static inline uint get_layer(const BL::Array<bool, 20>& array)
-{
-	uint layer = 0;
-
-	for(uint i = 0; i < 20; i++)
-		if(array[i])
-			layer |= (1 << i);
-
-	return layer;
-}
-
-static inline uint get_layer(const BL::Array<bool, 20>& array,
-                             const BL::Array<bool, 8>& local_array,
-                             bool is_light = false,
-                             uint view_layers = (1 << 20) - 1)
-{
-	uint layer = 0;
-
-	for(uint i = 0; i < 20; i++)
-		if(array[i])
-			layer |= (1 << i);
-
-	if(is_light) {
-		/* Consider light is visible if it was visible without layer
-		 * override, which matches behavior of Blender Internal.
-		 */
-		if(layer & view_layers) {
-			for(uint i = 0; i < 8; i++)
-				layer |= (1 << (20+i));
-		}
-	}
-	else {
-		for(uint i = 0; i < 8; i++)
-			if(local_array[i])
-				layer |= (1 << (20+i));
-	}
-
-	return layer;
-}
-
 static inline float3 get_float3(PointerRNA& ptr, const char *name)
 {
 	float3 f;
