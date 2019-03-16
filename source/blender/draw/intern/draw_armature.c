@@ -417,10 +417,12 @@ static void drw_shgroup_bone_point(
 }
 
 /* Axes */
-static void drw_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_axes(
+        const float (*bone_mat)[4], const float color[4],
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_axes == NULL) {
-		g_data.bone_axes = shgroup_instance_bone_axes(g_data.passes.bone_axes);
+		g_data.bone_axes = shgroup_instance_bone_axes(g_data.passes.bone_axes, sh_cfg);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -1172,7 +1174,9 @@ static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 	translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
 
-static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
+static void draw_axes(
+        EditBone *eBone, bPoseChannel *pchan,
+        const eGPUShaderConfig sh_cfg)
 {
 	float final_col[4];
 	const float *col = (g_theme.const_color) ? g_theme.const_color :
@@ -1180,7 +1184,7 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 	copy_v4_v4(final_col, col);
 	/* Mix with axes color. */
 	final_col[3] = (g_theme.const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.3 : 0.8;
-	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), final_col);
+	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), final_col, sh_cfg);
 }
 
 static void draw_points(
@@ -1783,7 +1787,7 @@ static void draw_armature_edit(Object *ob)
 
 				/*	Draw additional axes */
 				if (arm->flag & ARM_DRAWAXES) {
-					draw_axes(eBone, NULL);
+					draw_axes(eBone, NULL, draw_ctx->sh_cfg);
 				}
 			}
 		}
@@ -1907,7 +1911,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 				/*	Draw additional axes */
 				if (arm->flag & ARM_DRAWAXES) {
-					draw_axes(NULL, pchan);
+					draw_axes(NULL, pchan, draw_ctx->sh_cfg);
 				}
 			}
 		}

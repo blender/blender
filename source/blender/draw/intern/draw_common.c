@@ -602,13 +602,16 @@ DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct GPUBatch *geom, eGP
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass, eGPUShaderConfig sh_cfg)
 {
-	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
+	COMMON_Shaders *sh_data = &g_shaders[sh_cfg];
 	if (sh_data->bone_axes == NULL) {
-		sh_data->bone_axes = DRW_shader_create(
-		        datatoc_armature_axes_vert_glsl, NULL,
-		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
+		sh_data->bone_axes = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_axes_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_color, {
@@ -621,7 +624,9 @@ DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass)
 	        pass, DRW_cache_bone_arrows_get(),
 	        g_formats.instance_color);
 	DRW_shgroup_uniform_vec3(grp, "screenVecs[0]", DRW_viewport_screenvecs_get(), 2);
-
+	if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

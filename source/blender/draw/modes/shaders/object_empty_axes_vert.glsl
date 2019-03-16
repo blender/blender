@@ -1,6 +1,8 @@
 
 uniform mat4 ViewProjectionMatrix;
+#ifdef USE_WORLD_CLIP_PLANES
 uniform mat4 ModelMatrix;
+#endif
 
 uniform vec3 screenVecs[3];
 
@@ -25,12 +27,12 @@ void main()
 	/* Scale uniformly by axis length */
 	spos *= length(chosen_axis) * draw_size;
 
-	vec4 pos = vec4(wpos + spos, 1.0);
-	gl_Position = ViewProjectionMatrix * pos;
+	vec4 pos_4d = vec4(wpos + spos, 1.0);
+	gl_Position = ViewProjectionMatrix * pos_4d;
 
 	finalColor = vec4(color, 1.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * pos).xyz);
+	world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
 #endif
 }

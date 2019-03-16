@@ -142,7 +142,7 @@ struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct GPU
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_axes(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_axes(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_distance(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_outline(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass, bool transp, eGPUShaderConfig sh_cfg);

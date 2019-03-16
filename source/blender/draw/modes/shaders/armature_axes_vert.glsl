@@ -1,7 +1,9 @@
 
 uniform mat4 ViewProjectionMatrix;
 uniform vec3 screenVecs[3];
-
+#ifdef USE_WORLD_CLIP_PLANES
+uniform mat4 ModelMatrix;
+#endif
 /* ---- Instantiated Attrs ---- */
 in float axis; /* position on the axis. [0.0-1.0] is X axis, [1.0-2.0] is Y, etc... */
 in vec2 screenPos;
@@ -23,8 +25,13 @@ void main()
 	/* Scale uniformly by axis length */
 	spos *= length(chosen_axis);
 
-	gl_Position = ViewProjectionMatrix * vec4(wpos + spos, 1.0);
+	vec4 pos_4d = vec4(wpos + spos, 1.0);
+	gl_Position = ViewProjectionMatrix * pos_4d;
 
 	finalColor.rgb = mix(colorAxis, color.rgb, color.a);
 	finalColor.a = 1.0;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+#endif
 }
