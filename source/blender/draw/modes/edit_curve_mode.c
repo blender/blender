@@ -86,7 +86,7 @@ typedef struct EDIT_CURVE_Shaders {
 
 static struct {
 	EDIT_CURVE_Shaders sh_data[GPU_SHADER_CFG_LEN];
-} e_data = {NULL}; /* Engine data */
+} e_data = {{{NULL}}}; /* Engine data */
 
 typedef struct EDIT_CURVE_PrivateData {
 	/* resulting curve as 'wire' for curves (and optionally normals) */

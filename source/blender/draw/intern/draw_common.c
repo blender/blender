@@ -41,7 +41,7 @@
 	ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)a / 255.0f)
 
 /* Colors & Constant */
-struct DRW_Global G_draw = {0};
+struct DRW_Global G_draw = {{{0}}};
 
 static bool weight_ramp_custom = false;
 static ColorBand weight_ramp_copy;

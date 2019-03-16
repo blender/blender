@@ -122,7 +122,7 @@ static struct {
 	/* temp buffer texture */
 	struct GPUTexture *occlude_wire_depth_tx;
 	struct GPUTexture *occlude_wire_color_tx;
-} e_data = {NULL}; /* Engine data */
+} e_data = {{{NULL}}}; /* Engine data */
 
 typedef struct EDIT_MESH_PrivateData {
 	/* weight */

@@ -145,6 +145,7 @@ public:
 					return subresult;
 
 				case DEVICE_KERNEL_USING_FEATURE_KERNEL:
+				case DEVICE_KERNEL_UNKNOWN:
 					break;
 			}
 		}

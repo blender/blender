@@ -44,7 +44,7 @@ struct Depsgraph;
 namespace DEG {
 
 struct Depsgraph;
-struct DepsgraphNodeBuilder;
+class DepsgraphNodeBuilder;
 struct IDNode;
 
 /* Get fully expanded (ready for use) copy-on-write datablock for the given

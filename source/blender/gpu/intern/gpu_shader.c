@@ -184,7 +184,7 @@ const struct GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN] = {
 };
 
 /* cache of built-in shaders (each is created on first use) */
-static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {NULL};
+static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {{NULL}};
 
 #ifndef NDEBUG
 static uint g_shaderid = 0;
@@ -570,7 +570,7 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
 struct GPUShader *GPU_shader_create_from_arrays_impl(
         const struct GPU_ShaderCreateFromArray_Params *params)
 {
-	struct { const char *str; bool is_alloc;} str_dst[4] = {0};
+	struct { const char *str; bool is_alloc;} str_dst[4] = {{0}};
 	const char **str_src[4] = {params->vert, params->frag, params->geom, params->defs};
 
 	for (int i = 0; i < ARRAY_SIZE(str_src); i++) {

@@ -376,8 +376,8 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 	if (iStrokeVertices.size() < 2)
 		return;
 	int i = 0, j;
-	vector<StrokeVertex *>::const_iterator v, vend, v2, vPrev;
-	StrokeVertex *sv, *sv2; //soc unused -  *svPrev;
+	vector<StrokeVertex *>::const_iterator v, vend, v2;
+	StrokeVertex *sv, *sv2;
 
 	bool singu1 = false, singu2 = false;
 	int timeSinceSingu1 = 0, timeSinceSingu2 = 0;

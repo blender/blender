@@ -82,7 +82,7 @@ typedef struct OVERLAY_Shaders {
 /* *********** STATIC *********** */
 static struct {
 	OVERLAY_Shaders sh_data[GPU_SHADER_CFG_LEN];
-} e_data = {NULL};
+} e_data = {{{NULL}}};
 
 /* Shaders */
 extern char datatoc_overlay_face_orientation_frag_glsl[];

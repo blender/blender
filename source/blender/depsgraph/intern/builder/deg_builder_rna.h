@@ -35,7 +35,7 @@ namespace DEG {
 
 struct Depsgraph;
 struct Node;
-struct RNANodeQueryIDData;
+class RNANodeQueryIDData;
 
 /* For queries which gives operation node or key defines whether we are
  * interested in a result of the given property or whether we are linking some

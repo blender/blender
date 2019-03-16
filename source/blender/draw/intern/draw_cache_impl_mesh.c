@@ -2140,7 +2140,7 @@ static void mesh_create_edit_vertex_loops(
 	uchar fflag;
 
 	/* Static formats */
-	static struct { GPUVertFormat sel_id, pos_nor, lnor, flag, uv; } format = { 0 };
+	static struct { GPUVertFormat sel_id, pos_nor, lnor, flag, uv; } format = {{ 0 }};
 	static struct { uint sel_id, pos, nor, lnor, data, uvs; } attr_id;
 	if (format.sel_id.attr_len == 0) {
 		attr_id.sel_id = GPU_vertformat_attr_add(&format.sel_id, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);

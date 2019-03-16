@@ -99,7 +99,7 @@ static struct {
 
 	EDIT_LATTICE_Shaders sh_data[GPU_SHADER_CFG_LEN];
 
-} e_data = {NULL}; /* Engine data */
+} e_data = {{{NULL}}}; /* Engine data */
 
 typedef struct EDIT_LATTICE_PrivateData {
 	/* This keeps the references of the shading groups for

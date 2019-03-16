@@ -929,7 +929,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * generic backup structure. */
 	DrawDataList drawdata_backup;
 	DrawDataList *drawdata_ptr = NULL;
-	ObjectRuntimeBackup object_runtime_backup = {{0}};
+	ObjectRuntimeBackup object_runtime_backup = {{{0}}};
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
 			case ID_OB:

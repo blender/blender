@@ -66,7 +66,7 @@ typedef struct BASIC_Shaders {
 
 static struct {
 	BASIC_Shaders sh_data[GPU_SHADER_CFG_LEN];
-} e_data = {NULL}; /* Engine data */
+} e_data = {{{NULL}}}; /* Engine data */
 
 typedef struct BASIC_PrivateData {
 	DRWShadingGroup *depth_shgrp;
