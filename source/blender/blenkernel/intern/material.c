@@ -1038,7 +1038,7 @@ static int count_texture_nodes_recursive(bNodeTree *nodetree)
 		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
 			tex_nodes++;
 		}
-		else if (node->type == NODE_GROUP && node->id) {
+		else if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
 			/* recurse into the node group and see if it contains any textures */
 			tex_nodes += count_texture_nodes_recursive((bNodeTree *)node->id);
 		}
@@ -1073,7 +1073,7 @@ static void fill_texpaint_slots_recursive(bNodeTree *nodetree, bNode *active_nod
 			}
 			(*index)++;
 		}
-		else if (node->type == NODE_GROUP && node->id) {
+		else if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
 			/* recurse into the node group and see if it contains any textures */
 			fill_texpaint_slots_recursive((bNodeTree *)node->id, active_node, ma, index);
 		}

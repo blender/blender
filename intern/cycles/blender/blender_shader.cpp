@@ -1050,13 +1050,18 @@ static void add_nodes(Scene *scene,
 				graph->add(proxy);
 			}
 		}
-		else if(b_node->is_a(&RNA_ShaderNodeGroup) || b_node->is_a(&RNA_NodeCustomGroup)) {
+		else if(b_node->is_a(&RNA_ShaderNodeGroup) ||
+		        b_node->is_a(&RNA_NodeCustomGroup) ||
+		        b_node->is_a(&RNA_ShaderNodeCustomGroup)) {
 
 			BL::ShaderNodeTree b_group_ntree(PointerRNA_NULL);
 			if(b_node->is_a(&RNA_ShaderNodeGroup))
 				b_group_ntree = BL::ShaderNodeTree(((BL::NodeGroup)(*b_node)).node_tree());
-			else
+			else if (b_node->is_a(&RNA_NodeCustomGroup))
 				b_group_ntree = BL::ShaderNodeTree(((BL::NodeCustomGroup)(*b_node)).node_tree());
+			else
+				b_group_ntree = BL::ShaderNodeTree(((BL::ShaderNodeCustomGroup)(*b_node)).node_tree());
+
 			ProxyMap group_proxy_input_map, group_proxy_output_map;
 
 			/* Add a proxy node for each socket

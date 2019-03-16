@@ -128,7 +128,7 @@ void NodeGraph::add_bNode(const CompositorContext &context, bNodeTree *b_ntree, 
 	}
 
 	/* special node types */
-	if (b_node->type == NODE_GROUP) {
+	if (ELEM(b_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
 		add_proxies_group(context, b_node, key);
 	}
 	else if (b_node->type == NODE_REROUTE) {

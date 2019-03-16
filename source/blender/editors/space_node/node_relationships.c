@@ -124,7 +124,7 @@ static bool node_group_has_output_dfs(bNode *node)
 
 static bool node_group_has_output(Main *bmain, bNode *node)
 {
-	BLI_assert(node->type == NODE_GROUP);
+	BLI_assert(ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP));
 	bNodeTree *ntree = (bNodeTree *)node->id;
 	if (ntree == NULL) {
 		return false;
@@ -153,7 +153,7 @@ bool node_connected_to_output(Main *bmain, bNodeTree *ntree, bNode *node)
 		 * We could make check more grained here by taking which socket the node
 		 * is connected to and so eventually.
 		 */
-		if (current_node->type == NODE_GROUP) {
+		if (ELEM(current_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
 			if (current_node->id != NULL &&
 			    ntree_has_drivers((bNodeTree *)current_node->id))
 			{

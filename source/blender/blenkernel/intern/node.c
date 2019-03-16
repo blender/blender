@@ -1804,7 +1804,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
 		return;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == NODE_GROUP && node->id) {
+		if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
 			bNodeTree *ngroup = (bNodeTree *)node->id;
 			ntreeFreeTree(ngroup);
 			MEM_freeN(ngroup);
@@ -2046,7 +2046,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		         LIB_ID_COPY_NO_ANIMDATA));
 
 		for (node = ltree->nodes.first; node; node = node->next) {
-			if (node->type == NODE_GROUP && node->id) {
+			if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
 				node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
 			}
 		}
@@ -2369,7 +2369,7 @@ bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
 		return true;
 
 	for (node = ntree->nodes.first; node; node = node->next)
-		if (node->type == NODE_GROUP && node->id)
+		if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id)
 			if (ntreeHasTree((bNodeTree *)node->id, lookup))
 				return true;
 

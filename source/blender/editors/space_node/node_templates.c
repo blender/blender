@@ -68,7 +68,7 @@ typedef struct NodeLinkItem {
  */
 static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 {
-	if (node->type == NODE_GROUP) {
+	if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
 		return (node->id == (ID *)item->ngroup);
 	}
 	else
@@ -77,7 +77,7 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 
 static void node_link_item_apply(Main *bmain, bNode *node, NodeLinkItem *item)
 {
-	if (node->type == NODE_GROUP) {
+	if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
 		node->id = (ID *)item->ngroup;
 		ntreeUpdateTree(bmain, item->ngroup);
 	}

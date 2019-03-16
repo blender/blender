@@ -56,3 +56,9 @@ void register_node_type_cmp_group(void)
 
 	nodeRegisterType(&ntype);
 }
+
+void register_node_type_cmp_custom_group(bNodeType *ntype)
+{
+	ntype->insert_link = node_insert_link_default;
+	ntype->update_internal_links = node_update_internal_links_default;
+}

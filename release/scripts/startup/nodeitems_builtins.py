@@ -99,7 +99,9 @@ def node_group_items(context):
         # filter out recursive groups
         if contains_group(group, ntree):
             continue
-
+        # filter out hidden nodetrees
+        if group.name.startswith('.'):
+            continue
         yield NodeItem(node_tree_group_type[group.bl_idname],
                        group.name,
                        {"node_tree": "bpy.data.node_groups[%r]" % group.name})

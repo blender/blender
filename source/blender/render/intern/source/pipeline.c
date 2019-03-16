@@ -1769,7 +1769,7 @@ static bool node_tree_has_composite_output(bNodeTree *ntree)
 		if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
 			return true;
 		}
-		else if (node->type == NODE_GROUP) {
+		else if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
 			if (node->id) {
 				if (node_tree_has_composite_output((bNodeTree *)node->id)) {
 					return true;

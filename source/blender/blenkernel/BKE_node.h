@@ -618,6 +618,7 @@ bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node
 #define NODE_REROUTE	6
 #define NODE_GROUP_INPUT	7
 #define NODE_GROUP_OUTPUT	8
+#define NODE_CUSTOM_GROUP	9
 
 void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
 

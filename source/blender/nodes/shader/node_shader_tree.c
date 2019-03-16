@@ -290,7 +290,7 @@ static bNode *ntree_shader_output_node_from_group(bNodeTree *ntree, int target)
 
 	/* Search if node groups do not contain valid output nodes (recursively). */
 	for (bNode *node = ntree->nodes.first; node; node = node->next) {
-		if (!ELEM(node->type, NODE_GROUP)) {
+		if (!ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
 			continue;
 		}
 		if (node->id != NULL) {
@@ -453,7 +453,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 
 	for (group_node = localtree->nodes.first; group_node; group_node = group_node->next) {
 
-		if (group_node->type != NODE_GROUP || group_node->id == NULL)
+		if (!(ELEM(group_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) || group_node->id == NULL)
 			continue;
 
 		/* Do it recursively. */
@@ -674,7 +674,7 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
 			/* Don't connect node itself! */
 			continue;
 		}
-		if (node->type == NODE_GROUP && node->id) {
+		if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
 			/* Special re-linking for group nodes. */
 			ntree_shader_link_builtin_group_normal(ntree,
 			                                       node,
@@ -765,6 +765,7 @@ static bool ntree_tag_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *user
 
 	switch (fromnode->type) {
 		case NODE_GROUP:
+		case NODE_CUSTOM_GROUP:
 			/* Recursive */
 			if (fromnode->id != NULL) {
 				bNodeTree *ntree = (bNodeTree *)fromnode->id;
