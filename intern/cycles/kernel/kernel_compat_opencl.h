@@ -125,7 +125,7 @@
 #define fmodf(x, y) fmod((float)(x), (float)(y))
 #define sinhf(x) sinh(((float)(x)))
 
-#ifndef __CL_USE_NATIVE__
+#if !(defined(__KERNEL_OPENCL_AMD__) || defined(__KERNEL_OPENCL_INTEL_CPU__))
 #  define sinf(x) native_sin(((float)(x)))
 #  define cosf(x) native_cos(((float)(x)))
 #  define tanf(x) native_tan(((float)(x)))
