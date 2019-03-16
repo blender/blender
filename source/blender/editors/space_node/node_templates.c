@@ -143,9 +143,7 @@ static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
 		next = node->next;
 
 		if (node->flag & NODE_TEST) {
-			if (node->id)
-				id_us_min(node->id);
-			nodeDeleteNode(bmain, ntree, node);
+			nodeRemoveNode(bmain, ntree, node, true);
 		}
 	}
 }

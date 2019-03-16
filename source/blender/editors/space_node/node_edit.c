@@ -1590,11 +1590,8 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	for (node = snode->edittree->nodes.first; node; node = next) {
 		next = node->next;
 		if (node->flag & SELECT) {
-			/* check id user here, nodeFreeNode is called for free dbase too */
 			do_tag_update |= (do_tag_update || node_connected_to_output(bmain, snode->edittree, node));
-			if (node->id)
-				id_us_min(node->id);
-			nodeDeleteNode(bmain, snode->edittree, node);
+			nodeRemoveNode(bmain, snode->edittree, node, true);
 		}
 	}
 
@@ -1684,11 +1681,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 		next = node->next;
 		if (node->flag & SELECT) {
 			nodeInternalRelink(snode->edittree, node);
-
-			/* check id user here, nodeFreeNode is called for free dbase too */
-			if (node->id)
-				id_us_min(node->id);
-			nodeDeleteNode(bmain, snode->edittree, node);
+			nodeRemoveNode(bmain, snode->edittree, node, true);
 		}
 	}
 

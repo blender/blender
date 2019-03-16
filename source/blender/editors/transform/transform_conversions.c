@@ -6442,7 +6442,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 			for (node = ntree->nodes.first; node; node = node_next) {
 				node_next = node->next;
 				if (node->flag & NODE_SELECT)
-					nodeDeleteNode(bmain, ntree, node);
+					nodeRemoveNode(bmain, ntree, node, true);
 			}
 		}
 	}

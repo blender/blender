@@ -118,7 +118,7 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
 			nodeInternalRelink(localtree, node);
-			nodeFreeNode(localtree, node);
+			ntreeFreeLocalNode(localtree, node);
 		}
 	}
 }

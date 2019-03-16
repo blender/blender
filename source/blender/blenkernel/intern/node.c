@@ -139,6 +139,9 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 	if (ntree->typeinfo->node_add_init != NULL)
 		ntree->typeinfo->node_add_init(ntree, node);
 
+	if (node->id)
+		id_us_plus(node->id);
+
 	/* extra init callback */
 	if (ntype->initfunc_api) {
 		PointerRNA ptr;
@@ -150,9 +153,6 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 		BLI_assert(C != NULL);
 		ntype->initfunc_api(C, &ptr);
 	}
-
-	if (node->id)
-		id_us_plus(node->id);
 
 	node->flag |= NODE_INIT;
 }
@@ -1007,7 +1007,8 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, bNode *node_src, const int flag)
 	node_src->new_node = node_dst;
 	node_dst->new_node = NULL;
 
-	if (node_dst->typeinfo->copyfunc_api) {
+	bool do_copy_api = !((flag & LIB_ID_CREATE_NO_MAIN) || (flag & LIB_ID_COPY_LOCALIZE));
+	if (node_dst->typeinfo->copyfunc_api && do_copy_api) {
 		PointerRNA ptr;
 		RNA_pointer_create((ID *)ntree, &RNA_Node, node_dst, &ptr);
 
@@ -1677,25 +1678,11 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 	}
 }
 
-/** \note caller needs to manage node->id user */
-static void node_free_node_ex(
-        Main *bmain, bNodeTree *ntree, bNode *node,
-        bool remove_animdata, bool use_api_free_cb)
+/* Free the node itself. ID user refcounting is up the caller,
+ * that does not happen here. */
+static void node_free_node(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock, *nextsock;
-
-	/* don't remove node animdata if the tree is localized,
-	 * Action is shared with the original tree (T38221)
-	 */
-	remove_animdata &= ntree && !(ntree->id.tag & LIB_TAG_LOCALIZED);
-
-	/* extra free callback */
-	if (use_api_free_cb && node->typeinfo->freefunc_api) {
-		PointerRNA ptr;
-		RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
-
-		node->typeinfo->freefunc_api(&ptr);
-	}
 
 	/* since it is called while free database, node->id is undefined */
 
@@ -1706,20 +1693,6 @@ static void node_free_node_ex(
 		node_unlink_attached(ntree, node);
 
 		BLI_remlink(&ntree->nodes, node);
-
-		if (remove_animdata) {
-			char propname_esc[MAX_IDPROP_NAME * 2];
-			char prefix[MAX_IDPROP_NAME * 2];
-
-			BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
-			BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
-
-			if (BKE_animdata_fix_paths_remove((ID *)ntree, prefix)) {
-				if (bmain != NULL) {
-					DEG_relations_tag_update(bmain);
-				}
-			}
-		}
 
 		if (ntree->typeinfo->free_node_cache)
 			ntree->typeinfo->free_node_cache(ntree, node);
@@ -1762,14 +1735,49 @@ static void node_free_node_ex(
 		ntree->update |= NTREE_UPDATE_NODES;
 }
 
-void nodeFreeNode(bNodeTree *ntree, bNode *node)
+void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
 {
-	node_free_node_ex(NULL, ntree, node, false, true);
+	/* For removing nodes while editing localized node trees. */
+	BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) != 0);
+	node_free_node(ntree, node);
 }
 
-void nodeDeleteNode(Main *bmain, bNodeTree *ntree, bNode *node)
+void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 {
-	node_free_node_ex(bmain, ntree, node, true, true);
+	/* This function is not for localized node trees, we do not want
+	 * do to ID user refcounting and removal of animdation data then. */
+	BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
+
+	if (do_id_user) {
+		/* Free callback for NodeCustomGroup. */
+		if (node->typeinfo->freefunc_api) {
+			PointerRNA ptr;
+			RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
+
+			node->typeinfo->freefunc_api(&ptr);
+		}
+
+		/* Do user counting. */
+		if (node->id) {
+			id_us_min(node->id);
+		}
+	}
+
+	/* Remove animation data. */
+	char propname_esc[MAX_IDPROP_NAME * 2];
+	char prefix[MAX_IDPROP_NAME * 2];
+
+	BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
+	BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
+
+	if (BKE_animdata_fix_paths_remove((ID *)ntree, prefix)) {
+		if (bmain != NULL) {
+			DEG_relations_tag_update(bmain);
+		}
+	}
+
+	/* Free node itself. */
+	node_free_node(ntree, node);
 }
 
 static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock)
@@ -1804,7 +1812,8 @@ static void free_localized_node_groups(bNodeTree *ntree)
 	}
 }
 
-/** Free (or release) any data used by this nodetree (does not free the nodetree itself). */
+/* Free (or release) any data used by this nodetree. Does not free the
+ * nodetree itself and does no ID user counting. */
 void ntreeFreeTree(bNodeTree *ntree)
 {
 	bNode *node, *next;
@@ -1839,7 +1848,7 @@ void ntreeFreeTree(bNodeTree *ntree)
 
 	for (node = ntree->nodes.first; node; node = next) {
 		next = node->next;
-		node_free_node_ex(NULL, ntree, node, false, false);
+		node_free_node(ntree, node);
 	}
 
 	/* free interface sockets */
@@ -2594,7 +2603,7 @@ void BKE_node_clipboard_clear(void)
 
 	for (node = node_clipboard.nodes.first; node; node = node_next) {
 		node_next = node->next;
-		node_free_node_ex(NULL, NULL, node, false, false);
+		node_free_node(NULL, node);
 	}
 	BLI_listbase_clear(&node_clipboard.nodes);
 
@@ -2697,6 +2706,11 @@ int BKE_node_clipboard_get_type(void)
 	return node_clipboard.type;
 }
 
+void BKE_node_clipboard_free(void)
+{
+	BKE_node_clipboard_validate();
+	BKE_node_clipboard_clear();
+}
 
 /* Node Instance Hash */
 

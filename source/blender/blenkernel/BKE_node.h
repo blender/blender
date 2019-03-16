@@ -337,6 +337,7 @@ void              ntreeUserDecrefID(struct bNodeTree *ntree);
 struct bNodeTree *ntreeFromID(const struct ID *id);
 
 void              ntreeMakeLocal(struct Main *bmain, struct bNodeTree *ntree, bool id_in_mainlist, const bool lib_local);
+void              ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void              ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode     *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasType(const struct bNodeTree *ntree, int type);
@@ -445,10 +446,8 @@ struct bNode	*nodeAddStaticNode(const struct bContext *C, struct bNodeTree *ntre
 void            nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 void            nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 
-/* Frees the node itself, without affect to anything else. */
-void            nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
-/* Will additionally cleanup things like f-curves which uses this node. */
-void            nodeDeleteNode(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+/* Delete node, associated animation data and ID user count. */
+void            nodeRemoveNode(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node, bool do_id_user);
 
 struct bNode    *BKE_node_copy_ex(struct bNodeTree *ntree, struct bNode *node_src, const int flag);
 
@@ -502,6 +501,7 @@ void            ntreeTagUsedSockets(struct bNodeTree *ntree);
 /* Node Clipboard */
 void                   BKE_node_clipboard_init(struct bNodeTree *ntree);
 void                   BKE_node_clipboard_clear(void);
+void                   BKE_node_clipboard_free(void);
 bool                   BKE_node_clipboard_validate(void);
 void                   BKE_node_clipboard_add_node(struct bNode *node);
 void                   BKE_node_clipboard_add_link(struct bNodeLink *link);

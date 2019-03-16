@@ -143,7 +143,7 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
 			nodeInternalRelink(localtree, node);
-			nodeFreeNode(localtree, node);
+			ntreeFreeLocalNode(localtree, node);
 		}
 	}
 }
@@ -247,7 +247,7 @@ static bNode *ntree_shader_relink_output_from_group(bNodeTree *ntree,
 		                     SH_NODE_OUTPUT_WORLD,
 		                     SH_NODE_OUTPUT_LIGHT))
 		{
-			nodeFreeNode(ntree, node);
+			ntreeFreeLocalNode(ntree, node);
 		}
 	}
 

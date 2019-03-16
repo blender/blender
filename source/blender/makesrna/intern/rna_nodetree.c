@@ -741,8 +741,8 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree, Main *bmain, ReportList *
 		return;
 	}
 
-	id_us_min(node->id);
-	nodeDeleteNode(bmain, ntree, node);
+	nodeRemoveNode(bmain, ntree, node, true);
+
 	RNA_POINTER_INVALIDATE(node_ptr);
 
 	ntreeUpdateTree(bmain, ntree); /* update group node socket links */
@@ -759,10 +759,7 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree, Main *bmain, ReportList *r
 	while (node) {
 		bNode *next_node = node->next;
 
-		if (node->id)
-			id_us_min(node->id);
-
-		nodeDeleteNode(bmain, ntree, node);
+		nodeRemoveNode(bmain, ntree, node, true);
 
 		node = next_node;
 	}
