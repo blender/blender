@@ -384,12 +384,19 @@ uint ED_view3d_select_id_read_nearest(
 			for (int b = 0; b < nr; b++) {
 				if (*tbuf && *tbuf >= min && *tbuf < max) {
 					/* we got a hit */
+					int hit_co[2], center_co[2];
 
 					/* get x,y pixel coords from the offset
 					 * (manhatten distance in keeping with other screen-based selection) */
-					*r_dist = (float)(
-					        abs(((int)(tbuf - buf) % height) - (height / 2)) +
-					        abs(((int)(tbuf - buf) / height) - (height / 2)));
+					hit_co[0] = (int)(tbuf - buf) % (int)height;
+					hit_co[1] = (int)(tbuf - buf) / (int)height;
+
+					center_co[0] = (int)(height / 2);
+					center_co[1] = (int)(width / 2);
+
+					/* for more efficiency, just sum the x, y pixel dist coords */
+					*r_dist = (float)(abs(hit_co[0] - center_co[0]) +
+					                  abs(hit_co[1] - center_co[1]));
 
 					/* indices start at 1 here */
 					index = (*tbuf - min) + 1;
