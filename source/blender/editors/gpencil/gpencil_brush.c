@@ -176,18 +176,54 @@ static void gpsculpt_compute_lock_axis(tGP_BrushEditData *gso, bGPDspoint *pt, c
 		return;
 	}
 
-	ToolSettings *ts = gso->scene->toolsettings;
-	int axis = ts->gp_sculpt.lock_axis;
+	const ToolSettings *ts = gso->scene->toolsettings;
+	const View3DCursor *cursor = &gso->scene->cursor;
+	const int axis = ts->gp_sculpt.lock_axis;
 
 	/* lock axis control */
-	if (axis == 1) {
-		pt->x = save_pt[0];
-	}
-	if (axis == 2) {
-		pt->y = save_pt[1];
-	}
-	if (axis == 3) {
-		pt->z = save_pt[2];
+	switch (axis) {
+		case GP_LOCKAXIS_X:
+		{
+			pt->x = save_pt[0];
+			break;
+		}
+		case GP_LOCKAXIS_Y:
+		{
+			pt->y = save_pt[1];
+			break;
+		}
+		case GP_LOCKAXIS_Z:
+		{
+			pt->z = save_pt[2];
+			break;
+		}
+		case GP_LOCKAXIS_CURSOR:
+		{
+			/* compute a plane with cursor normal and position of the point
+			   before do the sculpt */
+			const float scale[3] = { 1.0f, 1.0f, 1.0f };
+			float plane_normal[3] = { 0.0f, 0.0f, 1.0f };
+			float plane[4];
+			float mat[4][4];
+			float r_close[3];
+			
+			loc_eul_size_to_mat4(mat,
+				cursor->location,
+				cursor->rotation_euler,
+				scale);
+
+			mul_mat3_m4_v3(mat, plane_normal);
+			plane_from_point_normal_v3(plane, save_pt, plane_normal);
+
+			/* find closest point to the plane with the new position */
+			closest_to_plane_v3(r_close, plane, &pt->x);
+			copy_v3_v3(&pt->x, r_close);
+			break;
+		}
+		default:
+		{
+			break;
+		}
 	}
 }
 

@@ -1053,6 +1053,7 @@ typedef enum eGP_Lockaxis_Types {
 	GP_LOCKAXIS_X = 1,
 	GP_LOCKAXIS_Y = 2,
 	GP_LOCKAXIS_Z = 3,
+	GP_LOCKAXIS_CURSOR = 4
 } eGP_Lockaxis_Types;
 
 /* Settings for a GPencil Stroke Sculpting Brush */

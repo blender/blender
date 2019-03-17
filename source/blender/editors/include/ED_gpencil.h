@@ -225,9 +225,11 @@ void ED_gpencil_add_defaults(struct bContext *C, struct Object *ob);
 void ED_gpencil_setup_modes(struct bContext *C, struct bGPdata *gpd, int newmode);
 
 void ED_gp_project_stroke_to_plane(
+		const struct Scene *scene,
         const struct Object *ob, const struct RegionView3D *rv3d,
         struct bGPDstroke *gps, const float origin[3], const int axis);
 void ED_gp_project_point_to_plane(
+		const struct Scene *scene,
         const struct Object *ob, const struct RegionView3D *rv3d,
         const float origin[3], const int axis, struct bGPDspoint *pt);
 void ED_gp_get_drawing_reference(

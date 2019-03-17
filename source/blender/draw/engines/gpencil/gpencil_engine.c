@@ -582,6 +582,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
+	const View3DCursor *cursor = &scene->cursor;
 
 	if (ob->type == OB_GPENCIL && ob->data) {
 		bGPdata *gpd = (bGPdata *)ob->data;
@@ -626,7 +627,9 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 		if ((v3d) &&
 		    ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
 		    (v3d->gp_flag & V3D_GP_SHOW_GRID) &&
-		    (ob->type == OB_GPENCIL) && (ob == draw_ctx->obact))
+		    (ob->type == OB_GPENCIL) && (ob == draw_ctx->obact) &&
+			((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0) &&
+			((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) == 0))
 		{
 			GPU_BATCH_DISCARD_SAFE(e_data.batch_grid);
 			MEM_SAFE_FREE(e_data.batch_grid);
@@ -634,13 +637,36 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			e_data.batch_grid = DRW_gpencil_get_grid(ob);
 
 			/* define grid orientation */
-			if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_VIEW) {
-				copy_m4_m4(stl->storage->grid_matrix, ob->obmat);
+			switch (ts->gp_sculpt.lock_axis) {
+				case GP_LOCKAXIS_VIEW:
+				{
+					/* align always to view */
+					invert_m4_m4(stl->storage->grid_matrix, draw_ctx->rv3d->viewmat);
+					/* copy ob location */
+					copy_v3_v3(stl->storage->grid_matrix[3], ob->obmat[3]);
+					break;
+				}
+				case GP_LOCKAXIS_CURSOR:
+				{
+					float scale[3] = { 1.0f, 1.0f, 1.0f };
+					loc_eul_size_to_mat4(stl->storage->grid_matrix,
+										cursor->location,
+										cursor->rotation_euler,
+										scale);
+					break;
+				}
+				default:
+				{
+					copy_m4_m4(stl->storage->grid_matrix, ob->obmat);
+					break;
+				}
+			}
+
+			/* Move the origin to Object or Cursor */
+			if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+				copy_v3_v3(stl->storage->grid_matrix[3], cursor->location);
 			}
 			else {
-				/* align always to view */
-				invert_m4_m4(stl->storage->grid_matrix, draw_ctx->rv3d->viewmat);
-				/* copy ob location */
 				copy_v3_v3(stl->storage->grid_matrix[3], ob->obmat[3]);
 			}
 

@@ -4,7 +4,7 @@ uniform mat4 ProjectionMatrix;
 uniform float pixsize;   /* rv3d->pixsize */
 uniform int keep_size;
 uniform float objscale;
-uniform int pixfactor;
+uniform float pixfactor;
 
 in vec3 pos;
 in vec4 color;

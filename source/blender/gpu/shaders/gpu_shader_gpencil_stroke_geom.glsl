@@ -1,6 +1,9 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
 uniform int xraymode;
+uniform int caps_start;
+uniform int caps_end;
+uniform int fill_stroke;
 
 layout(lines_adjacency) in;
 layout(triangle_strip, max_vertices = 13) out;
@@ -14,6 +17,8 @@ out vec2 mTexCoord;
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1
 #define GP_XRAY_BACK  2
+
+#define GPENCIL_FLATCAP 1
 
 /* project 3d point to 2d on screen space */
 vec2 toScreenSpace(vec4 vertex)
@@ -37,6 +42,22 @@ float getZdepth(vec4 point)
 	/* in front by default */
 	return 0.0;
 }
+
+/* check equality but with a small tolerance */
+bool is_equal(vec4 p1, vec4 p2)
+{
+	float limit = 0.0001;
+	float x = abs(p1.x - p2.x);
+	float y = abs(p1.y - p2.y);
+	float z = abs(p1.z - p2.z);
+
+	if ((x < limit) && (y < limit) && (z < limit)) {
+		return true;
+	}
+
+	return false;
+}
+
 void main(void)
 {
 	float MiterLimit = 0.75;
@@ -134,10 +155,11 @@ void main(void)
 	}
 
 	/* generate the start endcap (alpha < 0 used as endcap flag)*/
-	if (P0 == P2) {
+	float extend = (fill_stroke > 0) ? 2 : 1 ;
+	if ((caps_start != GPENCIL_FLATCAP) && is_equal(P0,P2)) {
 		mTexCoord = vec2(1, 0.5);
 		mColor = vec4(finalColor[1].rgb, finalColor[1].a * -1.0) ;
-		vec2 svn1 =  normalize(sp1 - sp2) * length_a * 4.0;
+		vec2 svn1 =  normalize(sp1 - sp2) * length_a * 4.0 * extend;
 		gl_Position = vec4((sp1 + svn1) / Viewport, getZdepth(P1), 1.0);
 		EmitVertex();
 
@@ -174,7 +196,7 @@ void main(void)
 	EmitVertex();
 
 	/* generate the end endcap (alpha < 0 used as endcap flag)*/
-	if (P1 == P3) {
+	if ((caps_end != GPENCIL_FLATCAP) && is_equal(P1,P3)) {
 		mTexCoord = vec2(0, 1);
 		mColor = vec4(finalColor[2].rgb, finalColor[2].a * -1.0) ;
 		gl_Position = vec4((sp2 + (length_b * 2.0) * miter_b) / Viewport, getZdepth(P2), 1.0);
@@ -187,7 +209,7 @@ void main(void)
 
 		mTexCoord = vec2(1, 0.5);
 		mColor = vec4(finalColor[2].rgb, finalColor[2].a * -1.0) ;
-		vec2 svn2 =  normalize(sp2 - sp1) * length_b * 4.0;
+		vec2 svn2 =  normalize(sp2 - sp1) * length_b * 4.0 * extend;
 		gl_Position = vec4((sp2 + svn2) / Viewport, getZdepth(P2), 1.0);
 		EmitVertex();
 	}

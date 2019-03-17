@@ -92,6 +92,7 @@ typedef struct tGPDdraw {
 	float tintcolor[4];                 /* tint color */
 	bool onion;                         /* onion flag */
 	bool custonion;                     /* use custom onion colors */
+	bool is_fill_stroke;              /* use fill tool */
 	float diff_mat[4][4];               /* matrix */
 } tGPDdraw;
 

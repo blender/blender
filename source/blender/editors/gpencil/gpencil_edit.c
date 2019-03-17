@@ -3280,6 +3280,8 @@ typedef enum eGP_ReprojectModes {
 	GP_REPROJECT_VIEW,
 	/* Reprojected on to the scene geometry */
 	GP_REPROJECT_SURFACE,
+	/* Reprojected on 3D cursor orientation */
+	GP_REPROJECT_CURSOR,
 } eGP_ReprojectModes;
 
 static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
@@ -3334,10 +3336,17 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 				gp_point_to_xy_fl(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
 				/* Project stroke in one axis */
-				if (ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP)) {
-					ED_gp_get_drawing_reference(
-					        scene, ob, gpl,
-					        ts->gpencil_v3d_align, origin);
+				if (ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE,
+							   GP_REPROJECT_TOP, GP_REPROJECT_CURSOR))
+				{
+					if (mode != GP_REPROJECT_CURSOR) {
+						ED_gp_get_drawing_reference(
+							scene, ob, gpl,
+							ts->gpencil_v3d_align, origin);
+					}
+					else {
+						copy_v3_v3(origin, scene->cursor.location);
+					}
 
 					int axis = 0;
 					switch (mode) {
@@ -3356,6 +3365,11 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 							axis = 2;
 							break;
 						}
+						case GP_REPROJECT_CURSOR:
+						{
+							axis = 3;
+							break;
+						}
 						default:
 						{
 							axis = 1;
@@ -3364,8 +3378,8 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 					}
 
 					ED_gp_project_point_to_plane(
-					        ob, rv3d, origin,
-					        axis, &pt2);
+							scene, ob, rv3d, origin,
+							axis, &pt2);
 
 					copy_v3_v3(&pt->x, &pt2.x);
 
@@ -3427,6 +3441,8 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 		 "using 'Cursor' Stroke Placement"},
 		{GP_REPROJECT_SURFACE, "SURFACE", 0, "Surface",
 		 "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"},
+		{GP_REPROJECT_CURSOR, "CURSOR", 0, "Cursor",
+		 "Reproject the strokes using the orienation of 3D cursor"},
 		{0, NULL, 0, NULL, NULL},
 	};
 

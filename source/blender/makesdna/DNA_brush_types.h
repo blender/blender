@@ -83,23 +83,25 @@ typedef struct BrushGpencilSettings {
 	float fill_threshold;
 	/** Number of pixel to consider the leak is too small (x 2). */
 	short fill_leak;
-	char _pad1[6];
+	/** Fill zoom factor */
+	short fill_factor;
+	char _pad_1[4];
 
 	/** Number of simplify steps. */
-	int   fill_simplylvl;
+	int fill_simplylvl;
 	/** Type of control lines drawing mode. */
-	int   fill_draw_mode;
+	int fill_draw_mode;
 	/** Icon identifier. */
-	int   icon_id;
+	int icon_id;
 
 	/** Maximum distance before generate new point for very fast mouse movements. */
-	int   input_samples;
+	int input_samples;
 	/** Random factor for UV rotation. */
 	float uv_random;
 	/** Moved to 'Brush.gpencil_tool'. */
-	int   brush_type DNA_DEPRECATED;
+	int brush_type DNA_DEPRECATED;
 	/** Soft, hard or stroke. */
-	int   eraser_mode;
+	int eraser_mode;
 	/** Smooth while drawing factor. */
 	float active_smooth;
 	/** Factor to apply to strength for soft eraser. */

@@ -720,9 +720,12 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	immUniform1f("objscale", obj_scale);
 	int keep_size = (int)((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
 	immUniform1i("keep_size", keep_size);
-	immUniform1i("pixfactor", tgpw->gpd->pixfactor);
+	immUniform1f("pixfactor", tgpw->gpd->pixfactor);
 	/* xray mode always to 3D space to avoid wrong zdepth calculation (T60051) */
 	immUniform1i("xraymode", GP_XRAY_3DSPACE);
+	immUniform1i("caps_start", (int)tgpw->gps->caps[0]);
+	immUniform1i("caps_end", (int)tgpw->gps->caps[1]);
+	immUniform1i("fill_stroke", (int)tgpw->is_fill_stroke);
 
 	/* draw stroke curve */
 	GPU_line_width(max_ff(curpressure * thickness, 1.0f));
@@ -733,23 +736,22 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
 			gp_set_point_varying_color(points, ink, attr_id.color);
-			immAttr1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
+			
 			if ((cyclic) && (totpoints > 2)) {
+				immAttr1f(attr_id.thickness, max_ff((points + totpoints - 1)->pressure * thickness, 1.0f));
 				mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 1)->x);
 			}
 			else {
+				immAttr1f(attr_id.thickness, max_ff((points + 1)->pressure * thickness, 1.0f));
 				mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + 1)->x);
 			}
-			mul_v3_fl(fpt, -1.0f);
 			immVertex3fv(attr_id.pos, fpt);
 		}
 		/* set point */
 		gp_set_point_varying_color(pt, ink, attr_id.color);
-		immAttr1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
+		immAttr1f(attr_id.thickness, max_ff(pt->pressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
 		immVertex3fv(attr_id.pos, fpt);
-
-		curpressure = pt->pressure;
 	}
 
 	if (cyclic && totpoints > 2) {
@@ -765,10 +767,9 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	}
 	/* last adjacency point (not drawn) */
 	else {
-		gp_set_point_varying_color(points + totpoints - 1, ink, attr_id.color);
-		immAttr1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
+		gp_set_point_varying_color(points + totpoints - 2, ink, attr_id.color);
+		immAttr1f(attr_id.thickness, max_ff((points + totpoints - 2)->pressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 2)->x);
-		mul_v3_fl(fpt, -1.0f);
 		immVertex3fv(attr_id.pos, fpt);
 	}
 
@@ -1028,6 +1029,10 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 
 		/* calculate thickness */
 		sthickness = gps->thickness + tgpw->lthick;
+
+		if (tgpw->is_fill_stroke) {
+			sthickness = (short)max_ii(1, sthickness / 2);
+		}
 
 		if (sthickness <= 0) {
 			continue;
@@ -1427,6 +1432,7 @@ static void gp_draw_data_layers(RegionView3D *rv3d,
 	tgpw.winx = winx;
 	tgpw.winy = winy;
 	tgpw.dflag = dflag;
+	tgpw.is_fill_stroke = false;
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* calculate parent position */

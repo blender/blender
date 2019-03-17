@@ -506,7 +506,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 	DRW_shgroup_uniform_float(grp, "pixsize", stl->storage->pixsize, 1);
 
 	/* avoid wrong values */
-	if ((gpd) && (gpd->pixfactor == 0)) {
+	if ((gpd) && (gpd->pixfactor == 0.0f)) {
 		gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 	}
 
@@ -627,7 +627,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 	DRW_shgroup_uniform_float(grp, "pixsize", stl->storage->pixsize, 1);
 
 	/* avoid wrong values */
-	if ((gpd) && (gpd->pixfactor == 0)) {
+	if ((gpd) && (gpd->pixfactor == 0.0f)) {
 		gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 	}
 

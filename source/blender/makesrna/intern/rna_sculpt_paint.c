@@ -82,6 +82,7 @@ static const EnumPropertyItem rna_enum_gpencil_lock_axis_items[] = {
 	{GP_LOCKAXIS_Y, "AXIS_Y", ICON_AXIS_FRONT, "Front (X-Z)", "Project strokes to plane locked to Y"},
 	{GP_LOCKAXIS_X, "AXIS_X", ICON_AXIS_SIDE, "Side (Y-Z)", "Project strokes to plane locked to X"},
 	{GP_LOCKAXIS_Z, "AXIS_Z", ICON_AXIS_TOP, "Top (X-Y)", "Project strokes to plane locked to Z"},
+	{GP_LOCKAXIS_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "Cursor", "Align strokes to current 3D cursor orientation"},
 	{0, NULL, 0, NULL, NULL},
 };
 #endif

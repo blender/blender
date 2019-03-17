@@ -126,10 +126,10 @@ static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {
 };
 
 static EnumPropertyItem rna_enum_gpencil_fill_draw_modes_items[] = {
+	{GP_FILL_DMODE_BOTH, "BOTH", 0, "Default", "Use both visible strokes and edit lines as fill boundary limits"},
 	{GP_FILL_DMODE_STROKE, "STROKE", 0, "Strokes", "Use visible strokes as fill boundary limits"},
-	{GP_FILL_DMODE_CONTROL, "CONTROL", 0, "Control", "Use internal control lines as fill boundary limits"},
-	{GP_FILL_DMODE_BOTH, "BOTH", 0, "Both", "Use visible strokes and control lines as fill boundary limits"},
-	{0, NULL, 0, NULL, NULL},
+	{GP_FILL_DMODE_CONTROL, "CONTROL", 0, "Edit Lines", "Use edit lines as fill boundary limits"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem rna_enum_gpencil_brush_icons_items[] = {
@@ -1157,6 +1157,15 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_ui_text(
 	        prop, "Leak Size",
 	        "Size in pixels to consider the leak closed");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
+	/* fill factor size */
+	prop = RNA_def_property(srna, "fill_factor", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "fill_factor");
+	RNA_def_property_range(prop, 1, 8);
+	RNA_def_property_ui_text(prop, "Resolution",
+		"Multiplier for fill resolution, higher resolution is more accurate but slower");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 

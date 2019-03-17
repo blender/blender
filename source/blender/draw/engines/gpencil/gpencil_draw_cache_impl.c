@@ -270,7 +270,7 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 
 	for (int i = 0; i < totpoints; i++, tpt++) {
 		ED_gpencil_tpoint_to_point(ar, origin, tpt, &pt);
-		ED_gp_project_point_to_plane(ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
+		ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
 
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
@@ -361,7 +361,7 @@ GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
 
 	for (int i = 0; i < totpoints; i++, tpt++) {
 		ED_gpencil_tpoint_to_point(ar, origin, tpt, &pt);
-		ED_gp_project_point_to_plane(ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
+		ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
 
 		/* set point */
 		gpencil_set_stroke_point(

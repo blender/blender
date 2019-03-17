@@ -480,6 +480,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->fill_leak = 3;
 	brush->gpencil_settings->fill_threshold = 0.1f;
 	brush->gpencil_settings->fill_simplylvl = 1;
+	brush->gpencil_settings->fill_factor = 1;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
 	brush->gpencil_tool = GPAINT_TOOL_FILL;
 

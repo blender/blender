@@ -937,8 +937,12 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
  * Reproject all points of the stroke to a plane locked to axis to avoid stroke offset
  */
 void ED_gp_project_stroke_to_plane(
-        const Object *ob, const RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
+		const Scene *scene, const Object *ob,
+		const RegionView3D *rv3d, bGPDstroke *gps,
+		const float origin[3], const int axis)
 {
+	const ToolSettings *ts = scene->toolsettings;
+	const View3DCursor *cursor = &scene->cursor;
 	float plane_normal[3];
 	float vn[3];
 
@@ -953,12 +957,36 @@ void ED_gp_project_stroke_to_plane(
 		 */
 		ED_view3d_global_to_vector(rv3d, origin, plane_normal);
 	}
-	else {
+	else if (axis < 3) {
 		plane_normal[axis] = 1.0f;
 		/* if object, apply object rotation */
 		if (ob && (ob->type == OB_GPENCIL)) {
-			mul_mat3_m4_v3(ob->obmat, plane_normal);
+			float mat[4][4];
+			copy_m4_m4(mat, ob->obmat);
+
+			/* move origin to cursor */
+			if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+				copy_v3_v3(mat[3], cursor->location);
+			}
+
+			mul_mat3_m4_v3(mat, plane_normal);
 		}
+	}
+	else {
+		float scale[3] = { 1.0f, 1.0f, 1.0f };
+		plane_normal[2] = 1.0f;
+		float mat[4][4];
+		loc_eul_size_to_mat4(mat,
+			cursor->location,
+			cursor->rotation_euler,
+			scale);
+
+		/* move origin to object */
+		if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
+			copy_v3_v3(mat[3], ob->obmat[3]);
+		}
+
+		mul_mat3_m4_v3(mat, plane_normal);
 	}
 
 	/* Reproject the points in the plane */
@@ -984,8 +1012,12 @@ void ED_gp_project_stroke_to_plane(
  * \param[in, out] pt : Point to affect
  */
 void ED_gp_project_point_to_plane(
-        const Object *ob, const RegionView3D *rv3d, const float origin[3], const int axis, bGPDspoint *pt)
+		const Scene *scene, const Object *ob,
+		const RegionView3D *rv3d, const float origin[3],
+		const int axis, bGPDspoint *pt)
 {
+	const ToolSettings *ts = scene->toolsettings;
+	const View3DCursor *cursor = &scene->cursor;
 	float plane_normal[3];
 	float vn[3];
 
@@ -1000,14 +1032,37 @@ void ED_gp_project_point_to_plane(
 		 */
 		ED_view3d_global_to_vector(rv3d, origin, plane_normal);
 	}
-	else {
+	else if (axis < 3) {
 		plane_normal[axis] = 1.0f;
 		/* if object, apply object rotation */
 		if (ob && (ob->type == OB_GPENCIL)) {
-			mul_mat3_m4_v3(ob->obmat, plane_normal);
+			float mat[4][4];
+			copy_m4_m4(mat, ob->obmat);
+
+			/* move origin to cursor */
+			if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+				copy_v3_v3(mat[3], cursor->location);
+			}
+
+			mul_mat3_m4_v3(mat, plane_normal);
 		}
 	}
+	else {
+		float scale[3] = { 1.0f, 1.0f, 1.0f };
+		plane_normal[2] = 1.0f;
+		float mat[4][4];
+		loc_eul_size_to_mat4(mat,
+			cursor->location,
+			cursor->rotation_euler,
+			scale);
 
+		/* move origin to object */
+		if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
+			copy_v3_v3(mat[3], ob->obmat[3]);
+		}
+
+		mul_mat3_m4_v3(mat, plane_normal);
+	}
 
 	/* Reproject the points in the plane */
 	/* get a vector from the point with the current view direction of the viewport */
