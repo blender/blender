@@ -282,6 +282,9 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 	GHOST_SystemCocoa *systemCocoa;
 }
+
+- (id)init;
+- (void)dealloc;
 - (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
@@ -289,9 +292,28 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification;
 - (void)toggleFullScreen:(NSNotification *)notification;
+- (void)windowWillClose:(NSNotification*)notification;
 @end
 
 @implementation CocoaAppDelegate : NSObject
+- (id)init {
+	self = [super init];
+	if (self) {
+		NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+		[center addObserver:self
+		           selector:@selector(windowWillClose:)
+		               name:NSWindowWillCloseNotification
+		             object:nil];
+	}
+	return self;
+}
+
+- (void)dealloc {
+	NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+	[center removeObserver:self name:NSWindowWillCloseNotification object:nil];
+	[super dealloc];
+}
+
 -(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
 {
 	systemCocoa = sysCocoa;
@@ -339,6 +361,53 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 - (void)toggleFullScreen:(NSNotification *)notification
 {
+}
+
+// The purpose of this function is to make sure closing "About" window does not
+// leave Blender with no key windows. This is needed due to a custom event loop
+// nature of the application: for some reason only using [NSApp run] will ensure
+// correct behavior in this case.
+//
+// This is similar to an issue solved in SDL:
+//   https://bugzilla.libsdl.org/show_bug.cgi?id=1825
+//
+// Our solution is different, since we want Blender to keep track of what is
+// the key window during normal operation. In order to do so we exploit the
+// fact that "About" window is never in the orderedWindows array: we only force
+// key window from here if the closing one is not in the orderedWindows. This
+// saves lack of key windows when closing "About", but does not interfere with
+// Blender's window manager when closing Blender's windows.
+- (void)windowWillClose:(NSNotification*)notification {
+	NSWindow* closing_window = (NSWindow*)[notification object];
+	NSInteger index = [[NSApp orderedWindows] indexOfObject:closing_window];
+	if (index != NSNotFound) {
+		return;
+	}
+	// Find first suitable window from the current space.
+	for (NSWindow* current_window in [NSApp orderedWindows]) {
+		if (current_window == closing_window) {
+			continue;
+		}
+		if ([current_window isOnActiveSpace] &&
+		    [current_window canBecomeKeyWindow])
+		{
+			[current_window makeKeyAndOrderFront:nil];
+			return;
+		}
+	}
+	// If that didn't find any windows, we try to find any suitable window of
+	// the application.
+	for (NSNumber* window_number in [NSWindow windowNumbersWithOptions:0]) {
+		NSWindow* current_window =
+		          [NSApp windowWithWindowNumber:[window_number integerValue]];
+		if (current_window == closing_window) {
+			continue;
+		}
+		if ([current_window canBecomeKeyWindow]) {
+			[current_window makeKeyAndOrderFront:nil];
+			return;
+		}
+	}
 }
 
 @end
