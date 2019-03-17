@@ -69,7 +69,13 @@ class DATA_PT_light(DataButtonsPanel, Panel):
 
         light = context.light
 
-        layout.row().prop(light, "type", expand=True)
+        # Compact layout for node editor.
+        if self.bl_space_type == 'PROPERTIES':
+            layout.row().prop(light, "type", expand=True)
+            layout.use_property_split = True
+        else:
+            layout.use_property_split = True
+            layout.row().prop(light, "type")
 
 
 class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
@@ -80,9 +86,13 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
         layout = self.layout
         light = context.light
 
-        layout.row().prop(light, "type", expand=True)
-
-        layout.use_property_split = True
+        # Compact layout for node editor.
+        if self.bl_space_type == 'PROPERTIES':
+            layout.row().prop(light, "type", expand=True)
+            layout.use_property_split = True
+        else:
+            layout.use_property_split = True
+            layout.row().prop(light, "type")
 
         col = layout.column()
         col.prop(light, "color")

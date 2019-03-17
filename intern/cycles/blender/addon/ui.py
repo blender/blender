@@ -50,14 +50,18 @@ class CyclesButtonsPanel:
         return context.engine in cls.COMPAT_ENGINES
 
 
-class CyclesNodeButtonsPanel:
-    bl_space_type = "NODE_EDITOR"
-    bl_region_type = "UI"
-    COMPAT_ENGINES = {'CYCLES'}
+# Adapt properties editor panel to display in node editor. We have to
+# copy the class rather than inherit due to the way bpy registration works.
+def node_panel(cls):
+    node_cls = type('NODE_' + cls.__name__, cls.__bases__, dict(cls.__dict__))
 
-    @classmethod
-    def poll(cls, context):
-        return context.engine in cls.COMPAT_ENGINES
+    node_cls.bl_space_type = 'NODE_EDITOR'
+    node_cls.bl_region_type = 'UI'
+    node_cls.bl_category = "Node"
+    if hasattr(node_cls, 'bl_parent_id'):
+        node_cls.bl_parent_id = 'NODE_' + node_cls.bl_parent_id
+
+    return node_cls
 
 
 def get_device_type(context):
@@ -1328,12 +1332,15 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
 
         light = context.light
         clamp = light.cycles
-        # cscene = context.scene.cycles
 
-        layout.prop(light, "type", expand=True)
-
-        layout.use_property_split = True
         layout.use_property_decorate = False
+
+        if self.bl_space_type == 'PROPERTIES':
+            layout.row().prop(light, "type", expand=True)
+            layout.use_property_split = True
+        else:
+            layout.use_property_split = True
+            layout.row().prop(light, "type")
 
         col = layout.column()
 
@@ -2035,43 +2042,6 @@ class CYCLES_RENDER_PT_simplify_culling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "distance_cull_margin", text="Distance")
 
 
-class CYCLES_NODE_PT_settings(CyclesNodeButtonsPanel, Panel):
-    bl_label = "Settings"
-    bl_category = "Node"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        return CyclesNodeButtonsPanel.poll(context) and \
-               snode.tree_type == 'ShaderNodeTree' and snode.id and \
-               snode.id.bl_rna.identifier == 'Material'
-
-    def draw(self, context):
-        material = context.space_data.id
-        CYCLES_MATERIAL_PT_settings.draw_shared(self, material)
-
-
-class CYCLES_NODE_PT_settings_surface(CyclesNodeButtonsPanel, Panel):
-    bl_label = "Surface"
-    bl_category = "Node"
-    bl_parent_id = "CYCLES_NODE_PT_settings"
-
-    def draw(self, context):
-        material = context.space_data.id
-        CYCLES_MATERIAL_PT_settings_surface.draw_shared(self, material)
-
-
-class CYCLES_NODE_PT_settings_volume(CyclesNodeButtonsPanel, Panel):
-    bl_label = "Volume"
-    bl_category = "Node"
-    bl_parent_id = "CYCLES_NODE_PT_settings"
-
-    def draw(self, context):
-        material = context.space_data.id
-        CYCLES_MATERIAL_PT_settings_volume.draw_shared(self, context, material)
-
-
 def draw_device(self, context):
     scene = context.scene
     layout = self.layout
@@ -2118,6 +2088,8 @@ def get_panels():
         'DATA_PT_spot',
         'MATERIAL_PT_context_material',
         'MATERIAL_PT_preview',
+        'NODE_DATA_PT_light',
+        'NODE_DATA_PT_spot',
         'VIEWLAYER_PT_filter',
         'VIEWLAYER_PT_layer_passes',
         'RENDER_PT_post_processing',
@@ -2203,9 +2175,15 @@ classes = (
     CYCLES_RENDER_PT_bake_selected_to_active,
     CYCLES_RENDER_PT_bake_output,
     CYCLES_RENDER_PT_debug,
-    CYCLES_NODE_PT_settings,
-    CYCLES_NODE_PT_settings_surface,
-    CYCLES_NODE_PT_settings_volume,
+    node_panel(CYCLES_MATERIAL_PT_settings),
+    node_panel(CYCLES_MATERIAL_PT_settings_surface),
+    node_panel(CYCLES_MATERIAL_PT_settings_volume),
+    node_panel(CYCLES_WORLD_PT_ray_visibility),
+    node_panel(CYCLES_WORLD_PT_settings),
+    node_panel(CYCLES_WORLD_PT_settings_surface),
+    node_panel(CYCLES_WORLD_PT_settings_volume),
+    node_panel(CYCLES_LIGHT_PT_light),
+    node_panel(CYCLES_LIGHT_PT_spot),
 )
 
 

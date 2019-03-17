@@ -206,10 +206,11 @@ class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
     bl_context = "material"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
-    @staticmethod
-    def draw_shared(self, mat):
+    def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+
+        mat = context.material
 
         layout.prop(mat, "blend_method")
 
@@ -228,9 +229,6 @@ class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
         layout.prop(mat, "use_sss_translucency")
         layout.prop(mat, "pass_index")
 
-    def draw(self, context):
-        self.draw_shared(self, context.material)
-
 
 class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
     bl_label = "Viewport Display"
@@ -242,18 +240,16 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
         mat = context.material
         return mat and not mat.grease_pencil
 
-    @staticmethod
-    def draw_shared(self, mat):
+    def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+
+        mat = context.material
 
         col = layout.column()
         col.prop(mat, "diffuse_color", text="Color")
         col.prop(mat, "metallic")
         col.prop(mat, "roughness")
-
-    def draw(self, context):
-        self.draw_shared(self, context.material)
 
 
 classes = (
