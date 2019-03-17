@@ -603,10 +603,12 @@ static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
 	int numdigit, numzero1, numzero2;
 
 	/* count and skip leading zeros */
-	for (numzero1 = 0; *p1 && (*p1 == '0'); numzero1++)
+	for (numzero1 = 0; *p1 == '0'; numzero1++) {
 		p1++;
-	for (numzero2 = 0; *p2 && (*p2 == '0'); numzero2++)
+	}
+	for (numzero2 = 0; *p2 == '0'; numzero2++) {
 		p2++;
+	}
 
 	/* find number of consecutive digits */
 	for (numdigit = 0; ; numdigit++) {
