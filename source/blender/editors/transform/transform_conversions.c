@@ -8935,6 +8935,10 @@ void createTransData(bContext *C, TransInfo *t)
 			has_transform_context = false;
 		}
 	}
+	else if (ob && (ob->mode == OB_MODE_PAINT_GPENCIL)) {
+		/* In grease pencil draw mode all transformations must be canceled. */
+		has_transform_context = false;
+	}
 	else {
 		createTransObject(C, t);
 		countAndCleanTransDataContainer(t);
