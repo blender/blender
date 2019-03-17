@@ -441,9 +441,9 @@ static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
 {
 	/* intentionally check clipping without shadow offset and negative kerning */
 	rect->xmin = floorf(x + MAX2(0.0f, g->pos_x));
-	rect->xmax = rect->xmin + (float)g->width;
+	rect->xmax = rect->xmin + (float)g->width + MIN2(0.0f, g->pos_x);
 	rect->ymin = floorf(y + MAX2(0.0f, g->pos_y));
-	rect->ymax = rect->ymin - (float)g->height;
+	rect->ymax = rect->ymin - (float)g->height - MIN2(0.0f, g->pos_y);
 }
 
 static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y, FontBLF *font)
