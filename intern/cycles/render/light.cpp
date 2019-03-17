@@ -184,7 +184,7 @@ LightManager::~LightManager()
 bool LightManager::has_background_light(Scene *scene)
 {
 	foreach(Light *light, scene->lights) {
-		if(light->type == LIGHT_BACKGROUND) {
+		if(light->type == LIGHT_BACKGROUND && light->is_enabled) {
 			return true;
 		}
 	}
