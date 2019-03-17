@@ -240,7 +240,6 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 	tgpw.dflag = 0;
 	tgpw.disable_fill = 1;
 	tgpw.dflag |= (GP_DRAWFILLS_ONLY3D | GP_DRAWFILLS_NOSTATUS);
-	
 
 	glEnable(GL_BLEND);
 
@@ -1377,7 +1376,6 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					in_bounds = BLI_rcti_isect_pt(&ar->winrct, event->x, event->y);
 
 					if ((in_bounds) && (ar->regiontype == RGN_TYPE_WINDOW)) {
-
 						/* TODO GPXX: Verify the mouse click is right for any window size */
 						tgpf->center[0] = event->mval[0];
 						tgpf->center[1] = event->mval[1];
