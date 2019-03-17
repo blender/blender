@@ -83,102 +83,6 @@ CCL_NAMESPACE_BEGIN
 #  define SHADER_SORT_LOCAL_SIZE 1
 #endif
 
-
-/* Device capabilities */
-#ifdef __KERNEL_CPU__
-#  ifdef __KERNEL_SSE2__
-#    define __QBVH__
-#  endif
-#  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
-#  define __BRANCHED_PATH__
-#  ifdef WITH_OSL
-#    define __OSL__
-#  endif
-#  define __PRINCIPLED__
-#  define __SUBSURFACE__
-#  define __CMJ__
-#  define __VOLUME__
-#  define __VOLUME_SCATTER__
-#  define __SHADOW_RECORD_ALL__
-#  define __VOLUME_DECOUPLED__
-#  define __VOLUME_RECORD_ALL__
-#endif  /* __KERNEL_CPU__ */
-
-#ifdef __KERNEL_CUDA__
-#  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
-#  define __VOLUME__
-#  define __VOLUME_SCATTER__
-#  define __SUBSURFACE__
-#  define __PRINCIPLED__
-#  define __SHADOW_RECORD_ALL__
-#  define __CMJ__
-#  ifndef __SPLIT_KERNEL__
-#    define __BRANCHED_PATH__
-#  endif
-#endif  /* __KERNEL_CUDA__ */
-
-#ifdef __KERNEL_OPENCL__
-
-#  if defined(__KERNEL_OPENCL_AMD__) || defined(__KERNEL_OPENCL_INTEL_CPU__)
-#    define __CL_USE_NATIVE__
-#  endif
-
-/* Preview kernel is used as a small kernel when the optimized kernel is still being compiled. */
-#  ifdef __KERNEL_OPENCL_PREVIEW__
-#    define __AO__
-#    define __PASSES__
-#    define __HAIR__
-#  else
-
-/* keep __KERNEL_ADV_SHADING__ in sync with opencl_kernel_use_advanced_shading! */
-
-#    ifdef __KERNEL_OPENCL_NVIDIA__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
-#      define __SUBSURFACE__
-#      define __PRINCIPLED__
-#      define __VOLUME__
-#      define __VOLUME_SCATTER__
-#      define __SHADOW_RECORD_ALL__
-#      define __CMJ__
-#      define __BRANCHED_PATH__
-#    endif  /* __KERNEL_OPENCL_NVIDIA__ */
-
-#    ifdef __KERNEL_OPENCL_APPLE__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
-#      define __PRINCIPLED__
-#      define __CMJ__
-/* TODO(sergey): Currently experimental section is ignored here,
- * this is because megakernel in device_opencl does not support
- * custom cflags depending on the scene features.
- */
-#    endif  /* __KERNEL_OPENCL_APPLE__ */
-
-#    ifdef __KERNEL_OPENCL_AMD__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
-#      define __SUBSURFACE__
-#      define __PRINCIPLED__
-#      define __VOLUME__
-#      define __VOLUME_SCATTER__
-#      define __SHADOW_RECORD_ALL__
-#      define __CMJ__
-#      define __BRANCHED_PATH__
-#    endif  /* __KERNEL_OPENCL_AMD__ */
-
-#    ifdef __KERNEL_OPENCL_INTEL_CPU__
-#      define __KERNEL_SHADING__
-#      define __KERNEL_ADV_SHADING__
-#      define __PRINCIPLED__
-#      define __CMJ__
-#    endif  /* __KERNEL_OPENCL_INTEL_CPU__ */
-
-#  endif  /* KERNEL_OPENCL_PREVIEW__ */
-#endif  /* __KERNEL_OPENCL__ */
-
 /* Kernel features */
 #define __SOBOL__
 #define __INSTANCING__
@@ -195,27 +99,54 @@ CCL_NAMESPACE_BEGIN
 #define __SHADOW_TRICKS__
 #define __DENOISING_FEATURES__
 #define __SHADER_RAYTRACE__
+#define __AO__
+#define __PASSES__
+#define __HAIR__
 
-#ifdef __KERNEL_SHADING__
+/* Without these we get an AO render, used by OpenCL preview kernel. */
+#ifndef __KERNEL_AO_PREVIEW__
 #  define __SVM__
 #  define __EMISSION__
 #  define __TEXTURES__
 #  define __EXTRA_NODES__
 #  define __HOLDOUT__
-#endif
-
-#ifdef __KERNEL_ADV_SHADING__
 #  define __MULTI_CLOSURE__
 #  define __TRANSPARENT_SHADOWS__
-#  define __PASSES__
 #  define __BACKGROUND_MIS__
 #  define __LAMP_MIS__
-#  define __AO__
 #  define __CAMERA_MOTION__
 #  define __OBJECT_MOTION__
 #  define __HAIR__
 #  define __BAKING__
+#  define __PRINCIPLED__
+#  define __SUBSURFACE__
+#  define __VOLUME__
+#  define __VOLUME_SCATTER__
+#  define __CMJ__
+#  define __SHADOW_RECORD_ALL__
+#  define __BRANCHED_PATH__
 #endif
+
+/* Device specific features */
+#ifdef __KERNEL_CPU__
+#  ifdef __KERNEL_SSE2__
+#    define __QBVH__
+#  endif
+#  ifdef WITH_OSL
+#    define __OSL__
+#  endif
+#  define __VOLUME_DECOUPLED__
+#  define __VOLUME_RECORD_ALL__
+#endif  /* __KERNEL_CPU__ */
+
+#ifdef __KERNEL_CUDA__
+#  ifdef __SPLIT_KERNEL__
+#    undef __BRANCHED_PATH__
+#  endif
+#endif  /* __KERNEL_CUDA__ */
+
+#ifdef __KERNEL_OPENCL__
+#endif  /* __KERNEL_OPENCL__ */
 
 /* Scene-based selective features compilation. */
 #ifdef __NO_CAMERA_MOTION__

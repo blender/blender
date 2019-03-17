@@ -184,7 +184,7 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures& requested_
 	if (preview_kernel) {
 		DeviceRequestedFeatures preview_features;
 		preview_features.use_hair = true;
-		build_options += "-D__KERNEL_OPENCL_PREVIEW__ ";
+		build_options += "-D__KERNEL_AO_PREVIEW__ ";
 		build_options += preview_features.get_build_options();
 	}
 	else if (opencl_program_name == "split_do_volume" && !requested_features.use_volume) {

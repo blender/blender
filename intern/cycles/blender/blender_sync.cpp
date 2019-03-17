@@ -510,10 +510,6 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 	vector<Pass> passes;
 	Pass::add(PASS_COMBINED, passes);
 
-	if(!session_params.device.advanced_shading) {
-		return passes;
-	}
-
 	/* loop over passes */
 	BL::RenderLayer::passes_iterator b_pass_iter;
 

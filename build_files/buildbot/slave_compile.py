@@ -54,18 +54,15 @@ if 'cmake' in builder:
     targets = ['blender']
 
     chroot_name = None  # If not None command will be delegated to that chroot
-    cuda_chroot_name = None  # If not None cuda compilationcommand will be delegated to that chroot
     build_cubins = True  # Whether to build Cycles CUDA kernels
     bits = 64
 
     # Config file to be used (relative to blender's sources root)
     cmake_config_file = "build_files/cmake/config/blender_release.cmake"
-    cmake_cuda_config_file = None
 
     # Set build options.
     cmake_options = []
     cmake_extra_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
-    cuda_cmake_options = []
 
     if builder.startswith('mac'):
         # Set up OSX architecture
@@ -74,26 +71,11 @@ if 'cmake' in builder:
         cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9')
 
     elif builder.startswith('win'):
-        if builder.endswith('_vs2017'):
-            if builder.startswith('win64'):
-                cmake_options.extend(['-G', 'Visual Studio 15 2017 Win64'])
-            elif builder.startswith('win32'):
-                bits = 32
-                cmake_options.extend(['-G', 'Visual Studio 15 2017'])
-        elif builder.endswith('_vc2015'):
-            if builder.startswith('win64'):
-                cmake_options.extend(['-G', 'Visual Studio 14 2015 Win64'])
-            elif builder.startswith('win32'):
-                bits = 32
-                cmake_options.extend(['-G', 'Visual Studio 14 2015'])
-            cmake_extra_options.append('-DCUDA_NVCC_FLAGS=--cl-version;2013;' +
-                '--compiler-bindir;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin')
-        else:
-            if builder.startswith('win64'):
-                cmake_options.extend(['-G', 'Visual Studio 12 2013 Win64'])
-            elif builder.startswith('win32'):
-                bits = 32
-                cmake_options.extend(['-G', 'Visual Studio 12 2013'])
+        if builder.startswith('win64'):
+            cmake_options.extend(['-G', 'Visual Studio 15 2017 Win64'])
+        elif builder.startswith('win32'):
+            bits = 32
+            cmake_options.extend(['-G', 'Visual Studio 15 2017'])
 
     elif builder.startswith('linux'):
         tokens = builder.split("_")
@@ -119,16 +101,11 @@ if 'cmake' in builder:
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
     # Prepare CMake options needed to configure cuda binaries compilation, 64bit only.
-    if bits == 64:
-        cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%s" % ('ON' if build_cubins else 'OFF'))
-        if build_cubins or 'cuda' in targets:
-            cuda_cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
-
-        # Only modify common cmake options if cuda doesn't require separate target.
-        if 'cuda' not in targets:
-            cmake_options += cuda_cmake_options
+    if bits == 64 and build_cubins:
+        cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=ON")
+        cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
     else:
-        cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
+        cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
 
     cmake_options.append("-DCMAKE_INSTALL_PREFIX=%s" % (install_dir))
 
@@ -139,10 +116,6 @@ if 'cmake' in builder:
         chroot_prefix = ['schroot', '-c', chroot_name, '--']
     else:
         chroot_prefix = []
-    if cuda_chroot_name:
-        cuda_chroot_prefix = ['schroot', '-c', cuda_chroot_name, '--']
-    else:
-        cuda_chroot_prefix = chroot_prefix[:]
 
     # Make sure no garbage remained from the previous run
     if os.path.isdir(install_dir):
@@ -158,14 +131,6 @@ if 'cmake' in builder:
         target_name = 'install'
         # Tweaking CMake options to respect the target
         target_cmake_options = cmake_options[:]
-        if target == 'cuda':
-            target_cmake_options += cuda_cmake_options
-            target_chroot_prefix = cuda_chroot_prefix[:]
-            target_name = 'cycles_kernel_cuda'
-        # If cuda binaries are compiled as a separate target, make sure
-        # other targets don't compile cuda binaries.
-        if 'cuda' in targets and target != 'cuda':
-            target_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
         # Do extra git fetch because not all platform/git/buildbot combinations
         # update the origin remote, causing buildinfo to detect local changes.
         os.chdir(blender_dir)
@@ -201,16 +166,6 @@ if 'cmake' in builder:
 
         if retcode != 0:
             sys.exit(retcode)
-
-        if builder.startswith('linux') and target == 'cuda':
-            blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender_version.h")
-            blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))
-            blender_version = "%d.%d" % (blender_version // 100, blender_version % 100)
-            kernels = os.path.join(target_build_dir, 'intern', 'cycles', 'kernel')
-            install_kernels = os.path.join(install_dir, blender_version, 'scripts', 'addons', 'cycles', 'lib')
-            os.mkdir(install_kernels)
-            print("Copying cuda binaries from %s to %s" % (kernels, install_kernels))
-            os.system('cp %s/*.cubin %s' % (kernels, install_kernels))
 
 else:
     print("Unknown building system")

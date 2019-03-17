@@ -532,7 +532,7 @@ if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/ctests/shader")
 	macro(add_cycles_render_test subject)
 		if(WITH_CYCLES)
 			add_python_test(
-				cycles_${subject}_test
+				cycles_${subject}
 				${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
 				-blender "$<TARGET_FILE:blender>"
 				-testdir "${TEST_SRC_DIR}/render/ctests/${subject}"
@@ -586,7 +586,7 @@ if(WITH_OPENGL_DRAW_TESTS)
 				file(GLOB_RECURSE blends "${child_path}/*.blend")
 				if(blends)
 					add_python_test(
-						opengl_draw_${child}_test
+						opengl_draw_${child}
 						${CMAKE_CURRENT_LIST_DIR}/opengl_draw_tests.py
 						-blender "$<TARGET_FILE:blender>"
 						-testdir "${child_path}"
@@ -630,7 +630,7 @@ endif()
 
 if(WITH_CODEC_FFMPEG)
 	add_python_test(
-		ffmpeg_tests
+		ffmpeg
 		${CMAKE_CURRENT_LIST_DIR}/ffmpeg_tests.py
 		--blender "$<TARGET_FILE:blender>"
 		--testdir "${TEST_DATA_SRC_DIR}/ffmpeg"

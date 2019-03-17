@@ -84,7 +84,6 @@ class OpenCLInfo
 public:
 	static cl_device_type device_type();
 	static bool use_debug();
-	static bool kernel_use_advanced_shading(const string& platform_name);
 	static bool device_supported(const string& platform_name,
 	                             const cl_device_id device_id);
 	static bool platform_version_check(cl_platform_id platform,

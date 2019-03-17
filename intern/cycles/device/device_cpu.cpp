@@ -1123,7 +1123,6 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.description = system_cpu_brand_string();
 	info.id = "CPU";
 	info.num = 0;
-	info.advanced_shading = true;
 	info.has_volume_decoupled = true;
 	info.has_osl = true;
 	info.has_half_images = true;

@@ -185,7 +185,7 @@ LightManager::~LightManager()
 bool LightManager::has_background_light(Scene *scene)
 {
 	foreach(Light *light, scene->lights) {
-		if(light->type == LIGHT_BACKGROUND) {
+		if(light->type == LIGHT_BACKGROUND && light->is_enabled) {
 			return true;
 		}
 	}
@@ -211,8 +211,7 @@ void LightManager::disable_ineffective_light(Device *device, Scene *scene)
 		 * - If we don't need it (no HDRs etc.)
 		 */
 		Shader *shader = (scene->background->shader) ? scene->background->shader : scene->default_background;
-		bool disable_mis = !(has_portal || shader->has_surface_spatial_varying) ||
-		                   !(device->info.advanced_shading);
+		bool disable_mis = !(has_portal || shader->has_surface_spatial_varying);
 		if(disable_mis) {
 			VLOG(1) << "Background MIS has been disabled.\n";
 			foreach(Light *light, scene->lights) {

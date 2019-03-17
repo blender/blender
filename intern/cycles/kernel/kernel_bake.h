@@ -351,7 +351,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 				out = make_float3(roughness, roughness, roughness);
 			}
 			else {
-				out = shader_emissive_eval(kg, &sd);
+				out = shader_emissive_eval(&sd);
 			}
 			break;
 		}
@@ -475,8 +475,9 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 			shader_setup_from_background(kg, &sd, &ray);
 
 			/* evaluate */
-			int flag = 0; /* we can't know which type of BSDF this is for */
-			out = shader_eval_background(kg, &sd, &state, flag);
+			int path_flag = 0; /* we can't know which type of BSDF this is for */
+			shader_eval_surface(kg, &sd, &state, path_flag | PATH_RAY_EMISSION);
+			out = shader_background_eval(&sd);
 			break;
 		}
 		default:
@@ -554,8 +555,9 @@ ccl_device void kernel_background_evaluate(KernelGlobals *kg,
 	shader_setup_from_background(kg, &sd, &ray);
 
 	/* evaluate */
-	int flag = 0; /* we can't know which type of BSDF this is for */
-	float3 color = shader_eval_background(kg, &sd, &state, flag);
+	int path_flag = 0; /* we can't know which type of BSDF this is for */
+	shader_eval_surface(kg, &sd, &state, path_flag | PATH_RAY_EMISSION);
+	float3 color = shader_background_eval(&sd);
 
 	/* write output */
 	output[i] += make_float4(color.x, color.y, color.z, 0.0f);

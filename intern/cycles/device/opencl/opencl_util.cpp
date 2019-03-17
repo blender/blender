@@ -737,23 +737,6 @@ bool OpenCLInfo::use_debug()
 	return DebugFlags().opencl.debug;
 }
 
-bool OpenCLInfo::kernel_use_advanced_shading(const string& platform)
-{
-	/* keep this in sync with kernel_types.h! */
-	if(platform == "NVIDIA CUDA")
-		return true;
-	else if(platform == "Apple")
-		return true;
-	else if(platform == "AMD Accelerated Parallel Processing")
-		return true;
-	else if(platform == "Intel(R) OpenCL")
-		return true;
-	/* Make sure officially unsupported OpenCL platforms
-	 * does not set up to use advanced shading.
-	 */
-	return false;
-}
-
 bool OpenCLInfo::device_supported(const string& platform_name,
                                   const cl_device_id device_id)
 {
