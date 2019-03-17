@@ -257,7 +257,7 @@ class VIEW3D_HT_header(Header):
         if object_mode == 'PAINT_GPENCIL':
             # FIXME: this is bad practice!
             # Tool options are to be displayed in the topbar.
-            if context.workspace.tools.from_space_view3d_mode(object_mode).idname == "builtin.draw":
+            if context.workspace.tools.from_space_view3d_mode(object_mode).idname == "builtin_brush.Draw":
                 settings = tool_settings.gpencil_sculpt.guide
                 row = layout.row(align=True)
                 row.prop(settings, "use_guide", text="", icon='GRID')
