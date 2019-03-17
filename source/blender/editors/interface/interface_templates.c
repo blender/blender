@@ -298,7 +298,7 @@ static bool id_search_add(
 			/* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
 			 * followed by ID_NAME-2 characters from id->name
 			 */
-			char name_ui[MAX_ID_FULL_NAME];
+			char name_ui[MAX_ID_FULL_NAME_UI];
 			BKE_id_full_name_ui_prefix_get(name_ui, id);
 
 			int iconid = ui_id_icon_get(C, id, template_ui->preview);
