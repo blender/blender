@@ -1000,7 +1000,6 @@ class PARTICLE_PT_physics_fluid_interaction(ParticleButtonsPanel, Panel):
         layout.use_property_split = True
 
         psys = context.particle_system
-        part = particle_get_settings(context)
 
         row = layout.row()
         row.template_list("UI_UL_list", "particle_targets", psys, "targets",

@@ -470,7 +470,7 @@ def reset_all(*, reload_scripts=False):
 
     for path in paths_list:
         _bpy.utils._sys_path_ensure(path)
-        for mod_name, mod_path in _bpy.path.module_names(path):
+        for mod_name, _mod_path in _bpy.path.module_names(path):
             is_enabled, is_loaded = check(mod_name)
 
             # first check if reload is needed before changing state.

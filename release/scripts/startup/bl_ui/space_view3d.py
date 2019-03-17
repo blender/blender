@@ -135,7 +135,6 @@ class VIEW3D_HT_header(Header):
         # Orientation
         if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL'} or has_pose_mode:
             orient_slot = scene.transform_orientation_slots[0]
-            custom_orientation = orient_slot.custom_orientation
             trans_name, trans_icon = orient_slot.ui_info()
 
             row = layout.row(align=True)
@@ -651,7 +650,6 @@ class VIEW3D_MT_view_local(Menu):
 
     def draw(self, context):
         layout = self.layout
-        view = context.space_data
 
         layout.operator("view3d.localview", text="Toggle Local View")
         layout.operator("view3d.localview_remove_from")
@@ -4333,13 +4331,14 @@ class VIEW3D_PT_collections(Panel):
                 need_separator = False
 
             icon = 'BLANK1'
-            has_objects = True
+            # has_objects = True
             if child.has_selected_objects(view_layer):
                 icon = 'LAYER_ACTIVE'
             elif child.has_objects():
                 icon = 'LAYER_USED'
             else:
-                has_objects = False
+                # has_objects = False
+                pass
 
             row = layout.row()
             sub = row.split(factor=0.98)
@@ -4365,7 +4364,7 @@ class VIEW3D_PT_collections(Panel):
         layout.use_property_split = False
 
         layout.label(text="Collections Visibility")
-        col = layout.column()
+        layout.column()
 
         view_layer = context.view_layer
         # We pass index 0 here beause the index is increased
@@ -4891,7 +4890,6 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
 
         view = context.space_data
         overlay = view.overlay
-        shading = view.shading
         display_all = overlay.show_overlays
 
         col = layout.column()

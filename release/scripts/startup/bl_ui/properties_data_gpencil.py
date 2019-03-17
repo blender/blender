@@ -68,7 +68,6 @@ class DATA_PT_context_gpencil(DataButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        gpencil = context.gpencil
         space = context.space_data
 
         if ob:

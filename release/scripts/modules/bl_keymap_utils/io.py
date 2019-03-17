@@ -156,7 +156,7 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
         fw = fh.write
         fw("keyconfig_data = \\\n[")
 
-        for km, kc_x in export_keymaps:
+        for km, _kc_x in export_keymaps:
             km = km.active()
             fw("(")
             fw(f"\"{km.name:s}\",\n")

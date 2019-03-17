@@ -719,7 +719,6 @@ class IMAGE_PT_view_display(Panel):
         ima = sima.image
 
         show_uvedit = sima.show_uvedit
-        show_maskedit = sima.show_maskedit
         uvedit = sima.uv_editor
 
         col = layout.column()

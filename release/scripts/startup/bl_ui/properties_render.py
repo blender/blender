@@ -491,7 +491,6 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         layout.use_property_split = True
 
         scene = context.scene
-        props = scene.eevee
         rd = scene.render
 
         col = layout.column()

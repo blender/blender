@@ -1518,7 +1518,6 @@ class USERPREF_PT_input_tablet(PreferencePanel, Panel):
     @classmethod
     def poll(cls, context):
         prefs = context.preferences
-        inputs = prefs.inputs
         return prefs.active_section == 'INPUT'
 
     def draw_props(self, context, layout):

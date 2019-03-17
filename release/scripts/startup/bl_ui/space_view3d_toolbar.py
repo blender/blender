@@ -1663,7 +1663,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
         return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL'}
 
     def draw(self, context):
-        layout = self.layout
+        pass
 
 
 class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):

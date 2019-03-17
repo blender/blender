@@ -284,7 +284,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             camera = bpy.data.objects[render_context.camera, None]
             light = bpy.data.objects[render_context.light, None] if render_context.light is not None else None
             cos = objects_bbox_calc(camera, objects, offset_matrix)
-            loc, ortho_scale = camera.camera_fit_coords(bpy.context.depsgraph, cos)
+            loc, _ortho_scale = camera.camera_fit_coords(bpy.context.depsgraph, cos)
             camera.location = loc
             # Set camera clipping accordingly to computed bbox.
             min_dist = 1e24
@@ -298,7 +298,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             camera.data.clip_start = min_dist / 2
             camera.data.clip_end = max_dist * 2
             if light:
-                loc, ortho_scale = light.camera_fit_coords(bpy.context.depsgraph, cos)
+                loc, _ortho_scale = light.camera_fit_coords(bpy.context.depsgraph, cos)
                 light.location = loc
         scene.update()
 

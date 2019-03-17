@@ -137,7 +137,7 @@ def modules_from_path(path, loaded_modules):
     """
     modules = []
 
-    for mod_name, mod_path in _bpy.path.module_names(path):
+    for mod_name, _mod_path in _bpy.path.module_names(path):
         mod = _test_import(mod_name, loaded_modules)
         if mod:
             modules.append(mod)
@@ -868,7 +868,6 @@ def unregister_tool(tool_cls):
             del tool_list[-1]
         while tool_list and tool_list[0] is None:
             del tool_list[0]
-        is_none_prev = False
         # Remove duplicate separators.
         for i in range(len(tool_list) - 1, -1, -1):
             is_none = tool_list[i] is None

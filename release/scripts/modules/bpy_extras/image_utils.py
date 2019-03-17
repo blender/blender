@@ -138,7 +138,7 @@ def load_image(imagepath,
 
     def _recursive_search(paths, filename_check):
         for path in paths:
-            for dirpath, dirnames, filenames in os.walk(path):
+            for dirpath, _dirnames, filenames in os.walk(path):
 
                 # skip '.svn'
                 if dirpath[0] in {".", b'.'}:

@@ -249,7 +249,6 @@ class GreasePencilStrokeSculptPanel:
         layout.use_property_decorate = False
 
         settings = context.tool_settings.gpencil_sculpt
-        tool = settings.sculpt_tool
         brush = settings.brush
 
         layout.template_icon_view(settings, "sculpt_tool", show_labels=True)

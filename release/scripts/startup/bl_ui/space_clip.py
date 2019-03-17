@@ -383,8 +383,6 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        sc = context.space_data
-
         col = layout.column(align=True)
         row = col.row(align=True)
         row.operator("clip.add_marker_at_click", text="Add")

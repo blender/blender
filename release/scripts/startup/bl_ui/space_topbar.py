@@ -294,10 +294,11 @@ class _draw_left_context_mode:
             if tool is None:
                 return
 
-            is_paint = True
+            # is_paint = True
             # FIXME: tools must use their own UI drawing!
             if tool.idname in {"builtin.line", "builtin.box", "builtin.circle", "builtin.arc", "builtin.curve"}:
-                is_paint = False
+                # is_paint = False
+                pass
             elif tool.idname == "Cutter":
                 row = layout.row(align=True)
                 row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
