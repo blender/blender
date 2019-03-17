@@ -44,8 +44,8 @@ int BLI_kdtree_find_nearest(
         const KDTree *tree, const float co[3],
         KDTreeNearest *r_nearest) ATTR_NONNULL(1, 2);
 
-#define BLI_kdtree_find_nearest_n(tree, co, r_nearest, n) \
-        BLI_kdtree_find_nearest_n_with_len_squared_cb(tree, co, r_nearest, n, NULL, NULL)
+#define BLI_kdtree_find_nearest_n(tree, co, r_nearest, nearest_len_capacity) \
+        BLI_kdtree_find_nearest_n_with_len_squared_cb(tree, co, r_nearest, nearest_len_capacity, NULL, NULL)
 #define BLI_kdtree_range_search(tree, co, r_nearest, range) \
         BLI_kdtree_range_search_with_len_squared_cb(tree, co, r_nearest, range, NULL, NULL)
 
@@ -65,13 +65,13 @@ int BLI_kdtree_calc_duplicates_fast(
 int BLI_kdtree_find_nearest_n_with_len_squared_cb(
         const KDTree *tree, const float co[3],
         KDTreeNearest *r_nearest,
-        unsigned int n,
+        const uint nearest_len_capacity,
         float (*len_sq_fn)(const float co_search[3], const float co_test[3], const void *user_data),
         const void *user_data) ATTR_NONNULL(1, 2, 3);
 int BLI_kdtree_range_search_with_len_squared_cb(
         const KDTree *tree, const float co[3],
         KDTreeNearest **r_nearest,
-        float range,
+        const float range,
         float (*len_sq_fn)(const float co_search[3], const float co_test[3], const void *user_data),
         const void *user_data) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
