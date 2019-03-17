@@ -69,11 +69,21 @@ void BLO_update_defaults_userpref_blend(void)
 #endif
 
 	/* Clear addon preferences. */
-	for (bAddon *addon = U.addons.first; addon; addon = addon->next) {
+	for (bAddon *addon = U.addons.first, *addon_next;
+	     addon != NULL;
+	     addon = addon_next)
+	{
+		addon_next = addon->next;
+
 		if (addon->prop) {
 			IDP_FreeProperty(addon->prop);
 			MEM_freeN(addon->prop);
 			addon->prop = NULL;
+		}
+
+		if (STREQ(addon->module, "io_scene_3ds")) {
+			BLI_remlink(&U.addons, addon);
+			MEM_freeN(addon);
 		}
 	}
 
