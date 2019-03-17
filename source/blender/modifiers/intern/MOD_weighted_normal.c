@@ -537,7 +537,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const bool has_clnors = clnors != NULL;
 	if (!clnors) {
 		clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, numLoops);
-		clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
 	}
 
 	MDeformVert *dvert;
