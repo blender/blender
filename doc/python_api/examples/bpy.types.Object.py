@@ -7,7 +7,6 @@ object, placing it into a view layer, selecting it and making it active.
 """
 
 import bpy
-from mathutils import Matrix
 
 view_layer = bpy.context.view_layer
 

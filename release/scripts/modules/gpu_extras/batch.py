@@ -34,7 +34,6 @@ def batch_for_shader(shader, type, content, indices=None):
     :return: compatible batch
     :rtype: :class:`gpu.types.Batch`
     """
-    import gpu
     from gpu.types import (
         GPUBatch,
         GPUIndexBuf,

@@ -19,8 +19,15 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Menu, Operator, Panel, WindowManager
-from bpy.props import StringProperty, BoolProperty
+from bpy.types import (
+    Menu,
+    Operator,
+    WindowManager,
+)
+from bpy.props import (
+    BoolProperty,
+    StringProperty,
+)
 
 # For preset popover menu
 WindowManager.preset_name = StringProperty(
