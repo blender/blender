@@ -125,12 +125,12 @@ if 'cmake' in builder:
         cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%s" % ('ON' if build_cubins else 'OFF'))
         if build_cubins or 'cuda' in targets:
             cuda_cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
-
-        # Only modify common cmake options if cuda doesn't require separate target.
-        if 'cuda' not in targets:
-            cmake_options += cuda_cmake_options
     else:
         cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
+
+    # Only modify common cmake options if cuda doesn't require separate target.
+    if 'cuda' not in targets:
+        cmake_options += cuda_cmake_options
 
     cmake_options.append("-DCMAKE_INSTALL_PREFIX=%s" % (install_dir))
 
