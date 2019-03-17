@@ -178,22 +178,9 @@ void BLI_kdtree_balance(KDTree *tree)
 #endif
 }
 
-static float squared_distance(const float v2[3], const float v1[3], const float n2[3])
+static float len_squared_v3v3_cb(const float co_kdtree[3], const float co_search[3], const void *UNUSED(user_data))
 {
-	float d[3], dist;
-
-	d[0] = v2[0] - v1[0];
-	d[1] = v2[1] - v1[1];
-	d[2] = v2[2] - v1[2];
-
-	dist = len_squared_v3(d);
-
-	/* can someone explain why this is done?*/
-	if (n2 && (dot_v3v3(d, n2) < 0.0f)) {
-		dist *= 10.0f;
-	}
-
-	return dist;
+	return len_squared_v3v3(co_kdtree, co_search);
 }
 
 static uint *realloc_nodes(uint *stack, uint *totstack, const bool is_alloc)
@@ -422,8 +409,9 @@ finally:
 	}
 }
 
-static void add_nearest(KDTreeNearest *ptn, uint *found, uint n, int index,
-                        float dist, const float *co)
+static void add_nearest(
+        KDTreeNearest *ptn, uint *found, const uint n, const int index,
+        const float dist, const float co[3])
 {
 	uint i;
 
@@ -451,10 +439,12 @@ static void add_nearest(KDTreeNearest *ptn, uint *found, uint n, int index,
  *
  * \param r_nearest: An array of nearest, sized at least \a n.
  */
-int BLI_kdtree_find_nearest_n__normal(
-        const KDTree *tree, const float co[3], const float nor[3],
+int BLI_kdtree_find_nearest_n_with_len_squared_cb(
+        const KDTree *tree, const float co[3],
         KDTreeNearest r_nearest[],
-        uint n)
+        uint n,
+        float (*len_sq_fn)(const float co_search[3], const float co_test[3], const void *user_data),
+        const void *user_data)
 {
 	const KDTreeNode *nodes = tree->nodes;
 	const KDTreeNode *root;
@@ -471,12 +461,17 @@ int BLI_kdtree_find_nearest_n__normal(
 		return 0;
 	}
 
+	if (len_sq_fn == NULL) {
+		len_sq_fn = len_squared_v3v3_cb;
+		BLI_assert(user_data == NULL);
+	}
+
 	stack = defaultstack;
 	totstack = KD_STACK_INIT;
 
 	root = &nodes[tree->root];
 
-	cur_dist = squared_distance(root->co, co, nor);
+	cur_dist = len_sq_fn(co, root->co, user_data);
 	add_nearest(r_nearest, &found, n, root->index, cur_dist, root->co);
 
 	if (co[root->d] < root->co[root->d]) {
@@ -505,7 +500,7 @@ int BLI_kdtree_find_nearest_n__normal(
 			cur_dist = -cur_dist * cur_dist;
 
 			if (found < n || -cur_dist < r_nearest[found - 1].dist) {
-				cur_dist = squared_distance(node->co, co, nor);
+				cur_dist = len_sq_fn(co, node->co, user_data);
 
 				if (found < n || cur_dist < r_nearest[found - 1].dist) {
 					add_nearest(r_nearest, &found, n, node->index, cur_dist, node->co);
@@ -523,7 +518,7 @@ int BLI_kdtree_find_nearest_n__normal(
 			cur_dist = cur_dist * cur_dist;
 
 			if (found < n || cur_dist < r_nearest[found - 1].dist) {
-				cur_dist = squared_distance(node->co, co, nor);
+				cur_dist = len_sq_fn(co, node->co, user_data);
 				if (found < n || cur_dist < r_nearest[found - 1].dist) {
 					add_nearest(r_nearest, &found, n, node->index, cur_dist, node->co);
 				}
@@ -594,9 +589,11 @@ static void add_in_range(
  * Normal is optional, but if given will limit results to points in normal direction from co.
  * Remember to free nearest after use!
  */
-int BLI_kdtree_range_search__normal(
-        const KDTree *tree, const float co[3], const float nor[3],
-        KDTreeNearest **r_nearest, float range)
+int BLI_kdtree_range_search_with_len_squared_cb(
+        const KDTree *tree, const float co[3],
+        KDTreeNearest **r_nearest, float range,
+        float (*len_sq_fn)(const float co_search[3], const float co_test[3], const void *user_data),
+        const void *user_data)
 {
 	const KDTreeNode *nodes = tree->nodes;
 	uint *stack, defaultstack[KD_STACK_INIT];
@@ -610,6 +607,11 @@ int BLI_kdtree_range_search__normal(
 
 	if (UNLIKELY(tree->root == KD_NODE_UNSET)) {
 		return 0;
+	}
+
+	if (len_sq_fn == NULL) {
+		len_sq_fn = len_squared_v3v3_cb;
+		BLI_assert(user_data == NULL);
 	}
 
 	stack = defaultstack;
@@ -631,7 +633,7 @@ int BLI_kdtree_range_search__normal(
 			}
 		}
 		else {
-			dist_sq = squared_distance(node->co, co, nor);
+			dist_sq = len_sq_fn(co, node->co, user_data);
 			if (dist_sq <= range_sq) {
 				add_in_range(&foundstack, &totfoundstack, found++, node->index, dist_sq, node->co);
 			}
