@@ -10865,6 +10865,8 @@ static void add_collections_to_scene(
         Main *mainvar, Main *bmain,
         Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *lib, const short flag)
 {
+	const bool do_append = (flag & FILE_LINK) == 0;
+
 	Collection *active_collection = scene->master_collection;
 	if (flag & FILE_ACTIVE_COLLECTION) {
 		LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
@@ -10902,8 +10904,11 @@ static void add_collections_to_scene(
 			ob->transflag |= OB_DUPLICOLLECTION;
 			copy_v3_v3(ob->loc, scene->cursor.location);
 		}
-		/* We do not want to force instantiation of indirectly linked collections... */
-		else if ((collection->id.tag & LIB_TAG_INDIRECT) == 0) {
+		/* We do not want to force instantiation of indirectly linked collections...
+		 * Except when we are appending (since in that case, we'll end up instantiating all objects,
+		 * it's better to do it via their own collections if possible).
+		 * Reports showing that desired difference in behaviors between link and append: T62570, T61796. */
+		else if (do_append || (collection->id.tag & LIB_TAG_INDIRECT) == 0) {
 			bool do_add_collection = (collection->id.tag & LIB_TAG_DOIT) != 0;
 			if (!do_add_collection) {
 				/* We need to check that objects in that collections are already instantiated in a scene.
@@ -10915,7 +10920,7 @@ static void add_collections_to_scene(
 					Object *ob = coll_ob->ob;
 					if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 &&
 					    (ob->id.tag & LIB_TAG_DOIT) == 0 &&
-					    (ob->id.tag & LIB_TAG_INDIRECT) == 0 &&
+					    (do_append || (ob->id.tag & LIB_TAG_INDIRECT) == 0) &&
 					    (ob->id.lib == lib) &&
 					    (object_in_any_scene(bmain, ob) == 0))
 					{
