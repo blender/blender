@@ -782,7 +782,7 @@ static void deduplicate_recursive(const struct DeDuplicateParams *p, uint i)
 	}
 	else {
 		if ((p->search != node->index) && (p->duplicates[node->index] == -1)) {
-			if (compare_len_squared_v3v3(node->co, p->search_co, p->range_sq)) {
+			if (len_squared_v3v3(node->co, p->search_co) <= p->range_sq) {
 				p->duplicates[node->index] = (int)p->search;
 				*p->duplicates_found += 1;
 			}

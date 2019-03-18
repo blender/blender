@@ -1415,7 +1415,7 @@ static void paint_2d_fill_add_pixel_byte(
 		rgba_uchar_to_float(color_f, color_b);
 		straight_to_premul_v4(color_f);
 
-		if (compare_len_squared_v4v4(color_f, color, threshold_sq)) {
+		if (len_squared_v4v4(color_f, color) <= threshold_sq) {
 			BLI_stack_push(stack, &coordinate);
 		}
 		BLI_BITMAP_SET(touched, coordinate, true);
@@ -1434,7 +1434,7 @@ static void paint_2d_fill_add_pixel_float(
 	coordinate = ((size_t)y_px) * ibuf->x + x_px;
 
 	if (!BLI_BITMAP_TEST(touched, coordinate)) {
-		if (compare_len_squared_v4v4(ibuf->rect_float + 4 * coordinate, color, threshold_sq)) {
+		if (len_squared_v4v4(ibuf->rect_float + 4 * coordinate, color) <= threshold_sq) {
 			BLI_stack_push(stack, &coordinate);
 		}
 		BLI_BITMAP_SET(touched, coordinate, true);

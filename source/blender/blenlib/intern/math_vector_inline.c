@@ -952,6 +952,14 @@ MINLINE float len_squared_v3v3(const float a[3], const float b[3])
 	return dot_v3v3(d, d);
 }
 
+MINLINE float len_squared_v4v4(const float a[4], const float b[4])
+{
+	float d[4];
+
+	sub_v4_v4v4(d, b, a);
+	return dot_v4v4(d, d);
+}
+
 MINLINE float len_manhattan_v2v2(const float a[2], const float b[2])
 {
 	float d[2];
@@ -1195,20 +1203,6 @@ MINLINE bool compare_len_v3v3(const float v1[3], const float v2[3], const float 
 	float d[3];
 	sub_v3_v3v3(d, v1, v2);
 	return (dot_v3v3(d, d) <= (limit * limit));
-}
-
-MINLINE bool compare_len_squared_v3v3(const float v1[3], const float v2[3], const float limit_sq)
-{
-	float d[3];
-	sub_v3_v3v3(d, v1, v2);
-	return (dot_v3v3(d, d) <= limit_sq);
-}
-
-MINLINE bool compare_len_squared_v4v4(const float v1[4], const float v2[4], const float limit_sq)
-{
-	float d[4];
-	sub_v4_v4v4(d, v1, v2);
-	return (dot_v4v4(d, d) <= limit_sq);
 }
 
 /**
