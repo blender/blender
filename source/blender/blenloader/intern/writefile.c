@@ -1422,9 +1422,10 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part)
 				if (part->instance_collection) { /* can be NULL if lining fails or set to None */
 					FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->instance_collection, object)
 					{
-						if (object != dw->ob) {
-							dw->index++;
+						if (object == dw->ob) {
+							break;
 						}
+						dw->index++;
 					}
 					FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 				}
