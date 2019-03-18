@@ -52,6 +52,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -580,7 +581,10 @@ static void disconnect_hair(
         Depsgraph *depsgraph, Scene *scene,
         Object *ob, ParticleSystem *psys)
 {
-	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+	ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
+	ParticleSystemModifierData *psmd_eval =
+	        psys_get_modifier(object_eval, psys_eval);
 	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleData *pa;
 	PTCacheEdit *edit;
@@ -605,7 +609,8 @@ static void disconnect_hair(
 			point++;
 		}
 
-		psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(
+		        ob, psmd_eval->mesh_final, psys->part->from, pa, hairmat);
 
 		for (k = 0, key = pa->hair; k < pa->totkey; k++, key++) {
 			mul_m4_v3(hairmat, key->co);
@@ -678,7 +683,10 @@ static bool remap_hair_emitter(
         Object *target_ob, ParticleSystem *target_psys, PTCacheEdit *target_edit,
         float from_mat[4][4], float to_mat[4][4], bool from_global, bool to_global)
 {
-	ParticleSystemModifierData *target_psmd = psys_get_modifier(target_ob, target_psys);
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+	ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
+	ParticleSystemModifierData *target_psmd =
+	        psys_get_modifier(object_eval, psys_eval);
 	ParticleData *pa, *tpa;
 	PTCacheEditPoint *edit_point;
 	PTCacheEditKey *ekey;
