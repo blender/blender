@@ -61,6 +61,7 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
+#include "BKE_library.h"
 #include "BKE_light.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -923,7 +924,7 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied ID */
 		properties = IDP_GetProperties(sp->id_copy, false);
 		if (properties) {
-			IDP_FreeProperty(properties);
+			IDP_FreeProperty_ex(properties, false);
 			MEM_freeN(properties);
 		}
 		switch (GS(sp->id_copy->name)) {
