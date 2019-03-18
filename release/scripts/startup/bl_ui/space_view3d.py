@@ -4166,7 +4166,7 @@ class VIEW3D_MT_pivot_pie(Menu):
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='MEDIAN_POINT')
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
-            pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align", text="Only Origins")
+            pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align")
 
 
 class VIEW3D_MT_orientations_pie(Menu):
@@ -5234,11 +5234,7 @@ class VIEW3D_PT_pivot_point(Panel):
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
             col.separator()
 
-            col.prop(
-                tool_settings,
-                "use_transform_pivot_point_align",
-                text="Only Origins",
-            )
+            col.prop(tool_settings, "use_transform_pivot_point_align")
 
 
 class VIEW3D_PT_snapping(Panel):
