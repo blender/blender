@@ -152,31 +152,29 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 		}                                                                 \
 	} ((void)0)
 
-
-#define FOREACH_MAIN_ID_BEGIN(_bmain, _id)                                \
+#define FOREACH_MAIN_LISTBASE_BEGIN(_bmain, _lb)                          \
 	{                                                                     \
 		ListBase *_lbarray[MAX_LIBARRAY];                                 \
 		int _i = set_listbasepointers(_bmain, _lbarray);                  \
 		while (_i--) {                                                    \
+			_lb = _lbarray[_i];
+
+#define FOREACH_MAIN_LISTBASE_END                                         \
+		}                                                                 \
+	} ((void)0)
+
+/* DO NOT use break statement with that macro, use FOREACH_MAIN_LISTBASE and FOREACH_MAIN_LISTBASE_ID instead
+ * if you need that kind of control flow. */
+#define FOREACH_MAIN_ID_BEGIN(_bmain, _id)                                \
+	{                                                                     \
+		ListBase *_lb;                                                    \
+		FOREACH_MAIN_LISTBASE_BEGIN(_bmain, _lb) {                        \
 			FOREACH_MAIN_LISTBASE_ID_BEGIN(_lbarray[_i], _id)
 
 #define FOREACH_MAIN_ID_END                                               \
 			FOREACH_MAIN_LISTBASE_ID_END;                                 \
-		}                                                                 \
+		} FOREACH_MAIN_LISTBASE_END;                                      \
 	} ((void)0)
-
-/** \param _do_break A boolean, to allow breaking iteration (only used to break by type,
- *                   you must also use an explicit `break;` operation if you want to
- *                   immediately break from inner by-ID loop).
- */
-#define FOREACH_MAIN_ID_BREAKABLE_BEGIN(_bmain, _id, _do_break)           \
-	{                                                                     \
-		ListBase *_lbarray[MAX_LIBARRAY];                                 \
-		int i = set_listbasepointers(_bmain, _lbarray);                   \
-		while (i-- && !_do_break) {                                       \
-			FOREACH_MAIN_LISTBASE_ID_BEGIN(_lbarray[i], _id)              \
-
-#define FOREACH_MAIN_ID_BREAKABLE_END FOREACH_MAIN_ID_END
 
 
 struct BlendThumbnail *BKE_main_thumbnail_from_imbuf(struct Main *bmain, struct ImBuf *img);

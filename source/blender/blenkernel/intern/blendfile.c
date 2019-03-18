@@ -460,16 +460,21 @@ bool BKE_blendfile_read_from_memfile(
 void BKE_blendfile_read_make_empty(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
+	ListBase *lb;
 	ID *id;
 
-	FOREACH_MAIN_ID_BEGIN(bmain, id)
+	FOREACH_MAIN_LISTBASE_BEGIN(bmain, lb)
 	{
-		if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM, ID_WS)) {
-			break;  /* Only breaks iter on that ID type, and continues with IDs of next type. */
+		FOREACH_MAIN_LISTBASE_ID_BEGIN(lb, id)
+		{
+			if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM, ID_WS)) {
+				break;
+			}
+			BKE_id_delete(bmain, id);
 		}
-		BKE_id_delete(bmain, id);
+		FOREACH_MAIN_LISTBASE_ID_END;
 	}
-	FOREACH_MAIN_ID_END;
+	FOREACH_MAIN_LISTBASE_END;
 }
 
 /* only read the userdef from a .blend */

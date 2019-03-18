@@ -1384,19 +1384,16 @@ void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 	}
 
 	for (bool do_loop = true; do_loop; ) {
-		bool do_break = false;
 		do_loop = false;
-		FOREACH_MAIN_ID_BREAKABLE_BEGIN(bmain, id, do_break)
+		FOREACH_MAIN_ID_BEGIN(bmain, id)
 		{
+			/* We only want to check that ID if it is currently known as used... */
 			if ((id->tag & LIB_TAG_DOIT) == 0) {
 				BKE_library_foreach_ID_link(
 				            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_READONLY);
 			}
-			/* Else it is an unused ID (so far), no need to check it further. */
-			do_break = true;
-			break;
 		}
-		FOREACH_MAIN_ID_BREAKABLE_END;
+		FOREACH_MAIN_ID_END;
 	}
 }
 
