@@ -424,8 +424,6 @@ class _draw_left_context_mode:
                         layout.row().prop(brush, "puff_mode", expand=True)
                         layout.prop(brush, "use_puff_volume")
                     elif tool == 'COMB':
-                        # Note: actually in 'Options' panel,
-                        # disabled when used in popover.
                         row = layout.row()
                         row.active = settings.is_editable
                         row.prop(settings, "use_emitter_deflect", text="Deflect Emitter")

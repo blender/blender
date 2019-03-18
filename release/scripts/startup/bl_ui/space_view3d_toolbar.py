@@ -209,6 +209,51 @@ class View3DPaintPanel(UnifiedPaintPanel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
+class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
+    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_label = "Particle tools"
+    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
+        return (settings and settings.brush and context.particle_edit_object)
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        tool = settings.tool
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        if tool != None:
+            col = layout.column()
+            col.prop(brush, "size", slider=True)
+            if tool == 'ADD':
+                col.prop(brush, "count")
+
+                col = layout.column()
+                col.prop(settings, "use_default_interpolate")
+                col.prop(brush, "steps", slider=True)
+                col.prop(settings, "default_key_count", slider=True)
+            else:
+                col.prop(brush, "strength", slider=True)
+
+                if tool == 'LENGTH':
+                    layout.row().prop(brush, "length_mode", expand=True)
+                elif tool == 'PUFF':
+                    layout.row().prop(brush, "puff_mode", expand=True)
+                    layout.prop(brush, "use_puff_volume")
+                elif tool == 'COMB':
+                    layout.prop(settings, "use_emitter_deflect", text="Deflect Emitter")
+                    col = layout.column()
+                    col.active = settings.use_emitter_deflect
+                    col.prop(settings, "emitter_distance", text="Distance")
+
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
@@ -217,7 +262,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        return cls.paint_settings(context)
+        settings = cls.paint_settings(context)
+        return (settings and
+                settings.brush and
+                (context.sculpt_object or
+                 context.vertex_paint_object or
+                 context.weight_paint_object or
+                 context.image_paint_object))
 
     def draw(self, context):
         layout = self.layout
@@ -226,37 +277,11 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        if not context.particle_edit_object:
-            col = layout.split().column()
-            col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
-
-        # Particle Mode #
-        if context.particle_edit_object:
-            tool = settings.tool
-
-            if tool != 'NONE':
-                layout.column().prop(settings, "tool")
-                col = layout.column()
-                col.prop(brush, "size", slider=True)
-                if tool == 'ADD':
-                    col.prop(brush, "count")
-
-                    col = layout.column()
-                    col.prop(settings, "use_default_interpolate")
-                    col.prop(brush, "steps", slider=True)
-                    col.prop(settings, "default_key_count", slider=True)
-                else:
-                    col.prop(brush, "strength", slider=True)
-
-                    if tool == 'LENGTH':
-                        layout.row().prop(brush, "length_mode", expand=True)
-                    elif tool == 'PUFF':
-                        layout.row().prop(brush, "puff_mode", expand=True)
-                        layout.prop(brush, "use_puff_volume")
+        col = layout.split().column()
+        col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
 
         # Sculpt Mode #
-
-        elif context.sculpt_object and brush:
+        if context.sculpt_object and brush:
             from .properties_paint_common import (
                 brush_basic_sculpt_settings,
             )
@@ -1373,18 +1398,22 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
 
 
 # TODO, move to space_view3d.py
-class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
+class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
     """Default tools for particle mode"""
     bl_context = ".particlemode"
     bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
         pe = context.tool_settings.particle_edit
         ob = pe.object
 
-        layout.prop(pe, "type", text="")
+        layout.prop(pe, "type", text="Editing Type")
 
         ptcache = None
 
@@ -1409,29 +1438,48 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
             layout.label(text="in memory to enable editing!")
 
         col = layout.column(align=True)
-        if pe.is_hair:
-            col.active = pe.is_editable
-            col.prop(pe, "use_emitter_deflect", text="Deflect Emitter")
-            sub = col.row(align=True)
-            sub.active = pe.use_emitter_deflect
-            sub.prop(pe, "emitter_distance", text="Distance")
-
-        col = layout.column(align=True)
         col.active = pe.is_editable
-        col.label(text="Keep:")
-        col.prop(pe, "use_preserve_length", text="Lengths")
-        col.prop(pe, "use_preserve_root", text="Root")
-        if not pe.is_hair:
-            col.label(text="Correct:")
-            col.prop(pe, "use_auto_velocity", text="Velocity")
         col.prop(ob.data, "use_mirror_x")
+        col.separator()
+        col.prop(pe, "use_preserve_length", text="Preserve Strand Lengths")
+        col.prop(pe, "use_preserve_root", text="Preserve Root Positions")
+        if not pe.is_hair:
+            col.prop(pe, "use_auto_velocity", text="Auto-Velocity")
 
-        col.prop(pe, "shape_object")
-        col.operator("particle.shape_cut")
+class VIEW3D_PT_tools_particlemode_options_shapecut(View3DPanel, Panel):
+    """Default tools for particle mode"""
+    bl_parent_id = "VIEW3D_PT_tools_particlemode_options"
+    bl_label = "Cut Particles to Shape"
+    bl_options = {'DEFAULT_CLOSED'}
 
-        col = layout.column(align=True)
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        pe = context.tool_settings.particle_edit
+        ob = pe.object
+
+        layout.prop(pe, "shape_object")
+        layout.operator("particle.shape_cut", text="Cut")
+
+class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
+    """Default tools for particle mode"""
+    bl_parent_id = "VIEW3D_PT_tools_particlemode_options"
+    bl_label = "Viewport Display"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        pe = context.tool_settings.particle_edit
+        ob = pe.object
+
+        col = layout.column()
         col.active = pe.is_editable
-        col.label(text="Display:")
         col.prop(pe, "display_step", text="Path Steps")
         if pe.is_hair:
             col.prop(pe, "show_particles", text="Children")
@@ -1861,6 +1909,9 @@ classes = (
     VIEW3D_MT_tools_projectpaint_stencil,
     VIEW3D_PT_tools_projectpaint_unified,
     VIEW3D_PT_tools_particlemode,
+    VIEW3D_PT_tools_particlemode_options,
+    VIEW3D_PT_tools_particlemode_options_shapecut,
+    VIEW3D_PT_tools_particlemode_options_display,
 
     VIEW3D_PT_gpencil_brush_presets,
     VIEW3D_PT_tools_grease_pencil_brush,
