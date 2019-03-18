@@ -599,8 +599,8 @@ def km_user_interface(_params):
         # Eyedroppers all have the same event, and pass it through until
         # a suitable eyedropper handles it.
         ("ui.eyedropper_color", {"type": 'E', "value": 'PRESS'}, None),
-        ("ui.eyedropper_colorband", {"type": 'E', "value": 'PRESS'}, None),
-        ("ui.eyedropper_colorband_point", {"type": 'E', "value": 'PRESS', "alt": True}, None),
+        ("ui.eyedropper_colorramp", {"type": 'E', "value": 'PRESS'}, None),
+        ("ui.eyedropper_colorramp_point", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("ui.eyedropper_id", {"type": 'E', "value": 'PRESS'}, None),
         ("ui.eyedropper_depth", {"type": 'E', "value": 'PRESS'}, None),
         # Copy data path
@@ -4249,10 +4249,10 @@ def km_eyedropper_modal_map(_params):
     return keymap
 
 
-def km_eyedropper_colorband_pointsampling_map(_params):
+def km_eyedropper_colorramp_pointsampling_map(_params):
     items = []
     keymap = (
-        "Eyedropper ColorBand PointSampling Map",
+        "Eyedropper ColorRamp PointSampling Map",
         {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
         {"items": items},
     )
@@ -6059,7 +6059,7 @@ def generate_keymaps(params=None):
 
         # Modal maps.
         km_eyedropper_modal_map(params),
-        km_eyedropper_colorband_pointsampling_map(params),
+        km_eyedropper_colorramp_pointsampling_map(params),
         km_transform_modal_map(params),
         km_view3d_navigate(params),
         km_view3d_navigate_tweak_modal_map(params),

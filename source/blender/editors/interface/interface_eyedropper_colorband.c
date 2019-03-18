@@ -27,8 +27,8 @@
  * - Clicking on points, adding each color to the end of the color-band.
  *
  * Defines:
- * - #UI_OT_eyedropper_colorband
- * - #UI_OT_eyedropper_colorband_point
+ * - #UI_OT_eyedropper_colorramp
+ * - #UI_OT_eyedropper_colorramp_point
  */
 
 #include "MEM_guardedalloc.h"
@@ -318,11 +318,11 @@ static bool eyedropper_colorband_poll(bContext *C)
 }
 
 
-void UI_OT_eyedropper_colorband(wmOperatorType *ot)
+void UI_OT_eyedropper_colorramp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Eyedropper colorband";
-	ot->idname = "UI_OT_eyedropper_colorband";
+	ot->idname = "UI_OT_eyedropper_colorramp";
 	ot->description = "Sample a color band";
 
 	/* api callbacks */
@@ -338,11 +338,11 @@ void UI_OT_eyedropper_colorband(wmOperatorType *ot)
 	/* properties */
 }
 
-void UI_OT_eyedropper_colorband_point(wmOperatorType *ot)
+void UI_OT_eyedropper_colorramp_point(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Eyedropper colorband (points)";
-	ot->idname = "UI_OT_eyedropper_colorband_point";
+	ot->idname = "UI_OT_eyedropper_colorramp_point";
 	ot->description = "Point-sample a color band";
 
 	/* api callbacks */
