@@ -75,7 +75,7 @@ public:
 	array<int> curve_firstkey;
 	array<int> curve_keynum;
 	array<float> curve_length;
-	array<float3> curve_uv;
+	array<float2> curve_uv;
 	array<float3> curve_vcol;
 
 	array<float3> curvekey_co;

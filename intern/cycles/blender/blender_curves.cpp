@@ -254,7 +254,7 @@ static bool ObtainCacheParticleUV(Mesh *mesh,
 					BL::Mesh::tessface_uv_textures_iterator l;
 					b_mesh->tessface_uv_textures.begin(l);
 
-					float3 uv = make_float3(0.0f, 0.0f, 0.0f);
+					float2 uv = make_float2(0.0f, 0.0f);
 					if(b_mesh->tessface_uv_textures.length())
 						b_psys.uv_on_emitter(psmd, *b_pa, pa_no, uv_num, &uv.x);
 					CData->curve_uv.push_back_slow(uv);
@@ -776,14 +776,10 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 static void ExportCurveTriangleUV(ParticleCurveData *CData,
                                   int vert_offset,
                                   int resol,
-                                  float3 *uvdata)
+                                  float2 *uvdata)
 {
 	if(uvdata == NULL)
 		return;
-
-	float time = 0.0f;
-	float prevtime = 0.0f;
-
 	int vertexindex = vert_offset;
 
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
@@ -792,30 +788,20 @@ static void ExportCurveTriangleUV(ParticleCurveData *CData,
 				continue;
 
 			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
-				time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
-
 				for(int section = 0; section < resol; section++) {
 					uvdata[vertexindex] = CData->curve_uv[curve];
-					uvdata[vertexindex].z = prevtime;
 					vertexindex++;
 					uvdata[vertexindex] = CData->curve_uv[curve];
-					uvdata[vertexindex].z = time;
 					vertexindex++;
 					uvdata[vertexindex] = CData->curve_uv[curve];
-					uvdata[vertexindex].z = prevtime;
 					vertexindex++;
 					uvdata[vertexindex] = CData->curve_uv[curve];
-					uvdata[vertexindex].z = time;
 					vertexindex++;
 					uvdata[vertexindex] = CData->curve_uv[curve];
-					uvdata[vertexindex].z = prevtime;
 					vertexindex++;
 					uvdata[vertexindex] = CData->curve_uv[curve];
-					uvdata[vertexindex].z = time;
 					vertexindex++;
 				}
-
-				prevtime = time;
 			}
 		}
 	}
@@ -1094,9 +1080,9 @@ void BlenderSync::sync_curves(Mesh *mesh,
 					if(active_render)
 						attr_uv = mesh->attributes.add(std, name);
 					else
-						attr_uv = mesh->attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+						attr_uv = mesh->attributes.add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
 
-					float3 *uv = attr_uv->data_float3();
+					float2 *uv = attr_uv->data_float2();
 
 					ExportCurveTriangleUV(&CData, tri_num * 3, used_res, uv);
 				}
@@ -1104,9 +1090,9 @@ void BlenderSync::sync_curves(Mesh *mesh,
 					if(active_render)
 						attr_uv = mesh->curve_attributes.add(std, name);
 					else
-						attr_uv = mesh->curve_attributes.add(name, TypeDesc::TypePoint,  ATTR_ELEMENT_CURVE);
+						attr_uv = mesh->curve_attributes.add(name, TypeFloat2,  ATTR_ELEMENT_CURVE);
 
-					float3 *uv = attr_uv->data_float3();
+					float2 *uv = attr_uv->data_float2();
 
 					if(uv) {
 						size_t i = 0;
