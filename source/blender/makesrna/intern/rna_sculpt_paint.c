@@ -1082,7 +1082,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_DRAW_PART);
-	RNA_def_property_ui_text(prop, "Draw Particles", "Draw actual particles");
+	RNA_def_property_ui_text(prop, "Display Particles", "Display actual particles");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop = RNA_def_property(srna, "use_default_interpolate", PROP_BOOLEAN, PROP_NONE);
