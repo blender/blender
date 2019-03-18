@@ -4427,12 +4427,18 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 }
 
 /* Draw UI widgets the given channel */
-void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
+void ANIM_channel_draw_widgets(
+        const bContext *C,
+        bAnimContext *ac,
+        bAnimListElem *ale,
+        uiBlock *block,
+        rctf *rect,
+        size_t channel_index)
 {
 	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
-	float y, ymid /*, ytext*/;
-	short offset;
+	float ymid;
+	const short channel_height = round_fl_to_int(BLI_rctf_size_y(rect));
 	const bool is_being_renamed = achannel_is_being_renamed(ac, acf, channel_index);
 
 	/* sanity checks - don't draw anything */
@@ -4440,15 +4446,13 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		return;
 
 	/* get initial offset */
-	if (acf->get_offset)
-		offset = acf->get_offset(ac, ale);
-	else
-		offset = 0;
+	short offset = rect->xmin;
+	if (acf->get_offset) {
+		offset += acf->get_offset(ac, ale);
+	}
 
-	/* calculate appropriate y-coordinates for icon buttons
-	 */
-	y = (ymaxc - yminc) / 2 + yminc;
-	ymid = y - 0.5f * ICON_WIDTH;
+	/* calculate appropriate y-coordinates for icon buttons */
+	ymid = BLI_rctf_cent_y(rect) - 0.5f * ICON_WIDTH;
 
 	/* no button backdrop behind icons */
 	UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -4530,13 +4534,12 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		 */
 		if (acf->name_prop(ale, &ptr, &prop)) {
 			const short margin_x = 3 * round_fl_to_int(UI_DPI_FAC);
-			const short channel_height = round_fl_to_int(ymaxc - yminc);
 			const short width = ac->ar->winx - offset - (margin_x * 2);
 			uiBut *but;
 
 			UI_block_emboss_set(block, UI_EMBOSS);
 
-			but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + margin_x, yminc,
+			but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + margin_x, rect->ymin,
 			                MAX2(width, RENAME_TEXT_MIN_WIDTH), channel_height,
 			                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
 
@@ -4561,7 +4564,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 
 	/* step 5) draw mute+protection toggles + (sliders) ....................... */
 	/* reset offset - now goes from RHS of panel */
-	offset = 0;
+	offset = (int)rect->xmax;
 
 	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
 	if (v2d && !is_being_renamed) {
@@ -4589,33 +4592,33 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ACHANNEL_BUTTON_WIDTH / 2) ) {
 			/* protect... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
-				offset += ICON_WIDTH;
-				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_PROTECT);
+				offset -= ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_PROTECT);
 			}
 			/* mute... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
-				offset += ICON_WIDTH;
-				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MUTE);
+				offset -= ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_MUTE);
 			}
 			if (ale->type == ANIMTYPE_GPLAYER) {
 				/* Not technically "mute" (in terms of anim channels, but this sets layer visibility instead) */
-				offset += ICON_WIDTH;
-				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_VISIBLE);
+				offset -= ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
 			}
 
 			/* modifiers disable */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MOD_OFF)) {
 				/* hack: extra spacing, to avoid touching the mute toggle */
-				offset += ICON_WIDTH * 1.2f;
-				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MOD_OFF);
+				offset -= ICON_WIDTH * 1.2f;
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_MOD_OFF);
 			}
 
 			/* ----------- */
 
 			/* pinned... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PINNED)) {
-				offset += ICON_WIDTH;
-				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_PINNED);
+				offset -= ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_PINNED);
 			}
 
 			/* NLA Action "pushdown" */
@@ -4625,9 +4628,9 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 
 				UI_block_emboss_set(block, UI_EMBOSS);
 
-				offset += UI_UNIT_X;
+				offset -= UI_UNIT_X;
 				but = uiDefIconButO(block, UI_BTYPE_BUT, "NLA_OT_action_pushdown", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN,
-				                   (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, NULL);
+				                   offset, ymid, UI_UNIT_X, UI_UNIT_X, NULL);
 
 				opptr_b = UI_but_operator_ptr_get(but);
 				RNA_int_set(opptr_b, "channel_index", channel_index);
@@ -4647,7 +4650,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY)) {
 			/* adjust offset */
 			// TODO: make slider width dynamic, so that they can be easier to use when the view is wide enough
-			offset += SLIDER_WIDTH;
+			offset -= SLIDER_WIDTH;
 
 			/* need backdrop behind sliders... */
 			UI_block_emboss_set(block, UI_EMBOSS);
@@ -4668,7 +4671,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 						uiBut *but;
 
 						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
-						but = uiDefAutoButR(block, &ptr, prop, fcu->array_index, "", ICON_NONE, (int)v2d->cur.xmax - offset, ymid, SLIDER_WIDTH, (int)ymaxc - yminc);
+						but = uiDefAutoButR(block, &ptr, prop, fcu->array_index, "", ICON_NONE, offset, ymid, SLIDER_WIDTH, channel_height);
 						UI_but_func_set(but, achannel_setting_slider_nla_curve_cb, ale->id, ale->data);
 					}
 				}
@@ -4705,7 +4708,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 						uiBut *but;
 
 						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
-						but = uiDefAutoButR(block, &ptr, prop, array_index, "", ICON_NONE, (int)v2d->cur.xmax - offset, ymid, SLIDER_WIDTH, (int)ymaxc - yminc);
+						but = uiDefAutoButR(block, &ptr, prop, array_index, "", ICON_NONE, offset, ymid, SLIDER_WIDTH, channel_height);
 
 						/* assign keyframing function according to slider type */
 						if (ale->type == ANIMTYPE_SHAPEKEY)
