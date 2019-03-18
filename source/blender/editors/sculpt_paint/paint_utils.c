@@ -460,8 +460,11 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 		bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 
 		if (ob) {
+			CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
+			cddata_masks.pmask |= CD_MASK_ORIGINDEX;
 			Mesh *me = (Mesh *)ob->data;
-			Mesh *me_eval = ob_eval->runtime.mesh_eval;
+			CustomData_MeshMasks mask, nextmask, previewmask = {0}, append_mask = CD_MASK_BAREMESH_ORIGINDEX;
+			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &cddata_masks);
 
 			ViewContext vc;
 			const int mval[2] = {x, y};
