@@ -97,6 +97,13 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 	}
 
 	if (!band) {
+		PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
+		if (ptr.data != NULL) {
+			band = ptr.data;
+		}
+	}
+
+	if (!band) {
 		return false;
 	}
 
@@ -300,7 +307,14 @@ static int eyedropper_colorband_exec(bContext *C, wmOperator *op)
 static bool eyedropper_colorband_poll(bContext *C)
 {
 	uiBut *but = UI_context_active_but_get(C);
-	return (but && but->type == UI_BTYPE_COLORBAND);
+	if (but && but->type == UI_BTYPE_COLORBAND) {
+		return true;
+	}
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
+	if (ptr.data != NULL) {
+		return true;
+	}
+	return false;
 }
 
 

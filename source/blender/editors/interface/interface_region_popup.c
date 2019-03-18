@@ -203,13 +203,13 @@ static void ui_popup_block_position(wmWindow *window, ARegion *butregion, uiBut 
 
 	if (dir1 == UI_DIR_LEFT) {
 		offset_x = butrct.xmin - block->rect.xmax;
-		if (dir2 == UI_DIR_UP) offset_y = butrct.ymin - block->rect.ymin - center_y - MENU_PADDING;
-		else                   offset_y = butrct.ymax - block->rect.ymax + center_y + MENU_PADDING;
+		if (dir2 == UI_DIR_UP) offset_y = butrct.ymin - block->rect.ymin - center_y - UI_MENU_PADDING;
+		else                   offset_y = butrct.ymax - block->rect.ymax + center_y + UI_MENU_PADDING;
 	}
 	else if (dir1 == UI_DIR_RIGHT) {
 		offset_x = butrct.xmax - block->rect.xmin;
-		if (dir2 == UI_DIR_UP) offset_y = butrct.ymin - block->rect.ymin - center_y - MENU_PADDING;
-		else                   offset_y = butrct.ymax - block->rect.ymax + center_y + MENU_PADDING;
+		if (dir2 == UI_DIR_UP) offset_y = butrct.ymin - block->rect.ymin - center_y - UI_MENU_PADDING;
+		else                   offset_y = butrct.ymax - block->rect.ymax + center_y + UI_MENU_PADDING;
 	}
 	else if (dir1 == UI_DIR_UP) {
 		offset_y = butrct.ymax - block->rect.ymin;

@@ -23,8 +23,6 @@
 #ifndef __INTERFACE_REGIONS_INTERN_H__
 #define __INTERFACE_REGIONS_INTERN_H__
 
-#define MENU_PADDING (int)(0.2f * UI_UNIT_Y)
-
 /* interface_region_menu_popup.c */
 uint ui_popup_menu_hash(const char *str);
 

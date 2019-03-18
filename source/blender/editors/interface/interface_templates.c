@@ -2378,15 +2378,26 @@ static void colorband_tools_dofunc(bContext *C, void *coba_v, int event)
 static uiBlock *colorband_tools_func(
         bContext *C, ARegion *ar, void *coba_v)
 {
+	uiStyle *style = UI_style_get_dpi();
 	ColorBand *coba = coba_v;
 	uiBlock *block;
 	short yco = 0, menuwidth = 10 * UI_UNIT_X;
 
-	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+	block = UI_block_begin(C, ar, __func__, UI_EMBOSS_PULLDOWN);
 	UI_block_func_butmenu_set(block, colorband_tools_dofunc, coba);
 
+	uiLayout *layout = UI_block_layout(
+	        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, UI_MENU_WIDTH_MIN, 0, UI_MENU_PADDING, style);
+	UI_block_layout_set_current(block, layout);
 	{
-		uiBut *but;
+		PointerRNA coba_ptr;
+		RNA_pointer_create(NULL, &RNA_ColorRamp, coba, &coba_ptr);
+		uiLayoutSetContextPointer(layout, "color_ramp", &coba_ptr);
+	}
+
+	/* We could move these to operators,
+	 * although this isn't important unless we want to assign key shortcuts to them. */
+	{
 		uiDefIconTextBut(
 		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1,
 		        IFACE_("Flip Color Ramp"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
@@ -2399,11 +2410,9 @@ static uiBlock *colorband_tools_func(
 		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1,
 		        IFACE_("Distribute Stops Evenly"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
 		        NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_EVENLY, "");
-		but = uiDefIconTextButO(
-		        block, UI_BTYPE_BUT_MENU, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER,
-		        IFACE_("Eyedropper"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
-		        "");
-		but->custom_data = coba;
+
+		uiItemO(layout, IFACE_("Eyedropper"), ICON_EYEDROPPER, "UI_OT_eyedropper_colorband");
+
 		uiDefIconTextBut(
 		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Reset Color Ramp"),
 		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_RESET, "");

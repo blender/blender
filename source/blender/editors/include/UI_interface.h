@@ -1186,6 +1186,8 @@ void uiTemplateComponentMenu(uiLayout *layout, struct PointerRNA *ptr, const cha
 void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float *color);
 void uiTemplateCacheFile(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname);
 
+struct ColorBand *UI_block_get_colorband_from_template_menu(struct uiBlock *block);
+
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"
 void uiTemplateList(

@@ -311,7 +311,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
 	pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
 	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS_PULLDOWN);
 	pup->block->flag |= UI_BLOCK_NUMSELECT;  /* default menus to numselect */
-	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, MENU_PADDING, style);
+	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
 	pup->slideout = but ? ui_block_is_menu(but->block) : false;
 	pup->but = but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
@@ -377,7 +377,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C, const char *title, const char *
 	pup->block = UI_block_begin(C, NULL, block_name, UI_EMBOSS_PULLDOWN);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY | UI_BLOCK_IS_FLIP;
 	pup->block->puphash = ui_popup_menu_hash(title);
-	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, MENU_PADDING, style);
+	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
 
 	/* note, this intentionally differs from the menu & submenu default because many operators
 	 * use popups like this to select one of their options -
