@@ -307,31 +307,31 @@ typedef struct bNode {
 #define NODE_MUTED			512
 // #define NODE_CUSTOM_NAME	1024	/* deprecated! */
 	/* group node types: use const outputs by default */
-#define NODE_CONST_OUTPUT	(1<<11)
+#define NODE_CONST_OUTPUT	(1 << 11)
 	/* node is always behind others */
-#define NODE_BACKGROUND		(1<<12)
+#define NODE_BACKGROUND		(1 << 12)
 	/* automatic flag for nodes included in transforms */
-#define NODE_TRANSFORM		(1<<13)
+#define NODE_TRANSFORM		(1 << 13)
 	/* node is active texture */
 
 	/* note: take care with this flag since its possible it gets
 	 * `stuck` inside/outside the active group - which makes buttons
 	 * window texture not update, we try to avoid it by clearing the
 	 * flag when toggling group editing - Campbell */
-#define NODE_ACTIVE_TEXTURE	(1<<14)
+#define NODE_ACTIVE_TEXTURE	(1 << 14)
 	/* use a custom color for the node */
-#define NODE_CUSTOM_COLOR	(1<<15)
+#define NODE_CUSTOM_COLOR	(1 << 15)
 	/* Node has been initialized
 	 * This flag indicates the node->typeinfo->init function has been called.
 	 * In case of undefined type at creation time this can be delayed until
 	 * until the node type is registered.
 	 */
-#define NODE_INIT			(1<<16)
+#define NODE_INIT			(1 << 16)
 
 	/* do recalc of output, used to skip recalculation of unwanted
 	 * composite out nodes when editing tree
 	 */
-#define NODE_DO_OUTPUT_RECALC	(1<<17)
+#define NODE_DO_OUTPUT_RECALC	(1 << 17)
 
 /* node->update */
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates

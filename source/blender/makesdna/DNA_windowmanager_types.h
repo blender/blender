@@ -182,8 +182,8 @@ typedef struct wmWindowManager {
 
 /* wmWindowManager.initialized */
 enum {
-	WM_WINDOW_IS_INITIALIZED = (1<<0),
-	WM_KEYCONFIG_IS_INITIALIZED = (1<<1),
+	WM_WINDOW_IS_INITIALIZED = (1 << 0),
+	WM_KEYCONFIG_IS_INITIALIZED = (1 << 1),
 };
 
 #define WM_KEYCONFIG_STR_DEFAULT "blender"

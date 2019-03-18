@@ -116,7 +116,7 @@ typedef struct MetaBall {
 #define MB_UPDATE_NEVER		3
 
 /* mb->flag2 */
-#define MB_DS_EXPAND 	(1<<0)
+#define MB_DS_EXPAND 	(1 << 0)
 
 
 /* ml->type */

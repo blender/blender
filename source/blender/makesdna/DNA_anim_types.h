@@ -140,7 +140,7 @@ typedef enum eFMod_Generator_Modes {
  */
 typedef enum eFMod_Generator_Flags {
 	/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
-	FCM_GENERATOR_ADDITIVE	= (1<<0),
+	FCM_GENERATOR_ADDITIVE	= (1 << 0),
 } eFMod_Generator_Flags;
 
 
@@ -301,9 +301,9 @@ typedef struct FMod_Stepped {
 /* stepped modifier range flags */
 typedef enum eFMod_Stepped_Flags {
 	/** Don't affect frames before the start frame. */
-	FCM_STEPPED_NO_BEFORE 	= (1<<0),
+	FCM_STEPPED_NO_BEFORE 	= (1 << 0),
 	/** Don't affect frames after the end frame. */
-	FCM_STEPPED_NO_AFTER 	= (1<<1),
+	FCM_STEPPED_NO_AFTER 	= (1 << 1),
 } eFMod_Stepped_Flags;
 
 /* Drivers -------------------------------------- */
@@ -604,31 +604,31 @@ typedef struct FCurve {
 /* user-editable flags/settings */
 typedef enum eFCurve_Flags {
 	/** curve/keyframes are visible in editor */
-	FCURVE_VISIBLE		= (1<<0),
+	FCURVE_VISIBLE		= (1 << 0),
 	/** curve is selected for editing  */
-	FCURVE_SELECTED 	= (1<<1),
+	FCURVE_SELECTED 	= (1 << 1),
 	/** curve is active one */
-	FCURVE_ACTIVE		= (1<<2),
+	FCURVE_ACTIVE		= (1 << 2),
 	/** keyframes (beztriples) cannot be edited */
-	FCURVE_PROTECTED	= (1<<3),
+	FCURVE_PROTECTED	= (1 << 3),
 	/** fcurve will not be evaluated for the next round */
-	FCURVE_MUTED		= (1<<4),
+	FCURVE_MUTED		= (1 << 4),
 
 	/** fcurve uses 'auto-handles', which stay horizontal... */
 	// DEPRECATED
-	FCURVE_AUTO_HANDLES	= (1<<5),
-	FCURVE_MOD_OFF		= (1<<6),
+	FCURVE_AUTO_HANDLES	= (1 << 5),
+	FCURVE_MOD_OFF		= (1 << 6),
 	/** skip evaluation, as RNA-path cannot be resolved
 	 * (similar to muting, but cannot be set by user) */
-	FCURVE_DISABLED			= (1<<10),
+	FCURVE_DISABLED			= (1 << 10),
 	/** curve can only have whole-number values (integer types) */
-	FCURVE_INT_VALUES		= (1<<11),
+	FCURVE_INT_VALUES		= (1 << 11),
 	/** curve can only have certain discrete-number values
 	 * (no interpolation at all, for enums/booleans) */
-	FCURVE_DISCRETE_VALUES	= (1<<12),
+	FCURVE_DISCRETE_VALUES	= (1 << 12),
 
 	/** temporary tag for editing */
-	FCURVE_TAGGED			= (1<<15),
+	FCURVE_TAGGED			= (1 << 15),
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */
@@ -753,40 +753,40 @@ typedef enum eNlaStrip_Extrapolate_Mode {
 typedef enum eNlaStrip_Flag {
 	/* UI selection flags */
 	/** NLA strip is the active one in the track (also indicates if strip is being tweaked) */
-	NLASTRIP_FLAG_ACTIVE        = (1<<0),
+	NLASTRIP_FLAG_ACTIVE        = (1 << 0),
 	/* NLA strip is selected for editing */
-	NLASTRIP_FLAG_SELECT        = (1<<1),
-	//  NLASTRIP_FLAG_SELECT_L      = (1<<2),   // left handle selected
-	//  NLASTRIP_FLAG_SELECT_R      = (1<<3),   // right handle selected
+	NLASTRIP_FLAG_SELECT        = (1 << 1),
+	//  NLASTRIP_FLAG_SELECT_L      = (1 << 2),   // left handle selected
+	//  NLASTRIP_FLAG_SELECT_R      = (1 << 3),   // right handle selected
 
 	/** NLA strip uses the same action that the action being tweaked uses
 	 * (not set for the tweaking one though). */
-	NLASTRIP_FLAG_TWEAKUSER     = (1<<4),
+	NLASTRIP_FLAG_TWEAKUSER     = (1 << 4),
 
 	/* controls driven by local F-Curves */
 	/** strip influence is controlled by local F-Curve */
-	NLASTRIP_FLAG_USR_INFLUENCE = (1<<5),
-	NLASTRIP_FLAG_USR_TIME      = (1<<6),
-	NLASTRIP_FLAG_USR_TIME_CYCLIC = (1<<7),
+	NLASTRIP_FLAG_USR_INFLUENCE = (1 << 5),
+	NLASTRIP_FLAG_USR_TIME      = (1 << 6),
+	NLASTRIP_FLAG_USR_TIME_CYCLIC = (1 << 7),
 
 	/** NLA strip length is synced to the length of the referenced action */
-	NLASTRIP_FLAG_SYNC_LENGTH   = (1<<9),
+	NLASTRIP_FLAG_SYNC_LENGTH   = (1 << 9),
 
 	/* playback flags (may be overridden by F-Curves) */
 	/** NLA strip blendin/out values are set automatically based on overlaps */
-	NLASTRIP_FLAG_AUTO_BLENDS   = (1<<10),
+	NLASTRIP_FLAG_AUTO_BLENDS   = (1 << 10),
 	/** NLA strip is played back in reverse order */
-	NLASTRIP_FLAG_REVERSE       = (1<<11),
+	NLASTRIP_FLAG_REVERSE       = (1 << 11),
 	/** NLA strip is muted (i.e. doesn't contribute in any way) */
-	NLASTRIP_FLAG_MUTED         = (1<<12),
+	NLASTRIP_FLAG_MUTED         = (1 << 12),
 	/** NLA Strip is played back in 'ping-pong' style */
-	NLASTRIP_FLAG_MIRROR        = (1<<13),
+	NLASTRIP_FLAG_MIRROR        = (1 << 13),
 
 	/* temporary editing flags */
 	/** NLA strip should ignore frame range and hold settings, and evaluate at global time. */
-	NLASTRIP_FLAG_NO_TIME_MAP   = (1<<29),
+	NLASTRIP_FLAG_NO_TIME_MAP   = (1 << 29),
 	/** NLA-Strip is really just a temporary meta used to facilitate easier transform code */
-	NLASTRIP_FLAG_TEMP_META     = (1<<30),
+	NLASTRIP_FLAG_TEMP_META     = (1 << 30),
 	NLASTRIP_FLAG_EDIT_TOUCHED  = (1u << 31),
 } eNlaStrip_Flag;
 
@@ -833,19 +833,19 @@ typedef struct NlaTrack {
 typedef enum eNlaTrack_Flag {
 	/** track is the one that settings can be modified on,
 	 * also indicates if track is being 'tweaked' */
-	NLATRACK_ACTIVE		= (1<<0),
+	NLATRACK_ACTIVE		= (1 << 0),
 	/** track is selected in UI for relevant editing operations */
-	NLATRACK_SELECTED	= (1<<1),
+	NLATRACK_SELECTED	= (1 << 1),
 	/** track is not evaluated */
-	NLATRACK_MUTED		= (1<<2),
+	NLATRACK_MUTED		= (1 << 2),
 	/** track is the only one evaluated (must be used in conjunction with adt->flag) */
-	NLATRACK_SOLO		= (1<<3),
+	NLATRACK_SOLO		= (1 << 3),
 	/** track's settings (and strips) cannot be edited (to guard against unwanted changes) */
-	NLATRACK_PROTECTED	= (1<<4),
+	NLATRACK_PROTECTED	= (1 << 4),
 
 	/** track is not allowed to execute,
 	 * usually as result of tweaking being enabled (internal flag) */
-	NLATRACK_DISABLED	= (1<<10),
+	NLATRACK_DISABLED	= (1 << 10),
 } eNlaTrack_Flag;
 
 
@@ -891,7 +891,7 @@ typedef struct KS_Path {
 /* KS_Path->flag */
 typedef enum eKSP_Settings {
 		/* entire array (not just the specified index) gets keyframed */
-	KSP_FLAG_WHOLE_ARRAY	= (1<<0),
+	KSP_FLAG_WHOLE_ARRAY	= (1 << 0),
 } eKSP_Settings;
 
 /* KS_Path->groupmode */
@@ -952,36 +952,36 @@ typedef struct KeyingSet {
 /* KeyingSet settings */
 typedef enum eKS_Settings {
 	/** Keyingset cannot be removed (and doesn't need to be freed). */
-	KEYINGSET_BUILTIN		= (1<<0),
+	KEYINGSET_BUILTIN		= (1 << 0),
 	/** Keyingset does not depend on context info (i.e. paths are absolute). */
-	KEYINGSET_ABSOLUTE		= (1<<1),
+	KEYINGSET_ABSOLUTE		= (1 << 1),
 } eKS_Settings;
 
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
 	INSERTKEY_NOFLAGS       = 0,
 	/** only insert keyframes where they're needed */
-	INSERTKEY_NEEDED 	= (1<<0),
+	INSERTKEY_NEEDED 	= (1 << 0),
 	/** insert 'visual' keyframes where possible/needed */
-	INSERTKEY_MATRIX 	= (1<<1),
+	INSERTKEY_MATRIX 	= (1 << 1),
 	/** don't recalculate handles,etc. after adding key */
-	INSERTKEY_FAST 		= (1<<2),
+	INSERTKEY_FAST 		= (1 << 2),
 	/** don't realloc mem (or increase count, as array has already been set out) */
-	INSERTKEY_FASTR		= (1<<3),
+	INSERTKEY_FASTR		= (1 << 3),
 	/** only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
-	INSERTKEY_REPLACE 	= (1<<4),
+	INSERTKEY_REPLACE 	= (1 << 4),
 	/** transform F-Curves should have XYZ->RGB color mode */
-	INSERTKEY_XYZ2RGB	= (1<<5),
+	INSERTKEY_XYZ2RGB	= (1 << 5),
 	/** ignore user-prefs (needed for predictable API use) */
-	INSERTKEY_NO_USERPREF	= (1<<6),
+	INSERTKEY_NO_USERPREF	= (1 << 6),
 	/** Allow to make a full copy of new key into existing one, if any,
 	 * instead of 'reusing' existing handles.
 	 * Used by copy/paste code. */
-	INSERTKEY_OVERWRITE_FULL = (1<<7),
+	INSERTKEY_OVERWRITE_FULL = (1 << 7),
 	/** for driver FCurves, use driver's "input" value - for easier corrective driver setup */
-	INSERTKEY_DRIVER         = (1<<8),
+	INSERTKEY_DRIVER         = (1 << 8),
 	/** for cyclic FCurves, adjust key timing to preserve the cycle period and flow */
-	INSERTKEY_CYCLE_AWARE    = (1<<9),
+	INSERTKEY_CYCLE_AWARE    = (1 << 9),
 } eInsertKeyFlags;
 
 /* ************************************************ */
@@ -1077,31 +1077,31 @@ typedef struct AnimData {
 /* Animation Data settings (mostly for NLA) */
 typedef enum eAnimData_Flag {
 	/** Only evaluate a single track in the NLA. */
-	ADT_NLA_SOLO_TRACK      = (1<<0),
+	ADT_NLA_SOLO_TRACK      = (1 << 0),
 	/** Don't use NLA */
-	ADT_NLA_EVAL_OFF        = (1<<1),
+	ADT_NLA_EVAL_OFF        = (1 << 1),
 	/** NLA is being 'tweaked' (i.e. in EditMode). */
-	ADT_NLA_EDIT_ON         = (1<<2),
+	ADT_NLA_EDIT_ON         = (1 << 2),
 	/** Active Action for 'tweaking' does not have mapping applied for editing. */
-	ADT_NLA_EDIT_NOMAP      = (1<<3),
+	ADT_NLA_EDIT_NOMAP      = (1 << 3),
 	/** NLA-Strip F-Curves are expanded in UI. */
-	ADT_NLA_SKEYS_COLLAPSED = (1<<4),
+	ADT_NLA_SKEYS_COLLAPSED = (1 << 4),
 
 	/** Drivers expanded in UI. */
-	ADT_DRIVERS_COLLAPSED   = (1<<10),
+	ADT_DRIVERS_COLLAPSED   = (1 << 10),
 	/** Don't execute drivers. */
-	ADT_DRIVERS_DISABLED    = (1<<11),
+	ADT_DRIVERS_DISABLED    = (1 << 11),
 
 	/** AnimData block is selected in UI. */
-	ADT_UI_SELECTED         = (1<<14),
+	ADT_UI_SELECTED         = (1 << 14),
 	/** AnimData block is active in UI. */
-	ADT_UI_ACTIVE           = (1<<15),
+	ADT_UI_ACTIVE           = (1 << 15),
 
 	/** F-Curves from this AnimData block are not visible in the Graph Editor. */
-	ADT_CURVES_NOT_VISIBLE  = (1<<16),
+	ADT_CURVES_NOT_VISIBLE  = (1 << 16),
 
 	/** F-Curves from this AnimData block are always visible. */
-	ADT_CURVES_ALWAYS_VISIBLE = (1<<17),
+	ADT_CURVES_ALWAYS_VISIBLE = (1 << 17),
 } eAnimData_Flag;
 
 /* Base Struct for Anim ------------------------------------- */

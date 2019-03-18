@@ -38,11 +38,11 @@ enum {
 };
 
 /* noise */
-#define MOD_SMOKE_NOISEWAVE (1<<0)
-#define MOD_SMOKE_NOISEFFT (1<<1)
-#define MOD_SMOKE_NOISECURL (1<<2)
+#define MOD_SMOKE_NOISEWAVE (1 << 0)
+#define MOD_SMOKE_NOISEFFT (1 << 1)
+#define MOD_SMOKE_NOISECURL (1 << 2)
 /* viewsettings */
-#define MOD_SMOKE_VIEW_SHOW_HIGHRES (1<<0)
+#define MOD_SMOKE_VIEW_SHOW_HIGHRES (1 << 0)
 
 /* slice method */
 enum {
@@ -112,10 +112,10 @@ enum {
 #define SM_HRES_FULLSAMPLE	2
 
 /* smoke data fields (active_fields) */
-#define SM_ACTIVE_HEAT		(1<<0)
-#define SM_ACTIVE_FIRE		(1<<1)
-#define SM_ACTIVE_COLORS	(1<<2)
-#define SM_ACTIVE_COLOR_SET	(1<<3)
+#define SM_ACTIVE_HEAT		(1 << 0)
+#define SM_ACTIVE_FIRE		(1 << 1)
+#define SM_ACTIVE_COLORS	(1 << 2)
+#define SM_ACTIVE_COLOR_SET	(1 << 3)
 
 enum {
 	VDB_COMPRESSION_BLOSC = 0,

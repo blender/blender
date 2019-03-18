@@ -334,7 +334,7 @@ typedef struct SceneRenderView {
 } SceneRenderView;
 
 /* SceneRenderView.viewflag */
-#define SCE_VIEW_DISABLE		(1<<0)
+#define SCE_VIEW_DISABLE		(1 << 0)
 
 /* RenderData.views_format */
 enum {
@@ -483,17 +483,17 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_INVALID        255
 
 /* ImageFormatData.flag */
-#define R_IMF_FLAG_ZBUF         (1<<0)   /* was R_OPENEXR_ZBUF */
-#define R_IMF_FLAG_PREVIEW_JPG  (1<<1)   /* was R_PREVIEW_JPG */
+#define R_IMF_FLAG_ZBUF         (1 << 0)   /* was R_OPENEXR_ZBUF */
+#define R_IMF_FLAG_PREVIEW_JPG  (1 << 1)   /* was R_PREVIEW_JPG */
 
 /* return values from BKE_imtype_valid_depths, note this is depts per channel */
-#define R_IMF_CHAN_DEPTH_1  (1<<0) /* 1bits  (unused) */
-#define R_IMF_CHAN_DEPTH_8  (1<<1) /* 8bits  (default) */
-#define R_IMF_CHAN_DEPTH_10 (1<<2) /* 10bits (uncommon, Cineon/DPX support) */
-#define R_IMF_CHAN_DEPTH_12 (1<<3) /* 12bits (uncommon, jp2/DPX support) */
-#define R_IMF_CHAN_DEPTH_16 (1<<4) /* 16bits (tiff, halff float exr) */
-#define R_IMF_CHAN_DEPTH_24 (1<<5) /* 24bits (unused) */
-#define R_IMF_CHAN_DEPTH_32 (1<<6) /* 32bits (full float exr) */
+#define R_IMF_CHAN_DEPTH_1  (1 << 0) /* 1bits  (unused) */
+#define R_IMF_CHAN_DEPTH_8  (1 << 1) /* 8bits  (default) */
+#define R_IMF_CHAN_DEPTH_10 (1 << 2) /* 10bits (uncommon, Cineon/DPX support) */
+#define R_IMF_CHAN_DEPTH_12 (1 << 3) /* 12bits (uncommon, jp2/DPX support) */
+#define R_IMF_CHAN_DEPTH_16 (1 << 4) /* 16bits (tiff, halff float exr) */
+#define R_IMF_CHAN_DEPTH_24 (1 << 5) /* 24bits (unused) */
+#define R_IMF_CHAN_DEPTH_32 (1 << 6) /* 32bits (full float exr) */
 
 /* ImageFormatData.planes */
 #define R_IMF_PLANES_RGB   24
@@ -514,16 +514,16 @@ typedef struct ImageFormatData {
 #define R_IMF_EXR_CODEC_MAX  10
 
 /* ImageFormatData.jp2_flag */
-#define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
-#define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
-#define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
+#define R_IMF_JP2_FLAG_YCC          (1 << 0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
+#define R_IMF_JP2_FLAG_CINE_PRESET  (1 << 1)  /* was R_JPEG2K_CINE_PRESET */
+#define R_IMF_JP2_FLAG_CINE_48      (1 << 2)  /* was R_JPEG2K_CINE_48FPS */
 
 /* ImageFormatData.jp2_codec */
 #define R_IMF_JP2_CODEC_JP2  0
 #define R_IMF_JP2_CODEC_J2K  1
 
 /* ImageFormatData.cineon_flag */
-#define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
+#define R_IMF_CINEON_FLAG_LOG (1 << 0)  /* was R_CINEON_LOG */
 
 /* ImageFormatData.tiff_codec */
 enum {
@@ -1785,10 +1785,10 @@ typedef struct Scene {
 
 /* RenderData.flag */
 	/* use preview range */
-#define SCER_PRV_RANGE	(1<<0)
-#define SCER_LOCK_FRAME_SELECTION	(1<<1)
+#define SCER_PRV_RANGE	(1 << 0)
+#define SCER_LOCK_FRAME_SELECTION	(1 << 1)
 	/* show/use subframes (for checking motion blur) */
-#define SCER_SHOW_SUBFRAME	(1<<3)
+#define SCER_SHOW_SUBFRAME	(1 << 3)
 
 /* RenderData.mode */
 #define R_OSA                   (1 << 0)
@@ -2128,11 +2128,11 @@ typedef enum eVGroupSelect {
 
 
 /* Scene.flag */
-#define SCE_DS_SELECTED			(1<<0)
-#define SCE_DS_COLLAPSED		(1<<1)
-#define SCE_NLA_EDIT_ON			(1<<2)
-#define SCE_FRAME_DROP			(1<<3)
-#define SCE_KEYS_NO_SELONLY	    (1<<4)
+#define SCE_DS_SELECTED			(1 << 0)
+#define SCE_DS_COLLAPSED		(1 << 1)
+#define SCE_NLA_EDIT_ON			(1 << 2)
+#define SCE_FRAME_DROP			(1 << 3)
+#define SCE_KEYS_NO_SELONLY	    (1 << 4)
 
 	/* return flag BKE_scene_base_iter_next functions */
 /* #define F_ERROR			-1 */  /* UNUSED */
@@ -2141,10 +2141,10 @@ typedef enum eVGroupSelect {
 #define F_DUPLI			3
 
 /* AudioData.flag */
-#define AUDIO_MUTE                (1<<0)
-#define AUDIO_SYNC                (1<<1)
-#define AUDIO_SCRUB		          (1<<2)
-#define AUDIO_VOLUME_ANIMATED     (1<<3)
+#define AUDIO_MUTE                (1 << 0)
+#define AUDIO_SYNC                (1 << 1)
+#define AUDIO_SCRUB		          (1 << 2)
+#define AUDIO_VOLUME_ANIMATED     (1 << 3)
 
 /* FFMpegCodecData.flags */
 enum {

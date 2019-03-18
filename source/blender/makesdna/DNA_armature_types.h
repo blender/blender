@@ -135,27 +135,27 @@ typedef struct bArmature {
 /* armature->flag */
 /* don't use bit 7, was saved in files to disable stuff */
 typedef enum eArmature_Flag {
-	ARM_RESTPOS         = (1<<0),
+	ARM_RESTPOS         = (1 << 0),
 	/** XRAY is here only for backwards converting */
 	ARM_FLAG_UNUSED_1   = (1 << 1),  /* cleared */
-	ARM_DRAWAXES        = (1<<2),
-	ARM_DRAWNAMES       = (1<<3),
-	ARM_POSEMODE        = (1<<4),
-	ARM_FLAG_UNUSED_5   = (1<<5),  /* cleared */
-	ARM_DELAYDEFORM     = (1<<6),
+	ARM_DRAWAXES        = (1 << 2),
+	ARM_DRAWNAMES       = (1 << 3),
+	ARM_POSEMODE        = (1 << 4),
+	ARM_FLAG_UNUSED_5   = (1 << 5),  /* cleared */
+	ARM_DELAYDEFORM     = (1 << 6),
 	ARM_FLAG_UNUSED_7   = (1 << 7),  /* cleared */
-	ARM_MIRROR_EDIT     = (1<<8),
-	ARM_AUTO_IK         = (1<<9),
+	ARM_MIRROR_EDIT     = (1 << 8),
+	ARM_AUTO_IK         = (1 << 9),
 	/** made option negative, for backwards compat */
-	ARM_NO_CUSTOM       = (1<<10),
+	ARM_NO_CUSTOM       = (1 << 10),
 	/** draw custom colors  */
-	ARM_COL_CUSTOM      = (1<<11),
+	ARM_COL_CUSTOM      = (1 << 11),
 	/** when ghosting, only show selected bones (this should belong to ghostflag instead) */
 	ARM_FLAG_UNUSED_12  = (1 << 12), /* cleared */
 	/** dopesheet channel is expanded */
-	ARM_DS_EXPAND       = (1<<13),
+	ARM_DS_EXPAND       = (1 << 13),
 	/** other objects are used for visualizing various states (hack for efficient updates) */
-	ARM_HAS_VIZ_DEPS    = (1<<14),
+	ARM_HAS_VIZ_DEPS    = (1 << 14),
 } eArmature_Flag;
 
 /* armature->drawtype */
@@ -175,24 +175,24 @@ typedef enum eArmature_VertDeformer {
 
 /* armature->deformflag */
 typedef enum eArmature_DeformFlag {
-	ARM_DEF_VGROUP			= (1<<0),
-	ARM_DEF_ENVELOPE		= (1<<1),
-	ARM_DEF_QUATERNION		= (1<<2),
+	ARM_DEF_VGROUP			= (1 << 0),
+	ARM_DEF_ENVELOPE		= (1 << 1),
+	ARM_DEF_QUATERNION		= (1 << 2),
 #ifdef DNA_DEPRECATED
-	ARM_DEF_B_BONE_REST		= (1<<3),	/* deprecated */
+	ARM_DEF_B_BONE_REST		= (1 << 3),	/* deprecated */
 #endif
-	ARM_DEF_INVERT_VGROUP	= (1<<4),
+	ARM_DEF_INVERT_VGROUP	= (1 << 4),
 } eArmature_DeformFlag;
 
 /* armature->pathflag */
 // XXX deprecated... old animation system (armature only viz)
 #ifdef DNA_DEPRECATED
 typedef enum eArmature_PathFlag {
-	ARM_PATH_FNUMS		= (1<<0),
-	ARM_PATH_KFRAS		= (1<<1),
-	ARM_PATH_HEADS		= (1<<2),
-	ARM_PATH_ACFRA		= (1<<3),
-	ARM_PATH_KFNOS		= (1<<4),
+	ARM_PATH_FNUMS		= (1 << 0),
+	ARM_PATH_KFRAS		= (1 << 1),
+	ARM_PATH_HEADS		= (1 << 2),
+	ARM_PATH_ACFRA		= (1 << 3),
+	ARM_PATH_KFNOS		= (1 << 4),
 } eArmature_PathFlag;
 #endif
 

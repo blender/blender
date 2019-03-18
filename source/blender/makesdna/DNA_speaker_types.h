@@ -55,8 +55,8 @@ typedef struct Speaker {
 /* **************** SPEAKER ********************* */
 
 /* flag */
-#define SPK_DS_EXPAND   (1<<0)
-#define SPK_MUTED       (1<<1)
-// #define SPK_RELATIVE    (1<<2)  /* UNUSED */
+#define SPK_DS_EXPAND   (1 << 0)
+#define SPK_MUTED       (1 << 1)
+// #define SPK_RELATIVE    (1 << 2)  /* UNUSED */
 
 #endif /* __DNA_SPEAKER_TYPES_H__ */
