@@ -1331,20 +1331,14 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 
 /* ***** IDs usages.checking/tagging. ***** */
 static int foreach_libblock_used_linked_data_tag_clear_cb(
-        void *user_data, ID *self_id, ID **id_p, int UNUSED(cb_flag))
+        void *user_data, ID *self_id, ID **id_p, int cb_flag)
 {
 	bool *is_changed = user_data;
 
 	if (*id_p) {
-		/* XXX This is actually some kind of hack...
-		 * Issue is, shapekeys' 'from' ID pointer is not actually ID usage.
-		 * Maybe we should even nuke it from BKE_library_foreach_ID_link, not 100% sure yet...
-		 */
-		if ((GS(self_id->name) == ID_KE) && (((Key *)self_id)->from == *id_p)) {
-			return IDWALK_RET_NOP;
-		}
-		/* XXX another hack, for similar reasons as above one. */
-		if ((GS(self_id->name) == ID_OB) && (((Object *)self_id)->proxy_from == (Object *)*id_p)) {
+		/* The infamous 'from' pointers (Key.from, Object.proxy_from, ...).
+		 * those are not actually ID usage, so we ignore them here. */
+		if (cb_flag & IDWALK_CB_LOOPBACK) {
 			return IDWALK_RET_NOP;
 		}
 
