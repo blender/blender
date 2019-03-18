@@ -82,6 +82,8 @@
 #define SEQ_HANDLE_SIZE_MIN  7.0f
 #define SEQ_HANDLE_SIZE_MAX 40.0f
 
+#define SEQ_SCROLLER_TEXT_OFFSET 8
+
 
 /* Note, Don't use SEQ_BEGIN/SEQ_END while drawing!
  * it messes up transform, - Campbell */
@@ -860,8 +862,10 @@ static void draw_seq_strip(
 	x1 = seq->startdisp + handsize_clamped;
 	x2 = seq->enddisp   - handsize_clamped;
 
+	float scroller_vert_xoffs = (V2D_SCROLL_WIDTH_TEXT + SEQ_SCROLLER_TEXT_OFFSET) * pixelx;
+
 	/* info text on the strip */
-	if (x1 < v2d->cur.xmin) x1 = v2d->cur.xmin;
+	if (x1 < v2d->cur.xmin + scroller_vert_xoffs) x1 = v2d->cur.xmin + scroller_vert_xoffs;
 	else if (x1 > v2d->cur.xmax) x1 = v2d->cur.xmax;
 	if (x2 < v2d->cur.xmin) x2 = v2d->cur.xmin;
 	else if (x2 > v2d->cur.xmax) x2 = v2d->cur.xmax;
