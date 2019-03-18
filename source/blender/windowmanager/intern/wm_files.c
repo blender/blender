@@ -2299,7 +2299,7 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 	RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", true, "Remap Relative",
-	                "Remap relative paths when saving in a different directory");
+	                "Make paths relative when saving to a different directory");
 	prop = RNA_def_boolean(ot->srna, "copy", false, "Save Copy",
 	                "Save a copy of the actual working state but does not make saved file active");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2358,7 +2358,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 	RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", false, "Remap Relative",
-	                "Remap relative paths when saving in a different directory");
+	                "Make paths relative when saving to a different directory");
 
 	prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Blender after saving");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);

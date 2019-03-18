@@ -57,7 +57,7 @@ PyDoc_STRVAR(bpy_lib_write_doc,
 "   :type filepath: string\n"
 "   :arg datablocks: set of data-blocks (:class:`bpy.types.ID` instances).\n"
 "   :type datablocks: set\n"
-"   :arg relative_remap: When True, remap the paths relative to the current blend-file.\n"
+"   :arg relative_remap: When True, make paths relative to the current blend-file.\n"
 "   :type relative_remap: bool\n"
 "   :arg fake_user: When True, data-blocks will be written with fake-user flag enabled.\n"
 "   :type fake_user: bool\n"
