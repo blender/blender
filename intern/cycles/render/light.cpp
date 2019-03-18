@@ -191,7 +191,7 @@ bool LightManager::has_background_light(Scene *scene)
 	return false;
 }
 
-void LightManager::disable_ineffective_light(Device *device, Scene *scene)
+void LightManager::disable_ineffective_light(Device * /*device*/, Scene *scene)
 {
 	/* Make all lights enabled by default, and perform some preliminary checks
 	 * needed for finer-tuning of settings (for example, check whether we've
