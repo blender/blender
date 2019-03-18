@@ -1826,7 +1826,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RenderEngineType *engine_type = engine->type;
 	DrawEngineType *draw_engine_type = engine_type->draw_engine;
-	RenderData *r = &scene->r;
 	Render *render = engine->re;
 
 	if (G.background && DST.gl_context == NULL) {

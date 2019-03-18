@@ -87,7 +87,3 @@ DNA_STRUCT_RENAME_ELEM(bTheme, tstatusbar, space_statusbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, ttopbar, space_topbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, tuserpref, space_preferences)
 DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
-
-#if 0
-DNA_STRUCT_RENAME(Light, Light)
-#endif
