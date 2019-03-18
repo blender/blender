@@ -93,9 +93,9 @@ static void deg_task_run_func(TaskPool *pool,
 	BLI_task_pool_delayed_push_end(pool, thread_id);
 }
 
-typedef struct CalculatePendingData {
+struct CalculatePendingData {
 	Depsgraph *graph;
-} CalculatePendingData;
+};
 
 static bool check_operation_node_visible(OperationNode *op_node)
 {

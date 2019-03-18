@@ -838,11 +838,11 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	                                          create_placeholders);
 }
 
-typedef struct ObjectRuntimeBackup {
+struct ObjectRuntimeBackup {
 	Object_Runtime runtime;
 	short base_flag;
 	unsigned short base_local_view_bits;
-} ObjectRuntimeBackup;
+};
 
 /* Make a backup of object's evaluation runtime data, additionally
  * make object to be safe for free without invalidating backed up
