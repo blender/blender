@@ -318,7 +318,7 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg,
 #  endif
 
 		path_state_modify_bounce(state, true);
-		shader_eval_surface(kg, emission_sd, state, PATH_RAY_EMISSION);
+		shader_eval_surface(kg, emission_sd, state, state->flag | PATH_RAY_EMISSION);
 		path_state_modify_bounce(state, false);
 
 		L = shader_background_eval(emission_sd);
