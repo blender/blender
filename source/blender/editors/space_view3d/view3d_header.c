@@ -68,9 +68,18 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 static int toggle_matcap_flip(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	v3d->shading.flag ^= V3D_SHADING_MATCAP_FLIP_X;
-	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
+	if (v3d) {
+		v3d->shading.flag ^= V3D_SHADING_MATCAP_FLIP_X;
+		ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+	}
+	else {
+		Scene *scene = CTX_data_scene(C);
+		scene->display.shading.flag ^= V3D_SHADING_MATCAP_FLIP_X;
+		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, v3d);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -83,7 +92,6 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = toggle_matcap_flip;
-	ot->poll = ED_operator_view3d_active;
 }
 
 /** \} */
