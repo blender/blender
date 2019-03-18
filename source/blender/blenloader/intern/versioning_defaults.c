@@ -80,11 +80,6 @@ void BLO_update_defaults_userpref_blend(void)
 			MEM_freeN(addon->prop);
 			addon->prop = NULL;
 		}
-
-		if (STREQ(addon->module, "io_scene_3ds")) {
-			BLI_remlink(&U.addons, addon);
-			MEM_freeN(addon);
-		}
 	}
 
 	/* Transform tweak with single click and drag. */

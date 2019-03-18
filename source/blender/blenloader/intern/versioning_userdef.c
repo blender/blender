@@ -476,6 +476,11 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		        GP_PAINT_UNUSED_0);
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 50)) {
+		/* 3ds is no longer enabled by default and not ported yet. */
+		BKE_addon_remove_safe(&userdef->addons, "io_scene_3ds");
+	}
+
 	/**
 	 * Include next version bump.
 	 */
