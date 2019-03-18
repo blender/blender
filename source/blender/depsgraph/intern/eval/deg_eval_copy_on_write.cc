@@ -612,18 +612,26 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph,
 	}
 }
 
+template <typename T>
+void update_list_orig_pointers(const ListBase* listbase_orig,
+                               ListBase* listbase,
+                               T *T::*orig_field)
+{
+	T *element_orig = reinterpret_cast<T*>(listbase_orig->first);
+	T *element_cow = reinterpret_cast<T*>(listbase->first);
+	while (element_orig != NULL) {
+		element_cow->*orig_field = element_orig;
+		element_cow = element_cow->next;
+		element_orig = element_orig->next;
+	}
+}
+
 void update_particle_system_orig_pointers(const Object *object_orig,
                                           Object *object_cow)
 {
-	ParticleSystem *psys_cow =
-	        (ParticleSystem *) object_cow->particlesystem.first;
-	ParticleSystem *psys_orig =
-	        (ParticleSystem *) object_orig->particlesystem.first;
-	while (psys_orig != NULL) {
-		psys_cow->orig_psys = psys_orig;
-		psys_cow = psys_cow->next;
-		psys_orig = psys_orig->next;
-	}
+	update_list_orig_pointers(&object_orig->particlesystem,
+	                          &object_cow->particlesystem,
+	                          &ParticleSystem::orig_psys);
 }
 
 void set_particle_system_modifiers_loaded(Object *object_cow)
@@ -638,15 +646,25 @@ void set_particle_system_modifiers_loaded(Object *object_cow)
 	}
 }
 
+void update_particles_after_copy(const Object *object_orig, Object *object_cow)
+{
+	update_particle_system_orig_pointers(object_orig, object_cow);
+	set_particle_system_modifiers_loaded(object_cow);
+}
+
 void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
 {
-	bPoseChannel *pchan_cow = (bPoseChannel *) pose_cow->chanbase.first;
-	bPoseChannel *pchan_orig = (bPoseChannel *) pose_orig->chanbase.first;
-	while (pchan_orig != NULL) {
-		pchan_cow->orig_pchan = pchan_orig;
-		pchan_cow = pchan_cow->next;
-		pchan_orig = pchan_orig->next;
-	}
+	update_list_orig_pointers(&pose_orig->chanbase,
+	                          &pose_cow->chanbase,
+	                          &bPoseChannel::orig_pchan);
+}
+
+void update_modifiers_orig_pointers(const Object *object_orig,
+                                    Object *object_cow)
+{
+	update_list_orig_pointers(&object_orig->modifiers,
+	                          &object_cow->modifiers,
+	                          &ModifierData::orig_modifier_data);
 }
 
 /* Do some special treatment of data transfer from original ID to it's
@@ -679,8 +697,8 @@ void update_id_after_copy(const Depsgraph *depsgraph,
 					                          object_cow->pose);
 				}
 			}
-			update_particle_system_orig_pointers(object_orig, object_cow);
-			set_particle_system_modifiers_loaded(object_cow);
+			update_particles_after_copy(object_orig, object_cow);
+			update_modifiers_orig_pointers(object_orig, object_cow);
 			break;
 		}
 		case ID_SCE:

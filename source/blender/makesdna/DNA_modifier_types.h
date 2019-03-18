@@ -113,6 +113,10 @@ typedef struct ModifierData {
 	char name[64];
 
 	char *error;
+
+	/* Pointer to a ModifierData in the original domain. */
+	struct ModifierData *orig_modifier_data;
+	void *_pad2;
 } ModifierData;
 
 typedef enum {
