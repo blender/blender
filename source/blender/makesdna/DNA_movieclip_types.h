@@ -190,6 +190,8 @@ enum {
 /* MovieClip->render_flag */
 enum {
 	MCLIP_PROXY_RENDER_UNDISTORT = 1,
+	/** Use original, if proxy is not found. */
+	MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER = 2,
 };
 
 #endif

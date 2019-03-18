@@ -832,24 +832,24 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip,
 	return undistibuf;
 }
 
-static int need_undistortion_postprocess(const MovieClipUser *user)
+static bool need_undistortion_postprocess(const MovieClipUser *user, int clip_flag)
 {
-	int result = 0;
-
-	/* only full undistorted render can be used as on-fly undistorting image */
-	result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
+	bool result = 0;
+	const bool uses_full_frame =
+	        ((clip_flag & MCLIP_USE_PROXY) == 0) ||
+	        (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL);
+	/* Only full undistorted render can be used as on-fly undistorting image. */
+	result |= uses_full_frame &&
 	          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
-
 	return result;
 }
 
-static int need_postprocessed_frame(const MovieClipUser *user,
-                                    int postprocess_flag)
+static bool need_postprocessed_frame(const MovieClipUser *user,
+                                     int clip_flag,
+                                     int postprocess_flag)
 {
-	int result = postprocess_flag;
-
-	result |= need_undistortion_postprocess(user);
-
+	bool result = (postprocess_flag != 0);
+	result |= need_undistortion_postprocess(user, clip_flag);
 	return result;
 }
 
@@ -908,7 +908,7 @@ static ImBuf *get_postprocessed_cached_frame(const MovieClip *clip,
 	if (cache->postprocessed.flag != postprocess_flag)
 		return NULL;
 
-	if (need_undistortion_postprocess(user)) {
+	if (need_undistortion_postprocess(user, flag)) {
 		if (!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
@@ -923,11 +923,12 @@ static ImBuf *get_postprocessed_cached_frame(const MovieClip *clip,
 static ImBuf *postprocess_frame(MovieClip *clip,
                                 const MovieClipUser *user,
                                 ImBuf *ibuf,
+                                int flag,
                                 int postprocess_flag)
 {
 	ImBuf *postproc_ibuf = NULL;
 
-	if (need_undistortion_postprocess(user)) {
+	if (need_undistortion_postprocess(user, flag)) {
 		postproc_ibuf = get_undistorted_ibuf(clip, NULL, ibuf);
 	}
 	else {
@@ -968,7 +969,7 @@ static void put_postprocessed_frame_to_cache(MovieClip *clip,
 		cache->postprocessed.render_flag = 0;
 	}
 
-	if (need_undistortion_postprocess(user)) {
+	if (need_undistortion_postprocess(user, flag)) {
 		cache->postprocessed.distortion_model = camera->distortion_model;
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.polynomial_k1, &camera->k1);
@@ -1002,7 +1003,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 	BLI_thread_lock(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */
-	if (need_postprocessed_frame(user, postprocess_flag)) {
+	if (need_postprocessed_frame(user, flag, postprocess_flag)) {
 		ibuf = get_postprocessed_cached_frame(clip, user, flag, postprocess_flag);
 
 		if (!ibuf)
@@ -1038,7 +1039,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 		/* postprocess frame and put to cache if needed*/
 		if (need_postprocess) {
 			ImBuf *tmpibuf = ibuf;
-			ibuf = postprocess_frame(clip, user, tmpibuf, postprocess_flag);
+			ibuf = postprocess_frame(clip, user, tmpibuf, flag, postprocess_flag);
 			IMB_freeImBuf(tmpibuf);
 			if (ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0) {
 				put_postprocessed_frame_to_cache(clip, user, ibuf, flag, postprocess_flag);
@@ -1047,6 +1048,17 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 	}
 
 	BLI_thread_unlock(LOCK_MOVIECLIP);
+
+	/* Fallback render in case proxies are not enabled or built */
+	if (!ibuf &&
+		user->render_flag & MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER &&
+		user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+	{
+		MovieClipUser user_fallback = *user;
+		user_fallback.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
+
+		ibuf = movieclip_get_postprocessed_ibuf(clip, &user_fallback, flag, postprocess_flag, cache_flag);
+	}
 
 	return ibuf;
 }

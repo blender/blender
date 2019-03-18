@@ -3060,8 +3060,9 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context, Sequence 
 
 	BKE_movieclip_user_set_frame(&user, nr + seq->anim_startofs + seq->clip->start_frame);
 
-	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
+	user.render_flag |= MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER;
 
+	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 	switch (seq_rendersize_to_proxysize(context->preview_render_size)) {
 		case IMB_PROXY_NONE:
 			user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
@@ -3081,14 +3082,14 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context, Sequence 
 	}
 
 	if (seq->clip_flag & SEQ_MOVIECLIP_RENDER_UNDISTORTED) {
-		user.render_flag = MCLIP_PROXY_RENDER_UNDISTORT;
+		user.render_flag |= MCLIP_PROXY_RENDER_UNDISTORT;
 	}
 
 	if (seq->clip_flag & SEQ_MOVIECLIP_RENDER_STABILIZED) {
 		ibuf = BKE_movieclip_get_stable_ibuf(seq->clip, &user, tloc, &tscale, &tangle, 0);
 	}
 	else {
-		ibuf = BKE_movieclip_get_ibuf_flag(seq->clip, &user, 0, MOVIECLIP_CACHE_SKIP);
+		ibuf = BKE_movieclip_get_ibuf_flag(seq->clip, &user, seq->clip->flag, MOVIECLIP_CACHE_SKIP);
 	}
 
 	return ibuf;
