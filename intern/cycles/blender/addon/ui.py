@@ -313,7 +313,7 @@ class CYCLES_RENDER_PT_subdivision(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(self, context):
-        return context.scene.cycles.feature_set == 'EXPERIMENTAL'
+        return (context.scene.render.engine == 'CYCLES') and (context.scene.cycles.feature_set == 'EXPERIMENTAL')
 
     def draw(self, context):
         layout = self.layout
