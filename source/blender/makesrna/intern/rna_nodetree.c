@@ -56,8 +56,6 @@
 
 #include "RE_render_ext.h"
 
-#include "NOD_composite.h"
-
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -2470,9 +2468,9 @@ static StructRNA *rna_NodeCustomGroup_register(
 }
 
 static StructRNA *rna_ShaderNodeCustomGroup_register(
-		Main * bmain, ReportList *reports,
-		void *data, const char *identifier,
-		StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType * nt = rna_Node_register_base(bmain, reports, &RNA_ShaderNodeCustomGroup, data, identifier, validate, call, free);
 
@@ -2492,9 +2490,9 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(
 }
 
 static StructRNA *rna_CompositorNodeCustomGroup_register(
-		Main *bmain, ReportList *reports,
-		void *data, const char *identifier,
-		StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_CompositorNodeCustomGroup, data, identifier, validate, call, free);
 	if (!nt)
@@ -3463,8 +3461,9 @@ static void def_group(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Interface", "Interface socket data");
 }
 
-static void def_custom_group(BlenderRNA *brna, const char *struct_name, const char *base_name,
-						const char *ui_name, const char *ui_desc, const char *reg_func)
+static void def_custom_group(
+        BlenderRNA *brna, const char *struct_name, const char *base_name,
+        const char *ui_name, const char *ui_desc, const char *reg_func)
 {
 	StructRNA *srna;
 
@@ -8672,7 +8671,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, "TextureNodeGroup", "TextureNode", "Group", "", def_group);
 	def_custom_group(brna, "ShaderNodeCustomGroup", "ShaderNode", "Shader Custom Group", "Custom Shader Group Node for Python nodes", "rna_ShaderNodeCustomGroup_register");
 	def_custom_group(brna, "CompositorNodeCustomGroup", "CompositorNode", "Compositor Custom Group", "Custom Compositor Group Node for Python nodes", "rna_CompositorNodeCustomGroup_register");
-	def_custom_group(brna, "NodeCustomGroup", "Node", "Custom Group", "Base node type for custom registered node group types", "rna_NodeCustomGroup_register"); 
+	def_custom_group(brna, "NodeCustomGroup", "Node", "Custom Group", "Base node type for custom registered node group types", "rna_NodeCustomGroup_register");
 
 	/* special socket types */
 	rna_def_cmp_output_file_slot_file(brna);

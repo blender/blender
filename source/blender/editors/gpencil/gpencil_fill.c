@@ -291,8 +291,8 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 
 			/* normal strokes */
 			if (((tgpf->fill_draw_mode == GP_FILL_DMODE_STROKE) ||
-			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH)) &&
-				!textured_stroke)
+			     (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH)) &&
+			    !textured_stroke)
 			{
 				ED_gp_draw_fill(&tgpw);
 			}
@@ -300,7 +300,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 			/* 3D Lines with basic shapes and invisible lines */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_CONTROL) ||
 			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH) ||
-				textured_stroke)
+			    textured_stroke)
 			{
 				gp_draw_basic_stroke(
 				        tgpf, gps, tgpw.diff_mat, gps->flag & GP_STROKE_CYCLIC, ink,
@@ -321,7 +321,7 @@ static bool gp_render_offscreen(tGPDfill *tgpf)
 	if (!tgpf->gpd) {
 		return false;
 	}
-	
+
 	/* set temporary new size */
 	tgpf->bwinx = tgpf->ar->winx;
 	tgpf->bwiny = tgpf->ar->winy;
@@ -348,7 +348,7 @@ static bool gp_render_offscreen(tGPDfill *tgpf)
 	char err_out[256] = "unknown";
 	GPUOffScreen *offscreen = GPU_offscreen_create(tgpf->sizex, tgpf->sizey, 0, true, false, err_out);
 	if (offscreen == NULL) {
-		printf("GPencil - Fill - Unable to create fill buffer\n"); 
+		printf("GPencil - Fill - Unable to create fill buffer\n");
 		return false;
 	}
 
@@ -589,7 +589,7 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
 	 */
 	while (!BLI_stack_is_empty(stack)) {
 		int v;
-		
+
 		BLI_stack_pop(stack, &v);
 
 		get_pixel(ibuf, v, rgba);
@@ -1213,8 +1213,8 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
 	tgpf->fill_threshold = brush->gpencil_settings->fill_threshold;
 	tgpf->fill_simplylvl = brush->gpencil_settings->fill_simplylvl;
 	tgpf->fill_draw_mode = brush->gpencil_settings->fill_draw_mode;
-	tgpf->fill_factor = (short)max_ii(1, min_ii((int)brush->gpencil_settings->fill_factor,8));
-	
+	tgpf->fill_factor = (short)max_ii(1, min_ii((int)brush->gpencil_settings->fill_factor, 8));
+
 	/* get color info */
 	Material *ma = BKE_gpencil_get_material_from_brush(brush);
 	/* if no brush defaults, get material and color info */

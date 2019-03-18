@@ -930,13 +930,15 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 			        ts->gpencil_v3d_align, origin);
 			/* reproject current */
 			ED_gpencil_tpoint_to_point(tgpi->ar, origin, tpt, &spt);
-			ED_gp_project_point_to_plane(tgpi->scene, tgpi->ob, tgpi->rv3d,
-										origin, tgpi->lock_axis - 1, &spt);
+			ED_gp_project_point_to_plane(
+			        tgpi->scene, tgpi->ob, tgpi->rv3d,
+			        origin, tgpi->lock_axis - 1, &spt);
 
 			/* reproject previous */
 			ED_gpencil_tpoint_to_point(tgpi->ar, origin, tptb, &spt2);
-			ED_gp_project_point_to_plane(tgpi->scene, tgpi->ob, tgpi->rv3d,
-										origin, tgpi->lock_axis - 1, &spt2);
+			ED_gp_project_point_to_plane(
+			        tgpi->scene, tgpi->ob, tgpi->rv3d,
+			        origin, tgpi->lock_axis - 1, &spt2);
 			tgpi->totpixlen += len_v3v3(&spt.x, &spt2.x) / pixsize;
 			tpt->uv_fac = tgpi->totpixlen;
 			if ((gp_style) && (gp_style->sima)) {
@@ -995,8 +997,8 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 		        tgpi->scene, tgpi->ob, tgpi->gpl,
 		        ts->gpencil_v3d_align, origin);
 		ED_gp_project_stroke_to_plane(
-				tgpi->scene, tgpi->ob, tgpi->rv3d, gps,
-				origin, ts->gp_sculpt.lock_axis - 1);
+		        tgpi->scene, tgpi->ob, tgpi->rv3d, gps,
+		        origin, ts->gp_sculpt.lock_axis - 1);
 	}
 
 	/* if parented change position relative to parent object */

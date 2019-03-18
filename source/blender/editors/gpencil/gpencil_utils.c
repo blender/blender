@@ -937,9 +937,9 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
  * Reproject all points of the stroke to a plane locked to axis to avoid stroke offset
  */
 void ED_gp_project_stroke_to_plane(
-		const Scene *scene, const Object *ob,
-		const RegionView3D *rv3d, bGPDstroke *gps,
-		const float origin[3], const int axis)
+        const Scene *scene, const Object *ob,
+        const RegionView3D *rv3d, bGPDstroke *gps,
+        const float origin[3], const int axis)
 {
 	const ToolSettings *ts = scene->toolsettings;
 	const View3DCursor *cursor = &scene->cursor;
@@ -1012,9 +1012,9 @@ void ED_gp_project_stroke_to_plane(
  * \param[in, out] pt : Point to affect
  */
 void ED_gp_project_point_to_plane(
-		const Scene *scene, const Object *ob,
-		const RegionView3D *rv3d, const float origin[3],
-		const int axis, bGPDspoint *pt)
+        const Scene *scene, const Object *ob,
+        const RegionView3D *rv3d, const float origin[3],
+        const int axis, bGPDspoint *pt)
 {
 	const ToolSettings *ts = scene->toolsettings;
 	const View3DCursor *cursor = &scene->cursor;

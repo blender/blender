@@ -182,8 +182,10 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 		if (verbose) printf("Cineon: File is LSB.\n");
 	}
 	else {
-		if (verbose) printf("Cineon: Bad magic number %lu in \"%s\".\n",
-		                    (unsigned long)header.fileHeader.magic_num, byteStuff);
+		if (verbose) {
+			printf("Cineon: Bad magic number %lu in \"%s\".\n",
+			       (unsigned long)header.fileHeader.magic_num, byteStuff);
+		}
 		logImageClose(cineon);
 		return NULL;
 	}

@@ -399,8 +399,8 @@ static void gp_reproject_toplane(tGPsdata *p, bGPDstroke *gps)
 	/* get drawing origin */
 	gp_get_3d_reference(p, origin);
 	ED_gp_project_stroke_to_plane(
-								p->scene, obact, rv3d, gps,
-								origin, p->lock_axis - 1);
+	        p->scene, obact, rv3d, gps,
+	        origin, p->lock_axis - 1);
 }
 
 /* convert screen-coordinates to buffer-coordinates */
