@@ -433,7 +433,7 @@ void BlenderSession::render()
 		BL::RenderLayer b_rlay = *b_single_rlay;
 
 		/* add passes */
-		vector<Pass> passes = sync->sync_render_passes(b_rlay, *b_layer_iter, session_params);
+		vector<Pass> passes = sync->sync_render_passes(b_rlay, *b_layer_iter);
 		buffer_params.passes = passes;
 
 		PointerRNA crl = RNA_pointer_get(&b_layer_iter->ptr, "cycles");

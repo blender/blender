@@ -553,8 +553,7 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 }
 
 vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
-                                             BL::SceneRenderLayer& b_srlay,
-                                             const SessionParams &session_params)
+                                             BL::SceneRenderLayer& b_srlay)
 {
 	vector<Pass> passes;
 	Pass::add(PASS_COMBINED, passes);
