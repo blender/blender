@@ -1001,7 +1001,9 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
 					if ((id->tag & tag) || (id->lib != NULL && (id->lib->id.tag & tag))) {
 						BLI_remlink(lb, id);
 						BLI_addtail(&tagged_deleted_ids, id);
-						id->tag |= tag | LIB_TAG_NO_MAIN;
+						/* Do not tag as no_main now, we want to unlink it first (lower-level ID management code
+						 * has some specific handling of 'nom main' IDs that would be a problem in that case). */
+						id->tag |= tag;
 						keep_looping = true;
 					}
 				}
@@ -1021,6 +1023,8 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
 				            ID_REMAP_FLAG_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE);
 				/* Since we removed ID from Main, we also need to unlink its own other IDs usages ourself. */
 				BKE_libblock_relink_ex(bmain, id, NULL, NULL, true);
+				/* Now we can safely mark that ID as not being in Main database anymore. */
+				id->tag |= LIB_TAG_NO_MAIN;
 				/* This is needed because we may not have remapped usages of that ID by other deleted ones. */
 //				id->us = 0;  /* Is it actually? */
 			}
