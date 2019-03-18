@@ -1221,6 +1221,10 @@ static void mesh_calc_modifiers(
 	}
 	*r_final = NULL;
 
+	/* We need mesh even for deform-only part of the stack, in cases where some modifier needs
+	 * e.g. access to updated normals. See T62633 for an example. */
+	Mesh *me = NULL;
+
 	if (useDeform) {
 		if (inputVertexCos)
 			deformedVerts = inputVertexCos;
@@ -1238,10 +1242,21 @@ static void mesh_calc_modifiers(
 			}
 
 			if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
-				if (!deformedVerts)
+				if (!deformedVerts) {
 					deformedVerts = BKE_mesh_vertexCos_get(ob->data, &numVerts);
+				}
 
-				modwrap_deformVerts(md, &mectx_deform, NULL, deformedVerts, numVerts);
+				if (isPrevDeform && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+					if (me == NULL) {
+						me = BKE_mesh_copy_for_eval(ob->data, true);
+						ASSERT_IS_VALID_MESH(me);
+					}
+					BKE_mesh_apply_vert_coords(me, deformedVerts);
+				}
+
+				modwrap_deformVerts(md, &mectx_deform, me, deformedVerts, numVerts);
+
+				isPrevDeform = true;
 			}
 			else {
 				break;
@@ -1282,7 +1297,6 @@ static void mesh_calc_modifiers(
 	/* Now apply all remaining modifiers. If useDeform is off then skip
 	 * OnlyDeform ones.
 	 */
-	Mesh *me = NULL;
 	Mesh *me_orco = NULL;
 	Mesh *me_orco_cloth = NULL;
 
@@ -1715,6 +1729,7 @@ static void editbmesh_calc_modifiers(
 	const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 	const bool do_init_statvis = false;  /* FIXME: use V3D_OVERLAY_EDIT_STATVIS. */
 	VirtualModifierData virtualModifierData;
+	bool isPrevDeform = false;
 
 	/* TODO(sybren): do we really need multiple objects, or shall we change the flags where needed? */
 	const ModifierEvalContext mectx = {depsgraph, ob, 0};
@@ -1777,6 +1792,16 @@ static void editbmesh_calc_modifiers(
 				else {
 					deformedVerts = editbmesh_get_vertex_cos(em, &numVerts);
 				}
+			}
+
+			if (isPrevDeform && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+				if (me == NULL) {
+					me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL);
+					ASSERT_IS_VALID_MESH(me);
+					mesh_copy_autosmooth(me, ob->data);
+				}
+				BLI_assert(deformedVerts != NULL);
+				BKE_mesh_apply_vert_coords(me, deformedVerts);
 			}
 
 			if (mti->deformVertsEM)
@@ -1895,6 +1920,8 @@ static void editbmesh_calc_modifiers(
 				mesh_copy_autosmooth(*r_cage, ob->data);
 			}
 		}
+
+		isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
 	}
 
 	BLI_linklist_free((LinkNode *)datamasks, NULL);
