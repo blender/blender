@@ -125,7 +125,9 @@
 #define fmodf(x, y) fmod((float)(x), (float)(y))
 #define sinhf(x) sinh(((float)(x)))
 
-#if !(defined(__KERNEL_OPENCL_AMD__) || defined(__KERNEL_OPENCL_INTEL_CPU__))
+/* Use native functions with possibly lower precision for performance,
+ * no issues found so far. */
+#if 1
 #  define sinf(x) native_sin(((float)(x)))
 #  define cosf(x) native_cos(((float)(x)))
 #  define tanf(x) native_tan(((float)(x)))
@@ -140,7 +142,7 @@
 #  define expf(x) exp(((float)(x)))
 #  define sqrtf(x) sqrt(((float)(x)))
 #  define logf(x) log(((float)(x)))
-#  define rcp(x)  recip(x))
+#  define rcp(x)  recip(x)
 #endif
 
 /* data lookup defines */
