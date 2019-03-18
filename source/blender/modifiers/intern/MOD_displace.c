@@ -428,4 +428,5 @@ ModifierTypeInfo modifierType_Displace = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    foreachTexLink,
+	/* freeRuntimeData */   NULL,
 };

@@ -557,4 +557,5 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

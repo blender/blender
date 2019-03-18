@@ -233,6 +233,8 @@ typedef struct ModifierTypeInfo {
 	/* Free internal modifier data variables, this function should
 	 * not free the md variable itself.
 	 *
+	 * This function is responsible for freeing the runtime data as well.
+	 *
 	 * This function is optional.
 	 */
 	void (*freeData)(struct ModifierData *md);
@@ -301,6 +303,18 @@ typedef struct ModifierTypeInfo {
 	 */
 	void (*foreachTexLink)(struct ModifierData *md, struct Object *ob,
 	                       TexWalkFunc walk, void *userData);
+
+	/* Free given runtime data.
+	 *
+	 * This data is coming from a modifier of the corresponding type, but actual
+	 * modifier data is not known here.
+	 *
+	 * Notes:
+	 *  - The data itself is to be de-allocated as well.
+	 *  - This calback is allowed to receive NULL pointer as a data, so it's
+	 *    more like "ensure the data is freed".
+	 */
+	void (*freeRuntimeData)(void *runtime_data);
 } ModifierTypeInfo;
 
 /* Initialize modifier's global data (type info and some common global storages). */

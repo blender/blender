@@ -137,4 +137,5 @@ ModifierTypeInfo modifierType_Wireframe = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

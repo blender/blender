@@ -266,4 +266,5 @@ ModifierTypeInfo modifierType_Smooth = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

@@ -586,4 +586,5 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    foreachTexLink,
+	/* freeRuntimeData */   NULL,
 };

@@ -187,4 +187,5 @@ ModifierTypeInfo modifierType_Smoke = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

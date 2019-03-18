@@ -98,4 +98,5 @@ ModifierTypeInfo modifierType_Softbody = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

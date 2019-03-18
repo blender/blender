@@ -277,4 +277,5 @@ ModifierTypeInfo modifierType_UVWarp = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

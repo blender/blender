@@ -524,4 +524,5 @@ ModifierTypeInfo modifierType_Ocean = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

@@ -211,4 +211,5 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

@@ -237,4 +237,5 @@ ModifierTypeInfo modifierType_Remesh = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* freeRuntimeData */   NULL,
 };

@@ -5458,6 +5458,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 	for (md = lb->first; md; md = md->next) {
 		md->error = NULL;
+		md->runtime = NULL;
 
 		/* if modifiers disappear, or for upward compatibility */
 		if (NULL == modifierType_getInfo(md->type))
@@ -5467,7 +5468,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
 			smd->emCache = smd->mCache = NULL;
-			smd->subdiv = NULL;
 		}
 		else if (md->type == eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData *)md;

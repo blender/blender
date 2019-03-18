@@ -24,6 +24,8 @@
 
 #include <stddef.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
@@ -43,6 +45,11 @@
 #include "MOD_modifiertypes.h"
 
 #include "intern/CCGSubSurf.h"
+
+typedef struct SubsurfRuntimeData {
+	/* Cached subdivision surface descriptor, with topology and settings. */
+	struct Subdiv *subdiv;
+} SubsurfRuntimeData;
 
 static void initData(ModifierData *md)
 {
@@ -64,7 +71,18 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	modifier_copyData_generic(md, target, flag);
 
 	tsmd->emCache = tsmd->mCache = NULL;
-	tsmd->subdiv = NULL;
+}
+
+static void freeRuntimeData(void *runtime_data_v)
+{
+	if (runtime_data_v == NULL) {
+		return;
+	}
+	SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
+	if (runtime_data->subdiv != NULL) {
+		BKE_subdiv_free(runtime_data->subdiv);
+	}
+	MEM_freeN(runtime_data);
 }
 
 static void freeData(ModifierData *md)
@@ -79,9 +97,7 @@ static void freeData(ModifierData *md)
 		ccgSubSurf_free(smd->emCache);
 		smd->emCache = NULL;
 	}
-	if (smd->subdiv != NULL) {
-		BKE_subdiv_free(smd->subdiv);
-	}
+	freeRuntimeData(smd->modifier.runtime);
 }
 
 static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
@@ -121,9 +137,11 @@ static Subdiv *subdiv_descriptor_ensure(SubsurfModifierData *smd,
                                         const SubdivSettings *subdiv_settings,
                                         const Mesh *mesh)
 {
+	SubsurfRuntimeData *runtime_data =
+	        (SubsurfRuntimeData *)smd->modifier.runtime;
 	Subdiv *subdiv = BKE_subdiv_update_from_mesh(
-	        smd->subdiv, subdiv_settings, mesh);
-	smd->subdiv = subdiv;
+	        runtime_data->subdiv, subdiv_settings, mesh);
+	runtime_data->subdiv = subdiv;
 	return subdiv;
 }
 
@@ -181,6 +199,17 @@ static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
 	return result;
 }
 
+static SubsurfRuntimeData *subsurf_ensure_runtime(SubsurfModifierData *smd)
+{
+	SubsurfRuntimeData *runtime_data =
+	        (SubsurfRuntimeData *)smd->modifier.runtime;
+	if (runtime_data == NULL) {
+		runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+		smd->modifier.runtime = runtime_data;
+	}
+	return runtime_data;
+}
+
 /* Modifier itself. */
 
 static Mesh *applyModifier(ModifierData *md,
@@ -195,6 +224,7 @@ static Mesh *applyModifier(ModifierData *md,
 		return result;
 	}
 	BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
+	SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
 	Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
 	if (subdiv == NULL) {
 		/* Happens on bad topology, but also on empty input mesh. */
@@ -209,7 +239,7 @@ static Mesh *applyModifier(ModifierData *md,
 		result = subdiv_as_ccg(smd, ctx, mesh, subdiv);
 	}
 	// BKE_subdiv_stats_print(&subdiv->stats);
-	if (subdiv != smd->subdiv) {
+	if (subdiv != runtime_data->subdiv) {
 		BKE_subdiv_free(subdiv);
 	}
 	return result;
@@ -250,4 +280,5 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   freeRuntimeData,
 };

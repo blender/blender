@@ -546,4 +546,5 @@ ModifierTypeInfo modifierType_ParticleInstance = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

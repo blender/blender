@@ -36,6 +36,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <map>
+#include <unordered_map>
 
 struct Depsgraph;
 
@@ -46,10 +48,14 @@ namespace DEG {
 /* Commonly used types. */
 using std::string;
 using std::vector;
+using std::map;
+using std::pair;
+using std::unordered_map;
 
 /* Commonly used functions. */
 using std::max;
 using std::to_string;
+using std::make_pair;
 
 /* Function bindings. */
 using std::function;

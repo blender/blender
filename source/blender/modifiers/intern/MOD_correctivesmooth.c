@@ -765,4 +765,5 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

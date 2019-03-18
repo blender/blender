@@ -143,4 +143,5 @@ ModifierTypeInfo modifierType_ShapeKey = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

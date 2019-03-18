@@ -379,4 +379,5 @@ ModifierTypeInfo modifierType_Wave = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    foreachTexLink,
+	/* freeRuntimeData */   NULL,
 };

@@ -160,4 +160,5 @@ ModifierTypeInfo modifierType_Fluidsim = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

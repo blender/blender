@@ -240,4 +240,5 @@ ModifierTypeInfo modifierType_DataTransfer = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

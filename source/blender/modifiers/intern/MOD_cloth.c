@@ -263,4 +263,5 @@ ModifierTypeInfo modifierType_Cloth = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

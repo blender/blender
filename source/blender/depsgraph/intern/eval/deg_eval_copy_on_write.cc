@@ -83,6 +83,7 @@ extern "C" {
 #include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_library_query.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 }
 
@@ -846,43 +847,119 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	                                          create_placeholders);
 }
 
+namespace {
+
+/* Identifier used to match modifiers to backup/restore their runtime data.
+ * Identification is happening using original modifier data pointer and the
+ * modifier type.
+ * It is not enough to only pointer, since it's possible to have a situation
+ * when modifier is removed and a new one added, and due to memory allocation
+ * policy they might have same pointer.
+ * By adding type into matching we are at least ensuring that modifier will not
+ * try to interpret runtime data created by another modifier type. */
+class ModifierDataBackupID {
+public:
+	ModifierDataBackupID() : ModifierDataBackupID(NULL, eModifierType_None)
+	{
+	}
+
+	ModifierDataBackupID(ModifierData *modifier_data, ModifierType type)
+	        : modifier_data(modifier_data),
+	          type(type)
+	{
+	}
+
+	bool operator <(const ModifierDataBackupID& other) const {
+		if (modifier_data < other.modifier_data) {
+			return true;
+		}
+		if (modifier_data == other.modifier_data) {
+			return static_cast<int>(type) < static_cast<int>(other.type);
+		}
+		return false;
+	}
+
+	ModifierData *modifier_data;
+	ModifierType type;
+};
+
+/* Storage for backed up runtime modifier data. */
+typedef map<ModifierDataBackupID, void*> ModifierRuntimeDataBackup;
+
 struct ObjectRuntimeBackup {
+	ObjectRuntimeBackup()
+	        : base_flag(0),
+	          base_local_view_bits(0)
+	{
+		/* TODO(sergey): Use something like BKE_object_runtime_reset(). */
+		memset(&runtime, 0, sizeof(runtime));
+	}
+
+	/* Make a backup of object's evaluation runtime data, additionally
+	 * make object to be safe for free without invalidating backed up
+	 * pointers. */
+	void init_from_object(Object *object);
+	void backup_modifier_runtime_data(Object *object);
+
+	/* Restore all fields to the given object. */
+	void restore_to_object(Object *object);
+	/* NOTE: Will free all runtime data which has not been restored. */
+	void restore_modifier_runtime_data(Object *object);
+
 	Object_Runtime runtime;
 	short base_flag;
 	unsigned short base_local_view_bits;
+	ModifierRuntimeDataBackup modifier_runtime_data;
 };
 
-/* Make a backup of object's evaluation runtime data, additionally
- * make object to be safe for free without invalidating backed up
- * pointers. */
-static void deg_backup_object_runtime(
-        Object *object,
-        ObjectRuntimeBackup *object_runtime_backup)
+void ObjectRuntimeBackup::init_from_object(Object *object)
 {
 	/* Store evaluated mesh and curve_cache, and make sure we don't free it. */
 	Mesh *mesh_eval = object->runtime.mesh_eval;
-	object_runtime_backup->runtime = object->runtime;
+	runtime = object->runtime;
 	BKE_object_runtime_reset(object);
-	/* Keep bbox (for now at least...). */
-	object->runtime.bb = object_runtime_backup->runtime.bb;
+	/* Keep bbox (for now at least). */
+	object->runtime.bb = runtime.bb;
 	/* Object update will override actual object->data to an evaluated version.
 	 * Need to make sure we don't have data set to evaluated one before free
 	 * anything. */
 	if (mesh_eval != NULL && object->data == mesh_eval) {
-		object->data = object_runtime_backup->runtime.mesh_orig;
+		object->data = runtime.mesh_orig;
 	}
 	/* Make a backup of base flags. */
-	object_runtime_backup->base_flag = object->base_flag;
-	object_runtime_backup->base_local_view_bits = object->base_local_view_bits;
+	base_flag = object->base_flag;
+	base_local_view_bits = object->base_local_view_bits;
+	/* Backup tuntime data of all modifiers. */
+	backup_modifier_runtime_data(object);
 }
 
-static void deg_restore_object_runtime(
-        Object *object,
-        const ObjectRuntimeBackup *object_runtime_backup)
+inline ModifierDataBackupID create_modifier_data_id(
+        const ModifierData* modifier_data)
+{
+	return ModifierDataBackupID(modifier_data->orig_modifier_data,
+	                            static_cast<ModifierType>(modifier_data->type));
+}
+
+void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
+{
+	LISTBASE_FOREACH(ModifierData *, modifier_data, &object->modifiers) {
+		if (modifier_data->runtime == NULL) {
+			continue;
+		}
+		BLI_assert(modifier_data->orig_modifier_data != NULL);
+		ModifierDataBackupID modifier_data_id =
+		        create_modifier_data_id(modifier_data);
+		modifier_runtime_data.insert(
+		        make_pair(modifier_data_id, modifier_data->runtime));
+		modifier_data->runtime = NULL;
+	}
+}
+
+void ObjectRuntimeBackup::restore_to_object(Object *object)
 {
 	Mesh *mesh_orig = object->runtime.mesh_orig;
 	BoundBox *bb = object->runtime.bb;
-	object->runtime = object_runtime_backup->runtime;
+	object->runtime = runtime;
 	object->runtime.mesh_orig = mesh_orig;
 	object->runtime.bb = bb;
 	if (object->type == OB_MESH && object->runtime.mesh_eval != NULL) {
@@ -909,60 +986,108 @@ static void deg_restore_object_runtime(
 			mesh_eval->edit_mesh = mesh_orig->edit_mesh;
 		}
 	}
-	object->base_flag = object_runtime_backup->base_flag;
-	object->base_local_view_bits = object_runtime_backup->base_local_view_bits;
+	object->base_flag = base_flag;
+	object->base_local_view_bits = base_local_view_bits;
+	/* Restore modifier's runtime data.
+	 * NOTE: Data of unused modifiers will be freed there. */
+	restore_modifier_runtime_data(object);
 }
+
+void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object) {
+	LISTBASE_FOREACH(ModifierData *, modifier_data, &object->modifiers) {
+		BLI_assert(modifier_data->orig_modifier_data != NULL);
+		ModifierDataBackupID modifier_data_id =
+		        create_modifier_data_id(modifier_data);
+		ModifierRuntimeDataBackup::iterator runtime_data_iterator =
+		        modifier_runtime_data.find(modifier_data_id);
+		if (runtime_data_iterator != modifier_runtime_data.end()) {
+			modifier_data->runtime = runtime_data_iterator->second;
+			runtime_data_iterator->second = NULL;
+		}
+	}
+	for (ModifierRuntimeDataBackup::value_type value : modifier_runtime_data) {
+		const ModifierDataBackupID modifier_data_id = value.first;
+		void *runtime = value.second;
+		if (value.second == NULL) {
+			continue;
+		}
+		const ModifierTypeInfo *modifier_type_info =
+		        modifierType_getInfo(modifier_data_id.type);
+		BLI_assert(modifier_type_info != NULL);
+		modifier_type_info->freeRuntimeData(runtime);
+	}
+}
+
+class RuntimeBackup {
+public:
+	RuntimeBackup() : drawdata_ptr(NULL) {
+		drawdata_backup.first = drawdata_backup.last = NULL;
+	}
+
+	/* NOTE: Will reset all runbtime fields which has been backed up to NULL. */
+	void init_from_id(ID *id);
+
+	/* Restore fields to the given ID. */
+	void restore_to_id(ID *id);
+
+	ObjectRuntimeBackup object_backup;
+	DrawDataList drawdata_backup;
+	DrawDataList *drawdata_ptr;
+};
+
+void RuntimeBackup::init_from_id(ID *id)
+{
+	if (!check_datablock_expanded(id)) {
+		return;
+	}
+	const ID_Type id_type = GS(id->name);
+	switch (id_type) {
+		case ID_OB:
+			object_backup.init_from_object(reinterpret_cast<Object*>(id));
+			break;
+		default:
+			break;
+	}
+	/* Note that we never free GPU draw data from here since that's not
+	 * safe for threading and draw data is likely to be re-used. */
+	drawdata_ptr = DRW_drawdatalist_from_id(id);
+	if (drawdata_ptr != NULL) {
+		drawdata_backup = *drawdata_ptr;
+		drawdata_ptr->first = drawdata_ptr->last = NULL;
+	}
+}
+
+void RuntimeBackup::restore_to_id(ID *id)
+{
+	const ID_Type id_type = GS(id->name);
+	switch (id_type) {
+		case ID_OB:
+			object_backup.restore_to_object(reinterpret_cast<Object*>(id));
+			break;
+		default:
+			break;
+	}
+	if (drawdata_ptr != NULL) {
+		*drawdata_ptr = drawdata_backup;
+	}
+}
+
+}  // namespace
 
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDNode *id_node)
 {
 	const ID *id_orig = id_node->id_orig;
-	const ID_Type id_type = GS(id_orig->name);
 	ID *id_cow = id_node->id_cow;
 	/* Similar to expansion, no need to do anything here. */
 	if (!deg_copy_on_write_is_needed(id_orig)) {
 		return id_cow;
 	}
-	/* For the rest if datablock types we use simple logic:
-	 * - Free previously expanded data, if any.
-	 * - Perform full datablock copy.
-	 *
-	 * Note that we never free GPU draw data from here since that's not
-	 * safe for threading and draw data is likely to be re-used. */
-	/* TODO(sergey): Either move this to an utility function or redesign
-	 * Copy-on-Write components in a way that only needed parts are being
-	 * copied over. */
-	/* TODO(sergey): Wrap GPU draw data backup and object runtime backup to a
-	 * generic backup structure. */
-	DrawDataList drawdata_backup;
-	DrawDataList *drawdata_ptr = NULL;
-	ObjectRuntimeBackup object_runtime_backup = {{{0}}};
-	if (check_datablock_expanded(id_cow)) {
-		switch (id_type) {
-			case ID_OB:
-			{
-				Object *ob = (Object *)id_cow;
-				deg_backup_object_runtime(ob, &object_runtime_backup);
-				break;
-			}
-			default:
-				break;
-		}
-		drawdata_ptr = DRW_drawdatalist_from_id(id_cow);
-		if (drawdata_ptr != NULL) {
-			drawdata_backup = *drawdata_ptr;
-			drawdata_ptr->first = drawdata_ptr->last = NULL;
-		}
-	}
+	RuntimeBackup backup;
+	backup.init_from_id(id_cow);
 	deg_free_copy_on_write_datablock(id_cow);
 	deg_expand_copy_on_write_datablock(depsgraph, id_node);
-	/* Restore DrawData. */
-	if (drawdata_ptr != NULL) {
-		*drawdata_ptr = drawdata_backup;
-	}
-	if (id_type == ID_OB) {
-		deg_restore_object_runtime((Object *)id_cow, &object_runtime_backup);
-	}
+	backup.restore_to_id(id_cow);
 	return id_cow;
 }
 

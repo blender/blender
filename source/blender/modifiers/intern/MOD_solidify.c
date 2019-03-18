@@ -975,4 +975,5 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

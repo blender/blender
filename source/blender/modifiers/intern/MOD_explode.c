@@ -1106,4 +1106,5 @@ ModifierTypeInfo modifierType_Explode = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

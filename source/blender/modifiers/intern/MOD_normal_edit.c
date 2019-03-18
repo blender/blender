@@ -578,4 +578,5 @@ ModifierTypeInfo modifierType_NormalEdit = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

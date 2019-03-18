@@ -1278,4 +1278,5 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

@@ -1961,4 +1961,5 @@ ModifierTypeInfo modifierType_Skin = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* freeRuntimeData */   NULL,
 };

@@ -168,4 +168,5 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

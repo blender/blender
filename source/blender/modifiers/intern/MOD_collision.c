@@ -273,4 +273,5 @@ ModifierTypeInfo modifierType_Collision = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

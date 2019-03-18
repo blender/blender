@@ -148,4 +148,5 @@ ModifierTypeInfo modifierType_Triangulate = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* freeRuntimeData */   NULL,
 };

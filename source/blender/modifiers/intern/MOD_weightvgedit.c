@@ -301,4 +301,5 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    foreachTexLink,
+	/* freeRuntimeData */   NULL,
 };

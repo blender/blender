@@ -247,4 +247,5 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

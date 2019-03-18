@@ -793,4 +793,5 @@ ModifierTypeInfo modifierType_LaplacianDeform = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

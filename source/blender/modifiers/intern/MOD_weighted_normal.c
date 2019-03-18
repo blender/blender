@@ -655,4 +655,5 @@ ModifierTypeInfo modifierType_WeightedNormal = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };

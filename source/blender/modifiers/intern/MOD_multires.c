@@ -226,4 +226,5 @@ ModifierTypeInfo modifierType_Multires = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* freeRuntimeData */   NULL,
 };
