@@ -242,8 +242,17 @@ void register_node_type_sh_group(void)
 
 void register_node_type_sh_custom_group(bNodeType *ntype)
 {
-	ntype->insert_link = node_insert_link_default;
-	ntype->update_internal_links = node_update_internal_links_default;
+	/* These methods can be overriden but need a default implementation otherwise. */
+	if (ntype->poll == NULL) {
+		ntype->poll = sh_node_poll_default;
+	}
+	if (ntype->insert_link == NULL) {
+		ntype->insert_link = node_insert_link_default;
+	}
+	if (ntype->update_internal_links == NULL) {
+		ntype->update_internal_links = node_update_internal_links_default;
+	}
+
 	node_type_exec(ntype, group_initexec, group_freeexec, group_execute);
 	node_type_gpu(ntype, gpu_group_execute);
 }
