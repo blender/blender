@@ -463,7 +463,6 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 			CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
 			cddata_masks.pmask |= CD_MASK_ORIGINDEX;
 			Mesh *me = (Mesh *)ob->data;
-			CustomData_MeshMasks mask, nextmask, previewmask = {0}, append_mask = CD_MASK_BAREMESH_ORIGINDEX;
 			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &cddata_masks);
 
 			ViewContext vc;
