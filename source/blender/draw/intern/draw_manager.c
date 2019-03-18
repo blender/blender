@@ -1865,7 +1865,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	drw_context_state_init();
 
 	DST.viewport = GPU_viewport_create();
-	const int size[2] = {(r->size * r->xsch) / 100, (r->size * r->ysch) / 100};
+	const int size[2] = {engine->resolution_x, engine->resolution_y};
 	GPU_viewport_size_set(DST.viewport, size);
 
 	drw_viewport_var_init();
