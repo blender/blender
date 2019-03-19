@@ -881,9 +881,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             row.prop(brush, "use_relative_jitter", icon_only=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
-            col = layout.column()
-
-        layout.prop(settings, "input_samples")
+        col.prop(settings, "input_samples")
 
 
 class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel):

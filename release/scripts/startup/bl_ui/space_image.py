@@ -1100,33 +1100,29 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         tool_settings = context.tool_settings.image_paint
         brush = tool_settings.brush
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         col = layout.column()
 
-        col.label(text="Stroke Method:")
-
-        col.prop(brush, "stroke_method", text="")
+        col.prop(brush, "stroke_method")
 
         if brush.use_anchor:
-            col.separator()
             col.prop(brush, "use_edge_to_edge", text="Edge To Edge")
 
         if brush.use_airbrush:
-            col.separator()
             col.prop(brush, "rate", text="Rate", slider=True)
 
         if brush.use_space:
-            col.separator()
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
             row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
         if brush.use_line or brush.use_curve:
-            col.separator()
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
 
         if brush.use_curve:
-            col.separator()
             col.template_ID(brush, "paint_curve", new="paintcurve.new")
             col.operator("paintcurve.draw")
 
@@ -1134,27 +1130,47 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         col.separator()
 
         row = col.row(align=True)
-        row.prop(brush, "use_relative_jitter", icon_only=True)
         if brush.use_relative_jitter:
             row.prop(brush, "jitter", slider=True)
         else:
             row.prop(brush, "jitter_absolute")
+        row.prop(brush, "use_relative_jitter", icon_only=True)
         row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
-        col = layout.column()
-        col.separator()
-
-        if brush.brush_capabilities.has_smooth_stroke:
-            col.prop(brush, "use_smooth_stroke")
-
-            sub = col.column()
-            sub.active = brush.use_smooth_stroke
-            sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
-            sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
-
-            col.separator()
-
         col.prop(tool_settings, "input_samples")
+
+
+class IMAGE_PT_paint_stroke_smooth_stroke(BrushButtonsPanel, Panel):
+    bl_context = ".paint_common_2d"  # dot on purpose (access from topbar)
+    bl_label = "Smooth Stroke"
+    bl_parent_id = "IMAGE_PT_paint_stroke"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+        if brush.brush_capabilities.has_smooth_stroke:
+            return True
+
+    def draw_header(self, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        self.layout.prop(brush, "use_smooth_stroke", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        col = layout.column()
+        col.active = brush.use_smooth_stroke
+        col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+        col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
@@ -1495,6 +1511,7 @@ classes = (
     IMAGE_PT_tools_brush_texture,
     IMAGE_PT_tools_mask_texture,
     IMAGE_PT_paint_stroke,
+    IMAGE_PT_paint_stroke_smooth_stroke,
     IMAGE_PT_paint_curve,
     IMAGE_PT_tools_brush_display,
     IMAGE_PT_tools_imagepaint_symmetry,
