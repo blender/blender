@@ -136,13 +136,13 @@ struct Material *BKE_gpencil_material_ensure(struct Main *bmain, struct Object *
 
 /* object boundbox */
 bool BKE_gpencil_data_minmax(
-	struct Object *ob, const struct bGPdata *gpd,
-	float r_min[3], float r_max[3]);
+        const struct bGPdata *gpd,
+        float r_min[3], float r_max[3]);
 bool BKE_gpencil_stroke_minmax(
-	const struct bGPDstroke *gps, const bool use_select,
-	float r_min[3], float r_max[3]);
+        const struct bGPDstroke *gps, const bool use_select,
+        float r_min[3], float r_max[3]);
 bool BKE_gpencil_stroke_select_check(
-	const struct bGPDstroke *gps);
+        const struct bGPDstroke *gps);
 
 struct BoundBox *BKE_gpencil_boundbox_get(struct Object *ob);
 void BKE_gpencil_centroid_3d(struct bGPdata *gpd, float r_centroid[3]);
