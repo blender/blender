@@ -119,9 +119,11 @@ static void bakeModifier(
         Main *bmain, Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
-	ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	bGPdata *gpd = ob->data;
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+	ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
+	GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
+	bGPdata *gpd = (bGPdata *)ob->data;
 	int oldframe = (int)DEG_get_ctime(depsgraph);
 
 	if (mmd->object == NULL)
@@ -137,7 +139,7 @@ static void bakeModifier(
 
 			/* compute armature effects on this frame */
 			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md, depsgraph, ob, gpl, gps);
+				deformStroke(md_eval, depsgraph, object_eval, gpl, gps);
 			}
 		}
 	}
