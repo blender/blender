@@ -351,6 +351,10 @@ class IMAGE_MT_uvs(Menu):
         uv = sima.uv_editor
         tool_settings = context.tool_settings
 
+        layout.menu("IMAGE_MT_uvs_transform")
+        layout.menu("IMAGE_MT_uvs_mirror")
+        layout.menu("IMAGE_MT_uvs_snap")
+
         layout.prop_menu_enum(uv, "pixel_snap_mode")
         layout.prop(uv, "lock_bounds")
 
@@ -362,15 +366,11 @@ class IMAGE_MT_uvs(Menu):
 
         layout.prop(uv, "use_live_unwrap")
         layout.operator("uv.unwrap")
-        layout.operator("uv.pin", text="Unpin").clear = True
-        layout.operator("uv.pin").clear = False
 
         layout.separator()
 
-        layout.operator("uv.pack_islands")
-        layout.operator("uv.average_islands_scale")
-        layout.operator("uv.minimize_stretch")
-        layout.operator("uv.stitch")
+        layout.operator("uv.pin").clear = False
+        layout.operator("uv.pin", text="Unpin").clear = True
 
         layout.separator()
 
@@ -380,18 +380,20 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
-        layout.menu("IMAGE_MT_uvs_transform")
-        layout.menu("IMAGE_MT_uvs_mirror")
-        layout.menu("IMAGE_MT_uvs_snap")
+        layout.operator("uv.pack_islands")
+        layout.operator("uv.average_islands_scale")
+
+        layout.separator()
+
+        layout.operator("uv.minimize_stretch")
+        layout.operator("uv.stitch")
         layout.menu("IMAGE_MT_uvs_weldalign")
 
         layout.separator()
 
-        layout.menu("IMAGE_MT_uvs_proportional")
+        layout.menu("IMAGE_MT_uvs_showhide")
 
         layout.separator()
-
-        layout.menu("IMAGE_MT_uvs_showhide")
 
 
 class IMAGE_MT_uvs_select_mode(Menu):
