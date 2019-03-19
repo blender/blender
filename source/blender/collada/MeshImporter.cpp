@@ -876,7 +876,7 @@ std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
  * this function checks if both objects have the same
  * materials assigned to Object (in the same order)
  * returns true if condition matches, otherwise false;
- **/
+ */
 static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
 {
 	if (ob1->totcol != ob2->totcol) return false; // not same number of materials
@@ -897,7 +897,7 @@ static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
  * and no material is assigned to Data.
  * That is true right after the objects have been imported.
  *
- **/
+ */
 static void bc_copy_materials_to_data(Object *ob, Mesh *me)
 {
 	for (int index = 0; index < ob->totcol; index++) {
@@ -910,7 +910,7 @@ static void bc_copy_materials_to_data(Object *ob, Mesh *me)
  *
  * Remove all references to materials from the object
  *
- **/
+ */
 static void bc_remove_materials_from_object(Object *ob, Mesh *me)
 {
 	for (int index = 0; index < ob->totcol; index++) {
@@ -923,7 +923,7 @@ static void bc_remove_materials_from_object(Object *ob, Mesh *me)
  * Returns the list of Users of the given Mesh object.
  * Note: This function uses the object user flag to control
  * which objects have already been processed.
- **/
+ */
 std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
 {
 	std::vector<Object *> mesh_users;
@@ -958,7 +958,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
  *             Add the materials of the first user to the geometry
  *             adjust all other users accordingly.
  *
- **/
+ */
 void MeshImporter::optimize_material_assignements()
 {
 	for (std::vector<Object *>::iterator it = imported_objects.begin();

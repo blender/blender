@@ -519,7 +519,7 @@ int BLI_str_utf8_size_safe(const char *p)
  * instead.
  *
  * Return value: the resulting character
- **/
+ */
 uint BLI_str_utf8_as_unicode(const char *p)
 {
 	int i, len;
@@ -625,7 +625,7 @@ uint BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict i
  * Converts a single character to UTF-8.
  *
  * \return number of bytes written
- **/
+ */
 size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
 {
 	/* If this gets modified, also update the copy in g_string_insert_unichar() */
@@ -684,7 +684,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
  * it starts with an appropriate byte.
  *
  * Return value: a pointer to the found character or %NULL.
- **/
+ */
 char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
 {
 	for (--p; p >= str; --p) {
@@ -709,7 +709,7 @@ char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
  * it starts with an appropriate byte.
  *
  * Return value: a pointer to the found character or %NULL
- **/
+ */
 char *BLI_str_find_next_char_utf8(const char *p, const char *end)
 {
 	if (*p) {
@@ -740,7 +740,7 @@ char *BLI_str_find_next_char_utf8(const char *p, const char *end)
  * character of the string, you must use g_utf8_find_prev_char() instead.
  *
  * Return value: a pointer to the found character.
- **/
+ */
 char *BLI_str_prev_char_utf8(const char *p)
 {
 	while (1) {

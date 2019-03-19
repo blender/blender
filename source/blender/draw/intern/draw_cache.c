@@ -2009,7 +2009,7 @@ static const uint bone_octahedral_solid_tris[8][3] = {
  * According to opengl specification it becomes (starting from
  * the first vertex of the first face aka. vertex 2):
  * {0, 12, 1, 10, 2, 3}
- **/
+ */
 static const uint bone_octahedral_wire_lines_adjacency[12][4] = {
 	{ 0, 1, 2,  6}, { 0, 12, 1,  6}, { 0, 3, 12,  6}, { 0, 2, 3,  6},
 	{ 1, 6, 2,  3}, { 1, 12, 6,  3}, { 1, 0, 12,  3}, { 1, 2, 0,  3},
@@ -2161,7 +2161,7 @@ static const uint bone_box_solid_tris[12][3] = {
 /**
  * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
  * See bone_octahedral_solid_tris for more infos.
- **/
+ */
 static const uint bone_box_wire_lines_adjacency[12][4] = {
 	{ 4,  2,  0, 11}, { 0,  1, 2,  8}, { 2, 4,  1,  14}, {  1,  0,  4, 20}, /* bottom */
 	{ 0,  8, 11, 14}, { 2, 14, 8, 20}, { 1, 20, 14, 11}, {  4, 11, 20,  8}, /* top */

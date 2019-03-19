@@ -1786,9 +1786,9 @@ static void annotation_draw_apply_event(wmOperator *op, const wmEvent *event, De
 	float mousef[2];
 	int tablet = 0;
 
-	 /* convert from window-space to area-space mouse coordinates
-	  * add any x,y override position for fake events
-	  */
+	/* convert from window-space to area-space mouse coordinates
+	 * add any x,y override position for fake events
+	 */
 	p->mval[0] = (float)event->mval[0] - x;
 	p->mval[1] = (float)event->mval[1] - y;
 

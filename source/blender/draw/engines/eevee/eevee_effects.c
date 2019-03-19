@@ -465,7 +465,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 
 /**
  * Simple downsampling algorithm. Reconstruct mip chain up to mip level.
- **/
+ */
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int level)
 {
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -481,7 +481,7 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int le
 
 /**
  * Simple downsampling algorithm for cubemap. Reconstruct mip chain up to mip level.
- **/
+ */
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int level)
 {
 	EEVEE_FramebufferList *fbl = vedata->fbl;

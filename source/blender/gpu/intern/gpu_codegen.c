@@ -64,7 +64,7 @@ static char *glsl_material_library = NULL;
  * Internal shader cache: This prevent the shader recompilation / stall when
  * using undo/redo AND also allows for GPUPass reuse if the Shader code is the
  * same for 2 different Materials. Unused GPUPasses are free by Garbage collection.
- **/
+ */
 
 /* Only use one linklist that contains the GPUPasses grouped by hash. */
 static GPUPass *pass_cache = NULL;

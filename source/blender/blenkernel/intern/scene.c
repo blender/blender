@@ -1643,11 +1643,11 @@ int get_render_child_particle_number(const RenderData *r, int num, bool for_rend
 }
 
 /**
-  * Helper function for the SETLOOPER and SETLOOPER_VIEW_LAYER macros
-  *
-  * It iterates over the bases of the active layer and then the bases
-  * of the active layer of the background (set) scenes recursively.
-  */
+ * Helper function for the SETLOOPER and SETLOOPER_VIEW_LAYER macros
+ *
+ * It iterates over the bases of the active layer and then the bases
+ * of the active layer of the background (set) scenes recursively.
+ */
 Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
 {
 	if (base && base->next) {

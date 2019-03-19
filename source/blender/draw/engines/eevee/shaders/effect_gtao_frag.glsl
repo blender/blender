@@ -1,7 +1,7 @@
 /**
  * This shader only compute maximum horizon angles for each directions.
  * The final integration is done at the resolve stage with the shading normal.
- **/
+ */
 
 uniform float rotationOffset;
 

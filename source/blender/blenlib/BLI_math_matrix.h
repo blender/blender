@@ -15,9 +15,8 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
-
- * The Original Code is: some of this file.
  *
+ * The Original Code is: some of this file.
  * */
 
 #ifndef __BLI_MATH_MATRIX_H__

@@ -618,7 +618,6 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 
 			efd->size = 0.0f;
 
-			/**/
 			ret = 1;
 		}
 	}

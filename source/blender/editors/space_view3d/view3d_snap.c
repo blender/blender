@@ -64,7 +64,7 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 
 /* *********************** operators ******************** */
 
-/** Snaps every individual object center to its nearest point on the grid. **/
+/** Snaps every individual object center to its nearest point on the grid. */
 static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -230,7 +230,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
  * \param snap_target_global: a location in global space to snap to (eg. 3D cursor or active object).
  * \param use_offset: if the selected objects should maintain their relative offsets and be snapped by the selection
  *                    pivot point (median, active), or if every object origin should be snapped to the given location.
-**/
+ */
 static int snap_selected_to_location(bContext *C, const float snap_target_global[3], const bool use_offset)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -479,7 +479,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 
 /* *************************************************** */
 
-/** Snaps each selected object to the location of the active selected object. **/
+/** Snaps each selected object to the location of the active selected object. */
 static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
 {
 	float snap_target_global[3];
@@ -510,7 +510,7 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
 
 /* *************************************************** */
 
-/** Snaps the 3D cursor location to its nearest point on the grid. **/
+/** Snaps the 3D cursor location to its nearest point on the grid. */
 static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -604,7 +604,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 	}
 }
 
-/** Snaps the 3D cursor location to the median point of the selection. **/
+/** Snaps the 3D cursor location to the median point of the selection. */
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -800,7 +800,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 
 /* **************************************************** */
 
-/** Snaps the 3D cursor location to the origin. **/
+/** Snaps the 3D cursor location to the origin. */
 static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);

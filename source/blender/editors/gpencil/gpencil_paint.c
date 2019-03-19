@@ -428,8 +428,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
 			 * - nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
 
-			 /* verify valid zdepth, if it's wrong, the default drawing mode is used
-			  * and the function doesn't return now */
+			/* verify valid zdepth, if it's wrong, the default drawing mode is used
+			 * and the function doesn't return now */
 			if ((depth == NULL) || (*depth <= 1.0f)) {
 				return;
 			}

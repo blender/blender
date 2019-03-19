@@ -7,7 +7,7 @@
  * The area we search is the circular segment. https://en.wikipedia.org/wiki/Circular_segment
  * The formula for the area uses inverse trig function and is quite complexe.
  * Instead, we approximate it by using the smoothstep function and a 1.05 factor to the disc radius.
- **/
+ */
 #define DISC_RADIUS (M_1_SQRTPI * 1.05)
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)

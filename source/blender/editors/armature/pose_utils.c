@@ -125,7 +125,7 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 
 /**
  *  Returns a valid pose armature for this object, else returns NULL.
- **/
+ */
 Object *poseAnim_object_get(Object *ob_)
 {
 	Object *ob = BKE_object_pose_armature_get(ob_);

@@ -920,7 +920,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	/* XXX multi-dim dynamic arrays are very badly supported by (py)rna currently, those are defined for the day
 	 *     it works better, for now user will get a 1D tuple...
-	 **/
+	 */
 	func = RNA_def_function(srna, "normals_vertex_get", "rna_KeyBlock_normals_vert_calc");
 	RNA_def_function_ui_description(func, "Compute local space vertices' normals for this shape key");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);

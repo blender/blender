@@ -1339,7 +1339,7 @@ static void rna_def_library(BlenderRNA *brna)
 /**
  * \attention This is separate from the above. It allows for RNA functions to
  * return an IDProperty *. See MovieClip.metadata for a usage example.
- **/
+ */
 static void rna_def_idproperty_wrap_ptr(BlenderRNA *brna)
 {
 	StructRNA *srna;

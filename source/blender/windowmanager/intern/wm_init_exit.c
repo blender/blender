@@ -165,7 +165,7 @@ void WM_init_state_start_with_console_set(bool value)
  * scripts) we deferre the ghost initialization the most as possible
  * so that it does not break anything that can run in headless mode (as in
  * without display server attached).
- **/
+ */
 static bool opengl_is_init = false;
 
 void WM_init_opengl(Main *bmain)

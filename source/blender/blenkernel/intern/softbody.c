@@ -1863,7 +1863,6 @@ static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, floa
 	}
 	else {
 		/* TODO make this debug option */
-		/**/
 		CLOG_WARN(&LOG, "bodypoint <bpi> is not attached to spring  <*bs>");
 		return;
 	}

@@ -194,7 +194,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		 * - Shoot quads for every pixel and expand it depending on the CoC.
 		 *   Do one pass for near Dof and one pass for far Dof.
 		 * - Finally composite the 2 blurred buffers with the original render.
-		 **/
+		 */
 		DRWShadingGroup *grp;
 		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 		const bool use_alpha = !DRW_state_draw_background();

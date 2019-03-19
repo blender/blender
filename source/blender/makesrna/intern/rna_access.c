@@ -219,7 +219,6 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 	}
 }
 
-/**/
 void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
 {
 #if 0 /* works but this case if covered by more general code below. */

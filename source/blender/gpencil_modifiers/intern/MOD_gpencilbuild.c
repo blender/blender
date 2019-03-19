@@ -81,7 +81,7 @@ static bool dependsOnTime(GpencilModifierData *UNUSED(md))
  * - Stroke points are generally equally spaced. This implies that we can just add/remove points,
  *   without worrying about distances between them / adding extra interpolated points between
  *   an visible point and one about to be added/removed (or any similar tapering effects).
-
+ *
  * - All strokes present are fully visible (i.e. we don't have to ignore any)
  */
 

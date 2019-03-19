@@ -354,7 +354,7 @@ static char *eevee_get_volume_defines(int options)
 
 /**
  * ssr_id can be null to disable ssr contribution.
- **/
+ */
 static void add_standard_uniforms(
         DRWShadingGroup *shgrp, EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         int *ssr_id, float *refract_depth,
@@ -539,7 +539,7 @@ static void EEVEE_update_viewvecs(float invproj[4][4], float winmat[4][4], float
 	 *            when Z = 1, and top-left corner if Z = 1.
 	 *            view_vecs[0].z the near clip distance and view_vecs[1].z is the (signed)
 	 *            distance from the near plane to the far clip plane.
-	 **/
+	 */
 	copy_v4_v4(r_viewvecs[0], view_vecs[0]);
 
 	/* we need to store the differences */
@@ -842,7 +842,7 @@ struct GPUMaterial *EEVEE_material_hair_get(
 
 /**
  * Create a default shading group inside the given pass.
- **/
+ */
 static struct DRWShadingGroup *EEVEE_default_shading_group_create(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWPass *pass,
         bool is_hair, bool is_flat_normal, bool use_blend, bool use_ssr, int shadow_method)
@@ -871,7 +871,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(
 
 /**
  * Create a default shading group inside the default pass without standard uniforms.
- **/
+ */
 static struct DRWShadingGroup *EEVEE_default_shading_group_get(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         Object *ob, ParticleSystem *psys, ModifierData *md,
@@ -919,7 +919,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 
 /**
  * Create a default shading group inside the lookdev pass without standard uniforms.
- **/
+ */
 static struct DRWShadingGroup *EEVEE_lookdev_shading_group_get(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         bool use_ssr, int shadow_method)

@@ -4885,7 +4885,7 @@ void DRW_mesh_batch_cache_create_requested(
 	 * TODO: The code and data structure is ready to support modified UV display
 	 * but the selection code for UVs needs to support it first. So for now, only
 	 * display the cage in all cases.
-	 **/
+	 */
 	if (rdata && rdata->mapped.supported) {
 		rdata->mapped.use = false;
 	}

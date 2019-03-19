@@ -375,9 +375,11 @@ void DRW_transform_none(GPUTexture *tex)
 /** \name Multisample Resolve
  * \{ */
 
-/* Use manual multisample resolve pass.
+/**
+ * Use manual multisample resolve pass.
  * Much quicker than blitting back and forth.
- * Assume destination fb is bound*/
+ * Assume destination fb is bound.
+ */
 void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool use_depth)
 {
 	DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL;

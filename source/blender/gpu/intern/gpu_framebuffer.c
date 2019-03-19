@@ -306,7 +306,7 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
  * Following GPUAttachments are color buffers.
  * Setting GPUAttachment.mip to -1 will leave the texture in this slot.
  * Setting GPUAttachment.tex to NULL will detach the texture in this slot.
- **/
+ */
 void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *config, int config_len)
 {
 	if (config[0].tex) {
@@ -414,7 +414,7 @@ static void gpu_framebuffer_update_attachments(GPUFrameBuffer *fb)
  * Hack to solve the problem of some bugged AMD GPUs (see `GPU_unused_fb_slot_workaround`).
  * If there is an empty color slot between the color slots,
  * all textures after this slot are apparently skipped/discarded.
- **/
+ */
 static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuffer *fb)
 {
 	GLenum gl_attachments[GPU_FB_MAX_COLOR_ATTACHMENT];
@@ -702,7 +702,7 @@ void GPU_framebuffer_blit(
 /**
  * Use this if you need to custom downsample your texture and use the previous mip level as input.
  * This function only takes care of the correct texture handling. It execute the callback for each texture level.
- **/
+ */
 void GPU_framebuffer_recursive_downsample(
         GPUFrameBuffer *fb, int max_lvl,
         void (*callback)(void *userData, int level), void *userData)

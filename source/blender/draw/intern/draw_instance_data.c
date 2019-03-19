@@ -24,10 +24,10 @@
  * DRW Instance Data Manager
  * This is a special memory manager that keeps memory blocks ready to send as vbo data in one continuous allocation.
  * This way we avoid feeding gawain each instance data one by one and unnecessary memcpy.
- * Since we loose which memory block was used each DRWShadingGroup we need to redistribute them in the same order/size
+ * Since we loose which memory block was used each #DRWShadingGroup we need to redistribute them in the same order/size
  * to avoid to realloc each frame.
- * This is why DRWInstanceDatas are sorted in a list for each different data size.
- **/
+ * This is why #DRWInstanceDatas are sorted in a list for each different data size.
+ */
 
 #include "draw_instance_data.h"
 #include "DRW_engine.h"
@@ -94,15 +94,14 @@ static ListBase g_idatalists = {NULL, NULL};
  * be static so that it's pointer never changes (because we are using
  * this pointer as identifier [we don't want to check the full format
  * that would be too slow]).
- **/
-
+ */
 static void instance_batch_free(GPUBatch *batch, void *UNUSED(user_data))
 {
 	if (batch->verts[0] == NULL) {
 		/** XXX This is a false positive case.
 		 * The batch has been requested but not init yet
 		 * and there is a chance that it might become init.
-		 **/
+		 */
 		return;
 	}
 	/* Free all batches that have the same key before they are reused. */
@@ -313,7 +312,7 @@ static void DRW_instance_data_free(DRWInstanceData *idata)
 
 /**
  * Return a pointer to the next instance data space.
- **/
+ */
 void *DRW_instance_data_next(DRWInstanceData *idata)
 {
 	return BLI_mempool_alloc(idata->mempool);

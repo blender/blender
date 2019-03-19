@@ -238,7 +238,7 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
 		 *                                   [Downsample]                            [Upsample]
 		 *                                        v                                      |
 		 *                              Color Downsampled [1/N] ─────────────────────────┘
-		 **/
+		 */
 		DRWShadingGroup *grp;
 		const bool use_highres = true;
 		const bool use_antiflicker = true;

@@ -87,7 +87,7 @@ RNG_THREAD_ARRAY *BLI_rng_threaded_new(void);
 void  BLI_rng_threaded_free(struct RNG_THREAD_ARRAY *rngarr) ATTR_NONNULL(1);
 int   BLI_rng_thread_rand(RNG_THREAD_ARRAY *rngarr, int thread) ATTR_WARN_UNUSED_RESULT;
 
-/** Low-discrepancy sequences **/
+/* Low-discrepancy sequences. */
 
 /** Return the _n_th number of the given low-discrepancy sequence. */
 void BLI_halton_1D(unsigned int prime, double offset, int n, double *r);

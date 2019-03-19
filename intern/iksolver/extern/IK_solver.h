@@ -24,35 +24,32 @@
 
 
 /**
-
- * Copyright (C) 2001 NaN Technologies B.V.
- *
  * \page IK - Blender inverse kinematics module.
  *
  * \section about About the IK module
  *
- * This module allows you to create segments and form them into 
- * tree. You can then define a goal points that the end of a given 
+ * This module allows you to create segments and form them into
+ * tree. You can then define a goal points that the end of a given
  * segment should attempt to reach - an inverse kinematic problem.
  * This module will then modify the segments in the tree in order
  * to get the as near as possible to the goal. This solver uses an
  * inverse jacobian method to find a solution.
- * 
+ *
  * \section issues Known issues with this IK solver.
  *
  * - There is currently no support for joint constraints in the
  * solver. This is within the realms of possibility - please ask
  * if this functionality is required.
  * - The solver is slow, inverse jacobian methods in general give
- * 'smooth' solutions and the method is also very flexible, it 
- * does not rely on specific angle parameterization and can be 
- * extended to deal with different joint types and joint 
- * constraints. However it is not suitable for real time use. 
+ * 'smooth' solutions and the method is also very flexible, it
+ * does not rely on specific angle parameterization and can be
+ * extended to deal with different joint types and joint
+ * constraints. However it is not suitable for real time use.
  * Other algorithms exist which are more suitable for real-time
- * applications, please ask if this functionality is required.     
- * 
+ * applications, please ask if this functionality is required.
+ *
  * \section dependencies Dependencies
- * 
+ *
  * This module only depends on Moto.
  */
 
@@ -76,25 +73,25 @@ extern "C" {
  */
 
 /**
- * IK_Segment defines a single segment of an IK tree. 
+ * IK_Segment defines a single segment of an IK tree.
  * - Individual segments are always defined in local coordinates.
- * - The segment is assumed to be oriented in the local 
+ * - The segment is assumed to be oriented in the local
  *   y-direction.
- * - start is the start of the segment relative to the end 
+ * - start is the start of the segment relative to the end
  *   of the parent segment.
  * - rest_basis is a column major matrix defineding the rest
  *   position (w.r.t. which the limits are defined), must
  *   be a pure rotation
  * - basis is a column major matrix defining the current change
  *   from the rest basis, must be a pure rotation
- * - length is the length of the bone.  
+ * - length is the length of the bone.
  *
  * - basis_change and translation_change respectively define
  *   the change in rotation or translation. basis_change is a
  *   column major 3x3 matrix.
  *
  * The local transformation is then defined as:
- * start * rest_basis * basis * basis_change * translation_change * translate(0,length,0) 
+ * start * rest_basis * basis * basis_change * translation_change * translate(0,length,0)
  */
 
 typedef void IK_Segment;
@@ -130,16 +127,16 @@ extern void IK_GetTranslationChange(IK_Segment *seg, float *translation_change);
 
 /**
  * An IK_Solver must be created to be able to execute the solver.
- * 
+ *
  * An arbitray number of goals can be created, stating that a given
  * end effector must have a given position or rotation. If multiple
  * goals are specified, they can be weighted (range 0..1) to get
  * some control over their importance.
- * 
+ *
  * IK_Solve will execute the solver, that will run until either the
  * system converges, or a maximum number of iterations is reached.
  * It returns 1 if the system converged, 0 otherwise.
- */ 
+ */
 
 typedef void IK_Solver;
 
@@ -162,4 +159,3 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
 #endif
 
 #endif // __IK_SOLVER_H__
-

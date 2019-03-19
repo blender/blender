@@ -47,7 +47,7 @@ extern char datatoc_workbench_effect_dof_frag_glsl[];
 
 /**
  * Transform [-1..1] square to unit circle.
- **/
+ */
 static void square_to_circle(float x, float y, float *r, float *T)
 {
 	if (x > -y) {

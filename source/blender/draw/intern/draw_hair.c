@@ -246,7 +246,7 @@ void DRW_hair_update(void)
 	 * readback the result to system memory and reupload as VBO data.
 	 * It is really not ideal performance wise, but it is the simplest
 	 * and the most local workaround that still uses the power of the GPU.
-	 **/
+	 */
 
 	if (g_tf_calls == NULL) {
 		return;

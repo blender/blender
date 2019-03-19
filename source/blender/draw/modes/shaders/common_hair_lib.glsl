@@ -3,13 +3,13 @@
  * This is less bandwidth intensive than fetching the vertex attributes
  * but does more ALU work per vertex. This also reduce the number
  * of data the CPU has to precompute and transfert for each update.
- **/
+ */
 
 /**
  * hairStrandsRes: Number of points per hair strand.
  * 2 - no subdivision
  * 3+ - 1 or more interpolated points per hair.
- **/
+ */
 uniform int hairStrandsRes = 8;
 
 /**
@@ -17,7 +17,7 @@ uniform int hairStrandsRes = 8;
  * 1 - Wire Hair: Only one pixel thick, independent of view distance.
  * 2 - Polystrip Hair: Correct width, flat if camera is parallel.
  * 3+ - Cylinder Hair: Massive calculation but potentially perfect. Still need proper support.
- **/
+ */
 uniform int hairThicknessRes = 1;
 
 /* Hair thickness shape. */
@@ -58,7 +58,7 @@ void unpack_strand_data(uint data, out int strand_offset, out int strand_segment
  * children particle modifiers being evaluated at this stage.
  *
  * If no more subdivision is needed, we can skip this step.
- **/
+ */
 
 #ifdef HAIR_PHASE_SUBDIV
 int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
@@ -104,7 +104,7 @@ void hair_get_interp_attrs(out vec4 data0, out vec4 data1, out vec4 data2, out v
 /* -- Drawing stage -- */
 /**
  * For final drawing, the vertex index and the number of vertex per segment
- **/
+ */
 
 #ifndef HAIR_PHASE_SUBDIV
 int hair_get_strand_id(void)

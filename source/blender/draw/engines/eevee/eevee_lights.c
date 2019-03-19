@@ -721,7 +721,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
  * Point are distributed in a way that when they are orthogonaly
  * projected into any plane, the resulting distribution is (close to)
  * a uniform disc distribution.
- **/
+ */
 static void sample_ball(int sample_ofs, float radius, float rsample[3])
 {
 	double ht_point[3];

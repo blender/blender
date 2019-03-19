@@ -81,7 +81,7 @@ void main()
 	 *    |   Origin      \
 	 * -1 0 --------------- 2
 	 *   -1     0     1     ex
-	 **/
+	 */
 	gl_Position.x = float(v_id / 2) * extend - 1.0; /* int divisor round down */
 	gl_Position.y = float(v_id % 2) * extend - 1.0;
 	gl_Position.z = 0.0;

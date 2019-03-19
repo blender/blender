@@ -1,7 +1,7 @@
 /**
  * Simple shader that just draw multiple icons at the specified locations
  * does not need any vertex input (producing less call to immBegin/End)
- **/
+ */
 
 /* Same as ICON_DRAW_CACHE_SIZE */
 #define MAX_CALLS 16

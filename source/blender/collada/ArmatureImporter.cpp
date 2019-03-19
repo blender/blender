@@ -208,11 +208,11 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 }
 
 /**
-  * Collada only knows Joints, hence bones at the end of a bone chain
-  * don't have a defined length. This function guesses reasonable
-  * tail locations for the affected bones (nodes which don't have any connected child)
-  * Hint: The extended_bones set gets populated in ArmatureImporter::create_bone
-**/
+ * Collada only knows Joints, hence bones at the end of a bone chain
+ * don't have a defined length. This function guesses reasonable
+ * tail locations for the affected bones (nodes which don't have any connected child)
+ * Hint: The extended_bones set gets populated in ArmatureImporter::create_bone
+ */
 void ArmatureImporter::fix_leaf_bone_hierarchy(bArmature *armature, Bone *bone, bool fix_orientation)
 {
 	if (bone == NULL)
@@ -674,10 +674,10 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 }
 
 /**
-  * root - if this joint is the top joint in hierarchy, if a joint
-  * is a child of a node (not joint), root should be true since
-  * this is where we build armature bones from
-  **/
+ * root - if this joint is the top joint in hierarchy, if a joint
+ * is a child of a node (not joint), root should be true since
+ * this is where we build armature bones from
+ */
 void ArmatureImporter::add_root_joint(COLLADAFW::Node *node, Object *parent)
 {
 	root_joints.push_back(node);

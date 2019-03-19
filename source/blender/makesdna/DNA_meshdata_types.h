@@ -277,7 +277,7 @@ typedef struct MDisps {
 	unsigned int *hidden;
 } MDisps;
 
-/** Multires structs kept for compatibility with old files **/
+/** Multires structs kept for compatibility with old files. */
 typedef struct MultiresCol {
 	float a, r, g, b;
 } MultiresCol;
@@ -326,7 +326,7 @@ typedef struct Multires {
 	char *edge_creases;
 } Multires;
 
-/** End Multires **/
+/* End Multires */
 
 typedef struct MRecast {
 	int i;

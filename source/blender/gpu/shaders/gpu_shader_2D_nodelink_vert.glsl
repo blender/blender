@@ -1,6 +1,6 @@
 /**
  * 2D Quadratic Bezier thick line drawing
- **/
+ */
 
 #define MID_VERTEX 57
 

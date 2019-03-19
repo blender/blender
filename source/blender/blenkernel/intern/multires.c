@@ -76,7 +76,7 @@ typedef enum {
 static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert);
 static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl);
 
-/** Customdata **/
+/** Customdata */
 
 void multires_customdata_delete(Mesh *me)
 {
@@ -102,7 +102,7 @@ void multires_customdata_delete(Mesh *me)
 	}
 }
 
-/** Grid hiding **/
+/** Grid hiding */
 static BLI_bitmap *multires_mdisps_upsample_hidden(
         BLI_bitmap *lo_hidden,
         int lo_level, int hi_level,

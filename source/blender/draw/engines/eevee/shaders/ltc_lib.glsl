@@ -4,7 +4,7 @@
  * Eric Heitz, Jonathan Dupuy, Stephen Hill and David Neubelt.
  * ACM Transactions on Graphics (Proceedings of ACM SIGGRAPH 2016) 35(4), 2016.
  * Project page: https://eheitzresearch.wordpress.com/415-2/
- **/
+ */
 
 #define USE_LTC
 
@@ -33,7 +33,7 @@ float diffuse_sphere_integral(float avg_dir_z, float form_factor)
  * An extended version of the implementation from
  * "How to solve a cubic equation, revisited"
  * http://momentsingraphics.de/?p=105
- **/
+ */
 vec3 solve_cubic(vec4 coefs)
 {
 	/* Normalize the polynomial */

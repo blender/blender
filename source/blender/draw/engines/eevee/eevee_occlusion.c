@@ -195,7 +195,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		 * - Then we use this angle to compute occlusion with the shading normal at
 		 *   the shading stage. This let us do correct shadowing for each diffuse / specular
 		 *   lobe present in the shader using the correct normal.
-		 **/
+		 */
 		psl->ao_horizon_search = DRW_pass_create("GTAO Horizon Search", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_sh, psl->ao_horizon_search);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());

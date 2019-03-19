@@ -276,7 +276,7 @@ static bool get_path_environment(
  * \param targetpath: String to return path
  * \param folder_name: default name of folder within user area
  * \param subfolder_name: optional name of subfolder within folder
-  * \param ver: Blender version, used to construct a subdirectory name
+ * \param ver: Blender version, used to construct a subdirectory name
  * \return true if it was able to construct such a path.
  */
 static bool get_path_user(

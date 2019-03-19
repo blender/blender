@@ -19,7 +19,7 @@ void main()
 	 *    |               \
 	 * -1 0 --------------- 2
 	 *   -1     0     1     ex
-	 **/
+	 */
 	vPos.x = float(v_id / 2) * 4.0 - 1.0; /* int divisor round down */
 	vPos.y = float(v_id % 2) * 4.0 - 1.0;
 	vPos.z = float(t_id);

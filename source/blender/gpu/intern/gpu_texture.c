@@ -405,9 +405,9 @@ static GLenum gpu_get_gl_internalformat(eGPUTextureFormat format)
 		case GPU_DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
 		case GPU_DEPTH32F_STENCIL8: return GL_DEPTH32F_STENCIL8;
 		/* Texture only format */
-		/* ** Add Format here **/
+		/* ** Add Format here */
 		/* Special formats texture only */
-		/* ** Add Format here **/
+		/* ** Add Format here */
 		/* Depth Formats */
 		case GPU_DEPTH_COMPONENT32F: return GL_DEPTH_COMPONENT32F;
 		case GPU_DEPTH_COMPONENT24: return GL_DEPTH_COMPONENT24;

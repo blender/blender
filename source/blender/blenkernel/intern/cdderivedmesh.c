@@ -53,7 +53,7 @@ typedef struct {
 	DerivedMesh dm;
 
 	/* these point to data in the DerivedMesh custom data layers,
-	 * they are only here for efficiency and convenience **/
+	 * they are only here for efficiency and convenience */
 	MVert *mvert;
 	MEdge *medge;
 	MFace *mface;

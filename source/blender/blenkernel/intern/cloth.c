@@ -584,9 +584,8 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
  ******************************************************************************/
 
 /**
- * cloth_to_object - copies the deformed vertices to the object.
- *
- **/
+ * Copies the deformed vertices to the object.
+ */
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3])
 {
 	unsigned int i = 0;
@@ -614,12 +613,11 @@ int cloth_uses_vgroup(ClothModifierData *clmd)
 }
 
 /**
- * cloth_apply_vgroup - applies a vertex group as specified by type
- *
- **/
-/* can be optimized to do all groups in one loop */
+ * Applies a vertex group as specified by type.
+ */
 static void cloth_apply_vgroup ( ClothModifierData *clmd, Mesh *mesh )
 {
+	/* Can be optimized to do all groups in one loop. */
 	int i = 0;
 	int j = 0;
 	MDeformVert *dvert = NULL;

@@ -83,7 +83,7 @@
  * Data structure containing all drawcalls organized by passes and materials.
  * DRWPass > DRWShadingGroup > DRWCall > DRWCallState
  *                           > DRWUniform
- **/
+ */
 
 /* Used by DRWCallState.flag */
 enum {

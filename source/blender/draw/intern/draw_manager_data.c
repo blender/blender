@@ -1217,7 +1217,7 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 /**
  * Sort Shading groups by decreasing Z of their first draw call.
  * This is useful for order dependent effect such as transparency.
- **/
+ */
 void DRW_pass_sort_shgroup_z(DRWPass *pass)
 {
 	float (*viewinv)[4];

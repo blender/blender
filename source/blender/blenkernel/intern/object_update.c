@@ -68,7 +68,7 @@
  * before being re-evaluated.
  * For example, we need to call this before BKE_mesh_new_from_object(),
  * in case we removed/added modifiers in the evaluated object.
- **/
+ */
 void BKE_object_eval_reset(Object *ob_eval)
 {
 	BKE_object_free_derived_caches(ob_eval);

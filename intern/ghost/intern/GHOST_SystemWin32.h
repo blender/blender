@@ -382,7 +382,7 @@ protected:
 	/** Console status */
 	int m_consoleStatus;
 
-	/** Wheel delta accumulator **/
+	/** Wheel delta accumulator */
 	int m_wheelDeltaAccum;
 };
 

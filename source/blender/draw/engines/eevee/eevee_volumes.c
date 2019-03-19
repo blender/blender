@@ -378,7 +378,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		 *   for "every" positions in the frustum. We only need to sample
 		 *   them and blend the scene color with those factors. This also
 		 *   work for alpha blended materials.
-		 **/
+		 */
 
 		/* World pass is not additive as it also clear the buffer. */
 		psl->volumetric_world_ps = DRW_pass_create("Volumetric World", DRW_STATE_WRITE_COLOR);

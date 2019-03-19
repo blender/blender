@@ -52,10 +52,9 @@
 #include "gpu_py_offscreen.h" /* own include */
 
 
- /* -------------------------------------------------------------------- */
-
- /** \name GPUOffScreen Common Utilities
-  * \{ */
+/* -------------------------------------------------------------------- */
+/** \name GPUOffScreen Common Utilities
+ * \{ */
 
 static int bpygpu_offscreen_valid_check(BPyGPUOffScreen *bpygpu_ofs)
 {

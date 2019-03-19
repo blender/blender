@@ -86,13 +86,14 @@
 /** \name Public Object Selection API
  * \{ */
 
-/* simple API for object selection, rather than just using the flag
+/**
+ * simple API for object selection, rather than just using the flag
  * this takes into account the 'restrict selection in 3d view' flag.
- * deselect works always, the restriction just prevents selection */
-
- /* Note: send a NC_SCENE|ND_OB_SELECT notifier yourself! (or
-  * or a NC_SCENE|ND_OB_VISIBLE in case of visibility toggling */
-
+ * deselect works always, the restriction just prevents selection
+ *
+ * \note Caller must send a `NC_SCENE | ND_OB_SELECT` notifier
+ * (or a `NC_SCENE | ND_OB_VISIBLE` in case of visibility toggling).
+ */
 void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 {
 	if (mode == BA_INVERT) {

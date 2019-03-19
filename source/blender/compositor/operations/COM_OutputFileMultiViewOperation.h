@@ -51,7 +51,6 @@ public:
 	void deinitExecution();
 };
 
-/**/
 class OutputStereoOperation : public OutputSingleLayerOperation {
 private:
 	char m_name[FILE_MAX];

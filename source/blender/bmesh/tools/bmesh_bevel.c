@@ -5664,14 +5664,15 @@ static double find_superellipse_chord_endpoint(double x0, double dtarget, float 
 	return xnew;
 }
 
- /* This search procedure to find equidistant points (x,y) in the first
-  * superellipse quadrant works for every superellipse exponent but is more
-  * expensive than known solutions for special cases.
-  * Call the point on superellipse that intersects x=y line mx.
-  * For r>=1 use only the range x in [0,mx] and mirror the rest along x=y line,
-  * for r<1 use only x in [mx,1]. Points are initially spaced and iteratively
-  * repositioned to have the same distance. */
-
+/**
+ * This search procedure to find equidistant points (x,y) in the first
+ * superellipse quadrant works for every superellipse exponent but is more
+ * expensive than known solutions for special cases.
+ * Call the point on superellipse that intersects x=y line mx.
+ * For r>=1 use only the range x in [0,mx] and mirror the rest along x=y line,
+ * for r<1 use only x in [mx,1]. Points are initially spaced and iteratively
+ * repositioned to have the same distance.
+ */
 static void find_even_superellipse_chords_general(int seg, float r, double *xvals, double *yvals)
 {
 	const int smoothitermax = 10;
@@ -5770,13 +5771,14 @@ static void find_even_superellipse_chords_general(int seg, float r, double *xval
 	}
 }
 
- /* Find equidistant points (x0,y0), (x1,y1)... (xn,yn) on the superellipse
-  * function in the first quadrant. For special profiles (linear, arc,
-  * rectangle) the point can be calculated easily, for any other profile a more
-  * expensive search procedure must be used because there is no known closed
-  * form for equidistant parametrization
-  * xvals and yvals should be size n+1 */
-
+/**
+ * Find equidistant points (x0,y0), (x1,y1)... (xn,yn) on the superellipse
+ * function in the first quadrant. For special profiles (linear, arc,
+ * rectangle) the point can be calculated easily, for any other profile a more
+ * expensive search procedure must be used because there is no known closed
+ * form for equidistant parametrization
+ * xvals and yvals should be size n+1
+ */
 static void find_even_superellipse_chords(int n, float r, double *xvals, double *yvals)
 {
 	int i, n2;

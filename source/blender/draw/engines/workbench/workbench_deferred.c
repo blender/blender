@@ -763,7 +763,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 	 * Similar to workbench forward. Duplicated code to avoid
 	 * spaghetti with workbench forward. It would be great if we unify
 	 * this in a clean way.
-	 **/
+	 */
 	if (OIT_ENABLED(wpd)) {
 		const bool do_cull = CULL_BACKFACE_ENABLED(wpd);
 		const int cull_state = (do_cull) ? DRW_STATE_CULL_BACK : 0;

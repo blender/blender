@@ -84,22 +84,24 @@ void GPU_framebuffer_texture_detach_slot(
         GPUFrameBuffer *fb, struct GPUTexture *tex, int type);
 
 /**
- * How to use GPU_framebuffer_ensure_config().
+ * How to use #GPU_framebuffer_ensure_config().
  *
- * Example :
+ * Example:
+ * \code{.c}
  * GPU_framebuffer_ensure_config(&fb, {
  *         GPU_ATTACHMENT_TEXTURE(depth), // must be depth buffer
  *         GPU_ATTACHMENT_TEXTURE(tex1),
  *         GPU_ATTACHMENT_TEXTURE_CUBEFACE(tex2, 0),
  *         GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex2, 0, 0)
  * })
+ * \encode
  *
- * Note : Unspecified attachements (i.e: those beyond the last
- *        GPU_ATTACHMENT_* in GPU_framebuffer_ensure_config list)
- *        are left unchanged.
- * Note : Make sure that the dimensions of your textures matches
- *        otherwise you will have an invalid framebuffer error.
- **/
+ * \note Unspecified attachements (i.e: those beyond the last
+ * GPU_ATTACHMENT_* in GPU_framebuffer_ensure_config list) are left unchanged.
+ *
+ * \note Make sure that the dimensions of your textures matches
+ * otherwise you will have an invalid framebuffer error.
+ */
 #define GPU_framebuffer_ensure_config(_fb, ...) do { \
 	if (*(_fb) == NULL) { \
 		*(_fb) = GPU_framebuffer_create(); \

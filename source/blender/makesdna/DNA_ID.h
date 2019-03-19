@@ -340,8 +340,7 @@ typedef struct PreviewImage {
  *
  * The tags represent types! This is a dirty way of enabling RTTI. The
  * sig_byte end endian defines aren't really used much.
- *
- **/
+ */
 
 #ifdef __BIG_ENDIAN__
    /* big endian */

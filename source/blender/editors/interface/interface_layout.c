@@ -783,7 +783,7 @@ static void ui_keymap_but_cb(bContext *UNUSED(C), void *but_v, void *UNUSED(key_
  *
  * \param w_hint: For varying width layout, this becomes the label width.
  *                Otherwise it's used to fit both items into it.
- **/
+ */
 static uiBut *ui_item_with_label(
         uiLayout *layout, uiBlock *block, const char *name, int icon,
         PointerRNA *ptr, PropertyRNA *prop, int index,
