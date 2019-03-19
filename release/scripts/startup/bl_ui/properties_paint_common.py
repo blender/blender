@@ -137,8 +137,6 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
 
 
 def brush_texpaint_common_clone(panel, context, layout, brush, settings, projpaint=False):
-    capabilities = brush.image_paint_capabilities
-
     ob = context.active_object
     col = layout.column()
 
@@ -179,8 +177,6 @@ def brush_texpaint_common_color(panel, context, layout, brush, settings, projpai
 
 
 def brush_texpaint_common_gradient(panel, context, layout, brush, settings, projpaint=False):
-    capabilities = brush.image_paint_capabilities
-
     layout.template_color_ramp(brush, "gradient", expand=True)
 
     layout.use_property_split = True
@@ -349,7 +345,6 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     tool_settings = context.tool_settings
     capabilities = brush.sculpt_capabilities
     settings = tool_settings.gpencil_sculpt
-    tool = settings.sculpt_tool
 
     row = layout.row(align=True)
 

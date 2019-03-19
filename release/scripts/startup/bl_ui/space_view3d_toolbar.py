@@ -226,7 +226,6 @@ class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
         settings = self.paint_settings(context)
         brush = settings.brush
         tool = settings.tool
@@ -280,7 +279,6 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        tool_settings = context.tool_settings
         settings = self.paint_settings(context)
         brush = settings.brush
 
@@ -1336,7 +1334,6 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-        settings = self.paint_settings(context)
 
         col = layout.column()
 
@@ -1555,6 +1552,7 @@ class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
         if not pe.is_hair:
             col.prop(pe, "use_auto_velocity", text="Auto-Velocity")
 
+
 class VIEW3D_PT_tools_particlemode_options_shapecut(View3DPanel, Panel):
     """Default tools for particle mode"""
     bl_parent_id = "VIEW3D_PT_tools_particlemode_options"
@@ -1568,10 +1566,10 @@ class VIEW3D_PT_tools_particlemode_options_shapecut(View3DPanel, Panel):
         layout.use_property_decorate = False  # No animation.
 
         pe = context.tool_settings.particle_edit
-        ob = pe.object
 
         layout.prop(pe, "shape_object")
         layout.operator("particle.shape_cut", text="Cut")
+
 
 class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
     """Default tools for particle mode"""
@@ -1585,7 +1583,6 @@ class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
         layout.use_property_decorate = False  # No animation.
 
         pe = context.tool_settings.particle_edit
-        ob = pe.object
 
         col = layout.column()
         col.active = pe.is_editable

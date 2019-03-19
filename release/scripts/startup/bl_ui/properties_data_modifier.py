@@ -622,8 +622,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
         col = layout.column()
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
         col.label(text="Textures:")
         row = layout.row()
         row.prop(md, "use_mirror_u", text="Flip U")

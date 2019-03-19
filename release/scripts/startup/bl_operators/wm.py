@@ -1125,7 +1125,6 @@ class WM_OT_properties_edit(Operator):
         )
 
         data_path = self.data_path
-        value = self.value
         prop = self.property
 
         prop_old = getattr(self, "_last_prop", [None])[0]
