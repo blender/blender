@@ -252,10 +252,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	}
 	else if (STRPREFIX(opname, "SCULPT_OT")) {
 		switch (CTX_data_mode_enum(C)) {
-			case OB_MODE_SCULPT:
+			case CTX_MODE_SCULPT:
 				km = WM_keymap_find_all(C, "Sculpt", 0, 0);
 				break;
-			case OB_MODE_EDIT:
+			case CTX_MODE_EDIT_MESH:
 				km = WM_keymap_find_all(C, "UV Sculpt", 0, 0);
 				break;
 			default:
@@ -286,13 +286,13 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	else if (STRPREFIX(opname, "PAINT_OT")) {
 		/* check for relevant mode */
 		switch (CTX_data_mode_enum(C)) {
-			case OB_MODE_WEIGHT_PAINT:
+			case CTX_MODE_PAINT_WEIGHT:
 				km = WM_keymap_find_all(C, "Weight Paint", 0, 0);
 				break;
-			case OB_MODE_VERTEX_PAINT:
+			case CTX_MODE_PAINT_VERTEX:
 				km = WM_keymap_find_all(C, "Vertex Paint", 0, 0);
 				break;
-			case OB_MODE_TEXTURE_PAINT:
+			case CTX_MODE_PAINT_TEXTURE:
 				km = WM_keymap_find_all(C, "Image Paint", 0, 0);
 				break;
 			default:
