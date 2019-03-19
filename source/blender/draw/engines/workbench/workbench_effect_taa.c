@@ -26,7 +26,9 @@
 
 static struct {
 	struct GPUShader *effect_taa_sh;
+	float jitter_5[5][2];
 	float jitter_8[8][2];
+	float jitter_11[11][2];
 	float jitter_16[16][2];
 	float jitter_32[32][2];
 } e_data = {NULL};
@@ -79,7 +81,9 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
 
 static void workbench_taa_jitter_init(void)
 {
+	workbench_taa_jitter_init_order(e_data.jitter_5, 5);
 	workbench_taa_jitter_init_order(e_data.jitter_8, 8);
+	workbench_taa_jitter_init_order(e_data.jitter_11, 11);
 	workbench_taa_jitter_init_order(e_data.jitter_16, 16);
 	workbench_taa_jitter_init_order(e_data.jitter_32, 32);
 }
@@ -212,8 +216,14 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 	num_samples = workbench_taa_calculate_num_iterations(vedata);
 	switch (num_samples) {
 		default:
+		case 5:
+			samples = e_data.jitter_5;
+			break;
 		case 8:
 			samples = e_data.jitter_8;
+			break;
+		case 11:
+			samples = e_data.jitter_11;
 			break;
 		case 16:
 			samples = e_data.jitter_16;
@@ -225,10 +235,9 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 
 	mix_factor = 1.0f / (effect_info->jitter_index + 1);
 
-	const int bitmask = num_samples - 1;
 	const int jitter_index = effect_info->jitter_index;
 	const float *transform_offset = samples[jitter_index];
-	effect_info->jitter_index = (jitter_index + 1) & bitmask;
+	effect_info->jitter_index = (jitter_index + 1) % num_samples;
 
 	/* construct new matrices from transform delta */
 	float viewmat[4][4];
