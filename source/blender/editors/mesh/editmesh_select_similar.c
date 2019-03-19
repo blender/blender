@@ -143,35 +143,15 @@ static bool face_data_value_set(BMFace *face, const int hflag, int *r_value)
  * Also, unlike edge_pos_direction_worldspace_get we don't normalize the direction.
  * In fact we scale the direction by the distance of the face center to the origin.
  */
-static void face_pos_direction_worldspace_scaled_get(Object *ob, BMFace *face, float *r_dir)
+static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
 {
-	float distance;
-	float center[3];
+	float normal[3], co[3];
+	copy_v3_v3(normal, face->no);
+	mul_transposed_mat3_m4_v3(ob->imat, normal);
+	normalize_v3(normal);
+	mul_v3_m4v3(co, ob->obmat, BM_FACE_FIRST_LOOP(face)->v->co);
+	plane_from_point_normal_v3(r_plane, co, normal);
 
-	copy_v3_v3(r_dir, face->no);
-	normalize_v3(r_dir);
-
-	BM_face_calc_center_median(face, center);
-	mul_m4_v3(ob->obmat, center);
-
-	distance = dot_v3v3(r_dir, center);
-	mul_v3_fl(r_dir, distance);
-
-	/* Make sure we have a consistent direction regardless of the face orientation.
-	 * This spares us from storing dir and -dir in the tree. */
-	if (fabs(r_dir[2]) < FLT_EPSILON) {
-		if (fabs(r_dir[1]) < FLT_EPSILON) {
-			if (r_dir[0] < 0.0f) {
-				mul_v3_fl(r_dir, -1.0f);
-			}
-		}
-		else if (r_dir[1] < 0.0f) {
-			mul_v3_fl(r_dir, -1.0f);
-		}
-	}
-	else if (r_dir[2] < 0.0f) {
-		mul_v3_fl(r_dir, -1.0f);
-	}
 }
 
 /* TODO(dfelinto): `types` that should technically be compared in world space but are not:
@@ -204,6 +184,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	}
 
 	KDTree *tree = NULL;
+	KDTree_4d *tree_plane = NULL;
 	GSet *gset = NULL;
 	GSet **gset_array = NULL;
 	int face_data_value = SIMFACE_DATA_NONE;
@@ -212,8 +193,10 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		case SIMFACE_AREA:
 		case SIMFACE_PERIMETER:
 		case SIMFACE_NORMAL:
-		case SIMFACE_COPLANAR:
 			tree = BLI_kdtree_new(tot_faces_selected_all);
+			break;
+		case SIMFACE_COPLANAR:
+			tree_plane = BLI_kdtree_4d_new(tot_faces_selected_all);
 			break;
 		case SIMFACE_SIDES:
 		case SIMFACE_MATERIAL:
@@ -312,9 +295,9 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					}
 					case SIMFACE_COPLANAR:
 					{
-						float dir[3];
-						face_pos_direction_worldspace_scaled_get(ob, face, dir);
-						BLI_kdtree_insert(tree, tree_index++, dir);
+						float plane[4];
+						face_to_plane(ob, face, plane);
+						BLI_kdtree_4d_insert(tree_plane, tree_index++, plane);
 						break;
 					}
 					case SIMFACE_SMOOTH:
@@ -355,6 +338,9 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	if (tree != NULL) {
 		BLI_kdtree_balance(tree);
+	}
+	if (tree_plane != NULL) {
+		BLI_kdtree_4d_balance(tree_plane);
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -470,19 +456,15 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					}
 					case SIMFACE_COPLANAR:
 					{
-						float diff[3];
-						float dir[3];
-						face_pos_direction_worldspace_scaled_get(ob, face, dir);
+						float plane[4];
+						face_to_plane(ob, face, plane);
 
-						/* We are treating the direction as coordinates, the "nearest" one will
-						 * also be the one closest to the angle.
-						 * And since the direction is scaled by the face center distance to the origin,
-						 * the nearest point will also be the closest between the planes. */
-						KDTreeNearest nearest;
-						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
-							sub_v3_v3v3(diff, dir, nearest.co);
-							if (len_v3(diff) <= thresh) {
-								if (angle_v3v3(dir, nearest.co) <= thresh_radians) {
+						KDTreeNearest_4d nearest;
+						if (BLI_kdtree_4d_find_nearest(tree_plane, plane, &nearest) != -1) {
+							if (nearest.dist <= thresh) {
+								if ((fabsf(plane[3] - nearest.co[3]) <= thresh) &&
+								    (angle_v3v3(plane, nearest.co) <= thresh_radians))
+								{
 									select = true;
 								}
 							}
@@ -569,6 +551,7 @@ face_select_all:
 
 	MEM_freeN(objects);
 	BLI_kdtree_free(tree);
+	BLI_kdtree_4d_free(tree_plane);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
 	}
