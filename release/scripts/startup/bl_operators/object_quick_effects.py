@@ -46,8 +46,12 @@ def object_ensure_material(obj, mat_name):
             obj.data.materials.append(mat)
     return mat
 
+class ObjectModeOperator:
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
 
-class QuickFur(Operator):
+class QuickFur(ObjectModeOperator, Operator):
     bl_idname = "object.quick_fur"
     bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
@@ -77,7 +81,7 @@ class QuickFur(Operator):
     def execute(self, context):
         fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
-                        if obj.type == 'MESH' and obj.mode == 'OBJECT']
+                        if obj.type == 'MESH']
 
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")
@@ -112,7 +116,7 @@ class QuickFur(Operator):
         return {'FINISHED'}
 
 
-class QuickExplode(Operator):
+class QuickExplode(ObjectModeOperator, Operator):
     bl_idname = "object.quick_explode"
     bl_label = "Quick Explode"
     bl_options = {'REGISTER', 'UNDO'}
@@ -318,7 +322,7 @@ def grid_location(x, y):
     return (x * 200, y * 150)
 
 
-class QuickSmoke(Operator):
+class QuickSmoke(ObjectModeOperator, Operator):
     bl_idname = "object.quick_smoke"
     bl_label = "Quick Smoke"
     bl_options = {'REGISTER', 'UNDO'}
@@ -422,7 +426,7 @@ class QuickSmoke(Operator):
         return {'FINISHED'}
 
 
-class QuickFluid(Operator):
+class QuickFluid(ObjectModeOperator, Operator):
     bl_idname = "object.quick_fluid"
     bl_label = "Quick Fluid"
     bl_options = {'REGISTER', 'UNDO'}
