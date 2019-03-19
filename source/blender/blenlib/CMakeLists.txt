@@ -75,6 +75,7 @@ set(SRC
 	intern/hash_mm2a.c
 	intern/hash_mm3.c
 	intern/jitter_2d.c
+	intern/kdtree_2d.c
 	intern/kdtree_3d.c
 	intern/kdtree_4d.c
 	intern/lasso_2d.c

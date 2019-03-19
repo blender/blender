@@ -14,45 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_KDTREE_H__
-#define __BLI_KDTREE_H__
-
 /** \file
  * \ingroup bli
- * \brief A kd-tree for nearest neighbor search.
  */
 
-/* 2D version */
 #define KD_DIMS 2
 #define KDTREE_PREFIX_ID BLI_kdtree_2d
 #define KDTree KDTree_2d
 #define KDTreeNearest KDTreeNearest_2d
-#include "BLI_kdtree_impl.h"
-#undef KD_DIMS
-#undef KDTree
-#undef KDTreeNearest
-#undef KDTREE_PREFIX_ID
-
-/* 3D version */
-#define KD_DIMS 3
-#define KDTREE_PREFIX_ID BLI_kdtree_3d
-#define KDTree KDTree_3d
-#define KDTreeNearest KDTreeNearest_3d
-#include "BLI_kdtree_impl.h"
-#undef KD_DIMS
-#undef KDTree
-#undef KDTreeNearest
-#undef KDTREE_PREFIX_ID
-
-/* 4D version */
-#define KD_DIMS 4
-#define KDTREE_PREFIX_ID BLI_kdtree_4d
-#define KDTree KDTree_4d
-#define KDTreeNearest KDTreeNearest_4d
-#include "BLI_kdtree_impl.h"
-#undef KD_DIMS
-#undef KDTree
-#undef KDTreeNearest
-#undef KDTREE_PREFIX_ID
-
-#endif  /* __BLI_KDTREE_H__ */
+#  include "kdtree_impl.h"
