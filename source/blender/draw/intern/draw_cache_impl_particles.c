@@ -793,8 +793,12 @@ static int particle_batch_cache_fill_strands_data(
 			continue;
 		}
 
+		/* XXX: We might need something more robust.
+		 * Adjust shader code accordingly. (see unpack_strand_data() ) */
+		BLI_assert((path->segments - 1) <= 0x3FF);
+
 		uint *seg_data = (uint *)GPU_vertbuf_raw_step(data_step);
-		*seg_data = (curr_point & 0xFFFFFF) | (path->segments << 24);
+		*seg_data = (curr_point & 0x3FFFFF) | ((path->segments - 1) << 22);
 		curr_point += path->segments + 1;
 
 		if (psmd != NULL) {

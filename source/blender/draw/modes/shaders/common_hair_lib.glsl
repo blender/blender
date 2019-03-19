@@ -46,8 +46,8 @@ void unpack_strand_data(uint data, out int strand_offset, out int strand_segment
 	// strand_offset = (data & 0x1FFFFFFFu);
 	// strand_segments = 1u << (data >> 29u); /* We only need 3 bits to store subdivision level. */
 #else
-	strand_offset = int(data & 0x00FFFFFFu);
-	strand_segments = int(data >> 24u);
+	strand_offset = int(data & 0x003FFFFFu);
+	strand_segments = int(data >> 22u) + 1;
 #endif
 }
 
