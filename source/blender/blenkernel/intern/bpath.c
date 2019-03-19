@@ -211,7 +211,7 @@ static bool missing_files_find__recursive(
         char *filename_new,
         const char *dirname,
         const char *filename,
-        off_t *r_filesize,
+        int64_t *r_filesize,
         int *r_recur_depth)
 {
 	/* file searching stuff */
@@ -219,7 +219,7 @@ static bool missing_files_find__recursive(
 	struct dirent *de;
 	BLI_stat_t status;
 	char path[FILE_MAX];
-	off_t size;
+	int64_t size;
 	bool found = false;
 
 	dir = opendir(dirname);
@@ -275,7 +275,7 @@ static bool missing_files_find__visit_cb(void *userdata, char *path_dst, const c
 	BPathFind_Data *data = (BPathFind_Data *)userdata;
 	char filename_new[FILE_MAX];
 
-	off_t filesize = -1;
+	int64_t filesize = -1;
 	int recur_depth = 0;
 	bool found;
 

@@ -138,7 +138,7 @@ static void info_callback(const char *msg, void *client_data)
 struct BufInfo {
 	const unsigned char *buf;
 	const unsigned char *cur;
-	off_t len;
+	OPJ_OFF_T len;
 };
 
 static void opj_read_from_buffer_free(void *UNUSED(p_user_data))
