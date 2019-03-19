@@ -1751,12 +1751,3 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 		gp_draw_data(rv3d, brush, 1.0f, ob, gpd, offsx, offsy, winx, winy, CFRA, dflag);
 	}
 }
-
-void ED_gpencil_draw_ex(
-	ViewLayer *view_layer, RegionView3D *rv3d, Scene *scene,
-	bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
-{
-	int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
-
-	gp_draw_data_all(view_layer, rv3d, scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
-}

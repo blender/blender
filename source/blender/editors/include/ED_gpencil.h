@@ -158,7 +158,7 @@ void ED_gpencil_draw_view3d_object(
         struct ARegion *ar,
         bool only3d);
 void ED_gpencil_draw_ex(
-        struct ViewLayer *view_layer, struct RegionView3D *rv3d, struct Scene *scene,
+        struct Scene *scene,
         struct bGPdata *gpd, int winx, int winy,
         const int cfra, const char spacetype);
 
