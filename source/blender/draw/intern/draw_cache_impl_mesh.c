@@ -889,11 +889,13 @@ static MeshRenderData *mesh_render_data_create_ex(
 		 * to a safe glsl var name, but without name clash.
 		 * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
 		if (rdata->cd.layers.vcol_len != 0) {
+			int act_vcol = rdata->cd.layers.vcol_active;
 			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.vcol_len; i_src++, i_dst++) {
 				if ((cd_lused[CD_MLOOPCOL] & (1 << i_src)) == 0) {
+					/* This is a non-used VCol slot. Skip. */
 					i_dst--;
 					if (rdata->cd.layers.vcol_active >= i_src) {
-						rdata->cd.layers.vcol_active--;
+						act_vcol--;
 					}
 				}
 				else {
@@ -915,6 +917,10 @@ static MeshRenderData *mesh_render_data_create_ex(
 						rdata->cd.layers.auto_vcol[i_dst] = true;
 					}
 				}
+			}
+			if (rdata->cd.layers.vcol_active != -1) {
+				/* Actual active Vcol slot inside vcol layers used for shading. */
+				rdata->cd.layers.vcol_active = act_vcol;
 			}
 		}
 
