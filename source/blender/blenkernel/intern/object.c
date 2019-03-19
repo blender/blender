@@ -2762,6 +2762,20 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 			changed = true;
 			break;
 		}
+		case OB_MESH:
+		{
+			bb = *BKE_mesh_boundbox_get(ob);
+			BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
+			changed = true;
+			break;
+		}
+		case OB_GPENCIL:
+		{
+			bb = *BKE_gpencil_boundbox_get(ob);
+			BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
+			changed = true;
+			break;
+		}
 		case OB_LATTICE:
 		{
 			Lattice *lt = ob->data;
@@ -2782,17 +2796,6 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		case OB_ARMATURE:
 		{
 			changed = BKE_pose_minmax(ob, min_r, max_r, use_hidden, false);
-			break;
-		}
-		case OB_MESH:
-		{
-			Mesh *me = BKE_mesh_from_object(ob);
-
-			if (me) {
-				bb = *BKE_mesh_boundbox_get(ob);
-				BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
-				changed = true;
-			}
 			break;
 		}
 		case OB_MBALL:
