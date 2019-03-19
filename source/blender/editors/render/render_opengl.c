@@ -325,7 +325,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			GPU_matrix_translate_2f(sizex / 2, sizey / 2);
 
 			G.f |= G_FLAG_RENDER_VIEWPORT;
-			ED_gpencil_draw_ex(
+			ED_annotation_draw_ex(
 			        scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
 			G.f &= ~G_FLAG_RENDER_VIEWPORT;
 

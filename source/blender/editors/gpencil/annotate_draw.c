@@ -1133,7 +1133,7 @@ void ED_gpencil_draw_view3d_annotations(
 	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
-void ED_gpencil_draw_ex(
+void ED_annotation_draw_ex(
 	Scene *scene, bGPdata *gpd,
 	int winx, int winy, const int cfra, const char spacetype)
 {
