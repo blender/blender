@@ -290,6 +290,7 @@ def brush_mask_texture_settings(layout, brush):
 #
 # Share between topbar and brush panel.
 
+
 def brush_basic_wpaint_settings(layout, context, brush, *, compact=False):
     capabilities = brush.weight_paint_capabilities
 
@@ -318,7 +319,6 @@ def brush_basic_vpaint_settings(layout, context, brush, *, compact=False):
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
-
 
     if capabilities.has_color:
         layout.prop(brush, "blend", text="" if compact else "Blend")

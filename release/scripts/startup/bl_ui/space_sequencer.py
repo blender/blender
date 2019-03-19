@@ -1145,6 +1145,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.prop(strip, "color_multiply", text="Multiply")
         layout.prop(strip, "use_float", text="Convert to Float")
 
+
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
     bl_label = "Proxy settings"
     bl_category = "Proxy"

@@ -213,6 +213,7 @@ class View3DPaintPanel(UnifiedPaintPanel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
+
 class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Particle tools"
@@ -233,7 +234,7 @@ class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        if tool != None:
+        if tool is not None:
             col = layout.column()
             col.prop(brush, "size", slider=True)
             if tool == 'ADD':
@@ -300,8 +301,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 brush_basic_sculpt_settings(col, context, brush)
 
             # topology_rake_factor
-            if (capabilities.has_topology_rake and
-                context.sculpt_object.use_dynamic_topology_sculpting
+            if (
+                    capabilities.has_topology_rake and
+                    context.sculpt_object.use_dynamic_topology_sculpting
             ):
                 row = col.row()
                 row.prop(brush, "topology_rake_factor", slider=True)

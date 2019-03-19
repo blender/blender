@@ -21,6 +21,10 @@ import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
+from .properties_animviz import (
+    MotionPathButtonsPanel,
+    MotionPathButtonsPanel_display,
+)
 
 class ArmatureButtonsPanel:
     bl_space_type = 'PROPERTIES'
@@ -255,12 +259,6 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
                 col.separator()
                 col.prop(itasc, "damping_max", text="Damping Max", slider=True)
                 col.prop(itasc, "damping_epsilon", text="Damping Epsilon", slider=True)
-
-
-from .properties_animviz import (
-    MotionPathButtonsPanel,
-    MotionPathButtonsPanel_display,
-)
 
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):

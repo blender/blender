@@ -190,7 +190,15 @@ class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel
 
         row = layout.row()
         rows = 4 if lineset else 2
-        row.template_list("VIEWLAYER_UL_linesets", "", freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
+        row.template_list(
+            "VIEWLAYER_UL_linesets",
+            "",
+            freestyle,
+            "linesets",
+            freestyle.linesets,
+            "active_index",
+            rows=rows,
+        )
 
         sub = row.column(align=True)
         sub.operator("scene.freestyle_lineset_add", icon='ADD', text="")

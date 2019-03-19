@@ -1839,8 +1839,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_weight_paint.gradient,
             None,
             (
-            _defs_weight_paint.sample_weight,
-            _defs_weight_paint.sample_weight_group,
+                _defs_weight_paint.sample_weight,
+                _defs_weight_paint.sample_weight_group,
             ),
             None,
             lambda context: (

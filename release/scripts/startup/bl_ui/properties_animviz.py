@@ -48,7 +48,6 @@ class MotionPathButtonsPanel:
             else:
                 row.operator("object.paths_range_update", text="", icon='TIME')
 
-
         if mps.type == 'CURRENT_FRAME':
             col = layout.column(align=True)
             col.prop(mps, "frame_before", text="Frame Range Before")

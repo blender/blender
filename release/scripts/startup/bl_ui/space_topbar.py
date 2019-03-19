@@ -1043,6 +1043,7 @@ class TOPBAR_PT_gpencil_primitive(Panel):
         # Curve
         layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
 
+
 # Grease Pencil Fill
 class TOPBAR_PT_gpencil_fill(Panel):
     bl_space_type = 'VIEW_3D'
