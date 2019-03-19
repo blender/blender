@@ -1649,7 +1649,7 @@ static int armature_hide_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Hide Selected Bones";
+	ot->name = "Hide Selected";
 	ot->idname = "ARMATURE_OT_hide";
 	ot->description = "Tag selected bones to not be visible in Edit Mode";
 
@@ -1701,7 +1701,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Reveal Bones";
+	ot->name = "Reveal Hidden";
 	ot->idname = "ARMATURE_OT_reveal";
 	ot->description = "Reveal all bones hidden in Edit Mode";
 

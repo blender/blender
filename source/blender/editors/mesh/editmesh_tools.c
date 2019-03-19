@@ -2021,7 +2021,7 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 void MESH_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Hide Selection";
+	ot->name = "Hide Selected";
 	ot->idname = "MESH_OT_hide";
 	ot->description = "Hide (un)selected vertices, edges or faces";
 

@@ -631,7 +631,7 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Hide";
+	ot->name = "Hide Selected";
 	ot->description = "Hide (un)selected metaelement(s)";
 	ot->idname = "MBALL_OT_hide_metaelems";
 
@@ -674,7 +674,7 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Reveal";
+	ot->name = "Reveal Hidden";
 	ot->description = "Reveal all hidden metaelements";
 	ot->idname = "MBALL_OT_reveal_metaelems";
 

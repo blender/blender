@@ -563,7 +563,7 @@ static int gpencil_hideselect_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void GPENCIL_OT_selection_opacity_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Hide Selection";
+	ot->name = "Hide Selected";
 	ot->idname = "GPENCIL_OT_selection_opacity_toggle";
 	ot->description = "Hide/Unhide selected points for Grease Pencil strokes setting alpha factor";
 
