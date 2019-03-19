@@ -201,6 +201,23 @@ void pow_qt_fl_normalized(float q[4], const float fac)
 	normalize_v3_length(q + 1, si);
 }
 
+/**
+ * Apply the rotation of \a a to \a q keeping the values compatible with \a old.
+ * Avoid axis flipping for animated f-curves for eg.
+ */
+void quat_to_compatible_quat(float q[4], const float a[4], const float old[4])
+{
+	BLI_ASSERT_UNIT_QUAT(a);
+	float delta[4];
+	float old_unit[4];
+	normalize_qt_qt(old_unit, old);
+	rotation_between_quats_to_quat(delta, old_unit, a);
+	mul_qt_qtqt(q, old, delta);
+	if ((q[0] < 0.0f) != (old[0] < 0.0f)) {
+		negate_v4(q);
+	}
+}
+
 /* skip error check, currently only needed by mat3_to_quat_is_ok */
 static void quat_to_mat3_no_error(float m[3][3], const float q[4])
 {

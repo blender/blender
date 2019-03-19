@@ -77,6 +77,8 @@ void add_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
 void quat_to_mat3(float mat[3][3], const float q[4]);
 void quat_to_mat4(float mat[4][4], const float q[4]);
 
+void quat_to_compatible_quat(float q[4], const float a[4], const float old[4]);
+
 void mat3_normalized_to_quat(float q[4], const float mat[3][3]);
 void mat4_normalized_to_quat(float q[4], const float mat[4][4]);
 void mat3_to_quat(float q[4], const float mat[3][3]);
