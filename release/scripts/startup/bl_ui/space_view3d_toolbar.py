@@ -403,9 +403,13 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     def poll(self, context):
         settings = self.paint_settings(context)
         brush = settings.brush
-        capabilities = brush.image_paint_capabilities
+        if context.image_paint_object:
+            capabilities = brush.image_paint_capabilities
 
-        return capabilities.has_color and (context.image_paint_object or context.vertex_paint_object)
+        elif context.vertex_paint_object:
+            capabilities = brush.vertex_paint_capabilities
+
+        return capabilities.has_color
 
     def draw(self, context):
         layout = self.layout
@@ -427,9 +431,13 @@ class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel):
     def poll(self, context):
         settings = self.paint_settings(context)
         brush = settings.brush
-        capabilities = brush.image_paint_capabilities
+        if context.image_paint_object:
+            capabilities = brush.image_paint_capabilities
 
-        return capabilities.has_color and (context.image_paint_object or context.vertex_paint_object)
+        elif context.vertex_paint_object:
+            capabilities = brush.vertex_paint_capabilities
+
+        return capabilities.has_color
 
     def draw(self, context):
         layout = self.layout
