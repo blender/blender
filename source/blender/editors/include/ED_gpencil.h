@@ -149,14 +149,6 @@ void ED_gpencil_draw_view3d_annotations(
         struct Scene *scene, struct Depsgraph *depsgraph,
         struct View3D *v3d, struct ARegion *ar,
         bool only3d);
-void ED_gpencil_draw_view3d_object(
-        struct wmWindowManager *wm,
-        struct Scene *scene,
-        struct Depsgraph *depsgraph,
-        struct Object *ob,
-        struct View3D *v3d,
-        struct ARegion *ar,
-        bool only3d);
 void ED_annotation_draw_ex(
         struct Scene *scene,
         struct bGPdata *gpd, int winx, int winy,
