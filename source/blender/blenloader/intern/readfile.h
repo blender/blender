@@ -48,10 +48,17 @@ enum eFileDataFlag {
 	FD_FLAGS_NOT_MY_LIBMAP         = 1 << 5,
 };
 
+/* Disallow since it's 32bit on ms-windows. */
+#ifdef __GNUC__
+#  pragma GCC poison off_t
+#endif
 
+#if defined(_MSC_VER)
+typedef int64_t off64_t;
+#endif
 
 typedef int (FileDataReadFn)(struct FileData *filedata, void *buffer, unsigned int size);
-typedef off_t (FileDataSeekFn)(struct FileData *filedata, off_t offset, int whence);
+typedef off64_t (FileDataSeekFn)(struct FileData *filedata, off64_t offset, int whence);
 
 typedef struct FileData {
 	/** Linked list of BHeadN's. */
@@ -59,7 +66,7 @@ typedef struct FileData {
 	enum eFileDataFlag flags;
 	bool is_eof;
 	int buffersize;
-	off_t file_offset;
+	int64_t file_offset;
 
 	FileDataReadFn *read;
 	FileDataSeekFn *seek;
