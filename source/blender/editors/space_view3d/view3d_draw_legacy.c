@@ -347,69 +347,72 @@ uint *ED_view3d_select_id_read(
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 uint ED_view3d_select_id_read_nearest(
         struct ViewContext *UNUSED(vc), const int mval[2],
-        const uint min, const uint max, uint *r_dist)
+        const uint id_min, const uint id_max, uint *r_dist)
 {
-	uint index = 0;
-
-	int dirvec[4][2];
-
+	/* Create region around mouse cursor. This must be square and have an odd
+	 * width, the spiralling algorithm does not work with arbitrary rectangles. */
 	rcti rect;
 	BLI_rcti_init_pt_radius(&rect, mval, *r_dist);
 	rect.xmax += 1;
 	rect.ymax += 1;
 
-	uint width, height;
-	width = height = BLI_rcti_size_x(&rect);
+	int width = BLI_rcti_size_x(&rect);
+	int height = width;
+	BLI_assert(width == height);
 
-	uint buf_len = width * height;
-	uint *buf = MEM_mallocN(buf_len * sizeof(*buf), __func__);
-
+	/* Read from selection framebuffer. */
+	uint *buf = MEM_mallocN(width * height * sizeof(*buf), __func__);
 	DRW_framebuffer_select_id_read(&rect, buf);
 
-	BLI_assert(width == height); /* This algorithm doesn't work well with rectangles */
+	/* Spiral, starting from center of buffer. */
+	int spiral_offset = height * (int)(width / 2) + (height / 2);
+	int spiral_direction = 0;
 
-	int rc = 0;
-
-	dirvec[0][0] = 1; dirvec[0][1] = 0;
-	dirvec[1][0] = 0; dirvec[1][1] = -height;
-	dirvec[2][0] = -1; dirvec[2][1] = 0;
-	dirvec[3][0] = 0; dirvec[3][1] = height;
-
-	const uint *bufmin = buf;
-	const uint *bufmax = buf + buf_len;
-	const uint *tbuf = buf + (height * (int)(width / 2) + height / 2 - 1);
+	uint index = 0;
 
 	for (int nr = 1; nr <= height; nr++) {
 		for (int a = 0; a < 2; a++) {
 			for (int b = 0; b < nr; b++) {
-				if (*tbuf && *tbuf >= min && *tbuf < max) {
-					/* we got a hit */
-					int hit_co[2], center_co[2];
+				/* Find hit within the specified range. */
+				uint hit_id = buf[spiral_offset];
 
-					/* get x,y pixel coords from the offset */
-					hit_co[0] = (int)(tbuf - buf) % (int)height;
-					hit_co[1] = (int)(tbuf - buf) / (int)height;
+				if (hit_id && hit_id >= id_min && hit_id < id_max) {
+					/* Get x/y from spiral offset. */
+					int hit_x = spiral_offset % width;
+					int hit_y = spiral_offset / width;
 
-					center_co[0] = (int)(height / 2);
-					center_co[1] = (int)(width / 2);
+					int center_x = width / 2;
+					int center_y = height / 2;
 
-					/* manhatten distance in keeping with other screen-based selection */
-					*r_dist = (float)(abs(hit_co[0] - center_co[0]) +
-					                  abs(hit_co[1] - center_co[1]));
+					/* Manhatten distance in keeping with other screen-based selection. */
+					*r_dist = (uint)(abs(hit_x - center_x) + abs(hit_y - center_y));
 
-					/* indices start at 1 here */
-					index = (*tbuf - min) + 1;
+					/* Indices start at 1 here. */
+					index = (hit_id - id_min) + 1;
 					goto exit;
 				}
 
-				tbuf += (dirvec[rc][0] + dirvec[rc][1]);
+				/* Next spiral step. */
+				if(spiral_direction == 0) {
+					spiral_offset += 1; /* right */
+				}
+				else if(spiral_direction == 1) {
+					spiral_offset -= width; /* down */
+				}
+				else if(spiral_direction == 2) {
+					spiral_offset -= 1; /* left */
+				}
+				else {
+					spiral_offset += width; /* up */
+				}
 
-				if (tbuf < bufmin || tbuf >= bufmax) {
+				/* Stop if we are outside the buffer. */
+				if (spiral_offset < 0 || spiral_offset >= width * height) {
 					goto exit;
 				}
 			}
-			rc++;
-			rc &= 3;
+
+			spiral_direction = (spiral_direction + 1) % 4;
 		}
 	}
 
