@@ -405,11 +405,11 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
         brush = settings.brush
         if context.image_paint_object:
             capabilities = brush.image_paint_capabilities
+            return capabilities.has_color
 
         elif context.vertex_paint_object:
             capabilities = brush.vertex_paint_capabilities
-
-        return capabilities.has_color
+            return capabilities.has_color
 
     def draw(self, context):
         layout = self.layout
@@ -433,11 +433,11 @@ class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel):
         brush = settings.brush
         if context.image_paint_object:
             capabilities = brush.image_paint_capabilities
+            return capabilities.has_color
 
         elif context.vertex_paint_object:
             capabilities = brush.vertex_paint_capabilities
-
-        return capabilities.has_color
+            return capabilities.has_color
 
     def draw(self, context):
         layout = self.layout
