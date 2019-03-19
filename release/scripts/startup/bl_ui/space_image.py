@@ -1126,9 +1126,6 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
             col.template_ID(brush, "paint_curve", new="paintcurve.new")
             col.operator("paintcurve.draw")
 
-        col = layout.column()
-        col.separator()
-
         row = col.row(align=True)
         if brush.use_relative_jitter:
             row.prop(brush, "jitter", slider=True)
