@@ -29,6 +29,10 @@ from .properties_paint_common import (
     UnifiedPaintPanel,
     brush_mask_texture_settings,
     brush_texpaint_common,
+    brush_texpaint_common_color,
+    brush_texpaint_common_gradient,
+    brush_texpaint_common_clone,
+    brush_texpaint_common_options,
     brush_texture_settings,
 )
 from bl_ui.utils import PresetPanel
@@ -273,12 +277,16 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
         tool_settings = context.tool_settings
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        col = layout.split().column()
-        col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
+        if not self.is_popover:
+            col = layout.split().column()
+            col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
 
         # Sculpt Mode #
         if context.sculpt_object and brush:
@@ -290,8 +298,6 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             col = layout.column()
 
-            col.separator()
-
             if not self.is_popover:
                 brush_basic_sculpt_settings(col, context, brush)
 
@@ -299,47 +305,32 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             if (capabilities.has_topology_rake and
                 context.sculpt_object.use_dynamic_topology_sculpting
             ):
-                col.separator()
                 row = col.row()
                 row.prop(brush, "topology_rake_factor", slider=True)
 
             # auto_smooth_factor and use_inverse_smooth_pressure
             if capabilities.has_auto_smooth:
-                col.separator()
-
                 row = col.row(align=True)
                 row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
             # normal_weight
             if capabilities.has_normal_weight:
-                col.separator()
                 row = col.row(align=True)
                 row.prop(brush, "normal_weight", slider=True)
 
             # crease_pinch_factor
             if capabilities.has_pinch_factor:
-                col.separator()
                 row = col.row(align=True)
                 row.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")
 
             # rake_factor
             if capabilities.has_rake_factor:
-                col.separator()
                 row = col.row(align=True)
                 row.prop(brush, "rake_factor", slider=True)
 
-            # use_original_normal and sculpt_plane
-            if capabilities.has_sculpt_plane:
-                col.separator()
-                row = col.row(align=True)
-
-                row.prop(brush, "use_original_normal", toggle=True, icon_only=True)
-
-                row.prop(brush, "sculpt_plane", text="")
-
             if brush.sculpt_tool == 'MASK':
-                col.prop(brush, "mask_tool", text="")
+                col.prop(brush, "mask_tool")
 
             # plane_offset, use_offset_pressure, use_plane_trim, plane_trim
             if capabilities.has_plane_offset:
@@ -350,7 +341,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.separator()
 
                 row = col.row()
-                row.prop(brush, "use_plane_trim", text="Trim")
+                row.prop(brush, "use_plane_trim", text="Plane Trim")
                 row = col.row()
                 row.active = brush.use_plane_trim
                 row.prop(brush, "plane_trim", slider=True, text="Distance")
@@ -360,21 +351,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row = col.row()
                 row.prop(brush, "height", slider=True, text="Height")
 
-            # use_frontface
-            col.separator()
-            col.prop(brush, "use_frontface", text="Front Faces Only")
-            col.prop(brush, "use_projected")
-
-            # use_accumulate
-            if capabilities.has_accumulate:
-                col.separator()
-
-                col.prop(brush, "use_accumulate")
-
             # use_persistent, set_persistent_base
             if capabilities.has_persistence:
-                col.separator()
-
                 ob = context.sculpt_object
                 do_persistent = True
 
@@ -404,61 +382,177 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             if not self.is_popover:
                 brush_basic_wpaint_settings(col, context, brush)
 
-            if brush.weight_tool != 'SMEAR':
-                col.prop(brush, "use_accumulate")
-                col.separator()
-
-            col.prop(brush, "use_frontface", text="Front Faces Only")
-            row = col.row()
-            row.prop(brush, "use_frontface_falloff", text="Falloff Angle")
-            sub = row.row()
-            sub.active = brush.use_frontface_falloff
-            sub.prop(brush, "falloff_angle", text="")
-
-            col.prop(brush, "use_projected")
-
-            col = layout.column()
-            col.prop(tool_settings, "use_auto_normalize", text="Auto Normalize")
-            col.prop(tool_settings, "use_multipaint", text="Multi-Paint")
-
         # Vertex Paint Mode #
         elif context.vertex_paint_object and brush:
             from .properties_paint_common import (
                 brush_basic_vpaint_settings,
             )
 
-            col = layout.column()
-            self.prop_unified_color_picker(col, context, brush, "color", value_slider=True)
-            if settings.palette:
-                col.template_palette(settings, "palette", color=True)
-            row = col.row(align=True)
-            self.prop_unified_color(row, context, brush, "color", text="")
-            self.prop_unified_color(row, context, brush, "secondary_color", text="")
-            row.separator()
-            row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
-
-            col.separator()
-
             if not self.is_popover:
                 brush_basic_vpaint_settings(col, context, brush)
 
-            col.prop(brush, "use_alpha")
+
+
+
+class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
+    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_parent_id = "VIEW3D_PT_tools_brush"
+    bl_label = "Color Picker"
+
+    @classmethod
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color and (context.image_paint_object or context.vertex_paint_object)
+
+    def draw(self, context):
+        layout = self.layout
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        layout.active = brush.use_gradient == False
+
+        brush_texpaint_common_color(self, context, layout, brush, settings, True)
+
+
+class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel):
+    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_parent_id = "VIEW3D_PT_tools_brush"
+    bl_label = "Color Palette"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color and (context.image_paint_object or context.vertex_paint_object)
+
+    def draw(self, context):
+        layout = self.layout
+        settings = self.paint_settings(context)
+
+        layout.template_ID(settings, "palette", new="palette.new")
+        if settings.palette:
+            layout.template_palette(settings, "palette", color=True)
+
+
+class VIEW3D_PT_tools_brush_gradient(Panel, View3DPaintPanel):
+    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_parent_id = "VIEW3D_PT_tools_brush"
+    bl_label = "Gradient"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color and context.image_paint_object
+
+    def draw_header(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        self.layout.prop(brush, "use_gradient", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False  # No animation.
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        layout.active = brush.use_gradient
+
+        brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
+
+
+class VIEW3D_PT_tools_brush_clone(Panel, View3DPaintPanel):
+    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_parent_id = "VIEW3D_PT_tools_brush"
+    bl_label = "Clone from Paint Slot"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        return brush.image_tool == 'CLONE'
+
+    def draw_header(self, context):
+        settings = self.paint_settings(context)
+        self.layout.prop(settings, "use_clone_layer", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        layout.active = settings.use_clone_layer
+
+        brush_texpaint_common_clone(self, context, layout, brush, settings, True)
+
+
+class VIEW3D_PT_tools_brush_options(Panel, View3DPaintPanel):
+    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_parent_id = "VIEW3D_PT_tools_brush"
+    bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        capabilities = brush.sculpt_capabilities
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        col = layout.column()
+
+        if context.image_paint_object and brush:
+            brush_texpaint_common_options(self, context, layout, brush, settings, True)
+
+        elif context.sculpt_object and brush:
+            if capabilities.has_accumulate:
+                col.prop(brush, "use_accumulate", text="Airbrush")
+
+            UnifiedPaintPanel.prop_unified_size(col, context, brush, "use_locked_size")
+
+            if capabilities.has_sculpt_plane:
+                col.prop(brush, "sculpt_plane")
+                col.prop(brush, "use_original_normal")
+
+            if capabilities.has_space_attenuation:
+                col.prop(brush, "use_space_attenuation")
+
+            col.prop(brush, "use_frontface", text="Front Faces Only")
+            col.prop(brush, "use_projected")
+
+        elif context.weight_paint_object and brush:
+
+            if brush.weight_tool != 'SMEAR':
+                col.prop(brush, "use_accumulate")
+
+            col.prop(brush, "use_frontface", text="Front Faces Only")
+            col.prop(brush, "use_projected")
+            col.prop(tool_settings, "use_auto_normalize", text="Auto Normalize")
+            col.prop(tool_settings, "use_multipaint", text="Multi-Paint")
+
+        elif context.vertex_paint_object and brush:
 
             if brush.vertex_tool != 'SMEAR':
                 col.prop(brush, "use_accumulate")
-                col.separator()
 
+            col.prop(brush, "use_alpha")
             col.prop(brush, "use_frontface", text="Front Faces Only")
-            row = col.row()
-            row.prop(brush, "use_frontface_falloff", text="Falloff Angle")
-            sub = row.row()
-            sub.active = brush.use_frontface_falloff
-            sub.prop(brush, "falloff_angle", text="")
-
             col.prop(brush, "use_projected")
-
-            col.separator()
-            col.template_ID(settings, "palette", new="palette.new")
 
 
 class TEXTURE_UL_texpaintslots(UIList):
@@ -826,9 +920,9 @@ class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel):
 
 
 # TODO, move to space_view3d.py
-class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
+class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
-    bl_label = "Curve"
+    bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -838,9 +932,7 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-
         settings = self.paint_settings(context)
-
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve", brush=True)
@@ -853,6 +945,64 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
         row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+
+class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
+    bl_label = "Frontface Falloff"
+    bl_parent_id = "VIEW3D_PT_tools_brush_falloff"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.weight_paint_object or context.vertex_paint_object)
+
+    def draw_header(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        self.layout.prop(brush, "use_frontface_falloff", text="")
+
+    def draw(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        layout.active = brush.use_frontface_falloff
+        layout.prop(brush, "falloff_angle", text="Angle")
+
+
+class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
+    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
+    bl_label = "Normal Falloff"
+    bl_parent_id = "VIEW3D_PT_tools_brush_falloff"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.image_paint_object
+
+    def draw_header(self, context):
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
+
+        self.layout.prop(ipaint, "use_normal_falloff", text="")
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
+
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        layout.active = ipaint.use_normal_falloff
+        layout.prop(ipaint, "normal_angle", text="Angle")
 
 
 # TODO, move to space_view3d.py
@@ -1173,6 +1323,7 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
     bl_context = ".weightpaint"
     bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -1200,9 +1351,11 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
     bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
+        settings = self.paint_settings(context)
 
         col = layout.column()
 
@@ -1308,31 +1461,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
 
         col = flow.column()
         col.prop(ipaint, "use_backface_culling", text="Backface Culling")
-
-
-class VIEW3D_PT_tools_projectpaint_normal(View3DPaintPanel, Panel):
-    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
-    bl_label = "Normal"
-    bl_parent_id = "VIEW3D_PT_tools_projectpaint"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        tool_settings = context.tool_settings
-        ipaint = tool_settings.image_paint
-
-        self.layout.prop(ipaint, "use_normal_falloff", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        tool_settings = context.tool_settings
-        ipaint = tool_settings.image_paint
-
-        layout.active = ipaint.use_normal_falloff
-        layout.prop(ipaint, "normal_angle", text="Angle")
 
 
 class VIEW3D_PT_tools_projectpaint_unified(Panel, View3DPaintPanel):
@@ -1879,15 +2007,22 @@ classes = (
     VIEW3D_PT_tools_posemode_options,
     VIEW3D_PT_slots_projectpaint,
     VIEW3D_PT_tools_brush,
+    VIEW3D_PT_tools_brush_color,
+    VIEW3D_PT_tools_brush_swatches,
+    VIEW3D_PT_tools_brush_gradient,
+    VIEW3D_PT_tools_brush_clone,
+    VIEW3D_PT_tools_brush_options,
     TEXTURE_UL_texpaintslots,
     VIEW3D_MT_tools_projectpaint_uvlayer,
     VIEW3D_PT_stencil_projectpaint,
-    VIEW3D_PT_tools_brush_display,
     VIEW3D_PT_tools_brush_texture,
     VIEW3D_PT_tools_mask_texture,
     VIEW3D_PT_tools_brush_stroke,
     VIEW3D_PT_tools_brush_stroke_smooth_stroke,
-    VIEW3D_PT_tools_brush_curve,
+    VIEW3D_PT_tools_brush_falloff,
+    VIEW3D_PT_tools_brush_falloff_frontface,
+    VIEW3D_PT_tools_brush_falloff_normal,
+    VIEW3D_PT_tools_brush_display,
     VIEW3D_PT_sculpt_dyntopo,
     VIEW3D_PT_sculpt_dyntopo_remesh,
     VIEW3D_PT_sculpt_options,
@@ -1904,7 +2039,6 @@ classes = (
     VIEW3D_PT_tools_imagepaint_external,
     VIEW3D_PT_tools_imagepaint_symmetry,
     VIEW3D_PT_tools_projectpaint,
-    VIEW3D_PT_tools_projectpaint_normal,
     VIEW3D_PT_tools_projectpaint_cavity,
     VIEW3D_MT_tools_projectpaint_stencil,
     VIEW3D_PT_tools_projectpaint_unified,

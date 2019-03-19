@@ -346,6 +346,16 @@ static bool rna_TextureCapabilities_has_texture_angle_get(PointerRNA *ptr)
 	return mtex->brush_map_mode != MTEX_MAP_MODE_3D;
 }
 
+static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return !ELEM(br->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_CLAY,
+				SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE,
+				SCULPT_TOOL_BLOB, SCULPT_TOOL_CREASE, SCULPT_TOOL_FLATTEN,
+				SCULPT_TOOL_FILL, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_CLAY,
+				SCULPT_TOOL_PINCH, SCULPT_TOOL_MASK);
+}
+
 static bool rna_BrushCapabilitiesSculpt_has_gravity_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -880,6 +890,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	SCULPT_TOOL_CAPABILITY(has_smooth_stroke, "Has Smooth Stroke");
 	SCULPT_TOOL_CAPABILITY(has_space_attenuation, "Has Space Attenuation");
 	SCULPT_TOOL_CAPABILITY(has_strength_pressure, "Has Strength Pressure");
+	SCULPT_TOOL_CAPABILITY(has_direction, "Has Direction");
 	SCULPT_TOOL_CAPABILITY(has_gravity, "Has Gravity");
 
 #undef SCULPT_CAPABILITY
@@ -1423,6 +1434,12 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL},
 	};
 
+	static const EnumPropertyItem brush_size_unit_items[] = {
+		{0, "VIEW", 0, "View", "Measure brush size relateve to the view"},
+		{BRUSH_LOCK_SIZE, "SCENE", 0, "Scene", "Measure brush size relateve to the scene"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
 	srna = RNA_def_struct(brna, "Brush", "ID");
 	RNA_def_struct_ui_text(srna, "Brush", "Brush data-block for storing brush settings for painting and sculpting");
 	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
@@ -1723,7 +1740,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_original_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ORIGINAL_NORMAL);
-	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
 	RNA_def_property_ui_text(prop, "Original Normal",
 	                         "When locked keep using normal of surface where stroke was initiated");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -1829,13 +1845,12 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_accumulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ACCUMULATE);
-	RNA_def_property_ui_text(prop, "Accumulate", "Accumulate stroke daubs on top of each other");
+	RNA_def_property_ui_text(prop, "Airbrush", "Accumulate stroke daubs on top of each other");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_space_attenuation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE_ATTEN);
-	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
-	RNA_def_property_ui_text(prop, "Use Automatic Strength Adjustment",
+	RNA_def_property_ui_text(prop, "Adjust Strength for Spacing",
 	                         "Automatically adjust strength to give consistent results for different spacings");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
@@ -1846,12 +1861,10 @@ static void rna_def_brush(BlenderRNA *brna)
 	                         "Space daubs according to surface orientation instead of screen space");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "use_locked_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_LOCK_SIZE);
-	RNA_def_property_ui_text(prop, "Use Blender Units",
-	                         "When locked brush stays same size relative to object; when unlocked brush size is "
-	                         "given in pixels");
-	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
+	prop = RNA_def_property(srna, "use_locked_size", PROP_ENUM, PROP_NONE); /* as an enum */
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, brush_size_unit_items);
+	RNA_def_property_ui_text(prop, "Radius Unit", "Measure brush size relative to the view or the scene");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_edge_to_edge", PROP_BOOLEAN, PROP_NONE);
@@ -1867,7 +1880,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	/* only for projection paint & vertex paint, TODO, other paint modes */
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BRUSH_LOCK_ALPHA);
-	RNA_def_property_ui_text(prop, "Alpha", "When this is disabled, lock alpha while painting");
+	RNA_def_property_ui_text(prop, "Affect Alpha", "When this is disabled, lock alpha while painting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);

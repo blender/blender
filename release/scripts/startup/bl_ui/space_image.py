@@ -28,6 +28,10 @@ from .properties_paint_common import (
     UnifiedPaintPanel,
     brush_texture_settings,
     brush_texpaint_common,
+    brush_texpaint_common_color,
+    brush_texpaint_common_gradient,
+    brush_texpaint_common_clone,
+    brush_texpaint_common_options,
     brush_mask_texture_settings,
 )
 from .properties_grease_pencil_common import (
@@ -842,6 +846,9 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         settings = context.tool_settings.image_paint
         brush = settings.brush
 
@@ -850,6 +857,135 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
 
         if brush:
             brush_texpaint_common(self, context, layout, brush, settings)
+
+
+class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
+    bl_context = ".paint_common_2d"
+    bl_parent_id = "IMAGE_PT_paint"
+    bl_label = "Color Picker"
+
+    @classmethod
+    def poll(self, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        layout.active = brush.use_gradient == False
+
+        brush_texpaint_common_color(self, context, layout, brush, settings, True)
+
+
+class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
+    bl_context = ".paint_common_2d"
+    bl_parent_id = "IMAGE_PT_paint"
+    bl_label = "Color Palette"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+
+        layout.template_ID(settings, "palette", new="palette.new")
+        if settings.palette:
+            layout.template_palette(settings, "palette", color=True)
+
+
+class IMAGE_PT_paint_gradient(Panel, ImagePaintPanel):
+    bl_context = ".paint_common_2d"
+    bl_parent_id = "IMAGE_PT_paint"
+    bl_label = "Gradient"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color
+
+    def draw_header(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        self.layout.prop(brush, "use_gradient", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False  # No animation.
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        layout.active = brush.use_gradient
+
+        brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
+
+
+class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
+    bl_context = ".paint_common_2d"
+    bl_parent_id = "IMAGE_PT_paint"
+    bl_label = "Clone from Image/UV Map"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        return brush.image_tool == 'CLONE'
+
+    def draw_header(self, context):
+        settings = context.tool_settings.image_paint
+        self.layout.prop(settings, "use_clone_layer", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        layout.active = settings.use_clone_layer
+
+        brush_texpaint_common_clone(self, context, layout, brush, settings, True)
+
+
+class IMAGE_PT_paint_options(Panel, ImagePaintPanel):
+    bl_context = ".paint_common_2d"
+    bl_parent_id = "IMAGE_PT_paint"
+    bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+        capabilities = brush.image_paint_capabilities
+
+        return capabilities.has_color
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        brush_texpaint_common_options(self, context, layout, brush, settings, True)
 
 
 class IMAGE_PT_tools_brush_display(BrushButtonsPanel, Panel):
@@ -1022,7 +1158,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
-    bl_label = "Curve"
+    bl_label = "Falloff"
     bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Tools"
@@ -1351,11 +1487,16 @@ classes = (
     IMAGE_PT_view_display_uv_edit_overlays,
     IMAGE_PT_view_display_uv_edit_overlays_advanced,
     IMAGE_PT_paint,
-    IMAGE_PT_tools_brush_display,
+    IMAGE_PT_paint_color,
+    IMAGE_PT_paint_swatches,
+    IMAGE_PT_paint_gradient,
+    IMAGE_PT_paint_clone,
+    IMAGE_PT_paint_options,
     IMAGE_PT_tools_brush_texture,
     IMAGE_PT_tools_mask_texture,
     IMAGE_PT_paint_stroke,
     IMAGE_PT_paint_curve,
+    IMAGE_PT_tools_brush_display,
     IMAGE_PT_tools_imagepaint_symmetry,
     IMAGE_PT_tools_brush_appearance,
     IMAGE_PT_uv_sculpt,

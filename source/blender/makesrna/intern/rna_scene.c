@@ -2931,6 +2931,12 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static const EnumPropertyItem brush_size_unit_items[] = {
+		{0, "VIEW", 0, "View", "Measure brush size relateve to the view"},
+		{UNIFIED_PAINT_BRUSH_LOCK_SIZE, "SCENE", 0, "Scene", "Measure brush size relateve to the scene"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
 	srna = RNA_def_struct(brna, "UnifiedPaintSettings", NULL);
 	RNA_def_struct_path_func(srna, "rna_UnifiedPaintSettings_path");
 	RNA_def_struct_ui_text(srna, "Unified Paint Settings", "Overrides for some of the active brush's settings");
@@ -3016,12 +3022,11 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength");
 
-	prop = RNA_def_property(srna, "use_locked_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_LOCK_SIZE);
-	RNA_def_property_ui_text(prop, "Use Blender Units",
-	                         "When locked brush stays same size relative to object; "
-	                         "when unlocked brush size is given in pixels");
-	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
+	prop = RNA_def_property(srna, "use_locked_size", PROP_ENUM, PROP_NONE); /* as an enum */
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, brush_size_unit_items);
+	RNA_def_property_ui_text(prop, "Radius Unit", "Measure brush size relative to the view or the scene ");
+
 }
 
 

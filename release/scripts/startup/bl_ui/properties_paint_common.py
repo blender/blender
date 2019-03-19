@@ -52,18 +52,18 @@ class UnifiedPaintPanel:
         flow = parent.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
-        col.prop(ups, "use_unified_size", text="Size")
+        col.prop(ups, "use_unified_size", text="Unified Size")
         col = flow.column()
-        col.prop(ups, "use_unified_strength", text="Strength")
+        col.prop(ups, "use_unified_strength", text="Unified Strength")
         if context.weight_paint_object:
             col = flow.column()
-            col.prop(ups, "use_unified_weight", text="Weight")
+            col.prop(ups, "use_unified_weight", text="Unified Weight")
         elif context.vertex_paint_object or context.image_paint_object:
             col = flow.column()
-            col.prop(ups, "use_unified_color", text="Color")
+            col.prop(ups, "use_unified_color", text="Unified Color")
         else:
             col = flow.column()
-            col.prop(ups, "use_unified_color", text="Color")
+            col.prop(ups, "use_unified_color", text="Unified Color")
 
     @staticmethod
     def prop_unified_size(parent, context, brush, prop_name, *, icon='NONE', text=None, slider=False):
@@ -114,108 +114,101 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
     col = layout.column()
 
     if capabilities.has_color:
-        if brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'}:
-            if not brush.use_gradient:
-                panel.prop_unified_color_picker(col, context, brush, "color", value_slider=True)
-
-            if settings.palette:
-                col.template_palette(settings, "palette", color=True)
-
-            if brush.use_gradient:
-                col.label(text="Gradient Colors")
-                col.template_color_ramp(brush, "gradient", expand=True)
-
-                if brush.image_tool == 'DRAW':
-                    col.label(text="Background Color")
-                    row = col.row(align=True)
-                    panel.prop_unified_color(row, context, brush, "secondary_color", text="")
-                    col.prop(brush, "gradient_stroke_mode", text="Mode")
-                    if brush.gradient_stroke_mode in {'SPACING_REPEAT', 'SPACING_CLAMP'}:
-                        col.prop(brush, "grad_spacing")
-                else:  # if brush.image_tool == 'FILL':
-                    col.prop(brush, "gradient_fill_mode")
-            else:
-                row = col.row(align=True)
-                panel.prop_unified_color(row, context, brush, "color", text="")
-                if brush.image_tool == 'FILL' and not projpaint:
-                    col.prop(brush, "fill_threshold")
-                else:
-                    panel.prop_unified_color(row, context, brush, "secondary_color", text="")
-                    row.separator()
-                    row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
-        else:
+        if brush.blend in {'ERASE_ALPHA', 'ADD_ALPHA'}:
             if brush.image_tool == 'FILL' and not projpaint:
                 col.prop(brush, "fill_threshold")
 
     elif brush.image_tool == 'SOFTEN':
-        col = layout.column(align=True)
         col.row().prop(brush, "direction", expand=True)
-        col.separator()
         col.prop(brush, "sharp_threshold")
         if not projpaint:
             col.prop(brush, "blur_kernel_radius")
-        col.separator()
         col.prop(brush, "blur_mode")
     elif brush.image_tool == 'MASK':
         col.prop(brush, "weight", text="Mask Value", slider=True)
 
     elif brush.image_tool == 'CLONE':
-        col.separator()
-        if projpaint:
-            if settings.mode == 'MATERIAL':
-                col.prop(settings, "use_clone_layer", text="Clone from Paint Slot")
-            elif settings.mode == 'IMAGE':
-                col.prop(settings, "use_clone_layer", text="Clone from Image/UV Map")
-
-            if settings.use_clone_layer:
-                ob = context.active_object
-                col = layout.column()
-
-                if settings.mode == 'MATERIAL':
-                    if len(ob.material_slots) > 1:
-                        col.label(text="Materials")
-                        col.template_list("MATERIAL_UL_matslots", "",
-                                          ob, "material_slots",
-                                          ob, "active_material_index", rows=2)
-
-                    mat = ob.active_material
-                    if mat:
-                        col.label(text="Source Clone Slot")
-                        col.template_list("TEXTURE_UL_texpaintslots", "",
-                                          mat, "texture_paint_images",
-                                          mat, "paint_clone_slot", rows=2)
-
-                elif settings.mode == 'IMAGE':
-                    mesh = ob.data
-
-                    clone_text = mesh.uv_layer_clone.name if mesh.uv_layer_clone else ""
-                    col.label(text="Source Clone Image")
-                    col.template_ID(settings, "clone_image")
-                    col.label(text="Source Clone UV Map")
-                    col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
-        else:
+        if not projpaint:
             col.prop(brush, "clone_image", text="Image")
             col.prop(brush, "clone_alpha", text="Alpha")
-
-    col.separator()
 
     if not panel.is_popover:
         brush_basic_texpaint_settings(col, context, brush)
 
+
+def brush_texpaint_common_clone(panel, context, layout, brush, settings, projpaint=False):
+    capabilities = brush.image_paint_capabilities
+
+    ob = context.active_object
     col = layout.column()
 
-    # use_accumulate
+    if settings.mode == 'MATERIAL':
+        if len(ob.material_slots) > 1:
+            col.label(text="Materials")
+            col.template_list("MATERIAL_UL_matslots", "",
+                              ob, "material_slots",
+                              ob, "active_material_index", rows=2)
+
+        mat = ob.active_material
+        if mat:
+            col.label(text="Source Clone Slot")
+            col.template_list("TEXTURE_UL_texpaintslots", "",
+                              mat, "texture_paint_images",
+                              mat, "paint_clone_slot", rows=2)
+
+    elif settings.mode == 'IMAGE':
+        mesh = ob.data
+
+        clone_text = mesh.uv_layer_clone.name if mesh.uv_layer_clone else ""
+        col.label(text="Source Clone Image")
+        col.template_ID(settings, "clone_image")
+        col.label(text="Source Clone UV Map")
+        col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
+
+
+def brush_texpaint_common_color(panel, context, layout, brush, settings, projpaint=False):
+    capabilities = brush.image_paint_capabilities
+
+    UnifiedPaintPanel.prop_unified_color_picker(layout, context, brush, "color", value_slider=True)
+
+    row = layout.row(align=True)
+    UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
+    UnifiedPaintPanel.prop_unified_color(row, context, brush, "secondary_color", text="")
+    row.separator()
+    row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False)
+
+
+def brush_texpaint_common_gradient(panel, context, layout, brush, settings, projpaint=False):
+    capabilities = brush.image_paint_capabilities
+
+    layout.template_color_ramp(brush, "gradient", expand=True)
+
+    layout.use_property_split = True
+
+    col = layout.column()
+
+    if brush.image_tool == 'DRAW':
+        UnifiedPaintPanel.prop_unified_color(col, context, brush, "secondary_color", text="Background Color")
+        col.prop(brush, "gradient_stroke_mode", text="Mode")
+        if brush.gradient_stroke_mode in {'SPACING_REPEAT', 'SPACING_CLAMP'}:
+            col.prop(brush, "grad_spacing")
+    else:  # if brush.image_tool == 'FILL':
+        col.prop(brush, "gradient_fill_mode")
+
+
+def brush_texpaint_common_options(panel, context, layout, brush, settings, projpaint=False):
+    capabilities = brush.image_paint_capabilities
+
+    col = layout.column()
+
     if capabilities.has_accumulate:
-        col = layout.column(align=True)
         col.prop(brush, "use_accumulate")
+
+    if capabilities.has_space_attenuation:
+        col.prop(brush, "use_space_attenuation")
 
     if projpaint:
         col.prop(brush, "use_alpha")
-
-    col.prop(brush, "use_gradient")
-
-    col.separator()
-    col.template_ID(settings, "palette", new="palette.new")
 
 
 # Used in both the View3D toolbar and texture properties
@@ -316,7 +309,6 @@ def brush_basic_wpaint_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
 
-    layout.separator()
     layout.prop(brush, "blend", text="" if compact else "Blend")
 
 
@@ -333,7 +325,6 @@ def brush_basic_vpaint_settings(layout, context, brush, *, compact=False):
 
 
     if capabilities.has_color:
-        layout.separator()
         layout.prop(brush, "blend", text="" if compact else "Blend")
 
 
@@ -347,28 +338,25 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
 
     row = layout.row(align=True)
 
-    if capabilities.has_space_attenuation:
-        row.prop(brush, "use_space_attenuation", toggle=True, icon_only=True)
-
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
 
     if capabilities.has_color:
-        layout.separator()
         layout.prop(brush, "blend", text="" if compact else "Blend")
 
 
 def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     tool_settings = context.tool_settings
     capabilities = brush.sculpt_capabilities
+    settings = tool_settings.gpencil_sculpt
+    tool = settings.sculpt_tool
 
     row = layout.row(align=True)
-    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_locked_size", text="")
 
     ups = tool_settings.unified_paint_settings
     if (
-            (ups.use_unified_size and ups.use_locked_size) or
-            ((not ups.use_unified_size) and brush.use_locked_size)
+            (ups.use_unified_size and ups.use_locked_size == 'SCENE') or
+            ((not ups.use_unified_size) and brush.use_locked_size == 'SCENE')
     ):
         UnifiedPaintPanel.prop_unified_size(row, context, brush, "unprojected_radius", slider=True, text="Radius")
     else:
@@ -377,11 +365,7 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
 
     # strength, use_strength_pressure, and use_strength_attenuation
-    layout.separator()
     row = layout.row(align=True)
-
-    if capabilities.has_space_attenuation:
-        row.prop(brush, "use_space_attenuation", toggle=True, icon_only=True)
 
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
 
@@ -389,8 +373,8 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
         UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
 
     # direction
-    layout.separator()
-    layout.row().prop(brush, "direction", expand=True, **({"text": ""} if compact else {}))
+    if capabilities.has_direction == False:
+        layout.row().prop(brush, "direction", expand=True, **({"text": ""} if compact else {}))
 
 
 def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=True):
