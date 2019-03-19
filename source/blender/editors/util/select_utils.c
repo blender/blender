@@ -97,7 +97,7 @@ int ED_select_similar_compare_float(const float delta, const float thresh, const
 	}
 }
 
-bool ED_select_similar_compare_float_tree(const KDTree_3d *tree, const float length, const float thresh, const int compare)
+bool ED_select_similar_compare_float_tree(const KDTree_1d *tree, const float length, const float thresh, const int compare)
 {
 	/* Length of the edge we want to compare against. */
 	float nearest_edge_length;
@@ -123,9 +123,8 @@ bool ED_select_similar_compare_float_tree(const KDTree_3d *tree, const float len
 			return false;
 	}
 
-	KDTreeNearest_3d nearest;
-	float dummy[3] = {nearest_edge_length, 0.0f, 0.0f};
-	if (BLI_kdtree_3d_find_nearest(tree, dummy, &nearest) != -1) {
+	KDTreeNearest_1d nearest;
+	if (BLI_kdtree_1d_find_nearest(tree, &nearest_edge_length, &nearest) != -1) {
 		float delta = length - nearest.co[0];
 		return ED_select_similar_compare_float(delta, thresh, compare);
 	}

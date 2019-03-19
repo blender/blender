@@ -183,8 +183,9 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	KDTree_1d *tree_1d = NULL;
 	KDTree_3d *tree_3d = NULL;
-	KDTree_4d *tree_plane = NULL;
+	KDTree_4d *tree_4d = NULL;
 	GSet *gset = NULL;
 	GSet **gset_array = NULL;
 	int face_data_value = SIMFACE_DATA_NONE;
@@ -192,11 +193,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	switch (type) {
 		case SIMFACE_AREA:
 		case SIMFACE_PERIMETER:
+			tree_1d = BLI_kdtree_1d_new(tot_faces_selected_all);
+			break;
 		case SIMFACE_NORMAL:
 			tree_3d = BLI_kdtree_3d_new(tot_faces_selected_all);
 			break;
 		case SIMFACE_COPLANAR:
-			tree_plane = BLI_kdtree_4d_new(tot_faces_selected_all);
+			tree_4d = BLI_kdtree_4d_new(tot_faces_selected_all);
 			break;
 		case SIMFACE_SIDES:
 		case SIMFACE_MATERIAL:
@@ -272,15 +275,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					case SIMFACE_AREA:
 					{
 						float area = BM_face_calc_area_with_mat3(face, ob_m3);
-						float dummy[3] = {area, 0.0f, 0.0f};
-						BLI_kdtree_3d_insert(tree_3d, tree_index++, dummy);
+						BLI_kdtree_1d_insert(tree_1d, tree_index++, &area);
 						break;
 					}
 					case SIMFACE_PERIMETER:
 					{
 						float perimeter = BM_face_calc_perimeter_with_mat3(face, ob_m3);
-						float dummy[3] = {perimeter, 0.0f, 0.0f};
-						BLI_kdtree_3d_insert(tree_3d, tree_index++, dummy);
+						BLI_kdtree_1d_insert(tree_1d, tree_index++, &perimeter);
 						break;
 					}
 					case SIMFACE_NORMAL:
@@ -289,7 +290,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						copy_v3_v3(normal, face->no);
 						mul_transposed_mat3_m4_v3(ob->imat, normal);
 						normalize_v3(normal);
-
 						BLI_kdtree_3d_insert(tree_3d, tree_index++, normal);
 						break;
 					}
@@ -297,7 +297,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					{
 						float plane[4];
 						face_to_plane(ob, face, plane);
-						BLI_kdtree_4d_insert(tree_plane, tree_index++, plane);
+						BLI_kdtree_4d_insert(tree_4d, tree_index++, plane);
 						break;
 					}
 					case SIMFACE_SMOOTH:
@@ -336,11 +336,14 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	BLI_assert((type != SIMFACE_FREESTYLE) || (face_data_value != SIMFACE_DATA_NONE));
 
+	if (tree_1d != NULL) {
+		BLI_kdtree_1d_balance(tree_1d);
+	}
 	if (tree_3d != NULL) {
 		BLI_kdtree_3d_balance(tree_3d);
 	}
-	if (tree_plane != NULL) {
-		BLI_kdtree_4d_balance(tree_plane);
+	if (tree_4d != NULL) {
+		BLI_kdtree_4d_balance(tree_4d);
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -424,7 +427,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					case SIMFACE_AREA:
 					{
 						float area = BM_face_calc_area_with_mat3(face, ob_m3);
-						if (ED_select_similar_compare_float_tree(tree_3d, area, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, area, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -432,7 +435,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					case SIMFACE_PERIMETER:
 					{
 						float perimeter = BM_face_calc_perimeter_with_mat3(face, ob_m3);
-						if (ED_select_similar_compare_float_tree(tree_3d, perimeter, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, perimeter, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -460,7 +463,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						face_to_plane(ob, face, plane);
 
 						KDTreeNearest_4d nearest;
-						if (BLI_kdtree_4d_find_nearest(tree_plane, plane, &nearest) != -1) {
+						if (BLI_kdtree_4d_find_nearest(tree_4d, plane, &nearest) != -1) {
 							if (nearest.dist <= thresh) {
 								if ((fabsf(plane[3] - nearest.co[3]) <= thresh) &&
 								    (angle_v3v3(plane, nearest.co) <= thresh_radians))
@@ -551,7 +554,7 @@ face_select_all:
 
 	MEM_freeN(objects);
 	BLI_kdtree_3d_free(tree_3d);
-	BLI_kdtree_4d_free(tree_plane);
+	BLI_kdtree_4d_free(tree_4d);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
 	}
@@ -671,6 +674,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	KDTree_1d *tree_1d = NULL;
 	KDTree_3d *tree_3d = NULL;
 	GSet *gset = NULL;
 	int edge_data_value = SIMEDGE_DATA_NONE;
@@ -680,6 +684,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		case SIMEDGE_BEVEL:
 		case SIMEDGE_FACE_ANGLE:
 		case SIMEDGE_LENGTH:
+			tree_1d = BLI_kdtree_1d_new(tot_edges_selected_all);
+			break;
 		case SIMEDGE_DIR:
 			tree_3d = BLI_kdtree_3d_new(tot_edges_selected_all);
 			break;
@@ -720,8 +726,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 			case SIMEDGE_BEVEL:
 			{
 				if (!CustomData_has_layer(&bm->edata, custom_data_type)) {
-					float dummy[3] = {0.0f, 0.0f, 0.0f};
-					BLI_kdtree_3d_insert(tree_3d, tree_index++, dummy);
+					BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
 					continue;
 				}
 				break;
@@ -751,16 +756,14 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_LENGTH:
 					{
 						float length = edge_length_squared_worldspace_get(ob, edge);
-						float dummy[3] = {length, 0.0f, 0.0f};
-						BLI_kdtree_3d_insert(tree_3d, tree_index++, dummy);
+						BLI_kdtree_1d_insert(tree_1d, tree_index++, &length);
 						break;
 					}
 					case SIMEDGE_FACE_ANGLE:
 					{
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
 							float angle = BM_edge_calc_face_angle_with_imat3(edge, ob_m3_inv);
-							float dummy[3] = {angle, 0.0f, 0.0f};
-							BLI_kdtree_3d_insert(tree_3d, tree_index++, dummy);
+							BLI_kdtree_1d_insert(tree_1d, tree_index++, &angle);
 						}
 						break;
 					}
@@ -793,8 +796,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_BEVEL:
 					{
 						const float *value = CustomData_bmesh_get(&bm->edata, edge->head.data, custom_data_type);
-						float dummy[3] = {*value, 0.0f, 0.0f};
-						BLI_kdtree_3d_insert(tree_3d, tree_index++, dummy);
+						BLI_kdtree_1d_insert(tree_1d, tree_index++, value);
 						break;
 					}
 				}
@@ -804,6 +806,9 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	BLI_assert((type != SIMEDGE_FREESTYLE) || (edge_data_value != SIMEDGE_DATA_NONE));
 
+	if (tree_1d != NULL) {
+		BLI_kdtree_1d_balance(tree_1d);
+	}
 	if (tree_3d != NULL) {
 		BLI_kdtree_3d_balance(tree_3d);
 	}
@@ -832,7 +837,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					/* Proceed only if we have to select all the edges that have custom data value of 0.0f.
 					 * In this case we will just select all the edges.
 					 * Otherwise continue the for loop. */
-					if (!ED_select_similar_compare_float_tree(tree_3d, 0.0f, thresh, compare)) {
+					if (!ED_select_similar_compare_float_tree(tree_1d, 0.0f, thresh, compare)) {
 						continue;
 					}
 				}
@@ -884,7 +889,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_LENGTH:
 					{
 						float length = edge_length_squared_worldspace_get(ob, edge);
-						if (ED_select_similar_compare_float_tree(tree_3d, length, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, length, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -893,7 +898,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					{
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
 							float angle = BM_edge_calc_face_angle_with_imat3(edge, ob_m3_inv);
-							if (ED_select_similar_compare_float_tree(tree_3d, angle, thresh, SIM_CMP_EQ)) {
+							if (ED_select_similar_compare_float_tree(tree_1d, angle, thresh, SIM_CMP_EQ)) {
 								select = true;
 							}
 						}
@@ -940,7 +945,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 
 						const float *value = CustomData_bmesh_get(&bm->edata, edge->head.data, custom_data_type);
-						if (ED_select_similar_compare_float_tree(tree_3d, *value, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, *value, thresh, compare)) {
 							select = true;
 						}
 						break;

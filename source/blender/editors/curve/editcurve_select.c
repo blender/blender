@@ -1362,7 +1362,8 @@ static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *b
 	normalize_v3(r_dir);
 }
 
-static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, KDTree_3d *r_tree)
+static void curve_nurb_selected_type_get(
+        Object *ob, Nurb *nu, const int type, KDTree_1d *tree_1d, KDTree_3d *tree_3d)
 {
 	float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 
@@ -1393,7 +1394,12 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 						break;
 					}
 				}
-				BLI_kdtree_3d_insert(r_tree, tree_index++, tree_entry);
+				if (tree_1d) {
+					BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+				}
+				else {
+					BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+				}
 			}
 		}
 	}
@@ -1423,7 +1429,12 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 						break;
 					}
 				}
-				BLI_kdtree_3d_insert(r_tree, tree_index++, tree_entry);
+				if (tree_1d) {
+					BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+				}
+				else {
+					BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+				}
 			}
 		}
 	}
@@ -1431,7 +1442,8 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 
 static bool curve_nurb_select_similar_type(
         Object *ob, Nurb *nu, const int type,
-        const KDTree_3d *tree, const float thresh, const int compare)
+        const KDTree_1d *tree_1d, const KDTree_3d *tree_3d,
+        const float thresh, const int compare)
 {
 	const float thresh_cos = cosf(thresh * (float)M_PI_2);
 	bool changed = false;
@@ -1448,7 +1460,7 @@ static bool curve_nurb_select_similar_type(
 					case SIMCURHAND_RADIUS:
 					{
 						float radius_ref = bezt->radius;
-						if (ED_select_similar_compare_float_tree(tree, radius_ref, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, radius_ref, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -1456,7 +1468,7 @@ static bool curve_nurb_select_similar_type(
 					case SIMCURHAND_WEIGHT:
 					{
 						float weight_ref = bezt->weight;
-						if (ED_select_similar_compare_float_tree(tree, weight_ref, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, weight_ref, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -1466,7 +1478,7 @@ static bool curve_nurb_select_similar_type(
 						float dir[3];
 						nurb_bezt_direction_worldspace_get(ob, nu, bezt, dir);
 						KDTreeNearest_3d nearest;
-						if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
+						if (BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
 							float orient = angle_normalized_v3v3(dir, nearest.co);
 							float delta = thresh_cos - fabsf(cosf(orient));
 							if (ED_select_similar_compare_float(delta, thresh, compare)) {
@@ -1496,7 +1508,7 @@ static bool curve_nurb_select_similar_type(
 					case SIMCURHAND_RADIUS:
 					{
 						float radius_ref = bp->radius;
-						if (ED_select_similar_compare_float_tree(tree, radius_ref, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, radius_ref, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -1504,7 +1516,7 @@ static bool curve_nurb_select_similar_type(
 					case SIMCURHAND_WEIGHT:
 					{
 						float weight_ref = bp->weight;
-						if (ED_select_similar_compare_float_tree(tree, weight_ref, thresh, compare)) {
+						if (ED_select_similar_compare_float_tree(tree_1d, weight_ref, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -1514,7 +1526,7 @@ static bool curve_nurb_select_similar_type(
 						float dir[3];
 						nurb_bpoint_direction_worldspace_get(ob, nu, bp, dir);
 						KDTreeNearest_3d nearest;
-						if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
+						if (BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
 							float orient = angle_normalized_v3v3(dir, nearest.co);
 							float delta = fabsf(cosf(orient)) - thresh_cos;
 							if (ED_select_similar_compare_float(delta, thresh, compare)) {
@@ -1560,14 +1572,17 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	KDTree_3d *tree = NULL;
+	KDTree_1d *tree_1d = NULL;
+	KDTree_3d *tree_3d = NULL;
 	short type_ref = 0;
 
 	switch (optype) {
 		case SIMCURHAND_RADIUS:
 		case SIMCURHAND_WEIGHT:
+			tree_1d = BLI_kdtree_1d_new(tot_nurbs_selected_all);
+			break;
 		case SIMCURHAND_DIRECTION:
-			tree = BLI_kdtree_3d_new(tot_nurbs_selected_all);
+			tree_3d = BLI_kdtree_3d_new(tot_nurbs_selected_all);
 			break;
 	}
 
@@ -1591,14 +1606,17 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 				case SIMCURHAND_RADIUS:
 				case SIMCURHAND_WEIGHT:
 				case SIMCURHAND_DIRECTION:
-					curve_nurb_selected_type_get(obedit, nu, optype, tree);
+					curve_nurb_selected_type_get(obedit, nu, optype, tree_1d, tree_3d);
 					break;
 			}
 		}
 	}
 
-	if (tree != NULL) {
-		BLI_kdtree_3d_balance(tree);
+	if (tree_1d != NULL) {
+		BLI_kdtree_1d_balance(tree_1d);
+	}
+	if (tree_3d != NULL) {
+		BLI_kdtree_3d_balance(tree_3d);
 	}
 
 	/* Select control points with desired type. */
@@ -1622,7 +1640,8 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 				case SIMCURHAND_RADIUS:
 				case SIMCURHAND_WEIGHT:
 				case SIMCURHAND_DIRECTION:
-					changed = curve_nurb_select_similar_type(obedit, nu, optype, tree, thresh, compare);
+					changed = curve_nurb_select_similar_type(
+					        obedit, nu, optype, tree_1d, tree_3d, thresh, compare);
 					break;
 			}
 		}
@@ -1634,8 +1653,12 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(objects);
-	if (tree != NULL) {
-		BLI_kdtree_3d_free(tree);
+
+	if (tree_1d != NULL) {
+		BLI_kdtree_1d_free(tree_1d);
+	}
+	if (tree_3d != NULL) {
+		BLI_kdtree_3d_free(tree_3d);
 	}
 	return OPERATOR_FINISHED;
 

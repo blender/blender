@@ -194,7 +194,9 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL},
 };
 
-static void mball_select_similar_type_get(Object *obedit, MetaBall *mb, int  type, KDTree_3d *r_tree)
+static void mball_select_similar_type_get(
+        Object *obedit, MetaBall *mb, int  type,
+        KDTree_1d *tree_1d, KDTree_3d *tree_3d)
 {
 	float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 	MetaElem *ml;
@@ -231,12 +233,20 @@ static void mball_select_similar_type_get(Object *obedit, MetaBall *mb, int  typ
 					break;
 				}
 			}
-			BLI_kdtree_3d_insert(r_tree, tree_index++, tree_entry);
+			if (tree_1d) {
+				BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+			}
+			else {
+				BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+			}
 		}
 	}
 }
 
-static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, const KDTree_3d *tree, const float thresh)
+static bool mball_select_similar_type(
+        Object *obedit, MetaBall *mb, int type,
+        const KDTree_1d *tree_1d, const KDTree_3d *tree_3d,
+        const float thresh)
 {
 	MetaElem *ml;
 	bool changed = false;
@@ -254,7 +264,7 @@ static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, co
 				mul_m3_v3(smat, radius_vec);
 				radius = (radius_vec[0] + radius_vec[1] + radius_vec[2]) / 3;
 
-				if (ED_select_similar_compare_float_tree(tree, radius, thresh, SIM_CMP_EQ)) {
+				if (ED_select_similar_compare_float_tree(tree_1d, radius, thresh, SIM_CMP_EQ)) {
 					select = true;
 				}
 				break;
@@ -262,7 +272,7 @@ static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, co
 			case SIMMBALL_STIFFNESS:
 			{
 				float s = ml->s;
-				if (ED_select_similar_compare_float_tree(tree, s, thresh, SIM_CMP_EQ)) {
+				if (ED_select_similar_compare_float_tree(tree_1d, s, thresh, SIM_CMP_EQ)) {
 					select = true;
 				}
 				break;
@@ -278,7 +288,7 @@ static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, co
 				float thresh_cos = cosf(thresh * (float)M_PI_2);
 
 				KDTreeNearest_3d nearest;
-				if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
+				if (BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
 					float orient = angle_normalized_v3v3(dir, nearest.co);
 					/* Map to 0-1 to compare orientation. */
 					float delta = thresh_cos - fabsf(cosf(orient));
@@ -311,10 +321,17 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 	tot_mball_selected_all = BKE_mball_select_count_multi(objects, objects_len);
 
 	short type_ref = 0;
-	KDTree_3d *tree = NULL;
+	KDTree_1d *tree_1d = NULL;
+	KDTree_3d *tree_3d = NULL;
 
-	if (type != SIMMBALL_TYPE) {
-		tree = BLI_kdtree_3d_new(tot_mball_selected_all);
+	switch (type) {
+		case SIMMBALL_RADIUS:
+		case SIMMBALL_STIFFNESS:
+			tree_1d = BLI_kdtree_1d_new(tot_mball_selected_all);
+			break;
+		case SIMMBALL_ROTATION:
+			tree_3d = BLI_kdtree_3d_new(tot_mball_selected_all);
+			break;
 	}
 
 	/* Get type of selected MetaBall */
@@ -337,7 +354,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 			case SIMMBALL_RADIUS:
 			case SIMMBALL_STIFFNESS:
 			case SIMMBALL_ROTATION:
-				mball_select_similar_type_get(obedit, mb, type, tree);
+				mball_select_similar_type_get(obedit, mb, type, tree_1d, tree_3d);
 				break;
 			default:
 				BLI_assert(0);
@@ -345,8 +362,11 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (tree != NULL) {
-		BLI_kdtree_3d_balance(tree);
+	if (tree_1d != NULL) {
+		BLI_kdtree_1d_balance(tree_1d);
+	}
+	if (tree_3d != NULL) {
+		BLI_kdtree_3d_balance(tree_3d);
 	}
 	/* Select MetaBalls with desired type. */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -370,7 +390,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 			case SIMMBALL_RADIUS:
 			case SIMMBALL_STIFFNESS:
 			case SIMMBALL_ROTATION:
-				changed = mball_select_similar_type(obedit, mb, type, tree, thresh);
+				changed = mball_select_similar_type(obedit, mb, type, tree_1d, tree_3d, thresh);
 				break;
 			default:
 				BLI_assert(0);
@@ -384,8 +404,11 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(objects);
-	if (tree != NULL) {
-		BLI_kdtree_3d_free(tree);
+	if (tree_1d != NULL) {
+		BLI_kdtree_1d_free(tree_1d);
+	}
+	if (tree_3d != NULL) {
+		BLI_kdtree_3d_free(tree_3d);
 	}
 	return OPERATOR_FINISHED;
 }

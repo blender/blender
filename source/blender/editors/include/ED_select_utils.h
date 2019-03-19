@@ -21,7 +21,7 @@
 #ifndef __ED_SELECT_UTILS_H__
 #define __ED_SELECT_UTILS_H__
 
-struct KDTree_3d;
+struct KDTree_1d;
 
 enum {
 	SEL_TOGGLE		 = 0,
@@ -55,7 +55,7 @@ int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool
 int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select, const bool is_inside);
 
 int ED_select_similar_compare_float(const float delta, const float thresh, const int compare);
-bool ED_select_similar_compare_float_tree(const struct KDTree_3d *tree, const float length, const float thresh, const int compare);
+bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree, const float length, const float thresh, const int compare);
 
 eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first);
 
