@@ -920,7 +920,7 @@ class IMAGE_PT_paint_gradient(Panel, ImagePaintPanel):
         return capabilities.has_color
 
     def draw_header(self, context):
-        settings = self.paint_settings(context)
+        settings = context.tool_settings.image_paint
         brush = settings.brush
         self.layout.prop(brush, "use_gradient", text="")
 
@@ -944,7 +944,7 @@ class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
 
     @classmethod
     def poll(self, context):
-        settings = self.paint_settings(context)
+        settings = context.tool_settings.image_paint
         brush = settings.brush
 
         return brush.image_tool == 'CLONE'
