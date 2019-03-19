@@ -199,7 +199,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
 		}
 		material->object_id = engine_object_data->object_id;
 		DRW_shgroup_uniform_int(material->shgrp_object_outline, "object_id", &material->object_id, 1);
-		if (wpd->world_clip_planes) {
+		if (WORLD_CLIPPING_ENABLED(wpd)) {
 			const DRWContextState *draw_ctx = DRW_context_state_get();
 			RegionView3D *rv3d = draw_ctx->rv3d;
 			DRW_shgroup_world_clip_planes_from_rv3d(material->shgrp_object_outline, rv3d);
