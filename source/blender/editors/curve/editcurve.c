@@ -3013,7 +3013,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+		DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		BKE_curve_nurb_vert_active_validate(obedit->data);
 	}
