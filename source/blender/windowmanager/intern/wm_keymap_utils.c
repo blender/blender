@@ -258,6 +258,8 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			case OB_MODE_EDIT:
 				km = WM_keymap_find_all(C, "UV Sculpt", 0, 0);
 				break;
+			default:
+				break;
 		}
 	}
 	else if (STRPREFIX(opname, "MBALL_OT")) {
@@ -292,6 +294,8 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 				break;
 			case OB_MODE_TEXTURE_PAINT:
 				km = WM_keymap_find_all(C, "Image Paint", 0, 0);
+				break;
+			default:
 				break;
 		}
 	}

@@ -975,7 +975,7 @@ Collection *CTX_data_collection(const bContext *C)
 	return BKE_collection_master(scene);
 }
 
-int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectMode object_mode)
+enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectMode object_mode)
 {
 	// Object *obedit = CTX_data_edit_object(C);
 	if (obedit) {
@@ -1015,7 +1015,7 @@ int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectM
 	return CTX_MODE_OBJECT;
 }
 
-int CTX_data_mode_enum(const bContext *C)
+enum eContextObjectMode CTX_data_mode_enum(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = obedit ? NULL : CTX_data_active_object(C);

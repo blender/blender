@@ -201,7 +201,7 @@ static void buttons_main_region_layout_properties(const bContext *C, SpaceProper
 static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 {
 	const WorkSpace *workspace = CTX_wm_workspace(C);
-	const int mode = CTX_data_mode_enum(C);
+	const enum eContextObjectMode mode = CTX_data_mode_enum(C);
 
 	const char *contexts_base[5] = {NULL};
 	contexts_base[0] = ".active_tool";
@@ -260,6 +260,8 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 			case CTX_MODE_WEIGHT_GPENCIL:
 				ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
 				break;
+			default:
+				break;
 		}
 	}
 	else if (workspace->tools_space_type == SPACE_IMAGE) {
@@ -294,6 +296,8 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 			break;
 		case CTX_MODE_EDIT_GPENCIL:
 			ARRAY_SET_ITEMS(contexts, ".greasepencil_edit");
+			break;
+		default:
 			break;
 	}
 
