@@ -207,14 +207,20 @@ void pow_qt_fl_normalized(float q[4], const float fac)
  */
 void quat_to_compatible_quat(float q[4], const float a[4], const float old[4])
 {
+	const float eps = 1e-4f;
 	BLI_ASSERT_UNIT_QUAT(a);
-	float delta[4];
 	float old_unit[4];
-	normalize_qt_qt(old_unit, old);
-	rotation_between_quats_to_quat(delta, old_unit, a);
-	mul_qt_qtqt(q, old, delta);
-	if ((q[0] < 0.0f) != (old[0] < 0.0f)) {
-		negate_v4(q);
+	/* Skips `!finite_v4(old)` case too. */
+	if (normalize_qt_qt(old_unit, old) > eps) {
+		float delta[4];
+		rotation_between_quats_to_quat(delta, old_unit, a);
+		mul_qt_qtqt(q, old, delta);
+		if ((q[0] < 0.0f) != (old[0] < 0.0f)) {
+			negate_v4(q);
+		}
+	}
+	else {
+		copy_qt_qt(q, a);
 	}
 }
 
