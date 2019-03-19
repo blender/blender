@@ -1385,7 +1385,7 @@ class CLIP_MT_track_visibility(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.hide_tracks_clear", text="Show Hidden")
+        layout.operator("clip.hide_tracks_clear")
         layout.operator("clip.hide_tracks", text="Hide Selected").unselected = False
         layout.operator("clip.hide_tracks", text="Hide Unselected").unselected = True
 
