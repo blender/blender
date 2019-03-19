@@ -448,18 +448,22 @@ class IMAGE_MT_uvs_context_menu(Menu):
 
         # UV Edit Mode
         if sima.show_uvedit:
+            # Add
             layout.operator("uv.unwrap")
             layout.operator("uv.follow_active_quads")
 
             layout.separator()
 
+            # Modify
             layout.operator("uv.pin").clear = False
             layout.operator("uv.pin", text="Unpin").clear = True
 
             layout.separator()
 
-            layout.operator("uv.weld")
-            layout.operator("uv.stitch")
+            layout.menu("IMAGE_MT_uvs_snap")
+
+            layout.operator("transform.mirror", text="Mirror X").constraint_axis[0] = True
+            layout.operator("transform.mirror", text="Mirror Y").constraint_axis[1] = True
 
             layout.separator()
 
@@ -467,12 +471,10 @@ class IMAGE_MT_uvs_context_menu(Menu):
 
             layout.separator()
 
-            layout.operator("transform.mirror", text="Mirror X").constraint_axis[0] = True
-            layout.operator("transform.mirror", text="Mirror Y").constraint_axis[1] = True
-
-            layout.separator()
-
-            layout.menu("IMAGE_MT_uvs_snap")
+            # Remove
+            layout.operator("uv.remove_doubles", text="Remove Double UVs")
+            layout.operator("uv.stitch")
+            layout.operator("uv.weld")
 
 
 class IMAGE_MT_pivot_pie(Menu):
