@@ -296,9 +296,9 @@ public:
 		const string& get_log() const { return log; }
 		void report_error();
 
-		/* Wait until this kernel is available to be used 
+		/* Wait until this kernel is available to be used
 		 * It will return true when the kernel is available.
-		 * It will return false when the kernel is not available 
+		 * It will return false when the kernel is not available
 		 * or could not be loaded. */
 		bool wait_for_availability();
 

@@ -191,7 +191,7 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 
 static void makeAttribList(
         std::vector<NSOpenGLPixelFormatAttribute>& attribs,
-        bool coreProfile, 
+        bool coreProfile,
         bool stereoVisual,
         int numOfAASamples,
         bool needAlpha,
@@ -202,7 +202,7 @@ static void makeAttribList(
 
 	attribs.push_back(NSOpenGLPFAOpenGLProfile);
 	attribs.push_back(coreProfile ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
-	
+
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	attribs.push_back(NSOpenGLPFADoubleBuffer);
 
@@ -375,7 +375,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
 	if (s_sharedCount == 0)
 		s_sharedOpenGLContext = m_openGLContext;
-	
+
 	s_sharedCount++;
 
 

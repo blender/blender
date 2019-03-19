@@ -362,7 +362,7 @@ class _draw_left_context_mode:
                     panel="TOPBAR_PT_gpencil_primitive",
                     text="Thickness Profile"
                 )
-                
+
             if brush.gpencil_tool == 'FILL':
                 settings = context.tool_settings.gpencil_sculpt
                 row = layout.row(align=True)

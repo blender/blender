@@ -194,7 +194,7 @@ void main(void)
 				y_b = 0.0;
 			}
 		}
-	}	
+	}
 	/* generate the triangle strip */
 	uvfac = vec2(0.0, 0.0);
 	mTexCoord = (color_type == GPENCIL_COLOR_SOLID) ? vec2(0, 0) : vec2(finaluvdata[1].x, y_a);

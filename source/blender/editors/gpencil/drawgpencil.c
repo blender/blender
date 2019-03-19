@@ -736,7 +736,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
 			gp_set_point_varying_color(points, ink, attr_id.color);
-			
+
 			if ((cyclic) && (totpoints > 2)) {
 				immAttr1f(attr_id.thickness, max_ff((points + totpoints - 1)->pressure * thickness, 1.0f));
 				mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 1)->x);

@@ -206,7 +206,7 @@ static void gpsculpt_compute_lock_axis(tGP_BrushEditData *gso, bGPDspoint *pt, c
 			float plane[4];
 			float mat[4][4];
 			float r_close[3];
-			
+
 			loc_eul_size_to_mat4(mat,
 				cursor->location,
 				cursor->rotation_euler,

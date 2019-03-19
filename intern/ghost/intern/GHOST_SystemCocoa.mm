@@ -84,7 +84,7 @@ static GHOST_TButtonMask convertButton(int button)
  * \param recvChar the character ignoring modifiers (except for shift)
  * \return Ghost key code
  */
-static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction) 
+static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 {
 	//printf("\nrecvchar %c 0x%x",recvChar,recvChar);
 	switch (rawCode) {
@@ -226,7 +226,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 				if (uchrHandle) {
 					UInt32 deadKeyState=0;
 					UniCharCount actualStrLength=0;
-					
+
 					UCKeyTranslate((UCKeyboardLayout*)CFDataGetBytePtr(uchrHandle), rawCode, keyAction, 0,
 					               LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 1, &actualStrLength, &recvChar);
 				}
@@ -540,7 +540,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		}
 
 		[NSApp finishLaunching];
-		
+
 		[pool drain];
 	}
 	return success;
@@ -598,7 +598,7 @@ void GHOST_SystemCocoa::getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns3
 }
 
 GHOST_IWindow* GHOST_SystemCocoa::createWindow(
-	const STR_String& title, 
+	const STR_String& title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
 	GHOST_TUns32 width,
@@ -1021,7 +1021,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 						droppedStr = [droppedArray objectAtIndex:i];
 
 						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
+						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1);
 
 						if (!temp_buff) {
 							strArray->count = i;
@@ -1041,7 +1041,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					droppedStr = (NSString*)data;
 					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
-					temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
+					temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1);
 
 					if (temp_buff == NULL) {
 						return GHOST_kFailure;
@@ -1104,10 +1104,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 
 						/* First get RGB values w/o Alpha to avoid pre-multiplication, 32bit but last byte is unused */
 						blBitmapFormatImageRGB = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-						                                                                 pixelsWide:imgSize.width 
+						                                                                 pixelsWide:imgSize.width
 						                                                                 pixelsHigh:imgSize.height
 						                                                              bitsPerSample:8 samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-						                                                             colorSpaceName:NSDeviceRGBColorSpace 
+						                                                             colorSpaceName:NSDeviceRGBColorSpace
 						                                                               bitmapFormat:(NSBitmapFormat)0
 						                                                                bytesPerRow:4*imgSize.width
 						                                                               bitsPerPixel:32/*RGB format padded to 32bits*/];
@@ -1239,7 +1239,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
 	if (!window) {
 		return NO;
-	}	
+	}
 
 	//Discard event if we are in cursor grab sequence, it'll lead to "stuck cursor" situation if the alert panel is raised
 	if (window && window->getCursorGrabModeIsWarp())
@@ -1263,7 +1263,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	{
 		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
-		temp_buff = (char*) malloc(filenameTextSize+1); 
+		temp_buff = (char*) malloc(filenameTextSize+1);
 
 		if (temp_buff == NULL) {
 			return GHOST_kFailure;
@@ -1332,7 +1332,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 				ct.Active = GHOST_kTabletModeNone;
 			}
 			break;
-		
+
 		default:
 			GHOST_ASSERT(FALSE,"GHOST_SystemCocoa::handleTabletEvent : unknown event received");
 			return GHOST_kFailure;
@@ -1411,7 +1411,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			//Handle tablet events combined with mouse events
 			handleTabletEvent(event);
 
-		case NSMouseMoved: 
+		case NSMouseMoved:
 			{
 				GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();
 
@@ -1661,9 +1661,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			m_ignoreMomentumScroll = true;
 			break;
 
-		case NSFlagsChanged: 
+		case NSFlagsChanged:
 			modifiers = [event modifierFlags];
-			
+
 			if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 				pushEvent(new GHOST_EventKey([event timestamp] * 1000, (modifiers & NSShiftKeyMask) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift));
 			}
@@ -1725,7 +1725,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 
 	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
-	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
+	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1);
 
 	if (temp_buff == NULL) {
 		[pool drain];
