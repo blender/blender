@@ -486,8 +486,6 @@ typedef struct EEVEE_LightProbesInfo {
 	float visibility_blur;
 	float intensity_fac;
 	int shres;
-	int studiolight_index;
-	float studiolight_rot_z;
 	EEVEE_LightProbeVisTest planar_vis_tests[MAX_PLANAR];
 	/* UBO Storage : data used by UBO */
 	EEVEE_LightProbe probe_data[MAX_PROBE];
@@ -818,6 +816,11 @@ typedef struct EEVEE_PrivateData {
 
 	/* Color Management */
 	bool use_color_render_settings;
+
+	/* LookDev Settings */
+	int studiolight_index;
+	float studiolight_rot_z;
+
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
