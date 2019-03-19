@@ -587,14 +587,14 @@ void draw_image_grease_pencil(bContext *C, bool onlyv2d)
 	/* draw in View2D space? */
 	if (onlyv2d) {
 		/* draw grease-pencil ('image' strokes) */
-		ED_gpencil_draw_2dimage(C);
+		ED_annotation_draw_2dimage(C);
 	}
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
 		//SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
 
 		/* draw grease-pencil ('screen' strokes) */
-		ED_gpencil_draw_view2d(C, 0);
+		ED_annotation_draw_view2d(C, 0);
 	}
 }
 

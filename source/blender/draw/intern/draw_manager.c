@@ -1570,7 +1570,7 @@ void DRW_draw_render_loop_ex(
 	if (do_annotations) {
 		GPU_depth_test(false);
 		/* XXX: as scene->gpd is not copied for COW yet */
-		ED_gpencil_draw_view3d_annotations(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, true);
+		ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, true);
 		GPU_depth_test(true);
 	}
 
@@ -1609,7 +1609,7 @@ void DRW_draw_render_loop_ex(
 		{
 			GPU_depth_test(false);
 			/* XXX: as scene->gpd is not copied for COW yet */
-			ED_gpencil_draw_view3d_annotations(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, false);
+			ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, false);
 			GPU_depth_test(true);
 		}
 

@@ -1879,12 +1879,12 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 				}
 			}
 
-			ED_gpencil_draw_2dimage(C);
+			ED_annotation_draw_2dimage(C);
 
 			GPU_matrix_pop();
 		}
 	}
 	else {
-		ED_gpencil_draw_view2d(C, 0);
+		ED_annotation_draw_view2d(C, 0);
 	}
 }

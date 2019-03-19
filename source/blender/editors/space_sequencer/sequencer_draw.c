@@ -1023,13 +1023,13 @@ static void sequencer_display_size(Scene *scene, float r_viewrect[2])
 static void sequencer_draw_gpencil(const bContext *C)
 {
 	/* draw grease-pencil (image aligned) */
-	ED_gpencil_draw_2dimage(C);
+	ED_annotation_draw_2dimage(C);
 
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);
 
 	/* draw grease-pencil (screen aligned) */
-	ED_gpencil_draw_view2d(C, 0);
+	ED_annotation_draw_view2d(C, 0);
 }
 
 /* draws content borders plus safety borders if needed */
