@@ -138,10 +138,7 @@ static bool face_data_value_set(BMFace *face, const int hflag, int *r_value)
 }
 
 /**
- * Note: This is not normal, but the face direction itself and always in
- * a positive quadrant (tries z, y then x).
- * Also, unlike edge_pos_direction_worldspace_get we don't normalize the direction.
- * In fact we scale the direction by the distance of the face center to the origin.
+ * World space normalized plane from a face.
  */
 static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
 {
@@ -151,7 +148,6 @@ static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
 	normalize_v3(normal);
 	mul_v3_m4v3(co, ob->obmat, BM_FACE_FIRST_LOOP(face)->v->co);
 	plane_from_point_normal_v3(r_plane, co, normal);
-
 }
 
 /* TODO(dfelinto): `types` that should technically be compared in world space but are not:
