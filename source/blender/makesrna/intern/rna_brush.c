@@ -1529,7 +1529,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Spacing", "Spacing between brush daubs as a percentage of brush diameter");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "grad_spacing", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "grad_spacing", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "gradient_spacing");
 	RNA_def_property_range(prop, 1, 10000);
 	RNA_def_property_ui_range(prop, 1, 10000, 5, -1);
