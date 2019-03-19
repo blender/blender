@@ -22,6 +22,17 @@
  * \brief A kd-tree for nearest neighbor search.
  */
 
+/* 1D version */
+#define KD_DIMS 1
+#define KDTREE_PREFIX_ID BLI_kdtree_1d
+#define KDTree KDTree_1d
+#define KDTreeNearest KDTreeNearest_1d
+#include "BLI_kdtree_impl.h"
+#undef KD_DIMS
+#undef KDTree
+#undef KDTreeNearest
+#undef KDTREE_PREFIX_ID
+
 /* 2D version */
 #define KD_DIMS 2
 #define KDTREE_PREFIX_ID BLI_kdtree_2d
