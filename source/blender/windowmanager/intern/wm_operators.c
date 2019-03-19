@@ -2062,17 +2062,17 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		GLint swizzleMask[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
 		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR);
-
-		immUniformColor3fvAlpha(col, alpha);
-		immUniform1i("image", 0);
-
 		/* set up rotation if available */
 		if (rc->rot_prop) {
 			rot = RNA_property_float_get(&rc->rot_ptr, rc->rot_prop);
 			GPU_matrix_push();
 			GPU_matrix_rotate_2d(RAD2DEGF(rot));
 		}
+
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR);
+
+		immUniformColor3fvAlpha(col, alpha);
+		immUniform1i("image", 0);
 
 		/* draw textured quad */
 		immBegin(GPU_PRIM_TRI_FAN, 4);
