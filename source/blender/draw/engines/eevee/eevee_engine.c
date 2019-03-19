@@ -388,7 +388,7 @@ static void eevee_id_world_update(void *vedata, World *wo)
 	EEVEE_WorldEngineData *wedata = EEVEE_world_data_ensure(wo);
 
 	if (wedata != NULL && wedata->dd.recalc != 0) {
-		if ((lcache->flag & (LIGHTCACHE_BAKED | LIGHTCACHE_BAKING)) == 0) {
+		if ((lcache->flag & LIGHTCACHE_BAKING) == 0) {
 			lcache->flag |= LIGHTCACHE_UPDATE_WORLD;
 		}
 		wedata->dd.recalc = 0;

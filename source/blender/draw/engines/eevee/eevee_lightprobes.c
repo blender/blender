@@ -1209,7 +1209,9 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 	LightCache *light_cache = vedata->stl->g_data->light_cache;
 
-	if (light_cache->flag & LIGHTCACHE_UPDATE_WORLD) {
+	if ((light_cache->flag & LIGHTCACHE_UPDATE_WORLD) &&
+	    (light_cache->flag & LIGHTCACHE_BAKED) == 0)
+	{
 		DRWMatrixState saved_mats;
 		DRW_viewport_matrix_get_all(&saved_mats);
 		EEVEE_lightbake_update_world_quick(sldata, vedata, scene_eval);
