@@ -1853,7 +1853,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 		uv_maxlen += em->bm->totloop;
 	}
 
-	KDTree_3d *tree = BLI_kdtree_3d_new(uv_maxlen);
+	KDTree_2d *tree = BLI_kdtree_2d_new(uv_maxlen);
 
 	int *duplicates = NULL;
 	BLI_array_declare(duplicates);
@@ -1863,7 +1863,6 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 
 	int mloopuv_count = 0;  /* Also used for *duplicates count. */
 
-	float uvw[3];
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		BMIter iter, liter;
 		BMFace *efa;
@@ -1885,8 +1884,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 			BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					copy_v3_fl3(uvw, luv->uv[0], luv->uv[1], 0.0f);
-					BLI_kdtree_3d_insert(tree, mloopuv_count, uvw);
+					BLI_kdtree_2d_insert(tree, mloopuv_count, luv->uv);
 					BLI_array_append(duplicates, -1);
 					BLI_array_append(mloopuv_arr, luv);
 					mloopuv_count++;
@@ -1897,8 +1895,8 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 		ob_mloopuv_max_idx[ob_index] = mloopuv_count - 1;
 	}
 
-	BLI_kdtree_3d_balance(tree);
-	int found_duplicates = BLI_kdtree_3d_calc_duplicates_fast(tree, threshold, false, duplicates);
+	BLI_kdtree_2d_balance(tree);
+	int found_duplicates = BLI_kdtree_2d_calc_duplicates_fast(tree, threshold, false, duplicates);
 
 	if (found_duplicates > 0) {
 		/* Calculate average uv for duplicates. */
@@ -1955,7 +1953,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 		}
 	}
 
-	BLI_kdtree_3d_free(tree);
+	BLI_kdtree_2d_free(tree);
 	BLI_array_free(mloopuv_arr);
 	BLI_array_free(duplicates);
 	MEM_freeN(changed);
@@ -1987,14 +1985,13 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 		uv_maxlen += em->bm->totloop;
 	}
 
-	KDTree_3d *tree = BLI_kdtree_3d_new(uv_maxlen);
+	KDTree_2d *tree = BLI_kdtree_2d_new(uv_maxlen);
 
 	MLoopUV **mloopuv_arr = NULL;
 	BLI_array_declare(mloopuv_arr);
 
 	int mloopuv_count = 0;
 
-	float uvw[3];
 	/* Add visible non-selected uvs to tree */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		BMIter iter, liter;
@@ -2017,8 +2014,7 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 			BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (!uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					copy_v3_fl3(uvw, luv->uv[0], luv->uv[1], 0.0f);
-					BLI_kdtree_3d_insert(tree, mloopuv_count, uvw);
+					BLI_kdtree_2d_insert(tree, mloopuv_count, luv->uv);
 					BLI_array_append(mloopuv_arr, luv);
 					mloopuv_count++;
 				}
@@ -2026,7 +2022,7 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 		}
 	}
 
-	BLI_kdtree_3d_balance(tree);
+	BLI_kdtree_2d_balance(tree);
 
 	/* For each selected uv, find duplicate non selected uv. */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -2051,10 +2047,8 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 			BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					copy_v3_fl3(uvw, luv->uv[0], luv->uv[1], 0.0f);
-
-					KDTreeNearest_3d nearest;
-					const int i = BLI_kdtree_3d_find_nearest(tree, uvw, &nearest);
+					KDTreeNearest_2d nearest;
+					const int i = BLI_kdtree_2d_find_nearest(tree, luv->uv, &nearest);
 
 					if (i != -1 && nearest.dist < threshold) {
 						copy_v2_v2(luv->uv, mloopuv_arr[i]->uv);
@@ -2071,7 +2065,7 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 		}
 	}
 
-	BLI_kdtree_3d_free(tree);
+	BLI_kdtree_2d_free(tree);
 	BLI_array_free(mloopuv_arr);
 	MEM_freeN(objects);
 
