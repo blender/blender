@@ -558,54 +558,67 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 
 	/* only if all channels exist, proceed */
 	if (fcu_w && fcu_x && fcu_y && fcu_z) {
-		float quat_prev[4], quat_next[4];
+		float quat_prev[4], quat_prev_orig[4];
+		float quat_next[4], quat_next_orig[4];
+		float quat_curr[4], quat_curr_orig[4];
+		float quat_final[4];
+
+		copy_qt_qt(quat_curr_orig, pchan->quat);
 
 		/* get 2 quats */
-		quat_prev[0] = evaluate_fcurve(fcu_w, prevFrameF);
-		quat_prev[1] = evaluate_fcurve(fcu_x, prevFrameF);
-		quat_prev[2] = evaluate_fcurve(fcu_y, prevFrameF);
-		quat_prev[3] = evaluate_fcurve(fcu_z, prevFrameF);
+		quat_prev_orig[0] = evaluate_fcurve(fcu_w, prevFrameF);
+		quat_prev_orig[1] = evaluate_fcurve(fcu_x, prevFrameF);
+		quat_prev_orig[2] = evaluate_fcurve(fcu_y, prevFrameF);
+		quat_prev_orig[3] = evaluate_fcurve(fcu_z, prevFrameF);
 
-		quat_next[0] = evaluate_fcurve(fcu_w, nextFrameF);
-		quat_next[1] = evaluate_fcurve(fcu_x, nextFrameF);
-		quat_next[2] = evaluate_fcurve(fcu_y, nextFrameF);
-		quat_next[3] = evaluate_fcurve(fcu_z, nextFrameF);
+		quat_next_orig[0] = evaluate_fcurve(fcu_w, nextFrameF);
+		quat_next_orig[1] = evaluate_fcurve(fcu_x, nextFrameF);
+		quat_next_orig[2] = evaluate_fcurve(fcu_y, nextFrameF);
+		quat_next_orig[3] = evaluate_fcurve(fcu_z, nextFrameF);
+
+		normalize_qt_qt(quat_prev, quat_prev_orig);
+		normalize_qt_qt(quat_next, quat_next_orig);
+		normalize_qt_qt(quat_curr, quat_curr_orig);
 
 		/* perform blending */
 		if (pso->mode == POSESLIDE_BREAKDOWN) {
 			/* just perform the interpol between quat_prev and quat_next using pso->percentage as a guide */
-			interp_qt_qtqt(pchan->quat, quat_prev, quat_next, pso->percentage);
+			interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->percentage);
 		}
 		else if (pso->mode == POSESLIDE_PUSH) {
-			float quat_diff[4], quat_orig[4];
+			float quat_diff[4];
 
 			/* calculate the delta transform from the previous to the current */
 			/* TODO: investigate ways to favour one transform more? */
-			sub_qt_qtqt(quat_diff, pchan->quat, quat_prev);
-
-			/* make a copy of the original rotation */
-			copy_qt_qt(quat_orig, pchan->quat);
+			sub_qt_qtqt(quat_diff, quat_curr, quat_prev);
 
 			/* increase the original by the delta transform, by an amount determined by percentage */
-			add_qt_qtqt(pchan->quat, quat_orig, quat_diff, pso->percentage);
+			add_qt_qtqt(quat_final, quat_curr, quat_diff, pso->percentage);
+
+			normalize_qt(quat_final);
 		}
 		else {
-			float quat_interp[4], quat_orig[4];
+			BLI_assert(pso->mode == POSESLIDE_RELAX);
+			float quat_interp[4], quat_final_prev[4];
 			/* TODO: maybe a sensitivity ctrl on top of this is needed */
 			int iters = (int)ceil(10.0f * pso->percentage);
+
+			copy_qt_qt(quat_final, quat_curr);
 
 			/* perform this blending several times until a satisfactory result is reached */
 			while (iters-- > 0) {
 				/* calculate the interpolation between the endpoints */
 				interp_qt_qtqt(quat_interp, quat_prev, quat_next, (cframe - pso->prevFrame) / (pso->nextFrame - pso->prevFrame));
 
-				/* make a copy of the original rotation */
-				copy_qt_qt(quat_orig, pchan->quat);
+				normalize_qt_qt(quat_final_prev, quat_final);
 
 				/* tricky interpolations - blending between original and new */
-				interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 1.0f / 6.0f);
+				interp_qt_qtqt(quat_final, quat_final_prev, quat_interp, 1.0f / 6.0f);
 			}
 		}
+
+		/* Apply final to the pose bone, keeping compatible for similar keyframe positions. */
+		quat_to_compatible_quat(pchan->quat, quat_final, quat_curr_orig);
 	}
 
 	/* free the path now */
