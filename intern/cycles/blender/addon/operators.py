@@ -124,9 +124,48 @@ class CYCLES_OT_denoise_animation(Operator):
         return {'FINISHED'}
 
 
+class CYCLES_OT_merge_images(Operator):
+    "Combine OpenEXR multilayer images rendered with different sample" \
+    "ranges into one image with reduced noise."
+    bl_idname = "cycles.merge_images"
+    bl_label = "Merge Images"
+
+    input_filepath1: StringProperty(
+        name='Input Filepath',
+        description='File path for image to merge',
+        default='',
+        subtype='FILE_PATH')
+
+    input_filepath2: StringProperty(
+        name='Input Filepath',
+        description='File path for image to merge',
+        default='',
+        subtype='FILE_PATH')
+
+    output_filepath: StringProperty(
+        name='Output Filepath',
+        description='File path for merged image',
+        default='',
+        subtype='FILE_PATH')
+
+    def execute(self, context):
+        in_filepaths = [self.input_filepath1, self.input_filepath2]
+        out_filepath = self.output_filepath
+
+        import _cycles
+        try:
+            _cycles.merge(input=in_filepaths, output=out_filepath)
+        except Exception as e:
+            self.report({'ERROR'}, str(e))
+            return {'FINISHED'}
+
+        return {'FINISHED'}
+
+
 classes = (
     CYCLES_OT_use_shading_nodes,
-    CYCLES_OT_denoise_animation
+    CYCLES_OT_denoise_animation,
+    CYCLES_OT_merge_images
 )
 
 def register():

@@ -393,15 +393,6 @@ static void add_cryptomatte_layer(BL::RenderResult& b_rr, string name, string ma
 	render_add_metadata(b_rr, prefix+"manifest", manifest);
 }
 
-/* TODO(sergey): Ideally this will be an utility function in util string.h, but
- * currently is relying on Blender side function, so can not do that. */
-static string make_human_readable_time(double time)
-{
-	char time_str[128];
-	BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), time);
-	return time_str;
-}
-
 void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string& view_layer_name)
 {
 	BL::RenderResult b_rr = b_engine.get_result();
@@ -440,11 +431,11 @@ void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string& view_
 	double total_time, render_time;
 	session->progress.get_time(total_time, render_time);
 	b_rr.stamp_data_add_field((prefix + "total_time").c_str(),
-	                          make_human_readable_time(total_time).c_str());
+	                          time_human_readable_from_seconds(total_time).c_str());
 	b_rr.stamp_data_add_field((prefix + "render_time").c_str(),
-	                          make_human_readable_time(render_time).c_str());
+	                          time_human_readable_from_seconds(render_time).c_str());
 	b_rr.stamp_data_add_field((prefix + "synchronization_time").c_str(),
-	                          make_human_readable_time(total_time - render_time).c_str());
+	                          time_human_readable_from_seconds(total_time - render_time).c_str());
 }
 
 void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
@@ -1014,7 +1005,6 @@ void BlenderSession::update_status_progress()
 	string scene_status = "";
 	float progress;
 	double total_time, remaining_time = 0, render_time;
-	char time_str[128];
 	float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
 	float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
 
@@ -1034,8 +1024,7 @@ void BlenderSession::update_status_progress()
 			scene_status += ", " + b_rview_name;
 
 		if(remaining_time > 0) {
-			BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), remaining_time);
-			timestatus += "Remaining:" + string(time_str) + " | ";
+			timestatus += "Remaining:" + time_human_readable_from_seconds(remaining_time) + " | ";
 		}
 
 		timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);

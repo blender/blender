@@ -22,6 +22,7 @@ set(SRC
 	image.cpp
 	integrator.cpp
 	light.cpp
+	merge.cpp
 	mesh.cpp
 	mesh_displace.cpp
 	mesh_subdivision.cpp
@@ -55,6 +56,7 @@ set(SRC_HEADERS
 	image.h
 	integrator.h
 	light.h
+	merge.h
 	mesh.h
 	nodes.h
 	object.h

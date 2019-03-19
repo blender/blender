@@ -23,6 +23,7 @@
 #include "blender/blender_session.h"
 
 #include "render/denoising.h"
+#include "render/merge.h"
 
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
@@ -642,9 +643,8 @@ static PyObject *opencl_compile_func(PyObject * /*self*/, PyObject *args)
 }
 #endif
 
-static bool denoise_parse_filepaths(PyObject *pyfilepaths, vector<string>& filepaths)
+static bool image_parse_filepaths(PyObject *pyfilepaths, vector<string>& filepaths)
 {
-
 	if(PyUnicode_Check(pyfilepaths)) {
 		const char *filepath = PyUnicode_AsUTF8(pyfilepaths);
 		filepaths.push_back(filepath);
@@ -713,12 +713,12 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
 	/* Parse file paths list. */
 	vector<string> input, output;
 
-	if(!denoise_parse_filepaths(pyinput, input)) {
+	if(!image_parse_filepaths(pyinput, input)) {
 		return NULL;
 	}
 
 	if(pyoutput) {
-		if(!denoise_parse_filepaths(pyoutput, output)) {
+		if(!image_parse_filepaths(pyoutput, output)) {
 			return NULL;
 		}
 	}
@@ -756,6 +756,42 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
 
 	Py_RETURN_NONE;
 }
+
+static PyObject *merge_func(PyObject * /*self*/, PyObject *args, PyObject *keywords)
+{
+	static const char *keyword_list[] = {"input", "output", NULL};
+	PyObject *pyinput, *pyoutput = NULL;
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "OO", (char**)keyword_list, &pyinput, &pyoutput)) {
+		return NULL;
+	}
+
+	/* Parse input list. */
+	vector<string> input;
+	if(!image_parse_filepaths(pyinput, input)) {
+		return NULL;
+	}
+
+	/* Parse output string. */
+	if(!PyUnicode_Check(pyoutput)) {
+		PyErr_SetString(PyExc_ValueError, "Output must be a string.");
+		return NULL;
+	}
+	string output = PyUnicode_AsUTF8(pyoutput);
+
+	/* Merge. */
+	ImageMerger merger;
+	merger.input = input;
+	merger.output = output;
+
+	if(!merger.run()) {
+		PyErr_SetString(PyExc_ValueError, merger.error.c_str());
+		return NULL;
+	}
+
+	Py_RETURN_NONE;
+}
+
 
 static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
 {
@@ -920,6 +956,7 @@ static PyMethodDef methods[] = {
 
 	/* Standalone denoising */
 	{"denoise", (PyCFunction)denoise_func, METH_VARARGS|METH_KEYWORDS, ""},
+	{"merge", (PyCFunction)merge_func, METH_VARARGS|METH_KEYWORDS, ""},
 
 	/* Debugging routines */
 	{"debug_flags_update", debug_flags_update_func, METH_VARARGS, ""},
