@@ -1118,7 +1118,11 @@ static void boundbox_gpencil(Object *ob)
 	bb  = ob->runtime.bb;
 	gpd = ob->data;
 
-	BKE_gpencil_data_minmax(NULL, gpd, min, max);
+	if (!BKE_gpencil_data_minmax(NULL, gpd, min, max)) {
+		min[0] = min[1] = min[2] = -1.0f;
+		max[0] = max[1] = max[2] = 1.0f;
+	}
+
 	BKE_boundbox_init_from_minmax(bb, min, max);
 
 	bb->flag &= ~BOUNDBOX_DIRTY;
