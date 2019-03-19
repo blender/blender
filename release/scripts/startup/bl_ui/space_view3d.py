@@ -637,7 +637,7 @@ class VIEW3D_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("render.opengl", icon='RENDER_STILL')
+        layout.operator("render.opengl", text="Viewport Render Image", icon='RENDER_STILL')
         layout.operator("render.opengl", text="Viewport Render Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.separator()
