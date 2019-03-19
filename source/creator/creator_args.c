@@ -566,9 +566,12 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--debug-depsgraph-build");
 	BLI_argsPrintArgDoc(ba, "--debug-depsgraph-tag");
 	BLI_argsPrintArgDoc(ba, "--debug-depsgraph-no-threads");
-
+	BLI_argsPrintArgDoc(ba, "--debug-depsgraph-time");
+	BLI_argsPrintArgDoc(ba, "--debug-depsgraph-pretty");
+	BLI_argsPrintArgDoc(ba, "--debug-gpu");
 	BLI_argsPrintArgDoc(ba, "--debug-gpumem");
 	BLI_argsPrintArgDoc(ba, "--debug-gpu-shaders");
+	BLI_argsPrintArgDoc(ba, "--debug-gpu-force-workarounds");
 	BLI_argsPrintArgDoc(ba, "--debug-wm");
 	BLI_argsPrintArgDoc(ba, "--debug-all");
 	BLI_argsPrintArgDoc(ba, "--debug-io");
@@ -576,6 +579,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
 	BLI_argsPrintArgDoc(ba, "--disable-crash-handler");
+	BLI_argsPrintArgDoc(ba, "--disable-abort-handler");
 
 	printf("\n");
 	printf("Misc Options:\n");
@@ -595,10 +599,10 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 	BLI_argsPrintArgDoc(ba, "--help");
 
-#ifdef WIN32
+	/* WIN32 only (ignored for non-win32) */
 	BLI_argsPrintArgDoc(ba, "-R");
 	BLI_argsPrintArgDoc(ba, "-r");
-#endif
+
 	BLI_argsPrintArgDoc(ba, "--version");
 
 	BLI_argsPrintArgDoc(ba, "--");
