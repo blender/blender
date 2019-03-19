@@ -2729,8 +2729,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		if (wm_action_not_handled(action)) {
 			if (event->check_drag) {
 				wmWindow *win = CTX_wm_window(C);
-				if ((abs(event->x - win->eventstate->prevclickx)) >= WM_EVENT_CLICK_TWEAK_THRESHOLD ||
-				    (abs(event->y - win->eventstate->prevclicky)) >= WM_EVENT_CLICK_TWEAK_THRESHOLD)
+				if ((abs(event->x - win->eventstate->prevclickx)) >= WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD ||
+				    (abs(event->y - win->eventstate->prevclicky)) >= WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD)
 				{
 					int x = event->x;
 					int y = event->y;

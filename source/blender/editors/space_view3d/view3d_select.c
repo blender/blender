@@ -1410,7 +1410,7 @@ static int mixed_bones_object_selectbuffer_extended(
 	if (use_cycle) {
 		if (v3d->shading.type > OB_WIRE) {
 			do_nearest = true;
-			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
+			if (len_manhattan_v2v2_int(mval, last_mval) < WM_EVENT_CURSOR_MOTION_THRESHOLD) {
 				do_nearest = false;
 			}
 		}
