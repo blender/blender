@@ -53,7 +53,7 @@ enum eFileDataFlag {
 #  pragma GCC poison off_t
 #endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__APPLE__)
 typedef int64_t off64_t;
 #endif
 
