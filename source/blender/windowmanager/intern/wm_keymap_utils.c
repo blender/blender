@@ -295,6 +295,9 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			case CTX_MODE_PAINT_TEXTURE:
 				km = WM_keymap_find_all(C, "Image Paint", 0, 0);
 				break;
+			case CTX_MODE_SCULPT:
+				km = WM_keymap_find_all(C, "Sculpt", 0, 0);
+				break;
 			default:
 				break;
 		}
