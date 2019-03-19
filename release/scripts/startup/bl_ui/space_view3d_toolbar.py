@@ -1220,33 +1220,10 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         layout.column().prop(sculpt, "tile_offset", text="Tile Offset")
 
 
-# TODO, move to space_view3d.py
-class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
-    bl_context = ".paint_common"  # dot on purpose (access from topbar)
-    bl_label = "Appearance"
-    bl_parent_id = "VIEW3D_PT_tools_brush_display"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        settings = cls.paint_settings(context)
-        return (settings is not None) and (not isinstance(settings, bpy.types.ParticleEdit))
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = self.paint_settings(context)
-        brush = settings.brush
-
-        if brush is None:  # unlikely but can happen
-            layout.label(text="Brush Unset")
-            return
-
-
-class VIEW3D_PT_tools_brush_appearance_show_brush(Panel, View3DPaintPanel):
+class VIEW3D_PT_tools_brush_display_show_brush(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Show Brush"
-    bl_parent_id = "VIEW3D_PT_tools_brush_appearance"
+    bl_parent_id = "VIEW3D_PT_tools_brush_display"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -1276,10 +1253,10 @@ class VIEW3D_PT_tools_brush_appearance_show_brush(Panel, View3DPaintPanel):
             col.prop(brush, "cursor_color_add", text="Color")
 
 
-class VIEW3D_PT_tools_brush_appearance_custom_icon(Panel, View3DPaintPanel):
+class VIEW3D_PT_tools_brush_display_custom_icon(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Custom Icon"
-    bl_parent_id = "VIEW3D_PT_tools_brush_appearance"
+    bl_parent_id = "VIEW3D_PT_tools_brush_display"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -2021,15 +1998,14 @@ classes = (
     VIEW3D_PT_tools_brush_falloff_frontface,
     VIEW3D_PT_tools_brush_falloff_normal,
     VIEW3D_PT_tools_brush_display,
+    VIEW3D_PT_tools_brush_display_show_brush,
+    VIEW3D_PT_tools_brush_display_custom_icon,
     VIEW3D_PT_sculpt_dyntopo,
     VIEW3D_PT_sculpt_dyntopo_remesh,
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_sculpt_options_unified,
     VIEW3D_PT_sculpt_options_gravity,
     VIEW3D_PT_sculpt_symmetry,
-    VIEW3D_PT_tools_brush_appearance,
-    VIEW3D_PT_tools_brush_appearance_show_brush,
-    VIEW3D_PT_tools_brush_appearance_custom_icon,
     VIEW3D_PT_tools_weightpaint_symmetry,
     VIEW3D_PT_tools_weightpaint_options,
     VIEW3D_PT_tools_vertexpaint,

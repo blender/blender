@@ -997,6 +997,9 @@ class IMAGE_PT_tools_brush_display(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         tool_settings = context.tool_settings.image_paint
         brush = tool_settings.brush
         tex_slot = brush.texture_slot
@@ -1004,52 +1007,98 @@ class IMAGE_PT_tools_brush_display(BrushButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.label(text="Curve:")
-
         row = col.row(align=True)
+
+        sub = row.row(align=True)
+        sub.prop(brush, "cursor_overlay_alpha", text="Curve Alpha")
+        sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
         row.prop(
-            brush,
-            "use_cursor_overlay",
-            text="",
-            toggle=True,
-            icon='RESTRICT_VIEW_ON' if brush.use_cursor_overlay else 'RESTRICT_VIEW_OFF',
+            brush, "use_cursor_overlay", text="", toggle=True,
+            icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON',
         )
 
-        sub = row.row(align=True)
-        sub.prop(brush, "cursor_overlay_alpha", text="Alpha")
-        sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
-
         col.active = brush.brush_capabilities.has_overlay
-        col.label(text="Texture:")
+
         row = col.row(align=True)
+
+        sub = row.row(align=True)
+        sub.prop(brush, "texture_overlay_alpha", text="Texture Alpha")
+        sub.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
         if tex_slot.map_mode != 'STENCIL':
             row.prop(
-                brush,
-                "use_primary_overlay",
-                text="",
-                toggle=True,
-                icon='RESTRICT_VIEW_ON' if brush.use_primary_overlay else 'RESTRICT_VIEW_OFF',
+                brush, "use_primary_overlay", text="", toggle=True,
+                icon='HIDE_OFF' if brush.use_primary_overlay else 'HIDE_ON',
             )
-
-        sub = row.row(align=True)
-        sub.prop(brush, "texture_overlay_alpha", text="Alpha")
-        sub.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
-
-        col.label(text="Mask Texture:")
 
         row = col.row(align=True)
-        if tex_slot_mask.map_mode != 'STENCIL':
-            row.prop(
-                brush,
-                "use_secondary_overlay",
-                text="",
-                toggle=True,
-                icon='RESTRICT_VIEW_ON' if brush.use_secondary_overlay else 'RESTRICT_VIEW_OFF',
-            )
 
         sub = row.row(align=True)
-        sub.prop(brush, "mask_overlay_alpha", text="Alpha")
+        sub.prop(brush, "mask_overlay_alpha", text="Mask Texture Alpha")
         sub.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
+        if tex_slot_mask.map_mode != 'STENCIL':
+            row.prop(
+                brush, "use_secondary_overlay", text="", toggle=True,
+                icon='HIDE_OFF' if brush.use_secondary_overlay else 'HIDE_ON',
+            )
+
+
+class IMAGE_PT_tools_brush_display_show_brush(BrushButtonsPanel, Panel):
+    bl_context = ".paint_common_2d"  # dot on purpose (access from topbar)
+    bl_label = "Show Brush"
+    bl_parent_id = "IMAGE_PT_tools_brush_display"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        settings = context.tool_settings.image_paint
+
+        self.layout.prop(settings, "show_brush", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        col = layout.column()
+        col.active = settings.show_brush
+
+        if context.sculpt_object and context.tool_settings.sculpt:
+            if brush.sculpt_capabilities.has_secondary_color:
+                col.prop(brush, "cursor_color_add", text="Add")
+                col.prop(brush, "cursor_color_subtract", text="Subtract")
+            else:
+                col.prop(brush, "cursor_color_add", text="Color")
+        else:
+            col.prop(brush, "cursor_color_add", text="Color")
+
+
+class IMAGE_PT_tools_brush_display_custom_icon(BrushButtonsPanel, Panel):
+    bl_context = ".paint_common_2d"  # dot on purpose (access from topbar)
+    bl_label = "Custom Icon"
+    bl_parent_id = "IMAGE_PT_tools_brush_display"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        self.layout.prop(brush, "use_custom_icon", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        col = layout.column()
+        col.active = brush.use_custom_icon
+        col.prop(brush, "icon_filepath", text="")
 
 
 class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
@@ -1210,38 +1259,6 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
         row = col.row(align=True)
         row.prop(ipaint, "tile_x", text="X", toggle=True)
         row.prop(ipaint, "tile_y", text="Y", toggle=True)
-
-
-class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
-    bl_label = "Appearance"
-    bl_context = ".paint_common_2d"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Options"
-    bl_parent_id = "IMAGE_PT_tools_brush_display"
-
-    def draw(self, context):
-        layout = self.layout
-
-        tool_settings = context.tool_settings.image_paint
-        brush = tool_settings.brush
-
-        if brush is None:  # unlikely but can happen.
-            layout.label(text="Brush Unset")
-            return
-
-        col = layout.column(align=True)
-
-        col.prop(tool_settings, "show_brush")
-        sub = col.column()
-        sub.active = tool_settings.show_brush
-        sub.prop(brush, "cursor_color_add", text="")
-
-        col.separator()
-
-        col.prop(brush, "use_custom_icon")
-        sub = col.column()
-        sub.active = brush.use_custom_icon
-        sub.prop(brush, "icon_filepath", text="")
 
 
 class IMAGE_PT_uv_sculpt_curve(Panel):
@@ -1511,8 +1528,9 @@ classes = (
     IMAGE_PT_paint_stroke_smooth_stroke,
     IMAGE_PT_paint_curve,
     IMAGE_PT_tools_brush_display,
+    IMAGE_PT_tools_brush_display_show_brush,
+    IMAGE_PT_tools_brush_display_custom_icon,
     IMAGE_PT_tools_imagepaint_symmetry,
-    IMAGE_PT_tools_brush_appearance,
     IMAGE_PT_uv_sculpt,
     IMAGE_PT_uv_sculpt_curve,
     IMAGE_PT_view_histogram,
