@@ -1956,12 +1956,12 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
 # Grease Pencil Brush Appeareance (one for each mode)
 class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
-    bl_label = "Appearance"
+    bl_label = "Display"
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_sculpt"
-    bl_label = "Appearance"
+    bl_label = "Display"
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_options(GreasePencilSculptOptionsPanel, View3DPanel, Panel):
@@ -1972,7 +1972,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_options(GreasePencilSculptOptionsPane
 
 class VIEW3D_PT_tools_grease_pencil_weight_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_weight"
-    bl_label = "Appearance"
+    bl_label = "Display"
 
 
 class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):
