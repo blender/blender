@@ -392,8 +392,6 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 brush_basic_vpaint_settings(col, context, brush)
 
 
-
-
 class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_parent_id = "VIEW3D_PT_tools_brush"
