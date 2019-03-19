@@ -51,8 +51,8 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, Mesh *me_eval, cons
 			ED_mesh_mirror_spatial_table(ob, em, me_eval, NULL, 's');
 
 		if (MirrKdStore.tree) {
-			KDTreeNearest nearest;
-			const int i = BLI_kdtree_find_nearest(MirrKdStore.tree, co, &nearest);
+			KDTreeNearest_3d nearest;
+			const int i = BLI_kdtree_3d_find_nearest(MirrKdStore.tree, co, &nearest);
 
 			if (i != -1) {
 				if (nearest.dist < KD_THRESH) {
@@ -70,7 +70,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, Mesh *me_eval, cons
 		if (MirrKdStore.tree) /* happens when entering this call without ending it */
 			ED_mesh_mirror_spatial_table(ob, em, me_eval, co, 'e');
 
-		MirrKdStore.tree = BLI_kdtree_new(totvert);
+		MirrKdStore.tree = BLI_kdtree_3d_new(totvert);
 
 		if (use_em) {
 			BMVert *eve;
@@ -81,7 +81,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, Mesh *me_eval, cons
 			BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 
 			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-				BLI_kdtree_insert(MirrKdStore.tree, i, eve->co);
+				BLI_kdtree_3d_insert(MirrKdStore.tree, i, eve->co);
 			}
 		}
 		else {
@@ -89,15 +89,15 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, Mesh *me_eval, cons
 			int i;
 
 			for (i = 0; i < totvert; i++, mvert++) {
-				BLI_kdtree_insert(MirrKdStore.tree, i, mvert->co);
+				BLI_kdtree_3d_insert(MirrKdStore.tree, i, mvert->co);
 			}
 		}
 
-		BLI_kdtree_balance(MirrKdStore.tree);
+		BLI_kdtree_3d_balance(MirrKdStore.tree);
 	}
 	else if (mode == 'e') { /* end table */
 		if (MirrKdStore.tree) {
-			BLI_kdtree_free(MirrKdStore.tree);
+			BLI_kdtree_3d_free(MirrKdStore.tree);
 			MirrKdStore.tree = NULL;
 		}
 	}

@@ -1362,7 +1362,7 @@ static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *b
 	normalize_v3(r_dir);
 }
 
-static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, KDTree *r_tree)
+static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, KDTree_3d *r_tree)
 {
 	float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 
@@ -1393,7 +1393,7 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 						break;
 					}
 				}
-				BLI_kdtree_insert(r_tree, tree_index++, tree_entry);
+				BLI_kdtree_3d_insert(r_tree, tree_index++, tree_entry);
 			}
 		}
 	}
@@ -1423,7 +1423,7 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 						break;
 					}
 				}
-				BLI_kdtree_insert(r_tree, tree_index++, tree_entry);
+				BLI_kdtree_3d_insert(r_tree, tree_index++, tree_entry);
 			}
 		}
 	}
@@ -1431,7 +1431,7 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 
 static bool curve_nurb_select_similar_type(
         Object *ob, Nurb *nu, const int type,
-        const KDTree *tree, const float thresh, const int compare)
+        const KDTree_3d *tree, const float thresh, const int compare)
 {
 	const float thresh_cos = cosf(thresh * (float)M_PI_2);
 	bool changed = false;
@@ -1465,8 +1465,8 @@ static bool curve_nurb_select_similar_type(
 					{
 						float dir[3];
 						nurb_bezt_direction_worldspace_get(ob, nu, bezt, dir);
-						KDTreeNearest nearest;
-						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+						KDTreeNearest_3d nearest;
+						if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
 							float orient = angle_normalized_v3v3(dir, nearest.co);
 							float delta = thresh_cos - fabsf(cosf(orient));
 							if (ED_select_similar_compare_float(delta, thresh, compare)) {
@@ -1513,8 +1513,8 @@ static bool curve_nurb_select_similar_type(
 					{
 						float dir[3];
 						nurb_bpoint_direction_worldspace_get(ob, nu, bp, dir);
-						KDTreeNearest nearest;
-						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+						KDTreeNearest_3d nearest;
+						if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
 							float orient = angle_normalized_v3v3(dir, nearest.co);
 							float delta = fabsf(cosf(orient)) - thresh_cos;
 							if (ED_select_similar_compare_float(delta, thresh, compare)) {
@@ -1560,14 +1560,14 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 	short type_ref = 0;
 
 	switch (optype) {
 		case SIMCURHAND_RADIUS:
 		case SIMCURHAND_WEIGHT:
 		case SIMCURHAND_DIRECTION:
-			tree = BLI_kdtree_new(tot_nurbs_selected_all);
+			tree = BLI_kdtree_3d_new(tot_nurbs_selected_all);
 			break;
 	}
 
@@ -1598,7 +1598,7 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	if (tree != NULL) {
-		BLI_kdtree_balance(tree);
+		BLI_kdtree_3d_balance(tree);
 	}
 
 	/* Select control points with desired type. */
@@ -1635,7 +1635,7 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 
 	MEM_freeN(objects);
 	if (tree != NULL) {
-		BLI_kdtree_free(tree);
+		BLI_kdtree_3d_free(tree);
 	}
 	return OPERATOR_FINISHED;
 

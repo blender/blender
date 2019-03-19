@@ -634,9 +634,9 @@ static void bmesh_find_doubles_common(
 
 	int *duplicates = MEM_mallocN(sizeof(int) * verts_len, __func__);
 	{
-		KDTree *tree = BLI_kdtree_new(verts_len);
+		KDTree_3d *tree = BLI_kdtree_3d_new(verts_len);
 		for (int i = 0; i < verts_len; i++) {
-			BLI_kdtree_insert(tree, i, verts[i]->co);
+			BLI_kdtree_3d_insert(tree, i, verts[i]->co);
 			if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
 				duplicates[i] = i;
 			}
@@ -645,9 +645,9 @@ static void bmesh_find_doubles_common(
 			}
 		}
 
-		BLI_kdtree_balance(tree);
-		found_duplicates = BLI_kdtree_calc_duplicates_fast(tree, dist, false, duplicates) != 0;
-		BLI_kdtree_free(tree);
+		BLI_kdtree_3d_balance(tree);
+		found_duplicates = BLI_kdtree_3d_calc_duplicates_fast(tree, dist, false, duplicates) != 0;
+		BLI_kdtree_3d_free(tree);
 	}
 
 	if (found_duplicates) {

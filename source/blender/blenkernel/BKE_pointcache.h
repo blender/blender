@@ -226,7 +226,7 @@ typedef struct PTCacheUndo {
 
 	/* particles stuff */
 	struct ParticleData *particles;
-	struct KDTree *emitter_field;
+	struct KDTree_3d *emitter_field;
 	float *emitter_cosnos;
 	int psys_flag;
 
@@ -257,7 +257,7 @@ typedef struct PTCacheEdit {
 	struct ParticleSystem *psys_eval;
 	struct ParticleSystemModifierData *psmd;
 	struct ParticleSystemModifierData *psmd_eval;
-	struct KDTree *emitter_field;
+	struct KDTree_3d *emitter_field;
 	float *emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
 	int *mirror_cache;
 

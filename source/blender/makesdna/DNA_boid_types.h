@@ -186,7 +186,7 @@ typedef struct BoidState {
 //typedef struct BoidSimulationData {
 //	ListBase signal_defines;/* list of defined signals */
 //	ListBase signals[20];	/* gathers signals from all channels */
-//	struct KDTree *signaltrees[20];
+//	struct KDTree_3d *signaltrees[20];
 //	char channel_names[20][32];
 //	int last_signal_id;		/* used for incrementing signal ids */
 //	int flag;				/* switches for drawing stuff */

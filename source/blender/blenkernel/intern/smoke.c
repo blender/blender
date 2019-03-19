@@ -1200,7 +1200,7 @@ static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_mult
 
 typedef struct EmitFromParticlesData {
 	SmokeFlowSettings *sfs;
-	KDTree *tree;
+	KDTree_3d *tree;
 	int hires_multiplier;
 
 	EmissionMap *em;
@@ -1237,9 +1237,9 @@ static void emit_from_particles_task_cb(
 				const float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
 
 				/* find particle distance from the kdtree */
-				KDTreeNearest nearest;
+				KDTreeNearest_3d nearest;
 				const float range = data->solid + data->smooth;
-				BLI_kdtree_find_nearest(data->tree, ray_start, &nearest);
+				BLI_kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
 
 				if (nearest.dist < range) {
 					em->influence[index] = (nearest.dist < data->solid) ?
@@ -1263,9 +1263,9 @@ static void emit_from_particles_task_cb(
 				const float ray_start[3] = {lx + 0.5f * data->hr, ly + 0.5f * data->hr, lz + 0.5f * data->hr};
 
 				/* find particle distance from the kdtree */
-				KDTreeNearest nearest;
+				KDTreeNearest_3d nearest;
 				const float range = data->solid + data->hr_smooth;
-				BLI_kdtree_find_nearest(data->tree, ray_start, &nearest);
+				BLI_kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
 
 				if (nearest.dist < range) {
 					em->influence_high[index] = (nearest.dist < data->solid) ?
@@ -1295,7 +1295,7 @@ static void emit_from_particles(
 		const float solid = sfs->particle_size * 0.5f;
 		const float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
 		int hires_multiplier = 1;
-		KDTree *tree = NULL;
+		KDTree_3d *tree = NULL;
 
 		sim.depsgraph = depsgraph;
 		sim.scene = scene;
@@ -1325,7 +1325,7 @@ static void emit_from_particles(
 
 		/* setup particle radius emission if enabled */
 		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
-			tree = BLI_kdtree_new(psys->totpart + psys->totchild);
+			tree = BLI_kdtree_3d_new(psys->totpart + psys->totchild);
 
 			/* check need for high resolution map */
 			if ((sds->flags & MOD_SMOKE_HIGHRES) && (sds->highres_sampling == SM_HRES_FULLSAMPLE)) {
@@ -1365,7 +1365,7 @@ static void emit_from_particles(
 			mul_mat3_m4_v3(sds->imat, &particle_vel[valid_particles * 3]);
 
 			if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
-				BLI_kdtree_insert(tree, valid_particles, pos);
+				BLI_kdtree_3d_insert(tree, valid_particles, pos);
 			}
 
 			/* calculate emission map bounds */
@@ -1423,7 +1423,7 @@ static void emit_from_particles(
 				res[i] = em->res[i] * hires_multiplier;
 			}
 
-			BLI_kdtree_balance(tree);
+			BLI_kdtree_3d_balance(tree);
 
 			EmitFromParticlesData data = {
 				.sfs = sfs, .tree = tree, .hires_multiplier = hires_multiplier, .hr = hr,
@@ -1441,7 +1441,7 @@ static void emit_from_particles(
 		}
 
 		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
-			BLI_kdtree_free(tree);
+			BLI_kdtree_3d_free(tree);
 		}
 
 		/* free data */

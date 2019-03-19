@@ -24,9 +24,13 @@
 
 /* 3D version */
 #define KD_DIMS 3
-#define KDTREE_PREFIX_ID BLI_kdtree
+#define KDTREE_PREFIX_ID BLI_kdtree_3d
+#define KDTree KDTree_3d
+#define KDTreeNearest KDTreeNearest_3d
 #include "BLI_kdtree_impl.h"
 #undef KD_DIMS
+#undef KDTree
+#undef KDTreeNearest
 #undef KDTREE_PREFIX_ID
 
 /* 4D version */

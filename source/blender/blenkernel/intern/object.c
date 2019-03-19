@@ -3968,7 +3968,7 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *ob)
 }
 
 /**
- * Return a KDTree from the deformed object (in worldspace)
+ * Return a KDTree_3d from the deformed object (in worldspace)
  *
  * \note Only mesh objects currently support deforming, others are TODO.
  *
@@ -3976,9 +3976,9 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *ob)
  * \param r_tot:
  * \return The kdtree or NULL if it can't be created.
  */
-KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
+KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 {
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 	unsigned int tot = 0;
 
 	switch (ob->type) {
@@ -3996,14 +3996,14 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 
 				/* tree over-allocs in case where some verts have ORIGINDEX_NONE */
 				tot = 0;
-				tree = BLI_kdtree_new(totvert);
+				tree = BLI_kdtree_3d_new(totvert);
 
 				/* we don't how how many verts from the DM we can use */
 				for (i = 0; i < totvert; i++) {
 					if (index[i] != ORIGINDEX_NONE) {
 						float co[3];
 						mul_v3_m4v3(co, ob->obmat, mvert[i].co);
-						BLI_kdtree_insert(tree, index[i], co);
+						BLI_kdtree_3d_insert(tree, index[i], co);
 						tot++;
 					}
 				}
@@ -4012,16 +4012,16 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 				MVert *mvert = me->mvert;
 
 				tot = me->totvert;
-				tree = BLI_kdtree_new(tot);
+				tree = BLI_kdtree_3d_new(tot);
 
 				for (i = 0; i < tot; i++) {
 					float co[3];
 					mul_v3_m4v3(co, ob->obmat, mvert[i].co);
-					BLI_kdtree_insert(tree, i, co);
+					BLI_kdtree_3d_insert(tree, i, co);
 				}
 			}
 
-			BLI_kdtree_balance(tree);
+			BLI_kdtree_3d_balance(tree);
 			break;
 		}
 		case OB_CURVE:
@@ -4034,7 +4034,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 			Nurb *nu;
 
 			tot = BKE_nurbList_verts_count_without_handles(&cu->nurb);
-			tree = BLI_kdtree_new(tot);
+			tree = BLI_kdtree_3d_new(tot);
 			i = 0;
 
 			nu = cu->nurb.first;
@@ -4047,7 +4047,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 					while (a--) {
 						float co[3];
 						mul_v3_m4v3(co, ob->obmat, bezt->vec[1]);
-						BLI_kdtree_insert(tree, i++, co);
+						BLI_kdtree_3d_insert(tree, i++, co);
 						bezt++;
 					}
 				}
@@ -4059,14 +4059,14 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 					while (a--) {
 						float co[3];
 						mul_v3_m4v3(co, ob->obmat, bp->vec);
-						BLI_kdtree_insert(tree, i++, co);
+						BLI_kdtree_3d_insert(tree, i++, co);
 						bp++;
 					}
 				}
 				nu = nu->next;
 			}
 
-			BLI_kdtree_balance(tree);
+			BLI_kdtree_3d_balance(tree);
 			break;
 		}
 		case OB_LATTICE:
@@ -4077,16 +4077,16 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 			unsigned int i;
 
 			tot = lt->pntsu * lt->pntsv * lt->pntsw;
-			tree = BLI_kdtree_new(tot);
+			tree = BLI_kdtree_3d_new(tot);
 			i = 0;
 
 			for (bp = lt->def; i < tot; bp++) {
 				float co[3];
 				mul_v3_m4v3(co, ob->obmat, bp->vec);
-				BLI_kdtree_insert(tree, i++, co);
+				BLI_kdtree_3d_insert(tree, i++, co);
 			}
 
-			BLI_kdtree_balance(tree);
+			BLI_kdtree_3d_balance(tree);
 			break;
 		}
 	}

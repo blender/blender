@@ -655,7 +655,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	PyModule_AddObject(mod, "bvhtree", (submodule = PyInit_mathutils_bvhtree()));
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
-	/* KDTree submodule */
+	/* KDTree_3d submodule */
 	PyModule_AddObject(mod, "kdtree", (submodule = PyInit_mathutils_kdtree()));
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 #endif

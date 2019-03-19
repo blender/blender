@@ -379,7 +379,7 @@ typedef struct ParticleSystem {
 	int tot_fluidsprings, alloc_fluidsprings;
 
 	/** Used for interactions with self and other systems. */
-	struct KDTree *tree;
+	struct KDTree_3d *tree;
 	/** Used for interactions with self and other systems. */
 	struct BVHTree *bvhtree;
 

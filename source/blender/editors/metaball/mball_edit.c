@@ -194,7 +194,7 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL},
 };
 
-static void mball_select_similar_type_get(Object *obedit, MetaBall *mb, int  type, KDTree *r_tree)
+static void mball_select_similar_type_get(Object *obedit, MetaBall *mb, int  type, KDTree_3d *r_tree)
 {
 	float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 	MetaElem *ml;
@@ -231,12 +231,12 @@ static void mball_select_similar_type_get(Object *obedit, MetaBall *mb, int  typ
 					break;
 				}
 			}
-			BLI_kdtree_insert(r_tree, tree_index++, tree_entry);
+			BLI_kdtree_3d_insert(r_tree, tree_index++, tree_entry);
 		}
 	}
 }
 
-static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, const KDTree *tree, const float thresh)
+static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, const KDTree_3d *tree, const float thresh)
 {
 	MetaElem *ml;
 	bool changed = false;
@@ -277,8 +277,8 @@ static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, co
 
 				float thresh_cos = cosf(thresh * (float)M_PI_2);
 
-				KDTreeNearest nearest;
-				if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+				KDTreeNearest_3d nearest;
+				if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
 					float orient = angle_normalized_v3v3(dir, nearest.co);
 					/* Map to 0-1 to compare orientation. */
 					float delta = thresh_cos - fabsf(cosf(orient));
@@ -311,10 +311,10 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 	tot_mball_selected_all = BKE_mball_select_count_multi(objects, objects_len);
 
 	short type_ref = 0;
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 
 	if (type != SIMMBALL_TYPE) {
-		tree = BLI_kdtree_new(tot_mball_selected_all);
+		tree = BLI_kdtree_3d_new(tot_mball_selected_all);
 	}
 
 	/* Get type of selected MetaBall */
@@ -346,7 +346,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	if (tree != NULL) {
-		BLI_kdtree_balance(tree);
+		BLI_kdtree_3d_balance(tree);
 	}
 	/* Select MetaBalls with desired type. */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -385,7 +385,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 
 	MEM_freeN(objects);
 	if (tree != NULL) {
-		BLI_kdtree_free(tree);
+		BLI_kdtree_3d_free(tree);
 	}
 	return OPERATOR_FINISHED;
 }

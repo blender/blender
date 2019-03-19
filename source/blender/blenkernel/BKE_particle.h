@@ -45,7 +45,7 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct Depsgraph;
 struct EdgeHash;
-struct KDTree;
+struct KDTree_3d;
 struct LatticeDeformData;
 struct LinkNode;
 struct MCol;
@@ -136,7 +136,7 @@ typedef struct ParticleThreadContext {
 	struct Material *ma;
 
 	/* distribution */
-	struct KDTree *tree;
+	struct KDTree_3d *tree;
 
 	struct ParticleSeam *seams;
 	int totseam;

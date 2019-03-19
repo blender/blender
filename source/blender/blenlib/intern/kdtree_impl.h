@@ -325,7 +325,7 @@ int BLI_kdtree_nd_(find_nearest)(
 
 
 /**
- * A version of #BLI_kdtree_find_nearest which runs a callback
+ * A version of #BLI_kdtree_3d_find_nearest which runs a callback
  * to filter out values.
  *
  * \param filter_cb: Filter find results,
@@ -711,7 +711,7 @@ int BLI_kdtree_nd_(range_search)(
 }
 
 /**
- * A version of #BLI_kdtree_range_search which runs a callback
+ * A version of #BLI_kdtree_3d_range_search which runs a callback
  * instead of allocating an array.
  *
  * \param search_cb: Called for every node found in \a range, false return value performs an early exit.
@@ -796,7 +796,7 @@ static uint *kdtree_order(const KDTree *tree)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name BLI_kdtree_calc_duplicates_fast
+/** \name BLI_kdtree_3d_calc_duplicates_fast
  * \{ */
 
 struct DeDuplicateParams {

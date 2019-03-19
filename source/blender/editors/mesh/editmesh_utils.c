@@ -1006,7 +1006,7 @@ void EDBM_verts_mirror_cache_begin_ex(
 	const float maxdist_sq = SQUARE(maxdist);
 
 	/* one or the other is used depending if topo is enabled */
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 	MirrTopoStore_t mesh_topo_store = {NULL, -1, -1, -1};
 
 	BM_mesh_elem_table_ensure(bm, BM_VERT);
@@ -1032,11 +1032,11 @@ void EDBM_verts_mirror_cache_begin_ex(
 		ED_mesh_mirrtopo_init(me, NULL, &mesh_topo_store, true);
 	}
 	else {
-		tree = BLI_kdtree_new(bm->totvert);
+		tree = BLI_kdtree_3d_new(bm->totvert);
 		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-			BLI_kdtree_insert(tree, i, v->co);
+			BLI_kdtree_3d_insert(tree, i, v->co);
 		}
-		BLI_kdtree_balance(tree);
+		BLI_kdtree_3d_balance(tree);
 	}
 
 #define VERT_INTPTR(_v, _i) r_index ? &r_index[_i] : BM_ELEM_CD_GET_VOID_P(_v, cd_vmirr_offset);
@@ -1062,7 +1062,7 @@ void EDBM_verts_mirror_cache_begin_ex(
 				co[axis] *= -1.0f;
 
 				v_mirr = NULL;
-				i_mirr = BLI_kdtree_find_nearest(tree, co, NULL);
+				i_mirr = BLI_kdtree_3d_find_nearest(tree, co, NULL);
 				if (i_mirr != -1) {
 					BMVert *v_test = BM_vert_at_index(bm, i_mirr);
 					if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
@@ -1090,7 +1090,7 @@ void EDBM_verts_mirror_cache_begin_ex(
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
 	}
 	else {
-		BLI_kdtree_free(tree);
+		BLI_kdtree_3d_free(tree);
 	}
 }
 

@@ -38,7 +38,7 @@
 
 typedef struct {
 	PyObject_HEAD
-	KDTree *obj;
+	KDTree_3d *obj;
 	unsigned int maxsize;
 	unsigned int count;
 	unsigned int count_balance;  /* size when we last balanced */
@@ -48,7 +48,7 @@ typedef struct {
 /* -------------------------------------------------------------------- */
 /* Utility helper functions */
 
-static void kdtree_nearest_to_py_tuple(const KDTreeNearest *nearest, PyObject *py_retval)
+static void kdtree_nearest_to_py_tuple(const KDTreeNearest_3d *nearest, PyObject *py_retval)
 {
 	BLI_assert(nearest->index >= 0);
 	BLI_assert(PyTuple_GET_SIZE(py_retval) == 3);
@@ -59,7 +59,7 @@ static void kdtree_nearest_to_py_tuple(const KDTreeNearest *nearest, PyObject *p
 	        PyFloat_FromDouble(nearest->dist));
 }
 
-static PyObject *kdtree_nearest_to_py(const KDTreeNearest *nearest)
+static PyObject *kdtree_nearest_to_py(const KDTreeNearest_3d *nearest)
 {
 	PyObject *py_retval;
 
@@ -70,7 +70,7 @@ static PyObject *kdtree_nearest_to_py(const KDTreeNearest *nearest)
 	return py_retval;
 }
 
-static PyObject *kdtree_nearest_to_py_and_check(const KDTreeNearest *nearest)
+static PyObject *kdtree_nearest_to_py_and_check(const KDTreeNearest_3d *nearest)
 {
 	PyObject *py_retval;
 
@@ -110,7 +110,7 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
 		return -1;
 	}
 
-	self->obj = BLI_kdtree_new(maxsize);
+	self->obj = BLI_kdtree_3d_new(maxsize);
 	self->maxsize = maxsize;
 	self->count = 0;
 	self->count_balance = 0;
@@ -120,7 +120,7 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
 
 static void PyKDTree__tp_dealloc(PyKDTree *self)
 {
-	BLI_kdtree_free(self->obj);
+	BLI_kdtree_3d_free(self->obj);
 	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -161,7 +161,7 @@ static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwar
 		return NULL;
 	}
 
-	BLI_kdtree_insert(self->obj, index, co);
+	BLI_kdtree_3d_insert(self->obj, index, co);
 	self->count++;
 
 	Py_RETURN_NONE;
@@ -178,7 +178,7 @@ PyDoc_STRVAR(py_kdtree_balance_doc,
 );
 static PyObject *py_kdtree_balance(PyKDTree *self)
 {
-	BLI_kdtree_balance(self->obj);
+	BLI_kdtree_3d_balance(self->obj);
 	self->count_balance = self->count;
 	Py_RETURN_NONE;
 }
@@ -228,7 +228,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 {
 	PyObject *py_co, *py_filter = NULL;
 	float co[3];
-	KDTreeNearest nearest;
+	KDTreeNearest_3d nearest;
 	const char *keywords[] = {"co", "filter", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(
@@ -249,7 +249,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 	nearest.index = -1;
 
 	if (py_filter == NULL) {
-		BLI_kdtree_find_nearest(self->obj, co, &nearest);
+		BLI_kdtree_3d_find_nearest(self->obj, co, &nearest);
 	}
 	else {
 		struct PyKDTree_NearestData data = {0};
@@ -257,7 +257,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 		data.py_filter = py_filter;
 		data.is_error = false;
 
-		BLI_kdtree_find_nearest_cb(
+		BLI_kdtree_3d_find_nearest_cb(
 		        self->obj, co,
 		        py_find_nearest_cb, &data,
 		        &nearest);
@@ -287,7 +287,7 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
 	PyObject *py_list;
 	PyObject *py_co;
 	float co[3];
-	KDTreeNearest *nearest;
+	KDTreeNearest_3d *nearest;
 	unsigned int n;
 	int i, found;
 	const char *keywords[] = {"co", "n", NULL};
@@ -312,9 +312,9 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
 		return NULL;
 	}
 
-	nearest = MEM_mallocN(sizeof(KDTreeNearest) * n, __func__);
+	nearest = MEM_mallocN(sizeof(KDTreeNearest_3d) * n, __func__);
 
-	found = BLI_kdtree_find_nearest_n(self->obj, co, nearest, n);
+	found = BLI_kdtree_3d_find_nearest_n(self->obj, co, nearest, n);
 
 	py_list = PyList_New(found);
 
@@ -344,7 +344,7 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
 	PyObject *py_list;
 	PyObject *py_co;
 	float co[3];
-	KDTreeNearest *nearest = NULL;
+	KDTreeNearest_3d *nearest = NULL;
 	float radius;
 	int i, found;
 
@@ -370,7 +370,7 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
 		return NULL;
 	}
 
-	found = BLI_kdtree_range_search(self->obj, co, &nearest, radius);
+	found = BLI_kdtree_3d_range_search(self->obj, co, &nearest, radius);
 
 	py_list = PyList_New(found);
 

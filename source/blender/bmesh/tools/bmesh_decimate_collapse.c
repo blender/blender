@@ -424,9 +424,9 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 	uint i;
 	int *edge_symmetry_map;
 	const float limit_sq = SQUARE(limit);
-	KDTree *tree;
+	KDTree_3d *tree;
 
-	tree = BLI_kdtree_new(bm->totedge);
+	tree = BLI_kdtree_3d_new(bm->totedge);
 
 	etable = MEM_mallocN(sizeof(*etable) * bm->totedge, __func__);
 	edge_symmetry_map = MEM_mallocN(sizeof(*edge_symmetry_map) * bm->totedge, __func__);
@@ -434,12 +434,12 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		float co[3];
 		mid_v3_v3v3(co, e->v1->co, e->v2->co);
-		BLI_kdtree_insert(tree, i, co);
+		BLI_kdtree_3d_insert(tree, i, co);
 		etable[i] = e;
 		edge_symmetry_map[i] = -1;
 	}
 
-	BLI_kdtree_balance(tree);
+	BLI_kdtree_3d_balance(tree);
 
 	sym_data.etable = etable;
 	sym_data.limit_sq = limit_sq;
@@ -457,7 +457,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 			sub_v3_v3v3(sym_data.e_dir, sym_data.e_v2_co, sym_data.e_v1_co);
 			sym_data.e_found_index = -1;
 
-			BLI_kdtree_range_search_cb(tree, co, limit, bm_edge_symmetry_check_cb, &sym_data);
+			BLI_kdtree_3d_range_search_cb(tree, co, limit, bm_edge_symmetry_check_cb, &sym_data);
 
 			if (sym_data.e_found_index != -1) {
 				const int i_other = sym_data.e_found_index;
@@ -468,7 +468,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 	}
 
 	MEM_freeN(etable);
-	BLI_kdtree_free(tree);
+	BLI_kdtree_3d_free(tree);
 
 	return edge_symmetry_map;
 }

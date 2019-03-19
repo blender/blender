@@ -650,7 +650,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 		BLI_freelistN(&psys->targets);
 
 		BLI_bvhtree_free(psys->bvhtree);
-		BLI_kdtree_free(psys->tree);
+		BLI_kdtree_3d_free(psys->tree);
 
 		if (psys->fluid_springs)
 			MEM_freeN(psys->fluid_springs);
@@ -1920,7 +1920,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = sim->psys->part;
-	KDTree *tree;
+	KDTree_3d *tree;
 	ChildParticle *cpa;
 	ParticleTexture ptex;
 	int p, totparent, totchild = sim->psys->totchild;
@@ -1936,7 +1936,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 		totparent = sim->psys->totpart;
 	}
 
-	tree = BLI_kdtree_new(totparent);
+	tree = BLI_kdtree_3d_new(totparent);
 
 	for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
 		psys_particle_on_emitter(sim->psmd, from, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co, 0, 0, 0, orco);
@@ -1945,18 +1945,18 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 		get_cpa_texture(sim->psmd->mesh_final, psys, part, psys->particles + cpa->pa[0], p, cpa->num, cpa->fuv, orco, &ptex, PAMAP_DENS | PAMAP_CHILD, psys->cfra);
 
 		if (ptex.exist >= psys_frand(psys, p + 24)) {
-			BLI_kdtree_insert(tree, p, orco);
+			BLI_kdtree_3d_insert(tree, p, orco);
 		}
 	}
 
-	BLI_kdtree_balance(tree);
+	BLI_kdtree_3d_balance(tree);
 
 	for (; p < totchild; p++, cpa++) {
 		psys_particle_on_emitter(sim->psmd, from, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co, 0, 0, 0, orco);
-		cpa->parent = BLI_kdtree_find_nearest(tree, orco, NULL);
+		cpa->parent = BLI_kdtree_3d_find_nearest(tree, orco, NULL);
 	}
 
-	BLI_kdtree_free(tree);
+	BLI_kdtree_3d_free(tree);
 }
 
 static bool psys_thread_context_init_path(

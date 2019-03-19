@@ -94,7 +94,7 @@ static void createFacepa(
 	MFace *fa = NULL, *mface = NULL;
 	MVert *mvert = NULL;
 	ParticleData *pa;
-	KDTree *tree;
+	KDTree_3d *tree;
 	RNG *rng;
 	float center[3], co[3];
 	int *facepa = NULL, *vertpa = NULL, totvert = 0, totface = 0, totpart = 0;
@@ -138,12 +138,12 @@ static void createFacepa(
 	}
 
 	/* make tree of emitter locations */
-	tree = BLI_kdtree_new(totpart);
+	tree = BLI_kdtree_3d_new(totpart);
 	for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
 		psys_particle_on_emitter(psmd, psys->part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, NULL, NULL, NULL, NULL);
-		BLI_kdtree_insert(tree, p, co);
+		BLI_kdtree_3d_insert(tree, p, co);
 	}
-	BLI_kdtree_balance(tree);
+	BLI_kdtree_3d_balance(tree);
 
 	/* set face-particle-indexes to nearest particle to face center */
 	for (i = 0, fa = mface; i < totface; i++, fa++) {
@@ -157,7 +157,7 @@ static void createFacepa(
 			mul_v3_fl(center, 1.0f / 3.0f);
 		}
 
-		p = BLI_kdtree_find_nearest(tree, center, NULL);
+		p = BLI_kdtree_3d_find_nearest(tree, center, NULL);
 
 		v1 = vertpa[fa->v1];
 		v2 = vertpa[fa->v2];
@@ -187,7 +187,7 @@ static void createFacepa(
 	if (vertpa) {
 		MEM_freeN(vertpa);
 	}
-	BLI_kdtree_free(tree);
+	BLI_kdtree_3d_free(tree);
 
 	BLI_rng_free(rng);
 }

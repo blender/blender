@@ -183,7 +183,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 	KDTree_4d *tree_plane = NULL;
 	GSet *gset = NULL;
 	GSet **gset_array = NULL;
@@ -193,7 +193,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		case SIMFACE_AREA:
 		case SIMFACE_PERIMETER:
 		case SIMFACE_NORMAL:
-			tree = BLI_kdtree_new(tot_faces_selected_all);
+			tree = BLI_kdtree_3d_new(tot_faces_selected_all);
 			break;
 		case SIMFACE_COPLANAR:
 			tree_plane = BLI_kdtree_4d_new(tot_faces_selected_all);
@@ -273,14 +273,14 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					{
 						float area = BM_face_calc_area_with_mat3(face, ob_m3);
 						float dummy[3] = {area, 0.0f, 0.0f};
-						BLI_kdtree_insert(tree, tree_index++, dummy);
+						BLI_kdtree_3d_insert(tree, tree_index++, dummy);
 						break;
 					}
 					case SIMFACE_PERIMETER:
 					{
 						float perimeter = BM_face_calc_perimeter_with_mat3(face, ob_m3);
 						float dummy[3] = {perimeter, 0.0f, 0.0f};
-						BLI_kdtree_insert(tree, tree_index++, dummy);
+						BLI_kdtree_3d_insert(tree, tree_index++, dummy);
 						break;
 					}
 					case SIMFACE_NORMAL:
@@ -290,7 +290,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						mul_transposed_mat3_m4_v3(ob->imat, normal);
 						normalize_v3(normal);
 
-						BLI_kdtree_insert(tree, tree_index++, normal);
+						BLI_kdtree_3d_insert(tree, tree_index++, normal);
 						break;
 					}
 					case SIMFACE_COPLANAR:
@@ -337,7 +337,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	BLI_assert((type != SIMFACE_FREESTYLE) || (face_data_value != SIMFACE_DATA_NONE));
 
 	if (tree != NULL) {
-		BLI_kdtree_balance(tree);
+		BLI_kdtree_3d_balance(tree);
 	}
 	if (tree_plane != NULL) {
 		BLI_kdtree_4d_balance(tree_plane);
@@ -446,8 +446,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 						/* We are treating the normals as coordinates, the "nearest" one will
 						 * also be the one closest to the angle. */
-						KDTreeNearest nearest;
-						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
+						KDTreeNearest_3d nearest;
+						if (BLI_kdtree_3d_find_nearest(tree, normal, &nearest) != -1) {
 							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
 								select = true;
 							}
@@ -550,7 +550,7 @@ face_select_all:
 	}
 
 	MEM_freeN(objects);
-	BLI_kdtree_free(tree);
+	BLI_kdtree_3d_free(tree);
 	BLI_kdtree_4d_free(tree_plane);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
@@ -671,7 +671,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 	GSet *gset = NULL;
 	int edge_data_value = SIMEDGE_DATA_NONE;
 
@@ -681,7 +681,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		case SIMEDGE_FACE_ANGLE:
 		case SIMEDGE_LENGTH:
 		case SIMEDGE_DIR:
-			tree = BLI_kdtree_new(tot_edges_selected_all);
+			tree = BLI_kdtree_3d_new(tot_edges_selected_all);
 			break;
 		case SIMEDGE_FACE:
 			gset = BLI_gset_ptr_new("Select similar edge: face");
@@ -721,7 +721,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 			{
 				if (!CustomData_has_layer(&bm->edata, custom_data_type)) {
 					float dummy[3] = {0.0f, 0.0f, 0.0f};
-					BLI_kdtree_insert(tree, tree_index++, dummy);
+					BLI_kdtree_3d_insert(tree, tree_index++, dummy);
 					continue;
 				}
 				break;
@@ -745,14 +745,14 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					{
 						float dir[3];
 						edge_pos_direction_worldspace_get(ob, edge, dir);
-						BLI_kdtree_insert(tree, tree_index++, dir);
+						BLI_kdtree_3d_insert(tree, tree_index++, dir);
 						break;
 					}
 					case SIMEDGE_LENGTH:
 					{
 						float length = edge_length_squared_worldspace_get(ob, edge);
 						float dummy[3] = {length, 0.0f, 0.0f};
-						BLI_kdtree_insert(tree, tree_index++, dummy);
+						BLI_kdtree_3d_insert(tree, tree_index++, dummy);
 						break;
 					}
 					case SIMEDGE_FACE_ANGLE:
@@ -760,7 +760,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
 							float angle = BM_edge_calc_face_angle_with_imat3(edge, ob_m3_inv);
 							float dummy[3] = {angle, 0.0f, 0.0f};
-							BLI_kdtree_insert(tree, tree_index++, dummy);
+							BLI_kdtree_3d_insert(tree, tree_index++, dummy);
 						}
 						break;
 					}
@@ -794,7 +794,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					{
 						const float *value = CustomData_bmesh_get(&bm->edata, edge->head.data, custom_data_type);
 						float dummy[3] = {*value, 0.0f, 0.0f};
-						BLI_kdtree_insert(tree, tree_index++, dummy);
+						BLI_kdtree_3d_insert(tree, tree_index++, dummy);
 						break;
 					}
 				}
@@ -805,7 +805,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	BLI_assert((type != SIMEDGE_FREESTYLE) || (edge_data_value != SIMEDGE_DATA_NONE));
 
 	if (tree != NULL) {
-		BLI_kdtree_balance(tree);
+		BLI_kdtree_3d_balance(tree);
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -873,8 +873,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 						/* We are treating the direction as coordinates, the "nearest" one will
 						 * also be the one closest to the intended direction. */
-						KDTreeNearest nearest;
-						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+						KDTreeNearest_3d nearest;
+						if (BLI_kdtree_3d_find_nearest(tree, dir, &nearest) != -1) {
 							if (angle_normalized_v3v3(dir, nearest.co) <= thresh_radians) {
 								select = true;
 							}
@@ -987,7 +987,7 @@ edge_select_all:
 	}
 
 	MEM_freeN(objects);
-	BLI_kdtree_free(tree);
+	BLI_kdtree_3d_free(tree);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
 	}
@@ -1026,12 +1026,12 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	KDTree *tree = NULL;
+	KDTree_3d *tree = NULL;
 	GSet *gset = NULL;
 
 	switch (type) {
 		case SIMVERT_NORMAL:
-			tree = BLI_kdtree_new(tot_verts_selected_all);
+			tree = BLI_kdtree_3d_new(tot_verts_selected_all);
 			break;
 		case SIMVERT_EDGE:
 		case SIMVERT_FACE:
@@ -1081,7 +1081,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						mul_transposed_mat3_m4_v3(ob->imat, normal);
 						normalize_v3(normal);
 
-						BLI_kdtree_insert(tree, normal_tree_index++, normal);
+						BLI_kdtree_3d_insert(tree, normal_tree_index++, normal);
 						break;
 					}
 					case SIMVERT_VGROUP:
@@ -1123,7 +1123,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	/* Remove duplicated entries. */
 	if (tree != NULL) {
-		BLI_kdtree_balance(tree);
+		BLI_kdtree_3d_balance(tree);
 	}
 
 	/* Run .the BM operators. */
@@ -1204,8 +1204,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 						/* We are treating the normals as coordinates, the "nearest" one will
 						 * also be the one closest to the angle. */
-						KDTreeNearest nearest;
-						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
+						KDTreeNearest_3d nearest;
+						if (BLI_kdtree_3d_find_nearest(tree, normal, &nearest) != -1) {
 							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
 								select = true;
 							}
@@ -1243,7 +1243,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(objects);
-	BLI_kdtree_free(tree);
+	BLI_kdtree_3d_free(tree);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
 	}
