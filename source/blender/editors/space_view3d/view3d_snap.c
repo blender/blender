@@ -40,6 +40,7 @@
 #include "BKE_mball.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.h"
@@ -800,12 +801,15 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 
 /* **************************************************** */
 
-/** Snaps the 3D cursor location to the origin. */
+/** Snaps the 3D cursor location to the origin and clears cursor rotation. */
 static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
+	float mat3[3][3];
+	unit_m3(mat3);
 
 	zero_v3(scene->cursor.location);
+	BKE_scene_cursor_mat3_to_rot(&scene->cursor, mat3, false);
 
 	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
