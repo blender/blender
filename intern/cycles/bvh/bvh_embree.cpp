@@ -149,6 +149,13 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments* args)
 				break;
 			}
 
+			/* Ignore curves. */
+			if(hit->geomID & 1) {
+				/* This tells Embree to continue tracing. */
+				*args->valid = 0;
+				break;
+			}
+
 			/* See triangle_intersect_subsurface() for the native equivalent. */
 			for(int i = min(ctx->max_hits, ctx->ss_isect->num_hits) - 1; i >= 0; --i) {
 				if(ctx->ss_isect->hits[i].t == ray->tfar) {
