@@ -2949,7 +2949,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
 		MEM_freeN(but->hold_argN);
 	}
 
-	if (!but->editstr && but->free_search_arg) {
+	if (but->free_search_arg) {
 		MEM_SAFE_FREE(but->search_arg);
 	}
 
@@ -4717,7 +4717,7 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 void UI_but_func_search_set(
         uiBut *but,
         uiButSearchCreateFunc search_create_func,
-        uiButSearchFunc search_func, void *arg,
+        uiButSearchFunc search_func, void *arg, bool free_arg,
         uiButHandleFunc bfunc, void *active)
 {
 	/* needed since callers don't have access to internal functions
@@ -4726,9 +4726,14 @@ void UI_but_func_search_set(
 		search_create_func = ui_searchbox_create_generic;
 	}
 
+	if (but->free_search_arg) {
+		MEM_SAFE_FREE(but->search_arg);
+	}
+
 	but->search_create_func = search_create_func;
 	but->search_func = search_func;
 	but->search_arg = arg;
+	but->free_search_arg = free_arg;
 
 	if (bfunc) {
 #ifdef DEBUG
@@ -4817,7 +4822,7 @@ uiBut *uiDefSearchButO_ptr(
 	but = uiDefSearchBut(block, arg, retval, icon, maxlen, x, y, width, height, a1, a2, tip);
 	UI_but_func_search_set(
 	        but, ui_searchbox_create_generic, operator_enum_search_cb,
-	        but, operator_enum_call_cb, NULL);
+	        but, false, operator_enum_call_cb, NULL);
 
 	but->optype = ot;
 	but->opcontext = WM_OP_EXEC_DEFAULT;

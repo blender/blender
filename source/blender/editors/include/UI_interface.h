@@ -846,7 +846,7 @@ bool    UI_search_item_add(uiSearchItems *items, const char *name, void *poin, i
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
 void    UI_but_func_search_set(
         uiBut *but, uiButSearchCreateFunc cfunc, uiButSearchFunc sfunc,
-        void *arg1, uiButHandleFunc bfunc, void *active);
+        void *arg, bool free_arg, uiButHandleFunc bfunc, void *active);
 /* height in pixels, it's using hardcoded values still */
 int     UI_searchbox_size_y(void);
 int     UI_searchbox_size_x(void);

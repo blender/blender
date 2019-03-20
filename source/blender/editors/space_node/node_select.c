@@ -1081,7 +1081,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
 	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
-	UI_but_func_search_set(but, NULL, node_find_cb, op->type, node_find_call_cb, NULL);
+	UI_but_func_search_set(but, NULL, node_find_cb, op->type, false, node_find_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);

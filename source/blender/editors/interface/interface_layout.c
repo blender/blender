@@ -2115,8 +2115,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 
 		UI_but_func_search_set(
 		        but, ui_searchbox_create_generic, ui_rna_collection_search_cb,
-		        coll_search, NULL, NULL);
-		but->free_search_arg = true;
+		        coll_search, true, NULL, NULL);
 	}
 	else if (but->type == UI_BTYPE_SEARCH_MENU) {
 		/* In case we fail to find proper searchprop,

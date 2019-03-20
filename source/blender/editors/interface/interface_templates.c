@@ -216,7 +216,7 @@ static uiBlock *template_common_search_menu(
 	}
 	UI_but_func_search_set(
 	        but, ui_searchbox_create_generic, search_func,
-	        search_arg, handle_func, active_item);
+	        search_arg, false, handle_func, active_item);
 
 
 	UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
@@ -4348,7 +4348,7 @@ void UI_but_func_operator_search(uiBut *but)
 {
 	UI_but_func_search_set(
 	        but, ui_searchbox_create_operator, operator_search_cb,
-	        NULL, operator_call_cb, NULL);
+	        NULL, false, operator_call_cb, NULL);
 }
 
 void uiTemplateOperatorSearch(uiLayout *layout)
