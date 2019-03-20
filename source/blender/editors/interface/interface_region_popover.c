@@ -302,16 +302,24 @@ int UI_popover_panel_invoke(
 		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 	}
 
+	uiBlock *block = NULL;
 	if (keep_open) {
-		ui_popover_panel_create(C, NULL, NULL, ui_item_paneltype_func, pt);
+		uiPopupBlockHandle *handle = ui_popover_panel_create(C, NULL, NULL, ui_item_paneltype_func, pt);
+		uiPopover *pup = handle->popup_create_vars.arg;
+		block = pup->block;
+
 	}
 	else {
 		uiPopover *pup = UI_popover_begin(C, U.widget_unit * pt->ui_units_x);
 		layout = UI_popover_layout(pup);
 		UI_paneltype_draw(C, pt, layout);
 		UI_popover_end(C, pup, NULL);
+		block = pup->block;
 	}
 
+	if (block) {
+		UI_block_active_only_flagged_buttons(C, CTX_wm_region(C), block);
+	}
 	return OPERATOR_INTERFACE;
 }
 

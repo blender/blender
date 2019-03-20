@@ -823,6 +823,24 @@ bool UI_but_active_only(const bContext *C, ARegion *ar, uiBlock *block, uiBut *b
 	return true;
 }
 
+bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *ar, uiBlock *block)
+{
+	bool done = false;
+	for (uiBut *but = block->buttons.first; but; but = but->next) {
+		if (!done && ui_but_is_editable(but)) {
+			if (but->flag & UI_BUT_ACTIVATE_ON_INIT) {
+				if (UI_but_active_only(C, ar, block, but)) {
+					done = true;
+				}
+			}
+		}
+		but->flag &= ~UI_BUT_ACTIVATE_ON_INIT;
+	}
+	return done;
+}
+
+
+
 /* simulate button click */
 void UI_but_execute(const bContext *C, uiBut *but)
 {

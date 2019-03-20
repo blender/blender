@@ -1154,6 +1154,8 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	/* center around the mouse */
 	UI_block_bounds_set_popup(block, 4, (const int[2]){data->width / -2, data->height / 2});
 
+	UI_block_active_only_flagged_buttons(C, ar, block);
+
 	return block;
 }
 
@@ -1178,6 +1180,8 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	UI_block_func_set(block, NULL, NULL, NULL);
 
 	UI_block_bounds_set_popup(block, 4, NULL);
+
+	UI_block_active_only_flagged_buttons(C, ar, block);
 
 	return block;
 }
