@@ -338,7 +338,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
 	if (wmd->proximity_ob_target != NULL) {
 		DEG_add_object_relation(ctx->node, wmd->proximity_ob_target, DEG_OB_COMP_TRANSFORM, "WeightVGProximity Modifier");
-		DEG_add_object_relation(ctx->node, wmd->proximity_ob_target, DEG_OB_COMP_GEOMETRY, "WeightVGProximity Modifier");
+		if (wmd->proximity_ob_target->data != NULL && wmd->proximity_mode == MOD_WVG_PROXIMITY_GEOMETRY) {
+			DEG_add_object_relation(ctx->node, wmd->proximity_ob_target, DEG_OB_COMP_GEOMETRY, "WeightVGProximity Modifier");
+		}
 	}
 	if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		DEG_add_object_relation(ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGProximity Modifier");
