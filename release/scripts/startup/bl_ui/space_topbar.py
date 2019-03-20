@@ -1133,6 +1133,7 @@ class TOPBAR_PT_name(Panel):
                 if item:
                     row = row_with_icon(layout, 'OBJECT_DATA')
                     row.prop(item, "name", text="")
+                    row.prop(item.data, "name", text="")
                     found = True
 
         if not found:

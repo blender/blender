@@ -993,7 +993,8 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 	restore_modifier_runtime_data(object);
 }
 
-void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object) {
+void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
+{
 	LISTBASE_FOREACH(ModifierData *, modifier_data, &object->modifiers) {
 		BLI_assert(modifier_data->orig_modifier_data != NULL);
 		ModifierDataBackupID modifier_data_id =

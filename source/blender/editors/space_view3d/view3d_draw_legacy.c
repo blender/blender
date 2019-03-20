@@ -393,13 +393,13 @@ uint ED_view3d_select_id_read_nearest(
 				}
 
 				/* Next spiral step. */
-				if(spiral_direction == 0) {
+				if (spiral_direction == 0) {
 					spiral_offset += 1; /* right */
 				}
-				else if(spiral_direction == 1) {
+				else if (spiral_direction == 1) {
 					spiral_offset -= width; /* down */
 				}
-				else if(spiral_direction == 2) {
+				else if (spiral_direction == 2) {
 					spiral_offset -= 1; /* left */
 				}
 				else {

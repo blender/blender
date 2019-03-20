@@ -900,7 +900,7 @@ void BLI_path_frame_strip(char *path, char *r_ext)
 	c++;
 
 	int suffix_length = len - (suffix - file);
-	BLI_strncpy(r_ext, suffix, suffix_length+1);
+	BLI_strncpy(r_ext, suffix, suffix_length + 1);
 
 	/* replace the number with the suffix and terminate the string */
 	while (numdigits--) {

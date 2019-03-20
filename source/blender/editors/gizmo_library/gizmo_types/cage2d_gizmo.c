@@ -105,7 +105,7 @@ static bool gizmo_calc_rect_view_margin(
 	float scale_xy[2];
 	if (!gizmo_calc_rect_view_scale(gz, dims, scale_xy)) {
 		return false;
-	};
+	}
 	margin[0] = ((handle_size * scale_xy[0]));
 	margin[1] = ((handle_size * scale_xy[1]));
 	return true;

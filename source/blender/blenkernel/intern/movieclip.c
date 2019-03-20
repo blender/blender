@@ -1051,8 +1051,8 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 
 	/* Fallback render in case proxies are not enabled or built */
 	if (!ibuf &&
-		user->render_flag & MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER &&
-		user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+	    user->render_flag & MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER &&
+	    user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
 	{
 		MovieClipUser user_fallback = *user;
 		user_fallback.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
