@@ -634,8 +634,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 			rdata->mapped.l_origindex = CustomData_get_layer(&me_cage->ldata, CD_ORIGINDEX);
 			rdata->mapped.p_origindex = CustomData_get_layer(&me_cage->pdata, CD_ORIGINDEX);
 			rdata->mapped.supported = (
-			        rdata->mapped.v_origindex &&
-			        rdata->mapped.e_origindex &&
+			        rdata->mapped.v_origindex ||
+			        rdata->mapped.e_origindex ||
 			        rdata->mapped.p_origindex);
 		}
 
