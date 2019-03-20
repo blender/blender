@@ -511,32 +511,16 @@ class VIEW3D_MT_mirror(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator_context = 'EXEC_REGION_WIN'
 
-        props = layout.operator("transform.mirror", text="X Global")
-        props.constraint_axis = (True, False, False)
-        props.orient_type = 'GLOBAL'
-        props = layout.operator("transform.mirror", text="Y Global")
-        props.constraint_axis = (False, True, False)
-        props.orient_type = 'GLOBAL'
-        props = layout.operator("transform.mirror", text="Z Global")
-        props.constraint_axis = (False, False, True)
-        props.orient_type = 'GLOBAL'
+        for (space_name, space_id) in (("Global", 'GLOBAL'), ("Local", 'LOCAL')):
+            for axis_index, axis_name in enumerate("XYZ"):
+                props = layout.operator("transform.mirror", text=f"{axis_name!s} {space_name!s}")
+                props.constraint_axis[axis_index] = True
+                props.orient_type = 'GLOBAL'
 
-        if context.edit_object:
-            layout.separator()
-
-            props = layout.operator("transform.mirror", text="X Local")
-            props.constraint_axis = (True, False, False)
-            props.orient_type = 'LOCAL'
-            props = layout.operator("transform.mirror", text="Y Local")
-            props.constraint_axis = (False, True, False)
-            props.orient_type = 'LOCAL'
-            props = layout.operator("transform.mirror", text="Z Local")
-            props.constraint_axis = (False, False, True)
-            props.orient_type = 'LOCAL'
-
-            layout.operator("object.vertex_group_mirror")
+            if space_id == 'GLOBAL':
+                layout.separator()
 
 
 class VIEW3D_MT_snap(Menu):

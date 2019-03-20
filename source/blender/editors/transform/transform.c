@@ -2633,7 +2633,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	}
 
 	/* Constraint init from operator */
-	if (t->flag & T_MODAL) {
+	if ((t->flag & T_MODAL) ||
+	    /* For mirror operator the constraint axes are effectively the values. */
+	    (RNA_struct_find_property(op->ptr, "values") == NULL))
+	{
 		if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
 		    RNA_property_is_set(op->ptr, prop))
 		{
@@ -2644,21 +2647,14 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
 				t->con.mode |= CON_APPLY;
 
-				/* Only for interactive operation, when redoing, ignore these values since the numbers
-				 * will be constrainted already. */
-				if (t->flag & T_MODAL) {
-					if (constraint_axis[0]) {
-						t->con.mode |= CON_AXIS0;
-					}
-					if (constraint_axis[1]) {
-						t->con.mode |= CON_AXIS1;
-					}
-					if (constraint_axis[2]) {
-						t->con.mode |= CON_AXIS2;
-					}
+				if (constraint_axis[0]) {
+					t->con.mode |= CON_AXIS0;
 				}
-				else {
-					t->con.mode |= CON_AXIS0 | CON_AXIS1 | CON_AXIS2;
+				if (constraint_axis[1]) {
+					t->con.mode |= CON_AXIS1;
+				}
+				if (constraint_axis[2]) {
+					t->con.mode |= CON_AXIS2;
 				}
 
 				setUserConstraint(t, t->orientation.user, t->con.mode, "%s");

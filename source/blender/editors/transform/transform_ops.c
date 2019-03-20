@@ -521,6 +521,15 @@ static bool transform_poll_property(const bContext *UNUSED(C), wmOperator *op, c
 		PropertyRNA *prop_con = RNA_struct_find_property(op->ptr, "orient_type");
 		if (prop_con != NULL && (prop_con != prop)) {
 			if (STRPREFIX(prop_id, "constraint")) {
+
+				/* Special case: show constraint axis if we don't have values,
+				 * needed for mirror operator. */
+				if (STREQ(prop_id, "constraint_axis") &&
+				    (RNA_struct_find_property(op->ptr, "value") == NULL))
+				{
+					return true;
+				}
+
 				return false;
 			}
 		}
