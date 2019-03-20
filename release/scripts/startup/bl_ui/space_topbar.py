@@ -815,12 +815,14 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
+        layout.operator("wm.search_menu", text="Operator Search...", icon='VIEWZOOM')
+
+        layout.separator()
+
         # Mainly to expose shortcut since this depends on the context.
         props = layout.operator("wm.call_panel", text="Rename Active Item...", icon='OUTLINER_DATA_FONT')
         props.name = "TOPBAR_PT_name"
         props.keep_open = False
-
-        layout.operator("wm.search_menu", text="Operator Search...", icon='VIEWZOOM')
 
         layout.separator()
 
@@ -1133,7 +1135,6 @@ class TOPBAR_PT_name(Panel):
                 if item:
                     row = row_with_icon(layout, 'OBJECT_DATA')
                     row.prop(item, "name", text="")
-                    row.prop(item.data, "name", text="")
                     found = True
 
         if not found:
