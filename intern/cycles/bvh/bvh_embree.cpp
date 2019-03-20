@@ -149,6 +149,13 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments* args)
 				break;
 			}
 
+			/* Ignore curves. */
+			if(hit->geomID & 1) {
+				/* This tells Embree to continue tracing. */
+				*args->valid = 0;
+				break;
+			}
+
 			/* See triangle_intersect_subsurface() for the native equivalent. */
 			for(int i = min(ctx->max_hits, ctx->ss_isect->num_hits) - 1; i >= 0; --i) {
 				if(ctx->ss_isect->hits[i].t == ray->tfar) {
@@ -389,6 +396,45 @@ void BVHEmbree::build(Progress& progress, Stats *stats_)
 	               (params.use_spatial_split ? RTC_BUILD_QUALITY_HIGH : RTC_BUILD_QUALITY_MEDIUM);
 	rtcSetSceneBuildQuality(scene, build_quality);
 
+	/* Count triangles and curves first, reserve arrays once. */
+	size_t prim_count = 0;
+
+	foreach(Object *ob, objects) {
+		if (params.top_level) {
+			if (!ob->is_traceable()) {
+				continue;
+			}
+			if (!ob->mesh->is_instanced()) {
+				if(params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
+					prim_count += ob->mesh->num_triangles();
+				}
+				if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
+					for (size_t j = 0; j < ob->mesh->num_curves(); ++j) {
+						prim_count += ob->mesh->get_curve(j).num_segments();
+					}
+				}
+			}
+			else {
+				++prim_count;
+			}
+		}
+		else {
+			if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE && ob->mesh->num_triangles() > 0) {
+				prim_count += ob->mesh->num_triangles();
+			}
+			if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
+				for (size_t j = 0; j < ob->mesh->num_curves(); ++j) {
+					prim_count += ob->mesh->get_curve(j).num_segments();
+				}
+			}
+		}
+	}
+
+	pack.prim_object.reserve(prim_count);
+	pack.prim_type.reserve(prim_count);
+	pack.prim_index.reserve(prim_count);
+	pack.prim_tri_index.reserve(prim_count);
+
 	int i = 0;
 
 	pack.object_node.clear();
@@ -530,15 +576,20 @@ void BVHEmbree::add_triangles(Object *ob, int i)
 
 	update_tri_vertex_buffer(geom_id, mesh);
 
-	pack.prim_object.reserve(pack.prim_object.size() + num_triangles);
-	pack.prim_type.reserve(pack.prim_type.size() + num_triangles);
-	pack.prim_index.reserve(pack.prim_index.size() + num_triangles);
-	pack.prim_tri_index.reserve(pack.prim_index.size() + num_triangles);
+	size_t prim_object_size = pack.prim_object.size();
+	pack.prim_object.resize(prim_object_size + num_triangles);
+	size_t prim_type_size = pack.prim_type.size();
+	pack.prim_type.resize(prim_type_size + num_triangles);
+	size_t prim_index_size = pack.prim_index.size();
+	pack.prim_index.resize(prim_index_size + num_triangles);
+	pack.prim_tri_index.resize(prim_index_size + num_triangles);
+	int prim_type = (num_motion_steps > 1 ? PRIMITIVE_MOTION_TRIANGLE : PRIMITIVE_TRIANGLE);
+
 	for(size_t j = 0; j < num_triangles; ++j) {
-		pack.prim_object.push_back_reserved(i);
-		pack.prim_type.push_back_reserved(num_motion_steps > 1 ? PRIMITIVE_MOTION_TRIANGLE : PRIMITIVE_TRIANGLE);
-		pack.prim_index.push_back_reserved(j);
-		pack.prim_tri_index.push_back_reserved(j);
+		pack.prim_object[prim_object_size + j] = i;
+		pack.prim_type[prim_type_size + j] = prim_type;
+		pack.prim_index[prim_index_size + j] = j;
+		pack.prim_tri_index[prim_index_size + j] = j;
 	}
 
 	rtcSetGeometryUserData(geom_id, (void*) prim_offset);
@@ -629,7 +680,7 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Mesh* mesh
 		float4 *rtc_tangents = NULL;
 		if(use_curves) {
 			rtc_tangents = (float4*)rtcSetNewGeometryBuffer(geom_id, RTC_BUFFER_TYPE_TANGENT, t,
-																RTC_FORMAT_FLOAT4, sizeof (float) * 4, num_keys);
+			                                                RTC_FORMAT_FLOAT4, sizeof (float) * 4, num_keys);
 			assert(rtc_tangents);
 		}
 		assert(rtc_verts);
@@ -691,10 +742,14 @@ void BVHEmbree::add_curves(Object *ob, int i)
 	}
 
 	/* Make room for Cycles specific data. */
-	pack.prim_object.reserve(pack.prim_object.size() + num_segments);
-	pack.prim_type.reserve(pack.prim_type.size() + num_segments);
-	pack.prim_index.reserve(pack.prim_index.size() + num_segments);
-	pack.prim_tri_index.reserve(pack.prim_index.size() + num_segments);
+	size_t prim_object_size = pack.prim_object.size();
+	pack.prim_object.resize(prim_object_size + num_segments);
+	size_t prim_type_size = pack.prim_type.size();
+	pack.prim_type.resize(prim_type_size + num_segments);
+	size_t prim_index_size = pack.prim_index.size();
+	pack.prim_index.resize(prim_index_size + num_segments);
+	size_t prim_tri_index_size = pack.prim_index.size();
+	pack.prim_tri_index.resize(prim_tri_index_size + num_segments);
 
 	enum RTCGeometryType type = (!use_curves) ? RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE :
 	                            (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_HERMITE_CURVE :
@@ -703,18 +758,18 @@ void BVHEmbree::add_curves(Object *ob, int i)
 	RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, type);
 	rtcSetGeometryTessellationRate(geom_id, curve_subdivisions);
 	unsigned *rtc_indices = (unsigned*) rtcSetNewGeometryBuffer(geom_id, RTC_BUFFER_TYPE_INDEX, 0,
-																RTC_FORMAT_UINT, sizeof (int), num_segments);
+	                                                            RTC_FORMAT_UINT, sizeof (int), num_segments);
 	size_t rtc_index = 0;
 	for(size_t j = 0; j < num_curves; ++j) {
 		Mesh::Curve c = mesh->get_curve(j);
 		for(size_t k = 0; k < c.num_segments(); ++k) {
 			rtc_indices[rtc_index] = c.first_key + k;
 			/* Cycles specific data. */
-			pack.prim_object.push_back_reserved(i);
-			pack.prim_type.push_back_reserved(PRIMITIVE_PACK_SEGMENT(num_motion_steps > 1 ?
-																	 PRIMITIVE_MOTION_CURVE : PRIMITIVE_CURVE, k));
-			pack.prim_index.push_back_reserved(j);
-			pack.prim_tri_index.push_back_reserved(rtc_index);
+			pack.prim_object[prim_object_size + rtc_index] = i;
+			pack.prim_type[prim_type_size + rtc_index] = (PRIMITIVE_PACK_SEGMENT(num_motion_steps > 1 ?
+			                                              PRIMITIVE_MOTION_CURVE : PRIMITIVE_CURVE, k));
+			pack.prim_index[prim_index_size + rtc_index] = j;
+			pack.prim_tri_index[prim_tri_index_size + rtc_index] = rtc_index;
 
 			++rtc_index;
 		}
