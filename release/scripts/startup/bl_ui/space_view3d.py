@@ -3789,10 +3789,9 @@ class VIEW3D_MT_armature_context_menu(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
+        # Add
         layout.operator("armature.subdivide", text="Subdivide")
-
         layout.operator("armature.duplicate_move", text="Duplicate")
-
         layout.operator("armature.extrude_move")
         if arm.use_mirror_x:
             layout.operator("armature.extrude_forked")
@@ -3816,6 +3815,7 @@ class VIEW3D_MT_armature_context_menu(Menu):
 
         layout.separator()
 
+        # Remove
         layout.operator("armature.split")
         layout.operator("armature.merge")
         layout.operator("armature.dissolve")
