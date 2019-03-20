@@ -57,6 +57,7 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 typedef struct EDIT_CURVE_PassList {
 	struct DRWPass *wire_pass;
+	struct DRWPass *wire_pass_xray;
 	struct DRWPass *overlay_edge_pass;
 	struct DRWPass *overlay_vert_pass;
 } EDIT_CURVE_PassList;
@@ -91,7 +92,9 @@ static struct {
 typedef struct EDIT_CURVE_PrivateData {
 	/* resulting curve as 'wire' for curves (and optionally normals) */
 	DRWShadingGroup *wire_shgrp;
+	DRWShadingGroup *wire_shgrp_xray;
 	DRWShadingGroup *wire_normals_shgrp;
+	DRWShadingGroup *wire_normals_shgrp_xray;
 
 	DRWShadingGroup *overlay_edge_shgrp;
 	DRWShadingGroup *overlay_vert_shgrp;
@@ -147,6 +150,30 @@ static void EDIT_CURVE_engine_init(void *UNUSED(vedata))
 	}
 }
 
+static void EDIT_CURVE_wire_shgrp_create(
+        EDIT_CURVE_Shaders *sh_data,
+        const View3D *v3d,
+        const RegionView3D *rv3d,
+        DRWPass *pass,
+        DRWShadingGroup **wire_shgrp,
+        DRWShadingGroup **wire_normals_shgrp)
+{
+	DRWShadingGroup *grp = DRW_shgroup_create(sh_data->wire_sh, pass);
+	DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+	}
+	*wire_shgrp = grp;
+
+	grp = DRW_shgroup_create(sh_data->wire_normals_sh, pass);
+	DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
+	DRW_shgroup_uniform_float_copy(grp, "normalSize", v3d->overlay.normals_length);
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+	}
+	*wire_normals_shgrp = grp;
+}
+
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
 static void EDIT_CURVE_cache_init(void *vedata)
@@ -172,22 +199,16 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		psl->wire_pass = DRW_pass_create(
 		        "Curve Wire",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
+		EDIT_CURVE_wire_shgrp_create(sh_data, v3d, rv3d, psl->wire_pass,
+		                             &stl->g_data->wire_shgrp,
+		                             &stl->g_data->wire_normals_shgrp);
 
-		grp = DRW_shgroup_create(sh_data->wire_sh, psl->wire_pass);
-		DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
-		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
-		}
-		stl->g_data->wire_shgrp = grp;
-
-
-		grp = DRW_shgroup_create(sh_data->wire_normals_sh, psl->wire_pass);
-		DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
-		DRW_shgroup_uniform_float_copy(grp, "normalSize", v3d->overlay.normals_length);
-		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
-		}
-		stl->g_data->wire_normals_shgrp = grp;
+		psl->wire_pass_xray = DRW_pass_create(
+		        "Curve Wire Xray",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_WIRE);
+		EDIT_CURVE_wire_shgrp_create(sh_data, v3d, rv3d, psl->wire_pass_xray,
+		                             &stl->g_data->wire_shgrp_xray,
+		                             &stl->g_data->wire_normals_shgrp_xray);
 
 		psl->overlay_edge_pass = DRW_pass_create(
 		        "Curve Handle Overlay",
@@ -229,13 +250,24 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 			/* Get geometry cache */
 			struct GPUBatch *geom;
 
+			DRWShadingGroup *wire_shgrp, *wire_normals_shgrp;
+
+			if (ob->dtx & OB_DRAWXRAY) {
+				wire_shgrp = stl->g_data->wire_shgrp_xray;
+				wire_normals_shgrp = stl->g_data->wire_normals_shgrp_xray;
+			}
+			else {
+				wire_shgrp = stl->g_data->wire_shgrp;
+				wire_normals_shgrp = stl->g_data->wire_normals_shgrp;
+			}
+
 			geom = DRW_cache_curve_edge_wire_get(ob);
-			DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
+			DRW_shgroup_call_add(wire_shgrp, geom, ob->obmat);
 
 			if ((cu->flag & CU_3D) && (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0) {
 				static uint instance_len = 2;
 				geom = DRW_cache_curve_edge_normal_get(ob);
-				DRW_shgroup_call_instances_add(stl->g_data->wire_normals_shgrp, geom, ob->obmat, &instance_len);
+				DRW_shgroup_call_instances_add(wire_normals_shgrp, geom, ob->obmat, &instance_len);
 			}
 
 			geom = DRW_cache_curve_edge_overlay_get(ob);
@@ -274,6 +306,19 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 		DRW_draw_pass(psl->wire_pass);
 
 		MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+	}
+
+	/* Unfortunately this pass cannot be AA'd without
+	 * MULTISAMPLE_SYNC_DISABLE_NO_DEPTH. While it's
+	 * quite unlikely to happen to multi-edit curves
+	 * with a mix of xray enabled/disabled we still
+	 * support this case.  */
+	if (!DRW_pass_is_empty(psl->wire_pass_xray)) {
+		MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
+
+		DRW_draw_pass(psl->wire_pass_xray);
+
+		MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl)
 	}
 
 	/* Thoses passes don't write to depth and are AA'ed using other tricks. */
