@@ -91,6 +91,14 @@ enum {
 	MOD_DPAINT_INITIAL_VERTEXCOLOR = 3,
 };
 
+/* Is stored in ModifierData.runtime. */
+#
+#
+typedef struct DynamicPaintRuntime {
+	struct Mesh *canvas_mesh;
+	struct Mesh *brush_mesh;
+} DynamicPaintRuntime;
+
 typedef struct DynamicPaintSurface {
 
 	struct DynamicPaintSurface *next, *prev;
@@ -169,7 +177,6 @@ enum {
 typedef struct DynamicPaintCanvasSettings {
 	/** For fast RNA access. */
 	struct DynamicPaintModifierData *pmd;
-	struct Mesh *mesh;
 
 	struct ListBase surfaces;
 	short active_sur, flags;
@@ -248,7 +255,6 @@ enum {
 typedef struct DynamicPaintBrushSettings {
 	/** For fast RNA access. */
 	struct DynamicPaintModifierData *pmd;
-	struct Mesh *mesh;
 	struct ParticleSystem *psys;
 
 	int flags;

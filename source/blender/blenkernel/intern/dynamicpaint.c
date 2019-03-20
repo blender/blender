@@ -231,6 +231,50 @@ typedef struct PaintAdjData {
 	int total_border; /* size of border */
 } PaintAdjData;
 
+/************************* Runtime evaluation store ***************************/
+
+void dynamicPaint_Modifier_free_runtime(DynamicPaintRuntime *runtime_data)
+{
+	if (runtime_data == NULL) {
+		return;
+	}
+	if (runtime_data->canvas_mesh) {
+		BKE_id_free(NULL, runtime_data->canvas_mesh);
+	}
+	if (runtime_data->brush_mesh) {
+		BKE_id_free(NULL, runtime_data->brush_mesh);
+	}
+	MEM_freeN(runtime_data);
+}
+
+static DynamicPaintRuntime *dynamicPaint_Modifier_runtime_ensure(
+        DynamicPaintModifierData *pmd)
+{
+	if (pmd->modifier.runtime == NULL) {
+		pmd->modifier.runtime = MEM_callocN(
+		        sizeof(DynamicPaintRuntime), "dynamic paint runtime");
+	}
+	return (DynamicPaintRuntime *)pmd->modifier.runtime;
+}
+
+static Mesh *dynamicPaint_canvas_mesh_get(DynamicPaintCanvasSettings *canvas)
+{
+	if (canvas->pmd->modifier.runtime == NULL) {
+		return NULL;
+	}
+	DynamicPaintRuntime *runtime_data = (DynamicPaintRuntime *)canvas->pmd->modifier.runtime;
+	return runtime_data->canvas_mesh;
+}
+
+static Mesh *dynamicPaint_brush_mesh_get(DynamicPaintBrushSettings *brush)
+{
+	if (brush->pmd->modifier.runtime == NULL) {
+		return NULL;
+	}
+	DynamicPaintRuntime *runtime_data = (DynamicPaintRuntime *)brush->pmd->modifier.runtime;
+	return runtime_data->brush_mesh;
+}
+
 /***************************** General Utils ******************************/
 
 /* Set canvas error string to display at the bake report */
@@ -249,7 +293,8 @@ static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
 		return 0; /* not supported atm */
 	}
 	else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-		return (surface->canvas->mesh) ? surface->canvas->mesh->totvert : 0;
+		const Mesh *canvas_mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
+		return (canvas_mesh) ? canvas_mesh->totvert : 0;
 	}
 
 	return 0;
@@ -812,11 +857,6 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd)
 {
 	if (pmd->brush) {
-		if (pmd->brush->mesh) {
-			BKE_id_free(NULL, pmd->brush->mesh);
-		}
-		pmd->brush->mesh = NULL;
-
 		if (pmd->brush->paint_ramp)
 			MEM_freeN(pmd->brush->paint_ramp);
 		if (pmd->brush->vel_ramp)
@@ -945,26 +985,21 @@ void dynamicPaint_freeCanvas(DynamicPaintModifierData *pmd)
 			surface = next_surface;
 		}
 
-		/* free mesh copy */
-		if (pmd->canvas->mesh) {
-			BKE_id_free(NULL, pmd->canvas->mesh);
-		}
-		pmd->canvas->mesh = NULL;
-
 		MEM_freeN(pmd->canvas);
 		pmd->canvas = NULL;
 	}
 }
 
 /* Free whole dp modifier */
-void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd)
+void dynamicPaint_Modifier_free(DynamicPaintModifierData *pmd)
 {
-	if (pmd) {
-		dynamicPaint_freeCanvas(pmd);
-		dynamicPaint_freeBrush(pmd);
+	if (pmd == NULL) {
+		return;
 	}
+	dynamicPaint_freeCanvas(pmd);
+	dynamicPaint_freeBrush(pmd);
+	dynamicPaint_Modifier_free_runtime(pmd->modifier.runtime);
 }
-
 
 /***************************** Initialize and reset ******************************/
 
@@ -1061,7 +1096,6 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			if (!canvas)
 				return false;
 			canvas->pmd = pmd;
-			canvas->mesh = NULL;
 
 			/* Create one surface */
 			if (!dynamicPaint_createNewSurface(canvas, scene))
@@ -1100,8 +1134,6 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			brush->wave_clamp = 0.0f;
 			brush->smudge_strength = 0.3f;
 			brush->max_velocity = 1.0f;
-
-			brush->mesh = NULL;
 
 			/* Paint proximity falloff colorramp. */
 			{
@@ -1299,7 +1331,7 @@ static bool surface_usesAdjData(DynamicPaintSurface *surface)
 static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const bool force_init)
 {
 	PaintSurfaceData *sData = surface->data;
-	Mesh *mesh = surface->canvas->mesh;
+	Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
 	PaintAdjData *ad;
 	int *temp_data;
 	int neigh_points = 0;
@@ -1533,7 +1565,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintPoint *pPoint = (PaintPoint *)sData->type_data;
-	Mesh *mesh = surface->canvas->mesh;
+	Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
 	int i;
 	const bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 
@@ -2032,10 +2064,11 @@ static Mesh *dynamicPaint_Modifier_apply(
 	}
 	/* make a copy of mesh to use as brush data */
 	if (pmd->brush) {
-		if (pmd->brush->mesh) {
-			BKE_id_free(NULL, pmd->brush->mesh);
+		DynamicPaintRuntime *runtime_data = dynamicPaint_Modifier_runtime_ensure(pmd);
+		if (runtime_data->brush_mesh != NULL) {
+			BKE_id_free(NULL, runtime_data->brush_mesh);
 		}
-		pmd->brush->mesh = BKE_mesh_copy_for_eval(result, false);
+		runtime_data->brush_mesh = BKE_mesh_copy_for_eval(result, false);
 	}
 
 	return result;
@@ -2052,11 +2085,12 @@ void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
 
 static void canvas_copyMesh(DynamicPaintCanvasSettings *canvas, Mesh *mesh)
 {
-	if (canvas->mesh) {
-		BKE_id_free(NULL, canvas->mesh);
+	DynamicPaintRuntime *runtime = dynamicPaint_Modifier_runtime_ensure(canvas->pmd);
+	if (runtime->canvas_mesh != NULL) {
+		BKE_id_free(NULL, runtime->canvas_mesh);
 	}
 
-	canvas->mesh = BKE_mesh_copy_for_eval(mesh, false);
+	runtime->canvas_mesh = BKE_mesh_copy_for_eval(mesh, false);
 }
 
 /*
@@ -2769,7 +2803,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 
 	PaintSurfaceData *sData;
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
-	Mesh *mesh = canvas->mesh;
+	Mesh *mesh = dynamicPaint_canvas_mesh_get(canvas);
 
 	PaintUVPoint *tempPoints = NULL;
 	Vec3f *tempWeights = NULL;
@@ -3678,7 +3712,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 
 	BKE_object_modifier_update_subframe(
 	            depsgraph, scene, ob, true, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
-	mesh_p = BKE_mesh_copy_for_eval(brush->mesh, false);
+	mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush), false);
 	numOfVerts_p = mesh_p->totvert;
 	mvert_p = mesh_p->mvert;
 	copy_m4_m4(prev_obmat, ob->obmat);
@@ -3689,7 +3723,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 
 	BKE_object_modifier_update_subframe(
 	            depsgraph, scene, ob, true, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
-	mesh_c = brush->mesh;
+	mesh_c = dynamicPaint_brush_mesh_get(brush);
 	numOfVerts_c = mesh_c->totvert;
 	mvert_c = mesh_c->mvert;
 
@@ -4123,8 +4157,10 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph, DynamicPaintSurface *sur
 	if (brush->flags & MOD_DPAINT_USES_VELOCITY)
 		dynamicPaint_brushMeshCalculateVelocity(depsgraph, scene, brushOb, brush, &brushVelocity, timescale);
 
-	if (!brush->mesh)
+	Mesh *brush_mesh = dynamicPaint_brush_mesh_get(brush);
+	if (brush_mesh == NULL) {
 		return 0;
+	}
 
 	{
 		BVHTreeFromMesh treeData = {NULL};
@@ -4135,7 +4171,7 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph, DynamicPaintSurface *sur
 		Bounds3D mesh_bb = {{0}};
 		VolumeGrid *grid = bData->grid;
 
-		mesh = BKE_mesh_copy_for_eval(brush->mesh, false);
+		mesh = BKE_mesh_copy_for_eval(brush_mesh, false);
 		mvert = mesh->mvert;
 		mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
 		mloop = mesh->mloop;
@@ -4604,7 +4640,8 @@ static int dynamicPaint_paintSinglePoint(
 	if (brush->flags & MOD_DPAINT_USES_VELOCITY)
 		dynamicPaint_brushObjectCalculateVelocity(depsgraph, scene, brushOb, &brushVel, timescale);
 
-	const MVert *mvert = brush->mesh->mvert;
+	const Mesh *brush_mesh = dynamicPaint_brush_mesh_get(brush);
+	const MVert *mvert = brush_mesh->mvert;
 
 	/*
 	 * Loop through every surface point
@@ -5623,7 +5660,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
-	Mesh *mesh = surface->canvas->mesh;
+	Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
 	MVert *mvert = mesh->mvert;
 
 	int numOfVerts = mesh->totvert;
@@ -5771,7 +5808,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Depsgraph
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
-	Mesh *mesh = surface->canvas->mesh;
+	Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
 	int index;
 	bool new_bdata = false;
 	const bool do_velocity_data = ((surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) ||
@@ -6045,8 +6082,9 @@ int dynamicPaint_calculateFrame(
 	float timescale = 1.0f;
 
 	/* apply previous displace on derivedmesh if incremental surface */
-	if (surface->flags & MOD_DPAINT_DISP_INCREMENTAL)
-		dynamicPaint_applySurfaceDisplace(surface, surface->canvas->mesh);
+	if (surface->flags & MOD_DPAINT_DISP_INCREMENTAL) {
+		dynamicPaint_applySurfaceDisplace(surface, dynamicPaint_canvas_mesh_get(surface->canvas));
+	}
 
 	/* update bake data */
 	dynamicPaint_generateBakeData(surface, depsgraph, cObject);

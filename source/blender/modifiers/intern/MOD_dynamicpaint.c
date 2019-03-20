@@ -58,6 +58,15 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	dynamicPaint_Modifier_copy(pmd, tpmd, flag);
 }
 
+static void freeRuntimeData(void *runtime_data_v)
+{
+	if (runtime_data_v == NULL) {
+		return;
+	}
+	DynamicPaintRuntime *runtime_data = (DynamicPaintRuntime *)runtime_data_v;
+	dynamicPaint_Modifier_free_runtime(runtime_data);
+}
+
 static void freeData(ModifierData *md)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
@@ -192,5 +201,5 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    foreachTexLink,
-	/* freeRuntimeData */   NULL,
+	/* freeRuntimeData */   freeRuntimeData,
 };
