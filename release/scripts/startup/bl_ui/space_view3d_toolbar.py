@@ -527,7 +527,7 @@ class VIEW3D_PT_tools_brush_options(Panel, View3DPaintPanel):
 
         elif context.sculpt_object and brush:
             if capabilities.has_accumulate:
-                col.prop(brush, "use_accumulate", text="Airbrush")
+                col.prop(brush, "use_accumulate")
 
             UnifiedPaintPanel.prop_unified_size(col, context, brush, "use_locked_size")
 
