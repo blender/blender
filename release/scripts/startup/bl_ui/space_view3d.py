@@ -5795,9 +5795,11 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
 
     def draw(self, context):
         layout = self.layout
-
         brush = context.tool_settings.image_paint.brush
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
+        capabilities = brush.image_paint_capabilities
+
+        if capabilities.has_radius:
+            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
 
 
@@ -5826,10 +5828,29 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.sculpt.brush
+        capabilities = brush.sculpt_capabilities
 
         UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
 
+        if capabilities.has_auto_smooth:
+            layout.prop(brush, "auto_smooth_factor", slider=True)
+
+        if capabilities.has_normal_weight:
+            layout.prop(brush, "normal_weight", slider=True)
+
+        if capabilities.has_pinch_factor:
+            layout.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")
+
+        if capabilities.has_rake_factor:
+            layout.prop(brush, "rake_factor", slider=True)
+
+        if capabilities.has_plane_offset:
+            layout.prop(brush, "plane_offset", slider=True)
+            layout.prop(brush, "plane_trim", slider=True, text="Distance")
+
+        if capabilities.has_height:
+            layout.prop(brush, "height", slider=True, text="Height")
 
 class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
     bl_space_type = 'VIEW_3D'
