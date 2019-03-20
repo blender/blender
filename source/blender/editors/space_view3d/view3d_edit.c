@@ -1292,11 +1292,7 @@ void view3d_ndof_fly(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name NDOF Operators
- *
- * - "orbit" navigation (trackball/turntable)
- * - zooming
- * - panning in rotationally-locked views
+/** \name NDOF Orbit/Translate Operator
  * \{ */
 
 static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1373,6 +1369,12 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Orbit/Zoom Operator
+ * \{ */
 
 static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1485,9 +1487,12 @@ void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
 	ot->flag = 0;
 }
 
-/* -- "pan" navigation
- * -- zoom or dolly?
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Pan/Zoom Operator
+ * \{ */
+
 static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION) {
@@ -1547,6 +1552,11 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Transform All Operator
+ * \{ */
 
 /**
  * wraps #ndof_orbit_zoom but never restrict to orbit.
@@ -1569,7 +1579,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "NDOF Pan View";
+	ot->name = "NDOF Transform View";
 	ot->description = "Pan and rotate the view with the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_all";
 
