@@ -284,29 +284,11 @@ void DepsgraphRelationBuilder::add_modifier_to_transform_relation(
         const DepsNodeHandle *handle,
         const char *description)
 {
-	/* Geometry operation, this is where relation will be wired to. */
-	OperationNode *geometry_operation_node =
-	        handle->node->get_entry_operation();
-	ComponentNode *geometry_component = geometry_operation_node->owner;
-	BLI_assert(geometry_component->type == NodeType::GEOMETRY);
-	IDNode *id_node = geometry_component->owner;
-	/* Transform operation, the source of the relation. */
-	ComponentNode *transform_component =
-	        id_node->find_component(NodeType::TRANSFORM);
-	ID *id = geometry_operation_node->owner->owner->id_orig;
-	BLI_assert(GS(id->name) == ID_OB);
-	Object *object = reinterpret_cast<Object *>(id);
-	OperationNode *transform_operation_node = NULL;
-	if (object->rigidbody_object == NULL) {
-		transform_operation_node = transform_component->get_exit_operation();
-	}
-	else {
-		transform_operation_node = transform_component->get_operation(
-		        OperationCode::TRANSFORM_EVAL);
-	}
+	IDNode *id_node = handle->node->owner->owner;
+	ID *id = id_node->id_orig;
+	ComponentKey geometry_key(id, NodeType::GEOMETRY);
 	/* Wire up the actual relation. */
-	add_operation_relation(
-	        transform_operation_node, geometry_operation_node, description);
+	add_depends_on_transform_relation(id, geometry_key, description);
 }
 
 void DepsgraphRelationBuilder::add_customdata_mask(
@@ -1945,12 +1927,9 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 		}
 	}
 	/* Particle depends on the object transform, so that channel is to be ready
-	 * first.
-	 *
-	 * TODO(sergey): This relation should be altered once real granular update
-	 * is implemented. */
-	ComponentKey transform_key(&object->id, NodeType::TRANSFORM);
-	add_relation(transform_key, obdata_ubereval_key, "Particle Eval");
+	 * first. */
+	add_depends_on_transform_relation(
+	        &object->id, obdata_ubereval_key, "Particle Eval");
 }
 
 void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)

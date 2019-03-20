@@ -27,6 +27,7 @@
 
 extern "C" {
 #include "DNA_ID.h"
+#include "DNA_object_types.h"
 }
 
 namespace DEG {
@@ -115,6 +116,26 @@ Relation *DepsgraphRelationBuilder::add_node_handle_relation(
 		}
 	}
 	return NULL;
+}
+
+template <typename KeyTo>
+Relation *DepsgraphRelationBuilder::add_depends_on_transform_relation(
+        ID *id,
+        const KeyTo& key_to,
+        const char *description,
+        int flags)
+{
+	if (GS(id->name) == ID_OB) {
+		Object *object = reinterpret_cast<Object *>(id);
+		if (object->rigidbody_object != NULL) {
+			OperationKey transform_key(&object->id,
+			                           NodeType::TRANSFORM,
+			                           OperationCode::TRANSFORM_EVAL);
+			return add_relation(transform_key, key_to, description, flags);
+		}
+	}
+	ComponentKey transform_key(id, NodeType::TRANSFORM);
+	return add_relation(transform_key, key_to, description, flags);
 }
 
 template <typename KeyType>

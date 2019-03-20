@@ -198,6 +198,12 @@ public:
 	                                   const char *description,
 	                                   int flags = 0);
 
+	template <typename KeyTo>
+	Relation *add_depends_on_transform_relation(ID *id,
+	                                            const KeyTo& key_to,
+	                                            const char *description,
+	                                            int flags = 0);
+
 	/* Adds relation from proper transformation opertation to the modifier.
 	 * Takes care of checking for possible physics solvers modifying position
 	 * of this object. */
