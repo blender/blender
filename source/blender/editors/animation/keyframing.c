@@ -1975,6 +1975,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 				 */
 				success += delete_keyframe_fcurve(adt, fcu, cfra_unmap);
 			}
+			DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
 		}
 
 		/* report success (or failure) */
