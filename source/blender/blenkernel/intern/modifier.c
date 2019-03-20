@@ -299,6 +299,9 @@ void modifier_copyData_generic(const ModifierData *md_src, ModifierData *md_dst,
 	char       *md_dst_data =       ((char *)md_dst) + data_size;
 	BLI_assert(data_size <= (size_t)mti->structSize);
 	memcpy(md_dst_data, md_src_data, (size_t)mti->structSize - data_size);
+
+	/* Runtime fields are never to be preserved. */
+	md_dst->runtime = NULL;
 }
 
 static void modifier_copy_data_id_us_cb(void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin, int cb_flag)
