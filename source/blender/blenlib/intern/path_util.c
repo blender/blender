@@ -864,47 +864,49 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
 
 void BLI_path_frame_strip(char *path, char *r_ext)
 {
-	if (*path) {
-		char *file = (char *)BLI_last_slash(path);
-		char *c, *suffix;
-		int len;
-		int numdigits = 0;
-
-		if (file == NULL)
-			file = path;
-
-		/* first get the extension part */
-		len = strlen(file);
-
-		c = file + len;
-
-		/* isolate extension */
-		while (--c != file) {
-			if (*c == '.') {
-				c--;
-				break;
-			}
-		}
-
-		suffix = c + 1;
-
-		/* find start of number */
-		while (c != (file - 1) && isdigit(*c)) {
-			c--;
-			numdigits++;
-		}
-
-		c++;
-
-		int suffix_length = len - (suffix - file);
-		BLI_strncpy(r_ext, suffix, suffix_length+1);
-
-		/* replace the number with the suffix and terminate the string */
-		while (numdigits--) {
-			*c++ = '#';
-		}
-		*c = '\0';
+	if (*path == '\0') {
+		return;
 	}
+
+	char *file = (char *)BLI_last_slash(path);
+	char *c, *suffix;
+	int len;
+	int numdigits = 0;
+
+	if (file == NULL)
+		file = path;
+
+	/* first get the extension part */
+	len = strlen(file);
+
+	c = file + len;
+
+	/* isolate extension */
+	while (--c != file) {
+		if (*c == '.') {
+			c--;
+			break;
+		}
+	}
+
+	suffix = c + 1;
+
+	/* find start of number */
+	while (c != (file - 1) && isdigit(*c)) {
+		c--;
+		numdigits++;
+	}
+
+	c++;
+
+	int suffix_length = len - (suffix - file);
+	BLI_strncpy(r_ext, suffix, suffix_length+1);
+
+	/* replace the number with the suffix and terminate the string */
+	while (numdigits--) {
+		*c++ = '#';
+	}
+	*c = '\0';
 }
 
 
