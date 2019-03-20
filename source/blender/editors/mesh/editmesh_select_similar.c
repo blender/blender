@@ -549,6 +549,7 @@ face_select_all:
 	}
 
 	MEM_freeN(objects);
+	BLI_kdtree_1d_free(tree_1d);
 	BLI_kdtree_3d_free(tree_3d);
 	BLI_kdtree_4d_free(tree_4d);
 	if (gset != NULL) {
@@ -988,6 +989,7 @@ edge_select_all:
 	}
 
 	MEM_freeN(objects);
+	BLI_kdtree_1d_free(tree_1d);
 	BLI_kdtree_3d_free(tree_3d);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
