@@ -71,13 +71,11 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 		node = nodeAddStaticNode(C, snode->edittree, type);
 	BLI_assert(node && node->typeinfo);
 
-	/* generics */
-	node->locx = locx;
-	node->locy = locy + 60.0f;     /* arbitrary... so its visible, (0,0) is top of node */
-	nodeSetSelected(node, true);
+	/* Position mouse in node header. */
+	node->locx = locx - NODE_DY * 1.5f / UI_DPI_FAC;
+	node->locy = locy + NODE_DY * 0.5f / UI_DPI_FAC;
 
-	node->locx = locx;
-	node->locy = locy + 60.0f;
+	nodeSetSelected(node, true);
 
 	ntreeUpdateTree(bmain, snode->edittree);
 	ED_node_set_active(bmain, snode->edittree, node);
@@ -354,6 +352,9 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 	                         &snode->cursor[0], &snode->cursor[1]);
+
+	snode->cursor[0] /= UI_DPI_FAC;
+	snode->cursor[1] /= UI_DPI_FAC;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name"))
 		return node_add_file_exec(C, op);

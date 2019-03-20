@@ -943,10 +943,12 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	int dir;
 
 	if (node) {
+		float cursor[2];
+
 		/* convert mouse coordinates to v2d space */
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-		                         &snode->cursor[0], &snode->cursor[1]);
-		dir = node->typeinfo->resize_area_func(node, snode->cursor[0], snode->cursor[1]);
+		                         &cursor[0], &cursor[1]);
+		dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
 		if (dir != 0) {
 			node_resize_init(C, op, event, node, dir);
 			return OPERATOR_RUNNING_MODAL;
