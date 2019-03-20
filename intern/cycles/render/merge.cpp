@@ -392,34 +392,35 @@ static bool merge_pixels(const vector<MergeImage>& images,
 		for(size_t li = 0; li < image.layers.size(); li++) {
 			const MergeImageLayer& layer = image.layers[li];
 
-			const size_t stride = out_spec.nchannels;
+			const size_t stride = image.in->spec().nchannels;
+			const size_t out_stride = out_spec.nchannels;
 			const size_t num_pixels = pixels.size();
 
 			for(const MergeImagePass& pass: layer.passes) {
 				size_t offset = pass.offset;
-				size_t merge_offset = pass.merge_offset;
+				size_t out_offset = pass.merge_offset;
 
 				switch(pass.op) {
 					case MERGE_CHANNEL_NOP:
 						break;
 					case MERGE_CHANNEL_COPY:
-						for(size_t i = 0; i < num_pixels; i += stride) {
-							out_pixels[i + merge_offset] = pixels[i + offset];
+						for(; offset < num_pixels; offset += stride, out_offset += out_stride) {
+							out_pixels[out_offset] = pixels[offset];
 						}
 						break;
 					case MERGE_CHANNEL_SUM:
-						for(size_t i = 0; i < num_pixels; i += stride) {
-							out_pixels[i + merge_offset] += pixels[i + offset];
+						for(; offset < num_pixels; offset += stride, out_offset += out_stride) {
+							out_pixels[out_offset] += pixels[offset];
 						}
 						break;
 					case MERGE_CHANNEL_AVERAGE:
 						/* Weights based on sample metadata. Per channel since not
 						 * all files are guaranteed to have the same channels. */
-						const int total_samples = channel_total_samples[offset];
+						const int total_samples = channel_total_samples[out_offset];
 						const float t = (float)layer.samples / (float)total_samples;
 
-						for(size_t i = 0; i < num_pixels; i += stride) {
-							out_pixels[i + merge_offset] += t * pixels[i + offset];
+						for(; offset < num_pixels; offset += stride, out_offset += out_stride) {
+							out_pixels[out_offset] += t * pixels[offset];
 						}
 						break;
 				}
