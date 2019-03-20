@@ -833,7 +833,9 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
 	DRW_draw_pass(psl->depth_pass_cull);
 	DRW_draw_pass(psl->probe_background);
 	DRW_draw_pass(psl->material_pass);
+	DRW_draw_pass(psl->material_pass_cull);
 	DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
+	DRW_draw_pass(psl->sss_pass_cull);
 	EEVEE_draw_default_passes(psl);
 }
 
@@ -911,7 +913,9 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 	/* Shading pass */
 	EEVEE_draw_default_passes(psl);
 	DRW_draw_pass(psl->material_pass);
+	DRW_draw_pass(psl->material_pass_cull);
 	DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
+	DRW_draw_pass(psl->sss_pass_cull);
 	DRW_draw_pass(psl->refract_pass);
 
 	/* Transparent */

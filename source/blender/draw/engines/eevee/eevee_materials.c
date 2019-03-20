@@ -1037,7 +1037,8 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
-		psl->material_pass = DRW_pass_create("Material Shader Pass", state);
+		psl->material_pass = DRW_pass_create("Material Pass", state);
+		psl->material_pass_cull = DRW_pass_create("Material Pass Cull", state | DRW_STATE_CULL_BACK);
 	}
 
 	{
@@ -1075,6 +1076,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
 		        DRW_STATE_WIRE | DRW_STATE_WRITE_STENCIL);
 		psl->sss_pass = DRW_pass_create("Subsurface Pass", state);
+		psl->sss_pass_cull = DRW_pass_create("Subsurface Pass Cull", state | DRW_STATE_CULL_BACK);
 		e_data.sss_count = 0;
 	}
 
@@ -1230,7 +1232,8 @@ static void material_opaque(
 				*shgrp = DRW_shgroup_material_create(
 				        *gpumat,
 				        (use_ssrefract) ? psl->refract_pass :
-				        (use_sss) ? psl->sss_pass : psl->material_pass);
+				        (use_sss) ? ((do_cull) ? psl->sss_pass_cull : psl->sss_pass)
+				                  : ((do_cull) ? psl->material_pass_cull : psl->material_pass));
 
 				add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth,
 				                      use_diffuse, use_glossy, use_refract, use_ssrefract, false);

@@ -285,6 +285,7 @@ void EEVEE_subsurface_data_render(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 
 		GPU_framebuffer_bind(fbl->main_fb);
 		DRW_draw_pass(psl->sss_pass);
+		DRW_draw_pass(psl->sss_pass_cull);
 
 		/* Restore */
 		GPU_framebuffer_ensure_config(&fbl->main_fb, {

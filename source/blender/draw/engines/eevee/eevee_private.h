@@ -253,7 +253,9 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *refract_depth_pass_clip_cull;
 	struct DRWPass *default_pass[VAR_MAT_MAX];
 	struct DRWPass *sss_pass;
+	struct DRWPass *sss_pass_cull;
 	struct DRWPass *material_pass;
+	struct DRWPass *material_pass_cull;
 	struct DRWPass *refract_pass;
 	struct DRWPass *transparent_pass;
 	struct DRWPass *background_pass;
