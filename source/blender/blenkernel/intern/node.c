@@ -2045,6 +2045,8 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		        (LIB_ID_COPY_LOCALIZE |
 		         LIB_ID_COPY_NO_ANIMDATA));
 
+		ltree->id.tag |= LIB_TAG_LOCALIZED;
+
 		for (node = ltree->nodes.first; node; node = node->next) {
 			if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
 				node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
@@ -2061,8 +2063,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 
 		if (ntree->typeinfo->localize)
 			ntree->typeinfo->localize(ltree, ntree);
-
-		ltree->id.tag |= LIB_TAG_LOCALIZED;
 
 		BLI_mutex_unlock(ntree->duplilock);
 
