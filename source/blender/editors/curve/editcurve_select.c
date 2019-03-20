@@ -1613,9 +1613,11 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	if (tree_1d != NULL) {
+		BLI_kdtree_1d_deduplicate(tree_1d);
 		BLI_kdtree_1d_balance(tree_1d);
 	}
 	if (tree_3d != NULL) {
+		BLI_kdtree_3d_deduplicate(tree_3d);
 		BLI_kdtree_3d_balance(tree_3d);
 	}
 

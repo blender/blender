@@ -333,12 +333,15 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	BLI_assert((type != SIMFACE_FREESTYLE) || (face_data_value != SIMFACE_DATA_NONE));
 
 	if (tree_1d != NULL) {
+		BLI_kdtree_1d_deduplicate(tree_1d);
 		BLI_kdtree_1d_balance(tree_1d);
 	}
 	if (tree_3d != NULL) {
+		BLI_kdtree_3d_deduplicate(tree_3d);
 		BLI_kdtree_3d_balance(tree_3d);
 	}
 	if (tree_4d != NULL) {
+		BLI_kdtree_4d_deduplicate(tree_4d);
 		BLI_kdtree_4d_balance(tree_4d);
 	}
 
@@ -804,9 +807,11 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	BLI_assert((type != SIMEDGE_FREESTYLE) || (edge_data_value != SIMEDGE_DATA_NONE));
 
 	if (tree_1d != NULL) {
+		BLI_kdtree_1d_deduplicate(tree_1d);
 		BLI_kdtree_1d_balance(tree_1d);
 	}
 	if (tree_3d != NULL) {
+		BLI_kdtree_3d_deduplicate(tree_3d);
 		BLI_kdtree_3d_balance(tree_3d);
 	}
 
@@ -1126,6 +1131,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	/* Remove duplicated entries. */
 	if (tree_3d != NULL) {
+		BLI_kdtree_3d_deduplicate(tree_3d);
 		BLI_kdtree_3d_balance(tree_3d);
 	}
 
