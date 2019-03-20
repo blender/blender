@@ -52,18 +52,18 @@ class UnifiedPaintPanel:
         flow = parent.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
-        col.prop(ups, "use_unified_size", text="Unified Size")
+        col.prop(ups, "use_unified_size", text="Size")
         col = flow.column()
-        col.prop(ups, "use_unified_strength", text="Unified Strength")
+        col.prop(ups, "use_unified_strength", text="Strength")
         if context.weight_paint_object:
             col = flow.column()
-            col.prop(ups, "use_unified_weight", text="Unified Weight")
+            col.prop(ups, "use_unified_weight", text="Weight")
         elif context.vertex_paint_object or context.image_paint_object:
             col = flow.column()
-            col.prop(ups, "use_unified_color", text="Unified Color")
+            col.prop(ups, "use_unified_color", text="Color")
         else:
             col = flow.column()
-            col.prop(ups, "use_unified_color", text="Unified Color")
+            col.prop(ups, "use_unified_color", text="Color")
 
     @staticmethod
     def prop_unified_size(parent, context, brush, prop_name, *, icon='NONE', text=None, slider=False):
