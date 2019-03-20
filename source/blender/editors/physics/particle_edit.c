@@ -2773,7 +2773,9 @@ static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 	foreach_point(&data, subdivide_particle);
 
 	recalc_lengths(data.edit);
+	PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
 	PE_update_object(data.depsgraph, data.scene, data.ob, 1);
+	DEG_id_tag_update(&data.ob->id, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
