@@ -244,7 +244,7 @@ bool BKE_appdir_app_is_portable_install(void)
  * \param targetpath: String to return path.
  * \param subfolder_name: optional name of subfolder within folder.
  * \param envvar: name of environment variable to check folder_name.
- * \return true if it was able to construct such a path.
+ * \return true if it was able to construct such a path and the path exists.
  */
 static bool get_path_environment(
         char *targetpath,
@@ -262,6 +262,35 @@ static bool get_path_environment(
 			        user_path,
 			        NULL,
 			        subfolder_name);
+		}
+		else {
+			BLI_strncpy(targetpath, user_path, FILE_MAX);
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Returns the path of a folder from environment variables
+ *
+ * \param targetpath: String to return path.
+ * \param subfolder_name: optional name of subfolder within folder.
+ * \param envvar: name of environment variable to check folder_name.
+ * \return true if it was able to construct such a path.
+ */
+static bool get_path_environment_notest(
+        char *targetpath,
+        size_t targetpath_len,
+        const char *subfolder_name,
+        const char *envvar)
+{
+	char user_path[FILE_MAX];
+
+	if (test_env_path(user_path, envvar)) {
+		if (subfolder_name) {
+			BLI_join_dirfile(targetpath, targetpath_len, user_path, subfolder_name);
+			return true;
 		}
 		else {
 			BLI_strncpy(targetpath, user_path, FILE_MAX);
@@ -447,19 +476,19 @@ const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *su
 
 	switch (folder_id) {
 		case BLENDER_USER_DATAFILES:
-			if (get_path_environment(path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES")) break;
+			if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES")) break;
 			get_path_user(path, sizeof(path), "datafiles", subfolder, ver);
 			break;
 		case BLENDER_USER_CONFIG:
-			if (get_path_environment(path, sizeof(path), subfolder, "BLENDER_USER_CONFIG")) break;
+			if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_CONFIG")) break;
 			get_path_user(path, sizeof(path), "config", subfolder, ver);
 			break;
 		case BLENDER_USER_AUTOSAVE:
-			if (get_path_environment(path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE")) break;
+			if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE")) break;
 			get_path_user(path, sizeof(path), "autosave", subfolder, ver);
 			break;
 		case BLENDER_USER_SCRIPTS:
-			if (get_path_environment(path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS")) break;
+			if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS")) break;
 			get_path_user(path, sizeof(path), "scripts", subfolder, ver);
 			break;
 		default:
