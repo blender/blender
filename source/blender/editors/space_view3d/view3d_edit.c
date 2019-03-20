@@ -80,6 +80,12 @@
 
 #include "view3d_intern.h"  /* own include */
 
+
+enum {
+	HAS_TRANSLATE = (1 << 0),
+	HAS_ROTATE = (1 << 0),
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Generic View Operator Properties
  * \{ */
@@ -1303,6 +1309,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		ViewOpsData *vod;
 		View3D *v3d;
 		RegionView3D *rv3d;
+		char xform_flag = 0;
 
 		const wmNDOFMotionData *ndof = event->customdata;
 
@@ -1330,14 +1337,19 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
+				xform_flag |= HAS_TRANSLATE;
 			}
 
 			if (has_rotation) {
 				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, true);
+				xform_flag |= HAS_ROTATE;
 			}
 		}
 
 		ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
+		if (xform_flag) {
+			ED_view3d_camera_lock_autokey(v3d, rv3d, C, xform_flag & HAS_ROTATE, xform_flag & HAS_TRANSLATE);
+		}
 
 		ED_region_tag_redraw(vod->ar);
 
@@ -1372,6 +1384,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		ViewOpsData *vod;
 		View3D *v3d;
 		RegionView3D *rv3d;
+		char xform_flag = 0;
 
 		const wmNDOFMotionData *ndof = event->customdata;
 
@@ -1402,6 +1415,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, true);
+				xform_flag |= HAS_TRANSLATE;
 			}
 		}
 		else if ((U.ndof_flag & NDOF_MODE_ORBIT) ||
@@ -1412,10 +1426,12 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 			if (has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, false, has_zoom);
+				xform_flag |= HAS_TRANSLATE;
 			}
 
 			if (has_rotation) {
 				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, true);
+				xform_flag |= HAS_ROTATE;
 			}
 		}
 		else {  /* free/explore (like fly mode) */
@@ -1427,6 +1443,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
+				xform_flag |= HAS_TRANSLATE;
 			}
 
 			dist_backup = rv3d->dist;
@@ -1434,12 +1451,16 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 			if (has_rotation) {
 				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, false);
+				xform_flag |= HAS_ROTATE;
 			}
 
 			ED_view3d_distance_set(rv3d, dist_backup);
 		}
 
 		ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
+		if (xform_flag) {
+			ED_view3d_camera_lock_autokey(v3d, rv3d, C, xform_flag & HAS_ROTATE, xform_flag & HAS_TRANSLATE);
+		}
 
 		ED_region_tag_redraw(vod->ar);
 
@@ -1477,6 +1498,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		const wmNDOFMotionData *ndof = event->customdata;
+		char xform_flag = 0;
 
 		const bool has_translate = NDOF_HAS_TRANSLATE;
 		const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
@@ -1495,7 +1517,12 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, sa, ar, has_translate, has_zoom);
+				xform_flag |= HAS_TRANSLATE;
 			}
+		}
+
+		if (xform_flag) {
+			ED_view3d_camera_lock_autokey(v3d, rv3d, C, false, xform_flag & HAS_TRANSLATE);
 		}
 
 		ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
