@@ -61,6 +61,8 @@ const char *operationCodeAsString(OperationCode opcode)
 			return "TRANSFORM_CONSTRAINTS";
 		case OperationCode::TRANSFORM_FINAL: return "TRANSFORM_FINAL";
 		case OperationCode::TRANSFORM_EVAL: return "TRANSFORM_EVAL";
+		case OperationCode::TRANSFORM_SIMULATION_INIT:
+			return "TRANSFORM_SIMULATION_INIT";
 		/* Rigid body. */
 		case OperationCode::RIGIDBODY_REBUILD: return "RIGIDBODY_REBUILD";
 		case OperationCode::RIGIDBODY_SIM: return "RIGIDBODY_SIM";

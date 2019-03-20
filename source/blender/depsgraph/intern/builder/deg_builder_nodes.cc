@@ -1072,8 +1072,11 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 			if (object->type != OB_MESH) {
 				continue;
 			}
-			/* 2) create operation for flushing results */
-			/* object's transform component - where the rigidbody operation
+			add_operation_node(&object->id,
+			                   NodeType::TRANSFORM,
+			                   OperationCode::TRANSFORM_SIMULATION_INIT);
+			/* Create operation for flushing results. */
+			/* Object's transform component - where the rigidbody operation
 			 * lives. */
 			add_operation_node(&object->id,
 			                   NodeType::TRANSFORM,

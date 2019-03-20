@@ -76,6 +76,10 @@ enum class OperationCode {
 	TRANSFORM_CONSTRAINTS,
 	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
 	TRANSFORM_EVAL,
+	/* Initializes transformation for simulation.
+	 * For example, ensures point cache is properly reset before doing rigid
+	 * body simulation. */
+	TRANSFORM_SIMULATION_INIT,
 	/* Transform exit point */
 	TRANSFORM_FINAL,
 

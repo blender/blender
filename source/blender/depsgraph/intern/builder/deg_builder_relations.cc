@@ -934,9 +934,10 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 		int flag = -1;
 		if (ptcache_id->type == PTCACHE_TYPE_RIGIDBODY) {
 			flag = FLAG_TRANSFORM;
-			OperationKey transform_key(&object->id,
-			                           NodeType::TRANSFORM,
-			                           OperationCode::TRANSFORM_LOCAL);
+			OperationKey transform_key(
+			        &object->id,
+			        NodeType::TRANSFORM,
+			        OperationCode::TRANSFORM_SIMULATION_INIT);
 			add_relation(point_cache_key,
 			             transform_key,
 			             "Point Cache -> Rigid Body");
@@ -1731,11 +1732,19 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			             "Rigidbody Sim Eval -> RBO Sync");
 			/* Simulation uses object transformation after parenting and solving
 			 * contraints. */
+			OperationKey object_transform_simulation_init_key(
+			        &object->id,
+			        NodeType::TRANSFORM,
+			        OperationCode::TRANSFORM_SIMULATION_INIT);
 			OperationKey object_transform_eval_key(
 			        &object->id,
 			        NodeType::TRANSFORM,
 			        OperationCode::TRANSFORM_EVAL);
+
 			add_relation(object_transform_eval_key,
+			             object_transform_simulation_init_key,
+			             "Object Transform -> Simulation Init");
+			add_relation(object_transform_simulation_init_key,
 			             rb_simulate_key,
 			             "Object Transform -> Rigidbody Sim Eval");
 			/* Geometry must be known to create the rigid body. RBO_MESH_BASE
