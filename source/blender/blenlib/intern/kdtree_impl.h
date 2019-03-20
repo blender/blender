@@ -910,3 +910,58 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BLI_kdtree_3d_deduplicate
+ * \{ */
+
+static int kdtree_node_cmp_deduplicate(const void *n0_p, const void *n1_p)
+{
+	const KDTreeNode *n0 = n0_p;
+	const KDTreeNode *n1 = n1_p;
+	for (uint j = 0; j < KD_DIMS; j++) {
+		if (n0->co[j] < n1->co[j]) {
+			return -1;
+		}
+		else if (n0->co[j] > n1->co[j]) {
+			return 1;
+		}
+	}
+	/* Sort by pointer so the first added will be used.
+	 * assignment below ignores const correctness,
+	 * however the values aren't used for sorting and are to be discarded. */
+	if (n0 < n1) {
+		((KDTreeNode *)n1)->d = KD_DIMS;  /* tag invalid */
+		return -1;
+	}
+	else {
+		((KDTreeNode *)n0)->d = KD_DIMS;  /* tag invalid */
+		return 1;
+	}
+}
+
+/**
+ * Remove exact duplicates (run before before balancing).
+ *
+ * Keep the first element added when duplicates are found.
+ */
+int BLI_kdtree_nd_(deduplicate)(KDTree *tree)
+{
+#ifdef DEBUG
+	tree->is_balanced = false;
+#endif
+	qsort(tree->nodes, (size_t)tree->nodes_len, sizeof(*tree->nodes), kdtree_node_cmp_deduplicate);
+	uint j = 0;
+	for (uint i = 0; i < tree->nodes_len; i++) {
+		if (tree->nodes[i].d != KD_DIMS) {
+			if (i != j) {
+				tree->nodes[j] = tree->nodes[i];
+			}
+			j++;
+		}
+	}
+	tree->nodes_len = j;
+	return (int)tree->nodes_len;
+}
+
+/** \} */

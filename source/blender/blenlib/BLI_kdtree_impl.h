@@ -67,6 +67,9 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(
         const KDTree *tree, const float range, bool use_index_order,
         int *doubles);
 
+
+int BLI_kdtree_nd_(deduplicate)(KDTree *tree);
+
 /* Versions of find/range search that take a squared distance callback to support bias. */
 int BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
         const KDTree *tree, const float co[KD_DIMS],
