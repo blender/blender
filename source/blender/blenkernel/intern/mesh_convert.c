@@ -592,7 +592,7 @@ void BKE_mesh_from_nurbs_displist(
 	else {
 		me = BKE_mesh_add(bmain, obdata_name);
 		ob->runtime.mesh_eval = NULL;
-		BKE_mesh_nomain_to_mesh(me_eval, me, ob, &CD_MASK_MESH, false);
+		BKE_mesh_nomain_to_mesh(me_eval, me, ob, &CD_MASK_MESH, true);
 	}
 
 	me->totcol = cu->totcol;
