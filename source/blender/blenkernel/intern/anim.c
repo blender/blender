@@ -376,6 +376,9 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 		if (BLI_dlrbTree_search_exact(&mpt->keys, compare_ak_cfraPtr, &mframe)) {
 			mpv->flag |= MOTIONPATH_VERT_KEY;
 		}
+		else {
+			mpv->flag &= ~MOTIONPATH_VERT_KEY;
+		}
 
 		/* Incremental update on evaluated object if possible, for fast updating
 		 * while dragging in transform. */
