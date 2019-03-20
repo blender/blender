@@ -10844,15 +10844,12 @@ static void add_loose_objects_to_scene(
 					base->local_view_bits |= v3d->local_view_uuid;
 				}
 
-				BKE_scene_object_base_flag_sync_from_base(base);
-
 				if (flag & FILE_AUTOSELECT) {
-					if (base->flag & BASE_SELECTABLE) {
-						base->flag |= BASE_SELECTED;
-						BKE_scene_object_base_flag_sync_from_base(base);
-					}
+					base->flag |= BASE_SELECTED;
 					/* Do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level. */
 				}
+
+				BKE_scene_object_base_flag_sync_from_base(base);
 
 				ob->id.tag &= ~LIB_TAG_INDIRECT;
 				ob->id.tag |= LIB_TAG_EXTERN;
@@ -10932,6 +10929,17 @@ static void add_collections_to_scene(
 			if (do_add_collection) {
 				/* Add collection as child of active collection. */
 				BKE_collection_child_add(bmain, active_collection, collection);
+
+				if (flag & FILE_AUTOSELECT) {
+					for (CollectionObject *coll_ob = collection->gobject.first; coll_ob != NULL; coll_ob = coll_ob->next) {
+						Object *ob = coll_ob->ob;
+						Base *base = BKE_view_layer_base_find(view_layer, ob);
+						if (base) {
+							base->flag |= BASE_SELECTED;
+							BKE_scene_object_base_flag_sync_from_base(base);
+						}
+					}
+				}
 
 				collection->id.tag &= ~LIB_TAG_INDIRECT;
 				collection->id.tag |= LIB_TAG_EXTERN;
