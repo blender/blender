@@ -1521,11 +1521,10 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 			}
 		}
 
+		ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
 		if (xform_flag) {
 			ED_view3d_camera_lock_autokey(v3d, rv3d, C, false, xform_flag & HAS_TRANSLATE);
 		}
-
-		ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
 
