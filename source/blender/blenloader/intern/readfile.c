@@ -11106,7 +11106,8 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 
 	(*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 
-	/* clear for collection instantiating tag */
+	/* clear for objects and collections instantiating tag */
+	BKE_main_id_tag_listbase(&(mainvar->objects), LIB_TAG_DOIT, false);
 	BKE_main_id_tag_listbase(&(mainvar->collections), LIB_TAG_DOIT, false);
 
 	/* make mains */
