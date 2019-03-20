@@ -2996,16 +2996,14 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				break;
 			}
 			Mesh *me = ob->data;
-			if (me->totedge == 0) {
-				if (!is_edit_mode) {
-					struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
-					if (geom) {
-						if (theme_id == TH_UNDEFINED) {
-							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-						}
-						DRWShadingGroup *shgroup = shgroup_theme_id_to_point(sgl, theme_id, ob->base_flag);
-						DRW_shgroup_call_object_add(shgroup, geom, ob);
+			if (!is_edit_mode && me->totedge == 0) {
+				struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
+				if (geom) {
+					if (theme_id == TH_UNDEFINED) {
+						theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 					}
+					DRWShadingGroup *shgroup = shgroup_theme_id_to_point(sgl, theme_id, ob->base_flag);
+					DRW_shgroup_call_object_add(shgroup, geom, ob);
 				}
 			}
 			else {
@@ -3015,7 +3013,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					BMEditMesh *embm = me->edit_mesh;
 					has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
 				}
-				if (!is_edit_mode || has_edit_mesh_cage) {
+				if ((!is_edit_mode && me->totedge > 0) || has_edit_mesh_cage) {
 					struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
