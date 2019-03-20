@@ -151,9 +151,12 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		EDBM_mesh_normals_update(em);
 		BKE_editmesh_tessface_calc(em);
 
-		/* derivedMesh might be needed for solving parenting,
-		 * so re-create it here */
-		makeDerivedMesh(depsgraph, scene, obedit, em, &CD_MASK_BAREMESH_ORIGINDEX, false);
+		/* Make sure the evaluated mesh is updates.
+		 *
+		 * Most reliable way is to update the tagged objects, which will ensure
+		 * proper copy-on-write update, but also will make sure all dependent
+		 * objects are also up to date. */
+		BKE_scene_graph_update_tagged(depsgraph, bmain);
 
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
