@@ -475,6 +475,8 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	else if(curve_mesh) {
 		switch(std) {
 			case ATTR_STD_UV:
+				attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
+				break;
 			case ATTR_STD_GENERATED:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
 				break;
