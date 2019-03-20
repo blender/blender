@@ -1115,10 +1115,10 @@ class TOPBAR_PT_name(Panel):
         else:
             if mode == 'POSE' or (mode == 'WEIGHT_PAINT' and context.pose_object):
                 layout.label(text="Bone Name")
-                item = getattr(context.active_pose_bone, "bone", None)
+                item = context.active_pose_bone
                 if item:
                     row = row_with_icon(layout, 'BONE_DATA')
-                    row.prop(item, "name", text="", icon='OBJECT_DATA')
+                    row.prop(item, "name", text="")
                     found = True
             elif mode == 'EDIT_ARMATURE':
                 layout.label(text="Bone Name")
