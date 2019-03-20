@@ -2511,7 +2511,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
-				if (len_manhattan_v2v2_int(&event->x, &rmd->origx) < WM_EVENT_CURSOR_MOTION_THRESHOLD) {
+				if (len_manhattan_v2v2_int(&event->x, &rmd->origx) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) {
 					if (rmd->ar->flag & RGN_FLAG_HIDDEN) {
 						region_scale_toggle_hidden(C, rmd);
 					}

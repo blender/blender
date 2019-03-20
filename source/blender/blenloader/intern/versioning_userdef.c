@@ -481,6 +481,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		BKE_addon_remove_safe(&userdef->addons, "io_scene_3ds");
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 51)) {
+		userdef->move_threshold = 2;
+	}
+
 	/**
 	 * Include next version bump.
 	 */

@@ -4713,6 +4713,13 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	                         "Number of pixels you have to drag before a tweak/drag event is triggered "
 	                         "(otherwise click events are detected)");
 
+	prop = RNA_def_property(srna, "move_threshold", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 0, 255);
+	RNA_def_property_ui_range(prop, 0, 10, 1, -1);
+	RNA_def_property_ui_text(prop, "Motion Threshold",
+	                         "Number of pixels you have to before the cursor is considered to have moved "
+	                         "(used for cycling selected items on successive clicks)");
+
 	/* tablet pressure curve */
 	prop = RNA_def_property(srna, "pressure_threshold_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
