@@ -162,9 +162,9 @@ static void EDIT_MESH_engine_init(void *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-	e_data.occlude_wire_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24,
+	e_data.occlude_wire_depth_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_DEPTH_COMPONENT24,
 	                                                         &draw_engine_edit_mesh_type);
-	e_data.occlude_wire_color_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8,
+	e_data.occlude_wire_color_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_RGBA8,
 	                                                         &draw_engine_edit_mesh_type);
 
 	GPU_framebuffer_ensure_config(&fbl->occlude_wire_fb, {
@@ -255,7 +255,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 
-		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->sh_cfg);
+		sh_data->depth = DRW_shader_create_3d_depth_only(draw_ctx->sh_cfg);
 
 		sh_data->ghost_clear_depth = DRW_shader_create_fullscreen(datatoc_gpu_shader_depth_only_frag_glsl, NULL);
 	}
@@ -710,7 +710,7 @@ static void EDIT_MESH_draw_scene(void *vedata)
 			 * the stencil buffer is no 0x00. */
 			const float *viewport_size = DRW_viewport_size_get();
 			const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-			struct GPUTexture *ghost_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH24_STENCIL8, &draw_engine_edit_mesh_type);
+			struct GPUTexture *ghost_depth_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, &draw_engine_edit_mesh_type);
 			GPU_framebuffer_ensure_config(&fbl->ghost_wire_fb, {
 				GPU_ATTACHMENT_TEXTURE(ghost_depth_tx),
 				GPU_ATTACHMENT_TEXTURE(dtxl->color),

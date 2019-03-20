@@ -165,7 +165,7 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
 
 	GPUColorBandBuilder *builder = mat->coba_builder;
 
-	mat->coba_tex = GPU_texture_create_1D_array(CM_TABLE + 1, builder->current_layer, GPU_RGBA16F,
+	mat->coba_tex = GPU_texture_create_1d_array(CM_TABLE + 1, builder->current_layer, GPU_RGBA16F,
 	                                            (float *)builder->pixels, NULL);
 
 	MEM_freeN(builder);
@@ -539,7 +539,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 			GPU_texture_free(material->sss_tex_profile);
 		}
 
-		material->sss_tex_profile = GPU_texture_create_1D(64, GPU_RGBA16F, translucence_profile, NULL);
+		material->sss_tex_profile = GPU_texture_create_1d(64, GPU_RGBA16F, translucence_profile, NULL);
 
 		MEM_freeN(translucence_profile);
 

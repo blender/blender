@@ -791,12 +791,12 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 	height = max_ii(1, height);
 	width  = max_ii(1, width);
 
-	ofs->color = GPU_texture_create_2D_multisample(
+	ofs->color = GPU_texture_create_2d_multisample(
 	        width, height,
 	        (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL, samples, err_out);
 
 	if (depth) {
-		ofs->depth = GPU_texture_create_2D_multisample(width, height, GPU_DEPTH24_STENCIL8, NULL, samples, err_out);
+		ofs->depth = GPU_texture_create_2d_multisample(width, height, GPU_DEPTH24_STENCIL8, NULL, samples, err_out);
 	}
 
 	if ((depth && !ofs->depth) || !ofs->color) {

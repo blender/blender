@@ -263,7 +263,7 @@ void DRW_hair_update(void)
 	 * Do chunks of maximum 2048 * 2048 hair points. */
 	int width = 2048;
 	int height = min_ii(width, 1 + max_size / width);
-	GPUTexture *tex = DRW_texture_pool_query_2D(width, height, GPU_RGBA32F, (void *)DRW_hair_update);
+	GPUTexture *tex = DRW_texture_pool_query_2d(width, height, GPU_RGBA32F, (void *)DRW_hair_update);
 	g_tf_target_height = height;
 	g_tf_target_width = width;
 

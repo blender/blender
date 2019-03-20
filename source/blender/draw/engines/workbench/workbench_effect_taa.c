@@ -173,8 +173,8 @@ DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_bu
 
 	{
 		const eGPUTextureFormat hist_buffer_format = DRW_state_is_image_render() ? GPU_RGBA16F : GPU_RGBA8;
-		DRW_texture_ensure_fullscreen_2D(&txl->history_buffer_tx, hist_buffer_format, 0);
-		DRW_texture_ensure_fullscreen_2D(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
+		DRW_texture_ensure_fullscreen_2d(&txl->history_buffer_tx, hist_buffer_format, 0);
+		DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
 	}
 
 	{

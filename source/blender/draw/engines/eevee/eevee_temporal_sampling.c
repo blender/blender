@@ -231,7 +231,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 					double ht_offset[2] = {0.0, 0.0};
 					uint ht_primes[2] = {2, 3};
 
-					BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
+					BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
 
 					EEVEE_temporal_sampling_matrices_calc(effects, viewmat, persmat, ht_point);
 

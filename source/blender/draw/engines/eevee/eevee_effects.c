@@ -110,7 +110,7 @@ static void eevee_create_shader_downsample(void)
 
 #define SETUP_BUFFER(tex, fb, fb_color) { \
 	eGPUTextureFormat format = (DRW_state_is_scene_render()) ? GPU_RGBA32F : GPU_RGBA16F; \
-	DRW_texture_ensure_fullscreen_2D(&tex, format, DRW_TEX_FILTER | DRW_TEX_MIPMAP); \
+	DRW_texture_ensure_fullscreen_2d(&tex, format, DRW_TEX_FILTER | DRW_TEX_MIPMAP); \
 	GPU_framebuffer_ensure_config(&fb, { \
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth), \
 		GPU_ATTACHMENT_TEXTURE(tex), \
@@ -193,10 +193,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 
 	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
 		/* Intel gpu seems to have problem rendering to only depth format */
-		DRW_texture_ensure_2D(&txl->maxzbuffer, size[0], size[1], GPU_R32F, DRW_TEX_MIPMAP);
+		DRW_texture_ensure_2d(&txl->maxzbuffer, size[0], size[1], GPU_R32F, DRW_TEX_MIPMAP);
 	}
 	else {
-		DRW_texture_ensure_2D(&txl->maxzbuffer, size[0], size[1], GPU_DEPTH_COMPONENT24, DRW_TEX_MIPMAP);
+		DRW_texture_ensure_2d(&txl->maxzbuffer, size[0], size[1], GPU_DEPTH_COMPONENT24, DRW_TEX_MIPMAP);
 	}
 
 	if (fbl->downsample_fb == NULL) {
@@ -217,7 +217,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Normal buffer for deferred passes.
 	 */
 	if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0)	{
-		effects->ssr_normal_input = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], GPU_RG16,
+		effects->ssr_normal_input = DRW_texture_pool_query_2d(size_fs[0], size_fs[1], GPU_RG16,
 		                                                      &draw_engine_eevee_type);
 
 		GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_normal_input, 1, 0);
@@ -230,7 +230,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Motion vector buffer for correct TAA / motion blur.
 	 */
 	if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
-		effects->velocity_tx = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], GPU_RG16,
+		effects->velocity_tx = DRW_texture_pool_query_2d(size_fs[0], size_fs[1], GPU_RG16,
 		                                                 &draw_engine_eevee_type);
 
 		/* TODO output objects velocity during the mainpass. */
@@ -249,7 +249,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Setup depth double buffer.
 	 */
 	if ((effects->enabled_effects & EFFECT_DEPTH_DOUBLE_BUFFER) != 0) {
-		DRW_texture_ensure_fullscreen_2D(&txl->depth_double_buffer, GPU_DEPTH24_STENCIL8, 0);
+		DRW_texture_ensure_fullscreen_2d(&txl->depth_double_buffer, GPU_DEPTH24_STENCIL8, 0);
 
 		GPU_framebuffer_ensure_config(&fbl->double_buffer_depth_fb, {
 			GPU_ATTACHMENT_TEXTURE(txl->depth_double_buffer)

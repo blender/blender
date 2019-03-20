@@ -297,12 +297,12 @@ GPUShader *DRW_shader_create_with_transform_feedback(
 	                            prim_type, varying_names, varying_count, __func__);
 }
 
-GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
+GPUShader *DRW_shader_create_2d(const char *frag, const char *defines)
 {
 	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
-GPUShader *DRW_shader_create_3D(const char *frag, const char *defines)
+GPUShader *DRW_shader_create_3d(const char *frag, const char *defines)
 {
 	return GPU_shader_create(datatoc_gpu_shader_3D_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
@@ -312,7 +312,7 @@ GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
 	return GPU_shader_create(datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
-GPUShader *DRW_shader_create_3D_depth_only(eGPUShaderConfig sh_cfg)
+GPUShader *DRW_shader_create_3d_depth_only(eGPUShaderConfig sh_cfg)
 {
 	return GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_DEPTH_ONLY, sh_cfg);
 }

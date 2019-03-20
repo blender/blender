@@ -80,10 +80,10 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 		DRW_gpencil_multisample_ensure(vedata, rect_w, rect_h);
 	}
 
-	vedata->render_depth_tx = DRW_texture_pool_query_2D(
+	vedata->render_depth_tx = DRW_texture_pool_query_2d(
 	        size[0], size[1], GPU_DEPTH_COMPONENT24,
 	        &draw_engine_gpencil_type);
-	vedata->render_color_tx = DRW_texture_pool_query_2D(
+	vedata->render_color_tx = DRW_texture_pool_query_2d(
 	        size[0], size[1], GPU_RGBA32F,
 	        &draw_engine_gpencil_type);
 	GPU_framebuffer_ensure_config(

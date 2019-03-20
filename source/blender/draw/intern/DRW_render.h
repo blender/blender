@@ -194,22 +194,22 @@ typedef enum {
 /* Textures from DRW_texture_pool_query_* have the options
  * DRW_TEX_FILTER for color float textures, and no options
  * for depth textures and integer textures. */
-struct GPUTexture *DRW_texture_pool_query_2D(int w, int h, eGPUTextureFormat format, DrawEngineType *engine_type);
+struct GPUTexture *DRW_texture_pool_query_2d(int w, int h, eGPUTextureFormat format, DrawEngineType *engine_type);
 
-struct GPUTexture *DRW_texture_create_1D(
+struct GPUTexture *DRW_texture_create_1d(
         int w, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-struct GPUTexture *DRW_texture_create_2D(
+struct GPUTexture *DRW_texture_create_2d(
         int w, int h, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-struct GPUTexture *DRW_texture_create_2D_array(
+struct GPUTexture *DRW_texture_create_2d_array(
         int w, int h, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-struct GPUTexture *DRW_texture_create_3D(
+struct GPUTexture *DRW_texture_create_3d(
         int w, int h, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_cube(
         int w, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 
-void DRW_texture_ensure_fullscreen_2D(
+void DRW_texture_ensure_fullscreen_2d(
         struct GPUTexture **tex, eGPUTextureFormat format, DRWTextureFlag flags);
-void DRW_texture_ensure_2D(
+void DRW_texture_ensure_2d(
         struct GPUTexture **tex, int w, int h, eGPUTextureFormat format, DRWTextureFlag flags);
 
 void DRW_texture_generate_mipmaps(struct GPUTexture *tex);
@@ -245,10 +245,10 @@ struct GPUShader *DRW_shader_create_with_lib(
 struct GPUShader *DRW_shader_create_with_transform_feedback(
         const char *vert, const char *geom, const char *defines,
         const eGPUShaderTFBType prim_type, const char **varying_names, const int varying_count);
-struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
-struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
+struct GPUShader *DRW_shader_create_2d(const char *frag, const char *defines);
+struct GPUShader *DRW_shader_create_3d(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
-struct GPUShader *DRW_shader_create_3D_depth_only(eGPUShaderConfig slot);
+struct GPUShader *DRW_shader_create_3d_depth_only(eGPUShaderConfig slot);
 struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_create_from_world(

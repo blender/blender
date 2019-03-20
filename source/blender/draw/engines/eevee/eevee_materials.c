@@ -137,7 +137,7 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 
 	float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
 
-	tex = DRW_texture_create_2D(w, h, GPU_RG16F, DRW_TEX_FILTER, (float *)texels);
+	tex = DRW_texture_create_2d(w, h, GPU_RG16F, DRW_TEX_FILTER, (float *)texels);
 
 	DRWFboTexture tex_filter = {&tex, GPU_RG16F, DRW_TEX_FILTER};
 	GPU_framebuffer_init(&fb, &draw_engine_eevee_type, w, h, &tex_filter, 1);
@@ -199,7 +199,7 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
 
 	float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
 
-	tex = DRW_texture_create_2D(w, h, GPU_R16F, DRW_TEX_FILTER, (float *)texels);
+	tex = DRW_texture_create_2d(w, h, GPU_R16F, DRW_TEX_FILTER, (float *)texels);
 
 	DRWFboTexture tex_filter = {&tex, GPU_R16F, DRW_TEX_FILTER};
 	GPU_framebuffer_init(&fb, &draw_engine_eevee_type, w, h, &tex_filter, 1);
@@ -438,7 +438,7 @@ static void eevee_init_dummys(void)
 
 static void eevee_init_noise_texture(void)
 {
-	e_data.noise_tex = DRW_texture_create_2D(64, 64, GPU_RGBA16F, 0, (float *)blue_noise);
+	e_data.noise_tex = DRW_texture_create_2d(64, 64, GPU_RGBA16F, 0, (float *)blue_noise);
 }
 
 static void eevee_init_util_texture(void)
@@ -490,7 +490,7 @@ static void eevee_init_util_texture(void)
 		texels_layer += 64 * 64;
 	}
 
-	e_data.util_tex = DRW_texture_create_2D_array(
+	e_data.util_tex = DRW_texture_create_2d_array(
 	        64, 64, layers, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
 
 	MEM_freeN(texels);
@@ -640,7 +640,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 	}
 	else {
 		double r;
-		BLI_halton_1D(5, 0.0, stl->effects->taa_current_sample - 1, &r);
+		BLI_halton_1d(5, 0.0, stl->effects->taa_current_sample - 1, &r);
 		e_data.alpha_hash_offset = (float)r;
 		e_data.alpha_hash_scale = 0.01f;
 	}

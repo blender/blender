@@ -369,7 +369,7 @@ BLI_INLINE double halton_ex(double invprimes, double *offset)
 	return *offset;
 }
 
-void BLI_halton_1D(unsigned int prime, double offset, int n, double *r)
+void BLI_halton_1d(unsigned int prime, double offset, int n, double *r)
 {
 	const double invprime = 1.0 / (double)prime;
 
@@ -380,7 +380,7 @@ void BLI_halton_1D(unsigned int prime, double offset, int n, double *r)
 	}
 }
 
-void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r)
+void BLI_halton_2d(unsigned int prime[2], double offset[2], int n, double *r)
 {
 	const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
 
@@ -393,7 +393,7 @@ void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r)
 	}
 }
 
-void BLI_halton_3D(unsigned int prime[3], double offset[3], int n, double *r)
+void BLI_halton_3d(unsigned int prime[3], double offset[3], int n, double *r)
 {
 	const double invprimes[3] = {1.0 / (double)prime[0], 1.0 / (double)prime[1], 1.0 / (double)prime[2]};
 
@@ -406,7 +406,7 @@ void BLI_halton_3D(unsigned int prime[3], double offset[3], int n, double *r)
 	}
 }
 
-void BLI_halton_2D_sequence(unsigned int prime[2], double offset[2], int n, double *r)
+void BLI_halton_2d_sequence(unsigned int prime[2], double offset[2], int n, double *r)
 {
 	const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
 
@@ -435,12 +435,12 @@ BLI_INLINE double radical_inverse(unsigned int n)
 	return u;
 }
 
-void BLI_hammersley_1D(unsigned int n, double *r)
+void BLI_hammersley_1d(unsigned int n, double *r)
 {
 	*r = radical_inverse(n);
 }
 
-void BLI_hammersley_2D_sequence(unsigned int n, double *r)
+void BLI_hammersley_2d_sequence(unsigned int n, double *r)
 {
 	for (unsigned int s = 0; s < n; s++) {
 		r[s * 2 + 0] = (double)(s + 0.5) / (double)n;

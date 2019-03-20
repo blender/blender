@@ -368,7 +368,7 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
 			MEM_SAFE_FREE(gpu_matcap_3components);
 		}
 		else {
-			sl->equirect_radiance_gputexture = GPU_texture_create_2D(
+			sl->equirect_radiance_gputexture = GPU_texture_create_2d(
 			        ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
 			GPUTexture *tex = sl->equirect_radiance_gputexture;
 			GPU_texture_bind(tex, 0);
@@ -386,7 +386,7 @@ static void studiolight_create_equirect_irradiance_gputexture(StudioLight *sl)
 		char error[256];
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED);
 		ImBuf *ibuf = sl->equirect_irradiance_buffer;
-		sl->equirect_irradiance_gputexture = GPU_texture_create_2D(
+		sl->equirect_irradiance_gputexture = GPU_texture_create_2d(
 		        ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
 		GPUTexture *tex = sl->equirect_irradiance_gputexture;
 		GPU_texture_bind(tex, 0);

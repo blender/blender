@@ -83,7 +83,7 @@ static void basic_engine_init(void *UNUSED(vedata))
 
 	/* Depth prepass */
 	if (!sh_data->depth) {
-		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->sh_cfg);
+		sh_data->depth = DRW_shader_create_3d_depth_only(draw_ctx->sh_cfg);
 	}
 }
 

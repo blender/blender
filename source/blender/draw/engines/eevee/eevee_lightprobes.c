@@ -98,13 +98,13 @@ static struct GPUTexture *create_hammersley_sample_texture(int samples)
 
 	for (i = 0; i < samples; i++) {
 		double dphi;
-		BLI_hammersley_1D(i, &dphi);
+		BLI_hammersley_1d(i, &dphi);
 		float phi = (float)dphi * 2.0f * M_PI;
 		texels[i][0] = cosf(phi);
 		texels[i][1] = sinf(phi);
 	}
 
-	tex = DRW_texture_create_1D(samples, GPU_RG16F, DRW_TEX_WRAP, (float *)texels);
+	tex = DRW_texture_create_1d(samples, GPU_RG16F, DRW_TEX_WRAP, (float *)texels);
 	MEM_freeN(texels);
 	return tex;
 }
@@ -129,15 +129,15 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	/* We need an Array texture so allocate it ourself */
 	if (!txl->planar_pool) {
 		if (num_planar_ref > 0) {
-			txl->planar_pool = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
+			txl->planar_pool = DRW_texture_create_2d_array(width, height, max_ff(1, num_planar_ref),
 			                                                 GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-			txl->planar_depth = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
+			txl->planar_depth = DRW_texture_create_2d_array(width, height, max_ff(1, num_planar_ref),
 			                                                GPU_DEPTH_COMPONENT24, 0, NULL);
 		}
 		else if (num_planar_ref == 0) {
 			/* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still bound to shader. */
-			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-			txl->planar_depth = DRW_texture_create_2D_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
+			txl->planar_pool = DRW_texture_create_2d_array(1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			txl->planar_depth = DRW_texture_create_2d_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
 		}
 	}
 }
@@ -196,7 +196,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
 	if (!e_data.planar_pool_placeholder) {
-		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER, NULL);
+		e_data.planar_pool_placeholder = DRW_texture_create_2d_array(1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER, NULL);
 	}
 }
 

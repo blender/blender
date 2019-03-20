@@ -84,8 +84,8 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	                                      size_orig[1] + g_data->overscan_pixels * 2.0f});
 
 	/* TODO 32 bit depth */
-	DRW_texture_ensure_fullscreen_2D(&dtxl->depth, GPU_DEPTH24_STENCIL8, 0);
-	DRW_texture_ensure_fullscreen_2D(&txl->color, GPU_RGBA32F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+	DRW_texture_ensure_fullscreen_2d(&dtxl->depth, GPU_DEPTH24_STENCIL8, 0);
+	DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA32F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
 	GPU_framebuffer_ensure_config(&dfbl->default_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -509,7 +509,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		/* Copy previous persmat to UBO data */
 		copy_m4_m4(sldata->common_data.prev_persmat, stl->effects->prev_persmat);
 
-		BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
+		BLI_halton_3d(primes, offset, stl->effects->taa_current_sample, r);
 		EEVEE_update_noise(psl, fbl, r);
 		EEVEE_temporal_sampling_matrices_calc(stl->effects, g_data->viewmat, g_data->persmat, r);
 		EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);

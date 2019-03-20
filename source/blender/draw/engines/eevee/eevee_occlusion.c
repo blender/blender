@@ -99,7 +99,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		common_data->ao_bounce_fac = (scene_eval->eevee.flag & SCE_EEVEE_GTAO_BOUNCE) ? 1.0f : 0.0f;
 
-		effects->gtao_horizons = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_RGBA8,
+		effects->gtao_horizons = DRW_texture_pool_query_2d(fs_size[0], fs_size[1], GPU_RGBA8,
 		                                                   &draw_engine_eevee_type);
 		GPU_framebuffer_ensure_config(&fbl->gtao_fb, {
 			GPU_ATTACHMENT_NONE,
@@ -107,7 +107,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		});
 
 		if (G.debug_value == 6) {
-			effects->gtao_horizons_debug = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_RGBA8,
+			effects->gtao_horizons_debug = DRW_texture_pool_query_2d(fs_size[0], fs_size[1], GPU_RGBA8,
 			                                                         &draw_engine_eevee_type);
 			GPU_framebuffer_ensure_config(&fbl->gtao_debug_fb, {
 				GPU_ATTACHMENT_NONE,
@@ -144,7 +144,7 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 		float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-		DRW_texture_ensure_fullscreen_2D(&txl->ao_accum, GPU_R32F, 0); /* Should be enough precision for many samples. */
+		DRW_texture_ensure_fullscreen_2d(&txl->ao_accum, GPU_R32F, 0); /* Should be enough precision for many samples. */
 
 		GPU_framebuffer_ensure_config(&fbl->ao_accum_fb, {
 			GPU_ATTACHMENT_NONE,

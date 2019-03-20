@@ -136,7 +136,7 @@ void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
 	double ht_offset[3] = {0.0, 0.0};
 	uint ht_primes[3] = {3, 7, 2};
 
-	BLI_halton_3D(ht_primes, ht_offset, current_sample, ht_point);
+	BLI_halton_3d(ht_primes, ht_offset, current_sample, ht_point);
 
 	common_data->vol_jitter[0] = (float)ht_point[0];
 	common_data->vol_jitter[1] = (float)ht_point[1];
@@ -209,30 +209,30 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		if (txl->volume_prop_scattering == NULL) {
 			/* Volume properties: We evaluate all volumetric objects
 			 * and store their final properties into each froxel */
-			txl->volume_prop_scattering = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_prop_scattering = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                                    GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-			txl->volume_prop_extinction = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_prop_extinction = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                                    GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-			txl->volume_prop_emission = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_prop_emission = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                                  GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-			txl->volume_prop_phase = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_prop_phase = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                               GPU_RG16F, DRW_TEX_FILTER, NULL);
 
 			/* Volume scattering: We compute for each froxel the
 			 * Scattered light towards the view. We also resolve temporal
 			 * super sampling during this stage. */
-			txl->volume_scatter = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_scatter = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                            GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-			txl->volume_transmittance = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_transmittance = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                                  GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
 
 			/* Final integration: We compute for each froxel the
 			 * amount of scattered light and extinction coef at this
 			 * given depth. We use theses textures as double buffer
 			 * for the volumetric history. */
-			txl->volume_scatter_history = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_scatter_history = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                                    GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-			txl->volume_transmittance_history = DRW_texture_create_3D(tex_size[0], tex_size[1], tex_size[2],
+			txl->volume_transmittance_history = DRW_texture_create_3d(tex_size[0], tex_size[1], tex_size[2],
 			                                                          GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
 		}
 

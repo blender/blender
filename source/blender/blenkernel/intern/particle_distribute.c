@@ -315,7 +315,7 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 	BLI_rng_free(rng);
 
 	for (int k = 0; k < n; k++) {
-		BLI_hammersley_1D(k, &t);
+		BLI_hammersley_1d(k, &t);
 
 		out[2*k + 0] = fmod((double)k/(double)n + offs[0], 1.0);
 		out[2*k + 1] = fmod(t + offs[1], 1.0);

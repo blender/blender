@@ -186,13 +186,13 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 	int shrink_w_size[2] = {shrink_h_size[0], ceilf(size[1] / 8.0f)};
 #endif
 
-	DRW_texture_ensure_2D(&txl->dof_source_tx, size[0], size[1], GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
-	DRW_texture_ensure_2D(&txl->coc_halfres_tx, size[0], size[1], GPU_RG8, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
-	wpd->dof_blur_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
+	DRW_texture_ensure_2d(&txl->dof_source_tx, size[0], size[1], GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+	DRW_texture_ensure_2d(&txl->coc_halfres_tx, size[0], size[1], GPU_RG8, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+	wpd->dof_blur_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
 #if 0
-	wpd->coc_temp_tx     = DRW_texture_pool_query_2D(shrink_h_size[0], shrink_h_size[1], GPU_RG8, &draw_engine_workbench_solid);
-	wpd->coc_tiles_tx[0] = DRW_texture_pool_query_2D(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
-	wpd->coc_tiles_tx[1] = DRW_texture_pool_query_2D(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
+	wpd->coc_temp_tx     = DRW_texture_pool_query_2d(shrink_h_size[0], shrink_h_size[1], GPU_RG8, &draw_engine_workbench_solid);
+	wpd->coc_tiles_tx[0] = DRW_texture_pool_query_2d(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
+	wpd->coc_tiles_tx[1] = DRW_texture_pool_query_2d(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
 #endif
 
 	GPU_framebuffer_ensure_config(&fbl->dof_downsample_fb, {

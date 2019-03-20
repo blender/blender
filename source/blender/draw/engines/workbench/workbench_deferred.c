@@ -289,7 +289,7 @@ static float *create_disk_samples(int num_samples, int num_iterations)
 		float it_add = (i / num_samples) * 0.499f;
 		float r = fmodf((i + 0.5f + it_add) * num_samples_inv, 1.0f);
 		double dphi;
-		BLI_hammersley_1D(i, &dphi);
+		BLI_hammersley_1d(i, &dphi);
 
 		float phi = (float)dphi * 2.0f * M_PI + it_add;
 		texels[i][0] = cosf(phi);
@@ -321,7 +321,7 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 
 	UNUSED_VARS(bsdf_split_sum_ggx, btdf_split_sum_ggx, ltc_mag_ggx, ltc_mat_ggx, ltc_disk_integral);
 
-	return DRW_texture_create_2D(64, 64, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
+	return DRW_texture_create_2d(64, 64, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
 }
 /* Functions */
 
@@ -336,8 +336,8 @@ static void workbench_init_object_data(DrawData *dd)
 static void workbench_init_oit_framebuffer(WORKBENCH_FramebufferList *fbl, DefaultTextureList *dtxl)
 {
 	const float *size = DRW_viewport_size_get();
-	e_data.oit_accum_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
-	e_data.oit_revealage_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16F, &draw_engine_workbench_solid);
+	e_data.oit_accum_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
+	e_data.oit_revealage_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_R16F, &draw_engine_workbench_solid);
 
 	GPU_framebuffer_ensure_config(&fbl->transparent_accum_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -454,19 +454,19 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.normal_buffer_tx = NULL;
 		e_data.cavity_buffer_tx = NULL;
 
-		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], comp_tex_format, &draw_engine_workbench_solid);
+		e_data.composite_buffer_tx = DRW_texture_pool_query_2d(size[0], size[1], comp_tex_format, &draw_engine_workbench_solid);
 
 		if (MATDATA_PASS_ENABLED(wpd) || GPU_unused_fb_slot_workaround()) {
-			e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], col_tex_format, &draw_engine_workbench_solid);
+			e_data.color_buffer_tx = DRW_texture_pool_query_2d(size[0], size[1], col_tex_format, &draw_engine_workbench_solid);
 		}
 		if (OBJECT_ID_PASS_ENABLED(wpd) || GPU_unused_fb_slot_workaround()) {
-			e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], id_tex_format, &draw_engine_workbench_solid);
+			e_data.object_id_tx = DRW_texture_pool_query_2d(size[0], size[1], id_tex_format, &draw_engine_workbench_solid);
 		}
 		if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
-			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], nor_tex_format, &draw_engine_workbench_solid);
+			e_data.normal_buffer_tx = DRW_texture_pool_query_2d(size[0], size[1], nor_tex_format, &draw_engine_workbench_solid);
 		}
 		if (CAVITY_ENABLED(wpd)) {
-			e_data.cavity_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16, &draw_engine_workbench_solid);
+			e_data.cavity_buffer_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_R16, &draw_engine_workbench_solid);
 		}
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
@@ -489,7 +489,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		});
 
 		if (!MATDATA_PASS_ENABLED(wpd) && !GPU_unused_fb_slot_workaround()) {
-			e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], col_tex_format, &draw_engine_workbench_solid);
+			e_data.color_buffer_tx = DRW_texture_pool_query_2d(size[0], size[1], col_tex_format, &draw_engine_workbench_solid);
 		}
 
 		GPU_framebuffer_ensure_config(&fbl->effect_fb, {
@@ -584,7 +584,7 @@ static void workbench_setup_ghost_framebuffer(WORKBENCH_FramebufferList *fbl)
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-	e_data.ghost_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_workbench_solid);
+	e_data.ghost_depth_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_workbench_solid);
 
 	GPU_framebuffer_ensure_config(&fbl->ghost_prepass_fb, {
 		GPU_ATTACHMENT_TEXTURE(e_data.ghost_depth_tx),

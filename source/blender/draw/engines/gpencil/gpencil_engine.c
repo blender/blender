@@ -79,11 +79,11 @@ void DRW_gpencil_multisample_ensure(GPENCIL_Data *vedata, int rect_w, int rect_h
 			fbl->multisample_fb = GPU_framebuffer_create();
 			if (fbl->multisample_fb) {
 				if (txl->multisample_color == NULL) {
-					txl->multisample_color = GPU_texture_create_2D_multisample(
+					txl->multisample_color = GPU_texture_create_2d_multisample(
 					        rect_w, rect_h, GPU_RGBA16F, NULL, samples, NULL);
 				}
 				if (txl->multisample_depth == NULL) {
-					txl->multisample_depth = GPU_texture_create_2D_multisample(
+					txl->multisample_depth = GPU_texture_create_2d_multisample(
 					        rect_w, rect_h, GPU_DEPTH_COMPONENT24, NULL, samples, NULL);
 				}
 				GPU_framebuffer_ensure_config(
@@ -118,10 +118,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		/* Framebufers for basic object drawing */
 		if (stl->storage->framebuffer_flag & GP_FRAMEBUFFER_BASIC) {
 			/* temp textures for ping-pong buffers */
-			e_data.temp_depth_tx_a = DRW_texture_pool_query_2D(
+			e_data.temp_depth_tx_a = DRW_texture_pool_query_2d(
 			        size[0], size[1], GPU_DEPTH_COMPONENT24,
 			        &draw_engine_gpencil_type);
-			e_data.temp_color_tx_a = DRW_texture_pool_query_2D(
+			e_data.temp_color_tx_a = DRW_texture_pool_query_2d(
 			        size[0], size[1], fb_format,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
@@ -130,10 +130,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_a),
 			        });
 
-			e_data.temp_depth_tx_b = DRW_texture_pool_query_2D(
+			e_data.temp_depth_tx_b = DRW_texture_pool_query_2d(
 			        size[0], size[1], GPU_DEPTH_COMPONENT24,
 			        &draw_engine_gpencil_type);
-			e_data.temp_color_tx_b = DRW_texture_pool_query_2D(
+			e_data.temp_color_tx_b = DRW_texture_pool_query_2d(
 			        size[0], size[1], fb_format,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
@@ -143,10 +143,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			        });
 
 			/* used for FX effects and Layer blending */
-			e_data.temp_depth_tx_fx = DRW_texture_pool_query_2D(
+			e_data.temp_depth_tx_fx = DRW_texture_pool_query_2d(
 			        size[0], size[1], GPU_DEPTH_COMPONENT24,
 			        &draw_engine_gpencil_type);
-			e_data.temp_color_tx_fx = DRW_texture_pool_query_2D(
+			e_data.temp_color_tx_fx = DRW_texture_pool_query_2d(
 			        size[0], size[1], fb_format,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
@@ -158,10 +158,10 @@ static void GPENCIL_create_framebuffers(void *vedata)
 
 		/* background framebuffer to speed up drawing process (always 16 bits) */
 		if (stl->storage->framebuffer_flag & GP_FRAMEBUFFER_DRAW) {
-			e_data.background_depth_tx = DRW_texture_pool_query_2D(
+			e_data.background_depth_tx = DRW_texture_pool_query_2d(
 			        size[0], size[1], GPU_DEPTH_COMPONENT24,
 			        &draw_engine_gpencil_type);
-			e_data.background_color_tx = DRW_texture_pool_query_2D(
+			e_data.background_color_tx = DRW_texture_pool_query_2d(
 			        size[0], size[1], GPU_RGBA32F,
 			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
@@ -261,7 +261,7 @@ void GPENCIL_engine_init(void *vedata)
 	/* blank texture used if no texture defined for fill shader */
 	if (!e_data.gpencil_blank_texture) {
 		float rect[16][16][4] = {{{0.0f}}};
-		e_data.gpencil_blank_texture = DRW_texture_create_2D(16, 16, GPU_RGBA8, DRW_TEX_FILTER, (float *)rect);
+		e_data.gpencil_blank_texture = DRW_texture_create_2d(16, 16, GPU_RGBA8, DRW_TEX_FILTER, (float *)rect);
 	}
 }
 

@@ -313,13 +313,13 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-	e_data.object_id_tx = DRW_texture_pool_query_2D(
+	e_data.object_id_tx = DRW_texture_pool_query_2d(
 	        size[0], size[1], GPU_R32UI, &draw_engine_workbench_transparent);
-	e_data.transparent_accum_tx = DRW_texture_pool_query_2D(
+	e_data.transparent_accum_tx = DRW_texture_pool_query_2d(
 	        size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
-	e_data.transparent_revealage_tx = DRW_texture_pool_query_2D(
+	e_data.transparent_revealage_tx = DRW_texture_pool_query_2d(
 	        size[0], size[1], GPU_R16F, &draw_engine_workbench_transparent);
-	e_data.composite_buffer_tx = DRW_texture_pool_query_2D(
+	e_data.composite_buffer_tx = DRW_texture_pool_query_2d(
 	        size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_transparent);
 
 	GPU_framebuffer_ensure_config(&fbl->object_outline_fb, {

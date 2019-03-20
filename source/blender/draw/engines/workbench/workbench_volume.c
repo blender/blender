@@ -92,8 +92,8 @@ void workbench_volume_engine_init(void)
 {
 	if (!e_data.dummy_tex) {
 		float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-		e_data.dummy_tex = GPU_texture_create_3D(1, 1, 1, GPU_RGBA8, pixel, NULL);
-		e_data.dummy_coba_tex = GPU_texture_create_1D(1, GPU_RGBA8, pixel, NULL);
+		e_data.dummy_tex = GPU_texture_create_3d(1, 1, 1, GPU_RGBA8, pixel, NULL);
+		e_data.dummy_coba_tex = GPU_texture_create_1d(1, GPU_RGBA8, pixel, NULL);
 	}
 }
 
@@ -168,7 +168,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 	}
 	else {
 		double noise_ofs;
-		BLI_halton_1D(3, 0.0, effect_info->jitter_index, &noise_ofs);
+		BLI_halton_1d(3, 0.0, effect_info->jitter_index, &noise_ofs);
 		float dim[3], step_length, max_slice;
 		float slice_ct[3] = {sds->res[0], sds->res[1], sds->res[2]};
 		mul_v3_fl(slice_ct, max_ff(0.001f, sds->slice_per_voxel));

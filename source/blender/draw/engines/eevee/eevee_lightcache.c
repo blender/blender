@@ -249,12 +249,12 @@ LightCache *EEVEE_lightcache_create(
 	light_cache->cube_data = MEM_callocN(sizeof(EEVEE_LightProbe) * cube_len, "EEVEE_LightProbe");
 	light_cache->grid_data = MEM_callocN(sizeof(EEVEE_LightGrid) * grid_len, "EEVEE_LightGrid");
 
-	light_cache->grid_tx.tex = DRW_texture_create_2D_array(irr_size[0], irr_size[1], irr_size[2], IRRADIANCE_FORMAT, DRW_TEX_FILTER, NULL);
+	light_cache->grid_tx.tex = DRW_texture_create_2d_array(irr_size[0], irr_size[1], irr_size[2], IRRADIANCE_FORMAT, DRW_TEX_FILTER, NULL);
 	light_cache->grid_tx.tex_size[0] = irr_size[0];
 	light_cache->grid_tx.tex_size[1] = irr_size[1];
 	light_cache->grid_tx.tex_size[2] = irr_size[2];
 
-	light_cache->cube_tx.tex = DRW_texture_create_2D_array(cube_size, cube_size, cube_len, GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+	light_cache->cube_tx.tex = DRW_texture_create_2d_array(cube_size, cube_size, cube_len, GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 	light_cache->cube_tx.tex_size[0] = cube_size;
 	light_cache->cube_tx.tex_size[1] = cube_size;
 	light_cache->cube_tx.tex_size[2] = cube_len;
@@ -461,7 +461,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 	lbake->cube_prb = MEM_callocN(sizeof(LightProbe *) * lbake->cube_len, "EEVEE Cube visgroup ptr");
 	lbake->grid_prb = MEM_callocN(sizeof(LightProbe *) * lbake->grid_len, "EEVEE Grid visgroup ptr");
 
-	lbake->grid_prev = DRW_texture_create_2D_array(
+	lbake->grid_prev = DRW_texture_create_2d_array(
 	        lbake->irr_size[0], lbake->irr_size[1], lbake->irr_size[2],
 	        IRRADIANCE_FORMAT, DRW_TEX_FILTER, NULL);
 
@@ -727,7 +727,7 @@ static void eevee_lightbake_copy_irradiance(EEVEE_LightBake *lbake, LightCache *
 
 	/* Copy texture by reading back and reuploading it. */
 	float *tex = GPU_texture_read(lcache->grid_tx.tex, GPU_DATA_FLOAT, 0);
-	lbake->grid_prev = DRW_texture_create_2D_array(lbake->irr_size[0], lbake->irr_size[1], lbake->irr_size[2],
+	lbake->grid_prev = DRW_texture_create_2d_array(lbake->irr_size[0], lbake->irr_size[1], lbake->irr_size[2],
 	                                               IRRADIANCE_FORMAT, DRW_TEX_FILTER, tex);
 
 	MEM_freeN(tex);

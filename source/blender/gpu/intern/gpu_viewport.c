@@ -304,7 +304,7 @@ GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine,
 		}
 	}
 
-	tex = GPU_texture_create_2D(width, height, format, NULL, NULL);
+	tex = GPU_texture_create_2d(width, height, format, NULL, NULL);
 	GPU_texture_bind(tex, 0);
 	/* Doing filtering for depth does not make sense when not doing shadow mapping,
 	 * and enabling texture filtering on integer texture make them unreadable. */
@@ -381,8 +381,8 @@ static void gpu_viewport_default_fb_create(GPUViewport *viewport)
 	int *size = viewport->size;
 	bool ok = true;
 
-	dtxl->color = GPU_texture_create_2D(size[0], size[1], GPU_RGBA8, NULL, NULL);
-	dtxl->depth = GPU_texture_create_2D(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, NULL);
+	dtxl->color = GPU_texture_create_2d(size[0], size[1], GPU_RGBA8, NULL, NULL);
+	dtxl->depth = GPU_texture_create_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, NULL);
 
 	if (!(dtxl->depth && dtxl->color)) {
 		ok = false;
@@ -426,8 +426,8 @@ static void gpu_viewport_default_multisample_fb_create(GPUViewport *viewport)
 	int samples = viewport->samples;
 	bool ok = true;
 
-	dtxl->multisample_color = GPU_texture_create_2D_multisample(size[0], size[1], GPU_RGBA8, NULL, samples, NULL);
-	dtxl->multisample_depth = GPU_texture_create_2D_multisample(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, samples, NULL);
+	dtxl->multisample_color = GPU_texture_create_2d_multisample(size[0], size[1], GPU_RGBA8, NULL, samples, NULL);
+	dtxl->multisample_depth = GPU_texture_create_2d_multisample(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, samples, NULL);
 
 	if (!(dtxl->multisample_depth && dtxl->multisample_color)) {
 		ok = false;

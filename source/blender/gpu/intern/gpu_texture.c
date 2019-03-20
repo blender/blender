@@ -439,7 +439,7 @@ static GLenum gpu_get_gl_datatype(eGPUDataFormat format)
 	}
 }
 
-static float *GPU_texture_3D_rescale(GPUTexture *tex, int w, int h, int d, int channels, const float *fpixels)
+static float *GPU_texture_rescale_3d(GPUTexture *tex, int w, int h, int d, int channels, const float *fpixels)
 {
 	const uint xf = w / tex->w, yf = h / tex->h, zf = d / tex->d;
 	float *nfpixels = MEM_mallocN(channels * sizeof(float) * tex->w * tex->h * tex->d, "GPUTexture Rescaled 3Dtex");
@@ -575,7 +575,7 @@ static bool gpu_texture_try_alloc(
 					return false;
 				case GL_PROXY_TEXTURE_3D:
 					BLI_assert(data_type == GL_FLOAT);
-					*rescaled_fpixels = GPU_texture_3D_rescale(tex, w, h, d, channels, fpixels);
+					*rescaled_fpixels = GPU_texture_rescale_3d(tex, w, h, d, channels, fpixels);
 					return (bool)*rescaled_fpixels;
 			}
 		}
@@ -985,7 +985,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 
 }
 
-GPUTexture *GPU_texture_create_1D(
+GPUTexture *GPU_texture_create_1d(
         int w, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
 	BLI_assert(w > 0);
@@ -993,7 +993,7 @@ GPUTexture *GPU_texture_create_1D(
 	return GPU_texture_create_nD(w, 0, 0, 1, pixels, tex_format, data_format, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_1D_array(
+GPUTexture *GPU_texture_create_1d_array(
         int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
 	BLI_assert(w > 0 && h > 0);
@@ -1001,7 +1001,7 @@ GPUTexture *GPU_texture_create_1D_array(
 	return GPU_texture_create_nD(w, h, 0, 1, pixels, tex_format, data_format, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D(
+GPUTexture *GPU_texture_create_2d(
         int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
 	BLI_assert(w > 0 && h > 0);
@@ -1009,7 +1009,7 @@ GPUTexture *GPU_texture_create_2D(
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, tex_format, data_format, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_multisample(
+GPUTexture *GPU_texture_create_2d_multisample(
         int w, int h, eGPUTextureFormat tex_format, const float *pixels, int samples, char err_out[256])
 {
 	BLI_assert(w > 0 && h > 0);
@@ -1017,7 +1017,7 @@ GPUTexture *GPU_texture_create_2D_multisample(
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, tex_format, data_format, samples, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_array(
+GPUTexture *GPU_texture_create_2d_array(
         int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
 	BLI_assert(w > 0 && h > 0 && d > 0);
@@ -1025,7 +1025,7 @@ GPUTexture *GPU_texture_create_2D_array(
 	return GPU_texture_create_nD(w, h, d, 2, pixels, tex_format, data_format, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_3D(
+GPUTexture *GPU_texture_create_3d(
         int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
 	BLI_assert(w > 0 && h > 0 && d > 0);
@@ -1275,9 +1275,9 @@ void GPU_invalid_tex_init(void)
 {
 	memory_usage = 0;
 	const float color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
-	GG.invalid_tex_1D = GPU_texture_create_1D(1, GPU_RGBA8, color, NULL);
-	GG.invalid_tex_2D = GPU_texture_create_2D(1, 1, GPU_RGBA8, color, NULL);
-	GG.invalid_tex_3D = GPU_texture_create_3D(1, 1, 1, GPU_RGBA8, color, NULL);
+	GG.invalid_tex_1D = GPU_texture_create_1d(1, GPU_RGBA8, color, NULL);
+	GG.invalid_tex_2D = GPU_texture_create_2d(1, 1, GPU_RGBA8, color, NULL);
+	GG.invalid_tex_3D = GPU_texture_create_3d(1, 1, 1, GPU_RGBA8, color, NULL);
 }
 
 void GPU_invalid_tex_bind(int mode)

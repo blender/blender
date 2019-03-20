@@ -61,7 +61,7 @@ static void eevee_engine_init(void *ved)
 	stl->g_data->valid_taa_history = (txl->taa_history != NULL);
 
 	/* Main Buffer */
-	DRW_texture_ensure_fullscreen_2D(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+	DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
 	GPU_framebuffer_ensure_config(&fbl->main_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -203,7 +203,7 @@ static void eevee_draw_background(void *vedata)
 			int samp = taa_use_reprojection
 			            ? stl->effects->taa_reproject_sample + 1
 			            : stl->effects->taa_current_sample;
-			BLI_halton_3D(primes, offset, samp, r);
+			BLI_halton_3d(primes, offset, samp, r);
 			EEVEE_update_noise(psl, fbl, r);
 			EEVEE_volumes_set_jitter(sldata, samp - 1);
 			EEVEE_materials_init(sldata, stl, fbl);

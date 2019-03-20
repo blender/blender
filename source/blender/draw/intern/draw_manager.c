@@ -2043,7 +2043,7 @@ static void draw_select_framebuffer_depth_only_setup(const rcti *rect)
 	}
 
 	if (g_select_buffer.texture_depth == NULL) {
-		g_select_buffer.texture_depth = GPU_texture_create_2D(
+		g_select_buffer.texture_depth = GPU_texture_create_2d(
 		        size[0], size[1], GPU_DEPTH_COMPONENT24, NULL, NULL);
 
 		GPU_framebuffer_texture_attach(
@@ -2078,7 +2078,7 @@ static void draw_select_framebuffer_select_id_setup(const rcti *rect)
 	}
 
 	if (g_select_buffer.texture_u32 == NULL) {
-		g_select_buffer.texture_u32 = GPU_texture_create_2D(
+		g_select_buffer.texture_u32 = GPU_texture_create_2d(
 		        size[0], size[1], GPU_R32UI, NULL, NULL);
 
 		GPU_framebuffer_texture_attach(
