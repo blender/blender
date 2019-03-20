@@ -372,7 +372,8 @@ typedef struct Object {
 	ImageUser *iuser;
 	char empty_image_visibility_flag;
 	char empty_image_depth;
-	char _pad8[2];
+	char empty_image_flag;
+	char _pad8[1];
 
 	int select_id;
 
@@ -668,6 +669,11 @@ enum {
 	OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC = 1 << 1,
 	OB_EMPTY_IMAGE_HIDE_BACK         = 1 << 2,
 	OB_EMPTY_IMAGE_HIDE_FRONT        = 1 << 3,
+};
+
+/** #Object.empty_image_flag */
+enum {
+	OB_EMPTY_IMAGE_USE_ALPHA_BLEND   = 1 << 0,
 };
 
 #define MAX_DUPLI_RECUR 8

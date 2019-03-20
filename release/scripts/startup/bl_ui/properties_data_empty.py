@@ -48,7 +48,12 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
 
             layout.row(align=True).row(align=True)
 
-            layout.prop(ob, "color", text="Transparency", index=3, slider=True)
+            layout.prop(ob, "empty_image_use_alpha")
+
+            col = layout.column()
+            col.active = ob.empty_image_use_transparency
+            col.prop(ob, "color", text="Transparency", index=3, slider=True)
+
             col = layout.column(align=True)
             col.prop(ob, "empty_image_offset", text="Offset X", index=0)
             col.prop(ob, "empty_image_offset", text="Y", index=1)

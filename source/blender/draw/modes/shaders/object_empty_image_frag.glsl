@@ -12,13 +12,26 @@ uniform sampler2D image;
 #endif
 
 uniform int depthMode;
+uniform bool useAlphaTest;
 
 void main()
 {
 #ifdef USE_WIRE
 	fragColor = finalColor;
 #else
-	fragColor = finalColor * texture(image, texCoord_interp);
+	vec4 tex_col = texture(image, texCoord_interp);
+	fragColor = finalColor * tex_col;
+
+	if (useAlphaTest) {
+		/* Arbitrary discard anything below 5% opacity.
+		 * Note that this could be exposed to the User. */
+		if (tex_col.a < 0.05) {
+			discard;
+		}
+		else {
+			fragColor.a = 1.0;
+		}
+	}
 #endif
 
 	if (depthMode == DEPTH_BACK) {

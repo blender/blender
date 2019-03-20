@@ -927,6 +927,7 @@ static void DRW_shgroup_empty_image(
 	/* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead, see: T59347 */
 	int size[2] = {0};
 
+	const bool use_alpha_blend = (ob->empty_image_flag & OB_EMPTY_IMAGE_USE_ALPHA_BLEND) != 0;
 	GPUTexture *tex = NULL;
 
 	if (ob->data != NULL) {
@@ -943,25 +944,6 @@ static void DRW_shgroup_empty_image(
 	float image_aspect[2];
 	image_calc_aspect(ob->data, size, image_aspect);
 
-	/* OPTI(fclem) We need sorting only for transparent images. If an image as no alpha channel and
-	 * ob->col[3] == 1.0f,  we could remove it from the sorting pass. */
-
-	if (tex && (ob->color[3] > 0.0f) && BKE_object_empty_image_data_is_visible_in_view3d(ob, rv3d)) {
-		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->object_empty_image, sgl->image_empties);
-		DRW_shgroup_uniform_texture(grp, "image", tex);
-		/* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
-		DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
-		DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
-		DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
-		DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
-		DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
-		DRW_shgroup_uniform_vec4(grp, "objectColor", ob->color, 1);
-		if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-			DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
-		}
-		DRW_shgroup_call_add(grp, DRW_cache_image_plane_get(), ob->obmat);
-	}
-
 	{
 		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->object_empty_image_wire, sgl->non_meshes);
 		/* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
@@ -975,6 +957,27 @@ static void DRW_shgroup_empty_image(
 			DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
 		}
 		DRW_shgroup_call_add(grp, DRW_cache_image_plane_wire_get(), ob->obmat);
+	}
+
+	if (!BKE_object_empty_image_data_is_visible_in_view3d(ob, rv3d)) {
+		return;
+	}
+
+	if (tex && ((ob->color[3] > 0.0f) || !use_alpha_blend)) {
+		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->object_empty_image,
+		                                          (use_alpha_blend) ? sgl->image_empties : sgl->non_meshes);
+		DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
+		DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
+		DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
+		DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
+		DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
+		DRW_shgroup_uniform_texture(grp, "image", tex);
+		DRW_shgroup_uniform_vec4(grp, "objectColor", ob->color, 1);
+		DRW_shgroup_uniform_bool_copy(grp, "useAlphaTest", !use_alpha_blend);
+		if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+		}
+		DRW_shgroup_call_add(grp, DRW_cache_image_plane_get(), ob->obmat);
 	}
 }
 

@@ -2505,6 +2505,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display in Orthographic Mode", "Display image in orthographic mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+	prop = RNA_def_property(srna, "empty_image_use_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "empty_image_flag", OB_EMPTY_IMAGE_USE_ALPHA_BLEND);
+	RNA_def_property_ui_text(prop, "Use Alpha", "Use alpha blending instead of alpha test (can produce sorting artifacts)");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
 	static EnumPropertyItem prop_empty_image_side_items[] = {
 		{0, "DOUBLE_SIDED", 0, "Both", ""},
 		{OB_EMPTY_IMAGE_HIDE_BACK, "FRONT", 0, "Front", ""},
