@@ -1,6 +1,8 @@
 #ifndef __BLENDER_TESTING_H__
 #define __BLENDER_TESTING_H__
 
+#include <vector>
+
 #include "glog/logging.h"
 #include "gflags/gflags.h"
 #include "gtest/gtest.h"
@@ -99,17 +101,28 @@ double CosinusBetweenMatrices(const TMat &a, const TMat &b) {
 #endif
 
 template <typename T>
-inline void EXPECT_EQ_ARRAY(const T *expected, T *actual, const size_t N) {
-  for(size_t i = 0; i < N; ++i) {
-    EXPECT_EQ(expected[i], actual[i]);
+inline void EXPECT_EQ_VECTOR(const std::vector<T>& expected, const std::vector<T>& actual) {
+  EXPECT_EQ(expected.size(), actual.size());
+  if (expected.size() == actual.size()) {
+    for(size_t i = 0; i < expected.size(); ++i) {
+      EXPECT_EQ(expected[i], actual[i]) << "Element mismatch at index " << i;
+    }
   }
 }
 
 template <typename T>
-inline void EXPECT_EQ_ARRAY_ND(const T *expected, T *actual, const size_t N, const size_t D) {
+inline void EXPECT_EQ_ARRAY(const T *expected, const T *actual, const size_t N) {
+  for(size_t i = 0; i < N; ++i) {
+    EXPECT_EQ(expected[i], actual[i]) << "Element mismatch at index " << i;
+  }
+}
+
+template <typename T>
+inline void EXPECT_EQ_ARRAY_ND(const T *expected, const T *actual, const size_t N, const size_t D) {
   for(size_t i = 0; i < N; ++i) {
     for(size_t j = 0; j < D; ++j) {
-      EXPECT_EQ(expected[i][j], actual[i][j]);
+      EXPECT_EQ(expected[i][j], actual[i][j])
+          << "Element mismatch at index " << i << ", component index " << j;
     }
   }
 }

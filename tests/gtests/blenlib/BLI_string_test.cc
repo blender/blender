@@ -2,11 +2,22 @@
 
 #include "testing/testing.h"
 
+#include <initializer_list>
+#include <ostream>  // NOLINT
+#include <string>
+#include <utility>
+#include <vector>
+
 extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 }
+
+using std::initializer_list;
+using std::pair;
+using std::vector;
+using std::string;
 
 /* -------------------------------------------------------------------- */
 /* stubs */
@@ -428,85 +439,121 @@ TEST(string, StrFormatByteUnits)
 	EXPECT_STREQ("-8191.8472 PiB", size_str);
 }
 
+struct WordInfo {
+	WordInfo() {}
+	WordInfo(int start, int end) : start(start), end(end) {}
+	bool operator==(const WordInfo& other) const {
+		return start == other.start && end == other.end;
+	}
+	int start, end;
+};
+std::ostream& operator<<(std::ostream& os, const WordInfo& word_info) {
+	os << "start: " << word_info.start << ", end: " << word_info.end;
+	return os;
+}
 
+class StringFindSplitWords : public testing::Test {
+protected:
+	StringFindSplitWords() {
+	}
 
-#define STRING_FIND_SPLIT_WORDS_EX(word_str_src, word_str_src_len, limit_words, ...) \
-{ \
-	int word_info[][2] = \
-		{{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}}; \
-	const int word_cmp[][2] = __VA_ARGS__; \
-	const int word_cmp_size_input = ARRAY_SIZE(word_cmp) - (limit_words ? 1 : 0); \
-	const int word_cmp_size = ARRAY_SIZE(word_cmp); \
-	const int word_num = BLI_string_find_split_words( \
-	        word_str_src, word_str_src_len, ' ', word_info, word_cmp_size_input); \
-	EXPECT_EQ(word_cmp_size - 1, word_num); \
-	EXPECT_EQ_ARRAY_ND<const int[2]>(word_cmp, word_info, word_cmp_size, 2); \
-} ((void)0)
+	/* If max_words is -1 it will be initialized from the number of expected
+	 * words +1. This way there is no need to pass an explicit number of words,
+	 * but is also making it possible to catch situation when too many words
+	 * are being returned. */
+	void testStringFindSplitWords(
+	        const string& str, const size_t max_length,
+	        initializer_list<WordInfo> expected_words_info_init,
+	        int max_words = -1)
+	{
+		const vector<WordInfo> expected_words_info = expected_words_info_init;
+		if (max_words != -1) {
+			CHECK_LE(max_words, expected_words_info.size() - 1);
+		}
+		/* Since number of word info is used here, this makes it so we allow one
+		 * extra word to be collected from the input. This allows to catch possible
+		 * issues with word splitting not doing a correct thing. */
+		const int effective_max_words = (max_words == -1) ? expected_words_info.size() : max_words;
+		/* One extra element for the {-1, -1}. */
+		vector<WordInfo> actual_word_info(effective_max_words + 1, WordInfo(-1, -1));
+		const int actual_word_num = BLI_string_find_split_words(
+		        str.c_str(), max_length, ' ',
+		        reinterpret_cast<int(*)[2]>(actual_word_info.data()),
+		        effective_max_words);
+		/* Schrink actual array to an actual number of words, so we can compare
+		 * vectors as-is. */
+		EXPECT_LE(actual_word_num, actual_word_info.size() - 1);
+		actual_word_info.resize(actual_word_num + 1);
+		/* Perform actual comparison. */
+		EXPECT_EQ_VECTOR(actual_word_info, expected_words_info);
+	}
 
-#define STRING_FIND_SPLIT_WORDS(word_str_src, ...) \
-	STRING_FIND_SPLIT_WORDS_EX(word_str_src, strlen(word_str_src), false, __VA_ARGS__)
+	void testStringFindSplitWords(
+	        const string& str,
+	        initializer_list<WordInfo> expected_words_info_init)
+	{
+		testStringFindSplitWords(str, str.length(), expected_words_info_init);
+	}
+};
 
 /* BLI_string_find_split_words */
-TEST(string, StringFindSplitWords_Single)
+TEST_F(StringFindSplitWords, Simple)
 {
-	STRING_FIND_SPLIT_WORDS("t",    {{0, 1}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS("test", {{0, 4}, {-1, -1}});
+	testStringFindSplitWords("t",    {{0, 1}, {-1, -1}});
+	testStringFindSplitWords("test", {{0, 4}, {-1, -1}});
 }
-TEST(string, StringFindSplitWords_Triple)
+TEST_F(StringFindSplitWords, Triple)
 {
-	STRING_FIND_SPLIT_WORDS("f t w",            {{0, 1}, {2, 1}, {4, 1}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS("find three words", {{0, 4}, {5, 5}, {11, 5}, {-1, -1}});
+	testStringFindSplitWords("f t w",            {{0, 1}, {2, 1}, {4, 1}, {-1, -1}});
+	testStringFindSplitWords("find three words", {{0, 4}, {5, 5}, {11, 5}, {-1, -1}});
 }
-TEST(string, StringFindSplitWords_Spacing)
+TEST_F(StringFindSplitWords, Spacing)
 {
-	STRING_FIND_SPLIT_WORDS("# ## ### ####",   {{0, 1}, {2, 2}, {5, 3}, {9, 4}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS("#  #   #    #",   {{0, 1}, {3, 1}, {7, 1}, {12, 1}, {-1, -1}});
+	testStringFindSplitWords("# ## ### ####",   {{0, 1}, {2, 2}, {5, 3}, {9, 4}, {-1, -1}});
+	testStringFindSplitWords("#  #   #    #",   {{0, 1}, {3, 1}, {7, 1}, {12, 1}, {-1, -1}});
 }
-TEST(string, StringFindSplitWords_Trailing_Left)
+TEST_F(StringFindSplitWords, Trailing_Left)
 {
-	STRING_FIND_SPLIT_WORDS("   t",    {{3, 1}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS("   test", {{3, 4}, {-1, -1}});
+	testStringFindSplitWords("   t",    {{3, 1}, {-1, -1}});
+	testStringFindSplitWords("   test", {{3, 4}, {-1, -1}});
 }
-TEST(string, StringFindSplitWords_Trailing_Right)
+TEST_F(StringFindSplitWords, Trailing_Right)
 {
-	STRING_FIND_SPLIT_WORDS("t   ",    {{0, 1}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS("test   ", {{0, 4}, {-1, -1}});
+	testStringFindSplitWords("t   ",    {{0, 1}, {-1, -1}});
+	testStringFindSplitWords("test   ", {{0, 4}, {-1, -1}});
 }
-TEST(string, StringFindSplitWords_Trailing_LeftRight)
+TEST_F(StringFindSplitWords, Trailing_LeftRight)
 {
-	STRING_FIND_SPLIT_WORDS("   surrounding space test   123   ", {{3, 11}, {15, 5}, {21, 4}, {28, 3}, {-1, -1}});
+	testStringFindSplitWords("   surrounding space test   123   ", {{3, 11}, {15, 5}, {21, 4}, {28, 3}, {-1, -1}});
 }
-TEST(string, StringFindSplitWords_Blank)
+TEST_F(StringFindSplitWords, Blank)
 {
-	STRING_FIND_SPLIT_WORDS("", {{-1, -1}});
+	testStringFindSplitWords("", {{-1, -1}});
 }
-TEST(string, StringFindSplitWords_Whitespace)
+TEST_F(StringFindSplitWords, Whitespace)
 {
-	STRING_FIND_SPLIT_WORDS(" ",    {{-1, -1}});
-	STRING_FIND_SPLIT_WORDS("    ", {{-1, -1}});
+	testStringFindSplitWords(" ",    {{-1, -1}});
+	testStringFindSplitWords("    ", {{-1, -1}});
 }
-TEST(string, StringFindSplitWords_LimitWords)
+TEST_F(StringFindSplitWords, LimitWords)
 {
-	const char *words = "too many words";
-	const int words_len = strlen(words);
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len, false, {{0, 3}, {4, 4}, {9, 5}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len, true,  {{0, 3}, {4, 4}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len, true,  {{0, 3}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len, true,  {{-1, -1}});
+	const string words = "too many chars";
+	const int words_len = words.length();
+	testStringFindSplitWords(words, words_len, {{0, 3}, {4, 4}, {9, 5}, {-1, -1}}, 3);
+	testStringFindSplitWords(words, words_len, {{0, 3}, {4, 4}, {-1, -1}}, 2);
+	testStringFindSplitWords(words, words_len, {{0, 3}, {-1, -1}}, 1);
+	testStringFindSplitWords(words, words_len, {{-1, -1}}, 0);
 }
-TEST(string, StringFindSplitWords_LimitChars)
+TEST_F(StringFindSplitWords, LimitChars)
 {
-	const char *words = "too many chars";
-	const int words_len = strlen(words);
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len,      false, {{0, 3}, {4, 4}, {9, 5}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len -  1, false, {{0, 3}, {4, 4}, {9, 4}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, words_len -  5, false, {{0, 3}, {4, 4}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, 1,              false, {{0, 1}, {-1, -1}});
-	STRING_FIND_SPLIT_WORDS_EX(words, 0,              false, {{-1, -1}});
+	const string words = "too many chars";
+	const int words_len = words.length();
+	testStringFindSplitWords(words, words_len,      {{0, 3}, {4, 4}, {9, 5}, {-1, -1}});
+	testStringFindSplitWords(words, words_len -  1, {{0, 3}, {4, 4}, {9, 4}, {-1, -1}});
+	testStringFindSplitWords(words, words_len -  5, {{0, 3}, {4, 4}, {-1, -1}});
+	testStringFindSplitWords(words, 1,              {{0, 1}, {-1, -1}});
+	testStringFindSplitWords(words, 0,              {{-1, -1}});
 }
-
-#undef STRING_FIND_SPLIT_WORDS
-
 
 /* BLI_strncasestr */
 TEST(string, StringStrncasestr)
