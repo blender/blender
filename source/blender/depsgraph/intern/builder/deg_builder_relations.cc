@@ -2501,6 +2501,12 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
 	}
 	/* Animation. */
 	build_animdata(&cache_file->id);
+	if (check_id_has_anim_component(&cache_file->id)) {
+		ComponentKey animation_key(&cache_file->id, NodeType::ANIMATION);
+		ComponentKey datablock_key(&cache_file->id,
+		                           NodeType::CACHE);
+		add_relation(animation_key, datablock_key, "Datablock Animation");
+	}
 }
 
 void DepsgraphRelationBuilder::build_mask(Mask *mask)
