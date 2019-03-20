@@ -1918,6 +1918,7 @@ class VIEW3D_MT_object_context_menu(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_object_parent")
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -2907,8 +2908,8 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
+            col.menu("VIEW3D_MT_mirror", text="Mirror Vertices")
             col.menu("VIEW3D_MT_snap", text="Snap Vertices")
-            col.operator("transform.mirror", text="Mirror Vertices")
 
             col.separator()
 
@@ -3800,11 +3801,13 @@ class VIEW3D_MT_armature_context_menu(Menu):
 
         layout.operator("armature.fill")
 
-        layout.operator("armature.switch_direction", text="Switch Direction")
-
         layout.separator()
 
+        # Modify
+        layout.menu("VIEW3D_MT_mirror")
+        layout.menu("VIEW3D_MT_snap")
         layout.operator("armature.symmetrize")
+        layout.operator("armature.switch_direction", text="Switch Direction")
         layout.menu("VIEW3D_MT_edit_armature_names")
 
         layout.separator()
@@ -5621,6 +5624,11 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
         layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
         layout.menu("GPENCIL_MT_separate", text="Separate")
         layout.operator("gpencil.stroke_split", text="Split")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_mirror")
+        layout.menu("VIEW3D_MT_snap")
 
         layout.separator()
 
