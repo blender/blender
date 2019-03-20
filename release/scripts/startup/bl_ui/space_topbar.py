@@ -815,6 +815,11 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
+        # Mainly to expose shortcut since this depends on the context.
+        props = layout.operator("wm.call_panel", text="Rename Active Item...", icon='OUTLINER_DATA_FONT')
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
+
         layout.operator("wm.search_menu", text="Operator Search...", icon='VIEWZOOM')
 
         layout.separator()
@@ -1067,6 +1072,74 @@ class TOPBAR_PT_gpencil_fill(Panel):
             row.prop(gp_settings, "fill_threshold", text="Threshold")
 
 
+# Only a popover
+class TOPBAR_PT_name(Panel):
+    bl_space_type = 'TOPBAR'  # dummy
+    bl_region_type = 'WINDOW'
+    bl_label = "Rename Active Item"
+    bl_ui_units_x = 14
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+
+        # Edit first editable button in popup
+        def row_with_icon(layout, icon):
+            row = layout.row()
+            row.activate_init = True
+            row.label(icon=icon)
+            return row
+
+        mode = context.mode
+        scene = context.scene
+        space = context.space_data
+        space_type = None if (space is None) else space.type
+        found = False
+        if space_type == 'SEQUENCE_EDITOR':
+            layout.label(text="Sequence Strip Name")
+            item = getattr(scene.sequence_editor, "active_strip")
+            if item:
+                row = row_with_icon(layout, 'SEQUENCE')
+                row.prop(item, "name", text="")
+                found = True
+        elif space_type == 'NODE_EDITOR':
+            layout.label(text="Node Name")
+            item = context.active_node
+            if item:
+                row = row_with_icon(layout, 'NODE')
+                row.prop(item, "name", text="")
+                found = True
+        else:
+            if mode == 'POSE' or (mode == 'WEIGHT_PAINT' and context.pose_object):
+                layout.label(text="Bone Name")
+                item = getattr(context.active_pose_bone, "bone", None)
+                if item:
+                    row = row_with_icon(layout, 'BONE_DATA')
+                    row.prop(item, "name", text="", icon='OBJECT_DATA')
+                    found = True
+            elif mode == 'EDIT_ARMATURE':
+                layout.label(text="Bone Name")
+                item = context.active_bone
+                if item:
+                    row = row_with_icon(layout, 'BONE_DATA')
+                    row.prop(item, "name", text="")
+                    found = True
+            else:
+                layout.label(text="Object Name")
+                item = context.object
+                if item:
+                    row = row_with_icon(layout, 'OBJECT_DATA')
+                    row.prop(item, "name", text="")
+                    found = True
+
+        if not found:
+            row = row_with_icon(layout, 'ERROR')
+            row.label(text="No active item")
+
+
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
@@ -1089,6 +1162,7 @@ classes = (
     TOPBAR_PT_gpencil_layers,
     TOPBAR_PT_gpencil_primitive,
     TOPBAR_PT_gpencil_fill,
+    TOPBAR_PT_name,
 )
 
 if __name__ == "__main__":  # only for live edit.
