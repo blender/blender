@@ -210,7 +210,7 @@ bool BKE_cachefile_filepath_get(
 
 	if (cache_file->is_sequence && BLI_path_frame_get(r_filepath, &fframe, &frame_len)) {
 		char ext[32];
-		BLI_path_frame_strip(r_filepath, true, ext);
+		BLI_path_frame_strip(r_filepath, ext);
 		BLI_path_frame(r_filepath, frame, frame_len);
 		BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
 

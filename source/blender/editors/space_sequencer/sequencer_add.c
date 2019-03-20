@@ -835,7 +835,7 @@ void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, 
 		char ext[PATH_MAX];
 		char filename_stripped[PATH_MAX];
 		/* strip the frame from filename and substitute with # */
-		BLI_path_frame_strip(filename, true, ext);
+		BLI_path_frame_strip(filename, ext);
 
 		for (i = 0; i < len; i++, se++) {
 			BLI_strncpy(filename_stripped, filename, sizeof(filename_stripped));

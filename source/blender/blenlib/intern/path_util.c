@@ -862,7 +862,7 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
 	return false;
 }
 
-void BLI_path_frame_strip(char *path, bool set_frame_char, char *ext)
+void BLI_path_frame_strip(char *path, char *r_ext)
 {
 	if (*path) {
 		char *file = (char *)BLI_last_slash(path);
@@ -896,16 +896,14 @@ void BLI_path_frame_strip(char *path, bool set_frame_char, char *ext)
 
 		c++;
 
-		if (numdigits) {
-			/* replace the number with the suffix and terminate the string */
-			while (numdigits--) {
-				*ext++ = *suffix;
-				*c++ = set_frame_char ? '#' : *suffix;
-				suffix++;
-			}
-			*c = '\0';
-			*ext = '\0';
+		int suffix_length = len - (suffix - file);
+		BLI_strncpy(r_ext, suffix, suffix_length+1);
+
+		/* replace the number with the suffix and terminate the string */
+		while (numdigits--) {
+			*c++ = '#';
 		}
+		*c = '\0';
 	}
 }
 

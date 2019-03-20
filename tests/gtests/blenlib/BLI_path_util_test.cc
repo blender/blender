@@ -462,3 +462,25 @@ TEST(path_util, SplitDirfile)
 		EXPECT_STREQ("", file);
 	}
 }
+
+#define PATH_FRAME_STRIP(input_path, expect_path, expect_ext) \
+{ \
+	char path[FILE_MAX]; \
+	char ext[FILE_MAX]; \
+	BLI_strncpy(path, (input_path), FILE_MAX); \
+	BLI_path_frame_strip(path, ext); \
+	EXPECT_STREQ(path, expect_path); \
+	EXPECT_STREQ(ext, expect_ext); \
+}
+
+/* BLI_path_frame_strip */
+TEST(path_util, PathFrameStrip)
+{
+	PATH_FRAME_STRIP("", "", "");
+	PATH_FRAME_STRIP("nonum.abc", "nonum", ".abc");
+	PATH_FRAME_STRIP("fileonly.001.abc", "fileonly.###", ".abc");
+	PATH_FRAME_STRIP("/abspath/to/somefile.001.abc", "/abspath/to/somefile.###", ".abc");
+	PATH_FRAME_STRIP("/ext/longer/somefile.001.alembic", "/ext/longer/somefile.###", ".alembic");
+	PATH_FRAME_STRIP("/ext/shorter/somefile.123001.abc", "/ext/shorter/somefile.######", ".abc");
+}
+#undef PATH_FRAME_STRIP
