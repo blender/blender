@@ -1359,12 +1359,12 @@ static void rna_def_field(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "apply_to_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_DO_LOCATION);
-	RNA_def_property_ui_text(prop, "Location", "Effect particles' location");
+	RNA_def_property_ui_text(prop, "Location", "Affect particles' location");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
 	prop = RNA_def_property(srna, "apply_to_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_DO_ROTATION);
-	RNA_def_property_ui_text(prop, "Rotation", "Effect particles' dynamic rotation");
+	RNA_def_property_ui_text(prop, "Rotation", "Affect particles' dynamic rotation");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
 	prop = RNA_def_property(srna, "use_absorption", PROP_BOOLEAN, PROP_NONE);
