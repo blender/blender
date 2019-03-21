@@ -8922,10 +8922,38 @@ static int ui_handle_menu_event(
 					retval = WM_UI_HANDLER_BREAK;
 					break;
 
-				case UPARROWKEY:
-				case DOWNARROWKEY:
 				case WHEELUPMOUSE:
 				case WHEELDOWNMOUSE:
+				{
+					if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+						/* pass */
+					}
+					else if (!ui_block_is_menu(block)) {
+						int my_scroll = INT_MAX;
+						if (event->type == WHEELUPMOUSE) {
+							if (block->flag & UI_BLOCK_CLIPTOP) {
+								my_scroll = block->rect.ymax + (UI_UNIT_Y * 1.5);
+							}
+						}
+						else if (event->type == WHEELDOWNMOUSE) {
+							if (block->flag & UI_BLOCK_CLIPBOTTOM) {
+								my_scroll = block->rect.ymin - (UI_UNIT_Y * 1.5);
+							}
+						}
+						if (my_scroll != INT_MAX) {
+							if (but) {
+								but->active->cancel = true;
+								button_activate_exit(C, but, but->active, false, false);
+							}
+							ui_menu_scroll_to_y(ar, block, my_scroll);
+							WM_event_add_mousemove(C);
+						}
+						break;
+					}
+					ATTR_FALLTHROUGH;
+				}
+				case UPARROWKEY:
+				case DOWNARROWKEY:
 				case MOUSEPAN:
 					/* arrowkeys: only handle for block_loop blocks */
 					if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
