@@ -146,20 +146,22 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 /**
  * \a check_prop callback filters functions to avoid drawing certain properties,
  * in cases where PROP_HIDDEN flag can't be used for a property.
+ *
+ * \param prop_activate_init: Property to activate on initial popup (#UI_BUT_ACTIVATE_ON_INIT).
  */
 eAutoPropButsReturn uiDefAutoButsRNA(
         uiLayout *layout, PointerRNA *ptr,
         bool (*check_prop)(PointerRNA *ptr, PropertyRNA *prop, void *user_data), void *user_data,
+        PropertyRNA *prop_activate_init,
         const eButLabelAlign label_align, const bool compact)
 {
 	eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
 	uiLayout *split, *col;
-	int flag;
 	const char *name;
 
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{
-		flag = RNA_property_flag(prop);
+		const int flag = RNA_property_flag(prop);
 
 		if (flag & PROP_HIDDEN) {
 			continue;
@@ -169,11 +171,11 @@ eAutoPropButsReturn uiDefAutoButsRNA(
 			continue;
 		}
 
+		const PropertyType type = RNA_property_type(prop);
 		switch (label_align) {
 			case UI_BUT_LABEL_ALIGN_COLUMN:
 			case UI_BUT_LABEL_ALIGN_SPLIT_COLUMN:
 			{
-				PropertyType type = RNA_property_type(prop);
 				const bool is_boolean = (type == PROP_BOOLEAN && !RNA_property_array_check(prop));
 
 				name = RNA_property_ui_name(prop);
@@ -208,8 +210,22 @@ eAutoPropButsReturn uiDefAutoButsRNA(
 				break;
 		}
 
+		/* Only buttons that can be edited as text. */
+		const bool use_activate_init = (
+		        (prop == prop_activate_init) &&
+		        (ELEM(type, PROP_STRING, PROP_INT, PROP_FLOAT)));
+
+		if (use_activate_init) {
+			uiLayoutSetActivateInit(col, true);
+		}
+
 		uiItemFullR(col, ptr, prop, -1, 0, compact ? UI_ITEM_R_COMPACT : 0, name, ICON_NONE);
 		return_info &= ~UI_PROP_BUTS_NONE_ADDED;
+
+		if (use_activate_init) {
+			uiLayoutSetActivateInit(col, false);
+		}
+
 	}
 	RNA_STRUCT_END;
 

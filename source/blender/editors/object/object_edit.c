@@ -1711,6 +1711,7 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
 	prop = RNA_def_string(ot->srna, "new_collection_name", NULL, MAX_NAME, "Name",
 	                      "Name of the newly added collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	ot->prop = prop;
 }
 
 void OBJECT_OT_link_to_collection(wmOperatorType *ot)

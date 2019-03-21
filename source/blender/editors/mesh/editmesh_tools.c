@@ -7540,7 +7540,7 @@ static void edbm_point_normals_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, point_normals_draw_check_prop, NULL, '\0', false);
+	uiDefAutoButsRNA(layout, &ptr, point_normals_draw_check_prop, NULL, NULL, '\0', false);
 }
 
 void MESH_OT_point_normals(struct wmOperatorType *ot)
@@ -7935,7 +7935,7 @@ static void edbm_average_normals_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, average_normals_draw_check_prop, NULL, '\0', false);
+	uiDefAutoButsRNA(layout, &ptr, average_normals_draw_check_prop, NULL, NULL, '\0', false);
 }
 
 void MESH_OT_average_normals(struct wmOperatorType *ot)
@@ -8127,7 +8127,7 @@ static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, normals_tools_draw_check_prop, NULL, '\0', false);
+	uiDefAutoButsRNA(layout, &ptr, normals_tools_draw_check_prop, NULL, NULL, '\0', false);
 }
 
 void MESH_OT_normals_tools(struct wmOperatorType *ot)

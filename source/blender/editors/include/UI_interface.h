@@ -839,6 +839,7 @@ uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA 
 eAutoPropButsReturn uiDefAutoButsRNA(
         uiLayout *layout, struct PointerRNA *ptr,
         bool (*check_prop)(struct PointerRNA *ptr, struct PropertyRNA *prop, void *user_data), void *user_data,
+        struct PropertyRNA *prop_activate_init,
         eButLabelAlign label_align, const bool compact);
 
 /* use inside searchfunc to add items */

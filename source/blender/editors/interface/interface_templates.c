@@ -4466,6 +4466,7 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 		        layout, &ptr,
 		        op->type->poll_property ? ui_layout_operator_buts_poll_property : NULL,
 		        op->type->poll_property ? &user_data : NULL,
+		        op->type->prop,
 		        label_align, (flag & UI_TEMPLATE_OP_PROPS_COMPACT));
 
 		if ((return_info & UI_PROP_BUTS_NONE_ADDED) && (flag & UI_TEMPLATE_OP_PROPS_SHOW_EMPTY)) {
