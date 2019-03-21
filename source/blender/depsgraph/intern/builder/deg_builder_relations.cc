@@ -636,6 +636,10 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
 	}
 	/* Object constraints. */
+	OperationKey object_transform_simulation_init_key(
+	        &object->id,
+	        NodeType::TRANSFORM,
+	        OperationCode::TRANSFORM_SIMULATION_INIT);
 	if (object->constraints.first != NULL) {
 		OperationKey constraint_key(&object->id,
 		                            NodeType::TRANSFORM,
@@ -649,12 +653,22 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		/* operation order */
 		add_relation(base_op_key, constraint_key, "ObBase-> Constraint Stack");
 		add_relation(constraint_key, final_transform_key, "ObConstraints -> Done");
-		add_relation(constraint_key, ob_eval_key, "Eval");
-		add_relation(ob_eval_key, final_transform_key, "Eval");
+		add_relation(constraint_key, ob_eval_key, "Constraint -> Transform Eval");
+		add_relation(ob_eval_key,
+		             object_transform_simulation_init_key,
+		             "Transform Eval -> Simulation Init");
+		add_relation(object_transform_simulation_init_key,
+		             final_transform_key,
+		             "Simulation -> Final Transform");
 	}
 	else {
 		add_relation(base_op_key, ob_eval_key, "Eval");
-		add_relation(ob_eval_key, final_transform_key, "Eval");
+		add_relation(ob_eval_key,
+		             object_transform_simulation_init_key,
+		             "Transform Eval -> Simulation Init");
+		add_relation(object_transform_simulation_init_key,
+		             final_transform_key,
+		             "Simulation -> Final Transform");
 	}
 	/* Animation data */
 	build_animdata(&object->id);
@@ -959,15 +973,16 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 	}
 	/* Manual edits to any dependency (or self) should reset the point cache. */
 	if (!BLI_listbase_is_empty(&ptcache_id_list)) {
-		OperationKey transform_init_key(&object->id,
-		                                NodeType::TRANSFORM,
-		                                OperationCode::TRANSFORM_INIT);
+		OperationKey transform_simulation_init_key(
+		        &object->id,
+		        NodeType::TRANSFORM,
+		        OperationCode::TRANSFORM_SIMULATION_INIT);
 		OperationKey geometry_init_key(&object->id,
 		                               NodeType::GEOMETRY,
 		                               OperationCode::GEOMETRY_EVAL_INIT);
-		add_relation(transform_init_key,
+		add_relation(transform_simulation_init_key,
 		             point_cache_key,
-		             "Transform Local -> Point Cache",
+		             "Transform Simulation -> Point Cache",
 		             RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
 		add_relation(geometry_init_key,
 		             point_cache_key,
@@ -1740,10 +1755,6 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			        &object->id,
 			        NodeType::TRANSFORM,
 			        OperationCode::TRANSFORM_EVAL);
-
-			add_relation(object_transform_eval_key,
-			             object_transform_simulation_init_key,
-			             "Object Transform -> Simulation Init");
 			add_relation(object_transform_simulation_init_key,
 			             rb_simulate_key,
 			             "Object Transform -> Rigidbody Sim Eval");
