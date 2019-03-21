@@ -1166,7 +1166,7 @@ static const EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_STATIC_OVERRIDE, "STATIC_OVERRIDE", 0, "Add Static Override",
 	 "Add a local static override of this data-block"},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
-	{OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", "WARNING: no undo"},
+	{OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
 	{OUTLINER_IDOP_REMAP, "REMAP", 0, "Remap Users",
 	 "Make all users of selected data-blocks to use instead current (clicked) one"},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
