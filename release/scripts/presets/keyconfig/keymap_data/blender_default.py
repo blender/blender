@@ -698,6 +698,9 @@ def km_outliner(params):
         ("outliner.collection_exclude_clear", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("outliner.hide", {"type": 'H', "value": 'PRESS'}, None),
         ("outliner.unhide_all", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        # Copy/paste.
+        ("outliner.id_copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
+        ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap

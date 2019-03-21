@@ -40,6 +40,8 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_appdir.h"
+#include "BKE_blender_copybuffer.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_idcode.h"
@@ -590,6 +592,104 @@ void id_remap_cb(
 	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_props);
 
 	WM_operator_properties_free(&op_props);
+}
+
+/* ID copy/Paste ------------------------------------------------------------- */
+
+static int outliner_id_copy_tag(SpaceOutliner *soops, ListBase *tree)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	int num_ids = 0;
+
+	for (te = tree->first; te; te = te->next) {
+		tselem = TREESTORE(te);
+
+		/* if item is selected and is an ID, tag it as needing to be copied. */
+		if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+			ID *id = tselem->id;
+			if (!(id->tag & LIB_TAG_DOIT)) {
+				BKE_copybuffer_tag_ID(tselem->id);
+				num_ids++;
+			}
+		}
+
+		/* go over sub-tree */
+		if (TSELEM_OPEN(tselem, soops)) {
+			num_ids += outliner_id_copy_tag(soops, &te->subtree);
+		}
+	}
+
+	return num_ids;
+}
+
+static int outliner_id_copy_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	SpaceOutliner *soops = CTX_wm_space_outliner(C);
+	char str[FILE_MAX];
+
+	BKE_copybuffer_begin(bmain);
+
+	const int num_ids = outliner_id_copy_tag(soops, &soops->tree);
+	if (num_ids == 0) {
+		BKE_report(op->reports, RPT_INFO, "No selected data-blocks to copy");
+		return OPERATOR_CANCELLED;
+	}
+
+	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
+	BKE_copybuffer_save(bmain, str, op->reports);
+
+	BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-blocks", num_ids);
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_id_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Outliner ID Data Copy";
+	ot->idname = "OUTLINER_OT_id_copy";
+	ot->description = "Selected data-blocks are copied to the clipboard";
+
+	/* callbacks */
+	ot->exec = outliner_id_copy_exec;
+	ot->poll = ED_operator_outliner_active;
+
+	ot->flag = 0;
+}
+
+static int outliner_id_paste_exec(bContext *C, wmOperator *op)
+{
+	char str[FILE_MAX];
+	const short flag = FILE_AUTOSELECT | FILE_ACTIVE_COLLECTION;
+
+	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
+
+	const int num_pasted = BKE_copybuffer_paste(C, str, flag, op->reports, 0);
+	if (num_pasted == 0) {
+		BKE_report(op->reports, RPT_INFO, "No data to paste");
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	BKE_reportf(op->reports, RPT_INFO, "%d data-blocks pasted", num_pasted);
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_id_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Outliner ID Data Paste";
+	ot->idname = "OUTLINER_OT_id_paste";
+	ot->description = "Data-blocks from the clipboard are pasted";
+
+	/* callbacks */
+	ot->exec = outliner_id_paste_exec;
+	ot->poll = ED_operator_outliner_active;
+
+	ot->flag = 0;
 }
 
 /* Library relocate/reload --------------------------------------------------- */

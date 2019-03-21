@@ -1152,6 +1152,9 @@ typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_DELETE,
 	OUTLINER_IDOP_REMAP,
 
+	OUTLINER_IDOP_COPY,
+	OUTLINER_IDOP_PASTE,
+
 	OUTLINER_IDOP_FAKE_ADD,
 	OUTLINER_IDOP_FAKE_CLEAR,
 	OUTLINER_IDOP_RENAME,
@@ -1169,6 +1172,10 @@ static const EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
 	{OUTLINER_IDOP_REMAP, "REMAP", 0, "Remap Users",
 	 "Make all users of selected data-blocks to use instead current (clicked) one"},
+	{0, "", 0, NULL, NULL},
+	{OUTLINER_IDOP_COPY, "COPY", ICON_COPYDOWN, "Copy", ""},
+	{OUTLINER_IDOP_PASTE, "PASTE", ICON_PASTEDOWN, "Paste", ""},
+	{0, "", 0, NULL, NULL},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
 	 "Ensure data-block gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
@@ -1318,6 +1325,17 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 				outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
 				ED_undo_push(C, "Remap");
 			}
+			break;
+		}
+		case OUTLINER_IDOP_COPY:
+		{
+			WM_operator_name_call(C, "OUTLINER_OT_id_copy", WM_OP_INVOKE_DEFAULT, NULL);
+			break;
+		}
+		case OUTLINER_IDOP_PASTE:
+		{
+			WM_operator_name_call(C, "OUTLINER_OT_id_paste", WM_OP_INVOKE_DEFAULT, NULL);
+			ED_undo_push(C, "Paste");
 			break;
 		}
 		case OUTLINER_IDOP_FAKE_ADD:
