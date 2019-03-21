@@ -14,7 +14,7 @@ class SearchEnumOperator(bpy.types.Operator):
     bl_label = "Search Enum Operator"
     bl_property = "my_search"
 
-    my_search = EnumProperty(
+    my_search: EnumProperty(
         name="My Search",
         items=(
             ('FOO', "Foo", ""),

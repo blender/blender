@@ -21,7 +21,7 @@ class ExportSomeData(bpy.types.Operator):
     bl_idname = "export.some_data"
     bl_label = "Export Some Data"
 
-    filepath = bpy.props.StringProperty(subtype="FILE_PATH")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
 
     @classmethod
     def poll(cls, context):

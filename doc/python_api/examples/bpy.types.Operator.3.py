@@ -11,13 +11,15 @@ class DialogOperator(bpy.types.Operator):
     bl_idname = "object.dialog_operator"
     bl_label = "Simple Dialog Operator"
 
-    my_float = bpy.props.FloatProperty(name="Some Floating Point")
-    my_bool = bpy.props.BoolProperty(name="Toggle Option")
-    my_string = bpy.props.StringProperty(name="String Value")
+    my_float: bpy.props.FloatProperty(name="Some Floating Point")
+    my_bool: bpy.props.BoolProperty(name="Toggle Option")
+    my_string: bpy.props.StringProperty(name="String Value")
 
     def execute(self, context):
-        message = "Popup Values: %f, %d, '%s'" % \
+        message = (
+            "Popup Values: %f, %d, '%s'" %
             (self.my_float, self.my_bool, self.my_string)
+        )
         self.report({'INFO'}, message)
         return {'FINISHED'}
 
@@ -28,5 +30,5 @@ class DialogOperator(bpy.types.Operator):
 
 bpy.utils.register_class(DialogOperator)
 
-# test call
+# Test call.
 bpy.ops.object.dialog_operator('INVOKE_DEFAULT')

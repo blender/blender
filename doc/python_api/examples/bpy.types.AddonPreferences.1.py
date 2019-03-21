@@ -22,15 +22,15 @@ class ExampleAddonPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         name="Example File Path",
         subtype='FILE_PATH',
     )
-    number = IntProperty(
+    number: IntProperty(
         name="Example Number",
         default=4,
     )
-    boolean = BoolProperty(
+    boolean: BoolProperty(
         name="Example Boolean",
         default=False,
     )

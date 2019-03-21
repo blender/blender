@@ -12,7 +12,7 @@ like Blender's existing properties.
 import bpy
 
 # Assign a custom property to an existing type.
-bpy.types.Material.custom_float = bpy.props.FloatProperty(name="Test Prob")
+bpy.types.Material.custom_float = bpy.props.FloatProperty(name="Test Property")
 
 # Test the property is there.
 bpy.data.materials[0].custom_float = 5.0
