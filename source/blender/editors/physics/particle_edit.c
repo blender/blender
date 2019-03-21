@@ -431,6 +431,7 @@ static void PE_set_data(bContext *C, PEData *data)
 {
 	memset(data, 0, sizeof(*data));
 
+	data->context = C;
 	data->bmain = CTX_data_main(C);
 	data->scene = CTX_data_scene(C);
 	data->view_layer = CTX_data_view_layer(C);
