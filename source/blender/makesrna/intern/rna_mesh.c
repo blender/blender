@@ -2642,6 +2642,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Mesh_uv_layer_stencil_index_get",
 	                           "rna_Mesh_uv_layer_stencil_index_set", "rna_Mesh_uv_layer_index_range");
 	RNA_def_property_ui_text(prop, "Mask UV loop layer Index", "Mask UV loop layer index");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	/* Vertex colors */
 

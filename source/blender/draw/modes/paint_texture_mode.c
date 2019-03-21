@@ -106,6 +106,7 @@ static struct {
 	 * free in PAINT_TEXTURE_engine_free(); */
 	struct GPUShader *fallback_sh;
 	struct GPUShader *image_sh;
+	struct GPUShader *image_masking_sh;
 
 	struct GPUShader *wire_overlay_shader;
 	struct GPUShader *face_overlay_shader;
@@ -136,6 +137,12 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
 		        datatoc_paint_texture_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 
+		e_data.image_masking_sh = DRW_shader_create_with_lib(
+		        datatoc_paint_texture_vert_glsl, NULL,
+		        datatoc_paint_texture_frag_glsl,
+		        datatoc_common_globals_lib_glsl,
+		        "#define TEXTURE_PAINT_MASK\n");
+
 		e_data.wire_overlay_shader = DRW_shader_create_with_lib(
 		        datatoc_paint_wire_vert_glsl, NULL,
 		        datatoc_paint_wire_frag_glsl,
@@ -146,6 +153,28 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
 		        datatoc_paint_face_vert_glsl, NULL,
 		        datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
 	}
+}
+
+static DRWShadingGroup* create_texture_paint_shading_group(PAINT_TEXTURE_PassList *psl, const struct GPUTexture *texture, const DRWContextState *draw_ctx, const bool nearest_interp)
+{
+	Scene *scene = draw_ctx->scene;
+	const ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
+	const bool masking_enabled = imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL && imapaint->stencil != NULL;
+
+	DRWShadingGroup *grp = DRW_shgroup_create(masking_enabled?e_data.image_masking_sh:e_data.image_sh, psl->image_faces);
+	DRW_shgroup_uniform_texture(grp, "image", texture);
+	DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
+	DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+	DRW_shgroup_uniform_bool_copy(grp, "nearestInterp", nearest_interp);
+
+	if (masking_enabled) {
+		const bool masking_inverted = (imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) > 0;
+		GPUTexture *stencil = GPU_texture_from_blender(imapaint->stencil, NULL, GL_TEXTURE_2D, false);
+		DRW_shgroup_uniform_texture(grp, "maskingImage", stencil);
+		DRW_shgroup_uniform_vec3(grp, "maskingColor", imapaint->stencil_col, 1);
+		DRW_shgroup_uniform_bool_copy(grp, "maskingInvertStencil", masking_inverted);
+	}
+	return grp;
 }
 
 /* Here init all passes and shading groups
@@ -192,15 +221,10 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 					Material *ma = give_current_material(ob, i + 1);
 					Image *ima = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 					int interp = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].interp : 0;
-					GPUTexture *tex = ima ?
-					        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false) : NULL;
+					GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false);
 
 					if (tex) {
-						DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
-						DRW_shgroup_uniform_texture(grp, "image", tex);
-						DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
-						DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-						DRW_shgroup_uniform_bool_copy(grp, "nearestInterp", interp == SHD_INTERP_CLOSEST);
+						DRWShadingGroup *grp = create_texture_paint_shading_group(psl, tex, draw_ctx, interp == SHD_INTERP_CLOSEST);
 						stl->g_data->shgroup_image_array[i] = grp;
 					}
 					else {
@@ -210,15 +234,10 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 			}
 			else {
 				Image *ima = imapaint->canvas;
-				GPUTexture *tex = ima ?
-				        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false) : NULL;
+				GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false);
 
 				if (tex) {
-					DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
-					DRW_shgroup_uniform_texture(grp, "image", tex);
-					DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
-					DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-					DRW_shgroup_uniform_bool_copy(grp, "nearestInterp", imapaint->interp == IMAGEPAINT_INTERP_CLOSEST);
+					DRWShadingGroup *grp = create_texture_paint_shading_group(psl, tex, draw_ctx, imapaint->interp == IMAGEPAINT_INTERP_CLOSEST);
 					stl->g_data->shgroup_image_array[0] = grp;
 				}
 				else {
@@ -345,6 +364,7 @@ static void PAINT_TEXTURE_draw_scene(void *vedata)
 static void PAINT_TEXTURE_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.image_sh);
+	DRW_SHADER_FREE_SAFE(e_data.image_masking_sh);
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
 	DRW_SHADER_FREE_SAFE(e_data.face_overlay_shader);
 }

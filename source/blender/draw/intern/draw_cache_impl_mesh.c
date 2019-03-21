@@ -237,6 +237,7 @@ typedef struct MeshRenderData {
 			MLoopUV **uv;
 			int       uv_len;
 			int       uv_active;
+			int       uv_mask_active;
 
 			MLoopCol **vcol;
 			int        vcol_len;
@@ -384,6 +385,17 @@ static void mesh_cd_calc_active_uv_layer(
 	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+	if (layer != -1) {
+		cd_lused[CD_MLOOPUV] |= (1 << layer);
+	}
+}
+
+static void mesh_cd_calc_active_mask_uv_layer(
+        const Mesh *me, ushort cd_lused[CD_NUMTYPES])
+{
+	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
+
+	int layer = CustomData_get_stencil_layer(cd_ldata, CD_MLOOPUV);
 	if (layer != -1) {
 		cd_lused[CD_MLOOPUV] |= (1 << layer);
 	}
@@ -839,6 +851,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		}
 
 		rdata->cd.layers.uv_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+		rdata->cd.layers.uv_mask_active = CustomData_get_stencil_layer(cd_ldata, CD_MLOOPUV);
 		rdata->cd.layers.vcol_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
 		rdata->cd.layers.tangent_active = rdata->cd.layers.uv_active;
 
@@ -848,6 +861,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		} ((void)0)
 
 		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_active, cd_lused[CD_MLOOPUV]);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_mask_active, cd_lused[CD_MLOOPUV]);
 		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.tangent_active, cd_lused[CD_TANGENT]);
 		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.vcol_active, cd_lused[CD_MLOOPCOL]);
 
@@ -2987,6 +3001,9 @@ static void mesh_create_loop_uv_and_tan(MeshRenderData *rdata, GPUVertBuf *vbo)
 		if (i == rdata->cd.layers.uv_active) {
 			GPU_vertformat_alias_add(&format, "u");
 		}
+		if (i == rdata->cd.layers.uv_mask_active) {
+			GPU_vertformat_alias_add(&format, "mu");
+		}
 	}
 
 	for (uint i = 0; i < tangent_len; i++) {
@@ -3959,6 +3976,7 @@ static void texpaint_request_active_uv(MeshBatchCache *cache, Mesh *me)
 		/* This should not happen. */
 		BLI_assert(!"No uv layer available in texpaint, but batches requested anyway!");
 	}
+	mesh_cd_calc_active_mask_uv_layer(me, cd_lneeded);
 	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
 	                                              cd_vneeded, cd_lneeded);
 	if (cd_overlap == false) {
