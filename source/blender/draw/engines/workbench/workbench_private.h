@@ -63,7 +63,7 @@
                             (IN_RANGE(wpd->preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_FXAA, GPU_VIEWPORT_QUALITY_TAA8) || \
                              ((IS_NAVIGATING(wpd) || wpd->is_playback) && (wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8))))
 #define TAA_ENABLED(wpd) ((DRW_state_is_image_render() && DRW_context_state_get()->scene->r.mode & R_OSA) || \
-                          (DRW_state_is_opengl_render() && wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd) && !wpd->is_playback))
+                          (!DRW_state_is_image_render() && wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd) && !wpd->is_playback))
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)))
 #define OBJECT_OUTLINE_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define OBJECT_ID_PASS_ENABLED(wpd) (OBJECT_OUTLINE_ENABLED(wpd) || CURVATURE_ENABLED(wpd))
