@@ -372,17 +372,6 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_PANO, "PANO", 0, "Panoramic", ""},
 		{0, NULL, 0, NULL, NULL},
 	};
-	static const EnumPropertyItem prop_display_type_extra_items[] = {
-		{CAM_DTX_CENTER, "CENTER", 0, "Center", ""},
-		{CAM_DTX_CENTER_DIAG, "CENTER_DIAGONAL", 0, "Center Diagonal", ""},
-		{CAM_DTX_THIRDS, "THIRDS", 0, "Thirds", ""},
-		{CAM_DTX_GOLDEN, "GOLDEN", 0, "Golden", ""},
-		{CAM_DTX_GOLDEN_TRI_A, "GOLDEN_TRIANGLE_A", 0, "Golden Triangle A", ""},
-		{CAM_DTX_GOLDEN_TRI_B, "GOLDEN_TRIANGLE_B", 0, "Golden Triangle B", ""},
-		{CAM_DTX_HARMONY_TRI_A, "HARMONY_TRIANGLE_A", 0, "Harmonious Triangle A", ""},
-		{CAM_DTX_HARMONY_TRI_B, "HARMONY_TRIANGLE_B", 0, "Harmonious Triangle B", ""},
-		{0, NULL, 0, NULL, NULL},
-	};
 	static const EnumPropertyItem prop_lens_unit_items[] = {
 		{0, "MILLIMETERS", 0, "Millimeters", "Specify the lens in millimeters"},
 		{CAM_ANGLETOGGLE, "FOV", 0, "Field of View", "Specify the lens as the field of view's angle"},
@@ -404,13 +393,6 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Camera types");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
-
-	prop = RNA_def_property(srna, "show_guide", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "dtx");
-	RNA_def_property_enum_items(prop, prop_display_type_extra_items);
-	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-	RNA_def_property_ui_text(prop, "Composition Guides",  "Display overlay");
-	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
 	prop = RNA_def_property(srna, "sensor_fit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sensor_fit");
@@ -577,6 +559,47 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_lens_unit_items);
 	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface");
+
+	/* dtx */
+	prop = RNA_def_property(srna, "composition_center", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_CENTER);
+	RNA_def_property_ui_text(prop, "Center", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_center_diagonal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_CENTER_DIAG);
+	RNA_def_property_ui_text(prop, "Center Diagonal", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_thirds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_THIRDS);
+	RNA_def_property_ui_text(prop, "Thirds", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_golden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_GOLDEN);
+	RNA_def_property_ui_text(prop, "Center", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_golden_tria_a", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_GOLDEN_TRI_A);
+	RNA_def_property_ui_text(prop, "Golden Triangle A", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_golden_tria_b", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_GOLDEN_TRI_B);
+	RNA_def_property_ui_text(prop, "Golden Triangle B", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_harmony_tri_a", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_HARMONY_TRI_A);
+	RNA_def_property_ui_text(prop, "Harmonious Triangle A", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "composition_harmony_tri_b", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_HARMONY_TRI_B);
+	RNA_def_property_ui_text(prop, "Harmonious Triangle B", "Display the clipping range and focus point on the camera");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
 	/* pointers */
 	prop = RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);

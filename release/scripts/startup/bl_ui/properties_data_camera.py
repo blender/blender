@@ -367,10 +367,6 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
 
         cam = context.camera
 
-        split = layout.split()
-        split.label()
-        split.prop_menu_enum(cam, "show_guide")
-
         col = layout.column(align=True)
 
         col.separator()
@@ -379,10 +375,35 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
 
         col.separator()
 
-        col.prop(cam, "show_limits", text="Limits")
-        col.prop(cam, "show_mist", text="Mist")
-        col.prop(cam, "show_sensor", text="Sensor")
-        col.prop(cam, "show_name", text="Name")
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
+
+        flow.prop(cam, "show_limits", text="Limits")
+        flow.prop(cam, "show_mist", text="Mist")
+        flow.prop(cam, "show_sensor", text="Sensor")
+        flow.prop(cam, "show_name", text="Name")
+
+class DATA_PT_camera_display_composition_guides(CameraButtonsPanel, Panel):
+    bl_label = "Composition Guides"
+    bl_parent_id = "DATA_PT_camera_display"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        cam = context.camera
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
+
+        flow.prop(cam, "composition_center")
+        flow.prop(cam, "composition_center_diagonal")
+        flow.prop(cam, "composition_thirds")
+        flow.prop(cam, "composition_golden")
+        flow.prop(cam, "composition_golden_tria_a")
+        flow.prop(cam, "composition_golden_tria_b")
+        flow.prop(cam, "composition_harmony_tri_a")
+        flow.prop(cam, "composition_harmony_tri_b")
 
 
 class DATA_PT_camera_display_passepartout(CameraButtonsPanel, Panel):
@@ -503,6 +524,7 @@ classes = (
     DATA_PT_camera_safe_areas_center_cut,
     DATA_PT_camera_background_image,
     DATA_PT_camera_display,
+    DATA_PT_camera_display_composition_guides,
     DATA_PT_camera_display_passepartout,
     DATA_PT_custom_props_camera,
 )
