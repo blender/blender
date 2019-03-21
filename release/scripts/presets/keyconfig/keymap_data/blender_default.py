@@ -349,7 +349,7 @@ def km_window(params):
             ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS'}, None),
             op_panel("TOPBAR_PT_name", {"type": 'F2', "value": 'PRESS'}, [("keep_open", False)]),
             ("wm.search_menu", {"type": 'F3', "value": 'PRESS'}, None),
-            op_menu("TOPBAR_MT_window_context_menu", {"type": 'F4', "value": 'PRESS'}),
+            op_menu("TOPBAR_MT_file_context_menu", {"type": 'F4', "value": 'PRESS'}),
         ])
 
         if params.spacebar_action == 'TOOL':

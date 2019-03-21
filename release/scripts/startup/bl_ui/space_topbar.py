@@ -962,31 +962,6 @@ class TOPBAR_MT_file_context_menu(Menu):
         layout.menu("TOPBAR_MT_file_import", icon='IMPORT')
         layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
 
-
-class TOPBAR_MT_window_context_menu(Menu):
-    bl_label = "Window Context Menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator_context = 'EXEC_AREA'
-
-        layout.operator("wm.window_new")
-        layout.operator("wm.window_new_main")
-
-        layout.operator_context = 'INVOKE_AREA'
-
-        layout.operator("screen.area_dupli", icon='DUPLICATE')
-
-        layout.separator()
-
-        layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
-        layout.operator("screen.area_split", text="Vertical Split").direction = 'VERTICAL'
-
-        layout.separator()
-
-        layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
-
         layout.separator()
 
         layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
@@ -1146,7 +1121,6 @@ classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
     TOPBAR_MT_file_context_menu,
-    TOPBAR_MT_window_context_menu,
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
     TOPBAR_MT_file,
