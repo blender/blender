@@ -400,14 +400,22 @@ class DATA_PT_camera_display_composition_guides(CameraButtonsPanel, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
 
-        flow.prop(cam, "show_composition_center")
-        flow.prop(cam, "show_composition_center_diagonal")
-        flow.prop(cam, "show_composition_thirds")
-        flow.prop(cam, "show_composition_golden")
-        flow.prop(cam, "show_composition_golden_tria_a")
-        flow.prop(cam, "show_composition_golden_tria_b")
-        flow.prop(cam, "show_composition_harmony_tri_a")
-        flow.prop(cam, "show_composition_harmony_tri_b")
+        col = flow.column()
+        col.prop(cam, "show_composition_center")
+        col = flow.column()
+        col.prop(cam, "show_composition_center_diagonal")
+        col = flow.column()
+        col.prop(cam, "show_composition_thirds")
+        col = flow.column()
+        col.prop(cam, "show_composition_golden")
+        col = flow.column()
+        col.prop(cam, "show_composition_golden_tria_a")
+        col = flow.column()
+        col.prop(cam, "show_composition_golden_tria_b")
+        col = flow.column()
+        col.prop(cam, "show_composition_harmony_tri_a")
+        col = flow.column()
+        col.prop(cam, "show_composition_harmony_tri_b")
 
 
 class DATA_PT_camera_display_passepartout(CameraButtonsPanel, Panel):
