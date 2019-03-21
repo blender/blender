@@ -8613,72 +8613,82 @@ static char ui_menu_scroll_test(uiBlock *block, int my)
 	return 0;
 }
 
-static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
+static void ui_menu_scroll_apply_offset_y(ARegion *ar, uiBlock *block, float dy)
 {
-	uiBut *bt;
-	float dy = 0.0f;
-
-	if (to_bt) {
-		/* scroll to activated button */
-		if (block->flag & UI_BLOCK_CLIPTOP) {
-			if (to_bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW)
-				dy = block->rect.ymax - to_bt->rect.ymax - UI_MENU_SCROLL_ARROW;
+	BLI_assert(dy != 0.0f);
+	if (dy < 0.0f) {
+		/* stop at top item, extra 0.5 unit Y makes it snap nicer */
+		float ymax = -FLT_MAX;
+		for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+			ymax = max_ff(ymax, bt->rect.ymax);
 		}
-		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
-			if (to_bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW)
-				dy = block->rect.ymin - to_bt->rect.ymin + UI_MENU_SCROLL_ARROW;
+		if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD) {
+			dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
 		}
 	}
 	else {
-		/* scroll when mouse over arrow buttons */
-		char test = ui_menu_scroll_test(block, my);
-
-		if (test == 't')
-			dy = -UI_UNIT_Y; /* scroll to the top */
-		else if (test == 'b')
-			dy = UI_UNIT_Y; /* scroll to the bottom */
+		/* stop at bottom item, extra 0.5 unit Y makes it snap nicer */
+		float ymin = FLT_MAX;
+		for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+			ymin = min_ff(ymin, bt->rect.ymin);
+		}
+		if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD) {
+			dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
+		}
 	}
 
+	/* remember scroll offset for refreshes */
+	block->handle->scrolloffset += dy;
+
+	/* apply scroll offset */
+	for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+		bt->rect.ymin += dy;
+		bt->rect.ymax += dy;
+	}
+
+	/* set flags again */
+	ui_popup_block_scrolltest(block);
+
+	ED_region_tag_redraw(ar);
+}
+
+/** Scroll to activated button. */
+static bool ui_menu_scroll_to_but(ARegion *ar, uiBlock *block, uiBut *but_target)
+{
+	float dy = 0.0;
+	if (block->flag & UI_BLOCK_CLIPTOP) {
+		if (but_target->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW) {
+			dy = block->rect.ymax - but_target->rect.ymax - UI_MENU_SCROLL_ARROW;
+		}
+	}
+	if (block->flag & UI_BLOCK_CLIPBOTTOM) {
+		if (but_target->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW) {
+			dy = block->rect.ymin - but_target->rect.ymin + UI_MENU_SCROLL_ARROW;
+		}
+	}
 	if (dy != 0.0f) {
-		if (dy < 0.0f) {
-			/* stop at top item, extra 0.5 unit Y makes it snap nicer */
-			float ymax = -FLT_MAX;
-
-			for (bt = block->buttons.first; bt; bt = bt->next)
-				ymax = max_ff(ymax, bt->rect.ymax);
-
-			if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD)
-				dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
-		}
-		else {
-			/* stop at bottom item, extra 0.5 unit Y makes it snap nicer */
-			float ymin = FLT_MAX;
-
-			for (bt = block->buttons.first; bt; bt = bt->next)
-				ymin = min_ff(ymin, bt->rect.ymin);
-
-			if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD)
-				dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
-		}
-
-		/* remember scroll offset for refreshes */
-		block->handle->scrolloffset += dy;
-
-		/* apply scroll offset */
-		for (bt = block->buttons.first; bt; bt = bt->next) {
-			bt->rect.ymin += dy;
-			bt->rect.ymax += dy;
-		}
-
-		/* set flags again */
-		ui_popup_block_scrolltest(block);
-
-		ED_region_tag_redraw(ar);
-
-		return 1;
+		ui_menu_scroll_apply_offset_y(ar, block, dy);
+		return true;
 	}
+	return false;
+}
 
-	return 0;
+/** Scroll to y location (in block space, see #ui_window_to_block). */
+static bool ui_menu_scroll_to_y(ARegion *ar, uiBlock *block, int y)
+{
+	const char test = ui_menu_scroll_test(block, y);
+	float dy = 0.0f;
+	if (test == 't') {
+		dy = -UI_UNIT_Y; /* scroll to the top */
+	}
+	else if (test == 'b') {
+		dy = UI_UNIT_Y; /* scroll to the bottom */
+	}
+	if (dy != 0.0f) {
+		ui_menu_scroll_apply_offset_y(ar, block, dy);
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -8834,7 +8844,7 @@ static int ui_handle_menu_event(
 	}
 	else if (event->type == TIMER) {
 		if (event->customdata == menu->scrolltimer)
-			ui_menu_scroll(ar, block, my, NULL);
+			ui_menu_scroll_to_y(ar, block, my);
 	}
 	else {
 		/* for ui_mouse_motion_towards_block */
@@ -8958,7 +8968,7 @@ static int ui_handle_menu_event(
 
 							if (but) {
 								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
-								ui_menu_scroll(ar, block, my, but);
+								ui_menu_scroll_to_but(ar, block, but);
 							}
 						}
 
