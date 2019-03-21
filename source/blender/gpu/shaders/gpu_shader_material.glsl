@@ -1776,7 +1776,7 @@ void tangent_orco_z(vec3 orco_in, out vec3 orco_out)
 
 void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
 {
-	tangent = (toworld * vec4(attr_tangent.xyz, 0.0)).xyz;
+	tangent = normalize((toworld * vec4(attr_tangent.xyz, 0.0)).xyz);
 }
 
 void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
