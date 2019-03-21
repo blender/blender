@@ -8691,6 +8691,31 @@ static bool ui_menu_scroll_to_y(ARegion *ar, uiBlock *block, int y)
 	return false;
 }
 
+static bool ui_menu_scroll_step(ARegion *ar, uiBlock *block, const int scroll_dir)
+{
+	int my;
+	if (scroll_dir == 1) {
+		if ((block->flag & UI_BLOCK_CLIPTOP) == 0) {
+			return false;
+		}
+		my = block->rect.ymax + UI_UNIT_Y;
+	}
+	else if (scroll_dir == -1) {
+		if ((block->flag & UI_BLOCK_CLIPBOTTOM) == 0) {
+			return false;
+		}
+		my = block->rect.ymin - UI_UNIT_Y;
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (!ui_menu_scroll_to_y(ar, block, my)) {
+		return false;
+	}
+	return true;
+}
+
 /**
  * Special function to handle nested menus.
  * let the parent menu get the event.
@@ -8929,23 +8954,12 @@ static int ui_handle_menu_event(
 						/* pass */
 					}
 					else if (!ui_block_is_menu(block)) {
-						int my_scroll = INT_MAX;
-						if (event->type == WHEELUPMOUSE) {
-							if (block->flag & UI_BLOCK_CLIPTOP) {
-								my_scroll = block->rect.ymax + (UI_UNIT_Y * 1.5);
-							}
-						}
-						else if (event->type == WHEELDOWNMOUSE) {
-							if (block->flag & UI_BLOCK_CLIPBOTTOM) {
-								my_scroll = block->rect.ymin - (UI_UNIT_Y * 1.5);
-							}
-						}
-						if (my_scroll != INT_MAX) {
+						const int scroll_dir = (event->type == WHEELUPMOUSE) ? 1 : -1;
+						if (ui_menu_scroll_step(ar, block, scroll_dir)) {
 							if (but) {
 								but->active->cancel = true;
 								button_activate_exit(C, but, but->active, false, false);
 							}
-							ui_menu_scroll_to_y(ar, block, my_scroll);
 							WM_event_add_mousemove(C);
 						}
 						break;
