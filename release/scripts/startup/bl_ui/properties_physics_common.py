@@ -66,7 +66,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.alignment = 'RIGHT'
+        row.alignment = 'LEFT'
         row.label(text="Enable physics for:")
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
