@@ -377,10 +377,14 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
 
-        flow.prop(cam, "show_limits", text="Limits")
-        flow.prop(cam, "show_mist", text="Mist")
-        flow.prop(cam, "show_sensor", text="Sensor")
-        flow.prop(cam, "show_name", text="Name")
+        col = flow.column()
+        col.prop(cam, "show_limits", text="Limits")
+        col = flow.column()
+        col.prop(cam, "show_mist", text="Mist")
+        col = flow.column()
+        col.prop(cam, "show_sensor", text="Sensor")
+        col = flow.column()
+        col.prop(cam, "show_name", text="Name")
 
 class DATA_PT_camera_display_composition_guides(CameraButtonsPanel, Panel):
     bl_label = "Composition Guides"
