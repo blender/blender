@@ -2452,7 +2452,7 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
  * - 0 = not in scroller.
  */
 char UI_view2d_mouse_in_scrollers_ex(
-        const ARegion *ar, View2D *v2d, int x, int y,
+        const ARegion *ar, const View2D *v2d, int x, int y,
         int *r_scroll)
 {
 	int co[2];
@@ -2476,7 +2476,7 @@ char UI_view2d_mouse_in_scrollers_ex(
 }
 
 char UI_view2d_mouse_in_scrollers(
-        const ARegion *ar, View2D *v2d, int x, int y)
+        const ARegion *ar, const View2D *v2d, int x, int y)
 {
 	int scroll_dummy = 0;
 	return UI_view2d_mouse_in_scrollers_ex(ar, v2d, x, y, &scroll_dummy);

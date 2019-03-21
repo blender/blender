@@ -218,10 +218,10 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 
 char UI_view2d_mouse_in_scrollers_ex(
-        const struct ARegion *ar, struct View2D *v2d, int x, int y,
+        const struct ARegion *ar, const struct View2D *v2d, int x, int y,
         int *r_scroll);
 char UI_view2d_mouse_in_scrollers(
-        const struct ARegion *ar, struct View2D *v2d, int x, int y);
+        const struct ARegion *ar, const struct View2D *v2d, int x, int y);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(struct View2D *v2d, float x, float y,
