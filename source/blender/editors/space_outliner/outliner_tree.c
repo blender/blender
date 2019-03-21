@@ -699,7 +699,7 @@ static void outliner_add_id_contents(SpaceOutliner *soops, TreeElement *te, Tree
 				outliner_add_element(soops, &te->subtree, gpd, te, TSE_ANIM_DATA, 0);
 
 			// TODO: base element for layers?
-			for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			for (gpl = gpd->layers.last; gpl; gpl = gpl->prev) {
 				outliner_add_element(soops, &te->subtree, gpl, te, TSE_GP_LAYER, a);
 				a++;
 			}
