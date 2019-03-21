@@ -66,8 +66,8 @@ void main()
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
 	worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
-	worldNormal = WorldNormalMatrix * nor;
-	viewNormal = NormalMatrix * nor;
+	worldNormal = normalize(WorldNormalMatrix * nor);
+	viewNormal = normalize(NormalMatrix * nor);
 #endif
 
 	/* Used for planar reflections */
