@@ -561,42 +561,42 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface");
 
 	/* dtx */
-	prop = RNA_def_property(srna, "composition_center", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_center", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_CENTER);
 	RNA_def_property_ui_text(prop, "Center", "Display center composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_center_diagonal", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_center_diagonal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_CENTER_DIAG);
 	RNA_def_property_ui_text(prop, "Center Diagonal", "Display diagonal center composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_thirds", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_thirds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_THIRDS);
 	RNA_def_property_ui_text(prop, "Thirds", "Display rule of thirds composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_golden", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_golden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_GOLDEN);
 	RNA_def_property_ui_text(prop, "Golden Ratio", "Display golden ratio composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_golden_tria_a", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_golden_tria_a", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_GOLDEN_TRI_A);
 	RNA_def_property_ui_text(prop, "Golden Triangle A", "Display golden triangle A composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_golden_tria_b", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_golden_tria_b", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_GOLDEN_TRI_B);
 	RNA_def_property_ui_text(prop, "Golden Triangle B", "Display golden triangle B composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_harmony_tri_a", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_harmony_tri_a", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_HARMONY_TRI_A);
 	RNA_def_property_ui_text(prop, "Harmonious Triangle A", "Display harmony A composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "composition_harmony_tri_b", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_composition_harmony_tri_b", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", CAM_DTX_HARMONY_TRI_B);
 	RNA_def_property_ui_text(prop, "Harmonious Triangle B", "Display harmony B composition guide inside the camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
