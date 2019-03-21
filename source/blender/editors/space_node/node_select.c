@@ -1070,8 +1070,6 @@ static void node_find_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2
 static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
 {
 	static char search[256] = "";
-	wmEvent event;
-	wmWindow *win = CTX_wm_window(C);
 	uiBlock *block;
 	uiBut *but;
 	wmOperator *op = (wmOperator *)arg_op;
@@ -1082,20 +1080,13 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
 
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	UI_but_func_search_set(but, NULL, node_find_cb, op->type, false, node_find_call_cb, NULL);
+	UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
 	/* fake button, it holds space for search items */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
 
 	/* Move it downwards, mouse over button. */
 	UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
-
-	//	UI_but_active_only(C, ar, block, but); XXX using this here makes Blender hang - investigate
-	wm_event_init_from_window(win, &event);
-	event.type = EVT_BUT_OPEN;
-	event.val = KM_PRESS;
-	event.customdata = but;
-	event.customdatafree = false;
-	wm_event_add(win, &event);
 
 	return block;
 }

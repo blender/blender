@@ -567,6 +567,7 @@ void UI_popup_block_invoke_ex(bContext *C, uiBlockCreateFunc func, void *arg, co
 	handle->opcontext = opcontext;
 
 	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+	UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
 	WM_event_add_mousemove(C);
 }
 
@@ -594,6 +595,7 @@ void UI_popup_block_ex(
 	// handle->opcontext = opcontext;
 
 	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+	UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
 	WM_event_add_mousemove(C);
 }
 
