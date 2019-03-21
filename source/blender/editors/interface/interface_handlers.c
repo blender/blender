@@ -111,7 +111,9 @@ static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEve
 static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEvent *event);
 #endif
 
-/***************** structs and defines ****************/
+/* -------------------------------------------------------------------- */
+/** \name Structs & Defines
+ * \{ */
 
 #define BUTTON_FLASH_DELAY          0.020
 #define MENU_SCROLL_INTERVAL        0.1
@@ -412,7 +414,12 @@ static ColorBand but_copypaste_coba = {0};
 static CurveMapping but_copypaste_curve = {0};
 static bool but_copypaste_curve_alive = false;
 
-/* ******************** menu navigation helpers ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Values
+ * \{ */
+
 enum eSnapType {
 	SNAP_OFF = 0,
 	SNAP_ON,
@@ -436,6 +443,12 @@ static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 	BLI_assert(snap != SNAP_OFF);
 	*r_hue = roundf((*r_hue) * snap_increment) / snap_increment;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name General Utilities
+ * \{ */
 
 /* assumes event type is MOUSEPAN */
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
@@ -578,7 +591,11 @@ bool ui_but_is_utf8(const uiBut *but)
 	}
 }
 
-/* ********************** button apply/revert ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Apply/Revert
+ * \{ */
 
 static ListBase UIAfterFuncs = {NULL, NULL};
 
@@ -973,8 +990,11 @@ static void ui_apply_but_CURVE(bContext *C, uiBut *but, uiHandleButtonData *data
 	data->applied = true;
 }
 
-/* ****************** drag drop code *********************** */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Button Drag Multi-Number
+ * \{ */
 
 #ifdef USE_DRAG_MULTINUM
 
@@ -1220,6 +1240,12 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 
 #endif  /* USE_DRAG_MULTINUM */
 
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Drag Toggle
+ * \{ */
 
 #ifdef USE_DRAG_TOGGLE
 
@@ -1734,6 +1760,12 @@ static bool ui_but_contains_point_px_icon(uiBut *but, ARegion *ar, const wmEvent
 	return BLI_rcti_isect_pt(&rect, x, y);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Drag
+ * \{ */
+
 static bool ui_but_drag_init(
         bContext *C, uiBut *but,
         uiHandleButtonData *data, const wmEvent *event)
@@ -1842,7 +1874,11 @@ static bool ui_but_drag_init(
 	return false;
 }
 
-/* ********************** linklines *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Apply
+ * \{ */
 
 static void ui_apply_but_IMAGE(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
@@ -2047,7 +2083,11 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	but->editcumap = editcumap;
 }
 
-/* ******************* drop event ********************  */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Drop Event
+ * \{ */
 
 /* only call if event type is EVT_DROP */
 static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleButtonData *data)
@@ -2074,10 +2114,13 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
 			}
 		}
 	}
-
 }
 
-/* ******************* copy and paste ********************  */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Copy & Paste
+ * \{ */
 
 static bool ui_but_contains_password(uiBut *but)
 {
@@ -2561,8 +2604,11 @@ static void ui_but_text_clear(bContext *C, uiBut *but, uiHandleButtonData *data)
 	button_activate_state(C, but, BUTTON_STATE_EXIT);
 }
 
+/** \} */
 
-/* ************* in-button text selection/editing ************* */
+/* -------------------------------------------------------------------- */
+/** \name Button Text Selection/Editing
+ * \{ */
 
 static void ui_textedit_string_ensure_max_length(uiBut *but, uiHandleButtonData *data, int maxlen)
 {
@@ -3550,7 +3596,11 @@ static void ui_do_but_textedit_select(
 	}
 }
 
-/* ************* number editing for various types ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Number Editing (various types)
+ * \{ */
 
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 {
@@ -3612,7 +3662,11 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	ED_region_tag_redraw(data->region);
 }
 
-/* ****************** menu opening for various types **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu/Popup Begin/End (various popup types)
+ * \{ */
 
 static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
@@ -3736,7 +3790,11 @@ static uiBut *ui_but_list_row_text_activate(
 	return NULL;
 }
 
-/* ***************** events for different button types *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Events for Various Button Types
+ * \{ */
 
 #ifdef USE_DRAG_TOGGLE
 /* Shared by any button that supports drag-toggle. */
@@ -6885,7 +6943,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	return retval;
 }
 
-/* ************************ button utilities *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Utilities
+ * \{ */
 
 static bool ui_but_contains_pt(uiBut *but, float mx, float my)
 {
@@ -7210,18 +7272,11 @@ static uiBut *ui_list_find_mouse_over(ARegion *ar, const wmEvent *event)
 	return ui_list_find_mouse_over_ex(ar, event->x, event->y);
 }
 
-/* ****************** button state handling **************************/
+/** \} */
 
-static bool button_modal_state(uiHandleButtonState state)
-{
-	return ELEM(state,
-	            BUTTON_STATE_WAIT_RELEASE,
-	            BUTTON_STATE_WAIT_KEY_EVENT,
-	            BUTTON_STATE_NUM_EDITING,
-	            BUTTON_STATE_TEXT_EDITING,
-	            BUTTON_STATE_TEXT_SELECTING,
-	            BUTTON_STATE_MENU_OPEN);
-}
+/* -------------------------------------------------------------------- */
+/** \name Button Tool Tip
+ * \{ */
 
 /**
  * Recreate tooltip (use to update dynamic tips)
@@ -7298,6 +7353,24 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 		}
 	}
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button State Handling
+ * \{ */
+
+static bool button_modal_state(uiHandleButtonState state)
+{
+	return ELEM(state,
+	            BUTTON_STATE_WAIT_RELEASE,
+	            BUTTON_STATE_WAIT_KEY_EVENT,
+	            BUTTON_STATE_NUM_EDITING,
+	            BUTTON_STATE_TEXT_EDITING,
+	            BUTTON_STATE_TEXT_SELECTING,
+	            BUTTON_STATE_MENU_OPEN);
+}
+
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state)
 {
@@ -7859,7 +7932,11 @@ void UI_context_update_anim_flag(const bContext *C)
 	}
 }
 
-/************** handle activating a button *************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Activation Handling
+ * \{ */
 
 static uiBut *ui_but_find_open_event(ARegion *ar, const wmEvent *event)
 {
@@ -7966,7 +8043,11 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 	button_activate_init(C, ar, but, type);
 }
 
-/************ handle events for an activated button ***********/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Handle Events for Activated Buttons
+ * \{ */
 
 static bool ui_button_value_default(uiBut *but, double *r_value)
 {
@@ -8460,7 +8541,11 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 	}
 }
 
-/* ************************* menu handling *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Towards (mouse motion logic)
+ * \{ */
 
 /**
  * Function used to prevent losing the open menu when using nested pull-downs,
@@ -8600,6 +8685,12 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 }
 #endif  /* USE_KEYNAV_LIMIT */
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Scroll
+ * \{ */
+
 static char ui_menu_scroll_test(uiBlock *block, int my)
 {
 	if (block->flag & (UI_BLOCK_CLIPTOP | UI_BLOCK_CLIPBOTTOM)) {
@@ -8715,6 +8806,12 @@ static bool ui_menu_scroll_step(ARegion *ar, uiBlock *block, const int scroll_di
 	}
 	return true;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Event Handling
+ * \{ */
 
 /**
  * Special function to handle nested menus.
@@ -9801,7 +9898,11 @@ void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool
 	}
 }
 
-/* *************** UI event handlers **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI Event Handlers
+ * \{ */
 
 static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(userdata))
 {
@@ -10178,3 +10279,5 @@ void ui_but_clipboard_free(void)
 {
 	curvemapping_free_data(&but_copypaste_curve);
 }
+
+/** \} */
