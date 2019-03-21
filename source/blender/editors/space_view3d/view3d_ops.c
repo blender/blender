@@ -75,19 +75,6 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	for (Collection *collection = bmain->collections.first; collection; collection = collection->id.next) {
-		for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
-			Object *object = cob->ob;
-
-			if (object && (object->id.tag & LIB_TAG_DOIT)) {
-				BKE_copybuffer_tag_ID(&collection->id);
-				/* don't expand out to all other objects */
-				collection->id.tag &= ~LIB_TAG_NEED_EXPAND;
-				break;
-			}
-		}
-	}
-
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
 	BKE_copybuffer_save(bmain, str, op->reports);
 
