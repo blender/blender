@@ -301,6 +301,8 @@ NO_BUILD=false
 NO_CONFIRM=false
 USE_CXX11=true
 
+CLANG_FORMAT_VERSION_MIN="6.0"
+
 PYTHON_VERSION="3.7.0"
 PYTHON_VERSION_MIN="3.7"
 PYTHON_FORCE_BUILD=false
@@ -382,7 +384,6 @@ OPENCOLLADA_VERSION="1.6.68"
 OPENCOLLADA_FORCE_BUILD=false
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
-
 
 EMBREE_VERSION="3.2.4"
 EMBREE_FORCE_BUILD=false
@@ -2788,6 +2789,17 @@ install_DEB() {
     PRINT ""
   fi
 
+  PRINT ""
+  CLANG_FORMAT="clang-format"
+  check_package_version_ge_DEB $CLANG_FORMAT $CLANG_FORMAT_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    _packages="$_packages $CLANG_FORMAT"
+  else
+    PRINT ""
+    WARNING "clang-format $CLANG_FORMAT_VERSION_MIN or higher not found, this is NOT needed to get Blender compiling..."
+    PRINT ""
+  fi
+
   if [ "$WITH_JACK" = true ]; then
     _packages="$_packages libspnav-dev"
     # Only install jack if jack2 is not already installed!
@@ -3439,6 +3451,16 @@ install_RPM() {
     install_packages_RPM libspnav-devel
   fi
 
+  PRINT ""
+  CLANG_FORMAT="clang"  # Yeah, on fedora/suse clang-format is part of main clang package...
+  check_package_version_ge_RPM $CLANG_FORMAT $CLANG_FORMAT_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    install_packages_RPM $CLANG_FORMAT
+  else
+    PRINT ""
+    WARNING "clang-format $CLANG_FORMAT_VERSION_MIN or higher not found, this is NOT needed to get Blender compiling..."
+    PRINT ""
+  fi
 
   PRINT ""
   _do_compile_python=false
@@ -3883,6 +3905,18 @@ install_ARCH() {
       install_packages_ARCH $VPX_DEV
       VPX_USE=true
     fi
+  fi
+
+
+  PRINT ""
+  CLANG_FORMAT="clang"  # Yeah, on arch clang-format is part of main clang package...
+  check_package_version_ge_ARCH $CLANG_FORMAT $CLANG_FORMAT_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    install_packages_ARCH $CLANG_FORMAT
+  else
+    PRINT ""
+    WARNING "clang-format $CLANG_FORMAT_VERSION_MIN or higher not found, this is NOT needed to get Blender compiling..."
+    PRINT ""
   fi
 
 
