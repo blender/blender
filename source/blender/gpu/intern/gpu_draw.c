@@ -429,6 +429,28 @@ void GPU_create_gl_tex(
 {
 	ImBuf *ibuf = NULL;
 
+	if (textarget == GL_TEXTURE_2D &&
+	    is_over_resolution_limit(textarget, rectw, recth))
+	{
+		int tpx = rectw;
+		int tpy = recth;
+		rectw = smaller_power_of_2_limit(rectw);
+		recth = smaller_power_of_2_limit(recth);
+
+		if (use_high_bit_depth) {
+			ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
+			IMB_scaleImBuf(ibuf, rectw, recth);
+
+			frect = ibuf->rect_float;
+		}
+		else {
+			ibuf = IMB_allocFromBuffer(rect, NULL, tpx, tpy);
+			IMB_scaleImBuf(ibuf, rectw, recth);
+
+			rect = ibuf->rect;
+		}
+	}
+
 	/* create image */
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture(textarget, *bind);
