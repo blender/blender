@@ -115,6 +115,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 {
 	float *array, layer;
 	int size;
+	bool use_opti = true;
 
 	CurveMapping *cumap = node->storage;
 
@@ -139,15 +140,38 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 			ext_rgba[a][1] = 0.0f;
 			ext_rgba[a][3] = 0.0f;
 		}
+
+		/* Check if rgb comps are just linear. */
+		if (a < 3) {
+			if (range_rgba[a] != 1.0f ||
+			    ext_rgba[a][1] != 1.0f ||
+			    ext_rgba[a][2] != 1.0f ||
+			    cm->totpoint != 2 ||
+			    cm->curve[0].x != 0.0f ||
+			    cm->curve[0].y != 0.0f ||
+			    cm->curve[1].x != 1.0f ||
+			    cm->curve[1].y != 1.0f)
+			{
+				use_opti = false;
+			}
+		}
 	}
 
-	return GPU_stack_link(mat, node, "curves_rgb", in, out, tex,
-	                                               GPU_constant(&layer),
-	                                               GPU_uniform(range_rgba),
-	                                               GPU_uniform(ext_rgba[0]),
-	                                               GPU_uniform(ext_rgba[1]),
-	                                               GPU_uniform(ext_rgba[2]),
-	                                               GPU_uniform(ext_rgba[3]));
+	if (use_opti) {
+		return GPU_stack_link(mat, node, "curves_rgb_opti", in, out, tex,
+		                                                    GPU_constant(&layer),
+		                                                    GPU_uniform(range_rgba),
+		                                                    GPU_uniform(ext_rgba[3]));
+	}
+	else {
+		return GPU_stack_link(mat, node, "curves_rgb", in, out, tex,
+		                                               GPU_constant(&layer),
+		                                               GPU_uniform(range_rgba),
+		                                               GPU_uniform(ext_rgba[0]),
+		                                               GPU_uniform(ext_rgba[1]),
+		                                               GPU_uniform(ext_rgba[2]),
+		                                               GPU_uniform(ext_rgba[3]));
+	}
 }
 
 void register_node_type_sh_curve_rgb(void)
