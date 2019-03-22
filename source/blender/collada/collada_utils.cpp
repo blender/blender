@@ -236,7 +236,6 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
 	Object *ob = BKE_object_add_only_object(bmain, type, name);
 
 	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
-	ob->lay = scene->lay;
 	DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
 	LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
