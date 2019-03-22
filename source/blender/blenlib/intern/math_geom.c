@@ -4152,6 +4152,32 @@ void planes_from_projmat(float mat[4][4], float left[4], float right[4], float t
 	}
 }
 
+void projmat_dimensions(const float projmat[4][4],
+                        float *r_left, float *r_right,
+                        float *r_bottom, float *r_top,
+                        float *r_near, float *r_far)
+{
+	bool is_persp = projmat[3][3] == 0.0f;
+
+	if (is_persp) {
+		*r_left   = (projmat[2][0] - 1.0f) / projmat[0][0];
+		*r_right  = (projmat[2][0] + 1.0f) / projmat[0][0];
+		*r_bottom = (projmat[2][1] - 1.0f) / projmat[1][1];
+		*r_top    = (projmat[2][1] + 1.0f) / projmat[1][1];
+		*r_near   = projmat[3][2] / (projmat[2][2] - 1.0f);
+		*r_far    = projmat[3][2] / (projmat[2][2] + 1.0f);
+	}
+	else {
+		*r_left   = (-projmat[3][0] - 1.0f) / projmat[0][0];
+		*r_right  = (-projmat[3][0] + 1.0f) / projmat[0][0];
+		*r_bottom = (-projmat[3][1] - 1.0f) / projmat[1][1];
+		*r_top    = (-projmat[3][1] + 1.0f) / projmat[1][1];
+		*r_near   = ( projmat[3][2] + 1.0f) / projmat[2][2];
+		*r_far    = ( projmat[3][2] - 1.0f) / projmat[2][2];
+	}
+
+}
+
 static void i_multmatrix(float icand[4][4], float Vm[4][4])
 {
 	int row, col;

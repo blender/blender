@@ -441,6 +441,11 @@ void window_translate_m4(float winmat[4][4], float perspmat[4][4],
 void planes_from_projmat(float mat[4][4], float left[4], float right[4], float top[4], float bottom[4],
                          float front[4], float back[4]);
 
+void projmat_dimensions(const float projmat[4][4],
+                        float *r_left, float *r_right,
+                        float *r_bottom, float *r_top,
+                        float *r_near, float *r_far);
+
 int box_clip_bounds_m4(float boundbox[2][3],
                        const float bounds[4], float winmat[4][4]);
 void box_minmax_bounds_m4(float min[3], float max[3],
