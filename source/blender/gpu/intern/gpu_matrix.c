@@ -451,6 +451,43 @@ void GPU_matrix_project(const float world[3], const float model[4][4], const flo
 	win[2] = (v[2] + 1) * 0.5f;
 }
 
+/**
+ * The same result could be obtained as follows:
+ *
+ * \code{.c}
+ * float projinv[4][4];
+ * invert_m4_m4(projinv, projmat);
+ * co[0] = 2 * co[0] - 1;
+ * co[1] = 2 * co[1] - 1;
+ * co[2] = 2 * co[2] - 1;
+ * mul_project_m4_v3(projinv, co);
+ * \endcode
+ *
+ * But that solution loses much precision.
+ * Therefore, get the same result without inverting the matrix.
+ */
+static void gpu_mul_invert_projmat_m4_unmapped_v3(const float projmat[4][4], float co[3])
+{
+	float left, right, bottom, top, near, far;
+	bool is_persp = projmat[3][3] == 0.0f;
+
+	projmat_dimensions(
+	        projmat, &left, &right, &bottom, &top, &near, &far);
+
+	co[0] = left   + co[0] * (right - left);
+	co[1] = bottom + co[1] * (top - bottom);
+
+	if (is_persp) {
+		co[2] = far * near / (far + co[2] * (near - far));
+		co[0] *= co[2];
+		co[1] *= co[2];
+	}
+	else {
+		co[2] = near + co[2] * (far - near);
+	}
+	co[2] *= -1;
+}
+
 bool GPU_matrix_unproject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3])
 {
 	float in[3];
@@ -467,43 +504,9 @@ bool GPU_matrix_unproject(const float win[3], const float model[4][4], const flo
 	in[0] = (in[0] - view[0]) / view[2];
 	in[1] = (in[1] - view[1]) / view[3];
 
-#if 0
-	float projinv[4][4];
-
-	if (!invert_m4_m4(projinv, proj)) {
-		zero_v3(world);
-		return false;
-	}
-
-	/* Map to range -1 to +1 */
-	in[0] = 2 * in[0] - 1;
-	in[1] = 2 * in[1] - 1;
-	in[2] = 2 * in[2] - 1;
-
-	mul_project_m4_v3(projinv, in);
-#else
-	float left, right, bottom, top, near, far;
-	bool is_persp = proj[3][3] == 0.0f;
-
-	projmat_dimensions(
-	        proj, &left, &right, &bottom, &top, &near, &far);
-
-	in[0] = left   + in[0] * (right - left);
-	in[1] = bottom + in[1] * (top   - bottom);
-
-	if (is_persp) {
-		in[2] = far * near / (far + in[2] * (near - far));
-		in[0] *= in[2];
-		in[1] *= in[2];
-	}
-	else {
-		in[2] = near + in[2] * (far - near);
-	}
-
-	in[2] *= -1;
-#endif
-
+	gpu_mul_invert_projmat_m4_unmapped_v3(proj, in);
 	mul_v3_m4v3(world, viewinv, in);
+
 	return true;
 }
 
