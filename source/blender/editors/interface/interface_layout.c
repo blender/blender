@@ -1839,7 +1839,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		if (layout->activate_init)
 			UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
-		if (use_prop_sep_split_label == false) {
+		if (use_prop_sep && (use_prop_sep_split_label == false)) {
 			/* When the button uses it's own text right align it. */
 			but->drawflag |= UI_BUT_TEXT_RIGHT;
 			but->drawflag &= ~UI_BUT_TEXT_LEFT;
