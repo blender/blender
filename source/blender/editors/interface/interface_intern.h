@@ -490,7 +490,6 @@ extern bool ui_but_is_bool(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_compatible(const uiBut *but_a, const uiBut *but_b) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_rna_valid(uiBut *but) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_but_is_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_supports_cycling(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
 extern int  ui_but_is_pushed_ex(uiBut *but, double *value) ATTR_WARN_UNUSED_RESULT;
@@ -686,14 +685,10 @@ extern void ui_but_activate_over(struct bContext *C, struct ARegion *ar, uiBut *
 extern void ui_but_execute_begin(struct bContext *C, struct ARegion *ar, uiBut *but, void **active_back);
 extern void ui_but_execute_end(struct bContext *C, struct ARegion *ar, uiBut *but, void *active_back);
 extern void ui_but_active_free(const struct bContext *C, uiBut *but);
-extern bool ui_but_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_but_is_editing(uiBut *but);
 extern int ui_but_menu_direction(uiBut *but);
 extern void ui_but_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);
-extern uiBut *ui_but_find_active_in_region(struct ARegion *ar);
-extern uiBut *ui_but_find_mouse_over(struct ARegion *ar, const struct wmEvent *event);
-void ui_but_pie_dir(RadialDirection dir, float vec[2]);
+bool ui_but_is_editing(const uiBut *but);
 float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);
 
 void ui_but_add_shortcut(uiBut *but, const char *key_str, const bool do_strip);
@@ -807,15 +802,47 @@ void ui_but_anim_decorate_cb(struct bContext *C, void *arg_but, void *arg_dummy)
 void ui_but_anim_decorate_update_from_flag(uiBut *but);
 
 /* interface_query.c */
-bool ui_but_is_editable(const uiBut *but);
-bool ui_but_is_editable_as_text(const uiBut *but);
-bool ui_but_is_toggle(const uiBut *but);
-bool ui_but_is_popover_once_compat(const uiBut *but);
+bool ui_but_is_editable(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_editable_as_text(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_interactive(const uiBut *but, const bool labeledit) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_popover_once_compat(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_has_array_value(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+void ui_but_pie_dir(RadialDirection dir, float vec[2]);
 
-extern bool ui_block_is_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_cursor_warp(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+
+bool ui_but_contains_pt(
+        const uiBut *but, float mx, float my) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_contains_point_px_icon(
+        const uiBut *but, struct  ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_contains_point_px(
+        const struct ARegion *ar, const uiBut *but, int x, int y) ATTR_WARN_UNUSED_RESULT;
+bool ui_region_contains_point_px(
+        const struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;
+
+uiBut *ui_list_find_mouse_over(ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
+
+uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bool labeledit) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_but_find_mouse_over(struct ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
+
+uiBut *ui_list_find_mouse_over_ex(struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;
+
+bool ui_but_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+
+uiBut *ui_but_prev(uiBut *but) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_but_next(uiBut *but) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_but_first(uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_but_last(uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+
+bool ui_block_is_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+
+uiBut *ui_but_find_active_in_region(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 
 /* interface_context_menu.c */
 bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but);
