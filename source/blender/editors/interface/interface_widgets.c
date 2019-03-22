@@ -61,6 +61,54 @@
 /* icons are 80% of height of button (16 pixels inside 20 height) */
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
+/* visual types for drawing */
+/* for time being separated from functional types */
+typedef enum {
+	/* default */
+	UI_WTYPE_REGULAR,
+
+	/* standard set */
+	UI_WTYPE_LABEL,
+	UI_WTYPE_TOGGLE,
+	UI_WTYPE_CHECKBOX,
+	UI_WTYPE_RADIO,
+	UI_WTYPE_NUMBER,
+	UI_WTYPE_SLIDER,
+	UI_WTYPE_EXEC,
+	UI_WTYPE_TOOLBAR_ITEM,
+	UI_WTYPE_TAB,
+	UI_WTYPE_TOOLTIP,
+
+	/* strings */
+	UI_WTYPE_NAME,
+	UI_WTYPE_NAME_LINK,
+	UI_WTYPE_POINTER_LINK,
+	UI_WTYPE_FILENAME,
+
+	/* menus */
+	UI_WTYPE_MENU_RADIO,
+	UI_WTYPE_MENU_ICON_RADIO,
+	UI_WTYPE_MENU_POINTER_LINK,
+	UI_WTYPE_MENU_NODE_LINK,
+
+	UI_WTYPE_PULLDOWN,
+	UI_WTYPE_MENU_ITEM,
+	UI_WTYPE_MENU_ITEM_RADIAL,
+	UI_WTYPE_MENU_BACK,
+
+	/* specials */
+	UI_WTYPE_ICON,
+	UI_WTYPE_ICON_LABEL,
+	UI_WTYPE_SWATCH,
+	UI_WTYPE_RGB_PICKER,
+	UI_WTYPE_UNITVEC,
+	UI_WTYPE_BOX,
+	UI_WTYPE_SCROLL,
+	UI_WTYPE_LISTITEM,
+	UI_WTYPE_PROGRESSBAR,
+} uiWidgetTypeEnum;
+
+
 /* Button state argument shares bits with 'uiBut.flag'.
  * reuse flags that aren't needed for drawing to avoid collision. */
 enum {
@@ -4679,7 +4727,7 @@ const uiWidgetColors *ui_tooltip_get_theme(void)
 /**
  * Generic drawing for background.
  */
-void ui_draw_widget_back_color(
+static void ui_draw_widget_back_color(
         uiWidgetTypeEnum type, bool use_shadow, const rcti *rect,
         const float color[4])
 {
@@ -4699,9 +4747,14 @@ void ui_draw_widget_back_color(
 	}
 	wt->draw(&wt->wcol, &rect_copy, 0, UI_CNR_ALL);
 }
-void ui_draw_widget_back(uiWidgetTypeEnum type, bool use_shadow, const rcti *rect)
+void ui_draw_widget_menu_back_color(const rcti *rect, bool use_shadow, const float color[4])
 {
-	ui_draw_widget_back_color(type, use_shadow, rect, NULL);
+	ui_draw_widget_back_color(UI_WTYPE_MENU_BACK, use_shadow, rect, color);
+}
+
+void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow)
+{
+	ui_draw_widget_back_color(UI_WTYPE_MENU_BACK, use_shadow, rect, NULL);
 }
 
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)

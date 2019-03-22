@@ -404,7 +404,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
 	wmOrtho2_region_pixelspace(ar);
 
 	if (data->noback == false) {
-		ui_draw_widget_back(UI_WTYPE_MENU_BACK, true, &data->bbox);
+		ui_draw_widget_menu_back(&data->bbox, true);
 	}
 
 	/* draw text */
@@ -685,7 +685,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 	wmOrtho2_region_pixelspace(ar);
 
 	if (data->noback == false) {
-		ui_draw_widget_back(UI_WTYPE_MENU_BACK, true, &data->bbox);
+		ui_draw_widget_menu_back(&data->bbox, true);
 	}
 
 	/* draw text */
