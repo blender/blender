@@ -421,6 +421,8 @@ static void eevee_render_to_image(void *vedata, RenderEngine *engine, struct Ren
 
 	/* Actually do the rendering. */
 	EEVEE_render_draw(vedata, engine, render_layer, rect);
+
+	EEVEE_volumes_free_smoke_textures();
 }
 
 static void eevee_engine_free(void)
