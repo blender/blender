@@ -195,7 +195,7 @@ void register_node_tree_type_cmp(void)
 
 	tt->type = NTREE_COMPOSIT;
 	strcpy(tt->idname, "CompositorNodeTree");
-	strcpy(tt->ui_name, N_("Compositing"));
+	strcpy(tt->ui_name, N_("Compositor"));
 	tt->ui_icon = 0;    /* defined in drawnode.c */
 	strcpy(tt->ui_description, N_("Compositing nodes"));
 
