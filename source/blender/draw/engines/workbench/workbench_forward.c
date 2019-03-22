@@ -370,8 +370,9 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 
-	/* TODO(campbell): displays but masks geometry, only use with wire for now. */
-	if ((wpd->shading.type == OB_WIRE) &&
+	/* TODO(campbell): displays but masks geometry,
+	 * only use with wire or solid-without-xray for now. */
+	if (((wpd->shading.type != OB_WIRE && XRAY_FLAG(wpd) == 0)) &&
 	    (draw_ctx->rv3d && (draw_ctx->rv3d->rflag & RV3D_CLIPPING) && draw_ctx->rv3d->clipbb))
 	{
 		psl->background_pass = DRW_pass_create(
