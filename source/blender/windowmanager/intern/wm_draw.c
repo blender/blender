@@ -125,44 +125,59 @@ static bool wm_draw_region_stereo_set(Main *bmain, ScrArea *sa, ARegion *ar, eSt
 {
 	/* We could detect better when stereo is actually needed, by inspecting the
 	 * image in the image editor and sequencer. */
-	if (ar->regiontype != RGN_TYPE_WINDOW) {
+	if (!ELEM(ar->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) {
 		return false;
 	}
 
 	switch (sa->spacetype) {
 		case SPACE_IMAGE:
 		{
-			SpaceImage *sima = sa->spacedata.first;
-			sima->iuser.multiview_eye = sview;
-			return true;
+			if (ar->regiontype == RGN_TYPE_WINDOW) {
+				SpaceImage *sima = sa->spacedata.first;
+				sima->iuser.multiview_eye = sview;
+				return true;
+			}
+			break;
 		}
 		case SPACE_VIEW3D:
 		{
-			View3D *v3d = sa->spacedata.first;
-			if (v3d->camera && v3d->camera->type == OB_CAMERA) {
-				Camera *cam = v3d->camera->data;
-				CameraBGImage *bgpic = cam->bg_images.first;
-				v3d->multiview_eye = sview;
-				if (bgpic) bgpic->iuser.multiview_eye = sview;
-				return true;
+			if (ar->regiontype == RGN_TYPE_WINDOW) {
+				View3D *v3d = sa->spacedata.first;
+				if (v3d->camera && v3d->camera->type == OB_CAMERA) {
+					Camera *cam = v3d->camera->data;
+					CameraBGImage *bgpic = cam->bg_images.first;
+					v3d->multiview_eye = sview;
+					if (bgpic) {
+						bgpic->iuser.multiview_eye = sview;
+					}
+					return true;
+				}
 			}
-			return false;
+			break;
 		}
 		case SPACE_NODE:
 		{
-			SpaceNode *snode = sa->spacedata.first;
-			if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
-				Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-				ima->eye = sview;
-				return true;
+			if (ar->regiontype == RGN_TYPE_WINDOW) {
+				SpaceNode *snode = sa->spacedata.first;
+				if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
+					Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+					ima->eye = sview;
+					return true;
+				}
 			}
-			return false;
+			break;
 		}
 		case SPACE_SEQ:
 		{
 			SpaceSeq *sseq = sa->spacedata.first;
 			sseq->multiview_eye = sview;
-			return true;
+
+			if (ar->regiontype == RGN_TYPE_PREVIEW) {
+				return true;
+			}
+			else if (ar->regiontype == RGN_TYPE_WINDOW) {
+				return (sseq->draw_flag & SEQ_DRAW_BACKDROP) != 0;
+			}
 		}
 	}
 
