@@ -2402,10 +2402,12 @@ static void mesh_create_edit_vertex_loops(
 						/* TODO find a more efficient way to do that. */
 						BMLoop *loop;
 						BMIter iter_loop;
-						BM_ITER_ELEM (loop, &iter_loop, efa, BM_LOOPS_OF_FACE) {
-							if (loop->e == eed) {
-								mesh_render_data_loop_flag(rdata, loop, cd_loop_uv_offset, &eattr);
-								break;
+						if (efa) {
+							BM_ITER_ELEM (loop, &iter_loop, efa, BM_LOOPS_OF_FACE) {
+								if (loop->e == eed) {
+									mesh_render_data_loop_flag(rdata, loop, cd_loop_uv_offset, &eattr);
+									break;
+								}
 							}
 						}
 					}
