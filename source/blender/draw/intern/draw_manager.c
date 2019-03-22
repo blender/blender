@@ -2509,16 +2509,8 @@ void DRW_framebuffer_select_id_release(ARegion *ar)
 /* Read a block of pixels from the select frame buffer. */
 void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
 {
-	DRW_opengl_context_enable();
-	GPU_framebuffer_bind(g_select_buffer.framebuffer_select_id);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-	glReadPixels(rect->xmin, rect->ymin,
-	             BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-	             GL_RED_INTEGER, GL_UNSIGNED_INT, r_buf);
-
-	GPU_framebuffer_restore();
-	DRW_opengl_context_disable();
+	GPU_texture_read_rect(
+	        g_select_buffer.texture_u32, GPU_DATA_UNSIGNED_INT, rect, r_buf);
 }
 
 /** \} */

@@ -185,6 +185,9 @@ void GPU_texture_update_sub(
         int offset_x, int offset_y, int offset_z, int width, int height, int depth);
 
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int miplvl);
+void GPU_texture_read_rect(
+        GPUTexture *tex, eGPUDataFormat gpu_data_format,
+        const struct rcti *rect, void *r_buf);
 
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);
