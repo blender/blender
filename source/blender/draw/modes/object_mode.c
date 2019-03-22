@@ -1676,13 +1676,11 @@ static void batch_camera_path_free(ListBase *camera_paths)
 	}
 }
 
-static bool camera_view3d_is_stereo3d(Scene *scene, View3D *v3d)
-{
-	return (scene->r.scemode & R_MULTIVIEW) != 0 &&
-	       (v3d->stereo3d_flag);
-}
-
-static void camera_stereo3d(
+/**
+ * Draw the stereo 3d support elements (cameras, plane, volume).
+ * They are only visible when not looking through the camera:
+ */
+static void camera_view3d_stereoscopy_display_extra(
         OBJECT_ShadingGroupList *sgl,
         Scene *scene, ViewLayer *view_layer, View3D *v3d,
         Object *ob, Camera *cam,
@@ -1979,9 +1977,10 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	const bool is_select = DRW_state_is_select();
 	const bool is_active = (ob == camera_object);
 	const bool look_through = (is_active && (rv3d->persp == RV3D_CAMOB));
+
 	const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
-	const bool is_stereo3d = is_active && camera_view3d_is_stereo3d(scene, v3d);
 	const bool is_stereo3d_view = (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
+	const bool is_stereo3d_display_extra = is_active && is_multiview && (!look_through) && ((v3d->stereo3d_flag) != 0);
 	const bool is_stereo3d_cameras = (ob == scene->camera) &&
 	                                 is_multiview &&
 	                                 is_stereo3d_view &&
@@ -2028,15 +2027,16 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	if (look_through) {
 		/* Only draw the frame. */
 		float mat[4][4];
-		if (is_stereo3d_view) {
+		if (is_multiview) {
 			const bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
 			const char *view_name = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
 			BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat);
 			const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, view_name);
-			cam->runtime.drw_corners[0][0][0] += shiftx;
-			cam->runtime.drw_corners[0][1][0] += shiftx;
-			cam->runtime.drw_corners[0][2][0] += shiftx;
-			cam->runtime.drw_corners[0][3][0] += shiftx;
+			const float delta_shiftx = shiftx - cam->shiftx;
+			const float width = cam->runtime.drw_corners[0][2][0] - cam->runtime.drw_corners[0][0][0];
+			for (int i = 0; i < 4; i++) {
+				cam->runtime.drw_corners[0][i][0] -= delta_shiftx * width;
+			}
 		}
 		else {
 			copy_m4_m4(mat, ob->obmat);
@@ -2101,9 +2101,9 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		}
 	}
 
-	/* Stereo cameras drawing. */
-	if (is_stereo3d && !look_through) {
-		camera_stereo3d(sgl, scene, view_layer, v3d, ob, cam, vec, drawsize, scale);
+	/* Stereo cameras, volumes, plane drawing. */
+	if (is_stereo3d_display_extra) {
+		camera_view3d_stereoscopy_display_extra(sgl, scene, view_layer, v3d, ob, cam, vec, drawsize, scale);
 	}
 
 	/* Motion Tracking. */
