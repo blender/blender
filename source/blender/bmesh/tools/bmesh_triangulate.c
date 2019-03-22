@@ -83,8 +83,9 @@ static void bm_face_triangulate_mapping(
 
 
 void BM_mesh_triangulate(
-        BMesh *bm, const int quad_method, const int ngon_method, const bool tag_only,
-        BMOperator *op, BMOpSlot *slot_facemap_out, BMOpSlot *slot_facemap_double_out)
+	BMesh *bm, const int quad_method, const int ngon_method, const int min_vertices,
+	const bool tag_only, BMOperator *op, BMOpSlot *slot_facemap_out,
+	BMOpSlot *slot_facemap_double_out)
 {
 	BMIter iter;
 	BMFace *face;
@@ -103,7 +104,7 @@ void BM_mesh_triangulate(
 	if (slot_facemap_out) {
 		/* same as below but call: bm_face_triangulate_mapping() */
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-			if (face->len > 3) {
+			if (face->len >= min_vertices) {
 				if (tag_only == false || BM_elem_flag_test(face, BM_ELEM_TAG)) {
 					bm_face_triangulate_mapping(
 					        bm, face,
@@ -118,7 +119,7 @@ void BM_mesh_triangulate(
 		LinkNode *faces_double = NULL;
 
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-			if (face->len > 3) {
+			if (face->len >= min_vertices) {
 				if (tag_only == false || BM_elem_flag_test(face, BM_ELEM_TAG)) {
 					BM_face_triangulate(
 					        bm, face,

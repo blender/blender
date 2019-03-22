@@ -34,7 +34,7 @@
 
 #include "MOD_modifiertypes.h"
 
-static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_method, const int flag)
+static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_method, const int min_vertices, const int flag)
 {
 	Mesh *result;
 	BMesh *bm;
@@ -59,7 +59,7 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 	            .cd_mask_extra = cddata_masks,
 	        }));
 
-	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL, NULL);
+	BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, false, NULL, NULL, NULL);
 
 	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cddata_masks);
 	BM_mesh_free(bm);
@@ -98,6 +98,7 @@ static void initData(ModifierData *md)
 	md->mode |= eModifierMode_Editmode;
 	tmd->quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
 	tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
+	tmd->min_vertices = 4;
 }
 
 static Mesh *applyModifier(
@@ -107,7 +108,7 @@ static Mesh *applyModifier(
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	Mesh *result;
-	if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->flag))) {
+	if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag))) {
 		return mesh;
 	}
 

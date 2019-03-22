@@ -2920,5 +2920,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				part->draw_as = PART_DRAW_NOT;
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "TriangulateModifierData", "int", "min_vertices")) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Triangulate) {
+						TriangulateModifierData *smd = (TriangulateModifierData *)md;
+						smd->min_vertices = 4;
+					}
+				}
+			}
+		}
 	}
 }

@@ -4359,6 +4359,12 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Polygon Method", "Method for splitting the polygons into triangles");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "min_vertices", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "min_vertices");
+	RNA_def_property_range(prop, 4, INT_MAX);
+	RNA_def_property_ui_text(prop, "Minimum Vertices", "Triangulate only polygons with vertex count greater than or equal to this number");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "keep_custom_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS);
 	RNA_def_property_ui_text(prop, "Keep Normals",

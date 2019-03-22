@@ -1368,6 +1368,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = row.column()
         col.label(text="Ngon Method:")
         col.prop(md, "ngon_method", text="")
+        col.label(text="Minimum Vertices:")
+        col.prop(md, "min_vertices", text="")
 
     def UV_WARP(self, layout, ob, md):
         split = layout.split()

@@ -47,7 +47,7 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE | BM_EDGE, BM_ELEM_TAG, false);
 	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 
-	BM_mesh_triangulate(bm, quad_method, ngon_method, true, op, slot_facemap_out, slot_facemap_double_out);
+	BM_mesh_triangulate(bm, quad_method, ngon_method, 4, true, op, slot_facemap_out, slot_facemap_double_out);
 
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
