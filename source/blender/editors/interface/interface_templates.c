@@ -3347,19 +3347,16 @@ void uiTemplateColorPicker(
 
 	but->custom_data = cpicker;
 
-	if (lock) {
-		but->flag |= UI_BUT_COLOR_LOCK;
-	}
+	cpicker->use_color_lock = lock;
+	cpicker->use_color_cubic = cubic;
+	cpicker->use_luminosity_lock = lock_luminosity;
 
 	if (lock_luminosity) {
 		float color[4]; /* in case of alpha */
-		but->flag |= UI_BUT_VEC_SIZE_LOCK;
 		RNA_property_float_get_array(ptr, prop, color);
 		but->a2 = len_v3(color);
+		cpicker->luminosity_lock_value = len_v3(color);
 	}
-
-	if (cubic)
-		but->flag |= UI_BUT_COLOR_CUBIC;
 
 
 	if (value_slider) {

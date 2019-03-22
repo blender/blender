@@ -341,6 +341,11 @@ typedef struct ColorPicker {
 	/** Initial color data (detect changes). */
 	float color_data_init[3];
 	bool is_init;
+	/** Cubic saturation for the color wheel. */
+	bool use_color_cubic;
+	bool use_color_lock;
+	bool use_luminosity_lock;
+	float luminosity_lock_value;
 } ColorPicker;
 
 typedef struct ColorPickerData {
@@ -506,8 +511,8 @@ extern void ui_but_v3_set(uiBut *but, const float vec[3]);
 extern void ui_hsvcircle_vals_from_pos(
         float *val_rad, float *val_dist, const rcti *rect,
         const float mx, const float my);
-extern void ui_hsvcircle_pos_from_vals(struct uiBut *but, const rcti *rect, float *hsv, float *xpos, float *ypos);
-extern void ui_hsvcube_pos_from_vals(struct uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp);
+extern void ui_hsvcircle_pos_from_vals(const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *xpos, float *ypos);
+extern void ui_hsvcube_pos_from_vals(const struct uiBut *but, const rcti *rect, const float *hsv, float *xp, float *yp);
 
 extern void ui_but_string_get_ex(
         uiBut *but, char *str, const size_t maxlen,

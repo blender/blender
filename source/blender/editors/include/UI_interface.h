@@ -181,7 +181,7 @@ enum {
 	UI_BUT_DRAG_LOCK       = 1 << 10,
 	/** grayed out and uneditable */
 	UI_BUT_DISABLED        = 1 << 11,
-	UI_BUT_COLOR_LOCK      = 1 << 12,
+
 	UI_BUT_ANIMATED        = 1 << 13,
 	UI_BUT_ANIMATED_KEY    = 1 << 14,
 	UI_BUT_DRIVEN          = 1 << 15,
@@ -193,10 +193,6 @@ enum {
 	UI_BUT_IMMEDIATE       = 1 << 20,
 	UI_BUT_NO_UTF8         = 1 << 21,
 
-	/** used to flag if color hsv-circle should keep luminance */
-	UI_BUT_VEC_SIZE_LOCK   = 1 << 22,
-	/** cubic saturation for the color wheel */
-	UI_BUT_COLOR_CUBIC     = 1 << 23,
 	/** This but is "inside" a list item (currently used to change theme colors). */
 	UI_BUT_LIST_ITEM       = 1 << 24,
 	/** edit this button as well as the active button (not just dragging) */

@@ -2575,7 +2575,9 @@ void ui_hsvcircle_vals_from_pos(
 }
 
 /* cursor in hsv circle, in float units -1 to 1, to map on radius */
-void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xpos, float *ypos)
+void ui_hsvcircle_pos_from_vals(
+        const ColorPicker *cpicker, const rcti *rect, const float *hsv,
+        float *r_xpos, float *r_ypos)
 {
 	/* duplication of code... well, simple is better now */
 	const float centx = BLI_rcti_cent_x_fl(rect);
@@ -2585,14 +2587,14 @@ void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float 
 
 	ang = 2.0f * (float)M_PI * hsv[0] + (float)M_PI_2;
 
-	if ((but->flag & UI_BUT_COLOR_CUBIC) && (U.color_picker_type == USER_CP_CIRCLE_HSV))
+	if (cpicker->use_color_cubic && (U.color_picker_type == USER_CP_CIRCLE_HSV))
 		radius_t = (1.0f - pow3f(1.0f - hsv[1]));
 	else
 		radius_t = hsv[1];
 
 	radius = clamp_f(radius_t, 0.0f, 1.0f) * radius;
-	*xpos = centx + cosf(-ang) * radius;
-	*ypos = centy + sinf(-ang) * radius;
+	*r_xpos = centx + cosf(-ang) * radius;
+	*r_ypos = centy + sinf(-ang) * radius;
 }
 
 static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
@@ -2622,11 +2624,13 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
-	if (but->flag & UI_BUT_COLOR_LOCK) {
-		if (U.color_picker_type == USER_CP_CIRCLE_HSV)
+	if (cpicker->use_color_lock) {
+		if (U.color_picker_type == USER_CP_CIRCLE_HSV) {
 			hsv[2] = 1.0f;
-		else
+		}
+		else {
 			hsv[2] = 0.5f;
+		}
 	}
 
 	const float hsv_center[3] = {0.0f, 0.0f, hsv[2]};
@@ -2694,7 +2698,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
 
 	float xpos, ypos;
-	ui_hsvcircle_pos_from_vals(but, rect, hsv, &xpos, &ypos);
+	ui_hsvcircle_pos_from_vals(cpicker, rect, hsv, &xpos, &ypos);
 	ui_hsv_cursor(xpos, ypos);
 }
 
@@ -2851,7 +2855,9 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	immUnbindProgram();
 }
 
-void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp)
+void ui_hsvcube_pos_from_vals(
+        const uiBut *but, const rcti *rect, const float *hsv,
+        float *r_xp, float *r_yp)
 {
 	float x = 0.0f, y = 0.0f;
 
@@ -2881,8 +2887,8 @@ void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *x
 	}
 
 	/* cursor */
-	*xp = rect->xmin + x * BLI_rcti_size_x(rect);
-	*yp = rect->ymin + y * BLI_rcti_size_y(rect);
+	*r_xp = rect->xmin + x * BLI_rcti_size_x(rect);
+	*r_yp = rect->ymin + y * BLI_rcti_size_y(rect);
 }
 
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)

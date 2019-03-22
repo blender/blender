@@ -6130,7 +6130,7 @@ static bool ui_numedit_but_HSVCIRCLE(
 
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
-	if (but->flag & UI_BUT_COLOR_LOCK) {
+	if (cpicker->use_color_lock) {
 		if (U.color_picker_type == USER_CP_CIRCLE_HSV) { // lock
 			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 		}
@@ -6151,7 +6151,7 @@ static bool ui_numedit_but_HSVCIRCLE(
 		ui_rgb_to_color_picker_compat_v(rgbo, hsvo);
 
 		/* and original position */
-		ui_hsvcircle_pos_from_vals(but, &rect, hsvo, &xpos, &ypos);
+		ui_hsvcircle_pos_from_vals(cpicker, &rect, hsvo, &xpos, &ypos);
 
 		mx_fl = xpos - (data->dragstartx - mx_fl);
 		my_fl = ypos - (data->dragstarty - my_fl);
@@ -6160,8 +6160,9 @@ static bool ui_numedit_but_HSVCIRCLE(
 
 	ui_hsvcircle_vals_from_pos(hsv, hsv + 1, &rect, mx_fl, my_fl);
 
-	if ((but->flag & UI_BUT_COLOR_CUBIC) && (U.color_picker_type == USER_CP_CIRCLE_HSV))
+	if ((cpicker->use_color_cubic) && (U.color_picker_type == USER_CP_CIRCLE_HSV)) {
 		hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);
+	}
 
 	if (snap != SNAP_OFF) {
 		ui_color_snap_hue(snap, &hsv[0]);
@@ -6169,8 +6170,10 @@ static bool ui_numedit_but_HSVCIRCLE(
 
 	ui_color_picker_to_rgb_v(hsv, rgb);
 
-	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {
-		normalize_v3_length(rgb, but->a2);
+	if ((cpicker->use_luminosity_lock)) {
+		if (!is_zero_v3(rgb)) {
+			normalize_v3_length(rgb, cpicker->luminosity_lock_value);
+		}
 	}
 
 	ui_color_picker_to_scene_linear_space(but, rgb);
@@ -6224,7 +6227,7 @@ static void ui_ndofedit_but_HSVCIRCLE(
 
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
-	if (but->flag & UI_BUT_COLOR_LOCK) {
+	if (cpicker->use_color_lock) {
 		if (U.color_picker_type == USER_CP_CIRCLE_HSV) { // lock
 			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 		}
@@ -6242,8 +6245,10 @@ static void ui_ndofedit_but_HSVCIRCLE(
 
 	ui_color_picker_to_rgb_v(hsv, data->vec);
 
-	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (data->vec[0] || data->vec[1] || data->vec[2])) {
-		normalize_v3_length(data->vec, but->a2);
+	if (cpicker->use_luminosity_lock) {
+		if (!is_zero_v3(data->vec)) {
+			normalize_v3_length(data->vec, cpicker->luminosity_lock_value);
+		}
 	}
 
 	ui_color_picker_to_scene_linear_space(but, data->vec);
