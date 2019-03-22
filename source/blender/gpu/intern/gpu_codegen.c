@@ -1008,8 +1008,8 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 					        input->attr_id, use_geom ? "g" : "", input->attr_id);
 					/* Normalize only if vector is not null. */
 					BLI_dynstr_appendf(
-					        ds, "\tfloat lvar%d = dot(att%d.xyz, att%d.xyz);\n",
-					        input->attr_id, input->attr_id, input->attr_id);
+					        ds, "\tfloat lvar%d = dot(var%d%s.xyz, var%d%s.xyz);\n",
+					        input->attr_id, input->attr_id, use_geom ? "g" : "", input->attr_id, use_geom ? "g" : "");
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s.xyz *= (lvar%d > 0.0) ? inversesqrt(lvar%d) : 1.0;\n",
 					        input->attr_id, use_geom ? "g" : "", input->attr_id, input->attr_id);
