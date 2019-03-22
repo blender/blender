@@ -126,6 +126,7 @@ void DRW_draw_depth_loop(
 void DRW_framebuffer_select_id_setup(struct ARegion *ar, const bool clear);
 void DRW_framebuffer_select_id_release(struct ARegion *ar);
 void DRW_framebuffer_select_id_read(const struct rcti *rect, uint *r_buf);
+void DRW_framebuffer_depth_read(const struct rcti *rect, float *r_buf);
 
 /* grease pencil render */
 bool DRW_render_check_grease_pencil(struct Depsgraph *depsgraph);

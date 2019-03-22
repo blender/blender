@@ -223,12 +223,6 @@ void view3d_opengl_read_pixels(ARegion *ar, int x, int y, int w, int h, int form
 	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
 }
 
-/* XXX depth reading exception, for code not using gpu offscreen */
-static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h, int format, int type, void *data)
-{
-	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
-}
-
 void ED_view3d_select_id_validate_with_select_mode(ViewContext *vc, short select_mode)
 {
 	/* TODO: Create a flag in `DRW_manager` because the drawing is no longer
@@ -726,7 +720,6 @@ void ED_view3d_draw_bgpic_test(
 
 /* *********************** */
 
-/* XXX warning, not using gpu offscreen here */
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
 	/* clamp rect by region */
@@ -775,14 +768,14 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 	}
 
 	if (d->damaged) {
-		/* XXX using special function here, it doesn't use the gpu offscreen system */
-		view3d_opengl_read_Z_pixels(ar, d->x, d->y, d->w, d->h, GL_DEPTH_COMPONENT, GL_FLOAT, d->depths);
+		DRW_framebuffer_depth_read(rect, d->depths);
 		glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
 		d->damaged = false;
 	}
 }
 
-/* note, with nouveau drivers the glReadPixels() is very slow. [#24339] */
+/* note, with nouveau drivers the glReadPixels() is very slow. [#24339]
+ * XXX warning, not using gpu offscreen here */
 void ED_view3d_depth_update(ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
