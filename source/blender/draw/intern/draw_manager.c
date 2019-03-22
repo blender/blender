@@ -2360,6 +2360,14 @@ void DRW_draw_depth_loop(
 	DST.viewport = viewport;
 	DST.options.is_depth = true;
 
+	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+	DST.draw_ctx = (DRWContextState){
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+		.engine_type = engine_type,
+		.depsgraph = depsgraph,
+	};
+
 	/* Get list of enabled engines */
 	{
 		drw_engines_enable_basic();
@@ -2369,14 +2377,6 @@ void DRW_draw_depth_loop(
 	}
 
 	/* Setup viewport */
-
-	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
-	DST.draw_ctx = (DRWContextState){
-		.ar = ar, .rv3d = rv3d, .v3d = v3d,
-		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
-		.engine_type = engine_type,
-		.depsgraph = depsgraph,
-	};
 	drw_context_state_init();
 	drw_viewport_var_init();
 
