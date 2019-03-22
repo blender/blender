@@ -253,6 +253,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 	PROFILING_INIT(kg, PROFILING_INTERSECT_LOCAL);
 
 	if(!scene_intersect_valid(&ray)) {
+		local_isect->num_hits = 0;
 		return false;
 	}
 #ifdef __EMBREE__
