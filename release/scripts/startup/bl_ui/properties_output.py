@@ -477,6 +477,8 @@ class RENDER_PT_stereoscopy(RenderOutputButtonsPanel, Panel):
         basic_stereo = rd.views_format == 'STEREO_3D'
 
         row = layout.row()
+        row.use_property_split = True
+        row.use_property_decorate = False
         row.prop(rd, "views_format")
 
         if basic_stereo:
@@ -484,8 +486,9 @@ class RENDER_PT_stereoscopy(RenderOutputButtonsPanel, Panel):
             row.template_list("RENDER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
 
             row = layout.row()
-            row.label(text="File Suffix:")
-            row.prop(rv, "file_suffix", text="")
+            row.use_property_split = True
+            row.use_property_decorate = False
+            row.prop(rv, "file_suffix")
 
         else:
             row = layout.row()
@@ -496,8 +499,9 @@ class RENDER_PT_stereoscopy(RenderOutputButtonsPanel, Panel):
             col.operator("scene.render_view_remove", icon='REMOVE', text="")
 
             row = layout.row()
-            row.label(text="Camera Suffix:")
-            row.prop(rv, "camera_suffix", text="")
+            row.use_property_split = True
+            row.use_property_decorate = False
+            row.prop(rv, "camera_suffix")
 
 
 classes = (
@@ -506,6 +510,7 @@ classes = (
     RENDER_MT_framerate_presets,
     RENDER_PT_dimensions,
     RENDER_PT_frame_remapping,
+    RENDER_PT_stereoscopy,
     RENDER_PT_output,
     RENDER_PT_output_views,
     RENDER_PT_encoding,
@@ -515,7 +520,6 @@ classes = (
     RENDER_PT_stamp_note,
     RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
-    RENDER_PT_stereoscopy,
     RENDER_PT_post_processing,
 )
 
