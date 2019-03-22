@@ -69,11 +69,14 @@ enum {
 	UI_STATE_TEXT_INPUT  = UI_BUT_UNDO,
 	UI_STATE_ACTIVE_LEFT  = UI_BUT_VALUE_CLEAR,
 	UI_STATE_ACTIVE_RIGHT = UI_BUT_TEXTEDIT_UPDATE,
+	UI_STATE_TEXT_BEFORE_WIDGET = UI_BUT_IMMEDIATE,
 
-	UI_STATE_FLAGS_ALL = (UI_STATE_HOLD_ACTION |
-	                      UI_STATE_TEXT_INPUT |
-	                      UI_STATE_ACTIVE_LEFT |
-	                      UI_STATE_ACTIVE_RIGHT),
+	UI_STATE_FLAGS_ALL = (
+	        UI_STATE_HOLD_ACTION |
+	        UI_STATE_TEXT_INPUT |
+	        UI_STATE_ACTIVE_LEFT |
+	        UI_STATE_ACTIVE_RIGHT |
+	        UI_STATE_TEXT_BEFORE_WIDGET),
 };
 /* Prevent accidental use. */
 #define UI_BUT_UPDATE_DELAY ((void)0)
@@ -3637,6 +3640,7 @@ static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(sta
 
 static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
+	bool text_before_widget = (state & UI_STATE_TEXT_BEFORE_WIDGET);
 	uiWidgetBase wtb;
 	rcti recttemp = *rect;
 	float rad;
@@ -3645,7 +3649,12 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	widget_init(&wtb);
 
 	/* square */
-	recttemp.xmax = recttemp.xmin + BLI_rcti_size_y(&recttemp);
+	if (text_before_widget) {
+		recttemp.xmin = recttemp.xmax - BLI_rcti_size_y(&recttemp);
+	}
+	else {
+		recttemp.xmax = recttemp.xmin + BLI_rcti_size_y(&recttemp);
+	}
 
 	/* smaller */
 	delta = 1 + BLI_rcti_size_y(&recttemp) / 8;
@@ -3665,7 +3674,13 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	widgetbase_draw(&wtb, wcol);
 
 	/* text space */
-	rect->xmin += BLI_rcti_size_y(rect) * 0.7 + delta;
+	const float offset = BLI_rcti_size_y(rect) * 0.7 + delta;
+	if (text_before_widget) {
+		rect->xmax -= offset;
+	}
+	else {
+		rect->xmin += offset;
+	}
 }
 
 /* labels use Editor theme colors for text */
@@ -4215,10 +4230,13 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case UI_BTYPE_CHECKBOX_N:
 				if (!(but->flag & UI_HAS_ICON)) {
 					wt = widget_type(UI_WTYPE_CHECKBOX);
-					but->drawflag |= UI_BUT_TEXT_LEFT;
+					if ((but->drawflag & (UI_BUT_TEXT_LEFT | UI_BUT_TEXT_RIGHT)) == 0) {
+						but->drawflag |= UI_BUT_TEXT_LEFT;
+					}
 				}
-				else
+				else {
 					wt = widget_type(UI_WTYPE_TOGGLE);
+				}
 
 				/* option buttons have strings outside, on menus use different colors */
 				if (but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) {
@@ -4378,6 +4396,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))
 			if (but->dt != UI_EMBOSS_PULLDOWN)
 				disabled = true;
+
+		if (drawflag & UI_BUT_TEXT_RIGHT) {
+			state |= UI_STATE_TEXT_BEFORE_WIDGET;
+		}
 
 		if (disabled)
 			ui_widget_color_disabled(wt);
