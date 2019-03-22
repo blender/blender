@@ -508,7 +508,7 @@ void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, const d
 	DRW_draw_pass(psl->update_noise_pass);
 }
 
-static void EEVEE_update_viewvecs(float invproj[4][4], float winmat[4][4], float (*r_viewvecs)[4])
+void EEVEE_update_viewvecs(float invproj[4][4], float winmat[4][4], float (*r_viewvecs)[4])
 {
 	/* view vectors for the corners of the view frustum.
 	 * Can be used to recreate the world space position easily */
