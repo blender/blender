@@ -156,10 +156,10 @@ static bool screen_opengl_is_multiview(OGLRender *oglrender)
 	RegionView3D *rv3d = oglrender->rv3d;
 	RenderData *rd = &oglrender->scene->r;
 
-	if ((rd == NULL) || ((!oglrender->is_sequencer) && ((rv3d == NULL) || (v3d == NULL))))
+	if ((rd == NULL) || ((v3d != NULL) && (rv3d == NULL)))
 		return false;
 
-	return (rd->scemode & R_MULTIVIEW) && ((oglrender->is_sequencer) || (rv3d->persp == RV3D_CAMOB && v3d->camera));
+	return (rd->scemode & R_MULTIVIEW) && ((v3d == NULL) || (rv3d->persp == RV3D_CAMOB && v3d->camera));
 }
 
 static void screen_opengl_views_setup(OGLRender *oglrender)
@@ -203,8 +203,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 		}
 	}
 	else {
-		if (!oglrender->is_sequencer)
+		if (v3d) {
 			RE_SetOverrideCamera(oglrender->re, V3D_CAMERA_SCENE(oglrender->scene, v3d));
+		}
 
 		/* remove all the views that are not needed */
 		rv = rr->views.last;
