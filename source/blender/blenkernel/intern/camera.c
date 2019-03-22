@@ -366,7 +366,7 @@ void BKE_camera_view_frame_ex(
 		facy = 0.5f * camera->ortho_scale * r_asp[1] * scale[1];
 		r_shift[0] = camera->shiftx * camera->ortho_scale * scale[0];
 		r_shift[1] = camera->shifty * camera->ortho_scale * scale[1];
-		depth = do_clip ? -((camera->clip_start * scale[2]) + 0.1f) : -drawsize * scale[2];
+		depth = -drawsize * scale[2];
 
 		*r_drawsize = 0.5f * camera->ortho_scale;
 	}
@@ -376,24 +376,12 @@ void BKE_camera_view_frame_ex(
 		float half_sensor = 0.5f * ((camera->sensor_fit == CAMERA_SENSOR_FIT_VERT) ?
 		                            (camera->sensor_y) : (camera->sensor_x));
 
-
-		if (do_clip) {
-			/* fixed depth, variable size (avoids exceeding clipping range) */
-			/* r_drawsize shouldn't be used in this case, set to dummy value */
-			*r_drawsize = 1.0f;
-			depth = -(camera->clip_start + 0.1f) * scale[2];
-			fac = depth / (camera->lens / (-half_sensor));
-			scale_x = scale[0] / scale[2];
-			scale_y = scale[1] / scale[2];
-		}
-		else {
-			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
-			*r_drawsize = (drawsize / 2.0f) / ((scale[0] + scale[1] + scale[2]) / 3.0f);
-			depth = *r_drawsize * camera->lens / (-half_sensor) * scale[2];
-			fac = *r_drawsize;
-			scale_x = scale[0];
-			scale_y = scale[1];
-		}
+		/* fixed size, variable depth (stays a reasonable size in the 3D view) */
+		*r_drawsize = (drawsize / 2.0f) / ((scale[0] + scale[1] + scale[2]) / 3.0f);
+		depth = *r_drawsize * camera->lens / (-half_sensor) * scale[2];
+		fac = *r_drawsize;
+		scale_x = scale[0];
+		scale_y = scale[1];
 
 		facx = fac * r_asp[0] * scale_x;
 		facy = fac * r_asp[1] * scale_y;
@@ -405,6 +393,19 @@ void BKE_camera_view_frame_ex(
 	r_vec[1][0] = r_shift[0] + facx; r_vec[1][1] = r_shift[1] - facy; r_vec[1][2] = depth;
 	r_vec[2][0] = r_shift[0] - facx; r_vec[2][1] = r_shift[1] - facy; r_vec[2][2] = depth;
 	r_vec[3][0] = r_shift[0] - facx; r_vec[3][1] = r_shift[1] + facy; r_vec[3][2] = depth;
+
+	if (do_clip) {
+		/* Ensure the frame isn't behind the near clipping plane, T62814. */
+		float fac = (camera->clip_start + 0.1f) / -r_vec[0][2];
+		for (uint i = 0; i < 4; i++) {
+			if (camera->type == CAM_ORTHO) {
+				r_vec[i][2] *= fac;
+			}
+			else {
+				mul_v3_fl(r_vec[i], fac);
+			}
+		}
+	}
 }
 
 void BKE_camera_view_frame(const Scene *scene, const Camera *camera, float r_vec[4][3])

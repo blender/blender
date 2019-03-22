@@ -1850,23 +1850,8 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		scale[2] = 1.0f / len_v3(ob->obmat[2]);
 	}
 
-	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, false, scale,
+	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, look_through, scale,
 	                         asp, shift, &drawsize, vec);
-
-	if (look_through) {
-		/* Ensure the frame isn't behind the near clipping plane, T62814. */
-		float fac = (cam->clip_start + 0.1f) / -vec[0][2];
-		if (fac > 1.0f) {
-			for (uint i = 0; i < 4; i++) {
-				if (rv3d->is_persp) {
-					mul_v3_fl(vec[i], fac);
-				}
-				else {
-					vec[i][2] *= fac;
-				}
-			}
-		}
-	}
 
 	/* Frame coords */
 	copy_v2_v2(cam->runtime.drw_corners[0][0], vec[0]);
