@@ -34,6 +34,7 @@ struct Render;
 struct Scene;
 struct ScrArea;
 struct bContext;
+struct bScreen;
 struct wmWindowManager;
 
 /* render_ops.c */
@@ -44,6 +45,7 @@ void ED_operatortypes_render(void);
 
 void ED_render_engine_changed(struct Main *bmain);
 void ED_render_engine_area_exit(struct Main *bmain, struct ScrArea *sa);
+void ED_render_view_layer_changed(struct Main *bmain, struct bScreen *sc);
 
 /* Callbacks handling data update events coming from depsgraph. */
 

@@ -65,6 +65,7 @@
 #include "wm_event_system.h"
 
 #include "ED_anim_api.h"
+#include "ED_render.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
@@ -2210,16 +2211,17 @@ ViewLayer *WM_window_get_active_view_layer(const wmWindow *win)
 void WM_window_set_active_view_layer(wmWindow *win, ViewLayer *view_layer)
 {
 	BLI_assert(BKE_view_layer_find(WM_window_get_active_scene(win), view_layer->name) != NULL);
+	Main *bmain = G_MAIN;
 
-	wmWindowManager *wm = G_MAIN->wm.first;
+	wmWindowManager *wm = bmain->wm.first;
 	wmWindow *win_parent = (win->parent) ? win->parent : win;
 
-	/* Set  view layer in parent and child windows. */
-	STRNCPY(win_parent->view_layer_name, view_layer->name);
-
-	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
-		if (win_child->parent == win_parent) {
-			STRNCPY(win_child->view_layer_name, view_layer->name);
+	/* Set view layer in parent and child windows. */
+	for (wmWindow *win_iter = wm->windows.first; win_iter; win_iter = win_iter->next) {
+		if ((win_iter == win_parent) || (win_iter->parent == win_parent)) {
+			STRNCPY(win_iter->view_layer_name, view_layer->name);
+			bScreen *screen = BKE_workspace_active_screen_get(win_iter->workspace_hook);
+			ED_render_view_layer_changed(bmain, screen);
 		}
 	}
 }

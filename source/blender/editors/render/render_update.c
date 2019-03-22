@@ -199,6 +199,13 @@ void ED_render_engine_changed(Main *bmain)
 	}
 }
 
+void ED_render_view_layer_changed(Main *bmain, bScreen *sc)
+{
+	for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+		ED_render_engine_area_exit(bmain, sa);
+	}
+}
+
 /***************************** Updates ***********************************
  * ED_render_id_flush_update gets called from DEG_id_tag_update, to do   *
  * editor level updates when the ID changes. when these ID blocks are in *
