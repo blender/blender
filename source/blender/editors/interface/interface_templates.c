@@ -3364,25 +3364,25 @@ void uiTemplateColorPicker(
 			case USER_CP_CIRCLE_HSL:
 				uiItemS(row);
 				but = uiDefButR_prop(
-				        block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
+				        block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14 * UI_DPI_FAC, WHEEL_SIZE, ptr, prop,
 				        -1, softmin, softmax, UI_GRAD_L_ALT, 0, "");
 				break;
 			case USER_CP_SQUARE_SV:
 				uiItemS(col);
 				but = uiDefButR_prop(
-				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
+				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18 * UI_DPI_FAC, ptr, prop,
 				        -1, softmin, softmax, UI_GRAD_SV + 3, 0, "");
 				break;
 			case USER_CP_SQUARE_HS:
 				uiItemS(col);
 				but = uiDefButR_prop(
-				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
+				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18 * UI_DPI_FAC, ptr, prop,
 				        -1, softmin, softmax, UI_GRAD_HS + 3, 0, "");
 				break;
 			case USER_CP_SQUARE_HV:
 				uiItemS(col);
 				but = uiDefButR_prop(
-				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
+				        block, UI_BTYPE_HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18 * UI_DPI_FAC, ptr, prop,
 				        -1, softmin, softmax, UI_GRAD_HV + 3, 0, "");
 				break;
 
@@ -3391,7 +3391,7 @@ void uiTemplateColorPicker(
 			default:
 				uiItemS(row);
 				but = uiDefButR_prop(
-				        block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
+				        block, UI_BTYPE_HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14 * UI_DPI_FAC, WHEEL_SIZE, ptr, prop,
 				        -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
 				break;
 		}
