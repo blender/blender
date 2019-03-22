@@ -136,7 +136,9 @@ void ED_operatormacros_node(void)
 	ot = WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer",
 	                                  "Select node and link it to a viewer node",
 	                                  OPTYPE_UNDO);
-	WM_operatortype_macro_define(ot, "NODE_OT_select");
+	mot = WM_operatortype_macro_define(ot, "NODE_OT_select");
+	RNA_boolean_set(mot->ptr, "extend", false);
+	RNA_boolean_set(mot->ptr, "socket_select", true);
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 
 	ot = WM_operatortype_append_macro("NODE_OT_translate_attach", "Move and Attach",

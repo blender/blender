@@ -410,72 +410,83 @@ void node_select_single(bContext *C, bNode *node)
 	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 }
 
-static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const int mval[2], short extend)
+static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const int mval[2], bool extend, bool socket_select)
 {
 	bNode *node, *tnode;
-	bNodeSocket *sock, *tsock;
+	bNodeSocket *sock = NULL;
+	bNodeSocket *tsock;
 	float cursor[2];
-	int selected = 0;
+	bool selected = false;
 
 	/* get mouse coordinates in view2d space */
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
 
-	if (extend) {
-		/* first do socket selection, these generally overlap with nodes.
-		 * socket selection only in extend mode.
-		 */
+	/* first do socket selection, these generally overlap with nodes. */
+	if (socket_select) {
 		if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
 			node_socket_toggle(node, sock, 1);
-			selected = 1;
+			selected = true;
 		}
 		else if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
 			if (sock->flag & SELECT) {
-				node_socket_deselect(node, sock, 1);
+				if (extend) {
+					node_socket_deselect(node, sock, 1);
+				}
+				else {
+					selected = true;
+				}
 			}
 			else {
 				/* only allow one selected output per node, for sensible linking.
-				 * allows selecting outputs from different nodes though.
-				 */
+				 * allows selecting outputs from different nodes though. */
 				if (node) {
 					for (tsock = node->outputs.first; tsock; tsock = tsock->next)
 						node_socket_deselect(node, tsock, 1);
 				}
+				if (extend) {
+					/* only allow one selected output per node, for sensible linking.
+					 * allows selecting outputs from different nodes though. */
+					for (tsock = node->outputs.first; tsock; tsock = tsock->next) {
+						if (tsock != sock) {
+							node_socket_deselect(node, tsock, 1);
+						}
+					}
+				}
 				node_socket_select(node, sock);
+				selected = true;
 			}
-			selected = 1;
 		}
-		else {
+	}
+
+	if (!sock) {
+		if (extend) {
 			/* find the closest visible node */
 			node = node_under_mouse_select(snode->edittree, cursor[0], cursor[1]);
 
 			if (node) {
 				if ((node->flag & SELECT) && (node->flag & NODE_ACTIVE) == 0) {
-					/* if node is selected but not active make it active
-					 * before it'll be desleected
-					 */
+					/* if node is selected but not active make it active */
 					ED_node_set_active(bmain, snode->edittree, node);
 				}
 				else {
 					node_toggle(node);
 					ED_node_set_active(bmain, snode->edittree, node);
 				}
-
-				selected = 1;
+				selected = true;
 			}
 		}
-	}
-	else {  /* extend == 0 */
+		else {
+			/* find the closest visible node */
+			node = node_under_mouse_select(snode->edittree, cursor[0], cursor[1]);
 
-		/* find the closest visible node */
-		node = node_under_mouse_select(snode->edittree, cursor[0], cursor[1]);
-
-		if (node) {
-			for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
-				nodeSetSelected(tnode, false);
+			if (node) {
+				for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+					nodeSetSelected(tnode, false);
+				}
+				nodeSetSelected(node, true);
+				ED_node_set_active(bmain, snode->edittree, node);
+				selected = true;
 			}
-			nodeSetSelected(node, true);
-			ED_node_set_active(bmain, snode->edittree, node);
-			selected = 1;
 		}
 	}
 
@@ -495,15 +506,18 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	int mval[2];
 	short extend;
+	bool socket_select;
 
 	/* get settings from RNA properties for operator */
 	mval[0] = RNA_int_get(op->ptr, "mouse_x");
 	mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
 	extend = RNA_boolean_get(op->ptr, "extend");
+	/* always do socket_select when extending selection. */
+	socket_select = extend || RNA_boolean_get(op->ptr, "socket_select");
 
 	/* perform the select */
-	if (node_mouse_select(bmain, snode, ar, mval, extend)) {
+	if (node_mouse_select(bmain, snode, ar, mval, extend, socket_select)) {
 		/* send notifiers */
 		WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 
@@ -543,7 +557,8 @@ void NODE_OT_select(wmOperatorType *ot)
 	/* properties */
 	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "");
+	RNA_def_boolean(ot->srna, "socket_select", false, "Socket Select", "");
 }
 
 /** \} */
