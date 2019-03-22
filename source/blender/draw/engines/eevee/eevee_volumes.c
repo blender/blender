@@ -460,6 +460,11 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
+typedef struct EEVEE_InstanceVolumeMatrix {
+	DrawData dd;
+	float volume_mat[4][4];
+} EEVEE_InstanceVolumeMatrix;
+
 void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Scene *scene, Object *ob)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -480,12 +485,30 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		return;
 	}
 
-	DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(mat, vedata->psl->volumetric_objects_ps, sldata->common_data.vol_tex_size[2]);
+	DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(mat,
+	                                                                   vedata->psl->volumetric_objects_ps,
+	                                                                   sldata->common_data.vol_tex_size[2]);
 
 	/* Making sure it's updated. */
 	invert_m4_m4(ob->imat, ob->obmat);
 
+	print_m4_id(ob->imat);
+
 	BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
+
+
+	float (*imat)[4] = ob->imat;
+
+	if ((ob->base_flag & BASE_FROM_DUPLI) != 0) {
+		/* TODO Remove from here and use a dedicated buffer. */
+		EEVEE_InstanceVolumeMatrix *ivm = (EEVEE_InstanceVolumeMatrix *)DRW_drawdata_ensure(
+		        &ob->id,
+		        (DrawEngineType *)EEVEE_volumes_cache_object_add,
+		        sizeof(EEVEE_InstanceVolumeMatrix),
+		        NULL, NULL);
+		copy_m4_m4(ivm->volume_mat, ob->imat);
+		imat = ivm->volume_mat;
+	}
 
 	/* TODO(fclem) remove those "unnecessary" UBOs */
 	DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
@@ -495,7 +518,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-	DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", ob->imat);
+	DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", imat);
 	DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
 	DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
 
