@@ -453,39 +453,57 @@ void GPU_matrix_project(const float world[3], const float model[4][4], const flo
 
 bool GPU_matrix_unproject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3])
 {
-	float pm[4][4];
-	float in[4];
-	float out[4];
+	float in[3];
+	float viewinv[4][4];
 
-	mul_m4_m4m4(pm, proj, model);
-
-	if (!invert_m4(pm)) {
+	if (!invert_m4_m4(viewinv, model)) {
 		zero_v3(world);
 		return false;
 	}
 
-	in[0] = win[0];
-	in[1] = win[1];
-	in[2] = win[2];
-	in[3] = 1;
+	copy_v3_v3(in, win);
 
 	/* Map x and y from window coordinates */
 	in[0] = (in[0] - view[0]) / view[2];
 	in[1] = (in[1] - view[1]) / view[3];
+
+#if 0
+	float projinv[4][4];
+
+	if (!invert_m4_m4(projinv, proj)) {
+		zero_v3(world);
+		return false;
+	}
 
 	/* Map to range -1 to +1 */
 	in[0] = 2 * in[0] - 1;
 	in[1] = 2 * in[1] - 1;
 	in[2] = 2 * in[2] - 1;
 
-	mul_v4_m4v3(out, pm, in);
+	mul_project_m4_v3(projinv, in);
+#else
+	float left, right, bottom, top, near, far;
+	bool is_persp = proj[3][3] == 0.0f;
 
-	if (out[3] == 0.0f) {
-		copy_v3_v3(world, out);
-		return false;
+	projmat_dimensions(
+	        proj, &left, &right, &bottom, &top, &near, &far);
+
+	in[0] = left   + in[0] * (right - left);
+	in[1] = bottom + in[1] * (top   - bottom);
+
+	if (is_persp) {
+		in[2] = far * near / (far + in[2] * (near - far));
+		in[0] *= in[2];
+		in[1] *= in[2];
+	}
+	else {
+		in[2] = near + in[2] * (far - near);
 	}
 
-	mul_v3_v3fl(world, out, 1.0f / out[3]);
+	in[2] *= -1;
+#endif
+
+	mul_v3_m4v3(world, viewinv, in);
 	return true;
 }
 
