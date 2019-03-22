@@ -2250,8 +2250,9 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 		}
 
 		/* on active button, do not handle panels */
-		if (ui_but_is_active(ar))
+		if (ui_region_find_active_but(ar) != NULL) {
 			continue;
+		}
 
 		if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
 

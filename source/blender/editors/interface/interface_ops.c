@@ -1521,7 +1521,7 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 	/* find button under mouse, check if it has RNA color property and
 	 * if it does copy the data */
-	but = ui_but_find_active_in_region(ar);
+	but = ui_region_find_active_but(ar);
 
 	if (but && but->type == UI_BTYPE_COLOR && but->rnaprop) {
 		const int color_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);

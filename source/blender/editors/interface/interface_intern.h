@@ -818,18 +818,15 @@ bool ui_but_contains_pt(
 bool ui_but_contains_point_px_icon(
         const uiBut *but, struct  ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_contains_point_px(
-        const struct ARegion *ar, const uiBut *but, int x, int y) ATTR_WARN_UNUSED_RESULT;
-bool ui_region_contains_point_px(
-        const struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;
+        const uiBut *but, const struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;
 
-uiBut *ui_list_find_mouse_over(ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_list_find_mouse_over(struct ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 
-uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bool labeledit) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_but_find_mouse_over_ex(struct ARegion *ar, const int x, const int y, const bool labeledit) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_but_find_mouse_over(struct ARegion *ar, const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 
 uiBut *ui_list_find_mouse_over_ex(struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;
 
-bool ui_but_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
 uiBut *ui_but_prev(uiBut *but) ATTR_WARN_UNUSED_RESULT;
@@ -842,7 +839,9 @@ bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 
-uiBut *ui_but_find_active_in_region(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_region_find_active_but(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
+bool ui_region_contains_point_px(
+        const struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;
 
 /* interface_context_menu.c */
 bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but);

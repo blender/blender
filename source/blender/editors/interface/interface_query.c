@@ -191,7 +191,7 @@ bool ui_but_contains_pt(const uiBut *but, float mx, float my)
 	return BLI_rctf_isect_pt(&but->rect, mx, my);
 }
 
-bool ui_but_contains_point_px(const ARegion *ar, const uiBut *but, int x, int y)
+bool ui_but_contains_point_px(const uiBut *but, const ARegion *ar, int x, int y)
 {
 	uiBlock *block = but->block;
 	float mx, my;
@@ -433,13 +433,7 @@ bool UI_block_is_empty(const uiBlock *block)
 /** \name Region (#ARegion) State
  * \{ */
 
-bool ui_but_is_active(ARegion *ar)
-{
-	return (ui_but_find_active_in_region(ar) != NULL);
-}
-
-
-uiBut *ui_but_find_active_in_region(ARegion *ar)
+uiBut *ui_region_find_active_but(ARegion *ar)
 {
 	uiBlock *block;
 	uiBut *but;
