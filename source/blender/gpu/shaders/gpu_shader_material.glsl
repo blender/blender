@@ -1604,11 +1604,11 @@ void node_volume_principled(
 	/* Compute density. */
 	density = max(density, 0.0);
 
-	if(density > 1e-5) {
+	if (density > 1e-5) {
 		density = max(density * density_attribute, 0.0);
 	}
 
-	if(density > 1e-5) {
+	if (density > 1e-5) {
 		/* Compute scattering and absorption coefficients. */
 		vec3 scatter_color = color.rgb * color_attribute.rgb;
 
@@ -1620,20 +1620,21 @@ void node_volume_principled(
 	/* Compute emission. */
 	emission_strength = max(emission_strength, 0.0);
 
-	if(emission_strength > 1e-5) {
+	if (emission_strength > 1e-5) {
 		emission_coeff += emission_strength * emission_color.rgb;
 	}
 
-	if(blackbody_intensity > 1e-3) {
+	if (blackbody_intensity > 1e-3) {
 		/* Add temperature from attribute. */
 		float T = max(temperature * max(temperature_attribute, 0.0), 0.0);
 
 		/* Stefan-Boltzman law. */
-		float T4 = (T * T) * (T * T);
+		float T2 = T * T;
+		float T4 = T2 * T2;
 		float sigma = 5.670373e-8 * 1e-6 / M_PI;
 		float intensity = sigma * mix(1.0, T4, blackbody_intensity);
 
-		if(intensity > 1e-5) {
+		if (intensity > 1e-5) {
 			vec4 bb;
 			node_blackbody(T, spectrummap, layer, bb);
 			emission_coeff += bb.rgb * blackbody_tint.rgb * intensity;
