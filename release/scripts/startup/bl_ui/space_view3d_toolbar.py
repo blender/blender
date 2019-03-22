@@ -535,9 +535,6 @@ class VIEW3D_PT_tools_brush_options(Panel, View3DPaintPanel):
                 col.prop(brush, "sculpt_plane")
                 col.prop(brush, "use_original_normal")
 
-            if capabilities.has_space_attenuation:
-                col.prop(brush, "use_space_attenuation")
-
             col.prop(brush, "use_frontface", text="Front Faces Only")
             col.prop(brush, "use_projected")
 
@@ -867,6 +864,10 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             col.operator("paintcurve.draw")
 
         if context.sculpt_object:
+
+            if brush.sculpt_capabilities.has_space_attenuation:
+                col.prop(brush, "use_space_attenuation")
+
             if brush.sculpt_capabilities.has_jitter:
 
                 row = col.row(align=True)
