@@ -8434,6 +8434,7 @@ static bool ui_menu_scroll_step(ARegion *ar, uiBlock *block, const int scroll_di
 	}
 	else {
 		BLI_assert(0);
+		return false;
 	}
 
 	return ui_menu_scroll_to_y(ar, block, my);
