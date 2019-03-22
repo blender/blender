@@ -1599,9 +1599,11 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	is_array = RNA_property_array_check(prop);
 	len = (is_array) ? RNA_property_array_length(ptr, prop) : 0;
 
+	icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
+
 	/* set name and icon */
 	if (!name) {
-		if ((flag & UI_ITEM_R_ICON_ONLY) == 0) {
+		if (!icon_only) {
 			name = RNA_property_ui_name(prop);
 		}
 		else {
@@ -1682,7 +1684,6 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	slider = (flag & UI_ITEM_R_SLIDER) != 0;
 	toggle = (flag & UI_ITEM_R_TOGGLE) != 0;
 	expand = (flag & UI_ITEM_R_EXPAND) != 0;
-	icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
 	no_bg = (flag & UI_ITEM_R_NO_BG) != 0;
 	compact = (flag & UI_ITEM_R_COMPACT) != 0;
 
