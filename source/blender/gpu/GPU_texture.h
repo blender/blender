@@ -34,6 +34,7 @@ struct GPUVertBuf;
 struct Image;
 struct ImageUser;
 struct PreviewImage;
+struct rcti;
 
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
