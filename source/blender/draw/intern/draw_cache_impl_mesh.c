@@ -2399,15 +2399,10 @@ static void mesh_create_edit_vertex_loops(
 					if (eidx != ORIGINDEX_NONE) {
 						BMEdge *eed = BM_edge_at_index(bm, eidx);
 						mesh_render_data_edge_flag(rdata, eed, &eattr);
-						/* TODO find a more efficient way to do that. */
-						BMLoop *loop;
-						BMIter iter_loop;
 						if (efa) {
-							BM_ITER_ELEM (loop, &iter_loop, efa, BM_LOOPS_OF_FACE) {
-								if (loop->e == eed) {
-									mesh_render_data_loop_flag(rdata, loop, cd_loop_uv_offset, &eattr);
-									break;
-								}
+							BMLoop *loop = BM_face_edge_share_loop(efa, eed);
+							if (loop) {
+								mesh_render_data_loop_flag(rdata, loop, cd_loop_uv_offset, &eattr);
 							}
 						}
 					}
