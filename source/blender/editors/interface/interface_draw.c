@@ -1822,7 +1822,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 		immVertex2f(pos, fx, fy);
 	}
 	immVertex2f(pos, line_range.xmax, rect->ymin);
-	immVertex2f(pos, line_range.xmax, rect->ymax);
+	immVertex2f(pos, line_range.xmax, line_range.ymax);
 	immEnd();
 	GPU_polygon_smooth(false);
 
