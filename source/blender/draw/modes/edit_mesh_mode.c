@@ -61,14 +61,15 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
-extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 
 /* *********** LISTS *********** */
 typedef struct EDIT_MESH_PassList {
 	struct DRWPass *weight_faces;
 	struct DRWPass *depth_hidden_wire;
-	struct DRWPass *ghost_clear_depth;
+	struct DRWPass *depth_hidden_wire_in_front;
 	struct DRWPass *edit_face_overlay;
+	struct DRWPass *edit_face_overlay_in_front;
+	struct DRWPass *edit_face_in_front;
 	struct DRWPass *edit_face_occluded;
 	struct DRWPass *mix_occlude;
 	struct DRWPass *facefill_occlude;
@@ -112,7 +113,6 @@ typedef struct EDIT_MESH_Shaders {
 	GPUShader *normals_loop;
 	GPUShader *normals;
 	GPUShader *depth;
-	GPUShader *ghost_clear_depth;
 } EDIT_MESH_Shaders;
 
 /* *********** STATIC *********** */
@@ -128,6 +128,7 @@ typedef struct EDIT_MESH_PrivateData {
 	/* weight */
 	DRWShadingGroup *fweights_shgrp;
 	DRWShadingGroup *depth_shgrp_hidden_wire;
+	DRWShadingGroup *depth_shgrp_hidden_wire_in_front;
 
 	DRWShadingGroup *fnormals_shgrp;
 	DRWShadingGroup *vnormals_shgrp;
@@ -138,6 +139,12 @@ typedef struct EDIT_MESH_PrivateData {
 	DRWShadingGroup *face_shgrp;
 	DRWShadingGroup *face_cage_shgrp;
 	DRWShadingGroup *facedot_shgrp;
+
+	DRWShadingGroup *vert_shgrp_in_front;
+	DRWShadingGroup *edge_shgrp_in_front;
+	DRWShadingGroup *face_shgrp_in_front;
+	DRWShadingGroup *face_cage_shgrp_in_front;
+	DRWShadingGroup *facedot_shgrp_in_front;
 
 	DRWShadingGroup *facefill_occluded_shgrp;
 
@@ -256,13 +263,11 @@ static void EDIT_MESH_engine_init(void *vedata)
 		});
 
 		sh_data->depth = DRW_shader_create_3d_depth_only(draw_ctx->sh_cfg);
-
-		sh_data->ghost_clear_depth = DRW_shader_create_fullscreen(datatoc_gpu_shader_depth_only_frag_glsl, NULL);
 	}
 }
 
 static DRWPass *edit_mesh_create_overlay_pass(
-        float *face_alpha, int *data_mask, bool do_edges, bool UNUSED(xray),
+        float *face_alpha, int *data_mask, bool do_edges,
         DRWState statemod,
         DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_face_cage_shgrp, DRWShadingGroup **r_facedot_shgrp,
         DRWShadingGroup **r_edge_shgrp, DRWShadingGroup **r_vert_shgrp)
@@ -446,19 +451,16 @@ static void EDIT_MESH_cache_init(void *vedata)
 		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_hidden_wire = DRW_shgroup_create(sh_data->depth, psl->depth_hidden_wire);
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->fweights_shgrp, rv3d);
+			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->depth_shgrp_hidden_wire, rv3d);
 		}
-	}
 
-	{
-		/* Depth clearing for ghosting. */
-		psl->ghost_clear_depth = DRW_pass_create(
-		        "Ghost Depth Clear",
-		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_STENCIL_NEQUAL);
-
-		DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->ghost_clear_depth, psl->ghost_clear_depth);
-		DRW_shgroup_stencil_mask(shgrp, 0x00);
-		DRW_shgroup_call_add(shgrp, DRW_cache_fullscreen_quad_get(), NULL);
+		psl->depth_hidden_wire_in_front = DRW_pass_create(
+		        "Depth Pass Hidden Wire In Front",
+		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
+		stl->g_data->depth_shgrp_hidden_wire_in_front = DRW_shgroup_create(sh_data->depth, psl->depth_hidden_wire_in_front);
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->depth_shgrp_hidden_wire_in_front, rv3d);
+		}
 	}
 
 	{
@@ -489,9 +491,19 @@ static void EDIT_MESH_cache_init(void *vedata)
 		}
 	}
 
+	/* For in front option */
+	psl->edit_face_overlay_in_front = edit_mesh_create_overlay_pass(
+	        &face_mod, stl->g_data->data_mask, stl->g_data->do_edges,
+	        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
+	        &stl->g_data->face_shgrp_in_front,
+	        &stl->g_data->face_cage_shgrp_in_front,
+	        &stl->g_data->facedot_shgrp_in_front,
+	        &stl->g_data->edge_shgrp_in_front,
+	        &stl->g_data->vert_shgrp_in_front);
+
 	if (!stl->g_data->do_zbufclip) {
 		psl->edit_face_overlay = edit_mesh_create_overlay_pass(
-		        &face_mod, stl->g_data->data_mask, stl->g_data->do_edges, false,
+		        &face_mod, stl->g_data->data_mask, stl->g_data->do_edges,
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
 		        &stl->g_data->face_shgrp,
 		        &stl->g_data->face_cage_shgrp,
@@ -502,7 +514,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	else {
 		/* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
 		psl->edit_face_occluded = edit_mesh_create_overlay_pass(
-		        &zero, stl->g_data->data_mask, stl->g_data->do_edges, true,
+		        &zero, stl->g_data->data_mask, stl->g_data->do_edges,
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
 		        &stl->g_data->face_shgrp,
 		        &stl->g_data->face_cage_shgrp,
@@ -539,7 +551,10 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 static void edit_mesh_add_ob_to_pass(
         Scene *scene, Object *ob,
-        EDIT_MESH_PrivateData *g_data,
+        DRWShadingGroup *vert_shgrp,
+        DRWShadingGroup *edge_shgrp,
+        DRWShadingGroup *face_shgrp,
+        DRWShadingGroup *face_cage_shgrp,
         DRWShadingGroup *facedot_shgrp,
         DRWShadingGroup *facefill_shgrp)
 {
@@ -554,10 +569,7 @@ static void edit_mesh_add_ob_to_pass(
 		has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
 	}
 
-	DRWShadingGroup *face_shgrp = (has_edit_mesh_cage) ? g_data->face_cage_shgrp : g_data->face_shgrp;
-	DRWShadingGroup *vert_shgrp = g_data->vert_shgrp;
-	DRWShadingGroup *edge_shgrp = g_data->edge_shgrp;
-
+	face_shgrp = (has_edit_mesh_cage) ? face_cage_shgrp : face_shgrp;
 	face_shgrp = (facefill_shgrp != NULL) ? facefill_shgrp : face_shgrp;
 
 	geom_tris = DRW_mesh_batch_cache_get_edit_triangles(ob->data);
@@ -579,6 +591,7 @@ static void edit_mesh_add_ob_to_pass(
 static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 {
 	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
+	EDIT_MESH_PrivateData *g_data = stl->g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
@@ -587,6 +600,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
+			bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
 			bool do_occlude_wire = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
 			bool do_show_weight = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
 			bool fnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
@@ -595,8 +609,8 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 			bool show_face_dots = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) != 0;
 
-			if (stl->g_data->do_faces == false &&
-			    stl->g_data->do_edges == false &&
+			if (g_data->do_faces == false &&
+			    g_data->do_edges == false &&
 			    (tsettings->selectmode & SCE_SELECT_FACE))
 			{
 				/* Force display of face centers in this case because that's
@@ -610,48 +624,68 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 			face_mod = (do_occlude_wire) ? 0.0f : 1.0f;
 
-			if (!stl->g_data->do_faces) {
+			if (!g_data->do_faces) {
 				face_mod = 0.0f;
 			}
 
 			if (do_show_weight) {
 				geom = DRW_cache_mesh_surface_weights_get(ob);
-				DRW_shgroup_call_add(stl->g_data->fweights_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(g_data->fweights_shgrp, geom, ob->obmat);
 			}
 
-			if (do_occlude_wire) {
+			if (do_occlude_wire || do_in_front) {
 				geom = DRW_cache_mesh_surface_get(ob);
-				DRW_shgroup_call_add(stl->g_data->depth_shgrp_hidden_wire, geom, ob->obmat);
+				DRW_shgroup_call_add(do_in_front ? g_data->depth_shgrp_hidden_wire_in_front
+				                                 : g_data->depth_shgrp_hidden_wire,
+				                     geom, ob->obmat);
 			}
 
 			if (vnormals_do) {
 				geom = DRW_mesh_batch_cache_get_edit_vertices(ob->data);
-				DRW_shgroup_call_add(stl->g_data->vnormals_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(g_data->vnormals_shgrp, geom, ob->obmat);
 			}
 			if (lnormals_do) {
 				geom = DRW_mesh_batch_cache_get_edit_lnors(ob->data);
-				DRW_shgroup_call_add(stl->g_data->lnormals_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(g_data->lnormals_shgrp, geom, ob->obmat);
 			}
 			if (fnormals_do) {
 				geom = DRW_mesh_batch_cache_get_edit_facedots(ob->data);
-				DRW_shgroup_call_add(stl->g_data->fnormals_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(g_data->fnormals_shgrp, geom, ob->obmat);
 			}
 
-			if (stl->g_data->do_zbufclip) {
+			if (g_data->do_zbufclip) {
 				edit_mesh_add_ob_to_pass(
-				        scene, ob, stl->g_data,
-				        stl->g_data->facedot_shgrp,
-				        (stl->g_data->do_faces) ? stl->g_data->facefill_occluded_shgrp : NULL);
+				        scene, ob,
+				        g_data->vert_shgrp,
+				        g_data->edge_shgrp,
+				        g_data->face_shgrp,
+				        g_data->face_cage_shgrp,
+				        g_data->facedot_shgrp,
+				        (g_data->do_faces) ? g_data->facefill_occluded_shgrp : NULL);
+			}
+			else if (do_in_front) {
+				edit_mesh_add_ob_to_pass(
+				        scene, ob,
+				        g_data->vert_shgrp_in_front,
+				        g_data->edge_shgrp_in_front,
+				        g_data->face_shgrp_in_front,
+				        g_data->face_cage_shgrp_in_front,
+				        (show_face_dots) ? g_data->facedot_shgrp_in_front : NULL,
+				        NULL);
 			}
 			else {
 				edit_mesh_add_ob_to_pass(
-				        scene, ob, stl->g_data,
-				        (show_face_dots) ? stl->g_data->facedot_shgrp : NULL,
+				        scene, ob,
+				        g_data->vert_shgrp,
+				        g_data->edge_shgrp,
+				        g_data->face_shgrp,
+				        g_data->face_cage_shgrp,
+				        (show_face_dots) ? g_data->facedot_shgrp : NULL,
 				        NULL);
 			}
 
-			stl->g_data->ghost_ob += (ob->dtx & OB_DRAWXRAY) ? 1 : 0;
-			stl->g_data->edit_ob += 1;
+			g_data->ghost_ob += (ob->dtx & OB_DRAWXRAY) ? 1 : 0;
+			g_data->edit_ob += 1;
 
 			/* 3D text overlay */
 			if (v3d->overlay.edit_flag & (V3D_OVERLAY_EDIT_EDGE_LEN |
@@ -675,7 +709,6 @@ static void EDIT_MESH_draw_scene(void *vedata)
 	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	DRW_draw_pass(psl->weight_faces);
 
@@ -683,6 +716,9 @@ static void EDIT_MESH_draw_scene(void *vedata)
 
 	if (stl->g_data->do_zbufclip) {
 		float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		DRW_draw_pass(psl->depth_hidden_wire_in_front);
+
 		/* render facefill */
 		DRW_draw_pass(psl->facefill_occlude);
 
@@ -697,35 +733,23 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		DRW_draw_pass(psl->mix_occlude);
 	}
 	else {
-		DRW_draw_pass(psl->normals);
-
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		View3D *v3d = draw_ctx->v3d;
+
+		DRW_draw_pass(psl->normals);
+		DRW_draw_pass(psl->edit_face_overlay);
 
 		if (v3d->shading.type == OB_SOLID && (v3d->shading.flag & XRAY_FLAG(v3d)) == 0 &&
 		    stl->g_data->ghost_ob == 1 && stl->g_data->edit_ob == 1)
 		{
 			/* In the case of single ghost object edit (common case for retopology):
-			 * we duplicate the depht+stencil buffer and clear all depth to 1.0f where
-			 * the stencil buffer is no 0x00. */
-			const float *viewport_size = DRW_viewport_size_get();
-			const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-			struct GPUTexture *ghost_depth_tx = DRW_texture_pool_query_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, &draw_engine_edit_mesh_type);
-			GPU_framebuffer_ensure_config(&fbl->ghost_wire_fb, {
-				GPU_ATTACHMENT_TEXTURE(ghost_depth_tx),
-				GPU_ATTACHMENT_TEXTURE(dtxl->color),
-			});
-
-			GPU_framebuffer_blit(dfbl->depth_only_fb, 0, fbl->ghost_wire_fb, 0, GPU_DEPTH_BIT | GPU_STENCIL_BIT);
-			GPU_framebuffer_bind(fbl->ghost_wire_fb);
-
-			DRW_draw_pass(psl->ghost_clear_depth);
-
-			DRW_draw_pass(psl->edit_face_overlay);
+			 * we clear the depth buffer so that only the depth of the retopo mesh
+			 * is occluding the edit cage. */
+			GPU_framebuffer_clear_depth(dfbl->default_fb, 1.0f);
 		}
-		else {
-			DRW_draw_pass(psl->edit_face_overlay);
-		}
+
+		DRW_draw_pass(psl->depth_hidden_wire_in_front);
+		DRW_draw_pass(psl->edit_face_overlay_in_front);
 	}
 
 	DRW_state_clip_planes_reset();
