@@ -198,7 +198,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         col.prop(cam, "sensor_fit")
 
         if cam.sensor_fit == 'AUTO':
-            col.prop(cam, "sensor_width")
+            col.prop(cam, "sensor_width", text="Size")
         else:
             sub = col.column(align=True)
             sub.active = cam.sensor_fit == 'HORIZONTAL'
