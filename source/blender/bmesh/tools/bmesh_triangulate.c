@@ -83,9 +83,9 @@ static void bm_face_triangulate_mapping(
 
 
 void BM_mesh_triangulate(
-	BMesh *bm, const int quad_method, const int ngon_method, const int min_vertices,
-	const bool tag_only, BMOperator *op, BMOpSlot *slot_facemap_out,
-	BMOpSlot *slot_facemap_double_out)
+        BMesh *bm, const int quad_method, const int ngon_method, const int min_vertices,
+        const bool tag_only, BMOperator *op, BMOpSlot *slot_facemap_out,
+        BMOpSlot *slot_facemap_double_out)
 {
 	BMIter iter;
 	BMFace *face;

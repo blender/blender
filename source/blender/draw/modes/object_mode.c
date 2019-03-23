@@ -354,7 +354,8 @@ enum {
 };
 
 /* Prototypes. */
-static void DRW_shgroup_empty_ex(OBJECT_ShadingGroupList *sgl, float mat[4][4], float *draw_size, char draw_type, float *color);
+static void DRW_shgroup_empty_ex(
+        OBJECT_ShadingGroupList *sgl, const float mat[4][4], const float *draw_size, char draw_type, const float color[4]);
 
 /* *********** FUNCTIONS *********** */
 
@@ -1808,13 +1809,13 @@ static void camera_view3d_stereoscopy_display_extra(
 	}
 }
 
-static void camera_view3d_reconstruction (
+static void camera_view3d_reconstruction(
         OBJECT_ShadingGroupList *sgl,
         Scene *scene,
         View3D *v3d,
         const Object *camera_object,
         Object *ob,
-        float *color,
+        const float color[4],
         const bool is_select)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -1885,7 +1886,7 @@ static void camera_view3d_reconstruction (
 			copy_m4_m4(bundle_mat, tracking_object_mat);
 			translate_m4(bundle_mat, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 
-			float *bundle_color;
+			const float *bundle_color;
 			if (track->flag & TRACK_CUSTOMCOLOR) {
 				bundle_color = track->color;
 			}
@@ -2111,7 +2112,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 }
 
 static void DRW_shgroup_empty_ex(
-        OBJECT_ShadingGroupList *sgl, float mat[4][4], float *draw_size, char draw_type, float *color)
+        OBJECT_ShadingGroupList *sgl, const float mat[4][4], const float *draw_size, char draw_type, const float color[4])
 {
 	switch (draw_type) {
 		case OB_PLAINAXES:
