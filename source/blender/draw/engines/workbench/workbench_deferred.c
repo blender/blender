@@ -53,8 +53,13 @@
 #  include "draw_debug.h"
 #endif
 
-static struct {
+typedef struct WORKBENCH_DEFERRED_Shaders {
 	struct GPUShader *prepass_sh_cache[MAX_PREPASS_SHADERS];
+} WORKBENCH_DEFERRED_Shaders;
+
+static struct {
+	WORKBENCH_DEFERRED_Shaders sh_data[GPU_SHADER_CFG_LEN];
+
 	struct GPUShader *composite_sh_cache[MAX_COMPOSITE_SHADERS];
 	struct GPUShader *cavity_sh[MAX_CAVITY_SHADERS];
 	struct GPUShader *background_sh[2];
@@ -84,7 +89,7 @@ static struct {
 	struct GPUUniformBuffer *sampling_ubo;
 	struct GPUTexture *jitter_tx;
 	int cached_sample_num;
-} e_data = {{NULL}};
+} e_data = {{{{NULL}}}};
 
 /* Shaders */
 extern char datatoc_common_hair_lib_glsl[];
@@ -220,21 +225,26 @@ static GPUShader *workbench_cavity_shader_get(bool cavity, bool curvature)
 	return *sh;
 }
 
-static GPUShader *ensure_deferred_prepass_shader(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
+static GPUShader *ensure_deferred_prepass_shader(
+        WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair, eGPUShaderConfig sh_cfg)
 {
+	WORKBENCH_DEFERRED_Shaders *sh_data = &e_data.sh_data[sh_cfg];
 	int index = workbench_material_get_prepass_shader_index(wpd, use_textures, is_hair);
-	if (e_data.prepass_sh_cache[index] == NULL) {
+	if (sh_data->prepass_sh_cache[index] == NULL) {
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		char *defines = workbench_material_build_defines(wpd, use_textures, is_hair);
 		char *prepass_vert = workbench_build_prepass_vert(is_hair);
 		char *prepass_frag = workbench_build_prepass_frag();
-		e_data.prepass_sh_cache[index] = DRW_shader_create(
-		        prepass_vert, NULL,
-		        prepass_frag, defines);
+		sh_data->prepass_sh_cache[index] = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, prepass_vert, NULL},
+		        .frag = (const char *[]){prepass_frag, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, defines, NULL},
+		});
 		MEM_freeN(prepass_vert);
 		MEM_freeN(prepass_frag);
 		MEM_freeN(defines);
 	}
-	return e_data.prepass_sh_cache[index];
+	return sh_data->prepass_sh_cache[index];
 }
 
 static GPUShader *ensure_deferred_composite_shader(WORKBENCH_PrivateData *wpd)
@@ -267,12 +277,13 @@ static GPUShader *ensure_background_shader(WORKBENCH_PrivateData *wpd)
 	return e_data.background_sh[index];
 }
 
-static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
+static void select_deferred_shaders(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg)
 {
-	wpd->prepass_solid_sh = ensure_deferred_prepass_shader(wpd, false, false);
-	wpd->prepass_solid_hair_sh = ensure_deferred_prepass_shader(wpd, false, true);
-	wpd->prepass_texture_sh = ensure_deferred_prepass_shader(wpd, true, false);
-	wpd->prepass_texture_hair_sh = ensure_deferred_prepass_shader(wpd, true, true);
+	wpd->prepass_solid_sh
+		= ensure_deferred_prepass_shader(wpd, false, false, sh_cfg);
+	wpd->prepass_solid_hair_sh = ensure_deferred_prepass_shader(wpd, false, true, sh_cfg);
+	wpd->prepass_texture_sh = ensure_deferred_prepass_shader(wpd, true, false, sh_cfg);
+	wpd->prepass_texture_hair_sh = ensure_deferred_prepass_shader(wpd, true, true, sh_cfg);
 	wpd->composite_sh = ensure_deferred_composite_shader(wpd);
 	wpd->background_sh = ensure_background_shader(wpd);
 }
@@ -375,7 +386,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	if (!e_data.next_object_id) {
-		memset(e_data.prepass_sh_cache,   0, sizeof(e_data.prepass_sh_cache));
+		WORKBENCH_DEFERRED_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+		memset(sh_data->prepass_sh_cache,   0, sizeof(sh_data->prepass_sh_cache));
 		memset(e_data.composite_sh_cache, 0, sizeof(e_data.composite_sh_cache));
 		e_data.next_object_id = 1;
 #ifdef DEBUG_SHADOW_VOLUME
@@ -596,8 +608,11 @@ static void workbench_setup_ghost_framebuffer(WORKBENCH_FramebufferList *fbl)
 
 void workbench_deferred_engine_free(void)
 {
-	for (int index = 0; index < MAX_PREPASS_SHADERS; index++) {
-		DRW_SHADER_FREE_SAFE(e_data.prepass_sh_cache[index]);
+	for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
+		WORKBENCH_DEFERRED_Shaders *sh_data = &e_data.sh_data[sh_data_index];
+		for (int index = 0; index < MAX_PREPASS_SHADERS; index++) {
+			DRW_SHADER_FREE_SAFE(sh_data->prepass_sh_cache[index]);
+		}
 	}
 	for (int index = 0; index < MAX_COMPOSITE_SHADERS; index++) {
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
@@ -668,7 +683,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 
 	workbench_volume_cache_init(vedata);
 
-	select_deferred_shaders(wpd);
+	select_deferred_shaders(wpd, draw_ctx->sh_cfg);
 
 	/* Background Pass */
 	{

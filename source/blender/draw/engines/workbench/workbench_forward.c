@@ -85,20 +85,13 @@ extern char datatoc_workbench_world_light_lib_glsl[];
 /* static functions */
 static char *workbench_build_forward_vert(bool is_hair)
 {
-	char *str = NULL;
-	if (!is_hair) {
-		return BLI_string_joinN(
-		        datatoc_gpu_shader_cfg_world_clip_lib_glsl,
-		        datatoc_workbench_prepass_vert_glsl);
-	}
-
 	DynStr *ds = BLI_dynstr_new();
-
-	BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
-	BLI_dynstr_append(ds, datatoc_gpu_shader_cfg_world_clip_lib_glsl);
+	if (is_hair) {
+		BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
+	}
 	BLI_dynstr_append(ds, datatoc_workbench_prepass_vert_glsl);
 
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }
@@ -221,12 +214,15 @@ static GPUShader *ensure_forward_accum_shaders(
 	WORKBENCH_FORWARD_Shaders *sh_data = &e_data.sh_data[sh_cfg];
 	int index = workbench_material_get_accum_shader_index(wpd, use_textures, is_hair);
 	if (sh_data->transparent_accum_sh_cache[index] == NULL) {
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		char *defines = workbench_material_build_defines(wpd, use_textures, is_hair);
 		char *transparent_accum_vert = workbench_build_forward_vert(is_hair);
 		char *transparent_accum_frag = workbench_build_forward_transparent_accum_frag();
-		sh_data->transparent_accum_sh_cache[index] = DRW_shader_create(
-		        transparent_accum_vert, NULL,
-		        transparent_accum_frag, defines);
+		sh_data->transparent_accum_sh_cache[index] = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, transparent_accum_vert, NULL},
+		        .frag = (const char *[]){transparent_accum_frag, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, defines, NULL},
+		});
 		MEM_freeN(transparent_accum_vert);
 		MEM_freeN(transparent_accum_frag);
 		MEM_freeN(defines);
@@ -261,21 +257,28 @@ void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd, eGPUSh
 	WORKBENCH_FORWARD_Shaders *sh_data = &e_data.sh_data[sh_cfg];
 
 	if (sh_data->object_outline_sh == NULL) {
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		char *defines = workbench_material_build_defines(wpd, false, false);
 		char *defines_texture = workbench_material_build_defines(wpd, true, false);
 		char *defines_hair = workbench_material_build_defines(wpd, false, true);
 		char *forward_vert = workbench_build_forward_vert(false);
 		char *forward_hair_vert = workbench_build_forward_vert(true);
 
-		sh_data->object_outline_sh = DRW_shader_create(
-		        forward_vert, NULL,
-		        datatoc_workbench_forward_depth_frag_glsl, defines);
-		sh_data->object_outline_texture_sh = DRW_shader_create(
-		        forward_vert, NULL,
-		        datatoc_workbench_forward_depth_frag_glsl, defines_texture);
-		sh_data->object_outline_hair_sh = DRW_shader_create(
-		        forward_hair_vert, NULL,
-		        datatoc_workbench_forward_depth_frag_glsl, defines_hair);
+		sh_data->object_outline_sh = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, forward_vert, NULL},
+		        .frag = (const char *[]){datatoc_workbench_forward_depth_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, defines, NULL},
+		});
+		sh_data->object_outline_texture_sh = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, forward_vert, NULL},
+		        .frag = (const char *[]){datatoc_workbench_forward_depth_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, defines_texture, NULL},
+		});
+		sh_data->object_outline_hair_sh = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){sh_cfg_data->lib, forward_hair_vert, NULL},
+		        .frag = (const char *[]){datatoc_workbench_forward_depth_frag_glsl, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, defines_hair, NULL},
+		});
 
 		MEM_freeN(forward_hair_vert);
 		MEM_freeN(forward_vert);

@@ -130,9 +130,6 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	if (is_hair) {
 		BLI_dynstr_appendf(ds, "#define HAIR_SHADER\n");
 	}
-	if (WORLD_CLIPPING_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define USE_WORLD_CLIP_PLANES\n");
-	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -192,7 +189,6 @@ int workbench_material_get_prepass_shader_index(
 	SET_FLAG_FROM_TEST(index, NORMAL_VIEWPORT_PASS_ENABLED(wpd), 1 << 3);
 	SET_FLAG_FROM_TEST(index, MATCAP_ENABLED(wpd), 1 << 4);
 	SET_FLAG_FROM_TEST(index, use_textures, 1 << 5);
-	SET_FLAG_FROM_TEST(index, WORLD_CLIPPING_ENABLED(wpd), 1 << 6);
 	BLI_assert(index < MAX_PREPASS_SHADERS);
 	return index;
 }
