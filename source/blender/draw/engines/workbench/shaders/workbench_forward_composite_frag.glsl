@@ -27,15 +27,16 @@ void main()
 #ifndef ALPHA_COMPOSITE
 	vec3 bg_color = background_color(world_data, uv_viewport.y);
 
-	vec3 color = mix(trans_color, bg_color, trans_revealage);
+	bg_color = (world_data.background_alpha == 0.0) ? trans_color : bg_color;
+	vec4 color = mix(vec4(trans_color, 1.0), vec4(bg_color, world_data.background_alpha), trans_revealage);
 
 #  ifdef V3D_SHADING_OBJECT_OUTLINE
 	uint object_id = texelFetch(objectId, texel, 0).r;
 	float outline = calculate_object_outline(objectId, texel, object_id);
-	color = mix(world_data.object_outline_color.rgb, color, outline);
+	color = mix(vec4(world_data.object_outline_color.rgb, 1.0), color, outline);
 #  endif
 
-	fragColor = vec4(color, 1.0);
+	fragColor = color;
 #else
 	fragColor = vec4(trans_color, 1.0 - trans_revealage);
 #endif
