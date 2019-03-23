@@ -39,6 +39,7 @@
 #include "GPU_glew.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -429,29 +430,29 @@ static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBas
 		}
 		else {
 			if (is_depth) {
-				glEnable(GL_DEPTH_TEST);
+				GPU_depth_test(true);
 			}
 			else {
-				glDisable(GL_DEPTH_TEST);
+				GPU_depth_test(false);
 			}
 			is_depth_prev = is_depth;
 		}
 
 		/* XXX force AntiAlias Gizmos. */
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_POLYGON_SMOOTH);
+		GPU_line_smooth(true);
+		GPU_polygon_smooth(true);
 
 		gz->type->draw(C, gz);
 
-		glDisable(GL_LINE_SMOOTH);
-		glDisable(GL_POLYGON_SMOOTH);
+		GPU_line_smooth(false);
+		GPU_polygon_smooth(false);
 
 		/* free/remove gizmo link after drawing */
 		BLI_freelinkN(draw_gizmos, link);
 	}
 
 	if (is_depth_prev) {
-		glDisable(GL_DEPTH_TEST);
+		GPU_depth_test(false);
 	}
 }
 
@@ -496,10 +497,10 @@ static void gizmo_draw_select_3D_loop(
 		}
 		else {
 			if (is_depth) {
-				glEnable(GL_DEPTH_TEST);
+				GPU_depth_test(true);
 			}
 			else {
-				glDisable(GL_DEPTH_TEST);
+				GPU_depth_test(false);
 			}
 			is_depth_prev = is_depth;
 		}
@@ -518,7 +519,7 @@ static void gizmo_draw_select_3D_loop(
 	}
 
 	if (is_depth_prev) {
-		glDisable(GL_DEPTH_TEST);
+		GPU_depth_test(false);
 	}
 	if (is_depth_skip_prev) {
 		glDepthMask(true);

@@ -1291,7 +1291,12 @@ static void ui_draw_colorband_handle_tri_hlight(uint pos, float x1, float y1, fl
 
 static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float halfwidth, float height, bool fill)
 {
-	glEnable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
+	if (fill) {
+		GPU_polygon_smooth(true);
+	}
+	else {
+		GPU_line_smooth(true);
+	}
 
 	immBegin(fill ? GPU_PRIM_TRIS : GPU_PRIM_LINE_LOOP, 3);
 	immVertex2f(pos, x1 + halfwidth, y1);
@@ -1299,7 +1304,12 @@ static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float hal
 	immVertex2f(pos, x1 - halfwidth, y1);
 	immEnd();
 
-	glDisable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
+	if (fill) {
+		GPU_polygon_smooth(false);
+	}
+	else {
+		GPU_line_smooth(false);
+	}
 }
 
 static void ui_draw_colorband_handle_box(uint pos, float x1, float y1, float x2, float y2, bool fill)
