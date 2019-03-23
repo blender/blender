@@ -952,12 +952,18 @@ ImBuf *sequencer_ibuf_get(
 	 */
 	G.is_break = false;
 
+	/* Rendering can change OGL context. Save & Restore framebuffer. */
+	GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+	GPU_framebuffer_restore();
+
 	if (special_seq_update)
 		ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
 	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
 		ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
 	else
 		ibuf = BKE_sequencer_give_ibuf_threaded(&context, cfra + frame_ofs, sseq->chanshown);
+
+	GPU_framebuffer_bind(fb);
 
 	/* restore state so real rendering would be canceled (if needed) */
 	G.is_break = is_break;
