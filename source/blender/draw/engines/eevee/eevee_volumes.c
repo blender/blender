@@ -492,10 +492,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	/* Making sure it's updated. */
 	invert_m4_m4(ob->imat, ob->obmat);
 
-	print_m4_id(ob->imat);
-
 	BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
-
 
 	float (*imat)[4] = ob->imat;
 
