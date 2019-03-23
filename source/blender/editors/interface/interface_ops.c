@@ -70,7 +70,9 @@
 #include "BKE_main.h"
 #include "BLI_ghash.h"
 
-/* Copy Data Path Operator ------------------------ */
+/* -------------------------------------------------------------------- */
+/** \name Copy Data Path Operator
+ * \{ */
 
 static bool copy_data_path_button_poll(bContext *C)
 {
@@ -162,6 +164,12 @@ static bool copy_python_command_button_poll(bContext *C)
 	return 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy Python Command Operator
+ * \{ */
+
 static int copy_python_command_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	uiBut *but = UI_context_active_but_get(C);
@@ -198,7 +206,11 @@ static void UI_OT_copy_python_command_button(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER;
 }
 
-/* Reset to Default Values Button Operator ------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reset to Default Values Button Operator
+ * \{ */
 
 static int operator_button_property_finish(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
@@ -270,7 +282,11 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
 }
 
-/* Assign Value as Default Button Operator ------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Assign Value as Default Button Operator
+ * \{ */
 
 static bool assign_default_button_poll(bContext *C)
 {
@@ -322,7 +338,11 @@ static void UI_OT_assign_default_button(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 }
 
-/* Unset Property Button Operator ------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unset Property Button Operator
+ * \{ */
 
 static int unset_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -360,6 +380,11 @@ static void UI_OT_unset_property_button(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Define Override Type Operator
+ * \{ */
 
 /* Note that we use different values for UI/UX than 'real' override operations, user does not care
  * whether it's added or removed for the differential operation e.g. */
@@ -571,10 +596,11 @@ static void UI_OT_override_remove_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
 }
 
+/** \} */
 
-
-
-/* Copy To Selected Operator ------------------------ */
+/* -------------------------------------------------------------------- */
+/** \name Copy To Selected Operator
+ * \{ */
 
 bool UI_context_copy_to_selected_list(
         bContext *C, PointerRNA *ptr, PropertyRNA *prop,
@@ -831,6 +857,7 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", true, "All", "Copy to selected all elements of the array");
 }
 
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Jump to Target Operator
@@ -978,7 +1005,9 @@ static void UI_OT_jump_to_target_button(wmOperatorType *ot)
 
 /** \} */
 
-/* Reports to Textblock Operator ------------------------ */
+/* -------------------------------------------------------------------- */
+/** \name Reports to Textblock Operator
+ * \{ */
 
 /* FIXME: this is just a temporary operator so that we can see all the reports somewhere
  * when there are too many to display...
@@ -1028,6 +1057,12 @@ static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 	ot->poll = reports_to_text_poll;
 	ot->exec = reports_to_text_exec;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Python Source Operator
+ * \{ */
 
 #ifdef WITH_PYTHON
 
@@ -1244,7 +1279,11 @@ static void UI_OT_editsource(wmOperatorType *ot)
 	ot->exec = editsource_exec;
 }
 
-/* ------------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Translation Operator
+ * \{ */
 
 /**
  * EditTranslation utility funcs and operator,
@@ -1400,6 +1439,12 @@ static void UI_OT_edittranslation_init(wmOperatorType *ot)
 
 #endif /* WITH_PYTHON */
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reload Translation Operator
+ * \{ */
+
 static int reloadtranslation_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	BLT_lang_init();
@@ -1420,6 +1465,11 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 	ot->exec = reloadtranslation_exec;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Prese Button Operator
+ * \{ */
 
 static ARegion *region_event_inside_for_screen(bContext *C, const int xy[2])
 {
@@ -1479,6 +1529,12 @@ static void UI_OT_button_execute(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "skip_depressed", 0, "Skip Depressed", "");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drop Color Operator
+ * \{ */
 
 bool UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
@@ -1572,9 +1628,11 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "gamma", 0, "Gamma Corrected", "The source color is gamma corrected ");
 }
 
+/** \} */
 
-/* ********************************************************* */
-/* Registration */
+/* -------------------------------------------------------------------- */
+/** \name Operator & Keymap Registration
+ * \{ */
 
 void ED_operatortypes_ui(void)
 {
@@ -1615,3 +1673,5 @@ void ED_keymap_ui(wmKeyConfig *keyconf)
 	eyedropper_modal_keymap(keyconf);
 	eyedropper_colorband_modal_keymap(keyconf);
 }
+
+/** \} */
