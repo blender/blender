@@ -236,7 +236,7 @@ static GPUShader *ensure_deferred_prepass_shader(
 		char *prepass_vert = workbench_build_prepass_vert(is_hair);
 		char *prepass_frag = workbench_build_prepass_frag();
 		sh_data->prepass_sh_cache[index] = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){sh_cfg_data->lib, prepass_vert, NULL},
+		        .vert = (const char *[]){prepass_vert, NULL},
 		        .frag = (const char *[]){prepass_frag, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, defines, NULL},
 		});
