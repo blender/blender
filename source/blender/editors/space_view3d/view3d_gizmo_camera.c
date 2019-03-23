@@ -163,6 +163,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	const float aspy = (float)scene->r.ysch * scene->r.yasp;
 	const bool is_ortho = (ca->type == CAM_ORTHO);
 	const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
+	/* Important to use camera value, not calculated fit since 'AUTO' uses width always. */
+	const float sensor_size = BKE_camera_sensor_size(ca->sensor_fit, ca->sensor_x, ca->sensor_y);
 	wmGizmo *widget = is_ortho ? cagzgroup->ortho_scale : cagzgroup->focal_len;
 	float scale_matrix;
 	if (true) {
@@ -226,7 +228,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		        ((range / ca->ortho_scale) * ca->drawsize) :
 		        (scale_matrix * range /
 		         /* Half sensor, intentionally use sensor from camera and not calculated above. */
-		         (0.5f * ((sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_y))));
+		         (0.5f * sensor_size)));
 
 		WM_gizmo_target_property_def_rna_ptr(widget, gz_prop_type, &camera_ptr, prop, -1);
 	}
@@ -253,6 +255,7 @@ static void WIDGETGROUP_camera_message_subscribe(
 		extern PropertyRNA rna_Camera_ortho_scale;
 		extern PropertyRNA rna_Camera_sensor_fit;
 		extern PropertyRNA rna_Camera_sensor_width;
+		extern PropertyRNA rna_Camera_sensor_height;
 		extern PropertyRNA rna_Camera_shift_x;
 		extern PropertyRNA rna_Camera_shift_y;
 		extern PropertyRNA rna_Camera_type;
@@ -263,6 +266,7 @@ static void WIDGETGROUP_camera_message_subscribe(
 			&rna_Camera_ortho_scale,
 			&rna_Camera_sensor_fit,
 			&rna_Camera_sensor_width,
+			&rna_Camera_sensor_height,
 			&rna_Camera_shift_x,
 			&rna_Camera_shift_y,
 			&rna_Camera_type,
