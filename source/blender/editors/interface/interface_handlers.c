@@ -2464,9 +2464,15 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 	MEM_freeN((void *)buf_paste);
 }
 
-/**
- * Password Text
- * =============
+void ui_but_clipboard_free(void)
+{
+	curvemapping_free_data(&but_copypaste_curve);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Text Password
  *
  * Functions to convert password strings that should not be displayed
  * to asterisk representation (e.g. 'mysecretpasswd' -> '*************')
@@ -2475,7 +2481,8 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
  * the cursor position and selection start/end.
  *
  * \note: remapping is used, because password could contain UTF-8 characters.
- */
+ *
+ * \{ */
 
 static int ui_text_position_from_hidden(uiBut *but, int pos)
 {
@@ -2534,7 +2541,13 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR], uiBut *bu
 	}
 }
 
-static void ui_but_text_clear(bContext *C, uiBut *but, uiHandleButtonData *data)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Text Selection/Editing
+ * \{ */
+
+static void ui_textedit_string_clear_and_exit(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	/* most likely NULL, but let's check, and give it temp zero string */
 	if (!data->str) {
@@ -2545,17 +2558,6 @@ static void ui_but_text_clear(bContext *C, uiBut *but, uiHandleButtonData *data)
 	ui_apply_but_TEX(C, but, data);
 	button_activate_state(C, but, BUTTON_STATE_EXIT);
 }
-
-void ui_but_clipboard_free(void)
-{
-	curvemapping_free_data(&but_copypaste_curve);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Button Text Selection/Editing
- * \{ */
 
 static void ui_textedit_string_ensure_max_length(uiBut *but, uiHandleButtonData *data, int maxlen)
 {
@@ -3985,7 +3987,7 @@ static int ui_do_but_TEX(
 				const bool has_icon_extra = ui_but_icon_extra_get(but) == UI_BUT_ICONEXTRA_CLEAR;
 
 				if (has_icon_extra && ui_but_is_mouse_over_icon_extra(data->region, but, &event->x)) {
-					ui_but_text_clear(C, but, data);
+					ui_textedit_string_clear_and_exit(C, but, data);
 				}
 				else {
 					button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
@@ -4022,7 +4024,7 @@ static int ui_do_but_SEARCH_UNLINK(
 		if (event->val == KM_RELEASE) {
 			/* unlink */
 			if (extra_icon_type == UI_BUT_ICONEXTRA_CLEAR) {
-				ui_but_text_clear(C, but, data);
+				ui_textedit_string_clear_and_exit(C, but, data);
 			}
 			/* eyedropper */
 			else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {
