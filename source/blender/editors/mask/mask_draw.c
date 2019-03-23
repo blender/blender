@@ -236,10 +236,10 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 				if (point == masklay->act_point)
 					immUniformColor3f(1.0f, 1.0f, 1.0f);
 				else
-					immUniformThemeColor(TH_HANDLE_VERTEX_SELECT);
+					immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX_SELECT, 0, 255);
 			}
 			else {
-				immUniformThemeColor(TH_HANDLE_VERTEX);
+				immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX, 0, 255);
 			}
 
 			immBegin(GPU_PRIM_POINTS, 1);
@@ -306,10 +306,10 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 			if (point == masklay->act_point)
 				immUniformColor3f(1.0f, 1.0f, 1.0f);
 			else
-				immUniformThemeColor(TH_HANDLE_VERTEX_SELECT);
+				immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX_SELECT, 0, 255);
 		}
 		else
-			immUniformThemeColor(TH_HANDLE_VERTEX);
+			immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX, 0, 255);
 
 		immBegin(GPU_PRIM_POINTS, 1);
 		immVertex2fv(pos, vert);
