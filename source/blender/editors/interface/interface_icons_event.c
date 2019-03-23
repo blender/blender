@@ -126,7 +126,7 @@ static void icon_draw_rect_input_line_prim(
         const int prim,
         const char lines[][2], int lines_len)
 {
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 	glEnable(GL_BLEND);
 	BLI_assert(ELEM(prim, GPU_PRIM_LINE_LOOP, GPU_PRIM_LINE_STRIP));
 	const uint pos_id = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -144,7 +144,7 @@ static void icon_draw_rect_input_line_prim(
 	}
 	immEnd();
 	immUnbindProgram();
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 	glDisable(GL_BLEND);
 }
 

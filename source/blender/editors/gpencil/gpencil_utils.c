@@ -75,6 +75,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1627,7 +1628,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 	const uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1656,7 +1657,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 	immUnbindProgram();
 
 	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 }
 
 static bool gp_brush_cursor_poll(bContext *C)
@@ -1776,7 +1777,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 	glEnable(GL_BLEND);
 
 	/* Inner Ring: Color from UI panel */
@@ -1798,13 +1799,13 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 	imm_draw_circle_wire_2d(pos, x, y, radius + 1, 40);
 
 	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
 	/* Draw line for lazy mouse */
 	if ((last_mouse_position) &&
 	    (brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
 	{
-		glEnable(GL_LINE_SMOOTH);
+		GPU_line_smooth(true);
 		glEnable(GL_BLEND);
 
 		copy_v3_v3(color, brush->add_col);
@@ -1819,7 +1820,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 		immEnd();
 
 		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		GPU_line_smooth(false);
 	}
 
 	immUnbindProgram();

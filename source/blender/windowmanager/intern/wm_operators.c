@@ -85,6 +85,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -2159,7 +2160,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	GPU_matrix_translate_2f((float)x, (float)y);
 
 	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
+	GPU_line_smooth(true);
 
 	/* apply zoom if available */
 	if (rc->zoom_prop) {
@@ -2220,7 +2221,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	BLF_disable(fontid, BLF_SHADOW);
 
 	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
+	GPU_line_smooth(false);
 
 }
 

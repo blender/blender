@@ -216,7 +216,7 @@ void DRW_draw_cursor(void)
 			/* Draw nice Anti Aliased cursor. */
 			GPU_line_width(1.0f);
 			glEnable(GL_BLEND);
-			glEnable(GL_LINE_SMOOTH);
+			GPU_line_smooth(true);
 
 			float eps = 1e-5f;
 			rv3d->viewquat[0] = -rv3d->viewquat[0];
@@ -278,7 +278,7 @@ void DRW_draw_cursor(void)
 			GPU_batch_draw(cursor_batch);
 
 			glDisable(GL_BLEND);
-			glDisable(GL_LINE_SMOOTH);
+			GPU_line_smooth(false);
 			GPU_matrix_pop();
 			GPU_matrix_projection_set(original_proj);
 		}
