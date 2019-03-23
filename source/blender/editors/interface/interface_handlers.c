@@ -2328,12 +2328,24 @@ static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int outp
 	MEM_freeN(str);
 }
 
-static void ui_but_copy_menu(uiBut *but, char *output, int output_len_max)
+static bool ui_but_copy_menu(uiBut *but, char *output, int output_len_max)
 {
 	MenuType *mt = UI_but_menutype_get(but);
 	if (mt) {
 		BLI_snprintf(output, output_len_max, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
+		return true;
 	}
+	return false;
+}
+
+static bool ui_but_copy_popover(uiBut *but, char *output, int output_len_max)
+{
+	PanelType *pt = UI_but_paneltype_get(but);
+	if (pt) {
+		BLI_snprintf(output, output_len_max, "bpy.ops.wm.call_panel(name=\"%s\")", pt->idname);
+		return true;
+	}
+	return false;
 }
 
 static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
@@ -2398,8 +2410,14 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 
 		case UI_BTYPE_MENU:
 		case UI_BTYPE_PULLDOWN:
-			ui_but_copy_menu(but, buf, buf_max_len);
-			is_buf_set = true;
+			if (ui_but_copy_menu(but, buf, buf_max_len)) {
+				is_buf_set = true;
+			}
+			break;
+		case UI_BTYPE_POPOVER:
+			if (ui_but_copy_popover(but, buf, buf_max_len)) {
+				is_buf_set = true;
+			}
 			break;
 
 		default:
