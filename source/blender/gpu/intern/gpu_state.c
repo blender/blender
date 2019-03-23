@@ -100,16 +100,6 @@ void GPU_line_smooth(bool enable)
 	}
 }
 
-void GPU_line_stipple(bool enable)
-{
-	if (enable) {
-		glEnable(GL_LINE_STIPPLE);
-	}
-	else {
-		glDisable(GL_LINE_STIPPLE);
-	}
-}
-
 void GPU_line_width(float width)
 {
 	float max_size = GPU_max_line_width();

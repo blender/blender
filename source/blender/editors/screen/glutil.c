@@ -48,21 +48,6 @@
 
 /* ******************************************** */
 
-void setlinestyle(int nr)
-{
-	if (nr == 0) {
-		GPU_line_stipple(false);
-	}
-	else {
-
-		GPU_line_stipple(true);
-		if (U.pixelsize > 1.0f)
-			glLineStipple(nr, 0xCCCC);
-		else
-			glLineStipple(nr, 0xAAAA);
-	}
-}
-
 /* Invert line handling */
 
 #define GL_TOGGLE(mode, onoff)  (((onoff) ? glEnable : glDisable)(mode))

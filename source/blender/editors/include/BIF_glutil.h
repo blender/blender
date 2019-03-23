@@ -103,7 +103,6 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float xzoom, float yzoom, float color[4]);
 
 void set_inverted_drawing(int enable);
-void setlinestyle(int nr);
 
 /* own working polygon offset */
 float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist);
