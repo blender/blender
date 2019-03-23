@@ -3143,7 +3143,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			bArmature *arm = ob->data;
 			if (arm->edbo == NULL) {
 				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
-					bool is_wire = (v3d->shading.type == OB_WIRE) || (ob->dt <= OB_WIRE);
+					bool is_wire = (v3d->shading.type == OB_WIRE) || (ob->dt <= OB_WIRE) ||
+					               (v3d->shading.flag & XRAY_FLAG(v3d)) != 0;
 					DRWArmaturePasses passes = {
 					    .bone_solid = (is_wire) ? NULL : sgl->bone_solid,
 					    .bone_outline = sgl->bone_outline,
