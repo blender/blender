@@ -436,8 +436,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 			        "#define ALPHA_COMPOSITE\n");
 		}
 
-		workbench_forward_choose_shaders(wpd);
-		workbench_forward_outline_shaders_ensure(wpd);
+		workbench_forward_choose_shaders(wpd, draw_ctx->sh_cfg);
+		workbench_forward_outline_shaders_ensure(wpd, draw_ctx->sh_cfg);
 	}
 
 	{
@@ -824,11 +824,6 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		DRW_shgroup_stencil_mask(material->shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
 		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
 		workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob, true, true, interp);
-		if (WORLD_CLIPPING_ENABLED(wpd)) {
-			const DRWContextState *draw_ctx = DRW_context_state_get();
-			RegionView3D *rv3d = draw_ctx->rv3d;
-			DRW_shgroup_world_clip_planes_from_rv3d(material->shgrp, rv3d);
-		}
 		BLI_ghash_insert(wpd->material_hash, POINTER_FROM_UINT(hash), material);
 	}
 	return material;

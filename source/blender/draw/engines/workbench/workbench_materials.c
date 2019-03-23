@@ -207,7 +207,6 @@ int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd, bool u
 	SET_FLAG_FROM_TEST(index, is_hair, 1 << 3);
 	/* 1 bits SHADOWS (only facing factor) */
 	SET_FLAG_FROM_TEST(index, SHADOW_ENABLED(wpd), 1 << 4);
-	SET_FLAG_FROM_TEST(index, WORLD_CLIPPING_ENABLED(wpd), 1 << 5);
 	BLI_assert(index < MAX_ACCUM_SHADERS);
 	return index;
 }
