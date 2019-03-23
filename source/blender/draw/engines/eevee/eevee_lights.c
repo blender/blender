@@ -336,13 +336,18 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const float threshold = draw_ctx->scene->eevee.light_threshold;
-
 	/* Step 1 find all lights in the scene and setup them */
 	if (linfo->num_light >= MAX_LIGHT) {
 		printf("Too many lights in the scene !!!\n");
 	}
 	else {
 		Light *la = (Light *)ob->data;
+
+		/* Early out if light has no power. */
+		if (la->energy == 0.0f || is_zero_v3(&la->r)) {
+			return;
+		}
+
 		EEVEE_Light *evli = linfo->light_data + linfo->num_light;
 		eevee_light_setup(ob, evli);
 
