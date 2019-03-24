@@ -2931,5 +2931,19 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
+			if (ntree->type == NTREE_SHADER) {
+				for (bNode *node = ntree->nodes.first; node; node = node->next) {
+					/* Fix missing version patching from earlier changes. */
+					if (STREQ(node->idname, "ShaderNodeOutputLamp")) {
+						STRNCPY(node->idname, "ShaderNodeOutputLight");
+					}
+					if (node->type == SH_NODE_BSDF_PRINCIPLED && node->custom2 == 0) {
+						node->custom2 = SHD_SUBSURFACE_BURLEY;
+					}
+				}
+			}
+		} FOREACH_NODETREE_END;
 	}
 }
