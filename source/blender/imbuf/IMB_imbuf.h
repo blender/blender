@@ -95,7 +95,9 @@ void IMB_exit(void);
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
+struct ImBuf *IMB_ibImageFromMemory(
+        const unsigned char *mem, size_t size, int flags,
+        char colorspace[IM_MAX_SPACE], const char *descr);
 
 /**
  *

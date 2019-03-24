@@ -425,7 +425,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		if (anim->pgf) {
 			lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
 			if (lpbi) {
-				ibuf = IMB_ibImageFromMemory((unsigned char *) lpbi, 100, IB_rect, anim->colorspace, "<avi_fetchibuf>");
+				ibuf = IMB_ibImageFromMemory((const unsigned char *) lpbi, 100, IB_rect, anim->colorspace, "<avi_fetchibuf>");
 //Oh brother...
 			}
 		}

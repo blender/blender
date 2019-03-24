@@ -92,7 +92,7 @@ typedef struct IconImage {
 	int w;
 	int h;
 	uint *rect;
-	uchar *datatoc_rect;
+	const uchar *datatoc_rect;
 	int datatoc_size;
 } IconImage;
 
@@ -719,13 +719,13 @@ static void init_internal_icons(void)
 	}
 #endif
 	if (b16buf == NULL)
-		b16buf = IMB_ibImageFromMemory((uchar *)datatoc_blender_icons16_png,
+		b16buf = IMB_ibImageFromMemory((const uchar *)datatoc_blender_icons16_png,
 		                               datatoc_blender_icons16_png_size, IB_rect, NULL, "<blender icons>");
 	if (b16buf)
 		IMB_premultiply_alpha(b16buf);
 
 	if (b32buf == NULL)
-		b32buf = IMB_ibImageFromMemory((uchar *)datatoc_blender_icons32_png,
+		b32buf = IMB_ibImageFromMemory((const uchar *)datatoc_blender_icons32_png,
 		                               datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
 	if (b32buf)
 		IMB_premultiply_alpha(b32buf);

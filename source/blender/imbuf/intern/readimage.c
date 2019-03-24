@@ -92,7 +92,9 @@ static void imb_handle_alpha(ImBuf *ibuf, int flags, char colorspace[IM_MAX_SPAC
 	colormanage_imbuf_make_linear(ibuf, effective_colorspace);
 }
 
-ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
+ImBuf *IMB_ibImageFromMemory(
+        const unsigned char *mem, size_t size, int flags,
+        char colorspace[IM_MAX_SPACE], const char *descr)
 {
 	ImBuf *ibuf;
 	const ImFileType *type;

@@ -1426,11 +1426,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 #ifndef WITH_HEADLESS
 	if (U.dpi_fac > 1.0) {
-		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_2x_png,
+		ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_splash_2x_png,
 		                             datatoc_splash_2x_png_size, IB_rect, NULL, "<splash screen>");
 	}
 	else {
-		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png,
+		ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_splash_png,
 		                             datatoc_splash_png_size, IB_rect, NULL, "<splash screen>");
 	}
 
