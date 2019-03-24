@@ -582,10 +582,12 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	float tvec[3];
 	float factor;
 	int matSize;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	};
 
 	if (!PyArg_ParseTuple(args, "fi|O:Matrix.Scale", &factor, &matSize, &vec)) {
 		return NULL;
@@ -673,10 +675,12 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 
 	int matSize, x;
 	float norm = 0.0f;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	};
 
 	if (!PyArg_ParseTuple(args, "Oi:Matrix.OrthoProjection", &axis, &matSize)) {
 		return NULL;
@@ -794,10 +798,12 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	int matSize;
 	const char *plane;
 	PyObject *fac;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	};
 
 	if (!PyArg_ParseTuple(args, "siO:Matrix.Shear", &plane, &matSize, &fac)) {
 		return NULL;

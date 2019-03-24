@@ -4705,11 +4705,7 @@ void ui_draw_pie_center(uiBlock *block)
 		float pie_confirm_radius = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm);
 		float pie_confirm_external = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm + 7.0f);
 
-		const char col[4] = {btheme->tui.wcol_pie_menu.text_sel[0],
-		                     btheme->tui.wcol_pie_menu.text_sel[1],
-		                     btheme->tui.wcol_pie_menu.text_sel[2],
-		                     64};
-
+		const char col[4] = {UNPACK3(btheme->tui.wcol_pie_menu.text_sel), 64};
 		draw_disk_shaded(angle - range / 2.0f, range, pie_confirm_radius, pie_confirm_external, subd, col, NULL, false);
 	}
 

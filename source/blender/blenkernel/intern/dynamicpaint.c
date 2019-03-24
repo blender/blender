@@ -98,7 +98,8 @@ static const float gaussianFactors[5] = {
     0.596145f,
     0.596145f,
     0.596145f,
-    0.524141f};
+    0.524141f,
+};
 static const float gaussianTotal = 3.309425f;
 
 /* UV Image neighboring pixel table x and y list */
