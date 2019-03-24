@@ -97,8 +97,6 @@ static char *workbench_build_forward_vert(bool is_hair)
 
 static char *workbench_build_forward_transparent_accum_frag(void)
 {
-	char *str = NULL;
-
 	DynStr *ds = BLI_dynstr_new();
 
 	BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
@@ -106,15 +104,13 @@ static char *workbench_build_forward_transparent_accum_frag(void)
 	BLI_dynstr_append(ds, datatoc_workbench_world_light_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_forward_transparent_accum_frag_glsl);
 
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }
 
 static char *workbench_build_forward_composite_frag(void)
 {
-	char *str = NULL;
-
 	DynStr *ds = BLI_dynstr_new();
 
 	BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
@@ -124,7 +120,7 @@ static char *workbench_build_forward_composite_frag(void)
 	BLI_dynstr_append(ds, datatoc_workbench_curvature_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_forward_composite_frag_glsl);
 
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }

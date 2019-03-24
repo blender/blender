@@ -119,8 +119,6 @@ extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 
 static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 {
-	char *str = NULL;
-
 	DynStr *ds = BLI_dynstr_new();
 
 	BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
@@ -139,22 +137,20 @@ static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 
 	BLI_dynstr_append(ds, datatoc_workbench_deferred_composite_frag_glsl);
 
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }
 
 static char *workbench_build_prepass_frag(void)
 {
-	char *str = NULL;
-
 	DynStr *ds = BLI_dynstr_new();
 
 	BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_prepass_frag_glsl);
 
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }
@@ -173,8 +169,6 @@ static char *workbench_build_prepass_vert(bool is_hair)
 
 static char *workbench_build_cavity_frag(bool cavity, bool curvature, bool high_dpi)
 {
-	char *str = NULL;
-
 	DynStr *ds = BLI_dynstr_new();
 
 	if (cavity) {
@@ -194,7 +188,7 @@ static char *workbench_build_cavity_frag(bool cavity, bool curvature, bool high_
 	BLI_dynstr_append(ds, datatoc_workbench_cavity_frag_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_cavity_lib_glsl);
 
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }
