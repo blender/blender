@@ -67,7 +67,6 @@ static struct {
 } e_data = {{{{NULL}}}};
 
 /* Shaders */
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 extern char datatoc_common_hair_lib_glsl[];
 
 extern char datatoc_workbench_forward_composite_frag_glsl[];

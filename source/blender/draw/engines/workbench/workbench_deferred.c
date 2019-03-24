@@ -93,7 +93,6 @@ static struct {
 
 /* Shaders */
 extern char datatoc_common_hair_lib_glsl[];
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
 extern char datatoc_workbench_prepass_vert_glsl[];
 extern char datatoc_workbench_prepass_frag_glsl[];
@@ -162,20 +161,12 @@ static char *workbench_build_prepass_frag(void)
 
 static char *workbench_build_prepass_vert(bool is_hair)
 {
-	char *str = NULL;
-	if (!is_hair) {
-		return BLI_string_joinN(
-		        datatoc_gpu_shader_cfg_world_clip_lib_glsl,
-		        datatoc_workbench_prepass_vert_glsl);
-	}
-
 	DynStr *ds = BLI_dynstr_new();
-
-	BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
-	BLI_dynstr_append(ds, datatoc_gpu_shader_cfg_world_clip_lib_glsl);
+	if (is_hair) {
+		BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
+	}
 	BLI_dynstr_append(ds, datatoc_workbench_prepass_vert_glsl);
-
-	str = BLI_dynstr_get_cstring(ds);
+	char *str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
 }
@@ -236,7 +227,7 @@ static GPUShader *ensure_deferred_prepass_shader(
 		char *prepass_vert = workbench_build_prepass_vert(is_hair);
 		char *prepass_frag = workbench_build_prepass_frag();
 		sh_data->prepass_sh_cache[index] = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){prepass_vert, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, prepass_vert, NULL},
 		        .frag = (const char *[]){prepass_frag, NULL},
 		        .defs = (const char *[]){sh_cfg_data->def, defines, NULL},
 		});
