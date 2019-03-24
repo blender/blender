@@ -74,19 +74,19 @@ static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
 		        datatoc_effect_ssr_frag_glsl);
 
 		DynStr *ds_defines = BLI_dynstr_new();
-		BLI_dynstr_appendf(ds_defines, SHADER_DEFINES);
+		BLI_dynstr_append(ds_defines, SHADER_DEFINES);
 		if (options & SSR_RESOLVE) {
-			BLI_dynstr_appendf(ds_defines, "#define STEP_RESOLVE\n");
+			BLI_dynstr_append(ds_defines, "#define STEP_RESOLVE\n");
 		}
 		else {
-			BLI_dynstr_appendf(ds_defines, "#define STEP_RAYTRACE\n");
-			BLI_dynstr_appendf(ds_defines, "#define PLANAR_PROBE_RAYTRACE\n");
+			BLI_dynstr_append(ds_defines, "#define STEP_RAYTRACE\n");
+			BLI_dynstr_append(ds_defines, "#define PLANAR_PROBE_RAYTRACE\n");
 		}
 		if (options & SSR_FULL_TRACE) {
-			BLI_dynstr_appendf(ds_defines, "#define FULLRES\n");
+			BLI_dynstr_append(ds_defines, "#define FULLRES\n");
 		}
 		if (options & SSR_AO) {
-			BLI_dynstr_appendf(ds_defines, "#define SSR_AO\n");
+			BLI_dynstr_append(ds_defines, "#define SSR_AO\n");
 		}
 		char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
 		BLI_dynstr_free(ds_defines);

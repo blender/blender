@@ -907,12 +907,12 @@ static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *ite
 
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("render");
+	return BLI_strdup("render");
 }
 
 static char *rna_BakeSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("render.bake");
+	return BLI_strdup("render.bake");
 }
 
 static char *rna_ImageFormatSettings_path(PointerRNA *ptr)
@@ -926,12 +926,12 @@ static char *rna_ImageFormatSettings_path(PointerRNA *ptr)
 			Scene *scene = (Scene *)id;
 
 			if (&scene->r.im_format == imf) {
-				return BLI_sprintfN("render.image_settings");
+				return BLI_strdup("render.image_settings");
 			}
 			else if (&scene->r.bake.im_format == imf) {
-				return BLI_sprintfN("render.bake.image_settings");
+				return BLI_strdup("render.bake.image_settings");
 			}
-			return BLI_sprintfN("..");
+			return BLI_strdup("..");
 		}
 		case ID_NT:
 		{
@@ -955,10 +955,10 @@ static char *rna_ImageFormatSettings_path(PointerRNA *ptr)
 					}
 				}
 			}
-			return BLI_sprintfN("..");
+			return BLI_strdup("..");
 		}
 		default:
-			return BLI_sprintfN("..");
+			return BLI_strdup("..");
 	}
 }
 
@@ -2210,7 +2210,7 @@ static void rna_UnitSettings_system_update(Main *UNUSED(bmain), Scene *scene, Po
 
 static char *rna_UnitSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("unit_settings");
+	return BLI_strdup("unit_settings");
 }
 
 #else

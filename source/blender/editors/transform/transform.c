@@ -5142,7 +5142,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	if (t->proptext[0]) {
 		ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, " %s", t->proptext);
 	}
-	ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, ", (");
+	ofs += BLI_strncpy_rlen(str + ofs, ", (", sizeof(str) - ofs);
 
 	if (t->keymap) {
 		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);

@@ -274,7 +274,7 @@ char *BKE_mesh_runtime_debug_info(Mesh *me_eval)
 	DynStr *dynstr = BLI_dynstr_new();
 	char *ret;
 
-	BLI_dynstr_appendf(dynstr, "{\n");
+	BLI_dynstr_append(dynstr, "{\n");
 	BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)me_eval);
 #if 0
 	const char *tstr;
@@ -291,27 +291,27 @@ char *BKE_mesh_runtime_debug_info(Mesh *me_eval)
 	BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me_eval->totpoly);
 	BLI_dynstr_appendf(dynstr, "    'deformed_only': %d,\n", me_eval->runtime.deformed_only);
 
-	BLI_dynstr_appendf(dynstr, "    'vertexLayers': (\n");
+	BLI_dynstr_append(dynstr, "    'vertexLayers': (\n");
 	mesh_runtime_debug_info_layers(dynstr, &me_eval->vdata);
-	BLI_dynstr_appendf(dynstr, "    ),\n");
+	BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "    'edgeLayers': (\n");
+	BLI_dynstr_append(dynstr, "    'edgeLayers': (\n");
 	mesh_runtime_debug_info_layers(dynstr, &me_eval->edata);
-	BLI_dynstr_appendf(dynstr, "    ),\n");
+	BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "    'loopLayers': (\n");
+	BLI_dynstr_append(dynstr, "    'loopLayers': (\n");
 	mesh_runtime_debug_info_layers(dynstr, &me_eval->ldata);
-	BLI_dynstr_appendf(dynstr, "    ),\n");
+	BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "    'polyLayers': (\n");
+	BLI_dynstr_append(dynstr, "    'polyLayers': (\n");
 	mesh_runtime_debug_info_layers(dynstr, &me_eval->pdata);
-	BLI_dynstr_appendf(dynstr, "    ),\n");
+	BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "    'tessFaceLayers': (\n");
+	BLI_dynstr_append(dynstr, "    'tessFaceLayers': (\n");
 	mesh_runtime_debug_info_layers(dynstr, &me_eval->fdata);
-	BLI_dynstr_appendf(dynstr, "    ),\n");
+	BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "}\n");
+	BLI_dynstr_append(dynstr, "}\n");
 
 	ret = BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);

@@ -274,58 +274,58 @@ static char *eevee_get_defines(int options)
 	char *str = NULL;
 
 	DynStr *ds = BLI_dynstr_new();
-	BLI_dynstr_appendf(ds, SHADER_DEFINES);
+	BLI_dynstr_append(ds, SHADER_DEFINES);
 
 	if ((options & VAR_MAT_MESH) != 0) {
-		BLI_dynstr_appendf(ds, "#define MESH_SHADER\n");
+		BLI_dynstr_append(ds, "#define MESH_SHADER\n");
 	}
 	if ((options & VAR_MAT_HAIR) != 0) {
-		BLI_dynstr_appendf(ds, "#define HAIR_SHADER\n");
+		BLI_dynstr_append(ds, "#define HAIR_SHADER\n");
 	}
 	if ((options & VAR_MAT_PROBE) != 0) {
-		BLI_dynstr_appendf(ds, "#define PROBE_CAPTURE\n");
+		BLI_dynstr_append(ds, "#define PROBE_CAPTURE\n");
 	}
 	if ((options & VAR_MAT_FLAT) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_FLAT_NORMAL\n");
+		BLI_dynstr_append(ds, "#define USE_FLAT_NORMAL\n");
 	}
 	if ((options & VAR_MAT_CLIP) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_ALPHA_CLIP\n");
+		BLI_dynstr_append(ds, "#define USE_ALPHA_CLIP\n");
 	}
 	if ((options & VAR_MAT_SHADOW) != 0) {
-		BLI_dynstr_appendf(ds, "#define SHADOW_SHADER\n");
+		BLI_dynstr_append(ds, "#define SHADOW_SHADER\n");
 	}
 	if ((options & VAR_MAT_HASH) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_ALPHA_HASH\n");
+		BLI_dynstr_append(ds, "#define USE_ALPHA_HASH\n");
 	}
 	if ((options & VAR_MAT_BLEND) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_ALPHA_BLEND\n");
+		BLI_dynstr_append(ds, "#define USE_ALPHA_BLEND\n");
 	}
 	if ((options & VAR_MAT_MULT) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_MULTIPLY\n");
+		BLI_dynstr_append(ds, "#define USE_MULTIPLY\n");
 	}
 	if ((options & VAR_MAT_REFRACT) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_REFRACTION\n");
+		BLI_dynstr_append(ds, "#define USE_REFRACTION\n");
 	}
 	if ((options & VAR_MAT_SSS) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_SSS\n");
+		BLI_dynstr_append(ds, "#define USE_SSS\n");
 	}
 	if ((options & VAR_MAT_SSSALBED) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_SSS_ALBEDO\n");
+		BLI_dynstr_append(ds, "#define USE_SSS_ALBEDO\n");
 	}
 	if ((options & VAR_MAT_TRANSLUC) != 0) {
-		BLI_dynstr_appendf(ds, "#define USE_TRANSLUCENCY\n");
+		BLI_dynstr_append(ds, "#define USE_TRANSLUCENCY\n");
 	}
 	if ((options & VAR_MAT_VSM) != 0) {
-		BLI_dynstr_appendf(ds, "#define SHADOW_VSM\n");
+		BLI_dynstr_append(ds, "#define SHADOW_VSM\n");
 	}
 	if ((options & VAR_MAT_ESM) != 0) {
-		BLI_dynstr_appendf(ds, "#define SHADOW_ESM\n");
+		BLI_dynstr_append(ds, "#define SHADOW_ESM\n");
 	}
 	if (((options & VAR_MAT_VOLUME) != 0) && ((options & VAR_MAT_BLEND) != 0)) {
-		BLI_dynstr_appendf(ds, "#define USE_ALPHA_BLEND_VOLUMETRICS\n");
+		BLI_dynstr_append(ds, "#define USE_ALPHA_BLEND_VOLUMETRICS\n");
 	}
 	if ((options & VAR_MAT_LOOKDEV) != 0) {
-		BLI_dynstr_appendf(ds, "#define LOOKDEV\n");
+		BLI_dynstr_append(ds, "#define LOOKDEV\n");
 	}
 
 	str = BLI_dynstr_get_cstring(ds);
@@ -339,11 +339,11 @@ static char *eevee_get_volume_defines(int options)
 	char *str = NULL;
 
 	DynStr *ds = BLI_dynstr_new();
-	BLI_dynstr_appendf(ds, SHADER_DEFINES);
-	BLI_dynstr_appendf(ds, "#define VOLUMETRICS\n");
+	BLI_dynstr_append(ds, SHADER_DEFINES);
+	BLI_dynstr_append(ds, "#define VOLUMETRICS\n");
 
 	if ((options & VAR_MAT_VOLUME) != 0) {
-		BLI_dynstr_appendf(ds, "#define MESH_SHADER\n");
+		BLI_dynstr_append(ds, "#define MESH_SHADER\n");
 	}
 
 	str = BLI_dynstr_get_cstring(ds);

@@ -92,43 +92,43 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	DynStr *ds = BLI_dynstr_new();
 
 	if (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_OBJECT_OUTLINE\n");
+		BLI_dynstr_append(ds, "#define V3D_SHADING_OBJECT_OUTLINE\n");
 	}
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
+		BLI_dynstr_append(ds, "#define V3D_SHADING_SHADOW\n");
 	}
 	if (SSAO_ENABLED(wpd) || CURVATURE_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define WB_CAVITY\n");
+		BLI_dynstr_append(ds, "#define WB_CAVITY\n");
 	}
 	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHT\n");
+		BLI_dynstr_append(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHT\n");
 	}
 	if (STUDIOLIGHT_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
+		BLI_dynstr_append(ds, "#define V3D_LIGHTING_STUDIO\n");
 	}
 	if (FLAT_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_FLAT\n");
+		BLI_dynstr_append(ds, "#define V3D_LIGHTING_FLAT\n");
 	}
 	if (MATCAP_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_MATCAP\n");
+		BLI_dynstr_append(ds, "#define V3D_LIGHTING_MATCAP\n");
 	}
 	if (OBJECT_ID_PASS_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define OBJECT_ID_PASS_ENABLED\n");
+		BLI_dynstr_append(ds, "#define OBJECT_ID_PASS_ENABLED\n");
 	}
 	if (MATDATA_PASS_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define MATDATA_PASS_ENABLED\n");
+		BLI_dynstr_append(ds, "#define MATDATA_PASS_ENABLED\n");
 	}
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
+		BLI_dynstr_append(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
 	}
 	if (use_textures) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_TEXTURE_COLOR\n");
+		BLI_dynstr_append(ds, "#define V3D_SHADING_TEXTURE_COLOR\n");
 	}
 	if (NORMAL_ENCODING_ENABLED()) {
-		BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
+		BLI_dynstr_append(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
 	}
 	if (is_hair) {
-		BLI_dynstr_appendf(ds, "#define HAIR_SHADER\n");
+		BLI_dynstr_append(ds, "#define HAIR_SHADER\n");
 	}
 
 	str = BLI_dynstr_get_cstring(ds);

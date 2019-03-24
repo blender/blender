@@ -70,8 +70,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 	for (Main *curmain = bmain->next; curmain != NULL; curmain = curmain->next) {
 		Library *curlib = curmain->curlib;
 		if (curlib == NULL) {
-			BKE_reportf(reports, RPT_ERROR,
-			            "Library database with NULL library datablock!");
+			BKE_report(reports, RPT_ERROR,
+			           "Library database with NULL library datablock!");
 			continue;
 		}
 

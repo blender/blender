@@ -2998,7 +2998,7 @@ void BKE_tracking_get_rna_path_prefix_for_track(
 	MovieTrackingObject *object =
 	        BKE_tracking_find_object_for_track(tracking, track);
 	if (object == NULL) {
-		BLI_snprintf(rna_path, rna_path_len, "tracking.tracks");
+		BLI_strncpy(rna_path, "tracking.tracks", rna_path_len);
 	}
 	else {
 		char object_name_esc[MAX_NAME * 2];
@@ -3043,7 +3043,7 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 	MovieTrackingObject *object =
 	        BKE_tracking_find_object_for_plane_track(tracking, plane_track);
 	if (object == NULL) {
-		BLI_snprintf(rna_path, rna_path_len, "tracking.plane_tracks");
+		BLI_strncpy(rna_path, "tracking.plane_tracks", rna_path_len);
 	}
 	else {
 		char object_name_esc[MAX_NAME * 2];

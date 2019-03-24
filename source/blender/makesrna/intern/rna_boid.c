@@ -207,8 +207,9 @@ static char *rna_BoidSettings_path(PointerRNA *ptr)
 	if (particle_id_check(ptr)) {
 		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 
-		if (part->boids == boids)
-			return BLI_sprintfN("boids");
+		if (part->boids == boids) {
+			return BLI_strdup("boids");
+		}
 	}
 	return NULL;
 }

@@ -432,7 +432,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain, S
 
 static char *rna_ColorManagedDisplaySettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("display_settings");
+	return BLI_strdup("display_settings");
 }
 
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
@@ -518,7 +518,7 @@ static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, bool va
 
 static char *rna_ColorManagedViewSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("view_settings");
+	return BLI_strdup("view_settings");
 }
 
 
@@ -627,12 +627,12 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain, Scene 
 
 static char *rna_ColorManagedSequencerColorspaceSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("sequencer_colorspace_settings");
+	return BLI_strdup("sequencer_colorspace_settings");
 }
 
 static char *rna_ColorManagedInputColorspaceSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("colorspace_settings");
+	return BLI_strdup("colorspace_settings");
 }
 
 static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

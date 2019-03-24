@@ -922,7 +922,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 		BLI_snprintf(cache->uv_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%u", hash);
 
 		if (i == active_uv) {
-			BLI_snprintf(cache->uv_layer_names[i][n], MAX_LAYER_NAME_LEN, "u");
+			BLI_strncpy(cache->uv_layer_names[i][n], "u", MAX_LAYER_NAME_LEN);
 		}
 	}
 	/* Vertex colors */
@@ -942,7 +942,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 		}
 
 		if (i == active_col) {
-			BLI_snprintf(cache->col_layer_names[i][n], MAX_LAYER_NAME_LEN, "c");
+			BLI_strncpy(cache->col_layer_names[i][n], "c", MAX_LAYER_NAME_LEN);
 		}
 	}
 

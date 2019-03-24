@@ -958,7 +958,7 @@ static void rna_Mesh_face_map_remove(struct Mesh *me, ReportList *reports, struc
 	}
 
 	if (BKE_mesh_clear_facemap_customdata(me) == false) {
-		BKE_reportf(reports, RPT_ERROR, "Error removing face-map");
+		BKE_report(reports, RPT_ERROR, "Error removing face-map");
 	}
 }
 

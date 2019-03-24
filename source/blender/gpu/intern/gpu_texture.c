@@ -645,10 +645,12 @@ GPUTexture *GPU_texture_create_nD(
 	tex->bindcode = GPU_tex_alloc();
 
 	if (!tex->bindcode) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUTexture: texture create failed\n");
-		else
+		if (err_out) {
+			BLI_strncpy(err_out, "GPUTexture: texture create failed\n", 256);
+		}
+		else {
 			fprintf(stderr, "GPUTexture: texture create failed\n");
+		}
 		GPU_texture_free(tex);
 		return NULL;
 	}
@@ -685,7 +687,7 @@ GPUTexture *GPU_texture_create_nD(
 
 	if (!valid) {
 		if (err_out) {
-			BLI_snprintf(err_out, 256, "GPUTexture: texture alloc failed\n");
+			BLI_strncpy(err_out, "GPUTexture: texture alloc failed\n", 256);
 		}
 		else {
 			fprintf(stderr, "GPUTexture: texture alloc failed. Likely not enough Video Memory.\n");
@@ -790,10 +792,12 @@ static GPUTexture *GPU_texture_cube_create(
 	tex->bindcode = GPU_tex_alloc();
 
 	if (!tex->bindcode) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUTexture: texture create failed\n");
-		else
+		if (err_out) {
+			BLI_strncpy(err_out, "GPUTexture: texture create failed\n", 256);
+		}
+		else {
 			fprintf(stderr, "GPUTexture: texture create failed\n");
+		}
 		GPU_texture_free(tex);
 		return NULL;
 	}

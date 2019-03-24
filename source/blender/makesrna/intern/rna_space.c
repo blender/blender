@@ -939,7 +939,7 @@ static int rna_SpaceView3D_icon_from_show_object_viewport_get(PointerRNA *ptr)
 
 static char *rna_View3DShading_path(PointerRNA *UNUSED(ptr))
 {
-    return BLI_sprintfN("shading");
+    return BLI_strdup("shading");
 }
 
 static PointerRNA rna_SpaceView3D_overlay_get(PointerRNA *ptr)
@@ -949,7 +949,7 @@ static PointerRNA rna_SpaceView3D_overlay_get(PointerRNA *ptr)
 
 static char *rna_View3DOverlay_path(PointerRNA *UNUSED(ptr))
 {
-    return BLI_sprintfN("overlay");
+    return BLI_strdup("overlay");
 }
 
 /* Space Image Editor */

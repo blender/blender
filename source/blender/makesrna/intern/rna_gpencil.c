@@ -756,7 +756,7 @@ static void rna_GpencilVertex_groups_begin(CollectionPropertyIterator *iter, Poi
 
 static char *rna_GreasePencilGrid_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("grid");
+	return BLI_strdup("grid");
 }
 
 #else

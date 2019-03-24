@@ -317,7 +317,7 @@ void DRW_stats_draw(rcti *rect)
 	v += 1;
 
 	/* GPU Timings */
-	BLI_snprintf(stat_string, sizeof(stat_string), "GPU Render Timings");
+	BLI_strncpy(stat_string, "GPU Render Timings", sizeof(stat_string));
 	draw_stat(rect, 0, v++, stat_string, sizeof(stat_string));
 
 	for (int i = 0; i < DTP.timer_increment; ++i) {

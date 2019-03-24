@@ -55,7 +55,7 @@
 
 static char *rna_tracking_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("tracking");
+	return BLI_strdup("tracking");
 }
 
 static void rna_tracking_defaultSettings_patternUpdate(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -307,7 +307,7 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
 
 static char *rna_trackingCamera_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("tracking.camera");
+	return BLI_strdup("tracking.camera");
 }
 
 static float rna_trackingCamera_focal_mm_get(PointerRNA *ptr)
@@ -336,7 +336,7 @@ static void rna_trackingCamera_focal_mm_set(PointerRNA *ptr, float value)
 
 static char *rna_trackingStabilization_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("tracking.stabilization");
+	return BLI_strdup("tracking.stabilization");
 }
 
 static int rna_track_2d_stabilization(CollectionPropertyIterator *UNUSED(iter), void *data)

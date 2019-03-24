@@ -84,15 +84,17 @@ GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_
 	ubo->bindcode = GPU_buf_alloc();
 
 	if (!ubo->bindcode) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUUniformBuffer: UBO create failed");
+		if (err_out) {
+			BLI_strncpy(err_out, "GPUUniformBuffer: UBO create failed", 256);
+		}
 		GPU_uniformbuffer_free(ubo);
 		return NULL;
 	}
 
 	if (ubo->size > GPU_max_ubo_size()) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUUniformBuffer: UBO too big");
+		if (err_out) {
+			BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
+		}
 		GPU_uniformbuffer_free(ubo);
 		return NULL;
 	}
@@ -123,15 +125,17 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
 	ubo->buffer.bindcode = GPU_buf_alloc();
 
 	if (!ubo->buffer.bindcode) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUUniformBuffer: UBO create failed");
+		if (err_out) {
+			BLI_strncpy(err_out, "GPUUniformBuffer: UBO create failed", 256);
+		}
 		GPU_uniformbuffer_free(&ubo->buffer);
 		return NULL;
 	}
 
 	if (ubo->buffer.size > GPU_max_ubo_size()) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUUniformBuffer: UBO too big");
+		if (err_out) {
+			BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
+		}
 		GPU_uniformbuffer_free(&ubo->buffer);
 		return NULL;
 	}

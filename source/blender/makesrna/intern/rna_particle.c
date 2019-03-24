@@ -1052,8 +1052,9 @@ static char *rna_SPHFluidSettings_path(PointerRNA *ptr)
 	if (particle_id_check(ptr)) {
 		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 
-		if (part->fluid == fluid)
-			return BLI_sprintfN("fluid");
+		if (part->fluid == fluid) {
+			return BLI_strdup("fluid");
+		}
 	}
 	return NULL;
 }

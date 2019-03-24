@@ -360,7 +360,7 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
 	char *name;
 
 	if (!collection_parent) {
-		name = BLI_sprintfN("Collection");
+		name = BLI_strdup("Collection");
 	}
 	else if (collection_parent->flag & COLLECTION_IS_MASTER) {
 		name = BLI_sprintfN("Collection %d", BLI_listbase_count(&collection_parent->children) + 1);

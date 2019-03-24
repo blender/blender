@@ -359,12 +359,12 @@ static void rna_Object_shape_key_remove(
 	Key *key = BKE_key_from_object(ob);
 
 	if ((key == NULL) || BLI_findindex(&key->block, kb) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "ShapeKey not found");
+		BKE_report(reports, RPT_ERROR, "ShapeKey not found");
 		return;
 	}
 
 	if (!BKE_object_shapekey_remove(bmain, ob, kb)) {
-		BKE_reportf(reports, RPT_ERROR, "Could not remove ShapeKey");
+		BKE_report(reports, RPT_ERROR, "Could not remove ShapeKey");
 		return;
 	}
 

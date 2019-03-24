@@ -810,7 +810,7 @@ static StructRNA *rna_GizmoGroup_register(
 
 	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&wmap_params);
 	if (gzmap_type == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Area type does not support gizmos");
+		BKE_report(reports, RPT_ERROR, "Area type does not support gizmos");
 		return NULL;
 	}
 
