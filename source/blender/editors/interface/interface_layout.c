@@ -1611,14 +1611,6 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		}
 	}
 
-#ifdef UI_PROP_SEP_ICON_WIDTH_EXCEPTION
-	if (use_prop_sep) {
-		if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
-			use_prop_sep_split_label = false;
-		}
-	}
-#endif
-
 	if (icon == ICON_NONE)
 		icon = RNA_property_ui_icon(prop);
 
@@ -1645,6 +1637,14 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			}
 		}
 	}
+
+#ifdef UI_PROP_SEP_ICON_WIDTH_EXCEPTION
+	if (use_prop_sep) {
+		if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
+			use_prop_sep_split_label = false;
+		}
+	}
+#endif
 
 	/* menus and pie-menus don't show checkbox without this */
 	if ((layout->root->type == UI_LAYOUT_MENU) ||
