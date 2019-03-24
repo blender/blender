@@ -257,16 +257,19 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs, const rcti *rect, const ch
 		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
 	}
 
-	if (fs->kerning == 1)
+	if (fs->kerning == 1) {
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 	BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 	BLF_disable(fs->uifont_id, BLF_ROTATION);
 	BLF_disable(fs->uifont_id, BLF_CLIPPING);
-	if (fs->shadow)
+	if (fs->shadow) {
 		BLF_disable(fs->uifont_id, BLF_SHADOW);
-	if (fs->kerning == 1)
+	}
+	if (fs->kerning == 1) {
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 }
 
 /**
@@ -277,16 +280,18 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs, const rcti *rect, const ch
  */
 void UI_fontstyle_draw_simple(const uiFontStyle *fs, float x, float y, const char *str, const uchar col[4])
 {
-	if (fs->kerning == 1)
+	if (fs->kerning == 1) {
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 	UI_fontstyle_set(fs);
 	BLF_position(fs->uifont_id, x, y, 0.0f);
 	BLF_color4ubv(fs->uifont_id, col);
 	BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 
-	if (fs->kerning == 1)
+	if (fs->kerning == 1) {
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 }
 
 /**
@@ -296,8 +301,9 @@ void UI_fontstyle_draw_simple_backdrop(
         const uiFontStyle *fs, float x, float y, const char *str,
         const float col_fg[4], const float col_bg[4])
 {
-	if (fs->kerning == 1)
+	if (fs->kerning == 1) {
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 	UI_fontstyle_set(fs);
 
@@ -324,8 +330,9 @@ void UI_fontstyle_draw_simple_backdrop(
 	BLF_color4fv(fs->uifont_id, col_fg);
 	BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 
-	if (fs->kerning == 1)
+	if (fs->kerning == 1) {
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 }
 
 
@@ -373,14 +380,17 @@ int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
 {
 	int width;
 
-	if (fs->kerning == 1) /* for BLF_width */
+	if (fs->kerning == 1) {
+		/* for BLF_width */
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 	UI_fontstyle_set(fs);
 	width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 
-	if (fs->kerning == 1)
+	if (fs->kerning == 1) {
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 	return width;
 }
@@ -404,8 +414,9 @@ void uiStyleInit(void)
 	uchar *monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
 
 	/* recover from uninitialized dpi */
-	if (U.dpi == 0)
+	if (U.dpi == 0) {
 		U.dpi = 72;
+	}
 	CLAMP(U.dpi, 48, 144);
 
 	for (font = U.uifonts.first; font; font = font->next) {
@@ -479,8 +490,9 @@ void uiStyleInit(void)
 		BLF_default_set(font->blf_id);
 
 		if (font->blf_id == -1) {
-			if (G.debug & G_DEBUG)
+			if (G.debug & G_DEBUG) {
 				printf("%s: error, no fonts available\n", __func__);
+			}
 		}
 		else {
 			/* ? just for speed to initialize?
@@ -563,8 +575,9 @@ void uiStyleInit(void)
 	 * \note This isn't good that the render font depends on the preferences,
 	 * keep for now though, since without this there is no way to display many unicode chars.
 	 */
-	if (blf_mono_font_render == -1)
+	if (blf_mono_font_render == -1) {
 		blf_mono_font_render = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
+	}
 
 	BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);
 }

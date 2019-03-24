@@ -108,8 +108,9 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
 
 	/* hijack for finding active item */
 	if (items->active) {
-		if (poin == items->active)
+		if (poin == items->active) {
 			items->offset_i = items->totitem;
+		}
 		items->totitem++;
 		return true;
 	}
@@ -125,12 +126,15 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
 		return true;
 	}
 
-	if (items->names)
+	if (items->names) {
 		BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
-	if (items->pointers)
+	}
+	if (items->pointers) {
 		items->pointers[items->totitem] = poin;
-	if (items->icons)
+	}
+	if (items->icons) {
 		items->icons[items->totitem] = iconid;
+	}
 
 	items->totitem++;
 
@@ -275,8 +279,9 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *eve
 	uiSearchboxData *data = ar->regiondata;
 	int type = event->type, val = event->val;
 
-	if (type == MOUSEPAN)
+	if (type == MOUSEPAN) {
 		ui_pan_to_scroll(event, &type, &val);
+	}
 
 	switch (type) {
 		case WHEELUPMOUSE:
@@ -354,8 +359,9 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 	}
 
 	/* callback */
-	if (but->search_func)
+	if (but->search_func) {
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
+	}
 
 	/* handle case where editstr is equal to one of items */
 	if (reset && data->active == -1) {
@@ -369,8 +375,9 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 				break;
 			}
 		}
-		if (data->items.totitem == 1 && but->editstr[0])
+		if (data->items.totitem == 1 && but->editstr[0]) {
 			data->active = 0;
+		}
 	}
 
 	/* validate selected item */
@@ -521,8 +528,9 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 
 	/* special case, hardcoded feature, not draw backdrop when called from menus,
 	 * assume for design that popup already added it */
-	if (but->block->flag & UI_BLOCK_SEARCH_MENU)
+	if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
 		data->noback = true;
+	}
 
 	if (but->a1 > 0 && but->a2 > 0) {
 		data->preview = true;
@@ -605,8 +613,9 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 		if (rect_i.ymin < 0) {
 			int newy1 = but->rect.ymax + ofsy;
 
-			if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax)
+			if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
 				newy1 = UI_view2d_view_to_region_y(&butregion->v2d, newy1);
+			}
 
 			newy1 += butregion->winrct.ymin;
 
@@ -645,8 +654,9 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 	data->items.names = MEM_callocN(data->items.maxitem * sizeof(void *), "search names");
 	data->items.pointers = MEM_callocN(data->items.maxitem * sizeof(void *), "search pointers");
 	data->items.icons = MEM_callocN(data->items.maxitem * sizeof(int), "search icons");
-	for (i = 0; i < data->items.maxitem; i++)
+	for (i = 0; i < data->items.maxitem; i++) {
 		data->items.names[i] = MEM_callocN(but->hardmax + 1, "search pointers");
+	}
 
 	return ar;
 }
@@ -784,8 +794,9 @@ void ui_but_search_refresh(uiBut *but)
 	items->maxitem = 10;
 	items->maxstrlen = 256;
 	items->names = MEM_callocN(items->maxitem * sizeof(void *), "search names");
-	for (x1 = 0; x1 < items->maxitem; x1++)
+	for (x1 = 0; x1 < items->maxitem; x1++) {
 		items->names[x1] = MEM_callocN(but->hardmax + 1, "search names");
+	}
 
 	but->search_func(but->block->evil_C, but->search_arg, but->drawstr, items);
 

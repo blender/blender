@@ -134,10 +134,12 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
 		}
 
 		/* cleanup */
-		if (target_path)
+		if (target_path) {
 			MEM_freeN(target_path);
-		if (dst_path)
+		}
+		if (dst_path) {
 			MEM_freeN(dst_path);
+		}
 	}
 }
 
@@ -207,8 +209,12 @@ static int driverdropper_exec(bContext *C, wmOperator *op)
 
 static bool driverdropper_poll(bContext *C)
 {
-	if (!CTX_wm_window(C)) return 0;
-	else return 1;
+	if (!CTX_wm_window(C)) {
+		return 0;
+	}
+	else {
+		return 1;
+	}
 }
 
 void UI_OT_eyedropper_driver(wmOperatorType *ot)

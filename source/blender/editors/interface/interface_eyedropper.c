@@ -58,8 +58,9 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Eyedropper Modal Map");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items)
+	if (keymap && keymap->modal_items) {
 		return NULL;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "Eyedropper Modal Map", modal_items);
 
@@ -84,8 +85,9 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Eyedropper ColorRamp PointSampling Map");
-	if (keymap && keymap->modal_items)
+	if (keymap && keymap->modal_items) {
 		return keymap;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "Eyedropper ColorRamp PointSampling Map", modal_items_point);
 

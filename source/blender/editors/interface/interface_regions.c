@@ -58,8 +58,9 @@ void ui_region_temp_remove(bContext *C, bScreen *sc, ARegion *ar)
 
 	BLI_assert(ar->regiontype == RGN_TYPE_TEMPORARY);
 	BLI_assert(BLI_findindex(&sc->regionbase, ar) != -1);
-	if (win)
+	if (win) {
 		wm_draw_region_clear(win, ar);
+	}
 
 	ED_region_exit(C, ar);
 	BKE_area_region_free(NULL, ar);     /* NULL: no spacetype */

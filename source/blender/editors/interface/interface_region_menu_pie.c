@@ -75,8 +75,9 @@ static uiBlock *ui_block_func_PIE(bContext *UNUSED(C), uiPopupBlockHandle *handl
 
 	/* in some cases we create the block before the region,
 	 * so we set it delayed here if necessary */
-	if (BLI_findindex(&handle->region->uiblocks, block) == -1)
+	if (BLI_findindex(&handle->region->uiblocks, block) == -1) {
 		UI_block_region_set(block, handle->region);
+	}
 
 	UI_block_layout_resolve(block, &width, &height);
 
@@ -134,8 +135,9 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
 				event_type = EVENT_NONE;
 				pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
 			}
-			else
+			else {
 				event_type = win->last_pie_event;
+			}
 		}
 		else {
 			event_type = event->type;

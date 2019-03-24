@@ -139,8 +139,9 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	kmi_id = kmi->id;
 
 	/* copy properties, prop can be NULL for reset */
-	if (prop)
+	if (prop) {
 		prop = IDP_CopyProperty(prop);
+	}
 	WM_keymap_properties_reset(kmi, prop);
 
 	/* update and get pointers again */
@@ -407,8 +408,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
 		/* second slower test,
 		 * saved people finding keyframe items in menus when its not possible */
-		if (is_anim)
+		if (is_anim) {
 			is_anim = RNA_property_path_from_ID_check(&but->rnapoin, but->rnaprop);
+		}
 
 		/* determine if we can key a single component of an array */
 		const bool is_array = RNA_property_array_length(&but->rnapoin, but->rnaprop) != 0;

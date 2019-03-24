@@ -555,8 +555,12 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 
 	for (but = first; but && but->alignnr == nr; but = but->next) {
 		if (but->next && but->next->alignnr == nr) {
-			if (buts_are_horiz(but, but->next)) cols++;
-			else rows++;
+			if (buts_are_horiz(but, but->next)) {
+				cols++;
+			}
+			else {
+				rows++;
+			}
 		}
 	}
 
@@ -565,8 +569,9 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	for (but = first, prev = NULL; but && but->alignnr == nr; prev = but, but = but->next) {
 		next = but->next;
-		if (next && next->alignnr != nr)
+		if (next && next->alignnr != nr) {
 			next = NULL;
+		}
 
 		/* clear old flag */
 		but->drawflag &= ~UI_BUT_ALIGN;
@@ -574,10 +579,12 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 		if (flag == 0) {  /* first case */
 			if (next) {
 				if (buts_are_horiz(but, next)) {
-					if (rows == 0)
+					if (rows == 0) {
 						flag = UI_BUT_ALIGN_RIGHT;
-					else
+					}
+					else {
 						flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_RIGHT;
+					}
 				}
 				else {
 					flag = UI_BUT_ALIGN_DOWN;
@@ -587,10 +594,12 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 		else if (next == NULL) {  /* last case */
 			if (prev) {
 				if (buts_are_horiz(prev, but)) {
-					if (rows == 0)
+					if (rows == 0) {
 						flag = UI_BUT_ALIGN_LEFT;
-					else
+					}
+					else {
 						flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT;
+					}
 				}
 				else {
 					flag = UI_BUT_ALIGN_TOP;
@@ -611,7 +620,9 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 						}
 						bt = bt->next;
 					}
-					if (bt == NULL || bt->alignnr != nr) flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
+					if (bt == NULL || bt->alignnr != nr) {
+						flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
+					}
 				}
 			}
 			else {
@@ -624,8 +635,9 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 			}
 			else {  /* next button switches to new row */
 
-				if (prev && buts_are_horiz(prev, but))
+				if (prev && buts_are_horiz(prev, but)) {
 					flag |= UI_BUT_ALIGN_LEFT;
+				}
 				else {
 					flag &= ~UI_BUT_ALIGN_LEFT;
 					flag |= UI_BUT_ALIGN_TOP;
@@ -633,18 +645,21 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 
 				if ((flag & UI_BUT_ALIGN_TOP) == 0) {  /* still top row */
 					if (prev) {
-						if (next && buts_are_horiz(but, next))
+						if (next && buts_are_horiz(but, next)) {
 							flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT;
+						}
 						else {
 							/* last button in top row */
 							flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT;
 						}
 					}
-					else
+					else {
 						flag |= UI_BUT_ALIGN_DOWN;
+					}
 				}
-				else
+				else {
 					flag |= UI_BUT_ALIGN_TOP;
+				}
 			}
 		}
 
@@ -674,8 +689,9 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 					prev->rect.ymin = but->rect.ymax;
 
 					but->rect.xmin = prev->rect.xmin;
-					if (next && buts_are_horiz(but, next) == 0)
+					if (next && buts_are_horiz(but, next) == 0) {
 						but->rect.xmax = prev->rect.xmax;
+					}
 				}
 				else {
 					/* the previous button is not a single one in its row */

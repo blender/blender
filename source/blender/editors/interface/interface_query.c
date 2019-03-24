@@ -81,18 +81,24 @@ bool ui_but_is_toggle(const uiBut *but)
 bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 {
 	/* note, UI_BTYPE_LABEL is included for highlights, this allows drags */
-	if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == NULL)
+	if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == NULL) {
 		return false;
-	if (ELEM(but->type, UI_BTYPE_ROUNDBOX, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_LISTBOX))
+	}
+	if (ELEM(but->type, UI_BTYPE_ROUNDBOX, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_LISTBOX)) {
 		return false;
-	if (but->flag & UI_HIDDEN)
+	}
+	if (but->flag & UI_HIDDEN) {
 		return false;
-	if (but->flag & UI_SCROLLED)
+	}
+	if (but->flag & UI_SCROLLED) {
 		return false;
-	if ((but->type == UI_BTYPE_TEXT) && (but->dt == UI_EMBOSS_NONE) && !labeledit)
+	}
+	if ((but->type == UI_BTYPE_TEXT) && (but->dt == UI_EMBOSS_NONE) && !labeledit) {
 		return false;
-	if ((but->type == UI_BTYPE_LISTROW) && labeledit)
+	}
+	if ((but->type == UI_BTYPE_LISTROW) && labeledit) {
 		return false;
+	}
 
 	return true;
 }
@@ -175,13 +181,15 @@ static bool ui_but_isect_pie_seg(const uiBlock *block, const uiBut *but)
 	const float angle_range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_4 : M_PI_4 / 2.0;
 	float vec[2];
 
-	if (block->pie_data.flags & UI_PIE_INVALID_DIR)
+	if (block->pie_data.flags & UI_PIE_INVALID_DIR) {
 		return false;
+	}
 
 	ui_but_pie_dir(but->pie_dir, vec);
 
-	if (saacos(dot_v2v2(vec, block->pie_data.pie_dir)) < angle_range)
+	if (saacos(dot_v2v2(vec, block->pie_data.pie_dir)) < angle_range) {
 		return true;
+	}
 
 	return false;
 }
@@ -195,8 +203,9 @@ bool ui_but_contains_point_px(const uiBut *but, const ARegion *ar, int x, int y)
 {
 	uiBlock *block = but->block;
 	float mx, my;
-	if (!ui_region_contains_point_px(ar, x, y))
+	if (!ui_region_contains_point_px(ar, x, y)) {
 		return false;
+	}
 
 	mx = x;
 	my = y;
@@ -246,10 +255,12 @@ uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bo
 	uiBut *but, *butover = NULL;
 	float mx, my;
 
-//	if (!win->active)
+//	if (!win->active) {
 //		return NULL;
-	if (!ui_region_contains_point_px(ar, x, y))
+//	}
+	if (!ui_region_contains_point_px(ar, x, y)) {
 		return NULL;
+	}
 
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		mx = x;
@@ -294,8 +305,9 @@ uiBut *ui_list_find_mouse_over_ex(ARegion *ar, int x, int y)
 	uiBut *but;
 	float mx, my;
 
-	if (!ui_region_contains_point_px(ar, x, y))
+	if (!ui_region_contains_point_px(ar, x, y)) {
 		return NULL;
+	}
 
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		mx = x;
@@ -328,7 +340,9 @@ uiBut *ui_but_prev(uiBut *but)
 {
 	while (but->prev) {
 		but = but->prev;
-		if (ui_but_is_editable(but)) return but;
+		if (ui_but_is_editable(but)) {
+			return but;
+		}
 	}
 	return NULL;
 }
@@ -337,7 +351,9 @@ uiBut *ui_but_next(uiBut *but)
 {
 	while (but->next) {
 		but = but->next;
-		if (ui_but_is_editable(but)) return but;
+		if (ui_but_is_editable(but)) {
+			return but;
+		}
 	}
 	return NULL;
 }
@@ -348,7 +364,9 @@ uiBut *ui_but_first(uiBlock *block)
 
 	but = block->buttons.first;
 	while (but) {
-		if (ui_but_is_editable(but)) return but;
+		if (ui_but_is_editable(but)) {
+			return but;
+		}
 		but = but->next;
 	}
 	return NULL;
@@ -360,7 +378,9 @@ uiBut *ui_but_last(uiBlock *block)
 
 	but = block->buttons.last;
 	while (but) {
-		if (ui_but_is_editable(but)) return but;
+		if (ui_but_is_editable(but)) {
+			return but;
+		}
 		but = but->prev;
 	}
 	return NULL;
@@ -438,10 +458,13 @@ uiBut *ui_region_find_active_but(ARegion *ar)
 	uiBlock *block;
 	uiBut *but;
 
-	for (block = ar->uiblocks.first; block; block = block->next)
-		for (but = block->buttons.first; but; but = but->next)
-			if (but->active)
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		for (but = block->buttons.first; but; but = but->next) {
+			if (but->active) {
 				return but;
+			}
+		}
+	}
 
 	return NULL;
 }
@@ -461,8 +484,9 @@ bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
 
 	/* check if the mouse is in the region */
 	if (!BLI_rcti_isect_pt(&winrct, x, y)) {
-		for (uiBlock *block = ar->uiblocks.first; block; block = block->next)
+		for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
 			block->auto_open = false;
+		}
 
 		return false;
 	}

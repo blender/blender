@@ -167,18 +167,24 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 
 			switch (colorid) {
 				case TH_BACK:
-					if (ELEM(theme_regionid, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW))
+					if (ELEM(theme_regionid, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) {
 						cp = ts->back;
-					else if (theme_regionid == RGN_TYPE_CHANNELS)
+					}
+					else if (theme_regionid == RGN_TYPE_CHANNELS) {
 						cp = ts->list;
-					else if (theme_regionid == RGN_TYPE_HEADER)
+					}
+					else if (theme_regionid == RGN_TYPE_HEADER) {
 						cp = ts->header;
-					else if (theme_regionid == RGN_TYPE_NAV_BAR)
+					}
+					else if (theme_regionid == RGN_TYPE_NAV_BAR) {
 						cp = ts->navigation_bar;
-					else if (theme_regionid == RGN_TYPE_EXECUTE)
+					}
+					else if (theme_regionid == RGN_TYPE_EXECUTE) {
 						cp = ts->execution_buts;
-					else
+					}
+					else {
 						cp = ts->button;
+					}
 
 					copy_v4_v4_char(back, cp);
 					if (!ED_region_is_overlap(spacetype, theme_regionid)) {
@@ -195,34 +201,46 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 					setting = ts->show_back_grad;
 					break;
 				case TH_TEXT:
-					if (theme_regionid == RGN_TYPE_WINDOW)
+					if (theme_regionid == RGN_TYPE_WINDOW) {
 						cp = ts->text;
-					else if (theme_regionid == RGN_TYPE_CHANNELS)
+					}
+					else if (theme_regionid == RGN_TYPE_CHANNELS) {
 						cp = ts->list_text;
-					else if (theme_regionid == RGN_TYPE_HEADER)
+					}
+					else if (theme_regionid == RGN_TYPE_HEADER) {
 						cp = ts->header_text;
-					else
+					}
+					else {
 						cp = ts->button_text;
+					}
 					break;
 				case TH_TEXT_HI:
-					if (theme_regionid == RGN_TYPE_WINDOW)
+					if (theme_regionid == RGN_TYPE_WINDOW) {
 						cp = ts->text_hi;
-					else if (theme_regionid == RGN_TYPE_CHANNELS)
+					}
+					else if (theme_regionid == RGN_TYPE_CHANNELS) {
 						cp = ts->list_text_hi;
-					else if (theme_regionid == RGN_TYPE_HEADER)
+					}
+					else if (theme_regionid == RGN_TYPE_HEADER) {
 						cp = ts->header_text_hi;
-					else
+					}
+					else {
 						cp = ts->button_text_hi;
+					}
 					break;
 				case TH_TITLE:
-					if (theme_regionid == RGN_TYPE_WINDOW)
+					if (theme_regionid == RGN_TYPE_WINDOW) {
 						cp = ts->title;
-					else if (theme_regionid == RGN_TYPE_CHANNELS)
+					}
+					else if (theme_regionid == RGN_TYPE_CHANNELS) {
 						cp = ts->list_title;
-					else if (theme_regionid == RGN_TYPE_HEADER)
+					}
+					else if (theme_regionid == RGN_TYPE_HEADER) {
 						cp = ts->header_title;
-					else
+					}
+					else {
 						cp = ts->button_title;
+					}
 					break;
 
 				case TH_HEADER:

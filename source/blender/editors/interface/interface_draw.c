@@ -637,7 +637,9 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors *UN
 #else
 	ImBuf *ibuf = (ImBuf *)but->poin;
 
-	if (!ibuf) return;
+	if (!ibuf) {
+		return;
+	}
 
 	float facx = 1.0f;
 	float facy = 1.0f;
@@ -732,8 +734,9 @@ static void histogram_draw_one(
 	float color[4] = {r, g, b, alpha};
 
 	/* that can happen */
-	if (res == 0)
+	if (res == 0) {
 		return;
+	}
 
 	GPU_line_smooth(true);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
@@ -846,12 +849,15 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors
 		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_a, res, is_line, pos);
 	}
 	else {
-		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R)
+		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R) {
 			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line, pos);
-		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G)
+		}
+		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G) {
 			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res, is_line, pos);
-		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B)
+		}
+		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B) {
 			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line, pos);
+		}
 	}
 
 	immUnbindProgram();
@@ -891,7 +897,9 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors 
 	float colors_alpha[3][3], colorsycc_alpha[3][3];
 	float min, max;
 
-	if (scopes == NULL) return;
+	if (scopes == NULL) {
+		return;
+	}
 
 	rctf rect = {
 		.xmin = (float)recti->xmin + 1,
@@ -900,8 +908,9 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors 
 		.ymax = (float)recti->ymax - 1,
 	};
 
-	if (scopes->wavefrm_yfac < 0.5f)
+	if (scopes->wavefrm_yfac < 0.5f) {
 		scopes->wavefrm_yfac = 0.98f;
+	}
 	float w = BLI_rctf_size_x(&rect) - 7;
 	float h = BLI_rctf_size_y(&rect) * scopes->wavefrm_yfac;
 	float yofs = rect.ymin + (BLI_rctf_size_y(&rect) - h) * 0.5f;
@@ -1083,10 +1092,12 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors 
 		/* min max */
 		if (scopes->wavefrm_mode != SCOPES_WAVEFRM_LUMA ) {
 			for (int c = 0; c < 3; c++) {
-				if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB_PARADE, SCOPES_WAVEFRM_RGB))
+				if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB_PARADE, SCOPES_WAVEFRM_RGB)) {
 					immUniformColor3f(colors[c][0] * 0.75f, colors[c][1] * 0.75f, colors[c][2] * 0.75f);
-				else
+				}
+				else {
 					immUniformColor3f(colorsycc[c][0] * 0.75f, colorsycc[c][1] * 0.75f, colorsycc[c][2] * 0.75f);
+				}
 				min = yofs + scopes->minmax[c][0] * h;
 				max = yofs + scopes->minmax[c][1] * h;
 				CLAMP(min, rect.ymin, rect.ymax);
@@ -1125,11 +1136,22 @@ static void vectorscope_draw_target(uint pos, float centerx, float centery, floa
 	float dangle, dampli, dangle2, dampli2;
 
 	rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v, BLI_YUV_ITU_BT709);
-	if (u > 0 && v >= 0) tangle = atanf(v / u);
-	else if (u > 0 && v < 0) tangle = atanf(v / u) + 2.0f * (float)M_PI;
-	else if (u < 0) tangle = atanf(v / u) + (float)M_PI;
-	else if (u == 0 && v > 0.0f) tangle = M_PI_2;
-	else if (u == 0 && v < 0.0f) tangle = -M_PI_2;
+
+	if (u > 0 && v >= 0) {
+		tangle = atanf(v / u);
+	}
+	else if (u > 0 && v < 0) {
+		tangle = atanf(v / u) + 2.0f * (float)M_PI;
+	}
+	else if (u < 0) {
+		tangle = atanf(v / u) + (float)M_PI;
+	}
+	else if (u == 0 && v > 0.0f) {
+		tangle = M_PI_2;
+	}
+	else if (u == 0 && v < 0.0f) {
+		tangle = -M_PI_2;
+	}
 	tampli = sqrtf(u * u + v * v);
 
 	/* small target vary by 2.5 degree and 2.5 IRE unit */
@@ -1249,8 +1271,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColo
 	immEnd();
 
 	/* saturation points */
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 6; i++) {
 		vectorscope_draw_target(pos, centerx, centery, diam, colors[i]);
+	}
 
 	if (scopes->ok && scopes->vecscope != NULL) {
 		/* pixel point cloud */
@@ -1380,16 +1403,20 @@ static void ui_draw_colorband_handle(
 
 	ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
 
-	if (active)
+	if (active) {
 		immUniformColor3ub(196, 196, 196);
-	else
+	}
+	else {
 		immUniformColor3ub(96, 96, 96);
+	}
 	ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
 
-	if (active)
+	if (active) {
 		immUniformColor3ub(255, 255, 255);
-	else
+	}
+	else {
 		immUniformColor3ub(128, 128, 128);
+	}
 	ui_draw_colorband_handle_tri_hlight(shdr_pos, x, y1 + height - 1, (half_width - 1), (half_width - 1));
 
 	immUniformColor3ub(0, 0, 0);
@@ -1414,7 +1441,9 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
 	uint pos_id, col_id;
 
 	ColorBand *coba = (ColorBand *)(but->editcoba ? but->editcoba : but->poin);
-	if (coba == NULL) return;
+	if (coba == NULL) {
+		return;
+	}
 
 	float x1 = rect->xmin;
 	float sizex = rect->xmax - x1;
@@ -1454,8 +1483,9 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
 		BKE_colorband_evaluate(coba, pos, colf);
-		if (display)
+		if (display) {
 			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
+		}
 
 		v1[0] = v2[0] = x1 + a;
 
@@ -1473,8 +1503,9 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
 		BKE_colorband_evaluate(coba, pos, colf);
-		if (display)
+		if (display) {
 			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
+		}
 
 		v1[0] = v2[0] = x1 + a;
 
@@ -1553,10 +1584,12 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 	/* transform to button */
 	GPU_matrix_push();
 
-	if (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect))
+	if (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect)) {
 		size = 0.5f * BLI_rcti_size_x(rect);
-	else
+	}
+	else {
 		size = 0.5f * BLI_rcti_size_y(rect);
+	}
 
 	GPU_matrix_translate_2f(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect));
 	GPU_matrix_scale_1f(size);
@@ -1592,11 +1625,15 @@ static void ui_draw_but_curve_grid(uint pos, const rcti *rect, float zoomx, floa
 {
 	float dx = step * zoomx;
 	float fx = rect->xmin + zoomx * (-offsx);
-	if (fx > rect->xmin) fx -= dx * (floorf(fx - rect->xmin));
+	if (fx > rect->xmin) {
+		fx -= dx * (floorf(fx - rect->xmin));
+	}
 
 	float dy = step * zoomy;
 	float fy = rect->ymin + zoomy * (-offsy);
-	if (fy > rect->ymin) fy -= dy * (floorf(fy - rect->ymin));
+	if (fy > rect->ymin) {
+		fy -= dy * (floorf(fy - rect->ymin));
+	}
 
 	float line_count = (
 	        floorf((rect->xmax - fx) / dx) + 1.0f +
@@ -1775,12 +1812,15 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 			immVertex2f(pos, rect->xmin + zoomx * (lum - offsx), rect->ymax);
 		}
 		else {
-			if (cumap->cur == 0)
+			if (cumap->cur == 0) {
 				immUniformColor3ub(240, 100, 100);
-			else if (cumap->cur == 1)
+			}
+			else if (cumap->cur == 1) {
 				immUniformColor3ub(100, 240, 100);
-			else
+			}
+			else {
 				immUniformColor3ub(100, 100, 240);
+			}
 
 			immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymin);
 			immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymax);
@@ -1791,8 +1831,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 
 
 
-	if (cuma->table == NULL)
+	if (cuma->table == NULL) {
 		curvemapping_changed(cumap, false);
+	}
 
 	CurveMapPoint *cmp = cuma->table;
 	rctf line_range;
@@ -1937,8 +1978,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, const uiWidgetCol
 	         ((!scopes->track_preview) ||
 	          (scopes->track_preview->x != width || scopes->track_preview->y != height)))
 	{
-		if (scopes->track_preview)
+		if (scopes->track_preview) {
 			IMB_freeImBuf(scopes->track_preview);
+		}
 
 		ImBuf *tmpibuf = BKE_tracking_sample_pattern(
 		        scopes->frame_width, scopes->frame_height,
@@ -1946,13 +1988,16 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, const uiWidgetCol
 		        &scopes->undist_marker, true, scopes->use_track_mask,
 		        width, height, scopes->track_pos);
 		if (tmpibuf) {
-			if (tmpibuf->rect_float)
+			if (tmpibuf->rect_float) {
 				IMB_rect_from_float(tmpibuf);
+			}
 
-			if (tmpibuf->rect)
+			if (tmpibuf->rect) {
 				scopes->track_preview = tmpibuf;
-			else
+			}
+			else {
 				IMB_freeImBuf(tmpibuf);
+			}
 		}
 	}
 
@@ -2001,10 +2046,12 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, const uiWidgetCol
 					float x2 = pos_sel[i + 1] * (1 - axe);
 					float y2 = pos_sel[i + 1] * axe;
 
-					if (i % 2 == 1)
+					if (i % 2 == 1) {
 						immAttr4fv(col, col_sel);
-					else
+					}
+					else {
 						immAttr4fv(col, col_outline);
+					}
 
 					immVertex2f(pos, x1, y1);
 					immVertex2f(pos, x2, y2);
@@ -2082,16 +2129,18 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, const uiWidgetColors *UNUSE
 
 	GPU_blend(true);
 	immBegin(GPU_PRIM_TRI_FAN, 16);
-	for (int a = 0; a < 16; a++)
+	for (int a = 0; a < 16; a++) {
 		immVertex2f(pos, x + size * si[a], y + size * co[a]);
+	}
 	immEnd();
 
 	immUniformColor4ub(0, 0, 0, 150);
 	GPU_line_width(1);
 	GPU_line_smooth(true);
 	immBegin(GPU_PRIM_LINE_LOOP, 16);
-	for (int a = 0; a < 16; a++)
+	for (int a = 0; a < 16; a++) {
 		immVertex2f(pos, x + size * si[a], y + size * co[a]);
+	}
 	immEnd();
 	GPU_line_smooth(false);
 	GPU_blend(false);
@@ -2200,10 +2249,12 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 {
 	float rad;
 
-	if (radius > (BLI_rctf_size_y(rct) - 10.0f) * 0.5f)
+	if (radius > (BLI_rctf_size_y(rct) - 10.0f) * 0.5f) {
 		rad = (BLI_rctf_size_y(rct) - 10.0f) * 0.5f;
-	else
+	}
+	else {
 		rad = radius;
+	}
 
 	int a, i = 12;
 #if 0

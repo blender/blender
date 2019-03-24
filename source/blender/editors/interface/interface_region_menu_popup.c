@@ -480,8 +480,9 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
 	uiPopupMenu *pup = NULL;
 	uiLayout *layout;
 
-	if (!CTX_wm_window(C))
+	if (!CTX_wm_window(C)) {
 		return;
+	}
 
 	for (report = reports->list.first; report; report = report->next) {
 		int icon;

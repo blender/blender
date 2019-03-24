@@ -153,8 +153,9 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
 		/* If menu slides out of other menu, override direction. */
 		bool slideout = ui_block_is_menu(pup->but->block);
-		if (slideout)
+		if (slideout) {
 			UI_block_direction_set(block, UI_DIR_RIGHT);
+		}
 
 		/* Store the button location for positioning the popover arrow hint. */
 		if (!handle->refresh) {

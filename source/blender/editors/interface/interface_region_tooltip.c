@@ -839,20 +839,27 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 
 	/* Free strinfo's... */
-	if (but_tip.strinfo)
+	if (but_tip.strinfo) {
 		MEM_freeN(but_tip.strinfo);
-	if (enum_label.strinfo)
+	}
+	if (enum_label.strinfo) {
 		MEM_freeN(enum_label.strinfo);
-	if (enum_tip.strinfo)
+	}
+	if (enum_tip.strinfo) {
 		MEM_freeN(enum_tip.strinfo);
-	if (op_keymap.strinfo)
+	}
+	if (op_keymap.strinfo) {
 		MEM_freeN(op_keymap.strinfo);
-	if (prop_keymap.strinfo)
+	}
+	if (prop_keymap.strinfo) {
 		MEM_freeN(prop_keymap.strinfo);
-	if (rna_struct.strinfo)
+	}
+	if (rna_struct.strinfo) {
 		MEM_freeN(rna_struct.strinfo);
-	if (rna_prop.strinfo)
+	}
+	if (rna_prop.strinfo) {
 		MEM_freeN(rna_prop.strinfo);
+	}
 
 	if (data->fields_len == 0) {
 		MEM_freeN(data);
