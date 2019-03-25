@@ -104,7 +104,11 @@ static void move_geom_draw(
 	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_move3d, select);
 #else
 	const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
-	const bool filled = (draw_options & ED_GIZMO_MOVE_DRAW_FLAG_FILL) != 0;
+	const bool filled = (
+	        (draw_options &
+	         (select ?
+	          (ED_GIZMO_MOVE_DRAW_FLAG_FILL | ED_GIZMO_MOVE_DRAW_FLAG_FILL_SELECT) :
+	          ED_GIZMO_MOVE_DRAW_FLAG_FILL)));
 
 	GPU_line_width(gz->line_width);
 
@@ -440,6 +444,7 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
 		{ED_GIZMO_MOVE_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_GIZMO_MOVE_DRAW_FLAG_FILL_SELECT, "FILL_SELECT", 0, "Use fill for selection test", ""},
 		{ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
 		{0, NULL, 0, NULL, NULL},
 	};

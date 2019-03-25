@@ -184,10 +184,11 @@ enum {
 	ED_GIZMO_DIAL_DRAW_FLAG_NOP               = 0,
 	ED_GIZMO_DIAL_DRAW_FLAG_CLIP              = (1 << 0),
 	ED_GIZMO_DIAL_DRAW_FLAG_FILL              = (1 << 1),
-	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR      = (1 << 2),
-	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y     = (1 << 3),
+	ED_GIZMO_DIAL_DRAW_FLAG_FILL_SELECT       = (1 << 2),
+	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR      = (1 << 3),
+	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y     = (1 << 4),
 	/* Always show the angle value as an arc in the dial. */
-	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE       = (1 << 4),
+	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE       = (1 << 5),
 };
 
 /* -------------------------------------------------------------------- */
@@ -198,7 +199,8 @@ enum {
 	ED_GIZMO_MOVE_DRAW_FLAG_NOP               = 0,
 	/* only for solid shapes */
 	ED_GIZMO_MOVE_DRAW_FLAG_FILL              = (1 << 0),
-	ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW        = (1 << 1),
+	ED_GIZMO_MOVE_DRAW_FLAG_FILL_SELECT       = (1 << 1),
+	ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW        = (1 << 2),
 };
 
 enum {
@@ -245,6 +247,7 @@ void ED_gizmotypes_dial_3d_draw_util(
         const float matrix_final[4][4],
         const float line_width,
         const float color[4],
+        const bool select,
         struct Dial3dParams *params);
 
 #endif  /* __ED_GIZMO_LIBRARY_H__ */

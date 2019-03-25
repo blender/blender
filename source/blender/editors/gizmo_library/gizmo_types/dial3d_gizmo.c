@@ -106,7 +106,11 @@ static void dial_geom_draw(
 	UNUSED_VARS(gz, axis_modal_mat, clip_plane);
 	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_dial, select, color);
 #else
-	const bool filled = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_FILL) != 0;
+	const bool filled = (
+	        (draw_options &
+	         (select ?
+	          (ED_GIZMO_DIAL_DRAW_FLAG_FILL | ED_GIZMO_DIAL_DRAW_FLAG_FILL_SELECT) :
+	          ED_GIZMO_DIAL_DRAW_FLAG_FILL)));
 
 	GPU_line_width(line_width);
 
@@ -368,7 +372,7 @@ static void dial_draw_intern(
 	}
 
 	ED_gizmotypes_dial_3d_draw_util(
-	        gz->matrix_basis, matrix_final, gz->line_width, color,
+	        gz->matrix_basis, matrix_final, gz->line_width, color, select,
 	        &(struct Dial3dParams){
 	            .draw_options = draw_options,
 	            .angle_ofs = angle_ofs,
@@ -536,6 +540,7 @@ void ED_gizmotypes_dial_3d_draw_util(
         const float matrix_final[4][4],
         const float line_width,
         const float color[4],
+        const bool select,
         struct Dial3dParams *params)
 {
 	GPU_matrix_push();
@@ -562,7 +567,7 @@ void ED_gizmotypes_dial_3d_draw_util(
 
 	/* Draw actual dial gizmo. */
 	dial_geom_draw(
-	        color, line_width, false, matrix_basis, params->clip_plane,
+	        color, line_width, select, matrix_basis, params->clip_plane,
 	        params->arc_partial_angle, params->arc_inner_factor, params->draw_options);
 
 	GPU_matrix_pop();
@@ -587,6 +592,7 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
 	static EnumPropertyItem rna_enum_draw_options[] = {
 		{ED_GIZMO_DIAL_DRAW_FLAG_CLIP, "CLIP", 0, "Clipped", ""},
 		{ED_GIZMO_DIAL_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_GIZMO_DIAL_DRAW_FLAG_FILL_SELECT, "FILL_SELECT", 0, "Use fill for selection test", ""},
 		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR, "ANGLE_MIRROR", 0, "Angle Mirror", ""},
 		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y, "ANGLE_START_Y", 0, "Angle Start Y", ""},
 		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE, "ANGLE_VALUE", 0, "Show Angle Value", ""},
