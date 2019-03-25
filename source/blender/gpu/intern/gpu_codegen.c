@@ -1204,8 +1204,8 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code, cons
 		BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
 		BLI_dynstr_append(ds, "\tbarycentricTexCo = barycentricTexCog[vert];\n");
 		BLI_dynstr_append(ds, "#else\n");
-		BLI_dynstr_append(ds, "\tbarycentricTexCo.x = float((vert %% 3) == 0);\n");
-		BLI_dynstr_append(ds, "\tbarycentricTexCo.y = float((vert %% 3) == 1);\n");
+		BLI_dynstr_append(ds, "\tbarycentricTexCo.x = float((vert % 3) == 0);\n");
+		BLI_dynstr_append(ds, "\tbarycentricTexCo.y = float((vert % 3) == 1);\n");
 		BLI_dynstr_append(ds, "#endif\n");
 	}
 
