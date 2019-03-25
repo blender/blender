@@ -1239,7 +1239,13 @@ void uiItemFullOMenuHold_ptr(
         PointerRNA *r_opptr);
 
 void uiItemR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int flag, const char *name, int icon);
-void uiItemFullR(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, const char *name, int icon);
+void uiItemFullR(
+        uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag,
+        const char *name, int icon);
+void uiItemFullR_with_popover(
+        uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag,
+        const char *name, int icon,
+        const char *panel_type);
 void uiItemEnumR_prop(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, PropertyRNA *prop, int value);
 void uiItemEnumR(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, const char *propname, int value);
 void uiItemEnumR_string_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, const char *value, const char *name, int icon);

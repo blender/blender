@@ -3725,13 +3725,14 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 			}
 			break;
 		case UI_BTYPE_MENU:
-			BLI_assert(but->menu_create_func);
-			menufunc = but->menu_create_func;
-			arg = but->poin;
-			break;
 		case UI_BTYPE_POPOVER:
 			BLI_assert(but->menu_create_func);
-			popoverfunc = but->menu_create_func;
+			if ((but->type == UI_BTYPE_POPOVER) || ui_but_menu_draw_as_popover(but)) {
+				popoverfunc = but->menu_create_func;
+			}
+			else {
+				menufunc = but->menu_create_func;
+			}
 			arg = but->poin;
 			break;
 		case UI_BTYPE_COLOR:

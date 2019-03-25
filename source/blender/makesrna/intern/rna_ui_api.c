@@ -133,6 +133,28 @@ static void rna_uiItemMenuEnumR(
 	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
 }
 
+static void rna_uiItemPopoverPanelEnumR(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
+        const char *text_ctxt, bool translate, int icon,
+        const char *panel_type)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	if (RNA_property_type(prop) != PROP_ENUM) {
+		RNA_warning("property is not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	int flag = 0;
+
+	/* Get translated name (label). */
+	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
+	uiItemFullR_with_popover(layout, ptr, prop, -1, 0, flag, name, icon, panel_type);
+}
+
 static void rna_uiItemTabsEnumR(
         uiLayout *layout, bContext *C,
         struct PointerRNA *ptr, const char *propname,
@@ -638,6 +660,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "prop_menu_enum", "rna_uiItemMenuEnumR");
 	api_ui_item_rna_common(func);
 	api_ui_item_common(func);
+
+	func = RNA_def_function(srna, "prop_popover_enum", "rna_uiItemPopoverPanelEnumR");
+	api_ui_item_rna_common(func);
+	api_ui_item_common(func);
+	parm = RNA_def_string(func, "panel", NULL, 0, "", "Identifier of the panel");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "prop_tabs_enum", "rna_uiItemTabsEnumR");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

@@ -85,6 +85,7 @@
 /* prototypes. */
 static void ui_but_to_pixelrect(struct rcti *rect, const struct ARegion *ar, struct uiBlock *block, struct uiBut *but);
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p);
+static void ui_def_but_rna__popover(bContext *UNUSED(C), uiLayout *layout, void *but_p);
 
 /* avoid unneeded calls to ui_but_value_get */
 #define UI_BUT_VALUE_UNSET DBL_MAX
@@ -1149,7 +1150,7 @@ static bool ui_but_event_property_operator_string(
 		if ((but->type == UI_BTYPE_BUT_MENU) &&
 		    (but_parent && but_parent->rnaprop) &&
 		    (RNA_property_type(but_parent->rnaprop) == PROP_ENUM) &&
-		    (but_parent->menu_create_func == ui_def_but_rna__menu))
+		    ELEM(but_parent->menu_create_func, ui_def_but_rna__menu, ui_def_but_rna__popover))
 		{
 			prop_enum_value = (int)but->hardmin;
 			ptr = &but_parent->rnapoin;
@@ -3829,6 +3830,35 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 	}
 	BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
 	block->flag |= UI_BLOCK_IS_FLIP;
+}
+
+static void ui_def_but_rna__popover(bContext *C, uiLayout *layout, void *but_p)
+{
+	uiBut *but = but_p;
+	const char *panel_type = but->func_argN;
+	PanelType *pt = WM_paneltype_find(panel_type, true);
+	if (pt) {
+		ui_item_paneltype_func(C, layout, pt);
+	}
+	else {
+		char msg[256];
+		SNPRINTF(msg, "Missing Panel: %s", panel_type);
+		uiItemL(layout, msg, ICON_NONE);
+	}
+}
+
+void ui_but_rna_menu_convert_to_popover(uiBut *but, const char *panel_type)
+{
+	BLI_assert(but->type == UI_BTYPE_MENU);
+	BLI_assert(but->menu_create_func == ui_def_but_rna__menu);
+	BLI_assert((void *)but->poin == but);
+	but->menu_create_func = ui_def_but_rna__popover;
+	but->func_argN = BLI_strdup(panel_type);
+}
+
+bool ui_but_menu_draw_as_popover(const uiBut *but)
+{
+	return (but->menu_create_func == ui_def_but_rna__popover);
 }
 
 static void ui_but_submenu_enable(uiBlock *block, uiBut *but)
