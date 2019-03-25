@@ -726,6 +726,12 @@ def km_outliner(params):
         ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
     ])
 
+    if params.apple:
+        items.extend([
+            ("outliner.id_copy", {"type": 'C', "value": 'PRESS', "oskey": True}, None),
+            ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "oskey": True}, None),
+    ])
+
     return keymap
 
 
