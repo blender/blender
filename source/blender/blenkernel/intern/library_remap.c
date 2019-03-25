@@ -833,7 +833,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
  * \param flag: Set of \a LIB_ID_FREE_... flags controlling/overriding usual freeing process,
  * 0 to get default safe behavior.
  * \param use_flag_from_idtag: Still use freeing info flags from given ID datablock,
- * even if some overriding ones are passed in \a falg parameter.
+ * even if some overriding ones are passed in \a flag parameter.
  */
 void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_idtag)
 {
