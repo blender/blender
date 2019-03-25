@@ -1329,7 +1329,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 				/* Remap material */
 				Material *ma = BLI_ghash_lookup(new_colors, POINTER_FROM_INT(new_stroke->mat_nr));
 				new_stroke->mat_nr = BKE_gpencil_get_material_index(ob, ma);
-				BLI_assert(new_stroke >= 0); /* have to add the material first */
+				BLI_assert(new_stroke->mat_nr >= 0); /* have to add the material first */
 			}
 		}
 	}
@@ -3905,7 +3905,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 	/* create new grease pencil datablock */
 	gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
 	ob_dst->data = (bGPdata *)gpd_dst;
-	
+
 	/* loop old datablock and separate parts */
 	if ((mode == GP_SEPARATE_POINT) || (mode == GP_SEPARATE_STROKE)) {
 		CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)

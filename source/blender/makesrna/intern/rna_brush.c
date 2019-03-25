@@ -443,7 +443,7 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	/*WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL); */
 }
 
-static void rna_Brush_material_update(bContext *C, PointerRNA *ptr)
+static void rna_Brush_material_update(bContext *UNUSED(C), PointerRNA *UNUSED(ptr))
 {
 	/* number of material users changed */
 	WM_main_add_notifier(NC_SPACE | ND_SPACE_PROPERTIES, NULL);
