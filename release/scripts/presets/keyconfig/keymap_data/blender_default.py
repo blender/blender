@@ -5142,7 +5142,7 @@ def km_image_editor_tool_uv_select_circle(params):
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select_actions_simple(
             "uv.select_circle", type=params.tool_mouse, value='PRESS',
-            properties=[("wait_for_input", True)],
+            properties=[("wait_for_input", False)],
         )},
     )
 
