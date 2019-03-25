@@ -354,7 +354,7 @@ Scene *RE_GetScene(Render *re)
 	return NULL;
 }
 
-void RE_SetScene(Render *re, Scene* sce)
+void RE_SetScene(Render *re, Scene *sce)
 {
 	if (re) {
 		re->scene = sce;

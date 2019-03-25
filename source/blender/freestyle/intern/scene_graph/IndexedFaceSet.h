@@ -176,7 +176,7 @@ public:
 		return _Normals;
 	}
 
-	virtual const FrsMaterial*const* frs_materials() const
+	virtual const FrsMaterial * const *frs_materials() const
 	{
 		return _FrsMaterials;
 	}

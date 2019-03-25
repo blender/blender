@@ -26,9 +26,10 @@ uniform vec2 nearFar; /* Near & far view depths values */
 /* divide by sensor size to get the normalized size */
 #define calculate_coc(zdepth) (dof_mul / zdepth - dof_bias)
 
-#define linear_depth(z) ((ProjectionMatrix[3][3] == 0.0) \
-		? (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) \
-		: z * (nearFar.y - nearFar.x) + nearFar.x) /* Only true for camera view! */
+#define linear_depth(z) \
+	((ProjectionMatrix[3][3] == 0.0) ? \
+	 (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) : \
+	 z * (nearFar.y - nearFar.x) + nearFar.x) /* Only true for camera view! */
 
 #define weighted_sum(a, b, c, d, e) (a * e.x + b * e.y + c * e.z + d * e.w) / max(1e-6, dot(e, vec4(1.0)));
 

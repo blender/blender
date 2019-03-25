@@ -1557,7 +1557,7 @@ typedef struct SPHRangeData {
 	SPHNeighbor neighbors[SPH_NEIGHBORS];
 	int tot_neighbors;
 
-	float* data;
+	float *data;
 
 	ParticleSystem *npsys;
 	ParticleData *pa;
@@ -1623,8 +1623,8 @@ static void sph_density_accum_cb(void *userdata, int index, const float co[3], f
 	if (pfr->use_size)
 		q *= npa->size;
 
-	pfr->data[0] += q*q;
-	pfr->data[1] += q*q*q;
+	pfr->data[0] += q * q;
+	pfr->data[1] += q * q * q;
 }
 
 /*

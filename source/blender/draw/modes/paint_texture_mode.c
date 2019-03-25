@@ -155,13 +155,15 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
 	}
 }
 
-static DRWShadingGroup* create_texture_paint_shading_group(PAINT_TEXTURE_PassList *psl, const struct GPUTexture *texture, const DRWContextState *draw_ctx, const bool nearest_interp)
+static DRWShadingGroup *create_texture_paint_shading_group(
+        PAINT_TEXTURE_PassList *psl, const struct GPUTexture *texture, const DRWContextState *draw_ctx, const bool nearest_interp)
 {
 	Scene *scene = draw_ctx->scene;
 	const ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 	const bool masking_enabled = imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL && imapaint->stencil != NULL;
 
-	DRWShadingGroup *grp = DRW_shgroup_create(masking_enabled?e_data.image_masking_sh:e_data.image_sh, psl->image_faces);
+	DRWShadingGroup *grp = DRW_shgroup_create(
+	        masking_enabled ? e_data.image_masking_sh : e_data.image_sh, psl->image_faces);
 	DRW_shgroup_uniform_texture(grp, "image", texture);
 	DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
 	DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);

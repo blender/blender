@@ -169,7 +169,7 @@ void render_result_views_shallowdelete(RenderResult *rr)
 }
 
 
-static char* set_pass_name(char *outname, const char *name, int channel, const char *chan_id)
+static char *set_pass_name(char *outname, const char *name, int channel, const char *chan_id)
 {
 	BLI_strncpy(outname, name, EXR_PASS_MAXNAME);
 	if (channel >= 0) {

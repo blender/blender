@@ -1565,7 +1565,7 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph, Scene *scene, stru
 
 /* --- the spring external section*/
 
-static int choose_winner(float*w, float* pos, float*a, float*b, float*c, float*ca, float*cb, float*cc)
+static int choose_winner(float *w, float *pos, float *a, float *b, float *c, float *ca, float *cb, float *cc)
 {
 	float mindist, cp;
 	int winner =1;
@@ -1885,13 +1885,13 @@ static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, floa
 	switch (bs->springtype) {
 		case SB_EDGE:
 		case SB_HANDLE:
-			forcefactor *=  kw;
+			forcefactor *= kw;
 			break;
 		case SB_BEND:
-			forcefactor *=sb->secondspring*kw;
+			forcefactor *= sb->secondspring * kw;
 			break;
 		case SB_STIFFQUAD:
-			forcefactor *=sb->shearstiff*sb->shearstiff* kw;
+			forcefactor *= sb->shearstiff * sb->shearstiff * kw;
 			break;
 		default:
 			break;
@@ -2043,11 +2043,11 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				BKE_effectors_apply(effectors, NULL, sb->effector_weights, &epoint, force, speed);
 
 				/* apply forcefield*/
-				mul_v3_fl(force, fieldfactor* eval_sb_fric_force_scale);
+				mul_v3_fl(force, fieldfactor * eval_sb_fric_force_scale);
 				add_v3_v3(bp->force, force);
 
 				/* BP friction in moving media */
-				kd= sb->mediafrict* eval_sb_fric_force_scale;
+				kd= sb->mediafrict * eval_sb_fric_force_scale;
 				bp->force[0] -= kd * (bp->vec[0] + windfactor*speed[0]/eval_sb_fric_force_scale);
 				bp->force[1] -= kd * (bp->vec[1] + windfactor*speed[1]/eval_sb_fric_force_scale);
 				bp->force[2] -= kd * (bp->vec[2] + windfactor*speed[2]/eval_sb_fric_force_scale);
@@ -2056,7 +2056,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			}
 			else {
 				/* BP friction in media (not) moving*/
-				float kd = sb->mediafrict* sb_fric_force_scale(ob);
+				float kd = sb->mediafrict * sb_fric_force_scale(ob);
 				/* assume it to be proportional to actual velocity */
 				bp->force[0]-= bp->vec[0]*kd;
 				bp->force[1]-= bp->vec[1]*kd;

@@ -689,7 +689,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 	}
 
 	if (ibuf->rect_float) {
-		const float* fp = ibuf->rect_float + (x + y*ibuf->x)*ibuf->channels;
+		const float *fp = ibuf->rect_float + (x + y * ibuf->x) * ibuf->channels;
 		if (ibuf->channels == 1)
 			col[0] = col[1] = col[2] = col[3] = *fp;
 		else {

@@ -614,8 +614,8 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph,
 }
 
 template <typename T>
-void update_list_orig_pointers(const ListBase* listbase_orig,
-                               ListBase* listbase,
+void update_list_orig_pointers(const ListBase *listbase_orig,
+                               ListBase *listbase,
                                T *T::*orig_field)
 {
 	T *element_orig = reinterpret_cast<T*>(listbase_orig->first);
@@ -934,7 +934,7 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
 }
 
 inline ModifierDataBackupID create_modifier_data_id(
-        const ModifierData* modifier_data)
+        const ModifierData *modifier_data)
 {
 	return ModifierDataBackupID(modifier_data->orig_modifier_data,
 	                            static_cast<ModifierType>(modifier_data->type));

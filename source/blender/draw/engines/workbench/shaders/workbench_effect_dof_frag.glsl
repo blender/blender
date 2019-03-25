@@ -31,9 +31,10 @@ float max_v4(vec4 v) { return max(max(v.x, v.y), max(v.z, v.w)); }
 /* divide by sensor size to get the normalized size */
 #define calculate_coc(zdepth) (dof_aperturesize * (dof_distance / zdepth - 1.0) * dof_invsensorsize)
 
-#define linear_depth(z) ((ProjectionMatrix[3][3] == 0.0) \
-		? (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) \
-		: (z * 2.0 - 1.0) * nearFar.y)
+#define linear_depth(z) \
+	((ProjectionMatrix[3][3] == 0.0) ? \
+	 (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) : \
+	 (z * 2.0 - 1.0) * nearFar.y)
 
 
 const float MAX_COC_SIZE = 100.0;

@@ -21,10 +21,10 @@
  * \ingroup bke
  */
 
-typedef void* CCGMeshHDL;
-typedef void* CCGVertHDL;
-typedef void* CCGEdgeHDL;
-typedef void* CCGFaceHDL;
+typedef void *CCGMeshHDL;
+typedef void *CCGVertHDL;
+typedef void *CCGEdgeHDL;
+typedef void *CCGFaceHDL;
 
 typedef struct CCGEdge CCGEdge;
 typedef struct CCGFace CCGFace;
@@ -40,7 +40,7 @@ typedef struct CCGMeshIFC {
 
 /***/
 
-typedef void* CCGAllocatorHDL;
+typedef void *CCGAllocatorHDL;
 
 typedef struct CCGAllocatorIFC {
 	void*		(*alloc)			(CCGAllocatorHDL a, int numBytes);

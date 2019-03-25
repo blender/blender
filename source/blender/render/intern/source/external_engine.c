@@ -432,7 +432,7 @@ bool RE_engine_get_spherical_stereo(RenderEngine *engine, Object *camera)
 	return BKE_camera_multiview_spherical_stereo(re ? &re->r : NULL, camera) ? 1 : 0;
 }
 
-rcti* RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_free)
+rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_free)
 {
 	static rcti tiles_static[BLENDER_MAX_THREADS];
 	const int allocation_step = BLENDER_MAX_THREADS;

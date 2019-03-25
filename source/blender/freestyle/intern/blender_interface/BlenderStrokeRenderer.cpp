@@ -242,7 +242,7 @@ unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
 	return mesh_id;
 }
 
-Material* BlenderStrokeRenderer::GetStrokeShader(Main *bmain, bNodeTree *iNodeTree, bool do_id_user)
+Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain, bNodeTree *iNodeTree, bool do_id_user)
 {
 	Material *ma = BKE_material_add(bmain, "stroke_shader");
 	bNodeTree *ntree;

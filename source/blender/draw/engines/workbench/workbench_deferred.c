@@ -264,8 +264,7 @@ static GPUShader *ensure_background_shader(WORKBENCH_PrivateData *wpd)
 
 static void select_deferred_shaders(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg)
 {
-	wpd->prepass_solid_sh
-		= ensure_deferred_prepass_shader(wpd, false, false, sh_cfg);
+	wpd->prepass_solid_sh = ensure_deferred_prepass_shader(wpd, false, false, sh_cfg);
 	wpd->prepass_solid_hair_sh = ensure_deferred_prepass_shader(wpd, false, true, sh_cfg);
 	wpd->prepass_texture_sh = ensure_deferred_prepass_shader(wpd, true, false, sh_cfg);
 	wpd->prepass_texture_hair_sh = ensure_deferred_prepass_shader(wpd, true, true, sh_cfg);
