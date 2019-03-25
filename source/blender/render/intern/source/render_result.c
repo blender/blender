@@ -325,12 +325,12 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 				IMB_exr_add_view(rl->exrhandle, view);
 
 #define RENDER_LAYER_ADD_PASS_SAFE(rr, rl, channels, name, viewname, chan_id) \
-			do { \
-				if (render_layer_add_pass(rr, rl, channels, name, viewname, chan_id) == NULL) { \
-					render_result_free(rr); \
-					return NULL; \
-				} \
-			} while (false)
+	do { \
+		if (render_layer_add_pass(rr, rl, channels, name, viewname, chan_id) == NULL) { \
+			render_result_free(rr); \
+			return NULL; \
+		} \
+	} while (false)
 
 			/* a renderlayer should always have a Combined pass*/
 			render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA");
@@ -598,8 +598,8 @@ static void *ml_addview_cb(void *base, const char *str)
 static int order_render_passes(const void *a, const void *b)
 {
 	// 1 if a is after b
-	RenderPass *rpa = (RenderPass *) a;
-	RenderPass *rpb = (RenderPass *) b;
+	RenderPass *rpa = (RenderPass *)a;
+	RenderPass *rpb = (RenderPass *)b;
 	unsigned int passtype_a = passtype_from_name(rpa->name);
 	unsigned int passtype_b = passtype_from_name(rpb->name);
 
@@ -838,7 +838,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 			}
 
 			if (write_z && rview->rectz) {
-				const char *layname = (multi_layer)? "Composite": "";
+				const char *layname = (multi_layer) ? "Composite" : "";
 				IMB_exr_add_channel(exrhandle, layname, "Z", viewname,
 				                    1, rr->rectx, rview->rectz, false);
 			}
@@ -846,7 +846,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 	}
 
 	/* Other render layers. */
-	int nr = (rr->have_combined)? 1: 0;
+	int nr = (rr->have_combined) ? 1 : 0;
 	for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next, nr++) {
 		/* Skip other render layers if requested. */
 		if (!multi_layer && nr != layer) {
@@ -1304,7 +1304,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd, const int vi
 	RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
 	/* if not exists, BKE_imbuf_write makes one */
-	ibuf->rect = (unsigned int *) rv->rect32;
+	ibuf->rect = (unsigned int *)rv->rect32;
 	ibuf->rect_float = rv->rectf;
 	ibuf->zbuf_float = rv->rectz;
 
@@ -1392,7 +1392,7 @@ void render_result_rect_get_pixels(RenderResult *rr, unsigned int *rect, int rec
 	if (rv->rect32)
 		memcpy(rect, rv->rect32, sizeof(int) * rr->rectx * rr->recty);
 	else if (rv->rectf)
-		IMB_display_buffer_transform_apply((unsigned char *) rect, rv->rectf, rr->rectx, rr->recty, 4,
+		IMB_display_buffer_transform_apply((unsigned char *)rect, rv->rectf, rr->rectx, rr->recty, 4,
 		                                   view_settings, display_settings, true);
 	else
 		/* else fill with black */
@@ -1431,11 +1431,13 @@ bool RE_HasFloatPixels(RenderResult *res)
 
 bool RE_RenderResult_is_stereo(RenderResult *res)
 {
-	if (! BLI_findstring(&res->views, STEREO_LEFT_NAME, offsetof(RenderView, name)))
+	if (!BLI_findstring(&res->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
 		return false;
+	}
 
-	if (! BLI_findstring(&res->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)))
+	if (!BLI_findstring(&res->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
 		return false;
+	}
 
 	return true;
 }

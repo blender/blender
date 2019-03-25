@@ -103,7 +103,7 @@ typedef struct {
 	const int *orig_index_mp_to_orig;
 } MNormalBakeData;
 
-static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],const int tri_num, const int vert_index)
+static void multiresbake_get_normal(const MResolvePixelData *data, float norm[], const int tri_num, const int vert_index)
 {
 	const int poly_index = data->mlooptri[tri_num].poly;
 	const MPoly *mp = &data->mpoly[poly_index];
@@ -129,7 +129,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 static void init_bake_rast(MBakeRast *bake_rast, const ImBuf *ibuf, const MResolvePixelData *data,
                            MFlushPixel flush_pixel, short *do_update)
 {
-	BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
+	BakeImBufuserData *userdata = (BakeImBufuserData *)ibuf->userdata;
 
 	memset(bake_rast, 0, sizeof(MBakeRast));
 
@@ -281,9 +281,9 @@ static void bake_rasterize(const MBakeRast *bake_rast, const float st0_in[2], co
 
 	/* check if mid point is to the left or to the right of the lo-hi edge */
 	is_mid_right = (-(shi - slo) * (tmi - thi) + (thi - tlo) * (smi - shi)) > 0 ? 1 : 0;
-	ylo = (int) ceilf(tlo);
-	yhi_beg = (int) ceilf(tmi);
-	yhi = (int) ceilf(thi);
+	ylo = (int)ceilf(tlo);
+	yhi_beg = (int)ceilf(tmi);
+	yhi = (int)ceilf(thi);
 
 	/*if (fTmi>ceilf(fTlo))*/
 	rasterize_half(bake_rast, slo, tlo, smi, tmi, slo, tlo, shi, thi, ylo, yhi_beg, is_mid_right);
@@ -343,7 +343,7 @@ static int multires_bake_queue_next_tri(MultiresBakeQueue *queue)
 
 static void *do_multires_bake_thread(void *data_v)
 {
-	MultiresBakeThread *handle = (MultiresBakeThread *) data_v;
+	MultiresBakeThread *handle = (MultiresBakeThread *)data_v;
 	MResolvePixelData *data = &handle->data;
 	MBakeRast *bake_rast = &handle->bake_rast;
 	MultiresBakeRender *bkr = handle->bkr;
@@ -403,9 +403,9 @@ static void init_ccgdm_arrays(DerivedMesh *dm)
 	grid_offset = dm->getGridOffset(dm);
 	dm->getGridKey(dm, &key);
 
-	(void) grid_size;
-	(void) grid_data;
-	(void) grid_offset;
+	(void)grid_size;
+	(void)grid_data;
+	(void)grid_offset;
 }
 
 static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_tangent, MPassKnownData passKnownData,
@@ -525,10 +525,10 @@ static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float 
 	float u, v;
 	float data[4][3];
 
-	x0 = (int) crn_x;
+	x0 = (int)crn_x;
 	x1 = x0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (x0 + 1);
 
-	y0 = (int) crn_y;
+	y0 = (int)crn_y;
 	y1 = y0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (y0 + 1);
 
 	u = crn_x - x0;
@@ -717,7 +717,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
 	MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
 	MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
-	MultiresBakeThread *thread_data = (MultiresBakeThread *) thread_data_v;
+	MultiresBakeThread *thread_data = (MultiresBakeThread *)thread_data_v;
 	float uv[2], *st0, *st1, *st2, *st3;
 	int pixel = ibuf->x * y + x;
 	float vec[3], p0[3], p1[3], n[3], len;
@@ -941,7 +941,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
 	num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
 
 	raytree = ao_data->raytree = RE_rayobject_create(bkr->raytrace_structure, num_faces, bkr->octree_resolution);
-	face = ao_data->rayfaces = (RayFace *) MEM_callocN(num_faces * sizeof(RayFace), "ObjectRen faces");
+	face = ao_data->rayfaces = (RayFace *)MEM_callocN(num_faces * sizeof(RayFace), "ObjectRen faces");
 
 	for (i = 0; i < num_grids; i++) {
 		int x, y;
@@ -999,7 +999,7 @@ static void *init_ao_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
 
 static void free_ao_data(void *bake_data)
 {
-	MAOBakeData *ao_data = (MAOBakeData *) bake_data;
+	MAOBakeData *ao_data = (MAOBakeData *)bake_data;
 
 	RE_rayobject_free(ao_data->raytree);
 	MEM_freeN(ao_data->rayfaces);
@@ -1056,7 +1056,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 	const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
 	MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
 	MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
-	MAOBakeData *ao_data = (MAOBakeData *) bake_data;
+	MAOBakeData *ao_data = (MAOBakeData *)bake_data;
 
 	int i, k, perm_offs;
 	float pos[3], nrm[3];
@@ -1113,8 +1113,8 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 		const unsigned short I = ao_data->permutation_table_1[(i + perm_offs) % ao_data->number_of_rays];
 		const unsigned short J = ao_data->permutation_table_2[i];
 
-		const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
-		const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
+		const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) / ((float)MAX_NUMBER_OF_AO_RAYS);
+		const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) / ((float)MAX_NUMBER_OF_AO_RAYS);
 		const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
 		const float Theta = (float)(2 * M_PI) * ((J + JitTh) / ao_data->number_of_rays);
 
@@ -1149,7 +1149,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 		rrgbf[3] = 1.0f;
 	}
 	else {
-		unsigned char *rrgb = (unsigned char *) ibuf->rect + pixel * 4;
+		unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;
 		rrgb[0] = rrgb[1] = rrgb[2] = unit_float_to_uchar_clamp(value);
 		rrgb[3] = 255;
 	}
@@ -1206,7 +1206,7 @@ static void bake_ibuf_normalize_displacement(ImBuf *ibuf, float *displacement, c
 			}
 
 			if (ibuf->rect) {
-				unsigned char *cp = (unsigned char *) (ibuf->rect + i);
+				unsigned char *cp = (unsigned char *)(ibuf->rect + i);
 				cp[0] = cp[1] = cp[2] = unit_float_to_uchar_clamp(normalized_displacement);
 				cp[3] = 255;
 			}
@@ -1294,14 +1294,14 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 	for (link = bkr->image.first; link; link = link->next) {
 		Image *ima = (Image *)link->data;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-		BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
+		BakeImBufuserData *userdata = (BakeImBufuserData *)ibuf->userdata;
 
 		if (ibuf->x <= 0 || ibuf->y <= 0)
 			continue;
 
 		if (use_displacement_buffer) {
 			bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
-		                                     result->height_min, result->height_max);
+			                                 result->height_min, result->height_max);
 		}
 
 		bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);

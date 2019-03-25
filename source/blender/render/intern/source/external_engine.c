@@ -273,7 +273,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, bool cance
 		RenderPart *pa = get_part_from_result(re, result);
 
 		if (pa) {
-			pa->status = (!cancel && merge_results)? PART_STATUS_MERGED: PART_STATUS_RENDERED;
+			pa->status = (!cancel && merge_results) ? PART_STATUS_MERGED : PART_STATUS_RENDERED;
 		}
 		else if (re->result->do_exr_tile) {
 			/* if written result does not match any tile and we are using save
@@ -505,7 +505,7 @@ static void engine_depsgraph_free(RenderEngine *engine)
 
 void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 {
-	if(!engine->depsgraph) {
+	if (!engine->depsgraph) {
 		return;
 	}
 

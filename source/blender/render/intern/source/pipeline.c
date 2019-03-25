@@ -863,8 +863,8 @@ static void render_result_rescale(Render *re)
 				}
 			}
 
-			scale_x = (float) result->rectx / re->result->rectx;
-			scale_y = (float) result->recty / re->result->recty;
+			scale_x = (float)result->rectx / re->result->rectx;
+			scale_y = (float)result->recty / re->result->recty;
 			for (x = 0; x < re->result->rectx; ++x) {
 				for (y = 0; y < re->result->recty; ++y) {
 					int src_x = x * scale_x;
@@ -1261,7 +1261,7 @@ static void ntree_render_scenes(Render *re)
 /* bad call... need to think over proper method still */
 static void render_composit_stats(void *arg, const char *str)
 {
-	Render *re = (Render*)arg;
+	Render *re = (Render *)arg;
 
 	RenderStats i;
 	memcpy(&i, &re->i, sizeof(i));
@@ -1319,7 +1319,7 @@ static void free_all_freestyle_renders(void)
 	Render *re1;
 	LinkData *link;
 
-	for (re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
+	for (re1 = RenderGlobal.renderlist.first; re1; re1 = re1->next) {
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			Render *freestyle_render = (Render *)link->data;
 
@@ -1445,7 +1445,7 @@ static void renderresult_stampinfo(Render *re)
 
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	nr = 0;
-	for (rv = re->result->views.first;rv;rv = rv->next, nr++) {
+	for (rv = re->result->views.first; rv; rv = rv->next, nr++) {
 		RE_SetActiveRenderView(re, rv->name);
 		RE_AcquireResultImage(re, &rres, nr);
 		BKE_image_stamp_buf(re->scene,
@@ -2019,7 +2019,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *single_la
 #ifdef WITH_FREESTYLE
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
-	re->result_ok= 0;
+	re->result_ok = 0;
 	if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, 0, 0)) {
 		if (render)
 			do_render_3d(re);
@@ -2181,7 +2181,7 @@ bool RE_WriteRenderViewsMovie(
 			                                    &scene->display_settings, &scene->r.im_format);
 
 			ok &= mh->append_movie(movie_ctx_arr[view_id], rd, preview ? scene->r.psfra : scene->r.sfra, scene->r.cfra,
-			                       (int *) ibuf->rect, ibuf->x, ibuf->y, suffix, reports);
+			                       (int *)ibuf->rect, ibuf->x, ibuf->y, suffix, reports);
 
 			/* imbuf knows which rects are not part of ibuf */
 			IMB_freeImBuf(ibuf);
@@ -2205,7 +2205,7 @@ bool RE_WriteRenderViewsMovie(
 
 		ibuf_arr[2] = IMB_stereo3d_ImBuf(&scene->r.im_format, ibuf_arr[0], ibuf_arr[1]);
 
-		ok = mh->append_movie(movie_ctx_arr[0], rd, preview ? scene->r.psfra : scene->r.sfra, scene->r.cfra, (int *) ibuf_arr[2]->rect,
+		ok = mh->append_movie(movie_ctx_arr[0], rd, preview ? scene->r.psfra : scene->r.sfra, scene->r.cfra, (int *)ibuf_arr[2]->rect,
 		                      ibuf_arr[2]->x, ibuf_arr[2]->y, "", reports);
 
 		for (i = 0; i < 3; i++) {
