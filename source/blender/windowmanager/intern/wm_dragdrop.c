@@ -41,6 +41,7 @@
 #include "BKE_idcode.h"
 
 #include "GPU_shader.h"
+#include "GPU_state.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -388,7 +389,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 	}
 
 	/* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	for (drag = wm->drags.first; drag; drag = drag->next) {
 		const char text_col[] = {255, 255, 255, 255};
 		int iconsize = UI_DPI_ICON_SIZE;
@@ -466,5 +467,5 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 
 		}
 	}
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }

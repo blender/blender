@@ -59,6 +59,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
 
@@ -463,7 +464,7 @@ void wm_draw_region_blend(ARegion *ar, int view, bool blend)
 
 	if (blend) {
 		/* GL_ONE because regions drawn offscreen have premultiplied alpha. */
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
@@ -507,7 +508,7 @@ void wm_draw_region_blend(ARegion *ar, int view, bool blend)
 
 	if (blend) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 	}
 }
 

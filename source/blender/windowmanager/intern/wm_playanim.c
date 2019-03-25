@@ -57,11 +57,12 @@
 
 #include "BIF_glutil.h"
 
+#include "GPU_context.h"
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
-#include "GPU_context.h"
 #include "GPU_init_exit.h"
+#include "GPU_state.h"
 
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
@@ -311,7 +312,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 	/* checkerboard for case alpha */
 	if (ibuf->planes == 32) {
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 		imm_draw_box_checker_2d(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
@@ -329,7 +330,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 	        ((ps->draw_flip[1] ? -1.0f : 1.0f)) * (ps->zoom / (float)ps->win_y),
 	        NULL);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 
 	pupdate_time();
 

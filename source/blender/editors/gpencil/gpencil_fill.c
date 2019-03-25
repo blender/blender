@@ -241,7 +241,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 	tgpw.disable_fill = 1;
 	tgpw.dflag |= (GP_DRAWFILLS_ONLY3D | GP_DRAWFILLS_NOSTATUS);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* calculate parent position */
@@ -309,7 +309,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 		}
 	}
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 /* draw strokes in offscreen buffer */

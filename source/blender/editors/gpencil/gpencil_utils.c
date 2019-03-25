@@ -1621,7 +1621,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	GPU_line_smooth(true);
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	immUniformColor4ub(255, 100, 100, 20);
@@ -1648,7 +1648,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 
 	immUnbindProgram();
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	GPU_line_smooth(false);
 }
 
@@ -1766,7 +1766,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	GPU_line_smooth(true);
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 
 	/* Inner Ring: Color from UI panel */
 	immUniformColor4f(color[0], color[1], color[2], 0.8f);
@@ -1786,7 +1786,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 	immUniformColor4f(darkcolor[0], darkcolor[1], darkcolor[2], 0.8f);
 	imm_draw_circle_wire_2d(pos, x, y, radius + 1, 40);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	GPU_line_smooth(false);
 
 	/* Draw line for lazy mouse */
@@ -1794,7 +1794,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 	    (brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
 	{
 		GPU_line_smooth(true);
-		glEnable(GL_BLEND);
+		GPU_blend(true);
 
 		copy_v3_v3(color, brush->add_col);
 		immUniformColor4f(color[0], color[1], color[2], 0.8f);
@@ -1807,7 +1807,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 		        last_mouse_position[1] + ar->winrct.ymin);
 		immEnd();
 
-		glDisable(GL_BLEND);
+		GPU_blend(false);
 		GPU_line_smooth(false);
 	}
 

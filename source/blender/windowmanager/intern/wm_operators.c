@@ -2159,7 +2159,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	y = rc->initial_mouse[1];
 	GPU_matrix_translate_2f((float)x, (float)y);
 
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	GPU_line_smooth(true);
 
 	/* apply zoom if available */
@@ -2220,7 +2220,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 
 	BLF_disable(fontid, BLF_SHADOW);
 
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 	GPU_line_smooth(false);
 
 }

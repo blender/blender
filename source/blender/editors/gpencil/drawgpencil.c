@@ -1385,7 +1385,7 @@ void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const in
 	tgpw.dflag = dflag;
 
 	/* turn on alpha-blending */
-	glEnable(GL_BLEND);
+	GPU_blend(true);
 	for (tgpil = tgpi->ilayers.first; tgpil; tgpil = tgpil->next) {
 		/* calculate parent position */
 		ED_gpencil_parent_location(depsgraph, obact, tgpi->gpd, tgpil->gpl, tgpw.diff_mat);
@@ -1403,7 +1403,7 @@ void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const in
 			gp_draw_strokes(&tgpw);
 		}
 	}
-	glDisable(GL_BLEND);
+	GPU_blend(false);
 }
 
 /* wrapper to draw strokes for filling operator */
