@@ -107,17 +107,18 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 		flag |= FILE_ACTIVE_COLLECTION;
 
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
-	if (BKE_copybuffer_paste(C, str, flag, op->reports)) {
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-		BKE_report(op->reports, RPT_INFO, "Objects pasted from buffer");
-
-		return OPERATOR_FINISHED;
+	const int num_pasted = BKE_copybuffer_paste(C, str, flag, op->reports, FILTER_ID_OB);
+	if (num_pasted == 0) {
+		BKE_report(op->reports, RPT_INFO, "No buffer to paste from");
+		return OPERATOR_CANCELLED;
 	}
 
-	BKE_report(op->reports, RPT_INFO, "No buffer to paste from");
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	return OPERATOR_CANCELLED;
+	BKE_reportf(op->reports, RPT_INFO, "%d objects pasted from buffer", num_pasted);
+
+	return OPERATOR_FINISHED;
 }
 
 static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)

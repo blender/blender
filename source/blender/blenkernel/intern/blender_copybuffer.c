@@ -82,7 +82,7 @@ bool BKE_copybuffer_save(Main *bmain_src, const char *filename, ReportList *repo
 	return retval;
 }
 
-bool BKE_copybuffer_read(Main *bmain_dst, const char *libname, ReportList *reports)
+bool BKE_copybuffer_read(Main *bmain_dst, const char *libname, ReportList *reports, const unsigned int id_types_mask)
 {
 	BlendHandle *bh = BLO_blendhandle_from_file(libname, reports);
 	if (bh == NULL) {
@@ -91,7 +91,7 @@ bool BKE_copybuffer_read(Main *bmain_dst, const char *libname, ReportList *repor
 	}
 	/* Here appending/linking starts. */
 	Main *mainl = BLO_library_link_begin(bmain_dst, &bh, libname);
-	BLO_library_link_copypaste(mainl, bh);
+	BLO_library_link_copypaste(mainl, bh, id_types_mask);
 	BLO_library_link_end(mainl, &bh, 0, NULL, NULL, NULL, NULL);
 	/* Mark all library linked objects to be updated. */
 	BKE_main_lib_objects_recalc_all(bmain_dst);
@@ -108,9 +108,10 @@ bool BKE_copybuffer_read(Main *bmain_dst, const char *libname, ReportList *repor
 }
 
 /**
- * \return Success.
+ * \return Number of IDs directly pasted from the buffer (does not includes indirectly pulled out ones).
  */
-bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, ReportList *reports)
+int BKE_copybuffer_paste(
+        bContext *C, const char *libname, const short flag, ReportList *reports, const unsigned int id_types_mask)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -124,7 +125,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 
 	if (bh == NULL) {
 		/* error reports will have been made by BLO_blendhandle_from_file() */
-		return false;
+		return 0;
 	}
 
 	BKE_view_layer_base_deselect_all(view_layer);
@@ -138,7 +139,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 	/* here appending/linking starts */
 	mainl = BLO_library_link_begin(bmain, &bh, libname);
 
-	BLO_library_link_copypaste(mainl, bh);
+	const int num_pasted = BLO_library_link_copypaste(mainl, bh, id_types_mask);
 
 	BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer, v3d);
 
@@ -164,7 +165,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 	BLO_blendhandle_close(bh);
 	/* remove library... */
 
-	return true;
+	return num_pasted;
 }
 
 /** \} */

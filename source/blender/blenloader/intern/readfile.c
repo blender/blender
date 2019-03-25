@@ -11019,20 +11019,24 @@ static ID *link_named_part(
 /**
  * Simple reader for copy/paste buffers.
  */
-void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
+int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const unsigned int id_types_mask)
 {
 	FileData *fd = (FileData *)(bh);
 	BHead *bhead;
+	int num_directly_linked = 0;
 
 	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
 		ID *id = NULL;
 
 		if (bhead->code == ENDB)
 			break;
-		if (ELEM(bhead->code, ID_OB, ID_GR)) {
-			read_libblock(fd, mainl, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, &id);
-		}
 
+		if (BKE_idcode_is_valid(bhead->code) && BKE_idcode_is_linkable(bhead->code) &&
+		    (id_types_mask == 0 || (BKE_idcode_to_idfilter((short)bhead->code) & id_types_mask) != 0))
+		{
+			read_libblock(fd, mainl, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, &id);
+			num_directly_linked++;
+		}
 
 		if (id) {
 			/* sort by name in list */
@@ -11049,6 +11053,8 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 			}
 		}
 	}
+
+	return num_directly_linked;
 }
 
 static ID *link_named_part_ex(

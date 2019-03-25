@@ -138,7 +138,7 @@ void BLO_library_link_end(
         struct Main *mainl, BlendHandle **bh, int flag,
         struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, const struct View3D *v3d);
 
-void BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh);
+int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const unsigned int id_types_mask);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
