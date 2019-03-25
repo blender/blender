@@ -4558,18 +4558,33 @@ print_info() {
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
+    if [ -d $INST/blosc ]; then
+      _1="-D BLOSC_ROOT_DIR=$INST/blosc"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     _1="-D WITH_OPENCOLLADA=ON"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
+    if [ -d $INST/opencollada ]; then
+      _1="-D OPENCOLLADA_ROOT_DIR=$INST/opencollada"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ "$WITH_EMBREE" = true ]; then
     _1="-D WITH_CYCLES_EMBREE=ON"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
+    if [ -d $INST/embree ]; then
+      _1="-D EMBREE_ROOT_DIR=$INST/embree"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ "$WITH_JACK" = true ]; then
