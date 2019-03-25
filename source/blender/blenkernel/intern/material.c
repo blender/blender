@@ -164,7 +164,6 @@ Material *BKE_material_add_gpencil(Main *bmain, const char *name)
 	/* grease pencil settings */
 	if (ma != NULL) {
 		BKE_material_init_gpencil_settings(ma);
-		BKE_brush_update_material(bmain, ma, NULL);
 	}
 	return ma;
 }

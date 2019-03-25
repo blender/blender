@@ -514,15 +514,10 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 			 * otherwise add the slot with the material
 			 */
 			Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
-			int idx = BKE_gpencil_get_material_index(ob_dst, ma_src);
-			if (idx == 0) {
-				BKE_object_material_slot_add(bmain, ob_dst);
-				assign_material(bmain, ob_dst, ma_src, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
-				idx = ob_dst->totcol;
-			}
+			int idx = BKE_gpencil_handle_material(bmain, ob_dst, ma_src);
 
 			/* reasign the stroke material to the right slot in destination object */
-			gps_dst->mat_nr = idx - 1;
+			gps_dst->mat_nr = idx;
 
 			/* add new stroke to frame */
 			BLI_addtail(&gpf_dst->strokes, gps_dst);
@@ -1377,7 +1372,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 		}
 	}
 	/* try to find slot */
-	int idx = BKE_gpencil_get_material_index(ob, ma) - 1;
+	int idx = BKE_gpencil_get_material_index(ob, ma);
 	if (idx < 0) {
 		return OPERATOR_CANCELLED;
 	}
@@ -2052,10 +2047,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
 				for (short i = 0; i < *totcol; i++) {
 					Material *tmp_ma = give_current_material(ob_src, i + 1);
-					if (BKE_gpencil_get_material_index(ob_dst, tmp_ma) == 0) {
-						BKE_object_material_slot_add(bmain, ob_dst);
-						assign_material(bmain, ob_dst, tmp_ma, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
-					}
+					BKE_gpencil_handle_material(bmain, ob_dst, tmp_ma);
 				}
 
 				/* duplicate bGPDlayers  */
@@ -2085,24 +2077,12 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 					invert_m4_m4(inverse_diff_mat, diff_mat);
 
 					Material *ma_src = NULL;
-					int idx;
 					for (bGPDframe *gpf = gpl_new->frames.first; gpf; gpf = gpf->next) {
 						for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
 							/* reasign material. Look old material and try to find in dst */
 							ma_src = give_current_material(ob_src, gps->mat_nr + 1);
-							if (ma_src != NULL) {
-								idx = BKE_gpencil_get_material_index(ob_dst, ma_src);
-								if (idx > 0) {
-									gps->mat_nr = idx - 1;
-								}
-								else {
-									gps->mat_nr = 0;
-								}
-							}
-							else {
-								gps->mat_nr = 0;
-							}
+							gps->mat_nr = BKE_gpencil_handle_material(bmain, ob_dst, ma_src);
 
 							bGPDspoint *pt;
 							int i;

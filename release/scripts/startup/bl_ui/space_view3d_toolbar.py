@@ -1679,7 +1679,15 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
             gp_settings = brush.gpencil_settings
 
             if brush.gpencil_tool in {'DRAW', 'FILL'}:
-                layout.row(align=True).template_ID(gp_settings, "material")
+                row = layout.row(align=True)
+                row_mat = row.row()
+                if gp_settings.use_material_pin:
+                    row_mat.template_ID(gp_settings, "material", live_icon=True)
+                else:
+                    row_mat.template_ID(context.active_object, "active_material", live_icon=True)
+                    row_mat.enabled = False  # will otherwise allow to change material in active slot
+
+                row.prop(gp_settings, "use_material_pin", text="")
 
             if not self.is_popover:
                 from .properties_paint_common import (

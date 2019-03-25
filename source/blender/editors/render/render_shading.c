@@ -559,11 +559,6 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 		Material *new_ma = NULL;
 		BKE_id_copy_ex(bmain, &ma->id, (ID **)&new_ma, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
 		ma = new_ma;
-
-		if (ob != NULL && ob->type == OB_GPENCIL) {
-			BKE_brush_update_material(bmain, new_ma, NULL);
-		}
-
 	}
 	else {
 		const char *name = DATA_("Material");

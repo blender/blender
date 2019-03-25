@@ -1101,14 +1101,10 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 
 			/* Fix color references */
 			Material *ma = BLI_ghash_lookup(data->new_colors, &new_stroke->mat_nr);
-			if ((ma) && (BKE_gpencil_get_material_index(ob, ma) > 0)) {
-				gps->mat_nr = BKE_gpencil_get_material_index(ob, ma) - 1;
-				CLAMP_MIN(gps->mat_nr, 0);
+			gps->mat_nr = BKE_gpencil_get_material_index(ob, ma);
+			if (!ma || gps->mat_nr) {
+				gps->mat_nr = 0;
 			}
-			else {
-				gps->mat_nr = 0; /* only if the color is not found */
-			}
-
 			/* Adjust all the stroke's points, so that the strokes
 			 * get pasted relative to where the cursor is now
 			 */

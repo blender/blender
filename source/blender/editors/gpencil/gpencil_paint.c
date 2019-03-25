@@ -302,6 +302,12 @@ static bool gpencil_draw_poll(bContext *C)
 			return false;
 		}
 
+		ToolSettings *ts = CTX_data_scene(C)->toolsettings;
+		if (!ts->gp_paint->paint.brush) {
+			CTX_wm_operator_poll_msg_set(C, "Grease Pencil has no active paint tool");
+			return false;
+		}
+
 		return true;
 	}
 	else {
@@ -1217,7 +1223,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	}
 
 	/* Save material index */
-	gps->mat_nr = BKE_gpencil_get_material_index(p->ob, p->material) - 1;
+	gps->mat_nr = BKE_gpencil_get_material_index_for_brush(p->ob, p->brush);
 
 	/* calculate UVs along the stroke */
 	ED_gpencil_calc_stroke_uv(obact, gps);
@@ -1834,31 +1840,10 @@ static void gp_init_colors(tGPsdata *p)
 	bGPdata *gpd = p->gpd;
 	Brush *brush = p->brush;
 
-	Material *ma = NULL;
 	MaterialGPencilStyle *gp_style = NULL;
 
 	/* use brush material */
-	ma = BKE_gpencil_get_material_from_brush(brush);
-
-	/* if no brush defaults, get material and color info
-	 * NOTE: Ensures that everything we need will exist...
-	 */
-	if ((ma == NULL) || (ma->gp_style == NULL)) {
-		BKE_gpencil_material_ensure(p->bmain, p->ob);
-
-		/* assign always the first material to the brush */
-		p->material = give_current_material(p->ob, 1);
-		brush->gpencil_settings->material = p->material;
-	}
-	else {
-		p->material = ma;
-	}
-
-	/* check if the material is already on object material slots and add it if missing */
-	if (BKE_gpencil_get_material_index(p->ob, p->material) == 0) {
-		BKE_object_material_slot_add(p->bmain, p->ob);
-		assign_material(p->bmain, p->ob, ma, p->ob->totcol, BKE_MAT_ASSIGN_USERPREF);
-	}
+	p->material = BKE_gpencil_current_input_brush_material(p->bmain, p->ob, brush);
 
 	/* assign color information to temp tGPsdata */
 	gp_style = p->material->gp_style;
@@ -1996,7 +1981,14 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 		/* NOTE: This is only done for 3D view, as Materials aren't used for
 		 *       annotations in 2D editors
 		 */
+		int totcol = p->ob->totcol;
+
 		gp_init_colors(p);
+
+		/* check whether the material was newly added */
+		if (totcol != p->ob->totcol) {
+			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
+		}
 	}
 
 	/* lock axis (in some modes, disable) */

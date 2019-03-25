@@ -277,14 +277,10 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 
 static void rna_MaterialIndex_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	/* update the material of all brushes not pinned */
 	Object *ob = (Object *)ptr->id.data;
 	if (ob && ob->type == OB_GPENCIL) {
-		Material *ma = give_current_material(ob, ob->actcol);
-		if (ma != NULL) {
-			BKE_brush_update_material(bmain, ma, NULL);
-			WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
-		}
+		/* notifying material property in topbar */
+		WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	}
 }
 
@@ -821,6 +817,11 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	BLI_assert(BKE_id_is_in_global_main(&ob->id));
 	BLI_assert(BKE_id_is_in_global_main(value.data));
 	assign_material(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
+
+	if (ob && ob->type == OB_GPENCIL) {
+		/* notifying material property in topbar */
+		WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	}
 }
 
 static int rna_Object_active_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))

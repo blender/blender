@@ -137,29 +137,10 @@ static void gp_init_colors(tGPDprimitive *p)
 	bGPdata *gpd = p->gpd;
 	Brush *brush = p->brush;
 
-	Material *ma = NULL;
 	MaterialGPencilStyle *gp_style = NULL;
 
 	/* use brush material */
-	ma = BKE_gpencil_get_material_from_brush(brush);
-
-	/* if no brush defaults, get material and color info */
-	if ((ma == NULL) || (ma->gp_style == NULL)) {
-		BKE_gpencil_material_ensure(p->bmain, p->ob);
-
-		/* assign always the first material to the brush */
-		p->mat = give_current_material(p->ob, 1);
-		brush->gpencil_settings->material = p->mat;
-	}
-	else {
-		p->mat = ma;
-	}
-
-	/* check if the material is already on object material slots and add it if missing */
-	if (BKE_gpencil_get_material_index(p->ob, p->mat) == 0) {
-		BKE_object_material_slot_add(p->bmain, p->ob);
-		assign_material(p->bmain, p->ob, ma, p->ob->totcol, BKE_MAT_ASSIGN_USERPREF);
-	}
+	p->mat = BKE_gpencil_current_input_brush_material(p->bmain,p->ob, brush);
 
 	/* assign color information to temp data */
 	gp_style = p->mat->gp_style;
@@ -350,7 +331,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 
 	gps->flag |= GP_STROKE_3DSPACE;
 
-	gps->mat_nr = BKE_gpencil_get_material_index(tgpi->ob, tgpi->mat) - 1;
+	gps->mat_nr = BKE_gpencil_get_material_index(tgpi->ob, tgpi->mat);
 
 	/* allocate memory for storage points, but keep empty */
 	gps->totpoints = 0;
@@ -1130,7 +1111,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 	tgpi->gpd->runtime.tot_cp_points = 0;
 
 	/* getcolor info */
-	tgpi->mat = BKE_gpencil_material_ensure(bmain, tgpi->ob);
+	tgpi->mat = BKE_gpencil_current_input_toolsettings_material(bmain, tgpi->ob, ts);
 
 	/* set parameters */
 	tgpi->type = RNA_enum_get(op->ptr, "type");

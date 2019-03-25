@@ -1341,17 +1341,6 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
 	Main *bmain = CTX_data_main(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
-	/* first try to reuse default material */
-	if (ob->actcol > 0) {
-		Material *ma = give_current_material(ob, ob->actcol);
-		if ((ma) && (ma->gp_style == NULL)) {
-			BKE_material_init_gpencil_settings(ma);
-		}
-	}
-
-	/* ensure color exist */
-	BKE_gpencil_material_ensure(bmain, ob);
-
 	BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
 	Paint *paint = &ts->gp_paint->paint;
 	/* if not exist, create a new one */
@@ -1359,6 +1348,9 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
 		/* create new brushes */
 		BKE_brush_gpencil_presets(C);
 	}
+
+	/* ensure a color exists and is assigned to object */
+	BKE_gpencil_current_input_toolsettings_material(bmain, ob, ts);
 
 	/* ensure multiframe falloff curve */
 	if (ts->gp_sculpt.cur_falloff == NULL) {
@@ -1728,30 +1720,27 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 		}
 
 		/* get current drawing color */
-		ma = BKE_gpencil_get_material_from_brush(brush);
-		if (ma == NULL) {
-			BKE_gpencil_material_ensure(bmain, ob);
-			/* assign the first material to the brush */
-			ma = give_current_material(ob, 1);
-			brush->gpencil_settings->material = ma;
-		}
-		gp_style = ma->gp_style;
+		ma = BKE_gpencil_get_material_for_brush(ob, brush);
 
-		/* after some testing, display the size of the brush is not practical because
-		 * is too disruptive and the size of cursor does not change with zoom factor.
-		 * The decision was to use a fix size, instead of brush->thickness value.
-		 */
-		if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
-		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-		    (brush->gpencil_tool == GPAINT_TOOL_DRAW))
-		{
-			radius = 2.0f;
-			copy_v3_v3(color, gp_style->stroke_rgba);
-		}
-		else {
-			radius = 5.0f;
-			copy_v3_v3(color, brush->add_col);
+		if (ma) {
+			gp_style = ma->gp_style;
+
+			/* after some testing, display the size of the brush is not practical because
+			 * is too disruptive and the size of cursor does not change with zoom factor.
+			 * The decision was to use a fix size, instead of brush->thickness value.
+			 */
+			if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
+				((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+				((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
+				(brush->gpencil_tool == GPAINT_TOOL_DRAW))
+			{
+				radius = 2.0f;
+				copy_v3_v3(color, gp_style->stroke_rgba);
+			}
+			else {
+				radius = 5.0f;
+				copy_v3_v3(color, brush->add_col);
+			}
 		}
 	}
 

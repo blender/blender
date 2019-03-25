@@ -159,6 +159,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_icons_items[] = {
 #include "BKE_icons.h"
 #include "BKE_gpencil.h"
 #include "BKE_paint.h"
+#include "BKE_material.h"
 
 #include "WM_api.h"
 
@@ -444,27 +445,8 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Brush_material_update(bContext *C, PointerRNA *ptr)
 {
-	Main *bmain = CTX_data_main(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *ob = OBACT(view_layer);
-	Brush *br = (Brush *)ptr->id.data;
-	int index;
-
-	/* set material slot to same material */
-	if ((ob) && (ob->type == OB_GPENCIL) && (br->gpencil_settings != NULL)) {
-		BrushGpencilSettings *gpencil_settings = br->gpencil_settings;
-		if (gpencil_settings->material != NULL) {
-
-			index = BKE_gpencil_get_material_index(ob, gpencil_settings->material);
-			if ((index > 0) && (ob->actcol != index)) {
-				ob->actcol = index;
-				/* update other brushes to keep all synchro */
-				BKE_brush_update_material(bmain, gpencil_settings->material, br);
-			}
-
-		}
-		WM_main_add_notifier(NC_SPACE | ND_SPACE_PROPERTIES, NULL);
-	}
+	/* number of material users changed */
+	WM_main_add_notifier(NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 }
 
 static void rna_Brush_main_tex_update(bContext *C, PointerRNA *ptr)
@@ -721,6 +703,24 @@ static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain, Scene *s
 			brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
 		}
 	}
+}
+
+static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, PointerRNA *ptr)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
+	Brush *brush = ptr->id.data;
+
+	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+		Material *material = give_current_material(ob, ob->actcol);
+		BKE_gpencil_brush_set_material(brush, material);
+	}
+	else {
+		BKE_gpencil_brush_set_material(brush, NULL);
+	}
+
+	/* number of material users changed */
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 }
 
 static void rna_BrushGpencilSettings_eraser_mode_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -1337,9 +1337,11 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_material_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_MATERIAL_PINNED);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_ui_text(prop, "Pin Material", "Keep material assigned to brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_use_material_pin_update");
 
 	prop = RNA_def_property(srna, "show_lasso", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_DISSABLE_LASSO);

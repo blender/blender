@@ -316,7 +316,8 @@ class _draw_left_context_mode:
             def draw_color_selector():
                 ma = gp_settings.material
                 row = layout.row(align=True)
-
+                if not gp_settings.use_material_pin:
+                    ma = context.object.active_material
                 icon_id = 0
                 if ma:
                     icon_id = ma.id_data.preview.icon_id
