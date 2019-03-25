@@ -62,26 +62,36 @@ class NODE_HT_header(Header):
 
             ob = context.object
             if snode.shader_type == 'OBJECT' and ob:
+                ob_type = ob.type
 
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
 
                 # No shader nodes for Eevee lights
-                if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob.type == 'LIGHT'):
+                if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob_type == 'LIGHT'):
                     row = layout.row()
                     row.prop(snode_id, "use_nodes")
 
                 layout.separator_spacer()
 
-                row = layout.row()
                 types_that_support_material = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL'}
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)
                 # disable also when the selected object does not support materials
-                row.enabled = not snode.pin and ob.type in types_that_support_material
+                has_material_slots = not snode.pin and ob_type in types_that_support_material
+
+                if ob_type != 'LIGHT':
+                    row = layout.row()
+                    row.enabled = has_material_slots
+                    row.ui_units_x = 4
+                    row.popover(panel="NODE_PT_material_slots")
+
+                row = layout.row()
+                row.enabled = has_material_slots
+
                 # Show material.new when no active ID/slot exists
-                if not id_from and ob.type in types_that_support_material:
+                if not id_from and ob_type in types_that_support_material:
                     row.template_ID(ob, "active_material", new="material.new")
                 # Material ID, but not for Lights
-                if id_from and ob.type != 'LIGHT':
+                if id_from and ob_type != 'LIGHT':
                     row.template_ID(id_from, "active_material", new="material.new")
 
             if snode.shader_type == 'WORLD':
@@ -308,6 +318,43 @@ class NODE_MT_node(Menu):
         layout.separator()
 
         layout.operator("node.read_viewlayers")
+
+
+class NODE_PT_material_slots(Panel):
+    bl_space_type = "NODE_EDITOR"
+    bl_region_type = 'HEADER'
+    bl_label = "Slot"
+    bl_ui_units_x = 8
+
+    def draw_header(self, context):
+        ob = context.object
+        self.bl_label = (
+            "Slot " + str(ob.active_material_index + 1) if ob.material_slots else
+            "Slot"
+        )
+
+    # Duplicate part of 'EEVEE_MATERIAL_PT_context_material'.
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+
+        ob = context.object
+        col.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index")
+
+        col = row.column(align=True)
+        col.operator("object.material_slot_add", icon='ADD', text="")
+        col.operator("object.material_slot_remove", icon='REMOVE', text="")
+
+        col.separator()
+
+        col.menu("MATERIAL_MT_context_menu", icon='DOWNARROW_HLT', text="")
+
+        if len(ob.material_slots) > 1:
+            col.separator()
+
+            col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):
@@ -601,17 +648,19 @@ classes = (
     NODE_MT_view,
     NODE_MT_select,
     NODE_MT_node,
-    NODE_PT_node_color_presets,
     NODE_MT_node_color_context_menu,
     NODE_MT_context_menu,
+    NODE_PT_material_slots,
+    NODE_PT_node_color_presets,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
     NODE_PT_active_node_properties,
     NODE_PT_backdrop,
     NODE_PT_quality,
-    NODE_UL_interface_sockets,
     NODE_PT_grease_pencil,
     NODE_PT_grease_pencil_tools,
+    NODE_UL_interface_sockets,
+
     node_panel(EEVEE_MATERIAL_PT_settings),
     node_panel(MATERIAL_PT_viewport),
     node_panel(WORLD_PT_viewport_display),
