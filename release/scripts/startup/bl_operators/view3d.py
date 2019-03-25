@@ -233,7 +233,10 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
         else:
             select_all = bpy.ops.object.select_all
 
-        return select_all('INVOKE_DEFAULT', True, action='DESELECT')
+        if select_all.poll():
+            return select_all('INVOKE_DEFAULT', True, action='DESELECT')
+        else:
+            return retval
 
 
 classes = (
