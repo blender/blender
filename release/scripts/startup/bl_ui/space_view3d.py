@@ -135,27 +135,25 @@ class VIEW3D_HT_header(Header):
         # Orientation
         if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL'} or has_pose_mode:
             orient_slot = scene.transform_orientation_slots[0]
-            trans_name, trans_icon = orient_slot.ui_info()
-
             row = layout.row(align=True)
 
             sub = row.row()
             sub.ui_units_x = 4
-            sub.popover(
+            sub.prop_popover_enum(
+                orient_slot,
+                "type",
+                text="",
                 panel="VIEW3D_PT_transform_orientations",
-                text=trans_name,
-                icon_value=trans_icon,
             )
 
         # Pivot
         if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'} or has_pose_mode:
-            pivot_point = tool_settings.transform_pivot_point
-            act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
-            row = layout.row(align=True)
-            row.popover(
-                panel="VIEW3D_PT_pivot_point",
-                icon=act_pivot_point.icon,
+            layout.prop_popover_enum(
+                tool_settings,
+                "transform_pivot_point",
                 text="",
+                icon_only=True,
+                panel="VIEW3D_PT_pivot_point",
             )
 
         # Snap
@@ -228,29 +226,19 @@ class VIEW3D_HT_header(Header):
 
         # grease pencil
         if object_mode == 'PAINT_GPENCIL':
-            origin = tool_settings.gpencil_stroke_placement_view3d
-            gp_origin = tool_settings.bl_rna.properties["gpencil_stroke_placement_view3d"].enum_items[origin]
-
-            or_icon = getattr(gp_origin, "icon", "BLANK1")
-            or_name = getattr(gp_origin, "name", "Stroke Placement")
-            layout.popover(
+            layout.prop_popover_enum(
+                tool_settings,
+                "gpencil_stroke_placement_view3d",
+                text="",
                 panel="VIEW3D_PT_gpencil_origin",
-                text=or_name,
-                icon=or_icon,
             )
 
         if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
-            lock = tool_settings.gpencil_sculpt.lock_axis
-            gp_lock = tool_settings.gpencil_sculpt.bl_rna.properties["lock_axis"].enum_items[lock]
-
-            lk_icon = getattr(gp_lock, "icon", "BLANK1")
-            lk_name = getattr(gp_lock, "name", "None")
-            row = layout.row()
-            row.enabled = tool_settings.gpencil_stroke_placement_view3d in {'ORIGIN', 'CURSOR'}
-            row.popover(
+            row.prop_popover_enum(
+                tool_settings.gpencil_sculpt,
+                "lock_axis",
+                text="",
                 panel="VIEW3D_PT_gpencil_lock",
-                text=lk_name,
-                icon=lk_icon,
             )
 
         if object_mode == 'PAINT_GPENCIL':

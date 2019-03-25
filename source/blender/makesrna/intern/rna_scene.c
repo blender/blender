@@ -2124,26 +2124,6 @@ const EnumPropertyItem *rna_TransformOrientation_with_scene_itemf(
 
 #undef V3D_ORIENT_DEFAULT
 
-void rna_TransformOrientationSlot_ui_info(
-        ID *scene_id, TransformOrientationSlot *orient_slot,
-        char *r_name, int *r_icon_value)
-{
-	Scene *scene = (Scene *)scene_id;
-
-	if (orient_slot->type < V3D_ORIENT_CUSTOM) {
-		const EnumPropertyItem *items = rna_enum_transform_orientation_items;
-		const int i = RNA_enum_from_value(items, orient_slot->type);
-		strcpy(r_name, items[i].name);
-		*r_icon_value = items[i].icon;
-	}
-	else {
-		TransformOrientation *orientation = BKE_scene_transform_orientation_find(
-		        scene, orient_slot->index_custom);
-		strcpy(r_name, orientation->name);
-		*r_icon_value = ICON_OBJECT_ORIGIN;
-	}
-}
-
 static const EnumPropertyItem *rna_UnitSettings_itemf_wrapper(
         const int system, const int type, bool *r_free)
 {
@@ -2330,20 +2310,6 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Use", "Use scene orientation instead of a custom setting");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	/* UI access only (avoid slow RNA introspection). */
-	func = RNA_def_function(srna, "ui_info", "rna_TransformOrientationSlot_ui_info");
-	RNA_def_function_ui_description(func, "");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	parm = RNA_def_string(func, "name", NULL, sizeof(((TransformOrientation *)NULL)->name), "name", "");
-	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
-	RNA_def_function_output(func, parm);
-	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(parm, "", "");
-	RNA_def_function_output(func, parm);
 }
 
 static void rna_def_view3d_cursor(BlenderRNA *brna)
