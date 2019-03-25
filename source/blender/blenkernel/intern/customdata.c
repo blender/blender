@@ -1252,9 +1252,8 @@ static void layerSwap_flnor(void *data, const int *corner_indices)
 static void layerDefault_fmap(void *data, int count)
 {
 	int *fmap_num = (int *)data;
-	int i;
-	for (i = 0; i < count; i++) {
-		*fmap_num = -1;
+	for (int i = 0; i < count; i++) {
+		fmap_num[i] = -1;
 	}
 }
 
