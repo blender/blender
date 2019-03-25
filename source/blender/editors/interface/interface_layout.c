@@ -2003,7 +2003,7 @@ void uiItemFullR_with_popover(
 	but = but->next;
 	while (but) {
 		if (but->rnaprop == prop && but->type == UI_BTYPE_MENU) {
-			ui_but_rna_menu_convert_to_popover(but, panel_type);
+			ui_but_rna_menu_convert_to_panel_type(but, panel_type);
 			break;
 		}
 		but = but->next;

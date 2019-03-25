@@ -139,7 +139,7 @@ class VIEW3D_HT_header(Header):
 
             sub = row.row()
             sub.ui_units_x = 4
-            sub.prop_popover_enum(
+            sub.prop_with_popover(
                 orient_slot,
                 "type",
                 text="",
@@ -148,7 +148,7 @@ class VIEW3D_HT_header(Header):
 
         # Pivot
         if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'} or has_pose_mode:
-            layout.prop_popover_enum(
+            layout.prop_with_popover(
                 tool_settings,
                 "transform_pivot_point",
                 text="",
@@ -226,7 +226,7 @@ class VIEW3D_HT_header(Header):
 
         # grease pencil
         if object_mode == 'PAINT_GPENCIL':
-            layout.prop_popover_enum(
+            layout.prop_with_popover(
                 tool_settings,
                 "gpencil_stroke_placement_view3d",
                 text="",
@@ -234,7 +234,7 @@ class VIEW3D_HT_header(Header):
             )
 
         if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
-            row.prop_popover_enum(
+            row.prop_with_popover(
                 tool_settings.gpencil_sculpt,
                 "lock_axis",
                 text="",

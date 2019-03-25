@@ -85,7 +85,7 @@
 /* prototypes. */
 static void ui_but_to_pixelrect(struct rcti *rect, const struct ARegion *ar, struct uiBlock *block, struct uiBut *but);
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p);
-static void ui_def_but_rna__popover(bContext *UNUSED(C), uiLayout *layout, void *but_p);
+static void ui_def_but_rna__panel_type(bContext *UNUSED(C), uiLayout *layout, void *but_p);
 
 /* avoid unneeded calls to ui_but_value_get */
 #define UI_BUT_VALUE_UNSET DBL_MAX
@@ -1150,7 +1150,9 @@ static bool ui_but_event_property_operator_string(
 		if ((but->type == UI_BTYPE_BUT_MENU) &&
 		    (but_parent && but_parent->rnaprop) &&
 		    (RNA_property_type(but_parent->rnaprop) == PROP_ENUM) &&
-		    ELEM(but_parent->menu_create_func, ui_def_but_rna__menu, ui_def_but_rna__popover))
+		    ELEM(but_parent->menu_create_func,
+		         ui_def_but_rna__menu,
+		         ui_def_but_rna__panel_type))
 		{
 			prop_enum_value = (int)but->hardmin;
 			ptr = &but_parent->rnapoin;
@@ -3832,7 +3834,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 	block->flag |= UI_BLOCK_IS_FLIP;
 }
 
-static void ui_def_but_rna__popover(bContext *C, uiLayout *layout, void *but_p)
+static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_p)
 {
 	uiBut *but = but_p;
 	const char *panel_type = but->func_argN;
@@ -3847,18 +3849,18 @@ static void ui_def_but_rna__popover(bContext *C, uiLayout *layout, void *but_p)
 	}
 }
 
-void ui_but_rna_menu_convert_to_popover(uiBut *but, const char *panel_type)
+void ui_but_rna_menu_convert_to_panel_type(uiBut *but, const char *panel_type)
 {
 	BLI_assert(but->type == UI_BTYPE_MENU);
 	BLI_assert(but->menu_create_func == ui_def_but_rna__menu);
 	BLI_assert((void *)but->poin == but);
-	but->menu_create_func = ui_def_but_rna__popover;
+	but->menu_create_func = ui_def_but_rna__panel_type;
 	but->func_argN = BLI_strdup(panel_type);
 }
 
 bool ui_but_menu_draw_as_popover(const uiBut *but)
 {
-	return (but->menu_create_func == ui_def_but_rna__popover);
+	return (but->menu_create_func == ui_def_but_rna__panel_type);
 }
 
 static void ui_but_submenu_enable(uiBlock *block, uiBut *but)

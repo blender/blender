@@ -117,23 +117,7 @@ static void rna_uiItemR(
 	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
 
-static void rna_uiItemMenuEnumR(
-        uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
-        const char *text_ctxt, bool translate, int icon)
-{
-	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-
-	if (!prop) {
-		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
-		return;
-	}
-
-	/* Get translated name (label). */
-	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
-	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
-}
-
-static void rna_uiItemPopoverPanelEnumR(
+static void rna_uiItemR_with_popover(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
         const char *text_ctxt, bool translate, int icon,
         bool icon_only,
@@ -156,6 +140,22 @@ static void rna_uiItemPopoverPanelEnumR(
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
 	uiItemFullR_with_popover(layout, ptr, prop, -1, 0, flag, name, icon, panel_type);
+}
+
+static void rna_uiItemMenuEnumR(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
+        const char *text_ctxt, bool translate, int icon)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	/* Get translated name (label). */
+	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
+	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
 }
 
 static void rna_uiItemTabsEnumR(
@@ -664,7 +664,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	api_ui_item_common(func);
 
-	func = RNA_def_function(srna, "prop_popover_enum", "rna_uiItemPopoverPanelEnumR");
+	func = RNA_def_function(srna, "prop_with_popover", "rna_uiItemR_with_popover");
 	api_ui_item_rna_common(func);
 	api_ui_item_common(func);
 	RNA_def_boolean(func, "icon_only", false, "", "Draw only icons in tabs, no text");
