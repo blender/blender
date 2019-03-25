@@ -12,7 +12,7 @@ in int selectOveride[2];
 
 flat out vec4 finalColorOuter_f;
 out vec4 finalColor_f;
-out float edgeCoord_f;
+noperspective out float edgeCoord_f;
 
 void do_vertex(const int i, vec4 pos, float coord, vec2 offset)
 {

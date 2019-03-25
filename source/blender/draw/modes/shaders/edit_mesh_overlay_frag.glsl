@@ -16,7 +16,7 @@ uniform float edgeScale;
 
 flat in vec4 finalColorOuter_f;
 in vec4 finalColor_f;
-in float edgeCoord_f;
+noperspective in float edgeCoord_f;
 
 out vec4 FragColor;
 
