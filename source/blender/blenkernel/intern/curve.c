@@ -162,6 +162,7 @@ void BKE_curve_init(Curve *cu)
 	cu->bb = BKE_boundbox_alloc_unit();
 
 	if (cu->type == OB_FONT) {
+		cu->flag |= CU_FRONT | CU_BACK;
 		cu->vfont = cu->vfontb = cu->vfonti = cu->vfontbi = BKE_vfont_builtin_get();
 		cu->vfont->id.us += 4;
 		cu->str = MEM_malloc_arrayN(12, sizeof(unsigned char), "str");
