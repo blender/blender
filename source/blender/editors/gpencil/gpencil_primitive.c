@@ -140,7 +140,7 @@ static void gp_init_colors(tGPDprimitive *p)
 	MaterialGPencilStyle *gp_style = NULL;
 
 	/* use brush material */
-	p->mat = BKE_gpencil_current_input_brush_material(p->bmain,p->ob, brush);
+	p->mat = BKE_gpencil_current_input_brush_material(p->bmain, p->ob, brush);
 
 	/* assign color information to temp data */
 	gp_style = p->mat->gp_style;

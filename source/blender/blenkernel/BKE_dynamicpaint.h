@@ -22,9 +22,9 @@
  */
 
 struct Depsgraph;
-struct DynamicPaintRuntime;
 struct DynamicPaintCanvasSettings;
 struct DynamicPaintModifierData;
+struct DynamicPaintRuntime;
 struct Main;
 struct Scene;
 struct ViewLayer;

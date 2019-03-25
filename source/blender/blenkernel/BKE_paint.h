@@ -50,13 +50,13 @@ struct Scene;
 struct Sculpt;
 struct StrokeCache;
 struct SubdivCCG;
+struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
 struct UnifiedPaintSettings;
 struct ViewLayer;
 struct bContext;
 struct bToolRef;
-struct SubdivCCG;
 
 enum eOverlayFlags;
 
