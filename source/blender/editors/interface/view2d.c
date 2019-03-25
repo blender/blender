@@ -1115,9 +1115,9 @@ void UI_view2d_zoom_cache_reset(void)
 /* View Matrix Setup */
 
 /* mapping function to ensure 'cur' draws extended over the area where sliders are */
-static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
+static void view2d_map_cur_using_mask(View2D *v2d, rctf *r_curmasked)
 {
-	*curmasked = v2d->cur;
+	*r_curmasked = v2d->cur;
 
 	if (view2d_scroll_mapped(v2d->scroll)) {
 		float sizex = BLI_rcti_size_x(&v2d->mask);
@@ -1130,17 +1130,17 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 			float dy = BLI_rctf_size_y(&v2d->cur) / (sizey + 1);
 
 			if (v2d->mask.xmin != 0) {
-				curmasked->xmin -= dx * (float)v2d->mask.xmin;
+				r_curmasked->xmin -= dx * (float)v2d->mask.xmin;
 			}
 			if (v2d->mask.xmax + 1 != v2d->winx) {
-				curmasked->xmax += dx * (float)(v2d->winx - v2d->mask.xmax - 1);
+				r_curmasked->xmax += dx * (float)(v2d->winx - v2d->mask.xmax - 1);
 			}
 
 			if (v2d->mask.ymin != 0) {
-				curmasked->ymin -= dy * (float)v2d->mask.ymin;
+				r_curmasked->ymin -= dy * (float)v2d->mask.ymin;
 			}
 			if (v2d->mask.ymax + 1 != v2d->winy) {
-				curmasked->ymax += dy * (float)(v2d->winy - v2d->mask.ymax - 1);
+				r_curmasked->ymax += dy * (float)(v2d->winy - v2d->mask.ymax - 1);
 			}
 		}
 	}
@@ -1244,14 +1244,14 @@ struct View2DGrid {
 /* --------------- */
 
 /* try to write step as a power of 10 */
-static void step_to_grid(float *step, int *power, int unit)
+static void step_to_grid(float *step, const int unit, int *r_power)
 {
 	const float loga = (float)log10(*step);
 	float rem;
 
-	*power = (int)(loga);
+	int power = (int)(loga);
 
-	rem = loga - (*power);
+	rem = loga - power;
 	rem = (float)pow(10.0, rem);
 
 	if (loga < 0.0f) {
@@ -1265,7 +1265,7 @@ static void step_to_grid(float *step, int *power, int unit)
 			rem = 1.0f;
 		}
 
-		*step = rem * (float)pow(10.0, (*power));
+		*step = rem * (float)pow(10.0, power);
 
 		/* for frames, we want 1.0 frame intervals only */
 		if (unit == V2D_UNIT_FRAMES) {
@@ -1277,7 +1277,7 @@ static void step_to_grid(float *step, int *power, int unit)
 
 		/* prevents printing 1.0 2.0 3.0 etc */
 		if (rem == 1.0f) {
-			(*power)++;
+			power++;
 		}
 	}
 	else {
@@ -1291,14 +1291,16 @@ static void step_to_grid(float *step, int *power, int unit)
 			rem = 10.0f;
 		}
 
-		*step = rem * (float)pow(10.0, (*power));
+		*step = rem * (float)pow(10.0, power);
 
-		(*power)++;
+		power++;
 		/* prevents printing 1.0, 2.0, 3.0, etc. */
 		if (rem == 10.0f) {
-			(*power)++;
+			power++;
 		}
 	}
+
+	*r_power = power;
 }
 
 /**
@@ -1347,7 +1349,7 @@ View2DGrid *UI_view2d_grid_calc(
 			const float pixels = (float)BLI_rcti_size_x(&v2d->mask);
 			if (pixels != 0.0f) {
 				grid->dx = (U.v2d_min_gridsize * UI_DPI_FAC * space) / (seconddiv * pixels);
-				step_to_grid(&grid->dx, &grid->powerx, xunits);
+				step_to_grid(&grid->dx, xunits, &grid->powerx);
 				grid->dx *= seconddiv;
 			}
 		}
@@ -1366,7 +1368,7 @@ View2DGrid *UI_view2d_grid_calc(
 			const float pixels = (float)winy;
 			if (pixels != 0.0f) {
 				grid->dy = U.v2d_min_gridsize * UI_DPI_FAC * space / pixels;
-				step_to_grid(&grid->dy, &grid->powery, yunits);
+				step_to_grid(&grid->dy, yunits, &grid->powery);
 			}
 		}
 
@@ -2234,11 +2236,11 @@ void UI_view2d_listview_cell_to_view(
  * (like for Animation Editor channel lists, to make the first entry more visible), these will be
  * the min-coordinates of the first item.
  * \param viewx, viewy: 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
- * \param column, row: the 'coordinates' of the relevant 'cell'
+ * \param r_column, r_row: the 'coordinates' of the relevant 'cell'
  */
 void UI_view2d_listview_view_to_cell(
         View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
-        float viewx, float viewy, int *column, int *row)
+        float viewx, float viewy, int *r_column, int *r_row)
 {
 	/* adjust view coordinates to be all positive ints, corrected for the start offset */
 	const int x = (int)(floorf(fabsf(viewx) + 0.5f) - startx);
@@ -2246,30 +2248,30 @@ void UI_view2d_listview_view_to_cell(
 
 	/* sizes must not be negative */
 	if ((v2d == NULL) || ((columnwidth <= 0) && (rowheight <= 0))) {
-		if (column) {
-			*column = 0;
+		if (r_column) {
+			*r_column = 0;
 		}
-		if (row) {
-			*row = 0;
+		if (r_row) {
+			*r_row = 0;
 		}
 
 		return;
 	}
 
 	/* get column */
-	if ((column) && (columnwidth > 0)) {
-		*column = x / columnwidth;
+	if ((r_column) && (columnwidth > 0)) {
+		*r_column = x / columnwidth;
 	}
-	else if (column) {
-		*column = 0;
+	else if (r_column) {
+		*r_column = 0;
 	}
 
 	/* get row */
-	if ((row) && (rowheight > 0)) {
-		*row = y / rowheight;
+	if ((r_row) && (rowheight > 0)) {
+		*r_row = y / rowheight;
 	}
-	else if (row) {
-		*row = 0;
+	else if (r_row) {
+		*r_row = 0;
 	}
 }
 
@@ -2512,27 +2514,27 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
  * Is used to inverse correct drawing of icons, etc. that need to follow view
  * but not be affected by scale
  *
- * \param x, y: scale on each axis
+ * \param r_x, r_y: scale on each axis
  */
-void UI_view2d_scale_get(View2D *v2d, float *x, float *y)
+void UI_view2d_scale_get(View2D *v2d, float *r_x, float *r_y)
 {
-	if (x) {
-		*x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
+	if (r_x) {
+		*r_x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
 	}
-	if (y) {
-		*y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
+	if (r_y) {
+		*r_y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 	}
 }
 /**
  * Same as ``UI_view2d_scale_get() - 1.0f / x, y``
  */
-void UI_view2d_scale_get_inverse(View2D *v2d, float *x, float *y)
+void UI_view2d_scale_get_inverse(View2D *v2d, float *r_x, float *r_y)
 {
-	if (x) {
-		*x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+	if (r_x) {
+		*r_x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 	}
-	if (y) {
-		*y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+	if (r_y) {
+		*r_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 	}
 }
 
@@ -2540,14 +2542,14 @@ void UI_view2d_scale_get_inverse(View2D *v2d, float *x, float *y)
  * Simple functions for consistent center offset access.
  * Used by node editor to shift view center for each individual node tree.
  */
-void UI_view2d_center_get(struct View2D *v2d, float *x, float *y)
+void UI_view2d_center_get(struct View2D *v2d, float *r_x, float *r_y)
 {
 	/* get center */
-	if (x) {
-		*x = BLI_rctf_cent_x(&v2d->cur);
+	if (r_x) {
+		*r_x = BLI_rctf_cent_x(&v2d->cur);
 	}
-	if (y) {
-		*y = BLI_rctf_cent_y(&v2d->cur);
+	if (r_y) {
+		*r_y = BLI_rctf_cent_y(&v2d->cur);
 	}
 }
 void UI_view2d_center_set(struct View2D *v2d, float x, float y)

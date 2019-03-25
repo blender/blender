@@ -2135,24 +2135,24 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 /* Pointer RNA button with search */
 
 
-static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA **prop)
+static void search_id_collection(StructRNA *ptype, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
 	StructRNA *srna;
 
 	/* look for collection property in Main */
 	/* Note: using global Main is OK-ish here, UI shall not access other Mains anyay... */
-	RNA_main_pointer_create(G_MAIN, ptr);
+	RNA_main_pointer_create(G_MAIN, r_ptr);
 
-	*prop = NULL;
+	*r_prop = NULL;
 
-	RNA_STRUCT_BEGIN (ptr, iprop)
+	RNA_STRUCT_BEGIN (r_ptr, iprop)
 	{
 		/* if it's a collection and has same pointer type, we've got it */
 		if (RNA_property_type(iprop) == PROP_COLLECTION) {
-			srna = RNA_property_pointer_type(ptr, iprop);
+			srna = RNA_property_pointer_type(r_ptr, iprop);
 
 			if (ptype == srna) {
-				*prop = iprop;
+				*r_prop = iprop;
 				break;
 			}
 		}
@@ -4442,7 +4442,7 @@ static void ui_item_layout(uiItem *item)
 	}
 }
 
-static void ui_layout_end(uiBlock *block, uiLayout *layout, int *x, int *y)
+static void ui_layout_end(uiBlock *block, uiLayout *layout, int *r_x, int *r_y)
 {
 	if (layout->root->handlefunc) {
 		UI_block_func_handle_set(block, layout->root->handlefunc, layout->root->argv);
@@ -4451,11 +4451,11 @@ static void ui_layout_end(uiBlock *block, uiLayout *layout, int *x, int *y)
 	ui_item_estimate(&layout->item);
 	ui_item_layout(&layout->item);
 
-	if (x) {
-		*x = layout->x;
+	if (r_x) {
+		*r_x = layout->x;
 	}
-	if (y) {
-		*y = layout->y;
+	if (r_y) {
+		*r_y = layout->y;
 	}
 }
 
@@ -4599,17 +4599,17 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
 	layout->root->argv = argv;
 }
 
-void UI_block_layout_resolve(uiBlock *block, int *x, int *y)
+void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
 {
 	uiLayoutRoot *root;
 
 	BLI_assert(block->active);
 
-	if (x) {
-		*x = 0;
+	if (r_x) {
+		*r_x = 0;
 	}
-	if (y) {
-		*y = 0;
+	if (r_y) {
+		*r_y = 0;
 	}
 
 	block->curlayout = NULL;
@@ -4618,7 +4618,7 @@ void UI_block_layout_resolve(uiBlock *block, int *x, int *y)
 		ui_layout_add_padding_button(root);
 
 		/* NULL in advance so we don't interfere when adding button */
-		ui_layout_end(block, root->layout, x, y);
+		ui_layout_end(block, root->layout, r_x, r_y);
 		ui_layout_free(root->layout);
 	}
 

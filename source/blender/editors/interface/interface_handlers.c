@@ -6016,7 +6016,7 @@ static bool ui_numedit_but_HSVCIRCLE(
 
 	}
 
-	ui_hsvcircle_vals_from_pos(hsv, hsv + 1, &rect, mx_fl, my_fl);
+	ui_hsvcircle_vals_from_pos(&rect, mx_fl, my_fl, hsv, hsv + 1);
 
 	if ((cpicker->use_color_cubic) && (U.color_picker_type == USER_CP_CIRCLE_HSV)) {
 		hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);

@@ -462,8 +462,8 @@ extern void ui_but_v3_get(uiBut *but, float vec[3]);
 extern void ui_but_v3_set(uiBut *but, const float vec[3]);
 
 extern void ui_hsvcircle_vals_from_pos(
-        float *val_rad, float *val_dist, const rcti *rect,
-        const float mx, const float my);
+        const rcti *rect, const float mx, const float my,
+        float *r_val_rad, float *r_val_dist);
 extern void ui_hsvcircle_pos_from_vals(const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *xpos, float *ypos);
 extern void ui_hsvcube_pos_from_vals(const struct uiBut *but, const rcti *rect, const float *hsv, float *xp, float *yp);
 

@@ -2680,8 +2680,8 @@ static void ui_hsv_cursor(float x, float y)
 }
 
 void ui_hsvcircle_vals_from_pos(
-        float *val_rad, float *val_dist, const rcti *rect,
-        const float mx, const float my)
+        const rcti *rect, const float mx, const float my,
+        float *r_val_rad, float *r_val_dist)
 {
 	/* duplication of code... well, simple is better now */
 	const float centx = BLI_rcti_cent_x_fl(rect);
@@ -2690,8 +2690,8 @@ void ui_hsvcircle_vals_from_pos(
 	const float m_delta[2] = {mx - centx, my - centy};
 	const float dist_sq = len_squared_v2(m_delta);
 
-	*val_dist = (dist_sq < (radius * radius)) ? sqrtf(dist_sq) / radius : 1.0f;
-	*val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
+	*r_val_dist = (dist_sq < (radius * radius)) ? sqrtf(dist_sq) / radius : 1.0f;
+	*r_val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
 }
 
 /* cursor in hsv circle, in float units -1 to 1, to map on radius */
@@ -2780,7 +2780,9 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 		float hsv_ang[3];
 		float rgb_ang[3];
 
-		ui_hsvcircle_vals_from_pos(hsv_ang, hsv_ang + 1, rect, centx + co * radius, centy + si * radius);
+		ui_hsvcircle_vals_from_pos(
+		        rect, centx + co * radius, centy + si * radius,
+		        hsv_ang, hsv_ang + 1);
 		hsv_ang[2] = hsv[2];
 
 		ui_color_picker_to_rgb_v(hsv_ang, rgb_ang);

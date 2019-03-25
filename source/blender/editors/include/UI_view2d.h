@@ -209,10 +209,10 @@ bool  UI_view2d_view_to_region_rcti_clip(struct View2D *v2d, const struct rctf *
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 
-void UI_view2d_scale_get(struct View2D *v2d, float *x, float *y);
-void UI_view2d_scale_get_inverse(struct View2D *v2d, float *x, float *y);
+void UI_view2d_scale_get(struct View2D *v2d, float *r_x, float *r_y);
+void UI_view2d_scale_get_inverse(struct View2D *v2d, float *r_x, float *r_y);
 
-void UI_view2d_center_get(struct View2D *v2d, float *x, float *y);
+void UI_view2d_center_get(struct View2D *v2d, float *r_x, float *r_y);
 void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);

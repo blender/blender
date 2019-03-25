@@ -191,9 +191,9 @@ static bool panel_active_animation_changed(ListBase *lb, Panel **pa_animation, b
 	return false;
 }
 
-static bool panels_need_realign(ScrArea *sa, ARegion *ar, Panel **pa_animate)
+static bool panels_need_realign(ScrArea *sa, ARegion *ar, Panel **r_pa_animate)
 {
-	*pa_animate = NULL;
+	*r_pa_animate = NULL;
 
 	if (sa->spacetype == SPACE_PROPERTIES && ar->regiontype == RGN_TYPE_WINDOW) {
 		SpaceProperties *sbuts = sa->spacedata.first;
@@ -219,7 +219,7 @@ static bool panels_need_realign(ScrArea *sa, ARegion *ar, Panel **pa_animate)
 	/* Detect panel marked for animation, if we're not already animating. */
 	if (pa_animation) {
 		if (!no_animation) {
-			*pa_animate = pa_animation;
+			*r_pa_animate = pa_animation;
 		}
 		return true;
 	}
@@ -630,16 +630,16 @@ static void ui_draw_panel_dragwidget(uint pos, uint col, const rctf *rect)
 }
 
 /* For button layout next to label. */
-void UI_panel_label_offset(uiBlock *block, int *x, int *y)
+void UI_panel_label_offset(uiBlock *block, int *r_x, int *r_y)
 {
 	Panel *panel = block->panel;
 	const bool is_subpanel = (panel->type && panel->type->parent);
 
-	*x = UI_UNIT_X * 1.0f;
-	*y = UI_UNIT_Y * 1.5f;
+	*r_x = UI_UNIT_X * 1.0f;
+	*r_y = UI_UNIT_Y * 1.5f;
 
 	if (is_subpanel) {
-		*x += (0.7f * UI_UNIT_X);
+		*r_x += (0.7f * UI_UNIT_X);
 	}
 }
 
@@ -1167,7 +1167,7 @@ static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bo
 	return done;
 }
 
-static void ui_panels_size(ScrArea *sa, ARegion *ar, int *x, int *y)
+static void ui_panels_size(ScrArea *sa, ARegion *ar, int *r_x, int *r_y)
 {
 	Panel *pa;
 	int align = panel_aligned(sa, ar);
@@ -1200,8 +1200,8 @@ static void ui_panels_size(ScrArea *sa, ARegion *ar, int *x, int *y)
 		sizey = -UI_PANEL_WIDTH;
 	}
 
-	*x = sizex;
-	*y = sizey;
+	*r_x = sizex;
+	*r_y = sizey;
 }
 
 static void ui_do_animate(const bContext *C, Panel *panel)
@@ -1250,7 +1250,7 @@ void UI_panels_begin(const bContext *UNUSED(C), ARegion *ar)
 }
 
 /* only draws blocks with panels */
-void UI_panels_end(const bContext *C, ARegion *ar, int *x, int *y)
+void UI_panels_end(const bContext *C, ARegion *ar, int *r_x, int *r_y)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	uiBlock *block;
@@ -1313,7 +1313,7 @@ void UI_panels_end(const bContext *C, ARegion *ar, int *x, int *y)
 	}
 
 	/* compute size taken up by panel */
-	ui_panels_size(sa, ar, x, y);
+	ui_panels_size(sa, ar, r_x, r_y);
 }
 
 void UI_panels_draw(const bContext *C, ARegion *ar)
