@@ -207,18 +207,41 @@ def _template_items_gizmo_tweak_modal():
     ]
 
 
-def _template_items_editmode_mesh_select_mode():
-    return [
-        (
-            "mesh.select_mode",
-            {"type": k, "value": 'PRESS', **key_expand, **key_extend},
-            {"properties": [*prop_extend, *prop_expand, ("type", e)]}
-        )
-        for key_expand, prop_expand in (({}, ()), ({"ctrl": True}, (("use_expand", True),)))
-        for key_extend, prop_extend in (({}, ()), ({"shift": True}, (("use_extend", True),)))
-        for k, e in (('ONE', 'VERT'), ('TWO', 'EDGE'), ('THREE', 'FACE'))
-    ]
+def _template_items_editmode_mesh_select_mode(params):
+    if params.legacy:
+        return [
+            op_menu("VIEW3D_MT_edit_mesh_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
+        ]
+    else:
+        return [
+            (
+                "mesh.select_mode",
+                {"type": k, "value": 'PRESS', **key_expand, **key_extend},
+                {"properties": [*prop_extend, *prop_expand, ("type", e)]}
+            )
+            for key_expand, prop_expand in (({}, ()), ({"ctrl": True}, (("use_expand", True),)))
+            for key_extend, prop_extend in (({}, ()), ({"shift": True}, (("use_extend", True),)))
+            for k, e in (('ONE', 'VERT'), ('TWO', 'EDGE'), ('THREE', 'FACE'))
+        ]
 
+def _template_items_uv_select_mode(params):
+    if params.legacy:
+        return [
+            op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
+        ]
+    else:
+        return [
+            *_template_items_editmode_mesh_select_mode(params),
+            ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
+            ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
+             {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
+            ("wm.context_set_enum", {"type": 'TWO', "value": 'PRESS'},
+             {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'EDGE')]}),
+            ("wm.context_set_enum", {"type": 'THREE', "value": 'PRESS'},
+             {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'FACE')]}),
+            ("wm.context_set_enum", {"type": 'FOUR', "value": 'PRESS'},
+             {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'ISLAND')]}),
+        ]
 
 def _template_items_proportional_editing(*, connected=False):
     return [
@@ -716,16 +739,7 @@ def km_uv_editor(params):
 
     items.extend([
         # Selection modes.
-        *_template_items_editmode_mesh_select_mode(),
-        ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
-        ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
-        ("wm.context_set_enum", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'EDGE')]}),
-        ("wm.context_set_enum", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'FACE')]}),
-        ("wm.context_set_enum", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'ISLAND')]}),
+        *_template_items_uv_select_mode(params),
         ("uv.mark_seam", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
         ("uv.select", {"type": params.select_mouse, "value": params.select_mouse_value},
          {"properties": [("extend", False)]}),
@@ -3818,7 +3832,7 @@ def km_mesh(params):
         ("mesh.bevel", {"type": 'B', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("vertex_only", True)]}),
         # Selection modes.
-        *_template_items_editmode_mesh_select_mode(),
+        *_template_items_editmode_mesh_select_mode(params),
         # Loop Select with alt. Double click in case MMB emulation is on (below).
         ("mesh.loop_select", {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True},
          {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
@@ -4209,7 +4223,18 @@ def km_object_non_modal(params):
         {"items": items},
     )
 
-    if params.use_pie_click_drag:
+    if params.legacy:
+        items.extend([
+            ("object.mode_set", {"type": 'TAB', "value": 'PRESS'},
+             {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
+            ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+             {"properties": [("mode", 'POSE'), ("toggle", True)]}),
+            ("object.mode_set", {"type": 'V', "value": 'PRESS'},
+             {"properties": [("mode", 'VERTEX_PAINT'), ("toggle", True)]}),
+            ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+             {"properties": [("mode", 'WEIGHT_PAINT'), ("toggle", True)]}),
+        ])
+    elif params.use_pie_click_drag:
         items.extend([
             ("object.mode_set", {"type": 'TAB', "value": 'CLICK'},
              {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
