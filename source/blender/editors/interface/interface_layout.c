@@ -2008,7 +2008,7 @@ void uiItemFullR_with_popover(
 		}
 		but = but->next;
 	}
-	if (but) {
+	if (but == NULL) {
 		const char *propname = RNA_property_identifier(prop);
 		ui_item_disabled(layout, panel_type);
 		RNA_warning(
