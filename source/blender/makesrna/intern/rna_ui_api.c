@@ -136,6 +136,7 @@ static void rna_uiItemMenuEnumR(
 static void rna_uiItemPopoverPanelEnumR(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name,
         const char *text_ctxt, bool translate, int icon,
+        bool icon_only,
         const char *panel_type)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
@@ -149,6 +150,8 @@ static void rna_uiItemPopoverPanelEnumR(
 		return;
 	}
 	int flag = 0;
+
+	flag |= (icon_only) ? UI_ITEM_R_ICON_ONLY : 0;
 
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
@@ -664,6 +667,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "prop_popover_enum", "rna_uiItemPopoverPanelEnumR");
 	api_ui_item_rna_common(func);
 	api_ui_item_common(func);
+	RNA_def_boolean(func, "icon_only", false, "", "Draw only icons in tabs, no text");
 	parm = RNA_def_string(func, "panel", NULL, 0, "", "Identifier of the panel");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
