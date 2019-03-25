@@ -251,7 +251,7 @@ set(JEMALLOC_URI https://github.com/jemalloc/jemalloc/releases/download/${JEMALL
 set(JEMALLOC_HASH 507f7b6b882d868730d644510491d18f)
 
 set(XML2_VERSION 2.9.4)
-set(XML2_URI ftp://xmlsoft.org/libxml2/libxml2-${XML2_VERSION}.tar.gz)
+set(XML2_URI http://xmlsoft.org/sources/libxml2-${XML2_VERSION}.tar.gz)
 set(XML2_HASH ae249165c173b1ff386ee8ad676815f5)
 
 set(TINYXML_VERSION 2_6_2)
@@ -284,7 +284,7 @@ set(BZIP2_URI http://http.debian.net/debian/pool/main/b/bzip2/bzip2_${BZIP2_VERS
 set(BZIP2_HASH d70a9ccd8bdf47e302d96c69fecd54925f45d9c7b966bb4ef5f56b770960afa7)
 
 set(FFI_VERSION 3.2.1)
-set(FFI_URI ftp://sourceware.org/pub/libffi/libffi-${FFI_VERSION}.tar.gz)
+set(FFI_URI https://sourceware.org/pub/libffi/libffi-${FFI_VERSION}.tar.gz)
 set(FFI_HASH d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37)
 
 set(LZMA_VERSION 5.2.4)
