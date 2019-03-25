@@ -1735,9 +1735,8 @@ void BKE_scene_object_base_flag_sync_from_object(Base *base)
 	Object *ob = base->object;
 	base->flag = ob->flag;
 
-	if ((ob->flag & SELECT) != 0) {
+	if ((ob->flag & SELECT) != 0 && (base->flag & BASE_SELECTABLE) != 0) {
 		base->flag |= BASE_SELECTED;
-		BLI_assert((base->flag & BASE_SELECTABLE) != 0);
 	}
 	else {
 		base->flag &= ~BASE_SELECTED;
