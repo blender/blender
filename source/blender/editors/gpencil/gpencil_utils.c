@@ -1663,7 +1663,6 @@ static bool gp_brush_cursor_poll(bContext *C)
 /* Helper callback for drawing the cursor itself */
 static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	ARegion *ar = CTX_wm_region(C);
