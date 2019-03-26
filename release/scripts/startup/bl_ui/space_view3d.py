@@ -1962,6 +1962,12 @@ class VIEW3D_MT_object_context_menu(Menu):
 
         layout.separator()
 
+        props = layout.operator("wm.call_panel", text="Rename Active Object...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
+
+        layout.separator()
+
         layout.operator("view3d.copybuffer", text="Copy Objects", icon='COPYDOWN')
         layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
 
@@ -2769,6 +2775,12 @@ class VIEW3D_MT_pose_context_menu(Menu):
         layout.operator("pose.copy", icon='COPYDOWN')
         layout.operator("pose.paste", icon='PASTEDOWN').flipped = False
         layout.operator("pose.paste", icon='PASTEFLIPDOWN', text="Paste X-Flipped Pose").flipped = True
+
+        layout.separator()
+
+        props = layout.operator("wm.call_panel", text="Rename Active Bone...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
 
         layout.separator()
 
