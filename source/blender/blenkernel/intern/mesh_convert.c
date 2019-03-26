@@ -1120,7 +1120,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         ModifierData *md, int build_shapekey_layers)
 {
-	Mesh *me = ob->data;
+	Mesh *me = ob->runtime.mesh_orig ? ob->runtime.mesh_orig : ob->data;
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	Mesh *result;
 	KeyBlock *kb;

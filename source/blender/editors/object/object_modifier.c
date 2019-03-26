@@ -541,6 +541,22 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports),
 	return 1;
 }
 
+/* Gets mesh for the modifier which corresponds to an evaluated state. */
+static Mesh *modifier_apply_create_mesh_for_modifier(
+        Depsgraph *depsgraph,
+        Scene *UNUSED(scene),
+        Object *object,
+        ModifierData *md,
+        bool build_shapekey_layers)
+{
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+	ModifierData *md_eval = modifiers_findByName(object_eval, md->name);
+	Mesh *mesh_applied = BKE_mesh_create_derived_for_modifier(
+	        depsgraph, scene_eval, object_eval, md_eval, build_shapekey_layers);
+	return mesh_applied;
+}
+
 static int modifier_apply_shape(
 	Main *bmain, ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md)
 {
@@ -573,7 +589,7 @@ static int modifier_apply_shape(
 			return 0;
 		}
 
-		mesh_applied = BKE_mesh_create_derived_for_modifier(depsgraph, scene, ob, md, 0);
+		mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, scene, ob, md, false);
 		if (!mesh_applied) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
 			return 0;
@@ -630,7 +646,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 			}
 		}
 		else {
-			mesh_applied = BKE_mesh_create_derived_for_modifier(depsgraph, scene, ob, md, 1);
+			mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, scene, ob, md, true);
 			if (!mesh_applied) {
 				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
 				return 0;
@@ -643,22 +659,23 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 		}
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
-		Curve *cu;
+		Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+		Curve *curve = ob->data;
+		Curve *curve_eval = (Curve *)object_eval->data;
 		int numVerts;
 		float (*vertexCos)[3];
-		ModifierEvalContext mectx = {depsgraph, ob, 0};
+		ModifierEvalContext mectx = {depsgraph, object_eval, 0};
 
 		if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
 			BKE_report(reports, RPT_ERROR, "Transform curve to mesh in order to apply constructive modifiers");
 			return 0;
 		}
 
-		cu = ob->data;
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
-		vertexCos = BKE_curve_nurbs_vertexCos_get(&cu->nurb, &numVerts);
+		vertexCos = BKE_curve_nurbs_vertexCos_get(&curve_eval->nurb, &numVerts);
 		mti->deformVerts(md, &mectx, NULL, vertexCos, numVerts);
-		BK_curve_nurbs_vertexCos_apply(&cu->nurb, vertexCos);
+		BK_curve_nurbs_vertexCos_apply(&curve->nurb, vertexCos);
 
 		MEM_freeN(vertexCos);
 
