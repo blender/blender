@@ -249,26 +249,37 @@ float BLI_easing_elastic_ease_in_out(float time, float begin, float change, floa
 	}
 }
 
+static const float pow_min = 0.0009765625f; /* = 2^(-10) */
+static const float pow_scale = 1.0f / (1.0f - 0.0009765625f);
+
 float BLI_easing_expo_ease_in(float time, float begin, float change, float duration)
 {
-	return (time == 0.0f) ? begin : change * powf(2, 10 * (time / duration - 1)) + begin;
+	if (time == 0.0) {
+		return begin;
+	}
+	return change * (powf(2, 10 * (time / duration - 1)) - pow_min) * pow_scale + begin;
 }
 
 float BLI_easing_expo_ease_out(float time, float begin, float change, float duration)
 {
-	return (time == duration) ? begin + change : change * (-powf(2, -10 * time / duration) + 1) + begin;
+	if (time == 0.0) {
+		return begin;
+	}
+	return change * (1 - (powf(2, -10 * time / duration) - pow_min) * pow_scale) + begin;
 }
 
 float BLI_easing_expo_ease_in_out(float time, float begin, float change, float duration)
 {
-	if (time == 0.0f)
-		return begin;
-	if (time == duration)
-		return begin + change;
-	if ((time /= duration / 2) < 1)
-		return change / 2 * powf(2, 10 * (time - 1)) + begin;
-	time -= 1.0f;
-	return change / 2 * (-powf(2, -10 * time) + 2) + begin;
+	float duration_half = duration / 2.0f;
+	float change_half = change / 2.0f;
+	if (time <= duration_half) {
+		return BLI_easing_expo_ease_in(
+		        time, begin, change_half, duration_half);
+	}
+	else {
+		return BLI_easing_expo_ease_out(
+		        time - duration_half, begin + change_half, change_half, duration_half);
+	}
 }
 
 float BLI_easing_linear_ease(float time, float begin, float change, float duration)
