@@ -415,7 +415,7 @@ void BKE_camera_view_frame(const Scene *scene, const Camera *camera, float r_vec
 	float dummy_drawsize;
 	const float dummy_scale[3] = {1.0f, 1.0f, 1.0f};
 
-	BKE_camera_view_frame_ex(scene, camera, 0.0, false, dummy_scale,
+	BKE_camera_view_frame_ex(scene, camera, 1.0, false, dummy_scale,
 	                         dummy_asp, dummy_shift, &dummy_drawsize, r_vec);
 }
 
