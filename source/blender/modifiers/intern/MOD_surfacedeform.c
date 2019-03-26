@@ -1124,7 +1124,7 @@ static void deformVert(
 
 static void surfacedeformModifier_do(
         ModifierData *md,
-        const ModifierEvalContext *ctx,
+        const ModifierEvalContext *UNUSED(ctx),
         float (*vertexCos)[3], unsigned int numverts, Object *ob)
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
@@ -1147,7 +1147,7 @@ static void surfacedeformModifier_do(
 		return;
 	}
 
-	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, smd->target);
+	Object *ob_target = smd->target;
 	target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
 #if 0  /* Should not be needed anymore since we always get that mesh from eval object ? */
 	if (target == NULL && smd->verts == NULL && ob == DEG_get_original_object(ob)) {

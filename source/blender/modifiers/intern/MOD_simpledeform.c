@@ -178,7 +178,7 @@ static void simpleDeform_bend(const float factor, const int axis, const float dc
 
 /* simple deform modifier */
 static void SimpleDeformModifier_do(
-        SimpleDeformModifierData *smd, const ModifierEvalContext *ctx,
+        SimpleDeformModifierData *smd, const ModifierEvalContext *UNUSED(ctx),
         struct Object *ob, struct Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
@@ -222,7 +222,7 @@ static void SimpleDeformModifier_do(
 	/* Calculate matrixs do convert between coordinate spaces */
 	if (smd->origin != NULL) {
 		transf = &tmp_transf;
-		BLI_SPACE_TRANSFORM_SETUP(transf, ob, DEG_get_evaluated_object(ctx->depsgraph, smd->origin));
+		BLI_SPACE_TRANSFORM_SETUP(transf, ob, smd->origin);
 	}
 
 	/* Update limits if needed */

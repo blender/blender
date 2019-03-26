@@ -59,7 +59,7 @@
 
 void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *ctx)
 {
-	Tex *tex = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &dmd->texture->id);
+	Tex *tex = dmd->texture;
 
 	if (tex == NULL) {
 		return;
@@ -74,7 +74,7 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
 /** \param cos: may be NULL, in which case we use directly mesh vertices' coordinates. */
 void MOD_get_texture_coords(
         MappingInfoModifierData *dmd,
-        const ModifierEvalContext *ctx,
+        const ModifierEvalContext *UNUSED(ctx),
         Object *ob,
         Mesh *mesh,
         float (*cos)[3],
@@ -87,7 +87,7 @@ void MOD_get_texture_coords(
 
 	if (texmapping == MOD_DISP_MAP_OBJECT) {
 		if (dmd->map_object != NULL) {
-			Object *map_object = DEG_get_evaluated_object(ctx->depsgraph, dmd->map_object);
+			Object *map_object = dmd->map_object;
 			invert_m4_m4(mapob_imat, map_object->obmat);
 		}
 		else {/* if there is no map object, default to local */

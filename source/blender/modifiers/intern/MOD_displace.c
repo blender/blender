@@ -290,7 +290,7 @@ static void displaceModifier_do(
 	mvert = mesh->mvert;
 	MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
-	Tex *tex_target = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &dmd->texture->id);
+	Tex *tex_target = dmd->texture;
 	if (tex_target != NULL) {
 		tex_co = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tex_co),
 		                     "displaceModifier_do tex_co");

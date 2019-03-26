@@ -374,7 +374,7 @@ static Mesh *arrayModifier_doArray(
 
 	count = amd->count;
 
-	Object *start_cap_ob = DEG_get_evaluated_object(ctx->depsgraph, amd->start_cap);
+	Object *start_cap_ob = amd->start_cap;
 	if (start_cap_ob && start_cap_ob != ctx->object && start_cap_ob->type == OB_MESH) {
 		vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(
 		                             start_cap_ob, ctx->object, &vgroup_start_cap_remap_len);
@@ -387,7 +387,7 @@ static Mesh *arrayModifier_doArray(
 			start_cap_npolys = start_cap_mesh->totpoly;
 		}
 	}
-	Object *end_cap_ob = DEG_get_evaluated_object(ctx->depsgraph, amd->end_cap);
+	Object *end_cap_ob = amd->end_cap;
 	if (end_cap_ob && end_cap_ob != ctx->object && end_cap_ob->type == OB_MESH) {
 		vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
 		                           end_cap_ob, ctx->object, &vgroup_end_cap_remap_len);
@@ -433,7 +433,7 @@ static Mesh *arrayModifier_doArray(
 		else
 			unit_m4(obinv);
 
-		mul_m4_series(result_mat, offset, obinv, DEG_get_evaluated_object(ctx->depsgraph, amd->offset_ob)->obmat);
+		mul_m4_series(result_mat, offset, obinv, amd->offset_ob->obmat);
 		copy_m4_m4(offset, result_mat);
 	}
 
@@ -442,7 +442,7 @@ static Mesh *arrayModifier_doArray(
 	offset_has_scale = !is_one_v3(scale);
 
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob != NULL) {
-		Object *curve_ob = DEG_get_evaluated_object(ctx->depsgraph, amd->curve_ob);
+		Object *curve_ob = amd->curve_ob;
 		Curve *cu = curve_ob->data;
 		if (cu) {
 			CurveCache *curve_cache = curve_ob->runtime.curve_cache;

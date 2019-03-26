@@ -160,7 +160,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	/* Only used to check wehther we are operating on org data or not... */
 	Mesh *me = ctx->object->data;
 
-	Object *ob_source = DEG_get_evaluated_object(ctx->depsgraph, dtmd->ob_source);
+	Object *ob_source = dtmd->ob_source;
 
 	const bool invert_vgroup = (dtmd->flags & MOD_DATATRANSFER_INVERT_VGROUP) != 0;
 

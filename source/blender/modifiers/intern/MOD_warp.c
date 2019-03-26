@@ -189,8 +189,8 @@ static void warpModifier_do(
 
 	invert_m4_m4(obinv, ob->obmat);
 
-	mul_m4_m4m4(mat_from, obinv, DEG_get_evaluated_object(ctx->depsgraph, wmd->object_from)->obmat);
-	mul_m4_m4m4(mat_to, obinv, DEG_get_evaluated_object(ctx->depsgraph, wmd->object_to)->obmat);
+	mul_m4_m4m4(mat_from, obinv, wmd->object_from->obmat);
+	mul_m4_m4m4(mat_to, obinv, wmd->object_to->obmat);
 
 	invert_m4_m4(tmat, mat_from); // swap?
 	mul_m4_m4m4(mat_final, tmat, mat_to);
@@ -211,7 +211,7 @@ static void warpModifier_do(
 	}
 	weight = strength;
 
-	Tex *tex_target = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &wmd->texture->id);
+	Tex *tex_target = wmd->texture;
 	if (mesh != NULL && tex_target != NULL) {
 		tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co), "warpModifier_do tex_co");
 		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);

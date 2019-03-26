@@ -163,7 +163,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		return result;
 	}
 
-	Object *other = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
+	Object *other = bmd->object;
 	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(other, false);
 	if (mesh_other) {
 		Object *object = ctx->object;

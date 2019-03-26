@@ -248,11 +248,11 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
 }
 
 static void deformVerts_do(
-        HookModifierData *hmd, const ModifierEvalContext *ctx,
+        HookModifierData *hmd, const ModifierEvalContext *UNUSED(ctx),
         Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, hmd->object);
+	Object *ob_target = hmd->object;
 	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
 	float dmat[4][4];
 	int i, *index_pt;

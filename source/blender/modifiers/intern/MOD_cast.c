@@ -95,7 +95,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 }
 
 static void sphere_do(
-        CastModifierData *cmd, const ModifierEvalContext *ctx,
+        CastModifierData *cmd, const ModifierEvalContext *UNUSED(ctx),
         Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
@@ -119,7 +119,7 @@ static void sphere_do(
 	if (type == MOD_CAST_TYPE_CYLINDER)
 		flag &= ~MOD_CAST_Z;
 
-	ctrl_ob = DEG_get_evaluated_object(ctx->depsgraph, cmd->object);
+	ctrl_ob = cmd->object;
 
 	/* spherify's center is {0, 0, 0} (the ob's own center in its local
 	 * space), by default, but if the user defined a control object,
@@ -217,7 +217,7 @@ static void sphere_do(
 }
 
 static void cuboid_do(
-        CastModifierData *cmd, const ModifierEvalContext *ctx,
+        CastModifierData *cmd, const ModifierEvalContext *UNUSED(ctx),
         Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
@@ -236,7 +236,7 @@ static void cuboid_do(
 
 	flag = cmd->flag;
 
-	ctrl_ob = DEG_get_evaluated_object(ctx->depsgraph, cmd->object);
+	ctrl_ob = cmd->object;
 
 	/* now we check which options the user wants */
 

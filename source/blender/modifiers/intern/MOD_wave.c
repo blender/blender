@@ -167,7 +167,7 @@ static void waveModifier_do(
 		float mat[4][4];
 		/* get the control object's location in local coordinates */
 		invert_m4_m4(ob->imat, ob->obmat);
-		mul_m4_m4m4(mat, ob->imat, DEG_get_evaluated_object(ctx->depsgraph, wmd->objectcenter)->obmat);
+		mul_m4_m4m4(mat, ob->imat, wmd->objectcenter->obmat);
 
 		wmd->startx = mat[3][0];
 		wmd->starty = mat[3][1];
@@ -191,7 +191,7 @@ static void waveModifier_do(
 		}
 	}
 
-	Tex *tex_target = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &wmd->texture->id);
+	Tex *tex_target = wmd->texture;
 	if (mesh != NULL && tex_target != NULL) {
 		tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co), "waveModifier_do tex_co");
 		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);

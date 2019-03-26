@@ -127,7 +127,6 @@ void weightvg_do_mask(
 
 	/* If we want to mask vgroup weights from a texture. */
 	if (texture != NULL) {
-		texture = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &texture->id);
 		/* The texture coordinates. */
 		float (*tex_co)[3];
 		/* See mapping note below... */
