@@ -360,8 +360,8 @@ typedef struct BuiltinOpDef {
 static BuiltinOpDef builtin_ops[] = {
 	{ "radians", OPCODE_FUNC1, op_radians },
 	{ "degrees", OPCODE_FUNC1, op_degrees },
-	{ "abs", OPCODE_FUNC1, abs },
-	{ "fabs", OPCODE_FUNC1, abs },
+	{ "abs", OPCODE_FUNC1, fabs },
+	{ "fabs", OPCODE_FUNC1, fabs },
 	{ "floor", OPCODE_FUNC1, floor },
 	{ "ceil", OPCODE_FUNC1, ceil },
 	{ "trunc", OPCODE_FUNC1, trunc },
