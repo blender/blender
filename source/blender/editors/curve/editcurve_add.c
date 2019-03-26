@@ -148,7 +148,9 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 				bezt->vec[0][1] += -0.5f * grid;
 				bezt->vec[2][0] += -0.5f * grid;
 				bezt->vec[2][1] +=  0.5f * grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
+				for (a = 0; a < 3; a++) {
+					mul_m4_v3(mat, bezt->vec[a]);
+				}
 
 				bezt++;
 				bezt->h1 = bezt->h2 = HD_ALIGN;
@@ -161,7 +163,9 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 				bezt->vec[1][1] = 0;
 				bezt->vec[2][0] = grid * 2;
 				bezt->vec[2][1] = 0;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
+				for (a = 0; a < 3; a++) {
+					mul_m4_v3(mat, bezt->vec[a]);
+				}
 
 				BKE_nurb_handles_calc(nu);
 			}
@@ -191,7 +195,9 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 				bp->vec[0] += 1.5f * grid;
 
 				bp = nu->bp;
-				for (a = 0; a < 4; a++, bp++) mul_m4_v3(mat, bp->vec);
+				for (a = 0; a < 4; a++, bp++) {
+					mul_m4_v3(mat, bp->vec);
+				}
 
 				if (cutype == CU_NURBS) {
 					nu->knotsu = NULL; /* nurbs_knot_calc_u allocates */
@@ -225,7 +231,9 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 			bp->vec[0] += 2.0f * grid;
 
 			bp = nu->bp;
-			for (a = 0; a < 5; a++, bp++) mul_m4_v3(mat, bp->vec);
+			for (a = 0; a < 5; a++, bp++) {
+				mul_m4_v3(mat, bp->vec);
+			}
 
 			if (cutype == CU_NURBS) {
 				nu->knotsu = NULL; /* nurbs_knot_calc_u allocates */
@@ -245,28 +253,36 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 				bezt->h1 = bezt->h2 = HD_AUTO;
 				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
 				bezt->vec[1][0] += -grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
+				for (a = 0; a < 3; a++) {
+					mul_m4_v3(mat, bezt->vec[a]);
+				}
 				bezt->radius = bezt->weight = 1.0;
 
 				bezt++;
 				bezt->h1 = bezt->h2 = HD_AUTO;
 				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
 				bezt->vec[1][1] += grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
+				for (a = 0; a < 3; a++) {
+					mul_m4_v3(mat, bezt->vec[a]);
+				}
 				bezt->radius = bezt->weight = 1.0;
 
 				bezt++;
 				bezt->h1 = bezt->h2 = HD_AUTO;
 				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
 				bezt->vec[1][0] += grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
+				for (a = 0; a < 3; a++) {
+					mul_m4_v3(mat, bezt->vec[a]);
+				}
 				bezt->radius = bezt->weight = 1.0;
 
 				bezt++;
 				bezt->h1 = bezt->h2 = HD_AUTO;
 				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
 				bezt->vec[1][1] += -grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
+				for (a = 0; a < 3; a++) {
+					mul_m4_v3(mat, bezt->vec[a]);
+				}
 				bezt->radius = bezt->weight = 1.0;
 
 				BKE_nurb_handles_calc(nu);
@@ -289,8 +305,12 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 						bp->vec[0] += 0.25f * nurbcircle[a][0] * grid - 0.75f * grid;
 						bp->vec[2] += 0.25f * nurbcircle[a][1] * grid;
 					}
-					if (a & 1) bp->vec[3] = 0.25 * M_SQRT2;
-					else bp->vec[3] = 1.0;
+					if (a & 1) {
+						bp->vec[3] = 0.25 * M_SQRT2;
+					}
+					else {
+						bp->vec[3] = 1.0;
+					}
 					mul_m4_v3(mat, bp->vec);
 					bp->radius = bp->weight = 1.0;
 
@@ -378,8 +398,12 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 					bp->f1 = SELECT;
 					bp->vec[0] += nurbcircle[a][0] * grid;
 					bp->vec[2] += nurbcircle[a][1] * grid;
-					if (a & 1) bp->vec[3] = 0.5 * M_SQRT2;
-					else bp->vec[3] = 1.0;
+					if (a & 1) {
+						bp->vec[3] = 0.5 * M_SQRT2;
+					}
+					else {
+						bp->vec[3] = 1.0;
+					}
 					mul_m4_v3(mat, bp->vec);
 					bp++;
 				}
@@ -388,12 +412,15 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 
 				BLI_addtail(editnurb, nu); /* temporal for spin */
 
-				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)
+				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
 					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
-				else if ((U.flag & USER_ADD_VIEWALIGNED))
+				}
+				else if ((U.flag & USER_ADD_VIEWALIGNED)) {
 					ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
-				else
+				}
+				else {
 					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, mat[3]);
+				}
 
 				BKE_nurb_knot_calc_v(nu);
 
@@ -420,12 +447,15 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 				BLI_addtail(editnurb, nu); /* temporal for spin */
 
 				/* same as above */
-				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)
+				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
 					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
-				else if ((U.flag & USER_ADD_VIEWALIGNED))
+				}
+				else if ((U.flag & USER_ADD_VIEWALIGNED)) {
 					ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
-				else
+				}
+				else {
 					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, mat[3]);
+				}
 
 
 				BLI_remlink(editnurb, nu);
@@ -476,8 +506,9 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
 	WM_operator_view3d_unit_defaults(C, op);
 
-	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL))
+	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (!isSurf) { /* adding curve */
 		if (obedit == NULL || obedit->type != OB_CURVE) {
@@ -490,8 +521,9 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 			cu = (Curve *)obedit->data;
 			cu->flag |= CU_DEFORM_FILL;
 
-			if (type & CU_PRIM_PATH)
+			if (type & CU_PRIM_PATH) {
 				cu->flag |= CU_PATH | CU_3D;
+			}
 		}
 		else {
 			DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);

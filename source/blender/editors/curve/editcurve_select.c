@@ -96,18 +96,22 @@ bool select_bpoint(BPoint *bp, bool selstatus, short flag, bool hidden)
 
 static bool swap_selection_beztriple(BezTriple *bezt)
 {
-	if (bezt->f2 & SELECT)
+	if (bezt->f2 & SELECT) {
 		return select_beztriple(bezt, DESELECT, SELECT, VISIBLE);
-	else
+	}
+	else {
 		return select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+	}
 }
 
 static bool swap_selection_bpoint(BPoint *bp)
 {
-	if (bp->f1 & SELECT)
+	if (bp->f1 & SELECT) {
 		return select_bpoint(bp, DESELECT, SELECT, VISIBLE);
-	else
+	}
+	else {
 		return select_bpoint(bp, SELECT, SELECT, VISIBLE);
+	}
 }
 
 bool ED_curve_nurb_select_check(View3D *v3d, Nurb *nu)
@@ -337,21 +341,29 @@ static void select_adjacent_cp(
 	int a;
 	bool lastsel = false;
 
-	if (next == 0) return;
+	if (next == 0) {
+		return;
+	}
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		lastsel = false;
 		if (nu->type == CU_BEZIER) {
 			a = nu->pntsu;
 			bezt = nu->bezt;
-			if (next < 0) bezt = &nu->bezt[a - 1];
+			if (next < 0) {
+				bezt = &nu->bezt[a - 1];
+			}
 			while (a--) {
-				if (a - abs(next) < 0) break;
+				if (a - abs(next) < 0) {
+					break;
+				}
 				if ((lastsel == false) && (bezt->hide == 0) && ((bezt->f2 & SELECT) || (selstatus == DESELECT))) {
 					bezt += next;
 					if (!(bezt->f2 & SELECT) || (selstatus == DESELECT)) {
 						bool sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
-						if (sel && !cont) lastsel = true;
+						if (sel && !cont) {
+							lastsel = true;
+						}
 					}
 				}
 				else {
@@ -365,14 +377,20 @@ static void select_adjacent_cp(
 		else {
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
-			if (next < 0) bp = &nu->bp[a - 1];
+			if (next < 0) {
+				bp = &nu->bp[a - 1];
+			}
 			while (a--) {
-				if (a - abs(next) < 0) break;
+				if (a - abs(next) < 0) {
+					break;
+				}
 				if ((lastsel == false) && (bp->hide == 0) && ((bp->f1 & SELECT) || (selstatus == DESELECT))) {
 					bp += next;
 					if (!(bp->f1 & SELECT) || (selstatus == DESELECT)) {
 						bool sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
-						if (sel && !cont) lastsel = true;
+						if (sel && !cont) {
+							lastsel = true;
+						}
 					}
 				}
 				else {
@@ -402,7 +420,9 @@ static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap
 	Curve *cu;
 	int a;
 
-	if (obedit == NULL) return;
+	if (obedit == NULL) {
+		return;
+	}
 
 	cu = (Curve *)obedit->data;
 	cu->actvert = CU_ACT_NONE;
@@ -421,10 +441,16 @@ static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap
 
 			while (a--) {
 				bool sel;
-				if (doswap) sel = swap_selection_beztriple(bezt);
-				else sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
+				if (doswap) {
+					sel = swap_selection_beztriple(bezt);
+				}
+				else {
+					sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
+				}
 
-				if (sel == true) break;
+				if (sel == true) {
+					break;
+				}
 			}
 		}
 		else {
@@ -441,10 +467,16 @@ static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap
 			while (a--) {
 				if (bp->hide == 0) {
 					bool sel;
-					if (doswap) sel = swap_selection_bpoint(bp);
-					else sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
+					if (doswap) {
+						sel = swap_selection_bpoint(bp);
+					}
+					else {
+						sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
+					}
 
-					if (sel == true) break;
+					if (sel == true) {
+						break;
+					}
 				}
 			}
 		}
@@ -722,8 +754,9 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 	BPoint *bp = NULL;
 	int u = 0, v = 0, a, b;
 
-	if (!BKE_curve_nurb_vert_active_get(cu, &nu, (void *)&bp))
+	if (!BKE_curve_nurb_vert_active_get(cu, &nu, (void *)&bp)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (last == bp) {
 		direction = 1 - direction;
@@ -737,10 +770,14 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 	for (a = 0; a < nu->pntsv; a++) {
 		for (b = 0; b < nu->pntsu; b++, bp++) {
 			if (direction) {
-				if (a == v) select_bpoint(bp, SELECT, SELECT, VISIBLE);
+				if (a == v) {
+					select_bpoint(bp, SELECT, SELECT, VISIBLE);
+				}
 			}
 			else {
-				if (b == u) select_bpoint(bp, SELECT, SELECT, VISIBLE);
+				if (b == u) {
+					select_bpoint(bp, SELECT, SELECT, VISIBLE);
+				}
 			}
 		}
 	}
@@ -859,29 +896,39 @@ static void curve_select_more(Object *obedit)
 					/* upper control point */
 					if (a % nu->pntsu != 0) {
 						tempbp = bp - 1;
-						if (!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						if (!(tempbp->f1 & SELECT)) {
+							select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						}
 					}
 
 					/* left control point. select only if it is not selected already */
 					if (a - nu->pntsu > 0) {
 						sel = 0;
 						tempbp = bp + nu->pntsu;
-						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						if (!(tempbp->f1 & SELECT)) {
+							sel = select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						}
 						/* make sure selected bpoint is discarded */
-						if (sel == 1) BLI_BITMAP_ENABLE(selbpoints, a - nu->pntsu);
+						if (sel == 1) {
+							BLI_BITMAP_ENABLE(selbpoints, a - nu->pntsu);
+						}
 					}
 
 					/* right control point */
 					if (a + nu->pntsu < nu->pntsu * nu->pntsv) {
 						tempbp = bp - nu->pntsu;
-						if (!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						if (!(tempbp->f1 & SELECT)) {
+							select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						}
 					}
 
 					/* lower control point. skip next bp in case selection was made */
 					if (a % nu->pntsu != 1) {
 						sel = 0;
 						tempbp = bp + 1;
-						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						if (!(tempbp->f1 & SELECT)) {
+							sel = select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
+						}
 						if (sel) {
 							bp++;
 							a--;
@@ -962,7 +1009,9 @@ static void curve_select_less(Object *obedit)
 					}
 					else {
 						bp--;
-						if (BLI_BITMAP_TEST(selbpoints, a + 1) || ((bp->hide == 0) && (bp->f1 & SELECT))) sel++;
+						if (BLI_BITMAP_TEST(selbpoints, a + 1) || ((bp->hide == 0) && (bp->f1 & SELECT))) {
+							sel++;
+						}
 						bp++;
 					}
 
@@ -971,7 +1020,9 @@ static void curve_select_less(Object *obedit)
 					}
 					else {
 						bp++;
-						if ((bp->hide == 0) && (bp->f1 & SELECT)) sel++;
+						if ((bp->hide == 0) && (bp->f1 & SELECT)) {
+							sel++;
+						}
 						bp--;
 					}
 
@@ -980,7 +1031,9 @@ static void curve_select_less(Object *obedit)
 					}
 					else {
 						bp -= nu->pntsu;
-						if (BLI_BITMAP_TEST(selbpoints, a + nu->pntsu) || ((bp->hide == 0) && (bp->f1 & SELECT))) sel++;
+						if (BLI_BITMAP_TEST(selbpoints, a + nu->pntsu) || ((bp->hide == 0) && (bp->f1 & SELECT))) {
+							sel++;
+						}
 						bp += nu->pntsu;
 					}
 
@@ -989,7 +1042,9 @@ static void curve_select_less(Object *obedit)
 					}
 					else {
 						bp += nu->pntsu;
-						if ((bp->hide == 0) && (bp->f1 & SELECT)) sel++;
+						if ((bp->hide == 0) && (bp->f1 & SELECT)) {
+							sel++;
+						}
 						bp -= nu->pntsu;
 					}
 
@@ -1026,7 +1081,9 @@ static void curve_select_less(Object *obedit)
 						}
 						else {
 							bezt--;
-							if ((bezt->hide == 0) && (bezt->f2 & SELECT)) sel++;
+							if ((bezt->hide == 0) && (bezt->f2 & SELECT)) {
+								sel++;
+							}
 							bezt++;
 						}
 
@@ -1035,7 +1092,9 @@ static void curve_select_less(Object *obedit)
 						}
 						else {
 							bezt++;
-							if ((bezt->hide == 0) && (bezt->f2 & SELECT)) sel++;
+							if ((bezt->hide == 0) && (bezt->f2 & SELECT)) {
+								sel++;
+							}
 							bezt--;
 						}
 
@@ -1067,7 +1126,9 @@ static void curve_select_less(Object *obedit)
 						}
 						else {
 							bp--;
-							if ((bp->hide == 0) && (bp->f1 & SELECT)) sel++;
+							if ((bp->hide == 0) && (bp->f1 & SELECT)) {
+								sel++;
+							}
 							bp++;
 						}
 
@@ -1076,7 +1137,9 @@ static void curve_select_less(Object *obedit)
 						}
 						else {
 							bp++;
-							if ((bp->hide == 0) && (bp->f1 & SELECT)) sel++;
+							if ((bp->hide == 0) && (bp->f1 & SELECT)) {
+								sel++;
+							}
 							bp--;
 						}
 
@@ -1274,8 +1337,9 @@ static bool ed_curve_select_nth(Curve *cu, const struct CheckerIntervalParams *p
 	Nurb *nu = NULL;
 	void *vert = NULL;
 
-	if (!BKE_curve_nurb_vert_active_get(cu, &nu, &vert))
+	if (!BKE_curve_nurb_vert_active_get(cu, &nu, &vert)) {
 		return false;
+	}
 
 	if (nu->bezt) {
 		select_nth_bezt(nu, vert, params);

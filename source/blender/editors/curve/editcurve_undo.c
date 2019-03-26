@@ -133,8 +133,9 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
 	}
 
 	if (ad) {
-		if (ad->action)
+		if (ad->action) {
 			copy_fcurves(&ucu->fcurves, &ad->action->curves);
+		}
 
 		copy_fcurves(&ucu->drivers, &ad->drivers);
 	}

@@ -79,139 +79,143 @@ static char findaccent(char char1, unsigned int code)
 	char new = 0;
 
 	if (char1 == 'a') {
-		if (code == '`') new = 224;
-		else if (code == 39) new = 225;
-		else if (code == '^') new = 226;
-		else if (code == '~') new = 227;
-		else if (code == '"') new = 228;
-		else if (code == 'o') new = 229;
-		else if (code == 'e') new = 230;
-		else if (code == '-') new = 170;
+		if      (code == '`') { new = 224; }
+		else if (code == 39)  { new = 225; }
+		else if (code == '^') { new = 226; }
+		else if (code == '~') { new = 227; }
+		else if (code == '"') { new = 228; }
+		else if (code == 'o') { new = 229; }
+		else if (code == 'e') { new = 230; }
+		else if (code == '-') { new = 170; }
 	}
 	else if (char1 == 'c') {
-		if (code == ',') new = 231;
-		else if (code == '|') new = 162;
-		else if (code == 'o') new = 169;
+		if      (code == ',') { new = 231; }
+		else if (code == '|') { new = 162; }
+		else if (code == 'o') { new = 169; }
 	}
 	else if (char1 == 'e') {
-		if (code == '`') new = 232;
-		else if (code == 39) new = 233;
-		else if (code == '^') new = 234;
-		else if (code == '"') new = 235;
+		if      (code == '`') { new = 232; }
+		else if (code == 39)  { new = 233; }
+		else if (code == '^') { new = 234; }
+		else if (code == '"') { new = 235; }
 	}
 	else if (char1 == 'i') {
-		if (code == '`') new = 236;
-		else if (code == 39) new = 237;
-		else if (code == '^') new = 238;
-		else if (code == '"') new = 239;
+		if      (code == '`') { new = 236; }
+		else if (code == 39)  { new = 237; }
+		else if (code == '^') { new = 238; }
+		else if (code == '"') { new = 239; }
 	}
 	else if (char1 == 'n') {
-		if (code == '~') new = 241;
+		if (code == '~') { new = 241; }
 	}
 	else if (char1 == 'o') {
-		if (code == '`') new = 242;
-		else if (code == 39) new = 243;
-		else if (code == '^') new = 244;
-		else if (code == '~') new = 245;
-		else if (code == '"') new = 246;
-		else if (code == '/') new = 248;
-		else if (code == '-') new = 186;
-		else if (code == 'e') new = 143;
-		else if (code == 'c') new = 169;
-		else if (code == 'r') new = 174;
+		if      (code == '`') { new = 242; }
+		else if (code == 39)  { new = 243; }
+		else if (code == '^') { new = 244; }
+		else if (code == '~') { new = 245; }
+		else if (code == '"') { new = 246; }
+		else if (code == '/') { new = 248; }
+		else if (code == '-') { new = 186; }
+		else if (code == 'e') { new = 143; }
+		else if (code == 'c') { new = 169; }
+		else if (code == 'r') { new = 174; }
 	}
 	else if (char1 == 'r') {
-		if (code == 'o') new = 174;
+		if (code == 'o') { new = 174; }
 	}
 	else if (char1 == 's') {
-		if (code == 's') new = 167;
+		if (code == 's') { new = 167; }
 	}
 	else if (char1 == 't') {
-		if (code == 'm') new = 153;
+		if (code == 'm') { new = 153; }
 	}
 	else if (char1 == 'u') {
-		if (code == '`') new = 249;
-		else if (code == 39) new = 250;
-		else if (code == '^') new = 251;
-		else if (code == '"') new = 252;
+		if      (code == '`') { new = 249; }
+		else if (code == 39)  { new = 250; }
+		else if (code == '^') { new = 251; }
+		else if (code == '"') { new = 252; }
 	}
 	else if (char1 == 'y') {
-		if (code == 39) new = 253;
-		else if (code == '"') new = 255;
+		if      (code == 39)  { new = 253; }
+		else if (code == '"') { new = 255; }
 	}
 	else if (char1 == 'A') {
-		if (code == '`') new = 192;
-		else if (code == 39) new = 193;
-		else if (code == '^') new = 194;
-		else if (code == '~') new = 195;
-		else if (code == '"') new = 196;
-		else if (code == 'o') new = 197;
-		else if (code == 'e') new = 198;
+		if      (code == '`') { new = 192; }
+		else if (code == 39)  { new = 193; }
+		else if (code == '^') { new = 194; }
+		else if (code == '~') { new = 195; }
+		else if (code == '"') { new = 196; }
+		else if (code == 'o') { new = 197; }
+		else if (code == 'e') { new = 198; }
 	}
 	else if (char1 == 'C') {
-		if (code == ',') new = 199;
+		if (code == ',') { new = 199; }
 	}
 	else if (char1 == 'E') {
-		if (code == '`') new = 200;
-		else if (code == 39) new = 201;
-		else if (code == '^') new = 202;
-		else if (code == '"') new = 203;
+		if      (code == '`') { new = 200; }
+		else if (code == 39)  { new = 201; }
+		else if (code == '^') { new = 202; }
+		else if (code == '"') { new = 203; }
 	}
 	else if (char1 == 'I') {
-		if (code == '`') new = 204;
-		else if (code == 39) new = 205;
-		else if (code == '^') new = 206;
-		else if (code == '"') new = 207;
+		if      (code == '`') { new = 204; }
+		else if (code == 39)  { new = 205; }
+		else if (code == '^') { new = 206; }
+		else if (code == '"') { new = 207; }
 	}
 	else if (char1 == 'N') {
-		if (code == '~') new = 209;
+		if (code == '~') { new = 209; }
 	}
 	else if (char1 == 'O') {
-		if (code == '`') new = 210;
-		else if (code == 39) new = 211;
-		else if (code == '^') new = 212;
-		else if (code == '~') new = 213;
-		else if (code == '"') new = 214;
-		else if (code == '/') new = 216;
-		else if (code == 'e') new = 141;
+		if      (code == '`') { new = 210; }
+		else if (code == 39)  { new = 211; }
+		else if (code == '^') { new = 212; }
+		else if (code == '~') { new = 213; }
+		else if (code == '"') { new = 214; }
+		else if (code == '/') { new = 216; }
+		else if (code == 'e') { new = 141; }
 	}
 	else if (char1 == 'U') {
-		if (code == '`') new = 217;
-		else if (code == 39) new = 218;
-		else if (code == '^') new = 219;
-		else if (code == '"') new = 220;
+		if      (code == '`') { new = 217; }
+		else if (code == 39)  { new = 218; }
+		else if (code == '^') { new = 219; }
+		else if (code == '"') { new = 220; }
 	}
 	else if (char1 == 'Y') {
-		if (code == 39) new = 221;
+		if (code == 39) { new = 221; }
 	}
 	else if (char1 == '1') {
-		if (code == '4') new = 188;
-		if (code == '2') new = 189;
+		if (code == '4') { new = 188; }
+		if (code == '2') { new = 189; }
 	}
 	else if (char1 == '3') {
-		if (code == '4') new = 190;
+		if (code == '4') { new = 190; }
 	}
 	else if (char1 == ':') {
-		if (code == '-') new = 247;
+		if (code == '-') { new = 247; }
 	}
 	else if (char1 == '-') {
-		if (code == ':') new = 247;
-		if (code == '|') new = 135;
-		if (code == '+') new = 177;
+		if (code == ':') { new = 247; }
+		if (code == '|') { new = 135; }
+		if (code == '+') { new = 177; }
 	}
 	else if (char1 == '|') {
-		if (code == '-') new = 135;
-		if (code == '=') new = 136;
+		if (code == '-') { new = 135; }
+		if (code == '=') { new = 136; }
 	}
 	else if (char1 == '=') {
-		if (code == '|') new = 136;
+		if (code == '|') { new = 136; }
 	}
 	else if (char1 == '+') {
-		if (code == '-') new = 177;
+		if (code == '-') { new = 177; }
 	}
 
-	if (new) return new;
-	else return char1;
+	if (new) {
+		return new;
+	}
+	else {
+		return char1;
+	}
 }
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
@@ -222,8 +226,12 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 	if (ef->len < MAXTEXT - 1) {
 		int x;
 
-		for (x = ef->len; x > ef->pos; x--) ef->textbuf[x] = ef->textbuf[x - 1];
-		for (x = ef->len; x > ef->pos; x--) ef->textbufinfo[x] = ef->textbufinfo[x - 1];
+		for (x = ef->len; x > ef->pos; x--) {
+			ef->textbuf[x] = ef->textbuf[x - 1];
+		}
+		for (x = ef->len; x > ef->pos; x--) {
+			ef->textbufinfo[x] = ef->textbufinfo[x - 1];
+		}
 		ef->textbuf[ef->pos] = c;
 		ef->textbufinfo[ef->pos] = cu->curinfo;
 		ef->textbufinfo[ef->pos].kern = 0;
@@ -235,8 +243,9 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 
 		return 1;
 	}
-	else
+	else {
 		return 0;
+	}
 }
 
 static void text_update_edited(bContext *C, Object *obedit, int mode)
@@ -383,8 +392,9 @@ static int paste_from_file_exec(bContext *C, wmOperator *op)
 
 static int paste_from_file_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return paste_from_file_exec(C, op);
+	}
 
 	WM_event_add_fileselect(C, op);
 
@@ -450,8 +460,12 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 		nbytes += nbytes_line + 1;
 	}
 
-	if (cu->str) MEM_freeN(cu->str);
-	if (cu->strinfo) MEM_freeN(cu->strinfo);
+	if (cu->str) {
+		MEM_freeN(cu->str);
+	}
+	if (cu->strinfo) {
+		MEM_freeN(cu->strinfo);
+	}
 
 	cu->str = MEM_mallocN(nbytes + 4, "str");
 	cu->strinfo = MEM_callocN((nchars + 4) * sizeof(CharInfo), "strinfo");
@@ -492,7 +506,9 @@ void ED_text_to_object(bContext *C, Text *text, const bool split_lines)
 	float offset[3];
 	int linenum = 0;
 
-	if (!text || !text->lines.first) return;
+	if (!text || !text->lines.first) {
+		return;
+	}
 
 	if (split_lines) {
 		for (line = text->lines.first; line; line = line->next) {
@@ -507,8 +523,9 @@ void ED_text_to_object(bContext *C, Text *text, const bool split_lines)
 			offset[1] = -linenum;
 			offset[2] = 0;
 
-			if (rv3d)
+			if (rv3d) {
 				mul_mat3_m4_v3(rv3d->viewinv, offset);
+			}
 
 			txt_add_object(C, line, 1, offset);
 
@@ -537,14 +554,20 @@ static int kill_selection(Object *obedit, int ins)  /* 1 == new character */
 	direction = BKE_vfont_select_get(obedit, &selstart, &selend);
 	if (direction) {
 		int size;
-		if (ins) offset = 1;
-		if (ef->pos >= selstart) ef->pos = selstart + offset;
+		if (ins) {
+			offset = 1;
+		}
+		if (ef->pos >= selstart) {
+			ef->pos = selstart + offset;
+		}
 		if ((direction == -1) && ins) {
 			selstart++;
 			selend++;
 		}
 		getfrom = selend + offset;
-		if (ins == 0) getfrom++;
+		if (ins == 0) {
+			getfrom++;
+		}
 		size = (ef->len * sizeof(wchar_t)) - (selstart * sizeof(wchar_t)) + (offset * sizeof(wchar_t));
 		memmove(ef->textbuf + selstart, ef->textbuf + getfrom, size);
 		memmove(ef->textbufinfo + selstart, ef->textbufinfo + getfrom, ((ef->len - selstart) + offset) * sizeof(CharInfo));
@@ -572,14 +595,17 @@ static int set_style(bContext *C, const int style, const bool clear)
 	EditFont *ef = cu->editfont;
 	int i, selstart, selend;
 
-	if (!BKE_vfont_select_get(obedit, &selstart, &selend))
+	if (!BKE_vfont_select_get(obedit, &selstart, &selend)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	for (i = selstart; i <= selend; i++) {
-		if (clear)
+		if (clear) {
 			ef->textbufinfo[i].flag &= ~style;
-		else
+		}
+		else {
 			ef->textbufinfo[i].flag |= style;
+		}
 	}
 
 	DEG_id_tag_update(obedit->data, 0);
@@ -623,8 +649,9 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
 	Curve *cu = obedit->data;
 	int style, clear, selstart, selend;
 
-	if (!BKE_vfont_select_get(obedit, &selstart, &selend))
+	if (!BKE_vfont_select_get(obedit, &selstart, &selend)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	style = RNA_enum_get(op->ptr, "style");
 
@@ -748,8 +775,9 @@ static int cut_text_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	int selstart, selend;
 
-	if (!BKE_vfont_select_get(obedit, &selstart, &selend))
+	if (!BKE_vfont_select_get(obedit, &selstart, &selend)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	copy_selection(obedit);
 	kill_selection(obedit, 0);
@@ -906,8 +934,12 @@ static int move_cursor(bContext *C, int type, const bool select)
 	switch (type) {
 		case LINE_BEGIN:
 			while (ef->pos > 0) {
-				if (ef->textbuf[ef->pos - 1] == '\n') break;
-				if (ef->textbufinfo[ef->pos - 1].flag & CU_CHINFO_WRAP) break;
+				if (ef->textbuf[ef->pos - 1] == '\n') {
+					break;
+				}
+				if (ef->textbufinfo[ef->pos - 1].flag & CU_CHINFO_WRAP) {
+					break;
+				}
 				ef->pos--;
 			}
 			cursmove = FO_CURS;
@@ -915,9 +947,15 @@ static int move_cursor(bContext *C, int type, const bool select)
 
 		case LINE_END:
 			while (ef->pos < ef->len) {
-				if (ef->textbuf[ef->pos] == 0) break;
-				if (ef->textbuf[ef->pos] == '\n') break;
-				if (ef->textbufinfo[ef->pos].flag & CU_CHINFO_WRAP) break;
+				if (ef->textbuf[ef->pos] == 0) {
+					break;
+				}
+				if (ef->textbuf[ef->pos] == '\n') {
+					break;
+				}
+				if (ef->textbufinfo[ef->pos].flag & CU_CHINFO_WRAP) {
+					break;
+				}
 				ef->pos++;
 			}
 			cursmove = FO_CURS;
@@ -969,12 +1007,13 @@ static int move_cursor(bContext *C, int type, const bool select)
 			break;
 	}
 
-	if (cursmove == -1)
+	if (cursmove == -1) {
 		return OPERATOR_CANCELLED;
+	}
 
-	if      (ef->pos > ef->len)  ef->pos = ef->len;
-	else if (ef->pos >= MAXTEXT) ef->pos = MAXTEXT;
-	else if (ef->pos < 0)        ef->pos = 0;
+	if      (ef->pos > ef->len)  { ef->pos = ef->len; }
+	else if (ef->pos >= MAXTEXT) { ef->pos = MAXTEXT; }
+	else if (ef->pos < 0)        { ef->pos = 0; }
 
 	/* apply vertical cursor motion to position immediately
 	 * otherwise the selection will lag behind */
@@ -990,8 +1029,9 @@ static int move_cursor(bContext *C, int type, const bool select)
 		}
 	}
 
-	if (select)
+	if (select) {
 		ef->selend = ef->pos;
+	}
 
 	text_update_edited(C, obedit, cursmove);
 
@@ -1063,8 +1103,9 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
 	kern += delta;
 	CLAMP(kern, -20, 20);
 
-	if (ef->textbufinfo[ef->pos - 1].kern == kern)
+	if (ef->textbufinfo[ef->pos - 1].kern == kern) {
 		return OPERATOR_CANCELLED;
+	}
 
 	ef->textbufinfo[ef->pos - 1].kern = kern;
 
@@ -1100,15 +1141,17 @@ static int change_character_exec(bContext *C, wmOperator *op)
 	EditFont *ef = cu->editfont;
 	int character, delta = RNA_int_get(op->ptr, "delta");
 
-	if (ef->pos <= 0)
+	if (ef->pos <= 0) {
 		return OPERATOR_CANCELLED;
+	}
 
 	character = ef->textbuf[ef->pos - 1];
 	character += delta;
 	CLAMP(character, 0, 255);
 
-	if (character == ef->textbuf[ef->pos - 1])
+	if (character == ef->textbuf[ef->pos - 1]) {
 		return OPERATOR_CANCELLED;
+	}
 
 	ef->textbuf[ef->pos - 1] = character;
 
@@ -1189,27 +1232,38 @@ static int delete_exec(bContext *C, wmOperator *op)
 	int range[2] = {0, 0};
 	bool has_select = false;
 
-	if (ef->len == 0)
+	if (ef->len == 0) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
-		if (type == DEL_NEXT_SEL) type = DEL_SELECTION;
-		else if (type == DEL_PREV_SEL) type = DEL_SELECTION;
+		if (type == DEL_NEXT_SEL) {
+			type = DEL_SELECTION;
+		}
+		else if (type == DEL_PREV_SEL) {
+			type = DEL_SELECTION;
+		}
 		has_select = true;
 	}
 	else {
-		if (type == DEL_NEXT_SEL) type = DEL_NEXT_CHAR;
-		else if (type == DEL_PREV_SEL) type = DEL_PREV_CHAR;
+		if (type == DEL_NEXT_SEL) {
+			type = DEL_NEXT_CHAR;
+		}
+		else if (type == DEL_PREV_SEL) {
+			type = DEL_PREV_CHAR;
+		}
 	}
 
 	switch (type) {
 		case DEL_SELECTION:
-			if (!kill_selection(obedit, 0))
+			if (!kill_selection(obedit, 0)) {
 				return OPERATOR_CANCELLED;
+			}
 			break;
 		case DEL_PREV_CHAR:
-			if (ef->pos <= 0)
+			if (ef->pos <= 0) {
 				return OPERATOR_CANCELLED;
+			}
 
 			range[0] = ef->pos - 1;
 			range[1] = ef->pos;
@@ -1217,8 +1271,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 			ef->pos--;
 			break;
 		case DEL_NEXT_CHAR:
-			if (ef->pos >= ef->len)
+			if (ef->pos >= ef->len) {
 				return OPERATOR_CANCELLED;
+			}
 
 			range[0] = ef->pos;
 			range[1] = ef->pos + 1;
@@ -1306,8 +1361,9 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	wchar_t *inserted_text;
 	int a, len;
 
-	if (!RNA_struct_property_is_set(op->ptr, "text"))
+	if (!RNA_struct_property_is_set(op->ptr, "text")) {
 		return OPERATOR_CANCELLED;
+	}
 
 	inserted_utf8 = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
 	len = BLI_strlen_utf8(inserted_utf8);
@@ -1315,8 +1371,9 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	inserted_text = MEM_callocN(sizeof(wchar_t) * (len + 1), "FONT_insert_text");
 	BLI_strncpy_wchar_from_utf8(inserted_text, inserted_utf8, len + 1);
 
-	for (a = 0; a < len; a++)
+	for (a = 0; a < len; a++) {
 		insert_into_textbuf(obedit, inserted_text[a]);
+	}
 
 	MEM_freeN(inserted_text);
 	MEM_freeN(inserted_utf8);
@@ -1338,26 +1395,31 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	int event_type = event->type, event_val = event->val;
 	wchar_t inserted_text[2] = {0};
 
-	if (RNA_struct_property_is_set(op->ptr, "text"))
+	if (RNA_struct_property_is_set(op->ptr, "text")) {
 		return insert_text_exec(C, op);
+	}
 
 	if (RNA_struct_property_is_set(op->ptr, "accent")) {
-		if (ef->len != 0 && ef->pos > 0)
+		if (ef->len != 0 && ef->pos > 0) {
 			accentcode = 1;
+		}
 		return OPERATOR_FINISHED;
 	}
 
 	/* tab should exit editmode, but we allow it to be typed using modifier keys */
 	if (event_type == TABKEY) {
-		if ((alt || ctrl || shift) == 0)
+		if ((alt || ctrl || shift) == 0) {
 			return OPERATOR_PASS_THROUGH;
-		else
+		}
+		else {
 			ascii = 9;
+		}
 	}
 
 	if (event_type == BACKSPACEKEY) {
-		if (alt && ef->len != 0 && ef->pos > 0)
+		if (alt && ef->len != 0 && ef->pos > 0) {
 			accentcode = 1;
+		}
 		return OPERATOR_PASS_THROUGH;
 	}
 
@@ -1400,8 +1462,9 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			text_update_edited(C, obedit, FO_EDIT);
 		}
 	}
-	else
+	else {
 		return OPERATOR_PASS_THROUGH;
+	}
 
 	if (inserted_text[0]) {
 		/* store as utf8 in RNA string */
@@ -1412,8 +1475,9 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	/* reset property? */
-	if (event_val == 0)
+	if (event_val == 0) {
 		accentcode = 0;
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -1447,7 +1511,9 @@ static int textbox_add_exec(bContext *C, wmOperator *UNUSED(op))
 	int i;
 
 	if (cu->totbox < 256) {
-		for (i = cu->totbox; i > cu->actbox; i--) cu->tb[i] = cu->tb[i - 1];
+		for (i = cu->totbox; i > cu->actbox; i--) {
+			cu->tb[i] = cu->tb[i - 1];
+		}
 		cu->tb[cu->actbox] = cu->tb[cu->actbox - 1];
 		cu->actbox++;
 		cu->totbox++;
@@ -1490,10 +1556,13 @@ static int textbox_remove_exec(bContext *C, wmOperator *op)
 
 
 	if (cu->totbox > 1) {
-		for (i = index; i < cu->totbox; i++) cu->tb[i] = cu->tb[i + 1];
+		for (i = index; i < cu->totbox; i++) {
+			cu->tb[i] = cu->tb[i + 1];
+		}
 		cu->totbox--;
-		if (cu->actbox >= index)
+		if (cu->actbox >= index) {
 			cu->actbox--;
+		}
 	}
 
 	DEG_id_tag_update(obedit->data, 0);
@@ -1544,7 +1613,9 @@ void ED_curve_editfont_make(Object *obedit)
 
 	memcpy(ef->textbufinfo, cu->strinfo, ef->len * sizeof(CharInfo));
 
-	if (ef->pos > ef->len) ef->pos = ef->len;
+	if (ef->pos > ef->len) {
+		ef->pos = ef->len;
+	}
 
 	cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
@@ -1575,8 +1646,9 @@ void ED_curve_editfont_load(Object *obedit)
 	/* Copy the wchar to UTF-8 */
 	BLI_strncpy_wchar_as_utf8(cu->str, ef->textbuf, cu->len + 1);
 
-	if (cu->strinfo)
+	if (cu->strinfo) {
 		MEM_freeN(cu->strinfo);
+	}
 	cu->strinfo = MEM_callocN((cu->len_wchar + 4) * sizeof(CharInfo), "texteditinfo");
 	memcpy(cu->strinfo, ef->textbufinfo, cu->len_wchar * sizeof(CharInfo));
 
@@ -1612,8 +1684,9 @@ static int set_case(bContext *C, int ccase)
 		len = (selend - selstart) + 1;
 		str = &ef->textbuf[selstart];
 		while (len) {
-			if (*str >= 'a' && *str <= 'z')
+			if (*str >= 'a' && *str <= 'z') {
 				*str -= 32;
+			}
 			len--;
 			str++;
 		}
@@ -1727,12 +1800,15 @@ static int font_open_exec(bContext *C, wmOperator *op)
 	font = BKE_vfont_load(bmain, filepath);
 
 	if (!font) {
-		if (op->customdata) MEM_freeN(op->customdata);
+		if (op->customdata) {
+			MEM_freeN(op->customdata);
+		}
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!op->customdata)
+	if (!op->customdata) {
 		font_ui_template_init(C, op);
+	}
 
 	/* hook into UI */
 	pprop = op->customdata;
@@ -1772,8 +1848,9 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 
 	path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->name : U.fontdir;
 
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return font_open_exec(C, op);
+	}
 
 	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op);
