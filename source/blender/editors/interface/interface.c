@@ -735,8 +735,11 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 		if (oldbut->poin != (char *)oldbut) {
 			SWAP(char *, oldbut->poin, but->poin);
 			SWAP(void *, oldbut->func_argN, but->func_argN);
-			SWAP(void *, oldbut->tip_argN, but->tip_argN);
 		}
+
+		/* Move tooltip from new to old. */
+		SWAP(uiButToolTipFunc, oldbut->tip_func, but->tip_func);
+		SWAP(void *, oldbut->tip_argN, but->tip_argN);
 
 		oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
 		oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
