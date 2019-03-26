@@ -2333,8 +2333,9 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
 void DRW_draw_depth_loop(
-        Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d)
+        struct Depsgraph *depsgraph,
+        ARegion *ar, View3D *v3d,
+        GPUViewport *viewport)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
@@ -2346,15 +2347,6 @@ void DRW_draw_depth_loop(
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
 
-	int viewport_size[2] = {ar->winx, ar->winy};
-	struct GPUViewport *viewport = GPU_viewport_create();
-	GPU_viewport_size_set(viewport, viewport_size);
-
-	/* Setup framebuffer */
-	draw_select_framebuffer_depth_only_setup(viewport_size);
-	GPU_framebuffer_bind(g_select_buffer.framebuffer_depth_only);
-	GPU_framebuffer_clear_depth(g_select_buffer.framebuffer_depth_only, 1.0f);
-
 	DST.viewport = viewport;
 	DST.options.is_depth = true;
 
@@ -2365,6 +2357,11 @@ void DRW_draw_depth_loop(
 		.engine_type = engine_type,
 		.depsgraph = depsgraph,
 	};
+
+	/* Setup framebuffer */
+	DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(viewport);
+	GPU_framebuffer_bind(fbl->depth_only_fb);
+	GPU_framebuffer_clear_depth(fbl->depth_only_fb, 1.0f);
 
 	/* Get list of enabled engines */
 	{
@@ -2436,9 +2433,6 @@ void DRW_draw_depth_loop(
 
 	GPU_framebuffer_restore();
 
-	/* Cleanup for selection state */
-	GPU_viewport_free(viewport);
-
 	/* Changin context */
 	DRW_opengl_context_disable();
 
@@ -2450,7 +2444,8 @@ void DRW_draw_depth_loop(
 
 	glEnable(GL_DEPTH_TEST); /* Cannot write to depth buffer without testing */
 	glDepthFunc(GL_ALWAYS);
-	draw_depth_texture_to_screen(g_select_buffer.texture_depth);
+	DefaultTextureList *dtxl = (DefaultTextureList *)GPU_viewport_texture_list_get(viewport);
+	draw_depth_texture_to_screen(dtxl->depth);
 	glDepthFunc(GL_LEQUAL);
 
 	GPU_matrix_pop();

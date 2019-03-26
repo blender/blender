@@ -121,7 +121,8 @@ void DRW_draw_select_loop(
         DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data);
 void DRW_draw_depth_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d);
+        struct ARegion *ar, struct View3D *v3d,
+        struct GPUViewport *viewport);
 
 void DRW_framebuffer_select_id_setup(struct ARegion *ar, const bool clear);
 void DRW_framebuffer_select_id_release(struct ARegion *ar);

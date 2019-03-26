@@ -745,7 +745,8 @@ void ED_view3d_draw_depth(
 
 	GPU_depth_test(true);
 
-	DRW_draw_depth_loop(depsgraph, ar, v3d);
+	GPUViewport *viewport = WM_draw_region_get_viewport(ar, 0);
+	DRW_draw_depth_loop(depsgraph, ar, v3d, viewport);
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_disable();
