@@ -1331,8 +1331,6 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 		if (v3d->shading.type == OB_WIRE) {
 			drw_engines_enable_from_overlays(v3d->overlay.flag);
 		}
-
-		drw_engines_enable_from_mode(mode);
 	}
 }
 
