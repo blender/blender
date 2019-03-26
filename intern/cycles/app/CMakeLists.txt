@@ -58,7 +58,8 @@ link_directories(${OPENIMAGEIO_LIBPATH}
                  ${JPEG_LIBPATH}
                  ${ZLIB_LIBPATH}
                  ${TIFF_LIBPATH}
-                 ${OPENEXR_LIBPATH})
+                 ${OPENEXR_LIBPATH}
+                 ${OPENJPEG_LIBPATH})
 
 if(WITH_OPENCOLORIO)
 	link_directories(${OPENCOLORIO_LIBPATH})
@@ -94,6 +95,7 @@ macro(cycles_target_link_libraries target)
 		${target}
 		${OPENIMAGEIO_LIBRARIES}
 		${OPENEXR_LIBRARIES}
+		${OPENJPEG_LIBRARIES}
 		${PUGIXML_LIBRARIES}
 		${BOOST_LIBRARIES}
 		${CMAKE_DL_LIBS}
@@ -151,6 +153,7 @@ if(WITH_CYCLES_CUBIN_COMPILER)
 			extern_cuew
 			${OPENIMAGEIO_LIBRARIES}
 			${OPENEXR_LIBRARIES}
+			${OPENJPEG_LIBRARIES}
 			${PUGIXML_LIBRARIES}
 			${BOOST_LIBRARIES}
 			${PLATFORM_LINKLIBS}
