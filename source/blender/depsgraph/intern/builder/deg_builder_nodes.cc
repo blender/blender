@@ -1027,6 +1027,7 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	                   function_bind(BKE_world_eval, _1, world_cow));
 	/* Animation. */
 	build_animdata(&world->id);
+	build_parameters(&world->id);
 	/* World's nodetree. */
 	build_nodetree(world->nodetree);
 }
@@ -1196,6 +1197,7 @@ void DepsgraphNodeBuilder::build_particle_settings(
 	        get_cow_datablock(particle_settings);
 	/* Animation data. */
 	build_animdata(&particle_settings->id);
+	build_parameters(&particle_settings->id);
 	/* Parameters change. */
 	OperationNode *op_node;
 	op_node = add_operation_node(&particle_settings->id,
@@ -1229,6 +1231,7 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 		return;
 	}
 	build_animdata(&key->id);
+	build_parameters(&key->id);
 	/* This is an exit operation for the entire key datablock, is what is used
 	 * as dependency for modifiers evaluation. */
 	add_operation_node(
@@ -1394,8 +1397,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 	        obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
 	op_node->set_as_exit();
 	/* Parameters for driver sources. */
-	add_operation_node(
-	        obdata, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+	build_parameters(obdata);
 	/* Batch cache. */
 	add_operation_node(obdata,
 	                   NodeType::BATCH_CACHE,
@@ -1411,6 +1413,7 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
 		return;
 	}
 	build_animdata(&armature->id);
+	build_parameters(&armature->id);
 	/* Make sure pose is up-to-date with armature updates. */
 	add_operation_node(
 	        &armature->id, NodeType::PARAMETERS, OperationCode::ARMATURE_EVAL);
@@ -1421,11 +1424,8 @@ void DepsgraphNodeBuilder::build_camera(Camera *camera)
 	if (built_map_.checkIsBuiltAndTag(camera)) {
 		return;
 	}
-	OperationNode *op_node;
 	build_animdata(&camera->id);
-	op_node = add_operation_node(
-	        &camera->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
-	op_node->set_as_exit();
+	build_parameters(&camera->id);
 }
 
 void DepsgraphNodeBuilder::build_light(Light *lamp)
@@ -1433,16 +1433,8 @@ void DepsgraphNodeBuilder::build_light(Light *lamp)
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;
 	}
-	OperationNode *op_node;
 	build_animdata(&lamp->id);
-	op_node = add_operation_node(
-	        &lamp->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
-	/* NOTE: We mark this node as both entry and exit. This way we have a
-	 * node to link all dependencies for shading (which includes relation to the
-	 * light object, and incldues relation from node tree) without adding a
-	 * dedicated component type. */
-	op_node->set_as_entry();
-	op_node->set_as_exit();
+	build_parameters(&lamp->id);
 	/* light's nodetree */
 	build_nodetree(lamp->nodetree);
 }
@@ -1459,10 +1451,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	add_id_node(&ntree->id);
 	bNodeTree *ntree_cow = get_cow_datablock(ntree);
 	/* General parameters. */
-	OperationNode *op_node;
-	op_node = add_operation_node(
-	        &ntree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
-	op_node->set_as_exit();
+	build_parameters(&ntree->id);
 	/* Animation, */
 	build_animdata(&ntree->id);
 	/* Shading update. */
@@ -1540,6 +1529,7 @@ void DepsgraphNodeBuilder::build_material(Material *material)
 	                                 material_cow));
 	/* Material animation. */
 	build_animdata(&material->id);
+	build_parameters(&material->id);
 	/* Material's nodetree. */
 	build_nodetree(material->nodetree);
 }
@@ -1552,6 +1542,7 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
 	}
 	/* Texture itself. */
 	build_animdata(&texture->id);
+	build_parameters(&texture->id);
 	/* Texture's nodetree. */
 	build_nodetree(texture->nodetree);
 	/* Special cases for different IDs which texture uses. */
@@ -1569,6 +1560,7 @@ void DepsgraphNodeBuilder::build_image(Image *image) {
 	if (built_map_.checkIsBuiltAndTag(image)) {
 		return;
 	}
+	build_parameters(&image->id);
 	add_operation_node(&image->id,
 	                   NodeType::GENERIC_DATABLOCK,
 	                   OperationCode::GENERIC_DATABLOCK_UPDATE);
@@ -1600,6 +1592,7 @@ void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 	/* The main reason Grease Pencil is included here is because the animation
 	 * (and drivers) need to be hosted somewhere. */
 	build_animdata(gpd_id);
+	build_parameters(gpd_id);
 }
 
 void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
@@ -1610,6 +1603,7 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 	ID *cache_file_id = &cache_file->id;
 	/* Animation, */
 	build_animdata(cache_file_id);
+	build_parameters(cache_file_id);
 	/* Cache evaluation itself. */
 	add_operation_node(
 	        cache_file_id, NodeType::CACHE, OperationCode::FILE_CACHE_UPDATE);
@@ -1624,6 +1618,7 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 	Mask *mask_cow = get_cow_datablock(mask);
 	/* F-Curve based animation. */
 	build_animdata(mask_id);
+	build_parameters(mask_id);
 	/* Animation based on mask's shapes. */
 	add_operation_node(mask_id,
 	                   NodeType::ANIMATION,
@@ -1645,6 +1640,7 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
 	MovieClip *clip_cow = (MovieClip *)ensure_cow_id(clip_id);
 	/* Animation. */
 	build_animdata(clip_id);
+	build_parameters(clip_id);
 	/* Movie clip evaluation. */
 	add_operation_node(clip_id,
 	                   NodeType::PARAMETERS,
@@ -1666,6 +1662,7 @@ void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
 	add_operation_node(
 	        &probe->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
 	build_animdata(&probe->id);
+	build_parameters(&probe->id);
 }
 
 void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
@@ -1677,6 +1674,7 @@ void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
 	add_operation_node(
 	        &speaker->id, NodeType::PARAMETERS, OperationCode::SPEAKER_EVAL);
 	build_animdata(&speaker->id);
+	build_parameters(&speaker->id);
 }
 
 /* **** ID traversal callbacks functions **** */

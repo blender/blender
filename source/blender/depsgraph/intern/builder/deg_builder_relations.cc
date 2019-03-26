@@ -492,6 +492,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 		case ID_TE:
 			build_texture((Tex *)id);
 			break;
+		case ID_IM:
+			build_image((Image *)id);
+			break;
 		case ID_WO:
 			build_world((World *)id);
 			break;
@@ -1686,6 +1689,7 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	}
 	/* animation */
 	build_animdata(&world->id);
+	build_parameters(&world->id);
 	/* world's nodetree */
 	if (world->nodetree != NULL) {
 		build_nodetree(world->nodetree);
@@ -1959,6 +1963,7 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 	}
 	/* Animation data relations. */
 	build_animdata(&part->id);
+	build_parameters(&part->id);
 	OperationKey particle_settings_init_key(&part->id,
 	                                        NodeType::PARTICLE_SETTINGS,
 	                                        OperationCode::PARTICLE_SETTINGS_INIT);
@@ -2035,14 +2040,19 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
 	}
 	/* Attach animdata to geometry. */
 	build_animdata(&key->id);
+	build_parameters(&key->id);
 	/* Connect all blocks properties to the final result evaluation. */
 	ComponentKey geometry_key(&key->id, NodeType::GEOMETRY);
+	OperationKey parameters_eval_key(&key->id,
+	                                 NodeType::PARAMETERS,
+	                                 OperationCode::PARAMETERS_EVAL);
 	LISTBASE_FOREACH (KeyBlock *, key_block, &key->block) {
 		OperationKey key_block_key(&key->id,
 		                           NodeType::PARAMETERS,
 		                           OperationCode::PARAMETERS_EVAL,
 		                           key_block->name);
 		add_relation(key_block_key, geometry_key, "Key Block Properties");
+		add_relation(key_block_key, parameters_eval_key, "Key Block Properties");
 	}
 }
 
@@ -2243,6 +2253,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 	}
 	/* Animation. */
 	build_animdata(obdata);
+	build_parameters(obdata);
 	/* ShapeKeys. */
 	Key *key = BKE_key_from_id(obdata);
 	if (key != NULL) {
@@ -2347,6 +2358,7 @@ void DepsgraphRelationBuilder::build_armature(bArmature *armature)
 		return;
 	}
 	build_animdata(&armature->id);
+	build_parameters(&armature->id);
 }
 
 void DepsgraphRelationBuilder::build_camera(Camera *camera)
@@ -2354,6 +2366,7 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
 	if (built_map_.checkIsBuiltAndTag(camera)) {
 		return;
 	}
+	build_parameters(&camera->id);
 	if (camera->dof_ob != NULL) {
 		ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
 		ComponentKey dof_ob_key(&camera->dof_ob->id, NodeType::TRANSFORM);
@@ -2367,6 +2380,7 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;
 	}
+	build_parameters(&lamp->id);
 	/* light's nodetree */
 	if (lamp->nodetree != NULL) {
 		build_nodetree(lamp->nodetree);
@@ -2386,6 +2400,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 		return;
 	}
 	build_animdata(&ntree->id);
+	build_parameters(&ntree->id);
 	ComponentKey shading_key(&ntree->id, NodeType::SHADING);
 	/* nodetree's nodes... */
 	LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
@@ -2401,7 +2416,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 			build_texture((Tex *)bnode->id);
 		}
 		else if (id_type == ID_IM) {
-			/* nothing for now. */
+			build_image((Image *)bnode->id);
 		}
 		else if (id_type == ID_OB) {
 			build_object(NULL, (Object *)id);
@@ -2455,6 +2470,7 @@ void DepsgraphRelationBuilder::build_material(Material *material)
 	}
 	/* animation */
 	build_animdata(&material->id);
+	build_parameters(&material->id);
 	/* material's nodetree */
 	if (material->nodetree != NULL) {
 		build_nodetree(material->nodetree);
@@ -2477,8 +2493,15 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
 	}
 	/* texture itself */
 	build_animdata(&texture->id);
+	build_parameters(&texture->id);
 	/* texture's nodetree */
 	build_nodetree(texture->nodetree);
+	/* Special cases for different IDs which texture uses. */
+	if (texture->type == TEX_IMAGE) {
+		if (texture->ima != NULL) {
+			build_image(texture->ima);
+		}
+	}
 	build_nested_nodetree(&texture->id, texture->nodetree);
 	if (check_id_has_anim_component(&texture->id)) {
 		ComponentKey animation_key(&texture->id, NodeType::ANIMATION);
@@ -2486,6 +2509,14 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
 		                           NodeType::GENERIC_DATABLOCK);
 		add_relation(animation_key, datablock_key, "Datablock Animation");
 	}
+}
+
+void DepsgraphRelationBuilder::build_image(Image *image)
+{
+	if (built_map_.checkIsBuiltAndTag(image)) {
+		return;
+	}
+	build_parameters(&image->id);
 }
 
 void DepsgraphRelationBuilder::build_compositor(Scene *scene)
@@ -2501,6 +2532,7 @@ void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
 	}
 	/* animation */
 	build_animdata(&gpd->id);
+	build_parameters(&gpd->id);
 
 	// TODO: parent object (when that feature is implemented)
 }
@@ -2512,6 +2544,7 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
 	}
 	/* Animation. */
 	build_animdata(&cache_file->id);
+	build_parameters(&cache_file->id);
 	if (check_id_has_anim_component(&cache_file->id)) {
 		ComponentKey animation_key(&cache_file->id, NodeType::ANIMATION);
 		ComponentKey datablock_key(&cache_file->id,
@@ -2528,6 +2561,7 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
 	ID *mask_id = &mask->id;
 	/* F-Curve animation. */
 	build_animdata(mask_id);
+	build_parameters(mask_id);
 	/* Own mask animation. */
 	OperationKey mask_animation_key(mask_id,
 	                                NodeType::ANIMATION,
@@ -2546,6 +2580,7 @@ void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 	}
 	/* Animation. */
 	build_animdata(&clip->id);
+	build_parameters(&clip->id);
 }
 
 void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
@@ -2554,6 +2589,7 @@ void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
 		return;
 	}
 	build_animdata(&probe->id);
+	build_parameters(&probe->id);
 }
 
 void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
@@ -2562,6 +2598,7 @@ void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
 		return;
 	}
 	build_animdata(&speaker->id);
+	build_parameters(&speaker->id);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()
