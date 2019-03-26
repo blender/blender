@@ -89,11 +89,11 @@ KerningCacheBLF *blf_kerning_cache_new(FontBLF *font)
 				FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
 				g = blf_glyph_add(font, glyph_index, i);
 			}
-			/* Cannot fail since it has been added just before. */
+			/* Can fail on certain fonts */
 			GlyphBLF *g_prev = blf_glyph_search(font->glyph_cache, j);
 
 			FT_Vector delta = { .x = 0, .y = 0, };
-			if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
+			if (g_prev && FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
 				kc->table[i][j] = (int)delta.x >> 6;
 			}
 			else {
