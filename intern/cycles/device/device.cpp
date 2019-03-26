@@ -349,6 +349,7 @@ void Device::draw_pixels(
 		draw_params.unbind_display_space_shader_cb();
 	}
 
+	glDeleteVertexArrays(1, &vertex_array_object);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDeleteTextures(1, &texid);
 
