@@ -1670,9 +1670,14 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 
 	/* active camera */
 	ID_NEW_REMAP(scene->camera);
-	if (v3d) ID_NEW_REMAP(v3d->camera);
+	if (v3d) {
+		ID_NEW_REMAP(v3d->camera);
+	}
 
-	BKE_scene_collection_sync(scene);
+	/* Making single user may affect other scenes if they share with current one some collections in their ViewLayer. */
+	for (Scene *sce = bmain->scenes.first; sce != NULL; sce = sce->id.next) {
+		BKE_scene_collection_sync(sce);
+	}
 }
 
 /* not an especially efficient function, only added so the single user
