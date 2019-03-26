@@ -206,9 +206,6 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 		params->lens = 16.0f / tanf(la->spotsize * 0.5f);
 		if (params->lens == 0.0f)
 			params->lens = 35.0f;
-
-		params->clip_start = la->clipsta;
-		params->clip_end = la->clipend;
 	}
 	else {
 		params->lens = 35.0f;
