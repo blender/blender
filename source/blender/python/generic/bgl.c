@@ -132,9 +132,9 @@
 #define GLclampfP_def(number) Buffer *bgl_buffer##number
 #endif
 
-#define GLvoidP_str     "O!"
-#define GLvoidP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLvoidP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLvoidP_str     "O&"
+#define GLvoidP_var(number) ((bgl_buffer##number) ? (bgl_buffer##number)->buf.asvoid : NULL)
+#define GLvoidP_ref(number) BGL_BufferOrNoneConverter, &bgl_buffer##number
 #define GLvoidP_def(number) Buffer *bgl_buffer##number
 
 #define GLsizeiP_str     "O!"
@@ -703,6 +703,22 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 	return buffer;
 }
 
+/* Custom converter function so we can support a buffer or NULL. */
+static int BGL_BufferOrNoneConverter(PyObject *object, Buffer **buffer)
+{
+	if (object == Py_None) {
+		*buffer = NULL;
+		return 1;
+	}
+	else if (PyObject_TypeCheck(object, &BGL_bufferType)) {
+		*buffer = (Buffer *)object;
+		return 1;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "expected a bgl.Buffer or None");
+		return 0;
+	}
+}
 
 #define MAX_DIMENSIONS  256
 static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
