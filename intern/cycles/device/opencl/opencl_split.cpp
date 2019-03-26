@@ -396,8 +396,8 @@ public:
 			OpenCLDevice::OpenCLProgram(device,
 			                            program_name,
 			                            device->get_opencl_program_filename(kernel_name),
-			                            device->get_build_options(requested_features, 
-			                                                      program_name, 
+			                            device->get_build_options(requested_features,
+			                                                      program_name,
 			                                                      device->use_preview_kernels));
 
 		kernel->program.add_kernel(ustring("path_trace_" + kernel_name));
@@ -770,7 +770,7 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures& requested_feature
 	/* Verify we have right opencl version. */
 	if(!opencl_version_check())
 		return false;
-	
+
 	load_required_kernels(requested_features);
 
 	vector<OpenCLProgram*> programs;
@@ -880,7 +880,7 @@ DeviceKernelStatus OpenCLDevice::get_active_kernel_switch_state()
 {
 	/* Do not switch kernels for background renderings
 	 * We do foreground rendering but use the preview kernels
-	 * Check for the optimized kernels 
+	 * Check for the optimized kernels
 	 *
 	 * This works also the other way around, where we are using
 	 * optimized kernels but new ones are being compiled due
@@ -891,7 +891,7 @@ DeviceKernelStatus OpenCLDevice::get_active_kernel_switch_state()
 		 * this as an early exit */
 		return DEVICE_KERNEL_USING_FEATURE_KERNEL;
 	}
-	
+
 	bool other_kernels_finished = load_kernel_task_pool.finished();
 	if (use_preview_kernels) {
 		if (other_kernels_finished) {

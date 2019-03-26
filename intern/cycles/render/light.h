@@ -51,6 +51,7 @@ public:
 	float sizeu;
 	float3 axisv;
 	float sizev;
+	bool round;
 
 	Transform tfm;
 

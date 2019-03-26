@@ -293,7 +293,7 @@ bool IESFile::process_type_c()
 {
 	if(h_angles[0] == 90.0f) {
 		/* Some files are stored from 90° to 270°, so we just rotate them to the regular 0°-180° range here. */
-		for(int i = 0; i < v_angles.size(); i++) {
+		for(int i = 0; i < h_angles.size(); i++) {
 			h_angles[i] -= 90.0f;
 		}
 	}

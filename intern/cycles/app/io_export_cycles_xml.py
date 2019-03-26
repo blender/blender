@@ -16,7 +16,6 @@
 
 # XML exporter for generating test files, not intended for end users
 
-import os
 import xml.etree.ElementTree as etree
 import xml.dom.minidom as dom
 

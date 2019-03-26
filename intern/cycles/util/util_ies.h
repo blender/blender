@@ -40,7 +40,7 @@ protected:
 	bool process_type_c();
 
 	/* The brightness distribution is stored in spherical coordinates.
-	 * The horizontal angles correspond to to theta in the regular notation
+	 * The horizontal angles correspond to theta in the regular notation
 	 * and always span the full range from 0° to 360°.
 	 * The vertical angles correspond to phi and always start at 0°. */
 	vector<float> v_angles, h_angles;

@@ -58,7 +58,12 @@ link_directories(${OPENIMAGEIO_LIBPATH}
                  ${JPEG_LIBPATH}
                  ${ZLIB_LIBPATH}
                  ${TIFF_LIBPATH}
-                 ${OPENEXR_LIBPATH})
+                 ${OPENEXR_LIBPATH}
+                 ${OPENJPEG_LIBPATH})
+
+if(WITH_OPENCOLORIO)
+	link_directories(${OPENCOLORIO_LIBPATH})
+endif()
 
 add_definitions(${GL_DEFINITIONS})
 
@@ -84,13 +89,13 @@ macro(cycles_target_link_libraries target)
 		target_link_libraries(${target} ${OPENSUBDIV_LIBRARIES})
 	endif()
 	if(WITH_OPENCOLORIO)
-		link_directories(${OPENCOLORIO_LIBPATH})
 		target_link_libraries(${target} ${OPENCOLORIO_LIBRARIES})
 	endif()
 	target_link_libraries(
 		${target}
 		${OPENIMAGEIO_LIBRARIES}
 		${OPENEXR_LIBRARIES}
+		${OPENJPEG_LIBRARIES}
 		${PUGIXML_LIBRARIES}
 		${BOOST_LIBRARIES}
 		${CMAKE_DL_LIBS}
@@ -148,6 +153,7 @@ if(WITH_CYCLES_CUBIN_COMPILER)
 			extern_cuew
 			${OPENIMAGEIO_LIBRARIES}
 			${OPENEXR_LIBRARIES}
+			${OPENJPEG_LIBRARIES}
 			${PUGIXML_LIBRARIES}
 			${BOOST_LIBRARIES}
 			${PLATFORM_LINKLIBS}

@@ -208,6 +208,7 @@ Shader::Shader()
 
 	need_update = true;
 	need_update_mesh = true;
+	need_sync_object = false;
 }
 
 Shader::~Shader()

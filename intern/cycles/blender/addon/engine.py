@@ -253,8 +253,6 @@ def register_passes(engine, scene, srl):
     if crl.use_pass_volume_direct:             engine.register_pass(scene, srl, "VolumeDir",                     3, "RGB", 'COLOR')
     if crl.use_pass_volume_indirect:           engine.register_pass(scene, srl, "VolumeInd",                     3, "RGB", 'COLOR')
 
-    cscene = scene.cycles
-
     if crl.use_pass_crypto_object:
         for i in range(0, crl.pass_crypto_depth, 2):
             engine.register_pass(scene, srl, "CryptoObject" + '{:02d}'.format(i), 4, "RGBA", 'COLOR')

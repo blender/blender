@@ -95,14 +95,16 @@ ccl_device_inline void kernel_filter_finalize(int x, int y,
 	}
 
 	/* The weighted average of pixel colors (essentially, the NLM-filtered image).
-	 * In case the solution of the linear model fails due to numerical issues,
-	 * fall back to this value. */
+	 * In case the solution of the linear model fails due to numerical issues or
+	 * returns non-sensical negative values, fall back to this value. */
 	float3 mean_color = XtWY[0]/XtWX[0];
 
 	math_trimatrix_vec3_solve(XtWX, XtWY, (*rank)+1, stride);
 
 	float3 final_color = XtWY[0];
-	if(!isfinite3_safe(final_color)) {
+	if(!isfinite3_safe(final_color) ||
+	   (final_color.x < -0.01f || final_color.y < -0.01f || final_color.z < -0.01f))
+	{
 		final_color = mean_color;
 	}
 
