@@ -501,15 +501,14 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			if (id) {
 				const bool do_scene_obj = (
 				        (GS(id->name) == ID_OB) &&
-				        (template_ui->ptr.type == &RNA_SceneObjects));
+				        (template_ui->ptr.type == &RNA_LayerObjects));
 
 				/* make copy */
 				if (do_scene_obj) {
 					Main *bmain = CTX_data_main(C);
 					Scene *scene = CTX_data_scene(C);
 					ED_object_single_user(bmain, scene, (struct Object *)id);
-					DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-					WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+					WM_event_add_notifier(C, NC_WINDOW, NULL);
 					DEG_relations_tag_update(bmain);
 				}
 				else {
