@@ -79,7 +79,9 @@ void ED_mball_editmball_make(Object *obedit)
 	ml = mb->elems.first;
 
 	while (ml) {
-		if (ml->flag & SELECT) mb->lastelem = ml;
+		if (ml->flag & SELECT) {
+			mb->lastelem = ml;
+		}
 		ml = ml->next;
 	}
 
@@ -575,7 +577,9 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 			while (ml) {
 				next = ml->next;
 				if (ml->flag & SELECT) {
-					if (mb->lastelem == ml) mb->lastelem = NULL;
+					if (mb->lastelem == ml) {
+						mb->lastelem = NULL;
+					}
 					BLI_remlink(mb->editelems, ml);
 					MEM_freeN(ml);
 				}
@@ -619,8 +623,9 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 
 	if (ml) {
 		while (ml) {
-			if ((ml->flag & SELECT) != invert)
+			if ((ml->flag & SELECT) != invert) {
 				ml->flag |= MB_HIDE;
+			}
 			ml = ml->next;
 		}
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
@@ -717,11 +722,15 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 		/* does startelem exist? */
 		ml = mb->editelems->first;
 		while (ml) {
-			if (ml == startelem) break;
+			if (ml == startelem) {
+				break;
+			}
 			ml = ml->next;
 		}
 
-		if (ml == NULL) startelem = mb->editelems->first;
+		if (ml == NULL) {
+			startelem = mb->editelems->first;
+		}
 
 		if (hits > 0) {
 			int metaelem_id = 0;
@@ -758,10 +767,16 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 					}
 				}
 
-				if (ml_act) break;
+				if (ml_act) {
+					break;
+				}
 				ml = ml->next;
-				if (ml == NULL) ml = mb->editelems->first;
-				if (ml == startelem) break;
+				if (ml == NULL) {
+					ml = mb->editelems->first;
+				}
+				if (ml == startelem) {
+					break;
+				}
 
 				metaelem_id += 0x10000;
 			}
@@ -792,10 +807,12 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 					ml_act->flag &= ~SELECT;
 				}
 				else if (toggle) {
-					if (ml_act->flag & SELECT)
+					if (ml_act->flag & SELECT) {
 						ml_act->flag &= ~SELECT;
-					else
+					}
+					else {
 						ml_act->flag |= SELECT;
+					}
 				}
 				else {
 					/* Deselect all existing metaelems */
