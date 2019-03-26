@@ -320,6 +320,25 @@ def km_window(params):
             ("wm.search_menu", {"type": 'F', "value": 'PRESS', "oskey": True}, None),
         ])
 
+    if params.legacy:
+        # Old shorctus
+        items.extend([
+            ("wm.save_homefile", {"type": 'U', "value": 'PRESS', "ctrl": True}, None),
+            ("wm.open_mainfile", {"type": 'F1', "value": 'PRESS'}, None),
+            ("wm.link", {"type": 'O', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            ("wm.append", {"type": 'F1', "value": 'PRESS', "shift": True}, None),
+            ("wm.save_mainfile", {"type": 'W', "value": 'PRESS', "ctrl": True}, None),
+            ("wm.save_as_mainfile", {"type": 'F2', "value": 'PRESS'}, None),
+            ("wm.save_as_mainfile", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True},
+             {"properties": [("copy", True)]}),
+            ("wm.window_new", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            ("wm.window_fullscreen_toggle", {"type": 'F11', "value": 'PRESS', "alt": True}, None),
+            ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS', "alt": True}, None),
+            ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS'}, None),
+            ("wm.redraw_timer", {"type": 'T', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            ("wm.debug_menu", {"type": 'D', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ])
+
     items.extend([
         # File operations
         ("wm.read_homefile", {"type": 'N', "value": 'PRESS', "ctrl": True}, None),
@@ -389,25 +408,6 @@ def km_window(params):
             )
         else:
             assert False
-
-    else:
-        # Old shorctus
-        items.extend([
-            ("wm.window_new", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-            ("wm.save_homefile", {"type": 'U', "value": 'PRESS', "ctrl": True}, None),
-            ("wm.open_mainfile", {"type": 'F1', "value": 'PRESS'}, None),
-            ("wm.link", {"type": 'O', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-            ("wm.append", {"type": 'F1', "value": 'PRESS', "shift": True}, None),
-            ("wm.save_mainfile", {"type": 'W', "value": 'PRESS', "ctrl": True}, None),
-            ("wm.save_as_mainfile", {"type": 'F2', "value": 'PRESS'}, None),
-            ("wm.save_as_mainfile", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True},
-             {"properties": [("copy", True)]}),
-            ("wm.window_fullscreen_toggle", {"type": 'F11', "value": 'PRESS', "alt": True}, None),
-            ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS', "alt": True}, None),
-            ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS'}, None),
-            ("wm.redraw_timer", {"type": 'T', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-            ("wm.debug_menu", {"type": 'D', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-        ])
 
     return keymap
 
