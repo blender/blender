@@ -561,46 +561,69 @@ cache_end:
 	return NULL;
 }
 
-void ED_armature_edit_deselect_all(Object *obedit)
+bool ED_armature_edit_deselect_all(Object *obedit)
 {
 	bArmature *arm = obedit->data;
-	EditBone *ebone;
-
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+	bool changed = false;
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (ebone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
+			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			changed = true;
+		}
 	}
+	return changed;
 }
 
-void ED_armature_edit_deselect_all_visible(Object *obedit)
+bool ED_armature_edit_deselect_all_visible(Object *obedit)
 {
 	bArmature *arm = obedit->data;
-	EditBone    *ebone;
-
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+	bool changed = false;
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		/* first and foremost, bone must be visible and selected */
 		if (EBONE_VISIBLE(arm, ebone)) {
-			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			if (ebone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
+				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				changed = true;
+			}
 		}
 	}
 
-	ED_armature_edit_sync_selection(arm->edbo);
+	if (changed) {
+		ED_armature_edit_sync_selection(arm->edbo);
+	}
+	return changed;
 }
 
 
-void ED_armature_edit_deselect_all_multi(struct Object **objects, uint objects_len)
+bool ED_armature_edit_deselect_all_multi_ex(struct Base **bases, uint bases_len)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
-		ED_armature_edit_deselect_all(obedit);
+	bool changed_multi = false;
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Object *obedit = bases[base_index]->object;
+		changed_multi |= ED_armature_edit_deselect_all(obedit);
 	}
+	return changed_multi;
 }
 
-void ED_armature_edit_deselect_all_visible_multi(struct Object **objects, uint objects_len)
+bool ED_armature_edit_deselect_all_visible_multi_ex(struct Base **bases, uint bases_len)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
-		ED_armature_edit_deselect_all_visible(obedit);
+	bool changed_multi = false;
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Object *obedit = bases[base_index]->object;
+		changed_multi |= ED_armature_edit_deselect_all_visible(obedit);
 	}
+	return changed_multi;
+}
+
+bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
+{
+	ViewContext vc;
+	ED_view3d_viewcontext_init(C, &vc);
+	uint bases_len = 0;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(vc.view_layer, vc.v3d, &bases_len);
+	bool changed_multi = ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
+	MEM_freeN(bases);
+	return changed_multi;
 }
 
 /* accounts for connected parents */
@@ -636,10 +659,10 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 		}
 
 		if (!extend && !deselect && !toggle) {
-			uint objects_len = 0;
-			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, vc.v3d, &objects_len);
-			ED_armature_edit_deselect_all_multi(objects, objects_len);
-			MEM_freeN(objects);
+			uint bases_len = 0;
+			Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(vc.view_layer, vc.v3d, &bases_len);
+			ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
+			MEM_freeN(bases);
 		}
 
 		/* by definition the non-root connected bones have no root point drawn,

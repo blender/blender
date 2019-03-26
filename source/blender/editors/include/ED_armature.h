@@ -154,11 +154,12 @@ void ED_armature_from_edit(struct Main *bmain, struct bArmature *arm);
 void ED_armature_to_edit(struct bArmature *arm);
 void ED_armature_edit_free(struct bArmature *arm);
 
-void ED_armature_edit_deselect_all(struct Object *obedit);
-void ED_armature_edit_deselect_all_visible(struct Object *obedit);
+bool ED_armature_edit_deselect_all(struct Object *obedit);
+bool ED_armature_edit_deselect_all_visible(struct Object *obedit);
 
-void ED_armature_edit_deselect_all_multi(struct Object **objects, uint objects_len);
-void ED_armature_edit_deselect_all_visible_multi(struct Object **objects, uint objects_len);
+bool ED_armature_edit_deselect_all_multi_ex(struct Base **bases, uint bases_len);
+bool ED_armature_edit_deselect_all_visible_multi_ex(struct Base **bases, uint bases_len);
+bool ED_armature_edit_deselect_all_visible_multi(struct bContext *C);
 
 bool ED_armature_pose_select_pick_with_buffer(
         struct ViewLayer *view_layer, struct View3D *v3d, struct Base *base, const unsigned int *buffer, short hits,
@@ -239,8 +240,9 @@ bool ED_object_posemode_exit_ex(struct Main *bmain, struct Object *ob);
 bool ED_object_posemode_exit(struct bContext *C, struct Object *ob);
 bool ED_object_posemode_enter_ex(struct Main *bmain, struct Object *ob);
 bool ED_object_posemode_enter(struct bContext *C, struct Object *ob);
+bool ED_pose_deselect_all_multi_ex(struct Base **bases, uint bases_len, int select_mode, const bool ignore_visibility);
+bool ED_pose_deselect_all_multi(struct bContext *C, int select_mode, const bool ignore_visibility);
 bool ED_pose_deselect_all(struct Object *ob, int select_mode, const bool ignore_visibility);
-void ED_pose_deselect_all_multi(struct Object **objects, uint objects_len, int select_mode, const bool ignore_visibility);
 void ED_pose_bone_select_tag_update(struct Object *ob);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
 void ED_pose_recalculate_paths(struct bContext *C, struct Scene *scene, struct Object *ob, bool current_frame_only);

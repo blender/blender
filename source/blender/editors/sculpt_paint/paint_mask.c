@@ -249,7 +249,7 @@ static void mask_box_select_task_cb(
 	} BKE_pbvh_vertex_iter_end;
 }
 
-int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select)
+bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
@@ -321,7 +321,7 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-	return OPERATOR_FINISHED;
+	return true;
 }
 
 typedef struct LassoMaskData {

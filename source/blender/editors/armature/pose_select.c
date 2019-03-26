@@ -172,10 +172,10 @@ bool ED_armature_pose_select_pick_with_buffer(
 
 		if (!extend && !deselect && !toggle) {
 			{
-				uint objects_len = 0;
-				Object **objects = BKE_object_pose_array_get_unique(view_layer, v3d, &objects_len);
-				ED_pose_deselect_all_multi(objects, objects_len, SEL_DESELECT, true);
-				MEM_freeN(objects);
+				uint bases_len = 0;
+				Base **bases = BKE_object_pose_base_array_get_unique(view_layer, v3d, &bases_len);
+				ED_pose_deselect_all_multi_ex(bases, bases_len, SEL_DESELECT, true);
+				MEM_freeN(bases);
 			}
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;
@@ -283,10 +283,10 @@ static bool ed_pose_is_any_selected(Object *ob, bool ignore_visibility)
 	return false;
 }
 
-static bool ed_pose_is_any_selected_multi(Object **objects, uint objects_len, bool ignore_visibility)
+static bool ed_pose_is_any_selected_multi(Base **bases, uint bases_len, bool ignore_visibility)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *ob_iter = objects[ob_index];
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Object *ob_iter = bases[base_index]->object;
 		if (ed_pose_is_any_selected(ob_iter, ignore_visibility)) {
 			return true;
 		}
@@ -294,19 +294,34 @@ static bool ed_pose_is_any_selected_multi(Object **objects, uint objects_len, bo
 	return false;
 }
 
-void ED_pose_deselect_all_multi(Object **objects, uint objects_len, int select_mode, const bool ignore_visibility)
+bool ED_pose_deselect_all_multi_ex(Base **bases, uint bases_len, int select_mode, const bool ignore_visibility)
 {
 	if (select_mode == SEL_TOGGLE) {
 		select_mode = ed_pose_is_any_selected_multi(
-		        objects, objects_len, ignore_visibility) ? SEL_DESELECT : SEL_SELECT;
+		        bases, bases_len, ignore_visibility) ? SEL_DESELECT : SEL_SELECT;
 	}
 
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *ob_iter = objects[ob_index];
+	bool changed_multi = false;
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Object *ob_iter = bases[base_index]->object;
 		if (ED_pose_deselect_all(ob_iter, select_mode, ignore_visibility)) {
 			ED_pose_bone_select_tag_update(ob_iter);
+			changed_multi = true;
 		}
 	}
+	return changed_multi;
+}
+
+
+bool ED_pose_deselect_all_multi(bContext *C, int select_mode, const bool ignore_visibility)
+{
+	ViewContext vc;
+	ED_view3d_viewcontext_init(C, &vc);
+	uint bases_len = 0;
+	Base **bases = BKE_view_layer_array_from_bases_in_mode(vc.view_layer, vc.v3d, &bases_len, {.object_mode = OB_MODE_POSE,});
+	bool changed_multi = ED_pose_deselect_all_multi_ex(bases, bases_len, select_mode, ignore_visibility);
+	MEM_freeN(bases);
+	return changed_multi;
 }
 
 /* ***************** Selections ********************** */

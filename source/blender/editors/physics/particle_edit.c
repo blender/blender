@@ -496,7 +496,7 @@ static void PE_free_random_generator(PEData *data)
 
 /*************************** selection utilities *******************************/
 
-static bool key_test_depth(PEData *data, const float co[3], const int screen_co[2])
+static bool key_test_depth(const PEData *data, const float co[3], const int screen_co[2])
 {
 	View3D *v3d = data->vc.v3d;
 	ViewDepths *vd = data->vc.rv3d->depths;
@@ -533,7 +533,7 @@ static bool key_test_depth(PEData *data, const float co[3], const int screen_co[
 		return 1;
 }
 
-static bool key_inside_circle(PEData *data, float rad, const float co[3], float *distance)
+static bool key_inside_circle(const PEData *data, float rad, const float co[3], float *distance)
 {
 	float dx, dy, dist;
 	int screen_co[2];
@@ -1562,6 +1562,7 @@ static void select_key_op(PEData *data, int point_index, int key_index, bool is_
 	if (sel_op_result != -1) {
 		SET_FLAG_FROM_TEST(key->flag, sel_op_result, PEK_SELECT);
 		point->flag |= PEP_EDIT_RECALC;
+		data->is_changed = true;
 	}
 }
 
@@ -1587,8 +1588,11 @@ static void extend_key_select(PEData *data, int point_index, int key_index, bool
 	PTCacheEditPoint *point = edit->points + point_index;
 	PTCacheEditKey *key = point->keys + key_index;
 
-	key->flag |= PEK_SELECT;
-	point->flag |= PEP_EDIT_RECALC;
+	if ((key->flag & PEK_SELECT) == 0) {
+		key->flag |= PEK_SELECT;
+		point->flag |= PEP_EDIT_RECALC;
+		data->is_changed = true;
+	}
 }
 
 static void deselect_key_select(PEData *data, int point_index, int key_index, bool UNUSED(is_inside))
@@ -1597,8 +1601,11 @@ static void deselect_key_select(PEData *data, int point_index, int key_index, bo
 	PTCacheEditPoint *point = edit->points + point_index;
 	PTCacheEditKey *key = point->keys + key_index;
 
-	key->flag &= ~PEK_SELECT;
-	point->flag |= PEP_EDIT_RECALC;
+	if ((key->flag & PEK_SELECT) != 0) {
+		key->flag &= ~PEK_SELECT;
+		point->flag |= PEP_EDIT_RECALC;
+		data->is_changed = true;
+	}
 }
 
 static void toggle_key_select(PEData *data, int point_index, int key_index, bool UNUSED(is_inside))
@@ -1609,36 +1616,43 @@ static void toggle_key_select(PEData *data, int point_index, int key_index, bool
 
 	key->flag ^= PEK_SELECT;
 	point->flag |= PEP_EDIT_RECALC;
+	data->is_changed = true;
 }
 
 /************************ de select all operator ************************/
 
-static void select_action_apply(PTCacheEditPoint *point, PTCacheEditKey *key, int action)
+static bool select_action_apply(PTCacheEditPoint *point, PTCacheEditKey *key, int action)
 {
+	bool changed = false;
 	switch (action) {
 		case SEL_SELECT:
 			if ((key->flag & PEK_SELECT) == 0) {
 				key->flag |= PEK_SELECT;
 				point->flag |= PEP_EDIT_RECALC;
+				changed = true;
 			}
 			break;
 		case SEL_DESELECT:
 			if (key->flag & PEK_SELECT) {
 				key->flag &= ~PEK_SELECT;
 				point->flag |= PEP_EDIT_RECALC;
+				changed = true;
 			}
 			break;
 		case SEL_INVERT:
 			if ((key->flag & PEK_SELECT) == 0) {
 				key->flag |= PEK_SELECT;
 				point->flag |= PEP_EDIT_RECALC;
+				changed = true;
 			}
 			else {
 				key->flag &= ~PEK_SELECT;
 				point->flag |= PEP_EDIT_RECALC;
+				changed = true;
 			}
 			break;
 	}
+	return changed;
 }
 
 static int pe_select_all_exec(bContext *C, wmOperator *op)
@@ -1663,15 +1677,17 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	bool changed = false;
 	LOOP_VISIBLE_POINTS {
 		LOOP_VISIBLE_KEYS {
-			select_action_apply(point, key, action);
+			changed |= select_action_apply(point, key, action);
 		}
 	}
 
-	PE_update_selection(depsgraph, scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
-
+	if (changed) {
+		PE_update_selection(depsgraph, scene, ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -1694,7 +1710,7 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
 
 /************************ pick select operator ************************/
 
-int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	PEData data;
 	Scene *scene = CTX_data_scene(C);
@@ -1702,8 +1718,9 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	POINT_P; KEY_K;
 
-	if (!PE_start_edit(edit))
-		return OPERATOR_CANCELLED;
+	if (!PE_start_edit(edit)) {
+		return false;
+	}
 
 	if (!extend && !deselect && !toggle) {
 		LOOP_VISIBLE_POINTS {
@@ -1729,10 +1746,12 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 		for_mouse_hit_keys(&data, toggle_key_select, PSEL_NEAREST);
 	}
 
-	PE_update_selection(data.depsgraph, scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
+	if (data.is_changed) {
+		PE_update_selection(data.depsgraph, scene, ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
+	}
 
-	return OPERATOR_FINISHED;
+	return true;
 }
 
 /************************ select root operator ************************/
@@ -1745,10 +1764,12 @@ static void select_root(PEData *data, int point_index)
 	if (point->flag & PEP_HIDE)
 		return;
 
-	if (data->select_action != SEL_TOGGLE)
-		select_action_apply(point, key, data->select_action);
-	else if (key->flag & PEK_SELECT)
+	if (data->select_action != SEL_TOGGLE) {
+		data->is_changed = select_action_apply(point, key, data->select_action);
+	}
+	else if (key->flag & PEK_SELECT) {
 		data->select_toggle_action = SEL_DESELECT;
+	}
 }
 
 static int select_roots_exec(bContext *C, wmOperator *op)
@@ -1770,9 +1791,10 @@ static int select_roots_exec(bContext *C, wmOperator *op)
 	data.select_action = action;
 	foreach_point(&data, select_root);
 
-	PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
-
+	if (data.is_changed) {
+		PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -1810,10 +1832,12 @@ static void select_tip(PEData *data, int point_index)
 	if (point->flag & PEP_HIDE)
 		return;
 
-	if (data->select_action != SEL_TOGGLE)
-		select_action_apply(point, key, data->select_action);
-	else if (key->flag & PEK_SELECT)
+	if (data->select_action != SEL_TOGGLE) {
+		data->is_changed = select_action_apply(point, key, data->select_action);
+	}
+	else if (key->flag & PEK_SELECT) {
 		data->select_toggle_action = SEL_DESELECT;
+	}
 }
 
 static int select_tips_exec(bContext *C, wmOperator *op)
@@ -1835,10 +1859,13 @@ static int select_tips_exec(bContext *C, wmOperator *op)
 	data.select_action = action;
 	foreach_point(&data, select_tip);
 
-	PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
+	if (data.is_changed) {
+		PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
 }
 
 void PARTICLE_OT_select_tips(wmOperatorType *ot)
@@ -1899,7 +1926,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 			LOOP_VISIBLE_POINTS {
 				int flag = ((BLI_rng_get_float(rng) < randfac) == select) ? SEL_SELECT : SEL_DESELECT;
 				LOOP_KEYS {
-					select_action_apply(point, key, flag);
+					data.is_changed = select_action_apply(point, key, flag);
 				}
 			}
 			break;
@@ -1907,7 +1934,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 			LOOP_VISIBLE_POINTS {
 				LOOP_VISIBLE_KEYS {
 					int flag = ((BLI_rng_get_float(rng) < randfac) == select) ? SEL_SELECT : SEL_DESELECT;
-					select_action_apply(point, key, flag);
+					data.is_changed = select_action_apply(point, key, flag);
 				}
 			}
 			break;
@@ -1915,9 +1942,10 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
 	BLI_rng_free(rng);
 
-	PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
-
+	if (data.is_changed) {
+		PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -1992,42 +2020,58 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 }
 
 /************************ box select operator ************************/
-void PE_deselect_all_visible(PTCacheEdit *edit)
+bool PE_deselect_all_visible_ex(PTCacheEdit *edit)
 {
+	bool changed = false;
 	POINT_P; KEY_K;
 
 	LOOP_VISIBLE_POINTS {
 		LOOP_SELECTED_KEYS {
-			key->flag &= ~PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
+			if ((key->flag & PEK_SELECT) != 0) {
+				key->flag &= ~PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+				changed = true;
+			}
 		}
 	}
+	return changed;
 }
 
-int PE_box_select(bContext *C, const rcti *rect, const int sel_op)
+bool PE_deselect_all_visible(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	if (!PE_start_edit(edit)) {
+		return false;
+	}
+	return PE_deselect_all_visible_ex(edit);
+}
+
+bool PE_box_select(bContext *C, const rcti *rect, const int sel_op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	PEData data;
 
-	if (!PE_start_edit(edit))
-		return OPERATOR_CANCELLED;
-
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		PE_deselect_all_visible(edit);
+	if (!PE_start_edit(edit)) {
+		return false;
 	}
 
 	PE_set_view3d_data(C, &data);
 	data.rect = rect;
 	data.sel_op = sel_op;
 
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		data.is_changed = PE_deselect_all_visible_ex(edit);
+	}
 	for_mouse_hit_keys(&data, select_key_op, PSEL_ALL_KEYS);
-
-	PE_update_selection(data.depsgraph, scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
-
-	return OPERATOR_FINISHED;
+	if (data.is_changed) {
+		PE_update_selection(data.depsgraph, scene, ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
+	}
+	return data.is_changed;
 }
 
 /************************ circle select operator ************************/
@@ -2044,11 +2088,6 @@ bool PE_circle_select(bContext *C, const int sel_op, const int mval[2], float ra
 		return false;
 	}
 
-	bool changed = false;
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		PE_deselect_all_visible(edit);
-		changed = true;
-	}
 	const bool select = (sel_op != SEL_OP_SUB);
 
 	PE_set_view3d_data(C, &data);
@@ -2056,14 +2095,15 @@ bool PE_circle_select(bContext *C, const int sel_op, const int mval[2], float ra
 	data.rad = rad;
 	data.select = select;
 
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		data.is_changed = PE_deselect_all_visible_ex(edit);
+	}
 	for_mouse_hit_keys(&data, select_key, 0);
-	changed |= data.is_changed;
-
-	if (changed) {
+	if (data.is_changed) {
 		PE_update_selection(data.depsgraph, scene, ob, 1);
 		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
 	}
-	return changed;
+	return data.is_changed;
 }
 
 /************************ lasso select operator ************************/
@@ -2088,12 +2128,12 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
 	if (!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		PE_deselect_all_visible(edit);
-	}
-
 	/* only for depths */
 	PE_set_view3d_data(C, &data);
+
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		data.is_changed |= PE_deselect_all_visible_ex(edit);
+	}
 
 	LOOP_VISIBLE_POINTS {
 		if (edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR))
@@ -2112,6 +2152,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
 				if (sel_op_result != -1) {
 					SET_FLAG_FROM_TEST(key->flag, sel_op_result, PEK_SELECT);
 					point->flag |= PEP_EDIT_RECALC;
+					data.is_changed = true;
 				}
 			}
 		}
@@ -2129,15 +2170,18 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
 				if (sel_op_result != -1) {
 					SET_FLAG_FROM_TEST(key->flag, sel_op_result, PEK_SELECT);
 					point->flag |= PEP_EDIT_RECALC;
+					data.is_changed = true;
 				}
 			}
 		}
 	}
 
-	PE_update_selection(data.depsgraph, scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
-
-	return OPERATOR_FINISHED;
+	if (data.is_changed) {
+		PE_update_selection(data.depsgraph, scene, ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
 }
 
 /*************************** hide operator **************************/
@@ -2267,9 +2311,10 @@ static void select_less_keys(PEData *data, int point_index)
 	}
 
 	LOOP_KEYS {
-		if (key->flag & PEK_TAG) {
+		if ((key->flag & PEK_TAG) && (key->flag & PEK_SELECT)) {
 			key->flag &= ~(PEK_TAG | PEK_SELECT);
 			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
+			data->is_changed = true;
 		}
 	}
 }
@@ -2328,10 +2373,11 @@ static void select_more_keys(PEData *data, int point_index)
 	}
 
 	LOOP_KEYS {
-		if (key->flag & PEK_TAG) {
+		if ((key->flag & PEK_TAG) && (key->flag & PEK_SELECT) == 0) {
 			key->flag &= ~PEK_TAG;
 			key->flag |= PEK_SELECT;
 			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
+			data->is_changed = true;
 		}
 	}
 }

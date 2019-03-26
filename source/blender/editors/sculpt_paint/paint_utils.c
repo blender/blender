@@ -650,9 +650,11 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 static int face_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	paintface_deselect_all_visible(C, ob, RNA_enum_get(op->ptr, "action"), true);
-	ED_region_tag_redraw(CTX_wm_region(C));
-	return OPERATOR_FINISHED;
+	if (paintface_deselect_all_visible(C, ob, RNA_enum_get(op->ptr, "action"), true)) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
 }
 
 

@@ -331,10 +331,10 @@ bool BKE_mball_is_any_selected(const MetaBall *mb)
 }
 
 
-bool BKE_mball_is_any_selected_multi(Object **objects, int objects_len)
+bool BKE_mball_is_any_selected_multi(Base **bases, int bases_len)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Object *obedit = bases[base_index]->object;
 		MetaBall *mb = (MetaBall *)obedit->data;
 		if (BKE_mball_is_any_selected(mb)) {
 			return true;
@@ -559,64 +559,83 @@ int BKE_mball_select_count(const MetaBall *mb)
 	return sel;
 }
 
-int BKE_mball_select_count_multi(Object **objects, int objects_len)
+int BKE_mball_select_count_multi(Base **bases, int bases_len)
 {
 	int sel = 0;
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		const Object *obedit = objects[ob_index];
+	for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
+		const Object *obedit = bases[ob_index]->object;
 		const MetaBall *mb = (MetaBall *)obedit->data;
 		sel += BKE_mball_select_count(mb);
 	}
 	return sel;
 }
 
-void BKE_mball_select_all(MetaBall *mb)
+bool BKE_mball_select_all(MetaBall *mb)
 {
+	bool changed = false;
 	for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
-		ml->flag |= SELECT;
+		if ((ml->flag & SELECT) == 0) {
+			ml->flag |= SELECT;
+			changed = true;
+		}
 	}
+	return changed;
 }
 
-void BKE_mball_select_all_multi(Object **objects, int objects_len)
+bool BKE_mball_select_all_multi_ex(Base **bases, int bases_len)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
+	bool changed_multi = false;
+	for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
+		Object *obedit = bases[ob_index]->object;
 		MetaBall *mb = obedit->data;
-		BKE_mball_select_all(mb);
+		changed_multi |= BKE_mball_select_all(mb);
 	}
+	return changed_multi;
 }
 
-void BKE_mball_deselect_all(MetaBall *mb)
+bool BKE_mball_deselect_all(MetaBall *mb)
 {
+	bool changed = false;
 	for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
-		ml->flag &= ~SELECT;
+		if ((ml->flag & SELECT) != 0) {
+			ml->flag &= ~SELECT;
+			changed = true;
+		}
 	}
+	return changed;
 }
 
-void BKE_mball_deselect_all_multi(Object **objects, int objects_len)
+bool BKE_mball_deselect_all_multi_ex(Base **bases, int bases_len)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
+	bool changed_multi = false;
+	for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
+		Object *obedit = bases[ob_index]->object;
 		MetaBall *mb = obedit->data;
-
-		BKE_mball_deselect_all(mb);
+		changed_multi |= BKE_mball_deselect_all(mb);
+		DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
 	}
+	return changed_multi;
 }
 
-void BKE_mball_select_swap(MetaBall *mb)
+bool BKE_mball_select_swap(MetaBall *mb)
 {
+	bool changed = false;
 	for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
 		ml->flag ^= SELECT;
+		changed = true;
 	}
+	return changed;
 }
 
-void BKE_mball_select_swap_multi(Object **objects, int objects_len)
+bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
 {
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
+	bool changed_multi = false;
+	for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
+		Object *obedit = bases[ob_index]->object;
 		MetaBall *mb = (MetaBall *)obedit->data;
-		BKE_mball_select_swap(mb);
+		changed_multi |= BKE_mball_select_swap(mb);
 	}
+	return changed_multi;
 }
 
 /* **** Depsgraph evaluation **** */

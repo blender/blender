@@ -22,6 +22,7 @@
 /** \file
  * \ingroup bke
  */
+struct Base;
 struct BoundBox;
 struct Depsgraph;
 struct Main;
@@ -39,7 +40,7 @@ struct MetaBall *BKE_mball_copy(struct Main *bmain, const struct MetaBall *mb);
 void BKE_mball_make_local(struct Main *bmain, struct MetaBall *mb, const bool lib_local);
 
 bool BKE_mball_is_any_selected(const struct MetaBall *mb);
-bool BKE_mball_is_any_selected_multi(struct Object **objects, int objects_len);
+bool BKE_mball_is_any_selected_multi(struct Base **bases, int bases_len);
 bool BKE_mball_is_any_unselected(const struct MetaBall *mb);
 bool BKE_mball_is_basis_for(struct Object *ob1, struct Object *ob2);
 bool BKE_mball_is_basis(struct Object *ob);
@@ -63,13 +64,13 @@ void BKE_mball_translate(struct MetaBall *mb, const float offset[3]);
 struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, const int type);
 
 int BKE_mball_select_count(const struct MetaBall *mb);
-int BKE_mball_select_count_multi(struct Object **objects, int objects_len);
-void BKE_mball_select_all(struct MetaBall *mb);
-void BKE_mball_select_all_multi(struct Object **objects, int objects_len);
-void BKE_mball_deselect_all(struct MetaBall *mb);
-void BKE_mball_deselect_all_multi(struct Object **objects, int objects_len);
-void BKE_mball_select_swap(struct MetaBall *mb);
-void BKE_mball_select_swap_multi(struct Object **objects, int objects_len);
+int BKE_mball_select_count_multi(struct Base **bases, int bases_len);
+bool BKE_mball_select_all(struct MetaBall *mb);
+bool BKE_mball_select_all_multi_ex(struct Base **bases, int bases_len);
+bool BKE_mball_deselect_all(struct MetaBall *mb);
+bool BKE_mball_deselect_all_multi_ex(struct Base **bases, int bases_len);
+bool BKE_mball_select_swap(struct MetaBall *mb);
+bool BKE_mball_select_swap_multi_ex(struct Base **bases, int bases_len);
 
 /* **** Depsgraph evaluation **** */
 

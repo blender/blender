@@ -490,6 +490,10 @@ typedef enum eBezTriple_KeyframeType {
 /* checks if the given BezTriple is selected */
 #define BEZT_ISSEL_ANY(bezt) \
 	(((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
+#define BEZT_ISSEL_ALL(bezt) \
+	(((bezt)->f2 & SELECT) && ((bezt)->f1 & SELECT) && ((bezt)->f3 & SELECT))
+#define BEZT_ISSEL_ALL_HIDDENHANDLES(v3d, bezt) \
+	((((v3d) != NULL) && ((v3d)->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) ? (bezt)->f2 & SELECT : BEZT_ISSEL_ALL(bezt))
 #define BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt) \
 	((((v3d) != NULL) && ((v3d)->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) ? (bezt)->f2 & SELECT : BEZT_ISSEL_ANY(bezt))
 

@@ -784,13 +784,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Deselect all existing curves. */
-	{
-		ViewLayer *view_layer = CTX_data_view_layer(C);
-		uint objects_len;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
-		ED_curve_deselect_all_multi(objects, objects_len);
-		MEM_freeN(objects);
-	}
+	ED_curve_deselect_all_multi(C);
 
 	const float radius_min = cps->radius_min;
 	const float radius_max = cps->radius_max;

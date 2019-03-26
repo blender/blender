@@ -2597,6 +2597,36 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 	}
 }
 
+bool EDBM_mesh_deselect_all_multi_ex(struct Base **bases, const uint bases_len)
+{
+	bool changed_multi = false;
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Base *base_iter = bases[base_index];
+		Object *ob_iter = base_iter->object;
+		BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+
+		if (em_iter->bm->totvertsel == 0) {
+			continue;
+		}
+
+		EDBM_flag_disable_all(em_iter, BM_ELEM_SELECT);
+		DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
+		changed_multi = true;
+	}
+	return changed_multi;
+}
+
+bool EDBM_mesh_deselect_all_multi(struct bContext *C)
+{
+	ViewContext vc;
+	ED_view3d_viewcontext_init(C, &vc);
+	uint bases_len = 0;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(vc.view_layer, vc.v3d, &bases_len);
+	bool changed_multi = EDBM_mesh_deselect_all_multi_ex(bases, bases_len);
+	MEM_freeN(bases);
+	return changed_multi;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

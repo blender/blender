@@ -1047,7 +1047,7 @@ def km_view3d(params):
            {"type": params.select_mouse, "value": params.select_mouse_value, **{m: True for m in mods}},
            {"properties": [(c, True) for c in props]},
         ) for operator, props, mods in (
-            ("view3d.select_or_deselect_all" if not params.legacy else "view3d.select", (), ()),
+            ("view3d.select", ("deselect_all",) if not params.legacy else (), ()),
             ("view3d.select", ("toggle",), ("shift",)),
             ("view3d.select", ("center", "object"), ("ctrl",)),
             ("view3d.select", ("enumerate",), ("alt",)),
