@@ -31,6 +31,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -332,7 +333,7 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
 			}
 
 			if (contains_name == false) {
-				fprintf(stderr, "\tBPY_driver_eval() - restructed access disallows name '%s', "
+				fprintf(stderr, "\tBPY_driver_eval() - restricted access disallows name '%s', "
 				                "enable auto-execution to support\n", _PyUnicode_AsString(name));
 				return false;
 			}
@@ -350,7 +351,7 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
 		for (Py_ssize_t i = 0; i < code_len; i++) {
 			const int opcode = _Py_OPCODE(codestr[i]);
 			if (secure_opcodes[opcode] == 0) {
-				fprintf(stderr, "\tBPY_driver_eval() - restructed access disallows opcode '%d', "
+				fprintf(stderr, "\tBPY_driver_eval() - restricted access disallows opcode '%d', "
 				                "enable auto-execution to support\n", opcode);
 				return false;
 			}
@@ -552,6 +553,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 			                NULL,}
 			        ))
 			{
+				if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+					G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
+					BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
+				}
+
 				Py_DECREF(expr_code);
 				expr_code = NULL;
 				PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, NULL);
