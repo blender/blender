@@ -1833,6 +1833,8 @@ class VIEW3D_MT_object_context_menu(Menu):
             if selected_objects_len > 1:
                 layout.operator("object.join")
 
+            layout.separator()
+
         elif obj.type == 'CAMERA':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -1863,6 +1865,8 @@ class VIEW3D_MT_object_context_menu(Menu):
                     props.input_scale = 0.02
                     props.header_text = "DOF Distance: %.3f"
 
+            layout.separator()
+
         elif obj.type in {'CURVE', 'FONT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -1882,12 +1886,16 @@ class VIEW3D_MT_object_context_menu(Menu):
 
             layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
 
+            layout.separator()
+
         elif obj.type == 'GPENCIL':
             layout.operator("gpencil.convert", text="Convert to Path").type = 'PATH'
             layout.operator("gpencil.convert", text="Convert to Bezier Curves").type = 'CURVE'
             layout.operator("gpencil.convert", text="Convert to Mesh").type = 'POLY'
 
             layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
+
+            layout.separator()
 
         elif obj.type == 'EMPTY':
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1897,6 +1905,8 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_item = "empty_display_size"
             props.input_scale = 0.01
             props.header_text = "Empty Draw Size: %.3f"
+
+            layout.separator()
 
         elif obj.type == 'LIGHT':
             light = obj.data
@@ -1960,13 +1970,7 @@ class VIEW3D_MT_object_context_menu(Menu):
                 props.input_scale = -0.01
                 props.header_text = "Spot Blend: %.2f"
 
-        layout.separator()
-
-        props = layout.operator("wm.call_panel", text="Rename Active Object...")
-        props.name = "TOPBAR_PT_name"
-        props.keep_open = False
-
-        layout.separator()
+            layout.separator()
 
         layout.operator("view3d.copybuffer", text="Copy Objects", icon='COPYDOWN')
         layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
@@ -1975,6 +1979,12 @@ class VIEW3D_MT_object_context_menu(Menu):
 
         layout.operator("object.duplicate_move", icon='DUPLICATE')
         layout.operator("object.duplicate_move_linked")
+
+        layout.separator()
+
+        props = layout.operator("wm.call_panel", text="Rename Active Object...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
 
         layout.separator()
 
