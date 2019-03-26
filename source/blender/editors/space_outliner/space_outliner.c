@@ -172,16 +172,19 @@ static void outliner_main_region_listener(
 			break;
 		case NC_LAMP:
 			/* For updating light icons, when changing light type */
-			if (wmn->data == ND_LIGHTING_DRAW)
+			if (wmn->data == ND_LIGHTING_DRAW) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_OUTLINER)
+			if (wmn->data == ND_SPACE_OUTLINER) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_ID:
-			if (wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_MATERIAL:
 			switch (wmn->data) {
@@ -205,14 +208,16 @@ static void outliner_main_region_listener(
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_ANIMCHAN:
-					if (wmn->action == NA_SELECTED)
+					if (wmn->action == NA_SELECTED) {
 						ED_region_tag_redraw(ar);
+					}
 					break;
 			}
 			break;
 		case NC_GPENCIL:
-			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCREEN:
 			if (ELEM(wmn->data, ND_LAYER)) {
@@ -276,12 +281,14 @@ static void outliner_header_region_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCENE:
-			if (wmn->data == ND_KEYINGSET)
+			if (wmn->data == ND_KEYINGSET) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_OUTLINER)
+			if (wmn->data == ND_SPACE_OUTLINER) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }

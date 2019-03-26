@@ -219,7 +219,9 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	int method = RNA_enum_get(op->ptr, "method");
 
-	if (method != PF_KEEP) unpackAll(bmain, op->reports, method);  /* XXX PF_ASK can't work here */
+	if (method != PF_KEEP) {
+		unpackAll(bmain, op->reports, method);  /* XXX PF_ASK can't work here */
+	}
 	G.fileflags &= ~G_FILE_AUTOPACK;
 
 	return OPERATOR_FINISHED;
@@ -241,10 +243,12 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 		return OPERATOR_CANCELLED;
 	}
 
-	if (count == 1)
+	if (count == 1) {
 		BLI_strncpy(title, IFACE_("Unpack 1 File"), sizeof(title));
-	else
+	}
+	else {
 		BLI_snprintf(title, sizeof(title), IFACE_("Unpack %d Files"), count);
+	}
 
 	pup = UI_popup_menu_begin(C, title, ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
@@ -303,8 +307,9 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (method != PF_KEEP)
+	if (method != PF_KEEP) {
 		BKE_unpack_id(bmain, id, op->reports, method);  /* XXX PF_ASK can't work here */
+	}
 
 	G.fileflags &= ~G_FILE_AUTOPACK;
 

@@ -154,14 +154,18 @@ void ED_view3d_smooth_view_ex(
 	}
 
 	/* store the options we want to end with */
-	if (sview->ofs)
+	if (sview->ofs) {
 		copy_v3_v3(sms.dst.ofs, sview->ofs);
-	if (sview->quat)
+	}
+	if (sview->quat) {
 		copy_qt_qt(sms.dst.quat, sview->quat);
-	if (sview->dist)
+	}
+	if (sview->dist) {
 		sms.dst.dist = *sview->dist;
-	if (sview->lens)
+	}
+	if (sview->lens) {
 		sms.dst.lens = *sview->lens;
+	}
 
 	if (sview->dyn_ofs) {
 		BLI_assert(sview->ofs  == NULL);
@@ -185,16 +189,21 @@ void ED_view3d_smooth_view_ex(
 	if (smooth_viewtx && v3d->shading.type != OB_RENDER) {
 		bool changed = false; /* zero means no difference */
 
-		if (sview->camera_old != sview->camera)
+		if (sview->camera_old != sview->camera) {
 			changed = true;
-		else if (sms.dst.dist != rv3d->dist)
+		}
+		else if (sms.dst.dist != rv3d->dist) {
 			changed = true;
-		else if (sms.dst.lens != v3d->lens)
+		}
+		else if (sms.dst.lens != v3d->lens) {
 			changed = true;
-		else if (!equals_v3v3(sms.dst.ofs, rv3d->ofs))
+		}
+		else if (!equals_v3v3(sms.dst.ofs, rv3d->ofs)) {
 			changed = true;
-		else if (!equals_v4v4(sms.dst.quat, rv3d->viewquat))
+		}
+		else if (!equals_v4v4(sms.dst.quat, rv3d->viewquat)) {
 			changed = true;
+		}
 
 		/* The new view is different from the old one
 		 * so animate the view */
@@ -301,10 +310,12 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
 	struct SmoothView3DStore *sms = rv3d->sms;
 	float step, step_inv;
 
-	if (sms->time_allowed != 0.0)
+	if (sms->time_allowed != 0.0) {
 		step = (float)((rv3d->smooth_timer->duration) / sms->time_allowed);
-	else
+	}
+	else {
 		step = 1.0f;
+	}
 
 	/* end timer */
 	if (step >= 1.0f) {
@@ -779,11 +790,14 @@ void view3d_viewmatrix_set(
 
 
 		/* should be moved to better initialize later on XXX */
-		if (rv3d->viewlock & RV3D_LOCKED)
+		if (rv3d->viewlock & RV3D_LOCKED) {
 			ED_view3d_lock(rv3d);
+		}
 
 		quat_to_mat4(rv3d->viewmat, rv3d->viewquat);
-		if (rv3d->persp == RV3D_PERSP) rv3d->viewmat[3][2] -= rv3d->dist;
+		if (rv3d->persp == RV3D_PERSP) {
+			rv3d->viewmat[3][2] -= rv3d->dist;
+		}
 		if (v3d->ob_centre) {
 			Object *ob_eval = DEG_get_evaluated_object(depsgraph, v3d->ob_centre);
 			float vec[3];
@@ -1094,14 +1108,17 @@ int view3d_opengl_select(
 		GPU_depth_test(false);
 	}
 
-	if (vc->rv3d->rflag & RV3D_CLIPPING)
+	if (vc->rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_disable();
+	}
 
 	DRW_opengl_context_disable();
 
 finally:
 
-	if (hits < 0) printf("Too many objects in select buffer\n");  /* XXX make error message */
+	if (hits < 0) {
+		printf("Too many objects in select buffer\n");  /* XXX make error message */
+	}
 
 	UI_Theme_Restore(&theme_state);
 
@@ -1275,7 +1292,9 @@ static void view3d_localview_exit(
 {
 	View3D *v3d = sa->spacedata.first;
 
-	if (v3d->localvd == NULL) return;
+	if (v3d->localvd == NULL) {
+		return;
+	}
 
 	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
 		if (base->local_view_bits & v3d->local_view_uuid) {

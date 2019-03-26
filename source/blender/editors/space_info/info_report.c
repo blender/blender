@@ -111,8 +111,9 @@ static int select_report_pick_exec(bContext *C, wmOperator *op)
 	int report_index = RNA_int_get(op->ptr, "report_index");
 	Report *report = BLI_findlink(&CTX_wm_reports(C)->list, report_index);
 
-	if (!report)
+	if (!report) {
 		return OPERATOR_CANCELLED;
+	}
 
 	report->flag ^= SELECT; /* toggle */
 

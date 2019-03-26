@@ -291,11 +291,13 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 
 	xy[0] = x_orig; xy[1] = y_orig;
 
-	if (mval[1] != INT_MAX)
+	if (mval[1] != INT_MAX) {
 		mval[1] += (tvc->ymin + CONSOLE_DRAW_MARGIN);
+	}
 
-	if (pos_pick)
+	if (pos_pick) {
 		*pos_pick = 0;
+	}
 
 	/* constants for the sequencer context */
 	cdc.font_id = font_id;
@@ -306,8 +308,9 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 	/* note, scroll bar must be already subtracted () */
 	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_MARGIN * 2)) / cdc.cwidth;
 	/* avoid divide by zero on small windows */
-	if (cdc.console_width < 1)
+	if (cdc.console_width < 1) {
 		cdc.console_width = 1;
+	}
 	cdc.winx = tvc->winx - CONSOLE_DRAW_MARGIN;
 	cdc.ymin = tvc->ymin;
 	cdc.ymax = tvc->ymax;
@@ -341,8 +344,9 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 
 			y_prev = xy[1];
 
-			if (draw)
+			if (draw) {
 				color_flag = tvc->line_color(tvc, fg, bg);
+			}
 
 			tvc->line_get(tvc, &ext_line, &ext_len);
 

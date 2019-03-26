@@ -172,14 +172,18 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 
 	/* get data from context */
 	if (pinid) {
-		if (GS(pinid->name) == ID_SCE)
+		if (GS(pinid->name) == ID_SCE) {
 			scene = (Scene *)pinid;
-		else if (GS(pinid->name) == ID_OB)
+		}
+		else if (GS(pinid->name) == ID_OB) {
 			ob = (Object *)pinid;
-		else if (GS(pinid->name) == ID_BR)
+		}
+		else if (GS(pinid->name) == ID_BR) {
 			brush = (Brush *)pinid;
-		else if (GS(pinid->name) == ID_LS)
+		}
+		else if (GS(pinid->name) == ID_LS) {
 			linestyle = (FreestyleLineStyle *)pinid;
+		}
 	}
 
 	if (!scene) {
@@ -201,8 +205,9 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	/* fill users */
 	BLI_listbase_clear(users);
 
-	if (linestyle && !limited_mode)
+	if (linestyle && !limited_mode) {
 		buttons_texture_users_find_nodetree(users, &linestyle->id, linestyle->nodetree, N_("Line Style"));
+	}
 
 	if (ob) {
 		ParticleSystem *psys = psys_get_current(ob);
@@ -290,8 +295,9 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 	}
 	else {
 		/* set one user as active based on active index */
-		if (ct->index >= BLI_listbase_count_at_most(&ct->users, ct->index + 1))
+		if (ct->index >= BLI_listbase_count_at_most(&ct->users, ct->index + 1)) {
 			ct->index = 0;
+		}
 
 		ct->user = BLI_findlink(&ct->users, ct->index);
 		ct->texture = NULL;
@@ -335,8 +341,9 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 	PointerRNA texptr;
 	Tex *tex;
 
-	if (!ct)
+	if (!ct) {
 		return;
+	}
 
 	/* set user as active */
 	if (user->node) {
@@ -355,13 +362,16 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 			ParticleSettings *part = user->ptr.id.data;
 			int a;
 
-			for (a = 0; a < MAX_MTEX; a++)
-				if (user->ptr.data == part->mtex[a])
+			for (a = 0; a < MAX_MTEX; a++) {
+				if (user->ptr.data == part->mtex[a]) {
 					part->texact = a;
+				}
+			}
 		}
 
-		if (sbuts && tex)
+		if (sbuts && tex) {
 			sbuts->preview = 1;
+		}
 	}
 
 	ct->user = user;
@@ -393,13 +403,16 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 			PointerRNA texptr = RNA_property_pointer_get(&user->ptr, user->prop);
 			Tex *tex = texptr.data;
 
-			if (tex)
+			if (tex) {
 				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name + 2);
-			else
+			}
+			else {
 				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+			}
 		}
-		else
+		else {
 			BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+		}
 
 		but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, user->icon, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
 		                       NULL, 0.0, 0.0, 0.0, 0.0, "");
@@ -423,8 +436,9 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	ButsTextureUser *user;
 	char name[UI_MAX_NAME_STR];
 
-	if (!ct)
+	if (!ct) {
 		return;
+	}
 
 	/* get current user */
 	user = ct->user;
@@ -460,12 +474,15 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
 	ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
 	ButsTextureUser *user;
 
-	if (!ct)
+	if (!ct) {
 		return;
+	}
 
-	for (user = ct->users.first; user; user = user->next)
-		if (user->ptr.data == data_p && user->prop == prop_p)
+	for (user = ct->users.first; user; user = user->next) {
+		if (user->ptr.data == data_p && user->prop == prop_p) {
 			break;
+		}
+	}
 
 	if (user) {
 		/* select texture */
@@ -489,13 +506,16 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 	ButsTextureUser *user;
 
 	/* only show button in other tabs in properties editor */
-	if (!ct || sbuts->mainb == BCONTEXT_TEXTURE)
+	if (!ct || sbuts->mainb == BCONTEXT_TEXTURE) {
 		return;
+	}
 
 	/* find corresponding texture user */
-	for (user = ct->users.first; user; user = user->next)
-		if (user->ptr.data == ptr->data && user->prop == prop)
+	for (user = ct->users.first; user; user = user->next) {
+		if (user->ptr.data == ptr->data && user->prop == prop) {
 			break;
+		}
+	}
 
 	/* draw button */
 	if (user) {

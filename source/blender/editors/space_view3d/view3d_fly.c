@@ -129,8 +129,9 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Fly Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items)
+	if (keymap && keymap->modal_items) {
 		return;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "View3D Fly Modal", modal_items);
 
@@ -402,8 +403,9 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	wmWindow *win;
 	RegionView3D *rv3d;
 
-	if (fly->state == FLY_RUNNING)
+	if (fly->state == FLY_RUNNING) {
 		return OPERATOR_RUNNING_MODAL;
+	}
 
 #ifdef NDOF_FLY_DEBUG
 	puts("\n-- fly end --");
@@ -421,8 +423,9 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	rv3d->rflag &= ~RV3D_NAVIGATING;
 
 #ifdef WITH_INPUT_NDOF
-	if (fly->ndof)
+	if (fly->ndof) {
 		MEM_freeN(fly->ndof);
+	}
 #endif
 
 	if (fly->state == FLY_CONFIRM) {
@@ -504,12 +507,15 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 				float fac = 0.02f * (event->prevy - event->y);
 
 				/* allowing to brake immediate */
-				if (fac > 0.0f && fly->speed < 0.0f)
+				if (fac > 0.0f && fly->speed < 0.0f) {
 					fly->speed = 0.0f;
-				else if (fac < 0.0f && fly->speed > 0.0f)
+				}
+				else if (fac < 0.0f && fly->speed > 0.0f) {
 					fly->speed = 0.0f;
-				else
+				}
+				else {
 					fly->speed += fly->grid * fac;
+				}
 
 				break;
 			}
@@ -581,8 +587,12 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 				else {
 					/* flip speed rather than stopping, game like motion,
 					 * else increase like mousewheel if were already moving in that direction */
-					if (fly->speed < 0.0f)   fly->speed = -fly->speed;
-					else if (fly->axis == 2) fly->speed += fly->grid;
+					if (fly->speed < 0.0f) {
+						fly->speed = -fly->speed;
+					}
+					else if (fly->axis == 2) {
+						fly->speed += fly->grid;
+					}
 					fly->axis = 2;
 				}
 				break;
@@ -591,8 +601,12 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 					fly->axis = -1;
 				}
 				else {
-					if (fly->speed > 0.0f)   fly->speed = -fly->speed;
-					else if (fly->axis == 2) fly->speed -= fly->grid;
+					if (fly->speed > 0.0f) {
+						fly->speed = -fly->speed;
+					}
+					else if (fly->axis == 2) {
+						fly->speed -= fly->grid;
+					}
 
 					fly->axis = 2;
 				}
@@ -602,8 +616,12 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 					fly->axis = -1;
 				}
 				else {
-					if (fly->speed < 0.0f)   fly->speed = -fly->speed;
-					else if (fly->axis == 0) fly->speed += fly->grid;
+					if (fly->speed < 0.0f) {
+						fly->speed = -fly->speed;
+					}
+					else if (fly->axis == 0) {
+						fly->speed += fly->grid;
+					}
 
 					fly->axis = 0;
 				}
@@ -613,8 +631,12 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 					fly->axis = -1;
 				}
 				else {
-					if (fly->speed > 0.0f)   fly->speed = -fly->speed;
-					else if (fly->axis == 0) fly->speed -= fly->grid;
+					if (fly->speed > 0.0f) {
+						fly->speed = -fly->speed;
+					}
+					else if (fly->axis == 0) {
+						fly->speed -= fly->grid;
+					}
 
 					fly->axis = 0;
 				}
@@ -624,8 +646,12 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 					fly->axis = -1;
 				}
 				else {
-					if (fly->speed < 0.0f)   fly->speed = -fly->speed;
-					else if (fly->axis == 1) fly->speed += fly->grid;
+					if (fly->speed < 0.0f) {
+						fly->speed = -fly->speed;
+					}
+					else if (fly->axis == 1) {
+						fly->speed += fly->grid;
+					}
 					fly->axis = 1;
 				}
 				break;
@@ -634,15 +660,20 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 					fly->axis = -1;
 				}
 				else {
-					if (fly->speed > 0.0f)   fly->speed = -fly->speed;
-					else if (fly->axis == 1) fly->speed -= fly->grid;
+					if (fly->speed > 0.0f) {
+						fly->speed = -fly->speed;
+					}
+					else if (fly->axis == 1) {
+						fly->speed -= fly->grid;
+					}
 					fly->axis = 1;
 				}
 				break;
 
 			case FLY_MODAL_AXIS_LOCK_X:
-				if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
+				if (fly->xlock != FLY_AXISLOCK_STATE_OFF) {
 					fly->xlock = FLY_AXISLOCK_STATE_OFF;
+				}
 				else {
 					fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->xlock_momentum = 0.0;
@@ -650,8 +681,9 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
 				fly_update_header(C, op, fly);
 				break;
 			case FLY_MODAL_AXIS_LOCK_Z:
-				if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
+				if (fly->zlock != FLY_AXISLOCK_STATE_OFF) {
 					fly->zlock = FLY_AXISLOCK_STATE_OFF;
+				}
 				else {
 					fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->zlock_momentum = 0.0;
@@ -723,13 +755,25 @@ static int flyApply(bContext *C, FlyInfo *fly)
 		moffset[1] = fly->mval[1] - fly->center_mval[1];
 
 		/* enforce a view margin */
-		if      (moffset[0] >  xmargin) moffset[0] -= xmargin;
-		else if (moffset[0] < -xmargin) moffset[0] += xmargin;
-		else                            moffset[0] =  0;
+		if (moffset[0] >  xmargin) {
+			moffset[0] -= xmargin;
+		}
+		else if (moffset[0] < -xmargin) {
+			moffset[0] += xmargin;
+		}
+		else {
+			moffset[0] =  0;
+		}
 
-		if      (moffset[1] >  ymargin) moffset[1] -= ymargin;
-		else if (moffset[1] < -ymargin) moffset[1] += ymargin;
-		else                            moffset[1] =  0;
+		if (moffset[1] >  ymargin) {
+			moffset[1] -= ymargin;
+		}
+		else if (moffset[1] < -ymargin) {
+			moffset[1] += ymargin;
+		}
+		else {
+			moffset[1] =  0;
+		}
 
 
 		/* scale the mouse movement by this value - scales mouse movement to the view size
@@ -774,8 +818,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 			/* Scale the time to use shift to scale the speed down- just like
 			 * shift slows many other areas of blender down */
-			if (fly->use_precision)
+			if (fly->use_precision) {
 				fly->speed = fly->speed * (1.0f - time_redraw_clamped);
+			}
 
 			copy_m3_m4(mat, rv3d->viewinv);
 
@@ -804,10 +849,12 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					axis_angle_to_quat(tmp_quat, upvec, moffset[1] * time_redraw * -FLY_ROTATE_FAC);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
-					if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
+					if (fly->xlock != FLY_AXISLOCK_STATE_OFF) {
 						fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;  /* check for rotation */
-					if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
+					}
+					if (fly->zlock != FLY_AXISLOCK_STATE_OFF) {
 						fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
+					}
 					fly->xlock_momentum = 0.0f;
 				}
 
@@ -818,8 +865,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					copy_v3_fl3(upvec, 0.0f, 1.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 
-					if (upvec[2] < 0.0f)
+					if (upvec[2] < 0.0f) {
 						moffset[0] = -moffset[0];
+					}
 
 					/* make the lock vectors */
 					if (fly->zlock) {
@@ -834,10 +882,12 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					axis_angle_to_quat(tmp_quat, upvec, moffset[0] * time_redraw * FLY_ROTATE_FAC);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
-					if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
+					if (fly->xlock != FLY_AXISLOCK_STATE_OFF) {
 						fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;  /* check for rotation */
-					if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
+					}
+					if (fly->zlock != FLY_AXISLOCK_STATE_OFF) {
 						fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
+					}
 				}
 
 				if (fly->zlock == FLY_AXISLOCK_STATE_ACTIVE) {
@@ -917,9 +967,15 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 			if (rv3d->persp == RV3D_CAMOB) {
 				Object *lock_ob = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
-				if (lock_ob->protectflag & OB_LOCK_LOCX) dvec[0] = 0.0;
-				if (lock_ob->protectflag & OB_LOCK_LOCY) dvec[1] = 0.0;
-				if (lock_ob->protectflag & OB_LOCK_LOCZ) dvec[2] = 0.0;
+				if (lock_ob->protectflag & OB_LOCK_LOCX) {
+					dvec[0] = 0.0;
+				}
+				if (lock_ob->protectflag & OB_LOCK_LOCY) {
+					dvec[1] = 0.0;
+				}
+				if (lock_ob->protectflag & OB_LOCK_LOCZ) {
+					dvec[2] = 0.0;
+				}
 			}
 
 			add_v3_v3(rv3d->ofs, dvec);
@@ -970,8 +1026,9 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	FlyInfo *fly;
 
-	if (rv3d->viewlock & RV3D_LOCKED)
+	if (rv3d->viewlock & RV3D_LOCKED) {
 		return OPERATOR_CANCELLED;
+	}
 
 	fly = MEM_callocN(sizeof(FlyInfo), "FlyOperation");
 
@@ -1026,8 +1083,9 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	exit_code = flyEnd(C, fly);
 
-	if (exit_code != OPERATOR_RUNNING_MODAL)
+	if (exit_code != OPERATOR_RUNNING_MODAL) {
 		do_draw = true;
+	}
 
 	if (do_draw) {
 		if (rv3d->persp == RV3D_CAMOB) {
@@ -1038,8 +1096,9 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
-	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED))
+	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
 		ED_workspace_status_text(C, NULL);
+	}
 
 	return exit_code;
 }

@@ -75,8 +75,9 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 		/* copy initial offset from bNodeTree */
 		copy_v2_v2(path->view_center, ntree->view_center);
 
-		if (id)
+		if (id) {
 			BLI_strncpy(path->node_name, id->name + 2, sizeof(path->node_name));
+		}
 
 		BLI_addtail(&snode->treepath, path);
 
@@ -99,15 +100,18 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 	bNodeTreePath *prev_path = snode->treepath.last;
 	path->nodetree = ntree;
 	if (gnode) {
-		if (prev_path)
+		if (prev_path) {
 			path->parent_key = BKE_node_instance_key(prev_path->parent_key, prev_path->nodetree, gnode);
-		else
+		}
+		else {
 			path->parent_key = NODE_INSTANCE_KEY_BASE;
+		}
 
 		BLI_strncpy(path->node_name, gnode->name, sizeof(path->node_name));
 	}
-	else
+	else {
 		path->parent_key = NODE_INSTANCE_KEY_BASE;
+	}
 
 	/* copy initial offset from bNodeTree */
 	copy_v2_v2(path->view_center, ntree->view_center);
@@ -129,8 +133,9 @@ void ED_node_tree_pop(SpaceNode *snode)
 	bNodeTreePath *path = snode->treepath.last;
 
 	/* don't remove root */
-	if (path == snode->treepath.first)
+	if (path == snode->treepath.first) {
 		return;
+	}
 
 	BLI_remlink(&snode->treepath, path);
 	MEM_freeN(path);
@@ -155,8 +160,9 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 	bNodeTreePath *path;
 	int i;
 	for (path = snode->treepath.last, i = 0; path; path = path->prev, ++i) {
-		if (i == level)
+		if (i == level) {
 			return path->nodetree;
+		}
 	}
 	return NULL;
 }
@@ -168,8 +174,9 @@ int ED_node_tree_path_length(SpaceNode *snode)
 	int i;
 	for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
 		length += strlen(path->node_name);
-		if (i > 0)
+		if (i > 0) {
 			length += 1;	/* for separator char */
+		}
 	}
 	return length;
 }
@@ -206,8 +213,9 @@ void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_lengt
 			size = BLI_snprintf_rlen(value, max_length, "/%s", path->node_name);
 		}
 		max_length -= size;
-		if (max_length <= 0)
+		if (max_length <= 0) {
 			break;
+		}
 		value += size;
 	}
 }
@@ -230,8 +238,9 @@ void snode_group_offset(SpaceNode *snode, float *x, float *y)
 		*x = dcenter[0];
 		*y = dcenter[1];
 	}
-	else
+	else {
 		*x = *y = 0.0f;
+	}
 }
 
 /* ******************** manage regions ********************* */
@@ -241,13 +250,17 @@ ARegion *node_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if (ar) return ar;
+	if (ar) {
+		return ar;
+	}
 
 	/* add subdiv level; after header */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if (ar == NULL) return NULL;
+	if (ar == NULL) {
+		return NULL;
+	}
 
 	arnew = MEM_callocN(sizeof(ARegion), "buttons for node");
 
@@ -265,13 +278,17 @@ ARegion *node_has_tools_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-	if (ar) return ar;
+	if (ar) {
+		return ar;
+	}
 
 	/* add subdiv level; after header */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if (ar == NULL) return NULL;
+	if (ar == NULL) {
+		return NULL;
+	}
 
 	arnew = MEM_callocN(sizeof(ARegion), "node tools");
 
@@ -393,8 +410,9 @@ static void node_area_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *w
 					ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 					bNodeTreePath *path = snode->treepath.last;
 					/* shift view to node tree center */
-					if (ar && path)
+					if (ar && path) {
 						UI_view2d_center_set(&ar->v2d, path->view_center[0], path->view_center[1]);
+					}
 
 					ED_area_tag_refresh(sa);
 					break;
@@ -422,21 +440,26 @@ static void node_area_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *w
 		/* future: add ID checks? */
 		case NC_MATERIAL:
 			if (ED_node_is_shader(snode)) {
-				if (wmn->data == ND_SHADING)
+				if (wmn->data == ND_SHADING) {
 					ED_area_tag_refresh(sa);
-				else if (wmn->data == ND_SHADING_DRAW)
+				}
+				else if (wmn->data == ND_SHADING_DRAW) {
 					ED_area_tag_refresh(sa);
-				else if (wmn->data == ND_SHADING_LINKS)
+				}
+				else if (wmn->data == ND_SHADING_LINKS) {
 					ED_area_tag_refresh(sa);
-				else if (wmn->action == NA_ADDED && snode->edittree)
+				}
+				else if (wmn->action == NA_ADDED && snode->edittree) {
 					nodeSetActiveID(snode->edittree, ID_MA, wmn->reference);
+				}
 
 			}
 			break;
 		case NC_TEXTURE:
 			if (ED_node_is_shader(snode) || ED_node_is_texture(snode)) {
-				if (wmn->data == ND_NODES)
+				if (wmn->data == ND_NODES) {
 					ED_area_tag_refresh(sa);
+				}
 			}
 			break;
 		case NC_WORLD:
@@ -446,21 +469,26 @@ static void node_area_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *w
 			break;
 		case NC_OBJECT:
 			if (ED_node_is_shader(snode)) {
-				if (wmn->data == ND_OB_SHADING)
+				if (wmn->data == ND_OB_SHADING) {
 					ED_area_tag_refresh(sa);
+				}
 			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_NODE)
+			if (wmn->data == ND_SPACE_NODE) {
 				ED_area_tag_refresh(sa);
-			else if (wmn->data == ND_SPACE_NODE_VIEW)
+			}
+			else if (wmn->data == ND_SPACE_NODE_VIEW) {
 				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_NODE:
-			if (wmn->action == NA_EDITED)
+			if (wmn->action == NA_EDITED) {
 				ED_area_tag_refresh(sa);
-			else if (wmn->action == NA_SELECTED)
+			}
+			else if (wmn->action == NA_SELECTED) {
 				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_SCREEN:
 			switch (wmn->data) {
@@ -483,8 +511,9 @@ static void node_area_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *w
 					/* note that nodeUpdateID is already called by BKE_image_signal() on all
 					 * scenes so really this is just to know if the images is used in the compo else
 					 * painting on images could become very slow when the compositor is open. */
-					if (nodeUpdateID(snode->nodetree, wmn->reference))
+					if (nodeUpdateID(snode->nodetree, wmn->reference)) {
 						ED_area_tag_refresh(sa);
+					}
 				}
 			}
 			break;
@@ -492,8 +521,9 @@ static void node_area_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *w
 		case NC_MOVIECLIP:
 			if (wmn->action == NA_EDITED) {
 				if (ED_node_is_compositor(snode)) {
-					if (nodeUpdateID(snode->nodetree, wmn->reference))
+					if (nodeUpdateID(snode->nodetree, wmn->reference)) {
 						ED_area_tag_refresh(sa);
+					}
 				}
 			}
 			break;
@@ -527,18 +557,21 @@ static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 		if (snode->nodetree->type == NTREE_SHADER) {
 			if (GS(snode->id->name) == ID_MA) {
 				Material *ma = (Material *)snode->id;
-				if (ma->use_nodes)
+				if (ma->use_nodes) {
 					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+				}
 			}
 			else if (GS(snode->id->name) == ID_LA) {
 				Light *la = (Light *)snode->id;
-				if (la->use_nodes)
+				if (la->use_nodes) {
 					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+				}
 			}
 			else if (GS(snode->id->name) == ID_WO) {
 				World *wo = (World *)snode->id;
-				if (wo->use_nodes)
+				if (wo->use_nodes) {
 					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+				}
 			}
 		}
 		else if (snode->nodetree->type == NTREE_COMPOSIT) {
@@ -755,8 +788,9 @@ static void node_region_listener(
 			}
 			break;
 		case NC_WM:
-			if (wmn->data == ND_JOB)
+			if (wmn->data == ND_JOB) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCENE:
 			ED_region_tag_redraw(ar);
@@ -777,18 +811,22 @@ static void node_region_listener(
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_OBJECT:
-			if (wmn->data == ND_OB_SHADING)
+			if (wmn->data == ND_OB_SHADING) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_ID:
-			if (wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_GPENCIL:
-			if (wmn->action == NA_EDITED)
+			if (wmn->action == NA_EDITED) {
 				ED_region_tag_redraw(ar);
-			else if (wmn->data & ND_GPENCIL_EDITMODE)
+			}
+			else if (wmn->data & ND_GPENCIL_EDITMODE) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }

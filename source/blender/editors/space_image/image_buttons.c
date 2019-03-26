@@ -69,8 +69,9 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	size_t ofs = 0;
 
 	str[0] = 0;
-	if (ima == NULL)
+	if (ima == NULL) {
 		return;
+	}
 
 	if (ibuf == NULL) {
 		ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Can't Load Image"), len - ofs);
@@ -78,9 +79,10 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	else {
 		if (ima->source == IMA_SRC_MOVIE) {
 			ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Movie"), len - ofs);
-			if (BKE_image_has_anim(ima))
+			if (BKE_image_has_anim(ima)) {
 				ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_(" %d frs"),
 				                    IMB_anim_get_duration(((ImageAnim *)ima->anims.first)->anim, IMB_TC_RECORD_RUN));
+			}
 		}
 		else {
 			ofs += BLI_strncpy_rlen(str, IFACE_("Image"), len - ofs);
@@ -92,26 +94,33 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 			if (ibuf->channels != 4) {
 				ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_("%d float channel(s)"), ibuf->channels);
 			}
-			else if (ibuf->planes == R_IMF_PLANES_RGBA)
+			else if (ibuf->planes == R_IMF_PLANES_RGBA) {
 				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGBA float"), len - ofs);
-			else
+			}
+			else {
 				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGB float"), len - ofs);
+			}
 		}
 		else {
-			if (ibuf->planes == R_IMF_PLANES_RGBA)
+			if (ibuf->planes == R_IMF_PLANES_RGBA) {
 				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGBA byte"), len - ofs);
-			else
+			}
+			else {
 				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" RGB byte"), len - ofs);
+			}
 		}
-		if (ibuf->zbuf || ibuf->zbuf_float)
+		if (ibuf->zbuf || ibuf->zbuf_float) {
 			ofs += BLI_strncpy_rlen(str + ofs, IFACE_(" + Z"), len - ofs);
+		}
 
 		if (ima->source == IMA_SRC_SEQUENCE) {
 			const char *file = BLI_last_slash(ibuf->name);
-			if (file == NULL)
+			if (file == NULL) {
 				file = ibuf->name;
-			else
+			}
+			else {
 				file++;
+			}
 			ofs += BLI_snprintf(str + ofs, len - ofs, ", %s", file);
 		}
 	}
@@ -129,11 +138,15 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {
 	bNode *node;
 
-	if (ntree)
-		for (node = ntree->nodes.first; node; node = node->next)
-			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
-				if (node->flag & NODE_DO_OUTPUT)
+	if (ntree) {
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				if (node->flag & NODE_DO_OUTPUT) {
 					return node->storage;
+				}
+			}
+		}
+	}
 	return NULL;
 }
 
@@ -543,8 +556,9 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
 	else if (direction == 1) {
 		int tot = BLI_listbase_count(&rr->layers);
 
-		if (RE_HasCombinedLayer(rr))
+		if (RE_HasCombinedLayer(rr)) {
 			tot++;  /* fake compo/sequencer layer */
+		}
 
 		if (iuser->layer < tot - 1) {
 			iuser->layer++;
@@ -835,8 +849,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 	void *lock;
 
-	if (!ptr->data)
+	if (!ptr->data) {
 		return;
+	}
 
 	prop = RNA_struct_find_property(ptr, propname);
 	if (!prop) {
@@ -921,10 +936,12 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 			if (ima->source != IMA_SRC_GENERATED) {
 				row = uiLayoutRow(layout, true);
-				if (BKE_image_has_packedfile(ima))
+				if (BKE_image_has_packedfile(ima)) {
 					uiItemO(row, "", ICON_PACKAGE, "image.unpack");
-				else
+				}
+				else {
 					uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
+				}
 
 				row = uiLayoutRow(row, true);
 				uiLayoutSetEnabled(row, BKE_image_has_packedfile(ima) == false);
@@ -1200,8 +1217,9 @@ void uiTemplateImageFormatViews(uiLayout *layout, PointerRNA *imfptr, PointerRNA
 {
 	ImageFormatData *imf = imfptr->data;
 
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return;
+	}
 
 	uiItemR(layout, ptr, "use_multiview", 0, NULL, ICON_NONE);
 
@@ -1247,8 +1265,9 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 	char str[MAX_IMAGE_INFO_LEN];
 	void *lock;
 
-	if (!ima || !iuser)
+	if (!ima || !iuser) {
 		return;
+	}
 
 	ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
@@ -1297,8 +1316,9 @@ static int image_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = image_has_buttons_region(sa);
 
-	if (ar)
+	if (ar) {
 		ED_region_toggle_hidden(C, ar);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -1321,8 +1341,9 @@ static int image_scopes_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = image_has_tools_region(sa);
 
-	if (ar)
+	if (ar) {
 		ED_region_toggle_hidden(C, ar);
+	}
 
 	return OPERATOR_FINISHED;
 }

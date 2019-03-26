@@ -104,10 +104,12 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 	char str[FILE_MAX];
 	short flag = 0;
 
-	if (RNA_boolean_get(op->ptr, "autoselect"))
+	if (RNA_boolean_get(op->ptr, "autoselect")) {
 		flag |= FILE_AUTOSELECT;
-	if (RNA_boolean_get(op->ptr, "active_collection"))
+	}
+	if (RNA_boolean_get(op->ptr, "active_collection")) {
 		flag |= FILE_ACTIVE_COLLECTION;
+	}
 
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
 

@@ -91,8 +91,9 @@ static void image_scopes_tag_refresh(ScrArea *sa)
 
 	/* only while histogram is visible */
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
-		if (ar->regiontype == RGN_TYPE_TOOL_PROPS && ar->flag & RGN_FLAG_HIDDEN)
+		if (ar->regiontype == RGN_TYPE_TOOL_PROPS && ar->flag & RGN_FLAG_HIDDEN) {
 			return;
+		}
 	}
 
 	sima->scopes.ok = 0;
@@ -122,13 +123,17 @@ ARegion *image_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if (ar) return ar;
+	if (ar) {
+		return ar;
+	}
 
 	/* add subdiv level; after header */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if (ar == NULL) return NULL;
+	if (ar == NULL) {
+		return NULL;
+	}
 
 	arnew = MEM_callocN(sizeof(ARegion), "buttons for image");
 
@@ -146,13 +151,17 @@ ARegion *image_has_tools_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-	if (ar) return ar;
+	if (ar) {
+		return ar;
+	}
 
 	/* add subdiv level; after buttons */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
 
 	/* is error! */
-	if (ar == NULL) return NULL;
+	if (ar == NULL) {
+		return NULL;
+	}
 
 	arnew = MEM_callocN(sizeof(ARegion), "scopes for image");
 
@@ -371,15 +380,17 @@ static void image_listener(wmWindow *win, ScrArea *sa, wmNotifier *wmn, Scene *U
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_MODE:
-					if (wmn->subtype == NS_EDITMODE_MESH)
+					if (wmn->subtype == NS_EDITMODE_MESH) {
 						ED_area_tag_refresh(sa);
+					}
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_RENDER_RESULT:
 				case ND_RENDER_OPTIONS:
 				case ND_COMPO_RESULT:
-					if (ED_space_image_show_render(sima))
+					if (ED_space_image_show_render(sima)) {
 						image_scopes_tag_refresh(sa);
+					}
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -532,8 +543,9 @@ static void image_main_region_set_view2d(SpaceImage *sima, ARegion *ar)
 	float w = width;
 	float h = height;
 
-	if (ima)
+	if (ima) {
 		h *= ima->aspy / ima->aspx;
+	}
 
 	int winx = BLI_rcti_size_x(&ar->winrct) + 1;
 	int winy = BLI_rcti_size_y(&ar->winrct) + 1;
@@ -703,8 +715,9 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 		ED_space_image_get_size(sima, &width, &height);
 		ED_space_image_get_aspect(sima, &aspx, &aspy);
 
-		if (show_viewer)
+		if (show_viewer) {
 			BLI_thread_unlock(LOCK_DRAW_IMAGE);
+		}
 
 		ED_mask_draw_region(mask, ar,
 		                    sima->mask_info.draw_flag,
@@ -744,26 +757,31 @@ static void image_main_region_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GEOM:
-			if (ELEM(wmn->data, ND_DATA, ND_SELECT))
+			if (ELEM(wmn->data, ND_DATA, ND_SELECT)) {
 				WM_gizmomap_tag_refresh(ar->gizmo_map);
+			}
 			break;
 		case NC_GPENCIL:
-			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
-			else if (wmn->data & ND_GPENCIL_EDITMODE)
+			}
+			else if (wmn->data & ND_GPENCIL_EDITMODE) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_IMAGE:
-			if (wmn->action == NA_PAINTING)
+			if (wmn->action == NA_PAINTING) {
 				ED_region_tag_redraw(ar);
+			}
 			WM_gizmomap_tag_refresh(ar->gizmo_map);
 			break;
 		case NC_MATERIAL:
 			if (wmn->data == ND_SHADING_LINKS) {
 				SpaceImage *sima = sa->spacedata.first;
 
-				if (sima->iuser.scene && (sima->iuser.scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE))
+				if (sima->iuser.scene && (sima->iuser.scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE)) {
 					ED_region_tag_redraw(ar);
+				}
 			}
 			break;
 		case NC_SCREEN:
@@ -803,10 +821,12 @@ static void image_buttons_region_draw(const bContext *C, ARegion *ar)
 			if (!sima->scopes.ok) {
 				BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, &scene->view_settings, &scene->display_settings);
 			}
-			if (sima->image->flag & IMA_VIEW_AS_RENDER)
+			if (sima->image->flag & IMA_VIEW_AS_RENDER) {
 				ED_space_image_scopes_update(C, sima, ibuf, true);
-			else
+			}
+			else {
 				ED_space_image_scopes_update(C, sima, ibuf, false);
+			}
 		}
 	}
 	ED_space_image_release_buffer(sima, ibuf, lock);
@@ -836,15 +856,17 @@ static void image_buttons_region_listener(
 			}
 			break;
 		case NC_IMAGE:
-			if (wmn->action != NA_PAINTING)
+			if (wmn->action != NA_PAINTING) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_GPENCIL:
-			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }
@@ -875,13 +897,15 @@ static void image_tools_region_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA || ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+			if (wmn->data == ND_DATA || ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_BRUSH:
 			/* NA_SELECTED is used on brush changes */
-			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCENE:
 			switch (wmn->data) {
@@ -893,8 +917,9 @@ static void image_tools_region_listener(
 			}
 			break;
 		case NC_IMAGE:
-			if (wmn->action != NA_PAINTING)
+			if (wmn->action != NA_PAINTING) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_NODE:
 			ED_region_tag_redraw(ar);

@@ -51,8 +51,9 @@ static bool strip_modifier_active_poll(bContext *C)
 	if (ed) {
 		Sequence *seq = BKE_sequencer_active_get(scene);
 
-		if (seq)
+		if (seq) {
 			return BKE_sequence_supports_modifiers(seq);
+		}
 	}
 
 	return false;
@@ -105,8 +106,9 @@ static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", name);
 
 	smd = BKE_sequence_modifier_find_by_name(seq, name);
-	if (!smd)
+	if (!smd) {
 		return OPERATOR_CANCELLED;
+	}
 
 	BLI_remlink(&seq->modifiers, smd);
 	BKE_sequence_modifier_free(smd);
@@ -154,8 +156,9 @@ static int strip_modifier_move_exec(bContext *C, wmOperator *op)
 	direction = RNA_enum_get(op->ptr, "direction");
 
 	smd = BKE_sequence_modifier_find_by_name(seq, name);
-	if (!smd)
+	if (!smd) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (direction == SEQ_MODIFIER_MOVE_UP) {
 		if (smd->prev) {
@@ -216,14 +219,16 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 	Sequence *seq_iter;
 	const int type = RNA_enum_get(op->ptr, "type");
 
-	if (!seq || !seq->modifiers.first)
+	if (!seq || !seq->modifiers.first) {
 		return OPERATOR_CANCELLED;
+	}
 
 	SEQP_BEGIN(ed, seq_iter)
 	{
 		if (seq_iter->flag & SELECT) {
-			if (seq_iter == seq)
+			if (seq_iter == seq) {
 				continue;
+			}
 
 			if (type == SEQ_MODIFIER_COPY_REPLACE) {
 				if (seq_iter->modifiers.first) {

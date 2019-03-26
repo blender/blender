@@ -185,8 +185,9 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = BKE_object_pose_armature_get(OBACT(view_layer));
 
-	if (!gzgroup->customdata)
+	if (!gzgroup->customdata) {
 		return;
+	}
 
 	struct BoneSplineWidgetGroup *bspline_group = gzgroup->customdata;
 	bPoseChannel *pchan = BKE_pose_channel_active(ob);

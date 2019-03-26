@@ -64,8 +64,9 @@ static bNode *node_under_mouse_select(bNodeTree *ntree, int mx, int my)
 
 	for (node = ntree->nodes.last; node; node = node->prev) {
 		if (node->typeinfo->select_area_func) {
-			if (node->typeinfo->select_area_func(node, mx, my))
+			if (node->typeinfo->select_area_func(node, mx, my)) {
 				return node;
+			}
 		}
 	}
 	return NULL;
@@ -77,8 +78,9 @@ static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
 
 	for (node = ntree->nodes.last; node; node = node->prev) {
 		if (node->typeinfo->tweak_area_func) {
-			if (node->typeinfo->tweak_area_func(node, mx, my))
+			if (node->typeinfo->tweak_area_func(node, mx, my)) {
 				return node;
+			}
 		}
 	}
 	return NULL;
@@ -118,8 +120,9 @@ void node_socket_select(bNode *node, bNodeSocket *sock)
 	sock->flag |= SELECT;
 
 	/* select node too */
-	if (node)
+	if (node) {
 		node->flag |= SELECT;
+	}
 }
 
 void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_node)
@@ -143,17 +146,20 @@ void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_no
 			}
 		}
 
-		if (!sel)
+		if (!sel) {
 			node->flag &= ~SELECT;
+		}
 	}
 }
 
 static void node_socket_toggle(bNode *node, bNodeSocket *sock, int deselect_node)
 {
-	if (sock->flag & SELECT)
+	if (sock->flag & SELECT) {
 		node_socket_deselect(node, sock, deselect_node);
-	else
+	}
+	else {
 		node_socket_select(node, sock);
+	}
 }
 
 /* no undo here! */
@@ -161,8 +167,9 @@ void node_deselect_all(SpaceNode *snode)
 {
 	bNode *node;
 
-	for (node = snode->edittree->nodes.first; node; node = node->next)
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		nodeSetSelected(node, false);
+	}
 }
 
 void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes)
@@ -178,8 +185,9 @@ void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		int sel = 0;
 
-		for (sock = node->inputs.first; sock; sock = sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next) {
 			sock->flag &= ~SELECT;
+		}
 
 		/* if no selected sockets remain, also deselect the node */
 		if (deselect_nodes) {
@@ -190,8 +198,9 @@ void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes
 				}
 			}
 
-			if (!sel)
+			if (!sel) {
 				node->flag &= ~SELECT;
+			}
 		}
 	}
 }
@@ -209,8 +218,9 @@ void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_node
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		bool sel = false;
 
-		for (sock = node->outputs.first; sock; sock = sock->next)
+		for (sock = node->outputs.first; sock; sock = sock->next) {
 			sock->flag &= ~SELECT;
+		}
 
 		/* if no selected sockets remain, also deselect the node */
 		if (deselect_nodes) {
@@ -221,8 +231,9 @@ void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_node
 				}
 			}
 
-			if (!sel)
+			if (!sel) {
 				node->flag &= ~SELECT;
+			}
 		}
 	}
 }
@@ -397,9 +408,11 @@ void node_select_single(bContext *C, bNode *node)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *tnode;
 
-	for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
-		if (tnode != node)
+	for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+		if (tnode != node) {
 			nodeSetSelected(tnode, false);
+		}
+	}
 	nodeSetSelected(node, true);
 
 	ED_node_set_active(bmain, snode->edittree, node);
@@ -440,8 +453,9 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 				/* only allow one selected output per node, for sensible linking.
 				 * allows selecting outputs from different nodes though. */
 				if (node) {
-					for (tsock = node->outputs.first; tsock; tsock = tsock->next)
+					for (tsock = node->outputs.first; tsock; tsock = tsock->next) {
 						node_socket_deselect(node, tsock, 1);
+					}
 				}
 				if (extend) {
 					/* only allow one selected output per node, for sensible linking.
@@ -857,19 +871,23 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	bNode *node;
 
-	for (node = snode->edittree->nodes.first; node; node = node->next)
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		node->flag &= ~NODE_TEST;
+	}
 
 	for (link = snode->edittree->links.first; link; link = link->next) {
-		if (nodeLinkIsHidden(link))
+		if (nodeLinkIsHidden(link)) {
 			continue;
-		if (link->fromnode && link->tonode && (link->fromnode->flag & NODE_SELECT))
+		}
+		if (link->fromnode && link->tonode && (link->fromnode->flag & NODE_SELECT)) {
 			link->tonode->flag |= NODE_TEST;
+		}
 	}
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		if (node->flag & NODE_TEST)
+		if (node->flag & NODE_TEST) {
 			nodeSetSelected(node, true);
+		}
 	}
 
 	ED_node_sort(snode->edittree);
@@ -905,19 +923,23 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	bNode *node;
 
-	for (node = snode->edittree->nodes.first; node; node = node->next)
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		node->flag &= ~NODE_TEST;
+	}
 
 	for (link = snode->edittree->links.first; link; link = link->next) {
-		if (nodeLinkIsHidden(link))
+		if (nodeLinkIsHidden(link)) {
 			continue;
-		if (link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
+		}
+		if (link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT)) {
 			link->fromnode->flag |= NODE_TEST;
+		}
 	}
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		if (node->flag & NODE_TEST)
+		if (node->flag & NODE_TEST) {
 			nodeSetSelected(node, true);
+		}
 	}
 
 	ED_node_sort(snode->edittree);
@@ -963,41 +985,55 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 		int a;
 
 		for (a = 0; a < totnodes; a++) {
-			if (node_array[a] == active)
+			if (node_array[a] == active) {
 				break;
+			}
 		}
 
 		if (same_type) {
 			bNode *node = NULL;
 
 			while (node == NULL) {
-				if (revert) a--;
-				else a++;
+				if (revert) {
+					a--;
+				}
+				else {
+					a++;
+				}
 
-				if (a < 0 || a >= totnodes)
+				if (a < 0 || a >= totnodes) {
 					break;
+				}
 
 				node = node_array[a];
 
-				if (node->type == active->type)
+				if (node->type == active->type) {
 					break;
-				else node = NULL;
+				}
+				else {
+					node = NULL;
+				}
 			}
-			if (node)
+			if (node) {
 				active = node;
+			}
 		}
 		else {
 			if (revert) {
-				if (a == 0)
+				if (a == 0) {
 					active = node_array[totnodes - 1];
-				else
+				}
+				else {
 					active = node_array[a - 1];
+				}
 			}
 			else {
-				if (a == totnodes - 1)
+				if (a == totnodes - 1) {
 					active = node_array[0];
-				else
+				}
+				else {
 					active = node_array[a + 1];
+				}
 			}
 		}
 
@@ -1012,8 +1048,9 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (node_array)
+	if (node_array) {
 		MEM_freeN(node_array);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -1053,12 +1090,15 @@ static void node_find_cb(const struct bContext *C, void *UNUSED(arg), const char
 		if (BLI_strcasestr(node->name, str) || BLI_strcasestr(node->label, str)) {
 			char name[256];
 
-			if (node->label[0])
+			if (node->label[0]) {
 				BLI_snprintf(name, 256, "%s (%s)", node->name, node->label);
-			else
+			}
+			else {
 				BLI_strncpy(name, node->name, 256);
-			if (false == UI_search_item_add(items, name, node, 0))
+			}
+			if (false == UI_search_item_add(items, name, node, 0)) {
 				break;
+			}
 		}
 	}
 }

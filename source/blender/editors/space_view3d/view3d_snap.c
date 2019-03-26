@@ -156,12 +156,15 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 
 								/* adjust location on the original pchan*/
 								bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, pchan_eval->name);
-								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
+								if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
 									pchan->loc[0] = vec[0];
-								if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
+								}
+								if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
 									pchan->loc[1] = vec[1];
-								if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
+								}
+								if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
 									pchan->loc[2] = vec[2];
+								}
 
 								/* auto-keyframing */
 								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
@@ -188,12 +191,15 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
 				}
-				if ((ob->protectflag & OB_LOCK_LOCX) == 0)
+				if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
 					ob->loc[0] = ob_eval->loc[0] + vec[0];
-				if ((ob->protectflag & OB_LOCK_LOCY) == 0)
+				}
+				if ((ob->protectflag & OB_LOCK_LOCY) == 0) {
 					ob->loc[1] = ob_eval->loc[1] + vec[1];
-				if ((ob->protectflag & OB_LOCK_LOCZ) == 0)
+				}
+				if ((ob->protectflag & OB_LOCK_LOCZ) == 0) {
 					ob->loc[2] = ob_eval->loc[2] + vec[2];
+				}
 
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
@@ -359,12 +365,15 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 					}
 
 					/* copy new position */
-					if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
+					if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
 						pchan->loc[0] = cursor_pose[0];
-					if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
+					}
+					if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
 						pchan->loc[1] = cursor_pose[1];
-					if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
+					}
+					if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
 						pchan->loc[2] = cursor_pose[2];
+					}
 
 					/* auto-keyframing */
 					ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
@@ -425,12 +434,15 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, cursor_parent);
 				}
-				if ((ob->protectflag & OB_LOCK_LOCX) == 0)
+				if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
 					ob->loc[0] += cursor_parent[0];
-				if ((ob->protectflag & OB_LOCK_LOCY) == 0)
+				}
+				if ((ob->protectflag & OB_LOCK_LOCY) == 0) {
 					ob->loc[1] += cursor_parent[1];
-				if ((ob->protectflag & OB_LOCK_LOCZ) == 0)
+				}
+				if ((ob->protectflag & OB_LOCK_LOCZ) == 0) {
 					ob->loc[2] += cursor_parent[2];
+				}
 
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
@@ -561,8 +573,9 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 	bool ok = false;
 	float min[3], max[3], mat[4][4], pos[3], cammat[4][4];
 
-	if (!clip)
+	if (!clip) {
 		return;
+	}
 
 	tracking = &clip->tracking;
 
@@ -857,11 +870,13 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 		return changed;
 	}
 
-	if (ED_transverts_check_obedit(obedit))
+	if (ED_transverts_check_obedit(obedit)) {
 		ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS);
+	}
 
-	if (tvs.transverts_tot == 0)
+	if (tvs.transverts_tot == 0) {
 		return false;
+	}
 
 	copy_m3_m4(bmat, obedit->obmat);
 

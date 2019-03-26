@@ -65,10 +65,12 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 
 	node_deselect_all(snode);
 
-	if (idname)
+	if (idname) {
 		node = nodeAddNode(C, snode->edittree, idname);
-	else
+	}
+	else {
 		node = nodeAddStaticNode(C, snode->edittree, type);
+	}
 	BLI_assert(node && node->typeinfo);
 
 	/* Position mouse in node header. */
@@ -128,8 +130,9 @@ static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb, bNodeSocket
 	copy_v2_v2(socklink->point, point);
 
 	for (prev = lb->last; prev; prev = prev->prev) {
-		if (prev->sock == sock)
+		if (prev->sock == sock) {
 			break;
+		}
 	}
 	BLI_insertlinkafter(lb, prev, socklink);
 	return socklink;
@@ -208,7 +211,9 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1],
 		                         &mcoords[i][0], &mcoords[i][1]);
 		i++;
-		if (i >= 256) break;
+		if (i >= 256) {
+			break;
+		}
 	}
 	RNA_END;
 
@@ -228,8 +233,9 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		BLI_listbase_clear(&input_links);
 
 		for (link = ntree->links.first; link; link = link->next) {
-			if (nodeLinkIsHidden(link))
+			if (nodeLinkIsHidden(link)) {
 				continue;
+			}
 			if (add_reroute_intersect_check(link, mcoords, i, insert_point)) {
 				add_reroute_insert_socket_link(&output_links, link->fromsock, link, insert_point);
 				add_reroute_insert_socket_link(&input_links, link->tosock, link, insert_point);
@@ -356,10 +362,12 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	snode->cursor[0] /= UI_DPI_FAC;
 	snode->cursor[1] /= UI_DPI_FAC;
 
-	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name")) {
 		return node_add_file_exec(C, op);
-	else
+	}
+	else {
 		return WM_operator_filesel(C, op, event);
+	}
 }
 
 void NODE_OT_add_file(wmOperatorType *ot)
@@ -460,10 +468,12 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 		prop = RNA_struct_find_property(op->ptr, "type");
 		RNA_property_enum_identifier(C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &idname);
 	}
-	else if (snode)
+	else if (snode) {
 		idname = snode->tree_idname;
-	else
+	}
+	else {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", treename_buf);

@@ -128,7 +128,9 @@ static void stats_object(Object *ob, SceneStats *stats)
 	const bool is_selected = (ob->base_flag & BASE_SELECTED) != 0;
 
 	stats->totobj++;
-	if (is_selected) stats->totobjsel++;
+	if (is_selected) {
+		stats->totobjsel++;
+	}
 
 	switch (ob->type) {
 		case OB_MESH:
@@ -158,8 +160,9 @@ static void stats_object(Object *ob, SceneStats *stats)
 		{
 			int totv = 0, totf = 0, tottri = 0;
 
-			if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first)
+			if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
 				BKE_displist_count(&ob->runtime.curve_cache->disp, &totv, &totf, &tottri);
+			}
 
 			stats->totvert += totv;
 			stats->totface += totf;
@@ -214,15 +217,20 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 			stats->totbone++;
 
-			if ((ebo->flag & BONE_CONNECTED) && ebo->parent)
+			if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
 				stats->totvert--;
+			}
 
-			if (ebo->flag & BONE_TIPSEL)
+			if (ebo->flag & BONE_TIPSEL) {
 				stats->totvertsel++;
-			if (ebo->flag & BONE_ROOTSEL)
+			}
+			if (ebo->flag & BONE_ROOTSEL) {
 				stats->totvertsel++;
+			}
 
-			if (ebo->flag & BONE_SELECTED) stats->totbonesel++;
+			if (ebo->flag & BONE_SELECTED) {
+				stats->totbonesel++;
+			}
 
 			/* if this is a connected child and it's parent is being moved, remove our root */
 			if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) &&
@@ -249,9 +257,15 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 				a = nu->pntsu;
 				while (a--) {
 					stats->totvert += 3;
-					if (bezt->f1 & SELECT) stats->totvertsel++;
-					if (bezt->f2 & SELECT) stats->totvertsel++;
-					if (bezt->f3 & SELECT) stats->totvertsel++;
+					if (bezt->f1 & SELECT) {
+						stats->totvertsel++;
+					}
+					if (bezt->f2 & SELECT) {
+						stats->totvertsel++;
+					}
+					if (bezt->f3 & SELECT) {
+						stats->totvertsel++;
+					}
 					bezt++;
 				}
 			}
@@ -260,7 +274,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 				a = nu->pntsu * nu->pntsv;
 				while (a--) {
 					stats->totvert++;
-					if (bp->f1 & SELECT) stats->totvertsel++;
+					if (bp->f1 & SELECT) {
+						stats->totvertsel++;
+					}
 					bp++;
 				}
 			}
@@ -273,7 +289,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 
 		for (ml = mball->editelems->first; ml; ml = ml->next) {
 			stats->totvert++;
-			if (ml->flag & SELECT) stats->totvertsel++;
+			if (ml->flag & SELECT) {
+				stats->totvertsel++;
+			}
 		}
 	}
 	else if (obedit->type == OB_LATTICE) {
@@ -288,7 +306,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		a = editlatt->pntsu * editlatt->pntsv * editlatt->pntsw;
 		while (a--) {
 			stats->totvert++;
-			if (bp->f1 & SELECT) stats->totvertsel++;
+			if (bp->f1 & SELECT) {
+				stats->totvertsel++;
+			}
 			bp++;
 		}
 	}
@@ -302,9 +322,11 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
 
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			stats->totbone++;
-			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED))
-				if (pchan->bone->layer & arm->layer)
+			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+				if (pchan->bone->layer & arm->layer) {
 					stats->totbonesel++;
+				}
+			}
 		}
 	}
 }
@@ -448,8 +470,9 @@ static void stats_string(ViewLayer *view_layer)
 	}
 
 	if (obedit) {
-		if (BKE_keyblock_from_object(obedit))
+		if (BKE_keyblock_from_object(obedit)) {
 			ofs += BLI_strncpy_rlen(s + ofs, IFACE_("(Key) "), MAX_INFO_LEN - ofs);
+		}
 
 		if (obedit->type == OB_MESH) {
 			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,

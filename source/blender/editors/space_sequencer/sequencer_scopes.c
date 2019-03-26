@@ -513,12 +513,15 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
 	nr = nb = ng = 0;
 	for (x = 0; x < HIS_STEPS; x++) {
-		if (bins[0][x] > nr)
+		if (bins[0][x] > nr) {
 			nr = bins[0][x];
-		if (bins[1][x] > ng)
+		}
+		if (bins[1][x] > ng) {
 			ng = bins[1][x];
-		if (bins[2][x] > nb)
+		}
+		if (bins[2][x] > nb) {
 			nb = bins[2][x];
+		}
 	}
 
 	for (x = 0; x < HIS_STEPS; x++) {
@@ -598,12 +601,15 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
 	nr = nb = ng = 0;
 	for (x = 0; x < HIS_STEPS; x++) {
-		if (bins[0][x] > nr)
+		if (bins[0][x] > nr) {
 			nr = bins[0][x];
-		if (bins[1][x] > ng)
+		}
+		if (bins[1][x] > ng) {
 			ng = bins[1][x];
-		if (bins[2][x] > nb)
+		}
+		if (bins[2][x] > nb) {
 			nb = bins[2][x];
+		}
 	}
 
 	for (x = 0; x < HIS_STEPS; x++) {

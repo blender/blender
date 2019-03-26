@@ -282,15 +282,19 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 			float rgba[4];
 
 			copy_v3_v3(rgba, linearcol);
-			if (channels == 3)
+			if (channels == 3) {
 				rgba[3] = 1.0f;
-			else
+			}
+			else {
 				rgba[3] = linearcol[3];
+			}
 
-			if (use_default_view)
+			if (use_default_view) {
 				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba, NULL, &scene->display_settings);
-			else
+			}
+			else {
 				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba, &scene->view_settings, &scene->display_settings);
+			}
 
 			SNPRINTF(str, "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
 			BLF_position(blf_mono_font, dx, dy, 0);
@@ -325,10 +329,12 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	}
 
 	if (color_manage) {
-		if (use_default_view)
+		if (use_default_view) {
 			IMB_colormanagement_pixel_to_display_space_v4(finalcol, col, NULL, &scene->display_settings);
-		else
+		}
+		else {
 			IMB_colormanagement_pixel_to_display_space_v4(finalcol, col, &scene->view_settings, &scene->display_settings);
+		}
 	}
 	else {
 		copy_v4_v4(finalcol, col);
@@ -471,10 +477,12 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 
 	rectf = MEM_mallocN(rectx * recty * sizeof(float), "temp");
 	for (a = rectx * recty - 1; a >= 0; a--) {
-		if (rect_float[a] > clip_end)
+		if (rect_float[a] > clip_end) {
 			rectf[a] = 0.0f;
-		else if (rect_float[a] < bias)
+		}
+		else if (rect_float[a] < bias) {
 			rectf[a] = 1.0f;
+		}
 		else {
 			rectf[a] = 1.0f - (rect_float[a] - bias) * scale;
 			rectf[a] *= rectf[a];
@@ -498,12 +506,15 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 
 	/* this part is generic image display */
 	if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
-		if (ibuf->zbuf)
+		if (ibuf->zbuf) {
 			sima_draw_zbuf_pixels(x, y, ibuf->x, ibuf->y, ibuf->zbuf, zoomx, zoomy);
-		else if (ibuf->zbuf_float)
+		}
+		else if (ibuf->zbuf_float) {
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->zbuf_float, zoomx, zoomy);
-		else if (ibuf->channels == 1)
+		}
+		else if (ibuf->channels == 1) {
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float, zoomx, zoomy);
+		}
 	}
 	else {
 		int clip_max_x, clip_max_y;
@@ -531,14 +542,18 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			ColorManagedViewSettings *view_settings;
 			ColorManagedDisplaySettings *display_settings;
 
-			if (sima->flag & SI_SHOW_R)
+			if (sima->flag & SI_SHOW_R) {
 				shuffle[0] = 1.0f;
-			else if (sima->flag & SI_SHOW_G)
+			}
+			else if (sima->flag & SI_SHOW_G) {
 				shuffle[1] = 1.0f;
-			else if (sima->flag & SI_SHOW_B)
+			}
+			else if (sima->flag & SI_SHOW_B) {
 				shuffle[2] = 1.0f;
-			else if (sima->flag & SI_SHOW_ALPHA)
+			}
+			else if (sima->flag & SI_SHOW_ALPHA) {
 				shuffle[3] = 1.0f;
+			}
 
 			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 			GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform_ensure(state.shader, "shuffle"), 4, 1, shuffle);
@@ -554,8 +569,9 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			IMB_display_buffer_release(cache_handle);
 		}
 
-		if (sima->flag & SI_USE_ALPHA)
+		if (sima->flag & SI_USE_ALPHA) {
 			GPU_blend(false);
+		}
 	}
 }
 
@@ -573,8 +589,9 @@ static void draw_image_buffer_repeated(const bContext *C, SpaceImage *sima, AReg
 			draw_image_buffer(C, sima, ar, scene, ibuf, x, y, zoomx, zoomy);
 
 			/* only draw until running out of time */
-			if ((PIL_check_seconds_timer() - time_current) > 0.25)
+			if ((PIL_check_seconds_timer() - time_current) > 0.25) {
 				return;
+			}
 		}
 	}
 }
@@ -715,11 +732,13 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	}
 
 	if (show_stereo3d) {
-		if (show_multilayer)
+		if (show_multilayer) {
 			/* update multiindex and pass for the current eye */
 			BKE_image_multilayer_index(ima->rr, &sima->iuser);
-		else
+		}
+		else {
 			BKE_image_multiview_index(ima, &sima->iuser);
+		}
 	}
 
 	ibuf = ED_space_image_acquire_buffer(sima, &lock);
@@ -729,10 +748,12 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		ED_region_grid_draw(ar, zoomx, zoomy);
 	}
 	else {
-		if (sima->flag & SI_DRAW_TILE)
+		if (sima->flag & SI_DRAW_TILE) {
 			draw_image_buffer_repeated(C, sima, ar, scene, ibuf, zoomx, zoomy);
-		else
+		}
+		else {
 			draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
+		}
 
 		if (sima->flag & SI_DRAW_METADATA) {
 			int x, y;
@@ -748,16 +769,18 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	ED_space_image_release_buffer(sima, ibuf, lock);
 
 	/* paint helpers */
-	if (show_paint)
+	if (show_paint) {
 		draw_image_paint_helpers(C, ar, scene, zoomx, zoomy);
+	}
 
 	if (show_viewer) {
 		BLI_thread_unlock(LOCK_DRAW_IMAGE);
 	}
 
 	/* render info */
-	if (ima && show_render)
+	if (ima && show_render) {
 		draw_render_info(C, sima->iuser.scene, ima, ar, zoomx, zoomy);
+	}
 }
 
 bool ED_space_image_show_cache(SpaceImage *sima)

@@ -130,8 +130,9 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	if (!gzgroup->customdata)
+	if (!gzgroup->customdata) {
 		return;
+	}
 
 	struct CameraWidgetGroup *cagzgroup = gzgroup->customdata;
 	ViewLayer *view_layer = CTX_data_view_layer(C);

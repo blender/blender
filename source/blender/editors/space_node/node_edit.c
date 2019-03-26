@@ -97,16 +97,19 @@ static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
 
 	for (node = nodetree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_COMPOSITE) {
-			if (recalc_flags & COM_RECALC_COMPOSITE)
+			if (recalc_flags & COM_RECALC_COMPOSITE) {
 				node->flag |= NODE_DO_OUTPUT_RECALC;
+			}
 		}
 		else if (node->type == CMP_NODE_VIEWER || node->type == CMP_NODE_SPLITVIEWER) {
-			if (recalc_flags & COM_RECALC_VIEWER)
+			if (recalc_flags & COM_RECALC_VIEWER) {
 				node->flag |= NODE_DO_OUTPUT_RECALC;
+			}
 		}
 		else if (node->type == NODE_GROUP) {
-			if (node->id)
+			if (node->id) {
 				compo_tag_output_nodes((bNodeTree *)node->id, recalc_flags);
+			}
 		}
 	}
 }
@@ -125,16 +128,19 @@ static int compo_get_recalc_flags(const bContext *C)
 			if (sa->spacetype == SPACE_IMAGE) {
 				SpaceImage *sima = sa->spacedata.first;
 				if (sima->image) {
-					if (sima->image->type == IMA_TYPE_R_RESULT)
+					if (sima->image->type == IMA_TYPE_R_RESULT) {
 						recalc_flags |= COM_RECALC_COMPOSITE;
-					else if (sima->image->type == IMA_TYPE_COMPOSITE)
+					}
+					else if (sima->image->type == IMA_TYPE_COMPOSITE) {
 						recalc_flags |= COM_RECALC_VIEWER;
+					}
 				}
 			}
 			else if (sa->spacetype == SPACE_NODE) {
 				SpaceNode *snode = sa->spacedata.first;
-				if (snode->flag & SNODE_BACKDRAW)
+				if (snode->flag & SNODE_BACKDRAW) {
 					recalc_flags |= COM_RECALC_VIEWER;
+				}
 			}
 		}
 	}
@@ -190,8 +196,9 @@ static void compo_initjob(void *cjv)
 
 	cj->localtree = ntreeLocalize(cj->ntree);
 
-	if (cj->recalc_flags)
+	if (cj->recalc_flags) {
 		compo_tag_output_nodes(cj->localtree, cj->recalc_flags);
+	}
 }
 
 /* called before redraw notifiers, it moves finished previews over */
@@ -215,8 +222,9 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	Scene *scene = cj->scene;
 	SceneRenderView *srv;
 
-	if (scene->use_nodes == false)
+	if (scene->use_nodes == false) {
 		return;
+	}
 
 	cj->stop = stop;
 	cj->do_update = do_update;
@@ -239,7 +247,9 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	}
 	else {
 		for (srv = scene->r.views.first; srv; srv = srv->next) {
-			if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) continue;
+			if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
+				continue;
+			}
 			ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, &scene->view_settings, &scene->display_settings, srv->name);
 		}
 	}
@@ -300,8 +310,9 @@ bool composite_node_active(bContext *C)
 {
 	if (ED_operator_node_active(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
-		if (ED_node_is_compositor(snode))
+		if (ED_node_is_compositor(snode)) {
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -311,8 +322,9 @@ bool composite_node_editable(bContext *C)
 {
 	if (ED_operator_node_editable(C)) {
 		SpaceNode *snode = CTX_wm_space_node(C);
-		if (ED_node_is_compositor(snode))
+		if (ED_node_is_compositor(snode)) {
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -324,8 +336,9 @@ void snode_dag_update(bContext *C, SpaceNode *snode)
 	/* for groups, update all ID's using this */
 	if (snode->edittree != snode->nodetree) {
 		FOREACH_NODETREE_BEGIN(bmain, tntree, id) {
-			if (ntreeHasTree(tntree, snode->edittree))
+			if (ntreeHasTree(tntree, snode->edittree)) {
 				DEG_id_tag_update(id, 0);
+			}
 		} FOREACH_NODETREE_END;
 	}
 
@@ -339,25 +352,32 @@ void snode_notify(bContext *C, SpaceNode *snode)
 	WM_event_add_notifier(C, NC_NODE | NA_EDITED, NULL);
 
 	if (ED_node_is_shader(snode)) {
-		if (GS(id->name) == ID_MA)
+		if (GS(id->name) == ID_MA) {
 			WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
-		else if (GS(id->name) == ID_LA)
+		}
+		else if (GS(id->name) == ID_LA) {
 			WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
-		else if (GS(id->name) == ID_WO)
+		}
+		else if (GS(id->name) == ID_WO) {
 			WM_main_add_notifier(NC_WORLD | ND_WORLD, id);
+		}
 	}
-	else if (ED_node_is_compositor(snode))
+	else if (ED_node_is_compositor(snode)) {
 		WM_event_add_notifier(C, NC_SCENE | ND_NODES, id);
-	else if (ED_node_is_texture(snode))
+	}
+	else if (ED_node_is_texture(snode)) {
 		WM_event_add_notifier(C, NC_TEXTURE | ND_NODES, id);
+	}
 }
 
 void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo)
 {
-	if (typeinfo)
+	if (typeinfo) {
 		BLI_strncpy(snode->tree_idname, typeinfo->idname, sizeof(snode->tree_idname));
-	else
+	}
+	else {
 		snode->tree_idname[0] = '\0';
+	}
 }
 
 bool ED_node_is_compositor(struct SpaceNode *snode)
@@ -421,10 +441,12 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			shader_type = SH_NODE_EMISSION;
 
 			copy_v3_v3(color, &la->r);
-			if (la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA)
+			if (la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA) {
 				strength = 100.0f;
-			else
+			}
+			else {
 				strength = 1.0f;
+			}
 			break;
 		}
 		default:
@@ -469,8 +491,9 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 
 	/* but lets check it anyway */
 	if (sce->nodetree) {
-		if (G.debug & G_DEBUG)
+		if (G.debug & G_DEBUG) {
 			printf("error in composite initialize\n");
+		}
 		return;
 	}
 
@@ -504,8 +527,9 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
 
 	/* but lets check it anyway */
 	if (tx->nodetree) {
-		if (G.debug & G_DEBUG)
+		if (G.debug & G_DEBUG) {
 			printf("error in texture initialize\n");
+		}
 		return;
 	}
 
@@ -588,8 +612,9 @@ void snode_update(SpaceNode *snode, bNode *node)
 		}
 	}
 
-	if (node)
+	if (node) {
 		nodeUpdate(snode->edittree, node);
+	}
 }
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
@@ -605,49 +630,61 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 		/* generic node group output: set node as active output */
 		if (node->type == NODE_GROUP_OUTPUT) {
 			bNode *tnode;
-			for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
-				if (tnode->type == NODE_GROUP_OUTPUT)
+			for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
+				if (tnode->type == NODE_GROUP_OUTPUT) {
 					tnode->flag &= ~NODE_DO_OUTPUT;
+				}
+			}
 
 			node->flag |= NODE_DO_OUTPUT;
-			if (!was_output)
+			if (!was_output) {
 				do_update = 1;
+			}
 		}
 
 		/* tree specific activate calls */
 		if (ntree->type == NTREE_SHADER) {
 			/* when we select a material, active texture is cleared, for buttons */
-			if (node->id && ELEM(GS(node->id->name), ID_MA, ID_LA, ID_WO))
+			if (node->id && ELEM(GS(node->id->name), ID_MA, ID_LA, ID_WO)) {
 				nodeClearActiveID(ntree, ID_TE);
+			}
 
 			if (ELEM(node->type, SH_NODE_OUTPUT_MATERIAL,
 			         SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT, SH_NODE_OUTPUT_LINESTYLE))
 			{
 				bNode *tnode;
 
-				for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
-					if (tnode->type == node->type)
+				for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
+					if (tnode->type == node->type) {
 						tnode->flag &= ~NODE_DO_OUTPUT;
+					}
+				}
 
 				node->flag |= NODE_DO_OUTPUT;
-				if (was_output == 0)
+				if (was_output == 0) {
 					ED_node_tag_update_nodetree(bmain, ntree, node);
+				}
 			}
-			else if (do_update)
+			else if (do_update) {
 				ED_node_tag_update_nodetree(bmain, ntree, node);
+			}
 
 			/* if active texture changed, free glsl materials */
 			if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
 				Material *ma;
 				World *wo;
 
-				for (ma = bmain->materials.first; ma; ma = ma->id.next)
-					if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree))
+				for (ma = bmain->materials.first; ma; ma = ma->id.next) {
+					if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
 						GPU_material_free(&ma->gpumaterial);
+					}
+				}
 
-				for (wo = bmain->worlds.first; wo; wo = wo->id.next)
-					if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree))
+				for (wo = bmain->worlds.first; wo; wo = wo->id.next) {
+					if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
 						GPU_material_free(&wo->gpumaterial);
+					}
+				}
 
 				ED_node_tag_update_nodetree(bmain, ntree, node);
 				WM_main_add_notifier(NC_IMAGE, NULL);
@@ -661,13 +698,16 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				bNode *tnode;
 
 
-				for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
-					if (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
+				for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
+					if (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 						tnode->flag &= ~NODE_DO_OUTPUT;
+					}
+				}
 
 				node->flag |= NODE_DO_OUTPUT;
-				if (was_output == 0)
+				if (was_output == 0) {
 					ED_node_tag_update_nodetree(bmain, ntree, node);
+				}
 
 				/* addnode() doesn't link this yet... */
 				node->id = (ID *)BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -676,16 +716,19 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				if (was_output == 0) {
 					bNode *tnode;
 
-					for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
-						if (tnode->type == CMP_NODE_COMPOSITE)
+					for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
+						if (tnode->type == CMP_NODE_COMPOSITE) {
 							tnode->flag &= ~NODE_DO_OUTPUT;
+						}
+					}
 
 					node->flag |= NODE_DO_OUTPUT;
 					ED_node_tag_update_nodetree(bmain, ntree, node);
 				}
 			}
-			else if (do_update)
+			else if (do_update) {
 				ED_node_tag_update_nodetree(bmain, ntree, node);
+			}
 		}
 		else if (ntree->type == NTREE_TEXTURE) {
 			// XXX
@@ -780,8 +823,9 @@ static bNode *visible_node(SpaceNode *snode, const rctf *rct)
 	bNode *node;
 
 	for (node = snode->edittree->nodes.last; node; node = node->prev) {
-		if (BLI_rctf_isect(&node->totr, rct, NULL))
+		if (BLI_rctf_isect(&node->totr, rct, NULL)) {
 			break;
+		}
 	}
 	return node;
 }
@@ -986,12 +1030,16 @@ int node_has_hidden_sockets(bNode *node)
 {
 	bNodeSocket *sock;
 
-	for (sock = node->inputs.first; sock; sock = sock->next)
-		if (sock->flag & SOCK_HIDDEN)
+	for (sock = node->inputs.first; sock; sock = sock->next) {
+		if (sock->flag & SOCK_HIDDEN) {
 			return 1;
-	for (sock = node->outputs.first; sock; sock = sock->next)
-		if (sock->flag & SOCK_HIDDEN)
+		}
+	}
+	for (sock = node->outputs.first; sock; sock = sock->next) {
+		if (sock->flag & SOCK_HIDDEN) {
 			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -1000,20 +1048,24 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 	bNodeSocket *sock;
 
 	if (set == 0) {
-		for (sock = node->inputs.first; sock; sock = sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next) {
 			sock->flag &= ~SOCK_HIDDEN;
-		for (sock = node->outputs.first; sock; sock = sock->next)
+		}
+		for (sock = node->outputs.first; sock; sock = sock->next) {
 			sock->flag &= ~SOCK_HIDDEN;
+		}
 	}
 	else {
 		/* hide unused sockets */
 		for (sock = node->inputs.first; sock; sock = sock->next) {
-			if (sock->link == NULL)
+			if (sock->link == NULL) {
 				sock->flag |= SOCK_HIDDEN;
+			}
 		}
 		for (sock = node->outputs.first; sock; sock = sock->next) {
-			if (nodeCountSocketLinks(snode->edittree, sock) == 0)
+			if (nodeCountSocketLinks(snode->edittree, sock) == 0) {
 				sock->flag |= SOCK_HIDDEN;
+			}
 		}
 	}
 }
@@ -1089,8 +1141,9 @@ static void node_duplicate_reparent_recursive(bNode *node)
 	/* find first selected parent */
 	for (parent = node->parent; parent; parent = parent->parent) {
 		if (parent->flag & SELECT) {
-			if (!(parent->flag & NODE_TEST))
+			if (!(parent->flag & NODE_TEST)) {
 				node_duplicate_reparent_recursive(parent);
+			}
 			break;
 		}
 	}
@@ -1123,8 +1176,9 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		}
 
 		/* make sure we don't copy new nodes again! */
-		if (node == lastnode)
+		if (node == lastnode) {
 			break;
+		}
 	}
 
 	/* copy links between selected nodes
@@ -1156,21 +1210,25 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		}
 
 		/* make sure we don't copy new links again! */
-		if (link == lastlink)
+		if (link == lastlink) {
 			break;
+		}
 	}
 
 	/* clear flags for recursive depth-first iteration */
-	for (node = ntree->nodes.first; node; node = node->next)
+	for (node = ntree->nodes.first; node; node = node->next) {
 		node->flag &= ~NODE_TEST;
+	}
 	/* reparent copied nodes */
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if ((node->flag & SELECT) && !(node->flag & NODE_TEST))
+		if ((node->flag & SELECT) && !(node->flag & NODE_TEST)) {
 			node_duplicate_reparent_recursive(node);
+		}
 
 		/* only has to check old nodes */
-		if (node == lastnode)
+		if (node == lastnode) {
 			break;
+		}
 	}
 
 	/* deselect old nodes, select the copies instead */
@@ -1187,8 +1245,9 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		}
 
 		/* make sure we don't copy new nodes again! */
-		if (node == lastnode)
+		if (node == lastnode) {
 			break;
+		}
 	}
 
 	ntreeUpdateTree(CTX_data_main(C), snode->edittree);
@@ -1232,10 +1291,12 @@ bool ED_node_select_check(ListBase *lb)
 void ED_node_select_all(ListBase *lb, int action)
 {
 	if (action == SEL_TOGGLE) {
-		if (ED_node_select_check(lb))
+		if (ED_node_select_check(lb)) {
 			action = SEL_DESELECT;
-		else
+		}
+		else {
 			action = SEL_SELECT;
+		}
 	}
 
 	for (bNode *node = lb->first; node; node = node->next) {
@@ -1268,8 +1329,9 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
 	/* first tag scenes unread */
-	for (scene = bmain->scenes.first; scene; scene = scene->id.next)
+	for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
 		scene->id.tag |= LIB_TAG_DOIT;
+	}
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS) {
@@ -1365,29 +1427,37 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
 
-			if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0)
+			if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0) {
 				continue;
-			if (toggle_flag == NODE_OPTIONS && !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex))
+			}
+			if (toggle_flag == NODE_OPTIONS && !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex)) {
 				continue;
+			}
 
-			if (node->flag & toggle_flag)
+			if (node->flag & toggle_flag) {
 				tot_eq++;
-			else
+			}
+			else {
 				tot_neq++;
+			}
 		}
 	}
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
 
-			if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0)
+			if (toggle_flag == NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW) == 0) {
 				continue;
-			if (toggle_flag == NODE_OPTIONS && !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex))
+			}
+			if (toggle_flag == NODE_OPTIONS && !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex)) {
 				continue;
+			}
 
-			if ((tot_eq && tot_neq) || tot_eq == 0)
+			if ((tot_eq && tot_neq) || tot_eq == 0) {
 				node->flag |= toggle_flag;
-			else
+			}
+			else {
 				node->flag &= ~toggle_flag;
+			}
 		}
 	}
 }
@@ -1397,8 +1467,9 @@ static int node_hide_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	/* sanity checking (poll callback checks this already) */
-	if ((snode == NULL) || (snode->edittree == NULL))
+	if ((snode == NULL) || (snode->edittree == NULL)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	node_flag_toggle_exec(snode, NODE_HIDDEN);
 
@@ -1427,8 +1498,9 @@ static int node_preview_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	/* sanity checking (poll callback checks this already) */
-	if ((snode == NULL) || (snode->edittree == NULL))
+	if ((snode == NULL) || (snode->edittree == NULL)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
@@ -1459,8 +1531,9 @@ static int node_options_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	/* sanity checking (poll callback checks this already) */
-	if ((snode == NULL) || (snode->edittree == NULL))
+	if ((snode == NULL) || (snode->edittree == NULL)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	node_flag_toggle_exec(snode, NODE_OPTIONS);
 
@@ -1491,8 +1564,9 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	int hidden;
 
 	/* sanity checking (poll callback checks this already) */
-	if ((snode == NULL) || (snode->edittree == NULL))
+	if ((snode == NULL) || (snode->edittree == NULL)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
@@ -1628,8 +1702,9 @@ static bool node_switch_view_poll(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	if (snode && snode->edittree)
+	if (snode && snode->edittree) {
 		return true;
+	}
 
 	return false;
 }
@@ -1731,8 +1806,9 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 		node = nodeGetActive(snode->edittree);
 	}
 
-	if (!node || node->type != CMP_NODE_OUTPUT_FILE)
+	if (!node || node->type != CMP_NODE_OUTPUT_FILE) {
 		return OPERATOR_CANCELLED;
+	}
 
 	RNA_string_get(op->ptr, "file_path", file_path);
 	ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
@@ -1777,11 +1853,13 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *U
 		node = nodeGetActive(snode->edittree);
 	}
 
-	if (!node || node->type != CMP_NODE_OUTPUT_FILE)
+	if (!node || node->type != CMP_NODE_OUTPUT_FILE) {
 		return OPERATOR_CANCELLED;
+	}
 
-	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
+	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	snode_notify(C, snode);
 
@@ -1814,34 +1892,40 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
 	bNodeSocket *sock;
 	int direction;
 
-	if (ptr.data)
+	if (ptr.data) {
 		node = ptr.data;
-	else if (snode && snode->edittree)
+	}
+	else if (snode && snode->edittree) {
 		node = nodeGetActive(snode->edittree);
+	}
 
-	if (!node || node->type != CMP_NODE_OUTPUT_FILE)
+	if (!node || node->type != CMP_NODE_OUTPUT_FILE) {
 		return OPERATOR_CANCELLED;
+	}
 
 	nimf = node->storage;
 
 	sock = BLI_findlink(&node->inputs, nimf->active_input);
-	if (!sock)
+	if (!sock) {
 		return OPERATOR_CANCELLED;
+	}
 
 	direction = RNA_enum_get(op->ptr, "direction");
 
 	if (direction == 1) {
 		bNodeSocket *before = sock->prev;
-		if (!before)
+		if (!before) {
 			return OPERATOR_CANCELLED;
+		}
 		BLI_remlink(&node->inputs, sock);
 		BLI_insertlinkbefore(&node->inputs, before, sock);
 		nimf->active_input--;
 	}
 	else {
 		bNodeSocket *after = sock->next;
-		if (!after)
+		if (!after) {
 			return OPERATOR_CANCELLED;
+		}
 		BLI_remlink(&node->inputs, sock);
 		BLI_insertlinkafter(&node->inputs, after, sock);
 		nimf->active_input++;
@@ -1883,11 +1967,13 @@ static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeTree *ntree = snode->edittree;
 	bNode *node, *tnode;
 
-	if (!ntree)
+	if (!ntree) {
 		return OPERATOR_CANCELLED;
+	}
 	node = nodeGetActive(ntree);
-	if (!node)
+	if (!node) {
 		return OPERATOR_CANCELLED;
+	}
 
 	for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
 		if (tnode->flag & NODE_SELECT && tnode != node) {
@@ -1895,8 +1981,9 @@ static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 				tnode->flag |= NODE_CUSTOM_COLOR;
 				copy_v3_v3(tnode->color, node->color);
 			}
-			else
+			else {
 				tnode->flag &= ~NODE_CUSTOM_COLOR;
+			}
 		}
 	}
 
@@ -2041,8 +2128,9 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_ERROR, "Cannot add node %s into node tree %s", node->name, ntree->id.name + 2);
 		}
 	}
-	if (!all_nodes_valid)
+	if (!all_nodes_valid) {
 		return OPERATOR_CANCELLED;
+	}
 
 	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
@@ -2068,8 +2156,9 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	/* reparent copied nodes */
 	for (node = clipboard_nodes_lb->first; node; node = node->next) {
 		bNode *new_node = node->new_node;
-		if (new_node->parent)
+		if (new_node->parent) {
 			new_node->parent = new_node->parent->new_node;
+		}
 	}
 
 	for (link = clipboard_links_lb->first; link; link = link->next) {
@@ -2105,9 +2194,11 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 static bNodeSocket *ntree_get_active_interface_socket(ListBase *lb)
 {
 	bNodeSocket *sock;
-	for (sock = lb->first; sock; sock = sock->next)
-		if (sock->flag & SELECT)
+	for (sock = lb->first; sock; sock = sock->next) {
+		if (sock->flag & SELECT) {
 			return sock;
+		}
+	}
 	return NULL;
 }
 
@@ -2143,10 +2234,12 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
 	}
 
 	/* deactivate sockets (has to check both lists) */
-	for (tsock = ntree->inputs.first; tsock; tsock = tsock->next)
+	for (tsock = ntree->inputs.first; tsock; tsock = tsock->next) {
 		tsock->flag &= ~SELECT;
-	for (tsock = ntree->outputs.first; tsock; tsock = tsock->next)
+	}
+	for (tsock = ntree->outputs.first; tsock; tsock = tsock->next) {
 		tsock->flag &= ~SELECT;
+	}
 	/* make the new socket active */
 	sock->flag |= SELECT;
 
@@ -2183,18 +2276,21 @@ static int ntree_socket_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeSocket *iosock, *active_sock;
 
 	iosock = ntree_get_active_interface_socket(&ntree->inputs);
-	if (!iosock)
+	if (!iosock) {
 		iosock = ntree_get_active_interface_socket(&ntree->outputs);
-	if (!iosock)
+	}
+	if (!iosock) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* preferably next socket becomes active, otherwise try previous socket */
 	active_sock = (iosock->next ? iosock->next : iosock->prev);
 	ntreeRemoveSocketInterface(ntree, iosock);
 
 	/* set active socket */
-	if (active_sock)
+	if (active_sock) {
 		active_sock->flag |= SELECT;
+	}
 
 	ntreeUpdateTree(CTX_data_main(C), ntree);
 
@@ -2240,28 +2336,33 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
 		lb = &ntree->outputs;
 		iosock = ntree_get_active_interface_socket(lb);
 	}
-	if (!iosock)
+	if (!iosock) {
 		return OPERATOR_CANCELLED;
+	}
 
 	switch (direction) {
 		case 1:
 		{	/* up */
 			bNodeSocket *before = iosock->prev;
 			BLI_remlink(lb, iosock);
-			if (before)
+			if (before) {
 				BLI_insertlinkbefore(lb, before, iosock);
-			else
+			}
+			else {
 				BLI_addhead(lb, iosock);
+			}
 			break;
 		}
 		case 2:
 		{	/* down */
 			bNodeSocket *after = iosock->next;
 			BLI_remlink(lb, iosock);
-			if (after)
+			if (after) {
 				BLI_insertlinkafter(lb, after, iosock);
-			else
+			}
+			else {
 				BLI_addtail(lb, iosock);
+			}
 			break;
 		}
 	}
@@ -2301,14 +2402,16 @@ static bool node_shader_script_update_poll(bContext *C)
 	Text *text;
 
 	/* test if we have a render engine that supports shaders scripts */
-	if (!(type && type->update_script_node))
+	if (!(type && type->update_script_node)) {
 		return 0;
+	}
 
 	/* see if we have a shader script node in context */
 	node = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript).data;
 
-	if (!node && snode && snode->edittree)
+	if (!node && snode && snode->edittree) {
 		node = nodeGetActive(snode->edittree);
+	}
 
 	if (node && node->type == SH_NODE_SCRIPT) {
 		NodeShaderScript *nss = node->storage;
@@ -2320,8 +2423,9 @@ static bool node_shader_script_update_poll(bContext *C)
 
 	/* see if we have a text datablock in context */
 	text = CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
-	if (text)
+	if (text) {
 		return 1;
+	}
 
 	/* we don't check if text datablock is actually in use, too slow for poll */
 
@@ -2340,8 +2444,9 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine, Rende
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == NODE_GROUP) {
 			bNodeTree *ngroup = (bNodeTree *)node->id;
-			if (ngroup && !ngroup->done)
+			if (ngroup && !ngroup->done) {
 				found |= node_shader_script_update_text_recursive(engine, type, ngroup, text);
+			}
 		}
 		else if (node->type == SH_NODE_SCRIPT && node->id == &text->id) {
 			type->update_script_node(engine, ntree, node);
@@ -2392,19 +2497,22 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 		if (text) {
 			/* clear flags for recursion check */
 			FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
-				if (ntree->type == NTREE_SHADER)
+				if (ntree->type == NTREE_SHADER) {
 					ntree->done = false;
+				}
 			} FOREACH_NODETREE_END;
 
 			FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 				if (ntree->type == NTREE_SHADER) {
-					if (!ntree->done)
+					if (!ntree->done) {
 						found |= node_shader_script_update_text_recursive(engine, type, ntree, text);
+					}
 				}
 			} FOREACH_NODETREE_END;
 
-			if (!found)
+			if (!found) {
 				BKE_report(op->reports, RPT_INFO, "Text not used by any node, no update done");
+			}
 		}
 	}
 

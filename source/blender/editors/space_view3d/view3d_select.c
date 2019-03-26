@@ -344,8 +344,9 @@ static bool view3d_selectable_data(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if (!ED_operator_region_view3d_active(C))
+	if (!ED_operator_region_view3d_active(C)) {
 		return 0;
+	}
 
 	if (ob) {
 		if (ob->mode & OB_MODE_EDIT) {
@@ -377,13 +378,23 @@ static bool edge_inside_rect(const rctf *rect, const float v1[2], const float v2
 	int d1, d2, d3, d4;
 
 	/* check points in rect */
-	if (edge_fully_inside_rect(rect, v1, v2)) return 1;
+	if (edge_fully_inside_rect(rect, v1, v2)) {
+		return 1;
+	}
 
 	/* check points completely out rect */
-	if (v1[0] < rect->xmin && v2[0] < rect->xmin) return 0;
-	if (v1[0] > rect->xmax && v2[0] > rect->xmax) return 0;
-	if (v1[1] < rect->ymin && v2[1] < rect->ymin) return 0;
-	if (v1[1] > rect->ymax && v2[1] > rect->ymax) return 0;
+	if (v1[0] < rect->xmin && v2[0] < rect->xmin) {
+		return 0;
+	}
+	if (v1[0] > rect->xmax && v2[0] > rect->xmax) {
+		return 0;
+	}
+	if (v1[1] < rect->ymin && v2[1] < rect->ymin) {
+		return 0;
+	}
+	if (v1[1] > rect->ymax && v2[1] > rect->ymax) {
+		return 0;
+	}
 
 	/* simple check lines intersecting. */
 	d1 = (v1[1] - v2[1]) * (v1[0] - rect->xmin) + (v2[0] - v1[0]) * (v1[1] - rect->ymin);
@@ -391,8 +402,12 @@ static bool edge_inside_rect(const rctf *rect, const float v1[2], const float v2
 	d3 = (v1[1] - v2[1]) * (v1[0] - rect->xmax) + (v2[0] - v1[0]) * (v1[1] - rect->ymax);
 	d4 = (v1[1] - v2[1]) * (v1[0] - rect->xmax) + (v2[0] - v1[0]) * (v1[1] - rect->ymin);
 
-	if (d1 < 0 && d2 < 0 && d3 < 0 && d4 < 0) return 0;
-	if (d1 > 0 && d2 > 0 && d3 > 0 && d4 > 0) return 0;
+	if (d1 < 0 && d2 < 0 && d3 < 0 && d4 < 0) {
+		return 0;
+	}
+	if (d1 > 0 && d2 > 0 && d3 > 0 && d4 > 0) {
+		return 0;
+	}
 
 	return 1;
 }
@@ -929,8 +944,9 @@ static bool do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], sh
 	Mesh *me = ob->data;
 	rcti rect;
 
-	if (me == NULL || me->totvert == 0)
+	if (me == NULL || me->totvert == 0) {
 		return false;
+	}
 
 	bool changed = false;
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -1301,8 +1317,9 @@ static Base *object_mouse_select_menu(
 			baseCount++;
 			BLI_linklist_prepend(&linklist, base);
 
-			if (baseCount == SEL_MENU_SIZE)
+			if (baseCount == SEL_MENU_SIZE) {
 				break;
+			}
 		}
 	}
 	CTX_DATA_END;
@@ -1542,7 +1559,9 @@ static Base *mouse_select_eval_buffer(
 			}
 			base = base->next;
 		}
-		if (base) basact = base;
+		if (base) {
+			basact = base;
+		}
 	}
 	else {
 
@@ -1552,8 +1571,12 @@ static Base *mouse_select_eval_buffer(
 			 * with an un-selectable choice */
 			if ((base->flag & BASE_SELECTABLE) == 0) {
 				base = base->next;
-				if (base == NULL) base = FIRSTBASE(view_layer);
-				if (base == startbase) break;
+				if (base == NULL) {
+					base = FIRSTBASE(view_layer);
+				}
+				if (base == startbase) {
+					break;
+				}
 			}
 
 			if (BASE_SELECTABLE(v3d, base)) {
@@ -1574,11 +1597,17 @@ static Base *mouse_select_eval_buffer(
 				}
 			}
 
-			if (basact) break;
+			if (basact) {
+				break;
+			}
 
 			base = base->next;
-			if (base == NULL) base = FIRSTBASE(view_layer);
-			if (base == startbase) break;
+			if (base == NULL) {
+				base = FIRSTBASE(view_layer);
+			}
+			if (base == startbase) {
+				break;
+			}
 		}
 	}
 
@@ -1612,7 +1641,9 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2])
 {
 	Base *base = ED_view3d_give_base_under_cursor(C, mval);
-	if (base) return base->object;
+	if (base) {
+		return base->object;
+	}
 	return NULL;
 }
 
@@ -3187,10 +3218,12 @@ static bool pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, cons
 	CircleSelectUserData *data = userData;
 
 	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
-		if (data->select)
+		if (data->select) {
 			pchan->bone->flag |= BONE_SELECTED;
-		else
+		}
+		else {
 			pchan->bone->flag &= ~BONE_SELECTED;
+		}
 		return 1;
 	}
 	return 0;
@@ -3231,8 +3264,12 @@ static void do_circle_select_pose__doSelectBone(
 		if ((is_point_done == false) && (points_proj_tot == 2) &&
 		    edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
 		{
-			if (data->select) pchan->bone->flag |= BONE_SELECTED;
-			else              pchan->bone->flag &= ~BONE_SELECTED;
+			if (data->select) {
+				pchan->bone->flag |= BONE_SELECTED;
+			}
+			else {
+				pchan->bone->flag &= ~BONE_SELECTED;
+			}
 			data->is_changed = true;
 		}
 
@@ -3267,16 +3304,20 @@ static bool armature_circle_doSelectJoint(void *userData, EditBone *ebone, const
 
 	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		if (head) {
-			if (data->select)
+			if (data->select) {
 				ebone->flag |= BONE_ROOTSEL;
-			else
+			}
+			else {
 				ebone->flag &= ~BONE_ROOTSEL;
+			}
 		}
 		else {
-			if (data->select)
+			if (data->select) {
 				ebone->flag |= BONE_TIPSEL;
-			else
+			}
+			else {
 				ebone->flag &= ~BONE_TIPSEL;
+			}
 		}
 		return 1;
 	}
@@ -3318,8 +3359,12 @@ static void do_circle_select_armature__doSelectBone(
 		if ((is_point_done == false) && (points_proj_tot == 2) &&
 		    edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
 		{
-			if (data->select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			else              ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			if (data->select) {
+				ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			}
+			else {
+				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			}
 			data->is_changed = true;
 		}
 
@@ -3356,8 +3401,12 @@ static void do_circle_select_mball__doSelectElem(void *userData, struct MetaElem
 	CircleSelectUserData *data = userData;
 
 	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
-		if (data->select) ml->flag |=  SELECT;
-		else              ml->flag &= ~SELECT;
+		if (data->select) {
+			ml->flag |=  SELECT;
+		}
+		else {
+			ml->flag &= ~SELECT;
+		}
 		data->is_changed = true;
 	}
 }

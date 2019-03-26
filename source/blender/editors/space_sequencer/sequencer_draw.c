@@ -134,9 +134,9 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 			UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, col);
 
 			/* slightly offset hue to distinguish different effects */
-			if (seq->type == SEQ_TYPE_CROSS)    rgb_byte_set_hue_float_offset(col, 0.04);
-			if (seq->type == SEQ_TYPE_GAMCROSS) rgb_byte_set_hue_float_offset(col, 0.08);
-			if (seq->type == SEQ_TYPE_WIPE)     rgb_byte_set_hue_float_offset(col, 0.12);
+			if (seq->type == SEQ_TYPE_CROSS)    { rgb_byte_set_hue_float_offset(col, 0.04); }
+			if (seq->type == SEQ_TYPE_GAMCROSS) { rgb_byte_set_hue_float_offset(col, 0.08); }
+			if (seq->type == SEQ_TYPE_WIPE)     { rgb_byte_set_hue_float_offset(col, 0.12); }
 			break;
 
 		/* effects */
@@ -156,18 +156,18 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 			UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 
 			/* slightly offset hue to distinguish different effects */
-			if      (seq->type == SEQ_TYPE_ADD)           rgb_byte_set_hue_float_offset(col, 0.04);
-			else if (seq->type == SEQ_TYPE_SUB)           rgb_byte_set_hue_float_offset(col, 0.08);
-			else if (seq->type == SEQ_TYPE_MUL)           rgb_byte_set_hue_float_offset(col, 0.12);
-			else if (seq->type == SEQ_TYPE_ALPHAOVER)     rgb_byte_set_hue_float_offset(col, 0.16);
-			else if (seq->type == SEQ_TYPE_ALPHAUNDER)    rgb_byte_set_hue_float_offset(col, 0.20);
-			else if (seq->type == SEQ_TYPE_OVERDROP)      rgb_byte_set_hue_float_offset(col, 0.24);
-			else if (seq->type == SEQ_TYPE_GLOW)          rgb_byte_set_hue_float_offset(col, 0.28);
-			else if (seq->type == SEQ_TYPE_TRANSFORM)     rgb_byte_set_hue_float_offset(col, 0.36);
-			else if (seq->type == SEQ_TYPE_MULTICAM)      rgb_byte_set_hue_float_offset(col, 0.32);
-			else if (seq->type == SEQ_TYPE_ADJUSTMENT)    rgb_byte_set_hue_float_offset(col, 0.40);
-			else if (seq->type == SEQ_TYPE_GAUSSIAN_BLUR) rgb_byte_set_hue_float_offset(col, 0.42);
-			else if (seq->type == SEQ_TYPE_COLORMIX)      rgb_byte_set_hue_float_offset(col, 0.46);
+			if      (seq->type == SEQ_TYPE_ADD)           { rgb_byte_set_hue_float_offset(col, 0.04); }
+			else if (seq->type == SEQ_TYPE_SUB)           { rgb_byte_set_hue_float_offset(col, 0.08); }
+			else if (seq->type == SEQ_TYPE_MUL)           { rgb_byte_set_hue_float_offset(col, 0.12); }
+			else if (seq->type == SEQ_TYPE_ALPHAOVER)     { rgb_byte_set_hue_float_offset(col, 0.16); }
+			else if (seq->type == SEQ_TYPE_ALPHAUNDER)    { rgb_byte_set_hue_float_offset(col, 0.20); }
+			else if (seq->type == SEQ_TYPE_OVERDROP)      { rgb_byte_set_hue_float_offset(col, 0.24); }
+			else if (seq->type == SEQ_TYPE_GLOW)          { rgb_byte_set_hue_float_offset(col, 0.28); }
+			else if (seq->type == SEQ_TYPE_TRANSFORM)     { rgb_byte_set_hue_float_offset(col, 0.36); }
+			else if (seq->type == SEQ_TYPE_MULTICAM)      { rgb_byte_set_hue_float_offset(col, 0.32); }
+			else if (seq->type == SEQ_TYPE_ADJUSTMENT)    { rgb_byte_set_hue_float_offset(col, 0.40); }
+			else if (seq->type == SEQ_TYPE_GAUSSIAN_BLUR) { rgb_byte_set_hue_float_offset(col, 0.42); }
+			else if (seq->type == SEQ_TYPE_COLORMIX)      { rgb_byte_set_hue_float_offset(col, 0.46); }
 			break;
 
 		case SEQ_TYPE_COLOR:
@@ -177,7 +177,9 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 		case SEQ_TYPE_SOUND_RAM:
 			UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
 			blendcol[0] = blendcol[1] = blendcol[2] = 128;
-			if (seq->flag & SEQ_MUTE) UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
+			if (seq->flag & SEQ_MUTE) {
+				UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
+			}
 			break;
 
 		case SEQ_TYPE_TEXT:
@@ -273,11 +275,13 @@ static void drawseqwave(View2D *v2d, const bContext *C, SpaceSeq *sseq, Scene *s
 
 			if (samplestep > 1.0f) {
 				for (j = p + 1; (j < waveform->length) && (j < p + samplestep); j++) {
-					if (value1 > waveform->data[j * 3])
+					if (value1 > waveform->data[j * 3]) {
 						value1 = waveform->data[j * 3];
+					}
 
-					if (value2 < waveform->data[j * 3 + 1])
+					if (value2 < waveform->data[j * 3 + 1]) {
 						value2 = waveform->data[j * 3 + 1];
+					}
 				}
 			}
 			else if (p + 1 < waveform->length) {
@@ -377,8 +381,12 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 			immUniformColor4ubv(col);
 
 			/* clamp within parent sequence strip bounds */
-			if (x1_chan < x1) x1_chan = x1;
-			if (x2_chan > x2) x2_chan = x2;
+			if (x1_chan < x1) {
+				x1_chan = x1;
+			}
+			if (x2_chan > x2) {
+				x2_chan = x2;
+			}
 
 			y1_chan = y1 + y_chan + (draw_height * SEQ_STRIP_OFSBOTTOM);
 			y2_chan = y1 + y_chan + (draw_height * SEQ_STRIP_OFSTOP);
@@ -508,8 +516,9 @@ static void draw_seq_text(
 	char col[4];
 
 	/* note, all strings should include 'name' */
-	if (name[0] == '\0')
+	if (name[0] == '\0') {
 		name = BKE_sequence_give_name(seq);
+	}
 
 	if (seq->type == SEQ_TYPE_META || seq->type == SEQ_TYPE_ADJUSTMENT) {
 		str_len = BLI_snprintf(str, sizeof(str), "%s | %d", name, seq->len);
@@ -628,7 +637,9 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
 
 	pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 
-	if (pixely <= 0) return;  /* can happen when the view is split/resized */
+	if (pixely <= 0) {
+		return;  /* can happen when the view is split/resized */
+	}
 
 	blendcol[0] = blendcol[1] = blendcol[2] = 120;
 
@@ -839,11 +850,13 @@ static void draw_seq_strip(
 		if (seq->flag & SEQ_OVERLAP) {
 			col[0] = 255; col[1] = col[2] = 40;
 		}
-		else
+		else {
 			UI_GetColorPtrShade3ubv(col, col, 120 + outline_tint);
+		}
 	}
-	else
+	else {
 		UI_GetColorPtrShade3ubv(col, col, outline_tint);
+	}
 
 	if ((seq->type == SEQ_TYPE_META) ||
 	    ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
@@ -879,10 +892,18 @@ static void draw_seq_strip(
 	float scroller_vert_xoffs = (V2D_SCROLL_WIDTH_TEXT + SEQ_SCROLLER_TEXT_OFFSET) * pixelx;
 
 	/* info text on the strip */
-	if (x1 < v2d->cur.xmin + scroller_vert_xoffs) x1 = v2d->cur.xmin + scroller_vert_xoffs;
-	else if (x1 > v2d->cur.xmax) x1 = v2d->cur.xmax;
-	if (x2 < v2d->cur.xmin) x2 = v2d->cur.xmin;
-	else if (x2 > v2d->cur.xmax) x2 = v2d->cur.xmax;
+	if (x1 < v2d->cur.xmin + scroller_vert_xoffs) {
+		x1 = v2d->cur.xmin + scroller_vert_xoffs;
+	}
+	else if (x1 > v2d->cur.xmax) {
+		x1 = v2d->cur.xmax;
+	}
+	if (x2 < v2d->cur.xmin) {
+		x2 = v2d->cur.xmin;
+	}
+	else if (x2 > v2d->cur.xmax) {
+		x2 = v2d->cur.xmax;
+	}
 
 	/* nice text here would require changing the view matrix for texture text */
 	if ((x2 - x1) / pixelx > 32) {
@@ -956,12 +977,15 @@ ImBuf *sequencer_ibuf_get(
 	GPUFrameBuffer *fb = GPU_framebuffer_active_get();
 	GPU_framebuffer_restore();
 
-	if (special_seq_update)
+	if (special_seq_update) {
 		ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
-	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
+	}
+	else if (!U.prefetchframes) { // XXX || (G.f & G_PLAYANIM) == 0) {
 		ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
-	else
+	}
+	else {
 		ibuf = BKE_sequencer_give_ibuf_threaded(&context, cfra + frame_ofs, sseq->chanshown);
+	}
 
 	GPU_framebuffer_bind(fb);
 
@@ -1176,8 +1200,9 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C, ImBuf *ibuf, bool 
 		*format = GL_RGBA;
 		*type = GL_UNSIGNED_BYTE;
 	}
-	if (cache_handle)
+	if (cache_handle) {
 		IMB_display_buffer_release(cache_handle);
+	}
 
 	return display_buffer;
 }
@@ -1373,24 +1398,28 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
 				break;
 			case SEQ_DRAW_IMG_WAVEFORM:
 				if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
-					if (!scopes->sep_waveform_ibuf)
+					if (!scopes->sep_waveform_ibuf) {
 						scopes->sep_waveform_ibuf = sequencer_make_scope(scene, ibuf, make_sep_waveform_view_from_ibuf);
+					}
 					scope = scopes->sep_waveform_ibuf;
 				}
 				else {
-					if (!scopes->waveform_ibuf)
+					if (!scopes->waveform_ibuf) {
 						scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
+					}
 					scope = scopes->waveform_ibuf;
 				}
 				break;
 			case SEQ_DRAW_IMG_VECTORSCOPE:
-				if (!scopes->vector_ibuf)
+				if (!scopes->vector_ibuf) {
 					scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
+				}
 				scope = scopes->vector_ibuf;
 				break;
 			case SEQ_DRAW_IMG_HISTOGRAM:
-				if (!scopes->histogram_ibuf)
+				if (!scopes->histogram_ibuf) {
 					scopes->histogram_ibuf = sequencer_make_scope(scene, ibuf, make_histogram_view_from_ibuf);
+				}
 				scope = scopes->histogram_ibuf;
 				break;
 		}
@@ -1564,12 +1593,12 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 		/* loop through strips, checking for those that are visible */
 		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 			/* boundbox and selection tests for NOT drawing the strip... */
-			if ((seq->flag & SELECT) != sel) continue;
-			else if (seq == last_seq) continue;
-			else if (min_ii(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
-			else if (max_ii(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) continue;
-			else if (seq->machine + 1.0f < v2d->cur.ymin) continue;
-			else if (seq->machine > v2d->cur.ymax) continue;
+			if ((seq->flag & SELECT) != sel) { continue; }
+			else if (seq == last_seq) { continue; }
+			else if (min_ii(seq->startdisp, seq->start) > v2d->cur.xmax) { continue; }
+			else if (max_ii(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) { continue; }
+			else if (seq->machine + 1.0f < v2d->cur.ymin) { continue; }
+			else if (seq->machine > v2d->cur.ymax) { continue; }
 
 			/* strip passed all tests unscathed... so draw it now */
 			draw_seq_strip(C, sseq, scene, ar, seq, outline_tint, pixelx);
@@ -1581,8 +1610,9 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 
 	/* draw the last selected last (i.e. 'active' in other parts of Blender),
 	 * removes some overlapping error */
-	if (last_seq)
+	if (last_seq) {
 		draw_seq_strip(C, sseq, scene, ar, last_seq, 120, pixelx);
+	}
 
 	/* draw highlight when previewing a single strip */
 	if (special_seq_update) {
@@ -1674,10 +1704,12 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
-	if (ed && ed->metastack.first)
+	if (ed && ed->metastack.first) {
 		GPU_clear_color(col[0], col[1], col[2] - 0.1f, 0.0f);
-	else
+	}
+	else {
 		GPU_clear_color(col[0], col[1], col[2], 0.0f);
+	}
 	GPU_clear(GPU_COLOR_BIT);
 
 	UI_view2d_view_ortho(v2d);
@@ -1716,7 +1748,9 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
 	/* current frame */
 	UI_view2d_view_ortho(v2d);
-	if ((sseq->flag & SEQ_DRAWFRAMES) == 0)      cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	if ((sseq->flag & SEQ_DRAWFRAMES) == 0) {
+		cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	}
 	ANIM_draw_cfra(C, v2d, cfra_flag);
 
 	/* markers */

@@ -147,20 +147,24 @@ static void topbar_main_region_listener(wmWindow *UNUSED(win), ScrArea *UNUSED(s
 	/* context changes */
 	switch (wmn->category) {
 		case NC_WM:
-			if (wmn->data == ND_HISTORY)
+			if (wmn->data == ND_HISTORY) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCENE:
-			if (wmn->data == ND_MODE)
+			if (wmn->data == ND_MODE) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_VIEW3D)
+			if (wmn->data == ND_SPACE_VIEW3D) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA)
+			if (wmn->data == ND_DATA) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }
@@ -171,20 +175,24 @@ static void topbar_header_listener(wmWindow *UNUSED(win), ScrArea *UNUSED(sa), A
 	/* context changes */
 	switch (wmn->category) {
 		case NC_WM:
-			if (wmn->data == ND_JOB)
+			if (wmn->data == ND_JOB) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_INFO)
+			if (wmn->data == ND_SPACE_INFO) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCREEN:
-			if (wmn->data == ND_LAYER)
+			if (wmn->data == ND_LAYER) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCENE:
-			if (wmn->data == ND_SCENEBROWSE)
+			if (wmn->data == ND_SCENEBROWSE) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }

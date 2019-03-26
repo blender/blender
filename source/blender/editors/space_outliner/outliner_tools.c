@@ -101,10 +101,12 @@ static void set_operation_types(SpaceOutliner *soops, ListBase *lb,
 		if (tselem->flag & TSE_SELECTED) {
 			/* Layer collection points to collection ID. */
 			if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
-				if (*datalevel == 0)
+				if (*datalevel == 0) {
 					*datalevel = tselem->type;
-				else if (*datalevel != tselem->type)
+				}
+				else if (*datalevel != tselem->type) {
 					*datalevel = -1;
+				}
 			}
 			else {
 				int idcode = GS(tselem->id->name);
@@ -122,8 +124,12 @@ static void set_operation_types(SpaceOutliner *soops, ListBase *lb,
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR: case ID_LS:
 					case ID_LI:
-						if (*idlevel == 0) *idlevel = idcode;
-						else if (*idlevel != idcode) *idlevel = -1;
+						if (*idlevel == 0) {
+							*idlevel = idcode;
+						}
+						else if (*idlevel != idcode) {
+							*idlevel = -1;
+						}
 						if (ELEM(*datalevel, TSE_VIEW_COLLECTION_BASE, TSE_SCENE_COLLECTION_BASE)) {
 							*datalevel = 0;
 						}
@@ -626,8 +632,9 @@ static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te
 	for (fcu = iat->adt->drivers.first; fcu; fcu = fcu->next) {
 		fcu->flag &= ~FCURVE_DISABLED;
 
-		if (fcu->driver)
+		if (fcu->driver) {
 			fcu->driver->flag &= ~DRIVER_FLAG_INVALID;
+		}
 	}
 }
 
@@ -657,48 +664,57 @@ static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
 {
 	bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 
-	if (event == OL_DOP_SELECT)
+	if (event == OL_DOP_SELECT) {
 		pchan->bone->flag |= BONE_SELECTED;
-	else if (event == OL_DOP_DESELECT)
+	}
+	else if (event == OL_DOP_DESELECT) {
 		pchan->bone->flag &= ~BONE_SELECTED;
+	}
 	else if (event == OL_DOP_HIDE) {
 		pchan->bone->flag |= BONE_HIDDEN_P;
 		pchan->bone->flag &= ~BONE_SELECTED;
 	}
-	else if (event == OL_DOP_UNHIDE)
+	else if (event == OL_DOP_UNHIDE) {
 		pchan->bone->flag &= ~BONE_HIDDEN_P;
+	}
 }
 
 static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	Bone *bone = (Bone *)te->directdata;
 
-	if (event == OL_DOP_SELECT)
+	if (event == OL_DOP_SELECT) {
 		bone->flag |= BONE_SELECTED;
-	else if (event == OL_DOP_DESELECT)
+	}
+	else if (event == OL_DOP_DESELECT) {
 		bone->flag &= ~BONE_SELECTED;
+	}
 	else if (event == OL_DOP_HIDE) {
 		bone->flag |= BONE_HIDDEN_P;
 		bone->flag &= ~BONE_SELECTED;
 	}
-	else if (event == OL_DOP_UNHIDE)
+	else if (event == OL_DOP_UNHIDE) {
 		bone->flag &= ~BONE_HIDDEN_P;
+	}
 }
 
 static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	EditBone *ebone = (EditBone *)te->directdata;
 
-	if (event == OL_DOP_SELECT)
+	if (event == OL_DOP_SELECT) {
 		ebone->flag |= BONE_SELECTED;
-	else if (event == OL_DOP_DESELECT)
+	}
+	else if (event == OL_DOP_DESELECT) {
 		ebone->flag &= ~BONE_SELECTED;
+	}
 	else if (event == OL_DOP_HIDE) {
 		ebone->flag |= BONE_HIDDEN_A;
 		ebone->flag &= ~BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL;
 	}
-	else if (event == OL_DOP_UNHIDE)
+	else if (event == OL_DOP_UNHIDE) {
 		ebone->flag &= ~BONE_HIDDEN_A;
+	}
 }
 
 static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void *scene_ptr)
@@ -719,14 +735,18 @@ static void gp_layer_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 {
 	bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
-	if (event == OL_DOP_SELECT)
+	if (event == OL_DOP_SELECT) {
 		gpl->flag |= GP_LAYER_SELECT;
-	else if (event == OL_DOP_DESELECT)
+	}
+	else if (event == OL_DOP_DESELECT) {
 		gpl->flag &= ~GP_LAYER_SELECT;
-	else if (event == OL_DOP_HIDE)
+	}
+	else if (event == OL_DOP_HIDE) {
 		gpl->flag |= GP_LAYER_HIDE;
-	else if (event == OL_DOP_UNHIDE)
+	}
+	else if (event == OL_DOP_UNHIDE) {
 		gpl->flag &= ~GP_LAYER_HIDE;
+	}
 }
 
 static void data_select_linked_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
@@ -839,7 +859,9 @@ static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *s
 
 	for (child_base = view_layer->object_bases.first; child_base; child_base = base_next) {
 		base_next = child_base->next;
-		for (parent = child_base->object->parent; parent && (parent != base->object); parent = parent->parent);
+		for (parent = child_base->object->parent; parent && (parent != base->object); parent = parent->parent) {
+			/* pass */
+		}
 		if (parent) {
 			base_next = outline_delete_hierarchy(C, reports, scene, child_base);
 		}
@@ -877,7 +899,9 @@ static void object_delete_hierarchy_cb(
 	}
 	if (base) {
 		/* Check also library later. */
-		for (; obedit && (obedit != base->object); obedit = obedit->parent);
+		for (; obedit && (obedit != base->object); obedit = obedit->parent) {
+			/* pass */
+		}
 		if (obedit == base->object) {
 			ED_object_editmode_exit(C, EM_FREEDATA);
 		}
@@ -907,7 +931,9 @@ static Base *outline_batch_delete_hierarchy(
 	object = base->object;
 	for (child_base = view_layer->object_bases.first; child_base; child_base = base_next) {
 		base_next = child_base->next;
-		for (parent = child_base->object->parent; parent && (parent != object); parent = parent->parent);
+		for (parent = child_base->object->parent; parent && (parent != object); parent = parent->parent) {
+			/* pass */
+		}
 		if (parent) {
 			base_next = outline_batch_delete_hierarchy(reports, bmain, view_layer, scene, child_base);
 		}
@@ -951,7 +977,9 @@ static void object_batch_delete_hierarchy_cb(
 	}
 	if (base) {
 		/* Check also library later. */
-		for (; obedit && (obedit != base->object); obedit = obedit->parent);
+		for (; obedit && (obedit != base->object); obedit = obedit->parent) {
+			/* pass */
+		}
 		if (obedit == base->object) {
 			ED_object_editmode_exit(C, EM_FREEDATA);
 		}
@@ -1008,8 +1036,9 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	const char *str = NULL;
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	event = RNA_enum_get(op->ptr, "type");
 
@@ -1215,8 +1244,9 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 	eOutlinerIdOpTypes event;
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
@@ -1429,8 +1459,9 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 	eOutlinerLibOpTypes event;
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
@@ -1544,8 +1575,9 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	bAction *act;
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
 	/* get action to use */
@@ -1565,12 +1597,15 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	}
 
 	/* perform action if valid channel */
-	if (datalevel == TSE_ANIM_DATA)
+	if (datalevel == TSE_ANIM_DATA) {
 		outliner_do_id_set_operation(soops, datalevel, &soops->tree, (ID *)act, actionset_id_cb);
-	else if (idlevel == ID_AC)
+	}
+	else if (idlevel == ID_AC) {
 		outliner_do_id_set_operation(soops, idlevel, &soops->tree, (ID *)act, actionset_id_cb);
-	else
+	}
+	else {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
@@ -1641,14 +1676,16 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 	short updateDeps = 0;
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	event = RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
-	if (datalevel != TSE_ANIM_DATA)
+	if (datalevel != TSE_ANIM_DATA) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* perform the core operation */
 	switch (event) {
@@ -1828,8 +1865,9 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	eOutliner_PropDataOps event;
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	event = RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
@@ -1942,8 +1980,9 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOutliner *
 		/* select object that's clicked on and popup context menu */
 		if (!(tselem->flag & TSE_SELECTED)) {
 
-			if (outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1))
+			if (outliner_flag_is_any_test(&soops->tree, TSE_SELECTED, 1)) {
 				outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
+			}
 
 			tselem->flag |= TSE_SELECTED;
 

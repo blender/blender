@@ -125,8 +125,9 @@ static void outliner_rna_width(SpaceOutliner *soops, ListBase *lb, int *w, int s
 				*w = te->xend;
 		}
 #endif
-		if (startx + 100 > *w)
+		if (startx + 100 > *w) {
 			*w = startx + 100;
+		}
 
 		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_rna_width(soops, &te->subtree, w, startx + UI_UNIT_X);
@@ -194,8 +195,9 @@ static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *UNUSED(poin2)
 static void restrictbutton_bone_visibility_cb(bContext *C, void *UNUSED(poin), void *poin2)
 {
 	Bone *bone = (Bone *)poin2;
-	if (bone->flag & BONE_HIDDEN_P)
+	if (bone->flag & BONE_HIDDEN_P) {
 		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+	}
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
 		restrictbutton_recursive_bone(bone, BONE_HIDDEN_P, (bone->flag & BONE_HIDDEN_P) != 0);
@@ -207,8 +209,9 @@ static void restrictbutton_bone_visibility_cb(bContext *C, void *UNUSED(poin), v
 static void restrictbutton_bone_select_cb(bContext *C, void *UNUSED(poin), void *poin2)
 {
 	Bone *bone = (Bone *)poin2;
-	if (bone->flag & BONE_UNSELECTABLE)
+	if (bone->flag & BONE_UNSELECTABLE) {
 		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+	}
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
 		restrictbutton_recursive_bone(bone, BONE_UNSELECTABLE, (bone->flag & BONE_UNSELECTABLE) != 0);
@@ -800,8 +803,9 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOutliner *s
 				char buf[16] = "";
 				int but_flag = UI_BUT_DRAG_LOCK;
 
-				if (ID_IS_LINKED(id))
+				if (ID_IS_LINKED(id)) {
 					but_flag |= UI_BUT_DISABLED;
+				}
 
 				if (id->flag & LIB_FAKEUSER) {
 					icon = ICON_FILE_TICK;
@@ -850,7 +854,9 @@ static void outliner_draw_rnacols(ARegion *ar, int sizex)
 	View2D *v2d = &ar->v2d;
 
 	float miny = v2d->cur.ymin;
-	if (miny < v2d->tot.ymin) miny = v2d->tot.ymin;
+	if (miny < v2d->tot.ymin) {
+		miny = v2d->tot.ymin;
+	}
 
 	GPU_line_width(1.0f);
 
@@ -931,10 +937,18 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Tre
 	 * need change this.
 	 */
 
-	if (tselem->type == TSE_EBONE) len = sizeof(((EditBone *) 0)->name);
-	else if (tselem->type == TSE_MODIFIER) len = sizeof(((ModifierData *) 0)->name);
-	else if (tselem->id && GS(tselem->id->name) == ID_LI) len = sizeof(((Library *) 0)->name);
-	else len = MAX_ID_NAME - 2;
+	if (tselem->type == TSE_EBONE) {
+		len = sizeof(((EditBone *) 0)->name);
+	}
+	else if (tselem->type == TSE_MODIFIER) {
+		len = sizeof(((ModifierData *) 0)->name);
+	}
+	else if (tselem->id && GS(tselem->id->name) == ID_LI) {
+		len = sizeof(((Library *) 0)->name);
+	}
+	else {
+		len = MAX_ID_NAME - 2;
+	}
 
 	spx = te->xs + 1.8f * UI_UNIT_X;
 	dx = ar->v2d.cur.xmax - (spx + 3.2f * UI_UNIT_X);
@@ -1240,18 +1254,24 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 				data.icon = ICON_GROUP_BONE;
 				break;
 			case TSE_SEQUENCE:
-				if (te->idcode == SEQ_TYPE_MOVIE)
+				if (te->idcode == SEQ_TYPE_MOVIE) {
 					data.icon = ICON_SEQUENCE;
-				else if (te->idcode == SEQ_TYPE_META)
+				}
+				else if (te->idcode == SEQ_TYPE_META) {
 					data.icon = ICON_DOT;
-				else if (te->idcode == SEQ_TYPE_SCENE)
+				}
+				else if (te->idcode == SEQ_TYPE_SCENE) {
 					data.icon = ICON_SCENE;
-				else if (te->idcode == SEQ_TYPE_SOUND_RAM)
+				}
+				else if (te->idcode == SEQ_TYPE_SOUND_RAM) {
 					data.icon = ICON_SOUND;
-				else if (te->idcode == SEQ_TYPE_IMAGE)
+				}
+				else if (te->idcode == SEQ_TYPE_IMAGE) {
 					data.icon = ICON_IMAGE;
-				else
+				}
+				else {
 					data.icon = ICON_PARTICLES;
+				}
 				break;
 			case TSE_SEQ_STRIP:
 				data.icon = ICON_LIBRARY_DATA_DIRECT;
@@ -1601,8 +1621,9 @@ static void outliner_draw_iconrow(
 
 	for (TreeElement *te = lb->first; te; te = te->next) {
 		/* exit drawing early */
-		if ((*offsx) - UI_UNIT_X > xmax)
+		if ((*offsx) - UI_UNIT_X > xmax) {
 			break;
+		}
 
 		TreeStoreElem *tselem = TREESTORE(te);
 
@@ -1710,8 +1731,9 @@ static void outliner_draw_tree_element(
 		}
 
 		/* icons can be ui buts, we don't want it to overlap with restrict */
-		if ((soops->flag & SO_HIDE_RESTRICTCOLS) == 0)
+		if ((soops->flag & SO_HIDE_RESTRICTCOLS) == 0) {
 			xmax -= OL_TOGW + UI_UNIT_X;
+		}
 
 		GPU_blend(true);
 
@@ -1808,8 +1830,9 @@ static void outliner_draw_tree_element(
 			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, alpha_fac, true);
 			offsx += UI_UNIT_X + 4 * ufac;
 		}
-		else
+		else {
 			offsx += 2 * ufac;
+		}
 
 		if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) && ID_IS_LINKED(tselem->id)) {
 			if (tselem->id->tag & LIB_TAG_MISSING) {
@@ -1965,10 +1988,11 @@ static void outliner_draw_hierarchy_lines_recursive(
 
 		*starty -= UI_UNIT_Y;
 
-		if (TSELEM_OPEN(tselem, soops))
+		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_draw_hierarchy_lines_recursive(
 			        pos, soops, &te->subtree, startx + UI_UNIT_X,
 			        col, draw_childs_grayed_out, starty);
+		}
 	}
 
 	if (draw_grayed_out) {

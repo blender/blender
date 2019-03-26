@@ -141,8 +141,12 @@ bool ED_view3d_clip_range_get(
 		params.clip_end *= fac;
 	}
 
-	if (r_clipsta) *r_clipsta = params.clip_start;
-	if (r_clipend) *r_clipend = params.clip_end;
+	if (r_clipsta) {
+		*r_clipsta = params.clip_start;
+	}
+	if (r_clipend) {
+		*r_clipend = params.clip_end;
+	}
 
 	return params.is_ortho;
 }
@@ -158,10 +162,18 @@ bool ED_view3d_viewplane_get(
 	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
 	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
-	if (r_viewplane) *r_viewplane = params.viewplane;
-	if (r_clip_start) *r_clip_start = params.clip_start;
-	if (r_clip_end) *r_clip_end = params.clip_end;
-	if (r_pixsize) *r_pixsize = params.viewdx;
+	if (r_viewplane) {
+		*r_viewplane = params.viewplane;
+	}
+	if (r_clip_start) {
+		*r_clip_start = params.clip_start;
+	}
+	if (r_clip_end) {
+		*r_clip_end = params.clip_end;
+	}
+	if (r_pixsize) {
+		*r_pixsize = params.viewdx;
+	}
 
 	return params.is_ortho;
 }
@@ -327,15 +339,29 @@ static bool view3d_boundbox_clip_m4(const BoundBox *bb, float persmatob[4][4])
 		min = -vec[3];
 
 		fl = 0;
-		if (vec[0] < min) fl += 1;
-		if (vec[0] > max) fl += 2;
-		if (vec[1] < min) fl += 4;
-		if (vec[1] > max) fl += 8;
-		if (vec[2] < min) fl += 16;
-		if (vec[2] > max) fl += 32;
+		if (vec[0] < min) {
+			fl += 1;
+		}
+		if (vec[0] > max) {
+			fl += 2;
+		}
+		if (vec[1] < min) {
+			fl += 4;
+		}
+		if (vec[1] > max) {
+			fl += 8;
+		}
+		if (vec[2] < min) {
+			fl += 16;
+		}
+		if (vec[2] > max) {
+			fl += 32;
+		}
 
 		flag &= fl;
-		if (flag == 0) return true;
+		if (flag == 0) {
+			return true;
+		}
 	}
 
 	return false;
@@ -347,8 +373,12 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, fl
 
 	float persmatob[4][4];
 
-	if (bb == NULL) return true;
-	if (bb->flag & BOUNDBOX_DISABLED) return true;
+	if (bb == NULL) {
+		return true;
+	}
+	if (bb->flag & BOUNDBOX_DISABLED) {
+		return true;
+	}
 
 	mul_m4_m4m4(persmatob, (float(*)[4])rv3d->persmat, obmat);
 
@@ -357,8 +387,12 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, fl
 
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
 {
-	if (bb == NULL) return true;
-	if (bb->flag & BOUNDBOX_DISABLED) return true;
+	if (bb == NULL) {
+		return true;
+	}
+	if (bb->flag & BOUNDBOX_DISABLED) {
+		return true;
+	}
 
 	return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
 }
@@ -431,8 +465,9 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *ar
 
 	BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
 
-	if (ED_view3d_camera_lock_check(v3d, rv3d))
+	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
 		return false;
+	}
 
 	if (rv3d->persp != RV3D_PERSP) {
 		if (rv3d->persp == RV3D_CAMOB) {
@@ -645,38 +680,56 @@ static void view3d_boxview_clip(ScrArea *sa)
 
 			if (rv3d->viewlock & RV3D_BOXCLIP) {
 				if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-					if (ar->winx > ar->winy) x1 = rv3d->dist;
-					else x1 = ar->winx * rv3d->dist / ar->winy;
+					if (ar->winx > ar->winy) {
+						x1 = rv3d->dist;
+					}
+					else {
+						x1 = ar->winx * rv3d->dist / ar->winy;
+					}
 
-					if (ar->winx > ar->winy) y1 = ar->winy * rv3d->dist / ar->winx;
-					else y1 = rv3d->dist;
+					if (ar->winx > ar->winy) {
+						y1 = ar->winy * rv3d->dist / ar->winx;
+					}
+					else {
+						y1 = rv3d->dist;
+					}
 					copy_v2_v2(ofs, rv3d->ofs);
 				}
 				else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
 					ofs[2] = rv3d->ofs[2];
 
-					if (ar->winx > ar->winy) z1 = ar->winy * rv3d->dist / ar->winx;
-					else z1 = rv3d->dist;
+					if (ar->winx > ar->winy) {
+						z1 = ar->winy * rv3d->dist / ar->winx;
+					}
+					else {
+						z1 = rv3d->dist;
+					}
 				}
 			}
 		}
 	}
 
 	for (val = 0; val < 8; val++) {
-		if (ELEM(val, 0, 3, 4, 7))
+		if (ELEM(val, 0, 3, 4, 7)) {
 			bb->vec[val][0] = -x1 - ofs[0];
-		else
+		}
+		else {
 			bb->vec[val][0] =  x1 - ofs[0];
+		}
 
-		if (ELEM(val, 0, 1, 4, 5))
+		if (ELEM(val, 0, 1, 4, 5)) {
 			bb->vec[val][1] = -y1 - ofs[1];
-		else
+		}
+		else {
 			bb->vec[val][1] =  y1 - ofs[1];
+		}
 
-		if (val > 3)
+		if (val > 3) {
 			bb->vec[val][2] = -z1 - ofs[2];
-		else
+		}
+		else {
 			bb->vec[val][2] =  z1 - ofs[2];
+		}
 	}
 
 	/* normals for plane equations */
@@ -700,7 +753,9 @@ static void view3d_boxview_clip(ScrArea *sa)
 			if (rv3d->viewlock & RV3D_BOXCLIP) {
 				rv3d->rflag |= RV3D_CLIPPING;
 				memcpy(rv3d->clip, clip, sizeof(clip));
-				if (rv3d->clipbb) MEM_freeN(rv3d->clipbb);
+				if (rv3d->clipbb) {
+					MEM_freeN(rv3d->clipbb);
+				}
 				rv3d->clipbb = MEM_dupallocN(bb);
 			}
 		}
@@ -969,13 +1024,16 @@ bool ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_world
 	float depth;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	if (force_depth)
+	if (force_depth) {
 		depth = *force_depth;
-	else
+	}
+	else {
 		depth = view_autodist_depth_margin(ar, mval, margin);
+	}
 
-	if (depth == FLT_MAX)
+	if (depth == FLT_MAX) {
 		return false;
+	}
 
 	float centx = (float)mval[0] + 0.5f;
 	float centy = (float)mval[1] + 0.5f;
@@ -1299,8 +1357,9 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], float
 	normalize_m3(nmat);
 
 	/* Offset */
-	if (ofs)
+	if (ofs) {
 		negate_v3_v3(ofs, mat[3]);
+	}
 
 	/* Quat */
 	if (quat) {
@@ -1464,8 +1523,9 @@ bool ED_view3d_depth_unproject(
 
 void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 {
-	if (rv3d->depths)
+	if (rv3d->depths) {
 		rv3d->depths->damaged = true;
+	}
 }
 
 /** \} */

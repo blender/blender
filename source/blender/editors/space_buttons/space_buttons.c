@@ -97,8 +97,9 @@ static void buttons_free(SpaceLink *sl)
 {
 	SpaceProperties *sbuts = (SpaceProperties *) sl;
 
-	if (sbuts->path)
+	if (sbuts->path) {
 		MEM_freeN(sbuts->path);
+	}
 
 	if (sbuts->texuser) {
 		ButsContextTexture *ct = sbuts->texuser;
@@ -451,8 +452,9 @@ static void buttons_area_redraw(ScrArea *sa, short buttons)
 	SpaceProperties *sbuts = sa->spacedata.first;
 
 	/* if the area's current button set is equal to the one to redraw */
-	if (sbuts->mainb == buttons)
+	if (sbuts->mainb == buttons) {
 		ED_area_tag_redraw(sa);
+	}
 }
 
 /* reused! */
@@ -510,10 +512,12 @@ static void buttons_area_listener(
 					buttons_area_redraw(sa, BCONTEXT_DATA);
 					break;
 				case ND_MODIFIER:
-					if (wmn->action == NA_RENAME)
+					if (wmn->action == NA_RENAME) {
 						ED_area_tag_redraw(sa);
-					else
+					}
+					else {
 						buttons_area_redraw(sa, BCONTEXT_MODIFIER);
+					}
 					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 					break;
 				case ND_CONSTRAINT:
@@ -521,8 +525,9 @@ static void buttons_area_listener(
 					buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
 					break;
 				case ND_PARTICLE:
-					if (wmn->action == NA_EDITED)
+					if (wmn->action == NA_EDITED) {
 						buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+					}
 					sbuts->preview = 1;
 					break;
 				case ND_DRAW:
@@ -589,26 +594,30 @@ static void buttons_area_listener(
 			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_PROPERTIES)
+			if (wmn->data == ND_SPACE_PROPERTIES) {
 				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_ID:
-			if (wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME) {
 				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_ANIMATION:
 			switch (wmn->data) {
 				case ND_KEYFRAME:
-					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
+					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED)) {
 						ED_area_tag_redraw(sa);
+					}
 					break;
 			}
 			break;
 		case NC_GPENCIL:
 			switch (wmn->data) {
 				case ND_DATA:
-					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
+					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED)) {
 						ED_area_tag_redraw(sa);
+					}
 					break;
 			}
 			break;
@@ -616,8 +625,9 @@ static void buttons_area_listener(
 			if (wmn->action == NA_SELECTED) {
 				ED_area_tag_redraw(sa);
 				/* new active node, update texture preview */
-				if (sbuts->mainb == BCONTEXT_TEXTURE)
+				if (sbuts->mainb == BCONTEXT_TEXTURE) {
 					sbuts->preview = 1;
+				}
 			}
 			break;
 		/* Listener for preview render, when doing an global undo. */
@@ -635,8 +645,9 @@ static void buttons_area_listener(
 #endif
 	}
 
-	if (wmn->data == ND_KEYS)
+	if (wmn->data == ND_KEYS) {
 		ED_area_tag_redraw(sa);
+	}
 }
 
 static void buttons_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)

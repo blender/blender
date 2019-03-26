@@ -91,9 +91,13 @@ TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store
 {
 	TreeElement *te, *tes;
 	for (te = lb->first; te; te = te->next) {
-		if (te->store_elem == store_elem) return te;
+		if (te->store_elem == store_elem) {
+			return te;
+		}
 		tes = outliner_find_tree_element(&te->subtree, store_elem);
-		if (tes) return tes;
+		if (tes) {
+			return tes;
+		}
 	}
 	return NULL;
 }
@@ -120,12 +124,15 @@ TreeElement *outliner_find_tse(SpaceOutliner *soops, const TreeStoreElem *tse)
 {
 	TreeStoreElem *tselem;
 
-	if (tse->id == NULL) return NULL;
+	if (tse->id == NULL) {
+		return NULL;
+	}
 
 	/* check if 'tse' is in treestore */
 	tselem = BKE_outliner_treehash_lookup_any(soops->treehash, tse->type, tse->nr, tse->id);
-	if (tselem)
+	if (tselem) {
 		return outliner_find_tree_element(&soops->tree, tselem);
+	}
 
 	return NULL;
 }
@@ -192,7 +199,9 @@ ID *outliner_search_back(SpaceOutliner *UNUSED(soops), TreeElement *te, short id
 
 	while (te) {
 		tselem = TREESTORE(te);
-		if (tselem->type == 0 && te->idcode == idcode) return tselem->id;
+		if (tselem->type == 0 && te->idcode == idcode) {
+			return tselem->id;
+		}
 		te = te->parent;
 	}
 	return NULL;

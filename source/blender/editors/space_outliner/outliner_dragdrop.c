@@ -73,15 +73,17 @@ static TreeElement *outliner_dropzone_element(TreeElement *te, const float fmval
 {
 	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
 		/* name and first icon */
-		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend))
+		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
 			return te;
+		}
 	}
 	/* Not it.  Let's look at its children. */
 	if (children && (TREESTORE(te)->flag & TSE_CLOSED) == 0 && (te->subtree.first)) {
 		for (te = te->subtree.first; te; te = te->next) {
 			TreeElement *te_valid = outliner_dropzone_element(te, fmval, children);
-			if (te_valid)
+			if (te_valid) {
 				return te_valid;
+			}
 		}
 	}
 	return NULL;
@@ -94,8 +96,9 @@ static TreeElement *outliner_dropzone_find(const SpaceOutliner *soops, const flo
 
 	for (te = soops->tree.first; te; te = te->next) {
 		TreeElement *te_valid = outliner_dropzone_element(te, fmval, children);
-		if (te_valid)
+		if (te_valid) {
 			return te_valid;
+		}
 	}
 	return NULL;
 }
@@ -204,11 +207,15 @@ static TreeElement *outliner_drop_insert_collection_find(
         TreeElementInsertType *r_insert_type)
 {
 	TreeElement *te = outliner_drop_insert_find(C, event, r_insert_type);
-	if (!te) return NULL;
+	if (!te) {
+		return NULL;
+	}
 
 	TreeElement *collection_te;
 	Collection *collection = outliner_collection_from_tree_element_and_parents(te, &collection_te);
-	if (!collection) return NULL;
+	if (!collection) {
+		return NULL;
+	}
 
 	if (collection_te != te) {
 		*r_insert_type = TE_INSERT_INTO;
@@ -233,9 +240,15 @@ static bool parent_drop_allowed(SpaceOutliner *soops, TreeElement *te, Object *p
 
 	Object *potential_parent = (Object *)tselem->id;
 
-	if (potential_parent == potential_child) return false;
-	if (BKE_object_is_child_recursive(potential_child, potential_parent)) return false;
-	if (potential_parent == potential_child->parent) return false;
+	if (potential_parent == potential_child) {
+		return false;
+	}
+	if (BKE_object_is_child_recursive(potential_child, potential_parent)) {
+		return false;
+	}
+	if (potential_parent == potential_child->parent) {
+		return false;
+	}
 
 	/* check that parent/child are both in the same scene */
 	Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
@@ -276,17 +289,25 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, co
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
 	bool changed = outliner_flag_set(&soops->tree, TSE_DRAG_ANY, false);
-	if (changed) ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
+	if (changed) {
+		ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
+	}
 
 	Object *potential_child = (Object *)WM_drag_ID(drag, ID_OB);
-	if (!potential_child) return false;
+	if (!potential_child) {
+		return false;
+	}
 
 	if (!allow_parenting_without_modifier_key(soops)) {
-		if (!event->shift) return false;
+		if (!event->shift) {
+			return false;
+		}
 	}
 
 	TreeElement *te = outliner_drop_find(C, event);
-	if (!te) return false;
+	if (!te) {
+		return false;
+	}
 
 	if (parent_drop_allowed(soops, te, potential_child)) {
 		TREESTORE(te)->flag |= TSE_DRAG_INTO;
@@ -476,18 +497,26 @@ static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event, c
 	SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
 	if (!allow_parenting_without_modifier_key(soops)) {
-		if (!event->shift) return false;
+		if (!event->shift) {
+			return false;
+		}
 	}
 
 	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
-	if (!ob) return false;
-	if (!ob->parent) return false;
+	if (!ob) {
+		return false;
+	}
+	if (!ob->parent) {
+		return false;
+	}
 
 	TreeElement *te = outliner_drop_find(C, event);
 	if (te) {
 		TreeStoreElem *tselem = TREESTORE(te);
 		ID *id = tselem->id;
-		if (!id) return true;
+		if (!id) {
+			return true;
+		}
 
 		switch (GS(id->name)) {
 			case ID_OB:
@@ -772,11 +801,15 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 					break;
 			}
 		}
-		if (changed) ED_region_tag_redraw_no_rebuild(ar);
+		if (changed) {
+			ED_region_tag_redraw_no_rebuild(ar);
+		}
 		return true;
 	}
 	else {
-		if (changed) ED_region_tag_redraw_no_rebuild(ar);
+		if (changed) {
+			ED_region_tag_redraw_no_rebuild(ar);
+		}
 		return false;
 	}
 }

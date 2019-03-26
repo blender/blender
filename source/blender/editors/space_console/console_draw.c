@@ -132,8 +132,9 @@ static void console_cursor_wrap_offset(const char *str, int width, int *row, int
 			*column = 0;
 		}
 
-		if (end && str >= end)
+		if (end && str >= end) {
 			break;
+		}
 
 		*column += col;
 	}

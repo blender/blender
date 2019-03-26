@@ -131,11 +131,13 @@ static void select_linked_time(ListBase *seqbase, Sequence *seq_link)
 				/* clear for reselection */
 				seq->flag &= ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
-				if (left_match && seq_link->flag & SEQ_LEFTSEL)
+				if (left_match && seq_link->flag & SEQ_LEFTSEL) {
 					seq->flag |= SELECT | SEQ_LEFTSEL;
+				}
 
-				if (right_match && seq_link->flag & SEQ_RIGHTSEL)
+				if (right_match && seq_link->flag & SEQ_RIGHTSEL) {
 					seq->flag |= SELECT | SEQ_RIGHTSEL;
+				}
 
 				recurs_sel_seq(seq);
 			}
@@ -159,18 +161,21 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-	if (deselect_all)
+	if (deselect_all) {
 		ED_sequencer_deselect_all(scene);
+	}
 
 	BKE_sequencer_active_set(scene, seq);
 
 	if ((seq->type == SEQ_TYPE_IMAGE) || (seq->type == SEQ_TYPE_MOVIE)) {
-		if (seq->strip)
+		if (seq->strip) {
 			BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
+		}
 	}
 	else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-		if (seq->strip)
+		if (seq->strip) {
 			BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
+		}
 	}
 	seq->flag |= SELECT;
 	recurs_sel_seq(seq);
@@ -322,16 +327,18 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	int hand, sel_side;
 	TimeMarker *marker;
 
-	if (ed == NULL)
+	if (ed == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	marker = find_nearest_marker(SCE_MARKERS, 1); //XXX - dummy function for now
 
 	seq = find_nearest_seq(scene, v2d, &hand, event->mval);
 
 	// XXX - not nice, Ctrl+RMB needs to do left_right only when not over a strip
-	if (seq && linked_time && (left_right == SEQ_SELECT_LR_MOUSE))
+	if (seq && linked_time && (left_right == SEQ_SELECT_LR_MOUSE)) {
 		left_right = SEQ_SELECT_LR_NONE;
+	}
 
 
 	if (marker) {
@@ -339,10 +346,12 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		/* select timeline marker */
 		if (extend) {
 			oldflag = marker->flag;
-			if (oldflag & SELECT)
+			if (oldflag & SELECT) {
 				marker->flag &= ~SELECT;
-			else
+			}
+			else {
 				marker->flag |= SELECT;
+			}
 		}
 		else {
 			/* XXX, in 2.4x, seq selection used to deselect all, need to re-thnik this for 2.5 */
@@ -402,8 +411,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 		act_orig = ed->act_seq;
 
-		if (extend == 0 && linked_handle == 0)
+		if (extend == 0 && linked_handle == 0) {
 			ED_sequencer_deselect_all(scene);
+		}
 
 		if (seq) {
 			BKE_sequencer_active_set(scene, seq);
@@ -448,13 +458,17 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 						switch (sel_side) {
 							case SEQ_SIDE_LEFT:
 								if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
-									if (extend == 0) ED_sequencer_deselect_all(scene);
+									if (extend == 0) {
+										ED_sequencer_deselect_all(scene);
+									}
 									seq->flag |= SELECT;
 
 									select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
 								}
 								else {
-									if (extend == 0) ED_sequencer_deselect_all(scene);
+									if (extend == 0) {
+										ED_sequencer_deselect_all(scene);
+									}
 									seq->flag |= SELECT;
 
 									neighbor->flag |= SELECT;
@@ -465,13 +479,17 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 								break;
 							case SEQ_SIDE_RIGHT:
 								if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
-									if (extend == 0) ED_sequencer_deselect_all(scene);
+									if (extend == 0) {
+										ED_sequencer_deselect_all(scene);
+									}
 									seq->flag |= SELECT;
 
 									select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
 								}
 								else {
-									if (extend == 0) ED_sequencer_deselect_all(scene);
+									if (extend == 0) {
+										ED_sequencer_deselect_all(scene);
+									}
 									seq->flag |= SELECT;
 
 									neighbor->flag |= SELECT;
@@ -483,7 +501,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 						}
 					}
 					else {
-						if (extend == 0) ED_sequencer_deselect_all(scene);
+						if (extend == 0) {
+							ED_sequencer_deselect_all(scene);
+						}
 						select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
 					}
 				}
@@ -492,8 +512,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 				if (extend && (seq->flag & SELECT) && ed->act_seq == act_orig) {
 					switch (hand) {
 						case SEQ_SIDE_NONE:
-							if (linked_handle == 0)
+							if (linked_handle == 0) {
 								seq->flag &= ~SEQ_ALLSEL;
+							}
 							break;
 						case SEQ_SIDE_LEFT:
 							seq->flag ^= SEQ_LEFTSEL;
@@ -505,8 +526,12 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 				}
 				else {
 					seq->flag |= SELECT;
-					if (hand == SEQ_SIDE_LEFT) seq->flag |= SEQ_LEFTSEL;
-					if (hand == SEQ_SIDE_RIGHT) seq->flag |= SEQ_RIGHTSEL;
+					if (hand == SEQ_SIDE_LEFT) {
+						seq->flag |= SEQ_LEFTSEL;
+					}
+					if (hand == SEQ_SIDE_RIGHT) {
+						seq->flag |= SEQ_RIGHTSEL;
+					}
 				}
 			}
 
@@ -581,8 +606,9 @@ static bool select_more_less_seq__internal(Scene *scene, bool sel, const bool li
 	bool changed = false;
 	int isel;
 
-	if (ed == NULL)
+	if (ed == NULL) {
 		return changed;
+	}
 
 	if (sel) {
 		sel = SELECT;
@@ -646,8 +672,9 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 
-	if (!select_more_less_seq__internal(scene, true, false))
+	if (!select_more_less_seq__internal(scene, true, false)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -677,8 +704,9 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 
-	if (!select_more_less_seq__internal(scene, false, false))
+	if (!select_more_less_seq__internal(scene, false, false)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -716,11 +744,13 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, cons
 
 	/* this works like UV, not mesh */
 	mouse_seq = find_nearest_seq(scene, v2d, &hand, event->mval);
-	if (!mouse_seq)
+	if (!mouse_seq) {
 		return OPERATOR_FINISHED;  /* user error as with mesh?? */
+	}
 
-	if (extend == 0)
+	if (extend == 0) {
 		ED_sequencer_deselect_all(scene);
+	}
 
 	mouse_seq->flag |= SELECT;
 	recurs_sel_seq(mouse_seq);
@@ -845,8 +875,9 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq_act = BKE_sequencer_active_get(scene);
 
-	if (ed == NULL || seq_act == NULL)
+	if (ed == NULL || seq_act == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	seq_act->flag |= SELECT;
 
@@ -1028,8 +1059,9 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
 	bool changed = false;
 	const char *dir = actseq->strip ? actseq->strip->dir : NULL;
 
-	if (!SEQ_USE_DATA(actseq))
+	if (!SEQ_USE_DATA(actseq)) {
 		return changed;
+	}
 
 	if (SEQ_HAS_PATH(actseq) && dir) {
 		SEQP_BEGIN (ed, seq)
@@ -1085,8 +1117,9 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
 	bool effects[SEQ_TYPE_MAX + 1];
 	int i;
 
-	for (i = 0; i <= SEQ_TYPE_MAX; i++)
+	for (i = 0; i <= SEQ_TYPE_MAX; i++) {
 		effects[i] = false;
+	}
 
 	SEQP_BEGIN (ed, seq)
 	{
@@ -1101,9 +1134,9 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
 	SEQP_BEGIN (ed, seq)
 	{
 		if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
-			if (seq->seq1) seq->seq1->flag |= SELECT;
-			if (seq->seq2) seq->seq2->flag |= SELECT;
-			if (seq->seq3) seq->seq3->flag |= SELECT;
+			if (seq->seq1) { seq->seq1->flag |= SELECT; }
+			if (seq->seq2) { seq->seq2->flag |= SELECT; }
+			if (seq->seq3) { seq->seq3->flag |= SELECT; }
 			changed = true;
 		}
 	}
@@ -1166,9 +1199,15 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 		                           (seq->seq2 && seq->seq2->tmp) ||
 		                           (seq->seq3 && seq->seq3->tmp)))
 		{
-			if (startdisp > seq->startdisp) startdisp = seq->startdisp;
-			if (enddisp < seq->enddisp) enddisp = seq->enddisp;
-			if (machine < seq->machine) machine = seq->machine;
+			if (startdisp > seq->startdisp) {
+				startdisp = seq->startdisp;
+			}
+			if (enddisp < seq->enddisp) {
+				enddisp = seq->enddisp;
+			}
+			if (machine < seq->machine) {
+				machine = seq->machine;
+			}
 
 			seq->tmp = POINTER_FROM_INT(true);
 

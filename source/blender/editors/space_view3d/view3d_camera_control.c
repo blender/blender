@@ -162,8 +162,9 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
 	if (rv3d->persp == RV3D_CAMOB) {
 		Object *ob_back;
 		if (use_parent_root && (vctrl->root_parent = v3d->camera->parent)) {
-			while (vctrl->root_parent->parent)
+			while (vctrl->root_parent->parent) {
 				vctrl->root_parent = vctrl->root_parent->parent;
+			}
 			ob_back = vctrl->root_parent;
 		}
 		else {

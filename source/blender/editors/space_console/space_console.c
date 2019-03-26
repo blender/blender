@@ -88,11 +88,13 @@ static void console_free(SpaceLink *sl)
 {
 	SpaceConsole *sc = (SpaceConsole *) sl;
 
-	while (sc->scrollback.first)
+	while (sc->scrollback.first) {
 		console_scrollback_free(sc, sc->scrollback.first);
+	}
 
-	while (sc->history.first)
+	while (sc->history.first) {
 		console_history_free(sc, sc->history.first);
+	}
 }
 
 
@@ -208,8 +210,9 @@ static void console_main_region_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 
-	if (BLI_listbase_is_empty(&sc->scrollback))
+	if (BLI_listbase_is_empty(&sc->scrollback)) {
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
+	}
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);

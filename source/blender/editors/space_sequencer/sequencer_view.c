@@ -177,8 +177,9 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	ImageSampleInfo *info;
 
-	if (sseq->mainb != SEQ_DRAW_IMG_IMBUF)
+	if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
 		return OPERATOR_CANCELLED;
+	}
 
 	info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
 	info->art = ar->type;

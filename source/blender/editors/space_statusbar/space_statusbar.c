@@ -116,20 +116,24 @@ static void statusbar_header_region_listener(
 			}
 			break;
 		case NC_WM:
-			if (wmn->data == ND_JOB)
+			if (wmn->data == ND_JOB) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SCENE:
-			if (wmn->data == ND_RENDER_RESULT)
+			if (wmn->data == ND_RENDER_RESULT) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_INFO)
+			if (wmn->data == ND_SPACE_INFO) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_ID:
-			if (wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }
