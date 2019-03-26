@@ -184,8 +184,6 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
         if psys is None:
             part = particle_get_settings(context)
 
-            layout.operator("object.particle_system_add", icon='ADD', text="New")
-
             if part is None:
                 return
 
@@ -678,7 +676,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
         elif part.physics_type == 'KEYED':
 
             sub = col.column()
-            sub.active = not psys.use_keyed_timing
+            sub.active = not psys or not psys.use_keyed_timing
             sub.prop(part, "keyed_loops", text="Loops")
             if psys:
                 col.prop(psys, "use_keyed_timing", text="Use Timing")
@@ -938,8 +936,9 @@ class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
+        psys = context.particle_system
         part = particle_get_settings(context)
-        return part.physics_type in {'KEYED', 'BOIDS'}
+        return psys and part.physics_type in {'KEYED', 'BOIDS'}
 
     def draw(self, context):
         layout = self.layout
