@@ -400,6 +400,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACES) == 0) {
 				stl->g_data->data_mask[0] &= ~(VFLAG_FACE_SELECTED & VFLAG_FACE_FREESTYLE);
 				stl->g_data->do_faces = false;
+				stl->g_data->do_zbufclip = false;
 			}
 			if ((tsettings->selectmode & SCE_SELECT_FACE) == 0) {
 				stl->g_data->data_mask[0] &= ~VFLAG_FACE_ACTIVE;
