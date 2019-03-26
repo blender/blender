@@ -1101,16 +1101,15 @@ Material *BKE_gpencil_current_input_toolsettings_material(Main *bmain, Object *o
 /* Guaranteed to return a material assigned to object. Returns never NULL. */
 Material *BKE_gpencil_current_input_brush_material(Main *bmain, Object *ob, Brush *brush)
 {
-	Material *ma;
 	if (brush) {
-		ma = BKE_gpencil_handle_brush_material(bmain, ob, brush);
-		if (!ma && brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+		Material *ma = BKE_gpencil_handle_brush_material(bmain, ob, brush);
+		if (ma) {
+			return ma;
+		}
+		else if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
 			/* it is easier to just unpin a NULL material, instead of setting a new one */
 			brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
 		}
-	}
-	if (ma) {
-		return ma;
 	}
 	return BKE_gpencil_current_input_material(bmain, ob);
 }
@@ -1118,8 +1117,7 @@ Material *BKE_gpencil_current_input_brush_material(Main *bmain, Object *ob, Brus
 /* Guaranteed to return a material assigned to object. Returns never NULL. Only use this for materials unrelated to user input */
 Material *BKE_gpencil_current_input_material(Main *bmain, Object *ob)
 {
-	Material *ma;
-	ma = give_current_material(ob, ob->actcol);
+	Material *ma = give_current_material(ob, ob->actcol);
 	if (ma) {
 		return ma;
 	}
