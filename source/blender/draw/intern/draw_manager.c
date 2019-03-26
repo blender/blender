@@ -2511,14 +2511,6 @@ void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
 	        g_select_buffer.texture_u32, GPU_DATA_UNSIGNED_INT, rect, r_buf);
 }
 
-
-/* Read a block of pixels from the depth frame buffer. */
-void DRW_framebuffer_depth_read(const rcti *rect, float *r_buf)
-{
-	GPU_texture_read_rect(
-	        g_select_buffer.texture_depth, GPU_DATA_FLOAT, rect, r_buf);
-}
-
 /** \} */
 
 
