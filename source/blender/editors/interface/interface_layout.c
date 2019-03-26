@@ -3279,8 +3279,9 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 		flow->totcol = max_ii(litem->root->emw / maxw, 1);
 		flow->totcol = min_ii(flow->totcol, totitem);
 	}
-	else
+	else {
 		flow->totcol = flow->number;
+	}
 
 	/* compute sizes */
 	x = 0;
@@ -3614,7 +3615,10 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 				for (gflow->tot_rows = (int)ceilf((float)gflow->tot_items / gflow->tot_columns);
 				     (gflow->tot_columns - step) > 0 &&
 				     (int)ceilf((float)gflow->tot_items / (gflow->tot_columns - step)) <= gflow->tot_rows;
-				     gflow->tot_columns -= step);
+				     gflow->tot_columns -= step)
+				{
+					/* pass */
+				}
 			}
 			else {
 				/* Adjust number of rows to be multiple of given modulo. */
@@ -3625,7 +3629,10 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 				for (gflow->tot_columns = (int)ceilf((float)gflow->tot_items / gflow->tot_rows);
 				     (gflow->tot_rows - step) > 0 &&
 				     (int)ceilf((float)gflow->tot_items / (gflow->tot_rows - step)) <= gflow->tot_columns;
-				     gflow->tot_rows -= step);
+				     gflow->tot_rows -= step)
+				{
+					/* pass */
+				}
 			}
 		}
 
@@ -4417,8 +4424,9 @@ static void ui_item_flag(uiLayout *litem, int flag)
 			bitem = (uiButtonItem *)item;
 			bitem->but->flag |= flag;
 		}
-		else
+		else {
 			ui_item_flag((uiLayout *)item, flag);
+		}
 	}
 }
 

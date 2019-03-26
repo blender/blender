@@ -2555,8 +2555,9 @@ static int ui_text_position_from_hidden(uiBut *but, int pos)
 
 	butstr = (but->editstr) ? but->editstr : but->drawstr;
 
-	for (i = 0, strpos = butstr; i < pos; i++)
+	for (i = 0, strpos = butstr; i < pos; i++) {
 		strpos = BLI_str_find_next_char_utf8(strpos, NULL);
+	}
 
 	return (strpos - butstr);
 }

@@ -1313,8 +1313,9 @@ static void edittranslation_find_po_file(const char *root, const char *uilng, ch
 		tc = strchr(uilng, '_');
 		if (tc) {
 			szt = tc - uilng;
-			if (szt < sizeof(tstr)) /* Paranoid, should always be true! */
+			if (szt < sizeof(tstr)) { /* Paranoid, should always be true! */
 				BLI_strncpy(tstr, uilng, szt + 1); /* +1 for '\0' char! */
+			}
 		}
 		if (tstr[0]) {
 			/* Because of some codes like sr_SR@latin... */
