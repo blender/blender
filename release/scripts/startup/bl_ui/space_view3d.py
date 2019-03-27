@@ -296,7 +296,6 @@ class VIEW3D_HT_header(Header):
 
 
 class VIEW3D_MT_editor_menus(Menu):
-    bl_space_type = 'VIEW3D_MT_editor_menus'
     bl_label = ""
 
     def draw(self, context):
