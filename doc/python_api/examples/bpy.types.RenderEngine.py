@@ -142,9 +142,13 @@ class CustomDrawData:
         # Generate vertex array
         self.vertex_array = bgl.Buffer(bgl.GL_INT, 1)
         bgl.glGenVertexArrays(1, self.vertex_array)
+        bgl.glBindVertexArray(self.vertex_array[0])
 
-        self.texturecoord_location = bgl.glGetAttribLocation(shader_program[0], "texCoord");
-        self.position_location = bgl.glGetAttribLocation(shader_program[0], "pos");
+        texturecoord_location = bgl.glGetAttribLocation(shader_program[0], "texCoord");
+        position_location = bgl.glGetAttribLocation(shader_program[0], "pos");
+
+        bgl.glEnableVertexAttribArray(texturecoord_location);
+        bgl.glEnableVertexAttribArray(position_location);
 
         # Generate geometry buffers for drawing textured quad
         position = [0.0, 0.0, width, 0.0, width, height, 0.0, height]
@@ -153,12 +157,18 @@ class CustomDrawData:
         texcoord = bgl.Buffer(bgl.GL_FLOAT, len(texcoord), texcoord)
 
         self.vertex_buffer = bgl.Buffer(bgl.GL_INT, 2)
+
         bgl.glGenBuffers(2, self.vertex_buffer)
         bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vertex_buffer[0])
         bgl.glBufferData(bgl.GL_ARRAY_BUFFER, 32, position, bgl.GL_STATIC_DRAW)
+        bgl.glVertexAttribPointer(position_location, 2, bgl.GL_FLOAT, bgl.GL_FALSE, 0, None)
+
         bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vertex_buffer[1])
         bgl.glBufferData(bgl.GL_ARRAY_BUFFER, 32, texcoord, bgl.GL_STATIC_DRAW)
+        bgl.glVertexAttribPointer(texturecoord_location, 2, bgl.GL_FLOAT, bgl.GL_FALSE, 0, None)
+
         bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, 0)
+        bgl.glBindVertexArray(0)
 
     def __del__(self):
         bgl.glDeleteBuffers(2, self.vertex_buffer)
@@ -169,19 +179,8 @@ class CustomDrawData:
     def draw(self):
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, self.texture[0])
-
         bgl.glBindVertexArray(self.vertex_array[0])
-        bgl.glEnableVertexAttribArray(self.texturecoord_location);
-        bgl.glEnableVertexAttribArray(self.position_location);
-
-        bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vertex_buffer[0])
-        bgl.glVertexAttribPointer(self.position_location, 2, bgl.GL_FLOAT, bgl.GL_FALSE, 0, None)
-        bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vertex_buffer[1])
-        bgl.glVertexAttribPointer(self.texturecoord_location, 2, bgl.GL_FLOAT, bgl.GL_FALSE, 0, None)
-        bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, 0)
-
         bgl.glDrawArrays(bgl.GL_TRIANGLE_FAN, 0, 4);
-
         bgl.glBindVertexArray(0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)
 
