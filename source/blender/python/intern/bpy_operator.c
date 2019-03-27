@@ -262,10 +262,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
 			/* operator output is nice to have in the terminal/console too */
 			if (!BLI_listbase_is_empty(&reports->list)) {
-				Report *report;
-				for (report = reports->list.first; report; report = report->next) {
-					PySys_WriteStdout("%s: %s\n", report->typestr, report->message);
-				}
+				BPy_reports_write_stdout(reports, NULL);
 			}
 
 			BKE_reports_clear(reports);
