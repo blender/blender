@@ -211,8 +211,8 @@ def modules(module_cache=addons_fake_modules, *, refresh=True):
     mod_list = list(module_cache.values())
     mod_list.sort(
         key=lambda mod: (
-            mod.bl_info["category"],
-            mod.bl_info["name"],
+            mod.bl_info.get("category", ""),
+            mod.bl_info.get("name", ""),
         )
     )
     return mod_list
