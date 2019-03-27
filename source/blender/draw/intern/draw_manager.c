@@ -2456,6 +2456,11 @@ void DRW_draw_depth_loop(
 
 	GPU_matrix_pop();
 	GPU_matrix_pop_projection();
+
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	drw_state_ensure_not_reused(&DST);
+#endif
 }
 
 /**
@@ -2537,11 +2542,6 @@ void DRW_framebuffer_select_id_release(ARegion *ar)
 	glEnable(GL_DITHER);
 
 	DRW_opengl_context_disable();
-
-#ifdef DEBUG
-	/* Avoid accidental reuse. */
-	drw_state_ensure_not_reused(&DST);
-#endif
 }
 
 
