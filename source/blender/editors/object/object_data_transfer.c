@@ -329,7 +329,7 @@ static bool data_transfer_exec_is_object_valid(
 		return true;
 	}
 	else if (!ID_IS_LINKED(me)) {
-		/* Do not transfer apply operation more than once. */
+		/* Do not apply transfer operation more than once. */
 		/* XXX This is not nice regarding vgroups, which are half-Object data... :/ */
 		BKE_reportf(op->reports, RPT_WARNING,
 		            "Skipping object '%s', data '%s' has already been processed with a previous object",
@@ -518,7 +518,7 @@ static bool data_transfer_poll_property(const bContext *UNUSED(C), wmOperator *o
 	return true;
 }
 
-/* transfers weight from active to selected */
+/* Transfer mesh data from active to selected objects. */
 void OBJECT_OT_data_transfer(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
