@@ -1881,8 +1881,9 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.input_scale = 0.01
             props.header_text = "Width Size: %.3f"
 
-            layout.operator("object.convert", text="Convert to Mesh").target = 'MESH'
+            layout.separator()
 
+            layout.operator("object.convert", text="Convert to Mesh").target = 'MESH'
             layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
 
             layout.separator()
