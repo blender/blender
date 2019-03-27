@@ -178,10 +178,10 @@ void BKE_object_handle_data_update(
 			}
 #endif
 			if (em) {
-				makeDerivedMesh(depsgraph, scene, ob, em,  &cddata_masks, false); /* was CD_MASK_BAREMESH */
+				makeDerivedMesh(depsgraph, scene, ob, em,  &cddata_masks); /* was CD_MASK_BAREMESH */
 			}
 			else {
-				makeDerivedMesh(depsgraph, scene, ob, NULL, &cddata_masks, false);
+				makeDerivedMesh(depsgraph, scene, ob, NULL, &cddata_masks);
 			}
 			break;
 		}

@@ -431,14 +431,6 @@ void modwrap_deformVertsEM(
         struct BMEditMesh *em, struct Mesh *me,
         float (*vertexCos)[3], int numVerts);
 
-/* wrappers for modifier callbacks that accept Mesh and select the proper implementation
- * depending on if the modifier has been ported to Mesh or is still using DerivedMesh
- */
-
-struct DerivedMesh *modifier_applyModifier_DM_deprecated(
-        struct ModifierData *md, const struct ModifierEvalContext *ctx,
-        struct DerivedMesh *dm);
-
 struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(
         struct Object *ob_eval, const bool get_cage_mesh);
 

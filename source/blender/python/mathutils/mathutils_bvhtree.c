@@ -1064,10 +1064,10 @@ static Mesh *bvh_get_mesh(
 		}
 		else if (ob_eval != NULL) {
 			if (use_cage) {
-				return mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);  /* ob->derivedDeform */
+				return mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
 			}
 			else {
-				return mesh_get_eval_final(depsgraph, scene, ob_eval, &data_masks);  /* ob->derivedFinal */
+				return mesh_get_eval_final(depsgraph, scene, ob_eval, &data_masks);
 			}
 		}
 		else {
@@ -1086,7 +1086,7 @@ static Mesh *bvh_get_mesh(
 			}
 			else {
 				*r_free_mesh = true;
-				return mesh_create_eval_no_deform_render(depsgraph, scene, ob, NULL, &data_masks);
+				return mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
 			}
 		}
 		else {
@@ -1097,7 +1097,7 @@ static Mesh *bvh_get_mesh(
 			}
 			else {
 				*r_free_mesh = true;
-				return mesh_create_eval_no_deform(depsgraph, scene, ob, NULL, &data_masks);
+				return mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
 			}
 		}
 	}

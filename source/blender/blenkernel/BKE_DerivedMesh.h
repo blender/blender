@@ -87,20 +87,10 @@ struct Object;
 struct PBVH;
 struct Scene;
 
-/* number of sub-elements each mesh element has (for interpolation) */
-// #define SUB_ELEMS_VERT 0 /* UNUSED */
-#define SUB_ELEMS_EDGE 2
-#define SUB_ELEMS_FACE 50
-
 /*
  * Note: all mface interfaces now officially operate on tessellated data.
  *       Also, the mface origindex layer indexes mpolys, not mfaces.
  */
-
-typedef struct DMCoNo {
-	float co[3];
-	float no[3];
-} DMCoNo;
 
 /* keep in sync with MFace/MPoly types */
 typedef struct DMFlagMat {
@@ -411,14 +401,6 @@ void *DM_get_tessface_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_poly_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_loop_data_layer(struct DerivedMesh *dm, int type);
 
-/* custom data setting functions
- * copy supplied data into first layer of type using layer's copy function
- * (deep copy if appropriate)
- */
-void DM_set_vert_data(struct DerivedMesh *dm, int index, int type, void *data);
-void DM_set_edge_data(struct DerivedMesh *dm, int index, int type, void *data);
-void DM_set_tessface_data(struct DerivedMesh *dm, int index, int type, void *data);
-
 /* custom data copy functions
  * copy count elements from source_index in source to dest_index in dest
  * these copy all layers for which the CD_FLAG_NOCOPY flag is not set
@@ -426,28 +408,6 @@ void DM_set_tessface_data(struct DerivedMesh *dm, int index, int type, void *dat
 void DM_copy_vert_data(
         struct DerivedMesh *source, struct DerivedMesh *dest,
         int source_index, int dest_index, int count);
-void DM_copy_edge_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int source_index, int dest_index, int count);
-void DM_copy_tessface_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int source_index, int dest_index, int count);
-void DM_copy_loop_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int source_index, int dest_index, int count);
-void DM_copy_poly_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int source_index, int dest_index, int count);
-
-/* custom data free functions
- * free count elements, starting at index
- * they free all layers for which the CD_FLAG_NOCOPY flag is not set
- */
-void DM_free_vert_data(struct DerivedMesh *dm, int index, int count);
-void DM_free_edge_data(struct DerivedMesh *dm, int index, int count);
-void DM_free_tessface_data(struct DerivedMesh *dm, int index, int count);
-void DM_free_loop_data(struct DerivedMesh *dm, int index, int count);
-void DM_free_poly_data(struct DerivedMesh *dm, int index, int count);
 
 /*sets up mpolys for a DM based on face iterators in source*/
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
@@ -460,31 +420,6 @@ void DM_interp_vert_data(
         struct DerivedMesh *source, struct DerivedMesh *dest,
         int *src_indices, float *weights,
         int count, int dest_index);
-
-typedef float EdgeVertWeight[SUB_ELEMS_EDGE][SUB_ELEMS_EDGE];
-void DM_interp_edge_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int *src_indices,
-        float *weights, EdgeVertWeight *vert_weights,
-        int count, int dest_index);
-
-typedef float FaceVertWeight[SUB_ELEMS_FACE][SUB_ELEMS_FACE];
-void DM_interp_tessface_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int *src_indices,
-        float *weights, FaceVertWeight *vert_weights,
-        int count, int dest_index);
-
-void DM_interp_loop_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int *src_indices,
-        float *weights, int count, int dest_index);
-
-void DM_interp_poly_data(
-        struct DerivedMesh *source, struct DerivedMesh *dest,
-        int *src_indices,
-        float *weights, int count, int dest_index);
-
 
 void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
@@ -510,17 +445,11 @@ float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *r_numVerts))[3];
 bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, bool has_prev_mesh);
 void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
-        const struct CustomData_MeshMasks *dataMask, const bool build_shapekey_layers);
-
-void DM_add_named_tangent_layer_for_uv(
-        CustomData *uv_data, CustomData *tan_data, int numLoopData,
-        const char *layer_name);
+        const struct CustomData_MeshMasks *dataMask);
 
 void DM_calc_loop_tangents(
         DerivedMesh *dm, bool calc_active_tangent, const char (*tangent_names)[MAX_NAME],
         int tangent_names_count);
-
-void DM_init_origspace(DerivedMesh *dm);
 
 /* debug only */
 #ifndef NDEBUG

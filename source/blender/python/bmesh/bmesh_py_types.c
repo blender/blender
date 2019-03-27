@@ -996,10 +996,10 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 			return NULL;
 		}
 		else if (use_render) {
-			me_eval = mesh_create_eval_no_deform_render(depsgraph, scene_eval, ob, NULL, &data_masks);
+			me_eval = mesh_create_eval_no_deform_render(depsgraph, scene_eval, ob, &data_masks);
 		}
 		else {
-			me_eval = mesh_create_eval_no_deform(depsgraph, scene_eval, ob, NULL, &data_masks);
+			me_eval = mesh_create_eval_no_deform(depsgraph, scene_eval, ob, &data_masks);
 		}
 	}
 

@@ -175,7 +175,7 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev, MDeformVert *dv
 }
 
 /* check if we can do partial updates and have them draw realtime
- * (without rebuilding the 'derivedFinal') */
+ * (without evaluating modifiers) */
 static bool vertex_paint_use_fast_update_check(Object *ob)
 {
 	Mesh *me_eval = ob->runtime.mesh_eval;
