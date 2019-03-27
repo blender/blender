@@ -234,7 +234,7 @@ class VIEW3D_HT_header(Header):
             )
 
         if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
-            row.prop_with_popover(
+            layout.prop_with_popover(
                 tool_settings.gpencil_sculpt,
                 "lock_axis",
                 text="",
