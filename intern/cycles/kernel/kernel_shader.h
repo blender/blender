@@ -434,6 +434,9 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	sd->dv = differential_zero();
 #endif
 
+	/* for NDC coordinates */
+	sd->ray_P = ray->P;
+
 	PROFILING_SHADER(sd->shader);
 	PROFILING_OBJECT(sd->object);
 }
