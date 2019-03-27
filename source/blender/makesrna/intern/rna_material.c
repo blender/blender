@@ -696,7 +696,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "transparent_shadow_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "blend_shadow");
 	RNA_def_property_enum_items(prop, prop_eevee_blend_shadow_items);
-	RNA_def_property_ui_text(prop, "Transparent Shadow", "Shadow method for transparent material");
+	RNA_def_property_ui_text(prop, "Transparent Shadow", "Shadow mapping method for transparent material");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop = RNA_def_property(srna, "alpha_threshold", PROP_FLOAT, PROP_FACTOR);
