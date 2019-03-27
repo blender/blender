@@ -7969,7 +7969,11 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 								data->cancel = false;
 								button_activate_state(C, but, BUTTON_STATE_EXIT);
 								retval = WM_UI_HANDLER_BREAK;
-								block->handle->menuretval = UI_RETURN_OK;
+								/* Cancel because this `but` handles all events and we don't want
+								 * the parent button's update function to do anything.
+								 *
+								 * Causes issues with buttons defined by #uiItemFullR_with_popover. */
+								block->handle->menuretval = UI_RETURN_CANCEL;
 							}
 							else if (ui_but_is_editable_as_text(but)) {
 								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_TEXT_EDITING);
