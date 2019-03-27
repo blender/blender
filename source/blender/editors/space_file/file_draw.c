@@ -241,8 +241,12 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 			str_exec = params->title;  /* params->title is already translated! */
 		}
 
-		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, str_exec,
-		          max_x - loadbutton, line1_y, loadbutton, btn_h, "");
+		but = uiDefButO(
+		        block, UI_BTYPE_BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, str_exec,
+		        max_x - loadbutton, line1_y, loadbutton, btn_h, "");
+		/* Just a display hint. */
+		UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+
 		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, IFACE_("Cancel"),
 		          max_x - loadbutton, line2_y, loadbutton, btn_h, "");
 	}
