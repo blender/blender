@@ -2329,47 +2329,18 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
 	immUnbindProgram();
 }
 
+
 /**
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
-void DRW_draw_depth_loop(
-        struct Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d,
-        GPUViewport *viewport)
+static void drw_draw_depth_loop_imp(void)
 {
-	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	RegionView3D *rv3d = ar->regiondata;
-
 	DRW_opengl_context_enable();
 
-	/* Reset before using it. */
-	drw_state_prepare_clean_for_draw(&DST);
-
-	DST.viewport = viewport;
-	DST.options.is_depth = true;
-
-	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
-	DST.draw_ctx = (DRWContextState){
-		.ar = ar, .rv3d = rv3d, .v3d = v3d,
-		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
-		.engine_type = engine_type,
-		.depsgraph = depsgraph,
-	};
-
 	/* Setup framebuffer */
-	DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(viewport);
+	DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(DST.viewport);
 	GPU_framebuffer_bind(fbl->depth_only_fb);
 	GPU_framebuffer_clear_depth(fbl->depth_only_fb, 1.0f);
-
-	/* Get list of enabled engines */
-	{
-		drw_engines_enable_basic();
-		if (DRW_state_draw_support()) {
-			drw_engines_enable_from_object_mode();
-		}
-	}
 
 	/* Setup viewport */
 	drw_context_state_init();
@@ -2384,10 +2355,11 @@ void DRW_draw_depth_loop(
 
 	{
 		drw_engines_cache_init();
-		drw_engines_world_update(scene);
+		drw_engines_world_update(DST.draw_ctx.scene);
 
+		View3D *v3d = DST.draw_ctx.v3d;
 		const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-		DEG_OBJECT_ITER_BEGIN(depsgraph, ob,
+		DEG_OBJECT_ITER_BEGIN(DST.draw_ctx.depsgraph, ob,
 		        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 		        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
 		        DEG_ITER_OBJECT_FLAG_VISIBLE |
@@ -2422,12 +2394,6 @@ void DRW_draw_depth_loop(
 	DRW_draw_callbacks_post_scene();
 
 	DRW_state_reset();
-	drw_engines_disable();
-
-#ifdef DEBUG
-	/* Avoid accidental reuse. */
-	drw_state_ensure_not_reused(&DST);
-#endif
 
 	/* TODO: Reading depth for operators should be done here. */
 
@@ -2435,21 +2401,96 @@ void DRW_draw_depth_loop(
 
 	/* Changin context */
 	DRW_opengl_context_disable();
+}
+
+/**
+ * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
+ */
+void DRW_draw_depth_loop(
+        struct Depsgraph *depsgraph,
+        ARegion *ar, View3D *v3d,
+        GPUViewport *viewport)
+{
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	RegionView3D *rv3d = ar->regiondata;
+
+	/* Reset before using it. */
+	drw_state_prepare_clean_for_draw(&DST);
+
+	DST.viewport = viewport;
+	DST.options.is_depth = true;
+
+	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+	DST.draw_ctx = (DRWContextState){
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+		.engine_type = engine_type,
+		.depsgraph = depsgraph,
+	};
+
+	/* Get list of enabled engines */
+	{
+		drw_engines_enable_basic();
+		if (DRW_state_draw_support()) {
+			drw_engines_enable_from_object_mode();
+		}
+	}
+
+	drw_draw_depth_loop_imp();
+
+	drw_engines_disable();
 
 	/* XXX Drawing the resulting buffer to the BACK_BUFFER */
 	GPU_matrix_push();
 	GPU_matrix_push_projection();
-	wmOrtho2_region_pixelspace(ar);
+	wmOrtho2_region_pixelspace(DST.draw_ctx.ar);
 	GPU_matrix_identity_set();
 
 	glEnable(GL_DEPTH_TEST); /* Cannot write to depth buffer without testing */
 	glDepthFunc(GL_ALWAYS);
-	DefaultTextureList *dtxl = (DefaultTextureList *)GPU_viewport_texture_list_get(viewport);
+	DefaultTextureList *dtxl = (DefaultTextureList *)GPU_viewport_texture_list_get(DST.viewport);
 	draw_depth_texture_to_screen(dtxl->depth);
 	glDepthFunc(GL_LEQUAL);
 
 	GPU_matrix_pop();
 	GPU_matrix_pop_projection();
+}
+
+/**
+ * Converted from ED_view3d_draw_depth_gpencil (legacy drawing).
+ */
+void DRW_draw_depth_loop_gpencil(
+        struct Depsgraph *depsgraph,
+        ARegion *ar, View3D *v3d,
+        GPUViewport *viewport)
+{
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	RegionView3D *rv3d = ar->regiondata;
+
+	/* Reset before using it. */
+	drw_state_prepare_clean_for_draw(&DST);
+
+	DST.viewport = viewport;
+	DST.options.is_depth = true;
+
+	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+	DST.draw_ctx = (DRWContextState){
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+		.depsgraph = depsgraph,
+	};
+
+	use_drw_engine(&draw_engine_gpencil_type);
+	drw_draw_depth_loop_imp();
+	drw_engines_disable();
+
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	drw_state_ensure_not_reused(&DST);
+#endif
 }
 
 
@@ -2496,6 +2537,11 @@ void DRW_framebuffer_select_id_release(ARegion *ar)
 	glEnable(GL_DITHER);
 
 	DRW_opengl_context_disable();
+
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	drw_state_ensure_not_reused(&DST);
+#endif
 }
 
 

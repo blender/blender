@@ -260,24 +260,6 @@ bool ED_gpencil_data_owner_is_annotation(PointerRNA *owner_ptr)
 	return ((owner_ptr) && (owner_ptr->type != &RNA_Object));
 }
 
-/* -------------------------------------------------------- */
-
-// XXX: this should be removed... We really shouldn't duplicate logic like this!
-bGPdata *ED_gpencil_data_get_active_v3d(ViewLayer *view_layer, View3D *v3d)
-{
-	Base *base = view_layer->basact;
-	bGPdata *gpd = NULL;
-
-	/* We have to make sure active object is actually visible and selected, else we must use default scene gpd,
-	 * to be consistent with ED_gpencil_data_get_active's behavior.
-	 */
-	if (base && BASE_SELECTED(v3d, base)) {
-		if (base->object->type == OB_GPENCIL)
-			gpd = base->object->data;
-	}
-	return gpd ? gpd : NULL;
-}
-
 /* ******************************************************** */
 /* Keyframe Indicator Checks */
 

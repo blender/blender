@@ -414,7 +414,8 @@ void GPENCIL_cache_init(void *vedata)
 			bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&obact_gpd->id);
 			if (((gpd_orig->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
 			    (gpd_orig->runtime.sbuffer_size > 0) &&
-			    ((gpd_orig->flag & GP_DATA_STROKE_POLYGON) == 0))
+			    ((gpd_orig->flag & GP_DATA_STROKE_POLYGON) == 0) &&
+			    !DRW_state_is_depth())
 			{
 				stl->g_data->session_flag |= GP_DRW_PAINT_PAINTING;
 			}
@@ -710,7 +711,7 @@ void GPENCIL_cache_finish(void *vedata)
 	}
 
 	/* create framebuffers (only for normal drawing) */
-	if (!DRW_state_is_select()) {
+	if (!DRW_state_is_select() || !DRW_state_is_depth()) {
 		GPENCIL_create_framebuffers(vedata);
 	}
 }
@@ -864,7 +865,7 @@ void GPENCIL_draw_scene(void *ved)
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
 
 	/* if the draw is for select, do a basic drawing and return */
-	if (DRW_state_is_select()) {
+	if (DRW_state_is_select() || DRW_state_is_depth()) {
 		drw_gpencil_select_render(stl, psl);
 		/* free memory */
 		gpencil_free_obj_runtime(stl);
