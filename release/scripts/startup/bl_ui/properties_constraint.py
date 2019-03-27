@@ -974,14 +974,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
 
         obj = context.object
 
-        if obj.type == 'ARMATURE' and obj.mode == 'POSE':
-            box = layout.box()
-            box.alert = True  # XXX: this should apply to the box background
-            box.label(icon='INFO', text="Constraints for active bone do not live here")
-            box.operator("wm.properties_context_change", icon='CONSTRAINT_BONE',
-                         text="Go to Bone Constraints tab...").context = 'BONE_CONSTRAINT'
-        else:
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Object Constraint")
+        layout.operator_menu_enum("object.constraint_add", "type", text="Add Object Constraint")
 
         for con in obj.constraints:
             self.draw_constraint(context, con)
