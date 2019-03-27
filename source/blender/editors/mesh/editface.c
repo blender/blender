@@ -382,8 +382,8 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Mesh *me;
-	MPoly *mpoly, *mpoly_sel;
-	unsigned int a, index;
+	MPoly *mpoly_sel;
+	uint index;
 
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
@@ -400,8 +400,6 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	if (mpoly_sel->flag & ME_HIDE) return false;
 
 	/* clear flags */
-	mpoly = me->mpoly;
-	a = me->totpoly;
 	if (!extend && !deselect && !toggle) {
 		paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
 	}
