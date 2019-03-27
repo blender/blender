@@ -123,15 +123,24 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	// ViewLayer *view_layer = draw_ctx->view_layer;
 	float screen_percentage = 1.0f;
 
-	int width = (int)(viewport_size[0] * screen_percentage);
-	int height = (int)(viewport_size[1] * screen_percentage);
+	int width = max_ii(1, (int)(viewport_size[0] * screen_percentage));
+	int height = max_ii(1, (int)(viewport_size[1] * screen_percentage));
+
+	/* Fix case were the pool was allocated width the dummy size (1,1,1). */
+	if (txl->planar_pool && (num_planar_ref > 0) &&
+	    (GPU_texture_width(txl->planar_pool) != width ||
+	     GPU_texture_height(txl->planar_pool) != height))
+	{
+		DRW_TEXTURE_FREE_SAFE(txl->planar_pool);
+		DRW_TEXTURE_FREE_SAFE(txl->planar_depth);
+	}
 
 	/* We need an Array texture so allocate it ourself */
 	if (!txl->planar_pool) {
 		if (num_planar_ref > 0) {
-			txl->planar_pool = DRW_texture_create_2d_array(width, height, max_ff(1, num_planar_ref),
+			txl->planar_pool = DRW_texture_create_2d_array(width, height, max_ii(1, num_planar_ref),
 			                                                 GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-			txl->planar_depth = DRW_texture_create_2d_array(width, height, max_ff(1, num_planar_ref),
+			txl->planar_depth = DRW_texture_create_2d_array(width, height, max_ii(1, num_planar_ref),
 			                                                GPU_DEPTH_COMPONENT24, 0, NULL);
 		}
 		else if (num_planar_ref == 0) {
