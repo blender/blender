@@ -2515,6 +2515,7 @@ void DRW_framebuffer_select_id_setup(ARegion *ar, const bool clear)
 	glDisable(GL_DITHER);
 
 	GPU_depth_test(true);
+	glDisable(GL_SCISSOR_TEST);
 
 	if (clear) {
 		GPU_framebuffer_clear_color_depth(
@@ -2536,10 +2537,11 @@ void DRW_framebuffer_select_id_release(ARegion *ar)
 		ED_view3d_clipping_disable();
 	}
 
-	GPU_framebuffer_restore();
-
+	glEnable(GL_SCISSOR_TEST);
 	GPU_depth_test(false);
 	glEnable(GL_DITHER);
+
+	GPU_framebuffer_restore();
 
 	DRW_opengl_context_disable();
 }
