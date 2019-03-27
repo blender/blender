@@ -8171,6 +8171,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	StructRNA *srna_new;
 	const char *identifier;
 	PyObject *py_cls_meth;
+	const char *error_prefix = "register_class(...):";
 
 	if (!PyType_Check(py_class)) {
 		PyErr_Format(PyExc_ValueError,
@@ -8231,8 +8232,16 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	srna_new = reg(CTX_data_main(C), &reports, py_class, identifier,
 	               bpy_class_validate, bpy_class_call, bpy_class_free);
 
-	if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
-		return NULL;
+	if (!BLI_listbase_is_empty(&reports.list)) {
+		const bool has_error = BPy_reports_to_error(&reports, PyExc_RuntimeError, false);
+		if (!has_error) {
+			BPy_reports_write_stdout(&reports, error_prefix);
+		}
+		BKE_reports_clear(&reports);
+		if (has_error) {
+			return NULL;
+		}
+	}
 
 	/* python errors validating are not converted into reports so the check above will fail.
 	 * the cause for returning NULL will be printed as an error */
