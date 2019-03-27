@@ -1786,6 +1786,8 @@ def km_file_browser_main(_params):
         ("file.select_all", {"type": 'A', "value": 'PRESS'}, None),
         ("file.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("file.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("file.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+         {"properties": [("mode", 'ADD')]}),
         ("file.rename", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.filenum", {"type": 'NUMPAD_PLUS', "value": 'PRESS'},
