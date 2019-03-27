@@ -1149,6 +1149,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 		col_block = uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
 		btn = uiDefBut(col_block, UI_BTYPE_BUT, 0, IFACE_("OK"), 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+		UI_but_flag_enable(btn, UI_BUT_ACTIVE_DEFAULT);
 		UI_but_func_set(btn, dialog_exec_cb, data, col_block);
 	}
 
