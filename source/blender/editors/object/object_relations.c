@@ -1361,9 +1361,13 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
 				return true;
 			}
 			break;
+		case MAKE_LINKS_DUPLICOLLECTION:
+			if (ob_dst->type == OB_EMPTY) {
+				return true;
+			}
+			break;
 		case MAKE_LINKS_ANIMDATA:
 		case MAKE_LINKS_GROUP:
-		case MAKE_LINKS_DUPLICOLLECTION:
 			return true;
 		case MAKE_LINKS_MODIFIERS:
 			if (!ELEM(OB_EMPTY, ob_src->type, ob_dst->type)) {
