@@ -36,8 +36,12 @@ static char *basename(char *string)
 
 	lfslash = strrchr(string, '/');
 	lbslash = strrchr(string, '\\');
-	if (lbslash) lbslash++;
-	if (lfslash) lfslash++;
+	if (lbslash) {
+		lbslash++;
+	}
+	if (lfslash) {
+		lfslash++;
+	}
 
 	return MAX3(string, lfslash, lbslash);
 }
@@ -66,15 +70,18 @@ int main(int argc, char **argv)
 	size = ftell(fpin);
 	fseek(fpin, 0L,  SEEK_SET);
 
-	if (argv[1][0] == '.') argv[1]++;
+	if (argv[1][0] == '.') {
+		argv[1]++;
+	}
 
 #ifdef VERBOSE
 	printf("Making C file <%s>\n", argv[2]);
 #endif
 
 	argv_len = (int)strlen(argv[1]);
-	for (i = 0; i < argv_len; i++)
+	for (i = 0; i < argv_len; i++) {
 		if (argv[1][i] == '.') argv[1][i] = '_';
+	}
 
 	fpout = fopen(argv[2], "w");
 	if (!fpout) {
