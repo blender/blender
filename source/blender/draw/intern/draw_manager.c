@@ -1784,11 +1784,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 
 	drw_viewport_var_init();
 
-	/* set default viewport */
-	gpuPushAttr(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
-	glDisable(GL_SCISSOR_TEST);
-	glViewport(0, 0, size[0], size[1]);
-
 	/* Main rendering. */
 	rctf view_rect;
 	rcti render_rect;
@@ -1810,8 +1805,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 	glDisable(GL_DEPTH_TEST);
 
 	/* Restore Drawing area. */
-	gpuPopAttr();
-	glEnable(GL_SCISSOR_TEST);
 	GPU_framebuffer_restore();
 
 	/* Changing Context */
@@ -2543,9 +2536,7 @@ void DRW_framebuffer_select_id_release(ARegion *ar)
 		ED_view3d_clipping_disable();
 	}
 
-	glEnable(GL_SCISSOR_TEST);
 	GPU_depth_test(false);
-	glEnable(GL_DITHER);
 
 	GPU_framebuffer_restore();
 
