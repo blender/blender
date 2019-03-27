@@ -433,6 +433,7 @@ static uiBlock *block_create_confirm_quit(struct bContext *C, struct ARegion *ar
 	        block, UI_BTYPE_BUT, 0, ICON_FILE_TICK, IFACE_("Save & Quit"), 0, 0, 50, UI_UNIT_Y,
 	        NULL, 0, 0, 0, 0, TIP_("Save and quit"));
 	UI_but_func_set(but, wm_block_confirm_quit_save, block, NULL);
+	UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
 
 	UI_block_bounds_set_centered(block, 10);
 

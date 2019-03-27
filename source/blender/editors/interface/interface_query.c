@@ -469,6 +469,21 @@ uiBut *ui_region_find_active_but(ARegion *ar)
 	return NULL;
 }
 
+uiBut *ui_region_find_first_but_test_flag(ARegion *ar, int flag_include, int flag_exclude)
+{
+	for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+		for (uiBut *but = block->buttons.first; but; but = but->next) {
+			if (((but->flag & flag_include) == flag_include) &&
+			    ((but->flag & flag_exclude) == 0))
+			{
+				return but;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

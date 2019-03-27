@@ -160,6 +160,7 @@ struct uiLayout {
 	short space;
 	bool align;
 	bool active;
+	bool active_default;
 	bool activate_init;
 	bool enabled;
 	bool redalert;
@@ -1058,6 +1059,10 @@ static uiBut *uiItemFullO_ptr_ex(
 
 	if (layout->redalert) {
 		UI_but_flag_enable(but, UI_BUT_REDALERT);
+	}
+
+	if (layout->active_default) {
+		UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
 	}
 
 	/* assign properties */
@@ -4150,6 +4155,11 @@ void uiLayoutSetActive(uiLayout *layout, bool active)
 	layout->active = active;
 }
 
+void uiLayoutSetActiveDefault(uiLayout *layout, bool active_default)
+{
+	layout->active_default = active_default;
+}
+
 void uiLayoutSetActivateInit(uiLayout *layout, bool activate_init)
 {
 	layout->activate_init = activate_init;
@@ -4223,6 +4233,11 @@ void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
 bool uiLayoutGetActive(uiLayout *layout)
 {
 	return layout->active;
+}
+
+bool uiLayoutGetActiveDefault(uiLayout *layout)
+{
+	return layout->active_default;
 }
 
 bool uiLayoutGetActivateInit(uiLayout *layout)

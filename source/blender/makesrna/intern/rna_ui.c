@@ -881,6 +881,16 @@ static void rna_UILayout_active_set(PointerRNA *ptr, bool value)
 	uiLayoutSetActive(ptr->data, value);
 }
 
+static bool rna_UILayout_active_default_get(PointerRNA *ptr)
+{
+	return uiLayoutGetActiveDefault(ptr->data);
+}
+
+static void rna_UILayout_active_default_set(PointerRNA *ptr, bool value)
+{
+	uiLayoutSetActiveDefault(ptr->data, value);
+}
+
 static bool rna_UILayout_activate_init_get(PointerRNA *ptr)
 {
 	return uiLayoutGetActivateInit(ptr->data);
@@ -1065,6 +1075,13 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
+
+	prop = RNA_def_property(srna, "active_default", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_default_get", "rna_UILayout_active_default_set");
+	RNA_def_property_ui_text(
+	        prop, "Active Default",
+	        "When true, an operator button defined after this will be activated when pressing return"
+	        "(use with popup dialogs)");
 
 	prop = RNA_def_property(srna, "activate_init", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_activate_init_get", "rna_UILayout_activate_init_set");

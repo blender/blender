@@ -846,6 +846,7 @@ bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 
+uiBut *ui_region_find_first_but_test_flag(struct ARegion *ar, int flag_include, int flag_exclude);
 uiBut *ui_region_find_active_but(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 bool ui_region_contains_point_px(
         const struct ARegion *ar, int x, int y) ATTR_WARN_UNUSED_RESULT;

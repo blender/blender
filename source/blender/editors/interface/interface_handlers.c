@@ -9241,9 +9241,16 @@ static int ui_handle_menu_event(
 				menu->menuretval = UI_RETURN_CANCEL;
 			}
 			else if (ELEM(event->type, RETKEY, PADENTER) && event->val == KM_PRESS) {
+				uiBut *but_active = ui_region_find_first_but_test_flag(ar, UI_BUT_ACTIVE_DEFAULT, UI_HIDDEN);
+				if (but_active != NULL) {
+					ui_handle_button_activate(C, ar, but_active, BUTTON_ACTIVATE);
+					/* Get again below just incase it's disabled for eg. */
+				}
+				but_active = ui_region_find_active_but(ar);
+
 				/* enter will always close this block, we let the event
 				 * get handled by the button if it is activated, otherwise we cancel */
-				if (!ui_region_find_active_but(ar)) {
+				if (but_active == NULL) {
 					menu->menuretval = UI_RETURN_CANCEL | UI_RETURN_POPUP_OK;
 				}
 			}

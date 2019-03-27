@@ -4563,23 +4563,32 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			GPU_blend(true);
 		}
 
+		bool show_semi_highlight = false;
+
 #ifdef USE_UI_POPOVER_ONCE
 		if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
 			if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
-				uiWidgetType wt_back = *wt;
-				uiWidgetType *wt_temp = widget_type(UI_WTYPE_MENU_ITEM);
-				wt_temp->state(wt_temp, state, drawflag);
-				copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
-				wt->wcol.inner[3] = 128;
-				wt->wcol.roundness = 0.5f;
-				ui_draw_roundbox(
-				        &rect_orig,
-				        0.25f * min_ff(BLI_rcti_size_x(&rect_orig), BLI_rcti_size_y(&rect_orig)),
-				        &wt_temp->wcol);
-				*wt = wt_back;
+				show_semi_highlight = true;
 			}
 		}
 #endif
+		if (but->flag & UI_BUT_ACTIVE_DEFAULT) {
+			show_semi_highlight = true;
+		}
+
+		if (show_semi_highlight) {
+			uiWidgetType wt_back = *wt;
+			uiWidgetType *wt_temp = widget_type(UI_WTYPE_MENU_ITEM);
+			wt_temp->state(wt_temp, state, drawflag);
+			copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+			wt->wcol.inner[3] = 128;
+			wt->wcol.roundness = 0.5f;
+			ui_draw_roundbox(
+			        &rect_orig,
+			        0.25f * min_ff(BLI_rcti_size_x(&rect_orig), BLI_rcti_size_y(&rect_orig)),
+			        &wt_temp->wcol);
+			*wt = wt_back;
+		}
 
 		wt->text(fstyle, &wt->wcol, but, rect);
 		if (disabled) {
