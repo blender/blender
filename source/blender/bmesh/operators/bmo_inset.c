@@ -174,8 +174,9 @@ static void bm_loop_customdata_merge(
 	for (layer_n = 0; layer_n < bm->ldata.totlayer; layer_n++) {
 		const int type = bm->ldata.layers[layer_n].type;
 		const int offset = bm->ldata.layers[layer_n].offset;
-		if (!CustomData_layer_has_math(&bm->ldata, layer_n))
+		if (!CustomData_layer_has_math(&bm->ldata, layer_n)) {
 			continue;
+		}
 
 		/* check we begin with merged data */
 		if ((CustomData_data_equals(

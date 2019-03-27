@@ -584,8 +584,9 @@ void  bmiter__loop_of_loop_begin(struct BMIter__loop_of_loop *iter)
 	iter->l_first = iter->ldata;
 	iter->l_next = iter->l_first->radial_next;
 
-	if (iter->l_next == iter->l_first)
+	if (iter->l_next == iter->l_first) {
 		iter->l_next = NULL;
+	}
 }
 
 void  *bmiter__loop_of_loop_step(struct BMIter__loop_of_loop *iter)

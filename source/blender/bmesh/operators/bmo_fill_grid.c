@@ -89,7 +89,9 @@ static void quad_verts_to_barycentric_tri(
 		normalize_v3(no);
 	}
 
-	if (is_flip) negate_v3(no);
+	if (is_flip) {
+		negate_v3(no);
+	}
 	mul_v3_fl(no, len_v3v3(tri[0], tri[1]));
 
 	mid_v3_v3v3(tri[2], tri[0], tri[1]);

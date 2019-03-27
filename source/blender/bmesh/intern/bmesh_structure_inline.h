@@ -40,20 +40,24 @@ BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(const BMEdge *e, const BMV
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
 BLI_INLINE BMEdge *bmesh_disk_edge_next_safe(const BMEdge *e, const BMVert *v)
 {
-	if (v == e->v1)
+	if (v == e->v1) {
 		return e->v1_disk_link.next;
-	if (v == e->v2)
+	}
+	if (v == e->v2) {
 		return e->v2_disk_link.next;
+	}
 	return NULL;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
 BLI_INLINE BMEdge *bmesh_disk_edge_prev_safe(const BMEdge *e, const BMVert *v)
 {
-	if (v == e->v1)
+	if (v == e->v1) {
 		return e->v1_disk_link.prev;
-	if (v == e->v2)
+	}
+	if (v == e->v2) {
 		return e->v2_disk_link.prev;
+	}
 	return NULL;
 }
 

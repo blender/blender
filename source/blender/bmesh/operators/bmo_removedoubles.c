@@ -230,10 +230,12 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		const bool is_del_v2 = BMO_vert_flag_test_bool(bm, (v2 = e->v2), ELE_DEL);
 
 		if (is_del_v1 || is_del_v2) {
-			if (is_del_v1)
+			if (is_del_v1) {
 				v1 = BMO_slot_map_elem_get(slot_targetmap, v1);
-			if (is_del_v2)
+			}
+			if (is_del_v2) {
 				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
+			}
 
 			if (v1 == v2) {
 				BMO_edge_flag_enable(bm, e, EDGE_COL);
@@ -337,8 +339,9 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 	vert_snap = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_snap"));
 	tot = BM_vert_face_count(vert_snap);
 
-	if (!tot)
+	if (!tot) {
 		return;
+	}
 
 	fac = 1.0f / tot;
 	BM_ITER_ELEM (l, &iter, vert_snap, BM_LOOPS_OF_VERT) {
@@ -388,8 +391,9 @@ void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op)
 		const int type = bm->ldata.layers[i].type;
 		const int offset = bm->ldata.layers[i].offset;
 
-		if (!CustomData_layer_has_math(&bm->ldata, i))
+		if (!CustomData_layer_has_math(&bm->ldata, i)) {
 			continue;
+		}
 
 		CustomData_data_initminmax(type, &min, &max);
 
@@ -474,8 +478,9 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
 		zero_v3(center);
 
-		if (!BMO_edge_flag_test(bm, e, EDGE_MARK))
+		if (!BMO_edge_flag_test(bm, e, EDGE_MARK)) {
 			continue;
+		}
 
 		BLI_assert(BLI_stack_is_empty(edge_stack));
 
@@ -598,8 +603,9 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 #endif
 
 	for (i = 0; i < bm->ldata.totlayer; i++) {
-		if (CustomData_layer_has_math(&bm->ldata, i))
+		if (CustomData_layer_has_math(&bm->ldata, i)) {
 			bmo_collapsecon_do_layer(bm, i, oflag);
+		}
 	}
 
 #ifndef NDEBUG

@@ -56,15 +56,15 @@ static int bm_edge_length_cmp(const void *a_, const void *b_)
 
 	/* merge edges between concave edges last since these
 	 * are most likely to remain and be the main dividers */
-	if      (e_a_concave < e_b_concave) return -1;
-	else if (e_a_concave > e_b_concave) return  1;
+	if      (e_a_concave < e_b_concave) { return -1; }
+	else if (e_a_concave > e_b_concave) { return  1; }
 	else {
 		/* otherwise shortest edges last */
 		const float e_a_len = BM_edge_calc_length_squared(e_a);
 		const float e_b_len = BM_edge_calc_length_squared(e_b);
-		if      (e_a_len < e_b_len) return  1;
-		else if (e_a_len > e_b_len) return -1;
-		else                        return  0;
+		if      (e_a_len < e_b_len) { return  1; }
+		else if (e_a_len > e_b_len) { return -1; }
+		else                        { return  0; }
 	}
 }
 

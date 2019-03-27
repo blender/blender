@@ -151,7 +151,9 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace
 
 		f_new = BM_face_split(bm, f, l_a, l_b, &l_new, NULL, false);
 
-		if (r_f_new) *r_f_new = f_new;
+		if (r_f_new) {
+			*r_f_new = f_new;
+		}
 		return l_new ? l_new->e : NULL;
 	}
 
@@ -448,8 +450,12 @@ static void bm_subdivide_multicut(
 		BMO_edge_flag_enable(bm, e_new, SUBD_SPLIT | ELE_SPLIT);
 
 		BM_CHECK_ELEMENT(v);
-		if (v->e) BM_CHECK_ELEMENT(v->e);
-		if (v->e && v->e->l) BM_CHECK_ELEMENT(v->e->l->f);
+		if (v->e) {
+			BM_CHECK_ELEMENT(v->e);
+		}
+		if (v->e && v->e->l) {
+			BM_CHECK_ELEMENT(v->e->l->f);
+		}
 	}
 
 	alter_co(v1, &e_tmp, params, 0, &v1_tmp, &v2_tmp);
@@ -689,8 +695,9 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		b = numcuts + 1 + numcuts + 1 + (numcuts - i - 1);
 
 		e = connect_smallest_face(bm, verts[a], verts[b], &f_new);
-		if (!e)
+		if (!e) {
 			continue;
+		}
 
 		BMO_edge_flag_enable(bm, e, ELE_INNER);
 		BMO_face_flag_enable(bm, f_new, ELE_INNER);
@@ -715,8 +722,9 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 			a = i * s + j;
 			b = (i - 1) * s + j;
 			e = connect_smallest_face(bm, lines[a], lines[b], &f_new);
-			if (!e)
+			if (!e) {
 				continue;
+			}
 
 			BMO_edge_flag_enable(bm, e, ELE_INNER);
 			BMO_face_flag_enable(bm, f_new, ELE_INNER);
@@ -794,7 +802,9 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		a = numcuts * 2 + 2 + i;
 		b = numcuts + numcuts - i;
 		e = connect_smallest_face(bm, verts[a], verts[b], &f_new);
-		if (!e) goto cleanup;
+		if (!e) {
+			goto cleanup;
+		}
 
 		BMO_edge_flag_enable(bm, e, ELE_INNER);
 		BMO_face_flag_enable(bm, f_new, ELE_INNER);
@@ -843,7 +853,9 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 
 cleanup:
 	for (i = 1; i < numcuts + 2; i++) {
-		if (lines[i]) MEM_freeN(lines[i]);
+		if (lines[i]) {
+			MEM_freeN(lines[i]);
+		}
 	}
 
 	MEM_freeN(lines);
@@ -1001,8 +1013,9 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		bool matched = false;
 
 		/* skip non-quads if requested */
-		if (use_only_quads && face->len != 4)
+		if (use_only_quads && face->len != 4) {
 			continue;
+		}
 
 		/* figure out which pattern to use */
 
@@ -1018,8 +1031,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			verts[i] = l_new->v;
 
 			if (BMO_edge_flag_test(bm, edges[i], SUBD_SPLIT)) {
-				if (!e1) e1 = edges[i];
-				else     e2 = edges[i];
+				if (!e1) { e1 = edges[i]; }
+				else     { e2 = edges[i]; }
 
 				totesel++;
 			}
@@ -1278,8 +1291,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 
 	BLI_stack_free(facedata);
-	if (edges) BLI_array_free(edges);
-	if (verts) BLI_array_free(verts);
+	if (edges) {
+		BLI_array_free(edges);
+	}
+	if (verts) {
+		BLI_array_free(verts);
+	}
 	BLI_array_free(loops_split);
 	BLI_array_free(loops);
 

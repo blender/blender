@@ -339,8 +339,9 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		const BMVert *verts[4];
 		float error;
 
-		if (!BMO_edge_flag_test(bm, e, EDGE_MARK))
+		if (!BMO_edge_flag_test(bm, e, EDGE_MARK)) {
 			continue;
+		}
 
 		bm_edge_to_quad_verts(e, verts);
 

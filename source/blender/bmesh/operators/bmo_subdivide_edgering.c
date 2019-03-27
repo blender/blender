@@ -249,8 +249,9 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 					pair_test.first = el_store;
 					pair_test.second = el_store_other;
 
-					if (pair_test.first > pair_test.second)
+					if (pair_test.first > pair_test.second) {
 						SWAP(const void *, pair_test.first, pair_test.second);
+					}
 
 					void **pair_key_p;
 					if (!BLI_gset_ensure_p_ex(eloop_pair_gs, &pair_test, &pair_key_p)) {
@@ -693,8 +694,8 @@ static void bm_edgering_pair_interpolate(
 				/* create the triangle and transform */
 				for (j = 0; j < 3; j++) {
 					zero_v3(tri_tmp[j]);
-					if      (j == 1) tri_tmp[j][0] = shape_size;
-					else if (j == 2) tri_tmp[j][1] = shape_size;
+					if      (j == 1) { tri_tmp[j][0] = shape_size; }
+					else if (j == 2) { tri_tmp[j][1] = shape_size; }
 					mul_qt_v3(quat_array[i], tri_tmp[j]);
 					add_v3_v3(tri_tmp[j], coord_array_main[i]);
 				}

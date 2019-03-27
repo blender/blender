@@ -171,8 +171,9 @@ LinkNode *BM_mesh_calc_path_vert(
 	while (!BLI_heapsimple_is_empty(heap)) {
 		v = BLI_heapsimple_pop_min(heap);
 
-		if (v == v_dst)
+		if (v == v_dst) {
 			break;
+		}
 
 		if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -343,8 +344,9 @@ LinkNode *BM_mesh_calc_path_edge(
 	while (!BLI_heapsimple_is_empty(heap)) {
 		e = BLI_heapsimple_pop_min(heap);
 
-		if (e == e_dst)
+		if (e == e_dst) {
 			break;
+		}
 
 		if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
@@ -529,8 +531,9 @@ LinkNode *BM_mesh_calc_path_face(
 	while (!BLI_heapsimple_is_empty(heap)) {
 		f = BLI_heapsimple_pop_min(heap);
 
-		if (f == f_dst)
+		if (f == f_dst) {
 			break;
+		}
 
 		if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(f, BM_ELEM_TAG);

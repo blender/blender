@@ -737,7 +737,9 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 		ftable[i] = f_new;
 
-		if (f == bm_old->act_face) bm_new->act_face = f_new;
+		if (f == bm_old->act_face) {
+			bm_new->act_face = f_new;
+		}
 	}
 	bm_old->elem_index_dirty &= ~BM_FACE;
 	bm_new->elem_index_dirty &= ~BM_FACE;

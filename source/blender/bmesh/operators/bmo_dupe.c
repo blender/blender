@@ -333,8 +333,9 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 	BMOperator *dupeop = op;
 	BMesh *bm_dst = BMO_slot_ptr_get(op->slots_in, "dest");
 
-	if (!bm_dst)
+	if (!bm_dst) {
 		bm_dst = bm;
+	}
 
 	/* flag input */
 	BMO_slot_buffer_flag_enable(bm, dupeop->slots_in, "geom", BM_ALL_NOLOOP, DUPE_INPUT);

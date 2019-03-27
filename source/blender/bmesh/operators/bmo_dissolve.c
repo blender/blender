@@ -203,8 +203,9 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 
-		while (faces[tot])
+		while (faces[tot]) {
 			tot++;
+		}
 
 		f_new = BM_faces_join(bm, faces, tot, true);
 
@@ -254,7 +255,9 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 cleanup:
 	/* free/cleanup */
 	for (i = 0; i < BLI_array_len(regions); i++) {
-		if (regions[i]) MEM_freeN(regions[i]);
+		if (regions[i]) {
+			MEM_freeN(regions[i]);
+		}
 	}
 
 	BLI_array_free(regions);

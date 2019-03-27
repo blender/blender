@@ -797,14 +797,16 @@ static void bm_isect_tri_tri(
 			BMEdge *ie;
 
 			if (i == 0) {
-				if (STACK_SIZE(iv_ls_a) != 2)
+				if (STACK_SIZE(iv_ls_a) != 2) {
 					continue;
+				}
 				ie_vs = iv_ls_a;
 				f = f_a;
 			}
 			else {
-				if (STACK_SIZE(iv_ls_b) != 2)
+				if (STACK_SIZE(iv_ls_b) != 2) {
 					continue;
+				}
 				ie_vs = iv_ls_b;
 				f = f_b;
 			}

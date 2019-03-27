@@ -1257,10 +1257,12 @@ static bool bm_decim_edge_collapse(
 			BM_ITER_ELEM (l, &liter, v_other, BM_LOOPS_OF_VERT) {
 				if (l->f->len == 3) {
 					BMEdge *e_outer;
-					if (BM_vert_in_edge(l->prev->e, l->v))
+					if (BM_vert_in_edge(l->prev->e, l->v)) {
 						e_outer = l->next->e;
-					else
+					}
+					else {
 						e_outer = l->prev->e;
+					}
 
 					BLI_assert(BM_vert_in_edge(e_outer, l->v) == false);
 
@@ -1348,9 +1350,9 @@ void BM_mesh_decimate_collapse(
 
 #ifdef USE_CUSTOMDATA
 	/* initialize customdata flag, we only need math for loops */
-	if (CustomData_has_interp(&bm->vdata))  customdata_flag |= CD_DO_VERT;
-	if (CustomData_has_interp(&bm->edata))  customdata_flag |= CD_DO_EDGE;
-	if (CustomData_has_math(&bm->ldata))    customdata_flag |= CD_DO_LOOP;
+	if (CustomData_has_interp(&bm->vdata))  { customdata_flag |= CD_DO_VERT; }
+	if (CustomData_has_interp(&bm->edata))  { customdata_flag |= CD_DO_EDGE; }
+	if (CustomData_has_math(&bm->ldata))    { customdata_flag |= CD_DO_LOOP; }
 #endif
 
 	/* iterative edge collapse and maintain the eheap */

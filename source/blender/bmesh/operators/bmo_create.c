@@ -108,13 +108,13 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 			const int tot_edges = BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, v, ELE_NEW, true);
 			if (tot_edges == 0) {
 				/* only accept 1 free vert */
-				if (v_free == NULL)  v_free = v;
-				else                 ok = false;  /* only ever want one of these */
+				if (v_free == NULL) { v_free = v; }
+				else                { ok = false; }  /* only ever want one of these */
 			}
 			else if (tot_edges == 1) {
-				if      (v_a == NULL)  v_a = v;
-				else if (v_b == NULL)  v_b = v;
-				else                   ok = false;  /* only ever want 2 of these */
+				if      (v_a == NULL)  { v_a = v; }
+				else if (v_b == NULL)  { v_b = v; }
+				else                   { ok = false; }  /* only ever want 2 of these */
 			}
 			else if (tot_edges == 2) {
 				/* do nothing, regular case */

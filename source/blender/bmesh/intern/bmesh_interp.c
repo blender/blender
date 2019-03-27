@@ -177,8 +177,9 @@ void BM_face_interp_from_face_ex(
 	float co[2];
 	int i;
 
-	if (f_src != f_dst)
+	if (f_src != f_dst) {
 		BM_elem_attrs_copy(bm, bm, f_src, f_dst);
+	}
 
 	/* interpolate */
 	i = 0;
@@ -213,7 +214,9 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
 	do {
 		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 		blocks_l[i] = l_iter->head.data;
-		if (do_vertex) blocks_v[i] = l_iter->v->head.data;
+		if (do_vertex) {
+			blocks_v[i] = l_iter->v->head.data;
+		}
 	} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 	BM_face_interp_from_face_ex(bm, f_dst, f_src, do_vertex,
@@ -324,10 +327,12 @@ static bool mdisp_in_mdispquad(
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
 
-	if (is_zero_v3(l_src->v->no))
+	if (is_zero_v3(l_src->v->no)) {
 		BM_vert_normal_update_all(l_src->v);
-	if (is_zero_v3(l_dst->v->no))
+	}
+	if (is_zero_v3(l_dst->v->no)) {
 		BM_vert_normal_update_all(l_dst->v);
+	}
 
 	compute_mdisp_quad(l_dst, l_dst_f_center, v1, v2, v3, v4, e1, e2);
 
@@ -341,8 +346,9 @@ static bool mdisp_in_mdispquad(
 	add_v3_v3(v1, c); add_v3_v3(v2, c);
 	add_v3_v3(v3, c); add_v3_v3(v4, c);
 
-	if (!quad_co(v1, v2, v3, v4, p, l_src->v->no, r_uv))
+	if (!quad_co(v1, v2, v3, v4, p, l_src->v->no, r_uv)) {
 		return 0;
+	}
 
 	mul_v2_fl(r_uv, (float)(res - 1));
 
@@ -386,8 +392,9 @@ static void bm_loop_flip_disp(
 
 	if (fabsf(d) < 1e-4f) {
 		d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 2);
-		if (fabsf(d) < 1e-4f)
+		if (fabsf(d) < 1e-4f) {
 			d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 1, 2);
+		}
 	}
 
 	disp[0] = (b[0] * mat[1][1] - mat[0][1] * b[1]) / d;
@@ -472,8 +479,9 @@ void BM_loop_interp_multires_ex(
 	float axis_x[3], axis_y[3];
 
 	/* ignore 2-edged faces */
-	if (UNLIKELY(l_dst->f->len < 3))
+	if (UNLIKELY(l_dst->f->len < 3)) {
 		return;
+	}
 
 	md_dst = BM_ELEM_CD_GET_VOID_P(l_dst, cd_loop_mdisp_offset);
 	compute_mdisp_quad(l_dst, f_dst_center, v1, v2, v3, v4, e1, e2);
@@ -564,8 +572,9 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	BMLoop *l;
 	BMIter liter;
 
-	if (cd_loop_mdisp_offset == -1)
+	if (cd_loop_mdisp_offset == -1) {
 		return;
+	}
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		MDisps *mdp = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_mdisp_offset);
@@ -621,13 +630,16 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		 * </pre>
 		 */
 
-		if (l->radial_next == l)
+		if (l->radial_next == l) {
 			continue;
+		}
 
-		if (l->radial_next->v == l->v)
+		if (l->radial_next->v == l->v) {
 			mdl2 = BM_ELEM_CD_GET_VOID_P(l->radial_next, cd_loop_mdisp_offset);
-		else
+		}
+		else {
 			mdl2 = BM_ELEM_CD_GET_VOID_P(l->radial_next->next, cd_loop_mdisp_offset);
+		}
 
 		sides = (int)sqrt(mdl1->totdisp);
 		for (y = 0; y < sides; y++) {
@@ -826,7 +838,9 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 	CustomData_add_layer(data, type, CD_DEFAULT, NULL, 0);
 
 	update_data_blocks(bm, &olddata, data);
-	if (olddata.layers) MEM_freeN(olddata.layers);
+	if (olddata.layers) {
+		MEM_freeN(olddata.layers);
+	}
 }
 
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name)
@@ -842,7 +856,9 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
 	CustomData_add_layer_named(data, type, CD_DEFAULT, NULL, 0, name);
 
 	update_data_blocks(bm, &olddata, data);
-	if (olddata.layers) MEM_freeN(olddata.layers);
+	if (olddata.layers) {
+		MEM_freeN(olddata.layers);
+	}
 }
 
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
@@ -862,7 +878,9 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 	UNUSED_VARS_NDEBUG(has_layer);
 
 	update_data_blocks(bm, &olddata, data);
-	if (olddata.layers) MEM_freeN(olddata.layers);
+	if (olddata.layers) {
+		MEM_freeN(olddata.layers);
+	}
 }
 
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
@@ -882,7 +900,9 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 	UNUSED_VARS_NDEBUG(has_layer);
 
 	update_data_blocks(bm, &olddata, data);
-	if (olddata.layers) MEM_freeN(olddata.layers);
+	if (olddata.layers) {
+		MEM_freeN(olddata.layers);
+	}
 }
 
 void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int dst_n)
@@ -940,7 +960,9 @@ float BM_elem_float_data_get(CustomData *cd, void *element, int type)
 void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val)
 {
 	float *f = CustomData_bmesh_get(cd, ((BMHeader *)element)->data, type);
-	if (f) *f = val;
+	if (f) {
+		*f = val;
+	}
 }
 
 /** \name Loop interpolation functions: BM_vert_loop_groups_data_layer_***

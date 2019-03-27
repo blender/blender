@@ -64,8 +64,8 @@ ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
 {
 	BLI_assert(bm->use_toolflags);
-	if (val) oflags[bm->toolflag_index].f |= oflag;
-	else     oflags[bm->toolflag_index].f &= (short)~oflag;
+	if (val) { oflags[bm->toolflag_index].f |= oflag; }
+	else     { oflags[bm->toolflag_index].f &= (short)~oflag; }
 }
 
 ATTR_NONNULL(1, 2)
@@ -204,7 +204,9 @@ BLI_INLINE void *BMO_slot_map_ptr_get(BMOpSlot *slot, const void *element)
 {
 	void **val = BMO_slot_map_data_get(slot, element);
 	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL);
-	if (val) return *val;
+	if (val) {
+		return *val;
+	}
 
 	return NULL;
 }
@@ -214,7 +216,9 @@ BLI_INLINE void *BMO_slot_map_elem_get(BMOpSlot *slot, const void *element)
 {
 	void **val = (void **) BMO_slot_map_data_get(slot, element);
 	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_ELEM);
-	if (val) return *val;
+	if (val) {
+		return *val;
+	}
 
 	return NULL;
 }

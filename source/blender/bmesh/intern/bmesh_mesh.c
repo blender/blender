@@ -213,8 +213,9 @@ void BM_mesh_data_free(BMesh *bm)
 
 	if (is_ldata_free || is_pdata_free) {
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			if (is_pdata_free)
+			if (is_pdata_free) {
 				CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
+			}
 			if (is_ldata_free) {
 				BM_ITER_ELEM (l, &itersub, f, BM_LOOPS_OF_FACE) {
 					CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
@@ -224,10 +225,10 @@ void BM_mesh_data_free(BMesh *bm)
 	}
 
 	/* Free custom data pools, This should probably go in CustomData_free? */
-	if (bm->vdata.totlayer) BLI_mempool_destroy(bm->vdata.pool);
-	if (bm->edata.totlayer) BLI_mempool_destroy(bm->edata.pool);
-	if (bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
-	if (bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
+	if (bm->vdata.totlayer) { BLI_mempool_destroy(bm->vdata.pool); }
+	if (bm->edata.totlayer) { BLI_mempool_destroy(bm->edata.pool); }
+	if (bm->ldata.totlayer) { BLI_mempool_destroy(bm->ldata.pool); }
+	if (bm->pdata.totlayer) { BLI_mempool_destroy(bm->pdata.pool); }
 
 	/* free custom data */
 	CustomData_free(&bm->vdata, 0);
@@ -241,9 +242,9 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->lpool);
 	BLI_mempool_destroy(bm->fpool);
 
-	if (bm->vtable) MEM_freeN(bm->vtable);
-	if (bm->etable) MEM_freeN(bm->etable);
-	if (bm->ftable) MEM_freeN(bm->ftable);
+	if (bm->vtable) { MEM_freeN(bm->vtable); }
+	if (bm->etable) { MEM_freeN(bm->etable); }
+	if (bm->ftable) { MEM_freeN(bm->ftable); }
 
 	/* destroy flag pool */
 	BM_mesh_elem_toolflags_clear(bm);
@@ -924,7 +925,9 @@ static void bm_mesh_loops_calc_normals(
 							}
 							else {
 								/* We still have to consume the stack! */
-								while (BLI_SMALLSTACK_POP(clnors));
+								while (BLI_SMALLSTACK_POP(clnors)) {
+									/* pass */
+								}
 							}
 							BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor_ref, lnor);
 						}
@@ -941,7 +944,9 @@ static void bm_mesh_loops_calc_normals(
 					}
 					else {
 						/* We still have to consume the stack! */
-						while (BLI_SMALLSTACK_POP(normal));
+						while (BLI_SMALLSTACK_POP(normal)) {
+							/* pass */
+						}
 					}
 				}
 
@@ -1849,8 +1854,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 			/* pass (re-use the array) */
 		}
 		else {
-			if (bm->vtable)
+			if (bm->vtable) {
 				MEM_freeN(bm->vtable);
+			}
 			bm->vtable = MEM_mallocN(sizeof(void **) * bm->totvert, "bm->vtable");
 			bm->vtable_tot = bm->totvert;
 		}
@@ -1860,8 +1866,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 			/* pass (re-use the array) */
 		}
 		else {
-			if (bm->etable)
+			if (bm->etable) {
 				MEM_freeN(bm->etable);
+			}
 			bm->etable = MEM_mallocN(sizeof(void **) * bm->totedge, "bm->etable");
 			bm->etable_tot = bm->totedge;
 		}
@@ -1871,8 +1878,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 			/* pass (re-use the array) */
 		}
 		else {
-			if (bm->ftable)
+			if (bm->ftable) {
 				MEM_freeN(bm->ftable);
+			}
 			bm->ftable = MEM_mallocN(sizeof(void **) * bm->totface, "bm->ftable");
 			bm->ftable_tot = bm->totface;
 		}
@@ -2020,8 +2028,9 @@ void BM_mesh_remap(
 	BMFace *fa;
 	BMLoop *lo;
 
-	if (!(vert_idx || edge_idx || face_idx))
+	if (!(vert_idx || edge_idx || face_idx)) {
 		return;
+	}
 
 	BM_mesh_elem_table_ensure(
 	        bm,
@@ -2271,12 +2280,15 @@ void BM_mesh_remap(
 		}
 	}
 
-	if (vptr_map)
+	if (vptr_map) {
 		BLI_ghash_free(vptr_map, NULL, NULL);
-	if (eptr_map)
+	}
+	if (eptr_map) {
 		BLI_ghash_free(eptr_map, NULL, NULL);
-	if (fptr_map)
+	}
+	if (fptr_map) {
 		BLI_ghash_free(fptr_map, NULL, NULL);
+	}
 }
 
 /**

@@ -172,8 +172,9 @@ void bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 		dl1->prev = dl2->prev;
 
 		dl2->prev = e;
-		if (dl3)
+		if (dl3) {
 			dl3->next = e;
+		}
 	}
 }
 
@@ -192,8 +193,9 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 		dl2->prev = dl1->prev;
 	}
 
-	if (v->e == e)
+	if (v->e == e) {
 		v->e = (e != dl1->next) ? dl1->next : NULL;
+	}
 
 	dl1->next = dl1->prev = NULL;
 }
@@ -387,8 +389,9 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
 	BMLoop *l_iter = l;
 	int i = 0;
 
-	if (bmesh_radial_length(l) != radlen)
+	if (bmesh_radial_length(l) != radlen) {
 		return false;
+	}
 
 	do {
 		if (UNLIKELY(!l_iter)) {
@@ -396,10 +399,12 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
 			return false;
 		}
 
-		if (l_iter->e != l->e)
+		if (l_iter->e != l->e) {
 			return false;
-		if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2)
+		}
+		if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2) {
 			return false;
+		}
 
 		if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
 			BMESH_ASSERT(0);
@@ -526,8 +531,9 @@ int bmesh_radial_length(const BMLoop *l)
 	const BMLoop *l_iter = l;
 	int i = 0;
 
-	if (!l)
+	if (!l) {
 		return 0;
+	}
 
 	do {
 		if (UNLIKELY(!l_iter)) {

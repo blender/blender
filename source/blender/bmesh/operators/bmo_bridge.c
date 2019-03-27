@@ -384,10 +384,10 @@ static void bridge_loop_pair(
 				l_b = l_b_next = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v_b, 0);
 			}
 
-			if (l_a && l_a_next == NULL) l_a_next = l_a;
-			if (l_a_next && l_a == NULL) l_a = l_a_next;
-			if (l_b && l_b_next == NULL) l_b_next = l_b;
-			if (l_b_next && l_b == NULL) l_b = l_b_next;
+			if (l_a && l_a_next == NULL) { l_a_next = l_a; }
+			if (l_a_next && l_a == NULL) { l_a = l_a_next; }
+			if (l_b && l_b_next == NULL) { l_b_next = l_b; }
+			if (l_b_next && l_b == NULL) { l_b = l_b_next; }
 			f_example = l_a ? l_a->f : (l_b ? l_b->f : NULL);
 
 			if (v_b != v_b_next) {

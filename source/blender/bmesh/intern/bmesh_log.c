@@ -523,10 +523,12 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
 {
 	BMLog *log = BM_log_create(bm);
 
-	if (entry->prev)
+	if (entry->prev) {
 		log->current_entry = entry;
-	else
+	}
+	else {
 		log->current_entry = NULL;
+	}
 
 	/* Let BMLog manage the entry list again */
 	log->entries.first = log->entries.last = entry;
@@ -563,19 +565,23 @@ void BM_log_free(BMLog *log)
 {
 	BMLogEntry *entry;
 
-	if (log->unused_ids)
+	if (log->unused_ids) {
 		range_tree_uint_free(log->unused_ids);
+	}
 
-	if (log->id_to_elem)
+	if (log->id_to_elem) {
 		BLI_ghash_free(log->id_to_elem, NULL, NULL);
+	}
 
-	if (log->elem_to_id)
+	if (log->elem_to_id) {
 		BLI_ghash_free(log->elem_to_id, NULL, NULL);
+	}
 
 	/* Clear the BMLog references within each entry, but do not free
 	 * the entries themselves */
-	for (entry = log->entries.first; entry; entry = entry->next)
+	for (entry = log->entries.first; entry; entry = entry->next) {
 		entry->log = NULL;
+	}
 
 	MEM_freeN(log);
 }
@@ -691,10 +697,12 @@ void BM_log_entry_drop(BMLogEntry *entry)
 	if (!log) {
 		/* Unlink */
 		BLI_assert(!(entry->prev && entry->next));
-		if (entry->prev)
+		if (entry->prev) {
 			entry->prev->next = NULL;
-		else if (entry->next)
+		}
+		else if (entry->next) {
 			entry->next->prev = NULL;
+		}
 
 		bm_log_entry_free(entry);
 		MEM_freeN(entry);
@@ -740,8 +748,9 @@ void BM_log_entry_drop(BMLogEntry *entry)
 		BLI_assert(!"Cannot drop BMLogEntry from middle");
 	}
 
-	if (log->current_entry == entry)
+	if (log->current_entry == entry) {
 		log->current_entry = entry->prev;
+	}
 
 	bm_log_entry_free(entry);
 	BLI_freelinkN(&log->entries, entry);

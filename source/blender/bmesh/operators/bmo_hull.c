@@ -74,8 +74,9 @@ static void hull_add_triangle(
 	t->v[2] = v3;
 
 	/* Mark triangles vertices as not interior */
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++) {
 		BMO_vert_flag_disable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
+	}
 
 	BLI_gset_insert(hull_triangles, t);
 	normal_tri_v3(t->no, v1->co, v2->co, v3->co);
@@ -126,8 +127,9 @@ static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 			else {
 				/* Look for an adjacent face that existed before the hull */
 				for (i = 0; i < 3; i++) {
-					if (!example)
+					if (!example) {
 						example = hull_find_example_face(bm, edges[i]);
+					}
 				}
 
 				/* Create new hull face */
@@ -178,8 +180,9 @@ static LinkData *final_edges_find_link(ListBase *adj, BMVert *v)
 	LinkData *link;
 
 	for (link = adj->first; link; link = link->next) {
-		if (link->data == v)
+		if (link->data == v) {
 			return link;
+		}
 	}
 
 	return NULL;
@@ -192,12 +195,14 @@ static int hull_final_edges_lookup(
 	ListBase *adj;
 
 	/* Use lower vertex pointer for hash key */
-	if (v1 > v2)
+	if (v1 > v2) {
 		SWAP(BMVert *, v1, v2);
+	}
 
 	adj = BLI_ghash_lookup(final_edges->edges, v1);
-	if (!adj)
+	if (!adj) {
 		return false;
+	}
 
 	return !!final_edges_find_link(adj, v2);
 }
@@ -224,8 +229,9 @@ static HullFinalEdges *hull_final_edges(GSet *hull_triangles)
 			ListBase *adj;
 
 			/* Use lower vertex pointer for hash key */
-			if (v1 > v2)
+			if (v1 > v2) {
 				SWAP(BMVert *, v1, v2);
+			}
 
 			adj = BLI_ghash_lookup(final_edges->edges, v1);
 			if (!adj) {
@@ -304,8 +310,9 @@ static void hull_mark_interior_elements(
 
 	/* Check for interior edges too */
 	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
-		if (!hull_final_edges_lookup(final_edges, e->v1, e->v2))
+		if (!hull_final_edges_lookup(final_edges, e->v1, e->v2)) {
 			BMO_edge_flag_enable(bm, e, HULL_FLAG_INTERIOR_ELE);
+		}
 	}
 
 	/* Mark all input faces as interior, some may be unmarked in
@@ -409,8 +416,9 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		if (hole && any_faces)
+		if (hole && any_faces) {
 			BMO_edge_flag_enable(bm, e, HULL_FLAG_HOLE);
+		}
 	}
 }
 
@@ -476,8 +484,9 @@ static BMVert **hull_verts_from_bullet(
 		if (original_index >= 0 && original_index < num_input_verts) {
 			hull_verts[i] = input_verts[original_index];
 		}
-		else
+		else {
 			BLI_assert(!"Unexpected new vertex in hull output");
+		}
 	}
 
 	return hull_verts;
@@ -552,8 +561,9 @@ static bool hull_num_input_verts_is_ok(BMOperator *op)
 
 	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		partial_num_verts++;
-		if (partial_num_verts >= 3)
+		if (partial_num_verts >= 3) {
 			break;
+		}
 	}
 
 	return (partial_num_verts >= 3);

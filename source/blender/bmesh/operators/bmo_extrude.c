@@ -258,8 +258,9 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		dupev = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
 		BMO_vert_flag_enable(bm, dupev, EXT_KEEP);
 
-		if (has_vskin)
+		if (has_vskin) {
 			bm_extrude_disable_skin_root(bm, v);
+		}
 
 		if (select_history_map) {
 			BMEditSelection *ese;
@@ -464,10 +465,12 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			BM_edge_kill(bm, e);
 
 			/* kill standalone vertices from this edge - see [#32341] */
-			if (!v1->e)
+			if (!v1->e) {
 				BM_vert_kill(bm, v1);
-			if (!v2->e)
+			}
+			if (!v2->e) {
 				BM_vert_kill(bm, v2);
+			}
 
 			continue;
 		}
@@ -563,7 +566,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* cleanup */
-	if (delorig) BMO_op_finish(bm, &delop);
+	if (delorig) {
+		BMO_op_finish(bm, &delop);
+	}
 	BMO_op_finish(bm, &dupeop);
 }
 

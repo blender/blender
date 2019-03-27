@@ -1179,8 +1179,9 @@ int BM_face_share_face_count(BMFace *f1, BMFace *f2)
 
 	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
 		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
-			if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2))
+			if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2)) {
 				count++;
+			}
 		}
 	}
 
@@ -1198,8 +1199,9 @@ bool BM_face_share_face_check(BMFace *f1, BMFace *f2)
 
 	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
 		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
-			if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2))
+			if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2)) {
 				return true;
+			}
 		}
 	}
 

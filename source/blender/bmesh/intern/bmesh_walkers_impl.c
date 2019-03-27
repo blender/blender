@@ -1170,8 +1170,9 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 	/* BMesh *bm = walker->bm; */ /* UNUSED */
 	/* int fcount = BM_edge_face_count(e); */ /* UNUSED */
 
-	if (!bmw_FaceLoopWalker_edge_begins_loop(walker, e))
+	if (!bmw_FaceLoopWalker_edge_begins_loop(walker, e)) {
 		return;
+	}
 
 	lwalk = BMW_state_add(walker);
 	lwalk->l = e->l;
@@ -1334,8 +1335,9 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	lwalk = &owalk;
 
 	l = lwalk->l;
-	if (!l)
+	if (!l) {
 		return lwalk->wireedge;
+	}
 
 	e = l->e;
 	if (!EDGE_CHECK(e)) {
@@ -1368,7 +1370,6 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	/* only walk to manifold edge */
 	if ((l->f->len % 2 == 0) && EDGE_CHECK(l->e) &&
 	    !BLI_gset_haskey(walker->visit_set, l->e))
-
 #else
 
 	l = l->radial_next;
@@ -1407,8 +1408,9 @@ static void bmw_EdgeboundaryWalker_begin(BMWalker *walker, void *data)
 
 	BLI_assert(BM_edge_is_boundary(e));
 
-	if (BLI_gset_haskey(walker->visit_set, e))
+	if (BLI_gset_haskey(walker->visit_set, e)) {
 		return;
+	}
 
 	lwalk = BMW_state_add(walker);
 	lwalk->e = e;
@@ -1483,8 +1485,9 @@ static void bmw_UVEdgeWalker_begin(BMWalker *walker, void *data)
 	BMwUVEdgeWalker *lwalk;
 	BMLoop *l = data;
 
-	if (BLI_gset_haskey(walker->visit_set, l))
+	if (BLI_gset_haskey(walker->visit_set, l)) {
 		return;
+	}
 
 	lwalk = BMW_state_add(walker);
 	lwalk->l = l;
@@ -1548,8 +1551,9 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 				l_other = (l_radial->v != l_pivot->v) ? l_radial->next : l_radial;
 				data_other = BM_ELEM_CD_GET_VOID_P(l_other, offset);
 
-				if (!CustomData_data_equals(type, data_pivot, data_other))
+				if (!CustomData_data_equals(type, data_pivot, data_other)) {
 					continue;
+				}
 
 				lwalk = BMW_state_add(walker);
 				BLI_gset_insert(walker->visit_set, l_radial);
