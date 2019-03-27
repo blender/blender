@@ -91,10 +91,12 @@ float BLI_easing_bounce_ease_in(float time, float begin, float change, float dur
 
 float BLI_easing_bounce_ease_in_out(float time, float begin, float change, float duration)
 {
-	if (time < duration / 2)
+	if (time < duration / 2) {
 		return BLI_easing_bounce_ease_in(time * 2, 0, change, duration) * 0.5f + begin;
-	else
+	}
+	else {
 		return BLI_easing_bounce_ease_out(time * 2 - duration, 0, change, duration) * 0.5f + change * 0.5f + begin;
+	}
 }
 
 float BLI_easing_circ_ease_in(float time, float begin, float change, float duration)
@@ -111,8 +113,9 @@ float BLI_easing_circ_ease_out(float time, float begin, float change, float dura
 
 float BLI_easing_circ_ease_in_out(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1.0f)
+	if ((time /= duration / 2) < 1.0f) {
 		return -change / 2 * (sqrtf(1 - time * time) - 1) + begin;
+	}
 	time -= 2.0f;
 	return change / 2 * (sqrtf(1 - time * time) + 1) + begin;
 }
@@ -131,8 +134,9 @@ float BLI_easing_cubic_ease_out(float time, float begin, float change, float dur
 
 float BLI_easing_cubic_ease_in_out(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1.0f)
+	if ((time /= duration / 2) < 1.0f) {
 		return change / 2 * time * time * time + begin;
+	}
 	time -= 2.0f;
 	return change / 2 * (time * time * time + 2) + begin;
 }
@@ -170,14 +174,17 @@ float BLI_easing_elastic_ease_in(float time, float begin, float change, float du
 	float s;
 	float f = 1.0f;
 
-	if (time == 0.0f)
+	if (time == 0.0f) {
 		return begin;
+	}
 
-	if ((time /= duration) == 1.0f)
+	if ((time /= duration) == 1.0f) {
 		return begin + change;
+	}
 	time -= 1.0f;
-	if (!period)
+	if (!period) {
 		period = duration * 0.3f;
+	}
 	if (!amplitude || amplitude < fabsf(change)) {
 		s = period / 4;
 #ifdef USE_ELASTIC_BLEND
@@ -185,8 +192,9 @@ float BLI_easing_elastic_ease_in(float time, float begin, float change, float du
 #endif
 		amplitude = change;
 	}
-	else
+	else {
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
+	}
 
 	return (-f * (amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period))) + begin;
 }
@@ -196,13 +204,16 @@ float BLI_easing_elastic_ease_out(float time, float begin, float change, float d
 	float s;
 	float f = 1.0f;
 
-	if (time == 0.0f)
+	if (time == 0.0f) {
 		return begin;
-	if ((time /= duration) == 1.0f)
+	}
+	if ((time /= duration) == 1.0f) {
 		return begin + change;
+	}
 	time = -time;
-	if (!period)
+	if (!period) {
 		period = duration * 0.3f;
+	}
 	if (!amplitude || amplitude < fabsf(change)) {
 		s = period / 4;
 #ifdef USE_ELASTIC_BLEND
@@ -210,8 +221,9 @@ float BLI_easing_elastic_ease_out(float time, float begin, float change, float d
 #endif
 		amplitude = change;
 	}
-	else
+	else {
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
+	}
 
 	return (f * (amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period))) + change + begin;
 }
@@ -221,13 +233,16 @@ float BLI_easing_elastic_ease_in_out(float time, float begin, float change, floa
 	float s;
 	float f = 1.0f;
 
-	if (time == 0.0f)
+	if (time == 0.0f) {
 		return begin;
-	if ((time /= duration / 2) == 2.0f)
+	}
+	if ((time /= duration / 2) == 2.0f) {
 		return begin + change;
+	}
 	time -= 1.0f;
-	if (!period)
+	if (!period) {
 		period = duration * (0.3f * 1.5f);
+	}
 	if (!amplitude || amplitude < fabsf(change)) {
 		s = period / 4;
 #ifdef USE_ELASTIC_BLEND
@@ -235,8 +250,9 @@ float BLI_easing_elastic_ease_in_out(float time, float begin, float change, floa
 #endif
 		amplitude = change;
 	}
-	else
+	else {
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
+	}
 
 	if (time < 0.0f) {
 		f *= -0.5f;
@@ -301,8 +317,9 @@ float BLI_easing_quad_ease_out(float time, float begin, float change, float dura
 
 float BLI_easing_quad_ease_in_out(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1.0f)
+	if ((time /= duration / 2) < 1.0f) {
 		return change / 2 * time * time + begin;
+	}
 	time -= 1.0f;
 	return -change / 2 * (time * (time - 2) - 1) + begin;
 }
@@ -322,8 +339,9 @@ float BLI_easing_quart_ease_out(float time, float begin, float change, float dur
 
 float BLI_easing_quart_ease_in_out(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1.0f)
+	if ((time /= duration / 2) < 1.0f) {
 		return change / 2 * time * time * time * time + begin;
+	}
 	time -= 2.0f;
 	return -change / 2 * ( time * time * time * time - 2) + begin;
 }
@@ -340,8 +358,9 @@ float BLI_easing_quint_ease_out(float time, float begin, float change, float dur
 }
 float BLI_easing_quint_ease_in_out(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1.0f)
+	if ((time /= duration / 2) < 1.0f) {
 		return change / 2 * time * time * time * time * time + begin;
+	}
 	time -= 2.0f;
 	return change / 2 * (time * time * time * time * time + 2) + begin;
 }

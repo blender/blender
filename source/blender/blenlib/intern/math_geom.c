@@ -133,8 +133,9 @@ float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3]
 	area = len_v3(n) * 0.5f;
 
 	/* negate area for flipped triangles */
-	if (dot_v3v3(n, normal) < 0.0f)
+	if (dot_v3v3(n, normal) < 0.0f) {
 		area = -area;
+	}
 
 	return area;
 }
@@ -1075,14 +1076,18 @@ int isect_seg_seg_v2_int(const int v1[2], const int v2[2], const int v3[2], cons
 	float div, lambda, mu;
 
 	div = (float)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
-	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
+	if (div == 0.0f) {
+		return ISECT_LINE_LINE_COLINEAR;
+	}
 
 	lambda = (float)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
 	mu = (float)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
 	if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
-		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
+		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) {
+			return ISECT_LINE_LINE_EXACT;
+		}
 		return ISECT_LINE_LINE_CROSS;
 	}
 	return ISECT_LINE_LINE_NONE;
@@ -1118,14 +1123,18 @@ int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], co
 	float div, lambda, mu;
 
 	div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
-	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
+	if (div == 0.0f) {
+		return ISECT_LINE_LINE_COLINEAR;
+	}
 
 	lambda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
 	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
 	if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
-		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
+		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) {
+			return ISECT_LINE_LINE_EXACT;
+		}
 		return ISECT_LINE_LINE_CROSS;
 	}
 	return ISECT_LINE_LINE_NONE;
@@ -1293,8 +1302,9 @@ int isect_seg_seg_v2_point_ex(
 			u_a = dot_v2v2(s20, s10) / dot_v2v2(s10, s10);
 			u_b = dot_v2v2(s30, s10) / dot_v2v2(s10, s10);
 
-			if (u_a > u_b)
+			if (u_a > u_b) {
 				SWAP(float, u_a, u_b);
+			}
 
 			if (u_a > endpoint_max || u_b < endpoint_min) {
 				/* non-overlapping segments */
@@ -1573,21 +1583,29 @@ bool isect_line_segment_tri_v3(
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return false;
+	if (a == 0.0f) {
+		return false;
+	}
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < 0.0f) || (u > 1.0f)) return false;
+	if ((u < 0.0f) || (u > 1.0f)) {
+		return false;
+	}
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(d, q);
-	if ((v < 0.0f) || ((u + v) > 1.0f)) return false;
+	if ((v < 0.0f) || ((u + v) > 1.0f)) {
+		return false;
+	}
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return false;
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) {
+		return false;
+	}
 
 	if (r_uv) {
 		r_uv[0] = u;
@@ -1613,21 +1631,29 @@ bool isect_line_segment_tri_epsilon_v3(
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return false;
+	if (a == 0.0f) {
+		return false;
+	}
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < -epsilon) || (u > 1.0f + epsilon)) return false;
+	if ((u < -epsilon) || (u > 1.0f + epsilon)) {
+		return false;
+	}
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(d, q);
-	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return false;
+	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) {
+		return false;
+	}
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return false;
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) {
+		return false;
+	}
 
 	if (r_uv) {
 		r_uv[0] = u;
@@ -1657,21 +1683,29 @@ bool isect_ray_tri_v3(
 
 	cross_v3_v3v3(p, ray_direction, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -epsilon) && (a < epsilon)) return false;
+	if ((a > -epsilon) && (a < epsilon)) {
+		return false;
+	}
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, ray_origin, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < 0.0f) || (u > 1.0f)) return false;
+	if ((u < 0.0f) || (u > 1.0f)) {
+		return false;
+	}
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(ray_direction, q);
-	if ((v < 0.0f) || ((u + v) > 1.0f)) return false;
+	if ((v < 0.0f) || ((u + v) > 1.0f)) {
+		return false;
+	}
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f)) return false;
+	if ((*r_lambda < 0.0f)) {
+		return false;
+	}
 
 	if (r_uv) {
 		r_uv[0] = u;
@@ -1721,21 +1755,29 @@ bool isect_ray_tri_epsilon_v3(
 
 	cross_v3_v3v3(p, ray_direction, e2);
 	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return false;
+	if (a == 0.0f) {
+		return false;
+	}
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, ray_origin, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < -epsilon) || (u > 1.0f + epsilon)) return false;
+	if ((u < -epsilon) || (u > 1.0f + epsilon)) {
+		return false;
+	}
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(ray_direction, q);
-	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return false;
+	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) {
+		return false;
+	}
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f)) return false;
+	if ((*r_lambda < 0.0f)) {
+		return false;
+	}
 
 	if (r_uv) {
 		r_uv[0] = u;
@@ -2264,8 +2306,9 @@ static bool getLowestRoot(const float a, const float b, const float c, const flo
 		float r2 = (-b + sqrtD) / (2.0f * a);
 
 		/* Sort so x1 <= x2 */
-		if (r1 > r2)
+		if (r1 > r2) {
 			SWAP(float, r1, r2);
+		}
 
 		/* Get lowest root: */
 		if (r1 > 0.0f && r1 < maxR) {
@@ -2335,7 +2378,9 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const fl
 	normalize_v3(nor);
 
 	/* flip normal */
-	if (dot_v3v3(nor, vel) > 0.0f) negate_v3(nor);
+	if (dot_v3v3(nor, vel) > 0.0f) {
+		negate_v3(nor);
+	}
 
 	a = dot_v3v3(p1, nor) - dot_v3v3(v0, nor);
 	nordotv = dot_v3v3(nor, vel);
@@ -2349,10 +2394,13 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const fl
 		float t0 = (-a + radius) / nordotv;
 		float t1 = (-a - radius) / nordotv;
 
-		if (t0 > t1)
+		if (t0 > t1) {
 			SWAP(float, t0, t1);
+		}
 
-		if (t0 > 1.0f || t1 < 0.0f) return false;
+		if (t0 > 1.0f || t1 < 0.0f) {
+			return false;
+		}
 
 		/* clamp to [0, 1] */
 		CLAMP(t0, 0.0f, 1.0f);
@@ -2518,25 +2566,36 @@ bool isect_axial_line_segment_tri_v3(
 	sub_v3_v3v3(p, v0, p1);
 
 	f = (e2[a1] * e1[a2] - e2[a2] * e1[a1]);
-	if ((f > -epsilon) && (f < epsilon)) return false;
+	if ((f > -epsilon) && (f < epsilon)) {
+		return false;
+	}
 
 	v = (p[a2] * e1[a1] - p[a1] * e1[a2]) / f;
-	if ((v < 0.0f) || (v > 1.0f)) return false;
+	if ((v < 0.0f) || (v > 1.0f)) {
+		return false;
+	}
 
 	f = e1[a1];
 	if ((f > -epsilon) && (f < epsilon)) {
 		f = e1[a2];
-		if ((f > -epsilon) && (f < epsilon)) return false;
+		if ((f > -epsilon) && (f < epsilon)) {
+			return false;
+		}
 		u = (-p[a2] - v * e2[a2]) / f;
 	}
-	else
+	else {
 		u = (-p[a1] - v * e2[a1]) / f;
+	}
 
-	if ((u < 0.0f) || ((u + v) > 1.0f)) return false;
+	if ((u < 0.0f) || ((u + v) > 1.0f)) {
+		return false;
+	}
 
 	*r_lambda = (p[a0] + u * e1[a0] + v * e2[a0]) / (p2[a0] - p1[a0]);
 
-	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return false;
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) {
+		return false;
+	}
 
 	return true;
 }
@@ -2661,7 +2720,9 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
 			mul_v3_fl(a, f1);
 			add_v3_v3v3(vi, v1, a);
 
-			if (r_lambda) *r_lambda = f1;
+			if (r_lambda) {
+				*r_lambda = f1;
+			}
 
 			return true; /* intersection found */
 		}
@@ -2708,30 +2769,36 @@ bool isect_ray_aabb_v3(
 	const float tymin = (bbox[data->sign[1]][1] - data->ray_origin[1]) * data->ray_inv_dir[1];
 	const float tymax = (bbox[1 - data->sign[1]][1] - data->ray_origin[1]) * data->ray_inv_dir[1];
 
-	if ((tmin > tymax) || (tymin > tmax))
+	if ((tmin > tymax) || (tymin > tmax)) {
 		return false;
+	}
 
-	if (tymin > tmin)
+	if (tymin > tmin) {
 		tmin = tymin;
+	}
 
-	if (tymax < tmax)
+	if (tymax < tmax) {
 		tmax = tymax;
+	}
 
 	const float tzmin = (bbox[data->sign[2]][2] - data->ray_origin[2]) * data->ray_inv_dir[2];
 	const float tzmax = (bbox[1 - data->sign[2]][2] - data->ray_origin[2]) * data->ray_inv_dir[2];
 
-	if ((tmin > tzmax) || (tzmin > tmax))
+	if ((tmin > tzmax) || (tzmin > tmax)) {
 		return false;
+	}
 
-	if (tzmin > tmin)
+	if (tzmin > tmin) {
 		tmin = tzmin;
+	}
 
 	/* Note: tmax does not need to be updated since we don't use it
 	 * keeping this here for future reference - jwilkins */
 	//if (tzmax < tmax) tmax = tzmax;
 
-	if (tmin_out)
+	if (tmin_out) {
 		(*tmin_out) = tmin;
+	}
 
 	return true;
 }
@@ -2764,10 +2831,12 @@ bool isect_ray_aabb_v3_simple(
 		return false;
 	}
 	else {
-		if (tmin)
+		if (tmin) {
 			*tmin = hit_dist[0];
-		if (tmax)
+		}
+		if (tmax) {
 			*tmax = hit_dist[1];
+		}
 		return true;
 	}
 }
@@ -2952,7 +3021,9 @@ static bool point_in_slice_as(float p[3], float origin[3], float normal[3])
 	float h, rp[3];
 	sub_v3_v3v3(rp, p, origin);
 	h = dot_v3v3(normal, rp) / dot_v3v3(normal, normal);
-	if (h < 0.0f || h > 1.0f) return false;
+	if (h < 0.0f || h > 1.0f) {
+		return false;
+	}
 	return true;
 }
 
@@ -2967,9 +3038,9 @@ bool point_in_slice_seg(float p[3], float l1[3], float l2[3])
 
 bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3])
 {
-	if (!point_in_slice(p, v1, v2, v3)) return false;
-	if (!point_in_slice(p, v2, v3, v1)) return false;
-	if (!point_in_slice(p, v3, v1, v2)) return false;
+	if (!point_in_slice(p, v1, v2, v3)) { return false; }
+	if (!point_in_slice(p, v2, v3, v1)) { return false; }
+	if (!point_in_slice(p, v3, v1, v2)) { return false; }
 	return true;
 }
 
@@ -3010,8 +3081,10 @@ bool clip_segment_v3_plane(
 	sub_v3_v3v3(dp, p2, p1);
 	div = dot_v3v3(dp, plane);
 
-	if (div == 0.0f) /* parallel */
+	if (div == 0.0f) {
+		/* parallel */
 		return true;
+	}
 
 	float t = -plane_point_side_v3(plane, p1);
 
@@ -3200,14 +3273,18 @@ void interp_weights_quad_v3(float w[4], const float v1[3], const float v2[3], co
 	w[0] = w[1] = w[2] = w[3] = 0.0f;
 
 	/* first check for exact match */
-	if (equals_v3v3(co, v1))
+	if (equals_v3v3(co, v1)) {
 		w[0] = 1.0f;
-	else if (equals_v3v3(co, v2))
+	}
+	else if (equals_v3v3(co, v2)) {
 		w[1] = 1.0f;
-	else if (equals_v3v3(co, v3))
+	}
+	else if (equals_v3v3(co, v3)) {
 		w[2] = 1.0f;
-	else if (equals_v3v3(co, v4))
+	}
+	else if (equals_v3v3(co, v4)) {
 		w[3] = 1.0f;
+	}
 	else {
 		/* otherwise compute barycentric interpolation weights */
 		float n1[3], n2[3], n[3];
@@ -3487,10 +3564,12 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
 	int i;
 
 	for (i = 0; i < list_size; i++) {
-		if (array[i] == skipval)
+		if (array[i] == skipval) {
 			found_invalid = 1;
-		else
+		}
+		else {
 			found_valid = 1;
+		}
 	}
 
 	if (found_valid == 0) {
@@ -3898,8 +3977,9 @@ void resolve_quad_uv_v2_deriv(float r_uv[2], float r_deriv[2][2],
 
 	if (IS_ZERO(denom) != 0) {
 		const double fDen = a - fC;
-		if (IS_ZERO(fDen) == 0)
+		if (IS_ZERO(fDen) == 0) {
 			r_uv[0] = (float)(a / fDen);
+		}
 	}
 	else {
 		const double desc_sq = b * b - a * fC;
@@ -3922,8 +4002,9 @@ void resolve_quad_uv_v2_deriv(float r_uv[2], float r_deriv[2][2],
 			denom = denom_t;
 		}
 
-		if (IS_ZERO(denom) == 0)
+		if (IS_ZERO(denom) == 0) {
 			r_uv[1] = (float)((double)((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) / denom);
+		}
 	}
 
 	if (r_deriv) {
@@ -3974,10 +4055,12 @@ float resolve_quad_u_v2(
 
 	if (IS_ZERO(denom) != 0) {
 		const double fDen = a - fC;
-		if (IS_ZERO(fDen) == 0)
+		if (IS_ZERO(fDen) == 0) {
 			return (float)(a / fDen);
-		else
+		}
+		else {
 			return 0.0f;
+		}
 	}
 	else {
 		const double desc_sq = b * b - a * fC;
@@ -4183,12 +4266,14 @@ static void i_multmatrix(float icand[4][4], float Vm[4][4])
 	int row, col;
 	float temp[4][4];
 
-	for (row = 0; row < 4; row++)
-		for (col = 0; col < 4; col++)
+	for (row = 0; row < 4; row++) {
+		for (col = 0; col < 4; col++) {
 			temp[row][col] = (icand[row][0] * Vm[0][col] +
 			                  icand[row][1] * Vm[1][col] +
 			                  icand[row][2] * Vm[2][col] +
 			                  icand[row][3] * Vm[3][col]);
+		}
+	}
 	copy_m4_m4(Vm, temp);
 }
 
@@ -4270,22 +4355,24 @@ int box_clip_bounds_m4(float boundbox[2][3], const float bounds[4], float winmat
 
 		fl = 0;
 		if (bounds) {
-			if (vec[0] > bounds[1] * vec[3]) fl |= 1;
-			if (vec[0] < bounds[0] * vec[3]) fl |= 2;
-			if (vec[1] > bounds[3] * vec[3]) fl |= 4;
-			if (vec[1] < bounds[2] * vec[3]) fl |= 8;
+			if (vec[0] > bounds[1] * vec[3]) { fl |= 1; }
+			if (vec[0] < bounds[0] * vec[3]) { fl |= 2; }
+			if (vec[1] > bounds[3] * vec[3]) { fl |= 4; }
+			if (vec[1] < bounds[2] * vec[3]) { fl |= 8; }
 		}
 		else {
-			if (vec[0] < -vec[3]) fl |= 1;
-			if (vec[0] > vec[3]) fl |= 2;
-			if (vec[1] < -vec[3]) fl |= 4;
-			if (vec[1] > vec[3]) fl |= 8;
+			if (vec[0] < -vec[3]) { fl |= 1; }
+			if (vec[0] >  vec[3]) { fl |= 2; }
+			if (vec[1] < -vec[3]) { fl |= 4; }
+			if (vec[1] >  vec[3]) { fl |= 8; }
 		}
-		if (vec[2] < -vec[3]) fl |= 16;
-		if (vec[2] > vec[3]) fl |= 32;
+		if (vec[2] < -vec[3]) { fl |= 16; }
+		if (vec[2] >  vec[3]) { fl |= 32; }
 
 		flag &= fl;
-		if (flag == 0) return 0;
+		if (flag == 0) {
+			return 0;
+		}
 	}
 
 	return flag;
@@ -4551,10 +4638,10 @@ void vcloud_estimate_transform_v3(
 
 	int a;
 	/* first set up a nice default response */
-	if (lloc) zero_v3(lloc);
-	if (rloc) zero_v3(rloc);
-	if (lrot) unit_m3(lrot);
-	if (lscale) unit_m3(lscale);
+	if (lloc) { zero_v3(lloc); }
+	if (rloc) { zero_v3(rloc); }
+	if (lrot) { unit_m3(lrot); }
+	if (lscale) { unit_m3(lscale); }
 	/* do com for both clouds */
 	if (pos && rpos && (list_size > 0)) { /* paranoya check */
 		/* do com for both clouds */
@@ -4587,8 +4674,12 @@ void vcloud_estimate_transform_v3(
 
 		mul_v3_fl(accu_com, 1.0f / accu_weight);
 		mul_v3_fl(accu_rcom, 1.0f / accu_rweight);
-		if (lloc) copy_v3_v3(lloc, accu_com);
-		if (rloc) copy_v3_v3(rloc, accu_rcom);
+		if (lloc) {
+			copy_v3_v3(lloc, accu_com);
+		}
+		if (rloc) {
+			copy_v3_v3(rloc, accu_rcom);
+		}
 		if (lrot || lscale) { /* caller does not want rot nor scale, strange but legal */
 			/* so now do some reverse engineering and see if we can
 			 * split rotation from scale -> Polardecompose */
@@ -4657,12 +4748,16 @@ void vcloud_estimate_transform_v3(
 			if (i) {
 				float scale[3][3];
 				float irot[3][3];
-				if (lrot) copy_m3_m3(lrot, q);
+				if (lrot) {
+					copy_m3_m3(lrot, q);
+				}
 				invert_m3_m3(irot, q);
 				invert_m3_m3(qi, mr);
 				mul_m3_m3m3(q, m, qi);
 				mul_m3_m3m3(scale, irot, q);
-				if (lscale) copy_m3_m3(lscale, scale);
+				if (lscale) {
+					copy_m3_m3(lscale, scale);
+				}
 
 			}
 		}
@@ -4691,9 +4786,9 @@ bool form_factor_visible_quad(const float p[3], const float n[3],
 	sd[1] = dot_v3v3(n, v1) - c;
 	sd[2] = dot_v3v3(n, v2) - c;
 
-	if (fabsf(sd[0]) < epsilon) sd[0] = 0.0f;
-	if (fabsf(sd[1]) < epsilon) sd[1] = 0.0f;
-	if (fabsf(sd[2]) < epsilon) sd[2] = 0.0f;
+	if (fabsf(sd[0]) < epsilon) { sd[0] = 0.0f; }
+	if (fabsf(sd[1]) < epsilon) { sd[1] = 0.0f; }
+	if (fabsf(sd[2]) < epsilon) { sd[2] = 0.0f; }
 
 	if (sd[0] > 0.0f) {
 		if (sd[1] > 0.0f) {
@@ -5085,11 +5180,13 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 	 * covered by a quad or triangle, cosine weighted */
 	float q0[3], q1[3], q2[3], q3[3], contrib = 0.0f;
 
-	if (form_factor_visible_quad(p, n, v1, v2, v3, q0, q1, q2, q3))
+	if (form_factor_visible_quad(p, n, v1, v2, v3, q0, q1, q2, q3)) {
 		contrib += form_factor_quad(p, n, q0, q1, q2, q3);
+	}
 
-	if (v4 && form_factor_visible_quad(p, n, v1, v3, v4, q0, q1, q2, q3))
+	if (v4 && form_factor_visible_quad(p, n, v1, v3, v4, q0, q1, q2, q3)) {
 		contrib += form_factor_quad(p, n, q0, q1, q2, q3);
+	}
 
 	return contrib;
 }

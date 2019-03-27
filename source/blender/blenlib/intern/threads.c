@@ -99,8 +99,9 @@ static TaskScheduler *task_scheduler = NULL;
  *         }
  *         // conditions to exit loop
  *         if (if escape loop event) {
- *             if (BLI_available_threadslots(&lb) == maxthreads)
+ *             if (BLI_available_threadslots(&lb) == maxthreads) {
  *                 break;
+ *             }
  *         }
  *     }
  *
@@ -188,8 +189,12 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
 	if (threadbase != NULL && tot > 0) {
 		BLI_listbase_clear(threadbase);
 
-		if (tot > RE_MAX_THREAD) tot = RE_MAX_THREAD;
-		else if (tot < 1) tot = 1;
+		if (tot > RE_MAX_THREAD) {
+			tot = RE_MAX_THREAD;
+		}
+		else if (tot < 1) {
+			tot = 1;
+		}
 
 		for (a = 0; a < tot; a++) {
 			ThreadSlot *tslot = MEM_callocN(sizeof(ThreadSlot), "threadslot");
@@ -219,8 +224,9 @@ int BLI_available_threads(ListBase *threadbase)
 	int counter = 0;
 
 	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
-		if (tslot->avail)
+		if (tslot->avail) {
 			counter++;
+		}
 	}
 	return counter;
 }
@@ -232,8 +238,9 @@ int BLI_threadpool_available_thread_index(ListBase *threadbase)
 	int counter = 0;
 
 	for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
-		if (tslot->avail)
+		if (tslot->avail) {
 			return counter;
+		}
 	}
 	return 0;
 }
@@ -527,10 +534,12 @@ void BLI_rw_mutex_init(ThreadRWMutex *mutex)
 
 void BLI_rw_mutex_lock(ThreadRWMutex *mutex, int mode)
 {
-	if (mode == THREAD_LOCK_READ)
+	if (mode == THREAD_LOCK_READ) {
 		pthread_rwlock_rdlock(mutex);
-	else
+	}
+	else {
 		pthread_rwlock_wrlock(mutex);
+	}
 }
 
 void BLI_rw_mutex_unlock(ThreadRWMutex *mutex)
@@ -588,8 +597,9 @@ void BLI_ticket_mutex_lock(TicketMutex *ticket)
 	pthread_mutex_lock(&ticket->mutex);
 	queue_me = ticket->queue_tail++;
 
-	while (queue_me != ticket->queue_head)
+	while (queue_me != ticket->queue_head) {
 		pthread_cond_wait(&ticket->cond, &ticket->mutex);
+	}
 
 	pthread_mutex_unlock(&ticket->mutex);
 }
@@ -690,15 +700,17 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
-	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait)
+	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
 		pthread_cond_wait(&queue->push_cond, &queue->mutex);
+	}
 
 	/* if we have something, pop it */
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
 
-		if (BLI_gsqueue_is_empty(queue->queue))
+		if (BLI_gsqueue_is_empty(queue->queue)) {
 			pthread_cond_broadcast(&queue->finish_cond);
+		}
 	}
 
 	pthread_mutex_unlock(&queue->mutex);
@@ -753,18 +765,21 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
 	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
-		if (pthread_cond_timedwait(&queue->push_cond, &queue->mutex, &timeout) == ETIMEDOUT)
+		if (pthread_cond_timedwait(&queue->push_cond, &queue->mutex, &timeout) == ETIMEDOUT) {
 			break;
-		else if (PIL_check_seconds_timer() - t >= ms * 0.001)
+		}
+		else if (PIL_check_seconds_timer() - t >= ms * 0.001) {
 			break;
+		}
 	}
 
 	/* if we have something, pop it */
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
 
-		if (BLI_gsqueue_is_empty(queue->queue))
+		if (BLI_gsqueue_is_empty(queue->queue)) {
 			pthread_cond_broadcast(&queue->finish_cond);
+		}
 	}
 
 	pthread_mutex_unlock(&queue->mutex);
@@ -810,8 +825,9 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 	/* wait for finish condition */
 	pthread_mutex_lock(&queue->mutex);
 
-	while (!BLI_gsqueue_is_empty(queue->queue))
+	while (!BLI_gsqueue_is_empty(queue->queue)) {
 		pthread_cond_wait(&queue->finish_cond, &queue->mutex);
+	}
 
 	pthread_mutex_unlock(&queue->mutex);
 }

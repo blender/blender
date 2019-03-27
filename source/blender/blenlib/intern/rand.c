@@ -297,8 +297,9 @@ static RNG rng_tab[BLENDER_MAX_THREADS];
 
 void BLI_thread_srandom(int thread, unsigned int seed)
 {
-	if (thread >= BLENDER_MAX_THREADS)
+	if (thread >= BLENDER_MAX_THREADS) {
 		thread = 0;
+	}
 
 	BLI_rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
 	seed = BLI_rng_get_uint(&rng_tab[thread]);

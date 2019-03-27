@@ -141,8 +141,9 @@ loop:
 			}
 			pc -= es;
 		}
-		if (pb > pc)
+		if (pb > pc) {
 			break;
+		}
 		swap(pb, pc);
 		swap_cnt = 1;
 		pb += es;
@@ -165,8 +166,9 @@ loop:
 	vecswap((char *)a, pb - r, r);
 	r = min(pd - pc, pn - pd - es);
 	vecswap(pb, pn - r, r);
-	if ((r = pb - pa) > es)
+	if ((r = pb - pa) > es) {
 		BLI_qsort_r(a, r / es, es, cmp, thunk);
+	}
 	if ((r = pd - pc) > es) {
 		/* Iterate rather than recurse to save stack space */
 		a = pn - r;

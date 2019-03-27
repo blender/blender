@@ -93,10 +93,10 @@ static int vergscdata(const void *a1, const void *a2)
 {
 	const ScanFillVertLink *x1 = a1, *x2 = a2;
 
-	if      (x1->vert->xy[1] < x2->vert->xy[1]) return  1;
-	else if (x1->vert->xy[1] > x2->vert->xy[1]) return -1;
-	else if (x1->vert->xy[0] > x2->vert->xy[0]) return  1;
-	else if (x1->vert->xy[0] < x2->vert->xy[0]) return -1;
+	if      (x1->vert->xy[1] < x2->vert->xy[1]) { return  1; }
+	else if (x1->vert->xy[1] > x2->vert->xy[1]) { return -1; }
+	else if (x1->vert->xy[0] > x2->vert->xy[0]) { return  1; }
+	else if (x1->vert->xy[0] < x2->vert->xy[0]) { return -1; }
 
 	return 0;
 }
@@ -105,10 +105,10 @@ static int vergpoly(const void *a1, const void *a2)
 {
 	const PolyFill *x1 = a1, *x2 = a2;
 
-	if      (x1->min_xy[0] > x2->min_xy[0]) return  1;
-	else if (x1->min_xy[0] < x2->min_xy[0]) return -1;
-	else if (x1->min_xy[1] > x2->min_xy[1]) return  1;
-	else if (x1->min_xy[1] < x2->min_xy[1]) return -1;
+	if      (x1->min_xy[0] > x2->min_xy[0]) { return  1; }
+	else if (x1->min_xy[0] < x2->min_xy[0]) { return -1; }
+	else if (x1->min_xy[1] > x2->min_xy[1]) { return  1; }
+	else if (x1->min_xy[1] < x2->min_xy[1]) { return -1; }
 
 	return 0;
 }
@@ -174,20 +174,20 @@ static bool boundisect(PolyFill *pf2, PolyFill *pf1)
 	/* has pf2 been touched (intersected) by pf1 ? with bounding box */
 	/* test first if polys exist */
 
-	if (pf1->edges == 0 || pf2->edges == 0) return false;
+	if (pf1->edges == 0 || pf2->edges == 0) { return false; }
 
-	if (pf2->max_xy[0] < pf1->min_xy[0]) return false;
-	if (pf2->max_xy[1] < pf1->min_xy[1]) return false;
+	if (pf2->max_xy[0] < pf1->min_xy[0]) { return false; }
+	if (pf2->max_xy[1] < pf1->min_xy[1]) { return false; }
 
-	if (pf2->min_xy[0] > pf1->max_xy[0]) return false;
-	if (pf2->min_xy[1] > pf1->max_xy[1]) return false;
+	if (pf2->min_xy[0] > pf1->max_xy[0]) { return false; }
+	if (pf2->min_xy[1] > pf1->max_xy[1]) { return false; }
 
 	/* join */
-	if (pf2->max_xy[0] < pf1->max_xy[0]) pf2->max_xy[0] = pf1->max_xy[0];
-	if (pf2->max_xy[1] < pf1->max_xy[1]) pf2->max_xy[1] = pf1->max_xy[1];
+	if (pf2->max_xy[0] < pf1->max_xy[0]) { pf2->max_xy[0] = pf1->max_xy[0]; }
+	if (pf2->max_xy[1] < pf1->max_xy[1]) { pf2->max_xy[1] = pf1->max_xy[1]; }
 
-	if (pf2->min_xy[0] > pf1->min_xy[0]) pf2->min_xy[0] = pf1->min_xy[0];
-	if (pf2->min_xy[1] > pf1->min_xy[1]) pf2->min_xy[1] = pf1->min_xy[1];
+	if (pf2->min_xy[0] > pf1->min_xy[0]) { pf2->min_xy[0] = pf1->min_xy[0]; }
+	if (pf2->min_xy[1] > pf1->min_xy[1]) { pf2->min_xy[1] = pf1->min_xy[1]; }
 
 	return true;
 }
@@ -230,8 +230,12 @@ static bool testedgeside(const float v1[2], const float v2[2], const float v3[2]
 		return false;
 	}
 	else if (inp == 0.0f) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return false;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return false;
+		if (v1[0] == v3[0] && v1[1] == v3[1]) {
+			return false;
+		}
+		if (v2[0] == v3[0] && v2[1] == v3[1]) {
+			return false;
+		}
 	}
 	return true;
 }
@@ -278,8 +282,12 @@ static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 			break;
 		}
 	}
-	if (ed) BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed, eed);
-	else BLI_addtail((ListBase *)&(sc->edge_first), eed);
+	if (ed) {
+		BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed, eed);
+	}
+	else {
+		BLI_addtail((ListBase *)&(sc->edge_first), eed);
+	}
 
 	return true;
 }
@@ -519,13 +527,15 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 			 */
 			if (eed->v1->f == SF_VERT_ZERO_LEN) {
 				v1 = eed->v1;
-				while ((eed->v1->f == SF_VERT_ZERO_LEN) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v))
+				while ((eed->v1->f == SF_VERT_ZERO_LEN) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v)) {
 					eed->v1 = eed->v1->tmp.v;
+				}
 			}
 			if (eed->v2->f == SF_VERT_ZERO_LEN) {
 				v2 = eed->v2;
-				while ((eed->v2->f == SF_VERT_ZERO_LEN) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v))
+				while ((eed->v2->f == SF_VERT_ZERO_LEN) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v)) {
 					eed->v2 = eed->v2->tmp.v;
+				}
 			}
 			if (eed->v1 != eed->v2) {
 				addedgetoscanlist(scdata, eed, verts);
@@ -555,8 +565,9 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 
 	/* STEP 2: FILL LOOP */
 
-	if (pf->f == SF_POLY_NEW)
+	if (pf->f == SF_POLY_NEW) {
 		twoconnected = true;
+	}
 
 	/* (temporal) security: never much more faces than vertices */
 	totface = 0;
@@ -577,8 +588,12 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 			if (ed1->v1->edge_tot == 1 || ed1->v2->edge_tot == 1) {
 				BLI_remlink((ListBase *)&(sc->edge_first), ed1);
 				BLI_addtail(&sf_ctx->filledgebase, ed1);
-				if (ed1->v1->edge_tot > 1) ed1->v1->edge_tot--;
-				if (ed1->v2->edge_tot > 1) ed1->v2->edge_tot--;
+				if (ed1->v1->edge_tot > 1) {
+					ed1->v1->edge_tot--;
+				}
+				if (ed1->v2->edge_tot > 1) {
+					ed1->v2->edge_tot--;
+				}
 			}
 			else {
 				ed1->v2->f = SF_VERT_AVAILABLE;
@@ -616,7 +631,9 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 				v3 = ed2->v2;
 
 				/* this happens with a serial of overlapping edges */
-				if (v1 == v2 || v2 == v3) break;
+				if (v1 == v2 || v2 == v3) {
+					break;
+				}
 
 				/* printf("test verts %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u); */
 				miny = min_ff(v1->xy[1], v3->xy[1]);
@@ -624,7 +641,9 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 
 				for (b = a + 1; b < verts; b++, sc1++) {
 					if (sc1->vert->f == SF_VERT_NEW) {
-						if (sc1->vert->xy[1] <= miny) break;
+						if (sc1->vert->xy[1] <= miny) {
+							break;
+						}
 						if (testedgeside(v1->xy, v2->xy, sc1->vert->xy)) {
 							if (testedgeside(v2->xy, v3->xy, sc1->vert->xy)) {
 								if (testedgeside(v3->xy, v1->xy, sc1->vert->xy)) {
@@ -724,8 +743,12 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 				if (ed1->v1->edge_tot < 2 || ed1->v2->edge_tot < 2) {
 					BLI_remlink((ListBase *)&(sc->edge_first), ed1);
 					BLI_addtail(&sf_ctx->filledgebase, ed1);
-					if (ed1->v1->edge_tot > 1) ed1->v1->edge_tot--;
-					if (ed1->v2->edge_tot > 1) ed1->v2->edge_tot--;
+					if (ed1->v1->edge_tot > 1) {
+						ed1->v1->edge_tot--;
+					}
+					if (ed1->v2->edge_tot > 1) {
+						ed1->v2->edge_tot--;
+					}
 				}
 			}
 			/* done with loose edges */
@@ -934,8 +957,12 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	if (flag & BLI_SCANFILL_CALC_LOOSE) {
 		unsigned int toggle = 0;
 		for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-			if (eed->v1->edge_tot++ > 250) break;
-			if (eed->v2->edge_tot++ > 250) break;
+			if (eed->v1->edge_tot++ > 250) {
+				break;
+			}
+			if (eed->v2->edge_tot++ > 250) {
+				break;
+			}
 		}
 		if (eed) {
 			/* otherwise it's impossible to be sure you can clear vertices */

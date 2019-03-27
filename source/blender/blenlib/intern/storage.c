@@ -127,25 +127,35 @@ double BLI_dir_free_space(const char *dir)
 	char name[FILE_MAXDIR], *slash;
 	int len = strlen(dir);
 
-	if (len >= FILE_MAXDIR) /* path too long */
+	if (len >= FILE_MAXDIR) {
+		/* path too long */
 		return -1;
+	}
 
 	strcpy(name, dir);
 
 	if (len) {
 		slash = strrchr(name, '/');
-		if (slash) slash[1] = 0;
+		if (slash) {
+			slash[1] = 0;
+		}
 	}
 	else {
 		strcpy(name, "/");
 	}
 
 #if  defined(USE_STATFS_STATVFS)
-	if (statvfs(name, &disk)) return -1;
+	if (statvfs(name, &disk)) {
+		return -1;
+	}
 #elif defined(USE_STATFS_4ARGS)
-	if (statfs(name, &disk, sizeof(struct statfs), 0)) return -1;
+	if (statfs(name, &disk, sizeof(struct statfs), 0)) {
+		return -1;
+	}
 #else
-	if (statfs(name, &disk)) return -1;
+	if (statfs(name, &disk)) {
+		return -1;
+	}
 #endif
 
 	return ( ((double) disk.f_bsize) * ((double) disk.f_bfree));
@@ -159,8 +169,9 @@ double BLI_dir_free_space(const char *dir)
 size_t BLI_file_descriptor_size(int file)
 {
 	struct stat st;
-	if ((file < 0) || (fstat(file, &st) == -1))
+	if ((file < 0) || (fstat(file, &st) == -1)) {
 		return -1;
+	}
 	return st.st_size;
 }
 
@@ -170,8 +181,9 @@ size_t BLI_file_descriptor_size(int file)
 size_t BLI_file_size(const char *path)
 {
 	BLI_stat_t stats;
-	if (BLI_stat(path, &stats) == -1)
+	if (BLI_stat(path, &stats) == -1) {
 		return -1;
+	}
 	return stats.st_size;
 }
 
@@ -216,11 +228,15 @@ int BLI_exists(const char *name)
 	SetErrorMode(old_error_mode);
 
 	free(tmp_16);
-	if (res == -1) return(0);
+	if (res == -1) {
+		return(0);
+	}
 #else
 	struct stat st;
 	BLI_assert(!BLI_path_is_rel(name));
-	if (stat(name, &st)) return(0);
+	if (stat(name, &st)) {
+		return(0);
+	}
 #endif
 	return(st.st_mode);
 }
@@ -356,7 +372,9 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 	char *buf;
 	size_t size;
 
-	if (!fp) return NULL;
+	if (!fp) {
+		return NULL;
+	}
 
 	fseek(fp, 0, SEEK_END);
 	size = (size_t)ftell(fp);
@@ -410,16 +428,24 @@ bool BLI_file_older(const char *file1, const char *file2)
 	UTF16_ENCODE(file1);
 	UTF16_ENCODE(file2);
 
-	if (_wstat(file1_16, &st1)) return false;
-	if (_wstat(file2_16, &st2)) return false;
+	if (_wstat(file1_16, &st1)) {
+		return false;
+	}
+	if (_wstat(file2_16, &st2)) {
+		return false;
+	}
 
 	UTF16_UN_ENCODE(file2);
 	UTF16_UN_ENCODE(file1);
 #else
 	struct stat st1, st2;
 
-	if (stat(file1, &st1)) return false;
-	if (stat(file2, &st2)) return false;
+	if (stat(file1, &st1)) {
+		return false;
+	}
+	if (stat(file2, &st2)) {
+		return false;
+	}
 #endif
 	return (st1.st_mtime < st2.st_mtime);
 }

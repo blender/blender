@@ -333,8 +333,9 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 
 	pool->num -= done;
 
-	if (pool->num == 0)
+	if (pool->num == 0) {
 		BLI_condition_notify_all(&pool->num_cond);
+	}
 
 	BLI_mutex_unlock(&pool->num_mutex);
 }
@@ -354,8 +355,9 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 	bool found_task = false;
 	BLI_mutex_lock(&scheduler->queue_mutex);
 
-	while (!scheduler->queue.first && !scheduler->do_exit)
+	while (!scheduler->queue.first && !scheduler->do_exit) {
 		BLI_condition_wait(&scheduler->queue_cond, &scheduler->queue_mutex);
+	}
 
 	do {
 		Task *current_task;
@@ -391,8 +393,9 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 			BLI_remlink(&scheduler->queue, *task);
 			break;
 		}
-		if (!found_task)
+		if (!found_task) {
 			BLI_condition_wait(&scheduler->queue_cond, &scheduler->queue_mutex);
+		}
 	} while (!found_task);
 
 	BLI_mutex_unlock(&scheduler->queue_mutex);
@@ -525,8 +528,9 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 		int i;
 
 		for (i = 0; i < scheduler->num_threads; i++) {
-			if (pthread_join(scheduler->threads[i], NULL) != 0)
+			if (pthread_join(scheduler->threads[i], NULL) != 0) {
 				fprintf(stderr, "TaskScheduler failed to join thread %d/%d\n", i, scheduler->num_threads);
+			}
 		}
 
 		MEM_freeN(scheduler->threads);
@@ -567,10 +571,12 @@ static void task_scheduler_push(TaskScheduler *scheduler, Task *task, TaskPriori
 	/* add task to queue */
 	BLI_mutex_lock(&scheduler->queue_mutex);
 
-	if (priority == TASK_PRIORITY_HIGH)
+	if (priority == TASK_PRIORITY_HIGH) {
 		BLI_addhead(&scheduler->queue, task);
-	else
+	}
+	else {
 		BLI_addtail(&scheduler->queue, task);
+	}
 
 	BLI_condition_notify_one(&scheduler->queue_cond);
 	BLI_mutex_unlock(&scheduler->queue_mutex);
@@ -908,11 +914,13 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		}
 
 		BLI_mutex_lock(&pool->num_mutex);
-		if (pool->num == 0)
+		if (pool->num == 0) {
 			break;
+		}
 
-		if (!found_task)
+		if (!found_task) {
 			BLI_condition_wait(&pool->num_cond, &pool->num_mutex);
+		}
 	}
 
 	BLI_mutex_unlock(&pool->num_mutex);
@@ -936,8 +944,9 @@ void BLI_task_pool_cancel(TaskPool *pool)
 
 	/* wait until all entries are cleared */
 	BLI_mutex_lock(&pool->num_mutex);
-	while (pool->num)
+	while (pool->num) {
 		BLI_condition_wait(&pool->num_cond, &pool->num_mutex);
+	}
 	BLI_mutex_unlock(&pool->num_mutex);
 
 	pool->do_cancel = false;

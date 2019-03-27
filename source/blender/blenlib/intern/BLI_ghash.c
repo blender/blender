@@ -241,7 +241,9 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
 				const unsigned bucket_index = ghash_bucket_index(gh, i);
 				BLI_assert(!buckets_old[i] || (bucket_index == ghash_bucket_index(gh, ghash_entryhash(gh, buckets_old[i]))));
 				Entry *e;
-				for (e = buckets_old[i]; e && e->next; e = e->next);
+				for (e = buckets_old[i]; e && e->next; e = e->next) {
+					/* pass */
+				}
 				if (e) {
 					e->next = buckets_new[bucket_index];
 					buckets_new[bucket_index] = buckets_old[i];
@@ -983,8 +985,9 @@ void BLI_ghash_clear_ex(
         GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
         const uint nentries_reserve)
 {
-	if (keyfreefp || valfreefp)
+	if (keyfreefp || valfreefp) {
 		ghash_free_cb(gh, keyfreefp, valfreefp);
+	}
 
 	ghash_buckets_reset(gh, nentries_reserve);
 	BLI_mempool_clear_ex(gh->entrypool, nentries_reserve ? (int)nentries_reserve : -1);
@@ -1008,8 +1011,9 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	BLI_assert((int)gh->nentries == BLI_mempool_len(gh->entrypool));
-	if (keyfreefp || valfreefp)
+	if (keyfreefp || valfreefp) {
 		ghash_free_cb(gh, keyfreefp, valfreefp);
+	}
 
 	MEM_freeN(gh->buckets);
 	BLI_mempool_destroy(gh->entrypool);
@@ -1069,8 +1073,9 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 	if (gh->nentries) {
 		do {
 			ghi->curBucket++;
-			if (UNLIKELY(ghi->curBucket == ghi->gh->nbuckets))
+			if (UNLIKELY(ghi->curBucket == ghi->gh->nbuckets)) {
 				break;
+			}
 			ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
 		} while (!ghi->curEntry);
 	}
@@ -1087,8 +1092,9 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
 		ghi->curEntry = ghi->curEntry->next;
 		while (!ghi->curEntry) {
 			ghi->curBucket++;
-			if (ghi->curBucket == ghi->gh->nbuckets)
+			if (ghi->curBucket == ghi->gh->nbuckets) {
 				break;
+			}
 			ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
 		}
 	}

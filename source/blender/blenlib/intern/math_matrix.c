@@ -177,12 +177,15 @@ void swap_m4m4(float m1[4][4], float m2[4][4])
 
 void mul_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4])
 {
-	if (A == R)
+	if (A == R) {
 		mul_m4_m4_post(R, B);
-	else if (B == R)
+	}
+	else if (B == R) {
 		mul_m4_m4_pre(R, A);
-	else
+	}
+	else {
 		mul_m4_m4m4_uniq(R, A, B);
+	}
 }
 
 void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4])
@@ -249,12 +252,15 @@ void mul_m4_m4_post(float R[4][4], const float B[4][4])
 
 void mul_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3])
 {
-	if (A == R)
+	if (A == R) {
 		mul_m3_m3_post(R, B);
-	else if (B == R)
+	}
+	else if (B == R) {
 		mul_m3_m3_pre(R, A);
-	else
+	}
+	else {
 		mul_m3_m3m3_uniq(R, A, B);
+	}
 }
 
 void mul_m3_m3_pre(float R[3][3], const float A[3][3])
@@ -713,54 +719,66 @@ void mul_m3_fl(float m[3][3], float f)
 {
 	int i, j;
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
 			m[i][j] *= f;
+		}
+	}
 }
 
 void mul_m4_fl(float m[4][4], float f)
 {
 	int i, j;
 
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < 4; j++)
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
 			m[i][j] *= f;
+		}
+	}
 }
 
 void mul_mat3_m4_fl(float m[4][4], float f)
 {
 	int i, j;
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
 			m[i][j] *= f;
+		}
+	}
 }
 
 void negate_m3(float m[3][3])
 {
 	int i, j;
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
 			m[i][j] *= -1.0f;
+		}
+	}
 }
 
 void negate_mat3_m4(float m[4][4])
 {
 	int i, j;
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
 			m[i][j] *= -1.0f;
+		}
+	}
 }
 
 void negate_m4(float m[4][4])
 {
 	int i, j;
 
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < 4; j++)
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
 			m[i][j] *= -1.0f;
+		}
+	}
 }
 
 void mul_m3_v3_double(const float mat[3][3], double vec[3])
@@ -777,36 +795,44 @@ void add_m3_m3m3(float m1[3][3], const float m2[3][3], const float m3[3][3])
 {
 	int i, j;
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
 			m1[i][j] = m2[i][j] + m3[i][j];
+		}
+	}
 }
 
 void add_m4_m4m4(float m1[4][4], const float m2[4][4], const float m3[4][4])
 {
 	int i, j;
 
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < 4; j++)
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
 			m1[i][j] = m2[i][j] + m3[i][j];
+		}
+	}
 }
 
 void sub_m3_m3m3(float m1[3][3], const float m2[3][3], const float m3[3][3])
 {
 	int i, j;
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
 			m1[i][j] = m2[i][j] - m3[i][j];
+		}
+	}
 }
 
 void sub_m4_m4m4(float m1[4][4], const float m2[4][4], const float m3[4][4])
 {
 	int i, j;
 
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < 4; j++)
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
 			m1[i][j] = m2[i][j] - m3[i][j];
+		}
+	}
 }
 
 float determinant_m3_array(const float m[3][3])
@@ -1002,11 +1028,15 @@ void transpose_m4_m4(float rmat[4][4], const float mat[4][4])
 /* TODO: return bool */
 int compare_m4m4(const float mat1[4][4], const float mat2[4][4], float limit)
 {
-	if (compare_v4v4(mat1[0], mat2[0], limit))
-		if (compare_v4v4(mat1[1], mat2[1], limit))
-			if (compare_v4v4(mat1[2], mat2[2], limit))
-				if (compare_v4v4(mat1[3], mat2[3], limit))
+	if (compare_v4v4(mat1[0], mat2[0], limit)) {
+		if (compare_v4v4(mat1[1], mat2[1], limit)) {
+			if (compare_v4v4(mat1[2], mat2[2], limit)) {
+				if (compare_v4v4(mat1[3], mat2[3], limit)) {
 					return 1;
+				}
+			}
+		}
+	}
 	return 0;
 }
 
@@ -1194,8 +1224,9 @@ bool is_orthogonal_m3(const float m[3][3])
 
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j < i; j++) {
-			if (fabsf(dot_v3v3(m[i], m[j])) > 1e-5f)
+			if (fabsf(dot_v3v3(m[i], m[j])) > 1e-5f) {
 				return false;
+			}
 		}
 	}
 
@@ -1208,8 +1239,9 @@ bool is_orthogonal_m4(const float m[4][4])
 
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < i; j++) {
-			if (fabsf(dot_v4v4(m[i], m[j])) > 1e-5f)
+			if (fabsf(dot_v4v4(m[i], m[j])) > 1e-5f) {
 				return false;
+			}
 		}
 
 	}
@@ -1222,9 +1254,11 @@ bool is_orthonormal_m3(const float m[3][3])
 	if (is_orthogonal_m3(m)) {
 		int i;
 
-		for (i = 0; i < 3; i++)
-			if (fabsf(dot_v3v3(m[i], m[i]) - 1) > 1e-5f)
+		for (i = 0; i < 3; i++) {
+			if (fabsf(dot_v3v3(m[i], m[i]) - 1) > 1e-5f) {
 				return false;
+			}
+		}
 
 		return true;
 	}
@@ -1238,8 +1272,9 @@ bool is_orthonormal_m4(const float m[4][4])
 		int i;
 
 		for (i = 0; i < 4; i++)
-			if (fabsf(dot_v4v4(m[i], m[i]) - 1) > 1e-5f)
+			if (fabsf(dot_v4v4(m[i], m[i]) - 1) > 1e-5f) {
 				return false;
+			}
 
 		return true;
 	}
@@ -2071,8 +2106,9 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 			/* Place the transformation in U for subsequent back
 			 * multiplication. */
 
-			for (i = k; i < m; i++)
+			for (i = k; i < m; i++) {
 				U[i][k] = A[i][k];
+			}
 		}
 		if (k < nrt) {
 
@@ -2120,8 +2156,9 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 			/* Place the transformation in V for subsequent
 			 * back multiplication. */
 
-			for (i = k + 1; i < n; i++)
+			for (i = k + 1; i < n; i++) {
 				V[i][k] = e[i];
+			}
 		}
 	}
 
@@ -2205,8 +2242,9 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 		int kase = 0;
 
 		/* Test for maximum iterations to avoid infinite loop */
-		if (maxiter == 0)
+		if (maxiter == 0) {
 			break;
+		}
 		maxiter--;
 
 		/* This section of the program inspects for
@@ -2394,8 +2432,9 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				if (s[k] <= 0.0f) {
 					s[k] = (s[k] < 0.0f ? -s[k] : 0.0f);
 
-					for (i = 0; i <= pp; i++)
+					for (i = 0; i <= pp; i++) {
 						V[i][k] = -V[i][k];
+					}
 				}
 
 				/* Order the singular values. */
@@ -2445,8 +2484,9 @@ void pseudoinverse_m4_m4(float Ainv[4][4], const float A_[4][4], float epsilon)
 	transpose_m4(V);
 
 	zero_m4(Wm);
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++) {
 		Wm[i][i] = (W[i] < epsilon) ? 0.0f : 1.0f / W[i];
+	}
 
 	transpose_m4(V);
 

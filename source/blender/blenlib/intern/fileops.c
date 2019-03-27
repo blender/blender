@@ -140,8 +140,9 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *r_size)
 		MEM_freeN(mem);
 		mem = NULL;
 	}
-	else if (alloc_size != size)
+	else if (alloc_size != size) {
 		mem = MEM_reallocN(mem, size);
+	}
 
 	*r_size = size;
 
@@ -249,8 +250,9 @@ void *BLI_gzopen(const char *filename, const char *mode)
 	BLI_assert(!BLI_path_is_rel(filename));
 
 	/* xxx Creates file before transcribing the path */
-	if (mode[0] == 'w')
+	if (mode[0] == 'w') {
 		fclose(ufopen(filename, "a"));
+	}
 
 	/* temporary #if until we update all libraries to 1.2.7
 	 * for correct wide char path handling */
@@ -293,11 +295,15 @@ static bool delete_unique(const char *path, const bool dir)
 
 	if (dir) {
 		err = !RemoveDirectoryW(path_16);
-		if (err) printf("Unable to remove directory\n");
+		if (err) {
+			printf("Unable to remove directory\n");
+		}
 	}
 	else {
 		err = !DeleteFileW(path_16);
-		if (err) callLocalErrorCallBack("Unable to delete file");
+		if (err) {
+			callLocalErrorCallBack("Unable to delete file");
+		}
 	}
 
 	UTF16_UN_ENCODE(path);
@@ -487,11 +493,16 @@ bool BLI_dir_create_recursive(const char *dirname)
 
 int BLI_rename(const char *from, const char *to)
 {
-	if (!BLI_exists(from)) return 0;
+	if (!BLI_exists(from)) {
+		return 0;
+	}
 
 	/* make sure the filenames are different (case insensitive) before removing */
-	if (BLI_exists(to) && BLI_strcasecmp(from, to))
-		if (BLI_delete(to, false, false)) return 1;
+	if (BLI_exists(to) && BLI_strcasecmp(from, to)) {
+		if (BLI_delete(to, false, false)) {
+			return 1;
+		}
+	}
 
 	return urename(from, to);
 }
@@ -517,10 +528,12 @@ static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, c
 {
 	size_t len = strlen(dir) + strlen(file) + 1;
 
-	if (*dst == NULL)
+	if (*dst == NULL) {
 		*dst = MEM_mallocN(len + 1, "join_dirfile_alloc path");
-	else if (*alloc_len < len)
+	}
+	else if (*alloc_len < len) {
 		*dst = MEM_reallocN(*dst, len + 1);
+	}
 
 	*alloc_len = len;
 
@@ -564,21 +577,24 @@ static int recursive_operation(const char *startfrom, const char *startto,
 	do {  /* once */
 		/* ensure there's no trailing slash in file path */
 		from = strip_last_slash(startfrom);
-		if (startto)
+		if (startto) {
 			to = strip_last_slash(startto);
+		}
 
 		ret = lstat(from, &st);
-		if (ret < 0)
+		if (ret < 0) {
 			/* source wasn't found, nothing to operate with */
 			break;
+		}
 
 		if (!S_ISDIR(st.st_mode)) {
 			/* source isn't a directory, can't do recursive walking for it,
 			 * so just call file callback and leave */
 			if (callback_file != NULL) {
 				ret = callback_file(from, to);
-				if (ret != RecursiveOp_Callback_OK)
+				if (ret != RecursiveOp_Callback_OK) {
 					ret = -1;
+				}
 			}
 			break;
 		}
@@ -594,11 +610,13 @@ static int recursive_operation(const char *startfrom, const char *startto,
 		if (callback_dir_pre != NULL) {
 			ret = callback_dir_pre(from, to);
 			if (ret != RecursiveOp_Callback_OK) {
-				if (ret == RecursiveOp_Callback_StopRecurs)
+				if (ret == RecursiveOp_Callback_StopRecurs) {
 					/* callback requested not to perform recursive walking, not an error */
 					ret = 0;
-				else
+				}
+				else {
 					ret = -1;
+				}
 				break;
 			}
 		}
@@ -606,12 +624,14 @@ static int recursive_operation(const char *startfrom, const char *startto,
 		for (i = 0; i < n; i++) {
 			const struct dirent * const dirent = dirlist[i];
 
-			if (FILENAME_IS_CURRPAR(dirent->d_name))
+			if (FILENAME_IS_CURRPAR(dirent->d_name)) {
 				continue;
+			}
 
 			join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
-			if (to)
+			if (to) {
 				join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
+			}
 
 			bool is_dir;
 
@@ -633,23 +653,26 @@ static int recursive_operation(const char *startfrom, const char *startto,
 			}
 			else if (callback_file != NULL) {
 				ret = callback_file(from_path, to_path);
-				if (ret != RecursiveOp_Callback_OK)
+				if (ret != RecursiveOp_Callback_OK) {
 					ret = -1;
+				}
 			}
 
-			if (ret != 0)
+			if (ret != 0) {
 				break;
+			}
 		}
-		if (ret != 0)
+		if (ret != 0) {
 			break;
+		}
 
 		if (callback_dir_post != NULL) {
 			ret = callback_dir_post(from, to);
-			if (ret != RecursiveOp_Callback_OK)
+			if (ret != RecursiveOp_Callback_OK) {
 				ret = -1;
+			}
 		}
-	}
-	while (false);
+	} while (false);
 
 	if (dirlist != NULL) {
 		for (i = 0; i < n; i++) {
@@ -657,14 +680,18 @@ static int recursive_operation(const char *startfrom, const char *startto,
 		}
 		free(dirlist);
 	}
-	if (from_path != NULL)
+	if (from_path != NULL) {
 		MEM_freeN(from_path);
-	if (to_path != NULL)
+	}
+	if (to_path != NULL) {
 		MEM_freeN(to_path);
-	if (from != NULL)
+	}
+	if (from != NULL) {
 		MEM_freeN(from);
-	if (to != NULL)
+	}
+	if (to != NULL) {
 		MEM_freeN(to);
+	}
 
 	return ret;
 }
@@ -748,11 +775,13 @@ static bool check_the_same(const char *path_a, const char *path_b)
 {
 	struct stat st_a, st_b;
 
-	if (lstat(path_a, &st_a))
+	if (lstat(path_a, &st_a)) {
 		return false;
+	}
 
-	if (lstat(path_b, &st_b))
+	if (lstat(path_b, &st_b)) {
 		return false;
+	}
 
 	return st_a.st_dev == st_b.st_dev && st_a.st_ino == st_b.st_ino;
 }
@@ -843,7 +872,9 @@ static int copy_single_file(const char *from, const char *to)
 		if (link_len < 0) {
 			perror("readlink");
 
-			if (need_free) MEM_freeN(link_buffer);
+			if (need_free) {
+				MEM_freeN(link_buffer);
+			}
 
 			return RecursiveOp_Callback_Error;
 		}
@@ -852,12 +883,15 @@ static int copy_single_file(const char *from, const char *to)
 
 		if (symlink(link_buffer, to)) {
 			perror("symlink");
-			if (need_free) MEM_freeN(link_buffer);
+			if (need_free) {
+				MEM_freeN(link_buffer);
+			}
 			return RecursiveOp_Callback_Error;
 		}
 
-		if (need_free)
+		if (need_free) {
 			MEM_freeN(link_buffer);
+		}
 
 		return RecursiveOp_Callback_OK;
 	}
@@ -872,8 +906,9 @@ static int copy_single_file(const char *from, const char *to)
 			return RecursiveOp_Callback_Error;
 		}
 
-		if (set_permissions(to, &st))
+		if (set_permissions(to, &st)) {
 			return RecursiveOp_Callback_Error;
+		}
 
 		return RecursiveOp_Callback_OK;
 	}
@@ -902,8 +937,9 @@ static int copy_single_file(const char *from, const char *to)
 	fclose(to_stream);
 	fclose(from_stream);
 
-	if (set_permissions(to, &st))
+	if (set_permissions(to, &st)) {
 		return RecursiveOp_Callback_Error;
+	}
 
 	return RecursiveOp_Callback_OK;
 }
@@ -985,8 +1021,9 @@ int BLI_copy(const char *file, const char *to)
 
 	ret = recursive_operation(file, actual_to, copy_callback_pre, copy_single_file, NULL);
 
-	if (actual_to != to)
+	if (actual_to != to) {
 		MEM_freeN((void *)actual_to);
+	}
 
 	return ret;
 }
@@ -1057,8 +1094,11 @@ int BLI_rename(const char *from, const char *to)
 		return 1;
 	}
 
-	if (BLI_exists(to))
-		if (BLI_delete(to, false, false)) return 1;
+	if (BLI_exists(to)) {
+		if (BLI_delete(to, false, false)) {
+			return 1;
+		}
+	}
 
 	return rename(from, to);
 }

@@ -405,8 +405,9 @@ double BLI_smallhash_calc_quality(SmallHash *sh)
 	uint64_t sum = 0;
 	uint i;
 
-	if (sh->nentries == 0)
+	if (sh->nentries == 0) {
 		return -1.0;
+	}
 
 	for (i = 0; i < sh->nbuckets; i++) {
 		if (sh->buckets[i].key != SMHASH_KEY_UNUSED) {

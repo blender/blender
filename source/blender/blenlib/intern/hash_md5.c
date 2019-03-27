@@ -316,19 +316,22 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
 			sum += n;
 		} while (sum < BLOCKSIZE && n != 0);
 
-		if (n == 0 && ferror(stream))
+		if (n == 0 && ferror(stream)) {
 			return 1;
+		}
 
 		/* RFC 1321 specifies the possible length of the file up to 2^64 bits.
 		 * Here we only compute the number of bytes. Do a double word increment.
 		 */
 		len[0] += sum;
-		if (len[0] < sum)
+		if (len[0] < sum) {
 			++len[1];
+		}
 
 		/* If end of file is reached, end the loop.  */
-		if (n == 0)
+		if (n == 0) {
 			break;
+		}
 
 		/* Process buffer with BLOCKSIZE bytes. Note that BLOCKSIZE % 64 == 0. */
 		md5_process_block(buffer, BLOCKSIZE, &ctx);

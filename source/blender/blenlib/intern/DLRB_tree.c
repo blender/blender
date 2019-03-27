@@ -40,8 +40,9 @@ DLRBT_Tree *BLI_dlrbTree_new(void)
 /* Just zero out the pointers used */
 void BLI_dlrbTree_init(DLRBT_Tree *tree)
 {
-	if (tree == NULL)
+	if (tree == NULL) {
 		return;
+	}
 
 	tree->first = tree->last = tree->root = NULL;
 }
@@ -50,8 +51,9 @@ void BLI_dlrbTree_init(DLRBT_Tree *tree)
 static void recursive_tree_free_nodes(DLRBT_Node *node)
 {
 	/* sanity check */
-	if (node == NULL)
+	if (node == NULL) {
 		return;
+	}
 
 	/* free child nodes + subtrees */
 	recursive_tree_free_nodes(node->left);
@@ -64,8 +66,9 @@ static void recursive_tree_free_nodes(DLRBT_Node *node)
 /* Free the given tree's data but not the tree itself */
 void BLI_dlrbTree_free(DLRBT_Tree *tree)
 {
-	if (tree == NULL)
+	if (tree == NULL) {
 		return;
+	}
 
 	/* if the list-base stuff is set, just use that (and assume its set),
 	 * otherwise, we'll need to traverse the tree...
@@ -89,8 +92,9 @@ void BLI_dlrbTree_free(DLRBT_Tree *tree)
 static void linkedlist_sync_add_node(DLRBT_Tree *tree, DLRBT_Node *node)
 {
 	/* sanity checks */
-	if ((tree == NULL) || (node == NULL))
+	if ((tree == NULL) || (node == NULL)) {
 		return;
+	}
 
 	/* add left-node (and its subtree) */
 	linkedlist_sync_add_node(tree, node->left);
@@ -110,8 +114,9 @@ static void linkedlist_sync_add_node(DLRBT_Tree *tree, DLRBT_Node *node)
 void BLI_dlrbTree_linkedlist_sync(DLRBT_Tree *tree)
 {
 	/* sanity checks */
-	if (tree == NULL)
+	if (tree == NULL) {
 		return;
+	}
 
 	/* clear list-base pointers so that the new list can be added properly */
 	tree->first = tree->last = NULL;
@@ -131,8 +136,9 @@ DLRBT_Node *BLI_dlrbTree_search(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, vo
 
 	/* check that there is a comparator to use */
 	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
-	if (cmp_cb == NULL)
+	if (cmp_cb == NULL) {
 		return NULL;
+	}
 
 	/* iteratively perform this search */
 	while (node && found == 0) {
@@ -141,17 +147,21 @@ DLRBT_Node *BLI_dlrbTree_search(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, vo
 		 */
 		switch (cmp_cb(node, search_data)) {
 			case -1:    /* data less than node */
-				if (node->left)
+				if (node->left) {
 					node = node->left;
-				else
+				}
+				else {
 					found = 1;
+				}
 				break;
 
 			case 1:  /* data greater than node */
-				if (node->right)
+				if (node->right) {
 					node = node->right;
-				else
+				}
+				else {
 					found = 1;
+				}
 				break;
 
 			default:  /* data equals node */
@@ -172,8 +182,9 @@ DLRBT_Node *BLI_dlrbTree_search_exact(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_
 
 	/* check that there is a comparator to use */
 	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
-	if (cmp_cb == NULL)
+	if (cmp_cb == NULL) {
 		return NULL;
+	}
 
 	/* iteratively perform this search */
 	while (node && found == 0) {
@@ -182,17 +193,21 @@ DLRBT_Node *BLI_dlrbTree_search_exact(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_
 		 */
 		switch (cmp_cb(node, search_data)) {
 			case -1:  /* data less than node */
-				if (node->left)
+				if (node->left) {
 					node = node->left;
-				else
+				}
+				else {
 					found = -1;
+				}
 				break;
 
 			case 1:  /* data greater than node */
-				if (node->right)
+				if (node->right) {
 					node = node->right;
-				else
+				}
+				else {
 					found = -1;
+				}
 				break;
 
 			default:  /* data equals node */
@@ -212,16 +227,18 @@ DLRBT_Node *BLI_dlrbTree_search_prev(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_c
 
 	/* check that there is a comparator to use */
 	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
-	if (cmp_cb == NULL)
+	if (cmp_cb == NULL) {
 		return NULL;
+	}
 
 	/* get the node which best matches this description */
 	node = BLI_dlrbTree_search(tree, cmp_cb, search_data);
 
 	if (node) {
 		/* if the item we're searching for is greater than the node found, we've found the match */
-		if (cmp_cb(node, search_data) > 0)
+		if (cmp_cb(node, search_data) > 0) {
 			return node;
+		}
 
 		/* return the previous node otherwise */
 		/* NOTE: what happens if there is no previous node? */
@@ -239,16 +256,18 @@ DLRBT_Node *BLI_dlrbTree_search_next(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_c
 
 	/* check that there is a comparator to use */
 	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
-	if (cmp_cb == NULL)
+	if (cmp_cb == NULL) {
 		return NULL;
+	}
 
 	/* get the node which best matches this description */
 	node = BLI_dlrbTree_search(tree, cmp_cb, search_data);
 
 	if (node) {
 		/* if the item we're searching for is less than the node found, we've found the match */
-		if (cmp_cb(node, search_data) < 0)
+		if (cmp_cb(node, search_data) < 0) {
 			return node;
+		}
 
 		/* return the previous node otherwise */
 		/* NOTE: what happens if there is no previous node? */
@@ -273,20 +292,24 @@ short BLI_dlrbTree_contains(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *
 /* get the 'grandparent' - the parent of the parent - of the given node */
 static DLRBT_Node *get_grandparent(DLRBT_Node *node)
 {
-	if (node && node->parent)
+	if (node && node->parent) {
 		return node->parent->parent;
-	else
+	}
+	else {
 		return NULL;
+	}
 }
 
 /* get the sibling node (e.g. if node is left child of parent, return right child of parent) */
 static DLRBT_Node *get_sibling(DLRBT_Node *node)
 {
 	if (node && node->parent) {
-		if (node == node->parent->left)
+		if (node == node->parent->left) {
 			return node->parent->right;
-		else
+		}
+		else {
 			return node->parent->left;
+		}
 	}
 
 	/* sibling not found */
@@ -296,9 +319,10 @@ static DLRBT_Node *get_sibling(DLRBT_Node *node)
 /* get the 'uncle' - the sibling of the parent - of the given node */
 static DLRBT_Node *get_uncle(DLRBT_Node *node)
 {
-	if (node)
+	if (node) {
 		/* return the child of the grandparent which isn't the node's parent */
 		return get_sibling(node->parent);
+	}
 
 	/* uncle not found */
 	return NULL;
@@ -314,31 +338,38 @@ static void rotate_left(DLRBT_Tree *tree, DLRBT_Node *root)
 
 	/* pivot is simply the root's right child, to become the root's parent */
 	pivot = root->right;
-	if (pivot == NULL)
+	if (pivot == NULL) {
 		return;
+	}
 
 	if (root->parent) {
-		if (root == root->parent->left)
+		if (root == root->parent->left) {
 			root_slot = &root->parent->left;
-		else
+		}
+		else {
 			root_slot = &root->parent->right;
+		}
 	}
-	else
+	else {
 		root_slot = ((DLRBT_Node **)&tree->root);  /* &((DLRBT_Node *)tree->root); */
+	}
 
 	/* - pivot's left child becomes root's right child
 	 * - root now becomes pivot's left child
 	 */
 	root->right = pivot->left;
-	if (pivot->left) pivot->left->parent = root;
+	if (pivot->left) {
+		pivot->left->parent = root;
+	}
 
 	pivot->left = root;
 	pivot->parent = root->parent;
 	root->parent = pivot;
 
 	/* make the pivot the new root */
-	if (root_slot)
+	if (root_slot) {
 		*root_slot = pivot;
+	}
 }
 
 /* make the left child of the 'root' the new root */
@@ -348,31 +379,38 @@ static void rotate_right(DLRBT_Tree *tree, DLRBT_Node *root)
 
 	/* pivot is simply the root's left child, to become the root's parent */
 	pivot = root->left;
-	if (pivot == NULL)
+	if (pivot == NULL) {
 		return;
+	}
 
 	if (root->parent) {
-		if (root == root->parent->left)
+		if (root == root->parent->left) {
 			root_slot = &root->parent->left;
-		else
+		}
+		else {
 			root_slot = &root->parent->right;
+		}
 	}
-	else
+	else {
 		root_slot = ((DLRBT_Node **)&tree->root);  /* &((DLRBT_Node *)tree->root); */
+	}
 
 	/* - pivot's right child becomes root's left child
 	 * - root now becomes pivot's right child
 	 */
 	root->left = pivot->right;
-	if (pivot->right) pivot->right->parent = root;
+	if (pivot->right) {
+		pivot->right->parent = root;
+	}
 
 	pivot->right = root;
 	pivot->parent = root->parent;
 	root->parent = pivot;
 
 	/* make the pivot the new root */
-	if (root_slot)
+	if (root_slot) {
 		*root_slot = pivot;
+	}
 }
 
 /* *********************************************** */
@@ -390,10 +428,12 @@ static void insert_check_1(DLRBT_Tree *tree, DLRBT_Node *node)
 {
 	if (node) {
 		/* if this is the root, just ensure that it is black */
-		if (node->parent == NULL)
+		if (node->parent == NULL) {
 			node->tree_col = DLRBT_BLACK;
-		else
+		}
+		else {
 			insert_check_2(tree, node);
+		}
 	}
 }
 
@@ -468,10 +508,12 @@ static void insert_check_3(DLRBT_Tree *tree, DLRBT_Node *node)
 
 			/* if there are several nodes that all form a left chain, do a right rotation to correct
 			 * this (or a rotation in the opposite direction if they all form a right chain) */
-			if ((node == node->parent->left) && (node->parent == gp->left))
+			if ((node == node->parent->left) && (node->parent == gp->left)) {
 				rotate_right(tree, gp);
-			else //if ((node == node->parent->right) && (node->parent == gp->right))
+			}
+			else { //if ((node == node->parent->right) && (node->parent == gp->right))
 				rotate_left(tree, gp);
+			}
 		}
 	}
 }
@@ -484,8 +526,9 @@ static void insert_check_3(DLRBT_Tree *tree, DLRBT_Node *node)
 void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 {
 	/* sanity checks */
-	if ((tree == NULL) || (node == NULL))
+	if ((tree == NULL) || (node == NULL)) {
 		return;
+	}
 
 	/* firstly, the node we just added should be red by default */
 	node->tree_col = DLRBT_RED;
@@ -506,15 +549,18 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 	short new_node = 0;
 
 	/* sanity checks */
-	if (tree == NULL)
+	if (tree == NULL) {
 		return NULL;
+	}
 
 	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
-	if (cmp_cb == NULL)
+	if (cmp_cb == NULL) {
 		return NULL;
+	}
 	/* TODO: if no allocator is supplied, try using the one supplied with the tree... */
-	if (new_cb == NULL)
+	if (new_cb == NULL) {
 		return NULL;
+	}
 	/* TODO: if no updater is supplied, try using the one supplied with the tree... */
 
 	/* try to find the nearest node to this one */
@@ -548,8 +594,9 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 			}
 			default:  /* update the duplicate node as appropriate */
 			{
-				if (update_cb)
+				if (update_cb) {
 					update_cb(parNode, data);
+				}
 				break;
 			}
 		}

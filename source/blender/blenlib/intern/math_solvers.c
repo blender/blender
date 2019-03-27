@@ -81,15 +81,17 @@ void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3
  */
 bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
 {
-	if (count < 1)
+	if (count < 1) {
 		return false;
+	}
 
 	size_t bytes = sizeof(double) * (unsigned)count;
 	double *c1 = (double *)MEM_mallocN(bytes * 2, "tridiagonal_c1d1");
 	double *d1 = c1 + count;
 
-	if (!c1)
+	if (!c1) {
 		return false;
+	}
 
 	int i;
 	double c_prev, d_prev, x_prev;
@@ -129,8 +131,9 @@ bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const
  */
 bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
 {
-	if (count < 1)
+	if (count < 1) {
 		return false;
+	}
 
 	float a0 = a[0], cN = c[count - 1];
 
@@ -143,8 +146,9 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
 	float *tmp = (float *)MEM_mallocN(bytes * 2, "tridiagonal_ex");
 	float *b2 = tmp + count;
 
-	if (!tmp)
+	if (!tmp) {
 		return false;
+	}
 
 	/* prepare the noncyclic system; relies on tridiagonal_solve ignoring values */
 	memcpy(b2, b, bytes);

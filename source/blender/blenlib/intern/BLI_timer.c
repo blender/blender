@@ -112,8 +112,12 @@ static void execute_functions_if_necessary(void)
 	double current_time = GET_TIME();
 
 	LISTBASE_FOREACH(TimedFunction *, timed_func, &GlobalTimer.funcs) {
-		if (timed_func->tag_removal) continue;
-		if (timed_func->next_time > current_time) continue;
+		if (timed_func->tag_removal) {
+			continue;
+		}
+		if (timed_func->next_time > current_time) {
+			continue;
+		}
 
 		double ret = timed_func->func(timed_func->uuid, timed_func->user_data);
 

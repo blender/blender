@@ -554,28 +554,32 @@ static bool parse_next_token(ExprParseState *state)
 		char *end, *out = state->tokenbuf;
 		bool is_float = false;
 
-		while (isdigit(*state->cur))
+		while (isdigit(*state->cur)) {
 			*out++ = *state->cur++;
+		}
 
 		if (*state->cur == '.') {
 			is_float = true;
 			*out++ = *state->cur++;
 
-			while (isdigit(*state->cur))
+			while (isdigit(*state->cur)) {
 				*out++ = *state->cur++;
+			}
 		}
 
 		if (ELEM(*state->cur, 'e', 'E')) {
 			is_float = true;
 			*out++ = *state->cur++;
 
-			if (ELEM(*state->cur, '+', '-'))
+			if (ELEM(*state->cur, '+', '-')) {
 				*out++ = *state->cur++;
+			}
 
 			CHECK_ERROR(isdigit(*state->cur));
 
-			while (isdigit(*state->cur))
+			while (isdigit(*state->cur)) {
 				*out++ = *state->cur++;
+			}
 		}
 
 		*out = 0;
@@ -611,8 +615,9 @@ static bool parse_next_token(ExprParseState *state)
 	if (isalpha(*state->cur) || ELEM(*state->cur, '_')) {
 		char *out = state->tokenbuf;
 
-		while (isalnum(*state->cur) || ELEM(*state->cur, '_'))
+		while (isalnum(*state->cur) || ELEM(*state->cur, '_')) {
 			*out++ = *state->cur++;
+		}
 
 		*out = 0;
 

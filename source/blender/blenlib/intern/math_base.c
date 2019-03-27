@@ -53,8 +53,9 @@ double double_round(double x, int ndigits)
 		pow2 = 1.0;
 		y = (x * pow1) * pow2;
 		/* if y overflows, then rounded value is exactly x */
-		if (!isfinite(y))
+		if (!isfinite(y)) {
 			return x;
+		}
 	}
 	else {
 		pow1 = pow(10.0, (double)-ndigits);
@@ -63,14 +64,17 @@ double double_round(double x, int ndigits)
 	}
 
 	z = round(y);
-	if (fabs(y - z) == 0.5)
+	if (fabs(y - z) == 0.5) {
 		/* halfway between two integers; use round-half-even */
 		z = 2.0 * round(y / 2.0);
+	}
 
-	if (ndigits >= 0)
+	if (ndigits >= 0) {
 		z = (z / pow2) / pow1;
-	else
+	}
+	else {
 		z *= pow1;
+	}
 
 	/* if computation resulted in overflow, raise OverflowError */
 	return z;

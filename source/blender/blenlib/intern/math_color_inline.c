@@ -222,8 +222,9 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 		return;
 	}
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++) {
 		fsrgb[i] = srgb[i] * (1.0f / 255.0f);
+	}
 
 	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }

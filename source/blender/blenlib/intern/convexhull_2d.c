@@ -83,8 +83,10 @@ int BLI_convexhull_2d_sorted(const float (*points)[2], const int n, int r_points
 	minmax = i - 1;
 	if (minmax == n - 1) {  /* degenerate case: all x-coords == xmin */
 		r_points[++top] = minmin;
-		if (points[minmax][1] != points[minmin][1])  /* a nontrivial segment */
+		if (points[minmax][1] != points[minmin][1]) {
+			/* a nontrivial segment */
 			r_points[++top] = minmax;
+		}
 		r_points[++top] = minmin;  /* add polygon endpoint */
 		return top + 1;
 	}
@@ -168,13 +170,13 @@ static int pointref_cmp_yx(const void *a_, const void *b_)
 	const struct PointRef *a = a_;
 	const struct PointRef *b = b_;
 
-	if      (a->pt[1] > b->pt[1]) return  1;
-	else if (a->pt[1] < b->pt[1]) return -1;
+	if      (a->pt[1] > b->pt[1]) { return  1; }
+	else if (a->pt[1] < b->pt[1]) { return -1; }
 
-	if      (a->pt[0] > b->pt[0]) return  1;
-	else if (a->pt[0] < b->pt[0]) return -1;
+	if      (a->pt[0] > b->pt[0]) { return  1; }
+	else if (a->pt[0] < b->pt[0]) { return -1; }
 
-	else                          return  0;
+	else                          { return  0; }
 }
 
 /**

@@ -65,16 +65,16 @@ MINLINE float pow7f(float x)
 
 MINLINE float sqrt3f(float f)
 {
-	if      (UNLIKELY(f == 0.0f)) return 0.0f;
-	else if (UNLIKELY(f <  0.0f)) return -(float)(exp(log(-f) / 3.0));
-	else                          return  (float)(exp(log( f) / 3.0));
+	if      (UNLIKELY(f == 0.0f)) { return 0.0f; }
+	else if (UNLIKELY(f <  0.0f)) { return -(float)(exp(log(-f) / 3.0)); }
+	else                          { return  (float)(exp(log( f) / 3.0)); }
 }
 
 MINLINE double sqrt3d(double d)
 {
-	if      (UNLIKELY(d == 0.0)) return 0.0;
-	else if (UNLIKELY(d <  0.0)) return -exp(log(-d) / 3.0);
-	else                         return  exp(log( d) / 3.0);
+	if      (UNLIKELY(d == 0.0)) { return 0.0; }
+	else if (UNLIKELY(d <  0.0)) { return -exp(log(-d) / 3.0); }
+	else                         { return  exp(log( d) / 3.0); }
 }
 
 MINLINE float sqrtf_signed(float f)
@@ -84,42 +84,42 @@ MINLINE float sqrtf_signed(float f)
 
 MINLINE float saacos(float fac)
 {
-	if      (UNLIKELY(fac <= -1.0f)) return (float)M_PI;
-	else if (UNLIKELY(fac >=  1.0f)) return 0.0f;
-	else                             return acosf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) { return (float)M_PI; }
+	else if (UNLIKELY(fac >=  1.0f)) { return 0.0f; }
+	else                             { return acosf(fac); }
 }
 
 MINLINE float saasin(float fac)
 {
-	if      (UNLIKELY(fac <= -1.0f)) return (float)-M_PI / 2.0f;
-	else if (UNLIKELY(fac >=  1.0f)) return (float) M_PI / 2.0f;
-	else                             return asinf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) { return (float)-M_PI / 2.0f; }
+	else if (UNLIKELY(fac >=  1.0f)) { return (float) M_PI / 2.0f; }
+	else                             { return asinf(fac); }
 }
 
 MINLINE float sasqrt(float fac)
 {
-	if (UNLIKELY(fac <= 0.0f)) return 0.0f;
-	else                       return sqrtf(fac);
+	if (UNLIKELY(fac <= 0.0f)) { return 0.0f; }
+	else                       { return sqrtf(fac); }
 }
 
 MINLINE float saacosf(float fac)
 {
-	if      (UNLIKELY(fac <= -1.0f)) return (float)M_PI;
-	else if (UNLIKELY(fac >=  1.0f)) return 0.0f;
-	else                             return acosf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) { return (float)M_PI; }
+	else if (UNLIKELY(fac >=  1.0f)) { return 0.0f; }
+	else                             { return acosf(fac); }
 }
 
 MINLINE float saasinf(float fac)
 {
-	if      (UNLIKELY(fac <= -1.0f)) return (float)-M_PI / 2.0f;
-	else if (UNLIKELY(fac >=  1.0f)) return (float) M_PI / 2.0f;
-	else                             return asinf(fac);
+	if      (UNLIKELY(fac <= -1.0f)) { return (float)-M_PI / 2.0f; }
+	else if (UNLIKELY(fac >=  1.0f)) { return (float) M_PI / 2.0f; }
+	else                             { return asinf(fac); }
 }
 
 MINLINE float sasqrtf(float fac)
 {
-	if (UNLIKELY(fac <= 0.0f)) return 0.0f;
-	else                       return sqrtf(fac);
+	if (UNLIKELY(fac <= 0.0f)) { return 0.0f; }
+	else                       { return sqrtf(fac); }
 }
 
 MINLINE float interpf(float target, float origin, float fac)
@@ -140,8 +140,9 @@ MINLINE int is_power_of_2_i(int n)
 
 MINLINE int power_of_2_max_i(int n)
 {
-	if (is_power_of_2_i(n))
+	if (is_power_of_2_i(n)) {
 		return n;
+	}
 
 	do {
 		n = n & (n - 1);
@@ -152,8 +153,9 @@ MINLINE int power_of_2_max_i(int n)
 
 MINLINE int power_of_2_min_i(int n)
 {
-	while (!is_power_of_2_i(n))
+	while (!is_power_of_2_i(n)) {
 		n = n & (n - 1);
+	}
 
 	return n;
 }
@@ -387,16 +389,16 @@ MINLINE float signf(float f)
 
 MINLINE int signum_i_ex(float a, float eps)
 {
-	if (a >  eps) return  1;
-	if (a < -eps) return -1;
-	else          return  0;
+	if (a >  eps) { return  1; }
+	if (a < -eps) { return -1; }
+	else          { return  0; }
 }
 
 MINLINE int signum_i(float a)
 {
-	if (a > 0.0f) return  1;
-	if (a < 0.0f) return -1;
-	else          return  0;
+	if (a > 0.0f) { return  1; }
+	if (a < 0.0f) { return -1; }
+	else          { return  0; }
 }
 
 /** Returns number of (base ten) *significant* digits of integer part of given float

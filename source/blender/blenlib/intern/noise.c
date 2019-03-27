@@ -388,8 +388,8 @@ static float orgBlenderNoise(float x, float y, float z)
 	h = hashvectf + 3 * hash[b21 + b11];
 	n += i * (h[0] * jx + h[1] * jy + h[2] * jz);
 
-	if      (n < 0.0f) n = 0.0f;
-	else if (n > 1.0f) n = 1.0f;
+	if      (n < 0.0f) { n = 0.0f; }
+	else if (n > 1.0f) { n = 1.0f; }
 	return n;
 }
 
@@ -402,7 +402,9 @@ static float orgBlenderNoiseS(float x, float y, float z)
 /* separated from orgBlenderNoise above, with scaling */
 float BLI_hnoise(float noisesize, float x, float y, float z)
 {
-	if (noisesize == 0.0f) return 0.0f;
+	if (noisesize == 0.0f) {
+		return 0.0f;
+	}
 	x = (1.0f + x) / noisesize;
 	y = (1.0f + y) / noisesize;
 	z = (1.0f + z) / noisesize;
@@ -1294,7 +1296,9 @@ static float voronoi_F1F2(float x, float y, float z)
 static float voronoi_Cr(float x, float y, float z)
 {
 	float t = 10 * voronoi_F1F2(x, y, z);
-	if (t > 1.f) return 1.f;
+	if (t > 1.f) {
+		return 1.f;
+	}
 	return t;
 }
 
@@ -1341,7 +1345,9 @@ static float voronoi_F1F2S(float x, float y, float z)
 static float voronoi_CrS(float x, float y, float z)
 {
 	float t = 10 * voronoi_F1F2(x, y, z);
-	if (t > 1.f) return 1.f;
+	if (t > 1.f) {
+		return 1.f;
+	}
 	return (2.0f * t - 1.0f);
 }
 
@@ -1450,7 +1456,9 @@ float BLI_gNoise(float noisesize, float x, float y, float z, int hard, int noise
 		z *= noisesize;
 	}
 
-	if (hard) return fabsf(2.0f * noisefunc(x, y, z) - 1.0f);
+	if (hard) {
+		return fabsf(2.0f * noisefunc(x, y, z) - 1.0f);
+	}
 	return noisefunc(x, y, z);
 }
 
@@ -1508,7 +1516,9 @@ float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int h
 	sum = 0;
 	for (i = 0; i <= oct; i++, amp *= 0.5f, fscale *= 2.0f) {
 		t = noisefunc(fscale * x, fscale * y, fscale * z);
-		if (hard) t = fabsf(2.0f * t - 1.0f);
+		if (hard) {
+			t = fabsf(2.0f * t - 1.0f);
+		}
 		sum += t * amp;
 	}
 
@@ -1583,7 +1593,9 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
 	}
 
 	rmd = octaves - floorf(octaves);
-	if (rmd != 0.f) value += rmd * noisefunc(x, y, z) * pwr;
+	if (rmd != 0.0f) {
+		value += rmd * noisefunc(x, y, z) * pwr;
+	}
 
 	return value;
 
@@ -1654,7 +1666,9 @@ float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, floa
 		z *= lacunarity;
 	}
 	rmd = octaves - floorf(octaves);
-	if (rmd != 0.0f) value *= (rmd * noisefunc(x, y, z) * pwr + 1.0f);
+	if (rmd != 0.0f) {
+		value *= (rmd * noisefunc(x, y, z) * pwr + 1.0f);
+	}
 
 	return value;
 
@@ -1796,7 +1810,9 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 	z *= lacunarity;
 
 	for (i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
-		if (weight > 1.0f) weight = 1.0f;
+		if (weight > 1.0f) {
+			weight = 1.0f;
+		}
 		signal = (noisefunc(x, y, z) + offset) * pwr;
 		pwr *= pwHL;
 		result += weight * signal;
@@ -1807,7 +1823,9 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 	}
 
 	rmd = octaves - floorf(octaves);
-	if (rmd != 0.f) result += rmd * ((noisefunc(x, y, z) + offset) * pwr);
+	if (rmd != 0.f) {
+		result += rmd * ((noisefunc(x, y, z) + offset) * pwr);
+	}
 
 	return result;
 
@@ -1876,8 +1894,8 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 		y *= lacunarity;
 		z *= lacunarity;
 		weight = signal * gain;
-		if      (weight > 1.0f) weight = 1.0f;
-		else if (weight < 0.0f) weight = 0.0f;
+		if      (weight > 1.0f) { weight = 1.0f; }
+		else if (weight < 0.0f) { weight = 0.0f; }
 		signal = offset - fabsf(noisefunc(x, y, z));
 		signal *= signal;
 		signal *= weight;

@@ -104,10 +104,13 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 
 			for (k = 0; k < n; k++) {
 				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
-				if (k == 0) l_first = l;
+				if (k == 0) {
+					l_first = l;
+				}
 
-				if (ftoutline.tags[l] == FT_Curve_Tag_On)
+				if (ftoutline.tags[l] == FT_Curve_Tag_On) {
 					onpoints[j]++;
+				}
 
 				{
 					const int l_next = (k < n - 1) ? (l + 1) : l_first;
@@ -140,7 +143,9 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 			/* individual curve loop, start-end */
 			for (k = 0; k < n; k++) {
 				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
-				if (k == 0) l_first = l;
+				if (k == 0) {
+					l_first = l;
+				}
 
 				/* virtual conic on-curve points */
 				{
@@ -291,7 +296,9 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 	                         0,
 	                         &face);
 
-	if (err) return NULL;
+	if (err) {
+		return NULL;
+	}
 
 	/* allocate blender font */
 	vfd = MEM_callocN(sizeof(*vfd), "FTVFontData");
@@ -319,8 +326,9 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 
 		err = FT_Set_Charmap(face, found);
 
-		if (err)
+		if (err) {
 			return NULL;
+		}
 
 		lcode = charcode = FT_Get_First_Char(face, &glyph_index);
 	}
@@ -362,8 +370,9 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 		charcode = FT_Get_Next_Char(face, charcode, &glyph_index);
 
 		/* Check that we won't start infinite loop */
-		if (charcode <= lcode)
+		if (charcode <= lcode) {
 			break;
+		}
 		lcode = charcode;
 	}
 
@@ -460,7 +469,9 @@ VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 {
 	VChar *che = NULL;
 
-	if (!vfont) return NULL;
+	if (!vfont) {
+		return NULL;
+	}
 
 	/* Init Freetype */
 	err = FT_Init_FreeType(&library);

@@ -104,17 +104,17 @@ void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float rad2)
 				vecx = jit1[j][0] - x - 1.0f;
 				vecy = jit1[j][1] - y - 1.0f;
 
-				if (fabsf(vecx) < rad2) dvecx += vecx * rad2;
+				if (fabsf(vecx) < rad2) { dvecx += vecx * rad2; }
 				vecx += 1.0f;
-				if (fabsf(vecx) < rad2) dvecx += vecx * rad2;
+				if (fabsf(vecx) < rad2) { dvecx += vecx * rad2; }
 				vecx += 1.0f;
-				if (fabsf(vecx) < rad2) dvecx += vecx * rad2;
+				if (fabsf(vecx) < rad2) { dvecx += vecx * rad2; }
 
-				if (fabsf(vecy) < rad2) dvecy += vecy * rad2;
+				if (fabsf(vecy) < rad2) { dvecy += vecy * rad2; }
 				vecy += 1.0f;
-				if (fabsf(vecy) < rad2) dvecy += vecy * rad2;
+				if (fabsf(vecy) < rad2) { dvecy += vecy * rad2; }
 				vecy += 1.0f;
-				if (fabsf(vecy) < rad2) dvecy += vecy * rad2;
+				if (fabsf(vecy) < rad2) { dvecy += vecy * rad2; }
 
 			}
 		}

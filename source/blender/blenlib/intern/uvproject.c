@@ -46,8 +46,9 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 	pv4[3] = 1.0;
 
 	/* rotmat is the object matrix in this case */
-	if (uci->do_rotmat)
+	if (uci->do_rotmat) {
 		mul_m4_v4(uci->rotmat, pv4);
+	}
 
 	/* caminv is the inverse camera matrix */
 	mul_m4_v4(uci->caminv, pv4);
@@ -67,8 +68,9 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 		}
 	}
 	else {
-		if (pv4[2] == 0.0f)
+		if (pv4[2] == 0.0f) {
 			pv4[2] = 0.00001f;  /* don't allow div by 0 */
+		}
 
 		if (uci->do_persp == false) {
 			target[0] = (pv4[0] / uci->camsize);

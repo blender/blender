@@ -88,10 +88,12 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
 		if ((angle * dial->last_angle < 0.0f) &&
 		    (fabsf(dial->last_angle) > (float)M_PI_2))
 		{
-			if (dial->last_angle < 0.0f)
+			if (dial->last_angle < 0.0f) {
 				dial->rotations--;
-			else
+			}
+			else {
 				dial->rotations++;
+			}
 		}
 		dial->last_angle = angle;
 

@@ -201,7 +201,9 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 {
 	unsigned int ri, gi, bi;
 
-	if (hexcol[0] == '#') hexcol++;
+	if (hexcol[0] == '#') {
+		hexcol++;
+	}
 
 	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi) == 3) {
 		/* six digit hex colors */
@@ -385,9 +387,9 @@ unsigned int rgb_to_cpack(float r, float g, float b)
 	ig = (unsigned int)floorf(255.0f * max_ff(g, 0.0f));
 	ib = (unsigned int)floorf(255.0f * max_ff(b, 0.0f));
 
-	if (ir > 255) ir = 255;
-	if (ig > 255) ig = 255;
-	if (ib > 255) ib = 255;
+	if (ir > 255) { ir = 255; }
+	if (ig > 255) { ig = 255; }
+	if (ib > 255) { ib = 255; }
 
 	return (ir + (ig * 256) + (ib * 256 * 256));
 }
@@ -429,28 +431,46 @@ void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4])
 
 float srgb_to_linearrgb(float c)
 {
-	if (c < 0.04045f)
+	if (c < 0.04045f) {
 		return (c < 0.0f) ? 0.0f : c * (1.0f / 12.92f);
-	else
+	}
+	else {
 		return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
+	}
 }
 
 float linearrgb_to_srgb(float c)
 {
-	if (c < 0.0031308f)
+	if (c < 0.0031308f) {
 		return (c < 0.0f) ? 0.0f : c * 12.92f;
-	else
+	}
+	else {
 		return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
+	}
 }
 
 void minmax_rgb(short c[3])
 {
-	if (c[0] > 255) c[0] = 255;
-	else if (c[0] < 0) c[0] = 0;
-	if (c[1] > 255) c[1] = 255;
-	else if (c[1] < 0) c[1] = 0;
-	if (c[2] > 255) c[2] = 255;
-	else if (c[2] < 0) c[2] = 0;
+	if (c[0] > 255) {
+		c[0] = 255;
+	}
+	else if (c[0] < 0) {
+		c[0] = 0;
+	}
+
+	if (c[1] > 255) {
+		c[1] = 255;
+	}
+	else if (c[1] < 0) {
+		c[1] = 0;
+	}
+
+	if (c[2] > 255) {
+		c[2] = 255;
+	}
+	else if (c[2] < 0) {
+		c[2] = 0;
+	}
 }
 
 /* If the requested RGB shade contains a negative weight for
@@ -484,10 +504,12 @@ void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *o
 	for (c = 0; c < 3; c++) {
 		offset[c] = lift[c] * gain[c];
 		slope[c] = gain[c] * (1.0f - lift[c]);
-		if (gamma[c] == 0)
+		if (gamma[c] == 0) {
 			power[c] = FLT_MAX;
-		else
+		}
+		else {
 			power[c] = 1.0f / gamma[c];
+		}
 	}
 }
 
@@ -501,8 +523,12 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
 
 	hsv[0] += hue_offset;
-	if (hsv[0] > 1.0f) hsv[0] -= 1.0f;
-	else if (hsv[0] < 0.0f) hsv[0] += 1.0f;
+	if (hsv[0] > 1.0f) {
+		hsv[0] -= 1.0f;
+	}
+	else if (hsv[0] < 0.0f) {
+		hsv[0] += 1.0f;
+	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
 }
@@ -551,10 +577,16 @@ static float index_to_float(const unsigned short i)
 	} tmp;
 
 	/* positive and negative zeros, and all gradual underflow, turn into zero: */
-	if (i < 0x80 || (i >= 0x8000 && i < 0x8080)) return 0;
+	if (i < 0x80 || (i >= 0x8000 && i < 0x8080)) {
+		return 0;
+	}
 	/* All NaN's and infinity turn into the largest possible legal float: */
-	if (i >= 0x7f80 && i < 0x8000) return FLT_MAX;
-	if (i >= 0xff80) return -FLT_MAX;
+	if (i >= 0x7f80 && i < 0x8000) {
+		return FLT_MAX;
+	}
+	if (i >= 0xff80) {
+		return -FLT_MAX;
+	}
 
 #ifdef __BIG_ENDIAN__
 	tmp.us[0] = i;
@@ -572,16 +604,23 @@ void BLI_init_srgb_conversion(void)
 	static bool initialized = false;
 	unsigned int i, b;
 
-	if (initialized)
+	if (initialized) {
 		return;
+	}
 	initialized = true;
 
 	/* Fill in the lookup table to convert floats to bytes: */
 	for (i = 0; i < 0x10000; i++) {
 		float f = linearrgb_to_srgb(index_to_float((unsigned short)i)) * 255.0f;
-		if (f <= 0) BLI_color_to_srgb_table[i] = 0;
-		else if (f < 255) BLI_color_to_srgb_table[i] = (unsigned short) (f * 0x100 + 0.5f);
-		else BLI_color_to_srgb_table[i] = 0xff00;
+		if (f <= 0) {
+			BLI_color_to_srgb_table[i] = 0;
+		}
+		else if (f < 255) {
+			BLI_color_to_srgb_table[i] = (unsigned short) (f * 0x100 + 0.5f);
+		}
+		else {
+			BLI_color_to_srgb_table[i] = 0xff00;
+		}
 	}
 
 	/* Fill in the lookup table to convert bytes to float: */

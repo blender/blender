@@ -65,28 +65,36 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 
 	/* directories come before non-directories */
 	if (S_ISDIR(entry1->type)) {
-		if (S_ISDIR(entry2->type) == 0) return (-1);
+		if (S_ISDIR(entry2->type) == 0) {
+			return -1;
+		}
 	}
 	else {
-		if (S_ISDIR(entry2->type)) return (1);
+		if (S_ISDIR(entry2->type)) {
+			return 1;
+		}
 	}
 	/* non-regular files come after regular files */
 	if (S_ISREG(entry1->type)) {
-		if (S_ISREG(entry2->type) == 0) return (-1);
+		if (S_ISREG(entry2->type) == 0) {
+			return -1;
+		}
 	}
 	else {
-		if (S_ISREG(entry2->type)) return (1);
+		if (S_ISREG(entry2->type)) {
+			return 1;
+		}
 	}
 	/* arbitrary, but consistent, ordering of different types of non-regular files */
-	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
-	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
+	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) { return -1; }
+	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) { return  1; }
 
 	/* OK, now we know their S_IFMT fields are the same, go on to a name comparison */
 	/* make sure "." and ".." are always first */
-	if (FILENAME_IS_CURRENT(entry1->relname)) return (-1);
-	if (FILENAME_IS_CURRENT(entry2->relname)) return (1);
-	if (FILENAME_IS_PARENT(entry1->relname)) return (-1);
-	if (FILENAME_IS_PARENT(entry2->relname)) return (1);
+	if (FILENAME_IS_CURRENT(entry1->relname)) { return -1; }
+	if (FILENAME_IS_CURRENT(entry2->relname)) { return  1; }
+	if (FILENAME_IS_PARENT(entry1->relname))  { return -1; }
+	if (FILENAME_IS_PARENT(entry2->relname))  { return  1; }
 
 	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
@@ -159,8 +167,9 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 				}
 			}
 
-			if (dir_ctx->files == NULL)
+			if (dir_ctx->files == NULL) {
 				dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(struct direntry), __func__);
+			}
 
 			if (dir_ctx->files) {
 				struct dirlink * dlink = (struct dirlink *) dirbase.first;
@@ -253,7 +262,9 @@ void BLI_filelist_entry_size_to_string(
 
 	if (size > 1024.0) {
 		const char **u;
-		for (u = compact ? units_compact : units, size /= 1024.0; size > 1024.0 && *(u + 1); u++, size /= 1024.0);
+		for (u = compact ? units_compact : units, size /= 1024.0; size > 1024.0 && *(u + 1); u++, size /= 1024.0) {
+			/* pass */
+		}
 		fmt =  size > 100.0 ? "%.0f %s" : (size > 10.0 ? "%.1f %s" : "%.2f %s");
 		unit = *u;
 	}
@@ -284,18 +295,30 @@ void BLI_filelist_entry_mode_to_string(
 	BLI_strncpy(r_mode2, types[(mode & 0070) >> 3], sizeof(*r_mode2) * FILELIST_DIRENTRY_MODE_LEN);
 	BLI_strncpy(r_mode3, types[(mode & 0007)],      sizeof(*r_mode3) * FILELIST_DIRENTRY_MODE_LEN);
 
-	if (((mode & S_ISGID) == S_ISGID) && (r_mode2[2] == '-')) r_mode2[2] = 'l';
+	if (((mode & S_ISGID) == S_ISGID) && (r_mode2[2] == '-')) {
+		r_mode2[2] = 'l';
+	}
 
 	if (mode & (S_ISUID | S_ISGID)) {
-		if (r_mode1[2] == 'x') r_mode1[2] = 's';
-		else r_mode1[2] = 'S';
+		if (r_mode1[2] == 'x') {
+			r_mode1[2] = 's';
+		}
+		else {
+			r_mode1[2] = 'S';
+		}
 
-		if (r_mode2[2] == 'x') r_mode2[2] = 's';
+		if (r_mode2[2] == 'x') {
+			r_mode2[2] = 's';
+		}
 	}
 
 	if (mode & S_ISVTX) {
-		if (r_mode3[2] == 'x') r_mode3[2] = 't';
-		else r_mode3[2] = 'T';
+		if (r_mode3[2] == 'x') {
+			r_mode3[2] = 't';
+		}
+		else {
+			r_mode3[2] = 'T';
+		}
 	}
 #endif
 }

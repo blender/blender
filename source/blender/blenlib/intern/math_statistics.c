@@ -67,8 +67,9 @@ static void covariance_m_vn_ex_task_cb(
 	 */
 	const int i = a / n;
 	const int j = a % n;
-	if (j < i)
+	if (j < i) {
 		return;
+	}
 
 	if (center) {
 		for (k = 0; k < nbr_cos_vn; k++) {

@@ -41,8 +41,9 @@ int BLI_linklist_count(const LinkNode *list)
 {
 	int len;
 
-	for (len = 0; list; list = list->next)
+	for (len = 0; list; list = list->next) {
 		len++;
+	}
 
 	return len;
 }
@@ -51,9 +52,11 @@ int BLI_linklist_index(const LinkNode *list, void *ptr)
 {
 	int index;
 
-	for (index = 0; list; list = list->next, index++)
-		if (list->link == ptr)
+	for (index = 0; list; list = list->next, index++) {
+		if (list->link == ptr) {
 			return index;
+		}
+	}
 
 	return -1;
 }
@@ -62,9 +65,11 @@ LinkNode *BLI_linklist_find(LinkNode *list, int index)
 {
 	int i;
 
-	for (i = 0; list; list = list->next, i++)
-		if (i == index)
+	for (i = 0; list; list = list->next, i++) {
+		if (i == index) {
 			return list;
+		}
+	}
 
 	return NULL;
 }
@@ -268,8 +273,9 @@ void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc)
 	while (list) {
 		LinkNode *next = list->next;
 
-		if (freefunc)
+		if (freefunc) {
 			freefunc(list->link);
+		}
 		MEM_freeN(list);
 
 		list = next;
@@ -281,8 +287,9 @@ void BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_
 	while (list) {
 		LinkNode *next = list->next;
 
-		if (freefunc)
+		if (freefunc) {
 			freefunc(list->link);
+		}
 		BLI_mempool_free(mempool, list);
 
 		list = next;
@@ -303,8 +310,9 @@ void BLI_linklist_freeN(LinkNode *list)
 
 void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata)
 {
-	for (; list; list = list->next)
+	for (; list; list = list->next) {
 		applyfunc(list->link, userdata);
+	}
 }
 
 /* -------------------------------------------------------------------- */

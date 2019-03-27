@@ -177,12 +177,15 @@ static void       pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip);
 
 BLI_INLINE eSign signum_enum(float a)
 {
-	if (UNLIKELY(a == 0.0f))
+	if (UNLIKELY(a == 0.0f)) {
 		return  0;
-	else if (a > 0.0f)
+	}
+	else if (a > 0.0f) {
 		return  1;
-	else
+	}
+	else {
 		return -1;
+	}
 }
 
 /**
@@ -273,8 +276,8 @@ static uint kdtree2d_balance_recursive(
 		j = pos;
 
 		while (1) {
-			while (coords[nodes[++i].index][axis] < co) ;
-			while (coords[nodes[--j].index][axis] > co && j > neg) ;
+			while (coords[nodes[++i].index][axis] < co) { /* pass */ }
+			while (coords[nodes[--j].index][axis] > co && j > neg) { /* pass */ }
 
 			if (i >= j) {
 				break;
