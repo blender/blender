@@ -137,6 +137,7 @@ typedef struct EEVEE_LightBake {
 	bool own_resources;
 	bool own_light_cache;            /* If the lightcache was created for baking, it's first owned by the baker. */
 	int delay;                       /* ms. delay the start of the baking to not slowdown interactions (TODO remove) */
+	int frame;                       /* Scene frame to bake. */
 
 	void *gl_context, *gpu_context;  /* If running in parallel (in a separate thread), use this context. */
 
@@ -499,7 +500,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 
 wmJob *EEVEE_lightbake_job_create(
         struct wmWindowManager *wm, struct wmWindow *win, struct Main *bmain,
-        struct ViewLayer *view_layer, struct Scene *scene, int delay)
+        struct ViewLayer *view_layer, struct Scene *scene, int delay, int frame)
 {
 	EEVEE_LightBake *lbake = NULL;
 
@@ -532,6 +533,7 @@ wmJob *EEVEE_lightbake_job_create(
 		lbake->gl_context = old_lbake->gl_context;
 		lbake->own_resources = true;
 		lbake->delay = delay;
+		lbake->frame = frame;
 
 		if (lbake->gl_context == NULL) {
 			lbake->gl_context = WM_opengl_context_create();
@@ -544,7 +546,7 @@ wmJob *EEVEE_lightbake_job_create(
 		BLI_mutex_unlock(old_lbake->mutex);
 	}
 	else {
-		lbake = EEVEE_lightbake_job_data_alloc(bmain, view_layer, scene, true);
+		lbake = EEVEE_lightbake_job_data_alloc(bmain, view_layer, scene, true, frame);
 		lbake->delay = delay;
 	}
 
@@ -559,7 +561,7 @@ wmJob *EEVEE_lightbake_job_create(
 
 /* MUST run on the main thread. */
 void *EEVEE_lightbake_job_data_alloc(
-        struct Main *bmain, struct ViewLayer *view_layer, struct Scene *scene, bool run_as_job)
+        struct Main *bmain, struct ViewLayer *view_layer, struct Scene *scene, bool run_as_job, int frame)
 {
 	BLI_assert(BLI_thread_is_main());
 
@@ -572,6 +574,7 @@ void *EEVEE_lightbake_job_data_alloc(
 	lbake->own_resources = true;
 	lbake->own_light_cache = false;
 	lbake->mutex = BLI_mutex_alloc();
+	lbake->frame = frame;
 
 	if (run_as_job) {
 		lbake->gl_context = WM_opengl_context_create();
@@ -1077,10 +1080,9 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 {
 	EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
 	Depsgraph *depsgraph = lbake->depsgraph;
-	int frame = 0; /* TODO make it user param. */
 
 	DEG_graph_relations_update(depsgraph, lbake->bmain, lbake->scene, lbake->view_layer_input);
-	DEG_evaluate_on_framechange(lbake->bmain, depsgraph, frame);
+	DEG_evaluate_on_framechange(lbake->bmain, depsgraph, lbake->frame);
 
 	lbake->view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	lbake->stop = stop;
