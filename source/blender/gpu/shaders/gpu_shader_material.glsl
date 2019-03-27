@@ -1905,9 +1905,7 @@ void node_tex_coord_background(
 	object = coords;
 
 	camera = vec3(co.xy, -co.z);
-	window = (ProjectionMatrix[3][3] == 0.0) ?
-	         vec3(mtex_2d_mapping(I).xy * camerafac.xy + camerafac.zw, 0.0) :
-	         vec3(vec2(0.5) * camerafac.xy + camerafac.zw, 0.0);
+	window = vec3(mtex_2d_mapping(I).xy * camerafac.xy + camerafac.zw, 0.0);
 
 	reflection = -coords;
 }
