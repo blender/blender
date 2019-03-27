@@ -1003,11 +1003,11 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 			theme_id = (active) ? TH_ACTIVE : TH_SELECT;
 		}
 		else {
-			if (ob->type == OB_LAMP) theme_id = TH_LIGHT;
-			else if (ob->type == OB_SPEAKER) theme_id = TH_SPEAKER;
-			else if (ob->type == OB_CAMERA) theme_id = TH_CAMERA;
-			else if (ob->type == OB_EMPTY) theme_id = TH_EMPTY;
-			else if (ob->type == OB_LIGHTPROBE) theme_id = TH_EMPTY; /* TODO add lightprobe color */
+			if      (ob->type == OB_LAMP) { theme_id = TH_LIGHT; }
+			else if (ob->type == OB_SPEAKER) { theme_id = TH_SPEAKER; }
+			else if (ob->type == OB_CAMERA) { theme_id = TH_CAMERA; }
+			else if (ob->type == OB_EMPTY) { theme_id = TH_EMPTY; }
+			else if (ob->type == OB_LIGHTPROBE) { theme_id = TH_EMPTY; } /* TODO add lightprobe color */
 			/* fallback to TH_WIRE */
 		}
 	}

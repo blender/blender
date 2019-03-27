@@ -319,31 +319,49 @@ static void eevee_draw_background(void *vedata)
 	/* Debug : Output buffer to view. */
 	switch (G.debug_value) {
 		case 1:
-			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer, false, false);
+			if (txl->maxzbuffer) {
+				DRW_transform_to_display(txl->maxzbuffer, false, false);
+			}
 			break;
 		case 2:
-			if (effects->ssr_pdf_output) DRW_transform_to_display(effects->ssr_pdf_output, false, false);
+			if (effects->ssr_pdf_output) {
+				DRW_transform_to_display(effects->ssr_pdf_output, false, false);
+			}
 			break;
 		case 3:
-			if (effects->ssr_normal_input) DRW_transform_to_display(effects->ssr_normal_input, false, false);
+			if (effects->ssr_normal_input) {
+				DRW_transform_to_display(effects->ssr_normal_input, false, false);
+			}
 			break;
 		case 4:
-			if (effects->ssr_specrough_input) DRW_transform_to_display(effects->ssr_specrough_input, false, false);
+			if (effects->ssr_specrough_input) {
+				DRW_transform_to_display(effects->ssr_specrough_input, false, false);
+			}
 			break;
 		case 5:
-			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer, false, false);
+			if (txl->color_double_buffer) {
+				DRW_transform_to_display(txl->color_double_buffer, false, false);
+			}
 			break;
 		case 6:
-			if (effects->gtao_horizons_debug) DRW_transform_to_display(effects->gtao_horizons_debug, false, false);
+			if (effects->gtao_horizons_debug) {
+				DRW_transform_to_display(effects->gtao_horizons_debug, false, false);
+			}
 			break;
 		case 7:
-			if (effects->gtao_horizons) DRW_transform_to_display(effects->gtao_horizons, false, false);
+			if (effects->gtao_horizons) {
+				DRW_transform_to_display(effects->gtao_horizons, false, false);
+			}
 			break;
 		case 8:
-			if (effects->sss_data) DRW_transform_to_display(effects->sss_data, false, false);
+			if (effects->sss_data) {
+				DRW_transform_to_display(effects->sss_data, false, false);
+			}
 			break;
 		case 9:
-			if (effects->velocity_tx) DRW_transform_to_display(effects->velocity_tx, false, false);
+			if (effects->velocity_tx) {
+				DRW_transform_to_display(effects->velocity_tx, false, false);
+			}
 			break;
 		default:
 			break;

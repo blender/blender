@@ -222,8 +222,12 @@ static GPUShader *eevee_lights_get_store_sh(int shadow_method, bool high_blur, b
 
 		ds_frag = BLI_dynstr_new();
 		BLI_dynstr_append(ds_frag, (shadow_method == SHADOW_VSM) ? "#define VSM\n" : "#define ESM\n");
-		if (high_blur) BLI_dynstr_append(ds_frag, "#define HIGH_BLUR\n");
-		if (cascade)   BLI_dynstr_append(ds_frag, "#define CSM\n");
+		if (high_blur) {
+			BLI_dynstr_append(ds_frag, "#define HIGH_BLUR\n");
+		}
+		if (cascade) {
+			BLI_dynstr_append(ds_frag, "#define CSM\n");
+		}
 		char *define_str = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
 
@@ -444,7 +448,9 @@ void EEVEE_lights_cache_shcaster_material_add(
 	/* TODO / PERF : reuse the same shading group for objects with the same material */
 	DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);
 
-	if (grp == NULL) return;
+	if (grp == NULL) {
+		return;
+	}
 
 	/* Grrr needed for correctness but not 99% of the time not needed.
 	 * TODO detect when needed? */

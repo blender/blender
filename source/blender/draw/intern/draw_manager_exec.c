@@ -1035,7 +1035,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	bool use_tfeedback = false;
 
 	if (shader_changed) {
-		if (DST.shader) GPU_shader_unbind();
+		if (DST.shader) {
+			GPU_shader_unbind();
+		}
 		GPU_shader_bind(shgroup->shader);
 		DST.shader = shgroup->shader;
 	}

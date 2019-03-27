@@ -643,10 +643,10 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		{
 			if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
 				uchar cp[4];
-				if (constflag & PCHAN_HAS_TARGET) rgba_char_args_set((char *)cp, 255, 150, 0, 80);
-				else if (constflag & PCHAN_HAS_IK) rgba_char_args_set((char *)cp, 255, 255, 0, 80);
-				else if (constflag & PCHAN_HAS_SPLINEIK) rgba_char_args_set((char *)cp, 200, 255, 0, 80);
-				else if (constflag & PCHAN_HAS_CONST) rgba_char_args_set((char *)cp, 0, 255, 120, 80);
+				if (constflag & PCHAN_HAS_TARGET) { rgba_char_args_set((char *)cp, 255, 150, 0, 80); }
+				else if (constflag & PCHAN_HAS_IK) { rgba_char_args_set((char *)cp, 255, 255, 0, 80); }
+				else if (constflag & PCHAN_HAS_SPLINEIK) { rgba_char_args_set((char *)cp, 200, 255, 0, 80); }
+				else if (constflag & PCHAN_HAS_CONST) { rgba_char_args_set((char *)cp, 0, 255, 120, 80); }
 				else {
 					return false;
 				}
@@ -726,11 +726,11 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 			/* inner part in background color or constraint */
 			if ((constflag) && ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS))) {
 				uchar cp[4];
-				if (constflag & PCHAN_HAS_TARGET) rgba_char_args_set((char *)cp, 255, 150, 0, 255);
-				else if (constflag & PCHAN_HAS_IK) rgba_char_args_set((char *)cp, 255, 255, 0, 255);
-				else if (constflag & PCHAN_HAS_SPLINEIK) rgba_char_args_set((char *)cp, 200, 255, 0, 255);
-				else if (constflag & PCHAN_HAS_CONST) rgba_char_args_set((char *)cp, 0, 255, 120, 255);
-				else if (constflag) UI_GetThemeColor4ubv(TH_BONE_POSE, cp);  /* PCHAN_HAS_ACTION */
+				if (constflag & PCHAN_HAS_TARGET) { rgba_char_args_set((char *)cp, 255, 150, 0, 255); }
+				else if (constflag & PCHAN_HAS_IK) { rgba_char_args_set((char *)cp, 255, 255, 0, 255); }
+				else if (constflag & PCHAN_HAS_SPLINEIK) { rgba_char_args_set((char *)cp, 200, 255, 0, 255); }
+				else if (constflag & PCHAN_HAS_CONST) { rgba_char_args_set((char *)cp, 0, 255, 120, 255); }
+				else if (constflag) { UI_GetThemeColor4ubv(TH_BONE_POSE, cp); }  /* PCHAN_HAS_ACTION */
 
 				rgb_uchar_to_float(fcolor, cp);
 			}
@@ -1656,7 +1656,9 @@ static void pchan_draw_ik_lines(
 				while (parchan->parent) {
 					segcount++;
 					/* FIXME: revise the breaking conditions */
-					if (segcount == data->chainlen || segcount > 255) break;  /* 255 is weak */
+					if (segcount == data->chainlen || segcount > 255) {
+						break;  /* 255 is weak */
+					}
 					parchan = parchan->parent;
 				}
 				/* Only draw line in case our chain is more than one bone long! */

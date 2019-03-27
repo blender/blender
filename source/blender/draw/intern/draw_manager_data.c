@@ -1179,8 +1179,8 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 	const DRWCall *call_a = (DRWCall *)shgrp_a->calls.first;
 	const DRWCall *call_b = (DRWCall *)shgrp_b->calls.first;
 
-	if (call_a == NULL) return -1;
-	if (call_b == NULL) return -1;
+	if (call_a == NULL) { return -1; }
+	if (call_b == NULL) { return -1; }
 
 	float tmp[3];
 	sub_v3_v3v3(tmp, zsortdata->origin, call_a->state->model[3]);
@@ -1188,8 +1188,8 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 	sub_v3_v3v3(tmp, zsortdata->origin, call_b->state->model[3]);
 	const float b_sq = dot_v3v3(zsortdata->axis, tmp);
 
-	if      (a_sq < b_sq) return  1;
-	else if (a_sq > b_sq) return -1;
+	if      (a_sq < b_sq) { return  1; }
+	else if (a_sq > b_sq) { return -1; }
 	else {
 		/* If there is a depth prepass put it before */
 		if ((shgrp_a->state_extra & DRW_STATE_WRITE_DEPTH) != 0) {
@@ -1198,7 +1198,9 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 		else if ((shgrp_b->state_extra & DRW_STATE_WRITE_DEPTH) != 0) {
 			return  1;
 		}
-		else return  0;
+		else {
+			return  0;
+		}
 	}
 }
 

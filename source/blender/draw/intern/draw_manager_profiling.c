@@ -326,7 +326,9 @@ void DRW_stats_draw(rcti *rect)
 		DRWTimer *timer_parent = (timer->lvl > 0) ? &DTP.timers[lvl_index[timer->lvl - 1]] : NULL;
 
 		/* Only display a number of lvl at a time */
-		if ((G.debug_value - 21) < timer->lvl) continue;
+		if ((G.debug_value - 21) < timer->lvl) {
+			continue;
+		}
 
 		BLI_assert(timer->lvl < MAX_NESTED_TIMER);
 		lvl_index[timer->lvl] = i;

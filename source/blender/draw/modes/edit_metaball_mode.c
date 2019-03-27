@@ -172,8 +172,12 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 
 				float draw_stiffness_radius = ml->rad * atanf(ml->s) / (float)M_PI_2;
 
-				if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) color = col_radius_select;
-				else color = col_radius;
+				if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) {
+					color = col_radius_select;
+				}
+				else {
+					color = col_radius;
+				}
 
 				if (is_select) {
 					DRW_select_load_id(select_id | MBALLSEL_RADIUS);
@@ -181,8 +185,12 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 
 				DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &ml->rad, color);
 
-				if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) color = col_stiffness_select;
-				else color = col_stiffness;
+				if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) {
+					color = col_stiffness_select;
+				}
+				else {
+					color = col_stiffness;
+				}
 
 				if (is_select) {
 					DRW_select_load_id(select_id | MBALLSEL_STIFF);
