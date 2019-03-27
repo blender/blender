@@ -2008,6 +2008,12 @@ void DRW_custom_pipeline(
 	GPU_viewport_free(DST.viewport);
 	GPU_framebuffer_restore();
 
+	/* The use of custom pipeline in other thread using the same
+	 * resources as the main thread (viewport) may lead to data
+	 * races and undefined behavior on certain drivers. Using
+	 * GPU_finish to sync seems to fix the issue. (see T62997) */
+	GPU_finish();
+
 #ifdef DEBUG
 	/* Avoid accidental reuse. */
 	drw_state_ensure_not_reused(&DST);
