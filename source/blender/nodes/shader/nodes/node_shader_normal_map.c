@@ -82,7 +82,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *U
 	switch (nm->space) {
 		case SHD_SPACE_TANGENT:
 			GPU_link(mat, "color_to_normal_new_shading", realnorm, &realnorm);
-			GPU_link(mat, "node_normal_map", GPU_attribute(CD_TANGENT, nm->uv_map), negnorm, realnorm, &realnorm);
+			GPU_link(mat, "node_normal_map", GPU_builtin(GPU_OBJECT_INFO), GPU_attribute(CD_TANGENT, nm->uv_map), negnorm, realnorm, &realnorm);
 			GPU_link(mat, "vec_math_mix", strength, realnorm, GPU_builtin(GPU_VIEW_NORMAL), &out[0].link);
 			/* for uniform scale this is sufficient to match Cycles */
 			GPU_link(mat, "direction_transform_m4v3", out[0].link, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &out[0].link);
