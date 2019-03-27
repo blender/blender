@@ -193,7 +193,9 @@ enum {
 	UI_BUT_IMMEDIATE       = 1 << 20,
 	UI_BUT_NO_UTF8         = 1 << 21,
 
-	/** For popups, pressing return activates this button, overriding the highlighed button. */
+	/** For popups, pressing return activates this button, overriding the highlighted button.
+	 * For non-popups this is just used as a display hint for the user to let them
+	 * know the action which is activated when pressing return (file selector for eg). */
 	UI_BUT_ACTIVE_DEFAULT = 1 << 23,
 
 	/** This but is "inside" a list item (currently used to change theme colors). */

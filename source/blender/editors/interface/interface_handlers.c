@@ -9242,7 +9242,7 @@ static int ui_handle_menu_event(
 			}
 			else if (ELEM(event->type, RETKEY, PADENTER) && event->val == KM_PRESS) {
 				uiBut *but_active = ui_region_find_first_but_test_flag(ar, UI_BUT_ACTIVE_DEFAULT, UI_HIDDEN);
-				if (but_active != NULL) {
+				if ((but_active != NULL) && (but_active->active == NULL)) {
 					ui_handle_button_activate(C, ar, but_active, BUTTON_ACTIVATE);
 					/* Get again below just incase it's disabled for eg. */
 				}
