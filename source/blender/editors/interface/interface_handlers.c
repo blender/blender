@@ -7902,6 +7902,32 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 	button_activate_init(C, ar, but, type);
 }
 
+/**
+ * Use for key accelerator or default key to activate the button even if its not active.
+ */
+static bool ui_handle_button_activate_by_type(bContext *C, ARegion *ar, uiBut *but)
+{
+	if (but->type == UI_BTYPE_BUT_MENU) {
+		/* mainly for operator buttons */
+		ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
+	}
+	else if (ELEM(but->type, UI_BTYPE_BLOCK, UI_BTYPE_PULLDOWN)) {
+		/* open sub-menus (like right arrow key) */
+		ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
+	}
+	else if (but->type == UI_BTYPE_MENU) {
+		/* activate menu items */
+		ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
+	}
+	else {
+#ifdef DEBUG
+		printf("%s: error, unhandled type: %u\n", __func__, but->type);
+#endif
+		return false;
+	}
+	return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -9154,22 +9180,12 @@ static int ui_handle_menu_event(
 
 						for (but = block->buttons.first; but; but = but->next) {
 							if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
-								if (ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_BUT_MENU)) {
-									/* mainly for operator buttons */
-									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
-								}
-								else if (ELEM(but->type, UI_BTYPE_BLOCK, UI_BTYPE_PULLDOWN)) {
-									/* open sub-menus (like right arrow key) */
-									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
-								}
-								else if (but->type == UI_BTYPE_MENU) {
-									/* activate menu items */
-									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
+								if (but->type == UI_BTYPE_BUT) {
+									UI_but_execute(C, but);
 								}
 								else {
-									printf("%s: error, but->menu_key type: %u\n", __func__, but->type);
+									ui_handle_button_activate_by_type(C, ar, but);
 								}
-
 								break;
 							}
 						}
@@ -9241,17 +9257,23 @@ static int ui_handle_menu_event(
 				menu->menuretval = UI_RETURN_CANCEL;
 			}
 			else if (ELEM(event->type, RETKEY, PADENTER) && event->val == KM_PRESS) {
-				uiBut *but_active = ui_region_find_first_but_test_flag(ar, UI_BUT_ACTIVE_DEFAULT, UI_HIDDEN);
-				if ((but_active != NULL) && (but_active->active == NULL)) {
-					ui_handle_button_activate(C, ar, but_active, BUTTON_ACTIVATE);
-					/* Get again below just incase it's disabled for eg. */
+				uiBut *but_default = ui_region_find_first_but_test_flag(ar, UI_BUT_ACTIVE_DEFAULT, UI_HIDDEN);
+				if ((but_default != NULL) && (but_default->active == NULL)) {
+					if (but->type == UI_BTYPE_BUT) {
+						UI_but_execute(C, but_default);
+					}
+					else {
+						ui_handle_button_activate_by_type(C, ar, but_default);
+					}
 				}
-				but_active = ui_region_find_active_but(ar);
+				else {
+					uiBut *but_active = ui_region_find_active_but(ar);
 
-				/* enter will always close this block, we let the event
-				 * get handled by the button if it is activated, otherwise we cancel */
-				if (but_active == NULL) {
-					menu->menuretval = UI_RETURN_CANCEL | UI_RETURN_POPUP_OK;
+					/* enter will always close this block, we let the event
+					 * get handled by the button if it is activated, otherwise we cancel */
+					if (but_active == NULL) {
+						menu->menuretval = UI_RETURN_CANCEL | UI_RETURN_POPUP_OK;
+					}
 				}
 			}
 #ifdef USE_DRAG_POPUP
