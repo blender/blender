@@ -1226,35 +1226,31 @@ static void draw_points(
 	bone_hint_color_shade(col_hint_root, (g_theme.const_color) ? col_solid_root : col_wire_root);
 	bone_hint_color_shade(col_hint_tail, (g_theme.const_color) ? col_solid_tail : col_wire_tail);
 
-	/*	Draw root point if we are not connected and parent are not hidden */
+	/* Draw root point if we are not connected to our parent */
 	if ((BONE_FLAG(eBone, pchan) & BONE_CONNECTED) == 0) {
 		if (select_id != -1) {
 			DRW_select_load_id(select_id | BONESEL_ROOT);
 		}
 
 		if (eBone) {
-			if (!((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))) {
-				if (is_envelope_draw) {
-					drw_shgroup_bone_envelope(
-					        eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-					        &eBone->rad_head, &envelope_ignore, sh_cfg);
-				}
-				else {
-					drw_shgroup_bone_point(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);
-				}
+			if (is_envelope_draw) {
+				drw_shgroup_bone_envelope(
+						eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
+						&eBone->rad_head, &envelope_ignore, sh_cfg);
+			}
+			else {
+				drw_shgroup_bone_point(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);
 			}
 		}
 		else {
 			Bone *bone = pchan->bone;
-			if (!((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)))) {
-				if (is_envelope_draw) {
-					drw_shgroup_bone_envelope(
-					        pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-					        &bone->rad_head, &envelope_ignore, sh_cfg);
-				}
-				else {
-					drw_shgroup_bone_point(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);
-				}
+			if (is_envelope_draw) {
+				drw_shgroup_bone_envelope(
+						pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
+						&bone->rad_head, &envelope_ignore, sh_cfg);
+			}
+			else {
+				drw_shgroup_bone_point(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);
 			}
 		}
 	}
@@ -1376,16 +1372,13 @@ static void draw_bone_line(
 		col_wire = g_theme.wire_color;
 	}
 
-	/*	Draw root point if we are not connected and parent are not hidden */
+	/* Draw root point if we are not connected to our parent */
 	if ((BONE_FLAG(eBone, pchan) & BONE_CONNECTED) == 0) {
-		if (eBone && !(eBone->parent && !EBONE_VISIBLE(arm, eBone->parent))) {
+		if (eBone) {
 			col_head = (eBone->flag & BONE_ROOTSEL) ? g_theme.vertex_select_color : col_bone;
 		}
 		else if (pchan) {
-			Bone *bone = pchan->bone;
-			if (!(bone->parent && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)))) {
-				col_head = col_bone;
-			}
+			col_head = col_bone;
 		}
 	}
 
