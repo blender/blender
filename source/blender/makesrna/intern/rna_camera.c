@@ -447,7 +447,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_float_default(prop, 50.0f);
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 1, 2);
+	RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 100, 4);
 	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
@@ -455,7 +455,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "sensor_x");
 	RNA_def_property_float_default(prop, 36.0f);
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
+	RNA_def_property_ui_range(prop, 1.0f, 100.f, 100, 4);
 	RNA_def_property_ui_text(prop, "Sensor Width", "Horizontal size of the image sensor area in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
@@ -463,7 +463,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "sensor_y");
 	RNA_def_property_float_default(prop, 34.0f);
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
+	RNA_def_property_ui_range(prop, 1.0f, 100.f, 100, 4);
 	RNA_def_property_ui_text(prop, "Sensor Height", "Vertical size of the image sensor area in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
