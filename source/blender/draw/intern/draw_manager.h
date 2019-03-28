@@ -99,10 +99,11 @@ enum {
 	DRW_CALL_MODELVIEWINVERSE       = (1 << 2),
 	DRW_CALL_MODELVIEWPROJECTION    = (1 << 3),
 	DRW_CALL_NORMALVIEW             = (1 << 4),
-	DRW_CALL_NORMALWORLD            = (1 << 5),
-	DRW_CALL_ORCOTEXFAC             = (1 << 6),
-	DRW_CALL_EYEVEC                 = (1 << 7),
-	DRW_CALL_OBJECTINFO             = (1 << 8),
+	DRW_CALL_NORMALVIEWINVERSE      = (1 << 5),
+	DRW_CALL_NORMALWORLD            = (1 << 6),
+	DRW_CALL_ORCOTEXFAC             = (1 << 7),
+	DRW_CALL_EYEVEC                 = (1 << 8),
+	DRW_CALL_OBJECTINFO             = (1 << 9),
 };
 
 typedef struct DRWCallState {
@@ -122,6 +123,7 @@ typedef struct DRWCallState {
 	float modelviewinverse[4][4];
 	float modelviewprojection[4][4];
 	float normalview[3][3];
+	float normalviewinverse[3][3];
 	float normalworld[3][3]; /* Not view dependent */
 	float orcotexfac[2][3]; /* Not view dependent */
 	float objectinfo[2];
@@ -258,6 +260,7 @@ struct DRWShadingGroup {
 	int modelviewinverse;
 	int modelviewprojection;
 	int normalview;
+	int normalviewinverse;
 	int normalworld;
 	int orcotexfac;
 	int eye;

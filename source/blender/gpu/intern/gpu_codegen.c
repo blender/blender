@@ -467,6 +467,8 @@ const char *GPU_builtin_name(eGPUBuiltin builtin)
 		return "unfinvviewmat";
 	else if (builtin == GPU_INVERSE_OBJECT_MATRIX)
 		return "unfinvobmat";
+	else if (builtin == GPU_INVERSE_NORMAL_MATRIX)
+		return "unfinvnormat";
 	else if (builtin == GPU_LOC_TO_VIEW_MATRIX)
 		return "unflocaltoviewmat";
 	else if (builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX)
@@ -719,6 +721,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_append(ds, "objmat");
 				else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX)
 					BLI_dynstr_append(ds, "objinv");
+				else if (input->builtin == GPU_INVERSE_NORMAL_MATRIX)
+					BLI_dynstr_append(ds, "norinv");
 				else if (input->builtin == GPU_VIEW_POSITION)
 					BLI_dynstr_append(ds, "viewposition");
 				else if (input->builtin == GPU_VIEW_NORMAL)
@@ -795,6 +799,8 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 		BLI_dynstr_append(ds, "\t#define objmat ModelMatrix\n");
 	if (builtins & GPU_INVERSE_OBJECT_MATRIX)
 		BLI_dynstr_append(ds, "\t#define objinv ModelMatrixInverse\n");
+	if (builtins & GPU_INVERSE_NORMAL_MATRIX)
+		BLI_dynstr_append(ds, "\t#define norinv NormalMatrixInverse\n");
 	if (builtins & GPU_INVERSE_VIEW_MATRIX)
 		BLI_dynstr_append(ds, "\t#define viewinv ViewMatrixInverse\n");
 	if (builtins & GPU_LOC_TO_VIEW_MATRIX)

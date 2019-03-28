@@ -2,6 +2,7 @@
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewMatrixInverse;
 uniform mat3 NormalMatrix;
+uniform mat3 NormalMatrixInverse;
 
 #ifndef USE_ATTR
 uniform mat4 ModelMatrix;
@@ -185,6 +186,11 @@ void vect_normalize(vec3 vin, out vec3 vout)
 void direction_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
 {
 	vout = (mat * vec4(vin, 0.0)).xyz;
+}
+
+void mat3_mul(vec3 vin, mat3 mat, out vec3 vout)
+{
+	vout = mat * vin;
 }
 
 void point_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
@@ -1868,7 +1874,7 @@ void node_tex_coord(
         out vec3 camera, out vec3 window, out vec3 reflection)
 {
 	generated = attr_orco;
-	normal = normalize((obinvmat * (viewinvmat * vec4(N, 0.0))).xyz);
+	normal = normalize(NormalMatrixInverse * N);
 	uv = attr_uv;
 	object = (obinvmat * (viewinvmat * vec4(I, 1.0))).xyz;
 	camera = vec3(I.xy, -I.z);
@@ -2319,7 +2325,7 @@ void node_tex_image_box(vec3 texco,
 	}
 	else {
 		/* last case, we have a mix between three */
-		weight = ((2.0 - limit) * N + (limit - 1.0)) / max(1e-8, 2.0 * limit - 1.0);
+		weight = ((2.0 - limit) * N + (limit - 1.0)) / max(1e-8, blend);
 	}
 
 	color = weight.x * color1 + weight.y * color2 + weight.z * color3;
