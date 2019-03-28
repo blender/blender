@@ -587,6 +587,10 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(
 	auto_names = MEM_reallocN(auto_names, sizeof(char) * auto_ofs);
 	auto_is_srgb = MEM_reallocN(auto_is_srgb, sizeof(int) * auto_is_srgb_ofs);
 
+	/* WATCH: May have been referenced somewhere before freeing. */
+	MEM_SAFE_FREE(*r_auto_layers_names);
+	MEM_SAFE_FREE(*r_auto_layers_srgb);
+
 	*r_auto_layers_names = auto_names;
 	*r_auto_layers_srgb = auto_is_srgb;
 	*r_auto_layers_len = auto_is_srgb_ofs;
