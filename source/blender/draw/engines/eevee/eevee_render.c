@@ -169,7 +169,10 @@ void EEVEE_render_cache(
 		}
 	}
 
-	if (engine) {
+	/* Don't print dupli objects as this can be very verbose and
+	 * increase the render time on Windows because of slow windows term.
+	 * (see T59649) */
+	if (engine && (ob->base_flag & BASE_FROM_DUPLI) == 0) {
 		char info[42];
 		BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
 		RE_engine_update_stats(engine, NULL, info);
@@ -524,13 +527,17 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		DRW_viewport_matrix_override_set(g_data->viewinv, DRW_MAT_VIEWINV);
 
 		/* Refresh Probes */
-		RE_engine_update_stats(engine, NULL, "Updating Probes");
 		EEVEE_lightprobes_refresh(sldata, vedata);
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 
-		char info[42];
-		BLI_snprintf(info, sizeof(info), "Rendering %u / %u samples", render_samples + 1, tot_sample);
-		RE_engine_update_stats(engine, NULL, info);
+		/* Don't print every samples as it can lead to bad performance. (see T59649) */
+		if ((render_samples % 25) == 0 ||
+		    (render_samples + 1) == tot_sample)
+		{
+			char info[42];
+			BLI_snprintf(info, sizeof(info), "Rendering %u / %u samples", render_samples + 1, tot_sample);
+			RE_engine_update_stats(engine, NULL, info);
+		}
 
 		/* Refresh Shadows */
 		EEVEE_lights_update(sldata, vedata);
