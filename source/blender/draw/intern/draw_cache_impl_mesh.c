@@ -1822,6 +1822,7 @@ typedef struct MeshBatchCache {
 		GPUVertBuf *loop_uv_tan;
 		GPUVertBuf *loop_vcol;
 		GPUVertBuf *loop_edge_fac;
+		GPUVertBuf *loop_orco;
 	} ordered;
 
 	/* Edit Mesh Data:
@@ -2033,8 +2034,7 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 	GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_pos_nor);
 	GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_uv_tan);
 	GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_vcol);
-	/* TODO */
-	// GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
+	GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
 
 	if (cache->surf_per_mat_tris) {
 		for (int i = 0; i < cache->mat_len; i++) {
@@ -2963,6 +2963,46 @@ static void mesh_create_loop_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo)
 	int vbo_len_used = GPU_vertbuf_raw_used(&pos_step);
 	if (vbo_len_used < loop_len) {
 		GPU_vertbuf_data_resize(vbo, vbo_len_used);
+	}
+}
+
+static void mesh_create_loop_orco(MeshRenderData *rdata, GPUVertBuf *vbo)
+{
+	const uint loops_len = mesh_render_data_loops_len_get(rdata);
+
+	/* initialize vertex format */
+	GPUVertFormat format = { 0 };
+	GPUVertBufRaw vbo_step;
+
+	/* FIXME(fclem): We use the last component as a way to differentiate from generic vertex attribs.
+	 * This is a substential waste of Vram and should be done another way. Unfortunately,
+	 * at the time of writting, I did not found any other "non disruptive" alternative. */
+	uint attr_id = GPU_vertformat_attr_add(&format, "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+
+	GPU_vertbuf_init_with_format(vbo, &format);
+	GPU_vertbuf_data_alloc(vbo, loops_len);
+	GPU_vertbuf_attr_get_raw_data(vbo, attr_id, &vbo_step);
+
+	if (rdata->edit_bmesh) {
+		BMesh *bm = rdata->edit_bmesh->bm;
+		BMIter iter_efa, iter_loop;
+		BMFace *efa;
+		BMLoop *loop;
+
+		BM_ITER_MESH (efa, &iter_efa, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (loop, &iter_loop, efa, BM_LOOPS_OF_FACE) {
+				float *data = (float *)GPU_vertbuf_raw_step(&vbo_step);
+				copy_v3_v3(data, rdata->orco[BM_elem_index_get(loop->v)]);
+				data[3] = 0.0; /* Tag as not a generic attrib */
+			}
+		}
+	}
+	else {
+		for (uint l = 0; l < loops_len; l++) {
+			float *data = (float *)GPU_vertbuf_raw_step(&vbo_step);
+			copy_v3_v3(data, rdata->orco[rdata->mloop[l].v]);
+			data[3] = 0.0; /* Tag as not a generic attrib */
+		}
 	}
 }
 
@@ -4593,8 +4633,7 @@ void DRW_mesh_batch_cache_create_requested(
 						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_vcol);
 						break;
 					case CD_ORCO:
-						/* TODO */
-						// GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
+						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
 						break;
 				}
 			}
@@ -4784,10 +4823,19 @@ void DRW_mesh_batch_cache_create_requested(
 			if (cache->cd_lused[CD_MLOOPCOL] != 0) {
 				DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_vcol);
 			}
-			/* TODO */
-			// if (cache->cd_vused[CD_ORCO] != 0) {
-			// 	DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_orco);
-			// }
+			if (cache->cd_vused[CD_ORCO] != 0) {
+				/* OPTI : Only do that if there is modifiers that modify orcos. */
+				CustomData *cd_vdata = (me->edit_mesh) ? &me->edit_mesh->bm->vdata : &me->vdata;
+				if (CustomData_get_layer(cd_vdata, CD_ORCO) != NULL &&
+				    ob->modifiers.first != NULL)
+				{
+					DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_orco);
+				}
+				else if ((cache->cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) == 0) {
+					/* Skip orco calculation if not needed by tangent generation. */
+					cache->cd_vused[CD_ORCO] = 0;
+				}
+			}
 		}
 	}
 
@@ -4797,6 +4845,7 @@ void DRW_mesh_batch_cache_create_requested(
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.weights, MR_DATATYPE_VERT | MR_DATATYPE_DVERT);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_pos_nor, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOP);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_uv_tan, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOP | MR_DATATYPE_SHADING);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_orco, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOP | MR_DATATYPE_SHADING);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_vcol, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOP | MR_DATATYPE_SHADING);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_edge_fac, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surf_tris, MR_DATATYPE_VERT | MR_DATATYPE_LOOP |  MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI);
@@ -4862,6 +4911,9 @@ void DRW_mesh_batch_cache_create_requested(
 	}
 	if (DRW_vbo_requested(cache->ordered.loop_uv_tan)) {
 		mesh_create_loop_uv_and_tan(rdata, cache->ordered.loop_uv_tan);
+	}
+	if (DRW_vbo_requested(cache->ordered.loop_orco)) {
+		mesh_create_loop_orco(rdata, cache->ordered.loop_orco);
 	}
 	if (DRW_vbo_requested(cache->ordered.loop_vcol)) {
 		mesh_create_loop_vcol(rdata, cache->ordered.loop_vcol);
