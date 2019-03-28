@@ -734,7 +734,7 @@ static int acf_object_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			return SELECT;
+			return BASE_SELECTED;
 
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			*neg = 1;
@@ -766,7 +766,7 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
 
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			return GET_ACF_FLAG_PTR(ob->flag, type);
+			return GET_ACF_FLAG_PTR(base->flag, type);
 
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return GET_ACF_FLAG_PTR(ob->nlaflag, type); // xxx
