@@ -1968,7 +1968,7 @@ void BKE_library_make_local(
 	 * relationship), se we tag it to be fully recomputed, but this does not seems to be enough in some cases,
 	 * and evaluation code ends up trying to evaluate a not-yet-updated armature object's deformations.
 	 * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */
-	/* Also, use this object loop to we handle rigid body resetting. */
+	/* Also, we use this object loop to handle rigid body resetting. */
 	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL && ob->pose->flag & POSE_RECALC) {
 			BKE_pose_rebuild(bmain, ob, ob->data, true);
