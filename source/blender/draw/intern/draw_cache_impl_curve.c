@@ -366,6 +366,7 @@ typedef struct CurveBatchCache {
 		GPUIndexBuf *surfaces_tris;
 		GPUIndexBuf *surfaces_lines;
 		GPUIndexBuf *curves_lines;
+		GPUIndexBuf *edges_adj_lines;
 		/* Edit mode */
 		GPUIndexBuf *edit_verts_points; /* Only control points. Not handles. */
 		GPUIndexBuf *edit_lines;
@@ -380,6 +381,7 @@ typedef struct CurveBatchCache {
 		GPUBatch *edit_verts;
 		GPUBatch *edit_handles_verts;
 		GPUBatch *edit_normals;
+		GPUBatch *edge_detection;
 	} batch;
 
 	GPUIndexBuf **surf_per_mat_tris;
@@ -390,6 +392,9 @@ typedef struct CurveBatchCache {
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
 	bool is_editmode;
+
+	/* Valid only if edge_detection is up to date. */
+	bool is_manifold;
 } CurveBatchCache;
 
 /* GPUBatch cache management. */
@@ -880,6 +885,17 @@ GPUBatch *DRW_curve_batch_cache_get_wireframes_face(Curve *cu)
 	return DRW_batch_request(&cache->batch.surfaces_edges);
 }
 
+GPUBatch *DRW_curve_batch_cache_get_edge_detection(Curve *cu, bool *r_is_manifold)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+	/* Even if is_manifold is not correct (not updated),
+	 * the default (not manifold) is just the worst case. */
+	if (r_is_manifold) {
+		*r_is_manifold = cache->is_manifold;
+	}
+	return DRW_batch_request(&cache->batch.edge_detection);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -922,6 +938,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 		DRW_ibo_request(cache->batch.curves, &cache->ibo.curves_lines);
 		DRW_vbo_request(cache->batch.curves, &cache->ordered.curves_pos);
 	}
+	if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {
+		DRW_ibo_request(cache->batch.edge_detection, &cache->ibo.edges_adj_lines);
+		DRW_vbo_request(cache->batch.edge_detection, &cache->ordered.pos_nor);
+	}
 
 	/* Edit mode */
 	if (DRW_batch_requested(cache->batch.edit_edges, GPU_PRIM_LINES)) {
@@ -963,6 +983,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_tris, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_lines, CU_DATATYPE_SURFACE);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.curves_lines, CU_DATATYPE_WIRE);
+	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_adj_lines, CU_DATATYPE_SURFACE);
 
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.pos, CU_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.data, CU_DATATYPE_OVERLAY);
@@ -1009,6 +1030,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	}
 	if (DRW_ibo_requested(cache->ibo.surfaces_lines)) {
 		DRW_displist_indexbuf_create_lines_in_order(lb, cache->ibo.surfaces_lines);
+	}
+	if (DRW_ibo_requested(cache->ibo.edges_adj_lines)) {
+		DRW_displist_indexbuf_create_edges_adjacency_lines(lb, cache->ibo.edges_adj_lines, &cache->is_manifold);
 	}
 
 	if (DRW_vbo_requested(cache->edit.pos) ||

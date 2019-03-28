@@ -66,6 +66,7 @@ void DRW_curve_batch_cache_create_requested(struct Object *ob);
 
 struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_edge_detection(struct Curve *cu, bool *r_is_manifold);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_edges(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu, bool handles);
 
@@ -73,12 +74,12 @@ struct GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *
 struct GPUBatch **DRW_curve_batch_cache_get_surface_shaded(
         struct Curve *cu, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct GPUBatch *DRW_curve_batch_cache_get_wireframes_face(struct Curve *cu);
-
 /* Metaball */
 struct GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
 struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(
         struct Object *ob, struct MetaBall *mb, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(struct Object *ob);
+struct GPUBatch *DRW_metaball_batch_cache_get_edge_detection(struct Object *ob, bool *r_is_manifold);
 
 /* DispList */
 void DRW_displist_vertbuf_create_pos_and_nor(struct ListBase *lb, struct GPUVertBuf *vbo);
@@ -89,6 +90,7 @@ void DRW_displist_indexbuf_create_lines_in_order(struct ListBase *lb, struct GPU
 void DRW_displist_indexbuf_create_triangles_in_order(struct ListBase *lb, struct GPUIndexBuf *ibo);
 void DRW_displist_indexbuf_create_triangles_loop_split_by_material(
         struct ListBase *lb, struct GPUIndexBuf **ibo_mat, uint mat_len);
+void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb, struct GPUIndexBuf *ibo, bool *r_is_manifold);
 
 /* Lattice */
 struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool use_weight, const int actdef);

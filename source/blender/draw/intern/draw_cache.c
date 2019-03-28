@@ -705,8 +705,14 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
 	switch (ob->type) {
 		case OB_MESH:
 			return DRW_cache_mesh_edge_detection_get(ob, r_is_manifold);
-
-		/* TODO, should match 'DRW_cache_object_surface_get' */
+		case OB_CURVE:
+			return DRW_cache_curve_edge_detection_get(ob, r_is_manifold);
+		case OB_SURF:
+			return DRW_cache_surf_edge_detection_get(ob, r_is_manifold);
+		case OB_FONT:
+			return DRW_cache_text_edge_detection_get(ob, r_is_manifold);
+		case OB_MBALL:
+			return DRW_cache_mball_edge_detection_get(ob, r_is_manifold);
 		default:
 			return NULL;
 	}
@@ -3179,6 +3185,19 @@ GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob)
 	}
 }
 
+GPUBatch *DRW_cache_curve_edge_detection_get(Object *ob, bool *r_is_manifold)
+{
+	BLI_assert(ob->type == OB_CURVE);
+	struct Curve *cu = ob->data;
+	struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+	if (mesh_eval != NULL) {
+		return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
+	}
+	else {
+		return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
+	}
+}
+
 /* Return list of batches */
 GPUBatch **DRW_cache_curve_surface_shaded_get(
         Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
@@ -3205,6 +3224,11 @@ GPUBatch *DRW_cache_mball_surface_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MBALL);
 	return DRW_metaball_batch_cache_get_triangles_with_normals(ob);
+}
+
+GPUBatch *DRW_cache_mball_edge_detection_get(Object *ob, bool *r_is_manifold) {
+	BLI_assert(ob->type == OB_MBALL);
+	return DRW_metaball_batch_cache_get_edge_detection(ob, r_is_manifold);
 }
 
 GPUBatch *DRW_cache_mball_face_wireframe_get(Object *ob)
@@ -3248,6 +3272,22 @@ GPUBatch *DRW_cache_text_surface_get(Object *ob)
 	}
 	else {
 		return DRW_curve_batch_cache_get_triangles_with_normals(cu);
+	}
+}
+
+GPUBatch *DRW_cache_text_edge_detection_get(Object *ob, bool *r_is_manifold)
+{
+	BLI_assert(ob->type == OB_FONT);
+	struct Curve *cu = ob->data;
+	struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+	if (cu->editfont && (cu->flag & CU_FAST)) {
+		return NULL;
+	}
+	if (mesh_eval != NULL) {
+		return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
+	}
+	else {
+		return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
 	}
 }
 
@@ -3340,6 +3380,19 @@ GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
 	}
 	else {
 		return DRW_curve_batch_cache_get_wireframes_face(cu);
+	}
+}
+
+GPUBatch *DRW_cache_surf_edge_detection_get(Object *ob, bool *r_is_manifold)
+{
+	BLI_assert(ob->type == OB_SURF);
+	struct Curve *cu = ob->data;
+	struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+	if (mesh_eval != NULL) {
+		return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
+	}
+	else {
+		return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
 	}
 }
 

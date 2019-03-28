@@ -28,6 +28,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"
+#include "BLI_edgehash.h"
 #include "BLI_math_vector.h"
 
 #include "DNA_curve_types.h"
@@ -561,3 +562,97 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv(
 		}
 	}
 }
+
+/* Edge detection/adjecency */
+#define NO_EDGE INT_MAX
+static void set_edge_adjacency_lines_indices(EdgeHash *eh, GPUIndexBufBuilder *elb, bool *r_is_manifold, uint v1, uint v2, uint v3)
+{
+	bool inv_indices = (v2 > v3);
+	void **pval;
+	bool value_is_init = BLI_edgehash_ensure_p(eh, v2, v3, &pval);
+	int v_data = POINTER_AS_INT(*pval);
+	if (!value_is_init || v_data == NO_EDGE) {
+		/* Save the winding order inside the sign bit. Because the
+		 * edgehash sort the keys and we need to compare winding later. */
+		int value = (int)v1 + 1; /* Int 0 bm_looptricannot be signed */
+		*pval = POINTER_FROM_INT((inv_indices) ? -value : value);
+	}
+	else {
+		/* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
+		*pval = POINTER_FROM_INT(NO_EDGE);
+		bool inv_opposite = (v_data < 0);
+		uint v_opposite = (uint)abs(v_data) - 1;
+
+		if (inv_opposite == inv_indices) {
+			/* Don't share edge if triangles have non matching winding. */
+			GPU_indexbuf_add_line_adj_verts(elb, v1, v2, v3, v1);
+			GPU_indexbuf_add_line_adj_verts(elb, v_opposite, v2, v3, v_opposite);
+			*r_is_manifold = false;
+		}
+		else {
+			GPU_indexbuf_add_line_adj_verts(elb, v1, v2, v3, v_opposite);
+		}
+	}
+}
+
+static void set_edges_adjacency_lines_indices(void *thunk, uint v1, uint v2, uint v3)
+{
+	void **packed = (void**)thunk;
+	GPUIndexBufBuilder *elb = (GPUIndexBufBuilder*)packed[0];
+	EdgeHash *eh = (EdgeHash*)packed[1];
+	bool *r_is_manifold = (bool*)packed[2];
+
+	set_edge_adjacency_lines_indices(eh, elb, r_is_manifold, v1, v2, v3);
+	set_edge_adjacency_lines_indices(eh, elb, r_is_manifold, v2, v3, v1);
+	set_edge_adjacency_lines_indices(eh, elb, r_is_manifold, v3, v1, v2);
+}
+
+void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb, struct GPUIndexBuf *ibo, bool *r_is_manifold)
+{
+	const int tri_len = curve_render_surface_tri_len_get(lb);
+	const int vert_len = curve_render_surface_vert_len_get(lb);
+
+	*r_is_manifold = true;
+
+	/* Allocate max but only used indices are sent to GPU. */
+	GPUIndexBufBuilder elb;
+	GPU_indexbuf_init(&elb, GPU_PRIM_LINES_ADJ, tri_len * 3, vert_len);
+
+	EdgeHash *eh = BLI_edgehash_new_ex(__func__, tri_len * 3);
+
+	/* pack values to pass to `set_edges_adjacency_lines_indices` function. */
+	void* thunk[3] = {&elb,eh, r_is_manifold};
+	int v_idx = 0;
+	for (const DispList *dl = lb->first; dl; dl = dl->next) {
+		displist_indexbufbuilder_set(
+		        (SetTriIndicesFn *)set_edges_adjacency_lines_indices,
+		        (SetTriIndicesFn *)set_edges_adjacency_lines_indices,
+		        thunk, dl, v_idx);
+		v_idx += dl_vert_len(dl);
+	}
+
+	/* Create edges for remaning non manifold edges. */
+	EdgeHashIterator *ehi;
+	for (ehi = BLI_edgehashIterator_new(eh);
+	     BLI_edgehashIterator_isDone(ehi) == false;
+	     BLI_edgehashIterator_step(ehi))
+	{
+		uint v1, v2;
+		int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
+		if (v_data == NO_EDGE) {
+			continue;
+		}
+		BLI_edgehashIterator_getKey(ehi, &v1, &v2);
+		uint v0 = (uint)abs(v_data) - 1;
+		if (v_data < 0) { /* inv_opposite  */
+			SWAP(uint, v1, v2);
+		}
+		GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
+		*r_is_manifold = false;
+	}
+	BLI_edgehashIterator_free(ehi);
+	BLI_edgehash_free(eh, NULL);
+
+	GPU_indexbuf_build_in_place(&elb, ibo);
+}
+#undef NO_EDGE
