@@ -1150,19 +1150,27 @@ static void gpencil_fill_draw_3d(const bContext *C, ARegion *UNUSED(ar), void *a
 /* check if context is suitable for filling */
 static bool gpencil_fill_poll(bContext *C)
 {
+	Object *obact = CTX_data_active_object(C);
+
 	if (ED_operator_regionactive(C)) {
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa->spacetype == SPACE_VIEW3D) {
-			return 1;
+			if ((obact == NULL) ||
+				(obact->type != OB_GPENCIL) ||
+				(obact->mode != OB_MODE_PAINT_GPENCIL)) {
+				return false;
+			}
+
+			return true;
 		}
 		else {
 			CTX_wm_operator_poll_msg_set(C, "Active region not valid for filling operator");
-			return 0;
+			return false;
 		}
 	}
 	else {
 		CTX_wm_operator_poll_msg_set(C, "Active region not set");
-		return 0;
+		return true;
 	}
 }
 
