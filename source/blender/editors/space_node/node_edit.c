@@ -848,8 +848,8 @@ static void node_resize_init(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	NodeSizeWidget *nsw = MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
 
 	op->customdata = nsw;
-	nsw->mxstart = snode->cursor[0];
-	nsw->mystart = snode->cursor[1];
+	nsw->mxstart = snode->cursor[0] * UI_DPI_FAC;
+	nsw->mystart = snode->cursor[1] * UI_DPI_FAC;
 
 	/* store old */
 	nsw->oldlocx = node->locx;
