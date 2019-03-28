@@ -175,6 +175,13 @@ static bool gp_data_unlink_poll(bContext *C)
 {
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
+	/* only unlink annotation datablocks */
+	if (gpd_ptr != NULL) {
+		bGPdata *gpd = (*gpd_ptr);
+		if ((gpd->flag & GP_DATA_ANNOTATIONS) == 0) {
+			return false;
+		}
+	}
 	/* if we have access to some active data, make sure there's a datablock before enabling this */
 	return (gpd_ptr && *gpd_ptr);
 }
@@ -206,9 +213,9 @@ static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Grease Pencil Unlink";
+	ot->name = "Annotation Unlink";
 	ot->idname = "GPENCIL_OT_data_unlink";
-	ot->description = "Unlink active Grease Pencil data-block";
+	ot->description = "Unlink active Annotation data-block";
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* callbacks */
