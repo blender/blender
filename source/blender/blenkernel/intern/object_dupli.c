@@ -316,26 +316,19 @@ typedef struct VertexDupliData {
 	float child_imat[4][4];
 } VertexDupliData;
 
-static void get_duplivert_transform(const float co[3], const float nor_f[3], const short nor_s[3],
+static void get_duplivert_transform(const float co[3], const short no[3],
                                     bool use_rotation, short axis, short upflag, float mat[4][4])
 {
 	float quat[4];
 	const float size[3] = {1.0f, 1.0f, 1.0f};
 
 	if (use_rotation) {
-		float nor[3];
 		/* construct rotation matrix from normals */
-		if (nor_f) {
-			nor[0] = -nor_f[0];
-			nor[1] = -nor_f[1];
-			nor[2] = -nor_f[2];
-		}
-		else if (nor_s) {
-			nor[0] = (float)-nor_s[0];
-			nor[1] = (float)-nor_s[1];
-			nor[2] = (float)-nor_s[2];
-		}
-		vec_to_quat(quat, nor, axis, upflag);
+		float nor_f[3];
+		nor_f[0] = (float)-no[0];
+		nor_f[1] = (float)-no[1];
+		nor_f[2] = (float)-no[2];
+		vec_to_quat(quat, nor_f, axis, upflag);
 	}
 	else
 		unit_qt(quat);
@@ -343,16 +336,14 @@ static void get_duplivert_transform(const float co[3], const float nor_f[3], con
 	loc_quat_size_to_mat4(mat, co, quat, size);
 }
 
-static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
-                                  const float nor_f[3], const short nor_s[3])
+static void vertex_dupli(const VertexDupliData *vdd, int index, const float co[3], const short no[3])
 {
-	const VertexDupliData *vdd = userData;
 	Object *inst_ob = vdd->inst_ob;
 	DupliObject *dob;
 	float obmat[4][4], space_mat[4][4];
 
 	/* obmat is transform to vertex */
-	get_duplivert_transform(co, nor_f, nor_s, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, obmat);
+	get_duplivert_transform(co, no, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, obmat);
 	/* make offset relative to inst_ob using relative child transform */
 	mul_mat3_m4_v3((float (*)[4])vdd->child_imat, obmat[3]);
 	/* apply obmat _after_ the local vertex transform */
@@ -382,8 +373,14 @@ static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Obj
 	/* relative transform from parent to child space */
 	mul_m4_m4m4(vdd->child_imat, child->imat, ctx->object->obmat);
 
-	BKE_mesh_foreach_mapped_vert(me_eval, vertex_dupli__mapFunc, vdd,
-	                             vdd->use_rotation ? MESH_FOREACH_USE_NORMAL : 0);
+	const MVert *mvert = me_eval->mvert;
+	const int *origindex = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+
+	for (int i = 0, j = 0; i < me_eval->totvert; i++) {
+		if (origindex == NULL || origindex[i] != ORIGINDEX_NONE) {
+			vertex_dupli(vdd, j++, mvert[i].co, mvert[i].no);
+		}
+	}
 }
 
 static void make_duplis_verts(const DupliContext *ctx)
