@@ -1055,6 +1055,14 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 	if (totmapped == 0) {
 		/* We are not allowed to distribute particles anywhere... */
+		if (mesh != final_mesh) {
+			BKE_id_free(NULL, mesh);
+		}
+		BLI_kdtree_3d_free(tree);
+		BLI_rng_free(rng);
+		MEM_freeN(element_weight);
+		MEM_freeN(particle_element);
+		MEM_freeN(jitter_offset);
 		return 0;
 	}
 
