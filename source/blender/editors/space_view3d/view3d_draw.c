@@ -93,7 +93,9 @@
 
 #include "view3d_intern.h"  /* own include */
 
-/* ******************** general functions ***************** */
+/* -------------------------------------------------------------------- */
+/** \name General Functions
+ * \{ */
 
 /**
  * \note keep this synced with #ED_view3d_mats_rv3d_backup/#ED_view3d_mats_rv3d_restore
@@ -294,7 +296,11 @@ void ED_view3d_draw_setup_view(
 	}
 }
 
-/* ******************** view border ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw View Border
+ * \{ */
 
 static void view3d_camera_border(
         const Scene *scene, struct Depsgraph *depsgraph,
@@ -1006,8 +1012,6 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 }
 #endif /* WITH_INPUT_NDOF */
 
-/* ******************** info ***************** */
-
 /**
  * Render and camera border
  */
@@ -1026,8 +1030,14 @@ static void view3d_draw_border(const bContext *C, ARegion *ar)
 	}
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Text & Info
+ * \{ */
+
 /**
- * Grease Pencil
+ * Draw Info
  */
 static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
 {
@@ -1280,8 +1290,6 @@ static void draw_selected_name(Scene *scene, ViewLayer *view_layer, Object *ob, 
 	BLF_disable(font_id, BLF_SHADOW);
 }
 
-/* ******************** view loop ***************** */
-
 /**
  * Information drawn on top of the solid plates and composed data
  */
@@ -1367,6 +1375,12 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	BLF_batch_draw_end();
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Viewport Contents
+ * \{ */
+
 static void view3d_draw_view(const bContext *C, ARegion *ar)
 {
 	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_depsgraph(C), CTX_data_scene(C), ar, CTX_wm_view3d(C), NULL, NULL, NULL);
@@ -1407,6 +1421,8 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Offscreen Drawing
@@ -1792,6 +1808,5 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 {
 	return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);
 }
-
 
 /** \} */
