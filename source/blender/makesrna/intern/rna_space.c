@@ -643,7 +643,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
-static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 	if (GS(id->name) == ID_SCE) {
@@ -661,12 +661,25 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), Poi
 		DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
 	}
 
+	View3DShading *shading = (View3DShading*)ptr->data;
+	if (shading->type == OB_MATERIAL ||
+	    (shading->type == OB_RENDER && (strcmp(scene->r.engine, RE_engine_id_BLENDER_EEVEE) == 0 ||
+	                                    strcmp(scene->r.engine, RE_engine_id_CYCLES)))) {
+		/* When switching from workbench to render or material mode the geometry of any
+		 * active sculpt session needs to be recalculated. */
+		for (Object *ob = bmain->objects.first; ob ; ob = ob->id.next) {
+			if (ob->sculpt) {
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+			}
+		}
+	}
+
 	bScreen *screen = ptr->id.data;
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 			if (sl->spacetype == SPACE_VIEW3D) {
 				View3D *v3d = (View3D *)sl;
-				if (&v3d->shading == ptr->data) {
+				if (&v3d->shading == shading) {
 					ED_view3d_shade_update(bmain, v3d, sa);
 					return;
 				}
