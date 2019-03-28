@@ -976,14 +976,14 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 	}
 	/* Manual edits to any dependency (or self) should reset the point cache. */
 	if (!BLI_listbase_is_empty(&ptcache_id_list)) {
-		OperationKey transform_simulation_init_key(
+		OperationKey transform_eval_key(
 		        &object->id,
 		        NodeType::TRANSFORM,
-		        OperationCode::TRANSFORM_SIMULATION_INIT);
+		        OperationCode::TRANSFORM_EVAL);
 		OperationKey geometry_init_key(&object->id,
 		                               NodeType::GEOMETRY,
 		                               OperationCode::GEOMETRY_EVAL_INIT);
-		add_relation(transform_simulation_init_key,
+		add_relation(transform_eval_key,
 		             point_cache_key,
 		             "Transform Simulation -> Point Cache",
 		             RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
