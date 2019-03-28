@@ -2789,17 +2789,12 @@ void node_tex_voronoi(vec3 co, float scale, float exponent, float coloring, floa
 {
 	vec3 p = co * scale;
 	int xx, yy, zz, xi, yi, zi;
-	float da[4];
-	vec3 pa[4];
+	vec4 da = vec4(1e10);
+	vec3 pa[4] = vec3[4](vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));
 
 	xi = floor_to_int(p[0]);
 	yi = floor_to_int(p[1]);
 	zi = floor_to_int(p[2]);
-
-	da[0] = 1e+10;
-	da[1] = 1e+10;
-	da[2] = 1e+10;
-	da[3] = 1e+10;
 
 	for (xx = xi - 1; xx <= xi + 1; xx++) {
 		for (yy = yi - 1; yy <= yi + 1; yy++) {
@@ -2824,18 +2819,16 @@ void node_tex_voronoi(vec3 co, float scale, float exponent, float coloring, floa
 
 				vp += vec3(xx, yy, zz);
 				if (d < da[0]) {
-					da[3] = da[2];
-					da[2] = da[1];
-					da[1] = da[0];
+					da.yzw = da.xyz;
 					da[0] = d;
+
 					pa[3] = pa[2];
 					pa[2] = pa[1];
 					pa[1] = pa[0];
 					pa[0] = vp;
 				}
 				else if (d < da[1]) {
-					da[3] = da[2];
-					da[2] = da[1];
+					da.zw = da.yz;
 					da[1] = d;
 
 					pa[3] = pa[2];
