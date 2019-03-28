@@ -1170,7 +1170,7 @@ static bool gpencil_fill_poll(bContext *C)
 	}
 	else {
 		CTX_wm_operator_poll_msg_set(C, "Active region not set");
-		return true;
+		return false;
 	}
 }
 
