@@ -388,6 +388,11 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		layout = UI_block_layout(
 		        node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 		        locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, 0, UI_style_get());
+
+		if (node->flag & NODE_MUTED) {
+			uiLayoutSetActive(layout, false);
+		}
+
 		/* context pointers for current node and socket */
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
@@ -473,6 +478,11 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		layout = UI_block_layout(
 		        node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 		        locx + NODE_DYS, dy, node->butr.xmax, 0, 0, UI_style_get());
+
+		if (node->flag & NODE_MUTED) {
+			uiLayoutSetActive(layout, false);
+		}
+
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 
 		node->typeinfo->draw_buttons(layout, (bContext *)C, &nodeptr);
@@ -494,6 +504,11 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		layout = UI_block_layout(
 		        node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 		        locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, 0, UI_style_get());
+
+		if (node->flag & NODE_MUTED) {
+			uiLayoutSetActive(layout, false);
+		}
+
 		/* context pointers for current node and socket */
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
@@ -670,6 +685,11 @@ static void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, Pointer
 
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 	sock->typeinfo->draw_color((bContext *)C, &ptr, &node_ptr, color);
+
+	bNode *node = node_ptr.data;
+	if (node->flag & NODE_MUTED) {
+		color[3] *= 0.25f;
+	}
 
 	immAttr4fv(col, color);
 	immVertex2f(pos, sock->locx, sock->locy);
@@ -937,16 +957,13 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
 
 	if (node->flag & NODE_MUTED) {
-		UI_GetThemeColorBlendShade4fv(color_id, TH_REDALERT, 0.5f, 0, color);
+		/* Muted nodes are semi-transparent and colorless. */
+		UI_GetThemeColor3fv(TH_NODE, color);
+		color[3] = 0.25f;
 	}
 	else {
-		/* header uses color from backdrop, but we make it opaque */
-		if (color_id == TH_NODE) {
-			UI_GetThemeColorShade3fv(color_id, -20, color);
-		}
-		else {
-			UI_GetThemeColor3fv(color_id, color);
-		}
+		/* Opaque headers for regular nodes. */
+		UI_GetThemeColor3fv(color_id, color);
 		color[3] = 1.0f;
 	}
 
@@ -1012,25 +1029,33 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 	nodeLabel(ntree, node, showname, sizeof(showname));
 
-	/* XXX - don't print into self! */
-	//if (node->flag & NODE_MUTED)
-	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname);
-
-	uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
-	         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(rct->ymax - NODE_DY),
-	         (short)(iconofs - rct->xmin - 18.0f), (short)NODE_DY,
-	         NULL, 0, 0, 0, 0, "");
+	uiBut *but = uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
+	                      (int)(rct->xmin + (NODE_MARGIN_X)), (int)(rct->ymax - NODE_DY),
+	                      (short)(iconofs - rct->xmin - 18.0f), (short)NODE_DY,
+	                      NULL, 0, 0, 0, 0, "");
+	if (node->flag & NODE_MUTED) {
+		UI_but_flag_enable(but, UI_BUT_INACTIVE);
+	}
 
 	/* body */
 	if (!nodeIsRegistered(node)) {
 		/* use warning color to indicate undefined types */
 		UI_GetThemeColor4fv(TH_REDALERT, color);
+
+	}
+	else if (node->flag & NODE_MUTED) {
+		/* Muted nodes are semi-transparent and colorless. */
+		UI_GetThemeColor4fv(TH_NODE, color);
 	}
 	else if (node->flag & NODE_CUSTOM_COLOR) {
 		rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
 	}
 	else {
 		UI_GetThemeColor4fv(TH_NODE, color);
+	}
+
+	if (node->flag & NODE_MUTED) {
+		color[3] = 0.5f;
 	}
 
 	UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
@@ -1086,7 +1111,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 	/* body */
 	if (node->flag & NODE_MUTED) {
-		UI_GetThemeColorBlendShade4fv(color_id, TH_REDALERT, 0.5f, 0, color);
+		/* Muted nodes are semi-transparent and colorless. */
+		UI_GetThemeColor4fv(TH_NODE, color);
+		color[3] = 0.25f;
 	}
 	else {
 		UI_GetThemeColor4fv(color_id, color);
