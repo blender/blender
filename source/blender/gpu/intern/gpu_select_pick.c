@@ -90,6 +90,30 @@ static void rect_subregion_stride_calc(const rcti *src, const rcti *dst, SubRect
 	r_sub->skip     = (uint)(src_x - dst_x);
 }
 
+void GPU_select_buffer_stride_realign(
+        const rcti *src, const rcti *dst, uint *r_buf)
+{
+	SubRectStride sub;
+	rect_subregion_stride_calc(src, dst, &sub);
+
+	int last_px_written = sub.span * sub.span_len - 1;
+	int last_px_id = sub.start + last_px_written + (sub.span_len - 1) * sub.skip;
+
+	while (sub.span_len--) {
+		int i;
+		for (i = sub.span; i--;) {
+			r_buf[last_px_id--] = r_buf[last_px_written--];
+		}
+		if (last_px_written < 0) {
+			break;
+		}
+		for (i = sub.skip; i--;) {
+			r_buf[last_px_id--] = 0u;
+		}
+	}
+	memset(r_buf, 0, (last_px_id + 1) * sizeof(*r_buf));
+}
+
 /**
  * Ignore depth clearing as a change,
  * only check if its been changed _and_ filled in (ignore clearing since XRAY does this).

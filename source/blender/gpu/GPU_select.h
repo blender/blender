@@ -52,5 +52,6 @@ void GPU_select_cache_end(void);
 
 /* utilities */
 const uint *GPU_select_buffer_near(const uint *buffer, int hits);
+void GPU_select_buffer_stride_realign(const struct rcti *src, const struct rcti *dst, uint *r_buf);
 
 #endif
