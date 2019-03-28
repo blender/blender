@@ -215,11 +215,16 @@ static void bpy_msgbus_subscribe_value_free_data(
  * \{ */
 
 PyDoc_STRVAR(bpy_msgbus_subscribe_rna_doc,
-".. function:: subscribe_rna(data, owner, args, notify)\n"
+".. function:: subscribe_rna(data, owner, args, notify, options=set())\n"
 "\n"
 BPY_MSGBUS_RNA_MSGKEY_DOC
 "   :arg owner: Handle for this subscription (compared by identity).\n"
 "   :type owner: Any type.\n"
+"   :arg options: Change the behavior of the subscriber.\n"
+"\n"
+"      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"
+"\n"
+"   :type options: set of str.\n"
 "\n"
 "   Returns a new vector int property definition.\n"
 );
@@ -241,6 +246,13 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
 	};
 	int options = 0;
 
+	if (PyTuple_GET_SIZE(args) != 0) {
+			PyErr_Format(
+			        PyExc_TypeError,
+			        "%s: only keyword arguments are supported",
+			        error_prefix);
+			return NULL;
+	}
 	static const char *_keywords[] = {
 		"key",
 		"owner",
@@ -249,7 +261,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
 		"options",
 		NULL,
 	};
-	static _PyArg_Parser _parser = {"$OOO!O|O!:subscribe_rna", _keywords, 0};
+	static _PyArg_Parser _parser = {"OOO!O|O!:subscribe_rna", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kw, &_parser,
 	        &py_sub, &py_owner,
@@ -330,11 +342,18 @@ static PyObject *bpy_msgbus_publish_rna(PyObject *UNUSED(self), PyObject *args, 
 	const char *error_prefix = "publish_rna";
 	PyObject *py_sub = NULL;
 
+	if (PyTuple_GET_SIZE(args) != 0) {
+			PyErr_Format(
+			        PyExc_TypeError,
+			        "%s: only keyword arguments are supported",
+			        error_prefix);
+			return NULL;
+	}
 	static const char *_keywords[] = {
 		"key",
 		NULL,
 	};
-	static _PyArg_Parser _parser = {"$O:publish_rna", _keywords, 0};
+	static _PyArg_Parser _parser = {"O:publish_rna", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kw, &_parser,
 	        &py_sub))
