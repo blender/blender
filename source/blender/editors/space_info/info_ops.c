@@ -498,19 +498,19 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
  */
 
 #define INFO_TIMEOUT        5.0f
-#define INFO_COLOR_TIMEOUT  3.0f
 #define ERROR_TIMEOUT       10.0f
-#define ERROR_COLOR_TIMEOUT 6.0f
+#define FLASH_TIMEOUT       1.0f
 #define COLLAPSE_TIMEOUT    0.25f
+#define BRIGHTEN_AMOUNT     0.1f
 static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	ReportList *reports = CTX_wm_reports(C);
 	Report *report;
 	ReportTimerInfo *rti;
-	float progress = 0.0, color_progress = 0.0;
-	float neutral_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	float timeout = 0.0, color_timeout = 0.0;
+	float target_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float progress = 0.0, flash_progress = 0.0;
+	float timeout = 0.0, flash_timeout = FLASH_TIMEOUT;
 	int send_note = 0;
 
 	/* escape if not our timer */
@@ -525,7 +525,6 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
 
 	timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
-	color_timeout = (report->type & RPT_ERROR_ALL) ? ERROR_COLOR_TIMEOUT : INFO_COLOR_TIMEOUT;
 
 	/* clear the report display after timeout */
 	if ((float)reports->reporttimer->duration > timeout) {
@@ -537,36 +536,39 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 	}
 
+	/* set target color based on report type */
+	if (report->type & RPT_ERROR_ALL) {
+		UI_GetThemeColorType3fv(TH_INFO_ERROR, SPACE_INFO, target_col);
+	}
+	else if (report->type & RPT_WARNING_ALL) {
+		UI_GetThemeColorType3fv(TH_INFO_WARNING, SPACE_INFO, target_col);
+	}
+	else if (report->type & RPT_INFO_ALL) {
+		UI_GetThemeColorType3fv(TH_INFO_INFO, SPACE_INFO, target_col);
+	}
+	target_col[3] = 0.65f;
+
 	if (rti->widthfac == 0.0f) {
-		/* initialize colors based on report type */
-		if (report->type & RPT_ERROR_ALL) {
-			rti->col[0] = 1.0f;
-			rti->col[1] = 0.2f;
-			rti->col[2] = 0.0f;
-		}
-		else if (report->type & RPT_WARNING_ALL) {
-			rti->col[0] = 1.0f;
-			rti->col[1] = 1.0f;
-			rti->col[2] = 0.0f;
-		}
-		else if (report->type & RPT_INFO_ALL) {
-			rti->col[0] = 0.3f;
-			rti->col[1] = 0.45f;
-			rti->col[2] = 0.7f;
-		}
-		rti->col[3] = 0.65f;
+		/* initialize color to a brighter shade of the target color */
+		rti->col[0] = target_col[0] + BRIGHTEN_AMOUNT;
+		rti->col[1] = target_col[1] + BRIGHTEN_AMOUNT;
+		rti->col[2] = target_col[2] + BRIGHTEN_AMOUNT;
+		rti->col[3] = 1.0f;
+
+		CLAMP3(rti->col, 0.0, 1.0);
+
 		rti->widthfac = 1.0f;
 	}
 
 	progress = powf((float)reports->reporttimer->duration / timeout, 2.0f);
-	color_progress = powf((float)reports->reporttimer->duration / color_timeout, 2.0);
+	flash_progress = powf((float)reports->reporttimer->duration / flash_timeout, 2.0);
 
 	/* save us from too many draws */
-	if (color_progress <= 1.0f) {
+	if (flash_progress <= 1.0f) {
 		send_note = 1;
 
-		/* fade colors out sharply according to progress through fade-out duration */
-		interp_v4_v4v4(rti->col, rti->col, neutral_col, color_progress);
+		/* flash report briefly according to progress through fade-out duration */
+		interp_v4_v4v4(rti->col, rti->col, target_col, flash_progress);
 	}
 
 	/* collapse report at end of timeout */

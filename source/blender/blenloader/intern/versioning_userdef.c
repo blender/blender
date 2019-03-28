@@ -110,6 +110,10 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		FROM_DEFAULT_V4_UCHAR(space_view3d.back);
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 52)) {
+		FROM_DEFAULT_V4_UCHAR(space_info.info_info);
+	}
+
 #undef FROM_DEFAULT_V4_UCHAR
 
 #undef USER_VERSION_ATLEAST

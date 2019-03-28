@@ -2908,9 +2908,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
-	{
-		/* Versioning code until next subversion bump goes here. */
-
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 52)) {
 		LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
 			/* Replace deprecated PART_DRAW_BB by PART_DRAW_NOT */
 			if (part->ren_as == PART_DRAW_BB) {
@@ -2945,5 +2943,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		} FOREACH_NODETREE_END;
+	}
+
+	{
+		/* Versioning code until next subversion bump goes here. */
 	}
 }

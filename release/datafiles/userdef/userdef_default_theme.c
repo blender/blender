@@ -472,7 +472,7 @@ const bTheme U_theme_default = {
 		.info_error_text = RGBA(0xffffffff),
 		.info_warning = RGBA(0xb36a00ff),
 		.info_warning_text = RGBA(0xffffffff),
-		.info_info = RGBA(0x668000ff),
+		.info_info = RGBA(0x1d4383ff),
 		.info_info_text = RGBA(0xffffffff),
 		.info_debug = RGBA(0xd3d3d3ff),
 	},

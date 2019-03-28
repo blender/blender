@@ -366,6 +366,7 @@ void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);
 void UI_GetThemeColor4ubv(int colorid, unsigned char col[4]);
 
 // get a theme color from specified space type
+void UI_GetThemeColorType3fv(int colorid, int spacetype, float col[3]);
 void UI_GetThemeColorType3ubv(int colorid, int spacetype, unsigned char col[3]);
 void UI_GetThemeColorType4ubv(int colorid, int spacetype, unsigned char col[4]);
 

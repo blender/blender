@@ -1017,7 +1017,7 @@
         info_error_text="#ffffff"
         info_warning="#b36a00"
         info_warning_text="#ffffff"
-        info_info="#668000"
+        info_info="#4d73b3ff"
         info_info_text="#ffffff"
         info_debug="#d3d3d3"
         info_debug_text="#000000"
