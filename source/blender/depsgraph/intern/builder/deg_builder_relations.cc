@@ -931,6 +931,11 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 		 * so we onl;y hook up to transform channel here. */
 		add_relation(parent_geometry_key, ob_key, "Parent");
 	}
+
+	/* Dupliverts uses original vertex index. */
+	if (parent->transflag & OB_DUPLIVERTS) {
+		add_customdata_mask(parent, DEGCustomDataMeshMasks::MaskVert(CD_MASK_ORIGINDEX));
+	}
 }
 
 void DepsgraphRelationBuilder::build_object_pointcache(Object *object)

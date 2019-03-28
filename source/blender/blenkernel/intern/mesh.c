@@ -584,18 +584,6 @@ static void mesh_ensure_cdlayers_primary(Mesh *mesh, bool do_tessface)
 	if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_MFACE))
 		CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, NULL, mesh->totface);
 }
-static void mesh_ensure_cdlayers_origindex(Mesh *mesh, bool do_tessface)
-{
-	if (!CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))
-		CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
-	if (!CustomData_get_layer(&mesh->edata, CD_ORIGINDEX))
-		CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
-	if (!CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX))
-		CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL,  mesh->totpoly);
-
-	if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX))
-		CustomData_add_layer(&mesh->fdata, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
-}
 
 Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int loops_len, int polys_len)
 {
@@ -619,7 +607,6 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int lo
 	mesh->totpoly = polys_len;
 
 	mesh_ensure_cdlayers_primary(mesh, true);
-	mesh_ensure_cdlayers_origindex(mesh, true);
 	BKE_mesh_update_customdata_pointers(mesh, false);
 
 	return mesh;
@@ -662,7 +649,6 @@ static Mesh *mesh_new_nomain_from_template_ex(
 	/* The destination mesh should at least have valid primary CD layers,
 	 * even in cases where the source mesh does not. */
 	mesh_ensure_cdlayers_primary(me_dst, do_tessface);
-	mesh_ensure_cdlayers_origindex(me_dst, false);
 	BKE_mesh_update_customdata_pointers(me_dst, false);
 
 	return me_dst;

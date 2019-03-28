@@ -176,7 +176,6 @@ typedef struct GenerateOceanGeometryData {
 	MVert *mverts;
 	MPoly *mpolys;
 	MLoop *mloops;
-	int *origindex;
 	MLoopUV *mloopuvs;
 
 	int res_x, res_y;
@@ -230,9 +229,6 @@ static void generate_ocean_geometry_polygons(
 		mp->totloop = 4;
 
 		mp->flag |= ME_SMOOTH;
-
-		/* generated geometry does not map to original faces */
-		gogd->origindex[fi] = ORIGINDEX_NONE;
 	}
 }
 
@@ -298,8 +294,6 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd)
 	gogd.mverts = result->mvert;
 	gogd.mpolys = result->mpoly;
 	gogd.mloops = result->mloop;
-
-	gogd.origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
