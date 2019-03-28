@@ -450,7 +450,7 @@ void ED_view3d_draw_offscreen(
         int drawtype,
         struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
         float winmat[4][4], bool do_sky, bool is_persp, const char *viewname,
-        struct GPUFXSettings *fx_settings,
+        struct GPUFXSettings *fx_settings, bool do_color_managment,
         struct GPUOffScreen *ofs, struct GPUViewport *viewport);
 void ED_view3d_draw_setup_view(
         struct wmWindow *win, struct Depsgraph *depsgraph, struct Scene *scene, struct ARegion *ar, struct View3D *v3d,

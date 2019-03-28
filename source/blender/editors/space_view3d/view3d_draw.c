@@ -1455,7 +1455,7 @@ void ED_view3d_draw_offscreen(
         View3D *v3d, ARegion *ar, int winx, int winy,
         float viewmat[4][4], float winmat[4][4],
         bool do_sky, bool UNUSED(is_persp), const char *viewname,
-        GPUFXSettings *UNUSED(fx_settings),
+        GPUFXSettings *UNUSED(fx_settings), const bool do_color_management,
         GPUOffScreen *ofs, GPUViewport *viewport)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -1501,7 +1501,7 @@ void ED_view3d_draw_offscreen(
 	/* main drawing call */
 	DRW_draw_render_loop_offscreen(
 	        depsgraph, engine_type, ar, v3d,
-	        do_sky, ofs, viewport);
+	        do_sky, do_color_management, ofs, viewport);
 
 	/* restore size */
 	ar->winx = bwinx;
@@ -1604,12 +1604,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	}
 
 	if ((samples && use_full_sample) == 0) {
+		const bool do_color_management = (ibuf->rect_float == NULL);
 		/* Single-pass render, common case */
 		ED_view3d_draw_offscreen(
 		        depsgraph, scene, drawtype,
 		        v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_sky, !is_ortho, viewname,
-		        &fx_settings, ofs, NULL);
+		        &fx_settings, do_color_management, ofs, NULL);
 
 		if (ibuf->rect_float) {
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
@@ -1634,7 +1635,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		        depsgraph, scene, drawtype,
 		        v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_sky, !is_ortho, viewname,
-		        &fx_settings, ofs, viewport);
+		        &fx_settings, false, ofs, viewport);
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, accum_buffer);
 
 		/* skip the first sample */
@@ -1649,7 +1650,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			        depsgraph, scene, drawtype,
 			        v3d, ar, sizex, sizey, NULL, winmat_jitter,
 			        draw_sky, !is_ortho, viewname,
-			        &fx_settings, ofs, viewport);
+			        &fx_settings, false, ofs, viewport);
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, rect_temp);
 
 			uint i = sizex * sizey * 4;

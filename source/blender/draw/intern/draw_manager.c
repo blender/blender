@@ -1673,7 +1673,9 @@ void DRW_draw_render_loop(
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *depsgraph, RenderEngineType *engine_type,
         ARegion *ar, View3D *v3d,
-        const bool draw_background, GPUOffScreen *ofs,
+        const bool draw_background,
+        const bool do_color_management,
+        GPUOffScreen *ofs,
         GPUViewport *viewport)
 {
 	/* Create temporary viewport if needed. */
@@ -1686,7 +1688,9 @@ void DRW_draw_render_loop_offscreen(
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
-	DST.options.is_image_render = true;
+	/* WATCH: Force color management to output CManaged byte buffer by
+	 * forcing is_image_render to false. */
+	DST.options.is_image_render = !do_color_management;
 	DST.options.draw_background = draw_background;
 	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, render_viewport, NULL);
 
