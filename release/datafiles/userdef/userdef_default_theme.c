@@ -700,7 +700,7 @@ const bTheme U_theme_default = {
 			.back = RGBA(0x333333b3),
 			.sub_back = RGBA(0x0000003e),
 		},
-		.shade2 = RGBA(0x19191aff),
+		.shade2 = RGBA(0x5680c2e6),
 		.hilite = RGBA(0xff0000ff),
 		.grid = RGBA(0x313133ff),
 		.vertex_size = 3,
