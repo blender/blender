@@ -3205,8 +3205,7 @@ static bool lattice_circle_select(ViewContext *vc, const eSelectOp sel_op, const
 	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		Curve *curve = vc->obedit->data;
-		data.is_changed |= ED_curve_deselect_all(curve->editnurb);
+		data.is_changed |= ED_lattice_flags_set(vc->obedit, 0);
 	}
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
