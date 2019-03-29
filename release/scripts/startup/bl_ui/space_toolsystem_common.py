@@ -567,6 +567,8 @@ class ToolSelectPanelHelper:
         # Note: we could show 'item.text' here but it makes the layout jitter when switching tools.
         # Add some spacing since the icon is currently assuming regular small icon size.
         layout.label(text="    " + item.label if show_tool_name else " ", icon_value=icon_value)
+        if show_tool_name:
+            layout.separator()
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout, tool)
