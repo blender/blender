@@ -4152,8 +4152,13 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 		/* insert a keyframe for this F-Curve */
 		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
 
-		if (done)
+		if (done) {
+			if (adt->action != NULL) {
+				DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+			}
+			DEG_id_tag_update(id, ID_RECALC_ANIMATION_NO_FLUSH);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+		}
 	}
 
 	BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);

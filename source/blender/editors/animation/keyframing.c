@@ -2126,6 +2126,13 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	}
 
 	if (success) {
+		ID *id = ptr.id.data;
+		AnimData *adt = BKE_animdata_from_id(id);
+		if (adt->action != NULL) {
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+		}
+		DEG_id_tag_update(id, ID_RECALC_ANIMATION_NO_FLUSH);
+
 		/* send updates */
 		UI_context_update_anim_flag(C);
 
