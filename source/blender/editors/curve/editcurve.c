@@ -4319,7 +4319,7 @@ static bool merge_2_nurb(Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
 		if (len1 < len2) {
 			bp2 = &nu2->bp[v * nu2->pntsu];
 		}
-		else             {
+		else {
 			bp2 = &nu2->bp[(nu1->pntsv - v - 1) * nu2->pntsu];
 		}
 

@@ -39,7 +39,7 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecDat
 	Object *ob = (Object *)node->id;
 	invert_m4_m4(ob->imat, ob->obmat);
 
-	GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform((float*)ob->imat) : GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
+	GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) : GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 
 	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");

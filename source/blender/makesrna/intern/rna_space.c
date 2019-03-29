@@ -661,7 +661,7 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 		DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
 	}
 
-	View3DShading *shading = (View3DShading*)ptr->data;
+	View3DShading *shading = ptr->data;
 	if (shading->type == OB_MATERIAL ||
 	    (shading->type == OB_RENDER && (strcmp(scene->r.engine, RE_engine_id_BLENDER_EEVEE) == 0 ||
 	                                    strcmp(scene->r.engine, RE_engine_id_CYCLES)))) {

@@ -247,11 +247,11 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
 	int options = 0;
 
 	if (PyTuple_GET_SIZE(args) != 0) {
-			PyErr_Format(
-			        PyExc_TypeError,
-			        "%s: only keyword arguments are supported",
-			        error_prefix);
-			return NULL;
+		PyErr_Format(
+		        PyExc_TypeError,
+		        "%s: only keyword arguments are supported",
+		        error_prefix);
+		return NULL;
 	}
 	static const char *_keywords[] = {
 		"key",
@@ -343,11 +343,11 @@ static PyObject *bpy_msgbus_publish_rna(PyObject *UNUSED(self), PyObject *args, 
 	PyObject *py_sub = NULL;
 
 	if (PyTuple_GET_SIZE(args) != 0) {
-			PyErr_Format(
-			        PyExc_TypeError,
-			        "%s: only keyword arguments are supported",
-			        error_prefix);
-			return NULL;
+		PyErr_Format(
+		        PyExc_TypeError,
+		        "%s: only keyword arguments are supported",
+		        error_prefix);
+		return NULL;
 	}
 	static const char *_keywords[] = {
 		"key",

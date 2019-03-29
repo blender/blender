@@ -2617,8 +2617,7 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->paint_curve = newlibadr_us(fd, brush->id.lib, brush->paint_curve);
 
 			/* link default grease pencil palette */
-			if (brush->gpencil_settings != NULL)
-			{
+			if (brush->gpencil_settings != NULL) {
 				if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
 					brush->gpencil_settings->material = newlibadr_us(fd, brush->id.lib, brush->gpencil_settings->material);
 

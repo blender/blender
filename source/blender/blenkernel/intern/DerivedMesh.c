@@ -995,7 +995,7 @@ static void mesh_calc_modifier_final_normals(
         const Mesh *mesh_input,
         const CustomData_MeshMasks *dataMask,
         const bool sculpt_dyntopo,
-		Mesh *mesh_final)
+        Mesh *mesh_final)
 {
 	/* Compute normals. */
 	const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
@@ -1517,7 +1517,7 @@ bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, bool has_prev
 static void editbmesh_calc_modifier_final_normals(
         const Mesh *mesh_input,
         const CustomData_MeshMasks *dataMask,
-		Mesh *mesh_final)
+        Mesh *mesh_final)
 {
 	const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
 	                              (dataMask->lmask & CD_MASK_NORMAL) != 0);

@@ -621,7 +621,7 @@ void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb, str
 	EdgeHash *eh = BLI_edgehash_new_ex(__func__, tri_len * 3);
 
 	/* pack values to pass to `set_edges_adjacency_lines_indices` function. */
-	void* thunk[3] = {&elb,eh, r_is_manifold};
+	void *thunk[3] = {&elb, eh, r_is_manifold};
 	int v_idx = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
 		displist_indexbufbuilder_set(

@@ -1156,8 +1156,9 @@ static bool gpencil_fill_poll(bContext *C)
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa->spacetype == SPACE_VIEW3D) {
 			if ((obact == NULL) ||
-				(obact->type != OB_GPENCIL) ||
-				(obact->mode != OB_MODE_PAINT_GPENCIL)) {
+			    (obact->type != OB_GPENCIL) ||
+			    (obact->mode != OB_MODE_PAINT_GPENCIL))
+			{
 				return false;
 			}
 
