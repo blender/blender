@@ -1738,6 +1738,15 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 		ComponentKey effector_transform_key(
 		        &effector_relation->ob->id, NodeType::TRANSFORM);
 		add_relation(effector_transform_key, rb_init_key, "RigidBody Field");
+		if (effector_relation->pd != NULL) {
+			const short shape = effector_relation->pd->shape;
+			if (ELEM(shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS)) {
+				ComponentKey effector_geometry_key(
+				        &effector_relation->ob->id, NodeType::GEOMETRY);
+				add_relation(
+				        effector_geometry_key, rb_init_key, "RigidBody Field");
+			}
+		}
 	}
 	/* Objects. */
 	if (rbw->group != NULL) {
