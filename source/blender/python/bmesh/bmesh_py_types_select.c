@@ -255,8 +255,9 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
 	/* don't need error check here */
 	if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
+		if (i == -1 && PyErr_Occurred()) {
 			return NULL;
+		}
 		return bpy_bmeditselseq_subscript_int(self, i);
 	}
 	else if (PySlice_Check(key)) {
@@ -278,14 +279,22 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
 			Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
 			/* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
-			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) return NULL;
-			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop))    return NULL;
+			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
+				return NULL;
+			}
+			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
+				return NULL;
+			}
 
 			if (start < 0 || stop < 0) {
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmeditselseq_length(self);
-				if (start < 0) start += len;
-				if (stop  < 0) stop  += len;
+				if (start < 0) {
+					start += len;
+				}
+				if (stop  < 0) {
+					stop  += len;
+				}
 			}
 
 			if (stop - start <= 0) {

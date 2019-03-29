@@ -476,8 +476,9 @@ int BPY_library_load_module(PyObject *mod_par)
 	/* some compilers don't like accessing this directly, delay assignment */
 	bpy_lib_Type.tp_getattro = PyObject_GenericGetAttr;
 
-	if (PyType_Ready(&bpy_lib_Type) < 0)
+	if (PyType_Ready(&bpy_lib_Type) < 0) {
 		return -1;
+	}
 
 	return 0;
 }

@@ -90,8 +90,9 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 {
 	PyObject *value;
 
-	if (!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value))
+	if (!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value)) {
 		return NULL;
+	}
 
 	if (PyFunction_Check(value)) {
 		PyObject **dict_ptr = _PyObject_GetDictPtr(value);

@@ -615,7 +615,9 @@ static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self
 
 	len = bpy_bmlayercollection_length(self);
 
-	if (keynum < 0) keynum += len;
+	if (keynum < 0) {
+		keynum += len;
+	}
 	if (keynum >= 0) {
 		if (keynum < len) {
 			return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, keynum);
@@ -636,8 +638,12 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (start >= len) start = len - 1;
-	if (stop  >= len) stop  = len - 1;
+	if (start >= len) {
+		start = len - 1;
+	}
+	if (stop  >= len) {
+		stop  = len - 1;
+	}
 
 	tuple = PyTuple_New(stop - start);
 
@@ -656,8 +662,9 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
 	}
 	else if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
+		if (i == -1 && PyErr_Occurred()) {
 			return NULL;
+		}
 		return bpy_bmlayercollection_subscript_int(self, i);
 	}
 	else if (PySlice_Check(key)) {
@@ -679,14 +686,22 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
 			Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
 			/* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
-			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) return NULL;
-			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop))    return NULL;
+			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
+				return NULL;
+			}
+			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
+				return NULL;
+			}
 
 			if (start < 0 || stop < 0) {
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmlayercollection_length(self);
-				if (start < 0) start += len;
-				if (stop  < 0) stop  += len;
+				if (start < 0) {
+					start += len;
+				}
+				if (stop  < 0) {
+					stop  += len;
+				}
 			}
 
 			if (stop - start <= 0) {
@@ -1085,8 +1100,9 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				ret = -1;
 			}
 			else {
-				if (tmp_val_len > sizeof(mstring->s))
+				if (tmp_val_len > sizeof(mstring->s)) {
 					tmp_val_len = sizeof(mstring->s);
+				}
 				memcpy(mstring->s, tmp_val, tmp_val_len);
 				mstring->s_len = tmp_val_len;
 			}

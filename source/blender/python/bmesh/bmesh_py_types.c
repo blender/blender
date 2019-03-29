@@ -1445,8 +1445,9 @@ static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self, PyObject *args)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "|O:calc_edge_angle", &fallback))
+	if (!PyArg_ParseTuple(args, "|O:calc_edge_angle", &fallback)) {
 		return NULL;
+	}
 
 	angle = BM_vert_calc_edge_angle_ex(self->v, angle_invalid);
 
@@ -1530,8 +1531,9 @@ static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self, PyObject *args)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "|O:calc_face_angle", &fallback))
+	if (!PyArg_ParseTuple(args, "|O:calc_face_angle", &fallback)) {
 		return NULL;
+	}
 
 	angle = BM_edge_calc_face_angle_ex(self->e, angle_invalid);
 
@@ -1569,8 +1571,9 @@ static PyObject *bpy_bmedge_calc_face_angle_signed(BPy_BMEdge *self, PyObject *a
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "|O:calc_face_angle_signed", &fallback))
+	if (!PyArg_ParseTuple(args, "|O:calc_face_angle_signed", &fallback)) {
 		return NULL;
+	}
 
 	angle = BM_edge_calc_face_angle_signed_ex(self->e, angle_invalid);
 
@@ -2161,7 +2164,9 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 		ret = BPy_BMEdge_CreatePyObject(bm, e);
 
 cleanup:
-		if (vert_array) PyMem_FREE(vert_array);
+		if (vert_array) {
+			PyMem_FREE(vert_array);
+		}
 		return ret;
 	}
 }
@@ -2239,7 +2244,9 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 		/* pass through */
 cleanup:
-		if (vert_array) PyMem_FREE(vert_array);
+		if (vert_array) {
+			PyMem_FREE(vert_array);
+		}
 		return ret;
 	}
 }
@@ -2535,9 +2542,15 @@ static int bpy_bmelemseq_sort_cmp_by_keys_ascending(const void *index1_v, const 
 	const int *index1 = (int *)index1_v;
 	const int *index2 = (int *)index2_v;
 
-	if      (keys[*index1] < keys[*index2]) return -1;
-	else if (keys[*index1] > keys[*index2]) return 1;
-	else                                    return 0;
+	if (keys[*index1] < keys[*index2]) {
+		return -1;
+	}
+	else if (keys[*index1] > keys[*index2]) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 static int bpy_bmelemseq_sort_cmp_by_keys_descending(const void *index1_v, const void *index2_v, void *keys_v)
@@ -2646,10 +2659,12 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	range_vn_i(elem_idx, n_elem, 0);
 
 	/* Sort the index array according to the order of the 'keys' array */
-	if (do_reverse)
+	if (do_reverse) {
 		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_descending;
-	else
+	}
+	else {
 		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_ascending;
+	}
 
 	BLI_qsort_r(elem_idx, n_elem, sizeof(*elem_idx), elem_idx_compare_by_keys, keys);
 
@@ -2920,7 +2935,10 @@ static PyObject *bpy_bmelemseq_subscript_int(BPy_BMElemSeq *self, int keynum)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	if (keynum < 0) keynum += bpy_bmelemseq_length(self); /* only get length on negative value, may loop entire seq */
+	if (keynum < 0) {
+		/* only get length on negative value, may loop entire seq */
+		keynum += bpy_bmelemseq_length(self);
+	}
 	if (keynum >= 0) {
 		if (self->itype <= BM_FACES_OF_MESH) {
 			if ((self->bm->elem_table_dirty & bm_iter_itype_htype_map[self->itype]) == 0) {
@@ -3014,8 +3032,9 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 	/* don't need error check here */
 	if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
+		if (i == -1 && PyErr_Occurred()) {
 			return NULL;
+		}
 		return bpy_bmelemseq_subscript_int(self, i);
 	}
 	else if (PySlice_Check(key)) {
@@ -3037,14 +3056,22 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 			Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
 			/* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
-			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) return NULL;
-			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop))    return NULL;
+			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
+				return NULL;
+			}
+			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
+				return NULL;
+			}
 
 			if (start < 0 || stop < 0) {
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmelemseq_length(self);
-				if (start < 0) start += len;
-				if (stop  < 0) stop  += len;
+				if (start < 0) {
+					start += len;
+				}
+				if (stop  < 0) {
+					stop  += len;
+				}
 			}
 
 			if (stop - start <= 0) {
@@ -3162,10 +3189,18 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 	if (bm) {
 		bm_dealloc_editmode_warn(self);
 
-		if (CustomData_has_layer(&bm->vdata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
-		if (CustomData_has_layer(&bm->edata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
-		if (CustomData_has_layer(&bm->pdata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
-		if (CustomData_has_layer(&bm->ldata, CD_BM_ELEM_PYPTR)) BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+		if (CustomData_has_layer(&bm->vdata, CD_BM_ELEM_PYPTR)) {
+			BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
+		}
+		if (CustomData_has_layer(&bm->edata, CD_BM_ELEM_PYPTR)) {
+			BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
+		}
+		if (CustomData_has_layer(&bm->pdata, CD_BM_ELEM_PYPTR)) {
+			BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
+		}
+		if (CustomData_has_layer(&bm->ldata, CD_BM_ELEM_PYPTR)) {
+			BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+		}
 
 		bm->py_handle = NULL;
 
@@ -3182,8 +3217,9 @@ static void bpy_bmvert_dealloc(BPy_BMElem *self)
 	BMesh *bm = self->bm;
 	if (bm) {
 		void **ptr = CustomData_bmesh_get(&bm->vdata, self->ele->head.data, CD_BM_ELEM_PYPTR);
-		if (ptr)
+		if (ptr) {
 			*ptr = NULL;
+		}
 	}
 	PyObject_DEL(self);
 }
@@ -3193,8 +3229,9 @@ static void bpy_bmedge_dealloc(BPy_BMElem *self)
 	BMesh *bm = self->bm;
 	if (bm) {
 		void **ptr = CustomData_bmesh_get(&bm->edata, self->ele->head.data, CD_BM_ELEM_PYPTR);
-		if (ptr)
+		if (ptr) {
 			*ptr = NULL;
+		}
 	}
 	PyObject_DEL(self);
 }
@@ -3204,8 +3241,9 @@ static void bpy_bmface_dealloc(BPy_BMElem *self)
 	BMesh *bm = self->bm;
 	if (bm) {
 		void **ptr = CustomData_bmesh_get(&bm->pdata, self->ele->head.data, CD_BM_ELEM_PYPTR);
-		if (ptr)
+		if (ptr) {
 			*ptr = NULL;
+		}
 	}
 	PyObject_DEL(self);
 }
@@ -3215,8 +3253,9 @@ static void bpy_bmloop_dealloc(BPy_BMElem *self)
 	BMesh *bm = self->bm;
 	if (bm) {
 		void **ptr = CustomData_bmesh_get(&bm->ldata, self->ele->head.data, CD_BM_ELEM_PYPTR);
-		if (ptr)
+		if (ptr) {
 			*ptr = NULL;
+		}
 	}
 	PyObject_DEL(self);
 }
@@ -3938,7 +3977,9 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
 	}
 
 	*r_size = seq_len;
-	if (r_bm) *r_bm = bm;
+	if (r_bm) {
+		*r_bm = bm;
+	}
 	return alloc;
 
 err_cleanup:
@@ -4042,10 +4083,10 @@ char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 {
 	/* zero to ensure string is always NULL terminated */
 	char *ret_ptr = ret;
-	if (htype & BM_VERT) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
-	if (htype & BM_EDGE) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
-	if (htype & BM_FACE) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
-	if (htype & BM_LOOP) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
+	if (htype & BM_VERT) { ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name); }
+	if (htype & BM_EDGE) { ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name); }
+	if (htype & BM_FACE) { ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name); }
+	if (htype & BM_LOOP) { ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name); }
 	ret[0]   = '(';
 	*ret_ptr++ = ')';
 	*ret_ptr   = '\0';

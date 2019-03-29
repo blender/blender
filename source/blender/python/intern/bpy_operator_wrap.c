@@ -162,8 +162,9 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	const char *opname;
 	const char *macroname;
 
-	if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &opname))
+	if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &opname)) {
 		return NULL;
+	}
 
 	if (WM_operatortype_find(opname, true) == NULL) {
 		PyErr_Format(PyExc_ValueError,

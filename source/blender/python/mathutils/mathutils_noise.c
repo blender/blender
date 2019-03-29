@@ -136,17 +136,20 @@ static void next_state(void)
 
 	/* if init_genrand() has not been called, */
 	/* a default initial seed is used         */
-	if (initf == 0)
+	if (initf == 0) {
 		init_genrand(5489UL);
+	}
 
 	left = N;
 	next = state;
 
-	for (j = N - M + 1; --j; p++)
+	for (j = N - M + 1; --j; p++) {
 		*p = p[M] ^ TWIST(p[0], p[1]);
+	}
 
-	for (j = M; --j; p++)
+	for (j = M; --j; p++) {
 		*p = p[M - N] ^ TWIST(p[0], p[1]);
+	}
 
 	*p = p[M - N] ^ TWIST(p[0], state[0]);
 }
@@ -155,10 +158,12 @@ static void next_state(void)
 
 static void setRndSeed(int seed)
 {
-	if (seed == 0)
+	if (seed == 0) {
 		init_genrand(time(NULL));
-	else
+	}
+	else {
 		init_genrand(seed);
+	}
 }
 
 /* float number in range [0, 1) using the mersenne twister rng */
@@ -166,8 +171,9 @@ static float frand(void)
 {
 	unsigned long y;
 
-	if (--left == 0)
+	if (--left == 0) {
 		next_state();
+	}
 	y = *next++;
 
 	/* Tempering */
@@ -253,16 +259,18 @@ static float turb(
 	int i;
 	amp = 1.f;
 	out = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
-	if (hard)
+	if (hard) {
 		out = fabsf(out);
+	}
 	for (i = 1; i < oct; i++) {
 		amp *= ampscale;
 		x *= freqscale;
 		y *= freqscale;
 		z *= freqscale;
 		t = (float)(amp * (2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f));
-		if (hard)
+		if (hard) {
 			t = fabsf(t);
+		}
 		out += t;
 	}
 	return out;
@@ -406,8 +414,9 @@ PyDoc_STRVAR(M_Noise_seed_set_doc,
 static PyObject *M_Noise_seed_set(PyObject *UNUSED(self), PyObject *args)
 {
 	int s;
-	if (!PyArg_ParseTuple(args, "i:seed_set", &s))
+	if (!PyArg_ParseTuple(args, "i:seed_set", &s)) {
 		return NULL;
+	}
 	setRndSeed(s);
 	Py_RETURN_NONE;
 }
@@ -447,8 +456,9 @@ static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args, PyObject 
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "noise: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "noise: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble((2.0f * BLI_gNoise(1.0f, vec[0], vec[1], vec[2], 0, noise_basis_enum) - 1.0f));
 }
@@ -488,8 +498,9 @@ static PyObject *M_Noise_noise_vector(PyObject *UNUSED(self), PyObject *args, Py
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "noise_vector: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "noise_vector: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	noise_vector(vec[0], vec[1], vec[2], noise_basis_enum, r_vec);
 
@@ -540,8 +551,9 @@ static PyObject *M_Noise_turbulence(PyObject *UNUSED(self), PyObject *args, PyOb
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "turbulence: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "turbulence: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(turb(vec[0], vec[1], vec[2], oct, hd, noise_basis_enum, as, fs));
 }
@@ -590,8 +602,9 @@ static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *arg
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "turbulence_vector: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "turbulence_vector: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	vTurb(vec[0], vec[1], vec[2], oct, hd, noise_basis_enum, as, fs, r_vec);
 
@@ -641,8 +654,9 @@ static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args, PyObjec
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "fractal: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "fractal: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(mg_fBm(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
 }
@@ -689,8 +703,9 @@ static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args, P
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "multi_fractal: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "multi_fractal: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(mg_MultiFractal(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
 }
@@ -749,8 +764,9 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "variable_lacunarity: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "variable_lacunarity: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(mg_VLNoise(vec[0], vec[1], vec[2], d, noise_type1_enum, noise_type2_enum));
 }
@@ -799,8 +815,9 @@ static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args, 
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "hetero_terrain: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "hetero_terrain: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(mg_HeteroTerrain(vec[0], vec[1], vec[2], H, lac, oct, ofs, noise_basis_enum));
 }
@@ -851,8 +868,9 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "hybrid_multi_fractal: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "hybrid_multi_fractal: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(mg_HybridMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
 }
@@ -903,8 +921,9 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "ridged_multi_fractal: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "ridged_multi_fractal: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(mg_RidgedMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
 }
@@ -952,8 +971,9 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args, PyObjec
 		return NULL;
 	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "voronoi: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "voronoi: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	list = PyList_New(4);
 
@@ -984,11 +1004,13 @@ static PyObject *M_Noise_cell(PyObject *UNUSED(self), PyObject *args)
 	PyObject *value;
 	float vec[3];
 
-	if (!PyArg_ParseTuple(args, "O:cell", &value))
+	if (!PyArg_ParseTuple(args, "O:cell", &value)) {
 		return NULL;
+	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "cell: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "cell: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(cellNoise(vec[0], vec[1], vec[2]));
 }
@@ -1008,11 +1030,13 @@ static PyObject *M_Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
 	PyObject *value;
 	float vec[3], r_vec[3];
 
-	if (!PyArg_ParseTuple(args, "O:cell_vector", &value))
+	if (!PyArg_ParseTuple(args, "O:cell_vector", &value)) {
 		return NULL;
+	}
 
-	if (mathutils_array_parse(vec, 3, 3, value, "cell_vector: invalid 'position' arg") == -1)
+	if (mathutils_array_parse(vec, 3, 3, value, "cell_vector: invalid 'position' arg") == -1) {
 		return NULL;
+	}
 
 	cellNoiseV(vec[0], vec[1], vec[2], r_vec);
 	return Vector_CreatePyObject(r_vec, 3, NULL);

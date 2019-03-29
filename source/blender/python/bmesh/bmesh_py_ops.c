@@ -351,11 +351,13 @@ PyObject *BPyInit_bmesh_ops(void)
 {
 	PyObject *submodule;
 
-	if (PyType_Ready(&bmesh_ops_fakemod_Type) < 0)
+	if (PyType_Ready(&bmesh_ops_fakemod_Type) < 0) {
 		return NULL;
+	}
 
-	if (PyType_Ready(&bmesh_op_Type) < 0)
+	if (PyType_Ready(&bmesh_op_Type) < 0) {
 		return NULL;
+	}
 
 	submodule = PyObject_New(PyObject, &bmesh_ops_fakemod_Type);
 

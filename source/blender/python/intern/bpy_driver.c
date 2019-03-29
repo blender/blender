@@ -69,13 +69,17 @@ int bpy_pydriver_create_dict(void)
 	PyObject *d, *mod;
 
 	/* validate namespace for driver evaluation */
-	if (bpy_pydriver_Dict) return -1;
+	if (bpy_pydriver_Dict) {
+		return -1;
+	}
 
 	d = PyDict_New();
-	if (d == NULL)
+	if (d == NULL) {
 		return -1;
-	else
+	}
+	else {
 		bpy_pydriver_Dict = d;
+	}
 
 	/* import some modules: builtins, bpy, math, (Blender.noise)*/
 	PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
@@ -205,8 +209,9 @@ void BPY_driver_reset(void)
 	PyGILState_STATE gilstate;
 	bool use_gil = true; /* !PyC_IsInterpreterActive(); */
 
-	if (use_gil)
+	if (use_gil) {
 		gilstate = PyGILState_Ensure();
+	}
 
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
 		PyDict_Clear(bpy_pydriver_Dict);
@@ -227,8 +232,9 @@ void BPY_driver_reset(void)
 	/* freed when clearing driver dict */
 	g_pydriver_state_prev.self = NULL;
 
-	if (use_gil)
+	if (use_gil) {
 		PyGILState_Release(gilstate);
+	}
 
 	return;
 }
@@ -399,8 +405,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 
 	/* get the py expression to be evaluated */
 	expr = driver_orig->expression;
-	if (expr[0] == '\0')
+	if (expr[0] == '\0') {
 		return 0.0f;
+	}
 
 #ifndef USE_BYTECODE_WHITELIST
 	if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
@@ -418,8 +425,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 
 	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
-	if (use_gil)
+	if (use_gil) {
 		gilstate = PyGILState_Ensure();
+	}
 
 	/* needed since drivers are updated directly after undo where 'main' is
 	 * re-allocated [#28807] */
@@ -429,8 +437,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "PyDriver error: couldn't create Python dictionary\n");
-			if (use_gil)
+			if (use_gil) {
 				PyGILState_Release(gilstate);
+			}
 			return 0.0f;
 		}
 	}
@@ -445,8 +454,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 		bpy_pydriver_namespace_clear_self();
 	}
 
-	if (driver_orig->expr_comp == NULL)
+	if (driver_orig->expr_comp == NULL) {
 		driver_orig->flag |= DRIVER_FLAG_RECOMPILE;
+	}
 
 	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
 	if (driver_orig->flag & DRIVER_FLAG_RECOMPILE) {
@@ -571,8 +581,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
 #else
 	/* evaluate the compiled expression */
-	if (expr_code)
+	if (expr_code) {
 		retval = PyEval_EvalCode((void *)expr_code, bpy_pydriver_Dict, driver_vars);
+	}
 #endif
 
 	/* decref the driver vars first...  */
@@ -593,8 +604,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 		Py_DECREF(retval);
 	}
 
-	if (use_gil)
+	if (use_gil) {
 		PyGILState_Release(gilstate);
+	}
 
 	if (isfinite(result)) {
 		return (float)result;

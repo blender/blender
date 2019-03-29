@@ -48,8 +48,9 @@ char *BPy_enum_as_string(const EnumPropertyItem *item)
 	char *cstring;
 
 	for (e = item; item->identifier; item++) {
-		if (item->identifier[0])
+		if (item->identifier[0]) {
 			BLI_dynstr_appendf(dynstr, (e == item) ? "'%s'" : ", '%s'", item->identifier);
+		}
 	}
 
 	cstring = BLI_dynstr_get_cstring(dynstr);
@@ -93,8 +94,9 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 {
 	PyObject *pystring;
 
-	if (!PyErr_Occurred())
+	if (!PyErr_Occurred()) {
 		return 1;
+	}
 
 	/* less hassle if we allow NULL */
 	if (reports == NULL) {

@@ -476,15 +476,25 @@ static int gl_buffer_type_from_py_buffer(Py_buffer *pybuffer)
 	Py_ssize_t itemsize = pybuffer->itemsize;
 
 	if (PyC_StructFmt_type_is_float_any(format)) {
-		if (itemsize == 4) return GL_FLOAT;
-		if (itemsize == 8) return GL_DOUBLE;
+		if (itemsize == 4) {
+			return GL_FLOAT;
+		}
+		if (itemsize == 8) {
+			return GL_DOUBLE;
+		}
 	}
 	if (PyC_StructFmt_type_is_byte(format) ||
 	    PyC_StructFmt_type_is_int_any(format))
 	{
-		if (itemsize == 1) return GL_BYTE;
-		if (itemsize == 2) return GL_SHORT;
-		if (itemsize == 4) return GL_INT;
+		if (itemsize == 1) {
+			return GL_BYTE;
+		}
+		if (itemsize == 2) {
+			return GL_SHORT;
+		}
+		if (itemsize == 4) {
+			return GL_INT;
+		}
 	}
 
 	return -1; /* UNKNOWN */
@@ -769,10 +779,12 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 		for (i = 0; i < ndimensions; i++) {
 			PyObject *ob = PySequence_GetItem(length_ob, i);
 
-			if (!PyLong_Check(ob))
+			if (!PyLong_Check(ob)) {
 				dimensions[i] = 1;
-			else
+			}
+			else {
 				dimensions[i] = PyLong_AsLong(ob);
+			}
 			Py_DECREF(ob);
 
 			if (dimensions[i] < 1) {
@@ -868,9 +880,15 @@ static PyObject *Buffer_slice(Buffer *self, int begin, int end)
 	PyObject *list;
 	int count;
 
-	if (begin < 0) begin = 0;
-	if (end > self->dimensions[0]) end = self->dimensions[0];
-	if (begin > end) begin = end;
+	if (begin < 0) {
+		begin = 0;
+	}
+	if (end > self->dimensions[0]) {
+		end = self->dimensions[0];
+	}
+	if (begin > end) {
+		begin = end;
+	}
 
 	list = PyList_New(end - begin);
 
@@ -916,9 +934,15 @@ static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq)
 	PyObject *item;
 	int count, err = 0;
 
-	if (begin < 0) begin = 0;
-	if (end > self->dimensions[0]) end = self->dimensions[0];
-	if (begin > end) begin = end;
+	if (begin < 0) {
+		begin = 0;
+	}
+	if (end > self->dimensions[0]) {
+		end = self->dimensions[0];
+	}
+	if (begin > end) {
+		begin = end;
+	}
 
 	if (!PySequence_Check(seq)) {
 		PyErr_Format(PyExc_TypeError,
@@ -957,17 +981,20 @@ static PyObject *Buffer_subscript(Buffer *self, PyObject *item)
 	if (PyIndex_Check(item)) {
 		Py_ssize_t i;
 		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
+		if (i == -1 && PyErr_Occurred()) {
 			return NULL;
-		if (i < 0)
+		}
+		if (i < 0) {
 			i += self->dimensions[0];
+		}
 		return Buffer_item(self, i);
 	}
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx(item, self->dimensions[0], &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx(item, self->dimensions[0], &start, &stop, &step, &slicelength) < 0) {
 			return NULL;
+		}
 
 		if (slicelength <= 0) {
 			return PyTuple_New(0);
@@ -993,20 +1020,24 @@ static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value)
 {
 	if (PyIndex_Check(item)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
+		if (i == -1 && PyErr_Occurred()) {
 			return -1;
-		if (i < 0)
+		}
+		if (i < 0) {
 			i += self->dimensions[0];
+		}
 		return Buffer_ass_item(self, i, value);
 	}
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx(item, self->dimensions[0], &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx(item, self->dimensions[0], &start, &stop, &step, &slicelength) < 0) {
 			return -1;
+		}
 
-		if (step == 1)
+		if (step == 1) {
 			return Buffer_ass_slice(self, start, stop, value);
+		}
 		else {
 			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with vectors");
@@ -1390,8 +1421,9 @@ PyObject *BPyInit_bgl(void)
 	submodule = PyModule_Create(&BGL_module_def);
 	dict = PyModule_GetDict(submodule);
 
-	if (PyType_Ready(&BGL_bufferType) < 0)
+	if (PyType_Ready(&BGL_bufferType) < 0) {
 		return NULL;  /* should never happen */
+	}
 
 	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
 	Py_INCREF((PyObject *)&BGL_bufferType);
@@ -2554,8 +2586,9 @@ static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
 	unsigned int shader;
 	const char *source;
 
-	if (!PyArg_ParseTuple(args, "Is", &shader, &source))
+	if (!PyArg_ParseTuple(args, "Is", &shader, &source)) {
 		return NULL;
+	}
 
 	glShaderSource(shader, 1, (const char **)&source, NULL);
 

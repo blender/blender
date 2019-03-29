@@ -58,17 +58,20 @@ parse_syntax_error(PyObject *err, PyObject **message, PyObject **filename,
 
 	/* new style errors.  `err' is an instance */
 	*message = _PyObject_GetAttrId(err, &PyId_msg);
-	if (!*message)
+	if (!*message) {
 		goto finally;
+	}
 
 	v = _PyObject_GetAttrId(err, &PyId_filename);
-	if (!v)
+	if (!v) {
 		goto finally;
+	}
 	if (v == Py_None) {
 		Py_DECREF(v);
 		*filename = _PyUnicode_FromId(&PyId_string);
-		if (*filename == NULL)
+		if (*filename == NULL) {
 			goto finally;
+		}
 		Py_INCREF(*filename);
 	}
 	else {
@@ -76,31 +79,36 @@ parse_syntax_error(PyObject *err, PyObject **message, PyObject **filename,
 	}
 
 	v = _PyObject_GetAttrId(err, &PyId_lineno);
-	if (!v)
+	if (!v) {
 		goto finally;
+	}
 	hold = PyLong_AsLong(v);
 	Py_DECREF(v);
-	if (hold < 0 && PyErr_Occurred())
+	if (hold < 0 && PyErr_Occurred()) {
 		goto finally;
+	}
 	*lineno = (int)hold;
 
 	v = _PyObject_GetAttrId(err, &PyId_offset);
-	if (!v)
+	if (!v) {
 		goto finally;
+	}
 	if (v == Py_None) {
 		*offset = -1;
 		Py_DECREF(v);
 	} else {
 		hold = PyLong_AsLong(v);
 		Py_DECREF(v);
-		if (hold < 0 && PyErr_Occurred())
+		if (hold < 0 && PyErr_Occurred()) {
 			goto finally;
+		}
 		*offset = (int)hold;
 	}
 
 	v = _PyObject_GetAttrId(err, &PyId_text);
-	if (!v)
+	if (!v) {
 		goto finally;
+	}
 	if (v == Py_None) {
 		Py_DECREF(v);
 		*text = NULL;

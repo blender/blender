@@ -924,10 +924,12 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 		        orig_index, orig_normal);
 	}
 	else {
-		if (coords)
+		if (coords) {
 			MEM_freeN(coords);
-		if (tris)
+		}
+		if (tris) {
 			MEM_freeN(tris);
+		}
 
 		return NULL;
 	}

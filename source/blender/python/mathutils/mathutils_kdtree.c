@@ -148,8 +148,9 @@ static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwar
 		return NULL;
 	}
 
-	if (mathutils_array_parse(co, 3, 3, py_co, "insert: invalid 'co' arg") == -1)
+	if (mathutils_array_parse(co, 3, 3, py_co, "insert: invalid 'co' arg") == -1) {
 		return NULL;
+	}
 
 	if (index < 0) {
 		PyErr_SetString(PyExc_ValueError, "negative index given");
@@ -238,8 +239,9 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 		return NULL;
 	}
 
-	if (mathutils_array_parse(co, 3, 3, py_co, "find: invalid 'co' arg") == -1)
+	if (mathutils_array_parse(co, 3, 3, py_co, "find: invalid 'co' arg") == -1) {
 		return NULL;
+	}
 
 	if (self->count != self->count_balance) {
 		PyErr_SetString(PyExc_RuntimeError, "KDTree must be balanced before calling find()");
@@ -299,8 +301,9 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
 		return NULL;
 	}
 
-	if (mathutils_array_parse(co, 3, 3, py_co, "find_n: invalid 'co' arg") == -1)
+	if (mathutils_array_parse(co, 3, 3, py_co, "find_n: invalid 'co' arg") == -1) {
 		return NULL;
+	}
 
 	if (UINT_IS_NEG(n)) {
 		PyErr_SetString(PyExc_RuntimeError, "negative 'n' given");
@@ -357,8 +360,9 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
 		return NULL;
 	}
 
-	if (mathutils_array_parse(co, 3, 3, py_co, "find_range: invalid 'co' arg") == -1)
+	if (mathutils_array_parse(co, 3, 3, py_co, "find_range: invalid 'co' arg") == -1) {
 		return NULL;
+	}
 
 	if (radius < 0.0f) {
 		PyErr_SetString(PyExc_RuntimeError, "negative radius given");

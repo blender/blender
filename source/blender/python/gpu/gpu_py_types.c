@@ -45,18 +45,24 @@ PyObject *BPyInit_gpu_types(void)
 
 	submodule = PyModule_Create(&BPyGPU_types_module_def);
 
-	if (PyType_Ready(&BPyGPUVertFormat_Type) < 0)
+	if (PyType_Ready(&BPyGPUVertFormat_Type) < 0) {
 		return NULL;
-	if (PyType_Ready(&BPyGPUVertBuf_Type) < 0)
+	}
+	if (PyType_Ready(&BPyGPUVertBuf_Type) < 0) {
 		return NULL;
-	if (PyType_Ready(&BPyGPUIndexBuf_Type) < 0)
+	}
+	if (PyType_Ready(&BPyGPUIndexBuf_Type) < 0) {
 		return NULL;
-	if (PyType_Ready(&BPyGPUBatch_Type) < 0)
+	}
+	if (PyType_Ready(&BPyGPUBatch_Type) < 0) {
 		return NULL;
-	if (PyType_Ready(&BPyGPUOffScreen_Type) < 0)
+	}
+	if (PyType_Ready(&BPyGPUOffScreen_Type) < 0) {
 		return NULL;
-	if (PyType_Ready(&BPyGPUShader_Type) < 0)
+	}
+	if (PyType_Ready(&BPyGPUShader_Type) < 0) {
 		return NULL;
+	}
 
 #define MODULE_TYPE_ADD(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)

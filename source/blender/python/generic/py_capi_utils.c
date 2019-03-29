@@ -319,8 +319,12 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 {
 	PyFrameObject *frame;
 
-	if (filename) *filename = NULL;
-	if (lineno)   *lineno = -1;
+	if (filename) {
+		*filename = NULL;
+	}
+	if (lineno) {
+		*lineno = -1;
+	}
 
 	if (!(frame = PyThreadState_GET()->frame)) {
 		return;
@@ -384,10 +388,13 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 		attr = va_arg(vargs, char *);
 		item = PyObject_GetAttrString(item, attr);
 
-		if (item)
+		if (item) {
 			Py_DECREF(item);
-		else /* python will set the error value here */
+		}
+		else {
+			/* python will set the error value here */
 			break;
+		}
 
 	}
 	va_end(vargs);
@@ -527,8 +534,9 @@ PyObject *PyC_ExceptionBuffer(void)
 
 	PyObject *error_type, *error_value, *error_traceback;
 
-	if (!PyErr_Occurred())
+	if (!PyErr_Occurred()) {
 		return NULL;
+	}
 
 	PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
@@ -593,8 +601,9 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
 
 	PyObject *error_type, *error_value, *error_traceback;
 
-	if (!PyErr_Occurred())
+	if (!PyErr_Occurred()) {
 		return NULL;
+	}
 
 	PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
@@ -775,9 +784,10 @@ void PyC_SetHomePath(const char *py_path_bundle)
 #ifdef __APPLE__
 	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
 	 * but current Python lib (release 3.1.1) doesn't handle these correctly */
-	if (strchr(py_path_bundle, ':'))
+	if (strchr(py_path_bundle, ':')) {
 		printf("Warning : Blender application is located in a path containing : or / chars\
 		       \nThis may make python import function fail\n");
+	}
 #endif
 
 
