@@ -1404,6 +1404,19 @@ static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
 		}
 	}
 
+	/* last point special case to get smoother transition */
+	pt = &gps->points[gps->totpoints - 1];
+	pt_before = &gps->points[gps->totpoints - 2];
+	if (pt->flag & GP_SPOINT_TAG) {
+		pt->flag &= ~GP_SPOINT_TAG;
+		pt->flag &= ~GP_SPOINT_TEMP_TAG;
+		pt->strength = 0.0f;
+
+		pt_before->flag &= ~GP_SPOINT_TAG;
+		pt_before->flag &= ~GP_SPOINT_TEMP_TAG;
+		pt_before->strength *= 0.5f;
+	}
+
 	/* now untag temp tagged */
 	pt = gps->points;
 	for (i = 1; i < gps->totpoints - 1; i++, pt++) {
