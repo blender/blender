@@ -768,15 +768,17 @@ static Mesh *applyModifier(
 
 		/* add faces & edges */
 		origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
-		BLI_assert((numEdges == 0) || (origindex_edge != NULL));
+		orig_ed = (origindex_edge) ? &origindex_edge[(numEdges * stride) + newEdges] : NULL;
 		ed = &medge[(numEdges * stride) + newEdges];  /* start after copied edges */
-		orig_ed = &origindex_edge[(numEdges * stride) + newEdges];
-		for (i = 0; i < rimVerts; i++, ed++, orig_ed++) {
+		for (i = 0; i < rimVerts; i++, ed++) {
 			ed->v1 = new_vert_arr[i];
 			ed->v2 = (do_shell ? new_vert_arr[i] : i) + numVerts;
 			ed->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 
-			*orig_ed = ORIGINDEX_NONE;
+			if (orig_ed) {
+				*orig_ed = ORIGINDEX_NONE;
+				orig_ed++;
+			}
 
 			if (crease_rim) {
 				ed->crease = crease_rim;
@@ -848,8 +850,10 @@ static Mesh *applyModifier(
 				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newEdges;
 			}
 
-			origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
-			origindex_edge[ml[j - 1].e] = ORIGINDEX_NONE;
+			if (origindex_edge) {
+				origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
+				origindex_edge[ml[j - 1].e] = ORIGINDEX_NONE;
+			}
 
 			/* use the next material index if option enabled */
 			if (mat_ofs_rim) {
