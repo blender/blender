@@ -36,6 +36,11 @@ static bNodeSocketTemplate sh_node_tex_coord_out[] = {
 
 static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
+	Object *ob = (Object *)node->id;
+	invert_m4_m4(ob->imat, ob->obmat);
+
+	GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform((float*)ob->imat) : GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
+
 	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
 
@@ -43,7 +48,7 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecDat
 
 	return GPU_stack_link(mat, node, "node_tex_coord", in, out,
 	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
-	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
+	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), inv_obmat,
 	                      GPU_builtin(GPU_CAMERA_TEXCO_FACTORS), orco, mtface);
 }
 
