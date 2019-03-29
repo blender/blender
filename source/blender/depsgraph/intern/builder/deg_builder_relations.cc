@@ -1732,10 +1732,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 	 * initialized.
 	 * TODO(sergey): Verify that it indeed goes to initialization and not to a
 	 * simulation. */
-	ListBase *relations = build_effector_relations(graph_, rbw->effector_weights->group);
-	LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
+	ListBase *effector_relations =
+	        build_effector_relations(graph_, rbw->effector_weights->group);
+	LISTBASE_FOREACH (EffectorRelation *, effector_relation, effector_relations) {
 		ComponentKey effector_transform_key(
-		        &relation->ob->id, NodeType::TRANSFORM);
+		        &effector_relation->ob->id, NodeType::TRANSFORM);
 		add_relation(effector_transform_key, rb_init_key, "RigidBody Field");
 	}
 	/* Objects. */
