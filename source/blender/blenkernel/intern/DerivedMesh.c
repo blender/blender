@@ -1789,8 +1789,8 @@ static void editbmesh_calc_modifiers(
 			if (mesh_final != mesh_cage) {
 				BKE_id_free(NULL, mesh_final);
 			}
-			BKE_mesh_apply_vert_coords(mesh_final, deformed_verts);
 			mesh_final = mesh_tmp;
+			BKE_mesh_apply_vert_coords(mesh_final, deformed_verts);
 		}
 	}
 	else if (!deformed_verts && mesh_cage) {
