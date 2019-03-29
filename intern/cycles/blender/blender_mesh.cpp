@@ -1039,6 +1039,8 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 	if(mesh_synced.find(mesh) != mesh_synced.end())
 		return mesh;
 
+	progress.set_sync_status("Synchronizing object", b_ob.name());
+
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */

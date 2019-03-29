@@ -544,8 +544,6 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 		BL::DepsgraphObjectInstance b_instance = *b_instance_iter;
 		BL::Object b_ob = b_instance.object();
 
-		progress.set_sync_status("Synchronizing object", b_ob.name());
-
 		/* load per-object culling data */
 		culling.init_object(scene, b_ob);
 
