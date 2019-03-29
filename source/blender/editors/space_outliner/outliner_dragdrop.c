@@ -649,6 +649,11 @@ static int material_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 		return OPERATOR_CANCELLED;
 	}
 
+	/* only drop grease pencil material on grease pencil objects */
+	if ((ma->gp_style != NULL) && (ob->type != OB_GPENCIL)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	assign_material(bmain, ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
