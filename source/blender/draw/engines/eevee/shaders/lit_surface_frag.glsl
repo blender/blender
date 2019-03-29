@@ -164,6 +164,10 @@ void CLOSURE_NAME(
 	out_refr = vec3(0.0);
 #endif
 
+#ifdef SHADOW_SHADER
+	return;
+#endif
+
 	/* Zero length vectors cause issues, see: T51979. */
 	float len = length(N);
 	if (isnan(len)) {
