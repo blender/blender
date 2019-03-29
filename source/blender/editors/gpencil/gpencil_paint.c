@@ -1559,20 +1559,24 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 						if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
 							float f_strength = eraser->gpencil_settings->era_strength_f / 100.0f;
 							float f_thickness = eraser->gpencil_settings->era_thickness_f / 100.0f;
+							float influence = 0.0f;
 
 							if (pt0) {
-								pt0->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc0) * strength * f_strength * 0.5f;
+								influence = gp_stroke_eraser_calc_influence(p, mval, radius, pc0);
+								pt0->strength -= influence * strength * f_strength * 0.5f;
 								CLAMP_MIN(pt0->strength, 0.0f);
-								pt0->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc0) * strength * f_thickness * 0.5f;
+								pt0->pressure -= influence * strength * f_thickness * 0.5f;
 							}
 
-							pt1->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * f_strength;
+							influence = gp_stroke_eraser_calc_influence(p, mval, radius, pc1);
+							pt1->strength -= influence * strength * f_strength;
 							CLAMP_MIN(pt1->strength, 0.0f);
-							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * f_thickness;
+							pt1->pressure -= influence * strength * f_thickness;
 
-							pt2->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * f_strength * 0.5f;
+							influence = gp_stroke_eraser_calc_influence(p, mval, radius, pc2);
+							pt2->strength -= influence * strength * f_strength * 0.5f;
 							CLAMP_MIN(pt2->strength, 0.0f);
-							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * f_thickness * 0.5f;
+							pt2->pressure -= influence * strength * f_thickness * 0.5f;
 
 							/* if invisible, delete point */
 							if ((pt0) &&
