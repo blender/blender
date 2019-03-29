@@ -1431,6 +1431,7 @@ Object *BKE_object_copy(Main *bmain, const Object *ob)
  *
  * \param dupflag Controls which sub-data are also duplicated (see \a eDupli_ID_Flags in \a DNA_userdef_types.h).
  *
+ * \note This function does not do any remapping to new IDs, caller must do it (\a BKE_libblock_relink_to_newid()).
  * \note Caller MUST free \a newid pointers itself (\a BKE_main_id_clear_newpoins()) and call updates of DEG too
  *       (\a DAG_relations_tag_update()).
  */
@@ -1656,8 +1657,6 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
 
 #undef ID_NEW_REMAP_US
 #undef ID_NEW_REMAP_US2
-
-	BKE_libblock_relink_to_newid(&obn->id);
 
 	if (ob->data != NULL) {
 		DEG_id_tag_update_ex(bmain, (ID *)obn->data, ID_RECALC_EDITORS);
