@@ -2945,6 +2945,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		} FOREACH_NODETREE_END;
 	}
 
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 53)) {
+		for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
+			/* Eevee: Keep material appearance consistent with previous behavior. */
+			if (!mat->use_nodes || !mat->nodetree || mat->blend_method == MA_BM_SOLID) {
+				mat->blend_shadow = MA_BS_SOLID;
+			}
+		}
+	}
+
 	{
 		/* Versioning code until next subversion bump goes here. */
 	}

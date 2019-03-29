@@ -142,6 +142,7 @@ void BKE_material_init(Material *ma)
 
 	ma->alpha_threshold = 0.5f;
 
+	ma->blend_shadow = MA_BS_SOLID;
 }
 
 Material *BKE_material_add(Main *bmain, const char *name)
