@@ -101,11 +101,16 @@ static void deformStroke(
 	const int def_nr = defgroup_name_index(ob, mmd->vgname);
 	const float unit_v3[3] = { 1.0f, 1.0f, 1.0f };
 
-	/* Random generator, only init once. */
-	if (mmd->rng == NULL) {
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+	GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
+	NoiseGpencilModifierData *mmd_eval = (NoiseGpencilModifierData *)md_eval;
+
+	/* Random generator, only init once. (it uses eval to get same value in render) */
+	if (mmd_eval->rng == NULL) {
 		uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
 		rng_seed ^= POINTER_AS_UINT(mmd);
-		mmd->rng = BLI_rng_new(rng_seed);
+		mmd_eval->rng = BLI_rng_new(rng_seed);
+		mmd->rng = mmd_eval->rng;
 	}
 
 	if (!is_stroke_affected_by_modifier(
