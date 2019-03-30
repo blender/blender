@@ -176,7 +176,7 @@ static bool gp_data_unlink_poll(bContext *C)
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
 	/* only unlink annotation datablocks */
-	if (gpd_ptr != NULL) {
+	if ((gpd_ptr != NULL) && (*gpd_ptr != NULL)) {
 		bGPdata *gpd = (*gpd_ptr);
 		if ((gpd->flag & GP_DATA_ANNOTATIONS) == 0) {
 			return false;
