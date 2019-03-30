@@ -1494,18 +1494,14 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		}
 	}
 	else {
-		/* Pressure threshold at which stroke should be culled: Calculated as pressure value
-		 * below which we would have invisible strokes
-		 */
-		const float cull_thresh = (gps->thickness) ? 1.0f / ((float)gps->thickness) : 1.0f;
+		/* Pressure threshold at which stroke should be culled */
+		const float cull_thresh = 0.005f;
 
 		/* Amount to decrease the pressure of each point with each stroke */
-		// TODO: Fetch from toolsettings, or compute based on thickness instead?
 		const float strength = 0.1f;
 
 		/* Perform culling? */
 		bool do_cull = false;
-
 
 		/* Clear Tags
 		 *
