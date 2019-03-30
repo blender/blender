@@ -9259,7 +9259,7 @@ static int ui_handle_menu_event(
 			else if (ELEM(event->type, RETKEY, PADENTER) && event->val == KM_PRESS) {
 				uiBut *but_default = ui_region_find_first_but_test_flag(ar, UI_BUT_ACTIVE_DEFAULT, UI_HIDDEN);
 				if ((but_default != NULL) && (but_default->active == NULL)) {
-					if (but->type == UI_BTYPE_BUT) {
+					if (but_default->type == UI_BTYPE_BUT) {
 						UI_but_execute(C, but_default);
 					}
 					else {
