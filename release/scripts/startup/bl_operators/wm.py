@@ -1322,8 +1322,7 @@ class WM_OT_properties_add(Operator):
 
     def execute(self, context):
         from rna_prop_ui import (
-            rna_idprop_ui_prop_get,
-            rna_idprop_ui_prop_update,
+            rna_idprop_ui_create,
         )
 
         data_path = self.data_path
@@ -1344,13 +1343,7 @@ class WM_OT_properties_add(Operator):
             *type(item).bl_rna.properties.keys(),
         })
 
-        item[prop] = 1.0
-        rna_idprop_ui_prop_update(item, prop)
-
-        # not essential, but without this we get [#31661]
-        prop_ui = rna_idprop_ui_prop_get(item, prop)
-        prop_ui["soft_min"] = prop_ui["min"] = 0.0
-        prop_ui["soft_max"] = prop_ui["max"] = 1.0
+        rna_idprop_ui_create(item, prop, 1.0)
 
         return {'FINISHED'}
 

@@ -39,8 +39,13 @@ def rna_idprop_ui_del(item):
         pass
 
 
+def rna_idprop_quote_path(prop):
+    return "[\"%s\"]" % prop.replace("\"", "\\\"")
+
+
 def rna_idprop_ui_prop_update(item, prop):
-    prop_rna = item.path_resolve("[\"%s\"]" % prop.replace("\"", "\\\""), False)
+    prop_path = rna_idprop_quote_path(prop)
+    prop_rna = item.path_resolve(prop_path, False)
     if isinstance(prop_rna, bpy.types.bpy_prop):
         prop_rna.update()
 
@@ -113,6 +118,53 @@ def rna_idprop_ui_prop_default_set(item, prop, value):
         rna_ui = rna_idprop_ui_prop_get(item, prop)
         if rna_ui and "default" in rna_ui:
             del rna_ui["default"]
+
+
+def rna_idprop_ui_create(item, prop, default, min=0.0, max=1.0, soft_min=None, soft_max=None, description=None, overridable=False):
+    """Create and initialize a custom property with limits, defaults and other settings."""
+
+    proptype = type(default)
+
+    # Sanitize limits
+    if proptype is bool:
+        min = soft_min = False
+        max = soft_max = True
+
+    if soft_min is None:
+        soft_min = min
+    if soft_max is None:
+        soft_max = max
+
+    # Assign the value
+    item[prop] = default
+
+    rna_idprop_ui_prop_update(item, prop)
+
+    # Clear the UI settings
+    rna_ui_group = rna_idprop_ui_get(item, True)
+    rna_ui_group[prop] = {}
+    rna_ui = rna_ui_group[prop]
+
+    # Assign limits and default
+    if proptype in {int, float, bool}:
+        # The type must be exactly the same
+        rna_ui["min"] = proptype(min)
+        rna_ui["soft_min"] = proptype(soft_min)
+        rna_ui["max"] = proptype(max)
+        rna_ui["soft_max"] = proptype(soft_max)
+
+        if default:
+            rna_ui["default"] = default
+
+    # Assign other settings
+    if description is not None:
+        rna_ui["description"] = description
+
+    prop_path = rna_idprop_quote_path(prop)
+
+    item.property_overridable_static_set(prop_path, overridable)
+
+    return rna_ui
 
 
 def draw(layout, context, context_member, property_type, use_edit=True):
