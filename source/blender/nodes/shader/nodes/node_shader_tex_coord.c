@@ -37,7 +37,10 @@ static bNodeSocketTemplate sh_node_tex_coord_out[] = {
 static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	Object *ob = (Object *)node->id;
-	invert_m4_m4(ob->imat, ob->obmat);
+
+	if (ob != NULL) {
+		invert_m4_m4(ob->imat, ob->obmat);
+	}
 
 	GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) : GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 
