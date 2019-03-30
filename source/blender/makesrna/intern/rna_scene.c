@@ -472,7 +472,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 	                   "(bone Y axis for pose mode)"},
 	{V3D_ORIENT_GIMBAL, "GIMBAL", ICON_ORIENTATION_GIMBAL, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
 	{V3D_ORIENT_VIEW, "VIEW", ICON_ORIENTATION_VIEW, "View", "Align the transformation axes to the window"},
-	{V3D_ORIENT_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "Cursor", "Align the transformation axes to the 3D cursor"},
+	{V3D_ORIENT_CURSOR, "CURSOR", ICON_ORIENTATION_CURSOR, "Cursor", "Align the transformation axes to the 3D cursor"},
 	// {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL},
 };
