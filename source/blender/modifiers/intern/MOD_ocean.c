@@ -497,12 +497,6 @@ ModifierTypeInfo modifierType_Ocean = {
 	/* copyData */          copyData,
 	/* deformMatrices_DM */ NULL,
 
-	/* deformVerts_DM */    NULL,
-	/* deformVertsEM_DM */  NULL,
-	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  NULL,
-
-	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,

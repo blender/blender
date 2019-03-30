@@ -28,7 +28,6 @@ struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct DepsNodeHandle;
 struct Depsgraph;
-struct DerivedMesh;
 struct ID;
 struct ListBase;
 struct Main;
@@ -154,17 +153,6 @@ typedef struct ModifierTypeInfo {
 	 */
 	void (*copyData)(const struct ModifierData *md, struct ModifierData *target, const int flag);
 
-
-	/********************* Deform modifier functions *********************/ /* DEPRECATED */
-
-	void (*deformVerts_DM_removed)(void);
-	void (*deformMatrices_DM_removed)(void);
-	void (*deformVertsEM_DM_removed)(void);
-	void (*deformMatricesEM_DM_removed)(void);
-
-	/********************* Non-deform modifier functions *********************/ /* DEPRECATED */
-
-	void (*applyModifier_DM_removed)(void);
 
 	/********************* Deform modifier functions *********************/
 
