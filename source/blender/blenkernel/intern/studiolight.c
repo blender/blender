@@ -1184,7 +1184,7 @@ void BKE_studiolight_init(void)
 	        STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED | STUDIOLIGHT_TYPE_STUDIO);
 	BLI_strncpy(sl->name, "Default", FILE_MAXFILE);
 
-	copy_v4_fl4(sl->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
+	copy_v3_fl3(sl->light_ambient, 0.025000, 0.025000, 0.025000);
 
 	copy_v4_fl4(sl->light[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
 	copy_v4_fl4(sl->light[0].col, 0.900000, 0.900000, 0.900000, 1.000000);

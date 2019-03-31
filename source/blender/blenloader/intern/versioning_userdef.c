@@ -452,7 +452,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		userdef->light_param[3].flag = 1;
 		userdef->light_param[3].smooth = 0.7;
 
-		copy_v4_fl4(userdef->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
+		copy_v3_fl3(userdef->light_ambient, 0.025000, 0.025000, 0.025000);
 
 		userdef->flag &= ~(
 		        USER_FLAG_UNUSED_4);
