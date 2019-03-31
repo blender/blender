@@ -1363,7 +1363,7 @@ static void gp_free_stroke(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps)
  * to avoid that segments gets the end points rounded.
  * The round caps breaks the artistic effect.
  */
-static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
+static void gp_stroke_soft_refine(bGPDstroke *gps)
 {
 	bGPDspoint *pt = NULL;
 	bGPDspoint *pt_before = NULL;
@@ -1386,11 +1386,9 @@ static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
 
 			/* if any of the side points are not tagged, mark to keep */
 			if (((pt_before->flag & GP_SPOINT_TAG) == 0) ||
-			    ((pt_after->flag & GP_SPOINT_TAG) == 0))
+				((pt_after->flag & GP_SPOINT_TAG) == 0))
 			{
-				if (pt->pressure > cull_thresh) {
-					pt->flag |= GP_SPOINT_TEMP_TAG;
-				}
+				pt->flag |= GP_SPOINT_TEMP_TAG;
 			}
 			else {
 				/* reduce opacity of extreme points */
@@ -1408,18 +1406,16 @@ static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
 	pt = &gps->points[gps->totpoints - 1];
 	pt_before = &gps->points[gps->totpoints - 2];
 	if (pt->flag & GP_SPOINT_TAG) {
-		pt->flag &= ~GP_SPOINT_TAG;
-		pt->flag &= ~GP_SPOINT_TEMP_TAG;
+		pt->flag |= GP_SPOINT_TEMP_TAG;
 		pt->strength = 0.0f;
 
-		pt_before->flag &= ~GP_SPOINT_TAG;
-		pt_before->flag &= ~GP_SPOINT_TEMP_TAG;
+		pt->flag |= GP_SPOINT_TEMP_TAG;
 		pt_before->strength *= 0.5f;
 	}
 
 	/* now untag temp tagged */
 	pt = gps->points;
-	for (i = 1; i < gps->totpoints - 1; i++, pt++) {
+	for (i = 0; i < gps->totpoints; i++, pt++) {
 		if (pt->flag & GP_SPOINT_TEMP_TAG) {
 			pt->flag &= ~GP_SPOINT_TAG;
 			pt->flag &= ~GP_SPOINT_TEMP_TAG;
@@ -1632,7 +1628,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			/* if soft eraser, must analyze points to be sure the stroke ends
 			 * don't get rounded */
 			if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
-				gp_stroke_soft_refine(gps, cull_thresh);
+				gp_stroke_soft_refine(gps);
 			}
 
 			gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
