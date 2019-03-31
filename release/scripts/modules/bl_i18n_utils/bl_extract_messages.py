@@ -351,6 +351,35 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                         process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
                                     settings)
 
+    def walk_tools_definitions(cls):
+        from bl_ui.space_toolsystem_common import ToolDef
+
+        bl_rna = cls.bl_rna
+        op_default_context = bpy.app.translations.contexts.operator_default
+
+        def process_tooldef(tool_context, tool):
+            if not isinstance(tool, ToolDef):
+                if callable(tool):
+                    for t in tool(None):
+                        process_tooldef(tool_context, t)
+                return
+            msgsrc = "bpy.types.{} Tools: '{}', '{}'".format(bl_rna.identifier, tool_context, tool.idname)
+            if tool.label:
+                process_msg(msgs, op_default_context, tool.label, msgsrc, reports, check_ctxt_rna, settings)
+            # Callable (function) descriptions must handle their translations themselves.
+            if tool.description and not callable(tool.description):
+                process_msg(msgs, default_context, tool.description, msgsrc, reports, check_ctxt_rna_tip, settings)
+
+        for tool_context, tools_defs in cls.tools_all():
+            for tools_group in tools_defs:
+                if tools_group is None:
+                    continue
+                elif isinstance(tools_group, tuple) and not isinstance(tools_group, ToolDef):
+                    for tool in tools_group:
+                        process_tooldef(tool_context, tool)
+                else:
+                    process_tooldef(tool_context, tools_group)
+
     blacklist_rna_class = class_blacklist()
 
     def walk_class(cls):
@@ -372,6 +401,10 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
         if hasattr(bl_rna, 'bl_label') and bl_rna.bl_label:
             process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
+
+        # Tools Panels definitions.
+        if hasattr(bl_rna, 'tools_all') and bl_rna.tools_all:
+            walk_tools_definitions(cls)
 
         walk_properties(cls)
 
