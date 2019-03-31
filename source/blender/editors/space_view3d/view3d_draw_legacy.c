@@ -303,7 +303,7 @@ uint *ED_view3d_select_id_read_rect(ViewContext *vc, const rcti *clip, uint *r_b
 	uint width = BLI_rcti_size_x(clip);
 	uint height = BLI_rcti_size_y(clip);
 	uint buf_len = width * height;
-	uint *buf = MEM_callocN(buf_len * sizeof(*buf), __func__);
+	uint *buf = MEM_mallocN(buf_len * sizeof(*buf), __func__);
 
 	DRW_framebuffer_select_id_read(clip, buf);
 

@@ -219,32 +219,33 @@ const uint *GPU_select_buffer_near(const uint *buffer, int hits)
 void GPU_select_buffer_stride_realign(
         const rcti *src, const rcti *dst, uint *r_buf)
 {
-	const int src_x = BLI_rcti_size_x(src);
-	// const int src_y = BLI_rcti_size_y(src);
-	int dst_x = BLI_rcti_size_x(dst);
-	int dst_y = BLI_rcti_size_y(dst);
-	int x = dst->xmin - src->xmin;
-	int y = dst->ymin - src->ymin;
+	const int x = dst->xmin - src->xmin;
+	const int y = dst->ymin - src->ymin;
 
 	BLI_assert(src->xmin <= dst->xmin && src->ymin <= dst->ymin &&
 	           src->xmax >= dst->xmax && src->ymax >= dst->ymax);
 	BLI_assert(x >= 0 && y >= 0);
 
+	const int src_x = BLI_rcti_size_x(src);
+	const int src_y = BLI_rcti_size_y(src);
+	const int dst_x = BLI_rcti_size_x(dst);
+	const int dst_y = BLI_rcti_size_y(dst);
+
 	int last_px_written = dst_x * dst_y - 1;
 	int last_px_id = src_x * (y + dst_y - 1) + (x + dst_x - 1);
+	const int skip = src_x - dst_x;
 
-	int skip = src_x - dst_x;
-	while (dst_y--) {
-		int i;
-		for (i = dst_x; i--;) {
+	memset(&r_buf[last_px_id + 1], 0, (src_x * src_y - (last_px_id + 1)) * sizeof(*r_buf));
+
+	while (true) {
+		for (int i = dst_x; i--;) {
 			r_buf[last_px_id--] = r_buf[last_px_written--];
 		}
 		if (last_px_written < 0) {
 			break;
 		}
-		for (i = skip; i--;) {
-			r_buf[last_px_id--] = 0u;
-		}
+		last_px_id -= skip;
+		memset(&r_buf[last_px_id + 1], 0, skip * sizeof(*r_buf));
 	}
 	memset(r_buf, 0, (last_px_id + 1) * sizeof(*r_buf));
 }
