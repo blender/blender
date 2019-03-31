@@ -1680,7 +1680,9 @@ static void rna_def_face_map(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
 	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "FaceMap", NULL);
 	RNA_def_struct_sdna(srna, "bFaceMap");
@@ -1708,15 +1710,15 @@ static void rna_def_face_map(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Add vertices to the group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	/* TODO, see how array size of 0 works, this shouldnt be used */
-	prop = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List", 0, 0);
-	RNA_def_parameter_flags(prop, PROP_DYNAMIC, PARM_REQUIRED);
+	parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List", 0, 0);
+	RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "remove", "rna_FaceMap_face_remove");
 	RNA_def_function_ui_description(func, "Remove a vertex from the group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	/* TODO, see how array size of 0 works, this shouldnt be used */
-	prop = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List", 0, 0);
-	RNA_def_parameter_flags(prop, PROP_DYNAMIC, PARM_REQUIRED);
+	parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List", 0, 0);
+	RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 }
 
 static void rna_def_material_slot(BlenderRNA *brna)

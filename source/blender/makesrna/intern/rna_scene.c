@@ -2750,7 +2750,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "gpencil_selectmode");
 	RNA_def_property_enum_items(prop, gpencil_selectmode_items);
 	RNA_def_property_ui_text(prop, "Select Mode", "");
-	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	/* Annotations - 2D Views Stroke Placement */
 	prop = RNA_def_property(srna, "annotation_stroke_placement_view2d", PROP_ENUM, PROP_NONE);
