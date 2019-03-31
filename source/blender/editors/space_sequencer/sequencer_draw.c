@@ -987,7 +987,9 @@ ImBuf *sequencer_ibuf_get(
 		ibuf = BKE_sequencer_give_ibuf_threaded(&context, cfra + frame_ofs, sseq->chanshown);
 	}
 
-	GPU_framebuffer_bind(fb);
+	if (fb) {
+		GPU_framebuffer_bind(fb);
+	}
 
 	/* restore state so real rendering would be canceled (if needed) */
 	G.is_break = is_break;
