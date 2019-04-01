@@ -339,7 +339,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	add_relation(armature_key, pose_init_key, "Data dependency");
 	/* Run cleanup even when there are no bones. */
 	add_relation(pose_init_key, pose_cleanup_key, "Init -> Cleanup");
-		/* IK Solvers.
+	/* IK Solvers.
 	 *
 	 * - These require separate processing steps are pose-level to be executed
 	 *   between chains of bones (i.e. once the base transforms of a bunch of
