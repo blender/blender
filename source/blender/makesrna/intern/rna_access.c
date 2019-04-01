@@ -2187,7 +2187,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			/* we could add NULL check, for now don't */
 			WM_msg_publish_rna(mbus, ptr, prop);
 		}
-		if (ptr->id.data != NULL) {
+		if (ptr->id.data != NULL && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
 			const short id_type = GS(((ID *)ptr->id.data)->name);
 			if (ID_TYPE_IS_COW(id_type)) {
 				DEG_id_tag_update(ptr->id.data, ID_RECALC_COPY_ON_WRITE);

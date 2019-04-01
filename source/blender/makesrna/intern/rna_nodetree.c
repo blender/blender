@@ -7202,6 +7202,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Linked", "True if the socket is connected");
 
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SOCK_COLLAPSED);
 	RNA_def_property_ui_text(prop, "Expanded", "Socket links are expanded in the user interface");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);

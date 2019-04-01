@@ -683,6 +683,7 @@ void RNA_def_shader_fx(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
 
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eShaderFxMode_Expanded);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Expanded", "Set effect expanded in the user interface");

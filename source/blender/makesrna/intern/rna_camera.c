@@ -225,6 +225,7 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_BGIMG_FLAG_EXPANDED);
 	RNA_def_property_ui_text(prop, "Show Expanded", "Show the expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);

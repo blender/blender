@@ -2534,6 +2534,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Show key map event and property details in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);

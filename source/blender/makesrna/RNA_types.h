@@ -239,6 +239,11 @@ typedef enum PropertyFlag {
 	PROP_DYNAMIC                 = (1 << 17), /* for dynamic arrays, and retvals of type string */
 	PROP_ENUM_NO_CONTEXT         = (1 << 24), /* for enum that shouldn't be contextual */
 	PROP_ENUM_NO_TRANSLATE       = (1 << 29), /* for enums not to be translated (e.g. viewlayers' names in nodes) */
+
+	/* Don't do dependency graph tag from a property update callback.
+	 * Use this for properties which defines interface state, for example,
+	 * properties which denotes whether modifier panel is collapsed or not. */
+	PROP_NO_DEG_UPDATE           = (1 << 30),
 } PropertyFlag;
 
 /* Flags related to comparing and overriding RNA properties. Make sure enums are updated with these */

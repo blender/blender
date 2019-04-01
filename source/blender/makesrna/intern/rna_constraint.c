@@ -2641,6 +2641,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_EXPAND);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Expanded", "Constraint's panel is expanded in UI");
