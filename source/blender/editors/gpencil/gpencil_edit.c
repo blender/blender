@@ -757,11 +757,11 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 /* ************** Extrude Selected Strokes **************** */
 
 /* helper to copy a point to temp area */
-static void copy_point(
+static void copy_move_point(
         bGPDstroke *gps,
         bGPDspoint *temp_points,
         MDeformVert *temp_dverts,
-        int from_idx, int to_idx)
+        int from_idx, int to_idx, const bool copy)
 {
 	bGPDspoint *pt = &temp_points[from_idx];
 	bGPDspoint *pt_final = &gps->points[to_idx];
@@ -779,7 +779,13 @@ static void copy_point(
 		MDeformVert *dvert_final = &gps->dvert[to_idx];
 
 		dvert_final->totweight = dvert->totweight;
-		dvert_final->dw = dvert->dw;
+		/* if copy, duplicate memory, otherwise move only the pointer */
+		if (copy) {
+			dvert_final->dw = MEM_dupallocN(dvert->dw);
+		}
+		else {
+			dvert_final->dw = dvert->dw;
+		}
 	}
 }
 
@@ -822,7 +828,7 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
 			BLI_insertlinkafter(&gpf->strokes, gps, gps_new);
 
 			/* copy selected point data to new stroke */
-			copy_point(gps_new, gps->points, gps->dvert, i, 0);
+			copy_move_point(gps_new, gps->points, gps->dvert, i, 0, true);
 
 			/* deselect orinal point */
 			pt->flag &= ~GP_SPOINT_SELECT;
@@ -863,14 +869,14 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
 
 		/* move points to new position */
 		for (int i = 0; i < oldtotpoints; i++) {
-			copy_point(gps, temp_points, temp_dverts, i, i2);
+			copy_move_point(gps, temp_points, temp_dverts, i, i2, false);
 			i2++;
 		}
 		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 		/* if first point, add new point at the begining */
 		if (do_first) {
-			copy_point(gps, temp_points, temp_dverts, 0, 0);
+			copy_move_point(gps, temp_points, temp_dverts, 0, 0, true);
 			/* deselect old */
 			pt = &gps->points[1];
 			pt->flag &= ~GP_SPOINT_SELECT;
@@ -881,9 +887,9 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
 
 		/* if last point, add new point at the end */
 		if (do_last) {
-			copy_point(
+			copy_move_point(
 			        gps, temp_points, temp_dverts,
-			        oldtotpoints - 1, gps->totpoints - 1);
+			        oldtotpoints - 1, gps->totpoints - 1, true);
 
 			/* deselect old */
 			pt = &gps->points[gps->totpoints - 2];
