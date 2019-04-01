@@ -1366,8 +1366,7 @@ static void gp_free_stroke(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps)
 static void gp_stroke_soft_refine(bGPDstroke *gps)
 {
 	bGPDspoint *pt = NULL;
-	bGPDspoint *pt_before = NULL;
-	bGPDspoint *pt_after = NULL;
+	bGPDspoint *pt2 = NULL;
 	int i;
 
 	/* check if enough points*/
@@ -1375,50 +1374,27 @@ static void gp_stroke_soft_refine(bGPDstroke *gps)
 		return;
 	}
 
-	/* loop all points from second to last minus one
-	 * to untag any point that is not surrounded by tagged points
-	 */
+	/* loop all points to untag any point that next is not tagged */
 	pt = gps->points;
 	for (i = 1; i < gps->totpoints - 1; i++, pt++) {
 		if (pt->flag & GP_SPOINT_TAG) {
-			pt_before = &gps->points[i - 1];
-			pt_after = &gps->points[i + 1];
-
-			/* if any of the side points are not tagged, mark to keep */
-			if (((pt_before->flag & GP_SPOINT_TAG) == 0) ||
-				((pt_after->flag & GP_SPOINT_TAG) == 0))
+			pt2 = &gps->points[i + 1];
+			if (((pt2->flag & GP_SPOINT_TAG) == 0))
 			{
-				pt->flag |= GP_SPOINT_TEMP_TAG;
-			}
-			else {
-				/* reduce opacity of extreme points */
-				if ((pt_before->flag & GP_SPOINT_TAG) == 0) {
-					pt_before->strength *= 0.5f;
-				}
-				if ((pt_after->flag & GP_SPOINT_TAG) == 0) {
-					pt_after->strength *= 0.5f;
-				}
+				pt->flag &= ~GP_SPOINT_TAG;
 			}
 		}
 	}
 
-	/* last point special case to get smoother transition */
+	/* loop reverse all points to untag any point that previous is not tagged */
 	pt = &gps->points[gps->totpoints - 1];
-	pt_before = &gps->points[gps->totpoints - 2];
-	if (pt->flag & GP_SPOINT_TAG) {
-		pt->flag |= GP_SPOINT_TEMP_TAG;
-		pt->strength = 0.0f;
-
-		pt->flag |= GP_SPOINT_TEMP_TAG;
-		pt_before->strength *= 0.5f;
-	}
-
-	/* now untag temp tagged */
-	pt = gps->points;
-	for (i = 0; i < gps->totpoints; i++, pt++) {
-		if (pt->flag & GP_SPOINT_TEMP_TAG) {
-			pt->flag &= ~GP_SPOINT_TAG;
-			pt->flag &= ~GP_SPOINT_TEMP_TAG;
+	for (i = gps->totpoints - 1; i > 0; i--, pt--) {
+		if (pt->flag & GP_SPOINT_TAG) {
+			pt2 = &gps->points[i - 1];
+			if (((pt2->flag & GP_SPOINT_TAG) == 0))
+			{
+				pt->flag &= ~GP_SPOINT_TAG;
+			}
 		}
 	}
 }
