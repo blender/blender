@@ -2941,18 +2941,24 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
  * It turns out that the dependent offsets either form chains or
  * cycles, and we can process each of those separatey.
  */
-static void adjust_offsets(BevelParams *bp)
+static void adjust_offsets(BevelParams *bp, BMesh *bm)
 {
+	BMVert *bmv;
 	BevVert *bv, *bvcur;
 	BoundVert *v, *vanchor, *vchainstart, *vchainend, *vnext;
 	EdgeHalf *enext;
-	GHashIterator giter;
+	BMIter iter;
 	bool iscycle;
 	int chainlen;
 
 	/* find and process chains and cycles of unvisited BoundVerts that have eon set */
-	GHASH_ITER(giter, bp->vert_hash) {
-		bv = bvcur = BLI_ghashIterator_getValue(&giter);
+	/* note: for repeatability, iterate over all verts of mesh rather than over ghash'ed BMVerts */
+	BM_ITER_MESH(bmv, &iter, bm, BM_VERTS_OF_MESH) {
+		if (!BM_elem_flag_test(bmv, BM_ELEM_TAG))
+			continue;
+		bv = bvcur = find_bevvert(bp, bmv);
+		if (!bv)
+			continue;
 		vanchor = bv->vmesh->boundstart;
 		do {
 			if (vanchor->visited || !vanchor->eon) {
@@ -3023,9 +3029,12 @@ static void adjust_offsets(BevelParams *bp)
 	}
 
 	/* Rebuild boundaries with new width specs */
-	GHASH_ITER(giter, bp->vert_hash) {
-		bv = BLI_ghashIterator_getValue(&giter);
-		build_boundary(bp, bv, false);
+	BM_ITER_MESH(bmv, &iter, bm, BM_VERTS_OF_MESH) {
+		if (BM_elem_flag_test(bmv, BM_ELEM_TAG)) {
+			bv = find_bevvert(bp, bmv);
+			if (bv)
+				build_boundary(bp, bv, false);
+		}
 	}
 }
 
@@ -6275,17 +6284,22 @@ static float vertex_collide_offset(BevelParams *bp, EdgeHalf *ea)
  * current edge offset specs to reflect this clamping,
  * and store the new offset in bp.offset.
  */
-static void bevel_limit_offset(BevelParams *bp)
+static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
 {
 	BevVert *bv;
 	EdgeHalf *eh;
-	GHashIterator giter;
+	BMIter iter;
+	BMVert *bmv;
 	float limited_offset, offset_factor, collision_offset;
 	int i;
 
 	limited_offset = bp->offset;
-	GHASH_ITER(giter, bp->vert_hash) {
-		bv = BLI_ghashIterator_getValue(&giter);
+	BM_ITER_MESH(bmv, &iter, bm, BM_VERTS_OF_MESH) {
+		if (!BM_elem_flag_test(bmv, BM_ELEM_TAG))
+			continue;
+		bv = find_bevvert(bp, bmv);
+		if (!bv)
+			continue;
 		for (i = 0; i < bv->edgecount; i++) {
 			eh = &bv->edges[i];
 			if (bp->vertex_only) {
@@ -6310,8 +6324,12 @@ static void bevel_limit_offset(BevelParams *bp)
 		 * with the new limited_offset.
 		 */
 		offset_factor = limited_offset / bp->offset;
-		GHASH_ITER(giter, bp->vert_hash) {
-			bv = BLI_ghashIterator_getValue(&giter);
+		BM_ITER_MESH(bmv, &iter, bm, BM_VERTS_OF_MESH) {
+			if (!BM_elem_flag_test(bmv, BM_ELEM_TAG))
+				continue;
+			bv = find_bevvert(bp, bmv);
+			if (!bv)
+				continue;
 			for (i = 0; i < bv->edgecount; i++) {
 				eh = &bv->edges[i];
 				eh->offset_l_spec *= offset_factor;
@@ -6353,7 +6371,6 @@ void BM_mesh_bevel(
 	BMLoop *l;
 	BevVert *bv;
 	BevelParams bp = {NULL};
-	GHashIterator giter;
 
 	bp.offset = offset;
 	bp.offset_type = offset_type;
@@ -6404,22 +6421,24 @@ void BM_mesh_bevel(
 
 		/* Perhaps clamp offset to avoid geometry colliisions */
 		if (limit_offset) {
-			bevel_limit_offset(&bp);
+			bevel_limit_offset(&bp, bm);
 
 			/* Assign initial new vertex positions */
-			GHASH_ITER(giter, bp.vert_hash) {
-				bv = BLI_ghashIterator_getValue(&giter);
-				build_boundary(&bp, bv, true);
+			BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+					bv = find_bevvert(&bp, v);
+					if (bv)
+						build_boundary(&bp, bv, true);
+				}
 			}
 		}
 
 		/* Perhaps do a pass to try to even out widths */
 		if (!bp.vertex_only && bp.offset_adjust && bp.offset_type != BEVEL_AMT_PERCENT) {
-			adjust_offsets(&bp);
+			adjust_offsets(&bp, bm);
 		}
 
 		/* Build the meshes around vertices, now that positions are final */
-		/* Note: could use GHASH_ITER over bp.vert_hash when backward compatibility no longer matters */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bv = find_bevvert(&bp, v);
@@ -6439,9 +6458,12 @@ void BM_mesh_bevel(
 		}
 
 		/* Extend edge data like sharp edges and precompute normals for harden */
-		GHASH_ITER(giter, bp.vert_hash) {
-			bv = BLI_ghashIterator_getValue(&giter);
-			bevel_extend_edge_data(bv);
+		BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				bv = find_bevvert(&bp, v);
+				if (bv)
+					bevel_extend_edge_data(bv);
+			}
 		}
 
 		/* Rebuild face polygons around affected vertices */
