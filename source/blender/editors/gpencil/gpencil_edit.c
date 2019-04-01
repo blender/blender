@@ -794,7 +794,7 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
 	const bool do_last = ((pt_last->flag & GP_SPOINT_SELECT) && (pt_start != pt_last));
 	const bool do_stroke = (do_first || do_last);
 
-	/* review points in the midle of stroke to create new strokes */
+	/* review points in the middle of stroke to create new strokes */
 	for (int i = 0; i < gps->totpoints; i++) {
 		/* skip first and last point */
 		if ((i == 0) || (i == gps->totpoints - 1)) {
