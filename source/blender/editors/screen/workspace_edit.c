@@ -533,7 +533,8 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	BLI_freelistN(&templates);
 
 	uiItemS(layout);
-	uiItemO(layout, "Duplicate Current", ICON_DUPLICATE, "WORKSPACE_OT_duplicate");
+	uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"), ICON_DUPLICATE,
+	        "WORKSPACE_OT_duplicate");
 
 	UI_popup_menu_end(C, pup);
 
