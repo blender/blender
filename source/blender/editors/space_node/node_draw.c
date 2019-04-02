@@ -583,7 +583,7 @@ static void node_update_hidden(bNode *node)
 	}
 
 	node->totr.xmin = locx;
-	node->totr.xmax = locx + 3 * hiddenrad + node->miniwidth;
+	node->totr.xmax = locx + max_ff(NODE_WIDTH(node), 2 * hiddenrad);
 	node->totr.ymax = locy + (hiddenrad - 0.5f * NODE_DY);
 	node->totr.ymin = node->totr.ymax - 2 * hiddenrad;
 
@@ -1169,20 +1169,18 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		node_draw_mute_line(&ar->v2d, snode, node);
 	}
 
-	if (node->miniwidth > 0.0f) {
-		nodeLabel(ntree, node, showname, sizeof(showname));
+	nodeLabel(ntree, node, showname, sizeof(showname));
 
-		/* XXX - don't print into self! */
-		//if (node->flag & NODE_MUTED)
-		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname);
+	/* XXX - don't print into self! */
+	//if (node->flag & NODE_MUTED)
+	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname);
 
-		uiBut *but = uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
-		                      round_fl_to_int(rct->xmin + NODE_MARGIN_X), round_fl_to_int(centy - NODE_DY * 0.5f),
-		                      (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
-		                      NULL, 0, 0, 0, 0, "");
-		if (node->flag & NODE_MUTED) {
-			UI_but_flag_enable(but, UI_BUT_INACTIVE);
-		}
+	uiBut *but = uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
+	                      round_fl_to_int(rct->xmin + NODE_MARGIN_X), round_fl_to_int(centy - NODE_DY * 0.5f),
+	                      (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
+	                      NULL, 0, 0, 0, 0, "");
+	if (node->flag & NODE_MUTED) {
+		UI_but_flag_enable(but, UI_BUT_INACTIVE);
 	}
 
 	/* scale widget thing */

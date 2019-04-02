@@ -837,7 +837,6 @@ typedef struct NodeSizeWidget {
 	float oldlocx, oldlocy;
 	float oldoffsetx, oldoffsety;
 	float oldwidth, oldheight;
-	float oldminiwidth;
 	int directions;
 } NodeSizeWidget;
 
@@ -858,7 +857,6 @@ static void node_resize_init(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	nsw->oldoffsety = node->offsety;
 	nsw->oldwidth = node->width;
 	nsw->oldheight = node->height;
-	nsw->oldminiwidth = node->miniwidth;
 	nsw->directions = dir;
 
 	WM_cursor_modal_set(CTX_wm_window(C), node_get_resize_cursor(dir));
@@ -890,21 +888,12 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			dy = (my - nsw->mystart) / UI_DPI_FAC;
 
 			if (node) {
-				/* width can use node->width or node->miniwidth (hidden nodes) */
 				float *pwidth;
 				float oldwidth, widthmin, widthmax;
-				/* ignore hidden flag for frame nodes */
-				bool use_hidden = (node->type != NODE_FRAME);
-				if (use_hidden && node->flag & NODE_HIDDEN) {
-					pwidth = &node->miniwidth;
-					oldwidth = nsw->oldminiwidth;
-					widthmin = 0.0f;
-				}
-				else {
-					pwidth = &node->width;
-					oldwidth = nsw->oldwidth;
-					widthmin = node->typeinfo->minwidth;
-				}
+
+				pwidth = &node->width;
+				oldwidth = nsw->oldwidth;
+				widthmin = node->typeinfo->minwidth;
 				widthmax = node->typeinfo->maxwidth;
 
 				{
