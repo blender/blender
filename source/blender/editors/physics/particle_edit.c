@@ -1926,7 +1926,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 			LOOP_VISIBLE_POINTS {
 				int flag = ((BLI_rng_get_float(rng) < randfac) == select) ? SEL_SELECT : SEL_DESELECT;
 				LOOP_KEYS {
-					data.is_changed = select_action_apply(point, key, flag);
+					data.is_changed |= select_action_apply(point, key, flag);
 				}
 			}
 			break;
@@ -1934,7 +1934,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 			LOOP_VISIBLE_POINTS {
 				LOOP_VISIBLE_KEYS {
 					int flag = ((BLI_rng_get_float(rng) < randfac) == select) ? SEL_SELECT : SEL_DESELECT;
-					data.is_changed = select_action_apply(point, key, flag);
+					data.is_changed |= select_action_apply(point, key, flag);
 				}
 			}
 			break;
