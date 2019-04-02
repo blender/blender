@@ -294,17 +294,6 @@ static const char *version_elem_static_from_alias(
 	return elem_alias_full;
 }
 
-static const char *version_elem_name_alias_from_static(
-        const int strct, const char *elem_static_full)
-{
-	const uint elem_static_full_len = strlen(elem_static_full);
-	char *elem_static = alloca(elem_static_full_len + 1);
-	DNA_elem_id_strip_copy(elem_static, elem_static_full);
-	const char *str_pair[2] = {types[strct], elem_static};
-	const char *elem_alias = BLI_ghash_lookup(g_version_data.elem_map_alias_from_static, str_pair);
-	return (elem_alias) ? elem_alias : elem_static; /* TODO: alloca */
-}
-
 /**
  * Enforce '_pad123' naming convention, disallow 'pad123' or 'pad_123',
  * special exception for [a-z] after since there is a 'pad_rot_angle' preference.
@@ -914,8 +903,14 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 					int namelen = (int)strlen(cp);
 
 					/* Write size verification to file. */
-					const char *name_alias = version_elem_name_alias_from_static(structtype, cp);
-					fprintf(file_verify, "BLI_STATIC_ASSERT(offsetof(struct %s, %s) == %d, \"DNA member offset verify\");\n", structname, name_alias, size_native);
+					{
+						char *name_static = alloca(namelen + 1);
+						DNA_elem_id_strip_copy(name_static, cp);
+						const char *str_pair[2] = {types[structtype], name_static};
+						const char *name_alias = BLI_ghash_lookup(g_version_data.elem_map_alias_from_static, str_pair);
+						fprintf(file_verify, "BLI_STATIC_ASSERT(offsetof(struct %s, %s) == %d, \"DNA member offset verify\");\n",
+							structname, name_alias ? name_alias : name_static, size_native);
+					}
 
 					/* is it a pointer or function pointer? */
 					if (cp[0] == '*' || cp[1] == '*') {
