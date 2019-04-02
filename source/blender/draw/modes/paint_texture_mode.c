@@ -40,6 +40,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+extern char datatoc_common_colormanagement_lib_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_paint_texture_vert_glsl[];
@@ -160,7 +161,9 @@ static void PAINT_TEXTURE_engine_init(void *vedata)
                                  datatoc_common_view_lib_glsl,
                                  datatoc_paint_texture_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_paint_texture_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_common_colormanagement_lib_glsl,
+                                 datatoc_paint_texture_frag_glsl,
+                                 NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
 

@@ -59,6 +59,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 
@@ -247,7 +248,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
        * this allows us to use sRGB texture formats and preserves color values in
        * zero alpha areas, and appears generally closer to what game engines that we
        * want to be compatible with do. */
-      const bool store_premultiplied = (ima->alpha_mode == IMA_ALPHA_PREMUL);
+      const bool store_premultiplied = ima ? (ima->alpha_mode == IMA_ALPHA_PREMUL) : true;
       IMB_colormanagement_imbuf_to_byte_texture(
           rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb, store_premultiplied);
     }
@@ -256,14 +257,13 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
     /* Float image is already in scene linear colorspace or non-color data by
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
-    const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
+    const bool store_premultiplied = ima ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
 
     if (ibuf->channels != 4 || !store_premultiplied) {
       rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
       if (rect_float == NULL) {
         return bindcode;
       }
-
       IMB_colormanagement_imbuf_to_float_texture(
           rect_float, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
     }
@@ -289,6 +289,36 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
   }
 
   return bindcode;
+}
+
+static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
+                                                 MovieClipUser *cuser,
+                                                 GLenum textarget)
+{
+  MovieClip_RuntimeGPUTexture *tex;
+  for (tex = clip->runtime.gputextures.first; tex; tex = tex->next) {
+    if (memcmp(&tex->user, cuser, sizeof(MovieClipUser)) == 0) {
+      break;
+    }
+  }
+
+  if (tex == NULL) {
+    tex = MEM_mallocN(sizeof(MovieClip_RuntimeGPUTexture), __func__);
+
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      tex->gputexture[i] = NULL;
+    }
+
+    memcpy(&tex->user, cuser, sizeof(MovieClipUser));
+    BLI_addtail(&clip->runtime.gputextures, tex);
+  }
+
+  if (textarget == GL_TEXTURE_2D)
+    return &tex->gputexture[TEXTARGET_TEXTURE_2D];
+  else if (textarget == GL_TEXTURE_CUBE_MAP)
+    return &tex->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+
+  return NULL;
 }
 
 static void gpu_texture_update_scaled(
@@ -470,6 +500,52 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 
   *tex = GPU_texture_from_bindcode(textarget, bindcode);
   return *tex;
+}
+
+GPUTexture *GPU_texture_from_movieclip(MovieClip *clip, MovieClipUser *cuser, int textarget)
+{
+  if (clip == NULL) {
+    return NULL;
+  }
+
+  GPUTexture **tex = gpu_get_movieclip_gputexture(clip, cuser, textarget);
+  if (*tex) {
+    return *tex;
+  }
+
+  /* check if we have a valid image buffer */
+  uint bindcode = 0;
+  ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
+  if (ibuf == NULL) {
+    *tex = GPU_texture_from_bindcode(textarget, bindcode);
+    return *tex;
+  }
+
+  bindcode = gpu_texture_create_from_ibuf(NULL, ibuf, textarget);
+  IMB_freeImBuf(ibuf);
+
+  *tex = GPU_texture_from_bindcode(textarget, bindcode);
+  return *tex;
+}
+
+void GPU_free_texture_movieclip(struct MovieClip *clip)
+{
+  /* number of gpu textures to keep around as cache
+   * We don't want to keep too many GPU textures for
+   * movie clips around, as they can be large.*/
+  const int MOVIECLIP_NUM_GPUTEXTURES = 1;
+
+  while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {
+    MovieClip_RuntimeGPUTexture *tex = BLI_pophead(&clip->runtime.gputextures);
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      /* free glsl image binding */
+      if (tex->gputexture[i]) {
+        GPU_texture_free(tex->gputexture[i]);
+        tex->gputexture[i] = NULL;
+      }
+    }
+    MEM_freeN(tex);
+  }
 }
 
 static void **gpu_gen_cube_map(uint *rect, float *frect, int rectw, int recth)

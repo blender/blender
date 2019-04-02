@@ -67,6 +67,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "GPU_texture.h"
+
 #ifdef WITH_OPENEXR
 #  include "intern/openexr/openexr_multi.h"
 #endif
@@ -1353,6 +1355,17 @@ static void free_buffers(MovieClip *clip)
     IMB_free_anim(clip->anim);
     clip->anim = NULL;
   }
+
+  MovieClip_RuntimeGPUTexture *tex;
+  for (tex = clip->runtime.gputextures.first; tex; tex = tex->next) {
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      if (tex->gputexture[i] != NULL) {
+        GPU_texture_free(tex->gputexture[i]);
+        tex->gputexture[i] = NULL;
+      }
+    }
+  }
+  BLI_freelistN(&clip->runtime.gputextures);
 }
 
 void BKE_movieclip_clear_cache(MovieClip *clip)

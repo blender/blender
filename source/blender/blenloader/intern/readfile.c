@@ -2038,6 +2038,7 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
   for (; clip; clip = clip->id.next) {
     clip->cache = newmclipadr(fd, clip->cache);
     clip->tracking.camera.intrinsics = newmclipadr(fd, clip->tracking.camera.intrinsics);
+    BLI_freelistN(&clip->runtime.gputextures);
   }
 
   for (; sce; sce = sce->id.next) {
