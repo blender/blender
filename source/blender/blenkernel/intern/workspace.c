@@ -18,9 +18,6 @@
  * \ingroup bke
  */
 
-/* allow accessing private members of DNA_workspace_types.h */
-#define DNA_PRIVATE_WORKSPACE_ALLOW
-
 #include <stdlib.h>
 #include <string.h>
 

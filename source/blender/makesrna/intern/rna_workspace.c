@@ -33,8 +33,6 @@
 
 #include "rna_internal.h"
 
-/* Allow accessing private members of DNA_workspace_types.h */
-#define DNA_PRIVATE_WORKSPACE_ALLOW
 #include "DNA_workspace_types.h"
 
 #ifdef RNA_RUNTIME
