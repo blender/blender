@@ -63,10 +63,12 @@ add_custom_command(
 	OUTPUT
 		${CMAKE_CURRENT_BINARY_DIR}/dna.c
 		${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
+		${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 	COMMAND
 		"$<TARGET_FILE:makesdna>"
 		${CMAKE_CURRENT_BINARY_DIR}/dna.c
 		${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
+		${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 		${CMAKE_SOURCE_DIR}/source/blender/makesdna/
 	DEPENDS makesdna
 )
@@ -86,6 +88,7 @@ set(SRC
 	dna_utils.c
 	dna_genfile.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna.c
+	${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 	${SRC_DNA_INC}
 
 	dna_utils.h
@@ -93,6 +96,7 @@ set(SRC
 
 set_source_files_properties(
 	${CMAKE_CURRENT_BINARY_DIR}/dna.c
+	${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
 	PROPERTIES GENERATED TRUE
 )

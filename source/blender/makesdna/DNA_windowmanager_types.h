@@ -189,7 +189,7 @@ enum {
 #define WM_KEYCONFIG_STR_DEFAULT "blender"
 
 /* IME is win32 only! */
-#ifndef WIN32
+#if !defined(WIN32) && !defined(DNA_DEPRECATED)
 #  ifdef __GNUC__
 #    define ime_data ime_data __attribute__ ((deprecated))
 #  endif

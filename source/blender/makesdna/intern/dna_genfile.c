@@ -122,6 +122,7 @@
  *    - float: 4 aligned
  *    - double: 8 aligned
  *    - long: 8 aligned
+ *    - int64: 8 aligned
  *    - struct: 8 aligned
  *  - the sdna functions have several error prints builtin, always check blender running from a console.
  */
