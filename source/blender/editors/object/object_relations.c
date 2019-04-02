@@ -1627,16 +1627,18 @@ static Collection *single_object_users_collection(
 	 * However, this means its children need to be re-added manually here, otherwise their parent lists are empty
 	 * (which will lead to crashes, see T63101). */
 	CollectionChild *child_next, *child = collection->children.first;
-	if (is_master_collection) {
-		BLI_listbase_clear(&collection->children);
-	}
-	for (; child; child = child_next) {
+	CollectionChild *orig_child_last = collection->children.last;
+	for (; child != NULL; child = child_next) {
 		child_next = child->next;
 		Collection *collection_child_new = single_object_users_collection(
 		                                       bmain, scene, child->collection, flag, copy_collections, false);
-		if (is_master_collection) {
+		if (is_master_collection && copy_collections && child->collection != collection_child_new) {
 			BKE_collection_child_add(bmain, collection, collection_child_new);
+			BLI_remlink(&collection->children, child);
 			MEM_freeN(child);
+			if (child == orig_child_last) {
+				break;
+			}
 		}
 	}
 
