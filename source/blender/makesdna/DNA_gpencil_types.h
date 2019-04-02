@@ -201,6 +201,7 @@ typedef struct bGPDstroke {
 
 	/** Vertex weight data. */
 	struct MDeformVert *dvert;
+	void *_pad3;
 
 	bGPDstroke_Runtime runtime;
 	char _pad2[4];

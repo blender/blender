@@ -170,6 +170,7 @@ typedef struct Object_Runtime {
 
 	struct ObjectBBoneDeform *cached_bbone_deformation;
 
+	void *_pad1;
 } Object_Runtime;
 
 typedef struct Object {
