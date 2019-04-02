@@ -25,16 +25,16 @@
 # Windows and macOS, and install_deps.sh on Linux.
 #
 # WINDOWS USAGE:
-#   Don't call this cmake file your self, use build_deps.cmd
+#   Don't call this cmake file yourself, use build_deps.cmd
 #   build_deps 2013 x64 / build_deps 2013 x86
 #   build_deps 2015 x64 / build_deps 2015 x86
 #
 # MAC OS X USAGE:
-#	Install with homebrew: brew install autoconf automake libtool yasm nasm
+#   Install with homebrew: brew install cmake autoconf automake libtool yasm nasm
 #   Run "make deps" from main Blender directory
 #
 # LINUX USAGE:
-#   Install compiler, cmake, autoconf, automake, libtool, yasm
+#   Install compiler cmake autoconf automake libtool yasm nasm tcl
 #   Run "make deps" from main Blender directory
 #
 ####################################################################################################
