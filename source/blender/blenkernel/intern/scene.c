@@ -434,12 +434,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		/* NOTE: part of SCE_COPY_FULL operations
 		 * are done outside of blenkernel with ED_object_single_users! */
 
-		/*  camera */
-		/* XXX This is most certainly useless? Object have not yet been duplicated... */
-		if (type == SCE_COPY_FULL) {
-			ID_NEW_REMAP(sce_copy->camera);
-		}
-
 		return sce_copy;
 	}
 }
