@@ -61,6 +61,12 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	Camera camdata_cpy = *(Camera *)(camera->data);
 	cam_cpy.data = &camdata_cpy;
 
+	/* Reset original pointers, so direct evaluation does not attempt to flush
+	 * animation back to the original object: otherwise viewport with motion
+	 * blur enabled will always loose non-keyed changes. */
+	cam_cpy.id.orig_id = NULL;
+	camdata_cpy.id.orig_id = NULL;
+
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	/* Past matrix */
