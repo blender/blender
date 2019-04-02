@@ -305,7 +305,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 
 		DRW_draw_pass(psl->wire_pass);
 
-		MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+		MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 	}
 
 	/* Unfortunately this pass cannot be AA'd without
@@ -318,7 +318,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 
 		DRW_draw_pass(psl->wire_pass_xray);
 
-		MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl)
+		MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl);
 	}
 
 	/* Thoses passes don't write to depth and are AA'ed using other tricks. */

@@ -331,7 +331,7 @@ WorkSpaceLayout *BKE_workspace_layout_iter_circular(
 				return iter_layout;
 			}
 		}
-		LISTBASE_CIRCULAR_FORWARD_END(&workspace->layouts, iter_layout, start)
+		LISTBASE_CIRCULAR_FORWARD_END(&workspace->layouts, iter_layout, start);
 	}
 
 	return NULL;

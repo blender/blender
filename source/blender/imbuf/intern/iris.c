@@ -602,10 +602,10 @@ static int expandrow2(
 	float pixel_f;
 
 #define EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next) \
-	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; }
+	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; } ((void)0)
 
 #define EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next) \
-	if (UNLIKELY(optr_next > optr_end)) { goto fail; }
+	if (UNLIKELY(optr_next > optr_end)) { goto fail; } ((void)0)
 
 	optr += z;
 	optr_end += z;
@@ -683,10 +683,10 @@ static int expandrow(
 	uchar pixel, count;
 
 #define EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next) \
-	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; }
+	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; } ((void)0)
 
 #define EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next) \
-	if (UNLIKELY(optr_next > optr_end)) { goto fail; }
+	if (UNLIKELY(optr_next > optr_end)) { goto fail; } ((void)0)
 
 	optr += z;
 	optr_end += z;

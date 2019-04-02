@@ -580,7 +580,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 			RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update"); \
 		else                                                                       \
 			RNA_def_property_update(prop, 0, "rna_Armature_update_data");          \
-	} (void)0;
+	} ((void)0)
 
 	PropertyRNA *prop;
 

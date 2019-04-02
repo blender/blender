@@ -158,7 +158,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
 #define DEG_OBJECT_ITER_END                                                       \
 		ITER_END;                                                                 \
-	}
+	} ((void)0)
 
 /**
  * Depsgraph objects iterator for draw manager and final render

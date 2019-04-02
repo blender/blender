@@ -1716,7 +1716,7 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
 			}
 		}
 	}
-	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
+	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
 
 	return false;
 }
@@ -1959,7 +1959,7 @@ void DRW_render_object_iter(
 			drw_batch_cache_generate_requested(ob);
 		}
 	}
-	DEG_OBJECT_ITER_END
+	DEG_OBJECT_ITER_END;
 }
 
 /* Assume a valid gl context is bound (and that the gl_context_mutex has been acquired).

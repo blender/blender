@@ -2627,7 +2627,7 @@ static void UV_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = uv_select_exec;
 	ot->invoke = uv_select_invoke;
-	ot->poll = ED_operator_uvedit; /* requires space image */;
+	ot->poll = ED_operator_uvedit; /* requires space image */
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2676,7 +2676,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = uv_select_loop_exec;
 	ot->invoke = uv_select_loop_invoke;
-	ot->poll = ED_operator_uvedit; /* requires space image */;
+	ot->poll = ED_operator_uvedit; /* requires space image */
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2811,7 +2811,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = uv_select_linked_pick_invoke;
 	ot->exec = uv_select_linked_pick_exec;
-	ot->poll = ED_operator_uvedit; /* requires space image */;
+	ot->poll = ED_operator_uvedit; /* requires space image */
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2917,7 +2917,7 @@ static void UV_OT_select_split(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = uv_select_split_exec;
-	ot->poll = ED_operator_uvedit; /* requires space image */;
+	ot->poll = ED_operator_uvedit; /* requires space image */
 }
 
 static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short select)
@@ -3312,7 +3312,7 @@ static void UV_OT_select_box(wmOperatorType *ot)
 	ot->invoke = WM_gesture_box_invoke;
 	ot->exec = uv_box_select_exec;
 	ot->modal = WM_gesture_box_modal;
-	ot->poll = ED_operator_uvedit_space_image; /* requires space image */;
+	ot->poll = ED_operator_uvedit_space_image; /* requires space image */
 	ot->cancel = WM_gesture_box_cancel;
 
 	/* flags */
@@ -3460,7 +3460,7 @@ static void UV_OT_select_circle(wmOperatorType *ot)
 	ot->invoke = WM_gesture_circle_invoke;
 	ot->modal = WM_gesture_circle_modal;
 	ot->exec = uv_circle_select_exec;
-	ot->poll = ED_operator_uvedit_space_image; /* requires space image */;
+	ot->poll = ED_operator_uvedit_space_image; /* requires space image */
 	ot->cancel = WM_gesture_circle_cancel;
 
 	/* flags */
@@ -3697,7 +3697,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = uv_snap_cursor_exec;
-	ot->poll = ED_operator_uvedit_space_image; /* requires space image */;
+	ot->poll = ED_operator_uvedit_space_image; /* requires space image */
 
 	/* properties */
 	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UVs to");

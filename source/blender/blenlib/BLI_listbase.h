@@ -111,7 +111,7 @@ if ((lb)->first && (lb_init || (lb_init = (lb)->first))) { \
 #define LISTBASE_CIRCULAR_FORWARD_END(lb, lb_iter, lb_init) \
 	} while ((lb_iter  = (lb_iter)->next ? (lb_iter)->next : (lb)->first), \
 	         (lb_iter != lb_init)); \
-}
+} ((void)0)
 
 #define LISTBASE_CIRCULAR_BACKWARD_BEGIN(lb, lb_iter, lb_init) \
 if ((lb)->last && (lb_init || (lb_init = (lb)->last))) { \
@@ -120,7 +120,7 @@ if ((lb)->last && (lb_init || (lb_init = (lb)->last))) { \
 #define LISTBASE_CIRCULAR_BACKWARD_END(lb, lb_iter, lb_init) \
 	} while ((lb_iter  = (lb_iter)->prev ? (lb_iter)->prev : (lb)->last), \
 	         (lb_iter != lb_init)); \
-}
+} ((void)0)
 
 #define LISTBASE_FOREACH(type, var, list) \
 	for (type var = (type)((list)->first); \

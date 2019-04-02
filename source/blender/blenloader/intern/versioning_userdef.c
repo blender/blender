@@ -52,7 +52,7 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 	}
 
 #define FROM_DEFAULT_V4_UCHAR(member) \
-	copy_v4_v4_char(btheme->member, U_theme_default.member);
+	copy_v4_v4_char(btheme->member, U_theme_default.member)
 
 	if (!USER_VERSION_ATLEAST(280, 25)) {
 		copy_v4_v4_char(btheme->space_action.anim_preview_range, btheme->space_action.anim_active);

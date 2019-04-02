@@ -735,7 +735,7 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 		if      (smode == ACHANNEL_SETFLAG_INVERT)  (channel)->flag ^=  (sflag); \
 		else if (smode == ACHANNEL_SETFLAG_ADD)     (channel)->flag |=  (sflag); \
 		else                                        (channel)->flag &= ~(sflag); \
-	}
+	} ((void)0)
 
 /* set/clear/toggle macro, where the flag is negative
  * - channel - channel with a 'flag' member that we're setting
@@ -747,7 +747,7 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 		if      (smode == ACHANNEL_SETFLAG_INVERT)  (channel)->flag ^=  (sflag); \
 		else if (smode == ACHANNEL_SETFLAG_ADD)     (channel)->flag &= ~(sflag); \
 		else                                        (channel)->flag |=  (sflag); \
-	}
+	} ((void)0)
 
 
 /* --------- anim_deps.c, animation updates -------- */

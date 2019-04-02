@@ -1157,7 +1157,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 #define RNA_PROP_END                                                          \
 		}                                                                     \
 		RNA_property_collection_end(&rna_macro_iter);                         \
-	}
+	} ((void)0)
 
 #define RNA_STRUCT_BEGIN(sptr, prop)                                          \
 	{                                                                         \
@@ -1174,7 +1174,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 #define RNA_STRUCT_END                                                        \
 		}                                                                     \
 		RNA_property_collection_end(&rna_macro_iter);                         \
-	}
+	} ((void)0)
 
 /* check if the idproperty exists, for operators */
 bool RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, bool use_ghost);

@@ -2215,7 +2215,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 	Object *obn;
 
 	if (ob->mode & OB_MODE_POSE) {
-		; /* nothing? */
+		/* nothing? */
 	}
 	else {
 		obn = ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag));

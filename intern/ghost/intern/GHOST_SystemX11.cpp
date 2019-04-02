@@ -1110,7 +1110,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				}
 				else if (status == XLookupKeySym) {
 					/* this key doesn't have a text representation, it is a command
-					 * key of some sort */;
+					 * key of some sort */
 				}
 				else {
 					printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",

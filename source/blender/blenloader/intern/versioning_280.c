@@ -1434,7 +1434,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							scene->eevee.flag &= ~_flag; \
 						} \
 					} \
-				}
+				} ((void)0)
 
 #define EEVEE_GET_INT(_props, _name) \
 				{ \
@@ -1442,7 +1442,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					if (_idprop != NULL) { \
 						scene->eevee._name = IDP_Int(_idprop); \
 					} \
-				}
+				} ((void)0)
 
 #define EEVEE_GET_FLOAT(_props, _name) \
 				{ \
@@ -1450,7 +1450,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					if (_idprop != NULL) { \
 						scene->eevee._name = IDP_Float(_idprop); \
 					} \
-				}
+				} ((void)0)
 
 #define EEVEE_GET_FLOAT_ARRAY(_props, _name, _length) \
 				{ \
@@ -1461,7 +1461,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							scene->eevee._name [_i] = _values[_i]; \
 						} \
 					} \
-				}
+				} ((void)0)
 
 				IDProperty *props = IDP_GetPropertyFromGroup(scene->layer_properties, RE_engine_id_BLENDER_EEVEE);
 				EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);

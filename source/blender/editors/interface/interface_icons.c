@@ -476,7 +476,7 @@ static void init_brush_icons(void)
 		di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0);    \
 		di->data.buffer.image->datatoc_rect = rect;                             \
 		di->data.buffer.image->datatoc_size = size;                             \
-	}
+	} ((void)0)
 	/* end INIT_BRUSH_ICON */
 
 	const int w = 96; /* warning, brush size hardcoded in C, but it gets scaled */
@@ -614,7 +614,7 @@ static void init_event_icons(void)
 		di->data.input.icon = icon_id; \
 		di->data.input.next = di_next; \
 		di_next = di; \
-	}
+	} ((void)0)
 	/* end INIT_EVENT_ICON */
 
 	const int w = 16; /* DUMMY */

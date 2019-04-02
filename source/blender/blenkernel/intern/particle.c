@@ -2373,7 +2373,7 @@ void psys_cache_child_paths(
 	totparent = ctx.totparent;
 
 	if (editupdate && sim->psys->childcache && totchild == sim->psys->totchildcache) {
-		; /* just overwrite the existing cache */
+		/* just overwrite the existing cache */
 	}
 	else {
 		/* clear out old and create new empty path cache */

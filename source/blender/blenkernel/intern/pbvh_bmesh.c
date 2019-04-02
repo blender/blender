@@ -107,7 +107,7 @@ static void pbvh_bmesh_verify(PBVH *bvh);
 #define BM_FACES_OF_VERT_ITER_END \
 	} \
 	BM_LOOPS_OF_VERT_ITER_END; \
-}
+} ((void)0)
 
 static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
 {

@@ -254,7 +254,7 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem,
 
 	/* can't rename rna datablocks entries or listbases */
 	if (ELEM(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE, TSE_SCENE_OBJECTS_BASE)) {
-		/* do nothing */;
+		/* do nothing */
 	}
 	else if (ELEM(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE,
 	              TSE_DRIVER_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_SCENE_COLLECTION_BASE,

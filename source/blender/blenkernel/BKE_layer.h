@@ -344,37 +344,37 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(struct Object *ob, void *user_dat
 #define BKE_view_layer_array_from_objects_in_edit_mode(view_layer, v3d, r_len) \
 	BKE_view_layer_array_from_objects_in_mode( \
 	view_layer, v3d, r_len, { \
-		.object_mode = OB_MODE_EDIT});
+		.object_mode = OB_MODE_EDIT})
 
 #define BKE_view_layer_array_from_bases_in_edit_mode(view_layer, v3d, r_len) \
 	BKE_view_layer_array_from_bases_in_mode( \
 	view_layer, v3d, r_len, { \
-		.object_mode = OB_MODE_EDIT});
+		.object_mode = OB_MODE_EDIT})
 
 #define BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, v3d, r_len) \
 	BKE_view_layer_array_from_objects_in_mode( \
 	view_layer, v3d, r_len, { \
 		.object_mode = OB_MODE_EDIT, \
-		.no_dup_data = true});
+		.no_dup_data = true})
 
 #define BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, v3d, r_len) \
 	BKE_view_layer_array_from_bases_in_mode( \
 	view_layer, v3d, r_len, { \
 		.object_mode = OB_MODE_EDIT, \
-		.no_dup_data = true});
+		.no_dup_data = true})
 
 #define BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, v3d, r_len) \
 	BKE_view_layer_array_from_objects_in_mode( \
 	view_layer, v3d, r_len, { \
 		.object_mode = OB_MODE_EDIT, \
 		.no_dup_data = true, \
-		.filter_fn = BKE_view_layer_filter_edit_mesh_has_uvs});
+		.filter_fn = BKE_view_layer_filter_edit_mesh_has_uvs})
 
 #define BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, v3d, r_len, mode) \
 	BKE_view_layer_array_from_objects_in_mode( \
 	view_layer, v3d, r_len, { \
 		.object_mode = mode, \
-		.no_dup_data = true});
+		.no_dup_data = true})
 
 #ifdef __cplusplus
 }

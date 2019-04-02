@@ -1327,7 +1327,7 @@ static short snap_mesh_edge_verts_mixed(
 	        neasrest_precalc.ray_direction,
 	        v_pair[0], v_pair[1], &lambda))
 	{
-		/* do nothing */;
+		/* do nothing */
 	}
 	else if (lambda < 0.25f || 0.75f < lambda) {
 		int v_id = lambda < 0.5f ? 0 : 1;

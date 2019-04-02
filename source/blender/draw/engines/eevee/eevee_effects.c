@@ -119,14 +119,14 @@ static void eevee_create_shader_downsample(void)
 		GPU_ATTACHMENT_NONE, \
 		GPU_ATTACHMENT_TEXTURE(tex), \
 	}); \
-}
+} ((void)0)
 
 #define CLEANUP_BUFFER(tex, fb, fb_color) { \
 	/* Cleanup to release memory */ \
 	DRW_TEXTURE_FREE_SAFE(tex); \
 	GPU_FRAMEBUFFER_FREE_SAFE(fb); \
 	GPU_FRAMEBUFFER_FREE_SAFE(fb_color); \
-}
+} ((void)0)
 
 void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera, const bool minimal)
 {

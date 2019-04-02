@@ -509,11 +509,11 @@ static void gp_brush_jitter(
 static void gp_brush_angle(bGPdata *gpd, Brush *brush, tGPspoint *pt, const float mval[2])
 {
 	float mvec[2];
-	float sen = brush->gpencil_settings->draw_angle_factor; /* sensitivity */;
+	float sen = brush->gpencil_settings->draw_angle_factor; /* sensitivity */
 	float fac;
 	float mpressure;
 
-	/* default angle of brush in radians */;
+	/* default angle of brush in radians */
 	float angle = brush->gpencil_settings->draw_angle;
 	/* angle vector of the brush with full thickness */
 	float v0[2] = { cos(angle), sin(angle) };

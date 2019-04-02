@@ -984,15 +984,15 @@ static bool eevee_lightbake_cube_comp(EEVEE_LightProbe *prb_a, EEVEE_LightProbe 
 	bool sorted = false; \
 	while (!sorted) { \
 		sorted = true; \
-		for (int i = 0; i < (elems_len) - 1; ++i) { \
-			if ((comp_fn)((elems) + i, (elems) + i+1)) { \
-				SWAP(elems_type, (elems)[i], (elems)[i+1]); \
-				SWAP(LightProbe *, (prbs)[i], (prbs)[i+1]); \
+		for (int i = 0; i < (elems_len) - 1; i++) { \
+			if ((comp_fn)((elems) + i, (elems) + i + 1)) { \
+				SWAP(elems_type, (elems)[i], (elems)[i + 1]); \
+				SWAP(LightProbe *, (prbs)[i], (prbs)[i + 1]); \
 				sorted = false; \
 			} \
 		} \
 	} \
-}
+} ((void)0)
 
 static void eevee_lightbake_gather_probes(EEVEE_LightBake *lbake)
 {

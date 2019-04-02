@@ -3308,7 +3308,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->particle);
 	DRW_draw_pass(stl->g_data->sgl.bone_axes);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 
 	DRW_draw_pass(stl->g_data->sgl.image_empties);
 

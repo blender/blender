@@ -247,7 +247,7 @@ void DRW_draw_cursor(void)
 #define CURSOR_EDGE(axis_vec, axis, sign) { \
 					CURSOR_VERT(axis_vec, axis, sign 1.0f); \
 					CURSOR_VERT(axis_vec, axis, sign 0.25f); \
-				}
+				} ((void)0)
 
 				for (int axis = 0; axis < 3; axis++) {
 					float axis_vec[3] = {0};

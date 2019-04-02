@@ -320,7 +320,7 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	FOREACH_COLLECTION_END
+	FOREACH_COLLECTION_END;
 
 	if (!updated)
 		return OPERATOR_CANCELLED;

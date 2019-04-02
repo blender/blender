@@ -203,7 +203,7 @@ void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
 #define FOREACH_COLLECTION_END                                                \
 	}                                                                         \
-}
+} ((void)0)
 
 #define FOREACH_SCENE_OBJECT_BEGIN(scene, _instance)                          \
 	ITER_BEGIN(BKE_scene_objects_iterator_begin,                              \

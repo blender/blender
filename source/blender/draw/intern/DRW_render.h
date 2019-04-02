@@ -120,7 +120,7 @@ typedef char DRWViewportEmptyList;
 		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color, true); \
 		DRW_stats_query_end(); \
 	} \
-}
+} ((void)0)
 
 #define MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl) { \
 	if (dfbl->multisample_fb != NULL) { \
@@ -129,7 +129,7 @@ typedef char DRWViewportEmptyList;
 		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color, false); \
 		DRW_stats_query_end(); \
 	} \
-}
+} ((void)0)
 
 
 

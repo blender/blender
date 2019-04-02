@@ -350,7 +350,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 #define BKE_pbvh_vertex_iter_end \
 			} \
 		} \
-	}
+	} ((void)0)
 
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);

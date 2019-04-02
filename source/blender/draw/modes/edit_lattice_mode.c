@@ -262,7 +262,7 @@ static void EDIT_LATTICE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->wire_pass);
 	DRW_draw_pass(psl->vert_pass);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */

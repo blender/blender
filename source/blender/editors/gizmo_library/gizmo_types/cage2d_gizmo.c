@@ -759,7 +759,7 @@ static int gizmo_cage2d_test_select(
 			r.ymin = -size[1] + margin[1];
 			r.xmax =  size[0] - margin[0];
 			r.ymax =  size[1] - margin[1];
-		};
+		}
 		bool isect = BLI_rctf_isect_pt_v(&r, point_local);
 		if (isect) {
 			return ED_GIZMO_CAGE2D_PART_TRANSLATE;

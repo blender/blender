@@ -1385,13 +1385,13 @@ int GPU_texture_bound_number(GPUTexture *tex)
 	return tex->number;
 }
 
-#define WARN_NOT_BOUND(_tex) do { \
+#define WARN_NOT_BOUND(_tex) { \
 	if (_tex->number == -1) { \
 		fprintf(stderr, "Warning : Trying to set parameter on a texture not bound.\n"); \
 		BLI_assert(0); \
 		return; \
 	} \
-} while (0);
+} ((void)0)
 
 void GPU_texture_generate_mipmap(GPUTexture *tex)
 {

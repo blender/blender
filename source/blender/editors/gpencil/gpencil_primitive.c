@@ -834,7 +834,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 			const float fac = p2d->rnd[0] * exfactor * jitter;
 
 			/* vector */
-			float mvec[2], svec[2];;
+			float mvec[2], svec[2];
 			if (i > 0) {
 				mvec[0] = (p2d->x - (p2d - 1)->x);
 				mvec[1] = (p2d->y - (p2d - 1)->y);
