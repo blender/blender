@@ -472,7 +472,6 @@ static void BLI_path_unc_to_short(wchar_t *unc)
 	wchar_t tmp[PATH_MAX];
 
 	int len = wcslen(unc);
-	int copy_start = 0;
 	/* convert:
 	 *    \\?\UNC\server\share\folder\... to \\server\share\folder\...
 	 *    \\?\C:\ to C:\ and \\?\C:\folder\... to C:\folder\...
