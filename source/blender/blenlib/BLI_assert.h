@@ -79,10 +79,15 @@ extern "C" {
 #elif defined(_MSC_VER)
 #  define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
 #else  /* older gcc, clang... */
-  /* This can't be used twice on the same line so ensure if using in headers
-   * that the headers are not included twice (by wrapping in #ifndef...#endif)
-   * Note it doesn't cause an issue when used on same line of separate modules
-   * compiled with gcc -combine -fwhole-program. */
+  /* Code adapted from http://www.pixelbeat.org/programming/gcc/static_assert.html */
+  /* Note we need the two concats below because arguments to ## are not expanded, so we need to
+   * expand __LINE__ with one indirection before doing the actual concatenation. */
+#  define _BLI_ASSERT_CONCAT_(a, b) a##b
+#  define _BLI_ASSERT_CONCAT(a, b) _BLI_ASSERT_CONCAT_(a, b)
+   /* This can't be used twice on the same line so ensure if using in headers
+    * that the headers are not included twice (by wrapping in #ifndef...#endif)
+    * Note it doesn't cause an issue when used on same line of separate modules
+    * compiled with gcc -combine -fwhole-program. */
 #  define BLI_STATIC_ASSERT(a, msg) \
        ; enum { _BLI_ASSERT_CONCAT(assert_line_, __LINE__) = 1 / (int)(!!(a)) };
 #endif
