@@ -70,10 +70,7 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
 		scene_new = BKE_scene_copy(bmain, scene_old, method);
 
 		/* these can't be handled in blenkernel currently, so do them here */
-		if (method == SCE_COPY_LINK_DATA) {
-			ED_object_single_users(bmain, scene_new, false, true);
-		}
-		else if (method == SCE_COPY_FULL) {
+		if (method == SCE_COPY_FULL) {
 			ED_editors_flush_edits(bmain, false);
 			ED_object_single_users(bmain, scene_new, true, true);
 		}
@@ -205,11 +202,14 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 static void SCENE_OT_new(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{SCE_COPY_NEW, "NEW", 0, "New", "Add new scene"},
-		{SCE_COPY_EMPTY, "EMPTY", 0, "Copy Settings", "Make a copy without any objects"},
-		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene"},
-		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene"},
-		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene"},
+		{SCE_COPY_NEW, "NEW", 0, "New",
+		 "Add a new, empty scene with default settings"},
+		{SCE_COPY_EMPTY, "EMPTY", 0, "Copy Settings",
+		 "Add a new, empty scene, and copy settings from the current scene"},
+		{SCE_COPY_LINK_COLLECTION, "LINK_COPY", 0, "Linked Copy",
+		 "Link in the collections from the current scene (shallow copy)"},
+		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy",
+		 "Make a full copy of the current scene"},
 		{0, NULL, 0, NULL, NULL},
 	};
 

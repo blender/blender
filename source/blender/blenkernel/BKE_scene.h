@@ -42,11 +42,10 @@ struct ViewRender;
 struct WorkSpace;
 
 typedef enum eSceneCopyMethod {
-	SCE_COPY_NEW       = 0,
-	SCE_COPY_EMPTY     = 1,
-	SCE_COPY_LINK_OB   = 2,
-	SCE_COPY_LINK_DATA = 3,
-	SCE_COPY_FULL      = 4,
+	SCE_COPY_NEW             = 0,
+	SCE_COPY_EMPTY           = 1,
+	SCE_COPY_LINK_COLLECTION = 2,
+	SCE_COPY_FULL            = 3,
 } eSceneCopyMethod;
 
 /* Use as the contents of a 'for' loop: for (SETLOOPER(...)) { ... */
