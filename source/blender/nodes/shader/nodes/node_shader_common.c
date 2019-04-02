@@ -207,7 +207,7 @@ static int gpu_group_execute(GPUMaterial *mat, bNode *node, bNodeExecData *execd
 		return 0;
 
 	group_gpu_copy_inputs(node, in, exec->stack);
-	ntreeExecGPUNodes(exec, mat, 0);
+	ntreeExecGPUNodes(exec, mat, NULL);
 	group_gpu_move_outputs(node, out, exec->stack);
 
 	return 1;

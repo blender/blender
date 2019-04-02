@@ -844,7 +844,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat, bool *has_sur
 	ntree_shader_tag_nodes(localtree, output, &tags);
 
 	exec = ntreeShaderBeginExecTree(localtree);
-	ntreeExecGPUNodes(exec, mat, 1);
+	ntreeExecGPUNodes(exec, mat, output);
 	ntreeShaderEndExecTree(exec);
 
 	/* EEVEE: Find which material domain was used (volume, surface ...). */
