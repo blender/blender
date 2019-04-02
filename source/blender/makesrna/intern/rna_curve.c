@@ -1221,6 +1221,11 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Material Index", "");
 	RNA_def_property_int_funcs(prop, "rna_ChariInfo_material_index_get", "rna_ChariInfo_material_index_set", "rna_Curve_material_index_range");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop = RNA_def_property(srna, "kerning", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "kern");
+	RNA_def_property_ui_text(prop, "Kerning", "Spacing between characters");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_surface(BlenderRNA *brna)
