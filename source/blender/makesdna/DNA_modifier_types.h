@@ -954,8 +954,6 @@ typedef struct MultiresModifierData {
 	short quality;
 	short uv_smooth;
 	char _pad2[4];
-	struct Subdiv *subdiv;
-	void *_pad3;
 } MultiresModifierData;
 
 typedef enum {

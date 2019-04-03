@@ -24,6 +24,8 @@
 
 #include <stddef.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -44,6 +46,11 @@
 
 #include "MOD_modifiertypes.h"
 
+typedef struct MultiresRuntimeData {
+	/* Cached subdivision surface descriptor, with topology and settings. */
+	struct Subdiv *subdiv;
+} MultiresRuntimeData;
+
 static void initData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -58,19 +65,36 @@ static void initData(ModifierData *md)
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
-	MultiresModifierData *mmd_dst = (MultiresModifierData *)md_dst;
-
 	modifier_copyData_generic(md_src, md_dst, flag);
+}
 
-	mmd_dst->subdiv = NULL;
+static void freeRuntimeData(void *runtime_data_v)
+{
+	if (runtime_data_v == NULL) {
+		return;
+	}
+	MultiresRuntimeData *runtime_data = (MultiresRuntimeData *)runtime_data_v;
+	if (runtime_data->subdiv != NULL) {
+		BKE_subdiv_free(runtime_data->subdiv);
+	}
+	MEM_freeN(runtime_data);
 }
 
 static void freeData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *) md;
-	if (mmd->subdiv != NULL) {
-		BKE_subdiv_free(mmd->subdiv);
+	freeRuntimeData(mmd->modifier.runtime);
+}
+
+static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
+{
+	MultiresRuntimeData *runtime_data =
+	        (MultiresRuntimeData *)mmd->modifier.runtime;
+	if (runtime_data == NULL) {
+		runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+		mmd->modifier.runtime = runtime_data;
 	}
+	return runtime_data;
 }
 
 /* Main goal of this function is to give usable subdivision surface descriptor
@@ -79,9 +103,11 @@ static Subdiv *subdiv_descriptor_ensure(MultiresModifierData *mmd,
                                         const SubdivSettings *subdiv_settings,
                                         const Mesh *mesh)
 {
+	MultiresRuntimeData *runtime_data =
+	        (MultiresRuntimeData *)mmd->modifier.runtime;
 	Subdiv *subdiv = BKE_subdiv_update_from_mesh(
-	        mmd->subdiv, subdiv_settings, mesh);
-	mmd->subdiv = subdiv;
+	        runtime_data->subdiv, subdiv_settings, mesh);
+	runtime_data->subdiv = subdiv;
 	return subdiv;
 }
 
@@ -156,6 +182,7 @@ static Mesh *applyModifier(ModifierData *md,
 		return result;
 	}
 	BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
+	MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
 	Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
 	if (subdiv == NULL) {
 		/* Happens on bad topology, ut also on empty input mesh. */
@@ -180,13 +207,13 @@ static Mesh *applyModifier(ModifierData *md,
 		/* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
 		 * this pointer. Not sure if it's needed, but might have a second look
 		 * on the ownership model here. */
-		mmd->subdiv = NULL;
+		runtime_data->subdiv = NULL;
 		// BKE_subdiv_stats_print(&subdiv->stats);
 	}
 	else {
 		result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 		// BKE_subdiv_stats_print(&subdiv->stats);
-		if (subdiv != mmd->subdiv) {
+		if (subdiv != runtime_data->subdiv) {
 			BKE_subdiv_free(subdiv);
 		}
 	}
@@ -220,5 +247,5 @@ ModifierTypeInfo modifierType_Multires = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+	/* freeRuntimeData */   freeRuntimeData,
 };
