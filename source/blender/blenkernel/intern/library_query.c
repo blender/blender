@@ -783,7 +783,7 @@ static void library_foreach_ID_link(
 					CALLBACK_INVOKE(child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
 				}
 				for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
-					CALLBACK_INVOKE(parent->collection, IDWALK_CB_NEVER_SELF);
+					CALLBACK_INVOKE(parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK);
 				}
 				break;
 			}
