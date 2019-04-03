@@ -311,8 +311,8 @@ void DRW_displist_indexbuf_create_lines_in_order(ListBase *lb, GPUIndexBuf *ibo)
 	int ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
 		displist_indexbufbuilder_set(
-		        (SetTriIndicesFn *)set_overlay_wires_tri_indices,
-		        (SetTriIndicesFn *)set_overlay_wires_quad_tri_indices,
+		        set_overlay_wires_tri_indices,
+		        set_overlay_wires_quad_tri_indices,
 		        &elb, dl, ofs);
 		ofs += dl_vert_len(dl);
 	}
