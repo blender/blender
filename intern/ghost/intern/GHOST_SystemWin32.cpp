@@ -116,6 +116,9 @@
 #define WM_POINTERUPDATE 0x0245
 #endif // WM_POINTERUPDATE
 
+#define WM_POINTERDOWN                  0x0246
+#define WM_POINTERUP                    0x0247
+
 /* Workaround for some laptop touchpads, some of which seems to
  * have driver issues which makes it so window function receives
  * the message, but PeekMessage doesn't pick those messages for
@@ -791,9 +794,55 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(
         GHOST_WindowWin32 *window,
         GHOST_TButtonMask mask)
 {
-	return new GHOST_EventButton(getSystem()->getMilliSeconds(), type, window, mask);
+	GHOST_SystemWin32 * system = (GHOST_SystemWin32 *)getSystem();
+	if (window->useTabletAPI(GHOST_kTabletNative)) {
+		window->setTabletData(NULL);
+	}
+	return new GHOST_EventButton(system->getMilliSeconds(), type, window, mask);
 }
 
+GHOST_Event *GHOST_SystemWin32::processPointerEvent(
+	GHOST_TEventType type,
+	GHOST_WindowWin32 *window,
+	WPARAM wParam,
+	LPARAM lParam,
+	bool& eventHandled)
+{
+	GHOST_PointerInfoWin32 pointerInfo;
+	GHOST_SystemWin32 * system = (GHOST_SystemWin32 *)getSystem();
+
+	if (!window->useTabletAPI(GHOST_kTabletNative)) {
+		return NULL;
+	}
+
+	if (window->getPointerInfo(&pointerInfo, wParam, lParam) != GHOST_kSuccess) {
+		return NULL;
+	}
+
+	if (!pointerInfo.isPrimary) {
+		eventHandled = true;
+		return NULL; // For multi-touch displays we ignore these events
+	}
+
+	system->setCursorPosition(pointerInfo.pixelLocation.x, pointerInfo.pixelLocation.y);
+
+	switch (type) {
+		case GHOST_kEventButtonDown:
+			window->setTabletData(&pointerInfo.tabletData);
+			eventHandled = true;
+			return new GHOST_EventButton(system->getMilliSeconds(), GHOST_kEventButtonDown, window, pointerInfo.buttonMask);
+		case GHOST_kEventButtonUp:
+			eventHandled = true;
+			return new GHOST_EventButton(system->getMilliSeconds(), GHOST_kEventButtonUp, window, pointerInfo.buttonMask);
+		case GHOST_kEventCursorMove:
+			window->setTabletData(&pointerInfo.tabletData);
+			eventHandled = true;
+			return new GHOST_EventCursor(system->getMilliSeconds(), GHOST_kEventCursorMove, window,
+			                             pointerInfo.pixelLocation.x,  pointerInfo.pixelLocation.y);
+		default:
+			return NULL;
+	}
+}
 
 GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_WindowWin32 *window)
 {
@@ -1220,8 +1269,23 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				case WT_PROXIMITY:
 					window->processWin32TabletInitEvent();
 					break;
+				////////////////////////////////////////////////////////////////////////
+				// Pointer events, processed
+				////////////////////////////////////////////////////////////////////////
+				case WM_POINTERDOWN:
+					event = processPointerEvent(GHOST_kEventButtonDown, window, wParam, lParam, eventHandled);
+					if (event && eventHandled) {
+						window->registerMouseClickEvent(0);
+					}
+					break;
+				case WM_POINTERUP:
+					event = processPointerEvent(GHOST_kEventButtonUp, window, wParam, lParam, eventHandled);
+					if (event && eventHandled) {
+						window->registerMouseClickEvent(1);
+					}
+					break;
 				case WM_POINTERUPDATE:
-					window->processWin32PointerEvent(wParam);
+					event = processPointerEvent(GHOST_kEventCursorMove, window, wParam, lParam, eventHandled);
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Mouse events, processed

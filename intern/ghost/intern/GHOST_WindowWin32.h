@@ -130,8 +130,70 @@ typedef struct tagPOINTER_PEN_INFO {
 	INT32        tiltY;
 } POINTER_PEN_INFO;
 
+/*
+ * Flags that appear in pointer input message parameters
+ */
+#define POINTER_MESSAGE_FLAG_NEW                0x00000001 // New pointer
+#define POINTER_MESSAGE_FLAG_INRANGE            0x00000002 // Pointer has not departed
+#define POINTER_MESSAGE_FLAG_INCONTACT          0x00000004 // Pointer is in contact
+#define POINTER_MESSAGE_FLAG_FIRSTBUTTON        0x00000010 // Primary action
+#define POINTER_MESSAGE_FLAG_SECONDBUTTON       0x00000020 // Secondary action
+#define POINTER_MESSAGE_FLAG_THIRDBUTTON        0x00000040 // Third button
+#define POINTER_MESSAGE_FLAG_FOURTHBUTTON       0x00000080 // Fourth button
+#define POINTER_MESSAGE_FLAG_FIFTHBUTTON        0x00000100 // Fifth button
+#define POINTER_MESSAGE_FLAG_PRIMARY            0x00002000 // Pointer is primary
+#define POINTER_MESSAGE_FLAG_CONFIDENCE         0x00004000 // Pointer is considered unlikely to be accidental
+#define POINTER_MESSAGE_FLAG_CANCELED           0x00008000 // Pointer is departing in an abnormal manner
+
+typedef UINT32 TOUCH_FLAGS;
+#define TOUCH_FLAG_NONE                 0x00000000 // Default
+
+typedef UINT32 TOUCH_MASK;
+#define TOUCH_MASK_NONE                 0x00000000 // Default - none of the optional fields are valid
+#define TOUCH_MASK_CONTACTAREA          0x00000001 // The rcContact field is valid
+#define TOUCH_MASK_ORIENTATION          0x00000002 // The orientation field is valid
+#define TOUCH_MASK_PRESSURE             0x00000004 // The pressure field is valid
+
+typedef struct tagPOINTER_TOUCH_INFO {
+	POINTER_INFO pointerInfo;
+	TOUCH_FLAGS  touchFlags;
+	TOUCH_MASK   touchMask;
+	RECT         rcContact;
+	RECT         rcContactRaw;
+	UINT32       orientation;
+	UINT32       pressure;
+} POINTER_TOUCH_INFO;
+
+ /*
+  * Macros to retrieve information from pointer input message parameters
+  */
+#define GET_POINTERID_WPARAM(wParam)                (LOWORD(wParam))
+#define IS_POINTER_FLAG_SET_WPARAM(wParam, flag)    (((DWORD)HIWORD(wParam) & (flag)) == (flag))
+#define IS_POINTER_NEW_WPARAM(wParam)               IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_NEW)
+#define IS_POINTER_INRANGE_WPARAM(wParam)           IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_INRANGE)
+#define IS_POINTER_INCONTACT_WPARAM(wParam)         IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_INCONTACT)
+#define IS_POINTER_FIRSTBUTTON_WPARAM(wParam)       IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_FIRSTBUTTON)
+#define IS_POINTER_SECONDBUTTON_WPARAM(wParam)      IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_SECONDBUTTON)
+#define IS_POINTER_THIRDBUTTON_WPARAM(wParam)       IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_THIRDBUTTON)
+#define IS_POINTER_FOURTHBUTTON_WPARAM(wParam)      IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_FOURTHBUTTON)
+#define IS_POINTER_FIFTHBUTTON_WPARAM(wParam)       IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_FIFTHBUTTON)
+#define IS_POINTER_PRIMARY_WPARAM(wParam)           IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_PRIMARY)
+#define HAS_POINTER_CONFIDENCE_WPARAM(wParam)       IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_CONFIDENCE)
+#define IS_POINTER_CANCELED_WPARAM(wParam)          IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_CANCELED)
+
 typedef BOOL (API * GHOST_WIN32_GetPointerInfo)(UINT32 pointerId, POINTER_INFO *pointerInfo);
 typedef BOOL (API * GHOST_WIN32_GetPointerPenInfo)(UINT32 pointerId, POINTER_PEN_INFO *penInfo);
+typedef BOOL (API * GHOST_WIN32_GetPointerTouchInfo)(UINT32 pointerId, POINTER_TOUCH_INFO *penInfo);
+
+struct GHOST_PointerInfoWin32 {
+	GHOST_TInt32 pointerId;
+	GHOST_TInt32 isInContact;
+	GHOST_TInt32 isPrimary;
+	GHOST_TSuccess hasButtonMask;
+	GHOST_TButtonMask buttonMask;
+	POINT pixelLocation;
+	GHOST_TabletData tabletData;
+};
 
 /**
  * GHOST window on M$ Windows OSs.
@@ -316,7 +378,9 @@ public:
 		return &m_tabletData;
 	}
 
+	void setTabletData(GHOST_TabletData * tabletData);
 	bool useTabletAPI(GHOST_TTabletAPI api) const;
+	void getPointerInfo(WPARAM wParam);
 
 	void processWin32PointerEvent(WPARAM wParam);
 	void processWin32TabletActivateEvent(WORD state);
@@ -329,6 +393,8 @@ public:
 	GHOST_TSuccess endFullScreen() const {return GHOST_kFailure;}
 
 	GHOST_TUns16 getDPIHint() override;
+
+	GHOST_TSuccess getPointerInfo(GHOST_PointerInfoWin32 *pointerInfo, WPARAM wParam, LPARAM lParam);
 
 	/** if the window currently resizing */
 	bool m_inLiveResize;
@@ -445,6 +511,7 @@ private:
 	HMODULE m_user32;
 	GHOST_WIN32_GetPointerInfo m_fpGetPointerInfo;
 	GHOST_WIN32_GetPointerPenInfo m_fpGetPointerPenInfo;
+	GHOST_WIN32_GetPointerTouchInfo m_fpGetPointerTouchInfo;
 
 	/** Hwnd to parent window */
 	GHOST_TEmbedderWindowID m_parentWindowHwnd;
