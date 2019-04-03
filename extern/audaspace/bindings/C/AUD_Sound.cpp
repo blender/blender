@@ -32,6 +32,7 @@
 #include "fx/Limiter.h"
 #include "fx/Loop.h"
 #include "fx/Lowpass.h"
+#include "fx/Modulator.h"
 #include "fx/Pitch.h"
 #include "fx/Reverse.h"
 #include "fx/Sum.h"
@@ -458,6 +459,21 @@ AUD_API AUD_Sound* AUD_Sound_lowpass(AUD_Sound* sound, float frequency, float Q)
 	try
 	{
 		return new AUD_Sound(new Lowpass(*sound, frequency, Q));
+	}
+	catch(Exception&)
+	{
+		return nullptr;
+	}
+}
+
+AUD_API AUD_Sound* AUD_Sound_modulate(AUD_Sound* first, AUD_Sound* second)
+{
+	assert(first);
+	assert(second);
+
+	try
+	{
+		return new AUD_Sound(new Modulator(*first, *second));
 	}
 	catch(Exception&)
 	{

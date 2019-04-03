@@ -247,6 +247,14 @@ extern AUD_API AUD_Sound* AUD_Sound_loop(AUD_Sound* sound, int count);
 extern AUD_API AUD_Sound* AUD_Sound_lowpass(AUD_Sound* sound, float frequency, float Q);
 
 /**
+ * Modulates two sound, which means multiplying the sound samples.
+ * \param first The first sound.
+ * \param second The second sound.
+ * \return A handle of the modulated sound.
+ */
+extern AUD_API AUD_Sound* AUD_Sound_modulate(AUD_Sound* first, AUD_Sound* second);
+
+/**
  * Changes the pitch of a sound.
  * \param sound The sound to change.
  * \param factor The factor to change the pitch with.

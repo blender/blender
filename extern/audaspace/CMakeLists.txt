@@ -73,6 +73,8 @@ set(SRC
 	src/fx/LoopReader.cpp
 	src/fx/LowpassCalculator.cpp
 	src/fx/Lowpass.cpp
+	src/fx/Modulator.cpp
+	src/fx/ModulatorReader.cpp
 	src/fx/MutableReader.cpp
 	src/fx/MutableSound.cpp
 	src/fx/Pitch.cpp
@@ -181,6 +183,8 @@ set(PUBLIC_HDR
 	include/fx/LoopReader.h
 	include/fx/LowpassCalculator.h
 	include/fx/Lowpass.h
+	include/fx/Modulator.h
+	include/fx/ModulatorReader.h
 	include/fx/MutableReader.h
 	include/fx/MutableSound.h
 	include/fx/Pitch.h
