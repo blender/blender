@@ -2561,13 +2561,21 @@ void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
 	};
 
 	rcti rect_clamp = *rect;
-	BLI_rcti_isect(&r, rect, &rect_clamp);
+	if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp)) {
+		GPU_texture_read_rect(
+		        g_select_buffer.texture_u32,
+		        GPU_DATA_UNSIGNED_INT, &rect_clamp, r_buf);
 
-	GPU_texture_read_rect(
-	        g_select_buffer.texture_u32, GPU_DATA_UNSIGNED_INT, &rect_clamp, r_buf);
+		if (!BLI_rcti_compare(rect, &rect_clamp)) {
+			GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
+		}
+	}
+	else {
+		size_t buf_size = BLI_rcti_size_x(rect) *
+		                  BLI_rcti_size_y(rect) *
+		                  sizeof(*r_buf);
 
-	if (!BLI_rcti_compare(rect, &rect_clamp)) {
-		GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
+		memset(r_buf, 0, buf_size);
 	}
 }
 
