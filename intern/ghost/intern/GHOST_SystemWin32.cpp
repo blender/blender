@@ -1704,7 +1704,7 @@ static bool isStartedFromCommandPrompt()
 		}
 
 		/* When we're starting from a wrapper we need to compare with parent process ID. */
-		if (pid == (start_from_launcher ? ppid : GetCurrentProcessId()))
+		if (pid != (start_from_launcher ? ppid : GetCurrentProcessId()))
 			return true;
 	}
 
@@ -1713,29 +1713,36 @@ static bool isStartedFromCommandPrompt()
 
 int GHOST_SystemWin32::toggleConsole(int action)
 {
+	HWND wnd = GetConsoleWindow();
+
 	switch (action) {
 		case 3: // startup: hide if not started from command prompt
 		{
-			if (isStartedFromCommandPrompt()) {
-				ShowWindow(GetConsoleWindow(), SW_HIDE);
+			if (!isStartedFromCommandPrompt()) {
+				ShowWindow(wnd, SW_HIDE);
 				m_consoleStatus = 0;
 			}
 			break;
 		}
 		case 0: // hide
-			ShowWindow(GetConsoleWindow(), SW_HIDE);
+			ShowWindow(wnd, SW_HIDE);
 			m_consoleStatus = 0;
 			break;
 		case 1: // show
-			ShowWindow(GetConsoleWindow(), SW_SHOW);
+			ShowWindow(wnd, SW_SHOW);
+			if (!isStartedFromCommandPrompt()) {
+				DeleteMenu(GetSystemMenu(wnd, FALSE), SC_CLOSE, MF_BYCOMMAND);
+			}
 			m_consoleStatus = 1;
 			break;
 		case 2: // toggle
-			ShowWindow(GetConsoleWindow(), m_consoleStatus ? SW_HIDE : SW_SHOW);
+			ShowWindow(wnd, m_consoleStatus ? SW_HIDE : SW_SHOW);
 			m_consoleStatus = !m_consoleStatus;
+			if (m_consoleStatus && !isStartedFromCommandPrompt()) {
+				DeleteMenu(GetSystemMenu(wnd, FALSE), SC_CLOSE, MF_BYCOMMAND);
+			}
 			break;
 	}
-
 
 	return m_consoleStatus;
 }
