@@ -177,7 +177,7 @@ Node *RNANodeQuery::find_node(const PointerRNA *ptr,
 RNANodeIdentifier RNANodeQuery::construct_node_identifier(
         const PointerRNA *ptr,
         const PropertyRNA *prop,
-        RNAPointerSource /*source*/)
+        RNAPointerSource source)
 {
 	RNANodeIdentifier node_identifier;
 	if (ptr->type == NULL) {
@@ -265,7 +265,18 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(
 		}
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		node_identifier.type = NodeType::GEOMETRY;
+		/* When modifier is used as FROM operation this is likely referencing to
+		 * the property (for example, modifier's influence).
+		 * But when it's used as TO operation, this is geometry component. */
+		switch (source) {
+			case RNAPointerSource::ENTRY:
+				node_identifier.type = NodeType::GEOMETRY;
+				break;
+			case RNAPointerSource::EXIT:
+				node_identifier.type = NodeType::PARAMETERS;
+				node_identifier.operation_code = OperationCode::PARAMETERS_EVAL;
+				break;
+		}
 		return node_identifier;
 	}
 	else if (ptr->type == &RNA_Object) {
