@@ -71,7 +71,7 @@ else()
 endif()
 
 set(FREETYPE_VERSION 2.9.1)
-set(FREETYPE_URI http://download.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
+set(FREETYPE_URI http://prdownloads.sourceforge.net/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
 set(FREETYPE_HASH 3adb0e35d3c100c456357345ccfa8056)
 
 set(GLEW_VERSION 1.13.0)
