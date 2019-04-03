@@ -1379,8 +1379,7 @@ static void gp_stroke_soft_refine(bGPDstroke *gps)
 	for (i = 1; i < gps->totpoints - 1; i++, pt++) {
 		if (pt->flag & GP_SPOINT_TAG) {
 			pt2 = &gps->points[i + 1];
-			if (((pt2->flag & GP_SPOINT_TAG) == 0))
-			{
+			if ((pt2->flag & GP_SPOINT_TAG) == 0) {
 				pt->flag &= ~GP_SPOINT_TAG;
 			}
 		}
@@ -1391,8 +1390,7 @@ static void gp_stroke_soft_refine(bGPDstroke *gps)
 	for (i = gps->totpoints - 1; i > 0; i--, pt--) {
 		if (pt->flag & GP_SPOINT_TAG) {
 			pt2 = &gps->points[i - 1];
-			if (((pt2->flag & GP_SPOINT_TAG) == 0))
-			{
+			if ((pt2->flag & GP_SPOINT_TAG) == 0) {
 				pt->flag &= ~GP_SPOINT_TAG;
 			}
 		}

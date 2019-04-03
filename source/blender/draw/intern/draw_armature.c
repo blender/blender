@@ -1235,8 +1235,8 @@ static void draw_points(
 		if (eBone) {
 			if (is_envelope_draw) {
 				drw_shgroup_bone_envelope(
-						eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-						&eBone->rad_head, &envelope_ignore, sh_cfg);
+				        eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
+				        &eBone->rad_head, &envelope_ignore, sh_cfg);
 			}
 			else {
 				drw_shgroup_bone_point(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);

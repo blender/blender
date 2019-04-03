@@ -59,7 +59,7 @@ static bool effect_is_active(bGPdata *gpd, ShaderFxData *fx, bool is_render)
 
 	bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
 	if (((fx->mode & eShaderFxMode_Editmode) == 0) &&
-		(is_edit) && (!is_render))
+	    (is_edit) && (!is_render))
 	{
 		return false;
 	}

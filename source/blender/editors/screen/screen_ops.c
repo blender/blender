@@ -2317,7 +2317,8 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 				dist -= ar->winx;
 			}
 			else if (scalear->alignment == RGN_ALIGN_TOP &&
-			         (ar->alignment == RGN_ALIGN_BOTTOM || ar->regiontype == RGN_TYPE_HEADER)) {
+			         (ar->alignment == RGN_ALIGN_BOTTOM || ar->regiontype == RGN_TYPE_HEADER))
+			{
 				dist -= ar->winy;
 			}
 			else if (scalear->alignment == RGN_ALIGN_BOTTOM &&

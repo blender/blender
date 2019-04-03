@@ -3227,7 +3227,8 @@ GPUBatch *DRW_cache_mball_surface_get(Object *ob)
 	return DRW_metaball_batch_cache_get_triangles_with_normals(ob);
 }
 
-GPUBatch *DRW_cache_mball_edge_detection_get(Object *ob, bool *r_is_manifold) {
+GPUBatch *DRW_cache_mball_edge_detection_get(Object *ob, bool *r_is_manifold)
+{
 	BLI_assert(ob->type == OB_MBALL);
 	return DRW_metaball_batch_cache_get_edge_detection(ob, r_is_manifold);
 }

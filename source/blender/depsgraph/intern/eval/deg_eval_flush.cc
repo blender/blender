@@ -390,7 +390,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			ComponentNode *comp_node = op_node->owner;
 			IDNode *id_node = comp_node->owner;
 			flush_handle_id_node(id_node);
-			flush_handle_component_node(id_node,comp_node, &queue);
+			flush_handle_component_node(id_node, comp_node, &queue);
 			/* Flush to nodes along links. */
 			op_node = flush_schedule_children(op_node, &queue);
 		}
