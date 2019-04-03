@@ -903,6 +903,7 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 	GPU_framebuffer_bind(fbl->planarref_fb);
 	GPU_framebuffer_clear_depth(fbl->planarref_fb, 1.0);
 
+	float prev_background_alpha = vedata->stl->g_data->background_alpha;
 	vedata->stl->g_data->background_alpha = 1.0f;
 
 	/* Slight modification: we handle refraction as normal
@@ -941,6 +942,8 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
 	txl->planar_depth = tmp_planar_depth;
+
+	vedata->stl->g_data->background_alpha = prev_background_alpha;
 }
 
 static void eevee_lightbake_render_scene_to_planars(
