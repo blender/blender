@@ -872,7 +872,16 @@ Mesh *BKE_mesh_new_from_object(
 	Object object_for_eval = *object_eval;
 
 	if (object_eval == object_input) {
-		effective_apply_modifiers = false;
+		/* Evaluated mesh contains all modifiers applied already.
+		 * The other types of object has them applied, but are stored in other
+		 * data structures than a mesh. So need to apply modifiers again on a
+		 * temporary copy before converting result to mesh. */
+		if (object_for_eval.type == OB_MESH) {
+			effective_apply_modifiers = false;
+		}
+		else {
+			effective_apply_modifiers = true;
+		}
 	}
 	else {
 		if (apply_modifiers) {
