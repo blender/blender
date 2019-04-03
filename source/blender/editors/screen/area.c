@@ -535,12 +535,23 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	if (sa) {
 		const bScreen *screen = WM_window_get_active_screen(win);
 
-		/* Only draw region emboss for top-bar and quad-view. */
+		/* Only region emboss for top-bar */
 		if ((screen->state != SCREENFULL) && ED_area_is_global(sa)) {
 			region_draw_emboss(ar, &ar->winrct, (REGION_EMBOSS_LEFT | REGION_EMBOSS_RIGHT));
 		}
 		else if ((ar->regiontype == RGN_TYPE_WINDOW) && (ar->alignment == RGN_ALIGN_QSPLIT)) {
-			region_draw_emboss(ar, &ar->winrct, REGION_EMBOSS_ALL);
+
+			/* draw separating lines between the quad views */
+
+			float color[4] = { 0.0f, 0.0f, 0.0f, 0.8f };
+			UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
+			GPUVertFormat *format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+			immUniformColor4fv(color);
+			GPU_line_width(1.0f);
+			imm_draw_box_wire_2d(pos, 0, 0, ar->winrct.xmax - ar->winrct.xmin + 1, ar->winrct.ymax - ar->winrct.ymin + 1);
+			immUnbindProgram();
 		}
 	}
 
