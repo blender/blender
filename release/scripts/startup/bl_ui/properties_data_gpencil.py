@@ -224,6 +224,23 @@ class DATA_PT_gpencil_layer_relations(LayerDataButtonsPanel, Panel):
             col.prop_search(gpl, "parent_bone", parent.data, "bones", text="Bone")
 
 
+class DATA_PT_gpencil_layer_display(LayerDataButtonsPanel, Panel):
+    bl_label = "Display"
+    bl_parent_id = 'DATA_PT_gpencil_layers'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        gpd = context.gpencil
+        gpl = gpd.layers.active
+
+        col = layout.row(align=True)
+        col.prop(gpl, "channel_color")
+
+
 class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
     bl_label = "Onion Skinning"
     bl_options = {'DEFAULT_CLOSED'}
@@ -449,6 +466,7 @@ classes = (
     DATA_PT_gpencil_onion_skinning_display,
     DATA_PT_gpencil_layer_adjustments,
     DATA_PT_gpencil_layer_relations,
+    DATA_PT_gpencil_layer_display,
     DATA_PT_gpencil_vertex_groups,
     DATA_PT_gpencil_strokes,
     DATA_PT_gpencil_display,

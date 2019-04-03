@@ -220,6 +220,23 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	}
 }
 
+/* get backdrop color for grease pencil channels */
+static void acf_gpencil_channel_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
+{
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
+	bool showGroupColors = acf_show_channel_colors(ac);
+	
+	if ((showGroupColors) && (ale->type == ANIMTYPE_GPLAYER)) {
+		bGPDlayer *gpl = (bGPDlayer *)ale->data;
+		copy_v3_v3(r_color, gpl->color);
+	}
+	else {
+		int colOfs = 10 - 10 * indent;
+		UI_GetThemeColorShade3fv(TH_SHADE2, colOfs, r_color);
+	}
+}
+
 /* backdrop for generic channels */
 static void acf_generic_channel_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
@@ -3058,7 +3075,7 @@ static bAnimChannelType ACF_GPL =
 	"GPencil Layer",                /* type name */
 	ACHANNEL_ROLE_CHANNEL,          /* role */
 
-	acf_generic_channel_color,      /* backdrop color */
+	acf_gpencil_channel_color,      /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
 	acf_generic_indention_flexible, /* indent level */
 	acf_generic_group_offset,       /* offset */

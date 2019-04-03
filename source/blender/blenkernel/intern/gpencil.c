@@ -374,6 +374,8 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 		/* thickness parameter represents "thickness change", not absolute thickness */
 		gpl->thickness = 0;
 		gpl->opacity = 1.0f;
+		/* default channel color */
+		ARRAY_SET_ITEMS(gpl->color, 0.2f, 0.2f, 0.2f);
 	}
 
 	/* auto-name */

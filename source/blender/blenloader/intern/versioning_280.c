@@ -2952,6 +2952,19 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				mat->blend_shadow = MA_BS_SOLID;
 			}
 		}
+
+		/* grease pencil default animation channel color */
+		{
+			for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
+				if (gpd->flag & GP_DATA_ANNOTATIONS) {
+					continue;
+				}
+				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					/* default channel color */
+					ARRAY_SET_ITEMS(gpl->color, 0.2f, 0.2f, 0.2f);
+				}
+			}
+		}
 	}
 
 	{
