@@ -186,7 +186,7 @@ add_test(
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_cube.obj',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_cube.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_cube.mtl
-	--md5=e80660437ad9bfe082849641c361a233 --md5_method=FILE
+	--md5=95832f81160f07101dc566cb286a9f76 --md5_method=FILE
 )
 
 add_test(
