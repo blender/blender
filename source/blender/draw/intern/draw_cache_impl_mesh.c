@@ -4629,15 +4629,19 @@ void DRW_mesh_batch_cache_create_requested(
 		for (int type = 0; type < CD_NUMTYPES; ++type) {
 			if ((cache->cd_vused[type] & cache->cd_vneeded[type]) != cache->cd_vneeded[type]) {
 				switch (type) {
+					case CD_ORCO:
+						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
+						break;
+				}
+			}
+			if ((cache->cd_lused[type] & cache->cd_lneeded[type]) != cache->cd_lneeded[type]) {
+				switch (type) {
 					case CD_MLOOPUV:
 					case CD_TANGENT:
 						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_uv_tan);
 						break;
 					case CD_MLOOPCOL:
 						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_vcol);
-						break;
-					case CD_ORCO:
-						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
 						break;
 				}
 			}
