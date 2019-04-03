@@ -316,6 +316,8 @@ public:
 		return &m_tabletData;
 	}
 
+	bool useTabletAPI(GHOST_TTabletAPI api) const;
+
 	void processWin32PointerEvent(WPARAM wParam);
 	void processWin32TabletActivateEvent(WORD state);
 	void processWin32TabletInitEvent();

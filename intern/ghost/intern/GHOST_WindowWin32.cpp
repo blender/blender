@@ -880,7 +880,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 
 void GHOST_WindowWin32::processWin32PointerEvent(WPARAM wParam)
 {
-	if (!m_system->useTabletAPI(GHOST_kTabletNative)) {
+	if (!useTabletAPI(GHOST_kTabletNative)) {
 		return; // Other tablet API specified by user
 	}
 
@@ -930,7 +930,7 @@ void GHOST_WindowWin32::processWin32PointerEvent(WPARAM wParam)
 
 void GHOST_WindowWin32::processWin32TabletActivateEvent(WORD state)
 {
-	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+	if (!useTabletAPI(GHOST_kTabletWintab)) {
 		return;
 	}
 
@@ -943,9 +943,25 @@ void GHOST_WindowWin32::processWin32TabletActivateEvent(WORD state)
 	}
 }
 
+bool GHOST_WindowWin32::useTabletAPI(GHOST_TTabletAPI api) const
+{
+	if (m_system->getTabletAPI() == api) {
+		return true;
+	}
+	else if (m_system->getTabletAPI() == GHOST_kTabletAutomatic) {
+		if (m_wintab.tablet)
+			return api == GHOST_kTabletWintab;
+		else
+			return api == GHOST_kTabletNative;
+	}
+	else {
+		return false;
+	}
+}
+
 void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
-	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+	if (!useTabletAPI(GHOST_kTabletWintab)) {
 		return;
 	}
 
@@ -979,7 +995,7 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
 
 void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 {
-	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+	if (!useTabletAPI(GHOST_kTabletWintab)) {
 		return;
 	}
 
@@ -1048,7 +1064,7 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 
 void GHOST_WindowWin32::bringTabletContextToFront()
 {
-	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+	if (!useTabletAPI(GHOST_kTabletWintab)) {
 		return;
 	}
 

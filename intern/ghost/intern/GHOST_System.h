@@ -242,11 +242,7 @@ public:
 	 * \param api Enum indicating which API to use.
 	 */
 	void setTabletAPI(GHOST_TTabletAPI api);
-
-	/**
-	 * Test if given tablet API should be used by event handling.
-	 */
-	bool useTabletAPI(GHOST_TTabletAPI api) const;
+	GHOST_TTabletAPI getTabletAPI(void);
 
 #ifdef WITH_INPUT_NDOF
 	/***************************************************************************************

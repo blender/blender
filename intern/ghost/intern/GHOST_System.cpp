@@ -291,9 +291,9 @@ void GHOST_System::setTabletAPI(GHOST_TTabletAPI api)
 	m_tabletAPI = api;
 }
 
-bool GHOST_System::useTabletAPI(GHOST_TTabletAPI api) const
+GHOST_TTabletAPI GHOST_System::getTabletAPI(void)
 {
-	return (m_tabletAPI == GHOST_kTabletAutomatic || m_tabletAPI == api);
+	return m_tabletAPI;
 }
 
 #ifdef WITH_INPUT_NDOF
