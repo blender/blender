@@ -106,7 +106,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		// MSVC 2012+ returns bogus values from GetSystemMetrics, bug in Windows
 		// http://connect.microsoft.com/VisualStudio/feedback/details/753224/regression-getsystemmetrics-delivers-different-values
 		RECT cxrect = {0, 0, 0, 0};
-		AdjustWindowRectEx(&cxrect, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_THICKFRAME | WS_DLGFRAME, FALSE, 0);
+		AdjustWindowRectEx(&cxrect, WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_THICKFRAME | WS_DLGFRAME, FALSE, 0);
 
 		int cxsizeframe = abs(cxrect.bottom);
 		int cysizeframe = abs(cxrect.left);
@@ -177,7 +177,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		m_hWnd = ::CreateWindowW(
 		    s_windowClassName,          // pointer to registered class name
 		    title_16,                   // pointer to window name
-		    WS_POPUP | WS_MAXIMIZE,     // window style
+		    WS_MAXIMIZE,                // window style
 		    left,                       // horizontal position of window
 		    top,                        // vertical position of window
 		    width,                      // window width
@@ -546,7 +546,7 @@ GHOST_TWindowState GHOST_WindowWin32::getState() const
 	}
 	else if (::IsZoomed(m_hWnd)) {
 		LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
-		if ((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE))
+		if ((result & (WS_DLGFRAME | WS_MAXIMIZE)) == (WS_DLGFRAME | WS_MAXIMIZE))
 			state = GHOST_kWindowStateMaximized;
 		else
 			state = GHOST_kWindowStateFullScreen;
@@ -604,7 +604,7 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 			wp.showCmd = SW_SHOWMAXIMIZED;
 			wp.ptMaxPosition.x = 0;
 			wp.ptMaxPosition.y = 0;
-			::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
+			::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_MAXIMIZE);
 			break;
 		case GHOST_kWindowStateEmbedded:
 			::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_CHILD);
