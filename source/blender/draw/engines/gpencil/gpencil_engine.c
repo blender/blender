@@ -550,7 +550,7 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 
 	if (!cache_ob->is_dup_ob) {
 		/* fill shading groups */
-		if (!is_multiedit) {
+		if ((!is_multiedit) || (stl->storage->is_render)) {
 			DRW_gpencil_populate_datablock(&e_data, vedata, ob, cache_ob);
 		}
 		else {

@@ -419,7 +419,7 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer *g
 		if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
 			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
-			if (GPENCIL_MODIFIER_EDIT(md, is_edit)) {
+			if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
 				continue;
 			}
 
@@ -457,7 +457,7 @@ void BKE_gpencil_geometry_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer 
 		if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
 			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
-			if (GPENCIL_MODIFIER_EDIT(md, is_edit)) {
+			if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
 				continue;
 			}
 
@@ -481,7 +481,7 @@ int BKE_gpencil_time_modifier(Depsgraph *depsgraph, Scene *scene, Object *ob,
 		if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
 			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
-			if (GPENCIL_MODIFIER_EDIT(md, is_edit)) {
+			if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
 				continue;
 			}
 
