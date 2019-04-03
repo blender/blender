@@ -609,6 +609,7 @@ enum {
 #define RGN_ALIGN_VSPLIT	6
 #define RGN_ALIGN_FLOAT		7
 #define RGN_ALIGN_QSPLIT	8
+#define RGN_ALIGN_ENUM_MASK 0x0F
 
 #define RGN_SPLIT_PREV		32
 

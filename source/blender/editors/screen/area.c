@@ -985,17 +985,7 @@ static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *ar, c
 	const bool is_fullscreen = screen->state == SCREENFULL;
 
 	/* edge code (t b l r) is along which area edge azone will be drawn */
-
-	if (ar->regiontype == RGN_TYPE_HEADER && ar->winy + 6 > sa->winy) {
-		/* The logic for this is: when the header takes up the full area,
-		 * disallow hiding it to view the main window.
-		 *
-		 * Without this, you can drag down the file selectors header and hide it
-		 * by accident very easily (highly annoying!), the value 6 is arbitrary
-		 * but accounts for small common rounding problems when scaling the UI,
-		 * must be minimum '4' */
-	}
-	else if (alignment == RGN_ALIGN_TOP)
+	if (alignment == RGN_ALIGN_TOP)
 		region_azone_edge_initialize(sa, ar, AE_BOTTOM_TO_TOPLEFT, is_fullscreen);
 	else if (alignment == RGN_ALIGN_BOTTOM)
 		region_azone_edge_initialize(sa, ar, AE_TOP_TO_BOTTOMRIGHT, is_fullscreen);
