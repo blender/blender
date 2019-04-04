@@ -594,6 +594,7 @@ class MakeDupliFace(Operator):
     @staticmethod
     def _main(context):
         from mathutils import Vector
+        from collections import defaultdict
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC
@@ -610,11 +611,10 @@ class MakeDupliFace(Operator):
 
             return [(rot @ b) + trans for b in base_tri]
         scene = context.scene
-        linked = {}
+        linked = defaultdict(list)
         for obj in context.selected_objects:
-            data = obj.data
-            if data:
-                linked.setdefault(data, []).append(obj)
+            if obj.type == 'MESH':
+                linked[obj.data].append(obj)
 
         for data, objects in linked.items():
             face_verts = [axis for obj in objects
@@ -637,19 +637,11 @@ class MakeDupliFace(Operator):
             mesh.polygons.foreach_set("loop_total", (4,) * nbr_faces)
             mesh.update()  # generates edge data
 
-            # pick an object to use
-            obj = objects[0]
-
             ob_new = bpy.data.objects.new(mesh.name, mesh)
-            base = scene.objects.link(ob_new)
-            base.layers[:] = obj.layers
+            context.collection.objects.link(ob_new)
 
             ob_inst = bpy.data.objects.new(data.name, data)
-            base = scene.objects.link(ob_inst)
-            base.layers[:] = obj.layers
-
-            for obj in objects:
-                scene.objects.unlink(obj)
+            context.collection.objects.link(ob_inst)
 
             ob_new.instance_type = 'FACES'
             ob_inst.parent = ob_new
@@ -658,6 +650,10 @@ class MakeDupliFace(Operator):
 
             ob_inst.select_set(True)
             ob_new.select_set(True)
+
+            for obj in objects:
+                for collection in obj.users_collection:
+                    collection.objects.unlink(obj)
 
     def execute(self, context):
         self._main(context)
