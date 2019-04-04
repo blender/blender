@@ -823,9 +823,7 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param, Mat4 result_arr
 /* ************ Armature Deform ******************* */
 
 typedef struct bPoseChanDeform {
-	Mat4     *b_bone_mats;
 	DualQuat *dual_quat;
-	DualQuat *b_bone_dual_quats;
 } bPoseChanDeform;
 
 /* Definition of cached object bbone deformations. */
@@ -915,9 +913,10 @@ void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pcha
 	}
 }
 
-static void b_bone_deform(const bPoseChanDeform *pdef_info, Bone *bone, float co[3], DualQuat *dq, float defmat[3][3])
+static void b_bone_deform(const bPoseChannel *pchan, float co[3], DualQuat *dq, float defmat[3][3])
 {
-	const Mat4 *b_bone = pdef_info->b_bone_mats;
+	Bone *bone = pchan->bone;
+	const Mat4 *b_bone = pchan->runtime.bbone_deform_mats;
 	const float (*mat)[4] = b_bone[0].mat;
 	float segment, y;
 	int a;
@@ -934,7 +933,7 @@ static void b_bone_deform(const bPoseChanDeform *pdef_info, Bone *bone, float co
 	CLAMP(a, 0, bone->segments - 1);
 
 	if (dq) {
-		copy_dq_dq(dq, &(pdef_info->b_bone_dual_quats)[a]);
+		copy_dq_dq(dq, &(pchan->runtime.bbone_dual_quats)[a]);
 	}
 	else {
 		mul_m4_v3(b_bone[a + 1].mat, co);
@@ -1030,9 +1029,9 @@ static float dist_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_i
 		contrib = fac;
 		if (contrib > 0.0f) {
 			if (vec) {
-				if (bone->segments > 1 && pdef_info->b_bone_mats != NULL)
+				if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments)
 					/* applies on cop and bbonemat */
-					b_bone_deform(pdef_info, bone, cop, NULL, (mat) ? bbonemat : NULL);
+					b_bone_deform(pchan, cop, NULL, (mat) ? bbonemat : NULL);
 				else
 					mul_m4_v3(pchan->chan_mat, cop);
 
@@ -1044,8 +1043,8 @@ static float dist_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_i
 					pchan_deform_mat_add(pchan, fac, bbonemat, mat);
 			}
 			else {
-				if (bone->segments > 1 && pdef_info->b_bone_mats != NULL) {
-					b_bone_deform(pdef_info, bone, cop, &bbonedq, NULL);
+				if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments) {
+					b_bone_deform(pchan, cop, &bbonedq, NULL);
 					add_weighted_dq_dq(dq, &bbonedq, fac);
 				}
 				else
@@ -1061,6 +1060,7 @@ static void pchan_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_i
                               float weight, float vec[3], DualQuat *dq,
                               float mat[3][3], const float co[3], float *contrib)
 {
+	Bone *bone = pchan->bone;
 	float cop[3], bbonemat[3][3];
 	DualQuat bbonedq;
 
@@ -1070,9 +1070,9 @@ static void pchan_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_i
 	copy_v3_v3(cop, co);
 
 	if (vec) {
-		if (pchan->bone->segments > 1 && pdef_info->b_bone_mats != NULL)
+		if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments)
 			/* applies on cop and bbonemat */
-			b_bone_deform(pdef_info, pchan->bone, cop, NULL, (mat) ? bbonemat : NULL);
+			b_bone_deform(pchan, cop, NULL, (mat) ? bbonemat : NULL);
 		else
 			mul_m4_v3(pchan->chan_mat, cop);
 
@@ -1084,8 +1084,8 @@ static void pchan_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_i
 			pchan_deform_mat_add(pchan, weight, bbonemat, mat);
 	}
 	else {
-		if (pchan->bone->segments > 1 && pdef_info->b_bone_mats != NULL) {
-			b_bone_deform(pdef_info, pchan->bone, cop, &bbonedq, NULL);
+		if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments) {
+			b_bone_deform(pchan, cop, &bbonedq, NULL);
 			add_weighted_dq_dq(dq, &bbonedq, weight);
 		}
 		else
@@ -1109,19 +1109,6 @@ static void armature_bbone_defmats_cb(void *userdata, Link *iter, int index)
 	if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
 		bPoseChanDeform *pdef_info = &data->pdef_info_array[index];
 		const bool use_quaternion = data->use_quaternion;
-
-		pdef_info->b_bone_mats = NULL;
-		pdef_info->b_bone_dual_quats = NULL;
-
-		if (pchan->bone->segments > 1) {
-			if (pchan->runtime.bbone_segments == pchan->bone->segments) {
-				pdef_info->b_bone_mats = pchan->runtime.bbone_deform_mats;
-				pdef_info->b_bone_dual_quats = pchan->runtime.bbone_dual_quats;
-			}
-			else {
-				BLI_assert(!"invalid B-Bone shape data");
-			}
-		}
 
 		if (use_quaternion) {
 			pdef_info->dual_quat = &data->dualquats[index];
