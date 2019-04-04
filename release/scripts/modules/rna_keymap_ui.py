@@ -346,11 +346,6 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
 
             for kmi in filtered_items:
                 draw_kmi(display_keymaps, kc, km, kmi, col, 1)
-
-            # "Add New" at end of keymap item list
-            col = _indented_layout(layout, 1)
-            subcol = col.split(factor=0.2).column()
-            subcol.operator("preferences.keyitem_add", text="Add New", icon='ADD')
     return True
 
 
