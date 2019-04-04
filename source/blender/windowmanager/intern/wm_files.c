@@ -1360,10 +1360,10 @@ void wm_autosave_location(char *filepath)
 	if (G_MAIN && G.relbase_valid) {
 		const char *basename = BLI_path_basename(BKE_main_blendfile_path_from_global());
 		int len = strlen(basename) - 6;
-		BLI_snprintf(path, sizeof(path), "%.*s.blend", len, basename);
+		BLI_snprintf(path, sizeof(path), "%.*s (autosave).blend", len, basename);
 	}
 	else {
-		BLI_snprintf(path, sizeof(path), "%d.blend", pid);
+		BLI_snprintf(path, sizeof(path), "%d (autosave).blend", pid);
 	}
 
 #ifdef WIN32
