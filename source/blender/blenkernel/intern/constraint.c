@@ -4572,10 +4572,12 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
 	const float frame = DEG_get_ctime(cob->depsgraph);
 	const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
 
-	BKE_cachefile_ensure_handle(G.main, cache_file);
+	/* Must always load ABC handle on original. */
+	CacheFile *cache_file_orig = (CacheFile *)DEG_get_original_id(&cache_file->id);
+	BKE_cachefile_ensure_handle(G.main, cache_file_orig);
 
 	if (!data->reader) {
-		data->reader = CacheReader_open_alembic_object(cache_file->handle,
+		data->reader = CacheReader_open_alembic_object(cache_file_orig->handle,
 		                                               data->reader,
 		                                               cob->ob,
 		                                               data->object_path);

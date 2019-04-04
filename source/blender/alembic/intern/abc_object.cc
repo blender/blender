@@ -323,8 +323,13 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 		 * all parent matrices in the Alembic file, we assume that the Blender
 		 * parent object is already updated for the current timekey, and use its
 		 * world matrix. */
-		BLI_assert(m_object->parent);
-		mul_m4_m4m4(r_mat, m_object->parent->obmat, r_mat);
+		if (m_object->parent) {
+			mul_m4_m4m4(r_mat, m_object->parent->obmat, r_mat);
+		}
+		else {
+			/* This can happen if the user deleted the parent object. */
+			unit_m4(r_mat);
+		}
 	}
 	else {
 		/* Only apply scaling to root objects, parenting will propagate it. */
