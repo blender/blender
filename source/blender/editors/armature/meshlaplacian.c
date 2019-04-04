@@ -1577,6 +1577,8 @@ void ED_mesh_deform_bind_callback(
         MeshDeformModifierData *mmd, Mesh *cagemesh,
         float *vertexcos, int totvert, float cagemat[4][4])
 {
+	MeshDeformModifierData *mmd_orig =
+	        (MeshDeformModifierData *)modifier_get_original(&mmd->modifier);
 	MeshDeformBind mdb;
 	MVert *mvert;
 	int a;
@@ -1602,23 +1604,23 @@ void ED_mesh_deform_bind_callback(
 		mul_v3_m4v3(mdb.vertexcos[a], mdb.cagemat, vertexcos + a * 3);
 
 	/* solve */
-	harmonic_coordinates_bind(mmd, &mdb);
+	harmonic_coordinates_bind(mmd_orig, &mdb);
 
 	/* assign bind variables */
-	mmd->bindcagecos = (float *)mdb.cagecos;
-	mmd->totvert = mdb.totvert;
-	mmd->totcagevert = mdb.totcagevert;
-	copy_m4_m4(mmd->bindmat, mmd->object->obmat);
+	mmd_orig->bindcagecos = (float *)mdb.cagecos;
+	mmd_orig->totvert = mdb.totvert;
+	mmd_orig->totcagevert = mdb.totcagevert;
+	copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->obmat);
 
 	/* transform bindcagecos to world space */
 	for (a = 0; a < mdb.totcagevert; a++)
-		mul_m4_v3(mmd->object->obmat, mmd->bindcagecos + a * 3);
+		mul_m4_v3(mmd_orig->object->obmat, mmd_orig->bindcagecos + a * 3);
 
 	/* free */
 	MEM_freeN(mdb.vertexcos);
 
 	/* compact weights */
-	modifier_mdef_compact_influences((ModifierData *)mmd);
+	modifier_mdef_compact_influences((ModifierData *)mmd_orig);
 
 	end_progress_bar();
 	waitcursor(0);

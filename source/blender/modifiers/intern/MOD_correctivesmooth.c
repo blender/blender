@@ -45,6 +45,9 @@
 #include "BLI_strict_flags.h"
 
 
+#include "DEG_depsgraph_query.h"
+
+
 // #define DEBUG_TIME
 
 #include "PIL_time.h"
@@ -558,7 +561,7 @@ static void calc_deltas(
 
 
 static void correctivesmooth_modifier_do(
-        ModifierData *md, Object *ob, Mesh *mesh,
+        ModifierData *md, Depsgraph *depsgraph, Object *ob, Mesh *mesh,
         float (*vertexCos)[3], unsigned int numVerts,
         struct BMEditMesh *em)
 {
@@ -580,10 +583,20 @@ static void correctivesmooth_modifier_do(
 	    /* signal to recalculate, whoever sets MUST also free bind coords */
 	    (csmd->bind_coords_num == (unsigned int)-1))
 	{
-		BLI_assert(csmd->bind_coords == NULL);
-		csmd->bind_coords = MEM_dupallocN(vertexCos);
-		csmd->bind_coords_num = numVerts;
-		BLI_assert(csmd->bind_coords != NULL);
+		if (DEG_is_active(depsgraph)) {
+			BLI_assert(csmd->bind_coords == NULL);
+			csmd->bind_coords = MEM_dupallocN(vertexCos);
+			csmd->bind_coords_num = numVerts;
+			BLI_assert(csmd->bind_coords != NULL);
+			/* Copy bound data to the original modifier. */
+			CorrectiveSmoothModifierData *csmd_orig =
+			        (CorrectiveSmoothModifierData *)modifier_get_original(&csmd->modifier);
+			csmd_orig->bind_coords = MEM_dupallocN(csmd->bind_coords);
+			csmd_orig->bind_coords_num = csmd->bind_coords_num;
+		}
+		else {
+			modifier_setError(md, "Attempt to bind from inactive dependency graph");
+		}
 	}
 
 	if (UNLIKELY(use_only_smooth)) {
@@ -711,7 +724,7 @@ static void deformVerts(
 {
 	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
-	correctivesmooth_modifier_do(md, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, NULL);
+	correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, NULL);
 
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
@@ -725,7 +738,7 @@ static void deformVertsEM(
 {
 	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
-	correctivesmooth_modifier_do(md, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, editData);
+	correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, editData);
 
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);

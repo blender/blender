@@ -403,6 +403,16 @@ void        modifier_path_init(char *path, int path_maxlen, const char *name);
 const char *modifier_path_relbase(struct Main *bmain, struct Object *ob);
 const char *modifier_path_relbase_from_global(struct Object *ob);
 
+/* Accessors of original/evaluated modifiers. */
+
+/* For a given modifier data, get corresponding original one.
+ * If the modifier data is already original, return it as-is. */
+struct ModifierData *modifier_get_original(struct ModifierData *md);
+struct ModifierData *modifier_get_evaluated(
+        struct Depsgraph* depsgraph,
+        struct Object *object,
+        struct ModifierData *md);
+
 /* wrappers for modifier callbacks that ensure valid normals */
 
 struct Mesh *modwrap_applyModifier(

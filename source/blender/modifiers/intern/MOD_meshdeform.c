@@ -298,14 +298,6 @@ static void meshdeformModifier_do(
 	 */
 	Object *ob_target = mmd->object;
 	cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
-#if 0  /* This shall not be needed if we always get evaluated target object... */
-	if (cagemesh == NULL && mmd->bindcagecos == NULL && ob == DEG_get_original_object(ob)) {
-		/* Special case, binding happens outside of depsgraph evaluation, so we can build our own
-		 * target mesh if needed. */
-		cagemesh = mesh_create_eval_final_view(ctx->depsgraph, DEG_get_input_scene(ctx->depsgraph), mmd->object, &CD_MASK_BAREMESH);
-		free_cagemesh = cagemesh != NULL;
-	}
-#endif
 	if (cagemesh == NULL) {
 		modifier_setError(md, "Cannot get mesh from cage object");
 		return;
@@ -321,13 +313,11 @@ static void meshdeformModifier_do(
 	/* bind weights if needed */
 	if (!mmd->bindcagecos) {
 		/* progress bar redraw can make this recursive .. */
+		if (!DEG_is_active(ctx->depsgraph)) {
+			modifier_setError(md, "Attempt to bind from inactive dependency graph");
+			goto finally;
+		}
 		if (!recursive_bind_sentinel) {
-			if (ob != DEG_get_original_object(ob)) {
-				BLI_assert(!"Trying to bind inside of depsgraph evaluation");
-				modifier_setError(md, "Trying to bind inside of depsgraph evaluation");
-				goto finally;
-			}
-
 			recursive_bind_sentinel = 1;
 			mmd->bindfunc(mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
 			recursive_bind_sentinel = 0;

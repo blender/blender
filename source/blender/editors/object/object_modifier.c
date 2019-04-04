@@ -93,21 +93,36 @@ static void modifier_skin_customdata_delete(struct Object *ob);
 
 /******************************** API ****************************/
 
-static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Scene *scene, Object *ob)
+static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *ob)
 {
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	BKE_object_eval_reset(ob_eval);
 	if (ob->type == OB_MESH) {
-		Mesh *me_eval = mesh_create_eval_final_view(depsgraph, scene, ob, &CD_MASK_BAREMESH);
+		Mesh *me_eval = mesh_create_eval_final_view(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
 		BKE_id_free(NULL, me_eval);
 	}
 	else if (ob->type == OB_LATTICE) {
-		BKE_lattice_modifiers_calc(depsgraph, scene, ob);
+		BKE_lattice_modifiers_calc(depsgraph, scene_eval, ob_eval);
 	}
 	else if (ob->type == OB_MBALL) {
-		BKE_displist_make_mball(depsgraph, scene, ob);
+		BKE_displist_make_mball(depsgraph, scene_eval, ob_eval);
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		BKE_displist_make_curveTypes(depsgraph, scene, ob, false, false, NULL);
+		BKE_displist_make_curveTypes(depsgraph, scene_eval, ob_eval, false, false, NULL);
 	}
+}
+
+static void object_force_modifier_bind_simple_options(
+        Depsgraph *depsgraph,
+        Object *object,
+        ModifierData *md)
+{
+	ModifierData *md_eval = (ModifierData *)modifier_get_evaluated(depsgraph, object, md);
+	const int mode = md_eval->mode;
+	md_eval->mode |= eModifierMode_Realtime;
+	object_force_modifier_update_for_bind(depsgraph, object);
+	md_eval->mode = mode;
 }
 
 ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
@@ -1926,19 +1941,17 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
 		csmd->bind_coords_num = 0;
 	}
 	else {
-		/* signal to modifier to recalculate */
-		csmd->bind_coords_num = (unsigned int)-1;
+		/* Signal to modifier to recalculate. */
+		CorrectiveSmoothModifierData *csmd_eval =
+		        (CorrectiveSmoothModifierData *)modifier_get_evaluated(depsgraph, ob, &csmd->modifier);
+		csmd_eval->bind_coords_num = (unsigned int)-1;
 
 		/* Force modifier to run, it will call binding routine
 		 * (this has to happen outside of depsgraph evaluation). */
-		const int mode = csmd->modifier.mode;
-		csmd->modifier.mode |= eModifierMode_Realtime;
-		object_force_modifier_update_for_bind(depsgraph, scene, ob);
-		csmd->modifier.mode = mode;
+		object_force_modifier_bind_simple_options(depsgraph, ob, &csmd->modifier);
 	}
 
-	/* We need ID_RECALC_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
-	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -1979,7 +1992,6 @@ static bool meshdeform_poll(bContext *C)
 static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_MeshDeform);
 
@@ -2002,16 +2014,14 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
-		const int mode = mmd->modifier.mode;
-		mmd->modifier.mode |= eModifierMode_Realtime;
-		mmd->bindfunc = ED_mesh_deform_bind_callback;
-		object_force_modifier_update_for_bind(depsgraph, scene, ob);
-		mmd->modifier.mode = mode;
-		mmd->bindfunc = NULL;
+		MeshDeformModifierData *mmd_eval =
+		        (MeshDeformModifierData *)modifier_get_evaluated(depsgraph, ob, &mmd->modifier);
+		mmd_eval->bindfunc = ED_mesh_deform_bind_callback;
+		object_force_modifier_bind_simple_options(depsgraph, ob, &mmd->modifier);
+		mmd_eval->bindfunc = NULL;
 	}
 
-	/* We need ID_RECALC_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
-	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	return OPERATOR_FINISHED;
 }
@@ -2188,7 +2198,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 
 	if (free) {
 		BKE_ocean_free_modifier_cache(omd);
-		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 		return OPERATOR_FINISHED;
 	}
@@ -2288,7 +2298,6 @@ static bool laplaciandeform_poll(bContext *C)
 
 static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_LaplacianDeform);
@@ -2304,15 +2313,25 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 		lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
 	}
 
+	LaplacianDeformModifierData *lmd_eval =
+	        (LaplacianDeformModifierData *)modifier_get_evaluated(depsgraph, ob, &lmd->modifier);
+	lmd_eval->flag = lmd->flag;
+
 	/* Force modifier to run, it will call binding routine
 	 * (this has to happen outside of depsgraph evaluation). */
-	const int mode = lmd->modifier.mode;
-	lmd->modifier.mode |= eModifierMode_Realtime;
-	object_force_modifier_update_for_bind(depsgraph, scene, ob);
-	lmd->modifier.mode = mode;
+	object_force_modifier_bind_simple_options(depsgraph, ob, &lmd->modifier);
 
-	/* We need ID_RECALC_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
-	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+	/* This is hard to know from the modifier itself whether the evaluation is
+	 * happening for binding or not. So we copy all the required data here. */
+	lmd->total_verts = lmd_eval->total_verts;
+	if (lmd_eval->vertexco == NULL) {
+		MEM_SAFE_FREE(lmd->vertexco);
+	}
+	else {
+		lmd->vertexco = MEM_dupallocN(lmd_eval->vertexco);
+	}
+
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	return OPERATOR_FINISHED;
 }
@@ -2351,7 +2370,6 @@ static bool surfacedeform_bind_poll(bContext *C)
 
 static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_SurfaceDeform);
@@ -2367,15 +2385,15 @@ static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
 		smd->flags |= MOD_SDEF_BIND;
 	}
 
+	SurfaceDeformModifierData *smd_eval =
+	        (SurfaceDeformModifierData *)modifier_get_evaluated(depsgraph, ob, &smd->modifier);
+	smd_eval->flags = smd->flags;
+
 	/* Force modifier to run, it will call binding routine
 	 * (this has to happen outside of depsgraph evaluation). */
-	const int mode = smd->modifier.mode;
-	smd->modifier.mode |= eModifierMode_Realtime;
-	object_force_modifier_update_for_bind(depsgraph, scene, ob);
-	smd->modifier.mode = mode;
+	object_force_modifier_bind_simple_options(depsgraph, ob, &smd->modifier);
 
-	/* We need ID_RECALC_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
-	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	return OPERATOR_FINISHED;
 }

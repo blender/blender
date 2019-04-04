@@ -885,3 +885,23 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval, con
 
 	return me;
 }
+
+ModifierData *modifier_get_original(ModifierData *md)
+{
+	if (md->orig_modifier_data == NULL) {
+		return md;
+	}
+	return md->orig_modifier_data;
+}
+
+struct ModifierData *modifier_get_evaluated(
+        Depsgraph* depsgraph,
+        Object *object,
+        ModifierData *md)
+{
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+	if (object_eval == object) {
+		return md;
+	}
+	return modifiers_findByName(object_eval, md->name);
+}
