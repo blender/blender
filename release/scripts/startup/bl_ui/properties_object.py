@@ -306,7 +306,7 @@ class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
             layout.prop(ob, "use_instance_vertices_rotation", text="Align to Vertex Normal")
 
         elif ob.instance_type == 'COLLECTION':
-            col = flow.column()
+            col = layout.column()
             col.prop(ob, "instance_collection", text="Collection")
 
         if ob.instance_type != 'NONE' or len(ob.particle_systems):
