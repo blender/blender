@@ -54,8 +54,12 @@ typedef struct ParticleHairCache {
 	GPUVertBuf *proc_point_buf; /* Input control points */
 	GPUTexture *point_tex;
 
-	GPUVertBuf *proc_strand_buf; /* Infos of control points strands (segment count and base index) */
+	/** Infos of control points strands (segment count and base index) */
+	GPUVertBuf *proc_strand_buf;
 	GPUTexture *strand_tex;
+
+	GPUVertBuf *proc_strand_seg_buf;
+	GPUTexture *strand_seg_tex;
 
 	GPUVertBuf *proc_uv_buf[MAX_MTFACE];
 	GPUTexture *uv_tex[MAX_MTFACE];

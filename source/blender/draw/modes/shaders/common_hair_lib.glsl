@@ -35,21 +35,11 @@ uniform samplerBuffer hairPointBuffer; /* RGBA32F */
 
 /* -- Per strands data -- */
 uniform usamplerBuffer hairStrandBuffer; /* R32UI */
+uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 
 /* Not used, use one buffer per uv layer */
 //uniform samplerBuffer hairUVBuffer; /* RG32F */
 //uniform samplerBuffer hairColBuffer; /* RGBA16 linear color */
-
-void unpack_strand_data(uint data, out int strand_offset, out int strand_segments)
-{
-#if 0 /* Pack point count */
-	// strand_offset = (data & 0x1FFFFFFFu);
-	// strand_segments = 1u << (data >> 29u); /* We only need 3 bits to store subdivision level. */
-#else
-	strand_offset = int(data & 0x003FFFFFu);
-	strand_segments = int(data >> 22u) + 1;
-#endif
-}
 
 /* -- Subdivision stage -- */
 /**
@@ -76,10 +66,8 @@ void hair_get_interp_attrs(out vec4 data0, out vec4 data1, out vec4 data2, out v
 	float local_time = float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
 
 	int hair_id = gl_VertexID / hairStrandsRes;
-	uint strand_data = texelFetch(hairStrandBuffer, hair_id).x;
-
-	int strand_offset, strand_segments;
-	unpack_strand_data(strand_data, strand_offset, strand_segments);
+	int strand_offset = int(texelFetch(hairStrandBuffer, hair_id).x);
+	int strand_segments = int(texelFetch(hairStrandSegBuffer, hair_id).x);
 
 	int id = hair_get_base_id(local_time, strand_segments, interp_time);
 

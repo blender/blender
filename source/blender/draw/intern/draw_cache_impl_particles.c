@@ -185,7 +185,9 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 	DRW_TEXTURE_FREE_SAFE(hair_cache->point_tex);
 
 	GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_strand_buf);
+	GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_strand_seg_buf);
 	DRW_TEXTURE_FREE_SAFE(hair_cache->strand_tex);
+	DRW_TEXTURE_FREE_SAFE(hair_cache->strand_seg_tex);
 
 	for (int i = 0; i < MAX_MTFACE; ++i) {
 		GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_uv_buf[i]);
@@ -769,7 +771,7 @@ static int particle_batch_cache_fill_strands_data(
         const ParticleSource particle_source,
         const int start_index,
         const int num_path_keys,
-        GPUVertBufRaw *data_step,
+        GPUVertBufRaw *data_step, GPUVertBufRaw *seg_step,
         float (***r_parent_uvs)[2], GPUVertBufRaw *uv_step, MTFace **mtfaces, int num_uv_layers,
         MCol ***r_parent_mcol, GPUVertBufRaw *col_step, MCol **mcols, int num_col_layers)
 {
@@ -793,12 +795,8 @@ static int particle_batch_cache_fill_strands_data(
 			continue;
 		}
 
-		/* XXX: We might need something more robust.
-		 * Adjust shader code accordingly. (see unpack_strand_data() ) */
-		BLI_assert((path->segments - 1) <= 0x3FF);
-
-		uint *seg_data = (uint *)GPU_vertbuf_raw_step(data_step);
-		*seg_data = (curr_point & 0x3FFFFF) | ((path->segments - 1) << 22);
+		*(uint *)GPU_vertbuf_raw_step(data_step) = curr_point;
+		*(ushort *)GPU_vertbuf_raw_step(seg_step) = path->segments;
 		curr_point += path->segments + 1;
 
 		if (psmd != NULL) {
@@ -883,7 +881,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 		}
 	}
 
-	GPUVertBufRaw data_step;
+	GPUVertBufRaw data_step, seg_step;
 	GPUVertBufRaw uv_step[MAX_MTFACE];
 	GPUVertBufRaw col_step[MAX_MCOL];
 
@@ -894,6 +892,9 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 
 	GPUVertFormat format_data = {0};
 	uint data_id = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
+
+	GPUVertFormat format_seg = {0};
+	uint seg_id = GPU_vertformat_attr_add(&format_seg, "data", GPU_COMP_U16, 1, GPU_FETCH_INT);
 
 	GPUVertFormat format_uv = {0};
 	uint uv_id = GPU_vertformat_attr_add(&format_uv, "uv", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -908,6 +909,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 	cache->proc_strand_buf = GPU_vertbuf_create_with_format(&format_data);
 	GPU_vertbuf_data_alloc(cache->proc_strand_buf, cache->strands_len);
 	GPU_vertbuf_attr_get_raw_data(cache->proc_strand_buf, data_id, &data_step);
+
+	cache->proc_strand_seg_buf = GPU_vertbuf_create_with_format(&format_seg);
+	GPU_vertbuf_data_alloc(cache->proc_strand_seg_buf, cache->strands_len);
+	GPU_vertbuf_attr_get_raw_data(cache->proc_strand_seg_buf, seg_id, &seg_step);
 
 	/* UV layers */
 	for (int i = 0; i < cache->num_uv_layers; i++) {
@@ -964,7 +969,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 		particle_batch_cache_fill_strands_data(
 		        psys, psmd, edit->pathcache, PARTICLE_SOURCE_PARENT,
 		        0, edit->totcached,
-		        &data_step,
+		        &data_step, &seg_step,
 		        &parent_uvs, uv_step, (MTFace **)mtfaces, cache->num_uv_layers,
 		        &parent_mcol, col_step, (MCol **)mcols, cache->num_col_layers);
 	}
@@ -976,7 +981,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 			curr_point = particle_batch_cache_fill_strands_data(
 			        psys, psmd, psys->pathcache, PARTICLE_SOURCE_PARENT,
 			        0, psys->totpart,
-			        &data_step,
+			        &data_step, &seg_step,
 			        &parent_uvs, uv_step, (MTFace **)mtfaces, cache->num_uv_layers,
 			        &parent_mcol, col_step, (MCol **)mcols, cache->num_col_layers);
 		}
@@ -985,7 +990,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 			curr_point = particle_batch_cache_fill_strands_data(
 			        psys, psmd, psys->childcache, PARTICLE_SOURCE_CHILDREN,
 			        curr_point, child_count,
-			        &data_step,
+			        &data_step, &seg_step,
 			        &parent_uvs, uv_step, (MTFace **)mtfaces, cache->num_uv_layers,
 			        &parent_mcol, col_step, (MCol **)mcols, cache->num_col_layers);
 		}
@@ -1008,6 +1013,9 @@ static void particle_batch_cache_ensure_procedural_strand_data(
 	/* Create vbo immediately to bind to texture buffer. */
 	GPU_vertbuf_use(cache->proc_strand_buf);
 	cache->strand_tex = GPU_texture_create_from_vertbuf(cache->proc_strand_buf);
+
+	GPU_vertbuf_use(cache->proc_strand_seg_buf);
+	cache->strand_seg_tex = GPU_texture_create_from_vertbuf(cache->proc_strand_seg_buf);
 
 	for (int i = 0; i < cache->num_uv_layers; i++) {
 		GPU_vertbuf_use(cache->proc_uv_buf[i]);

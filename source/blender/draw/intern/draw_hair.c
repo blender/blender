@@ -212,6 +212,7 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 
 		DRW_shgroup_uniform_texture(tf_shgrp, "hairPointBuffer", hair_cache->point_tex);
 		DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandBuffer", hair_cache->strand_tex);
+		DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandSegBuffer", hair_cache->strand_seg_tex);
 		DRW_shgroup_uniform_int(tf_shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
 		DRW_shgroup_call_procedural_points_add(tf_shgrp, final_points_len, NULL);
 	}
