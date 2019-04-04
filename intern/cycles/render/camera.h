@@ -160,6 +160,8 @@ public:
 	ProjectionTransform rastertocamera;
 	ProjectionTransform cameratoraster;
 
+	ProjectionTransform full_rastertocamera;
+
 	float3 dx;
 	float3 dy;
 

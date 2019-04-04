@@ -85,10 +85,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 	 * so we can do it later on if doing it immediate is not suitable. */
 
 	bool has_updated_objects = b_depsgraph.id_type_updated(BL::DriverTarget::id_type_OBJECT);
-	bool dicing_prop_changed = false;
 
 	if(experimental) {
+		/* Mark all meshes as needing to be exported again if dicing changed. */
 		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+		bool dicing_prop_changed = false;
 
 		float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate")
 		                                    : RNA_float_get(&cscene, "dicing_rate");
@@ -103,6 +104,15 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 		if(max_subdivisions != updated_max_subdivisions) {
 			max_subdivisions = updated_max_subdivisions;
 			dicing_prop_changed = true;
+		}
+
+		if(dicing_prop_changed) {
+			for(const pair<void*, Mesh*>& iter: mesh_map.key_to_scene_data()) {
+				Mesh *mesh = iter.second;
+				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
+					mesh_map.set_recalc(iter.first);
+				}
+			}
 		}
 	}
 
@@ -133,7 +143,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 
 			if(object_is_mesh(b_ob)) {
 				if(updated_geometry ||
-				   (dicing_prop_changed && object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
+				   (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
 				{
 					BL::ID key = BKE_object_is_modified(b_ob)? b_ob: b_ob.data();
 					mesh_map.set_recalc(key);

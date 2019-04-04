@@ -2144,6 +2144,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	/* Tessellate meshes that are using subdivision */
 	if(total_tess_needed) {
+		Camera *dicing_camera = scene->dicing_camera;
+		dicing_camera->update(scene);
+
 		size_t i = 0;
 		foreach(Mesh *mesh, scene->meshes) {
 			if(mesh->need_update &&
@@ -2159,6 +2162,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 				progress.set_status("Updating Mesh", msg);
 
+				mesh->subd_params->camera = dicing_camera;
 				DiagSplit dsplit(*mesh->subd_params);
 				mesh->tessellate(&dsplit);
 

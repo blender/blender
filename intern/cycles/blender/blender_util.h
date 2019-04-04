@@ -628,6 +628,11 @@ public:
 		b_recalc.insert(id.ptr.data);
 	}
 
+	void set_recalc(void *id_ptr)
+	{
+		b_recalc.insert(id_ptr);
+	}
+
 	bool has_recalc()
 	{
 		return !(b_recalc.empty());
@@ -721,6 +726,11 @@ public:
 		b_map = new_map;
 
 		return deleted;
+	}
+
+	const map<K, T*>& key_to_scene_data()
+	{
+		return b_map;
 	}
 
 protected:
