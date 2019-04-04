@@ -66,6 +66,11 @@ static PyMethodDef meth_sound_from_pointer[] = {
 PyObject *AUD_initPython(void)
 {
 	PyObject *module = PyInit_aud();
+	if (module == NULL) {
+		printf("Unable to initialise audio\n");
+		return NULL;
+	}
+
 	PyModule_AddObject(module, "_sound_from_pointer", (PyObject *)PyCFunction_New(meth_sound_from_pointer, NULL));
 	PyDict_SetItemString(PyImport_GetModuleDict(), "aud", module);
 
