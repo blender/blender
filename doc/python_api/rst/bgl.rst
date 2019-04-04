@@ -26,58 +26,6 @@ offers a set of extensive examples, including advanced features.
    for example.
 
 
-.. function:: glAccum(op, value):
-
-   Operate on the accumulation buffer.
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glAccum.xml>`__
-
-   :type op: Enumerated constant
-   :arg op: The accumulation buffer operation.
-   :type value: float
-   :arg value: a value used in the accumulation buffer operation.
-
-
-.. function:: glAlphaFunc(func, ref):
-
-   Specify the alpha test function.
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glAlphaFunc.xml>`__
-
-   :type func: Enumerated constant
-   :arg func: Specifies the alpha comparison function.
-   :type ref: float
-   :arg ref: The reference value that incoming alpha values are compared to.
-      Clamped between 0 and 1.
-
-
-.. function:: glAreTexturesResident(n, textures, residences):
-
-   Determine if textures are loaded in texture memory
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glAreTexturesResident.xml>`__
-
-   :type n: int
-   :arg n: Specifies the number of textures to be queried.
-   :type textures: :class:`bgl.Buffer` object I{type GL_INT}
-   :arg textures: Specifies an array containing the names of the textures to be queried
-   :type residences: :class:`bgl.Buffer` object I{type GL_INT}(boolean)
-   :arg residences: An array in which the texture residence status in returned.
-      The residence status of a texture named by an element of textures is
-      returned in the corresponding element of residences.
-
-
-.. function:: glBegin(mode):
-
-   Delimit the vertices of a primitive or a group of like primitives
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`__
-
-   :type mode: Enumerated constant
-   :arg mode: Specifies the primitive that will be create from vertices between
-      glBegin and glEnd.
-
-
 .. function:: glBindTexture(target, texture):
 
    Bind a named texture to a texturing target
@@ -88,24 +36,6 @@ offers a set of extensive examples, including advanced features.
    :arg target: Specifies the target to which the texture is bound.
    :type texture: unsigned int
    :arg texture: Specifies the name of a texture.
-
-
-.. function:: glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap):
-
-   Draw a bitmap
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glBitmap.xml>`__
-
-   :type width, height: int
-   :arg width, height: Specify the pixel width and height of the bitmap image.
-   :type xorig, yorig: float
-   :arg xorig, yorig: Specify the location of the origin in the bitmap image. The origin is measured
-      from the lower left corner of the bitmap, with right and up being the positive axes.
-   :type xmove, ymove: float
-   :arg xmove, ymove: Specify the x and y offsets to be added to the current raster position after
-      the bitmap is drawn.
-   :type bitmap: :class:`bgl.Buffer` object I{type GL_BYTE}
-   :arg bitmap: Specifies the address of the bitmap image.
 
 
 .. function:: glBlendFunc(sfactor, dfactor):
@@ -122,32 +52,6 @@ offers a set of extensive examples, including advanced features.
       blending factors are computed.
 
 
-.. function:: glCallList(list):
-
-   Execute a display list
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCallList.xml>`__
-
-   :type list: unsigned int
-   :arg list: Specifies the integer name of the display list to be executed.
-
-
-.. function:: glCallLists(n, type, lists):
-
-   Execute a list of display lists
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCallLists.xml>`__
-
-   :type n: int
-   :arg n: Specifies the number of display lists to be executed.
-   :type type: Enumerated constant
-   :arg type: Specifies the type of values in lists.
-   :type lists: :class:`bgl.Buffer` object
-   :arg lists: Specifies the address of an array of name offsets in the display list.
-      The pointer type is void because the offsets can be bytes, shorts, ints, or floats,
-      depending on the value of type.
-
-
 .. function:: glClear(mask):
 
    Clear buffers to preset values
@@ -156,17 +60,6 @@ offers a set of extensive examples, including advanced features.
 
    :type mask: Enumerated constant(s)
    :arg mask: Bitwise OR of masks that indicate the buffers to be cleared.
-
-
-.. function:: glClearAccum(red, green, blue, alpha):
-
-   Specify clear values for the accumulation buffer
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClearAccum.xml>`__
-
-   :type red, green, blue, alpha: float
-   :arg red, green, blue, alpha: Specify the red, green, blue, and alpha values used when the
-      accumulation buffer is cleared. The initial values are all 0.
 
 
 .. function:: glClearColor(red, green, blue, alpha):
@@ -189,17 +82,6 @@ offers a set of extensive examples, including advanced features.
    :type depth: int
    :arg depth: Specifies the depth value used when the depth buffer is cleared.
       The initial value is 1.
-
-
-.. function:: glClearIndex(c):
-
-   Specify the clear value for the color index buffers
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClearIndex.xml>`__
-
-   :type c: float
-   :arg c: Specifies the index used when the color index buffers are cleared.
-      The initial value is 0.
 
 
 .. function:: glClearStencil(s):
@@ -255,36 +137,7 @@ offers a set of extensive examples, including advanced features.
       color components can be written.
 
 
-.. function:: glColorMaterial(face, mode):
-
-   Cause a material color to track the current color
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glColorMaterial.xml>`__
-
-   :type face: Enumerated constant
-   :arg face: Specifies whether front, back, or both front and back material parameters should
-      track the current color.
-   :type mode: Enumerated constant
-   :arg mode: Specifies which of several material parameters track the current color.
-
-
-.. function:: glCopyPixels(x, y, width, height, type):
-
-   Copy pixels in the frame buffer
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCopyPixels.xml>`__
-
-   :type x, y: int
-   :arg x, y: Specify the window coordinates of the lower left corner of the rectangular
-      region of pixels to be copied.
-   :type width, height: int
-   :arg width,height: Specify the dimensions of the rectangular region of pixels to be copied.
-      Both must be non-negative.
-   :type type: Enumerated constant
-   :arg type: Specifies whether color values, depth values, or stencil values are to be copied.
-
-
-   def glCopyTexImage2D(target, level, internalformat, x, y, width, height, border):
+.. function:: glCopyTexImage2D(target, level, internalformat, x, y, width, height, border):
 
    Copy pixels into a 2D texture image
 
@@ -321,18 +174,6 @@ offers a set of extensive examples, including advanced features.
 
    :type mode: Enumerated constant
    :arg mode: Specifies whether front- or back-facing facets are candidates for culling.
-
-
-.. function:: glDeleteLists(list, range):
-
-   Delete a contiguous group of display lists
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDeleteLists.xml>`__
-
-   :type list: unsigned int
-   :arg list: Specifies the integer name of the first display list to delete
-   :type range: int
-   :arg range: Specifies the number of display lists to delete
 
 
 .. function:: glDeleteTextures(n, textures):
@@ -403,23 +244,6 @@ offers a set of extensive examples, including advanced features.
    :arg mode: Specifies up to four color buffers to be drawn into.
 
 
-.. function:: glDrawPixels(width, height, format, type, pixels):
-
-   Write a block of pixels to the frame buffer
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDrawPixels.xml>`__
-
-   :type width, height: int
-   :arg width, height: Specify the dimensions of the pixel rectangle to be
-      written into the frame buffer.
-   :type format: Enumerated constant
-   :arg format: Specifies the format of the pixel data.
-   :type type: Enumerated constant
-   :arg type: Specifies the data type for pixels.
-   :type pixels: :class:`bgl.Buffer` object
-   :arg pixels: Specifies a pointer to the pixel data.
-
-
 .. function:: glEdgeFlag (flag):
 
    B{glEdgeFlag, glEdgeFlagv}
@@ -440,20 +264,6 @@ offers a set of extensive examples, including advanced features.
 
    :type cap: Enumerated constant
    :arg cap: Specifies a symbolic constant indicating a GL capability.
-
-
-.. function:: glEnd():
-
-   Delimit the vertices of a primitive or group of like primitives
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`__
-
-
-.. function:: glEndList():
-
-   Create or replace a display list
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glNewList.xml>`__
 
 
 .. function:: glEvalCoord (u,v):
@@ -560,33 +370,6 @@ offers a set of extensive examples, including advanced features.
    :arg mode: Specifies the orientation of front-facing polygons.
 
 
-.. function:: glFrustum(left, right, bottom, top, zNear, zFar):
-
-   Multiply the current matrix by a perspective matrix
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glFrustum.xml>`__
-
-   :type left, right: double (float)
-   :arg left, right: Specify the coordinates for the left and right vertical
-      clipping planes.
-   :type top, bottom: double (float)
-   :arg top, bottom: Specify the coordinates for the bottom and top horizontal
-      clipping planes.
-   :type zNear, zFar: double (float)
-   :arg zNear, zFar: Specify the distances to the near and far depth clipping planes.
-      Both distances must be positive.
-
-
-.. function:: glGenLists(range):
-
-   Generate a contiguous set of empty display lists
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGenLists.xml>`__
-
-   :type range: int
-   :arg range: Specifies the number of contiguous empty display lists to be generated.
-
-
 .. function:: glGenTextures(n, textures):
 
    Generate texture names
@@ -611,21 +394,6 @@ offers a set of extensive examples, including advanced features.
    :arg pname: Specifies the parameter value to be returned.
    :type param: Depends on function prototype.
    :arg param: Returns the value or values of the specified parameter.
-
-
-.. function:: glGetClipPlane(plane, equation):
-
-   Return the coefficients of the specified clipping plane
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetClipPlane.xml>`__
-
-   :type plane: Enumerated constant
-   :arg plane: Specifies a clipping plane. The number of clipping planes depends on the
-      implementation, but at least six clipping planes are supported. They are identified by
-      symbolic names of the form GL_CLIP_PLANEi where 0 < i < GL_MAX_CLIP_PLANES.
-   :type equation:  :class:`bgl.Buffer` object I{type GL_FLOAT}
-   :arg equation:  Returns four float (double)-precision values that are the coefficients of the
-      plane equation of plane in eye coordinates. The initial value is (0, 0, 0, 0).
 
 
 .. function:: glGetError():
@@ -698,16 +466,6 @@ offers a set of extensive examples, including advanced features.
    :arg map: Specifies the name of the pixel map to return.
    :type values: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg values: Returns the pixel map contents.
-
-
-.. function:: glGetPolygonStipple(mask):
-
-   Return the polygon stipple pattern
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetPolygonStipple.xml>`__
-
-   :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
-   :arg mask: Returns the stipple pattern. The initial value is all 1's.
 
 
 .. function:: glGetString(name):
@@ -821,38 +579,6 @@ offers a set of extensive examples, including advanced features.
    :arg mode: Specifies a symbolic constant indicating the desired behavior.
 
 
-.. function:: glIndex(c):
-
-   B{glIndexd, glIndexf, glIndexi, glIndexs,  glIndexdv, glIndexfv, glIndexiv, glIndexsv}
-
-   Set the current color index
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIndex.xml>`__
-
-   :type c: :class:`bgl.Buffer` object. Depends on function prototype.
-   :arg c: Specifies a pointer to a one element array that contains the new value for
-      the current color index.
-
-
-.. function:: glIndexMask(mask):
-
-   Control the writing of individual bits in the color index buffers
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIndexMask.xml>`__
-
-   :type mask: int
-   :arg mask: Specifies a bit mask to enable and disable the writing of individual bits
-      in the color index buffers.
-      Initially, the mask is all 1's.
-
-
-.. function:: glInitNames():
-
-   Initialize the name stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glInitNames.xml>`__
-
-
 .. function:: glIsEnabled(cap):
 
    Test whether a capability is enabled
@@ -861,16 +587,6 @@ offers a set of extensive examples, including advanced features.
 
    :type cap: Enumerated constant
    :arg cap: Specifies a constant representing a GL capability.
-
-
-.. function:: glIsList(list):
-
-   Determine if a name corresponds to a display-list
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIsList.xml>`__
-
-   :type list: unsigned int
-   :arg list: Specifies a potential display-list name.
 
 
 .. function:: glIsTexture(texture):
@@ -918,23 +634,6 @@ offers a set of extensive examples, including advanced features.
       specifies a pointer to the value or values that param will be set to.
 
 
-.. function:: glLineStipple(factor, pattern):
-
-   Specify the line stipple pattern
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLineStipple.xml>`__
-
-   :type factor: int
-   :arg factor: Specifies a multiplier for each bit in the line stipple pattern.
-      If factor is 3, for example, each bit in the pattern is used three times before
-      the next bit in the pattern is used. factor is clamped to the range [1, 256] and
-      defaults to 1.
-   :type pattern: unsigned short int
-   :arg pattern: Specifies a 16-bit integer whose bit pattern determines which fragments
-      of a line will be drawn when the line is rasterized. Bit zero is used first; the default
-      pattern is all 1's.
-
-
 .. function:: glLineWidth(width):
 
    Specify the width of rasterized lines.
@@ -943,24 +642,6 @@ offers a set of extensive examples, including advanced features.
 
    :type width: float
    :arg width: Specifies the width of rasterized lines. The initial value is 1.
-
-
-.. function:: glListBase(base):
-
-   Set the display-list base for glCallLists
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glListBase.xml>`__
-
-   :type base: unsigned int
-   :arg base: Specifies an integer offset that will be added to glCallLists
-      offsets to generate display-list names. The initial value is 0.
-
-
-.. function:: glLoadIdentity():
-
-   Replace the current matrix with the identity matrix
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLoadIdentity.xml>`__
 
 
 .. function:: glLoadMatrix (m):
@@ -974,16 +655,6 @@ offers a set of extensive examples, including advanced features.
    :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Specifies a pointer to 16 consecutive values, which are used as the elements
       of a 4x4 column-major matrix.
-
-
-.. function:: glLoadName(name):
-
-   Load a name onto the name stack.
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLoadName.xml>`__
-
-   :type name: unsigned int
-   :arg name: Specifies a name that will replace the top value on the name stack.
 
 
 .. function:: glLogicOp(opcode):
@@ -1100,16 +771,6 @@ offers a set of extensive examples, including advanced features.
       pname will be set to.
 
 
-.. function:: glMatrixMode(mode):
-
-   Specify which matrix is the current matrix.
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glMatrixMode.xml>`__
-
-   :type mode: Enumerated constant
-   :arg mode: Specifies which matrix stack is the target for subsequent matrix operations.
-
-
 .. function:: glMultMatrix (m):
 
    B{glMultMatrixd, glMultMatrixf}
@@ -1121,18 +782,6 @@ offers a set of extensive examples, including advanced features.
    :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Points to 16 consecutive values that are used as the elements of a 4x4 column
       major matrix.
-
-
-.. function:: glNewList(list, mode):
-
-   Create or replace a display list
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glNewList.xml>`__
-
-   :type list: unsigned int
-   :arg list: Specifies the display list name
-   :type mode: Enumerated constant
-   :arg mode: Specifies the compilation mode.
 
 
 .. function:: glNormal3 (nx, ny, nz, v):
@@ -1150,34 +799,6 @@ offers a set of extensive examples, including advanced features.
    :type v: :class:`bgl.Buffer` object. Depends on function prototype. ('v' prototypes)
    :arg v: Specifies a pointer to an array of three elements: the x, y, and z coordinates
       of the new current normal.
-
-
-.. function:: glOrtho(left, right, bottom, top, zNear, zFar):
-
-   Multiply the current matrix with an orthographic matrix
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml>`__
-
-   :type left, right: double (float)
-   :arg left, right: Specify the coordinates for the left and
-      right vertical clipping planes.
-   :type bottom, top: double (float)
-   :arg bottom, top: Specify the coordinates for the bottom and top
-      horizontal clipping planes.
-   :type zNear, zFar: double (float)
-   :arg zNear, zFar: Specify the distances to the nearer and farther
-      depth clipping planes. These values are negative if the plane is to be behind the viewer.
-
-
-.. function:: glPassThrough(token):
-
-   Place a marker in the feedback buffer
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPassThrough.xml>`__
-
-   :type token: float
-   :arg token: Specifies a marker value to be placed in the feedback
-      buffer following a GL_PASS_THROUGH_TOKEN.
 
 
 .. function:: glPixelMap (map, mapsize, values):
@@ -1226,16 +847,6 @@ offers a set of extensive examples, including advanced features.
    :arg param: Specifies the value that pname is set to.
 
 
-.. function:: glPixelZoom(xfactor, yfactor):
-
-   Specify the pixel zoom factors
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPixelZoom.xml>`__
-
-   :type xfactor, yfactor: float
-   :arg xfactor, yfactor: Specify the x and y zoom factors for pixel write operations.
-
-
 .. function:: glPointSize(size):
 
    Specify the diameter of rasterized points
@@ -1273,98 +884,6 @@ offers a set of extensive examples, including advanced features.
    :type units:  float
    :arg units: Is multiplied by an implementation-specific value to create a
       constant depth offset. The initial value is 0.
-
-
-.. function:: glPolygonStipple(mask):
-
-   Set the polygon stippling pattern
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPolygonStipple.xml>`__
-
-   :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
-   :arg mask: Specifies a pointer to a 32x32 stipple pattern that will be unpacked
-      from memory in the same way that glDrawPixels unpacks pixels.
-
-
-.. function:: glPopAttrib():
-
-   Pop the server attribute stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPopAttrib.xml>`__
-
-
-.. function:: glPopClientAttrib():
-
-   Pop the client attribute stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPopClientAttrib.xml>`__
-
-
-.. function:: glPopMatrix():
-
-   Pop the current matrix stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPopMatrix.xml>`__
-
-
-.. function:: glPopName():
-
-   Pop the name stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPopName.xml>`__
-
-
-.. function:: glPrioritizeTextures(n, textures, priorities):
-
-   Set texture residence priority
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPrioritizeTextures.xml>`__
-
-   :type n: int
-   :arg n: Specifies the number of textures to be prioritized.
-   :type textures: :class:`bgl.Buffer` I{type GL_INT}
-   :arg textures: Specifies an array containing the names of the textures to be prioritized.
-   :type priorities: :class:`bgl.Buffer` I{type GL_FLOAT}
-   :arg priorities: Specifies an array containing the texture priorities.
-      A priority given in an element of priorities applies to the texture named
-      by the corresponding element of textures.
-
-
-.. function:: glPushAttrib(mask):
-
-   Push the server attribute stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPushAttrib.xml>`__
-
-   :type mask: Enumerated constant(s)
-   :arg mask: Specifies a mask that indicates which attributes to save.
-
-
-.. function:: glPushClientAttrib(mask):
-
-   Push the client attribute stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPushClientAttrib.xml>`__
-
-   :type mask: Enumerated constant(s)
-   :arg mask: Specifies a mask that indicates which attributes to save.
-
-
-.. function:: glPushMatrix():
-
-   Push the current matrix stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPushMatrix.xml>`__
-
-
-.. function:: glPushName(name):
-
-   Push the name stack
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPushName.xml>`__
-
-   :type name: unsigned int
-   :arg name: Specifies a name that will be pushed onto the name stack.
 
 
 .. function:: glRasterPos (x,y,z,w):
@@ -1453,16 +972,6 @@ offers a set of extensive examples, including advanced features.
       to the opposite vertex of the rectangle
 
 
-.. function:: glRenderMode(mode):
-
-   Set rasterization mode
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glRenderMode.xml>`__
-
-   :type mode: Enumerated constant
-   :arg mode: Specifies the rasterization mode.
-
-
 .. function:: glRotate (angle, x, y, z):
 
    B{glRotated, glRotatef}
@@ -1501,28 +1010,6 @@ offers a set of extensive examples, including advanced features.
    :arg width height: Specify the width and height of the scissor box. When a
       GL context is first attached to a window, width and height are set to the
       dimensions of that window.
-
-
-.. function:: glSelectBuffer(size, buffer):
-
-   Establish a buffer for selection mode values
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glSelectBuffer.xml>`__
-
-   :type size: int
-   :arg size: Specifies the size of buffer
-   :type buffer: :class:`bgl.Buffer` I{type GL_INT}
-   :arg buffer: Returns the selection data
-
-
-.. function:: glShadeModel(mode):
-
-   Select flat or smooth shading
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glShadeModel.xml>`__
-
-   :type mode: Enumerated constant
-   :arg mode: Specifies a symbolic value representing a shading technique.
 
 
 .. function:: glStencilFunc(func, ref, mask):
@@ -1755,99 +1242,6 @@ offers a set of extensive examples, including advanced features.
    :arg width, height: Specify the width and height of the viewport. When a GL
       context is first attached to a window, width and height are set to the
       dimensions of that window.
-
-
-.. function:: gluPerspective(fovY, aspect, zNear, zFar):
-
-   Set up a perspective projection matrix.
-
-   .. seealso:: https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
-
-   :type fovY: double
-   :arg fovY: Specifies the field of view angle, in degrees, in the y direction.
-   :type aspect: double
-   :arg aspect: Specifies the aspect ratio that determines the field of view in the x direction.
-    The aspect ratio is the ratio of x (width) to y (height).
-   :type zNear: double
-   :arg zNear: Specifies the distance from the viewer to the near clipping plane (always positive).
-   :type zFar: double
-   :arg zFar: Specifies the distance from the viewer to the far clipping plane (always positive).
-
-
-.. function:: gluLookAt(eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz):
-
-   Define a viewing transformation.
-
-   .. seealso:: https://www.opengl.org/sdk/docs/man2/xhtml/gluLookAt.xml
-
-   :type eyex, eyey, eyez: double
-   :arg eyex, eyey, eyez: Specifies the position of the eye point.
-   :type centerx, centery, centerz: double
-   :arg centerx, centery, centerz: Specifies the position of the reference point.
-   :type upx, upy, upz: double
-   :arg upx, upy, upz: Specifies the direction of the up vector.
-
-
-.. function:: gluOrtho2D(left, right, bottom, top):
-
-   Define a 2-D orthographic projection matrix.
-
-   .. seealso:: https://www.opengl.org/sdk/docs/man2/xhtml/gluOrtho2D.xml
-
-   :type left, right: double
-   :arg left, right: Specify the coordinates for the left and right vertical clipping planes.
-   :type bottom, top: double
-   :arg bottom, top: Specify the coordinates for the bottom and top horizontal clipping planes.
-
-
-.. function:: gluPickMatrix(x, y, width, height, viewport):
-
-   Define a picking region.
-
-   .. seealso:: https://www.opengl.org/sdk/docs/man2/xhtml/gluPickMatrix.xml
-
-   :type x, y: double
-   :arg x, y: Specify the center of a picking region in window coordinates.
-   :type width, height: double
-   :arg width, height: Specify the width and height, respectively, of the picking region in window coordinates.
-   :type viewport: :class:`bgl.Buffer` object. [int]
-   :arg viewport: Specifies the current viewport.
-
-
-.. function:: gluProject(objx, objy, objz, modelMatrix, projMatrix, viewport, winx, winy, winz):
-
-   Map object coordinates to window coordinates.
-
-   .. seealso:: https://www.opengl.org/sdk/docs/man2/xhtml/gluProject.xml
-
-   :type objx, objy, objz: double
-   :arg objx, objy, objz: Specify the object coordinates.
-   :type modelMatrix: :class:`bgl.Buffer` object. [double]
-   :arg modelMatrix: Specifies the current modelview matrix (as from a glGetDoublev call).
-   :type projMatrix: :class:`bgl.Buffer` object. [double]
-   :arg projMatrix: Specifies the current projection matrix (as from a glGetDoublev call).
-   :type viewport: :class:`bgl.Buffer` object. [int]
-   :arg viewport: Specifies the current viewport (as from a glGetIntegerv call).
-   :type winx, winy, winz: :class:`bgl.Buffer` object. [double]
-   :arg winx, winy, winz: Return the computed window coordinates.
-
-
-.. function:: gluUnProject(winx, winy, winz, modelMatrix, projMatrix, viewport, objx, objy, objz):
-
-   Map object coordinates to window coordinates.
-
-   .. seealso:: https://www.opengl.org/sdk/docs/man2/xhtml/gluUnProject.xml
-
-   :type winx, winy, winz: double
-   :arg winx, winy, winz: Specify the window coordinates to be mapped.
-   :type modelMatrix: :class:`bgl.Buffer` object. [double]
-   :arg modelMatrix: Specifies the current modelview matrix (as from a glGetDoublev call).
-   :type projMatrix: :class:`bgl.Buffer` object. [double]
-   :arg projMatrix: Specifies the current projection matrix (as from a glGetDoublev call).
-   :type viewport: :class:`bgl.Buffer` object. [int]
-   :arg viewport: Specifies the current viewport (as from a glGetIntegerv call).
-   :type objx, objy, objz: :class:`bgl.Buffer` object. [double]
-   :arg objx, objy, objz: Return the computed object coordinates.
 
 
 .. function:: glUseProgram(program):
