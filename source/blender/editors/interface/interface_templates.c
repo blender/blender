@@ -6711,17 +6711,18 @@ void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
   uiItemR(row, &fileptr, "override_frame", 0, "Override Frame", ICON_NONE);
 
   row = uiLayoutRow(layout, false);
-  uiLayoutSetEnabled(row, RNA_boolean_get(&fileptr, "override_frame"));
+  uiLayoutSetActive(row, RNA_boolean_get(&fileptr, "override_frame"));
   uiItemR(row, &fileptr, "frame", 0, "Frame", ICON_NONE);
 
   row = uiLayoutRow(layout, false);
   uiItemR(row, &fileptr, "frame_offset", 0, "Frame Offset", ICON_NONE);
+  uiLayoutSetActive(row, !RNA_boolean_get(&fileptr, "is_sequence"));
 
   row = uiLayoutRow(layout, false);
   uiItemL(row, IFACE_("Manual Transform:"), ICON_NONE);
 
   row = uiLayoutRow(layout, false);
-  uiLayoutSetEnabled(row, (sbuts->mainb == BCONTEXT_CONSTRAINT));
+  uiLayoutSetActive(row, (sbuts->mainb == BCONTEXT_CONSTRAINT));
   uiItemR(row, &fileptr, "scale", 0, "Scale", ICON_NONE);
 
   /* TODO: unused for now, so no need to expose. */

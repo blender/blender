@@ -4835,13 +4835,9 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
   const float frame = DEG_get_ctime(cob->depsgraph);
   const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
 
-  /* Must always load ABC handle on original. */
-  CacheFile *cache_file_orig = (CacheFile *)DEG_get_original_id(&cache_file->id);
-  BKE_cachefile_ensure_handle(G.main, cache_file_orig);
-
-  if (!data->reader) {
-    data->reader = CacheReader_open_alembic_object(
-        cache_file_orig->handle, data->reader, cob->ob, data->object_path);
+  if (!data->reader || !STREQ(data->reader_object_path, data->object_path)) {
+    STRNCPY(data->reader_object_path, data->object_path);
+    BKE_cachefile_reader_open(cache_file, &data->reader, cob->ob, data->object_path);
   }
 
   ABC_get_transform(data->reader, cob->matrix, time, cache_file->scale);
@@ -4859,12 +4855,8 @@ static void transformcache_copy(bConstraint *con, bConstraint *srccon)
 
   BLI_strncpy(dst->object_path, src->object_path, sizeof(dst->object_path));
   dst->cache_file = src->cache_file;
-
-#ifdef WITH_ALEMBIC
-  if (dst->reader) {
-    CacheReader_incref(dst->reader);
-  }
-#endif
+  dst->reader = NULL;
+  dst->reader_object_path[0] = '\0';
 }
 
 static void transformcache_free(bConstraint *con)
@@ -4872,10 +4864,8 @@ static void transformcache_free(bConstraint *con)
   bTransformCacheConstraint *data = con->data;
 
   if (data->reader) {
-#ifdef WITH_ALEMBIC
-    CacheReader_free(data->reader);
-#endif
-    data->reader = NULL;
+    BKE_cachefile_reader_free(data->cache_file, &data->reader);
+    data->reader_object_path[0] = '\0';
   }
 }
 

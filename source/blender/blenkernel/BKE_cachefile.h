@@ -29,8 +29,10 @@ extern "C" {
 #endif
 
 struct CacheFile;
+struct CacheReader;
 struct Depsgraph;
 struct Main;
+struct Object;
 struct Scene;
 
 void BKE_cachefiles_init(void);
@@ -52,24 +54,27 @@ void BKE_cachefile_make_local(struct Main *bmain,
                               struct CacheFile *cache_file,
                               const bool lib_local);
 
-void BKE_cachefile_reload(const struct Main *bmain, struct CacheFile *cache_file);
+void BKE_cachefile_reload(struct Depsgraph *depsgraph, struct CacheFile *cache_file);
 
-void BKE_cachefile_ensure_handle(const struct Main *bmain, struct CacheFile *cache_file);
-
-void BKE_cachefile_update_frame(struct Main *bmain,
-                                struct Depsgraph *depsgraph,
-                                struct Scene *scene,
-                                const float ctime,
-                                const float fps);
+void BKE_cachefile_eval(struct Main *bmain,
+                        struct Depsgraph *depsgraph,
+                        struct CacheFile *cache_file);
 
 bool BKE_cachefile_filepath_get(const struct Main *bmain,
+                                const struct Depsgraph *depsgrah,
                                 const struct CacheFile *cache_file,
-                                float frame,
                                 char r_filename[1024]);
 
-float BKE_cachefile_time_offset(struct CacheFile *cache_file, const float time, const float fps);
+float BKE_cachefile_time_offset(const struct CacheFile *cache_file,
+                                const float time,
+                                const float fps);
 
-void BKE_cachefile_clean(struct Main *bmain, struct CacheFile *cache_file);
+/* Modifiers and constraints open and free readers through these. */
+void BKE_cachefile_reader_open(struct CacheFile *cache_file,
+                               struct CacheReader **reader,
+                               struct Object *object,
+                               const char *object_path);
+void BKE_cachefile_reader_free(struct CacheFile *cache_file, struct CacheReader **reader);
 
 #ifdef __cplusplus
 }

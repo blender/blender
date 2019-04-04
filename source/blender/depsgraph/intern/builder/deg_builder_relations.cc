@@ -2222,6 +2222,14 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
     ComponentKey datablock_key(&cache_file->id, NodeType::CACHE);
     add_relation(animation_key, datablock_key, "Datablock Animation");
   }
+
+  /* Cache file updates */
+  if (cache_file->is_sequence) {
+    OperationKey cache_update_key(
+        &cache_file->id, NodeType::CACHE, OperationCode::FILE_CACHE_UPDATE);
+    TimeSourceKey time_src_key;
+    add_relation(time_src_key, cache_update_key, "TimeSrc -> Cache File Eval");
+  }
 }
 
 void DepsgraphRelationBuilder::build_mask(Mask *mask)
@@ -2329,7 +2337,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
       continue;
     }
     int rel_flag = (RELATION_FLAG_NO_FLUSH | RELATION_FLAG_GODMODE);
-    if (id_type == ID_ME && comp_node->type == NodeType::GEOMETRY) {
+    if ((id_type == ID_ME && comp_node->type == NodeType::GEOMETRY) ||
+        (id_type == ID_CF && comp_node->type == NodeType::CACHE)) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
     /* Notes on exceptions:

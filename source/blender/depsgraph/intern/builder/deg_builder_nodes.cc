@@ -65,6 +65,7 @@ extern "C" {
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_animsys.h"
+#include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
@@ -1469,11 +1470,16 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
     return;
   }
   ID *cache_file_id = &cache_file->id;
+  add_id_node(cache_file_id);
+  CacheFile *cache_file_cow = get_cow_datablock(cache_file);
   /* Animation, */
   build_animdata(cache_file_id);
   build_parameters(cache_file_id);
   /* Cache evaluation itself. */
-  add_operation_node(cache_file_id, NodeType::CACHE, OperationCode::FILE_CACHE_UPDATE);
+  add_operation_node(cache_file_id,
+                     NodeType::CACHE,
+                     OperationCode::FILE_CACHE_UPDATE,
+                     function_bind(BKE_cachefile_eval, bmain_, _1, cache_file_cow));
 }
 
 void DepsgraphNodeBuilder::build_mask(Mask *mask)

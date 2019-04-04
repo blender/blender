@@ -30,10 +30,12 @@
 extern "C" {
 #endif
 
+struct GSet;
+
 /* CacheFile::flag */
 enum {
   CACHEFILE_DS_EXPAND = (1 << 0),
-  CACHEFILE_DIRTY = (1 << 1),
+  CACHEFILE_UNUSED_0 = (1 << 1),
 };
 
 /* CacheFile::draw_flag */
@@ -52,9 +54,6 @@ typedef struct AlembicObjectPath {
 typedef struct CacheFile {
   ID id;
   struct AnimData *adt;
-
-  struct AbcArchiveHandle *handle;
-  void *handle_mutex;
 
   /** Paths of the objects inside of the Alembic archive referenced by this CacheFile. */
   ListBase object_paths;
@@ -78,6 +77,11 @@ typedef struct CacheFile {
   short draw_flag;
 
   char _pad[4];
+
+  /* Runtime */
+  struct AbcArchiveHandle *handle;
+  char handle_filepath[1024];
+  struct GSet *handle_readers;
 } CacheFile;
 
 #ifdef __cplusplus

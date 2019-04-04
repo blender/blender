@@ -18,6 +18,11 @@
  * \ingroup modifiers
  */
 
+#include <string.h>
+
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
+
 #include "DNA_cachefile_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -47,6 +52,9 @@ static void initData(ModifierData *md)
   mcmd->cache_file = NULL;
   mcmd->object_path[0] = '\0';
   mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
+
+  mcmd->reader = NULL;
+  mcmd->reader_object_path[0] = '\0';
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -59,6 +67,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   modifier_copyData_generic(md, target, flag);
 
   tmcmd->reader = NULL;
+  tmcmd->reader_object_path[0] = '\0';
 }
 
 static void freeData(ModifierData *md)
@@ -66,10 +75,8 @@ static void freeData(ModifierData *md)
   MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
 
   if (mcmd->reader) {
-#ifdef WITH_ALEMBIC
-    CacheReader_free(mcmd->reader);
-#endif
-    mcmd->reader = NULL;
+    mcmd->reader_object_path[0] = '\0';
+    BKE_cachefile_reader_free(mcmd->cache_file, &mcmd->reader);
   }
 }
 
@@ -93,17 +100,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   Mesh *org_mesh = mesh;
 
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  CacheFile *cache_file = mcmd->cache_file;
   const float frame = DEG_get_ctime(ctx->depsgraph);
-  const float time = BKE_cachefile_time_offset(mcmd->cache_file, frame, FPS);
+  const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
   const char *err_str = NULL;
 
-  CacheFile *cache_file = (CacheFile *)DEG_get_original_id(&mcmd->cache_file->id);
-
-  BKE_cachefile_ensure_handle(G.main, cache_file);
-
-  if (!mcmd->reader) {
-    mcmd->reader = CacheReader_open_alembic_object(
-        cache_file->handle, NULL, ctx->object, mcmd->object_path);
+  if (!mcmd->reader || !STREQ(mcmd->reader_object_path, mcmd->object_path)) {
+    STRNCPY(mcmd->reader_object_path, mcmd->object_path);
+    BKE_cachefile_reader_open(cache_file, &mcmd->reader, ctx->object, mcmd->object_path);
     if (!mcmd->reader) {
       modifier_setError(md, "Could not create Alembic reader for file %s", cache_file->filepath);
       return mesh;

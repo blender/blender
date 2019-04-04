@@ -729,22 +729,6 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr, PointerRNA v
   }
 }
 
-static void rna_Constraint_transformCache_object_path_update(Main *bmain,
-                                                             Scene *scene,
-                                                             PointerRNA *ptr)
-{
-#  ifdef WITH_ALEMBIC
-  bConstraint *con = (bConstraint *)ptr->data;
-  bTransformCacheConstraint *data = (bTransformCacheConstraint *)con->data;
-  Object *ob = (Object *)ptr->id.data;
-
-  data->reader = CacheReader_open_alembic_object(
-      data->cache_file->handle, data->reader, ob, data->object_path);
-#  endif
-
-  rna_Constraint_update(bmain, scene, ptr);
-}
-
 #else
 
 static const EnumPropertyItem constraint_distance_items[] = {
@@ -2902,7 +2886,7 @@ static void rna_def_constraint_transform_cache(BlenderRNA *brna)
       prop,
       "Object Path",
       "Path to the object in the Alembic archive used to lookup the transform matrix");
-  RNA_def_property_update(prop, 0, "rna_Constraint_transformCache_object_path_update");
+  RNA_def_property_update(prop, 0, "rna_Constraint_update");
 }
 
 /* base struct for constraints */

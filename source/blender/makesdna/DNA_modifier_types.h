@@ -1852,12 +1852,15 @@ typedef struct MeshSeqCacheModifierData {
   ModifierData modifier;
 
   struct CacheFile *cache_file;
-  struct CacheReader *reader;
   /** 1024 = FILE_MAX. */
   char object_path[1024];
 
   char read_flag;
   char _pad[7];
+
+  /* Runtime. */
+  struct CacheReader *reader;
+  char reader_object_path[1024];
 } MeshSeqCacheModifierData;
 
 /* MeshSeqCacheModifierData.read_flag */

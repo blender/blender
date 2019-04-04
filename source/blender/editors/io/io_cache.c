@@ -38,6 +38,8 @@
 
 #include "RNA_access.h"
 
+#include "DEG_depsgraph.h"
+
 #include "UI_interface.h"
 
 #include "WM_api.h"
@@ -93,7 +95,7 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
 
   CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filename), 0);
   BLI_strncpy(cache_file->filepath, filename, FILE_MAX);
-  BKE_cachefile_reload(bmain, cache_file);
+  DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
 
   /* Will be set when running invoke, not exec directly. */
   if (op->customdata != NULL) {
@@ -137,7 +139,7 @@ void CACHEFILE_OT_open(wmOperatorType *ot)
 
 /* ***************************** Reload Operator **************************** */
 
-static int cachefile_reload_exec(bContext *C, wmOperator *op)
+static int cachefile_reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
   CacheFile *cache_file = CTX_data_edit_cachefile(C);
 
@@ -145,14 +147,10 @@ static int cachefile_reload_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Main *bmain = CTX_data_main(C);
-
-  BLI_freelistN(&cache_file->object_paths);
-  BKE_cachefile_reload(bmain, cache_file);
+  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  BKE_cachefile_reload(depsgraph, cache_file);
 
   return OPERATOR_FINISHED;
-
-  UNUSED_VARS(op);
 }
 
 void CACHEFILE_OT_reload(wmOperatorType *ot)

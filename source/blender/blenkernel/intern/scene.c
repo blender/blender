@@ -1565,15 +1565,6 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
   BKE_image_editors_update_frame(bmain, scene->r.cfra);
   BKE_sound_set_cfra(scene->r.cfra);
   DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
-  /* Update animated cache files for modifiers.
-   *
-   * TODO(sergey): Make this a depsgraph node?
-   */
-  BKE_cachefile_update_frame(bmain,
-                             depsgraph,
-                             scene,
-                             ctime,
-                             (((double)scene->r.frs_sec) / (double)scene->r.frs_sec_base));
 #ifdef POSE_ANIMATION_WORKAROUND
   scene_armature_depsgraph_workaround(bmain, depsgraph);
 #endif

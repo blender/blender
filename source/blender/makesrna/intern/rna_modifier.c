@@ -1300,19 +1300,6 @@ static bool rna_SurfaceDeformModifier_is_bound_get(PointerRNA *ptr)
   return (((SurfaceDeformModifierData *)ptr->data)->verts != NULL);
 }
 
-static void rna_MeshSequenceCache_object_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-#  ifdef WITH_ALEMBIC
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)ptr->data;
-  Object *ob = (Object *)ptr->id.data;
-
-  mcmd->reader = CacheReader_open_alembic_object(
-      mcmd->cache_file->handle, mcmd->reader, ob, mcmd->object_path);
-#  endif
-
-  rna_Modifier_update(bmain, scene, ptr);
-}
-
 static bool rna_ParticleInstanceModifier_particle_system_poll(PointerRNA *ptr,
                                                               const PointerRNA value)
 {
@@ -5107,7 +5094,7 @@ static void rna_def_modifier_meshseqcache(BlenderRNA *brna)
       prop,
       "Object Path",
       "Path to the object in the Alembic archive used to lookup geometric data");
-  RNA_def_property_update(prop, 0, "rna_MeshSequenceCache_object_path_update");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   static const EnumPropertyItem read_flag_items[] = {
       {MOD_MESHSEQ_READ_VERT, "VERT", 0, "Vertex", ""},

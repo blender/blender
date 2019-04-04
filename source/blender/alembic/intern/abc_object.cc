@@ -364,9 +364,6 @@ void AbcObjectReader::addCacheModifier()
   id_us_plus(&mcmd->cache_file->id);
 
   BLI_strncpy(mcmd->object_path, m_iobject.getFullName().c_str(), FILE_MAX);
-
-  mcmd->reader = reinterpret_cast<CacheReader *>(this);
-  this->incref();
 }
 
 chrono_t AbcObjectReader::minTime() const
