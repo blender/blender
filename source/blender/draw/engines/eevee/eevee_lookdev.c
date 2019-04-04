@@ -63,6 +63,8 @@ void EEVEE_lookdev_cache_init(
 	EEVEE_PrivateData *g_data = stl->g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
+	Scene *scene = draw_ctx->scene;
+
 	if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
 		StudioLight *sl = BKE_studiolight_find(v3d->shading.lookdev_light, STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
 		if (sl && (sl->flag & STUDIOLIGHT_TYPE_WORLD)) {
@@ -137,11 +139,17 @@ void EEVEE_lookdev_cache_init(
 
 			/* Do we need to recalc the lightprobes? */
 			if (g_data->studiolight_index != sl->index ||
-			    g_data->studiolight_rot_z != v3d->shading.studiolight_rot_z)
+			    g_data->studiolight_rot_z != v3d->shading.studiolight_rot_z ||
+			    g_data->studiolight_cubemap_res != scene->eevee.gi_cubemap_resolution ||
+			    g_data->studiolight_glossy_clamp != scene->eevee.gi_glossy_clamp ||
+			    g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality)
 			{
 				stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
 				g_data->studiolight_index = sl->index;
 				g_data->studiolight_rot_z = v3d->shading.studiolight_rot_z;
+				g_data->studiolight_cubemap_res = scene->eevee.gi_cubemap_resolution;
+				g_data->studiolight_glossy_clamp = scene->eevee.gi_glossy_clamp;
+				g_data->studiolight_filter_quality = scene->eevee.gi_filter_quality;
 			}
 		}
 	}

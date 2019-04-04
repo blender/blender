@@ -822,6 +822,9 @@ typedef struct EEVEE_PrivateData {
 	/* LookDev Settings */
 	int studiolight_index;
 	float studiolight_rot_z;
+	int studiolight_cubemap_res;
+	float studiolight_glossy_clamp;
+	float studiolight_filter_quality;
 
 } EEVEE_PrivateData; /* Transient data */
 
