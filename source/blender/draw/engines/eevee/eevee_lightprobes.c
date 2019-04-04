@@ -666,16 +666,17 @@ static void lightbake_planar_compute_render_matrices(
         EEVEE_PlanarReflection *eplanar, DRWMatrixState *r_matstate,
         const float viewmat[4][4], const float winmat[4][4])
 {
+	/* Temporal sampling jitter should be already applied to the DRW_MAT_WIN. */
+	copy_m4_m4(r_matstate->winmat, winmat);
+	/* Invert X to avoid flipping the triangle facing direction. */
+	r_matstate->winmat[0][0] = -r_matstate->winmat[0][0];
+	r_matstate->winmat[1][0] = -r_matstate->winmat[1][0];
+	r_matstate->winmat[2][0] = -r_matstate->winmat[2][0];
+	r_matstate->winmat[3][0] = -r_matstate->winmat[3][0];
 	/* Reflect Camera Matrix. */
 	mul_m4_m4m4(r_matstate->viewmat, viewmat, eplanar->mtx);
-	/* Invert X to avoid flipping the triangle facing direction. */
-	r_matstate->viewmat[0][0] = -r_matstate->viewmat[0][0];
-	r_matstate->viewmat[1][0] = -r_matstate->viewmat[1][0];
-	r_matstate->viewmat[2][0] = -r_matstate->viewmat[2][0];
-	r_matstate->viewmat[3][0] = -r_matstate->viewmat[3][0];
 	/* Apply Projection Matrix. */
-	/* Temporal sampling jitter should be already applied to the DRW_MAT_WIN. */
-	mul_m4_m4m4(r_matstate->persmat, winmat, r_matstate->viewmat);
+	mul_m4_m4m4(r_matstate->persmat, r_matstate->winmat, r_matstate->viewmat);
 }
 
 static void eevee_lightprobes_extract_from_cache(EEVEE_LightProbesInfo *pinfo, LightCache *lcache)
