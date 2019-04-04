@@ -391,7 +391,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		/* World Volumetric */
 		struct World *wo = scene->world;
-		if (wo != NULL && wo->use_nodes && wo->nodetree) {
+		if (wo != NULL && wo->use_nodes && wo->nodetree && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d)) {
 			struct GPUMaterial *mat = EEVEE_material_world_volume_get(scene, wo);
 
 			grp = DRW_shgroup_material_empty_tri_batch_create(mat,
