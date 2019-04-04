@@ -516,8 +516,6 @@ static void xml_read_mesh(const XMLReadState& state, xml_node node)
 		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
 		sdparams.dicing_rate = std::max(0.1f, sdparams.dicing_rate);
 
-		state.scene->camera->update(state.scene);
-		sdparams.camera = state.scene->camera;
 		sdparams.objecttoworld = state.tfm;
 	}
 

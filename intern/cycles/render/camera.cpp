@@ -169,6 +169,8 @@ Camera::Camera()
 	cameratoworld = transform_identity();
 	worldtoraster = projection_identity();
 
+	full_rastertocamera = projection_identity();
+
 	dx = make_float3(0.0f, 0.0f, 0.0f);
 	dy = make_float3(0.0f, 0.0f, 0.0f);
 
@@ -251,7 +253,7 @@ void Camera::update(Scene *scene)
 	ProjectionTransform screentocamera = projection_inverse(cameratoscreen);
 
 	rastertocamera = screentocamera * rastertoscreen;
-	ProjectionTransform full_rastertocamera = screentocamera * full_rastertoscreen;
+	full_rastertocamera = screentocamera * full_rastertoscreen;
 	cameratoraster = screentoraster * cameratoscreen;
 
 	cameratoworld = matrix;
@@ -627,7 +629,7 @@ float Camera::world_to_raster_size(float3 P)
 
 		if(offscreen_dicing_scale > 1.0f) {
 			float3 p = transform_point(&worldtocamera, P);
-			float3 v = transform_perspective(&rastertocamera, make_float3(width, height, 0.0f));
+			float3 v = transform_perspective(&full_rastertocamera, make_float3(full_width, full_height, 0.0f));
 
 			/* Create point clamped to frustum */
 			float3 c;
@@ -644,8 +646,8 @@ float Camera::world_to_raster_size(float3 P)
 	}
 	else if(type == CAMERA_PERSPECTIVE) {
 		/* Calculate as if point is directly ahead of the camera. */
-		float3 raster = make_float3(0.5f*width, 0.5f*height, 0.0f);
-		float3 Pcamera = transform_perspective(&rastertocamera, raster);
+		float3 raster = make_float3(0.5f*full_width, 0.5f*full_height, 0.0f);
+		float3 Pcamera = transform_perspective(&full_rastertocamera, raster);
 
 		/* dDdx */
 		float3 Ddiff = transform_direction(&cameratoworld, Pcamera);
@@ -728,22 +730,21 @@ float Camera::world_to_raster_size(float3 P)
 		 * point directly ahead seems to produce good enough results. */
 #if 0
 		float2 dir = direction_to_panorama(&kernel_camera, kernel_camera_motion.data(), normalize(D));
-		float3 raster = transform_perspective(&cameratoraster, make_float3(dir.x, dir.y, 0.0f));
+		float3 raster = transform_perspective(&full_cameratoraster, make_float3(dir.x, dir.y, 0.0f));
 
 		ray.t = 1.0f;
 		camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), raster.x, raster.y, 0.0f, 0.0f, &ray);
 		if(ray.t == 0.0f) {
 			/* No differentials, just use from directly ahead. */
-			camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+			camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*full_width, 0.5f*full_height, 0.0f, 0.0f, &ray);
 		}
 #else
-		camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+		camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*full_width, 0.5f*full_height, 0.0f, 0.0f, &ray);
 #endif
 
 		differential_transfer(&ray.dP, ray.dP, ray.D, ray.dD, ray.D, dist);
 
-		return max(len(ray.dP.dx) * (float(width)/float(full_width)),
-		           len(ray.dP.dy) * (float(height)/float(full_height)));
+		return max(len(ray.dP.dx),len(ray.dP.dy));
 	}
 
 	return res;

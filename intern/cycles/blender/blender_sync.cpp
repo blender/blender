@@ -104,10 +104,10 @@ bool BlenderSync::sync_recalc()
 		if(b_lamp->is_updated() || (b_lamp->node_tree() && b_lamp->node_tree().is_updated()))
 			shader_map.set_recalc(*b_lamp);
 
-	bool dicing_prop_changed = false;
-
 	if(experimental) {
+		/* Mark all meshes as needing to be exported again if dicing changed. */
 		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+		bool dicing_prop_changed = false;
 
 		float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate")
 		                                    : RNA_float_get(&cscene, "dicing_rate");
@@ -123,6 +123,15 @@ bool BlenderSync::sync_recalc()
 			max_subdivisions = updated_max_subdivisions;
 			dicing_prop_changed = true;
 		}
+
+		if(dicing_prop_changed) {
+			for(const pair<void*, Mesh*>& iter: mesh_map.key_to_scene_data()) {
+				Mesh *mesh = iter.second;
+				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
+					mesh_map.set_recalc(iter.first);
+				}
+			}
+		}
 	}
 
 	BL::BlendData::objects_iterator b_ob;
@@ -134,9 +143,7 @@ bool BlenderSync::sync_recalc()
 		}
 
 		if(object_is_mesh(*b_ob)) {
-			if(b_ob->is_updated_data() || b_ob->data().is_updated() ||
-			   (dicing_prop_changed && object_subdivision_type(*b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
-			{
+			if(b_ob->is_updated_data() || b_ob->data().is_updated()) {
 				BL::ID key = BKE_object_is_modified(*b_ob)? *b_ob: b_ob->data();
 				mesh_map.set_recalc(key);
 			}
