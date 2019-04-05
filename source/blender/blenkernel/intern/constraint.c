@@ -592,57 +592,24 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 				Mat4 *bbone = pchan->runtime.bbone_pose_mats;
 				float tempmat[4][4];
 				float loc[3], fac;
+				int index;
 
 				/* figure out which segment(s) the headtail value falls in */
-				fac = (float)pchan->bone->segments * headtail;
-
-				if (fac >= pchan->bone->segments - 1) {
-					/* special case: end segment doesn't get created properly... */
-					float pt[3], sfac;
-					int index;
-
-					/* bbone points are in bonespace, so need to move to posespace first */
-					index = pchan->bone->segments - 1;
-					mul_v3_m4v3(pt, pchan->pose_mat, bbone[index].mat[3]);
-
-					/* interpolate between last segment point and the endpoint */
-					sfac = fac - (float)(pchan->bone->segments - 1); /* fac is just the "leftover" between penultimate and last points */
-					interp_v3_v3v3(loc, pt, pchan->pose_tail, sfac);
-				}
-				else {
-					/* get indices for finding interpolating between points along the bbone */
-					float pt_a[3], pt_b[3], pt[3];
-					int   index_a, index_b;
-
-					index_a = floorf(fac);
-					CLAMP(index_a, 0, MAX_BBONE_SUBDIV - 1);
-
-					index_b = ceilf(fac);
-					CLAMP(index_b, 0, MAX_BBONE_SUBDIV - 1);
-
-					/* interpolate between these points */
-					copy_v3_v3(pt_a, bbone[index_a].mat[3]);
-					copy_v3_v3(pt_b, bbone[index_b].mat[3]);
-
-					interp_v3_v3v3(pt, pt_a, pt_b, fac - floorf(fac));
-
-					/* move the point from bone local space to pose space... */
-					mul_v3_m4v3(loc, pchan->pose_mat, pt);
-				}
+				BKE_pchan_bbone_deform_segment_index(pchan, headtail, &index, &fac);
 
 				/* apply full transformation of the segment if requested */
 				if (full_bbone) {
-					int index = floorf(fac);
-					CLAMP(index, 0, pchan->bone->segments - 1);
+					interp_m4_m4m4(tempmat, bbone[index].mat, bbone[index + 1].mat, fac);
 
-					mul_m4_m4m4(tempmat, pchan->pose_mat, bbone[index].mat);
+					mul_m4_m4m4(tempmat, pchan->pose_mat, tempmat);
 				}
+				/* only interpolate location */
 				else {
-					copy_m4_m4(tempmat, pchan->pose_mat);
-				}
+					interp_v3_v3v3(loc, bbone[index].mat[3], bbone[index + 1].mat[3], fac);
 
-				/* use interpolated distance for subtarget */
-				copy_v3_v3(tempmat[3], loc);
+					copy_m4_m4(tempmat, pchan->pose_mat);
+					mul_v3_m4v3(tempmat[3], pchan->pose_mat, loc);
+				}
 
 				mul_m4_m4m4(mat, ob->obmat, tempmat);
 			}
@@ -2155,10 +2122,31 @@ static void armdef_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 	}
 }
 
+static void armdef_accumulate_matrix(float obmat[4][4], float iobmat[4][4], float basemat[4][4], float bonemat[4][4], float weight, float r_sum_mat[4][4], DualQuat *r_sum_dq)
+{
+	if (weight == 0.0f)
+		return;
+
+	/* Convert the selected matrix into object space. */
+	float mat[4][4];
+	mul_m4_series(mat, obmat, bonemat, iobmat);
+
+	/* Accumulate the transformation. */
+	if (r_sum_dq != NULL) {
+		DualQuat tmpdq;
+
+		mat4_to_dquat(&tmpdq, basemat, mat);
+		add_weighted_dq_dq(r_sum_dq, &tmpdq, weight);
+	}
+	else {
+		madd_m4_m4m4fl(r_sum_mat, r_sum_mat, mat, weight);
+	}
+}
+
 /* Compute and accumulate transformation for a single target bone. */
 static void armdef_accumulate_bone(bConstraintTarget *ct, bPoseChannel *pchan, const float wco[3], bool force_envelope, float *r_totweight, float r_sum_mat[4][4], DualQuat *r_sum_dq)
 {
-	float mat[4][4], iobmat[4][4], basemat[4][4], co[3];
+	float iobmat[4][4], basemat[4][4], co[3];
 	Bone *bone = pchan->bone;
 	float weight = ct->weight;
 
@@ -2172,6 +2160,11 @@ static void armdef_accumulate_bone(bConstraintTarget *ct, bPoseChannel *pchan, c
 		                             bone->rad_head, bone->rad_tail, bone->dist);
 	}
 
+	/* Compute the quaternion base matrix. */
+	if (r_sum_dq != NULL) {
+		mul_m4_series(basemat, ct->tar->obmat, bone->arm_mat, iobmat);
+	}
+
 	/* Find the correct bone transform matrix in world space. */
 	if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments) {
 		Mat4 *b_bone_mats = pchan->runtime.bbone_deform_mats;
@@ -2182,34 +2175,21 @@ static void armdef_accumulate_bone(bConstraintTarget *ct, bPoseChannel *pchan, c
 		 * Need to transform co back to bonespace, only need y. */
 		float y = iamat[0][1] * co[0] + iamat[1][1] * co[1] + iamat[2][1] * co[2] + iamat[3][1];
 
-		float segment = bone->length / ((float)bone->segments);
-		int a = (int)(y / segment);
+		/* Blend the matrix. */
+		int index;
+		float blend;
+		BKE_pchan_bbone_deform_segment_index(pchan, y / bone->length, &index, &blend);
 
-		CLAMP(a, 0, bone->segments - 1);
-
-		/* Convert the selected matrix into object space. */
-		mul_m4_series(mat, ct->tar->obmat, b_bone_mats[a + 1].mat, iobmat);
+		armdef_accumulate_matrix(ct->tar->obmat, iobmat, basemat, b_bone_mats[index + 1].mat, weight * (1.0f - blend), r_sum_mat, r_sum_dq);
+		armdef_accumulate_matrix(ct->tar->obmat, iobmat, basemat, b_bone_mats[index + 2].mat, weight * blend, r_sum_mat, r_sum_dq);
 	}
 	else {
 		/* Simple bone. This requires DEG_OPCODE_BONE_DONE dependency due to chan_mat. */
-		mul_m4_series(mat, ct->tar->obmat, pchan->chan_mat, iobmat);
+		armdef_accumulate_matrix(ct->tar->obmat, iobmat, basemat, pchan->chan_mat, weight, r_sum_mat, r_sum_dq);
 	}
 
-	/* Accumulate the transformation. */
+	/* Accumulate the weight. */
 	*r_totweight += weight;
-
-	if (r_sum_dq != NULL) {
-		DualQuat tmpdq;
-
-		mul_m4_series(basemat, ct->tar->obmat, bone->arm_mat, iobmat);
-
-		mat4_to_dquat(&tmpdq, basemat, mat);
-		add_weighted_dq_dq(r_sum_dq, &tmpdq, weight);
-	}
-	else {
-		mul_m4_fl(mat, weight);
-		add_m4_m4m4(r_sum_mat, r_sum_mat, mat);
-	}
 }
 
 static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)

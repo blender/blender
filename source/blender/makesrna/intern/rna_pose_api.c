@@ -63,7 +63,7 @@ static void rna_PoseBone_bbone_segment_matrix(bPoseChannel *pchan, ReportList *r
 		BKE_reportf(reports, RPT_ERROR, "Bone '%s' has out of date B-Bone segment data!", pchan->name);
 		return;
 	}
-	if (index < 0 || index >= pchan->runtime.bbone_segments) {
+	if (index < 0 || index > pchan->runtime.bbone_segments) {
 		BKE_reportf(reports, RPT_ERROR, "Invalid index %d for B-Bone segments of '%s'!", index, pchan->name);
 		return;
 	}
@@ -115,13 +115,13 @@ void RNA_api_pose_channel(StructRNA *srna)
 
 	/* B-Bone segment matrices */
 	func = RNA_def_function(srna, "bbone_segment_matrix", "rna_PoseBone_bbone_segment_matrix");
-	RNA_def_function_ui_description(func, "Retrieve the matrix of the B-Bone segment if available");
+	RNA_def_function_ui_description(func, "Retrieve the matrix of the joint between B-Bone segments if available");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_property(func, "matrix_return", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(parm, "", "The resulting matrix in bone local space");
 	RNA_def_function_output(func, parm);
-	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of the segment", 0, 10000);
+	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of the segment endpoint", 0, 10000);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "rest", false, "", "Return the rest pose matrix");
 

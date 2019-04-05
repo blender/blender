@@ -813,6 +813,28 @@ void add_m4_m4m4(float m1[4][4], const float m2[4][4], const float m3[4][4])
 	}
 }
 
+void madd_m3_m3m3fl(float m1[3][3], const float m2[3][3], const float m3[3][3], const float f)
+{
+	int i, j;
+
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			m1[i][j] = m2[i][j] + m3[i][j] * f;
+		}
+	}
+}
+
+void madd_m4_m4m4fl(float m1[4][4], const float m2[4][4], const float m3[4][4], const float f)
+{
+	int i, j;
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
+			m1[i][j] = m2[i][j] + m3[i][j] * f;
+		}
+	}
+}
+
 void sub_m3_m3m3(float m1[3][3], const float m2[3][3], const float m3[3][3])
 {
 	int i, j;

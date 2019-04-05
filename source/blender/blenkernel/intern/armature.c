@@ -36,6 +36,7 @@
 #include "BLI_ghash.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -389,45 +390,60 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 
 /* ************* B-Bone support ******************* */
 
-/* data has MAX_BBONE_SUBDIV+1 interpolated points, will become desired amount with equal distances */
-static void equalize_bbone_bezier(float *data, int desired)
+/* Compute a set of bezier parameter values that produce approximately equally spaced points. */
+static void equalize_cubic_bezier(const float control[4][3], int temp_segments, int final_segments, float *r_t_points)
 {
-	float *fp, totdist, ddist, dist, fac1, fac2;
-	float pdist[MAX_BBONE_SUBDIV + 1];
-	float temp[MAX_BBONE_SUBDIV + 1][4];
-	int a, nr;
+	float (*coords)[3] = BLI_array_alloca(coords, temp_segments + 1);
+	float *pdist = BLI_array_alloca(pdist, temp_segments + 1);
 
-	pdist[0] = 0.0f;
-	for (a = 0, fp = data; a < MAX_BBONE_SUBDIV; a++, fp += 4) {
-		copy_qt_qt(temp[a], fp);
-		pdist[a + 1] = pdist[a] + len_v3v3(fp, fp + 4);
+	/* Compute the first pass of bezier point coordinates. */
+	for (int i = 0; i < 3; i++)	{
+		BKE_curve_forward_diff_bezier(
+			control[0][i], control[1][i], control[2][i], control[3][i],
+		    &coords[0][i], temp_segments, sizeof(*coords)
+		);
 	}
-	/* do last point */
-	copy_qt_qt(temp[a], fp);
-	totdist = pdist[a];
 
-	/* go over distances and calculate new points */
-	ddist = totdist / ((float)desired);
-	nr = 1;
-	for (a = 1, fp = data + 4; a < desired; a++, fp += 4) {
-		dist = ((float)a) * ddist;
+	/* Calculate the length of the polyline at each point. */
+	pdist[0] = 0.0f;
 
-		/* we're looking for location (distance) 'dist' in the array */
-		while ((nr < MAX_BBONE_SUBDIV) && (dist >= pdist[nr]))
+	for (int i = 0; i < temp_segments; i++)
+		pdist[i + 1] = pdist[i] + len_v3v3(coords[i], coords[i + 1]);
+
+	/* Go over distances and calculate new parameter values. */
+	float dist_step = pdist[temp_segments] / final_segments;
+
+	r_t_points[0] = 0.0f;
+
+	for (int i = 1, nr = 1; i <= final_segments; i++) {
+		float dist = i * dist_step;
+
+		/* We're looking for location (distance) 'dist' in the array. */
+		while ((nr < temp_segments) && (dist >= pdist[nr]))
 			nr++;
 
-		fac1 = pdist[nr] - pdist[nr - 1];
-		fac2 = pdist[nr] - dist;
-		fac1 = fac2 / fac1;
-		fac2 = 1.0f - fac1;
+		float fac = (pdist[nr] - dist) / (pdist[nr] - pdist[nr - 1]);
 
-		fp[0] = fac1 * temp[nr - 1][0] + fac2 * temp[nr][0];
-		fp[1] = fac1 * temp[nr - 1][1] + fac2 * temp[nr][1];
-		fp[2] = fac1 * temp[nr - 1][2] + fac2 * temp[nr][2];
-		fp[3] = fac1 * temp[nr - 1][3] + fac2 * temp[nr][3];
+		r_t_points[i] = (nr - fac) / temp_segments;
 	}
-	/* set last point, needed for orientation calculus */
-	copy_qt_qt(fp, temp[MAX_BBONE_SUBDIV]);
+
+	r_t_points[final_segments] = 1.0f;
+}
+
+/* Evaluate bezier position and tangent at a specific parameter value using the De Casteljau algorithm. */
+static void evaluate_cubic_bezier(const float control[4][3], float t, float r_pos[3], float r_tangent[3])
+{
+	float layer1[3][3];
+	interp_v3_v3v3(layer1[0], control[0], control[1], t);
+	interp_v3_v3v3(layer1[1], control[1], control[2], t);
+	interp_v3_v3v3(layer1[2], control[2], control[3], t);
+
+	float layer2[2][3];
+	interp_v3_v3v3(layer2[0], layer1[0], layer1[1], t);
+	interp_v3_v3v3(layer2[1], layer1[1], layer1[2], t);
+
+	sub_v3_v3v3(r_tangent, layer2[1], layer2[0]);
+	madd_v3_v3v3fl(r_pos, layer2[0], r_tangent, t);
 }
 
 /* Get "next" and "prev" bones - these are used for handle calculations. */
@@ -640,13 +656,13 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan, const bool re
 
 /* Fills the array with the desired amount of bone->segments elements.
  * This calculation is done within unit bone space. */
-void BKE_pchan_bbone_spline_setup(bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV])
+void BKE_pchan_bbone_spline_setup(bPoseChannel *pchan, const bool rest, const bool for_deform, Mat4 *result_array)
 {
 	BBoneSplineParameters param;
 
 	BKE_pchan_bbone_spline_params_get(pchan, rest, &param);
 
-	pchan->bone->segments = BKE_pchan_bbone_spline_compute(&param, result_array);
+	pchan->bone->segments = BKE_pchan_bbone_spline_compute(&param, for_deform, result_array);
 }
 
 /* Computes the bezier handle vectors and rolls coming from custom handles. */
@@ -654,6 +670,7 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param, float h
 {
 	float mat3[3][3];
 	float length = param->length;
+	float epsilon = 1e-5 * length;
 
 	if (param->do_scale) {
 		length *= param->scale[1];
@@ -669,7 +686,9 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param, float h
 			h1[1] -= length;
 		}
 
-		normalize_v3(h1);
+		if (normalize_v3(h1) < epsilon)
+			copy_v3_fl3(h1, 0.0f, -1.0f, 0.0f);
+
 		negate_v3(h1);
 
 		if (!param->prev_bbone) {
@@ -693,7 +712,8 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param, float h
 			h2[1] -= length;
 		}
 
-		normalize_v3(h2);
+		if (normalize_v3(h2) < epsilon)
+			copy_v3_fl3(h2, 0.0f, 1.0f, 0.0f);
 
 		/* Find the next roll to interpolate as well. */
 		copy_m3_m4(mat3, param->next_mat);
@@ -749,20 +769,55 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param, float h
 	}
 }
 
-/* Fills the array with the desired amount of bone->segments elements.
- * This calculation is done within unit bone space. */
-int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV])
-{
-	float scalemat[4][4], iscalemat[4][4];
+static void make_bbone_spline_matrix(
+        BBoneSplineParameters *param, float scalemats[2][4][4],
+		float pos[3], float axis[3], float roll, float scalefac,
+		float result[4][4]
+) {
 	float mat3[3][3];
-	float h1[3], roll1, h2[3], roll2;
-	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
-	float length = param->length;
-	int a;
+
+	vec_roll_to_mat3(axis, roll, mat3);
+
+	copy_m4_m3(result, mat3);
+	copy_v3_v3(result[3], pos);
 
 	if (param->do_scale) {
-		size_to_mat4(scalemat, param->scale);
-		invert_m4_m4(iscalemat, scalemat);
+		/* Correct for scaling when this matrix is used in scaled space. */
+		mul_m4_series(result, scalemats[0], result, scalemats[1]);
+	}
+
+	/* BBone scale... */
+	mul_v3_fl(result[0], scalefac);
+	mul_v3_fl(result[2], scalefac);
+}
+
+/* Fade from first to second derivative when the handle is very short. */
+static void ease_handle_axis(const float deriv1[3], const float deriv2[3], float r_axis[3])
+{
+	const float gap = 0.1f;
+
+	copy_v3_v3(r_axis, deriv1);
+
+	float len1 = len_squared_v3(deriv1), len2 = len_squared_v3(deriv2);
+	float ratio = len1 / len2;
+
+	if (ratio < gap * gap) {
+		madd_v3_v3fl(r_axis, deriv2, gap - sqrtf(ratio));
+	}
+}
+
+/* Fills the array with the desired amount of bone->segments elements.
+ * This calculation is done within unit bone space. */
+int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param, const bool for_deform, Mat4 *result_array)
+{
+	float scalemats[2][4][4];
+	float bezt_controls[4][3];
+	float h1[3], roll1, h2[3], roll2, prev[3], cur[3], axis[3];
+	float length = param->length;
+
+	if (param->do_scale) {
+		size_to_mat4(scalemats[1], param->scale);
+		invert_m4_m4(scalemats[0], scalemats[1]);
 
 		length *= param->scale[1];
 	}
@@ -772,48 +827,59 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param, Mat4 result_arr
 	/* Make curve. */
 	CLAMP_MAX(param->segments, MAX_BBONE_SUBDIV);
 
-	BKE_curve_forward_diff_bezier(0.0f,  h1[0],                               h2[0],                               0.0f,   data[0],     MAX_BBONE_SUBDIV, 4 * sizeof(float));
-	BKE_curve_forward_diff_bezier(0.0f,  h1[1],                               length + h2[1],                      length, data[0] + 1, MAX_BBONE_SUBDIV, 4 * sizeof(float));
-	BKE_curve_forward_diff_bezier(0.0f,  h1[2],                               h2[2],                               0.0f,   data[0] + 2, MAX_BBONE_SUBDIV, 4 * sizeof(float));
-	BKE_curve_forward_diff_bezier(roll1, roll1 + 0.390464f * (roll2 - roll1), roll2 - 0.390464f * (roll2 - roll1), roll2,  data[0] + 3, MAX_BBONE_SUBDIV, 4 * sizeof(float));
+	copy_v3_fl3(bezt_controls[3], 0.0f, length, 0.0f);
+	add_v3_v3v3(bezt_controls[2], bezt_controls[3], h2);
+	copy_v3_v3(bezt_controls[1], h1);
+	zero_v3(bezt_controls[0]);
 
-	equalize_bbone_bezier(data[0], param->segments); /* note: does stride 4! */
+	float bezt_points[MAX_BBONE_SUBDIV + 1];
 
-	/* Make transformation matrices for the segments for drawing. */
-	for (a = 0, fp = data[0]; a < param->segments; a++, fp += 4) {
-		sub_v3_v3v3(h1, fp + 4, fp);
-		vec_roll_to_mat3(h1, fp[3], mat3); /* fp[3] is roll */
+	equalize_cubic_bezier(bezt_controls, MAX_BBONE_SUBDIV, param->segments, bezt_points);
 
-		copy_m4_m3(result_array[a].mat, mat3);
-		copy_v3_v3(result_array[a].mat[3], fp);
+	/* Deformation uses N+1 matrices computed at points between the segments. */
+	if (for_deform) {
+		/* Bezier derivatives. */
+		float bezt_deriv1[3][3], bezt_deriv2[2][3];
 
-		if (param->do_scale) {
-			/* Correct for scaling when this matrix is used in scaled space. */
-			mul_m4_series(result_array[a].mat, iscalemat, result_array[a].mat, scalemat);
+		for (int i = 0; i < 3; i++) {
+			sub_v3_v3v3(bezt_deriv1[i], bezt_controls[i + 1], bezt_controls[i]);
+		}
+		for (int i = 0; i < 2; i++) {
+			sub_v3_v3v3(bezt_deriv2[i], bezt_deriv1[i + 1], bezt_deriv1[i]);
 		}
 
-		/* BBone scale... */
-		{
-			const int num_segments = param->segments;
+		/* End points require special handling to fix zero length handles. */
+		ease_handle_axis(bezt_deriv1[0], bezt_deriv2[0], axis);
+		make_bbone_spline_matrix(param, scalemats, bezt_controls[0], axis, roll1, param->scaleIn, result_array[0].mat);
 
-			const float scaleIn = param->scaleIn;
-			const float scaleFactorIn  = 1.0f + (scaleIn  - 1.0f) * ((float)(num_segments - a) / (float)num_segments);
+		for (int a = 1; a < param->segments; a++) {
+			evaluate_cubic_bezier(bezt_controls, bezt_points[a], cur, axis);
 
-			const float scaleOut = param->scaleOut;
-			const float scaleFactorOut = 1.0f + (scaleOut - 1.0f) * ((float)(a + 1)            / (float)num_segments);
+			float fac = ((float)a) / param->segments;
+			float roll = interpf(roll2, roll1, fac);
+			float scalefac = interpf(param->scaleOut, param->scaleIn, fac);
 
-			const float scalefac = scaleFactorIn * scaleFactorOut;
-			float bscalemat[4][4], bscale[3];
+			make_bbone_spline_matrix(param, scalemats, cur, axis, roll, scalefac, result_array[a].mat);
+		}
 
-			bscale[0] = scalefac;
-			bscale[1] = 1.0f;
-			bscale[2] = scalefac;
+		ease_handle_axis(bezt_deriv1[2], bezt_deriv2[1], axis);
+		make_bbone_spline_matrix(param, scalemats, bezt_controls[3], axis, roll2, param->scaleOut, result_array[param->segments].mat);
+	}
+	/* Other code (e.g. display) uses matrices for the segments themselves. */
+	else {
+		zero_v3(prev);
 
-			size_to_mat4(bscalemat, bscale);
+		for (int a = 0; a < param->segments; a++) {
+			evaluate_cubic_bezier(bezt_controls, bezt_points[a + 1], cur, axis);
 
-			/* Note: don't multiply by inverse scale mat here, as it causes problems with scaling shearing and breaking segment chains */
-			/*mul_m4_series(result_array[a].mat, ibscalemat, result_array[a].mat, bscalemat);*/
-			mul_m4_series(result_array[a].mat, result_array[a].mat, bscalemat);
+			sub_v3_v3v3(axis, cur, prev);
+
+			float fac = (a + 0.5f) / param->segments;
+			float roll = interpf(roll2, roll1, fac);
+			float scalefac = interpf(param->scaleOut, param->scaleIn, fac);
+
+			make_bbone_spline_matrix(param, scalemats, prev, axis, roll, scalefac, result_array[a].mat);
+			copy_v3_v3(prev, cur);
 		}
 	}
 
@@ -843,10 +909,10 @@ static void allocate_bbone_cache(bPoseChannel *pchan, int segments)
 		}
 
 		runtime->bbone_segments = segments;
-		runtime->bbone_rest_mats = MEM_malloc_arrayN(sizeof(Mat4), (uint)segments, "bPoseChannel_Runtime::bbone_rest_mats");
-		runtime->bbone_pose_mats = MEM_malloc_arrayN(sizeof(Mat4), (uint)segments, "bPoseChannel_Runtime::bbone_pose_mats");
-		runtime->bbone_deform_mats = MEM_malloc_arrayN(sizeof(Mat4), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_deform_mats");
-		runtime->bbone_dual_quats = MEM_malloc_arrayN(sizeof(DualQuat), (uint)segments, "bPoseChannel_Runtime::bbone_dual_quats");
+		runtime->bbone_rest_mats = MEM_malloc_arrayN(sizeof(Mat4), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_rest_mats");
+		runtime->bbone_pose_mats = MEM_malloc_arrayN(sizeof(Mat4), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_pose_mats");
+		runtime->bbone_deform_mats = MEM_malloc_arrayN(sizeof(Mat4), 2 + (uint)segments, "bPoseChannel_Runtime::bbone_deform_mats");
+		runtime->bbone_dual_quats = MEM_malloc_arrayN(sizeof(DualQuat), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_dual_quats");
 	}
 }
 
@@ -869,8 +935,8 @@ void BKE_pchan_bbone_segments_cache_compute(bPoseChannel *pchan)
 	DualQuat *b_bone_dual_quats = runtime->bbone_dual_quats;
 	int a;
 
-	BKE_pchan_bbone_spline_setup(pchan, false, b_bone);
-	BKE_pchan_bbone_spline_setup(pchan, true, b_bone_rest);
+	BKE_pchan_bbone_spline_setup(pchan, false, true, b_bone);
+	BKE_pchan_bbone_spline_setup(pchan, true, true, b_bone_rest);
 
 	/* Compute deform matrices. */
 	/* first matrix is the inverse arm_mat, to bring points in local bone space
@@ -883,7 +949,7 @@ void BKE_pchan_bbone_segments_cache_compute(bPoseChannel *pchan)
 	 * - transform with b_bone matrix
 	 * - transform back into global space */
 
-	for (a = 0; a < bone->segments; a++) {
+	for (a = 0; a <= bone->segments; a++) {
 		float tmat[4][4];
 
 		invert_m4_m4(tmat, b_bone_rest[a].mat);
@@ -906,42 +972,81 @@ void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pcha
 	else {
 		allocate_bbone_cache(pchan, segments);
 
-		memcpy(runtime->bbone_rest_mats, runtime_from->bbone_rest_mats, sizeof(Mat4) * segments);
-		memcpy(runtime->bbone_pose_mats, runtime_from->bbone_pose_mats, sizeof(Mat4) * segments);
-		memcpy(runtime->bbone_deform_mats, runtime_from->bbone_deform_mats, sizeof(Mat4) * (1 + segments));
-		memcpy(runtime->bbone_dual_quats, runtime_from->bbone_dual_quats, sizeof(DualQuat) * segments);
+		memcpy(runtime->bbone_rest_mats, runtime_from->bbone_rest_mats, sizeof(Mat4) * (1 + segments));
+		memcpy(runtime->bbone_pose_mats, runtime_from->bbone_pose_mats, sizeof(Mat4) * (1 + segments));
+		memcpy(runtime->bbone_deform_mats, runtime_from->bbone_deform_mats, sizeof(Mat4) * (2 + segments));
+		memcpy(runtime->bbone_dual_quats, runtime_from->bbone_dual_quats, sizeof(DualQuat) * (1 + segments));
 	}
 }
 
-static void b_bone_deform(const bPoseChannel *pchan, float co[3], DualQuat *dq, float defmat[3][3])
+/** Calculate index and blend factor for the two B-Bone segment nodes affecting the point at 0 <= pos <= 1. */
+void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan, float pos, int *r_index, float *r_blend_next)
 {
-	Bone *bone = pchan->bone;
-	const Mat4 *b_bone = pchan->runtime.bbone_deform_mats;
-	const float (*mat)[4] = b_bone[0].mat;
-	float segment, y;
-	int a;
+	int segments = pchan->bone->segments;
 
-	/* need to transform co back to bonespace, only need y */
-	y = mat[0][1] * co[0] + mat[1][1] * co[1] + mat[2][1] * co[2] + mat[3][1];
+	CLAMP(pos, 0.0f, 1.0f);
 
-	/* now calculate which of the b_bones are deforming this */
-	segment = bone->length / ((float)bone->segments);
-	a = (int)(y / segment);
+	/* Calculate the indices of the 2 affecting b_bone segments.
+	 * Integer part is the first segment's index.
+	 * Integer part plus 1 is the second segment's index.
+	 * Fractional part is the blend factor. */
+	float pre_blend = pos * (float)segments;
 
-	/* note; by clamping it extends deform at endpoints, goes best with
-	 * straight joints in restpos. */
-	CLAMP(a, 0, bone->segments - 1);
+	int index = (int)floorf(pre_blend);
+	float blend = pre_blend - index;
 
-	if (dq) {
-		copy_dq_dq(dq, &(pchan->runtime.bbone_dual_quats)[a]);
+	CLAMP(index, 0, segments);
+	CLAMP(blend, 0.0f, 1.0f);
+
+	*r_index = index;
+	*r_blend_next = blend;
+}
+
+/* Add the effect of one bone or B-Bone segment to the accumulated result. */
+static void pchan_deform_accumulate(
+    const DualQuat *deform_dq, const float deform_mat[4][4], const float co_in[3], float weight,
+	float co_accum[3], DualQuat *dq_accum, float mat_accum[3][3]
+) {
+	if (weight == 0.0f)
+		return;
+
+	if (dq_accum) {
+		BLI_assert(!co_accum);
+
+		add_weighted_dq_dq(dq_accum, deform_dq, weight);
 	}
 	else {
-		mul_m4_v3(b_bone[a + 1].mat, co);
+		float tmp[3];
+		mul_v3_m4v3(tmp, deform_mat, co_in);
 
-		if (defmat) {
-			copy_m3_m4(defmat, b_bone[a + 1].mat);
+		sub_v3_v3(tmp, co_in);
+		madd_v3_v3fl(co_accum, tmp, weight);
+
+		if (mat_accum) {
+			float tmpmat[3][3];
+			copy_m3_m4(tmpmat, deform_mat);
+
+			madd_m3_m3m3fl(mat_accum, mat_accum, tmpmat, weight);
 		}
 	}
+}
+
+static void b_bone_deform(const bPoseChannel *pchan, const float co[3], float weight, float vec[3], DualQuat *dq, float defmat[3][3])
+{
+	const DualQuat *quats = pchan->runtime.bbone_dual_quats;
+	const Mat4 *mats = pchan->runtime.bbone_deform_mats;
+	const float (*mat)[4] = mats[0].mat;
+	float blend, y;
+	int index;
+
+	/* Transform co to bone space and get its y component. */
+	y = mat[0][1] * co[0] + mat[1][1] * co[1] + mat[2][1] * co[2] + mat[3][1];
+
+	/* Calculate the indices of the 2 affecting b_bone segments. */
+	BKE_pchan_bbone_deform_segment_index(pchan, y / pchan->bone->length, &index, &blend);
+
+	pchan_deform_accumulate(&quats[index], mats[index + 1].mat, co, weight * (1.0f - blend), vec, dq, defmat);
+	pchan_deform_accumulate(&quats[index + 1], mats[index + 2].mat, co, weight * blend, vec, dq, defmat);
 }
 
 /* using vec with dist to bone b1 - b2 */
@@ -996,60 +1101,25 @@ float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3
 	}
 }
 
-static void pchan_deform_mat_add(bPoseChannel *pchan, float weight, float bbonemat[3][3], float mat[3][3])
-{
-	float wmat[3][3];
-
-	if (pchan->bone->segments > 1)
-		copy_m3_m3(wmat, bbonemat);
-	else
-		copy_m3_m4(wmat, pchan->chan_mat);
-
-	mul_m3_fl(wmat, weight);
-	add_m3_m3m3(mat, mat, wmat);
-}
-
 static float dist_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_info, float vec[3], DualQuat *dq,
                               float mat[3][3], const float co[3])
 {
 	Bone *bone = pchan->bone;
 	float fac, contrib = 0.0;
-	float cop[3], bbonemat[3][3];
-	DualQuat bbonedq;
 
 	if (bone == NULL)
 		return 0.0f;
 
-	copy_v3_v3(cop, co);
-
-	fac = distfactor_to_bone(cop, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
+	fac = distfactor_to_bone(co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
 
 	if (fac > 0.0f) {
 		fac *= bone->weight;
 		contrib = fac;
 		if (contrib > 0.0f) {
-			if (vec) {
-				if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments)
-					/* applies on cop and bbonemat */
-					b_bone_deform(pchan, cop, NULL, (mat) ? bbonemat : NULL);
-				else
-					mul_m4_v3(pchan->chan_mat, cop);
-
-				/* Make this a delta from the base position */
-				sub_v3_v3(cop, co);
-				madd_v3_v3fl(vec, cop, fac);
-
-				if (mat)
-					pchan_deform_mat_add(pchan, fac, bbonemat, mat);
-			}
-			else {
-				if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments) {
-					b_bone_deform(pchan, cop, &bbonedq, NULL);
-					add_weighted_dq_dq(dq, &bbonedq, fac);
-				}
-				else
-					add_weighted_dq_dq(dq, pdef_info->dual_quat, fac);
-			}
+			if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments)
+				b_bone_deform(pchan, co, fac, vec, dq, mat);
+			else
+				pchan_deform_accumulate(pdef_info->dual_quat, pchan->chan_mat, co, fac, vec, dq, mat);
 		}
 	}
 
@@ -1061,36 +1131,14 @@ static void pchan_bone_deform(bPoseChannel *pchan, const bPoseChanDeform *pdef_i
                               float mat[3][3], const float co[3], float *contrib)
 {
 	Bone *bone = pchan->bone;
-	float cop[3], bbonemat[3][3];
-	DualQuat bbonedq;
 
 	if (!weight)
 		return;
 
-	copy_v3_v3(cop, co);
-
-	if (vec) {
-		if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments)
-			/* applies on cop and bbonemat */
-			b_bone_deform(pchan, cop, NULL, (mat) ? bbonemat : NULL);
-		else
-			mul_m4_v3(pchan->chan_mat, cop);
-
-		vec[0] += (cop[0] - co[0]) * weight;
-		vec[1] += (cop[1] - co[1]) * weight;
-		vec[2] += (cop[2] - co[2]) * weight;
-
-		if (mat)
-			pchan_deform_mat_add(pchan, weight, bbonemat, mat);
-	}
-	else {
-		if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments) {
-			b_bone_deform(pchan, cop, &bbonedq, NULL);
-			add_weighted_dq_dq(dq, &bbonedq, weight);
-		}
-		else
-			add_weighted_dq_dq(dq, pdef_info->dual_quat, weight);
-	}
+	if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments)
+		b_bone_deform(pchan, co, weight, vec, dq, mat);
+	else
+		pchan_deform_accumulate(pdef_info->dual_quat, pchan->chan_mat, co, weight, vec, dq, mat);
 
 	(*contrib) += weight;
 }
