@@ -41,6 +41,7 @@ set(INC
 
 	../../../intern/glew-mx
 	../../../intern/guardedalloc
+	../../../intern/atomic
 )
 
 set(INC_SYS

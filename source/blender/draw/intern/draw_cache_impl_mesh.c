@@ -48,6 +48,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_object_deform.h"
 
+#include "atomic_ops.h"
 
 #include "bmesh.h"
 
@@ -77,6 +78,14 @@ typedef struct DRW_MeshWeightState {
 	bool *defgroup_sel; /* [defgroup_len] */
 	int   defgroup_sel_count;
 } DRW_MeshWeightState;
+
+typedef struct DRW_MeshCDMask {
+	uint32_t uv : 8;
+	uint32_t tan : 8;
+	uint32_t vcol : 8;
+	uint32_t orco : 1;
+	uint32_t tan_orco : 1;
+} DRW_MeshCDMask;
 
 /* DRW_MeshWeightState.flags */
 enum {
@@ -354,72 +363,63 @@ BLI_INLINE bool bm_edge_is_loose_and_visible(const BMEdge *e)
 }
 
 /* Return true is all layers in _b_ are inside _a_. */
-static bool mesh_cd_layers_type_overlap(
-        const uchar av[CD_NUMTYPES], const ushort al[CD_NUMTYPES],
-        const uchar bv[CD_NUMTYPES], const ushort bl[CD_NUMTYPES])
+BLI_INLINE bool mesh_cd_layers_type_overlap(DRW_MeshCDMask a, DRW_MeshCDMask b)
 {
-	for (int i = 0; i < CD_NUMTYPES; ++i) {
-		if ((av[i] & bv[i]) != bv[i]) {
-			return false;
-		}
-		if ((al[i] & bl[i]) != bl[i]) {
-			return false;
-		}
-	}
-	return true;
+	return (*((uint32_t *)&a) & *((uint32_t *)&b)) == *((uint32_t *)&b);
 }
 
-static void mesh_cd_layers_type_merge(
-        uchar av[CD_NUMTYPES], ushort al[CD_NUMTYPES],
-        uchar bv[CD_NUMTYPES], ushort bl[CD_NUMTYPES])
+BLI_INLINE void mesh_cd_layers_type_merge(DRW_MeshCDMask *a, DRW_MeshCDMask b)
 {
-	for (int i = 0; i < CD_NUMTYPES; ++i) {
-		av[i] |= bv[i];
-		al[i] |= bl[i];
-	}
+	atomic_fetch_and_or_uint32((uint32_t *)a, *(uint32_t *)&b);
+}
+
+BLI_INLINE void mesh_cd_layers_type_clear(DRW_MeshCDMask *a)
+{
+	*((uint32_t *)a) = 0;
 }
 
 static void mesh_cd_calc_active_uv_layer(
-        const Mesh *me, ushort cd_lused[CD_NUMTYPES])
+        const Mesh *me, DRW_MeshCDMask *cd_used)
 {
 	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
 	if (layer != -1) {
-		cd_lused[CD_MLOOPUV] |= (1 << layer);
+		cd_used->uv |= (1 << layer);
 	}
 }
 
 static void mesh_cd_calc_active_mask_uv_layer(
-        const Mesh *me, ushort cd_lused[CD_NUMTYPES])
+        const Mesh *me, DRW_MeshCDMask *cd_used)
 {
 	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int layer = CustomData_get_stencil_layer(cd_ldata, CD_MLOOPUV);
 	if (layer != -1) {
-		cd_lused[CD_MLOOPUV] |= (1 << layer);
+		cd_used->uv |= (1 << layer);
 	}
 }
 
 static void mesh_cd_calc_active_vcol_layer(
-        const Mesh *me, ushort cd_lused[CD_NUMTYPES])
+        const Mesh *me, DRW_MeshCDMask *cd_used)
 {
 	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
 	if (layer != -1) {
-		cd_lused[CD_MLOOPCOL] |= (1 << layer);
+		cd_used->vcol |= (1 << layer);
 	}
 }
 
-static void mesh_cd_calc_used_gpu_layers(
-        const Mesh *me, uchar cd_vused[CD_NUMTYPES], ushort cd_lused[CD_NUMTYPES],
-        struct GPUMaterial **gpumat_array, int gpumat_array_len)
+static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(
+        const Mesh *me, struct GPUMaterial **gpumat_array, int gpumat_array_len)
 {
 	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
 	/* See: DM_vertex_attributes_from_gpu for similar logic */
 	GPUVertAttrLayers gpu_attrs = {{{0}}};
+	DRW_MeshCDMask cd_used;
+	mesh_cd_layers_type_clear(&cd_used);
 
 	for (int i = 0; i < gpumat_array_len; i++) {
 		GPUMaterial *gpumat = gpumat_array[i];
@@ -468,7 +468,7 @@ static void mesh_cd_calc_used_gpu_layers(
 							        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
 						}
 						if (layer != -1) {
-							cd_lused[CD_MLOOPUV] |= (1 << layer);
+							cd_used.uv |= (1 << layer);
 						}
 						break;
 					}
@@ -485,12 +485,12 @@ static void mesh_cd_calc_used_gpu_layers(
 							}
 						}
 						if (layer != -1) {
-							cd_lused[CD_TANGENT] |= (1 << layer);
+							cd_used.tan |= (1 << layer);
 						}
 						else {
 							/* no UV layers at all => requesting orco */
-							cd_lused[CD_TANGENT] |= DM_TANGENT_MASK_ORCO;
-							cd_vused[CD_ORCO] |= 1;
+							cd_used.tan_orco = 1;
+							cd_used.orco = 1;
 						}
 						break;
 					}
@@ -502,19 +502,20 @@ static void mesh_cd_calc_used_gpu_layers(
 							        CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
 						}
 						if (layer != -1) {
-							cd_lused[CD_MLOOPCOL] |= (1 << layer);
+							cd_used.vcol |= (1 << layer);
 						}
 						break;
 					}
 					case CD_ORCO:
 					{
-						cd_vused[CD_ORCO] |= 1;
+						cd_used.orco = 1;
 						break;
 					}
 				}
 			}
 		}
 	}
+	return cd_used;
 }
 
 
@@ -544,13 +545,13 @@ static void mesh_render_calc_normals_loop_and_poly(const Mesh *me, const float s
 }
 
 static void mesh_cd_extract_auto_layers_names_and_srgb(
-        Mesh *me, const ushort cd_lused[CD_NUMTYPES],
+        Mesh *me, DRW_MeshCDMask cd_used,
         char **r_auto_layers_names, int **r_auto_layers_srgb, int *r_auto_layers_len)
 {
 	const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
 
-	int uv_len_used = count_bits_i(cd_lused[CD_MLOOPUV]);
-	int vcol_len_used = count_bits_i(cd_lused[CD_MLOOPCOL]);
+	int uv_len_used = count_bits_i(cd_used.uv);
+	int vcol_len_used = count_bits_i(cd_used.vcol);
 	int uv_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPUV);
 	int vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL);
 
@@ -561,7 +562,7 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(
 	int *auto_is_srgb = MEM_callocN(sizeof(int) * (uv_len_used + vcol_len_used), __func__);
 
 	for (int i = 0; i < uv_len; i++) {
-		if ((cd_lused[CD_MLOOPUV] & (1 << i)) != 0) {
+		if ((cd_used.uv & (1 << i)) != 0) {
 			const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
 			uint hash = BLI_ghashutil_strhash_p(name);
 			/* +1 to include '\0' terminator. */
@@ -571,7 +572,7 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(
 
 	uint auto_is_srgb_ofs = uv_len_used;
 	for (int i = 0; i < vcol_len; i++) {
-		if ((cd_lused[CD_MLOOPCOL] & (1 << i)) != 0) {
+		if ((cd_used.vcol & (1 << i)) != 0) {
 			const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
 			/* We only do vcols that are not overridden by a uv layer with same name. */
 			if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name) == -1) {
@@ -602,7 +603,7 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(
  * Although this only impacts the data that's generated, not the materials that display.
  */
 static MeshRenderData *mesh_render_data_create_ex(
-        Mesh *me, const int types, const uchar cd_vused[CD_NUMTYPES], const ushort cd_lused[CD_NUMTYPES],
+        Mesh *me, const int types, const DRW_MeshCDMask *cd_used,
         const ToolSettings *ts)
 {
 	MeshRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
@@ -842,7 +843,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 	if (types & MR_DATATYPE_SHADING) {
 		CustomData *cd_vdata, *cd_ldata;
 
-		BLI_assert(cd_vused != NULL && cd_lused != NULL);
+		BLI_assert(cd_used != NULL);
 
 		if (me->edit_mesh) {
 			BMesh *bm = me->edit_mesh->bm;
@@ -864,15 +865,15 @@ static MeshRenderData *mesh_render_data_create_ex(
 			active_index = -1; \
 		} ((void)0)
 
-		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_active, cd_lused[CD_MLOOPUV]);
-		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_mask_active, cd_lused[CD_MLOOPUV]);
-		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.tangent_active, cd_lused[CD_TANGENT]);
-		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.vcol_active, cd_lused[CD_MLOOPCOL]);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_active, cd_used->uv);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_mask_active, cd_used->uv);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.tangent_active, cd_used->tan);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.vcol_active, cd_used->vcol);
 
 #undef CD_VALIDATE_ACTIVE_LAYER
 
 		rdata->is_orco_allocated = false;
-		if (cd_vused[CD_ORCO] & 1) {
+		if (cd_used->orco != 0) {
 			rdata->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
 			/* If orco is not available compute it ourselves */
 			if (!rdata->orco) {
@@ -912,9 +913,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 			.vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL),
 		};
 
-		rdata->cd.layers.uv_len = min_ii(cd_layers_src.uv_len, count_bits_i(cd_lused[CD_MLOOPUV]));
-		rdata->cd.layers.tangent_len = count_bits_i(cd_lused[CD_TANGENT]);
-		rdata->cd.layers.vcol_len = min_ii(cd_layers_src.vcol_len, count_bits_i(cd_lused[CD_MLOOPCOL]));
+		rdata->cd.layers.uv_len = min_ii(cd_layers_src.uv_len, count_bits_i(cd_used->uv));
+		rdata->cd.layers.tangent_len = count_bits_i(cd_used->tan) + cd_used->tan_orco;
+		rdata->cd.layers.vcol_len = min_ii(cd_layers_src.vcol_len, count_bits_i(cd_used->vcol));
 
 		rdata->cd.layers.uv = MEM_mallocN(sizeof(*rdata->cd.layers.uv) * rdata->cd.layers.uv_len, __func__);
 		rdata->cd.layers.vcol = MEM_mallocN(sizeof(*rdata->cd.layers.vcol) * rdata->cd.layers.vcol_len, __func__);
@@ -943,7 +944,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		if (rdata->cd.layers.vcol_len != 0) {
 			int act_vcol = rdata->cd.layers.vcol_active;
 			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.vcol_len; i_src++, i_dst++) {
-				if ((cd_lused[CD_MLOOPCOL] & (1 << i_src)) == 0) {
+				if ((cd_used->vcol & (1 << i_src)) == 0) {
 					/* This is a non-used VCol slot. Skip. */
 					i_dst--;
 					if (rdata->cd.layers.vcol_active >= i_src) {
@@ -982,7 +983,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 		if (rdata->cd.layers.uv_len != 0) {
 			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
-				if ((cd_lused[CD_MLOOPUV] & (1 << i_src)) == 0) {
+				if ((cd_used->uv & (1 << i_src)) == 0) {
 					i_dst--;
 					if (rdata->cd.layers.uv_active >= i_src) {
 						rdata->cd.layers.uv_active--;
@@ -1013,7 +1014,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 			/* Tangent Names */
 			char tangent_names[MAX_MTFACE][MAX_NAME];
 			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
-				if ((cd_lused[CD_TANGENT] & (1 << i_src)) == 0) {
+				if ((cd_used->tan & (1 << i_src)) == 0) {
 					i_dst--;
 				}
 				else {
@@ -1024,7 +1025,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 			}
 
 			/* If tangent from orco is requested, decrement tangent_len */
-			int actual_tangent_len = (cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) ?
+			int actual_tangent_len = (cd_used->tan_orco != 0) ?
 			        rdata->cd.layers.tangent_len - 1 : rdata->cd.layers.tangent_len;
 			if (rdata->edit_bmesh) {
 				BMEditMesh *em = rdata->edit_bmesh;
@@ -1087,7 +1088,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 			int i_dst = 0;
 			for (int i_src = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
-				if ((cd_lused[CD_TANGENT] & (1 << i_src)) == 0) {
+				if ((cd_used->tan & (1 << i_src)) == 0) {
 					i_dst--;
 					if (rdata->cd.layers.tangent_active >= i_src) {
 						rdata->cd.layers.tangent_active--;
@@ -1111,7 +1112,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 					}
 				}
 			}
-			if (cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) {
+			if (cd_used->tan_orco != 0) {
 				const char *name = CustomData_get_layer_name(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
 				uint hash = BLI_ghashutil_strhash_p(name);
 				BLI_snprintf(rdata->cd.uuid.tangent[i_dst], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
@@ -1930,10 +1931,7 @@ typedef struct MeshBatchCache {
 
 	struct DRW_MeshWeightState weight_state;
 
-	uchar cd_vused[CD_NUMTYPES];
-	uchar cd_vneeded[CD_NUMTYPES];
-	ushort cd_lused[CD_NUMTYPES];
-	ushort cd_lneeded[CD_NUMTYPES];
+	DRW_MeshCDMask cd_used, cd_needed;
 
 	/* XXX, only keep for as long as sculpt mode uses shaded drawing. */
 	bool is_sculpt_points_tag;
@@ -4010,39 +4008,25 @@ static void mesh_create_edit_loops_tris(MeshRenderData *rdata, GPUIndexBuf *ibo)
 
 static void texpaint_request_active_uv(MeshBatchCache *cache, Mesh *me)
 {
-	uchar cd_vneeded[CD_NUMTYPES] = {0};
-	ushort cd_lneeded[CD_NUMTYPES] = {0};
-	mesh_cd_calc_active_uv_layer(me, cd_lneeded);
-	if (cd_lneeded[CD_MLOOPUV] == 0) {
-		/* This should not happen. */
-		BLI_assert(!"No uv layer available in texpaint, but batches requested anyway!");
-	}
-	mesh_cd_calc_active_mask_uv_layer(me, cd_lneeded);
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cd_vneeded, cd_lneeded);
-	if (cd_overlap == false) {
-		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
-		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
-		                          cd_vneeded, cd_lneeded);
-	}
+	DRW_MeshCDMask cd_needed;
+	mesh_cd_layers_type_clear(&cd_needed);
+	mesh_cd_calc_active_uv_layer(me, &cd_needed);
+
+	BLI_assert(cd_needed.uv != 0 && "No uv layer available in texpaint, but batches requested anyway!");
+
+	mesh_cd_calc_active_mask_uv_layer(me, &cd_needed);
+	mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
 }
 
 static void texpaint_request_active_vcol(MeshBatchCache *cache, Mesh *me)
 {
-	uchar cd_vneeded[CD_NUMTYPES] = {0};
-	ushort cd_lneeded[CD_NUMTYPES] = {0};
-	mesh_cd_calc_active_vcol_layer(me, cd_lneeded);
-	if (cd_lneeded[CD_MLOOPCOL] == 0) {
-		/* This should not happen. */
-		BLI_assert(!"No vcol layer available in vertpaint, but batches requested anyway!");
-	}
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cd_vneeded, cd_lneeded);
-	if (cd_overlap == false) {
-		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
-		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
-		                          cd_vneeded, cd_lneeded);
-	}
+	DRW_MeshCDMask cd_needed;
+	mesh_cd_layers_type_clear(&cd_needed);
+	mesh_cd_calc_active_vcol_layer(me, &cd_needed);
+
+	BLI_assert(cd_needed.vcol != 0 && "No vcol layer available in vertpaint, but batches requested anyway!");
+
+	mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
@@ -4097,21 +4081,16 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	uchar cd_vneeded[CD_NUMTYPES] = {0};
-	ushort cd_lneeded[CD_NUMTYPES] = {0};
-	mesh_cd_calc_used_gpu_layers(me, cd_vneeded, cd_lneeded, gpumat_array, gpumat_array_len);
+	DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(me, gpumat_array, gpumat_array_len);
 
 	BLI_assert(gpumat_array_len == cache->mat_len);
 
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cd_vneeded, cd_lneeded);
-	if (cd_overlap == false) {
-		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
-		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
-		                          cd_vneeded, cd_lneeded);
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_used, cd_needed);
+	if (!cd_overlap) {
+		mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
 
 		mesh_cd_extract_auto_layers_names_and_srgb(me,
-		                                           cache->cd_lneeded,
+		                                           cache->cd_needed,
 		                                           &cache->auto_layer_names,
 		                                           &cache->auto_layer_is_srgb,
 		                                           &cache->auto_layer_len);
@@ -4623,28 +4602,19 @@ void DRW_mesh_batch_cache_create_requested(
 
 	/* Verify that all surface batches have needed attribute layers. */
 	/* TODO(fclem): We could be a bit smarter here and only do it per material. */
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cache->cd_vneeded, cache->cd_lneeded);
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_used, cache->cd_needed);
 	if (cd_overlap == false) {
-		for (int type = 0; type < CD_NUMTYPES; ++type) {
-			if ((cache->cd_vused[type] & cache->cd_vneeded[type]) != cache->cd_vneeded[type]) {
-				switch (type) {
-					case CD_ORCO:
-						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
-						break;
-				}
-			}
-			if ((cache->cd_lused[type] & cache->cd_lneeded[type]) != cache->cd_lneeded[type]) {
-				switch (type) {
-					case CD_MLOOPUV:
-					case CD_TANGENT:
-						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_uv_tan);
-						break;
-					case CD_MLOOPCOL:
-						GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_vcol);
-						break;
-				}
-			}
+		if ((cache->cd_used.uv & cache->cd_needed.uv) != cache->cd_needed.uv ||
+		    (cache->cd_used.tan & cache->cd_needed.tan) != cache->cd_needed.tan ||
+		    cache->cd_used.tan_orco != cache->cd_needed.tan_orco)
+		{
+			GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_uv_tan);
+		}
+		if (cache->cd_used.orco != cache->cd_needed.orco) {
+			GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_orco);
+		}
+		if ((cache->cd_used.vcol & cache->cd_needed.vcol) != cache->cd_needed.vcol) {
+			GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_vcol);
 		}
 		/* We can't discard batches at this point as they have been
 		 * referenced for drawing. Just clear them in place. */
@@ -4653,13 +4623,9 @@ void DRW_mesh_batch_cache_create_requested(
 		}
 		GPU_BATCH_CLEAR_SAFE(cache->batch.surface);
 
-		mesh_cd_layers_type_merge(cache->cd_vused, cache->cd_lused,
-		                          cache->cd_vneeded, cache->cd_lneeded);
-
+		mesh_cd_layers_type_merge(&cache->cd_used, cache->cd_needed);
 	}
-
-	memset(cache->cd_lneeded, 0, sizeof(cache->cd_lneeded));
-	memset(cache->cd_vneeded, 0, sizeof(cache->cd_vneeded));
+	mesh_cd_layers_type_clear(&cache->cd_needed);
 
 	/* Discard UV batches if sync_selection changes */
 	if (ts != NULL) {
@@ -4689,10 +4655,10 @@ void DRW_mesh_batch_cache_create_requested(
 		DRW_ibo_request(cache->batch.surface, &cache->ibo.loops_tris);
 		DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_pos_nor);
 		/* For paint overlay. Active layer should have been queried. */
-		if (cache->cd_lused[CD_MLOOPUV] != 0) {
+		if (cache->cd_used.uv != 0) {
 			DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_uv_tan);
 		}
-		if (cache->cd_lused[CD_MLOOPCOL] != 0) {
+		if (cache->cd_used.vcol != 0) {
 			DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_vcol);
 		}
 	}
@@ -4728,7 +4694,7 @@ void DRW_mesh_batch_cache_create_requested(
 	if (DRW_batch_requested(cache->batch.wire_loops_uvs, GPU_PRIM_LINE_STRIP)) {
 		DRW_ibo_request(cache->batch.wire_loops_uvs, &cache->ibo.loops_line_strips);
 		/* For paint overlay. Active layer should have been queried. */
-		if (cache->cd_lused[CD_MLOOPUV] != 0) {
+		if (cache->cd_used.uv != 0) {
 			DRW_vbo_request(cache->batch.wire_loops_uvs, &cache->ordered.loop_uv_tan);
 		}
 	}
@@ -4823,15 +4789,16 @@ void DRW_mesh_batch_cache_create_requested(
 				DRW_ibo_request(cache->surf_per_mat[i], &cache->ibo.loops_tris);
 			}
 			DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_pos_nor);
-			if ((cache->cd_lused[CD_MLOOPUV] != 0) ||
-			    (cache->cd_lused[CD_TANGENT] != 0))
+			if ((cache->cd_used.uv != 0) ||
+			    (cache->cd_used.tan != 0) ||
+			    (cache->cd_used.tan_orco != 0))
 			{
 				DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_uv_tan);
 			}
-			if (cache->cd_lused[CD_MLOOPCOL] != 0) {
+			if (cache->cd_used.vcol != 0) {
 				DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_vcol);
 			}
-			if (cache->cd_vused[CD_ORCO] != 0) {
+			if (cache->cd_used.orco != 0) {
 				/* OPTI : Only do that if there is modifiers that modify orcos. */
 				CustomData *cd_vdata = (me->edit_mesh) ? &me->edit_mesh->bm->vdata : &me->vdata;
 				if (CustomData_get_layer(cd_vdata, CD_ORCO) != NULL &&
@@ -4839,9 +4806,9 @@ void DRW_mesh_batch_cache_create_requested(
 				{
 					DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_orco);
 				}
-				else if ((cache->cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) == 0) {
+				else if (cache->cd_used.tan_orco == 0) {
 					/* Skip orco calculation if not needed by tangent generation. */
-					cache->cd_vused[CD_ORCO] = 0;
+					cache->cd_used.orco = 0;
 				}
 			}
 		}
@@ -4901,7 +4868,7 @@ void DRW_mesh_batch_cache_create_requested(
 	MeshRenderData *rdata = NULL;
 
 	if (mr_flag != 0) {
-		rdata = mesh_render_data_create_ex(me, mr_flag, cache->cd_vused, cache->cd_lused, ts);
+		rdata = mesh_render_data_create_ex(me, mr_flag, &cache->cd_used, ts);
 	}
 
 	/* Generate VBOs */
@@ -4956,7 +4923,7 @@ void DRW_mesh_batch_cache_create_requested(
 		if (rdata) {
 			mesh_render_data_free(rdata);
 		}
-		rdata = mesh_render_data_create_ex(me_original, mr_edit_flag, NULL, NULL, ts);
+		rdata = mesh_render_data_create_ex(me_original, mr_edit_flag, NULL, ts);
 	}
 
 	if (rdata && rdata->mapped.supported) {
