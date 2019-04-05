@@ -2099,7 +2099,7 @@ void node_tex_image_linear_no_mip(vec3 co, sampler2D ima, out vec4 color, out fl
 void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	ivec2 pix = ivec2(fract(co.xy) * textureSize(ima, 0).xy);
-	color = clamp(texelFetch(ima, pix, 0));
+	color = safe_color(texelFetch(ima, pix, 0));
 	alpha = color.a;
 }
 
