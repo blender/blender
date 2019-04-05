@@ -2081,22 +2081,25 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 	color = vec4(1.0, 0.0, 1.0, 1.0);
 }
 
+/* 16bits floats limits. Higher/Lower values produce +/-inf. */
+#define safe_color(a) (clamp(a, -65520.0, 65520.0))
+
 void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
-	color = texture(ima, co.xy);
+	color = safe_color(texture(ima, co.xy));
 	alpha = color.a;
 }
 
 void node_tex_image_linear_no_mip(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
-	color = textureLod(ima, co.xy, 0.0);
+	color = safe_color(textureLod(ima, co.xy, 0.0));
 	alpha = color.a;
 }
 
 void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	ivec2 pix = ivec2(fract(co.xy) * textureSize(ima, 0).xy);
-	color = texelFetch(ima, pix, 0);
+	color = clamp(texelFetch(ima, pix, 0));
 	alpha = color.a;
 }
 
@@ -2138,10 +2141,10 @@ void node_tex_image_cubic_ex(vec3 co, sampler2D ima, float do_extend, out vec4 c
 	}
 	final_co /= tex_size.xyxy;
 
-	color  = textureLod(ima, final_co.xy, 0.0) * s0.x * s0.y;
-	color += textureLod(ima, final_co.zy, 0.0) * s1.x * s0.y;
-	color += textureLod(ima, final_co.xw, 0.0) * s0.x * s1.y;
-	color += textureLod(ima, final_co.zw, 0.0) * s1.x * s1.y;
+	color  = safe_color(textureLod(ima, final_co.xy, 0.0)) * s0.x * s0.y;
+	color += safe_color(textureLod(ima, final_co.zy, 0.0)) * s1.x * s0.y;
+	color += safe_color(textureLod(ima, final_co.xw, 0.0)) * s0.x * s1.y;
+	color += safe_color(textureLod(ima, final_co.zw, 0.0)) * s1.x * s1.y;
 
 #else /* Reference bruteforce 16 tap. */
 	color  = texelFetch(ima, ivec2(tc + vec2(-1.0, -1.0)), 0) * w0.x * w0.y;
