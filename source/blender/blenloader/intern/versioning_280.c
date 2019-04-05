@@ -2967,6 +2967,34 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 54)) {
+		for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+			bool is_first_subdiv = true;
+			for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Subsurf) {
+					SubsurfModifierData *smd = (SubsurfModifierData *)md;
+					if (is_first_subdiv) {
+						smd->flags |= eSubsurfModifierFlag_UseCrease;
+					}
+					else {
+						smd->flags &= ~eSubsurfModifierFlag_UseCrease;
+					}
+					is_first_subdiv = false;
+				}
+				else if (md->type == eModifierType_Multires) {
+					MultiresModifierData *mmd = (MultiresModifierData *)md;
+					if (is_first_subdiv) {
+						mmd->flags |= eMultiresModifierFlag_UseCrease;
+					}
+					else {
+						mmd->flags &= ~eMultiresModifierFlag_UseCrease;
+					}
+					is_first_subdiv = false;
+				}
+			}
+		}
+	}
+
 	{
 		/* Versioning code until next subversion bump goes here. */
 

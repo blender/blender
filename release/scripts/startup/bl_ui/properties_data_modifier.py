@@ -658,6 +658,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.operator("object.multires_base_apply", text="Apply Base")
         col.prop(md, "uv_smooth", text="")
         col.prop(md, "show_only_control_edges")
+        col.prop(md, "use_creases")
 
         layout.separator()
 
@@ -1035,6 +1036,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub.prop(md, "uv_smooth", text="")
 
         col.prop(md, "show_only_control_edges")
+        col.prop(md, "use_creases")
 
         if show_adaptive_options and ob.cycles.use_adaptive_subdivision:
             col = layout.column(align=True)

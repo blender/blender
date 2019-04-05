@@ -58,6 +58,7 @@ typedef struct SubdivSettings {
 	bool is_simple;
 	bool is_adaptive;
 	int level;
+	bool use_creases;
 	eSubdivVtxBoundaryInterpolation vtx_boundary_interpolation;
 	eSubdivFVarLinearInterpolation fvar_linear_interpolation;
 } SubdivSettings;

@@ -59,6 +59,7 @@ static void initData(ModifierData *md)
 	smd->renderLevels = 2;
 	smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
 	smd->quality = 3;
+	smd->flags |= eSubsurfModifierFlag_UseCrease;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -126,6 +127,7 @@ static void subdiv_settings_init(SubdivSettings *settings,
 	settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
 	settings->is_adaptive = true;
 	settings->level = settings->is_simple ? 1 : smd->quality;
+	settings->use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
 	settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
 	settings->fvar_linear_interpolation =
 	        BKE_subdiv_fvar_interpolation_from_uv_smooth(smd->uv_smooth);

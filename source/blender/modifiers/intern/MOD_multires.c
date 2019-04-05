@@ -61,6 +61,7 @@ static void initData(ModifierData *md)
 	mmd->totlvl = 0;
 	mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
 	mmd->quality = 3;
+	mmd->flags |= eMultiresModifierFlag_UseCrease;
 }
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)

@@ -168,6 +168,9 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter,
 		return 10.0f;
 	}
 #endif
+	if (!storage->settings.use_creases) {
+		return 0.0f;
+	}
 	const int edge_index =
 	        storage->manifold_edge_index_reverse[manifold_edge_index];
 	const MEdge *medge = storage->mesh->medge;
@@ -190,9 +193,13 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 	                            vertex_index);
 }
 
-static float get_vertex_sharpness(const OpenSubdiv_Converter *UNUSED(converter),
+static float get_vertex_sharpness(const OpenSubdiv_Converter *converter,
                                   int UNUSED(manifold_vertex_index))
 {
+	ConverterStorage *storage = converter->user_data;
+	if (!storage->settings.use_creases) {
+		return 0.0f;
+	}
 	return 0.0f;
 }
 
