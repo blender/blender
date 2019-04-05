@@ -921,7 +921,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					int interp;
 					workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
 					int color_type = workbench_material_determine_color_type(wpd, image, ob);
-					if (color_type == V3D_SHADING_MATERIAL_COLOR && mat->a < 1.0) {
+					if (color_type == V3D_SHADING_MATERIAL_COLOR && mat && mat->a < 1.0) {
 						material = workbench_forward_get_or_create_material_data(vedata, ob, mat, image, iuser, color_type, 0);
 						has_transp_mat = true;
 					}
