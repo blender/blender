@@ -661,7 +661,7 @@ GPUTexture *GPU_texture_create_nD(
 	GLenum proxy = GL_PROXY_TEXTURE_2D;
 
 	if (n == 2) {
-		if (d > 0)
+		if (d > 1)
 			proxy = GL_PROXY_TEXTURE_2D_ARRAY;
 	}
 	else if (n == 1) {
