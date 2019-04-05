@@ -1963,7 +1963,7 @@ static bool gpu_pass_shader_validate(GPUPass *pass)
 
 	/* Validate against opengl limit. */
 	if ((frag_samplers_len > GPU_max_textures_frag()) ||
-	    (frag_samplers_len > GPU_max_textures_vert()))
+	    (vert_samplers_len > GPU_max_textures_vert()))
 	{
 		return false;
 	}
