@@ -16,6 +16,7 @@
 
 #include "mvmcoords.h"
 #include <algorithm>
+#include <cmath>
 
 #if defined(_MSC_VER) && _MSC_VER > 1600
 // std::greater
@@ -24,6 +25,7 @@
 
 
 using std::vector;
+using std::isfinite;
 
 void MeanValueMeshCoords::clear() 
 {
@@ -170,8 +172,8 @@ void MeanValueMeshCoords::computeWeights(vector<ntlVec3Gfx> &reference_vertices,
 	for (vector<mvmIndexWeight>::iterator viter = tds.weights.begin();
 			viter != tds.weights.end(); ++viter) {
 		viter->weight *= invTotalWeight;  
-		//assert(finite(viter->weight) != 0);
-		if(!finite(viter->weight)) viter->weight=0.;
+		//assert(isfinite(viter->weight) != 0);
+		if(!isfinite(viter->weight)) viter->weight=0.;
 	}
 }
 
