@@ -168,50 +168,6 @@ class TEXTURE_PT_node(TextureButtonsPanel, Panel):
         layout.template_node_view(ntree, node, None)
 
 
-class TEXTURE_PT_node_mapping(TextureButtonsPanel, Panel):
-    bl_label = "Mapping"
-    bl_context = "texture"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        node = context.texture_node
-        # TODO(sergey): perform a faster/nicer check?
-        return node and hasattr(node, "texture_mapping") and (context.engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
-        node = context.texture_node
-
-        mapping = node.texture_mapping
-
-        col = flow.column()
-        col.prop(mapping, "vector_type")
-
-        col.separator()
-
-        col = col.column(align=True)
-        col.prop(mapping, "mapping_x", text="Projection X")
-        col.prop(mapping, "mapping_y", text="Y")
-        col.prop(mapping, "mapping_z", text="Z")
-
-        col.separator()
-
-        col = flow.column()
-        col.column().prop(mapping, "translation")
-
-        col = flow.column()
-        col.column().prop(mapping, "rotation")
-
-        col = flow.column()
-        col.column().prop(mapping, "scale")
-
-
 class TextureTypePanel(TextureButtonsPanel):
 
     @classmethod
@@ -918,7 +874,6 @@ classes = (
     TEXTURE_PT_preview,
     TEXTURE_PT_context,
     TEXTURE_PT_node,
-    TEXTURE_PT_node_mapping,
     TEXTURE_PT_clouds,
     TEXTURE_PT_wood,
     TEXTURE_PT_marble,

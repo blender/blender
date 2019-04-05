@@ -508,6 +508,43 @@ class NODE_PT_active_node_properties(Panel):
                 socket.draw(context, row, node, iface_(socket.name, socket.bl_rna.translation_context))
 
 
+class NODE_PT_texture_mapping(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Node"
+    bl_label = "Texture Mapping"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        node = context.active_node
+        return node and hasattr(node, "texture_mapping") and (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        node = context.active_node
+        mapping = node.texture_mapping
+
+        layout.prop(mapping, "vector_type")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(mapping, "mapping_x", text="Projection X")
+        col.prop(mapping, "mapping_y", text="Y")
+        col.prop(mapping, "mapping_z", text="Z")
+
+        layout.separator()
+
+        layout.prop(mapping, "translation")
+        layout.prop(mapping, "rotation")
+        layout.prop(mapping, "scale")
+
+
 # Node Backdrop options
 class NODE_PT_backdrop(Panel):
     bl_space_type = 'NODE_EDITOR'
@@ -655,6 +692,7 @@ classes = (
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
     NODE_PT_active_node_properties,
+    NODE_PT_texture_mapping,
     NODE_PT_backdrop,
     NODE_PT_quality,
     NODE_PT_grease_pencil,
