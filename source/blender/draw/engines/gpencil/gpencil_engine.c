@@ -617,9 +617,20 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 		}
 
 		/* draw current painting strokes
-		 * (only if region is equal to originated paint region) */
+		 * (only if region is equal to originated paint region)
+		 *
+		 * Need to use original data because to use the copy of data, the paint
+		 * operator must update depsgraph and this makes that first events of the
+		 * mouse are missed if the datablock is very big due the time required to
+		 * copy the datablock. The search of the original data is faster than a
+		 * full datablock copy.
+		 * Using the original data doesn't require a copy and the feel when drawing
+		 * is far better.
+		 */
+
+		bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&gpd->id);
 		if ((draw_ctx->obact == ob) &&
-		    ((gpd->runtime.ar == NULL) || (gpd->runtime.ar == draw_ctx->ar)))
+			((gpd_orig->runtime.ar == NULL) || (gpd_orig->runtime.ar == draw_ctx->ar)))
 		{
 			DRW_gpencil_populate_buffer_strokes(&e_data, vedata, ts, ob);
 		}
