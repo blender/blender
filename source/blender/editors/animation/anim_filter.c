@@ -1968,8 +1968,9 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 				if ((ads->filterflag & ADS_FILTER_ONLYSEL) && (node->flag & NODE_SELECT) == 0) {
 					continue;
 				}
-				items += animdata_filter_ds_nodetree_group(ac, anim_data, ads, owner_id, (bNodeTree *) node->id,
-				                                           filter_mode | ANIMFILTER_TMP_IGNORE_ONLYSEL);
+				/* Recurse into the node group */
+				items += animdata_filter_ds_nodetree(ac, anim_data, ads, owner_id, (bNodeTree *) node->id,
+				                                     filter_mode | ANIMFILTER_TMP_IGNORE_ONLYSEL);
 			}
 		}
 	}
