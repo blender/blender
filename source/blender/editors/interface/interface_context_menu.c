@@ -847,6 +847,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		else if (ar->regiontype == RGN_TYPE_NAV_BAR) {
 			uiItemMenuF(layout, IFACE_("Navigation Bar"), ICON_NONE, ED_screens_navigation_bar_tools_menu_create, NULL);
 		}
+		else if (ar->regiontype == RGN_TYPE_FOOTER) {
+			uiItemMenuF(layout, IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, NULL);
+		}
 	}
 
 	MenuType *mt = WM_menutype_find("WM_MT_button_context", true);

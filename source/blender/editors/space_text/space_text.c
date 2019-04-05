@@ -74,6 +74,12 @@ static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
+	/* footer */
+	ar = MEM_callocN(sizeof(ARegion), "footer for text");
+	BLI_addtail(&stext->regionbase, ar);
+	ar->regiontype = RGN_TYPE_FOOTER;
+	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+
 	/* properties region */
 	ar = MEM_callocN(sizeof(ARegion), "properties region for text");
 
@@ -469,7 +475,15 @@ void ED_spacetype_text(void)
 
 	art->init = text_header_region_init;
 	art->draw = text_header_region_draw;
+	BLI_addhead(&st->regiontypes, art);
 
+	/* regions: footer */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
+	art->regionid = RGN_TYPE_FOOTER;
+	art->prefsizey = HEADERY;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+	art->init = text_header_region_init;
+	art->draw = text_header_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);

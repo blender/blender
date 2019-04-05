@@ -535,6 +535,21 @@ def km_header(_params):
     return keymap
 
 
+def km_footer(_params):
+    items = []
+    keymap = (
+        "Footer",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("screen.footer_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 def km_view2d(_params):
     items = []
     keymap = (
@@ -6032,6 +6047,7 @@ def generate_keymaps(params=None):
         km_screen(params),
         km_screen_editing(params),
         km_header(params),
+        km_footer(params),
         km_view2d(params),
         km_view2d_buttons_list(params),
         km_user_interface(params),

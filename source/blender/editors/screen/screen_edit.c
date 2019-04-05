@@ -421,7 +421,11 @@ static void screen_refresh_headersizes(void)
 	SpaceType *st;
 
 	for (st = lb->first; st; st = st->next) {
-		ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
+		ARegionType *art;
+		art = BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
+		if (art) art->prefsizey = ED_area_headersize();
+
+		art = BKE_regiontype_from_id(st, RGN_TYPE_FOOTER);
 		if (art) art->prefsizey = ED_area_headersize();
 	}
 }
@@ -1259,7 +1263,8 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 			for (ar = newa->regionbase.first; ar; ar = ar->next) {
 				ar->flagfullscreen = ar->flag;
 
-				if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_HEADER, RGN_TYPE_TOOLS, RGN_TYPE_NAV_BAR, RGN_TYPE_EXECUTE)) {
+				if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_HEADER, RGN_TYPE_FOOTER,
+				                         RGN_TYPE_TOOLS, RGN_TYPE_NAV_BAR, RGN_TYPE_EXECUTE)) {
 					ar->flag |= RGN_FLAG_HIDDEN;
 				}
 			}

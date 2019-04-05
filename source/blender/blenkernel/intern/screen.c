@@ -860,6 +860,13 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
 				}
 				ar->alignment = alignment;
 			}
+			if (ar->regiontype == RGN_TYPE_FOOTER) {
+				if (ELEM(sa->spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
+					ar->alignment = RGN_ALIGN_BOTTOM;
+					continue;
+				}
+				ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+			}
 		}
 	}
 	screen->do_refresh = true;

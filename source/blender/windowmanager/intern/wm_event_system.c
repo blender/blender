@@ -1401,7 +1401,7 @@ static int wm_operator_invoke(
 				/* exception, cont. grab in header is annoying */
 				if (wrap) {
 					ARegion *ar = CTX_wm_region(C);
-					if (ar && ar->regiontype == RGN_TYPE_HEADER) {
+					if (ar && ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
 						wrap = false;
 					}
 				}
@@ -4699,7 +4699,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 	if (ELEM(sa->spacetype, SPACE_STATUSBAR, SPACE_TOPBAR)) {
 		return;
 	}
-	if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TEMPORARY, RGN_TYPE_HUD)) {
+	if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_FOOTER, RGN_TYPE_TEMPORARY, RGN_TYPE_HUD)) {
 		return;
 	}
 	/* Fallback to window. */

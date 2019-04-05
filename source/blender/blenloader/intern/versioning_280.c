@@ -2969,5 +2969,29 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	{
 		/* Versioning code until next subversion bump goes here. */
+
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_TEXT) {
+						ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+						ARegion *ar = MEM_callocN(sizeof(ARegion), "footer for text");
+						ARegion *ar_header = NULL;
+
+						for (ar_header = regionbase->first; ar_header; ar_header = ar_header->next) {
+							if (ar_header->regiontype == RGN_TYPE_HEADER) {
+								break;
+							}
+						}
+						BLI_assert(ar_header);
+
+						BLI_insertlinkafter(regionbase, ar_header, ar);
+
+						ar->regiontype = RGN_TYPE_FOOTER;
+						ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+					}
+				}
+			}
+		}
 	}
 }

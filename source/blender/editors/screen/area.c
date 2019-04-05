@@ -1111,14 +1111,8 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 			}
 		}
 		else if (ELEM(spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
-			if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS)) {
+			if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
 				return true;
-			}
-
-			if (ELEM(spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
-				if (regiontype == RGN_TYPE_HEADER) {
-					return true;
-				}
 			}
 		}
 	}
@@ -1166,6 +1160,9 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 	}
 	else if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ED_area_headersize();
+	}
+	else if (ar->regiontype == RGN_TYPE_FOOTER) {
+		prefsizey = ED_area_footersize();
 	}
 	else if (ED_area_is_global(sa)) {
 		prefsizey = ED_region_global_size_y();
@@ -1518,6 +1515,11 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ARegion *ar, L
 	if (flag & ED_KEYMAP_HEADER) {
 		/* standard keymap for headers regions */
 		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Header", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+	if (flag & ED_KEYMAP_FOOTER) {
+		/* standard keymap for footer regions */
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Footer", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 
@@ -1910,10 +1912,25 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 
 		/* Sync header alignment. */
 		if (sync_header_alignment) {
-			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->regiontype == RGN_TYPE_HEADER) {
-					ar->alignment = header_alignment;
-					break;
+			/* Spaces with footer. */
+			if (st->spaceid == SPACE_TEXT){
+				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar->regiontype == RGN_TYPE_HEADER) {
+						ar->alignment = header_alignment;
+					}
+					if (ar->regiontype == RGN_TYPE_FOOTER) {
+						int footer_alignment = (header_alignment == RGN_ALIGN_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+						ar->alignment = footer_alignment;
+						break;
+					}
+				}
+			}
+			else {
+				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar->regiontype == RGN_TYPE_HEADER) {
+						ar->alignment = header_alignment;
+						break;
+					}
 				}
 			}
 		}
@@ -2536,6 +2553,27 @@ int ED_area_header_alignment(const ScrArea *area)
 {
 	return ED_area_header_alignment_or_fallback(
 	        area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP);
+}
+
+int ED_area_footersize(void)
+{
+	return ED_area_headersize();
+}
+
+int ED_area_footer_alignment_or_fallback(const ScrArea *area, int fallback)
+{
+	for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
+		if (ar->regiontype == RGN_TYPE_FOOTER) {
+			return ar->alignment;
+		}
+	}
+	return fallback;
+}
+
+int ED_area_footer_alignment(const ScrArea *area)
+{
+	return ED_area_footer_alignment_or_fallback(
+			area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM);
 }
 
 /**

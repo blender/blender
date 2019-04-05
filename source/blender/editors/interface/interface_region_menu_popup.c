@@ -278,11 +278,19 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		/* for a header menu we set the direction automatic */
 		if (!pup->slideout && flip) {
 			ScrArea *sa = CTX_wm_area(C);
-			if (sa && ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
-				ARegion *ar = CTX_wm_region(C);
-				if (ar && ar->regiontype == RGN_TYPE_HEADER) {
-					UI_block_direction_set(block, UI_DIR_UP);
-					UI_block_order_flip(block);
+			ARegion *ar = CTX_wm_region(C);
+			if (sa && ar) {
+				if (ar->regiontype == RGN_TYPE_HEADER) {
+					if (ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
+						UI_block_direction_set(block, UI_DIR_UP);
+						UI_block_order_flip(block);
+					}
+				}
+				if (ar->regiontype == RGN_TYPE_FOOTER) {
+					if (ED_area_footer_alignment(sa) == RGN_ALIGN_BOTTOM) {
+						UI_block_direction_set(block, UI_DIR_UP);
+						UI_block_order_flip(block);
+					}
 				}
 			}
 		}

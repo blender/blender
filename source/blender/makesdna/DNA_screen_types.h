@@ -590,8 +590,9 @@ enum {
 	RGN_TYPE_HUD = 8,
 	/* Region to navigate the main region from (RGN_TYPE_WINDOW). */
 	RGN_TYPE_NAV_BAR = 9,
-	/* A place for buttons to trigger execution of somthing that was set up in other regions. */
+	/* A place for buttons to trigger execution of something that was set up in other regions. */
 	RGN_TYPE_EXECUTE = 10,
+	RGN_TYPE_FOOTER = 11,
 };
 /* use for function args */
 #define RGN_TYPE_ANY -1

@@ -1784,7 +1784,7 @@ static bool ui_but_drag_init(
 
 			/* Initialize alignment for single row/column regions,
 			 * otherwise we use the relative position of the first other button dragged over. */
-			if (ELEM(data->region->regiontype, RGN_TYPE_NAV_BAR, RGN_TYPE_HEADER)) {
+			if (ELEM(data->region->regiontype, RGN_TYPE_NAV_BAR, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
 				int lock_axis = -1;
 				if (ELEM(data->region->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
 					lock_axis = 0;
