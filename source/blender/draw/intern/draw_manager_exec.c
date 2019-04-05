@@ -22,8 +22,8 @@
 
 #include "draw_manager.h"
 
+#include "BLI_math_bits.h"
 #include "BLI_mempool.h"
-
 
 #include "BKE_global.h"
 
@@ -892,55 +892,97 @@ enum {
 	BIND_PERSIST = 2,      /* Release slot only after the next shader change. */
 };
 
+static void set_bound_flags(uint64_t *slots, uint64_t *persist_slots, int slot_idx, char bind_type)
+{
+	uint64_t slot = 1lu << slot_idx;
+	*slots |= slot;
+	if (bind_type == BIND_PERSIST) {
+		*persist_slots |= slot;
+	}
+}
+
+static int get_empty_slot_index(uint64_t slots)
+{
+	uint64_t empty_slots = ~slots;
+	/* Find first empty slot using bitscan. */
+	if (empty_slots != 0) {
+		if ((empty_slots & 0xFFFFFFFFlu) != 0) {
+			return (int)bitscan_forward_uint(empty_slots);
+		}
+		else {
+			return (int)bitscan_forward_uint(empty_slots >> 32) + 32;
+		}
+	}
+	else {
+		/* Greater than GPU_max_textures() */
+		return 99999;
+	}
+}
+
 static void bind_texture(GPUTexture *tex, char bind_type)
 {
-	int index;
-	char *slot_flags = DST.RST.bound_tex_slots;
-	int bind_num = GPU_texture_bound_number(tex);
-	if (bind_num == -1) {
-		for (int i = 0; i < GPU_max_textures(); ++i) {
-			index = DST.RST.bind_tex_inc = (DST.RST.bind_tex_inc + 1) % GPU_max_textures();
-			if (slot_flags[index] == BIND_NONE) {
-				if (DST.RST.bound_texs[index] != NULL) {
-					GPU_texture_unbind(DST.RST.bound_texs[index]);
-				}
-				GPU_texture_bind(tex, index);
-				DST.RST.bound_texs[index] = tex;
-				slot_flags[index] = bind_type;
-				// printf("Binds Texture %d %p\n", DST.RST.bind_tex_inc, tex);
-				return;
+	int idx = GPU_texture_bound_number(tex);
+	if (idx == -1) {
+		/* Texture isn't bound yet. Find an empty slot and bind it. */
+		idx = get_empty_slot_index(DST.RST.bound_tex_slots);
+
+		if (idx < GPU_max_textures()) {
+			GPUTexture **gpu_tex_slot = &DST.RST.bound_texs[idx];
+			/* Unbind any previous texture. */
+			if (*gpu_tex_slot != NULL) {
+				GPU_texture_unbind(*gpu_tex_slot);
 			}
+			GPU_texture_bind(tex, idx);
+			*gpu_tex_slot = tex;
 		}
-		printf("Not enough texture slots! Reduce number of textures used by your shader.\n");
+		else {
+			printf("Not enough texture slots! Reduce number of textures used by your shader.\n");
+			return;
+		}
 	}
-	slot_flags[bind_num] = bind_type;
+	else {
+		/* This texture slot was released but the tex
+		 * is still bound. Just flag the slot again. */
+		BLI_assert(DST.RST.bound_texs[idx] == tex);
+	}
+	set_bound_flags(&DST.RST.bound_tex_slots,
+	                &DST.RST.bound_tex_slots_persist,
+	                idx, bind_type);
 }
 
 static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 {
-	int index;
-	char *slot_flags = DST.RST.bound_ubo_slots;
-	int bind_num = GPU_uniformbuffer_bindpoint(ubo);
-	if (bind_num == -1) {
-		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
-			index = DST.RST.bind_ubo_inc = (DST.RST.bind_ubo_inc + 1) % GPU_max_ubo_binds();
-			if (slot_flags[index] == BIND_NONE) {
-				if (DST.RST.bound_ubos[index] != NULL) {
-					GPU_uniformbuffer_unbind(DST.RST.bound_ubos[index]);
-				}
-				GPU_uniformbuffer_bind(ubo, index);
-				DST.RST.bound_ubos[index] = ubo;
-				slot_flags[index] = bind_type;
-				return;
+	int idx = GPU_uniformbuffer_bindpoint(ubo);
+	if (idx == -1) {
+		/* UBO isn't bound yet. Find an empty slot and bind it. */
+		idx = get_empty_slot_index(DST.RST.bound_ubo_slots);
+
+		if (idx < GPU_max_ubo_binds()) {
+			GPUUniformBuffer **gpu_ubo_slot = &DST.RST.bound_ubos[idx];
+			/* Unbind any previous UBO. */
+			if (*gpu_ubo_slot != NULL) {
+				GPU_uniformbuffer_unbind(*gpu_ubo_slot);
 			}
+			GPU_uniformbuffer_bind(ubo, idx);
+			*gpu_ubo_slot = ubo;
 		}
-		/* printf so user can report bad behavior */
-		printf("Not enough ubo slots! This should not happen!\n");
-		/* This is not depending on user input.
-		 * It is our responsibility to make sure there is enough slots. */
-		BLI_assert(0);
+		else {
+			/* printf so user can report bad behavior */
+			printf("Not enough ubo slots! This should not happen!\n");
+			/* This is not depending on user input.
+			 * It is our responsibility to make sure there is enough slots. */
+			BLI_assert(0);
+			return;
+		}
 	}
-	slot_flags[bind_num] = bind_type;
+	else {
+		/* This UBO slot was released but the UBO is
+		 * still bound here. Just flag the slot again. */
+		BLI_assert(DST.RST.bound_ubos[idx] == ubo);
+	}
+	set_bound_flags(&DST.RST.bound_ubo_slots,
+	                &DST.RST.bound_ubo_slots_persist,
+	                idx, bind_type);
 }
 
 #ifndef NDEBUG
@@ -994,37 +1036,23 @@ static bool ubo_bindings_validate(DRWShadingGroup *shgroup)
 static void release_texture_slots(bool with_persist)
 {
 	if (with_persist) {
-		memset(DST.RST.bound_tex_slots, 0x0, sizeof(*DST.RST.bound_tex_slots) * GPU_max_textures());
+		DST.RST.bound_tex_slots = 0;
+		DST.RST.bound_tex_slots_persist = 0;
 	}
 	else {
-		for (int i = 0; i < GPU_max_textures(); ++i) {
-			if (DST.RST.bound_tex_slots[i] != BIND_PERSIST) {
-				DST.RST.bound_tex_slots[i] = BIND_NONE;
-			}
-		}
+		DST.RST.bound_tex_slots &= DST.RST.bound_tex_slots_persist;
 	}
-
-	/* Reset so that slots are consistently assigned for different shader
-	 * draw calls, to avoid shader specialization/patching by the driver. */
-	DST.RST.bind_tex_inc = 0;
 }
 
 static void release_ubo_slots(bool with_persist)
 {
 	if (with_persist) {
-		memset(DST.RST.bound_ubo_slots, 0x0, sizeof(*DST.RST.bound_ubo_slots) * GPU_max_ubo_binds());
+		DST.RST.bound_ubo_slots = 0;
+		DST.RST.bound_ubo_slots_persist = 0;
 	}
 	else {
-		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
-			if (DST.RST.bound_ubo_slots[i] != BIND_PERSIST) {
-				DST.RST.bound_ubo_slots[i] = BIND_NONE;
-			}
-		}
+		DST.RST.bound_ubo_slots &= DST.RST.bound_ubo_slots_persist;
 	}
-
-	/* Reset so that slots are consistently assigned for different shader
-	 * draw calls, to avoid shader specialization/patching by the driver. */
-	DST.RST.bind_ubo_inc = 0;
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -1331,7 +1359,7 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	}
 
 	/* Clear Bound textures */
-	for (int i = 0; i < GPU_max_textures(); i++) {
+	for (int i = 0; i < DST_MAX_SLOTS; i++) {
 		if (DST.RST.bound_texs[i] != NULL) {
 			GPU_texture_unbind(DST.RST.bound_texs[i]);
 			DST.RST.bound_texs[i] = NULL;
@@ -1339,7 +1367,7 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	}
 
 	/* Clear Bound Ubos */
-	for (int i = 0; i < GPU_max_ubo_binds(); i++) {
+	for (int i = 0; i < DST_MAX_SLOTS; i++) {
 		if (DST.RST.bound_ubos[i] != NULL) {
 			GPU_uniformbuffer_unbind(DST.RST.bound_ubos[i]);
 			DST.RST.bound_ubos[i] = NULL;

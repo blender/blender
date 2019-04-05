@@ -313,6 +313,7 @@ typedef struct DRWDebugSphere {
 
 /* ------------- DRAW MANAGER ------------ */
 
+#define DST_MAX_SLOTS 64 /* Cannot be changed without modifying RST.bound_tex_slots */
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
 #define STENCIL_UNDEFINED 256
 typedef struct DRWManager {
@@ -394,12 +395,16 @@ typedef struct DRWManager {
 
 	/** GPU Resource State: Memory storage between drawing. */
 	struct {
-		GPUTexture **bound_texs;
-		char *bound_tex_slots;
-		int bind_tex_inc;
-		GPUUniformBuffer **bound_ubos;
-		char *bound_ubo_slots;
-		int bind_ubo_inc;
+		/* High end GPUs supports up to 32 binds per shader stage.
+		 * We only use textures during the vertex and fragment stage,
+		 * so 2 * 32 slots is a nice limit. */
+		GPUTexture *bound_texs[DST_MAX_SLOTS];
+		uint64_t bound_tex_slots;
+		uint64_t bound_tex_slots_persist;
+
+		GPUUniformBuffer *bound_ubos[DST_MAX_SLOTS];
+		uint64_t bound_ubo_slots;
+		uint64_t bound_ubo_slots_persist;
 	} RST;
 
 	struct {
