@@ -106,7 +106,7 @@ void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 #define GPU_batch_init(batch, prim, verts, elem) \
 	GPU_batch_init_ex(batch, prim, verts, elem, 0)
 
-void GPU_batch_clear(GPUBatch *); /* Same as discard but does not free. */
+void GPU_batch_clear(GPUBatch *); /* Same as discard but does not free. (does not clal free callback) */
 void GPU_batch_discard(GPUBatch *); /* verts & elem are not discarded */
 
 void GPU_batch_vao_cache_clear(GPUBatch *);

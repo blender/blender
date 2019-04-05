@@ -120,10 +120,6 @@ void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 
 void GPU_batch_clear(GPUBatch *batch)
 {
-	if (batch->free_callback) {
-		batch->free_callback(batch, batch->callback_data);
-	}
-
 	if (batch->owns_flag & GPU_BATCH_OWNS_INDEX) {
 		GPU_indexbuf_discard(batch->elem);
 	}
@@ -145,6 +141,10 @@ void GPU_batch_clear(GPUBatch *batch)
 
 void GPU_batch_discard(GPUBatch *batch)
 {
+	if (batch->free_callback) {
+		batch->free_callback(batch, batch->callback_data);
+	}
+
 	GPU_batch_clear(batch);
 	MEM_freeN(batch);
 }
