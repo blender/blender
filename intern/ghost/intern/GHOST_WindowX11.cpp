@@ -1298,8 +1298,8 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 			delete context;
 
 		/* Ugly, but we get crashes unless a whole bunch of systems are patched. */
-		fprintf(stderr, "Error! Unsupported graphics driver.\n");
-		fprintf(stderr, "Blender requires a graphics driver with at least OpenGL 3.3 support.\n");
+		fprintf(stderr, "Error! Unsupported graphics card or driver.\n");
+		fprintf(stderr, "A graphics card and driver with support for OpenGL 3.3 or higher is required.\n");
 		fprintf(stderr, "The program will now close.\n");
 		fflush(stderr);
 		exit(1);

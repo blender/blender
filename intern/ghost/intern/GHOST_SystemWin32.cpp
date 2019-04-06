@@ -356,9 +356,10 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 		else {
 			MessageBox(
 			        NULL,
-			        "Blender requires a graphics driver with at least OpenGL 3.3 support.\n\n"
+			        "A graphics card and driver with support for OpenGL 3.3 or higher is required.\n"
+			        "Installing the latest driver for your graphics card may resolve the issue.\n\n"
 			        "The program will now close.",
-			        "Blender - Unsupported Graphics Driver",
+			        "Blender - Unsupported Graphics Card or Driver",
 			        MB_OK | MB_ICONERROR);
 			delete context;
 			exit();
