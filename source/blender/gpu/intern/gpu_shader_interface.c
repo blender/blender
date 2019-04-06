@@ -216,13 +216,22 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 	printf("GPUShaderInterface %p, program %d\n", shaderface, program);
 #endif
 
-	GLint max_attr_name_len, attr_len;
+	GLint max_attr_name_len = 0, attr_len = 0;
 	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attr_name_len);
 	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &attr_len);
 
-	GLint max_ubo_name_len, ubo_len;
+	GLint max_ubo_name_len = 0, ubo_len = 0;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &max_ubo_name_len);
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_len);
+
+	/* Work around driver bug with Intel HD 4600 on Windows 7/8, where
+	 * GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH does not work. */
+	if (attr_len > 0 && max_attr_name_len == 0) {
+		max_attr_name_len = 256;
+	}
+	if (ubo_len > 0 && max_ubo_name_len == 0) {
+		max_ubo_name_len = 256;
+	}
 
 	const uint32_t name_buffer_len = attr_len * max_attr_name_len + ubo_len * max_ubo_name_len;
 	shaderface->name_buffer = MEM_mallocN(name_buffer_len, "name_buffer");
