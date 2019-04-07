@@ -1958,7 +1958,9 @@ void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)
 	dqsum->trans[2] += weight * dq->trans[2];
 	dqsum->trans[3] += weight * dq->trans[3];
 
-	/* interpolate scale - but only if needed */
+	/* Interpolate scale - but only if there is scale present. If any dual
+	 * quaternions without scale are added, they will be compensated for in
+	 * normalize_dq. */
 	if (dq->scale_weight) {
 		float wmat[4][4];
 
@@ -1981,7 +1983,10 @@ void normalize_dq(DualQuat *dq, float totweight)
 	mul_qt_fl(dq->quat, scale);
 	mul_qt_fl(dq->trans, scale);
 
+	/* Handle scale if needed. */
 	if (dq->scale_weight) {
+		/* Compensate for any dual quaternions added without scale. This is an
+		 * optimization so that we can skip the scale part when not needed. */
 		float addweight = totweight - dq->scale_weight;
 
 		if (addweight) {
