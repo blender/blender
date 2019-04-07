@@ -22,8 +22,10 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "BKE_gpencil.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_shader_fx.h"
 
 #include "DNA_gpencil_types.h"
@@ -302,7 +304,9 @@ void GPENCIL_cache_init(void *vedata)
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
+	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
+	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 
 	/* Special handling for when active object is GP object (e.g. for draw mode) */
 	Object *obact = draw_ctx->obact;
@@ -311,7 +315,15 @@ void GPENCIL_cache_init(void *vedata)
 
 	if (obact && (obact->type == OB_GPENCIL) && (obact->data)) {
 		obact_gpd = (bGPdata *)obact->data;
-		gp_style = BKE_material_gpencil_settings_get(obact, obact->actcol);
+		/* use the brush material */
+		Material *ma = BKE_gpencil_get_material_for_brush(obact, brush);
+		if (ma != NULL) {
+			gp_style = ma->gp_style;
+		}
+		/* this is not common, but avoid any special situations when brush could be without material */
+		if (gp_style == NULL) {
+			gp_style = BKE_material_gpencil_settings_get(obact, obact->actcol);
+		}
 	}
 
 	if (!stl->g_data) {
