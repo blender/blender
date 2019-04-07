@@ -223,7 +223,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
                 mat = object_ensure_material(obj, "Explode Fade")
                 mat.blend_method = 'BLEND'
-                mat.transparent_shadow_method = 'HASHED'
+                mat.shadow_method = 'HASHED'
                 if not mat.use_nodes:
                     mat.use_nodes = True
 
