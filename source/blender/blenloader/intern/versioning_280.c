@@ -2995,15 +2995,24 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
-	{
-		/* Versioning code until next subversion bump goes here. */
-
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 55)) {
 		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_TEXT) {
 						ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 						ARegion *ar = MEM_callocN(sizeof(ARegion), "footer for text");
+
+						/* Remove multiple footers that were added by mistake. */
+						ARegion *ar_footer, *ar_next;
+						for (ar_footer = regionbase->first; ar_footer; ar_footer = ar_next) {
+							ar_next = ar_footer->next;
+							if (ar_footer->regiontype == RGN_TYPE_FOOTER) {
+								BLI_freelinkN(regionbase, ar_footer);
+							}
+						}
+
+						/* Add footer. */
 						ARegion *ar_header = NULL;
 
 						for (ar_header = regionbase->first; ar_header; ar_header = ar_header->next) {
@@ -3021,5 +3030,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+	}
+
+	{
+		/* Versioning code until next subversion bump goes here. */
 	}
 }
