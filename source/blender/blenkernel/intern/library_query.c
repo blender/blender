@@ -581,7 +581,7 @@ static void library_foreach_ID_link(
 				}
 				data.cb_flag = data_cb_flag;
 
-				CALLBACK_INVOKE(object->gpd, IDWALK_CB_USER);
+				/* Note that ob->gpd is deprecated, so no need to handle it here. */
 				CALLBACK_INVOKE(object->instance_collection, IDWALK_CB_USER);
 
 				if (object->pd) {

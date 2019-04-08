@@ -202,7 +202,7 @@ typedef struct Object {
 	void *data;
 
 	/** Grease Pencil data. */
-	struct bGPdata *gpd;
+	struct bGPdata *gpd  DNA_DEPRECATED; // XXX deprecated... replaced by gpencil object, keep for readfile
 
 	/** Settings for visualization of object-transform animation. */
 	bAnimVizSettings avs;

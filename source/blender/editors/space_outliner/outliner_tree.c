@@ -331,8 +331,6 @@ static void outliner_add_object_contents(SpaceOutliner *soops, TreeElement *te, 
 		outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
 	}
 
-	outliner_add_element(soops, &te->subtree, ob->gpd, te, 0, 0);
-
 	outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
 
 	if (ob->pose) {
