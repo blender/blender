@@ -1497,7 +1497,9 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
 	if (!do_force && (key->type != KEY_RELATIVE)) {
 		KeyBlock *it_kb;
 		for (it_kb = key->block.first; it_kb; it_kb = it_kb->next) {
-			if (it_kb->pos == cpos) {
+			/* Use epsilon to avoid floating point precision issues.
+			 * 1e-3 because the position is stored as frame * 1e-2. */
+			if (compare_ff(it_kb->pos, cpos, 1e-3f)) {
 				return kb;
 			}
 		}
