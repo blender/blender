@@ -161,36 +161,6 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 		scene->gpd = NULL;
 	}
 
-#if 0 /* GPXX */
-	/* Handle object-linked grease pencil datablocks */
-	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-		if (ob->gpd) {
-			if (ob->type == OB_GPENCIL) {
-				/* GP Object - remap the links */
-				ob->data = ob->gpd;
-				ob->gpd = NULL;
-			}
-			else if (ob->type == OB_EMPTY) {
-				/* Empty with GP data - This should be able to be converted
-				 * to a GP object with little data loss
-				 */
-				ob->data = ob->gpd;
-				ob->gpd = NULL;
-				ob->type = OB_GPENCIL;
-			}
-			else {
-				/* FIXME: What to do in this case?
-				 *
-				 * We cannot create new objects for these, as we don't have a scene & scene layer
-				 * to put them into from here...
-				 */
-				printf("WARNING: Old Grease Pencil data ('%s') still exists on Object '%s'\n",
-				       ob->gpd->id.name + 2, ob->id.name + 2);
-			}
-		}
-	}
-#endif
-
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
