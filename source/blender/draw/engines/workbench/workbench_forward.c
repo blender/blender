@@ -318,6 +318,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	workbench_fxaa_engine_init();
 	workbench_taa_engine_init(vedata);
 
+	workbench_forward_outline_shaders_ensure(wpd, draw_ctx->sh_cfg);
 	workbench_forward_choose_shaders(wpd, draw_ctx->sh_cfg);
 
 	const float *viewport_size = DRW_viewport_size_get();
