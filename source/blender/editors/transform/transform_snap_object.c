@@ -673,21 +673,22 @@ static bool raycastObj(
 {
 	bool retval = false;
 
-	if (use_occlusion_test) {
-		if (use_obedit && sctx->use_v3d &&
-		    !V3D_IS_ZBUF(sctx->v3d_data.v3d))
-		{
-			/* Use of occlude geometry in editing mode disabled. */
-			return false;
-		}
-	}
-
 	switch (ob->type) {
 		case OB_MESH:
 		{
-			if (ob->dt == OB_BOUNDBOX || ob->dt == OB_WIRE) {
-				/* Do not hit objects that are in wire or bounding box display mode */
-				return false;
+			if (use_occlusion_test) {
+				if (use_obedit && sctx->use_v3d &&
+				    !V3D_IS_ZBUF(sctx->v3d_data.v3d))
+				{
+					/* Use of occlude geometry in editing mode disabled. */
+					return false;
+				}
+
+				if (ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE)) {
+					/* Do not hit objects that are in wire or bounding box
+					 * display mode. */
+					return false;
+				}
 			}
 
 			Mesh *me = ob->data;
@@ -2540,8 +2541,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 	const RegionView3D *rv3d = ar->regiondata;
 
 	bool use_occlusion_test =
-	        params->use_occlusion_test &&
-	        !(sctx->v3d_data.v3d->shading.flag & V3D_XRAY_FLAG(sctx->v3d_data.v3d));
+	        params->use_occlusion_test && V3D_IS_ZBUF(sctx->v3d_data.v3d);
 
 	if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
 		float ray_start[3], ray_normal[3];
