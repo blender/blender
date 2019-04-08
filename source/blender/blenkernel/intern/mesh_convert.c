@@ -869,7 +869,7 @@ Mesh *BKE_mesh_new_from_object(
 
 	Object *object_input = ob;
 	Object *object_eval = DEG_get_evaluated_object(depsgraph, object_input);
-	Object object_for_eval = *object_eval;
+	Object object_for_eval;
 
 	if (object_eval == object_input) {
 		/* Evaluated mesh contains all modifiers applied already.
@@ -882,12 +882,17 @@ Mesh *BKE_mesh_new_from_object(
 		else {
 			effective_apply_modifiers = true;
 		}
+		object_for_eval = *object_eval;
 	}
 	else {
 		if (apply_modifiers) {
+			object_for_eval = *object_eval;
 			if (object_for_eval.runtime.mesh_orig != NULL) {
 				object_for_eval.data = object_for_eval.runtime.mesh_orig;
 			}
+		}
+		else {
+			object_for_eval = *object_input;
 		}
 	}
 
