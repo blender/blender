@@ -151,7 +151,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		EDBM_mesh_normals_update(em);
 		BKE_editmesh_tessface_calc(em);
 
-		/* Make sure the evaluated mesh is updates.
+		/* Make sure the evaluated mesh is updated.
 		 *
 		 * Most reliable way is to update the tagged objects, which will ensure
 		 * proper copy-on-write update, but also will make sure all dependent
