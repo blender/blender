@@ -1241,7 +1241,6 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 		}
 	}
 
-finally:
 	bm->elem_index_dirty &= ~htype;
 }
 
