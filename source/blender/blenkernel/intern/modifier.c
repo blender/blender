@@ -895,7 +895,7 @@ ModifierData *modifier_get_original(ModifierData *md)
 }
 
 struct ModifierData *modifier_get_evaluated(
-        Depsgraph* depsgraph,
+        Depsgraph *depsgraph,
         Object *object,
         ModifierData *md)
 {

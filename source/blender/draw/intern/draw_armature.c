@@ -1246,8 +1246,8 @@ static void draw_points(
 			Bone *bone = pchan->bone;
 			if (is_envelope_draw) {
 				drw_shgroup_bone_envelope(
-						pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-						&bone->rad_head, &envelope_ignore, sh_cfg);
+				        pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
+				        &bone->rad_head, &envelope_ignore, sh_cfg);
 			}
 			else {
 				drw_shgroup_bone_point(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root, sh_cfg);

@@ -598,9 +598,9 @@ static void set_edge_adjacency_lines_indices(EdgeHash *eh, GPUIndexBufBuilder *e
 static void set_edges_adjacency_lines_indices(void *thunk, uint v1, uint v2, uint v3)
 {
 	void **packed = (void **)thunk;
-	GPUIndexBufBuilder *elb = (GPUIndexBufBuilder*)packed[0];
+	GPUIndexBufBuilder *elb = (GPUIndexBufBuilder *)packed[0];
 	EdgeHash *eh = (EdgeHash *)packed[1];
-	bool *r_is_manifold = (bool*)packed[2];
+	bool *r_is_manifold = (bool *)packed[2];
 
 	set_edge_adjacency_lines_indices(eh, elb, r_is_manifold, v1, v2, v3);
 	set_edge_adjacency_lines_indices(eh, elb, r_is_manifold, v2, v3, v1);

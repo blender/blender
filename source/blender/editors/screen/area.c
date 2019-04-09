@@ -1913,7 +1913,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		/* Sync header alignment. */
 		if (sync_header_alignment) {
 			/* Spaces with footer. */
-			if (st->spaceid == SPACE_TEXT){
+			if (st->spaceid == SPACE_TEXT) {
 				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 					if (ar->regiontype == RGN_TYPE_HEADER) {
 						ar->alignment = header_alignment;
@@ -2573,7 +2573,7 @@ int ED_area_footer_alignment_or_fallback(const ScrArea *area, int fallback)
 int ED_area_footer_alignment(const ScrArea *area)
 {
 	return ED_area_footer_alignment_or_fallback(
-			area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM);
+	        area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM);
 }
 
 /**

@@ -663,8 +663,10 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 
 	View3DShading *shading = ptr->data;
 	if (shading->type == OB_MATERIAL ||
-	    (shading->type == OB_RENDER && (strcmp(scene->r.engine, RE_engine_id_BLENDER_EEVEE) == 0 ||
-	                                    strcmp(scene->r.engine, RE_engine_id_CYCLES) == 0))) {
+	    (shading->type == OB_RENDER &&
+	     (strcmp(scene->r.engine, RE_engine_id_BLENDER_EEVEE) == 0 ||
+	      strcmp(scene->r.engine, RE_engine_id_CYCLES) == 0)))
+	{
 		/* When switching from workbench to render or material mode the geometry of any
 		 * active sculpt session needs to be recalculated. */
 		for (Object *ob = bmain->objects.first; ob ; ob = ob->id.next) {

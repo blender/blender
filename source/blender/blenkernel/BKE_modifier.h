@@ -409,7 +409,7 @@ const char *modifier_path_relbase_from_global(struct Object *ob);
  * If the modifier data is already original, return it as-is. */
 struct ModifierData *modifier_get_original(struct ModifierData *md);
 struct ModifierData *modifier_get_evaluated(
-        struct Depsgraph* depsgraph,
+        struct Depsgraph *depsgraph,
         struct Object *object,
         struct ModifierData *md);
 
