@@ -1069,7 +1069,7 @@ Material *BKE_gpencil_object_material_new(Main *bmain, Object *ob, const char *n
 /* Returns the material for a brush with respect to its pinned state. */
 Material *BKE_gpencil_object_material_get_from_brush(Object *ob, Brush *brush)
 {
-	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+	if ((brush) && (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED)) {
 		Material *ma = BKE_gpencil_brush_material_get(brush);
 		return ma;
 	}
@@ -1081,7 +1081,7 @@ Material *BKE_gpencil_object_material_get_from_brush(Object *ob, Brush *brush)
 /* Returns the material index for a brush with respect to its pinned state. */
 int BKE_gpencil_object_material_get_index_from_brush(Object *ob, Brush *brush)
 {
-	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+	if ((brush) && (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED)) {
 		return BKE_gpencil_object_material_get_index(ob, brush->gpencil_settings->material);
 	}
 	else {

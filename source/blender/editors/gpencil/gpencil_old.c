@@ -48,6 +48,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "ED_object.h"
 #include "ED_gpencil.h"
 
@@ -94,14 +97,16 @@ static bool gpencil_convert_old_files_poll(bContext *C)
 	return (int) (scene->gpd != NULL);
 }
 
-static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const bool is_annotation = RNA_boolean_get(op->ptr, "annotation");
+	bGPdata *gpd = scene->gpd;
 
 	/* Convert grease pencil scene datablock to GP object */
-	if ((scene->gpd) && (view_layer != NULL)) {
+	if ((!is_annotation) && (view_layer != NULL)) {
 		Object *ob;
 		ob = BKE_object_add_for_data(bmain, view_layer, OB_GPENCIL, "GP_Scene", &scene->gpd->id, false);
 		zero_v3(ob->loc);
@@ -161,6 +166,26 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 		scene->gpd = NULL;
 	}
 
+	if (is_annotation) {
+		for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
+			for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
+				/* fix layers */
+				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+						for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+							if ((gps->colorname[0] != '\0') &&
+								(STREQ(gps->colorname, palcolor->info)))
+							{
+								/* copy color settings */
+								copy_v4_v4(gpl->color, palcolor->color);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
@@ -170,9 +195,9 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 void GPENCIL_OT_convert_old_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Convert 2.7 Grease Pencil File";
+	ot->name = "Convert Grease Pencil";
 	ot->idname = "GPENCIL_OT_convert_old_files";
-	ot->description = "Convert 2.7x grease pencil files to 2.8";
+	ot->description = "Convert 2.7x grease pencil files to 2.80";
 
 	/* callbacks */
 	ot->exec = gpencil_convert_old_files_exec;
@@ -180,4 +205,7 @@ void GPENCIL_OT_convert_old_files(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	ot->prop = RNA_def_boolean(ot->srna, "annotation", 0, "Annotation", "Convert to Annotations");
 }

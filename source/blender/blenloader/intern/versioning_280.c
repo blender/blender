@@ -564,6 +564,28 @@ static void do_version_collection_propagate_lib_to_children(Collection *collecti
 	}
 }
 
+/** convert old annotations colors */
+static void do_versions_fix_annotations(bGPdata *gpd)
+{
+	for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
+		for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
+			/* fix layers */
+			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+				for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+					for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+						if ((gps->colorname[0] != '\0') &&
+							(STREQ(gps->colorname, palcolor->info)))
+						{
+							/* copy color settings */
+							copy_v4_v4(gpl->color, palcolor->color);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void do_versions_after_linking_280(Main *bmain)
 {
 	bool use_collection_compat_28 = true;
@@ -650,6 +672,30 @@ void do_versions_after_linking_280(Main *bmain)
 							tselem->id = layer->layer_collections.first;
 							tselem->nr = tselem->used = 0;
 							tselem->flag &= ~TSE_CLOSED;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
+		for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *space = sa->spacedata.first; space; space = space->next) {
+					if (space->spacetype == SPACE_IMAGE) {
+						SpaceImage *sima = (SpaceImage *)space;
+						if ((sima) && (sima->gpd)) {
+							sima->gpd->flag |= GP_DATA_ANNOTATIONS;
+							do_versions_fix_annotations(sima->gpd);
+						}
+					}
+					if (space->spacetype == SPACE_CLIP) {
+						SpaceClip *spclip = (SpaceClip *)space;
+						MovieClip *clip = spclip->clip;
+						if ((clip) && (clip->gpd)) {
+							clip->gpd->flag |= GP_DATA_ANNOTATIONS;
+							do_versions_fix_annotations(clip->gpd);
 						}
 					}
 				}
