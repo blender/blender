@@ -63,7 +63,7 @@ static int gpencil_monkey_color(
 	int idx;
 
 	/* create a new one */
-	ma = BKE_gpencil_handle_new_material(bmain, ob, pct->name, &idx);
+	ma = BKE_gpencil_object_material_new(bmain, ob, pct->name, &idx);
 
 	copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
 	copy_v4_v4(ma->gp_style->fill_rgba, pct->fill);

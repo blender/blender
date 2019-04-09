@@ -1017,7 +1017,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	gps->flag |= GP_STROKE_CYCLIC;
 	gps->flag |= GP_STROKE_3DSPACE;
 
-	gps->mat_nr = BKE_gpencil_handle_material(tgpf->bmain, tgpf->ob, tgpf->mat);
+	gps->mat_nr = BKE_gpencil_object_material_ensure(tgpf->bmain, tgpf->ob, tgpf->mat);
 
 	/* allocate memory for storage points */
 	gps->totpoints = tgpf->sbuffer_size;
@@ -1222,7 +1222,7 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
 	int totcol = tgpf->ob->totcol;
 
 	/* get color info */
-	Material *ma = BKE_gpencil_current_input_brush_material(bmain, tgpf->ob, brush);
+	Material *ma = BKE_gpencil_object_material_ensure_from_active_input_brush(bmain, tgpf->ob, brush);
 
 	tgpf->mat = ma;
 

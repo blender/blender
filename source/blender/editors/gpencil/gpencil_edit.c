@@ -1080,7 +1080,7 @@ GHash *gp_copybuf_validate_colormap(bContext *C)
 		char *ma_name = BLI_ghashIterator_getValue(&gh_iter);
 		Material *ma = BLI_ghash_lookup(name_to_ma, ma_name);
 
-		BKE_gpencil_handle_material(bmain, ob, ma);
+		BKE_gpencil_object_material_ensure(bmain, ob, ma);
 
 		/* Store this mapping (for use later when pasting) */
 		if (!BLI_ghash_haskey(new_colors, POINTER_FROM_INT(*key))) {
@@ -1334,7 +1334,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 
 				/* Remap material */
 				Material *ma = BLI_ghash_lookup(new_colors, POINTER_FROM_INT(new_stroke->mat_nr));
-				new_stroke->mat_nr = BKE_gpencil_get_material_index(ob, ma);
+				new_stroke->mat_nr = BKE_gpencil_object_material_get_index(ob, ma);
 				BLI_assert(new_stroke->mat_nr >= 0); /* have to add the material first */
 			}
 		}
@@ -3957,7 +3957,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 
 							/* add duplicate materials */
 							ma = give_current_material(ob, gps->mat_nr + 1); /* XXX same material can be in multiple slots */
-							idx = BKE_gpencil_handle_material(bmain, ob_dst, ma);
+							idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
 
 							/* selected points mode */
 							if (mode == GP_SEPARATE_POINT) {
@@ -4029,7 +4029,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 						continue;
 					}
 					ma = give_current_material(ob, gps->mat_nr + 1);
-					gps->mat_nr = BKE_gpencil_handle_material(bmain, ob_dst, ma);
+					gps->mat_nr = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
 				}
 			}
 		}

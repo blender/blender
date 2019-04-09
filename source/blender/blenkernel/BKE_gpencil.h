@@ -86,7 +86,6 @@ void BKE_gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe
 /* materials */
 void BKE_gpencil_material_index_remove(struct bGPdata *gpd, int index);
 void BKE_gpencil_material_remap(struct bGPdata *gpd, const unsigned int *remap, unsigned int remap_len);
-int BKE_gpencil_get_material_index(struct Object *ob, struct Material *ma);
 
 /* statistics functions */
 void BKE_gpencil_stats_update(struct bGPdata *gpd);
@@ -131,23 +130,29 @@ struct bGPDlayer *BKE_gpencil_layer_getactive(struct bGPdata *gpd);
 void BKE_gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
 void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
 
-struct Material *BKE_gpencil_get_material_from_brush(struct Brush *brush);
-void BKE_gpencil_brush_set_material(struct Brush *brush, struct Material *material);
+/* Brush */
+struct Material *BKE_gpencil_brush_material_get(struct Brush *brush);
+void             BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *material);
 
-struct Material *BKE_gpencil_handle_brush_material(struct Main *bmain, struct Object *ob, struct Brush *brush);
-int BKE_gpencil_handle_material(struct Main *bmain, struct Object *ob, struct Material *material);
+/* Object */
+struct Material *BKE_gpencil_object_material_ensure_active(struct Main *bmain, struct Object *ob);
+struct Material *BKE_gpencil_object_material_ensure_from_brush(struct Main *bmain, struct Object *ob, struct Brush *brush);
+int              BKE_gpencil_object_material_ensure(struct Main *bmain, struct Object *ob, struct Material *material);
 
-struct Material *BKE_gpencil_handle_new_material(struct Main *bmain, struct Object *ob, const char *name, int *r_index);
+struct Material *BKE_gpencil_object_material_new(struct Main *bmain, struct Object *ob, const char *name, int *r_index);
 
-struct Material *BKE_gpencil_get_material_for_brush(struct Object *ob, struct Brush *brush);
-int BKE_gpencil_get_material_index_for_brush(struct Object *ob, struct Brush *brush);
+int              BKE_gpencil_object_material_get_index(struct Object *ob, struct Material *ma);
 
-struct Material *BKE_gpencil_current_input_toolsettings_material(struct Main *bmain, struct Object *ob, struct ToolSettings *ts);
-struct Material *BKE_gpencil_current_input_brush_material(struct Main *bmain, struct Object *ob, struct Brush *brush);
-struct Material *BKE_gpencil_current_input_material(struct Main *bmain, struct Object *ob);
+struct Material *BKE_gpencil_object_material_get_from_brush(struct Object *ob, struct Brush *brush);
+int              BKE_gpencil_object_material_get_index_from_brush(struct Object *ob, struct Brush *brush);
 
+struct Material *BKE_gpencil_object_material_ensure_from_active_input_toolsettings(
+        struct Main *bmain, struct Object *ob, struct ToolSettings *ts);
+struct Material *BKE_gpencil_object_material_ensure_from_active_input_brush(
+        struct Main *bmain, struct Object *ob, struct Brush *brush);
+struct Material *BKE_gpencil_object_material_ensure_from_active_input_material(
+        struct Main *bmain, struct Object *ob);
 
-struct Material *BKE_gpencil_material_ensure(struct Main *bmain, struct Object *ob);
 
 /* object boundbox */
 bool BKE_gpencil_data_minmax(

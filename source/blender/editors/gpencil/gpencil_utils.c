@@ -1332,7 +1332,7 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
 	}
 
 	/* ensure a color exists and is assigned to object */
-	BKE_gpencil_current_input_toolsettings_material(bmain, ob, ts);
+	BKE_gpencil_object_material_ensure_from_active_input_toolsettings(bmain, ob, ts);
 
 	/* ensure multiframe falloff curve */
 	if (ts->gp_sculpt.cur_falloff == NULL) {
@@ -1701,7 +1701,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 		}
 
 		/* get current drawing color */
-		ma = BKE_gpencil_get_material_for_brush(ob, brush);
+		ma = BKE_gpencil_object_material_get_from_brush(ob, brush);
 
 		if (ma) {
 			gp_style = ma->gp_style;

@@ -1223,7 +1223,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	}
 
 	/* Save material index */
-	gps->mat_nr = BKE_gpencil_get_material_index_for_brush(p->ob, p->brush);
+	gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(p->ob, p->brush);
 
 	/* calculate UVs along the stroke */
 	ED_gpencil_calc_stroke_uv(obact, gps);
@@ -1832,7 +1832,7 @@ static void gp_init_colors(tGPsdata *p)
 	MaterialGPencilStyle *gp_style = NULL;
 
 	/* use brush material */
-	p->material = BKE_gpencil_current_input_brush_material(p->bmain, p->ob, brush);
+	p->material = BKE_gpencil_object_material_ensure_from_active_input_brush(p->bmain, p->ob, brush);
 
 	/* assign color information to temp tGPsdata */
 	gp_style = p->material->gp_style;

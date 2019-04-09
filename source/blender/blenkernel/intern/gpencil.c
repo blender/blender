@@ -985,7 +985,7 @@ void BKE_gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
 	BLI_freelinkN(&gpd->layers, gpl);
 }
 
-Material *BKE_gpencil_get_material_from_brush(Brush *brush)
+Material *BKE_gpencil_brush_material_get(Brush *brush)
 {
 	Material *ma = NULL;
 
@@ -998,7 +998,7 @@ Material *BKE_gpencil_get_material_from_brush(Brush *brush)
 	return ma;
 }
 
-void BKE_gpencil_brush_set_material(Brush *brush, Material *ma)
+void BKE_gpencil_brush_material_set(Brush *brush, Material *ma)
 {
 	BLI_assert(brush);
 	BLI_assert(brush->gpencil_settings);
@@ -1014,13 +1014,13 @@ void BKE_gpencil_brush_set_material(Brush *brush, Material *ma)
 }
 
 /* Adds the pinned material to the object if necessary. */
-Material *BKE_gpencil_handle_brush_material(Main *bmain, Object *ob, Brush *brush)
+Material *BKE_gpencil_object_material_ensure_from_brush(Main *bmain, Object *ob, Brush *brush)
 {
 	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-		Material *ma = BKE_gpencil_get_material_from_brush(brush);
+		Material *ma = BKE_gpencil_brush_material_get(brush);
 
 		/* check if the material is already on object material slots and add it if missing */
-		if (ma && BKE_gpencil_get_material_index(ob, ma) < 0) {
+		if (ma && BKE_gpencil_object_material_get_index(ob, ma) < 0) {
 			BKE_object_material_slot_add(bmain, ob);
 			assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 		}
@@ -1034,12 +1034,12 @@ Material *BKE_gpencil_handle_brush_material(Main *bmain, Object *ob, Brush *brus
 }
 
 /* Assigns the material to object (if not already present) and returns its index (mat_nr). */
-int BKE_gpencil_handle_material(Main *bmain, Object *ob, Material *material)
+int BKE_gpencil_object_material_ensure(Main *bmain, Object *ob, Material *material)
 {
 	if (!material) {
 		return -1;
 	}
-	int index = BKE_gpencil_get_material_index(ob, material);
+	int index = BKE_gpencil_object_material_get_index(ob, material);
 	if (index < 0) {
 		BKE_object_material_slot_add(bmain, ob);
 		assign_material(bmain, ob, material, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
@@ -1052,7 +1052,7 @@ int BKE_gpencil_handle_material(Main *bmain, Object *ob, Material *material)
  *
  * \param *r_index: value is set to zero based index of the new material if r_index is not NULL
  */
-Material *BKE_gpencil_handle_new_material(Main *bmain, Object *ob, const char *name, int *r_index)
+Material *BKE_gpencil_object_material_new(Main *bmain, Object *ob, const char *name, int *r_index)
 {
 	Material *ma = BKE_material_add_gpencil(bmain, name);
 	id_us_min(&ma->id); /* no users yet */
@@ -1067,10 +1067,10 @@ Material *BKE_gpencil_handle_new_material(Main *bmain, Object *ob, const char *n
 }
 
 /* Returns the material for a brush with respect to its pinned state. */
-Material *BKE_gpencil_get_material_for_brush(Object *ob, Brush *brush)
+Material *BKE_gpencil_object_material_get_from_brush(Object *ob, Brush *brush)
 {
 	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-		Material *ma = BKE_gpencil_get_material_from_brush(brush);
+		Material *ma = BKE_gpencil_brush_material_get(brush);
 		return ma;
 	}
 	else {
@@ -1079,10 +1079,10 @@ Material *BKE_gpencil_get_material_for_brush(Object *ob, Brush *brush)
 }
 
 /* Returns the material index for a brush with respect to its pinned state. */
-int BKE_gpencil_get_material_index_for_brush(Object *ob, Brush *brush)
+int BKE_gpencil_object_material_get_index_from_brush(Object *ob, Brush *brush)
 {
 	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-		return BKE_gpencil_get_material_index(ob, brush->gpencil_settings->material);
+		return BKE_gpencil_object_material_get_index(ob, brush->gpencil_settings->material);
 	}
 	else {
 		return ob->actcol - 1;
@@ -1090,21 +1090,21 @@ int BKE_gpencil_get_material_index_for_brush(Object *ob, Brush *brush)
 }
 
 /* Guaranteed to return a material assigned to object. Returns never NULL. */
-Material *BKE_gpencil_current_input_toolsettings_material(Main *bmain, Object *ob, ToolSettings *ts)
+Material *BKE_gpencil_object_material_ensure_from_active_input_toolsettings(Main *bmain, Object *ob, ToolSettings *ts)
 {
 	if (ts && ts->gp_paint && ts->gp_paint->paint.brush) {
-		return BKE_gpencil_current_input_brush_material(bmain, ob, ts->gp_paint->paint.brush);
+		return BKE_gpencil_object_material_ensure_from_active_input_brush(bmain, ob, ts->gp_paint->paint.brush);
 	}
 	else {
-		return BKE_gpencil_current_input_brush_material(bmain, ob, NULL);
+		return BKE_gpencil_object_material_ensure_from_active_input_brush(bmain, ob, NULL);
 	}
 }
 
 /* Guaranteed to return a material assigned to object. Returns never NULL. */
-Material *BKE_gpencil_current_input_brush_material(Main *bmain, Object *ob, Brush *brush)
+Material *BKE_gpencil_object_material_ensure_from_active_input_brush(Main *bmain, Object *ob, Brush *brush)
 {
 	if (brush) {
-		Material *ma = BKE_gpencil_handle_brush_material(bmain, ob, brush);
+		Material *ma = BKE_gpencil_object_material_ensure_from_brush(bmain, ob, brush);
 		if (ma) {
 			return ma;
 		}
@@ -1113,21 +1113,21 @@ Material *BKE_gpencil_current_input_brush_material(Main *bmain, Object *ob, Brus
 			brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
 		}
 	}
-	return BKE_gpencil_current_input_material(bmain, ob);
+	return BKE_gpencil_object_material_ensure_from_active_input_material(bmain, ob);
 }
 
 /* Guaranteed to return a material assigned to object. Returns never NULL. Only use this for materials unrelated to user input */
-Material *BKE_gpencil_current_input_material(Main *bmain, Object *ob)
+Material *BKE_gpencil_object_material_ensure_from_active_input_material(Main *bmain, Object *ob)
 {
 	Material *ma = give_current_material(ob, ob->actcol);
 	if (ma) {
 		return ma;
 	}
-	return BKE_gpencil_handle_new_material(bmain, ob, "Material", NULL);
+	return BKE_gpencil_object_material_new(bmain, ob, "Material", NULL);
 }
 
 /* Get active color, and add all default settings if we don't find anything */
-Material *BKE_gpencil_material_ensure(Main *bmain, Object *ob)
+Material *BKE_gpencil_object_material_ensure_active(Main *bmain, Object *ob)
 {
 	Material *ma = NULL;
 
@@ -1135,7 +1135,7 @@ Material *BKE_gpencil_material_ensure(Main *bmain, Object *ob)
 	if (ELEM(NULL, bmain, ob))
 		return NULL;
 
-	ma = BKE_gpencil_current_input_material(bmain, ob);
+	ma = BKE_gpencil_object_material_ensure_from_active_input_material(bmain, ob);
 	if (ma->gp_style == NULL) {
 		BKE_material_init_gpencil_settings(ma);
 	}
@@ -1662,7 +1662,7 @@ void BKE_gpencil_stats_update(bGPdata *gpd)
 }
 
 /* get material index (0-based like mat_nr not actcol) */
-int BKE_gpencil_get_material_index(Object *ob, Material *ma)
+int BKE_gpencil_object_material_get_index(Object *ob, Material *ma)
 {
 	short *totcol = give_totcolp(ob);
 	Material *read_ma = NULL;

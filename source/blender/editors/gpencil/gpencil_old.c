@@ -112,7 +112,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 			for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
 
 				/* create material slot */
-				Material *ma = BKE_gpencil_handle_new_material(bmain, ob, palcolor->info, NULL);
+				Material *ma = BKE_gpencil_object_material_new(bmain, ob, palcolor->info, NULL);
 
 				/* copy color settings */
 				MaterialGPencilStyle *gp_style = ma->gp_style;

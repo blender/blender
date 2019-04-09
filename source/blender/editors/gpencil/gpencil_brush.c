@@ -1101,7 +1101,7 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 
 			/* Fix color references */
 			Material *ma = BLI_ghash_lookup(data->new_colors, &new_stroke->mat_nr);
-			gps->mat_nr = BKE_gpencil_get_material_index(ob, ma);
+			gps->mat_nr = BKE_gpencil_object_material_get_index(ob, ma);
 			if (!ma || gps->mat_nr) {
 				gps->mat_nr = 0;
 			}

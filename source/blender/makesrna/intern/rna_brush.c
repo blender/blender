@@ -713,10 +713,10 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
 
 	if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
 		Material *material = give_current_material(ob, ob->actcol);
-		BKE_gpencil_brush_set_material(brush, material);
+		BKE_gpencil_brush_material_set(brush, material);
 	}
 	else {
-		BKE_gpencil_brush_set_material(brush, NULL);
+		BKE_gpencil_brush_material_set(brush, NULL);
 	}
 
 	/* number of material users changed */

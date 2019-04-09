@@ -316,7 +316,7 @@ void GPENCIL_cache_init(void *vedata)
 	if (obact && (obact->type == OB_GPENCIL) && (obact->data)) {
 		obact_gpd = (bGPdata *)obact->data;
 		/* use the brush material */
-		Material *ma = BKE_gpencil_get_material_for_brush(obact, brush);
+		Material *ma = BKE_gpencil_object_material_get_from_brush(obact, brush);
 		if (ma != NULL) {
 			gp_style = ma->gp_style;
 		}

@@ -521,7 +521,7 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 			 * otherwise add the slot with the material
 			 */
 			Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
-			int idx = BKE_gpencil_handle_material(bmain, ob_dst, ma_src);
+			int idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
 
 			/* reasign the stroke material to the right slot in destination object */
 			gps_dst->mat_nr = idx;
@@ -1379,7 +1379,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 		}
 	}
 	/* try to find slot */
-	int idx = BKE_gpencil_get_material_index(ob, ma);
+	int idx = BKE_gpencil_object_material_get_index(ob, ma);
 	if (idx < 0) {
 		return OPERATOR_CANCELLED;
 	}
@@ -2054,7 +2054,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
 				for (short i = 0; i < *totcol; i++) {
 					Material *tmp_ma = give_current_material(ob_src, i + 1);
-					BKE_gpencil_handle_material(bmain, ob_dst, tmp_ma);
+					BKE_gpencil_object_material_ensure(bmain, ob_dst, tmp_ma);
 				}
 
 				/* duplicate bGPDlayers  */
@@ -2089,7 +2089,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
 							/* reasign material. Look old material and try to find in dst */
 							ma_src = give_current_material(ob_src, gps->mat_nr + 1);
-							gps->mat_nr = BKE_gpencil_handle_material(bmain, ob_dst, ma_src);
+							gps->mat_nr = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
 
 							bGPDspoint *pt;
 							int i;
