@@ -2292,7 +2292,7 @@ static bool bmesh_test_dist_add(
 }
 
 /**
- * \param mtx: Measure disatnce in this space.
+ * \param mtx: Measure distance in this space.
  * \param dists: Store the closest connected distance to selected vertices.
  * \param index: Optionally store the original index we're measuring the distance to (can be NULL).
  */
@@ -5806,17 +5806,17 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	if (t->mode == TFM_DUMMY)
 		skip_invert = true;
 
-	/* NOTE: This is not really following copy-on-write design and we shoud not
+	/* NOTE: This is not really following copy-on-write design and we should not
 	 * be re-evaluating the evaluated object. But as the comment above mentioned
 	 * this is part of a hack.
-	 * More proper solution would be to make a shallwe copy of the object  and
+	 * More proper solution would be to make a shallow copy of the object  and
 	 * evaluate that, and access matrix of that evaluated copy of the object.
 	 * Might be more tricky than it sounds, if some logic later on accesses the
 	 * object matrix via td->ob->obmat. */
 	Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
 	if (skip_invert == false && constinv == false) {
 		object_eval->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc checks this */
-		/* It is possiblre to have transform data initialization prior to a
+		/* It is possible to have transform data initialization prior to a
 		 * complete dependency graph evaluated. Happens, for example, when
 		 * changing transformation mode. */
 		BKE_object_tfm_copy(object_eval, ob);
@@ -5829,7 +5829,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	/* Copy newly evaluated fields to the original object, similar to how
 	 * active dependency graph will do it. */
 	copy_m4_m4(ob->obmat, object_eval->obmat);
-	/* Only copy negative scale flag, this is the only flag which is modifed by
+	/* Only copy negative scale flag, this is the only flag which is modified by
 	 * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
 	 * otherwise we might loose dupli flags  (see T61787). */
 	ob->transflag &= ~OB_NEG_SCALE;
@@ -6465,8 +6465,8 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 				TransData *td;
 				int i;
 
-				/* rather then adjusting the selection (which the user would notice)
-				 * tag all mirrored verts, then automerge those */
+				/* Rather then adjusting the selection (which the user would notice)
+				 * tag all mirrored verts, then auto-merge those. */
 				BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
 				for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
@@ -6528,8 +6528,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 						EdgeSlideData *sld = tc->custom.mode.data;
 
-						/* free temporary faces to avoid automerging and deleting
-						 * during cleanup - psy-fi */
+						/* Free temporary faces to avoid auto-merging and deleting
+						 * during cleanup - psy-fi. */
 						freeEdgeSlideTempFaces(sld);
 					}
 				}
@@ -8357,8 +8357,8 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 		curvemapping_initialize(ts->gp_sculpt.cur_falloff);
 	}
 
-	/* First Pass: Count the number of datapoints required for the strokes,
-	 * (and additional info about the configuration - e.g. 2D/3D?)
+	/* First Pass: Count the number of data-points required for the strokes,
+	 * (and additional info about the configuration - e.g. 2D/3D?).
 	 */
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* only editable and visible layers are considered */

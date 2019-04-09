@@ -454,8 +454,8 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
  *
  * \param r_dist: (in/out), minimal distance to the nearest and at the end, actual distance
  * \param use_select_bias:
- * - When true, selected vertice are given a 5 pixel bias to make them further than unselect verts.
- * - When false, unselected vertice are given the bias.
+ * - When true, selected vertices are given a 5 pixel bias to make them further than unselect verts.
+ * - When false, unselected vertices are given the bias.
  * \param use_cycle: Cycle over elements within #FIND_NEAR_CYCLE_THRESHOLD_MIN in order of index.
  */
 BMVert *EDBM_vert_find_nearest_ex(
@@ -1757,7 +1757,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	if (select) {
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			/* Find nearest vert from mouse
-			 * (initialize to large values incase only one vertex can be projected) */
+			 * (initialize to large values in case only one vertex can be projected) */
 			float v1_co[2], v2_co[2];
 			float length_1 = FLT_MAX;
 			float length_2 = FLT_MAX;

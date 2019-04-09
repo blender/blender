@@ -472,8 +472,8 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 {
 	for (DEG::IDNode *id_node : graph->id_nodes) {
 		if (!id_node->visible_components_mask) {
-			/* ID has no components which affects anything visible. no meed
-			 * bother with it to tag or anything. */
+			/* ID has no components which affects anything visible.
+			 * No need bother with it to tag or anything. */
 			continue;
 		}
 		if (id_node->visible_components_mask ==

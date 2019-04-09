@@ -1150,7 +1150,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 				continue;
 			}
 
-			/* We map back the names of the vertex groups to their corresponsing indices
+			/* We map back the names of the vertex groups to their corresponding indices
 			 * for this object. This is fast, and keep the logic for each vertex very simple. */
 			GSetIterator gs_iter;
 			GSET_ITER(gs_iter, gset) {

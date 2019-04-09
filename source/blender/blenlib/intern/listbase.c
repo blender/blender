@@ -61,7 +61,7 @@ void BLI_movelisttolist(ListBase *dst, ListBase *src)
 }
 
 /**
- * moves the entire contents of \a src at the begining of \a dst.
+ * moves the entire contents of \a src at the beginning of \a dst.
  */
 void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src)
 {

@@ -1626,11 +1626,13 @@ bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename)
 	return false;
 }
 
-/* Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
- * - wont change 'string'
- * - wont create any directories
- * - dosnt use CWD, or deal with relative paths.
- * - Only fill's in *dir and *file when they are non NULL
+/**
+ * Converts `/foo/bar.txt` to "/foo/" and `bar.txt`
+ *
+ * - Wont change \a string.
+ * - Wont create any directories.
+ * - Doesn't use CWD, or deal with relative paths.
+ * - Only fill's in \a dir and \a file when they are non NULL.
  * */
 void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen)
 {

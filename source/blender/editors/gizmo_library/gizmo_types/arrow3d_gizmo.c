@@ -369,7 +369,7 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 	const bool is_prop_valid = WM_gizmo_target_property_is_valid(gz_prop);
 
 	if (!cancel) {
-		/* Assign incase applying the opetration needs an updated offset
+		/* Assign incase applying the operation needs an updated offset
 		 * editmesh bisect needs this. */
 		if (is_prop_valid) {
 			const int transform_flag = RNA_enum_get(arrow->gizmo.ptr, "transform");

@@ -4943,7 +4943,7 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			/**
-			 * Calculate a new ratio based on faces that could be remoevd during decimation.
+			 * Calculate a new ratio based on faces that could be removed during decimation.
 			 * needed so 0..1 has a meaningful range when operating on the selection.
 			 *
 			 * This doesn't have to be totally accurate,

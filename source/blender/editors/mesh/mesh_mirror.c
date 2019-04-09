@@ -267,15 +267,15 @@ void ED_mesh_mirrtopo_init(
 		}
 
 		if ((tot_unique <= tot_unique_prev) && (tot_unique_edges <= tot_unique_edges_prev)) {
-			/* Finish searching for unique values when 1 loop dosnt give a
-			 * higher number of unique values compared to the previous loop */
+			/* Finish searching for unique values when 1 loop dosn't give a
+			 * higher number of unique values compared to the previous loop. */
 			break;
 		}
 		else {
 			tot_unique_prev = tot_unique;
 			tot_unique_edges_prev = tot_unique_edges;
 		}
-		/* Copy the hash calculated this iter, so we can use them next time */
+		/* Copy the hash calculated this iteration, so we can use them next time */
 		memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
 
 		topo_pass++;

@@ -371,7 +371,7 @@ void *BLI_mempool_calloc(BLI_mempool *pool)
 /**
  * Free an element from the mempool.
  *
- * \note doesnt protect against double frees, don't be stupid!
+ * \note doesn't protect against double frees, take care!
  */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {

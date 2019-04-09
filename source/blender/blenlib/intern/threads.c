@@ -839,7 +839,7 @@ void BLI_threaded_malloc_begin(void)
 	unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
 	if (level == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
-		/* There is a little chance that two threads will meed to acces to a
+		/* There is a little chance that two threads will need to access to a
 		 * scheduler which was not yet created from main thread. which could
 		 * cause scheduler created multiple times.
 		 */
@@ -874,10 +874,10 @@ static bool check_is_threadripper2_alike_topology(void)
 		return false;
 	}
 	if (strstr(cpu_brand, "Threadripper")) {
-		/* NOTE: We consinder all Threadrippers having similar topology to
+		/* NOTE: We consider all Thread-rippers having similar topology to
 		 * the second one. This is because we are trying to utilize NUMA node
 		 * 0 as much as possible. This node does exist on earlier versions of
-		 * threadripper and setting affinity to it should not have negative
+		 * thread-ripper and setting affinity to it should not have negative
 		 * effect.
 		 * This allows us to avoid per-model check, making the code more
 		 * reliable for the CPUs which are not yet released.
@@ -893,7 +893,7 @@ static bool check_is_threadripper2_alike_topology(void)
 	 * up their DR slots, making it only two dies connected to a DDR slot
 	 * with actual memory in it. */
 	if (strstr(cpu_brand, "EPYC")) {
-		/* NOTE: Similarly to Threadripper we do not do model check. */
+		/* NOTE: Similarly to Thread-ripper we do not do model check. */
 		is_threadripper2 = true;
 	}
 	MEM_freeN(cpu_brand);
@@ -913,7 +913,7 @@ static void threadripper_put_process_on_fast_node(void)
 	 * However, if scene fits into memory adjacent to a single die we don't
 	 * want OS to re-schedule the process to another die since that will make
 	 * it further away from memory allocated for .blend file. */
-	/* NOTE: Even if NUMA is avasilable in the API but is disabled in BIOS on
+	/* NOTE: Even if NUMA is available in the API but is disabled in BIOS on
 	 * this workstation we still process here. If NUMA is disabled it will be a
 	 * single node, so our action is no-visible-changes, but allows to keep
 	 * things simple and unified. */
@@ -942,7 +942,7 @@ static void threadripper_put_thread_on_fast_node(void)
 void BLI_thread_put_process_on_fast_node(void)
 {
 	/* Disabled for now since this causes only 16 threads to be used on a
-	 * threadripper for computations like sculpting and fluid sim. The problem
+	 * thread-ripper for computations like sculpting and fluid sim. The problem
 	 * is that all threads created as children from this thread will inherit
 	 * the NUMA node and so will end up on the same node. This can be fixed
 	 * case-by-case by assigning the NUMA node for every child thread, however

@@ -1887,7 +1887,7 @@ static void do_wpaint_brush_draw_task_cb_ex(
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
 		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			/* Note: grids are 1:1 with corners (aka loops).
-			 * For multires, take the vert whose loop cooresponds to the current grid.
+			 * For multires, take the vert whose loop corresponds to the current grid.
 			 * Otherwise, take the current vert. */
 			const int v_index = has_grids ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 			const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
@@ -2675,7 +2675,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
 		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			/* Note: Grids are 1:1 with corners (aka loops).
-			 * For grid based pbvh, take the vert whose loop cooresponds to the current grid.
+			 * For grid based pbvh, take the vert whose loop corresponds to the current grid.
 			 * Otherwise, take the current vert. */
 			const int v_index = has_grids ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 			const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
@@ -2769,7 +2769,7 @@ static void do_vpaint_brush_blur_task_cb_ex(
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
 		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-			/* For grid based pbvh, take the vert whose loop cooresponds to the current grid.
+			/* For grid based pbvh, take the vert whose loop corresponds to the current grid.
 			 * Otherwise, take the current vert. */
 			const int v_index = has_grids ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 			const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
@@ -2888,7 +2888,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 		{
 			/* Test to see if the vertex coordinates are within the spherical brush region. */
 			if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-				/* For grid based pbvh, take the vert whose loop cooresponds to the current grid.
+				/* For grid based pbvh, take the vert whose loop corresponds to the current grid.
 				 * Otherwise, take the current vert. */
 				const int v_index = has_grids ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 				const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;

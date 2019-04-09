@@ -83,9 +83,9 @@
 
 #include "paint_intern.h"
 
-/* this is a static resource for non-globality,
- * Maybe it should be exposed as part of the
- * paint operation, but for now just give a public interface */
+/* This is a static resource for non-global access.
+ * Maybe it should be exposed as part of the paint operation, but for now just give a public interface.
+ */
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
 ImagePaintPartialRedraw *get_imapaintpartial(void)

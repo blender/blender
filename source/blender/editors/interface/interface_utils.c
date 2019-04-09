@@ -209,7 +209,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(
 					col = uiLayoutColumn(split, false);
 				}
 
-				/* may meed to add more cases here.
+				/* May need to add more cases here.
 				 * don't override enum flag names */
 
 				/* name is shown above, empty name for button below */

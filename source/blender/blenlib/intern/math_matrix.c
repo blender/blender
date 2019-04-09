@@ -1811,7 +1811,7 @@ void blend_m4_m4m4(float out[4][4], const float dst[4][4], const float src[4][4]
  *
  * \note This code is about five times slower as the 'naive' interpolation done by #blend_m3_m3m3
  *       (it typically remains below 2 usec on an average i74700, while #blend_m3_m3m3 remains below 0.4 usec).
- *       However, it gives expected results even with non-uniformaly scaled matrices, see T46418 for an example.
+ *       However, it gives expected results even with non-uniformly scaled matrices, see T46418 for an example.
  *
  * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
  *

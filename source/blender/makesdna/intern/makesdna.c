@@ -466,7 +466,7 @@ static int add_name(const char *str)
 		/*
 		 * Put )(void) at the end? Maybe )(). Should check this with
 		 * old sdna. Actually, sometimes )(), sometimes )(void...)
-		 * Alas.. such is the nature of braindamage :(
+		 * Alas.. such is the nature of brain-damage :(
 		 *
 		 * Sorted it out: always do )(), except for headdraw and
 		 * windraw, part of ScrArea. This is important, because some

@@ -295,7 +295,7 @@ static void pose_slide_refresh(bContext *C, tPoseSlideOp *pso)
 
 /**
  * Although this lookup is not ideal, we won't be dealing with a lot of objects at a given time.
- * But if it comes to that we can instead store prev/next frme in the #tPChanFCurveLink.
+ * But if it comes to that we can instead store prev/next frame in the #tPChanFCurveLink.
  */
 static bool pose_frame_range_from_object_get(tPoseSlideOp *pso, Object *ob, float *prevFrameF, float *nextFrameF)
 {

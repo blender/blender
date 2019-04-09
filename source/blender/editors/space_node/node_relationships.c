@@ -1543,7 +1543,7 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 				/* check if the node rect intersetcts the line from this point to next one */
 				if (BLI_rctf_isect_segment(&select->totr, coord_array[i], coord_array[i + 1])) {
 					/* store the shortest distance to the upper left edge
-					 * of all intersetctions found so far */
+					 * of all intersections found so far */
 					const float node_xy[] = {select->totr.xmin, select->totr.ymax};
 
 					/* to be precise coord_array should be clipped by select->totr,

@@ -446,7 +446,7 @@ void ED_area_do_msg_notify_tag_refresh(
 /**
  * Although there's no general support for minimizing areas, the status-bar can
  * be snapped to be only a few pixels high. A few pixels rather than 0 so it
- * can be un-minimized again. We consider it pseudo-minimalized and don't draw
+ * can be un-minimized again. We consider it pseudo-minimized and don't draw
  * it then.
  */
 static bool area_is_pseudo_minimized(const ScrArea *area)

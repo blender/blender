@@ -1118,7 +1118,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 		else
 			RNA_int_set(op->ptr, "pose_index", -2);  /* -2 means don't apply any pose */
 
-		/* old optimize trick... this enforces to bypass the depgraph
+		/* old optimize trick... this enforces to bypass the depsgraph
 		 * - note: code copied from transform_generics.c -> recalcData()
 		 */
 		// FIXME: shouldn't this use the builtin stuff?

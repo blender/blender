@@ -247,7 +247,7 @@ bool ED_vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, co
  * For use with tools that use ED_vgroup_parray_alloc with \a use_vert_sel == true.
  * This finds the unselected mirror deform verts and copies the weights to them from the selected.
  *
- * \note \a dvert_array has mirrored weights filled in, incase cleanup operations are needed on both.
+ * \note \a dvert_array has mirrored weights filled in, in case cleanup operations are needed on both.
  */
 void ED_vgroup_parray_mirror_sync(
         Object *ob,

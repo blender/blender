@@ -1747,7 +1747,7 @@ static float project_paint_uvpixel_mask(
 		} /* otherwise no mask normal is needed, were within the limit */
 	}
 
-	/* This only works when the opacity dosnt change while painting, stylus pressure messes with this
+	/* This only works when the opacity doesn't change while painting, stylus pressure messes with this
 	 * so don't use it. */
 	// if (ps->is_airbrush == 0) mask *= BKE_brush_alpha_get(ps->brush);
 
