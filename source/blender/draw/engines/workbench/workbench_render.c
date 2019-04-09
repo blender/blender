@@ -28,6 +28,8 @@
 
 #include "DRW_render.h"
 
+#include "ED_view3d.h"
+
 #include "GPU_shader.h"
 
 #include "DEG_depsgraph.h"

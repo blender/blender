@@ -43,6 +43,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.h"
 
+#include "ED_view3d.h"
+
 extern char datatoc_paint_weight_vert_glsl[];
 extern char datatoc_paint_weight_frag_glsl[];
 

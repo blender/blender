@@ -27,6 +27,8 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "ED_view3d.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 

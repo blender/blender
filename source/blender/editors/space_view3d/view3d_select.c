@@ -943,7 +943,7 @@ static void do_lasso_select_meshobject__doSelectVert(void *userData, MVert *mv, 
 }
 static bool do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], short moves, const eSelectOp sel_op)
 {
-	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
+	const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 	Object *ob = vc->obact;
 	Mesh *me = ob->data;
 	rcti rect;
@@ -1472,7 +1472,7 @@ static int mixed_bones_object_selectbuffer_extended(
 
 	/* define if we use solid nearest select or not */
 	if (use_cycle) {
-		if (v3d->shading.type > OB_WIRE) {
+		if (!XRAY_ACTIVE(v3d)) {
 			do_nearest = true;
 			if (len_manhattan_v2v2_int(mval, last_mval) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) {
 				do_nearest = false;
@@ -1481,7 +1481,7 @@ static int mixed_bones_object_selectbuffer_extended(
 		copy_v2_v2_int(last_mval, mval);
 	}
 	else {
-		if (v3d->shading.type > OB_WIRE) {
+		if (!XRAY_ACTIVE(v3d)) {
 			do_nearest = true;
 		}
 	}
@@ -1630,7 +1630,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 
 	ED_view3d_viewcontext_init(C, &vc);
 
-	const bool do_nearest = (vc.v3d->shading.type > OB_WIRE);
+	const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
 	const int hits = mixed_bones_object_selectbuffer(
 	        &vc, buffer, mval, VIEW3D_SELECT_FILTER_NOP, do_nearest);
 
@@ -1996,7 +1996,7 @@ static bool ed_wpaint_vertex_select_pick(
         bool extend, bool deselect, bool toggle, Object *obact)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	const bool use_zbuf = V3D_IS_ZBUF(v3d);
+	const bool use_zbuf = !XRAY_ENABLED(v3d);
 
 	Mesh *me = obact->data; /* already checked for NULL */
 	uint index = 0;
@@ -2246,7 +2246,7 @@ static void do_paintvert_box_select__doSelectVert(void *userData, MVert *mv, con
 static bool do_paintvert_box_select(
         ViewContext *vc, const rcti *rect, const eSelectOp sel_op)
 {
-	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
+	const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 	Mesh *me;
 	MVert *mvert;
 	unsigned int *rt;
@@ -3096,7 +3096,7 @@ static void paint_vertsel_circle_select_doSelectVert(void *userData, MVert *mv, 
 static bool paint_vertsel_circle_select(ViewContext *vc, const eSelectOp sel_op, const int mval[2], float rad)
 {
 	BLI_assert(ELEM(sel_op, SEL_OP_SET, SEL_OP_ADD, SEL_OP_SUB));
-	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
+	const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 	Object *ob = vc->obact;
 	Mesh *me = ob->data;
 	bool bbsel;

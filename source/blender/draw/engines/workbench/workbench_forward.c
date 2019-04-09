@@ -38,6 +38,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
+#include "ED_view3d.h"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"

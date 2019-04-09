@@ -1049,7 +1049,7 @@ int view3d_opengl_select(
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
-	if (v3d->shading.type > OB_WIRE) {
+	if (!XRAY_ACTIVE(v3d)) {
 		GPU_depth_test(true);
 	}
 
@@ -1058,7 +1058,7 @@ int view3d_opengl_select(
 	}
 
 	/* If in xray mode, we select the wires in priority. */
-	if ((v3d->shading.flag & V3D_XRAY_FLAG(v3d)) && use_nearest) {
+	if (XRAY_ACTIVE(v3d) && use_nearest) {
 		/* We need to call "GPU_select_*" API's inside DRW_draw_select_loop
 		 * because the OpenGL context created & destroyed inside this function. */
 		struct DrawSelectLoopUserData drw_select_loop_user_data = {
@@ -1092,7 +1092,8 @@ int view3d_opengl_select(
 			.rect = &rect,
 			.gpu_select_mode = gpu_select_mode,
 		};
-		draw_surface = (v3d->shading.type > OB_WIRE) || ((v3d->shading.flag & V3D_XRAY_FLAG(v3d)) == 0);
+		/* If are not in wireframe mode, we need to use the mesh surfaces to check for hits */
+		draw_surface = (v3d->shading.type > OB_WIRE) || !XRAY_ENABLED(v3d);
 		DRW_draw_select_loop(
 		        depsgraph, ar, v3d,
 		        use_obedit_skip, draw_surface, use_nearest, &rect,
@@ -1104,7 +1105,7 @@ int view3d_opengl_select(
 	G.f &= ~G_FLAG_PICKSEL;
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 
-	if (v3d->shading.type > OB_WIRE) {
+	if (!XRAY_ACTIVE(v3d)) {
 		GPU_depth_test(false);
 	}
 

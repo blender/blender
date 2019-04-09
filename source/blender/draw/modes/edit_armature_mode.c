@@ -26,6 +26,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_view3d_types.h"
 
+#include "ED_view3d.h"
+
 #include "draw_common.h"
 #include "draw_mode_engines.h"
 

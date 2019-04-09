@@ -1011,8 +1011,7 @@ static void OBJECT_cache_init(void *vedata)
 	}
 
 	g_data = stl->g_data;
-	g_data->xray_enabled = XRAY_ENABLED(draw_ctx->v3d) &&
-	                       (draw_ctx->v3d->shading.type < OB_MATERIAL);
+	g_data->xray_enabled = XRAY_ACTIVE(draw_ctx->v3d);
 	g_data->xray_enabled_and_not_wire = g_data->xray_enabled && draw_ctx->v3d->shading.type > OB_WIRE;
 
 	{

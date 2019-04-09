@@ -405,7 +405,7 @@ void GPENCIL_cache_init(void *vedata)
 
 		/* xray mode */
 		if (v3d) {
-			stl->storage->is_xray = (v3d->shading.flag & V3D_XRAY_FLAG(v3d)) ? 1 : 0;
+			stl->storage->is_xray = XRAY_ACTIVE(v3d);
 		}
 		else {
 			stl->storage->is_xray = 0;

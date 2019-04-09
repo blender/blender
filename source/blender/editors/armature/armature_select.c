@@ -419,7 +419,7 @@ static EditBone *get_nearest_editbonepoint(
 	if (use_cycle) {
 		static int last_mval[2] = {-100, -100};
 
-		if (vc->v3d->shading.type > OB_WIRE) {
+		if (!XRAY_ACTIVE(vc->v3d)) {
 			do_nearest = true;
 			if (len_manhattan_v2v2_int(vc->mval, last_mval) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) {
 				do_nearest = false;
@@ -428,7 +428,7 @@ static EditBone *get_nearest_editbonepoint(
 		copy_v2_v2_int(last_mval, vc->mval);
 	}
 	else {
-		if (vc->v3d->shading.type > OB_WIRE) {
+		if (!XRAY_ACTIVE(vc->v3d)) {
 			do_nearest = true;
 		}
 	}

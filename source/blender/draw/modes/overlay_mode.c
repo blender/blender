@@ -34,6 +34,8 @@
 #include "GPU_shader.h"
 #include "DRW_render.h"
 
+#include "ED_view3d.h"
+
 #include "draw_mode_engines.h"
 
 #ifdef __APPLE__

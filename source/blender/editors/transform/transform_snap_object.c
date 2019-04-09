@@ -678,7 +678,7 @@ static bool raycastObj(
 		{
 			if (use_occlusion_test) {
 				if (use_obedit && sctx->use_v3d &&
-				    !V3D_IS_ZBUF(sctx->v3d_data.v3d))
+				    XRAY_ENABLED(sctx->v3d_data.v3d))
 				{
 					/* Use of occlude geometry in editing mode disabled. */
 					return false;
@@ -2541,7 +2541,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 	const RegionView3D *rv3d = ar->regiondata;
 
 	bool use_occlusion_test =
-	        params->use_occlusion_test && V3D_IS_ZBUF(sctx->v3d_data.v3d);
+	        params->use_occlusion_test && !XRAY_ENABLED(sctx->v3d_data.v3d);
 
 	if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
 		float ray_start[3], ray_normal[3];
