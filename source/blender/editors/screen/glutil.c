@@ -291,7 +291,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 			 * bleeding of data is happening from tiles which are drawn later on.
 			 * This doesn't seem to be too slow, but still would be nice to have fast and nice solution. */
 #ifdef __APPLE__
-			glFlush();
+			GPU_flush();
 #endif
 		}
 	}
