@@ -46,10 +46,12 @@ def object_ensure_material(obj, mat_name):
             obj.data.materials.append(mat)
     return mat
 
+
 class ObjectModeOperator:
     @classmethod
     def poll(cls, context):
         return context.mode == 'OBJECT'
+
 
 class QuickFur(ObjectModeOperator, Operator):
     bl_idname = "object.quick_fur"
@@ -507,10 +509,11 @@ class QuickFluid(ObjectModeOperator, Operator):
         # and scale with initial velocity
         v = 0.5 * self.initial_velocity
         obj.location = 0.5 * (max_co + min_co) + Vector((0.0, 0.0, -1.0)) + v
-        obj.scale = (0.5 * (max_co - min_co) +
-                     Vector((1.0, 1.0, 2.0)) +
-                     Vector((abs(v[0]), abs(v[1]), abs(v[2])))
-                     )
+        obj.scale = (
+            0.5 * (max_co - min_co) +
+            Vector((1.0, 1.0, 2.0)) +
+            Vector((abs(v[0]), abs(v[1]), abs(v[2])))
+        )
 
         # setup smoke domain
         bpy.ops.object.modifier_add(type='FLUID_SIMULATION')

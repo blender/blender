@@ -31,8 +31,10 @@ def load_handler(dummy):
             params = space.params
             params.use_filter_folder = True
 
+
 def register():
     bpy.app.handlers.load_factory_startup_post.append(load_handler)
+
 
 def unregister():
     bpy.app.handlers.load_factory_startup_post.remove(load_handler)

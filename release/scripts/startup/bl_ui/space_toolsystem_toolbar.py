@@ -121,15 +121,13 @@ class _defs_view3d_generic:
             else:
                 kmi_add = None
                 kmi_remove = None
-            return (
-                tip_(
+            return tip_(
                 "Measure distance and angles.\n"
                 "\u2022 {} anywhere for new measurement.\n"
                 "\u2022 Drag ruler segment to measure an angle.\n"
                 "\u2022 {} to remove the active ruler.\n"
                 "\u2022 Ctrl while dragging to snap.\n"
                 "\u2022 Shift while dragging to measure surface thickness."
-                )
             ).format(
                 kmi_to_string_or_none(kmi_add),
                 kmi_to_string_or_none(kmi_remove),

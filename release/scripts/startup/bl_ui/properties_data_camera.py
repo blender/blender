@@ -386,6 +386,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col = flow.column()
         col.prop(cam, "show_name", text="Name")
 
+
 class DATA_PT_camera_display_composition_guides(CameraButtonsPanel, Panel):
     bl_label = "Composition Guides"
     bl_parent_id = "DATA_PT_camera_display"

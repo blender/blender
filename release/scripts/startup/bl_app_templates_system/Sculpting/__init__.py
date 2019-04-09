@@ -35,8 +35,10 @@ def load_handler(dummy):
         bpy.ops.mesh.subdivide(number_cuts=6, smoothness=1.0)
     bpy.ops.object.mode_set(mode='SCULPT')
 
+
 def register():
     bpy.app.handlers.load_factory_startup_post.append(load_handler)
+
 
 def unregister():
     bpy.app.handlers.load_factory_startup_post.remove(load_handler)

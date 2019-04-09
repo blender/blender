@@ -583,10 +583,10 @@ def packIslands(islandList):
         w, h = maxx - minx, maxy - miny
 
         if USER_ISLAND_MARGIN:
-            minx -= USER_ISLAND_MARGIN * w/2
-            miny -= USER_ISLAND_MARGIN * h/2
-            maxx += USER_ISLAND_MARGIN * w/2
-            maxy += USER_ISLAND_MARGIN * h/2
+            minx -= USER_ISLAND_MARGIN * w / 2
+            miny -= USER_ISLAND_MARGIN * h / 2
+            maxx += USER_ISLAND_MARGIN * w / 2
+            maxy += USER_ISLAND_MARGIN * h / 2
 
             # recalc width and height
             w, h = maxx - minx, maxy - miny

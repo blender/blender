@@ -5862,6 +5862,7 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         if capabilities.has_height:
             layout.prop(brush, "height", slider=True, text="Height")
 
+
 class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'

@@ -1423,7 +1423,6 @@ class WM_OT_sysinfo(Operator):
         return {'RUNNING_MODAL'}
 
 
-
 class WM_OT_operator_cheat_sheet(Operator):
     """List all the Operators in a text-block, useful for scripting"""
     bl_idname = "wm.operator_cheat_sheet"
@@ -1482,7 +1481,6 @@ class WM_OT_owner_disable(Operator):
         owner_id = workspace.owner_ids[self.owner_id]
         workspace.owner_ids.remove(owner_id)
         return {'FINISHED'}
-
 
 
 class WM_OT_tool_set_by_id(Operator):
@@ -1666,7 +1664,7 @@ class WM_MT_splash(Menu):
         # Draw setup screen if no preferences have been saved yet.
         import os
 
-        userconfig_path = bpy.utils.user_resource('CONFIG');
+        userconfig_path = bpy.utils.user_resource('CONFIG')
         userdef_path = os.path.join(userconfig_path, "userpref.blend")
 
         if not os.path.isfile(userdef_path):

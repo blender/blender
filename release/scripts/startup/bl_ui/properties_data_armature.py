@@ -26,6 +26,7 @@ from .properties_animviz import (
     MotionPathButtonsPanel_display,
 )
 
+
 class ArmatureButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
