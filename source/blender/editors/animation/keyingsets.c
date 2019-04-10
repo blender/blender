@@ -784,6 +784,40 @@ const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C, PointerRNA *UNU
 	return item;
 }
 
+/**
+ * Get the keying set from enum values generated in #ANIM_keying_sets_enum_itemf.
+ *
+ * Type is the Keying Set the user specified to use when calling the operator:
+ * - type == 0: use scene's active Keying Set
+ * - type > 0: use a user-defined Keying Set from the active scene
+ * - type < 0: use a builtin Keying Set
+ */
+KeyingSet *ANIM_keyingset_get_from_enum_type(Scene *scene, int type)
+{
+	KeyingSet *ks = NULL;
+
+	if (type == 0) {
+		type = scene->active_keyingset;
+	}
+
+	if (type > 0) {
+		ks = BLI_findlink(&scene->keyingsets, type - 1);
+	}
+	else {
+		ks = BLI_findlink(&builtin_keyingsets, -type - 1);
+	}
+	return ks;
+}
+
+KeyingSet *ANIM_keyingset_get_from_idname(Scene *scene, const char *idname)
+{
+	KeyingSet *ks = BLI_findstring(&scene->keyingsets, idname, offsetof(KeyingSet, idname));
+	if (ks == NULL) {
+		ks = BLI_findstring(&builtin_keyingsets, idname, offsetof(KeyingSet, idname));
+	}
+	return ks;
+}
+
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
 

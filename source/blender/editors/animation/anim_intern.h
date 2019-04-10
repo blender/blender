@@ -38,6 +38,8 @@ extern ListBase builtin_keyingsets;
  */
 void ANIM_OT_keyframe_insert(struct wmOperatorType *ot);
 void ANIM_OT_keyframe_delete(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_insert_by_name(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_delete_by_name(struct wmOperatorType *ot);
 
 /* Main Keyframe Management operators:
  * These handle keyframes management from various spaces. They will handle the menus
