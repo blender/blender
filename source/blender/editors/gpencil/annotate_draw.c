@@ -1036,9 +1036,8 @@ void ED_annotation_draw_2dimage(const bContext *C)
 	}
 
 	if (ED_screen_animation_playing(wm)) {
-		/* don't show onionskins during animation playback/scrub (i.e. it obscures the poses)
-		 * OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes)
-		 */
+		/* Don't show onion-skins during animation playback/scrub (i.e. it obscures the poses)
+		 * OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes). */
 		dflag |= GP_DRAWDATA_NO_ONIONS;
 	}
 

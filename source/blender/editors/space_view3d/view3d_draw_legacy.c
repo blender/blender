@@ -654,7 +654,7 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 			float zoomx = (x2 - x1) / ibuf->x;
 			float zoomy = (y2 - y1) / ibuf->y;
 
-			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
+			/* For some reason; zoom-levels down refuses to use GL_ALPHA_SCALE. */
 			if (zoomx < 1.0f || zoomy < 1.0f) {
 				float tzoom = min_ff(zoomx, zoomy);
 				int mip = 0;

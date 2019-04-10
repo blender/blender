@@ -144,7 +144,7 @@ void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
  * Pack color into 3 bytes
  *
  * This define converts a numerical value to the equivalent 24-bit
- * color, while not being endian-sensitive. On little-endians, this
+ * color, while not being endian-sensitive. On little-endian, this
  * is the same as doing a 'naive' indexing, on big-endian, it is not!
  *
  * \note BGR format (i.e. 0xBBGGRR)...

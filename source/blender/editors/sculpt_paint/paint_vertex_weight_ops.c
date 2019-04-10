@@ -224,8 +224,8 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 					vgroup_weight = BKE_defvert_multipaint_collective_weight(
 					        &me->dvert[v_idx_best], defbase_tot, defbase_sel, defbase_tot_sel, ts->auto_normalize);
 
-					/* if autonormalize is enabled, but weights are not normalized,
-					 * the value can exceed 1 */
+					/* If auto-normalize is enabled, but weights are not normalized,
+					 * the value can exceed 1. */
 					CLAMP(vgroup_weight, 0.0f, 1.0f);
 				}
 

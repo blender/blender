@@ -2455,7 +2455,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 			Sequence *seq_next;
 
 			/* remove seq so overlap tests don't conflict,
-			 * see seq_free_sequence below for the real free'ing */
+			 * see seq_free_sequence below for the real freeing. */
 			BLI_remlink(ed->seqbasep, seq);
 			/* if (seq->ipo) id_us_min(&seq->ipo->id); */
 			/* XXX, remove fcurve and assign to split image strips */
@@ -2584,8 +2584,8 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 			BKE_sequence_calc(scene, seq);
 		}
 
-		/* 2.73+, keeping endpoings is important!
-		 * moving them around means you can't usefully use metas in a complex edit */
+		/* 2.73+, keeping endpoints is important!
+		 * moving them around means you can't usefully use metas in a complex edit. */
 #if 1
 		BKE_sequence_tx_set_final_left(ms->parseq, ms->disp_range[0]);
 		BKE_sequence_tx_set_final_right(ms->parseq, ms->disp_range[1]);
@@ -3354,7 +3354,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Replace datablock pointers with copies, to keep things working in case
-	 * datablocks get deleted or another .blend file is openeded. */
+	 * datablocks get deleted or another .blend file is opened. */
 	BKE_sequencer_base_clipboard_pointers_store(bmain, &seqbase_clipboard);
 
 	return OPERATOR_FINISHED;

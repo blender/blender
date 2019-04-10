@@ -2125,7 +2125,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 				mesh->add_undisplaced();
 			}
 
-			/* Test if we need tesselation. */
+			/* Test if we need tessellation. */
 			if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
 			   mesh->num_subd_verts == 0 &&
 			   mesh->subd_params)

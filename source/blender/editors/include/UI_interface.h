@@ -172,21 +172,21 @@ enum {
 
 /* but->flag - general state flags. */
 enum {
-	/** warning, the first 6 flags are internal. */
+	/** Warning, the first 6 flags are internal. */
 	UI_BUT_ICON_SUBMENU    = 1 << 6,
 	UI_BUT_ICON_PREVIEW    = 1 << 7,
 
 	UI_BUT_NODE_LINK       = 1 << 8,
 	UI_BUT_NODE_ACTIVE     = 1 << 9,
 	UI_BUT_DRAG_LOCK       = 1 << 10,
-	/** grayed out and uneditable */
+	/** Grayed out and un-editable. */
 	UI_BUT_DISABLED        = 1 << 11,
 
 	UI_BUT_ANIMATED        = 1 << 13,
 	UI_BUT_ANIMATED_KEY    = 1 << 14,
 	UI_BUT_DRIVEN          = 1 << 15,
 	UI_BUT_REDALERT        = 1 << 16,
-	/** grayed out but still editable */
+	/** Grayed out but still editable. */
 	UI_BUT_INACTIVE        = 1 << 17,
 	UI_BUT_LAST_ACTIVE     = 1 << 18,
 	UI_BUT_UNDO            = 1 << 19,

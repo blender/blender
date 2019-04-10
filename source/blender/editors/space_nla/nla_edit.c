@@ -1269,8 +1269,8 @@ static void nlaedit_split_strip_actclip(Main *bmain, AnimData *adt, NlaTrack *nl
 	nstrip = BKE_nlastrip_copy(bmain, strip, true, 0);
 	BLI_insertlinkafter(&nlt->strips, strip, nstrip);
 
-	/* set the endpoint of the first strip and the start of the new strip
-	 * to the splitframe values calculated above
+	/* Set the endpoint of the first strip and the start of the new strip
+	 * to the split-frame values calculated above.
 	 */
 	strip->end = splitframe;
 	nstrip->start = splitframe;

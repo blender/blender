@@ -8171,7 +8171,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 				/* Now, since Blender always expect **latest** Main pointer from fd->mainlist to be the active library
 				 * Main pointer, where to add all non-library data-blocks found in file next, we have to switch that
 				 * 'dupli' found Main to latest position in the list!
-				 * Otherwise, you get weird disappearing linked data on a rather unconsistant basis.
+				 * Otherwise, you get weird disappearing linked data on a rather inconsistent basis.
 				 * See also T53977 for reproducible case. */
 				BLI_remlink(fd->mainlist, newmain);
 				BLI_addtail(fd->mainlist, newmain);
@@ -8930,7 +8930,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
 
 	/* In undo case, most libs and linked data should be kept as is from previous state (see BLO_read_from_memfile).
 	 * However, some needed by the snapshot being read may have been removed in previous one, and would go missing.
-	 * This leads e.g. to desappearing objects in some undo/redo case, see T34446.
+	 * This leads e.g. to disappearing objects in some undo/redo case, see T34446.
 	 * That means we have to carefully check whether current lib or libdata already exits in old main, if it does
 	 * we merely copy it over into new main area, otherwise we have to do a full read of that bhead... */
 	if (fd->memfile && ELEM(bhead->code, ID_LI, ID_LINK_PLACEHOLDER)) {

@@ -811,7 +811,7 @@ static bool gp_brush_randomize_apply(
 		/* Jitter is applied perpendicular to the mouse movement vector
 		 * - We compute all effects in screenspace (since it's easier)
 		 *   and then project these to get the points/distances in
-		 *   viewspace as needed
+		 *   view-space as needed.
 		 */
 		float mvec[2], svec[2];
 
@@ -1029,8 +1029,8 @@ static void gp_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
 		data->new_strokes = MEM_callocN(sizeof(bGPDstroke *) * data->totitems, "cloned strokes ptr array");
 	}
 
-	/* Init colormap for mapping between the pasted stroke's source colour(names)
-	 * and the final colours that will be used here instead...
+	/* Init colormap for mapping between the pasted stroke's source color (names)
+	 * and the final colours that will be used here instead.
 	 */
 	data->new_colors = gp_copybuf_validate_colormap(C);
 }

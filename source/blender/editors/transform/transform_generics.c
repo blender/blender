@@ -945,7 +945,7 @@ static void recalcData_objects(TransInfo *t)
 
 			/* if animtimer is running, and the object already has animation data,
 			 * check if the auto-record feature means that we should record 'samples'
-			 * (i.e. uneditable animation values)
+			 * (i.e. un-editable animation values)
 			 *
 			 * context is needed for keying set poll() functions.
 			 */

@@ -1005,7 +1005,7 @@ static void setNearestAxis3d(TransInfo *t)
 	mvec[1] = (float)(t->mval[1] - t->con.imval[1]);
 	mvec[2] = 0.0f;
 
-	/* we need to correct axis length for the current zoomlevel of view,
+	/* We need to correct axis length for the current zoom-level of view,
 	 * this to prevent projected values to be clipped behind the camera
 	 * and to overflow the short integers.
 	 * The formula used is a bit stupid, just a simplification of the subtraction

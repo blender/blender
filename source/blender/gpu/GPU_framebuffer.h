@@ -96,7 +96,7 @@ void GPU_framebuffer_texture_detach_slot(
  * })
  * \encode
  *
- * \note Unspecified attachements (i.e: those beyond the last
+ * \note Unspecified attachments (i.e: those beyond the last
  * GPU_ATTACHMENT_* in GPU_framebuffer_ensure_config list) are left unchanged.
  *
  * \note Make sure that the dimensions of your textures matches

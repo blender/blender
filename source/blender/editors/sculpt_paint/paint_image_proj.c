@@ -924,8 +924,8 @@ static bool project_bucket_point_occluded(
 	return false;
 }
 
-/* basic line intersection, could move to math_geom.c, 2 points with a horiz line
- * 1 for an intersection, 2 if the first point is aligned, 3 if the second point is aligned */
+/* Basic line intersection, could move to math_geom.c, 2 points with a horizontal line
+ * 1 for an intersection, 2 if the first point is aligned, 3 if the second point is aligned. */
 #define ISECT_TRUE 1
 #define ISECT_TRUE_P1 2
 #define ISECT_TRUE_P2 3
@@ -2443,8 +2443,8 @@ static void project_bucket_clip_face(
 		*tot = 3;
 		return;
 	}
-	/* handle pathological case here,
-	 * no need for further intersections below since tringle area is almost zero */
+	/* Handle pathological case here,
+	 * no need for further intersections below since triangle area is almost zero. */
 	if (collinear) {
 		int flag;
 

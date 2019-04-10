@@ -1599,7 +1599,7 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 }
 
 /* For bmesh: average only the four most aligned (parallel and perpendicular) edges
- * relative to a direction. Naturally converges to a quad-like tesselation. */
+ * relative to a direction. Naturally converges to a quad-like tessellation. */
 static void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
 {
 	/* Logic for 3 or more is identical. */

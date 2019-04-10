@@ -2035,7 +2035,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
 		ViewLayer *view_layer = t->view_layer;
 		Object *ob = OBACT(view_layer);
 
-		/* draw autokeyframing hint in the corner
+		/* draw auto-key-framing hint in the corner
 		 * - only draw if enabled (advanced users may be distracted/annoyed),
 		 *   for objects that will be autokeyframed (no point otherwise),
 		 *   AND only for the active region (as showing all is too overwhelming)

@@ -704,7 +704,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 	pose_slide_refresh(C, pso);
 }
 
-/* perform autokeyframing after changes were made + confirmed */
+/* perform auto-key-framing after changes were made + confirmed */
 static void pose_slide_autoKeyframe(bContext *C, tPoseSlideOp *pso)
 {
 	/* wrapper around the generic call */
