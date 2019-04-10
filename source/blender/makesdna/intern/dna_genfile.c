@@ -38,6 +38,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_memarena.h"
+#include "BLI_string.h"
 
 #ifdef WITH_DNA_GHASH
 #  include "BLI_ghash.h"
@@ -718,17 +719,17 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
  */
 static eSDNA_Type sdna_type_nr(const char *dna_type)
 {
-	if     ((strcmp(dna_type, "char") == 0) || (strcmp(dna_type, "const char") == 0))        { return SDNA_TYPE_CHAR; }
-	else if ((strcmp(dna_type, "uchar") == 0) || (strcmp(dna_type, "unsigned char") == 0))   { return SDNA_TYPE_UCHAR; }
-	else if ( strcmp(dna_type, "short") == 0)                                                { return SDNA_TYPE_SHORT; }
-	else if ((strcmp(dna_type, "ushort") == 0) || (strcmp(dna_type, "unsigned short") == 0)) { return SDNA_TYPE_USHORT; }
-	else if ( strcmp(dna_type, "int") == 0)                                                  { return SDNA_TYPE_INT; }
-	else if ( strcmp(dna_type, "float") == 0)                                                { return SDNA_TYPE_FLOAT; }
-	else if ( strcmp(dna_type, "double") == 0)                                               { return SDNA_TYPE_DOUBLE; }
-	else if ( strcmp(dna_type, "int64_t") == 0)                                              { return SDNA_TYPE_INT64; }
-	else if ( strcmp(dna_type, "uint64_t") == 0)                                             { return SDNA_TYPE_UINT64; }
+	if      (STR_ELEM(dna_type, "char", "const char"))           { return SDNA_TYPE_CHAR; }
+	else if (STR_ELEM(dna_type, "uchar", "unsigned char"))       { return SDNA_TYPE_UCHAR; }
+	else if (STR_ELEM(dna_type, "short"))                        { return SDNA_TYPE_SHORT; }
+	else if (STR_ELEM(dna_type, "ushort", "unsigned short"))     { return SDNA_TYPE_USHORT; }
+	else if (STR_ELEM(dna_type, "int"))                          { return SDNA_TYPE_INT; }
+	else if (STR_ELEM(dna_type, "float"))                        { return SDNA_TYPE_FLOAT; }
+	else if (STR_ELEM(dna_type, "double"))                       { return SDNA_TYPE_DOUBLE; }
+	else if (STR_ELEM(dna_type, "int64_t"))                      { return SDNA_TYPE_INT64; }
+	else if (STR_ELEM(dna_type, "uint64_t"))                     { return SDNA_TYPE_UINT64; }
 	/* invalid! */
-	else                                                                                     { return -1; }
+	else                                                         { return -1; }
 }
 
 /**
