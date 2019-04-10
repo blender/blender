@@ -876,7 +876,7 @@ Mesh *BKE_mesh_new_from_object(
 		 * The other types of object has them applied, but are stored in other
 		 * data structures than a mesh. So need to apply modifiers again on a
 		 * temporary copy before converting result to mesh. */
-		if (object_for_eval.type == OB_MESH) {
+		if (object_input->type == OB_MESH) {
 			effective_apply_modifiers = false;
 		}
 		else {
