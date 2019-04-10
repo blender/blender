@@ -1551,7 +1551,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 		 */
 		bool use_volume_material = (gpumat_array[0] && GPU_material_use_domain_volume(gpumat_array[0]));
 
-		if (DRW_state_is_image_render() || ob->dt >= OB_SOLID) {
+		if ((ob->dt >= OB_SOLID) || DRW_state_is_image_render()) {
 			/* Get per-material split surface */
 			char *auto_layer_names;
 			int *auto_layer_is_srgb;

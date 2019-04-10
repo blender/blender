@@ -897,7 +897,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 	if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
 		return;
 	}
-	if (!DRW_state_is_image_render() && ob->dt < OB_SOLID) {
+	if ((ob->dt < OB_SOLID) && !DRW_state_is_image_render()) {
 		return;
 	}
 
