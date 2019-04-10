@@ -634,6 +634,7 @@ static Mesh *mesh_new_nomain_from_template_ex(
 	me_dst->totpoly = polys_len;
 
 	me_dst->cd_flag = me_src->cd_flag;
+	me_dst->editflag = me_src->editflag;
 
 	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_CALLOC, verts_len);
 	CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_CALLOC, edges_len);
