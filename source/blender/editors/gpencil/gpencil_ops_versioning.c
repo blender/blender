@@ -170,6 +170,13 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
 			for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
 				/* fix layers */
 				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					/* unlock/unhide layer */
+					gpl->flag &= ~GP_LAYER_LOCKED;
+					gpl->flag &= ~GP_LAYER_HIDE;
+					/* set opacity to 1 */
+					gpl->opacity = 1.0f;
+					/* disable tint */
+					gpl->tintcolor[3] = 0.0f;
 					for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 						for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 							if ((gps->colorname[0] != '\0') &&
