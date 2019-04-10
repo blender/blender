@@ -1423,34 +1423,8 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 				break;
 			}
 			case SPACE_NODE:
-			{
-				p->gpd->runtime.sbuffer_sflag |= GP_STROKE_2DSPACE;
-				break;
-			}
 			case SPACE_SEQ:
-			{
-				p->gpd->runtime.sbuffer_sflag |= GP_STROKE_2DSPACE;
-				break;
-			}
 			case SPACE_IMAGE:
-			{
-				SpaceImage *sima = (SpaceImage *)p->sa->spacedata.first;
-
-				/* only set these flags if the image editor doesn't have an image active,
-				 * otherwise user will be confused by strokes not appearing after they're drawn
-				 *
-				 * Admittedly, this is a bit hacky, but it works much nicer from an ergonomic standpoint!
-				 */
-				if (ELEM(NULL, sima, sima->image)) {
-					/* make strokes be drawn in screen space */
-					p->gpd->runtime.sbuffer_sflag &= ~GP_STROKE_2DSPACE;
-					*(p->align_flag) &= ~GP_PROJECT_VIEWSPACE;
-				}
-				else {
-					p->gpd->runtime.sbuffer_sflag |= GP_STROKE_2DSPACE;
-				}
-				break;
-			}
 			case SPACE_CLIP:
 			{
 				p->gpd->runtime.sbuffer_sflag |= GP_STROKE_2DSPACE;
