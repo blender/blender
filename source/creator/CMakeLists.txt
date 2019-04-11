@@ -633,6 +633,13 @@ if(UNIX AND NOT APPLE)
 
 		endif()
 	endif()
+
+	if(WITH_DRACO)
+		install(
+			PROGRAMS ${CMAKE_BINARY_DIR}/lib/lib${DRACO_LIB_NAME}.so
+			DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
+		)
+	endif()
 elseif(WIN32)
 
 	set(BLENDER_TEXT_FILES_DESTINATION ".")
@@ -832,6 +839,12 @@ elseif(WIN32)
 		DESTINATION "."
 	)
 
+	if(WITH_DRACO)
+		install(
+			PROGRAMS ${CMAKE_BINARY_DIR}/lib/$<CONFIG>/${DRACO_LIB_NAME}.dll
+			DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+		)
+	endif()
 elseif(APPLE)
 
 	# handy install macro to exclude files, we use \$ escape for the "to"
@@ -936,6 +949,12 @@ elseif(APPLE)
 		unset(_py_inc_suffix)
 	endif()
 
+	if(WITH_DRACO)
+		install(
+			PROGRAMS ${CMAKE_BINARY_DIR}/lib/lib${DRACO_LIB_NAME}.dylib
+			DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
+		)
+	endif()
 endif()
 
 # -----------------------------------------------------------------------------

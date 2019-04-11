@@ -344,6 +344,7 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 if(UNIX AND NOT APPLE)
 	option(WITH_SYSTEM_LZO    "Use the system LZO library" OFF)
 endif()
+option(WITH_DRACO         "Enable Draco mesh compression Python module (used for glTF)" ON)
 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable Libmv structure from motion library" ON)
@@ -636,6 +637,7 @@ endif()
 
 if(NOT WITH_PYTHON)
 	set(WITH_CYCLES OFF)
+	set(WITH_DRACO OFF)
 endif()
 
 # enable boost for cycles, audaspace or i18n

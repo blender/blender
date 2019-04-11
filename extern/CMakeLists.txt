@@ -41,6 +41,10 @@ if(WITH_BULLET)
 	endif()
 endif()
 
+if(WITH_DRACO)
+	add_subdirectory(draco)
+endif()
+
 # now only available in a branch
 #if(WITH_MOD_CLOTH_ELTOPO)
 #	add_subdirectory(eltopo)
