@@ -556,12 +556,11 @@ void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx,
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *ar);
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
 
-#define XRAY_ALPHA(v3d)   (((v3d)->shading.type == OB_WIRE) ? (v3d)->shading.xray_alpha_wire : (v3d)->shading.xray_alpha)
-#define XRAY_FLAG(v3d)    (((v3d)->shading.type == OB_WIRE) ? V3D_SHADING_XRAY_BONE : V3D_SHADING_XRAY)
-#define XRAY_ENABLED(v3d) ((((v3d)->shading.flag & XRAY_FLAG(v3d)) != 0) && (XRAY_ALPHA(v3d) < 1.0f))
-#define XRAY_ACTIVE(v3d)  (XRAY_ENABLED(v3d) && ((v3d)->shading.type < OB_MATERIAL))
-
-#define V3D_IS_ZBUF(v3d)     (((v3d)->shading.flag & XRAY_FLAG(v3d)) == 0)
+#define XRAY_ALPHA(v3d)        (((v3d)->shading.type == OB_WIRE) ? (v3d)->shading.xray_alpha_wire : (v3d)->shading.xray_alpha)
+#define XRAY_FLAG(v3d)         (((v3d)->shading.type == OB_WIRE) ? V3D_SHADING_XRAY_BONE : V3D_SHADING_XRAY)
+#define XRAY_FLAG_ENABLED(v3d) (((v3d)->shading.flag & XRAY_FLAG(v3d)) != 0)
+#define XRAY_ENABLED(v3d)      (XRAY_FLAG_ENABLED(v3d) && (XRAY_ALPHA(v3d) < 1.0f))
+#define XRAY_ACTIVE(v3d)       (XRAY_ENABLED(v3d) && ((v3d)->shading.type < OB_MATERIAL))
 
 /* view3d_draw_legacy.c */
 /* Try avoid using these more move out of legacy. */

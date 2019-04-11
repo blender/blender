@@ -81,6 +81,7 @@
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -174,12 +175,12 @@ static void validate_object_select_id(
 		/* do nothing */
 	}
 	else if ((obact_eval && (obact_eval->mode & OB_MODE_PARTICLE_EDIT)) &&
-	         V3D_IS_ZBUF(v3d))
+	         !XRAY_ENABLED(v3d))
 	{
 		/* do nothing */
 	}
 	else if ((obedit && (obedit->mode & OB_MODE_EDIT)) &&
-	         V3D_IS_ZBUF(v3d))
+	         !XRAY_FLAG_ENABLED(v3d))
 	{
 		/* do nothing */
 	}

@@ -114,8 +114,7 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 			const DRWContextState *draw_ctx = DRW_context_state_get();
 
 			int ghost = (ob->dtx & OB_DRAWXRAY) ? 1 : 0;
-			bool transp = (stl->g_data->transparent_bones || (ob->dt <= OB_WIRE)) ||
-			              (draw_ctx->v3d->shading.flag & XRAY_FLAG(draw_ctx->v3d)) != 0;
+			bool transp = (stl->g_data->transparent_bones || (ob->dt <= OB_WIRE)) || XRAY_FLAG_ENABLED(draw_ctx->v3d);
 
 			DRWArmaturePasses passes = {
 			    .bone_solid = (transp) ? psl->bone_transp[ghost] : psl->bone_solid[ghost],

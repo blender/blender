@@ -215,7 +215,7 @@ bool EDBM_backbuf_border_init(
 {
 	uint *buf, *dr, buf_len;
 
-	if (vc->obedit == NULL || XRAY_ENABLED(vc->v3d)) {
+	if (vc->obedit == NULL || XRAY_FLAG_ENABLED(vc->v3d)) {
 		return false;
 	}
 
@@ -292,7 +292,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 			return false;
 		}
 	}
-	else if (XRAY_ENABLED(vc->v3d)) {
+	else if (XRAY_FLAG_ENABLED(vc->v3d)) {
 		return false;
 	}
 
@@ -342,7 +342,7 @@ bool EDBM_backbuf_circle_init(
 			return false;
 		}
 	}
-	else if (XRAY_ENABLED(vc->v3d)) {
+	else if (XRAY_FLAG_ENABLED(vc->v3d)) {
 		return false;
 	}
 
@@ -464,7 +464,7 @@ BMVert *EDBM_vert_find_nearest_ex(
 {
 	BMesh *bm = vc->em->bm;
 
-	if (!XRAY_ENABLED(vc->v3d)) {
+	if (!XRAY_FLAG_ENABLED(vc->v3d)) {
 		uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		unsigned int index;
 		BMVert *eve;
@@ -655,7 +655,7 @@ BMEdge *EDBM_edge_find_nearest_ex(
 {
 	BMesh *bm = vc->em->bm;
 
-	if (!XRAY_ENABLED(vc->v3d)) {
+	if (!XRAY_FLAG_ENABLED(vc->v3d)) {
 		uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		unsigned int index;
 		BMEdge *eed;
@@ -825,7 +825,7 @@ BMFace *EDBM_face_find_nearest_ex(
 {
 	BMesh *bm = vc->em->bm;
 
-	if (!XRAY_ENABLED(vc->v3d)) {
+	if (!XRAY_FLAG_ENABLED(vc->v3d)) {
 		float dist_test = 0.0f;
 		unsigned int index;
 		BMFace *efa;
