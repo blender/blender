@@ -292,6 +292,8 @@ static void export_endjob(void *customdata)
 {
 	ExportJobData *data = static_cast<ExportJobData *>(customdata);
 
+	DEG_graph_free(data->settings.depsgraph);
+
 	if (data->was_canceled && BLI_exists(data->filename)) {
 		BLI_delete(data->filename, false, false);
 	}
