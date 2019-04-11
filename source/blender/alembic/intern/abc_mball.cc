@@ -67,15 +67,7 @@ AbcMBallWriter::~AbcMBallWriter()
 
 bool AbcMBallWriter::isAnimated() const
 {
-	MetaBall *mb = static_cast<MetaBall *>(m_object->data);
-	if (mb->adt != NULL) return true;
-
-	/* Any movement of any object in the parent chain
-	 * could cause the mball to deform. */
-	for (Object *ob = m_object; ob != NULL; ob = ob->parent) {
-		if (ob->adt != NULL) return true;
-	}
-	return false;
+	return true;
 }
 
 void AbcMBallWriter::do_write()
