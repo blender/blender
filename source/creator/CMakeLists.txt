@@ -951,7 +951,7 @@ elseif(APPLE)
 
 	if(WITH_DRACO)
 		install(
-			PROGRAMS ${CMAKE_BINARY_DIR}/lib/lib${DRACO_LIB_NAME}.dylib
+			PROGRAMS $<TARGET_FILE:extern_draco>
 			DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
 		)
 	endif()
