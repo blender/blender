@@ -4658,10 +4658,12 @@ class VIEW3D_PT_shading_options(Panel):
             sub = row.row()
             sub.active = shading.show_xray
             sub.prop(shading, "xray_alpha", text="X-Ray")
+            #X-ray mode is off when alpha is 1.0
+            xray_active = shading.show_xray and shading.xray_alpha != 1
 
             row = col.row()
             row.prop(shading, "show_shadows", text="")
-            row.active = not shading.show_xray
+            row.active = not xray_active
             sub = row.row(align=True)
             sub.active = shading.show_shadows
             sub.prop(shading, "shadow_intensity", text="Shadow")
@@ -4674,10 +4676,10 @@ class VIEW3D_PT_shading_options(Panel):
             col = layout.column()
 
             row = col.row()
-            row.active = not shading.show_xray
+            row.active = not xray_active
             row.prop(shading, "show_cavity")
 
-            if shading.show_cavity and not shading.show_xray:
+            if shading.show_cavity and not xray_active:
                 row.prop(shading, "cavity_type", text="Type")
 
                 if shading.cavity_type in {'WORLD', 'BOTH'}:
@@ -4698,7 +4700,7 @@ class VIEW3D_PT_shading_options(Panel):
                     sub.prop(shading, "curvature_valley_factor", text="Valley")
 
             row = col.row()
-            row.active = not shading.show_xray
+            row.active = not xray_active
             row.prop(shading, "use_dof", text="Depth Of Field")
 
         if shading.type in {'WIREFRAME', 'SOLID'}:
