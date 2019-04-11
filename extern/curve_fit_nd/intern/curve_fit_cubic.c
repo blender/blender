@@ -462,7 +462,7 @@ static double points_calc_circumference_factor(
 		 * We could try support this but will likely cause extreme >1 scales which could cause other issues. */
 		// assert(angle >= len_tangent);
 		double factor = (angle / len_tangent);
-		assert(factor < (M_PI / 2) + (DBL_EPSILON * 10));
+		assert(factor < (M_PI / 2) + 1e-6);
 		return factor;
 	}
 	else {
