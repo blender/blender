@@ -713,8 +713,10 @@ static void template_ID(
 				but = uiDefIconBut(
 				        block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 				        NULL, 0, 0, 0, 0,
-				        TIP_("Direct linked library data-block, click to make local, "
-				             "Shift + Click to create a static override"));
+				        BKE_override_static_is_enabled() ?
+				            TIP_("Direct linked library data-block, click to make local, "
+				                 "Shift + Click to create a static override") :
+				            TIP_("Direct linked library data-block, click to make local"));
 				if (disabled) {
 					UI_but_flag_enable(but, UI_BUT_DISABLED);
 				}
