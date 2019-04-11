@@ -992,7 +992,7 @@ void ED_gp_project_stroke_to_plane(
 
 /**
  * Reproject given point to a plane locked to axis to avoid stroke offset
- * \param[in, out] pt : Point to affect
+ * \param[in,out] pt: Point to affect
  */
 void ED_gp_project_point_to_plane(
         const Scene *scene, const Object *ob,

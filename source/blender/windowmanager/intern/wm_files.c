@@ -405,7 +405,11 @@ static int wm_read_exotic(const char *name)
 				retval = BKE_READ_EXOTIC_OK_BLEND;
 			}
 			else {
-#if 0           /* historic stuff - no longer used */
+				/* We may want to support loading other file formats
+				 * from their header bytes or file extension.
+				 * This used to be supported in the code below and may be added
+				 * back at some point. */
+#if 0
 				WM_cursor_wait(true);
 
 				if (is_foo_format(name)) {
