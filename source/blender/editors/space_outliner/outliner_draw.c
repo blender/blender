@@ -1748,7 +1748,7 @@ static void outliner_draw_tree_element(
 			}
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
-				Base *base = (Base *)te->directdata;
+				Base *base = BKE_view_layer_base_find(view_layer, ob);
 				const bool is_selected = (base != NULL) && ((base->flag & BASE_SELECTED) != 0);
 
 				if (ob == obact || is_selected) {
