@@ -387,12 +387,17 @@ void AbcGenericMeshWriter::do_write()
 			writeMesh(mesh);
 		}
 
-		if (needsfree) BKE_id_free(NULL, mesh);
+		if (needsfree) freeEvaluatedMesh(mesh);
 	}
 	catch (...) {
-		if (needsfree) BKE_id_free(NULL, mesh);
+		if (needsfree) freeEvaluatedMesh(mesh);
 		throw;
 	}
+}
+
+void AbcGenericMeshWriter::freeEvaluatedMesh(struct Mesh *mesh)
+{
+	BKE_id_free(NULL, mesh);
 }
 
 void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)

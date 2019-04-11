@@ -61,6 +61,7 @@ protected:
 	virtual void do_write();
 	virtual bool isAnimated() const;
 	virtual Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) = 0;
+	virtual void freeEvaluatedMesh(struct Mesh *mesh);
 
 	Mesh *getFinalMesh(bool &r_needsfree);
 
