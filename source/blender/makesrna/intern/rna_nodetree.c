@@ -1617,6 +1617,31 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	BKE_animdata_fix_paths_rename_all(NULL, "nodes", oldname, node->name);
 }
 
+static int rna_Node_label_length(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+
+	if (node->label[0] == '\0') {
+		return strlen(node->name);
+	}
+	else {
+		return strlen(node->label);
+	}
+
+	return 0;
+}
+
+static void rna_Node_label_get(PointerRNA *ptr, char *value)
+{
+	bNode *node = (bNode *)ptr->data;
+	if (node->label[0] == '\0') {
+		strcpy(value, node->name);
+	}
+	else {
+		strcpy(value, node->label);
+	}
+}
+
 static bNodeSocket *rna_Node_inputs_new(ID *id, bNode *node, Main *bmain, ReportList *reports, const char *type, const char *name, const char *identifier)
 {
 	/* Adding an input to a group node is not working, simpler to add it to its underlying nodetree. */
@@ -7977,6 +8002,7 @@ static void rna_def_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "label");
+	RNA_def_property_string_funcs(prop, "rna_Node_label_get", "rna_Node_label_length", NULL);
 	RNA_def_property_ui_text(prop, "Label", "Optional custom node label");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 

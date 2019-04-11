@@ -1084,11 +1084,11 @@ class TOPBAR_PT_name(Panel):
                 row.prop(item, "name", text="")
                 found = True
         elif space_type == 'NODE_EDITOR':
-            layout.label(text="Node Name")
+            layout.label(text="Node Label")
             item = context.active_node
             if item:
                 row = row_with_icon(layout, 'NODE')
-                row.prop(item, "name", text="")
+                row.prop(item, "label", text="")
                 found = True
         else:
             if mode == 'POSE' or (mode == 'WEIGHT_PAINT' and context.pose_object):
