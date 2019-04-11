@@ -27,6 +27,7 @@
 
 #include <list>
 #include <memory>
+#include <string>
 
 AUD_NAMESPACE_BEGIN
 
