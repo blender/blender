@@ -982,11 +982,13 @@ static MeshRenderData *mesh_render_data_create_ex(
 		CustomData_free_layers(cd_ldata, CD_MLOOPTANGENT, rdata->loop_len);
 
 		if (rdata->cd.layers.uv_len != 0) {
+			int act_uv = rdata->cd.layers.uv_active;
 			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
 				if ((cd_used->uv & (1 << i_src)) == 0) {
+					/* This is a non-used UV slot. Skip. */
 					i_dst--;
 					if (rdata->cd.layers.uv_active >= i_src) {
-						rdata->cd.layers.uv_active--;
+						act_uv--;
 					}
 				}
 				else {
@@ -1001,6 +1003,10 @@ static MeshRenderData *mesh_render_data_create_ex(
 					}
 					BLI_snprintf(rdata->cd.uuid.auto_mix[i_dst], sizeof(*rdata->cd.uuid.auto_mix), "a%u", hash);
 				}
+			}
+			if (rdata->cd.layers.uv_active != -1) {
+				/* Actual active UV slot inside uv layers used for shading. */
+				rdata->cd.layers.uv_active = act_uv;
 			}
 		}
 
