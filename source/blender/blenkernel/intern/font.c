@@ -431,17 +431,6 @@ static void buildchar(Curve *cu, ListBase *nubase, unsigned int character, CharI
 	vfd = vfont_get_data(which_vfont(cu, info));
 	if (!vfd) return;
 
-#if 0
-	if (cu->selend < cu->selstart) {
-		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart - 2)))
-			sel = 1;
-	}
-	else {
-		if ((charidx >= (cu->selstart - 1)) && (charidx <= (cu->selend - 1)))
-			sel = 1;
-	}
-#endif
-
 	/* make a copy at distance ofsx, ofsy with shear */
 	shear = cu->shear;
 	si = sinf(rot);
