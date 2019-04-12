@@ -3437,6 +3437,11 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves");
+
+	PropertyRNA *prop;
+	prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
+	RNA_def_property_subtype(prop, PROP_PIXEL);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 #if 0 /* Not ported to 2.5x yet */
