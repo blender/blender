@@ -51,7 +51,11 @@ def enum_previews_from_directory_items(self, context):
         for i, name in enumerate(image_paths):
             # generates a thumbnail preview for a file.
             filepath = os.path.join(directory, name)
-            thumb = pcoll.load(filepath, filepath, 'IMAGE')
+            icon = pcoll.get(name)
+            if not icon:
+                thumb = pcoll.load(name, filepath, 'IMAGE')
+            else:
+                thumb = pcoll[name]
             enum_items.append((name, name, "", thumb.icon_id, i))
 
     pcoll.my_previews = enum_items
