@@ -640,6 +640,11 @@ if(NOT WITH_PYTHON)
 	set(WITH_DRACO OFF)
 endif()
 
+if(WITH_DRACO AND NOT WITH_PYTHON_INSTALL)
+	message(STATUS "WITH_DRACO requires WITH_PYTHON_INSTALL to be ON, disabling WITH_DRACO for now")
+	set(WITH_DRACO OFF)
+endif()
+
 # enable boost for cycles, audaspace or i18n
 # otherwise if the user disabled
 if(NOT WITH_BOOST)
