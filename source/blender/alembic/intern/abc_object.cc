@@ -290,12 +290,8 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 		return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
 	}
 
-	/* Should not happen. */
-	std::cerr << "AbcObjectReader::xform(): "
-	          << "unable to find IXform for Alembic object '"
-	          << m_iobject.getFullName() << "'\n";
-	BLI_assert(false);
-
+	/* This can happen in certain cases. For example, MeshLab exports
+	 * point clouds without parent XForm. */
 	return IXform();
 }
 
@@ -304,6 +300,8 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 {
 	IXform ixform = xform();
 	if (!ixform) {
+		unit_m4(r_mat);
+		is_constant = true;
 		return;
 	}
 
