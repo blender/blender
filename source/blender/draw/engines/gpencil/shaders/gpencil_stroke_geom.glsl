@@ -84,6 +84,9 @@ void main(void)
 	if (sp2.x < -area.x || sp2.x > area.x) return;
 	if (sp2.y < -area.y || sp2.y > area.y) return;
 
+	/* culling behind camera */
+	if (P1.w < 0 || P2.w < 0) return;
+
 	/* determine the direction of each of the 3 segments (previous, current, next) */
 	vec2 v0 = normalize(sp1 - sp0);
 	vec2 v1 = normalize(sp2 - sp1);
