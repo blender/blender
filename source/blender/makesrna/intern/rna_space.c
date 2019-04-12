@@ -1331,16 +1331,24 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_OBJECT);
 	}
 
-	if (sbuts->pathflag & (1 << BCONTEXT_CONSTRAINT)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_CONSTRAINT);
-	}
-
 	if (sbuts->pathflag & (1 << BCONTEXT_MODIFIER)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_MODIFIER);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_SHADERFX)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_SHADERFX);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_PARTICLE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PARTICLE);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_PHYSICS)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PHYSICS);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_CONSTRAINT)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_CONSTRAINT);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_DATA)) {
@@ -1360,16 +1368,12 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_MATERIAL);
 	}
 
+		if (totitem) {
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+
 	if (sbuts->pathflag & (1 << BCONTEXT_TEXTURE)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_TEXTURE);
-	}
-
-	if (sbuts->pathflag & (1 << BCONTEXT_PARTICLE)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PARTICLE);
-	}
-
-	if (sbuts->pathflag & (1 << BCONTEXT_PHYSICS)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PHYSICS);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
