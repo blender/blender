@@ -113,7 +113,7 @@ class VIEW3D_HT_header(Header):
                 sub.active = gpd.use_multiedit
                 sub.popover(
                     panel="VIEW3D_PT_gpencil_multi_frame",
-                    text="Multiframe"
+                    text="Multiframe",
                 )
 
             if gpd.use_stroke_edit_mode:
@@ -122,7 +122,7 @@ class VIEW3D_HT_header(Header):
 
                 row.popover(
                     panel="VIEW3D_PT_tools_grease_pencil_interpolate",
-                    text="Interpolate"
+                    text="Interpolate",
                 )
 
         VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
@@ -252,7 +252,7 @@ class VIEW3D_HT_header(Header):
                 sub.active = settings.use_guide
                 sub.popover(
                     panel="VIEW3D_PT_gpencil_guide",
-                    text="Guides"
+                    text="Guides",
                 )
 
         layout.separator_spacer()
@@ -4342,7 +4342,7 @@ class VIEW3D_PT_view3d_lock(Panel):
                     view, "lock_bone", lock_object.data,
                     "edit_bones" if lock_object.mode == 'EDIT'
                     else "bones",
-                    text=""
+                    text="",
                 )
         else:
             subcol.prop(view, "lock_cursor", text="Lock to 3D Cursor")
@@ -4671,7 +4671,7 @@ class VIEW3D_PT_shading_options(Panel):
             sub.popover(
                 panel="VIEW3D_PT_shading_options_shadow",
                 icon='PREFERENCES',
-                text=""
+                text="",
             )
 
             col = layout.column()
@@ -4691,7 +4691,7 @@ class VIEW3D_PT_shading_options(Panel):
                     sub.popover(
                         panel="VIEW3D_PT_shading_options_ssao",
                         icon='PREFERENCES',
-                        text=""
+                        text="",
                     )
 
                 if shading.cavity_type in {'SCREEN', 'BOTH'}:

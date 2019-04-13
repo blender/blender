@@ -332,7 +332,7 @@ class PHYSICS_PT_cloth_property_weights(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop_search(
             cloth, "vertex_group_structural_stiffness", ob, "vertex_groups",
-            text="Structural Group"
+            text="Structural Group",
         )
         col.prop(cloth, "tension_stiffness_max", text="Max Tension")
         col.prop(cloth, "compression_stiffness_max", text="Max Compression")
@@ -342,7 +342,7 @@ class PHYSICS_PT_cloth_property_weights(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop_search(
             cloth, "vertex_group_shear_stiffness", ob, "vertex_groups",
-            text="Shear Group"
+            text="Shear Group",
         )
         col.prop(cloth, "shear_stiffness_max", text="Max Shearing")
 

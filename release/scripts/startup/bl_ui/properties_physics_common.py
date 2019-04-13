@@ -39,13 +39,21 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
     row = layout.row(align=True)
     if md:
         row.context_pointer_set("modifier", md)
-        row.operator("object.modifier_remove", text=name, text_ctxt=i18n_contexts.default, icon='X')
+        row.operator(
+            "object.modifier_remove",
+            text=name,
+            text_ctxt=i18n_contexts.default,
+            icon='X',
+        )
         if toggles:
             row.prop(md, "show_render", text="")
             row.prop(md, "show_viewport", text="")
     else:
         row.operator(
-            "object.modifier_add", text=name, text_ctxt=i18n_contexts.default, icon='BLANK1'
+            "object.modifier_add",
+            text=name,
+            text_ctxt=i18n_contexts.default,
+            icon='BLANK1',
         ).type = type
 
 

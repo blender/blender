@@ -95,7 +95,7 @@ class TEXT_HT_footer(Header):
                 row.label(
                     text="Text: External"
                     if text.library
-                    else "Text: Internal"
+                    else "Text: Internal",
                 )
 
 

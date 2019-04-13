@@ -361,7 +361,7 @@ class _draw_left_context_mode:
                 sub.active = settings.use_thickness_curve
                 sub.popover(
                     panel="TOPBAR_PT_gpencil_primitive",
-                    text="Thickness Profile"
+                    text="Thickness Profile",
                 )
 
             if brush.gpencil_tool == 'FILL':
@@ -370,7 +370,7 @@ class _draw_left_context_mode:
                 sub = row.row(align=True)
                 sub.popover(
                     panel="TOPBAR_PT_gpencil_fill",
-                    text="Fill Options"
+                    text="Fill Options",
                 )
 
         @staticmethod
@@ -921,7 +921,7 @@ class TOPBAR_MT_help(Menu):
             "wm.url_open", text="Blender Store", icon='URL',
         ).url = "https://store.blender.org"
         layout.operator(
-            "wm.url_open", text="Development Fund", icon='URL'
+            "wm.url_open", text="Development Fund", icon='URL',
         ).url = "https://fund.blender.org"
         layout.operator(
             "wm.url_open", text="Donate", icon='URL',
