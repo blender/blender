@@ -262,6 +262,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
 	if (data->tar != NULL) {
 		ComponentKey target_key(&data->tar->id, NodeType::GEOMETRY);
 		add_relation(target_key, init_ik_key, "Curve.Path -> Spline IK");
+		add_special_eval_flag(&data->tar->id, DAG_EVAL_NEED_CURVE_PATH);
 	}
 	pchan->flag |= POSE_DONE;
 	OperationKey final_transforms_key(

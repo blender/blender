@@ -71,7 +71,7 @@ typedef struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK */
-static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene *UNUSED(scene), Object *UNUSED(ob), bPoseChannel *pchan_tip)
 {
 	bPoseChannel *pchan, *pchanRoot = NULL;
 	bPoseChannel *pchanChain[255];
@@ -102,28 +102,14 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		return;
 
 	/* make sure that the constraint targets are ok
-	 *     - this is a workaround for a depsgraph bug...
+	 *     - this is a workaround for a depsgraph bug or dependency cycle...
 	 */
 	if (ikData->tar) {
-		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
-		 *       currently for paths to work it needs to go through the bevlist/displist system (ton)
-		 */
+		CurveCache *cache = ikData->tar->runtime.curve_cache;
 
-		/* TODO: Make sure this doesn't crash. */
-#if 0
-		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ELEM(NULL,  ikData->tar->curve_cache, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
-			BKE_displist_make_curveTypes(depsgraph, scene, ikData->tar, 0);
-
-			/* path building may fail in EditMode after removing verts [#33268]*/
-			if (ELEM(NULL, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
-				/* BLI_assert(cu->path != NULL); */
-				return;
-			}
+		if (ELEM(NULL, cache, cache->path, cache->path->data)) {
+			return;
 		}
-#else
-		(void) scene;
-#endif
 	}
 
 	/* find the root bone and the chain of bones from the root to the tip
