@@ -155,6 +155,7 @@ const EnumPropertyItem rna_enum_transform_mode_types[] =
 	{TFM_ALIGN, "ALIGN", 0, "Align", ""},
 	{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
 	{TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
+	{TFM_GPENCIL_OPACITY, "GPENCIL_OPACITY", 0, "GPencil_Opacity", ""},
 	{0, NULL, 0, NULL, NULL},
 };
 

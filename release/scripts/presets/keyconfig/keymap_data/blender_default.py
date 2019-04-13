@@ -3023,6 +3023,8 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("transform.shear", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'GPENCIL_SHRINKFATTEN')]}),
+        ("transform.transform", {"type": 'F', "value": 'PRESS', "shift": True},
+         {"properties": [("mode", 'GPENCIL_OPACITY')]}),
         # Proportonal editing
         *_template_items_proportional_editing(connected=True),
         # Add menu

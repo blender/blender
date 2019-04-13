@@ -8567,8 +8567,14 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 									 * but never for scale or mirror
 									 */
 									if ((t->mode != TFM_RESIZE) && (t->mode != TFM_MIRROR)) {
-										td->val = &pt->pressure;
-										td->ival = pt->pressure;
+										if (t->mode != TFM_GPENCIL_OPACITY) {
+											td->val = &pt->pressure;
+											td->ival = pt->pressure;
+										}
+										else {
+											td->val = &pt->strength;
+											td->ival = pt->strength;
+										}
 									}
 
 									/* screenspace needs special matrices... */
