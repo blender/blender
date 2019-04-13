@@ -157,8 +157,9 @@ void WM_operator_bl_idname(char *to, const char *from)
 			BLI_strncpy(to, from, OP_MAX_TYPENAME);
 		}
 	}
-	else
+	else {
 		to[0] = 0;
+	}
 }
 
 /**
@@ -550,10 +551,12 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
 	wmOperatorType *ot = WM_operatortype_find(opstring, false);
 
-	if (ot)
+	if (ot) {
 		WM_operator_properties_create_ptr(ptr, ot);
-	else
+	}
+	else {
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
+	}
 }
 
 /* similar to the function above except its uses ID properties
@@ -580,10 +583,12 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
 	{
 		switch (RNA_property_type(prop)) {
 			case PROP_ENUM:
-				if (no_context)
+				if (no_context) {
 					RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
-				else
+				}
+				else {
 					RNA_def_property_clear_flag(prop, PROP_ENUM_NO_CONTEXT);
+				}
 				break;
 			case PROP_POINTER:
 			{
@@ -834,10 +839,12 @@ int WM_operator_confirm_message_ex(bContext *C, wmOperator *op,
 	uiLayout *layout;
 	IDProperty *properties = op->ptr->data;
 
-	if (properties && properties->len)
+	if (properties && properties->len) {
 		properties = IDP_CopyProperty(op->ptr->data);
-	else
+	}
+	else {
 		properties = NULL;
+	}
 
 	pup = UI_popup_menu_begin(C, title, icon);
 	layout = UI_popup_menu_layout(pup);
@@ -900,7 +907,9 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFor
 /* op->poll */
 bool WM_operator_winactive(bContext *C)
 {
-	if (CTX_wm_window(C) == NULL) return 0;
+	if (CTX_wm_window(C) == NULL) {
+		return 0;
+	}
 	return 1;
 }
 
@@ -919,9 +928,11 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 	wmOperator *op;
 
 	/* only for operators that are registered and did an undo push */
-	for (op = wm->operators.last; op; op = op->prev)
-		if ((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
+	for (op = wm->operators.last; op; op = op->prev) {
+		if ((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO)) {
 			break;
+		}
+	}
 
 	return op;
 }
@@ -1020,8 +1031,9 @@ static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
 	wmOperator *op = arg_op;
 
 	/* if operator never got executed, free it */
-	if (op != WM_operator_last_redo(C))
+	if (op != WM_operator_last_redo(C)) {
 		WM_operator_free(op);
+	}
 }
 
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
@@ -1046,17 +1058,20 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
 	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, 0, style);
 
-	if (op == WM_operator_last_redo(C))
-		if (!WM_operator_check_ui_enabled(C, op->type->name))
+	if (op == WM_operator_last_redo(C)) {
+		if (!WM_operator_check_ui_enabled(C, op->type->name)) {
 			uiLayoutSetEnabled(layout, false);
+		}
+	}
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
 			uiTemplateOperatorPropertyButs(
 			        C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN,
 			        UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
-			if (op->next)
+			if (op->next) {
 				uiItemS(layout);
+			}
 		}
 	}
 	else {
@@ -1211,8 +1226,9 @@ static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
 	wmOpPopUp *data = arg;
 	wmOperator *op = data->op;
 
-	if (op && retval > 0)
+	if (op && retval > 0) {
 		WM_operator_call_ex(C, op, true);
+	}
 
 	MEM_freeN(data);
 }
@@ -1251,13 +1267,15 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op,
 
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
-	if (!do_redo || !(U.uiflag & USER_GLOBALUNDO))
+	if (!do_redo || !(U.uiflag & USER_GLOBALUNDO)) {
 		return WM_operator_props_dialog_popup(C, op, 300, 20);
+	}
 
 	UI_popup_block_ex(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op, op);
 
-	if (do_call)
+	if (do_call) {
 		wm_block_redo_cb(C, op, 0);
+	}
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1754,10 +1772,12 @@ static bool wm_operator_winactive_normal(bContext *C)
 	wmWindow *win = CTX_wm_window(C);
 	bScreen *screen;
 
-	if (win == NULL)
+	if (win == NULL) {
 		return 0;
-	if (!((screen = WM_window_get_active_screen(win)) && (screen->state == SCREENNORMAL)))
+	}
+	if (!((screen = WM_window_get_active_screen(win)) && (screen->state == SCREENNORMAL))) {
 		return 0;
+	}
 
 	return 1;
 }
@@ -2090,8 +2110,9 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		immEnd();
 
 		/* undo rotation */
-		if (rc->rot_prop)
+		if (rc->rot_prop) {
 			GPU_matrix_pop();
+		}
 	}
 	else {
 		/* flat color if no texture available */
@@ -2173,8 +2194,9 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	radial_control_paint_tex(rc, tex_radius, alpha);
 
 	/* set line color */
-	if (rc->col_prop)
+	if (rc->col_prop) {
 		RNA_property_float_get_array(&rc->col_ptr, rc->col_prop, col);
+	}
 
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -2205,8 +2227,9 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	/* draw circles on top */
 	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r1, 40);
 	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 40);
-	if (rmin > 0.0f)
+	if (rmin > 0.0f) {
 		imm_draw_circle_wire_2d(pos, 0.0, 0.0f, rmin, 40);
+	}
 	immUnbindProgram();
 
 	BLF_size(fontid, 1.5 * fstyle_points * U.pixelsize, U.dpi);
@@ -2253,23 +2276,28 @@ static int radial_control_get_path(
 	}
 
 	/* get an rna string path from the operator's properties */
-	if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0)))
+	if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0))) {
 		return 1;
+	}
 
 	if (str[0] == '\0') {
-		if (r_prop) *r_prop = NULL;
+		if (r_prop) {
+			*r_prop = NULL;
+		}
 		MEM_freeN(str);
 		return 1;
 	}
 
-	if (!r_prop)
+	if (!r_prop) {
 		r_prop = &unused_prop;
+	}
 
 	/* get rna from path */
 	if (!RNA_path_resolve(ctx_ptr, str, r_ptr, r_prop)) {
 		MEM_freeN(str);
-		if (flags & RC_PROP_ALLOW_MISSING)
+		if (flags & RC_PROP_ALLOW_MISSING) {
 			return 1;
+		}
 		else {
 			BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", name);
 			return 0;
@@ -2331,18 +2359,22 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0))
+	if (!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0)) {
 		return 0;
+	}
 
 	/* data path is required */
-	if (!rc->prop)
+	if (!rc->prop) {
 		return 0;
+	}
 
-	if (!radial_control_get_path(&ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT))
+	if (!radial_control_get_path(&ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT)) {
 		return 0;
-	if (!radial_control_get_path(&ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 3, RC_PROP_REQUIRE_FLOAT))
-		return 0;
+	}
 
+	if (!radial_control_get_path(&ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 3, RC_PROP_REQUIRE_FLOAT)) {
+		return 0;
+	}
 
 	if (!radial_control_get_path(
 	        &ctx_ptr, op, "fill_color_path", &rc->fill_col_ptr, &rc->fill_col_prop, 3, RC_PROP_REQUIRE_FLOAT))
@@ -2373,8 +2405,9 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 		return 0;
 	}
 
-	if (!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0))
+	if (!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0)) {
 		return 0;
+	}
 	else if (rc->image_id_ptr.data) {
 		/* extra check, pointer must be to an ID */
 		if (!RNA_struct_is_ID(rc->image_id_ptr.type)) {
@@ -2394,8 +2427,9 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 	RadialControl *rc;
 
 
-	if (!(op->customdata = rc = MEM_callocN(sizeof(RadialControl), "RadialControl")))
+	if (!(op->customdata = rc = MEM_callocN(sizeof(RadialControl), "RadialControl"))) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (!radial_control_get_properties(C, op)) {
 		MEM_freeN(rc);
@@ -2534,8 +2568,9 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 		if (rc->subtype == PROP_ANGLE) {
 			numValue = DEG2RADF(numValue);
 			numValue = fmod(numValue, 2.0f * (float)M_PI);
-			if (numValue < 0.0f)
+			if (numValue < 0.0f) {
 				numValue += 2.0f * (float)M_PI;
+			}
 		}
 
 		CLAMP(numValue, rc->min_value, rc->max_value);
@@ -2619,22 +2654,31 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 						case PROP_DISTANCE:
 						case PROP_PIXEL:
 							new_value = dist;
-							if (snap) new_value = ((int)new_value + 5) / 10 * 10;
+							if (snap) {
+								new_value = ((int)new_value + 5) / 10 * 10;
+							}
 							break;
 						case PROP_PERCENTAGE:
 							new_value = ((dist - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE) / WM_RADIAL_CONTROL_DISPLAY_WIDTH) * 100.0f;
-							if (snap) new_value = ((int)(new_value + 2.5f)) / 5 * 5;
+							if (snap) {
+								new_value = ((int)(new_value + 2.5f)) / 5 * 5;
+							}
 							break;
 						case PROP_FACTOR:
 							new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
-							if (snap) new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+							if (snap) {
+								new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+							}
 							break;
 						case PROP_ANGLE:
 							new_value = atan2f(delta[1], delta[0]) + (float)M_PI + angle_precision;
 							new_value = fmod(new_value, 2.0f * (float)M_PI);
-							if (new_value < 0.0f)
+							if (new_value < 0.0f) {
 								new_value += 2.0f * (float)M_PI;
-							if (snap) new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10 * 10);
+							}
+							if (snap) {
+								new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10 * 10);
+							}
 							break;
 						default:
 							new_value = dist; /* dummy value, should this ever happen? - campbell */
@@ -2685,8 +2729,9 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 			if (rc->subtype == PROP_ANGLE) {
 				numValue = DEG2RADF(numValue);
 				numValue = fmod(numValue, 2.0f * (float)M_PI);
-				if (numValue < 0.0f)
+				if (numValue < 0.0f) {
 					numValue += 2.0f * (float)M_PI;
+				}
 			}
 
 			CLAMP(numValue, rc->min_value, rc->max_value);
@@ -2703,8 +2748,9 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 	ED_region_tag_redraw(CTX_wm_region(C));
 	radial_control_update_header(op, C);
 
-	if (ret != OPERATOR_RUNNING_MODAL)
+	if (ret != OPERATOR_RUNNING_MODAL) {
 		radial_control_cancel(C, op);
+	}
 
 	return ret;
 }
@@ -2766,8 +2812,9 @@ static void redraw_timer_window_swap(bContext *C)
 	ScrArea *sa;
 	CTX_wm_menu_set(C, NULL);
 
-	for (sa = CTX_wm_screen(C)->areabase.first; sa; sa = sa->next)
+	for (sa = CTX_wm_screen(C)->areabase.first; sa; sa = sa->next) {
 		ED_area_tag_redraw(sa);
+	}
 	wm_draw_update(C);
 
 	CTX_wm_window_set(C, win);  /* XXX context manipulation warning! */
@@ -2853,8 +2900,9 @@ static void redraw_timer_step(
 		while (tot--) {
 			/* todo, ability to escape! */
 			scene->r.cfra++;
-			if (scene->r.cfra > scene->r.efra)
+			if (scene->r.cfra > scene->r.efra) {
 				scene->r.cfra = scene->r.sfra;
+			}
 
 			BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 			redraw_timer_window_swap(C);
@@ -3058,8 +3106,9 @@ static int previews_clear_exec(bContext *C, wmOperator *op)
 
 	for (i = 0; lb[i]; i++) {
 		ID *id = lb[i]->first;
-
-		if (!id) continue;
+		if (!id) {
+			continue;
+		}
 
 //		printf("%s: %d, %d, %d -> %d\n", id->name, GS(id->name), BKE_idcode_to_idfilter(GS(id->name)),
 //		                                 id_filters, BKE_idcode_to_idfilter(GS(id->name)) & id_filters);
@@ -3226,7 +3275,9 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Gesture Circle");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items) return;
+	if (keymap && keymap->modal_items) {
+		return;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "View3D Gesture Circle", modal_items);
 
@@ -3254,7 +3305,9 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Straight Line");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items) return;
+	if (keymap && keymap->modal_items) {
+		return;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "Gesture Straight Line", modal_items);
 
@@ -3279,7 +3332,9 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Box");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items) return;
+	if (keymap && keymap->modal_items) {
+		return;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "Gesture Box", modal_items);
 
@@ -3327,7 +3382,9 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items) return;
+	if (keymap && keymap->modal_items) {
+		return;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, "Gesture Zoom Border", modal_items);
 

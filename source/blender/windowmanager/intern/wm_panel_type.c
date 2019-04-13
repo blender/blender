@@ -45,12 +45,14 @@ PanelType *WM_paneltype_find(const char *idname, bool quiet)
 
 	if (idname[0]) {
 		pt = BLI_ghash_lookup(g_paneltypes_hash, idname);
-		if (pt)
+		if (pt) {
 			return pt;
+		}
 	}
 
-	if (!quiet)
+	if (!quiet) {
 		printf("search for unknown paneltype %s\n", idname);
+	}
 
 	return NULL;
 }

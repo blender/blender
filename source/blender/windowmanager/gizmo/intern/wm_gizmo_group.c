@@ -145,18 +145,18 @@ int WM_gizmo_cmp_temp_fl(const void *gz_a_ptr, const void *gz_b_ptr)
 {
 	const wmGizmo *gz_a = gz_a_ptr;
 	const wmGizmo *gz_b = gz_b_ptr;
-	if      (gz_a->temp.f < gz_b->temp.f) return -1;
-	else if (gz_a->temp.f > gz_b->temp.f) return  1;
-	else                                  return  0;
+	if      (gz_a->temp.f < gz_b->temp.f) { return -1; }
+	else if (gz_a->temp.f > gz_b->temp.f) { return  1; }
+	else                                  { return  0; }
 }
 
 int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr)
 {
 	const wmGizmo *gz_a = gz_a_ptr;
 	const wmGizmo *gz_b = gz_b_ptr;
-	if      (gz_a->temp.f < gz_b->temp.f) return  1;
-	else if (gz_a->temp.f > gz_b->temp.f) return -1;
-	else                                  return  0;
+	if      (gz_a->temp.f < gz_b->temp.f) { return  1; }
+	else if (gz_a->temp.f > gz_b->temp.f) { return -1; }
+	else                                  { return  0; }
 }
 
 wmGizmo *wm_gizmogroup_find_intersected_gizmo(
@@ -636,8 +636,9 @@ static wmKeyMap *gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf, const char 
 	keymap = WM_modalkeymap_get(keyconf, name);
 
 	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items)
+	if (keymap && keymap->modal_items) {
 		return NULL;
+	}
 
 	keymap = WM_modalkeymap_add(keyconf, name, modal_items);
 

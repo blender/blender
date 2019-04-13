@@ -85,8 +85,9 @@ static bool wm_link_append_poll(bContext *C)
 		 * but which totally confuses edit mode (i.e. it becoming not so obvious
 		 * to leave from edit mode and invalid tools in toolbar might be displayed)
 		 * so disable link/append when in edit mode (sergey) */
-		if (CTX_data_edit_object(C))
+		if (CTX_data_edit_object(C)) {
 			return 0;
+		}
 
 		return 1;
 	}
@@ -117,16 +118,21 @@ static short wm_link_append_flag(wmOperator *op)
 	PropertyRNA *prop;
 	short flag = 0;
 
-	if (RNA_boolean_get(op->ptr, "autoselect"))
+	if (RNA_boolean_get(op->ptr, "autoselect")) {
 		flag |= FILE_AUTOSELECT;
-	if (RNA_boolean_get(op->ptr, "active_collection"))
+	}
+	if (RNA_boolean_get(op->ptr, "active_collection")) {
 		flag |= FILE_ACTIVE_COLLECTION;
-	if ((prop = RNA_struct_find_property(op->ptr, "relative_path")) && RNA_property_boolean_get(op->ptr, prop))
+	}
+	if ((prop = RNA_struct_find_property(op->ptr, "relative_path")) && RNA_property_boolean_get(op->ptr, prop)) {
 		flag |= FILE_RELPATH;
-	if (RNA_boolean_get(op->ptr, "link"))
+	}
+	if (RNA_boolean_get(op->ptr, "link")) {
 		flag |= FILE_LINK;
-	if (RNA_boolean_get(op->ptr, "instance_collections"))
+	}
+	if (RNA_boolean_get(op->ptr, "instance_collections")) {
 		flag |= FILE_GROUP_INSTANCE;
+	}
 
 	return flag;
 }

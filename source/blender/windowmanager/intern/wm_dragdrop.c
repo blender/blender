@@ -76,10 +76,13 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
 	wmDropBoxMap *dm;
 
-	for (dm = dropboxes.first; dm; dm = dm->next)
-		if (dm->spaceid == spaceid && dm->regionid == regionid)
-			if (STREQLEN(idname, dm->idname, KMAP_MAX_NAME))
+	for (dm = dropboxes.first; dm; dm = dm->next) {
+		if (dm->spaceid == spaceid && dm->regionid == regionid) {
+			if (STREQLEN(idname, dm->idname, KMAP_MAX_NAME)) {
 				return &dm->dropboxes;
+			}
+		}
+	}
 
 	dm = MEM_callocN(sizeof(struct wmDropBoxMap), "dropmap list");
 	BLI_strncpy(dm->idname, idname, KMAP_MAX_NAME);
@@ -222,13 +225,19 @@ static const char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *e
 	const char *name;
 
 	name = dropbox_active(C, &win->handlers, drag, event);
-	if (name) return name;
+	if (name) {
+		return name;
+	}
 
 	name = dropbox_active(C, &sa->handlers, drag, event);
-	if (name) return name;
+	if (name) {
+		return name;
+	}
 
 	name = dropbox_active(C, &ar->handlers, drag, event);
-	if (name) return name;
+	if (name) {
+		return name;
+	}
 
 	return NULL;
 }
@@ -241,8 +250,9 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *e
 	const int winsize_y = WM_window_pixels_y(win);
 
 	/* for multiwin drags, we only do this if mouse inside */
-	if (event->x < 0 || event->y < 0 || event->x > winsize_x || event->y > winsize_y)
+	if (event->x < 0 || event->y < 0 || event->x > winsize_x || event->y > winsize_y) {
 		return;
+	}
 
 	drag->opname[0] = 0;
 
@@ -361,14 +371,18 @@ static const char *wm_drag_name(wmDrag *drag)
 
 static void drag_rect_minmax(rcti *rect, int x1, int y1, int x2, int y2)
 {
-	if (rect->xmin > x1)
+	if (rect->xmin > x1) {
 		rect->xmin = x1;
-	if (rect->xmax < x2)
+	}
+	if (rect->xmax < x2) {
 		rect->xmax = x2;
-	if (rect->ymin > y1)
+	}
+	if (rect->ymin > y1) {
 		rect->ymin = y1;
-	if (rect->ymax < y2)
+	}
+	if (rect->ymax < y2) {
 		rect->ymax = y2;
+	}
 }
 
 /* called in wm_draw.c */
@@ -400,8 +414,9 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			x = cursorx - drag->sx / 2;
 			y = cursory - drag->sy / 2;
 
-			if (rect)
+			if (rect) {
 				drag_rect_minmax(rect, x, y, x + drag->sx, y + drag->sy);
+			}
 			else {
 				float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
 				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
@@ -413,10 +428,12 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			x = cursorx - 2 * padding;
 			y = cursory - 2 * UI_DPI_FAC;
 
-			if (rect)
+			if (rect) {
 				drag_rect_minmax(rect, x, y, x + iconsize, y + iconsize);
-			else
+			}
+			else {
 				UI_icon_draw_aspect(x, y, drag->icon, 1.0f / UI_DPI_FAC, 0.8, text_col);
+			}
 		}
 
 		/* item name */
@@ -442,10 +459,12 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			if (drag->imb) {
 				x = cursorx - drag->sx / 2;
 
-				if (cursory + drag->sy / 2 + padding + iconsize < winsize_y)
+				if (cursory + drag->sy / 2 + padding + iconsize < winsize_y) {
 					y = cursory + drag->sy / 2 + padding;
-				else
+				}
+				else {
 					y = cursory - drag->sy / 2 - padding - iconsize - padding - iconsize;
+				}
 			}
 			else {
 				x = cursorx - 2 * padding;
@@ -462,8 +481,9 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 				int w =  UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
 				drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 			}
-			else
+			else {
 				wm_drop_operator_draw(drag->opname, x, y);
+			}
 
 		}
 	}

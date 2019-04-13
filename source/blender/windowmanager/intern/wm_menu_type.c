@@ -45,12 +45,14 @@ MenuType *WM_menutype_find(const char *idname, bool quiet)
 
 	if (idname[0]) {
 		mt = BLI_ghash_lookup(menutypes_hash, idname);
-		if (mt)
+		if (mt) {
 			return mt;
+		}
 	}
 
-	if (!quiet)
+	if (!quiet) {
 		printf("search for unknown menutype %s\n", idname);
+	}
 
 	return NULL;
 }

@@ -189,8 +189,9 @@ static bool wm_draw_region_stereo_set(Main *bmain, ScrArea *sa, ARegion *ar, eSt
 
 static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 {
-	if (sa->spacetype == SPACE_VIEW3D)
+	if (sa->spacetype == SPACE_VIEW3D) {
 		((View3D *)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
+	}
 }
 
 static void wm_region_test_render_do_draw(const Scene *scene, struct Depsgraph *depsgraph,
@@ -207,10 +208,12 @@ static void wm_region_test_render_do_draw(const Scene *scene, struct Depsgraph *
 			rcti border_rect;
 
 			/* do partial redraw when possible */
-			if (ED_view3d_calc_render_border(scene, depsgraph, v3d, ar, &border_rect))
+			if (ED_view3d_calc_render_border(scene, depsgraph, v3d, ar, &border_rect)) {
 				ED_region_tag_redraw_partial(ar, &border_rect);
-			else
+			}
+			else {
 				ED_region_tag_redraw(ar);
+			}
 
 			engine->flag &= ~RE_ENGINE_DO_DRAW;
 		}
@@ -702,8 +705,9 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 	}
 
 	/* always draw, not only when screen tagged */
-	if (win->gesture.first)
+	if (win->gesture.first) {
 		wm_gesture_draw(win);
+	}
 
 	/* needs pixel coords in screen */
 	if (wm->drags.first) {
@@ -798,32 +802,40 @@ static bool wm_draw_update_test_window(wmWindow *win)
 			screen->do_draw_paintcursor = true;
 			ar->do_draw_overlay = false;
 		}
-		if (ar->visible && ar->do_draw)
+		if (ar->visible && ar->do_draw) {
 			do_draw = true;
+		}
 	}
 
 	ED_screen_areas_iter(win, screen, sa) {
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			wm_region_test_render_do_draw(scene, depsgraph, sa, ar);
 
-			if (ar->visible && ar->do_draw)
+			if (ar->visible && ar->do_draw) {
 				do_draw = true;
+			}
 		}
 	}
 
-	if (do_draw)
+	if (do_draw) {
 		return true;
+	}
 
-	if (screen->do_refresh)
+	if (screen->do_refresh) {
 		return true;
-	if (screen->do_draw)
+	}
+	if (screen->do_draw) {
 		return true;
-	if (screen->do_draw_gesture)
+	}
+	if (screen->do_draw_gesture) {
 		return true;
-	if (screen->do_draw_paintcursor)
+	}
+	if (screen->do_draw_paintcursor) {
 		return true;
-	if (screen->do_draw_drag)
+	}
+	if (screen->do_draw_drag) {
 		return true;
+	}
 
 	return false;
 }

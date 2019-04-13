@@ -291,8 +291,9 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		IMB_rect_from_float(ibuf);
 		imb_freerectfloatImBuf(ibuf);
 	}
-	if (ibuf->rect == NULL)
+	if (ibuf->rect == NULL) {
 		return;
+	}
 
 	GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
@@ -673,13 +674,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			key_data = (GHOST_TEventKeyData *)GHOST_GetEventData(evt);
 			switch (key_data->key) {
 				case GHOST_kKeyA:
-					if (val) ps->noskip = !ps->noskip;
+					if (val) {
+						ps->noskip = !ps->noskip;
+					}
 					break;
 				case GHOST_kKeyI:
-					if (val) ps->indicator = !ps->indicator;
+					if (val) {
+						ps->indicator = !ps->indicator;
+					}
 					break;
 				case GHOST_kKeyP:
-					if (val) ps->pingpong = !ps->pingpong;
+					if (val) {
+						ps->pingpong = !ps->pingpong;
+					}
 					break;
 				case GHOST_kKeyF:
 				{
@@ -811,9 +818,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyNumpadSlash:
 					if (val) {
 						if (g_WS.qual & WS_QUAL_SHIFT) {
-							if (ps->curframe_ibuf)
+							if (ps->curframe_ibuf) {
 								printf(" Name: %s | Speed: %.2f frames/s\n",
 								       ps->curframe_ibuf->name, ps->fstep / swaptime);
+							}
 						}
 						else {
 							swaptime = ps->fstep / 5.0;
@@ -849,11 +857,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 									i++;
 									picture = picture->next;
 								}
-								if (playback_handle)
+								if (playback_handle) {
 									AUD_Handle_stop(playback_handle);
+								}
 								playback_handle = AUD_Device_play(audio_device, source, 1);
-								if (playback_handle)
+								if (playback_handle) {
 									AUD_Handle_setPosition(playback_handle, i / fps_movie);
+								}
 								update_sound_fps();
 							}
 #endif
@@ -883,11 +893,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 								i++;
 								picture = picture->next;
 							}
-							if (playback_handle)
+							if (playback_handle) {
 								AUD_Handle_stop(playback_handle);
+							}
 							playback_handle = AUD_Device_play(audio_device, source, 1);
-							if (playback_handle)
+							if (playback_handle) {
 								AUD_Handle_setPosition(playback_handle, i / fps_movie);
+							}
 							update_sound_fps();
 						}
 #endif
@@ -915,7 +927,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyPlus:
 				case GHOST_kKeyNumpadPlus:
 				{
-					if (val == 0) break;
+					if (val == 0) {
+						break;
+					}
 					if (g_WS.qual & WS_QUAL_CTRL) {
 						playanim_window_zoom(ps, 0.1f);
 					}
@@ -930,7 +944,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyMinus:
 				case GHOST_kKeyNumpadMinus:
 				{
-					if (val == 0) break;
+					if (val == 0) {
+						break;
+					}
 					if (g_WS.qual & WS_QUAL_CTRL) {
 						playanim_window_zoom(ps, -0.1f);
 					}
@@ -969,24 +985,29 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						tag_change_frame(ps, cx);
 					}
 				}
-				else
+				else {
 					g_WS.qual &= ~WS_QUAL_LMOUSE;
+				}
 			}
 			else if (bd->button == GHOST_kButtonMaskMiddle) {
 				if (type == GHOST_kEventButtonDown) {
-					if (inside_window)
+					if (inside_window) {
 						g_WS.qual |= WS_QUAL_MMOUSE;
+					}
 				}
-				else
+				else {
 					g_WS.qual &= ~WS_QUAL_MMOUSE;
+				}
 			}
 			else if (bd->button == GHOST_kButtonMaskRight) {
 				if (type == GHOST_kEventButtonDown) {
-					if (inside_window)
+					if (inside_window) {
 						g_WS.qual |= WS_QUAL_RMOUSE;
+					}
 				}
-				else
+				else {
 					g_WS.qual &= ~WS_QUAL_RMOUSE;
+				}
 			}
 			break;
 		}
@@ -1099,7 +1120,9 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
 	int sizex, sizey;
 	/* int ofsx, ofsy; */ /* UNUSED */
 
-	if (ps->zoom + zoom_offset > 0.0f) ps->zoom += zoom_offset;
+	if (ps->zoom + zoom_offset > 0.0f) {
+		ps->zoom += zoom_offset;
+	}
 
 	// playanim_window_get_position(&ofsx, &ofsy);
 	playanim_window_get_size(&sizex, &sizey);
@@ -1280,8 +1303,12 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	ps.win_x = ps.ibufx;
 	ps.win_y = ps.ibufy;
 
-	if (maxwinx % ibuf->x) maxwinx = ibuf->x * (1 + (maxwinx / ibuf->x));
-	if (maxwiny % ibuf->y) maxwiny = ibuf->y * (1 + (maxwiny / ibuf->y));
+	if (maxwinx % ibuf->x) {
+		maxwinx = ibuf->x * (1 + (maxwinx / ibuf->x));
+	}
+	if (maxwiny % ibuf->y) {
+		maxwiny = ibuf->y * (1 + (maxwiny / ibuf->y));
+	}
 
 
 	glClearColor(0.1, 0.1, 0.1, 0.0);
@@ -1335,8 +1362,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #define USE_IMB_CACHE
 
 	while (ps.go) {
-		if (ps.pingpong)
+		if (ps.pingpong) {
 			ps.direction = -ps.direction;
+		}
 
 		if (ps.direction == 1) {
 			ps.picture = picsbase.first;
@@ -1357,11 +1385,14 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 				ps.picture = ps.picture->prev;
 			}
 		}
-		if (ptottime > 0.0) ptottime = 0.0;
+		if (ptottime > 0.0) {
+			ptottime = 0.0;
+		}
 
 #ifdef WITH_AUDASPACE
-		if (playback_handle)
+		if (playback_handle) {
 			AUD_Handle_stop(playback_handle);
+		}
 		playback_handle = AUD_Device_play(audio_device, source, 1);
 		update_sound_fps();
 #endif
@@ -1369,7 +1400,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 		while (ps.picture) {
 			int hasevent;
 #ifndef USE_IMB_CACHE
-			if (ibuf != NULL && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
+			if (ibuf != NULL && ibuf->ftype == 0) {
+				IMB_freeImBuf(ibuf);
+			}
 #endif
 			if (ps.picture->ibuf) {
 				ibuf = ps.picture->ibuf;
@@ -1428,7 +1461,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 				GHOST_SetTitle(g_WS.ghost_window, ps.picture->name);
 #endif
 
-				while (pupdate_time()) PIL_sleep_ms(1);
+				while (pupdate_time()) {
+					PIL_sleep_ms(1);
+				}
 				ptottime -= swaptime;
 				playanim_toscreen(&ps, ps.picture, ibuf, ps.fontid, ps.fstep);
 			} /* else delete */
@@ -1484,7 +1519,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 						}
 					}
 
-					if (ps.wait2 || ptottime < swaptime || ps.turbo || ps.noskip) break;
+					if (ps.wait2 || ptottime < swaptime || ps.turbo || ps.noskip) {
+						break;
+					}
 					ptottime -= swaptime;
 				}
 				if (ps.picture == NULL && ps.sstep) {
@@ -1518,7 +1555,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	/* cleanup */
 #ifndef USE_IMB_CACHE
-	if (ibuf) IMB_freeImBuf(ibuf);
+	if (ibuf) {
+		IMB_freeImBuf(ibuf);
+	}
 #endif
 
 	BLI_freelistN(&picsbase);

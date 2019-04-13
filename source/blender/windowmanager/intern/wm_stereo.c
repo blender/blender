@@ -162,12 +162,14 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
 	int soffx = WM_window_pixels_x(win) * 0.5f;
 	if (view == STEREO_LEFT_ID) {
-		if (!cross_eyed)
+		if (!cross_eyed) {
 			soffx = 0;
+		}
 	}
 	else { //RIGHT_LEFT_ID
-		if (cross_eyed)
+		if (cross_eyed) {
 			soffx = 0;
+		}
 	}
 
 	const int sizex = WM_window_pixels_x(win);
@@ -286,8 +288,9 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
  */
 void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy)
 {
-	if (!WM_stereo3d_enabled(win, false))
+	if (!WM_stereo3d_enabled(win, false)) {
 		return;
+	}
 
 	if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
 		const int half_x = win->sizex / 2;
@@ -339,19 +342,23 @@ static bool wm_stereo3d_set_properties(bContext *UNUSED(C), wmOperator *op)
 
 	prop = RNA_struct_find_property(op->ptr, "use_interlace_swap");
 	if (RNA_property_is_set(op->ptr, prop)) {
-		if (RNA_property_boolean_get(op->ptr, prop))
+		if (RNA_property_boolean_get(op->ptr, prop)) {
 			s3d->flag |= S3D_INTERLACE_SWAP;
-		else
+		}
+		else {
 			s3d->flag &= ~S3D_INTERLACE_SWAP;
+		}
 		is_set = true;
 	}
 
 	prop = RNA_struct_find_property(op->ptr, "use_sidebyside_crosseyed");
 	if (RNA_property_is_set(op->ptr, prop)) {
-		if (RNA_property_boolean_get(op->ptr, prop))
+		if (RNA_property_boolean_get(op->ptr, prop)) {
 			s3d->flag |= S3D_SIDEBYSIDE_CROSSEYED;
-		else
+		}
+		else {
 			s3d->flag &= ~S3D_SIDEBYSIDE_CROSSEYED;
+		}
 		is_set = true;
 	}
 
@@ -379,8 +386,9 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	Stereo3dData *s3dd;
 	bool ok = true;
 
-	if (G.background)
+	if (G.background) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (op->customdata == NULL) {
 		/* no invoke means we need to set the operator properties here */
@@ -460,10 +468,12 @@ int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 {
 	wm_stereo3d_set_init(C, op);
 
-	if (wm_stereo3d_set_properties(C, op))
+	if (wm_stereo3d_set_properties(C, op)) {
 		return wm_stereo3d_set_exec(C, op);
-	else
+	}
+	else {
 		return WM_operator_props_dialog_popup(C, op, 250, 100);
+	}
 }
 
 void wm_stereo3d_set_draw(bContext *UNUSED(C), wmOperator *op)

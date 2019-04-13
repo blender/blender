@@ -64,17 +64,21 @@ void WM_operator_properties_filesel(
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	if (flag & WM_FILESEL_FILEPATH)
+	if (flag & WM_FILESEL_FILEPATH) {
 		RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "File Path", "Path to file");
+	}
 
-	if (flag & WM_FILESEL_DIRECTORY)
+	if (flag & WM_FILESEL_DIRECTORY) {
 		RNA_def_string_dir_path(ot->srna, "directory", NULL, FILE_MAX, "Directory", "Directory of the file");
+	}
 
-	if (flag & WM_FILESEL_FILENAME)
+	if (flag & WM_FILESEL_FILENAME) {
 		RNA_def_string_file_name(ot->srna, "filename", NULL, FILE_MAX, "File Name", "Name of the file");
+	}
 
-	if (flag & WM_FILESEL_FILES)
+	if (flag & WM_FILESEL_FILES) {
 		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+	}
 
 	if (action == FILE_SAVE) {
 		/* note, this is only used to check if we should highlight the filename area red when the
@@ -116,8 +120,9 @@ void WM_operator_properties_filesel(
 	                   FILE_LOADLIB, FILE_SPECIAL);
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-	if (flag & WM_FILESEL_RELPATH)
+	if (flag & WM_FILESEL_RELPATH) {
 		RNA_def_boolean(ot->srna, "relative_path", true, "Relative Path", "Select the file relative to the blend file");
+	}
 
 	if ((filter & FILE_TYPE_IMAGE) || (filter & FILE_TYPE_MOVIE)) {
 		prop = RNA_def_boolean(ot->srna, "show_multiview", 0, "Enable Multi-View", "");

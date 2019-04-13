@@ -207,10 +207,12 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	}
 	else if (STRPREFIX(opname, "OBJECT_OT")) {
 		/* exception, this needs to work outside object mode too */
-		if (STRPREFIX(opname, "OBJECT_OT_mode_set"))
+		if (STRPREFIX(opname, "OBJECT_OT_mode_set")) {
 			km = WM_keymap_find_all(C, "Object Non-modal", 0, 0);
-		else
+		}
+		else {
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
+		}
 	}
 	/* Object mode related */
 	else if (STRPREFIX(opname, "GROUP_OT") ||

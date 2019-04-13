@@ -194,8 +194,11 @@ static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm
 		wm->windrawable = win;
 	}
 
-	if (!G.background) /* file loading in background mode still calls this */
-		GHOST_SetWindowUserData(win->ghostwin, win);    /* pointer back */
+	/* File loading in background mode still calls this. */
+	if (!G.background) {
+		/* Pointer back. */
+		GHOST_SetWindowUserData(win->ghostwin, win);
+	}
 
 	oldwin->ghostwin = NULL;
 	oldwin->gpuctx = NULL;
@@ -896,8 +899,9 @@ void wm_homefile_read(
 			        NULL) != BKE_BLENDFILE_READ_FAIL;
 		}
 		if (BLI_listbase_is_empty(&U.themes)) {
-			if (G.debug & G_DEBUG)
+			if (G.debug & G_DEBUG) {
 				printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", filepath_startup);
+			}
 			success = false;
 		}
 		if (success) {
@@ -1028,7 +1032,9 @@ void wm_history_file_read(void)
 	int num;
 	const char * const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
 
-	if (!cfgdir) return;
+	if (!cfgdir) {
+		return;
+	}
 
 	BLI_make_file_string("/", name, cfgdir, BLENDER_HISTORY_FILE);
 
@@ -1082,8 +1088,9 @@ static void wm_history_file_write(void)
 
 	/* will be NULL in background mode */
 	user_config_dir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL);
-	if (!user_config_dir)
+	if (!user_config_dir) {
 		return;
+	}
 
 	BLI_make_file_string("/", name, user_config_dir, BLENDER_HISTORY_FILE);
 
@@ -1161,8 +1168,9 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, bScreen *screen,
 	}
 
 	/* scene can be NULL if running a script at startup and calling the save operator */
-	if (G.background || scene == NULL)
+	if (G.background || scene == NULL) {
 		return NULL;
+	}
 
 	if ((scene->camera == NULL) && (screen != NULL)) {
 		sa = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
@@ -1393,8 +1401,9 @@ void WM_autosave_init(wmWindowManager *wm)
 {
 	wm_autosave_timer_ended(wm);
 
-	if (U.flag & USER_AUTOSAVE)
+	if (U.flag & USER_AUTOSAVE) {
 		wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
+	}
 }
 
 void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(wt))
@@ -1461,8 +1470,12 @@ void wm_autosave_delete(void)
 		BLI_make_file_string("/", str, BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
 		/* if global undo; remove tempsave, otherwise rename */
-		if (U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, false, false);
-		else BLI_rename(filename, str);
+		if (U.uiflag & USER_GLOBALUNDO) {
+			BLI_delete(filename, false, false);
+		}
+		else {
+			BLI_rename(filename, str);
+		}
 	}
 }
 
@@ -1547,8 +1560,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* check current window and close it if temp */
-	if (win && WM_window_is_temp_screen(win))
+	if (win && WM_window_is_temp_screen(win)) {
 		wm_window_close(C, wm, win);
+	}
 
 	/* update keymaps in user preferences */
 	WM_keyconfig_update(wm);
@@ -1917,15 +1931,19 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	wm_open_init_load_ui(op, false);
 	wm_open_init_use_scripts(op, false);
 
-	if (RNA_boolean_get(op->ptr, "load_ui"))
+	if (RNA_boolean_get(op->ptr, "load_ui")) {
 		G.fileflags &= ~G_FILE_NO_UI;
-	else
+	}
+	else {
 		G.fileflags |= G_FILE_NO_UI;
+	}
 
-	if (RNA_boolean_get(op->ptr, "use_scripts"))
+	if (RNA_boolean_get(op->ptr, "use_scripts")) {
 		G.f |= G_FLAG_SCRIPT_AUTOEXEC;
-	else
+	}
+	else {
 		G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
+	}
 
 	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_FLAG_SCRIPT_AUTOEXEC));
 
@@ -1952,7 +1970,9 @@ static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
 
 	/* get the dir */
 	lslash = (char *)BLI_last_slash(path);
-	if (lslash) *(lslash + 1) = '\0';
+	if (lslash) {
+		*(lslash + 1) = '\0';
+	}
 
 	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
 		if (BKE_autoexec_match(path) == true) {
@@ -2025,10 +2045,12 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 
 	wm_open_init_use_scripts(op, false);
 
-	if (RNA_boolean_get(op->ptr, "use_scripts"))
+	if (RNA_boolean_get(op->ptr, "use_scripts")) {
 		G.f |= G_FLAG_SCRIPT_AUTOEXEC;
-	else
+	}
+	else {
 		G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
+	}
 
 	BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
 	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_FLAG_SCRIPT_AUTOEXEC));
@@ -2314,8 +2336,9 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	int ret;
 
 	/* cancel if no active window */
-	if (CTX_wm_window(C) == NULL)
+	if (CTX_wm_window(C) == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	save_set_compress(op);
 	save_set_filepath(C, op);

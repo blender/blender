@@ -179,8 +179,12 @@ static void wm_window_check_position(rcti *rect)
 		rect->ymin -= d;
 	}
 
-	if (rect->xmin < 0) rect->xmin = 0;
-	if (rect->ymin < 0) rect->ymin = 0;
+	if (rect->xmin < 0) {
+		rect->xmin = 0;
+	}
+	if (rect->ymin < 0) {
+		rect->ymin = 0;
+	}
 }
 
 static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
@@ -220,8 +224,9 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 		WM_event_remove_handlers(C, &win->handlers);
 		WM_event_remove_handlers(C, &win->modalhandlers);
 
-		if (CTX_wm_window(C) == win)
+		if (CTX_wm_window(C) == win) {
 			CTX_wm_window_set(C, NULL);
+		}
 	}
 
 	BKE_screen_area_map_free(&win->global_areas);
@@ -229,18 +234,22 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 	/* end running jobs, a job end also removes its timer */
 	for (wt = wm->timers.first; wt; wt = wtnext) {
 		wtnext = wt->next;
-		if (wt->win == win && wt->event_type == TIMERJOBS)
+		if (wt->win == win && wt->event_type == TIMERJOBS) {
 			wm_jobs_timer_ended(wm, wt);
+		}
 	}
 
 	/* timer removing, need to call this api function */
 	for (wt = wm->timers.first; wt; wt = wtnext) {
 		wtnext = wt->next;
-		if (wt->win == win)
+		if (wt->win == win) {
 			WM_event_remove_timer(wm, win, wt);
+		}
 	}
 
-	if (win->eventstate) MEM_freeN(win->eventstate);
+	if (win->eventstate) {
+		MEM_freeN(win->eventstate);
+	}
 
 	if (win->cursor_keymap_status) {
 		MEM_freeN(win->cursor_keymap_status);
@@ -261,10 +270,11 @@ static int find_free_winid(wmWindowManager *wm)
 	wmWindow *win;
 	int id = 1;
 
-	for (win = wm->windows.first; win; win = win->next)
-		if (id <= win->winid)
+	for (win = wm->windows.first; win; win = win->next) {
+		if (id <= win->winid) {
 			id = win->winid + 1;
-
+		}
+	}
 	return id;
 }
 
@@ -560,8 +570,9 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 			             G_MAIN->recovered ? " (Recovered)" : "");
 			GHOST_SetTitle(win->ghostwin, str);
 		}
-		else
+		else {
 			GHOST_SetTitle(win->ghostwin, "Blender");
+		}
 
 		/* Informs GHOST of unsaved changes, to set window modified visual indicator (MAC OS X)
 		 * and to give hint of unsaved changes for a user warning mechanism
@@ -639,8 +650,9 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	int scr_w, scr_h, posy;
 
 	/* a new window is created when pageflip mode is required for a window */
-	if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP)
+	if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
 		glSettings.flags |= GHOST_glStereoVisual;
+	}
 
 	if (G.debug & G_DEBUG_GPU) {
 		glSettings.flags |= GHOST_glDebugContext;
@@ -897,9 +909,11 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	wm_window_check_position(&rect);
 
 	/* test if we have a temp screen already */
-	for (win = CTX_wm_manager(C)->windows.first; win; win = win->next)
-		if (WM_window_is_temp_screen(win))
+	for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
+		if (WM_window_is_temp_screen(win)) {
 			break;
+		}
+	}
 
 	/* add new window? */
 	if (win == NULL) {
@@ -973,16 +987,21 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 		ED_drivers_editor_init(C, sa);
 	}
 
-	if (sa->spacetype == SPACE_IMAGE)
+	if (sa->spacetype == SPACE_IMAGE) {
 		title = IFACE_("Blender Render");
-	else if (ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
+	}
+	else if (ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF)) {
 		title = IFACE_("Blender Preferences");
-	else if (sa->spacetype == SPACE_FILE)
+	}
+	else if (sa->spacetype == SPACE_FILE) {
 		title = IFACE_("Blender File View");
-	else if (sa->spacetype == SPACE_GRAPH)
+	}
+	else if (sa->spacetype == SPACE_GRAPH) {
 		title = IFACE_("Blender Drivers Editor");
-	else
+	}
+	else {
 		title = "Blender";
+	}
 
 	if (win->ghostwin) {
 		GHOST_SetTitle(win->ghostwin, title);
@@ -1034,14 +1053,17 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	wmWindow *window = CTX_wm_window(C);
 	GHOST_TWindowState state;
 
-	if (G.background)
+	if (G.background) {
 		return OPERATOR_CANCELLED;
+	}
 
 	state = GHOST_GetWindowState(window->ghostwin);
-	if (state != GHOST_kWindowStateFullScreen)
+	if (state != GHOST_kWindowStateFullScreen) {
 		GHOST_SetWindowState(window->ghostwin, GHOST_kWindowStateFullScreen);
-	else
+	}
+	else {
 		GHOST_SetWindowState(window->ghostwin, GHOST_kWindowStateNormal);
+	}
 
 	return OPERATOR_FINISHED;
 
@@ -1116,8 +1138,9 @@ static int query_qual(modifierKeyType qual)
 	}
 
 	GHOST_GetModifierKeyState(g_system, left, &val);
-	if (!val)
+	if (!val) {
 		GHOST_GetModifierKeyState(g_system, right, &val);
+	}
 
 	return val;
 }
@@ -1170,9 +1193,9 @@ void wm_window_reset_drawable(void)
 	BLI_assert(GPU_framebuffer_active_get() == NULL);
 	wmWindowManager *wm = G_MAIN->wm.first;
 
-	if (wm == NULL)
+	if (wm == NULL) {
 		return;
-
+	}
 	wmWindow *win = wm->windrawable;
 
 	if (win && win->ghostwin) {
@@ -1616,12 +1639,15 @@ static int wm_window_timer(const bContext *C)
 				wt->ltime = time;
 				wt->ntime = wt->stime + wt->timestep * ceil(wt->duration / wt->timestep);
 
-				if (wt->event_type == TIMERJOBS)
+				if (wt->event_type == TIMERJOBS) {
 					wm_jobs_timer(C, wm, wt);
-				else if (wt->event_type == TIMERAUTOSAVE)
+				}
+				else if (wt->event_type == TIMERAUTOSAVE) {
 					wm_autosave_timer(C, wm, wt);
-				else if (wt->event_type == TIMERNOTIFIER)
+				}
+				else if (wt->event_type == TIMERNOTIFIER) {
 					WM_main_add_notifier(POINTER_AS_UINT(wt->customdata), NULL);
+				}
 				else if (win) {
 					wmEvent event;
 					wm_event_init_from_window(win, &event);
@@ -1649,14 +1675,15 @@ void wm_window_process_events(const bContext *C)
 
 	hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
 
-	if (hasevent)
+	if (hasevent) {
 		GHOST_DispatchEvents(g_system);
-
+	}
 	hasevent |= wm_window_timer(C);
 
 	/* no event, we sleep 5 milliseconds */
-	if (hasevent == 0)
+	if (hasevent == 0) {
 		PIL_sleep_ms(5);
+	}
 }
 
 /* **************** init ********************** */
@@ -1690,9 +1717,9 @@ void wm_ghost_init(bContext *C)
 
 void wm_ghost_exit(void)
 {
-	if (g_system)
+	if (g_system) {
 		GHOST_DisposeSystem(g_system);
-
+	}
 	g_system = NULL;
 }
 
@@ -1703,12 +1730,15 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *t
 {
 	wmTimer *wt;
 
-	for (wt = wm->timers.first; wt; wt = wt->next)
-		if (wt == timer)
+	for (wt = wm->timers.first; wt; wt = wt->next) {
+		if (wt == timer) {
 			break;
+		}
+	}
 
-	if (wt)
+	if (wt) {
 		wt->sleep = do_sleep;
+	}
 }
 
 wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
@@ -1750,14 +1780,17 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 	wmTimer *wt;
 
 	/* extra security check */
-	for (wt = wm->timers.first; wt; wt = wt->next)
-		if (wt == timer)
+	for (wt = wm->timers.first; wt; wt = wt->next) {
+		if (wt == timer) {
 			break;
+		}
+	}
 	if (wt) {
 		wmWindow *win;
 
-		if (wm->reports.reporttimer == wt)
+		if (wm->reports.reporttimer == wt) {
 			wm->reports.reporttimer = NULL;
+		}
 
 		BLI_remlink(&wm->timers, wt);
 		if (wt->customdata != NULL && (wt->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
@@ -1861,10 +1894,12 @@ void WM_clipboard_text_set(const char *buf, bool selection)
 		int newlen = 0;
 
 		for (p = buf; *p; p++) {
-			if (*p == '\n')
+			if (*p == '\n') {
 				newlen += 2;
-			else
+			}
+			else {
 				newlen++;
+			}
 		}
 
 		newbuf = MEM_callocN(newlen + 1, "WM_clipboard_text_set");

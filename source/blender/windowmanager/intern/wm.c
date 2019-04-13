@@ -354,8 +354,9 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	wmOperator *op;
 	wmKeyConfig *keyconf;
 
-	if (wm->autosavetimer)
+	if (wm->autosavetimer) {
 		wm_autosave_timer_ended(wm);
+	}
 
 	while ((win = BLI_pophead(&wm->windows))) {
 		/* prevent draw clear to use screen */
@@ -388,7 +389,9 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 		wm->undo_stack = NULL;
 	}
 
-	if (C && CTX_wm_manager(C) == wm) CTX_wm_manager_set(C, NULL);
+	if (C && CTX_wm_manager(C) == wm) {
+		CTX_wm_manager_set(C, NULL);
+	}
 }
 
 void wm_close_and_free_all(bContext *C, ListBase *wmlist)

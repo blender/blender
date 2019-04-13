@@ -101,8 +101,12 @@ void wmWindowViewport(wmWindow *win)
 void wmOrtho2(float x1, float x2, float y1, float y2)
 {
 	/* prevent opengl from generating errors */
-	if (x1 == x2) x2 += 1.0f;
-	if (y1 == y2) y2 += 1.0f;
+	if (x2 == x1) {
+		x2 += 1.0f;
+	}
+	if (y2 == y1) {
+		y2 += 1.0f;
+	}
 
 	GPU_matrix_ortho_set(x1, x2, y1, y2, -100, 100);
 }

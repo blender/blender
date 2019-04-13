@@ -114,19 +114,22 @@ void WM_cursor_set(wmWindow *win, int curs)
 #ifdef _WIN32
 	/* the default win32 cross cursor is barely visible,
 	 * only 1 pixel thick, use another one instead */
-	if (curs == CURSOR_EDIT)
+	if (curs == CURSOR_EDIT) {
 		curs = BC_CROSSCURSOR;
+	}
 #else
 	/* in case of large cursor, also use custom cursor because
 	 * large cursors don't work for system cursors */
-	if (U.curssize && curs == CURSOR_EDIT)
+	if (U.curssize && curs == CURSOR_EDIT) {
 		curs = BC_CROSSCURSOR;
+	}
 #endif
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
 
-	if (curs == CURSOR_STD && win->modalcursor)
+	if (curs == CURSOR_STD && win->modalcursor) {
 		curs = win->modalcursor;
+	}
 
 	win->cursor = curs;
 
@@ -135,7 +138,9 @@ void WM_cursor_set(wmWindow *win, int curs)
 		GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
 	}
 	else {
-		if ((curs < SYSCURSOR) || (curs >= BC_NUMCURSORS)) return;
+		if ((curs < SYSCURSOR) || (curs >= BC_NUMCURSORS)) {
+			return;
+		}
 
 		if (curs == SYSCURSOR) {  /* System default Cursor */
 			GHOST_SetCursorShape(win->ghostwin, convert_cursor(CURSOR_STD));
@@ -168,8 +173,9 @@ bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const AReg
 
 void WM_cursor_modal_set(wmWindow *win, int val)
 {
-	if (win->lastcursor == 0)
+	if (win->lastcursor == 0) {
 		win->lastcursor = win->cursor;
+	}
 	win->modalcursor = val;
 	WM_cursor_set(win, val);
 }
@@ -177,8 +183,9 @@ void WM_cursor_modal_set(wmWindow *win, int val)
 void WM_cursor_modal_restore(wmWindow *win)
 {
 	win->modalcursor = 0;
-	if (win->lastcursor)
+	if (win->lastcursor) {
 		WM_cursor_set(win, win->lastcursor);
+	}
 	win->lastcursor = 0;
 }
 
@@ -304,8 +311,9 @@ void WM_cursor_time(wmWindow *win, int nr)
 	unsigned char bitmap[16][2] = {{0}};
 	int i, idx;
 
-	if (win->lastcursor == 0)
+	if (win->lastcursor == 0) {
 		win->lastcursor = win->cursor;
+	}
 
 	memset(&mask, 0xFF, sizeof(mask));
 
@@ -315,8 +323,9 @@ void WM_cursor_time(wmWindow *win, int nr)
 		int x = idx % 2;
 		int y = idx / 2;
 
-		for (i = 0; i < 8; i++)
+		for (i = 0; i < 8; i++) {
 			bitmap[i + y * 8][x] = digit[i];
+		}
 		nr /= 10;
 	}
 

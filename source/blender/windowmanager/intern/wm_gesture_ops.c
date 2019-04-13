@@ -136,9 +136,9 @@ static bool gesture_box_apply_rect(wmOperator *op)
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
 
-	if (rect->xmin == rect->xmax || rect->ymin == rect->ymax)
+	if (rect->xmin == rect->xmax || rect->ymin == rect->ymax) {
 		return 0;
-
+	}
 
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "xmin", min_ii(rect->xmin, rect->xmax));
@@ -353,11 +353,15 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		switch (event->val) {
 			case GESTURE_MODAL_CIRCLE_SIZE:
 				fac = 0.3f * (event->y - event->prevy);
-				if (fac > 0)
+				if (fac > 0) {
 					rect->xmax += ceil(fac);
-				else
+				}
+				else {
 					rect->xmax += floor(fac);
-				if (rect->xmax < 1) rect->xmax = 1;
+				}
+				if (rect->xmax < 1) {
+					rect->xmax = 1;
+				}
 				is_circle_size = true;
 				break;
 			case GESTURE_MODAL_CIRCLE_ADD:
@@ -366,7 +370,9 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				break;
 			case GESTURE_MODAL_CIRCLE_SUB:
 				rect->xmax -= 2 + rect->xmax / 10;
-				if (rect->xmax < 1) rect->xmax = 1;
+				if (rect->xmax < 1) {
+					rect->xmax = 1;
+				}
 				is_circle_size = true;
 				break;
 			case GESTURE_MODAL_SELECT:
@@ -478,12 +484,15 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
 				/* We want to get coord from start of drag, not from point where it becomes a tweak event, see T40549 */
 				tevent.x = rect->xmin + gesture->winrct.xmin;
 				tevent.y = rect->ymin + gesture->winrct.ymin;
-				if (gesture->event_type == LEFTMOUSE)
+				if (gesture->event_type == LEFTMOUSE) {
 					tevent.type = EVT_TWEAK_L;
-				else if (gesture->event_type == RIGHTMOUSE)
+				}
+				else if (gesture->event_type == RIGHTMOUSE) {
 					tevent.type = EVT_TWEAK_R;
-				else
+				}
+				else {
 					tevent.type = EVT_TWEAK_M;
+				}
 				tevent.val = val;
 				/* mouse coords! */
 
@@ -535,8 +544,9 @@ void wm_tweakevent_test(bContext *C, const wmEvent *event, int action)
 		if ((action & WM_HANDLER_BREAK)) {
 			WM_gesture_end(C, win->tweak);
 		}
-		else
+		else {
 			gesture_tweak_modal(C, event);
+		}
 	}
 }
 
@@ -764,8 +774,9 @@ static bool gesture_straightline_apply(bContext *C, wmOperator *op)
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
 
-	if (rect->xmin == rect->xmax && rect->ymin == rect->ymax)
+	if (rect->xmin == rect->xmax && rect->ymin == rect->ymax) {
 		return 0;
+	}
 
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "xstart", rect->xmin);
