@@ -344,7 +344,7 @@ class _draw_left_context_mode:
             settings = tool_settings.gpencil_paint
             row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
 
-            if brush.gpencil_tool in {'FILL', 'DRAW'}:
+            if context.object and brush.gpencil_tool in {'FILL', 'DRAW'}:
                 draw_color_selector()
 
             from .properties_paint_common import (
