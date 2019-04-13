@@ -21,16 +21,15 @@ Project Pages
 
 - `Main Website <http://www.blender.org>`__
 - `Reference Manual <https://docs.blender.org/manual/en/latest/index.html>`__
-- `Get Involved <https://www.blender.org/get-involved/developers>`__
-- `Development & Issue Tracker <https://developer.blender.org>`__
-- `Discussion Forum <https://devtalk.blender.org>`__
+- `User Community <https://www.blender.org/community/>`__
 
+Development
+-----------
 
-Development Notes and Build Instructions
-----------------------------------------
-
-- `Developer Introduction <https://wiki.blender.org/wiki/Developer_Intro>`__
-- `Building Blender <https://wiki.blender.org/wiki/Building_Blender>`__
+- `Build Instructions <https://wiki.blender.org/wiki/Building_Blender>`__
+- `Code Review & Bug Tracker <https://developer.blender.org>`__
+- `Developer Forum <https://devtalk.blender.org>`__
+- `Developer Documentation <https://wiki.blender.org>`__
 
 
 License
