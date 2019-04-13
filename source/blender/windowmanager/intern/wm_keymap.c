@@ -444,6 +444,12 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
 		}
 	}
 
+	if (UNLIKELY(BLI_listbase_is_empty(&keymap->items))) {
+		/* Empty key-maps may be missing more there may be a typo in the name.
+		 * Warn early to avoid loosing time investigating each case. */
+		CLOG_WARN(WM_LOG_KEYMAPS, "empty keymap '%s'", keymap->idname);
+	}
+
 	if (keymap->poll != NULL) {
 		return keymap->poll(C);
 	}
