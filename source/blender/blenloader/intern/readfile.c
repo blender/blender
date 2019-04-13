@@ -7170,7 +7170,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 				direct_link_gpencil(fd, v3d->gpd);
 			}
 			v3d->localvd = newdataadr(fd, v3d->localvd);
-			v3d->properties_storage = NULL;
+			v3d->runtime.properties_storage = NULL;
 
 			/* render can be quite heavy, set to solid on load */
 			if (v3d->shading.type == OB_RENDER) {

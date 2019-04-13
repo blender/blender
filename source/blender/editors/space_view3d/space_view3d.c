@@ -415,8 +415,8 @@ static void view3d_free(SpaceLink *sl)
 		MEM_freeN(vd->localvd);
 	}
 
-	if (vd->properties_storage) {
-		MEM_freeN(vd->properties_storage);
+	if (vd->runtime.properties_storage) {
+		MEM_freeN(vd->runtime.properties_storage);
 	}
 
 	if (vd->fx_settings.ssao) {
@@ -443,7 +443,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 
 	if (v3dn->localvd) {
 		v3dn->localvd = NULL;
-		v3dn->properties_storage = NULL;
+		v3dn->runtime.properties_storage = NULL;
 	}
 
 	if (v3dn->shading.type == OB_RENDER) {
@@ -452,7 +452,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 
 	/* copy or clear inside new stuff */
 
-	v3dn->properties_storage = NULL;
+	v3dn->runtime.properties_storage = NULL;
 	if (v3dn->fx_settings.dof) {
 		v3dn->fx_settings.dof = MEM_dupallocN(v3do->fx_settings.dof);
 	}

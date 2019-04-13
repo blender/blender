@@ -223,6 +223,11 @@ typedef struct View3DOverlay {
 
 } View3DOverlay;
 
+typedef struct View3D_Runtime {
+	/** Nkey panel stores stuff here. */
+	void *properties_storage;
+} View3D_Runtime;
+
 /* 3D ViewPort Struct */
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
@@ -275,10 +280,7 @@ typedef struct View3D {
 	float clip_start, clip_end;
 	float ofs[3] DNA_DEPRECATED;
 
-	char _pad[4];
-
-	/** Icon id. */
-	short matcap_icon;
+	char _pad[6];
 
 	short gridlines;
 	/** Number of subdivisions in the grid between each highlighted grid line. */
@@ -294,9 +296,6 @@ typedef struct View3D {
 	/* note, 'fx_settings.dof' is currently _not_ allocated,
 	 * instead set (temporarily) from camera */
 	struct GPUFXSettings fx_settings;
-
-	/** Nkey panel stores stuff here (runtime only!). */
-	void *properties_storage;
 
 	/* XXX deprecated? */
 	/** Grease-Pencil Data (annotation layers). */
@@ -316,6 +315,9 @@ typedef struct View3D {
 
 	View3DShading shading;
 	View3DOverlay overlay;
+
+	/** Runtime evaluation data (keep last). */
+	View3D_Runtime runtime;
 } View3D;
 
 

@@ -196,10 +196,10 @@ static void apply_scale_factor_clamp(float *val, const int tot, const float ve_m
 
 static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
 {
-	if (v3d->properties_storage == NULL) {
-		v3d->properties_storage = MEM_callocN(sizeof(TransformProperties), "TransformProperties");
+	if (v3d->runtime.properties_storage == NULL) {
+		v3d->runtime.properties_storage = MEM_callocN(sizeof(TransformProperties), "TransformProperties");
 	}
-	return v3d->properties_storage;
+	return v3d->runtime.properties_storage;
 }
 
 /* is used for both read and write... */
