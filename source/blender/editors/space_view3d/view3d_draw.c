@@ -1324,7 +1324,6 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	BLF_batch_draw_begin();
 
 	if ((U.uiflag & USER_SHOW_GIZMO_AXIS) ||
-	    (v3d->flag2 & V3D_HIDE_OVERLAYS) ||
 	    /* No need to display gizmo and this info. */
 	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{

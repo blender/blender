@@ -1581,9 +1581,7 @@ void DRW_draw_render_loop_ex(
 
 	if (DST.draw_ctx.evil_C) {
 		/* needed so gizmo isn't obscured */
-		if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
-		    ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0))
-		{
+		if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
 			glDisable(GL_DEPTH_TEST);
 			DRW_draw_gizmo_3d();
 		}
@@ -1601,7 +1599,7 @@ void DRW_draw_render_loop_ex(
 			GPU_depth_test(true);
 		}
 
-		if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+		if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
 			/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
 			 * 'DRW_draw_region_info' sets the projection in pixel-space. */
 			GPU_depth_test(false);

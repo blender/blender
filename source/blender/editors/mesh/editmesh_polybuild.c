@@ -91,9 +91,7 @@ static bool edbm_preselect_or_active(
         BMElem **r_ele)
 {
 	ARegion *ar = CTX_wm_region(C);
-	const bool show_gizmo = !(
-	        (v3d->flag2 & V3D_HIDE_OVERLAYS) ||
-	        (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)));
+	const bool show_gizmo = !((v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)));
 
 	wmGizmoMap *gzmap = show_gizmo ? ar->gizmo_map : NULL;
 	wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "VIEW3D_GGT_mesh_preselect_elem") : NULL;

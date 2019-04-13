@@ -1042,9 +1042,7 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
 
-	if ((v3d->flag2 & V3D_HIDE_OVERLAYS) ||
-	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)))
-	{
+	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
 		return OPERATOR_CANCELLED;
 	}
@@ -1107,9 +1105,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
-	if ((v3d->flag2 & V3D_HIDE_OVERLAYS) ||
-	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)))
-	{
+	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
 		return OPERATOR_CANCELLED;
 	}
