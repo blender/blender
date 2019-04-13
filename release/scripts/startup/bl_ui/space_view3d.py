@@ -275,7 +275,7 @@ class VIEW3D_HT_header(Header):
         row.prop(overlay, "show_overlays", icon='OVERLAY', text="")
         sub = row.row(align=True)
         sub.active = overlay.show_overlays
-        sub.popover(panel="VIEW3D_PT_overlay")
+        sub.popover(panel="VIEW3D_PT_overlay", text="")
 
         row = layout.row()
         row.active = (shading.type in {'WIREFRAME', 'SOLID'}) or object_mode in {'EDIT'}
@@ -292,7 +292,7 @@ class VIEW3D_HT_header(Header):
         # show the shading popover which shows double-sided option.
 
         # sub.enabled = shading.type != 'RENDERED'
-        sub.popover(panel="VIEW3D_PT_shading")
+        sub.popover(panel="VIEW3D_PT_shading", text="")
 
 
 class VIEW3D_MT_editor_menus(Menu):
@@ -4507,7 +4507,8 @@ class VIEW3D_PT_shading(Panel):
             return context.scene.display.shading
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.label(text="Viewport Shading")
 
 
 class VIEW3D_PT_shading_lighting(Panel):
@@ -4762,7 +4763,8 @@ class VIEW3D_PT_overlay(Panel):
     bl_ui_units_x = 13
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.label(text="Viewport Overlays")
 
 
 class VIEW3D_PT_overlay_gizmo(Panel):
