@@ -77,7 +77,7 @@ class _template_widget:
             props = tool.gizmo_group_properties("VIEW3D_GGT_xform_extrude")
             layout.prop(props, "axis_type", expand=True)
 
-    class TRANSFORM_GGT_gizmo:
+    class VIEW3D_GGT_xform_gizmo:
         @staticmethod
         def draw_settings_with_index(context, layout, index):
             scene = context.scene
@@ -237,13 +237,13 @@ class _defs_transform:
     @ToolDef.from_fn
     def translate():
         def draw_settings(context, layout, tool):
-            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 1)
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 1)
         return dict(
             idname="builtin.move",
             label="Move",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
-            widget="TRANSFORM_GGT_gizmo",
+            widget="VIEW3D_GGT_xform_gizmo",
             operator="transform.translate",
             keymap="3D View Tool: Move",
             draw_settings=draw_settings,
@@ -252,13 +252,13 @@ class _defs_transform:
     @ToolDef.from_fn
     def rotate():
         def draw_settings(context, layout, tool):
-            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 2)
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 2)
         return dict(
             idname="builtin.rotate",
             label="Rotate",
             # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
-            widget="TRANSFORM_GGT_gizmo",
+            widget="VIEW3D_GGT_xform_gizmo",
             operator="transform.rotate",
             keymap="3D View Tool: Rotate",
             draw_settings=draw_settings,
@@ -267,13 +267,13 @@ class _defs_transform:
     @ToolDef.from_fn
     def scale():
         def draw_settings(context, layout, tool):
-            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 3)
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 3)
         return dict(
             idname="builtin.scale",
             label="Scale",
             # cursor='SCROLL_XY',
             icon="ops.transform.resize",
-            widget="TRANSFORM_GGT_gizmo",
+            widget="VIEW3D_GGT_xform_gizmo",
             operator="transform.resize",
             keymap="3D View Tool: Scale",
             draw_settings=draw_settings,
@@ -282,7 +282,7 @@ class _defs_transform:
     @ToolDef.from_fn
     def scale_cage():
         def draw_settings(context, layout, tool):
-            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 3)
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 3)
         return dict(
             idname="builtin.scale_cage",
             label="Scale Cage",
@@ -290,31 +290,6 @@ class _defs_transform:
             widget="VIEW3D_GGT_xform_cage",
             operator="transform.resize",
             keymap="3D View Tool: Scale",
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
-    def transform():
-        def draw_settings(context, layout, tool):
-            if not layout.use_property_split:
-                layout.label(text="Gizmos:")
-            tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_gizmo_mode")
-
-            props = tool.gizmo_group_properties("TRANSFORM_GGT_gizmo")
-            layout.prop(props, "drag_action")
-
-            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 1)
-
-        return dict(
-            idname="builtin.transform",
-            label="Transform",
-            description=(
-                "Supports any combination of grab, rotate & scale at once"
-            ),
-            icon="ops.transform.transform",
-            widget="TRANSFORM_GGT_gizmo",
-            keymap="3D View Tool: Transform",
             draw_settings=draw_settings,
         )
 
@@ -724,7 +699,7 @@ class _defs_edit_mesh:
             props = tool.operator_properties("transform.shear")
             layout.label(text="View Axis:")
             layout.prop(props, "shear_axis", expand=True)
-            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 2)
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 2)
         return dict(
             idname="builtin.shear",
             label="Shear",
@@ -1690,7 +1665,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        _defs_transform.transform,
         _defs_transform.translate,
         _defs_transform.rotate,
         (

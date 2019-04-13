@@ -697,6 +697,7 @@ static void view3d_widgets(void)
 	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
 	        &(const struct wmGizmoMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
 
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_xform_gizmo_context);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_spot);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_area);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_light_target);
@@ -706,7 +707,7 @@ static void view3d_widgets(void)
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
 	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
 
-	WM_gizmogrouptype_append(TRANSFORM_GGT_gizmo);
+	WM_gizmogrouptype_append(VIEW3D_GGT_xform_gizmo);
 	WM_gizmogrouptype_append(VIEW3D_GGT_xform_cage);
 	WM_gizmogrouptype_append(VIEW3D_GGT_xform_shear);
 	WM_gizmogrouptype_append(VIEW3D_GGT_xform_extrude);

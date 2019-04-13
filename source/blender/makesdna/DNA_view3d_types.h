@@ -245,7 +245,11 @@ typedef struct View3D {
 	float bundle_size;
 	/** Display style for bundle. */
 	char bundle_drawtype;
-	char _pad3[2];
+
+	/** #V3D_GIZMO_SHOW_* */
+	char gizmo_flag;
+
+	char _pad3[1];
 
 	/** Multiview current eye - for internal use. */
 	char multiview_eye;
@@ -288,7 +292,7 @@ typedef struct View3D {
 	char gridflag;
 
 	/** Transform gizmo info. */
-	char gizmo_flag;
+	char gizmo_type_mask;
 
 	/* actually only used to define the opacity of the grease pencil vertex in edit mode */
 	float vertex_opacity;
@@ -545,13 +549,20 @@ enum {
 	V3D_ORIENT_CUSTOM_MATRIX =   (V3D_ORIENT_CUSTOM - 1),
 };
 
-/* View3d.mpr_flag (also) */
+/** #View3d.gizmo_flag */
 enum {
 	/** All gizmos. */
 	V3D_GIZMO_HIDE                = (1 << 0),
 	V3D_GIZMO_HIDE_NAVIGATE       = (1 << 1),
 	V3D_GIZMO_HIDE_CONTEXT        = (1 << 2),
 	V3D_GIZMO_HIDE_TOOL           = (1 << 3),
+};
+
+/** #View3d.gizmo_type_mask */
+enum {
+	V3D_GIZMO_TYPE_MASK_TRANSLATE = (1 << 0),
+	V3D_GIZMO_TYPE_MASK_ROTATE    = (1 << 1),
+	V3D_GIZMO_TYPE_MASK_SCALE     = (1 << 2),
 };
 
 #define RV3D_CAMZOOM_MIN -30

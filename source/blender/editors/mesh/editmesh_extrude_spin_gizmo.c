@@ -241,7 +241,7 @@ static void gizmo_mesh_spin_init_draw_prepare(
 
 	{
 		Scene *scene = CTX_data_scene(C);
-		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_ROTATE);
+		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_ORIENT_ROTATE);
 		switch (orient_slot->type) {
 			case V3D_ORIENT_VIEW:
 			{

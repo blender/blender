@@ -4385,6 +4385,15 @@ def km_transform_modal_map(_params):
     return keymap
 
 
+def km_transform_gizmo(_params):
+    keymap = (
+        "Transform Gizmo Context",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_gizmo_tweak_value()},
+    )
+    return keymap
+
+
 def km_backdrop_transform_widget_tweak_modal_map(_params):
     keymap = (
         "Backdrop Transform Widget Tweak Modal Map",
@@ -6145,6 +6154,7 @@ def generate_keymaps(params=None):
 
         # Gizmos.
         km_gizmos(params),
+        km_transform_gizmo(params),
         km_backdrop_transform_widget_tweak_modal_map(params),
         km_backdrop_crop_widget(params),
         km_backdrop_crop_widget_tweak_modal_map(params),

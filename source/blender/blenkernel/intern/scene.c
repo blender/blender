@@ -651,7 +651,6 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->uvcalc_flag = UVCALC_TRANSFORM_CORRECT;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
-	sce->toolsettings->gizmo_flag = SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE;
 
 	sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
@@ -1347,24 +1346,28 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
 /** \name Scene Orientation Slots
  * \{ */
 
-TransformOrientationSlot *BKE_scene_orientation_slot_get(Scene *scene, int flag)
+TransformOrientationSlot *BKE_scene_orientation_slot_get(Scene *scene, int slot_index)
 {
-	BLI_assert(flag && !(flag & ~(SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE)));
-	int index = SCE_ORIENT_DEFAULT;
-	if (flag & SCE_GIZMO_SHOW_TRANSLATE) {
-		index = SCE_ORIENT_TRANSLATE;
+	if ((scene->orientation_slots[slot_index].flag & SELECT) == 0) {
+		slot_index = SCE_ORIENT_DEFAULT;
 	}
-	else if (flag & SCE_GIZMO_SHOW_ROTATE) {
-		index = SCE_ORIENT_ROTATE;
-	}
-	else if (flag & SCE_GIZMO_SHOW_SCALE) {
-		index = SCE_ORIENT_SCALE;
-	}
+	return &scene->orientation_slots[slot_index];
+}
 
-	if ((scene->orientation_slots[index].flag & SELECT) == 0) {
-		index = SCE_ORIENT_DEFAULT;
+TransformOrientationSlot *BKE_scene_orientation_slot_get_from_flag(Scene *scene, int flag)
+{
+	BLI_assert(flag && !(flag & ~(V3D_GIZMO_TYPE_MASK_TRANSLATE | V3D_GIZMO_TYPE_MASK_ROTATE | V3D_GIZMO_TYPE_MASK_SCALE)));
+	int slot_index = SCE_ORIENT_DEFAULT;
+	if (flag & V3D_GIZMO_TYPE_MASK_TRANSLATE) {
+		slot_index = SCE_ORIENT_TRANSLATE;
 	}
-	return &scene->orientation_slots[index];
+	else if (flag & V3D_GIZMO_TYPE_MASK_ROTATE) {
+		slot_index = SCE_ORIENT_ROTATE;
+	}
+	else if (flag & V3D_GIZMO_TYPE_MASK_SCALE) {
+		slot_index = SCE_ORIENT_SCALE;
+	}
+	return BKE_scene_orientation_slot_get(scene, slot_index);
 }
 
 /**

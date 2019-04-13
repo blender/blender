@@ -4775,6 +4775,7 @@ class VIEW3D_PT_gizmo_display(Panel):
     def draw(self, context):
         layout = self.layout
 
+        scene = context.scene
         view = context.space_data
         overlay = view.overlay
 
@@ -4784,8 +4785,14 @@ class VIEW3D_PT_gizmo_display(Panel):
         col.active = view.show_gizmo
         colsub = col.column()
         colsub.prop(view, "show_gizmo_navigate", text="Navigate")
-        colsub.prop(view, "show_gizmo_context", text="Active Object")
         colsub.prop(view, "show_gizmo_tool", text="Active Tools")
+        colsub.prop(view, "show_gizmo_context", text="Active Object")
+
+        col.label(text="Transform Gizmos")
+        rowsub = col.row()
+        rowsub.active = view.show_gizmo_context
+        rowsub.prop(view, "show_gizmo_transform")
+        col.prop(scene.transform_orientation_slots[1], "type", text="")
 
 
 class VIEW3D_PT_overlay(Panel):

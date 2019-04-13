@@ -1466,8 +1466,7 @@ typedef struct ToolSettings {
 	char edge_mode;
 	char edge_mode_live_unwrap;
 
-	/* SCE_GIZMO_SHOW_* */
-	char gizmo_flag;
+	char _pad1[1];
 
 	/* Transform */
 	char transform_pivot_point;
@@ -2271,13 +2270,6 @@ enum {
 #define EDGE_MODE_TAG_CREASE			3
 #define EDGE_MODE_TAG_BEVEL				4
 #define EDGE_MODE_TAG_FREESTYLE			5
-
-/* ToolSettings.gizmo_flag */
-enum {
-	SCE_GIZMO_SHOW_TRANSLATE = (1 << 0),
-	SCE_GIZMO_SHOW_ROTATE    = (1 << 1),
-	SCE_GIZMO_SHOW_SCALE     = (1 << 2),
-};
 
 /* ToolSettings.gpencil_flags */
 typedef enum eGPencil_Flags {

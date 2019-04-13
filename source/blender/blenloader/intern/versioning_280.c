@@ -1830,12 +1830,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-			if (scene->toolsettings->gizmo_flag == 0) {
-				scene->toolsettings->gizmo_flag = SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE;
-			}
-		}
-
 		if (!DNA_struct_elem_find(fd->filesdna, "RigidBodyWorld", "RigidBodyWorld_Shared", "*shared")) {
 			for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
 				RigidBodyWorld *rbw = scene->rigidbody_world;

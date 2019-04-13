@@ -155,7 +155,8 @@ void Transform_Properties(struct wmOperatorType *ot, int flags);
 
 /* transform gizmos */
 
-void TRANSFORM_GGT_gizmo(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_gizmo(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_gizmo_context(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_cage(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_shear(struct wmGizmoGroupType *gzgt);
 
