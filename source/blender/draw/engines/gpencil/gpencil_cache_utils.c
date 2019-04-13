@@ -31,6 +31,7 @@
 
 #include "BKE_library.h"
 #include "BKE_gpencil.h"
+#include "BKE_object.h"
 
 #include "gpencil_engine.h"
 
@@ -38,7 +39,33 @@
 
 #include "DEG_depsgraph.h"
 
- /* add a gpencil object to cache to defer drawing */
+/* verify if exist a non instanced version of the object */
+static bool gpencil_has_noninstanced_object(Object *ob_instance)
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const ViewLayer *view_layer = draw_ctx->view_layer;
+	Object *ob = NULL;
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		ob = base->object;
+		if (ob->type != OB_GPENCIL) {
+			continue;
+		}
+		/* object must be visible (invisible objects don't create VBO data) */
+		if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
+			continue;
+		}
+		/* is not duplicated and the name is equals */
+		if ((ob->base_flag & BASE_FROM_DUPLI) == 0) {
+			if (STREQ(ob->id.name, ob_instance->id.name)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/* add a gpencil object to cache to defer drawing */
 tGPencilObjectCache *gpencil_object_cache_add(
         tGPencilObjectCache *cache_array, Object *ob,
         int *gp_cache_size, int *gp_cache_used)
@@ -76,7 +103,18 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	cache_elem->idx = *gp_cache_used;
 
 	/* object is duplicated (particle) */
-	cache_elem->is_dup_ob = ob->base_flag & BASE_FROM_DUPLI;
+	if (ob->base_flag & BASE_FROM_DUPLI) {
+		/* Check if the original object is not in the viewlayer
+		 * and cannot be managed as dupli. This is slower, but required to keep
+		 * the particle drawing FPS and display instanced objects in scene
+		 * without the original object */
+		bool has_original = gpencil_has_noninstanced_object(ob);
+		cache_elem->is_dup_ob = (has_original) ? ob->base_flag & BASE_FROM_DUPLI : false;
+	}
+	else {
+		cache_elem->is_dup_ob = false;
+	}
+
 	cache_elem->scale = mat4_to_scale(ob->obmat);
 
 	/* save FXs */

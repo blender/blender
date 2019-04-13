@@ -620,7 +620,8 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 
 				/* enable instance loop */
 				if (!stl->g_data->do_instances) {
-					stl->g_data->do_instances = ob->base_flag & BASE_FROM_DUPLI;
+					tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[stl->g_data->gp_cache_used - 1];
+					stl->g_data->do_instances = cache_ob->is_dup_ob;
 				}
 
 				/* load drawing data */
