@@ -4003,6 +4003,13 @@ void VIEW3D_OT_view_camera(wmOperatorType *ot)
  * Rotate (orbit) in incremental steps. For interactive orbit see #VIEW3D_OT_rotate.
  * \{ */
 
+enum {
+	V3D_VIEW_STEPLEFT = 1,
+	V3D_VIEW_STEPRIGHT,
+	V3D_VIEW_STEPDOWN,
+	V3D_VIEW_STEPUP,
+};
+
 static const EnumPropertyItem prop_view_orbit_items[] = {
 	{V3D_VIEW_STEPLEFT, "ORBITLEFT", 0, "Orbit Left", "Orbit the view around to the Left"},
 	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, "Orbit Right", "Orbit the view around to the Right"},
@@ -4365,6 +4372,13 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
 	prop = RNA_def_enum(ot->srna, "type", prop_view_roll_items, 0, "Roll Angle Source", "How roll angle is calculated");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+enum {
+	V3D_VIEW_PANLEFT = 1,
+	V3D_VIEW_PANRIGHT,
+	V3D_VIEW_PANDOWN,
+	V3D_VIEW_PANUP,
+};
 
 static const EnumPropertyItem prop_view_pan_items[] = {
 	{V3D_VIEW_PANLEFT, "PANLEFT", 0, "Pan Left", "Pan the view to the Left"},
