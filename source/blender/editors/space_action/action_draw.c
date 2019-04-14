@@ -164,7 +164,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	bDopeSheet *ads = &saction->ads;
 	AnimData *adt = NULL;
 
-	float act_start, act_end, y;
+	float y;
 
 	unsigned char col1[4], col2[4];
 	unsigned char col1a[4], col2a[4];
@@ -182,16 +182,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELOB, col1b);
 	UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
-
-	/* set view-mapping rect (only used for x-axis), for NLA-scaling mapping with less calculation */
-
-	/* if in NLA there's a strip active, map the view */
-	if (ac->datatype == ANIMCONT_ACTION) {
-		/* adt = ANIM_nla_mapping_get(ac, NULL); */ /* UNUSED */
-
-		/* start and end of action itself */
-		calc_action_range(ac->data, &act_start, &act_end, 0);
-	}
 
 	/* build list of channels to draw */
 	int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -286,9 +276,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 					/* draw region twice: firstly backdrop, then the current range */
 					immRectf(pos, v2d->cur.xmin,  (float)y - ACHANNEL_HEIGHT_HALF(ac),  v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF(ac));
-
-					if (ac->datatype == ANIMCONT_ACTION)
-						immRectf(pos, act_start,  (float)y - ACHANNEL_HEIGHT_HALF(ac),  act_end,  (float)y + ACHANNEL_HEIGHT_HALF(ac));
 				}
 				else if (ac->datatype == ANIMCONT_GPENCIL) {
 					unsigned char *color;
