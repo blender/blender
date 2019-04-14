@@ -261,8 +261,10 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
 	             RELATION_FLAG_GODMODE);
 	/* Attach path dependency to solver. */
 	if (data->tar != NULL) {
-		ComponentKey target_key(&data->tar->id, NodeType::GEOMETRY);
-		add_relation(target_key, init_ik_key, "Curve.Path -> Spline IK");
+		ComponentKey target_geometry_key(&data->tar->id, NodeType::GEOMETRY);
+		add_relation(target_geometry_key, solver_key, "Curve.Path -> Spline IK");
+		ComponentKey target_transform_key(&data->tar->id, NodeType::TRANSFORM);
+		add_relation(target_transform_key, solver_key, "Curve.Transform -> Spline IK");
 		add_special_eval_flag(&data->tar->id, DAG_EVAL_NEED_CURVE_PATH);
 	}
 	pchan->flag |= POSE_DONE;
@@ -271,41 +273,27 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
 	add_relation(solver_key, final_transforms_key, "Spline IK Result");
 	root_map->add_bone(pchan->name, rootchan->name);
 	/* Walk to the chain's root/ */
-	int segcount = 0;
+	int segcount = 1;
 	for (bPoseChannel *parchan = pchan->parent;
-	     parchan != NULL;
-	     parchan = parchan->parent)
+	     parchan != NULL && segcount < data->chainlen;
+	     parchan = parchan->parent, segcount++)
 	{
 		/* Make Spline IK solver dependent on this bone's result, since it can
 		 * only run after the standard results of the bone are know. Validate
 		 * links step on the bone will ensure that users of this bone only grab
 		 * the result with IK solver results. */
-		if (parchan != pchan) {
-			OperationKey parent_key(&object->id,
-			                        NodeType::BONE,
-			                        parchan->name,
-			                        OperationCode::BONE_READY);
-			add_relation(parent_key, solver_key, "Spline IK Solver Update");
-			OperationKey bone_done_key(&object->id,
-			                           NodeType::BONE,
-			                           parchan->name,
-			                           OperationCode::BONE_DONE);
-			add_relation(solver_key, bone_done_key, "IK Chain Result");
-		}
+		OperationKey parent_key(&object->id,
+								NodeType::BONE,
+								parchan->name,
+								OperationCode::BONE_READY);
+		add_relation(parent_key, solver_key, "Spline IK Solver Update");
+		OperationKey bone_done_key(&object->id,
+								   NodeType::BONE,
+								   parchan->name,
+								   OperationCode::BONE_DONE);
+		add_relation(solver_key, bone_done_key, "Spline IK Solver Result");
 		parchan->flag |= POSE_DONE;
-		OperationKey final_transforms_key(&object->id,
-		                                  NodeType::BONE,
-		                                  parchan->name,
-		                                  OperationCode::BONE_DONE);
-		add_relation(
-		        solver_key, final_transforms_key, "Spline IK Solver Result");
 		root_map->add_bone(parchan->name, rootchan->name);
-		/* TODO(sergey): This is an arbitrary value, which was just following
-		 * old code convention. */
-		segcount++;
-		if ((segcount == data->chainlen) || (segcount > 255)) {
-			break;
-		}
 	}
 	OperationKey pose_done_key(
 	        &object->id, NodeType::EVAL_POSE, OperationCode::POSE_DONE);
