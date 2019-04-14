@@ -172,7 +172,8 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 	        BUILD,
 	        "\nStarting IK Build: pchan = %s, target = (%s, %s), "
 	        "segcount = %d\n",
-	        pchan->name, data->tar->id.name, data->subtarget, data->rootbone);
+	        pchan->name, data->tar ? data->tar->id.name : "NULL",
+	        data->subtarget, data->rootbone);
 	bPoseChannel *parchan = pchan;
 	/* Exclude tip from chain if needed. */
 	if (!(data->flag & CONSTRAINT_IK_TIP)) {
