@@ -240,14 +240,21 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if (params->display == FILE_DEFAULTDISPLAY) {
-			if (U.uiflag & USER_SHOW_THUMBNAILS) {
-				if (params->filter & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT))
-					params->display = FILE_IMGDISPLAY;
-				else
+			if(params->display_previous == FILE_DEFAULTDISPLAY){
+				if (U.uiflag & USER_SHOW_THUMBNAILS) {
+					if (params->filter & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT)) {
+						params->display = FILE_IMGDISPLAY;
+					}
+					else {
+						params->display = FILE_SHORTDISPLAY;
+					}
+				}
+				else {
 					params->display = FILE_SHORTDISPLAY;
+				}
 			}
 			else {
-				params->display = FILE_SHORTDISPLAY;
+				params->display = params->display_previous;
 			}
 		}
 
@@ -265,6 +272,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->flag |= FILE_HIDE_DOT;
 		params->flag &= ~FILE_DIRSEL_ONLY;
 		params->display = FILE_SHORTDISPLAY;
+		params->display_previous = FILE_DEFAULTDISPLAY;
 		params->sort = FILE_SORT_ALPHA;
 		params->filter = 0;
 		params->filter_glob[0] = '\0';
@@ -554,7 +562,6 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 			         (int)layout->column_widths[COLUMN_DATE] + column_space +
 			         (int)layout->column_widths[COLUMN_TIME] + column_space +
 			         (int)layout->column_widths[COLUMN_SIZE] + column_space;
-
 		}
 		layout->tile_w = maxlen;
 		if (layout->rows > 0)
@@ -566,6 +573,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->width = sfile->layout->columns * (layout->tile_w + 2 * layout->tile_border_x) + layout->tile_border_x * 2;
 		layout->flag = FILE_LAYOUT_HOR;
 	}
+	params->display_previous = params->display;
 	layout->dirty = false;
 }
 

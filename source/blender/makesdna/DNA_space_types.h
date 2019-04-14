@@ -669,7 +669,9 @@ typedef struct FileSelectParams {
 	short sort;
 	/** Display mode flag. */
 	short display;
+	short display_previous;
 	/** Filter when (flags & FILE_FILTER) is true. */
+	char _pad2[2];
 	int filter;
 
 	/** Max number of levels in dirtree to show at once, 0 to disable recursion. */
