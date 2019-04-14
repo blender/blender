@@ -86,11 +86,6 @@ std::string get_object_dag_path_name(const Object * const ob, Object *dupli_pare
 	return name;
 }
 
-bool object_selected(const Base * const ob_base)
-{
-	return ob_base->flag & SELECT;
-}
-
 Imath::M44d convert_matrix(float mat[4][4])
 {
 	Imath::M44d m;

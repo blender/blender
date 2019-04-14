@@ -116,8 +116,8 @@ private:
 
 	void createTransformWritersHierarchy();
 	AbcTransformWriter *createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
-	void exploreTransform(Base *ob_base, Object *parent, Object *dupliObParent);
-	void exploreObject(Base *ob_base, Object *dupliObParent);
+	void exploreTransform(Base *base, Object *object, Object *parent, Object *dupliObParent);
+	void exploreObject(Base *base, Object *object, Object *dupliObParent);
 	void createShapeWriters();
 	void createShapeWriter(Object *ob, Object *dupliObParent);
 	void createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform);

@@ -145,18 +145,20 @@ static bool object_type_is_exportable(Scene *scene, Object *ob)
  * This ignores selection and layer visibility,
  * and assumes that the dupli-object itself (e.g. the group-instantiating empty) is exported.
  */
-static bool export_object(const ExportSettings * const settings, const Base * const ob_base,
+static bool export_object(const ExportSettings * const settings, const Base * const base,
                           bool is_duplicated)
 {
 	if (!is_duplicated) {
+		View3D *v3d = NULL;
+
 		/* These two tests only make sense when the object isn't being instanced
 		 * into the scene. When it is, its exportability is determined by
 		 * its dupli-object and the DupliObject::no_draw property. */
-		if (settings->selected_only && !object_selected(ob_base)) {
+		if (settings->selected_only && !BASE_SELECTED(v3d, base)) {
 			return false;
 		}
 		// FIXME Sybren: handle these cleanly (maybe just remove code), now using active scene layer instead.
-		if (settings->visible_layers_only && (ob_base->flag & BASE_VISIBLE) == 0) {
+		if (settings->visible_layers_only && !BASE_VISIBLE(v3d, base)) {
 			return false;
 		}
 	}
@@ -371,21 +373,21 @@ void AbcExporter::createTransformWritersHierarchy()
 					/* We do not export transforms for objects of these classes. */
 					break;
 				default:
-					exploreTransform(base, ob->parent, NULL);
+					exploreTransform(base, ob, ob->parent, NULL);
 			}
 		}
 	}
 }
 
-void AbcExporter::exploreTransform(Base *ob_base, Object *parent, Object *dupliObParent)
+void AbcExporter::exploreTransform(Base *base, Object *object, Object *parent, Object *dupliObParent)
 {
 	/* If an object isn't exported itself, its duplilist shouldn't be
 	 * exported either. */
-	if (!export_object(&m_settings, ob_base, dupliObParent != NULL)) {
+	if (!export_object(&m_settings, base, dupliObParent != NULL)) {
 		return;
 	}
 
-	Object *ob = DEG_get_evaluated_object(m_settings.depsgraph, ob_base->object);
+	Object *ob = DEG_get_evaluated_object(m_settings.depsgraph, object);
 	if (object_type_is_exportable(m_settings.scene, ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
@@ -393,9 +395,6 @@ void AbcExporter::exploreTransform(Base *ob_base, Object *parent, Object *dupliO
 	ListBase *lb = object_duplilist(m_settings.depsgraph, m_settings.scene, ob);
 
 	if (lb) {
-		Base fake_base = *ob_base;  // copy flags (like selection state) from the real object.
-		fake_base.next = fake_base.prev = NULL;
-
 		DupliObject *link = static_cast<DupliObject *>(lb->first);
 		Object *dupli_ob = NULL;
 		Object *dupli_parent = NULL;
@@ -410,8 +409,7 @@ void AbcExporter::exploreTransform(Base *ob_base, Object *parent, Object *dupliO
 				dupli_ob = link->ob;
 				dupli_parent = (dupli_ob->parent) ? dupli_ob->parent : ob;
 
-				fake_base.object = dupli_ob;
-				exploreTransform(&fake_base, dupli_parent, ob);
+				exploreTransform(base, dupli_ob, dupli_parent, ob);
 			}
 		}
 
@@ -491,27 +489,24 @@ AbcTransformWriter *AbcExporter::createTransformWriter(Object *ob, Object *paren
 void AbcExporter::createShapeWriters()
 {
 	for (Base *base = static_cast<Base *>(m_settings.view_layer->object_bases.first); base; base = base->next) {
-		exploreObject(base, NULL);
+		exploreObject(base, base->object, NULL);
 	}
 }
 
-void AbcExporter::exploreObject(Base *ob_base, Object *dupliObParent)
+void AbcExporter::exploreObject(Base *base, Object *object, Object *dupliObParent)
 {
 	/* If an object isn't exported itself, its duplilist shouldn't be
 	 * exported either. */
-	if (!export_object(&m_settings, ob_base, dupliObParent != NULL)) {
+	if (!export_object(&m_settings, base, dupliObParent != NULL)) {
 		return;
 	}
 
-	Object *ob = DEG_get_evaluated_object(m_settings.depsgraph, ob_base->object);
+	Object *ob = DEG_get_evaluated_object(m_settings.depsgraph, object);
 	createShapeWriter(ob, dupliObParent);
 
 	ListBase *lb = object_duplilist(m_settings.depsgraph, m_settings.scene, ob);
 
 	if (lb) {
-		Base fake_base = *ob_base;  // copy flags (like selection state) from the real object.
-		fake_base.next = fake_base.prev = NULL;
-
 		DupliObject *link = static_cast<DupliObject *>(lb->first);
 
 		for (; link; link = link->next) {
@@ -520,8 +515,7 @@ void AbcExporter::exploreObject(Base *ob_base, Object *dupliObParent)
 				continue;
 			}
 			if (link->type == OB_DUPLICOLLECTION) {
-				fake_base.object = link->ob;
-				exploreObject(&fake_base, ob);
+				exploreObject(base, link->ob, ob);
 			}
 		}
 

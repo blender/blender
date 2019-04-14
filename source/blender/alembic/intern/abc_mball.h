@@ -52,7 +52,7 @@ protected:
 	void freeEvaluatedMesh(struct Mesh *mesh) override;
 
 private:
-	bool isAnimated() const;
+	bool isAnimated() const override;
 };
 
 
