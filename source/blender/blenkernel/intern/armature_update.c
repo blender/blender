@@ -840,7 +840,7 @@ void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
 	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
-	BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
+	BLI_assert(object->pose->chan_array != NULL || BLI_listbase_is_empty(&object->pose->chanbase));
 
 	BKE_armature_cached_bbone_deformation_free_data(object);
 }
