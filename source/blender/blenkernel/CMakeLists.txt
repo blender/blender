@@ -120,6 +120,7 @@ set(SRC
   intern/idprop_utils.c
   intern/image.c
   intern/image_gen.c
+  intern/image_save.c
   intern/ipo.c
   intern/key.c
   intern/keyconfig.c
@@ -274,6 +275,7 @@ set(SRC
   BKE_idcode.h
   BKE_idprop.h
   BKE_image.h
+  BKE_image_save.h
   BKE_ipo.h
   BKE_key.h
   BKE_keyconfig.h
