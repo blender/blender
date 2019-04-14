@@ -825,6 +825,8 @@ void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 	}
 
 	BKE_pose_channels_hash_free(pose);
+
+	MEM_SAFE_FREE(pose->chan_array);
 }
 
 void BKE_pose_channels_free(bPose *pose)

@@ -245,6 +245,8 @@ void BKE_splineik_execute_tree(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
 
+void BKE_pose_pchan_index_rebuild(struct bPose *pose);
+
 void BKE_pose_eval_init(
         struct Depsgraph *depsgraph,
         struct Scene *scene,

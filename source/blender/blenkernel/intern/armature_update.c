@@ -556,8 +556,9 @@ void BKE_splineik_execute_tree(
 
 /* *************** Depsgraph evaluation callbacks ************ */
 
-static void pose_pchan_index_create(bPose *pose)
+void BKE_pose_pchan_index_rebuild(bPose *pose)
 {
+	MEM_SAFE_FREE(pose->chan_array);
 	const int num_channels = BLI_listbase_count(&pose->chanbase);
 	pose->chan_array = MEM_malloc_arrayN(
 	        num_channels, sizeof(bPoseChannel *), "pose->chan_array");
@@ -605,7 +606,8 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph,
 		}
 	}
 
-	pose_pchan_index_create(pose);
+	BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
+
 	BKE_armature_cached_bbone_deformation_free_data(object);
 }
 
@@ -806,7 +808,6 @@ static void pose_eval_cleanup_common(Object *object)
 	bPose *pose = object->pose;
 	BLI_assert(pose != NULL);
 	BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
-	MEM_SAFE_FREE(pose->chan_array);
 }
 
 void BKE_pose_eval_done(struct Depsgraph *depsgraph, Object *object)
@@ -839,7 +840,8 @@ void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
 	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
-	pose_pchan_index_create(object->pose);
+	BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
+
 	BKE_armature_cached_bbone_deformation_free_data(object);
 }
 

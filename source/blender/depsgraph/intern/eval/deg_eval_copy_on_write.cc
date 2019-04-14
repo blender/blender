@@ -697,6 +697,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
 					update_pose_orig_pointers(object_orig->pose,
 					                          object_cow->pose);
 				}
+				BKE_pose_pchan_index_rebuild(object_cow->pose);
 			}
 			update_particles_after_copy(object_orig, object_cow);
 			update_modifiers_orig_pointers(object_orig, object_cow);
