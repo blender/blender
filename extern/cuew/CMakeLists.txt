@@ -33,4 +33,7 @@ set(SRC
 	include/cuew.h
 )
 
-blender_add_lib(extern_cuew "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(extern_cuew "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

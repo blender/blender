@@ -319,4 +319,4 @@ if(WITH_OPENMP)
 	)
 endif()
 
-blender_add_lib(extern_ceres "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(extern_ceres "${SRC}" "${INC}" "${INC_SYS}" "")

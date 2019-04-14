@@ -54,8 +54,11 @@ set(SRC
 	dds_api.cpp
 )
 
+set(LIB
+)
+
 if(WITH_IMAGE_DDS)
 	add_definitions(-DWITH_DDS)
 endif()
 
-blender_add_lib(bf_imbuf_dds "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_imbuf_dds "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

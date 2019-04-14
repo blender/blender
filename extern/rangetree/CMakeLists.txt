@@ -27,4 +27,7 @@ set(SRC
 	intern/range_tree.c
 )
 
-blender_add_lib(extern_rangetree "${SRC}" "${INC}" "")
+set(LIB
+)
+
+blender_add_lib(extern_rangetree "${SRC}" "${INC}" "" "${LIB}")

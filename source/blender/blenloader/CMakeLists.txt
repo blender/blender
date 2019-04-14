@@ -67,6 +67,9 @@ set(SRC
 	intern/readfile.h
 )
 
+set(LIB
+)
+
 if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
 endif()
@@ -92,7 +95,7 @@ if(WITH_ALEMBIC)
 	add_definitions(-DWITH_ALEMBIC)
 endif()
 
-blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # needed so writefile.c can use dna_type_offsets.h
 add_dependencies(bf_blenloader bf_dna)

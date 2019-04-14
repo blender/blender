@@ -58,6 +58,9 @@ set(SRC
 	gizmo_types/value2d_gizmo.c
 )
 
+set(LIB
+)
+
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_editor_gizmo_library "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_gizmo_library "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

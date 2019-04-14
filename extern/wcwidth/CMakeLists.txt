@@ -32,4 +32,7 @@ set(SRC
 	wcwidth.h
 )
 
-blender_add_lib(extern_wcwidth "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(extern_wcwidth "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

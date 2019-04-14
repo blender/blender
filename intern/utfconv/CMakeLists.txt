@@ -30,6 +30,9 @@ set(SRC
 	utfconv.h
 )
 
+set(LIB
+)
+
 # This is odd but leave it for now...
 # Why have win32 check here? - this is only used for windows.
 # ... because one day we might want to use it on other platforms.
@@ -40,4 +43,4 @@ if(WIN32)
 	)
 endif()
 
-blender_add_lib(bf_intern_utfconv "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_utfconv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

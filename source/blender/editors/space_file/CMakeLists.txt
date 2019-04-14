@@ -52,6 +52,9 @@ set(SRC
 	fsmenu.h
 )
 
+set(LIB
+)
+
 if(WITH_HEADLESS)
 	add_definitions(-DWITH_HEADLESS)
 endif()
@@ -94,4 +97,4 @@ if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 
-blender_add_lib(bf_editor_space_file "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_space_file "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

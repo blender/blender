@@ -31,6 +31,9 @@ set(SRC
 	boost_locale_wrapper.h
 )
 
+set(LIB
+)
+
 if(APPLE)
 	# Cocoa code to read the locale on OSX
 	list(APPEND SRC
@@ -54,4 +57,4 @@ if(WITH_INTERNATIONAL)
 	add_definitions(${BOOST_DEFINITIONS})
 endif()
 
-blender_add_lib(bf_intern_locale "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_locale "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

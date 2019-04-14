@@ -40,4 +40,7 @@ set(SRC
 	mball_intern.h
 )
 
-blender_add_lib(bf_editor_metaball "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_editor_metaball "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

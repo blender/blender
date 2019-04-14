@@ -39,6 +39,9 @@ set(SRC
 	openimageio_api.cpp
 )
 
+set(LIB
+)
+
 if(WITH_OPENIMAGEIO)
 	list(APPEND INC_SYS
 		${OPENIMAGEIO_INCLUDE_DIRS}
@@ -52,4 +55,4 @@ if(WITH_OPENIMAGEIO)
 	add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
-blender_add_lib(bf_imbuf_openimageio "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_imbuf_openimageio "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

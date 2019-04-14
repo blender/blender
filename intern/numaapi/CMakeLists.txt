@@ -34,6 +34,9 @@ set(SRC
 	source/build_config.h
 )
 
+set(LIB
+)
+
 add_definitions(-DWITH_DYNLOAD)
 
-blender_add_lib(bf_intern_numaapi "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_numaapi "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

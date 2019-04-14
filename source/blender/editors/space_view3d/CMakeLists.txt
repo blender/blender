@@ -72,6 +72,9 @@ set(SRC
 	view3d_intern.h
 )
 
+set(LIB
+)
+
 if(WITH_PYTHON)
 	blender_include_dirs(../../python)
 	add_definitions(-DWITH_PYTHON)
@@ -91,4 +94,4 @@ if(WITH_MOD_SMOKE)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
-blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

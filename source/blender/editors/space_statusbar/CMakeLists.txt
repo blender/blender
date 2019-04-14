@@ -37,6 +37,9 @@ set(SRC
 	space_statusbar.c
 )
 
+set(LIB
+)
+
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_editor_space_statusbar "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_space_statusbar "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

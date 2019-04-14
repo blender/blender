@@ -39,6 +39,9 @@ set(SRC
 	BLT_translation.h
 )
 
+set(LIB
+)
+
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
@@ -56,7 +59,7 @@ if(WIN32)
 	endif()
 endif()
 
-blender_add_lib(bf_blentranslation "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_blentranslation "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_INTERNATIONAL)
 	add_subdirectory(msgfmt)

@@ -40,6 +40,9 @@ set(SRC
 	src/util.h
 )
 
+set(LIB
+)
+
 if(WIN32)
 	list(APPEND SRC
 		src/windows_port.cc
@@ -49,4 +52,4 @@ endif()
 
 add_definitions(${GFLAGS_DEFINES})
 
-blender_add_lib(extern_gflags "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(extern_gflags "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

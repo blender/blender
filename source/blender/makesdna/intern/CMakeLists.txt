@@ -94,6 +94,9 @@ set(SRC
 	dna_utils.h
 )
 
+set(LIB
+)
+
 set_source_files_properties(
 	${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
@@ -101,7 +104,7 @@ set_source_files_properties(
 	PROPERTIES GENERATED TRUE
 )
 
-blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 
 # -----------------------------------------------------------------------------
@@ -125,4 +128,7 @@ set(SRC
 	../../blenlib/intern/listbase.c
 )
 
-blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

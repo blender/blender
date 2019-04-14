@@ -192,7 +192,7 @@ if(WITH_LIBMV)
 
 
 	if(WITH_GTESTS)
-		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "" "")
+		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "" "" "")
 
 		BLENDER_SRC_GTEST("libmv_predict_tracks" "./libmv/autotrack/predict_tracks_test.cc" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
 		BLENDER_SRC_GTEST("libmv_tracks" "./libmv/autotrack/tracks_test.cc" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
@@ -232,4 +232,4 @@ else()
 	)
 endif()
 
-blender_add_lib(bf_intern_libmv "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_libmv "${SRC}" "${INC}" "${INC_SYS}" "")

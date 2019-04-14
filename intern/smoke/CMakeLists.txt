@@ -77,6 +77,9 @@ set(SRC
 	intern/tnt/tnt_version.h
 )
 
+set(LIB
+)
+
 # quiet -Wundef
 add_definitions(-DDDF_DEBUG=0)
 
@@ -93,4 +96,4 @@ if(WITH_FFTW3)
 	)
 endif()
 
-blender_add_lib(bf_intern_smoke "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_smoke "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

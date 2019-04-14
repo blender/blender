@@ -125,6 +125,9 @@ set(SRC
 	collada_utils.h
 )
 
+set(LIB
+)
+
 if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
 endif()
@@ -138,4 +141,4 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
-blender_add_lib(bf_collada "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_collada "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

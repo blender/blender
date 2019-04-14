@@ -39,6 +39,9 @@ set(SRC
 	intern/ikplugin_api.h
 )
 
+set(LIB
+)
+
 if(WITH_IK_SOLVER)
 	add_definitions(-DWITH_IK_SOLVER)
 	list(APPEND INC
@@ -64,4 +67,4 @@ if(WITH_IK_ITASC)
 	)
 endif()
 
-blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -85,6 +85,9 @@ set(SRC
 	intern/globals.h
 )
 
+set(LIB
+)
+
 # elbeem has some harmless UNUSED warnings
 remove_strict_flags()
 
@@ -116,4 +119,4 @@ else()
 	add_definitions(-DPARALLEL=0)
 endif()
 
-blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

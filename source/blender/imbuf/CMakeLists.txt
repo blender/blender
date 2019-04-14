@@ -83,6 +83,9 @@ set(SRC
 	../../../intern/ffmpeg/ffmpeg_compat.h
 )
 
+set(LIB
+)
+
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 else()
@@ -172,4 +175,4 @@ set_source_files_properties(
 	PROPERTIES HEADER_FILE_ONLY TRUE
 )
 
-blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

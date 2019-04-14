@@ -32,4 +32,7 @@ set(SRC
 	RBI_api.h
 )
 
-blender_add_lib(bf_intern_rigidbody "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_intern_rigidbody "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

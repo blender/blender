@@ -42,6 +42,9 @@ set(SRC
 	include/GL/wglew.h
 )
 
+set(LIB
+)
+
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(extern_glew_es "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(extern_glew_es "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

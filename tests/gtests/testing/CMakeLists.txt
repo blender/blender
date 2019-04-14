@@ -35,4 +35,7 @@ set(SRC
 	testing.h
 )
 
-blender_add_lib(bf_testing_main "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_testing_main "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

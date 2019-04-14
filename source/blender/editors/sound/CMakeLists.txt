@@ -35,6 +35,9 @@ set(SRC
 	sound_intern.h
 )
 
+set(LIB
+)
+
 if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
 
@@ -51,4 +54,4 @@ if(WITH_CODEC_SNDFILE)
 	add_definitions(-DWITH_SNDFILE)
 endif()
 
-blender_add_lib(bf_editor_sound "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_sound "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

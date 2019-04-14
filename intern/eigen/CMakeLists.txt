@@ -40,4 +40,7 @@ set(SRC
 	intern/svd.h
 )
 
-blender_add_lib(bf_intern_eigen "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_intern_eigen "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

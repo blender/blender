@@ -32,4 +32,7 @@ set(SRC
 	STR_String.h
 )
 
-blender_add_lib(bf_intern_string "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_intern_string "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

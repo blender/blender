@@ -178,8 +178,11 @@ set(SRC
 	src/draco/point_cloud/point_cloud.h
 )
 
+set(LIB
+)
+
 set(INC
 	src
 )
 
-blender_add_lib(dracoenc "${SRC}" "${INC}" "")
+blender_add_lib(dracoenc "${SRC}" "${INC}" "" "${LIB}")

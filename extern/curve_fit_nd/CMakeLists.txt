@@ -36,4 +36,7 @@ set(SRC
 	intern/generic_heap.h
 )
 
-blender_add_lib(extern_curve_fit_nd "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(extern_curve_fit_nd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

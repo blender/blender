@@ -31,8 +31,11 @@ set(SRC
 	xdnd.h
 )
 
+set(LIB
+)
+
 add_definitions(
 	-DHAVE_SYS_TIME_H
 )
 
-blender_add_lib(extern_xdnd "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(extern_xdnd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

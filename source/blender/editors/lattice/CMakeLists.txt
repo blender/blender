@@ -41,4 +41,7 @@ set(SRC
 	lattice_intern.h
 )
 
-blender_add_lib(bf_editor_lattice "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_editor_lattice "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

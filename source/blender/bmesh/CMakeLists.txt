@@ -163,6 +163,9 @@ set(SRC
 	bmesh_tools.h
 )
 
+set(LIB
+)
+
 if(MSVC AND NOT MSVC_CLANG)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX /wd4101")
 endif()
@@ -182,4 +185,4 @@ if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 
-blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

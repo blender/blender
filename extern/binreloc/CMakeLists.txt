@@ -32,7 +32,10 @@ set(SRC
 	include/binreloc.h
 )
 
+set(LIB
+)
+
 add_definitions(-DENABLE_BINRELOC)
 
 
-blender_add_lib(extern_binreloc "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(extern_binreloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

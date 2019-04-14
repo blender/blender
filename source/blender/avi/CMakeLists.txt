@@ -46,4 +46,7 @@ set(SRC
 	intern/avi_rgb32.h
 )
 
-blender_add_lib(bf_avi "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_avi "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

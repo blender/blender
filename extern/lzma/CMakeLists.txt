@@ -42,4 +42,7 @@ set(SRC
 	Types.h
 )
 
-blender_add_lib(extern_lzma "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(extern_lzma "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

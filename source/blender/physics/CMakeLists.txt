@@ -45,4 +45,7 @@ set(SRC
 	BPH_mass_spring.h
 )
 
-blender_add_lib(bf_physics "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_physics "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

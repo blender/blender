@@ -72,6 +72,9 @@ set(SRC
 	mesh_intern.h
 )
 
+set(LIB
+)
+
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
@@ -86,4 +89,4 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

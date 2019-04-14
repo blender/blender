@@ -54,6 +54,9 @@ set(SRC
 	gpu_py_vertex_format.h
 )
 
+set(LIB
+)
+
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_python_gpu "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_python_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

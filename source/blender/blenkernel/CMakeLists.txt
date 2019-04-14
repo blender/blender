@@ -355,6 +355,9 @@ set(SRC
 	intern/subdiv_inline.h
 )
 
+set(LIB
+)
+
 if(WITH_BINRELOC)
 	list(APPEND INC_SYS
 		${BINRELOC_INCLUDE_DIRS}
@@ -566,4 +569,4 @@ endif()
 #	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 #endif()
 
-blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

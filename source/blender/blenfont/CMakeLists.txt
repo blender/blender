@@ -51,6 +51,9 @@ set(SRC
 	intern/blf_internal_types.h
 )
 
+set(LIB
+)
+
 if(WIN32)
 	list(APPEND SRC
 		intern/blf_font_win32_compat.c
@@ -70,4 +73,4 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

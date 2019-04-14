@@ -47,6 +47,9 @@ set(SRC
 	mask_intern.h
 )
 
+set(LIB
+)
+
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_editor_mask "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_mask "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

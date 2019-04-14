@@ -1022,7 +1022,11 @@ install(
 
 add_dependencies(blender makesdna)
 
-setup_blender_sorted_libs()
+# Use for testing 'BLENDER_SORTED_LIBS' removal.
+if(NOT (DEFINED WITHOUT_SORTED_LIBS AND WITHOUT_SORTED_LIBS))
+	setup_blender_sorted_libs()
+endif()
+
 target_link_libraries(blender ${BLENDER_SORTED_LIBS})
 
 setup_liblinks(blender)

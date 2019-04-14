@@ -32,4 +32,7 @@ set(SRC
 	src/sdlew.c
 )
 
-blender_add_lib(extern_sdlew "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(extern_sdlew "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

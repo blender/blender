@@ -106,6 +106,9 @@ set(SRC
 	message_bus/wm_message_bus.h
 )
 
+set(LIB
+)
+
 if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
 
@@ -166,4 +169,4 @@ if(WITH_COMPOSITOR)
 	add_definitions(-DWITH_COMPOSITOR)
 endif()
 
-blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

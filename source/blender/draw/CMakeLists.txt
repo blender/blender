@@ -151,6 +151,9 @@ set(SRC
 	engines/workbench/workbench_private.h
 )
 
+set(LIB
+)
+
 data_to_c_simple(engines/eevee/shaders/ambient_occlusion_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/default_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/default_world_frag.glsl SRC)
@@ -355,4 +358,4 @@ if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 
-blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

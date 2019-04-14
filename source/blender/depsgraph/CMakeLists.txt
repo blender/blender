@@ -109,6 +109,9 @@ set(SRC
 	intern/depsgraph_update.h
 )
 
+set(LIB
+)
+
 if(WITH_BOOST)
 	list(APPEND INC_SYS
 		${BOOST_INCLUDE_DIR}
@@ -116,4 +119,4 @@ if(WITH_BOOST)
 	add_definitions(-DHAVE_BOOST_FUNCTION_BINDINGS)
 endif()
 
-blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

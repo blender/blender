@@ -39,4 +39,7 @@ set(SRC
 	mikktspace.h
 )
 
-blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}" "${INC_SYS}")
+set(LIB
+)
+
+blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

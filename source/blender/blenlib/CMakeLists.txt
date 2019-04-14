@@ -233,6 +233,9 @@ set(SRC
 	PIL_time_utildefines.h
 )
 
+set(LIB
+)
+
 if(WITH_MEM_VALGRIND)
 	add_definitions(-DWITH_MEM_VALGRIND)
 endif()
@@ -254,4 +257,4 @@ set_source_files_properties(
 	PROPERTIES HEADER_FILE_ONLY TRUE
 )
 
-blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -40,6 +40,9 @@ set(SRC
 	../atomic/atomic_ops.h
 )
 
+set(LIB
+)
+
 if(WIN32 AND NOT UNIX)
 	list(APPEND SRC
 		intern/mmap_win.c
@@ -53,12 +56,12 @@ if(WITH_MEM_JEMALLOC AND NOT ("${JEMALLOC_VERSION}" VERSION_LESS "5.0.0"))
 	add_definitions(-DWITH_JEMALLOC_CONF)
 endif()
 
-blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # Override C++ alloc, optional.
 if(WITH_CXX_GUARDEDALLOC)
 	set(SRC
 		cpp/mallocn.cpp
 	)
-	blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}" "${INC_SYS}")
+	blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 endif()

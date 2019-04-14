@@ -51,6 +51,9 @@ set(SRC
 	physics_intern.h
 )
 
+set(LIB
+)
+
 if(WITH_MOD_FLUID)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
@@ -68,4 +71,4 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

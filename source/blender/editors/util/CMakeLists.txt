@@ -99,6 +99,9 @@ set(SRC
 	../include/UI_view2d.h
 )
 
+set(LIB
+)
+
 add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)
@@ -112,4 +115,4 @@ if(WITH_PYTHON)
 	)
 endif()
 
-blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -84,6 +84,9 @@ set(SRC
 	intern/GHOST_WindowManager.h
 )
 
+set(LIB
+)
+
 if(WITH_GHOST_DEBUG)
 	list(APPEND SRC
 		intern/GHOST_EventPrinter.cpp
@@ -337,4 +340,4 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

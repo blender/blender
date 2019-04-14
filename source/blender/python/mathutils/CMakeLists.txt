@@ -55,5 +55,8 @@ set(SRC
 	mathutils_noise.h
 )
 
+set(LIB
+)
 
-blender_add_lib(bf_python_mathutils "${SRC}" "${INC}" "${INC_SYS}")
+
+blender_add_lib(bf_python_mathutils "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

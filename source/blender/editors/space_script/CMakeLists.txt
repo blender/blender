@@ -39,6 +39,9 @@ set(SRC
 	script_intern.h
 )
 
+set(LIB
+)
+
 if(WITH_PYTHON)
 	list(APPEND INC
 		../../python
@@ -48,4 +51,4 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_editor_space_script "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_space_script "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

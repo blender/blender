@@ -353,6 +353,9 @@ set(SRC
 	${EIGEN3_HEADERS}
 )
 
+set(LIB
+)
+
 unset(EIGEN3_HEADERS)
 
-blender_add_lib(bf_intern_itasc "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_itasc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

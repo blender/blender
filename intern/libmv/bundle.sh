@@ -174,7 +174,7 @@ ${third_headers}
 
 
 	if(WITH_GTESTS)
-		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}")
+		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}" "")
 
 ${tests}
 	endif()
@@ -184,5 +184,5 @@ else()
 	)
 endif()
 
-blender_add_lib(bf_intern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
+blender_add_lib(bf_intern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}" "")
 EOF

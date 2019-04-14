@@ -35,6 +35,9 @@ set(SRC
 	opensubdiv_topology_refiner_capi.h
 )
 
+set(LIB
+)
+
 if(WITH_OPENSUBDIV)
 	macro(OPENSUBDIV_DEFINE_COMPONENT component)
 		if(${${component}})
@@ -122,4 +125,4 @@ else()
 	)
 endif()
 
-blender_add_lib(bf_intern_opensubdiv "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_opensubdiv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

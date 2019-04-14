@@ -38,6 +38,9 @@ set(SRC
 	ocio_impl.h
 )
 
+set(LIB
+)
+
 if(WITH_OPENCOLORIO)
 	add_definitions(
 		-DWITH_OCIO
@@ -69,4 +72,4 @@ if(WITH_OPENCOLORIO)
 endif()
 
 
-blender_add_lib(bf_intern_opencolorio "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_opencolorio "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
