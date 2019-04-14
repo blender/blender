@@ -319,8 +319,7 @@ void BKE_constraint_mat_convertspace(
 			{
 				/* local + parent to pose */
 				if (pchan->bone) {
-					copy_m4_m4(diff_mat, pchan->bone->arm_mat);
-					mul_m4_m4m4(mat, mat, diff_mat);
+					mul_m4_m4m4(mat, pchan->bone->arm_mat, mat);
 				}
 
 				/* use pose-space as stepping stone for other spaces */
