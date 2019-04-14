@@ -308,11 +308,12 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	workbench_private_data_get_light_direction(wpd, light_direction);
 
 	if (!e_data.checker_depth_sh) {
-		workbench_forward_outline_shaders_ensure(wpd, draw_ctx->sh_cfg);
-
 		e_data.checker_depth_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
 	}
+
+	workbench_forward_outline_shaders_ensure(wpd, draw_ctx->sh_cfg);
+
 	workbench_volume_engine_init();
 	workbench_fxaa_engine_init();
 	workbench_taa_engine_init(vedata);
