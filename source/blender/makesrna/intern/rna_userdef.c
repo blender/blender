@@ -4056,7 +4056,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem material_link_items[] = {
-		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block"},
+		{0, "OBDATA", 0, "Object Data", "Toggle whether the material is linked to object data or the object block"},
 		{USER_MAT_ON_OB, "OBJECT", 0, "Object",
 		                 "Toggle whether the material is linked to object data or the object block"},
 		{0, NULL, 0, NULL, NULL},
