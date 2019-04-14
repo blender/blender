@@ -1356,15 +1356,15 @@ TransformOrientationSlot *BKE_scene_orientation_slot_get(Scene *scene, int slot_
 
 TransformOrientationSlot *BKE_scene_orientation_slot_get_from_flag(Scene *scene, int flag)
 {
-	BLI_assert(flag && !(flag & ~(V3D_GIZMO_TYPE_MASK_TRANSLATE | V3D_GIZMO_TYPE_MASK_ROTATE | V3D_GIZMO_TYPE_MASK_SCALE)));
+	BLI_assert(flag && !(flag & ~(V3D_GIZMO_SHOW_OBJECT_TRANSLATE | V3D_GIZMO_SHOW_OBJECT_ROTATE | V3D_GIZMO_SHOW_OBJECT_SCALE)));
 	int slot_index = SCE_ORIENT_DEFAULT;
-	if (flag & V3D_GIZMO_TYPE_MASK_TRANSLATE) {
+	if (flag & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) {
 		slot_index = SCE_ORIENT_TRANSLATE;
 	}
-	else if (flag & V3D_GIZMO_TYPE_MASK_ROTATE) {
+	else if (flag & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
 		slot_index = SCE_ORIENT_ROTATE;
 	}
-	else if (flag & V3D_GIZMO_TYPE_MASK_SCALE) {
+	else if (flag & V3D_GIZMO_SHOW_OBJECT_SCALE) {
 		slot_index = SCE_ORIENT_SCALE;
 	}
 	return BKE_scene_orientation_slot_get(scene, slot_index);

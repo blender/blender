@@ -109,6 +109,9 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)) {
 		return false;
 	}
+	if ((v3d->gizmo_show_empty & V3D_GIZMO_SHOW_EMPTY_IMAGE) == 0) {
+		return false;
+	}
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);

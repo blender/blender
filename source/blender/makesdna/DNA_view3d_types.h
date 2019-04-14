@@ -246,8 +246,7 @@ typedef struct View3D {
 	/** Display style for bundle. */
 	char bundle_drawtype;
 
-	/** #V3D_GIZMO_SHOW_* */
-	char gizmo_flag;
+	char drawtype DNA_DEPRECATED;
 
 	char _pad3[1];
 
@@ -270,7 +269,7 @@ typedef struct View3D {
 	char ob_centre_bone[64];
 
 	unsigned short local_view_uuid;
-	short _pad6;
+	char _pad6[2];
 	int layact DNA_DEPRECATED;
 
 	/** Optional bool for 3d cursor to define center. */
@@ -284,15 +283,23 @@ typedef struct View3D {
 	float clip_start, clip_end;
 	float ofs[3] DNA_DEPRECATED;
 
-	char _pad[6];
+	char _pad[1];
+
+	/** Transform gizmo info. */
+	/** #V3D_GIZMO_SHOW_* */
+	char gizmo_flag;
+
+	char gizmo_show_object;
+	char gizmo_show_armature;
+	char gizmo_show_empty;
+	char gizmo_show_light;
+	char gizmo_show_camera;
+
+	char gridflag;
 
 	short gridlines;
 	/** Number of subdivisions in the grid between each highlighted grid line. */
 	short gridsubdiv;
-	char gridflag;
-
-	/** Transform gizmo info. */
-	char gizmo_type_mask;
 
 	/** Actually only used to define the opacity of the grease pencil vertex in edit mode. */
 	float vertex_opacity;
@@ -314,9 +321,6 @@ typedef struct View3D {
 	float stereo3d_convergence_alpha;
 
 	/** Display settings. */
-	short drawtype DNA_DEPRECATED;
-	char _pad5[6];
-
 	View3DShading shading;
 	View3DOverlay overlay;
 
@@ -548,11 +552,35 @@ enum {
 	V3D_GIZMO_HIDE_TOOL           = (1 << 3),
 };
 
-/** #View3d.gizmo_type_mask */
+/** #View3d.gizmo_show_object */
 enum {
-	V3D_GIZMO_TYPE_MASK_TRANSLATE = (1 << 0),
-	V3D_GIZMO_TYPE_MASK_ROTATE    = (1 << 1),
-	V3D_GIZMO_TYPE_MASK_SCALE     = (1 << 2),
+	V3D_GIZMO_SHOW_OBJECT_TRANSLATE = (1 << 0),
+	V3D_GIZMO_SHOW_OBJECT_ROTATE    = (1 << 1),
+	V3D_GIZMO_SHOW_OBJECT_SCALE     = (1 << 2),
+};
+/** #View3d.gizmo_show_armature */
+enum {
+	/** Currently unused (WIP gizmo). */
+	V3D_GIZMO_SHOW_ARMATURE_BBONE = (1 << 0),
+	/** Not yet implemented. */
+	V3D_GIZMO_SHOW_ARMATURE_ROLL = (1 << 1),
+};
+/** #View3d.gizmo_show_empty */
+enum {
+	V3D_GIZMO_SHOW_EMPTY_IMAGE = (1 << 0),
+	V3D_GIZMO_SHOW_EMPTY_FORCE_FIELD = (1 << 1),
+};
+/** #View3d.gizmo_show_light */
+enum {
+	/** Use for both spot & area size. */
+	V3D_GIZMO_SHOW_LIGHT_SIZE = (1 << 0),
+	V3D_GIZMO_SHOW_LIGHT_LOOK_AT = (1 << 1),
+};
+/** #View3d.gizmo_show_camera */
+enum {
+	/** Also used for ortho size. */
+	V3D_GIZMO_SHOW_CAMERA_LENS = (1 << 0),
+	V3D_GIZMO_SHOW_CAMERA_DOF_DIST = (1 << 2),
 };
 
 #define RV3D_CAMZOOM_MIN -30

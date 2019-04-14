@@ -274,9 +274,9 @@ static bool gizmo_is_axis_visible(
 		}
 	}
 
-	if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & V3D_GIZMO_TYPE_MASK_TRANSLATE)) ||
-	    (axis_type == MAN_AXES_ROTATE && !(twtype & V3D_GIZMO_TYPE_MASK_ROTATE)) ||
-	    (axis_type == MAN_AXES_SCALE && !(twtype & V3D_GIZMO_TYPE_MASK_SCALE)))
+	if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE)) ||
+	    (axis_type == MAN_AXES_ROTATE && !(twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE)) ||
+	    (axis_type == MAN_AXES_SCALE && !(twtype & V3D_GIZMO_SHOW_OBJECT_SCALE)))
 	{
 		return false;
 	}
@@ -306,34 +306,34 @@ static bool gizmo_is_axis_visible(
 		case MAN_AXIS_SCALE_Z:
 			return (rv3d->twdrawflag & MAN_SCALE_Z);
 		case MAN_AXIS_SCALE_C:
-			return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & V3D_GIZMO_TYPE_MASK_TRANSLATE) == 0);
+			return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0);
 		case MAN_AXIS_TRANS_XY:
 			return (rv3d->twdrawflag & MAN_TRANS_X &&
 			        rv3d->twdrawflag & MAN_TRANS_Y &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) == 0);
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
 		case MAN_AXIS_TRANS_YZ:
 			return (rv3d->twdrawflag & MAN_TRANS_Y &&
 			        rv3d->twdrawflag & MAN_TRANS_Z &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) == 0);
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
 		case MAN_AXIS_TRANS_ZX:
 			return (rv3d->twdrawflag & MAN_TRANS_Z &&
 			        rv3d->twdrawflag & MAN_TRANS_X &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) == 0);
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
 		case MAN_AXIS_SCALE_XY:
 			return (rv3d->twdrawflag & MAN_SCALE_X &&
 			        rv3d->twdrawflag & MAN_SCALE_Y &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_TRANSLATE) == 0 &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) == 0);
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0 &&
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
 		case MAN_AXIS_SCALE_YZ:
 			return (rv3d->twdrawflag & MAN_SCALE_Y &&
 			        rv3d->twdrawflag & MAN_SCALE_Z &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_TRANSLATE) == 0 &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) == 0);
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0 &&
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
 		case MAN_AXIS_SCALE_ZX:
 			return (rv3d->twdrawflag & MAN_SCALE_Z &&
 			        rv3d->twdrawflag & MAN_SCALE_X &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_TRANSLATE) == 0 &&
-			        (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) == 0);
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0 &&
+			        (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
 	}
 	return false;
 }
@@ -1185,15 +1185,15 @@ static void gizmo_line_range(const int twtype, const short axis_type, float *r_s
 
 	switch (axis_type) {
 		case MAN_AXES_TRANSLATE:
-			if (twtype & V3D_GIZMO_TYPE_MASK_SCALE) {
+			if (twtype & V3D_GIZMO_SHOW_OBJECT_SCALE) {
 				*r_start = *r_len - ofs + 0.075f;
 			}
-			if (twtype & V3D_GIZMO_TYPE_MASK_ROTATE) {
+			if (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
 				*r_len += ofs;
 			}
 			break;
 		case MAN_AXES_SCALE:
-			if (twtype & (V3D_GIZMO_TYPE_MASK_TRANSLATE | V3D_GIZMO_TYPE_MASK_ROTATE)) {
+			if (twtype & (V3D_GIZMO_SHOW_OBJECT_TRANSLATE | V3D_GIZMO_SHOW_OBJECT_ROTATE)) {
 				*r_len -= ofs + 0.025f;
 			}
 			break;
@@ -1219,11 +1219,11 @@ static void gizmo_xform_message_subscribe(
 		orient_flag = ggd->twtype_init;
 	}
 	else if (type_fn == VIEW3D_GGT_xform_cage) {
-		orient_flag = V3D_GIZMO_TYPE_MASK_SCALE;
+		orient_flag = V3D_GIZMO_SHOW_OBJECT_SCALE;
 		/* pass */
 	}
 	else if (type_fn == VIEW3D_GGT_xform_shear) {
-		orient_flag = V3D_GIZMO_TYPE_MASK_ROTATE;
+		orient_flag = V3D_GIZMO_SHOW_OBJECT_ROTATE;
 	}
 	TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(scene, orient_flag);
 	PointerRNA orient_ref_ptr;
@@ -1283,14 +1283,19 @@ static void gizmo_xform_message_subscribe(
 
 	if (type_fn == VIEW3D_GGT_xform_gizmo) {
 		GizmoGroup *ggd = gzgroup->customdata;
-		extern PropertyRNA rna_SpaceView3D_show_gizmo_transform;
-		const PropertyRNA *props[] = {
-			ggd->use_twtype_refresh ? &rna_SpaceView3D_show_gizmo_transform : NULL,
-		};
-		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			WM_msg_subscribe_rna(mbus, &view3d_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
+		if (ggd->use_twtype_refresh) {
+			extern PropertyRNA rna_SpaceView3D_show_gizmo_object_translate;
+			extern PropertyRNA rna_SpaceView3D_show_gizmo_object_rotate;
+			extern PropertyRNA rna_SpaceView3D_show_gizmo_object_scale;
+			const PropertyRNA *props[] = {
+				&rna_SpaceView3D_show_gizmo_object_translate,
+				&rna_SpaceView3D_show_gizmo_object_rotate,
+				&rna_SpaceView3D_show_gizmo_object_scale,
+			};
+			for (int i = 0; i < ARRAY_SIZE(props); i++) {
+				WM_msg_subscribe_rna(mbus, &view3d_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
+			}
 		}
-
 	}
 	else if (type_fn == VIEW3D_GGT_xform_cage) {
 		/* pass */
@@ -1526,7 +1531,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 			case MAN_AXIS_SCALE_Z:
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 					int draw_options = 0;
-					if ((ggd->twtype & (V3D_GIZMO_TYPE_MASK_ROTATE | V3D_GIZMO_TYPE_MASK_SCALE)) == 0) {
+					if ((ggd->twtype & (V3D_GIZMO_SHOW_OBJECT_ROTATE | V3D_GIZMO_SHOW_OBJECT_SCALE)) == 0) {
 						draw_options |= ED_GIZMO_ARROW_DRAW_FLAG_STEM;
 					}
 					RNA_enum_set(axis->ptr, "draw_options", draw_options);
@@ -1634,17 +1639,17 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
 		ggd->twtype = 0;
 		if (tref && STREQ(tref->idname, "builtin.move")) {
-			ggd->twtype |= V3D_GIZMO_TYPE_MASK_TRANSLATE;
+			ggd->twtype |= V3D_GIZMO_SHOW_OBJECT_TRANSLATE;
 		}
 		else if (tref && STREQ(tref->idname, "builtin.rotate")) {
-			ggd->twtype |= V3D_GIZMO_TYPE_MASK_ROTATE;
+			ggd->twtype |= V3D_GIZMO_SHOW_OBJECT_ROTATE;
 		}
 		else if (tref && STREQ(tref->idname, "builtin.scale")) {
-			ggd->twtype |= V3D_GIZMO_TYPE_MASK_SCALE;
+			ggd->twtype |= V3D_GIZMO_SHOW_OBJECT_SCALE;
 		}
 		else {
 			/* Setup all gizmos, they can be toggled via 'ToolSettings.gizmo_flag' */
-			ggd->twtype = V3D_GIZMO_TYPE_MASK_TRANSLATE | V3D_GIZMO_TYPE_MASK_ROTATE | V3D_GIZMO_TYPE_MASK_SCALE;
+			ggd->twtype = V3D_GIZMO_SHOW_OBJECT_TRANSLATE | V3D_GIZMO_SHOW_OBJECT_ROTATE | V3D_GIZMO_SHOW_OBJECT_SCALE;
 			ggd->use_twtype_refresh = true;
 		}
 		BLI_assert(ggd->twtype != 0);
@@ -1666,7 +1671,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	struct TransformBounds tbounds;
 
 	if (ggd->use_twtype_refresh) {
-		ggd->twtype = v3d->gizmo_type_mask & ggd->twtype_init;
+		ggd->twtype = v3d->gizmo_show_object & ggd->twtype_init;
 		if (ggd->twtype != ggd->twtype_prev) {
 			ggd->twtype_prev = ggd->twtype;
 			gizmogroup_init_properties_from_twtype(gzgroup);
@@ -1715,7 +1720,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 				RNA_float_set(axis->ptr, "length", len);
 
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
-					if (ggd->twtype & V3D_GIZMO_TYPE_MASK_ROTATE) {
+					if (ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
 						/* Avoid rotate and translate arrows overlap. */
 						start_co[2] += 0.215f;
 					}
@@ -1909,7 +1914,7 @@ static bool WIDGETGROUP_gizmo_poll_context(const struct bContext *C, struct wmGi
 	if (v3d->gizmo_flag & V3D_GIZMO_HIDE_CONTEXT) {
 		return false;
 	}
-	if ((v3d->gizmo_type_mask & (V3D_GIZMO_TYPE_MASK_TRANSLATE | V3D_GIZMO_TYPE_MASK_ROTATE | V3D_GIZMO_TYPE_MASK_SCALE)) == 0) {
+	if ((v3d->gizmo_show_object & (V3D_GIZMO_SHOW_OBJECT_TRANSLATE | V3D_GIZMO_SHOW_OBJECT_ROTATE | V3D_GIZMO_SHOW_OBJECT_SCALE)) == 0) {
 		return false;
 	}
 
