@@ -2280,7 +2280,6 @@ typedef struct RegionMoveData {
 
 static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 {
-	ARegion *ar;
 	int dist;
 
 	/* regions in regions. */
@@ -2288,11 +2287,11 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 		const int align = scalear->alignment & RGN_ALIGN_ENUM_MASK;
 
 		if (ELEM(align, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
-			ar = scalear->prev;
+			ARegion *ar = scalear->prev;
 			dist = ar->winy + scalear->winy - U.pixelsize;
 		}
-		else if (ELEM(align, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
-			ar = scalear->prev;
+		else /* if (ELEM(align, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) */ {
+			ARegion *ar = scalear->prev;
 			dist = ar->winx + scalear->winx - U.pixelsize;
 		}
 	}
@@ -2306,7 +2305,7 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 
 		/* subtractwidth of regions on opposite side
 		 * prevents dragging regions into other opposite regions */
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar == scalear)
 				continue;
 
