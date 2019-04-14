@@ -862,6 +862,7 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param, const bool for_
 			make_bbone_spline_matrix(param, scalemats, cur, axis, roll, scalefac, result_array[a].mat);
 		}
 
+		negate_v3(bezt_deriv2[1]);
 		ease_handle_axis(bezt_deriv1[2], bezt_deriv2[1], axis);
 		make_bbone_spline_matrix(param, scalemats, bezt_controls[3], axis, roll2, param->scaleOut, result_array[param->segments].mat);
 	}
