@@ -582,7 +582,7 @@ bool ED_view3d_win_to_3d_on_plane_int(
 
 /**
  * Calculate a 3d difference vector from 2d window offset.
- * note that ED_view3d_calc_zfac() must be called first to determine
+ * note that #ED_view3d_calc_zfac() must be called first to determine
  * the depth used to calculate the delta.
  * \param ar: The region (used for the window width and height).
  * \param mval: The area relative 2d difference (such as event->mval[0] - other_x).

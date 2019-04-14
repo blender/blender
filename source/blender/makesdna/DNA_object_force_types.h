@@ -185,11 +185,12 @@ typedef struct EffectorWeights {
 /* EffectorWeights->flag */
 #define EFF_WEIGHT_DO_HAIR		1
 
-/* Point cache file data types:
- * - used as (1 << flag) so poke jahka if you reach the limit of 15
- * - to add new data types update:
- *   - BKE_ptcache_data_size()
- *   - ptcache_file_init_pointers()
+/**
+ * Point cache file data types:
+ * - Used as `(1 << flag)` so poke jahka if you reach the limit of 15.
+ * - To add new data types update:
+ *   - #BKE_ptcache_data_size()
+ *   - #ptcache_file_pointers_init()
  */
 #define BPHYS_DATA_INDEX		0
 #define BPHYS_DATA_LOCATION		1

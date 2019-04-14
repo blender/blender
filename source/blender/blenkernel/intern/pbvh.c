@@ -516,7 +516,7 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
  * Do a full rebuild with on Mesh data structure.
  *
  * \note Unlike mpoly/mloop/verts, looptri is **totally owned** by PBVH (which means it may rewrite it if needed,
- *       see BKE_pbvh_apply_vertCos().
+ * see #BKE_pbvh_apply_vertCos().
  */
 void BKE_pbvh_build_mesh(
         PBVH *bvh, const MPoly *mpoly, const MLoop *mloop, MVert *verts,

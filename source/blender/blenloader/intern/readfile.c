@@ -1628,7 +1628,7 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
  *
  * \param filepath: The path of the file to extract thumbnail from.
  * \return The raw thumbnail
- * (MEM-allocated, as stored in file, use BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
+ * (MEM-allocated, as stored in file, use #BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
  */
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {

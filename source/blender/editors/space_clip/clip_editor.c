@@ -578,7 +578,7 @@ void ED_clip_point_stable_pos(SpaceClip *sc, ARegion *ar, float x, float y, floa
 }
 
 /**
- * \brief the reverse of ED_clip_point_stable_pos(), gets the marker region coords.
+ * \brief the reverse of #ED_clip_point_stable_pos(), gets the marker region coords.
  * better name here? view_to_track / track_to_view or so?
  */
 void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float co[2], float r_co[2])

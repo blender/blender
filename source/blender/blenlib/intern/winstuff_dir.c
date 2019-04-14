@@ -54,9 +54,10 @@ struct __dirstream {
 	struct dirent direntry;
 };
 
-/* Note: MinGW (FREE_WINDOWS) has opendir() and _wopendir(), and only the
- * latter accepts a path name of wchar_t type.  Rather than messing up with
- * extra #ifdef's here and there, Blender's own implementations of opendir()
+/**
+ * \note MinGW (FREE_WINDOWS) has #opendir() and #_wopendir(), and only the
+ * latter accepts a path name of #wchar_t type. Rather than messing up with
+ * extra #ifdef's here and there, Blender's own implementations of #opendir()
  * and related functions are used to properly support paths with non-ASCII
  * characters. (kjym3)
  */

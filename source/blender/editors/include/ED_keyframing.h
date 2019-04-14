@@ -377,11 +377,12 @@ bool fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
  */
 bool fcurve_is_changed(struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float frame);
 
-/* Main Keyframe Checking API call:
+/**
+ * Main Keyframe Checking API call:
  * Checks whether a keyframe exists for the given ID-block one the given frame.
  * - It is recommended to call this method over the other keyframe-checkers directly,
  *   in case some detail of the implementation changes...
- * - frame: the value of this is quite often result of BKE_scene_frame_get()
+ * - frame: the value of this is quite often result of #BKE_scene_frame_get()
  */
 bool id_frame_has_keyframe(struct ID *id, float frame, short filter);
 

@@ -4709,15 +4709,18 @@ const bConstraintTypeInfo *BKE_constraint_typeinfo_get(bConstraint *con)
 
 /* ---------- Data Management ------- */
 
-/* helper function for BKE_constraint_free_data() - unlinks references */
+/**
+ * Helper function for #BKE_constraint_free_data() - unlinks references.
+ */
 static void con_unlink_refs_cb(bConstraint *UNUSED(con), ID **idpoin, bool is_reference, void *UNUSED(userData))
 {
 	if (*idpoin && is_reference)
 		id_us_min(*idpoin);
 }
 
-/* Free data of a specific constraint if it has any info.
- * be sure to run BIK_clear_data() when freeing an IK constraint,
+/**
+ * Free data of a specific constraint if it has any info.
+ * be sure to run #BIK_clear_data() when freeing an IK constraint,
  * unless DAG_relations_tag_update is called.
  */
 void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)

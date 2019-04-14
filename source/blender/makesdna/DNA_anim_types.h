@@ -1107,7 +1107,7 @@ typedef enum eAnimData_Flag {
 /* Base Struct for Anim ------------------------------------- */
 
 /**
- * Used for BKE_animdata_from_id()
+ * Used for #BKE_animdata_from_id()
  * All ID-datablocks which have their own 'local' AnimData
  * should have the same arrangement in their structs.
  */

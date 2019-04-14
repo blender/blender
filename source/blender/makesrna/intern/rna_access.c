@@ -2063,7 +2063,7 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 /** \note Does not take into account editable status, this has to be checked separately
- * (using RNA_property_edtiable_flag() usually). */
+ * (using #RNA_property_editable_flag() usually). */
 bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	if (prop->magic == RNA_MAGIC) {

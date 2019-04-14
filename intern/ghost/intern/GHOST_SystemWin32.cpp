@@ -304,8 +304,8 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(
 
 /**
  * Create a new offscreen context.
- * Never explicitly delete the window, use disposeContext() instead.
- * \return  The new context (or 0 if creation failed).
+ * Never explicitly delete the window, use #disposeContext() instead.
+ * \return The new context (or 0 if creation failed).
  */
 GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
 {

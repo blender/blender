@@ -1063,10 +1063,13 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
 	}
 }
 
-/* Works on both loops and polys! */
-/* Note: It won't try to guess which loops of an invalid poly to remove!
- *       this is the work of the caller, to mark those loops...
- *       See e.g. BKE_mesh_validate_arrays(). */
+/**
+ * Works on both loops and polys!
+ *
+ * \note It won't try to guess which loops of an invalid poly to remove!
+ * this is the work of the caller, to mark those loops...
+ * See e.g. #BKE_mesh_validate_arrays().
+ */
 void BKE_mesh_strip_loose_polysloops(Mesh *me)
 {
 	MPoly *p;

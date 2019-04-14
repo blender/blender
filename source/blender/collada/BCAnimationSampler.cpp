@@ -395,9 +395,9 @@ void BCAnimationSampler::generate_transforms(Object *ob, Bone *bone, BCAnimation
 }
 
 /**
- * Collect all keyframes from all animation curves related to the object
- * The bc_get... functions check for NULL and correct object type
- * The add_keyframes_from() function checks for NULL
+ * Collect all keyframes from all animation curves related to the object.
+ * The bc_get... functions check for NULL and correct object type.
+ * The #add_keyframes_from() function checks for NULL.
  */
 void BCAnimationSampler::initialize_keyframes(BCFrameSet &frameset, Object *ob)
 {

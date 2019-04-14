@@ -314,7 +314,7 @@ void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *default_
  * Return value for given edge (\a v0, \a v1), or NULL if
  * if key does not exist in hash. (If need exists
  * to differentiate between key-value being NULL and
- * lack of key then see BLI_edgehash_lookup_p().
+ * lack of key then see #BLI_edgehash_lookup_p().
  */
 void *BLI_edgehash_lookup(EdgeHash *eh, uint v0, uint v1)
 {

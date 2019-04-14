@@ -30,9 +30,10 @@
 
 /* *** Local Functions (for format_line) *** */
 
-/* Checks the specified source string for a Python built-in function name. This
+/**
+ * Checks the specified source string for a Python built-in function name. This
  * name must start at the beginning of the source string and must be followed by
- * a non-identifier (see text_check_identifier(char)) or null character.
+ * a non-identifier (see #text_check_identifier(char)) or null character.
  *
  * If a built-in function is found, the length of the matching name is returned.
  * Otherwise, -1 is returned.
@@ -40,7 +41,6 @@
  * See:
  * http://docs.python.org/py3k/reference/lexical_analysis.html#keywords
  */
-
 static int txtfmt_py_find_builtinfunc(const char *string)
 {
 	int i, len;

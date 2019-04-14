@@ -305,12 +305,13 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 	return numleft;
 }
 
-/* Crazyspace evaluation needs to have an object which has all the fields
+/**
+ * Crazyspace evaluation needs to have an object which has all the fields
  * evaluated, but the mesh data being at undeformed state. This way it can
  * re-apply modifiers and also have proper pointers to key data blocks.
  *
- * Similar to BKE_object_eval_reset(), but does not modify the actual evaluated
- * object. */
+ * Similar to #BKE_object_eval_reset(), but does not modify the actual evaluated object.
+ */
 static void crazyspace_init_object_for_eval(
         struct Depsgraph *depsgraph,
         Object *object,

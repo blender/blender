@@ -648,7 +648,7 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 
 /**
  * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
+ * Never explicitly delete the context, use #disposeContext() instead.
  * \return  The new context (or 0 if creation failed).
  */
 GHOST_IContext *

@@ -804,7 +804,7 @@ static void collection_missing_parents_remove(Collection *collection)
  * This is used for library remapping, where these pointers have been set to NULL.
  * Otherwise this should never happen.
  *
- * \note caller must ensure BKE_main_collection_sync_remap() is called afterwards!
+ * \note caller must ensure #BKE_main_collection_sync_remap() is called afterwards!
  *
  * \param collection: may be \a NULL, in which case whole \a bmain database of collections is checked.
  */

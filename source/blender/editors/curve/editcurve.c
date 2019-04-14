@@ -2697,7 +2697,7 @@ static void smooth_single_bezt(
 }
 
 /**
- * Same as smooth_single_bezt(), keep in sync
+ * Same as #smooth_single_bezt(), keep in sync.
  */
 static void smooth_single_bp(
         BPoint *bp,

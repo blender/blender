@@ -1045,7 +1045,7 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
 /**
  * Create a new GHashIterator. The hash table must not be mutated
  * while the iterator is in use, and the iterator will step exactly
- * BLI_ghash_len(gh) times before becoming done.
+ * #BLI_ghash_len(gh) times before becoming done.
  *
  * \param gh: The GHash to iterate over.
  * \return Pointer to a new DynStr.
@@ -1060,7 +1060,7 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh)
 /**
  * Init an already allocated GHashIterator. The hash table must not
  * be mutated while the iterator is in use, and the iterator will
- * step exactly BLI_ghash_len(gh) times before becoming done.
+ * step exactly #BLI_ghash_len(gh) times before becoming done.
  *
  * \param ghi: The GHashIterator to initialize.
  * \param gh: The GHash to iterate over.

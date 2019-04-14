@@ -30,9 +30,10 @@
 
 /* *** Lua Keywords (for format_line) *** */
 
-/* Checks the specified source string for a Lua keyword (minus boolean & 'nil').
+/**
+ * Checks the specified source string for a Lua keyword (minus boolean & 'nil').
  * This name must start at the beginning of the source string and must be
- * followed by a non-identifier (see text_check_identifier(char)) or null char.
+ * followed by a non-identifier (see #text_check_identifier(char)) or null char.
  *
  * If a keyword is found, the length of the matching word is returned.
  * Otherwise, -1 is returned.
@@ -40,7 +41,6 @@
  * See:
  * http://www.lua.org/manual/5.1/manual.html#2.1
  */
-
 static int txtfmt_lua_find_keyword(const char *string)
 {
 	int i, len;
@@ -71,9 +71,10 @@ static int txtfmt_lua_find_keyword(const char *string)
 	return i;
 }
 
-/* Checks the specified source string for a Lua special name/function. This
+/**
+ * Checks the specified source string for a Lua special name/function. This
  * name must start at the beginning of the source string and must be followed
- * by a non-identifier (see text_check_identifier(char)) or null character.
+ * by a non-identifier (see *text_check_identifier(char)) or null character.
  *
  * If a special name is found, the length of the matching name is returned.
  * Otherwise, -1 is returned.
@@ -81,7 +82,6 @@ static int txtfmt_lua_find_keyword(const char *string)
  * See:
  * http://www.lua.org/manual/5.1/manual.html#5.1
  */
-
 static int txtfmt_lua_find_specialvar(const char *string)
 {
 	int i, len;

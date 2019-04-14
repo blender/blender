@@ -36,11 +36,13 @@
 #include "draw_mode_engines.h"
 
 /* *********** LISTS *********** */
-/* All lists are per viewport specific datas.
+/**
+ * All lists are per viewport specific datas.
  * They are all free when viewport changes engines
- * or is free itself. Use POSE_engine_init() to
- * initialize most of them and POSE_cache_init()
- * for POSE_PassList */
+ * or is free itself. Use #POSE_engine_init() to
+ * initialize most of them and #POSE_cache_init()
+ * for #POSE_PassList
+ */
 
 typedef struct POSE_PassList {
 	struct DRWPass *bone_solid[2];

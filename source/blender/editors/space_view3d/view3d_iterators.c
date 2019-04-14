@@ -79,10 +79,12 @@ typedef struct foreachScreenFace_userData {
 } foreachScreenFace_userData;
 
 
-/* Note! - foreach funcs should be called while drawing or directly after
- * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
+/**
+ * \note foreach funcs should be called while drawing or directly after
+ * if not, #ED_view3d_init_mats_rv3d() can be used for selection tools
  * but would not give correct results with dupli's for eg. which don't
- * use the object matrix in the usual way */
+ * use the object matrix in the usual way.
+ */
 
 /* ------------------------------------------------------------------------ */
 

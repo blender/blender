@@ -64,9 +64,10 @@
 
 /* **************************************************** */
 
-/* Only delete the nominated keyframe from provided F-Curve.
+/**
+ * Only delete the nominated keyframe from provided F-Curve.
  * Not recommended to be used many times successively. For that
- * there is delete_fcurve_keys().
+ * there is #delete_fcurve_keys().
  */
 void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
 {

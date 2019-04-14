@@ -403,7 +403,7 @@ static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
 }
 
 /**
- * Cause a delayed WM_exit() call to avoid leaking memory when trying to exit from within operators.
+ * Cause a delayed #WM_exit() call to avoid leaking memory when trying to exit from within operators.
  */
 void wm_exit_schedule_delayed(const bContext *C)
 {

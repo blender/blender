@@ -2555,20 +2555,20 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
 }
 
 /**
- * SpaceTransform struct encapsulates all needed data to convert between two coordinate spaces
+ * #SpaceTransform struct encapsulates all needed data to convert between two coordinate spaces
  * (where conversion can be represented by a matrix multiplication).
  *
  * A SpaceTransform is initialized using:
- *   BLI_SPACE_TRANSFORM_SETUP(&data,  ob1, ob2)
+ * - #BLI_SPACE_TRANSFORM_SETUP(&data,  ob1, ob2)
  *
  * After that the following calls can be used:
- *   BLI_space_transform_apply(&data, co);  // converts a coordinate in ob1 space to the corresponding ob2 space
- *   BLI_space_transform_invert(&data, co);  // converts a coordinate in ob2 space to the corresponding ob1 space
+ * - #BLI_space_transform_apply(&data, co);  // converts a coordinate in ob1 space to the corresponding ob2 space.
+ * - #BLI_space_transform_invert(&data, co);  // converts a coordinate in ob2 space to the corresponding ob1 space.
  *
- * Same concept as BLI_space_transform_apply and BLI_space_transform_invert, but no is normalized after conversion
+ * Same concept as #BLI_space_transform_apply and #BLI_space_transform_invert, but no is normalized after conversion
  * (and not translated at all!):
- *   BLI_space_transform_apply_normal(&data, no);
- *   BLI_space_transform_invert_normal(&data, no);
+ * - #BLI_space_transform_apply_normal(&data, no);
+ * - #BLI_space_transform_invert_normal(&data, no);
  */
 
 /**

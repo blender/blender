@@ -725,8 +725,9 @@ static void add_bp_springlist(BodyPoint *bp, int springID)
 	}
 }
 
-/* do this once when sb is build
- * it is O(N^2) so scanning for springs every iteration is too expensive
+/**
+ * Do this once when sb is build it is `O(N^2)`
+ * so scanning for springs every iteration is too expensive.
  */
 static void build_bps_springlist(Object *ob)
 {

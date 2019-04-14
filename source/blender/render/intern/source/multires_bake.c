@@ -802,11 +802,14 @@ static void free_normal_data(void *bake_data)
 	MEM_freeN(normal_data);
 }
 
-/* MultiresBake callback for normals' baking
- * general idea:
- *   - find coord and normal of point with specified UV in hi-res mesh
- *   - multiply it by tangmat
- *   - vector in color space would be norm(vec) /2 + (0.5, 0.5, 0.5) */
+/**
+ * MultiresBake callback for normals' baking.
+ *
+ * General idea:
+ * - Find coord and normal of point with specified UV in hi-res mesh.
+ * - Multiply it by tangmat.
+ * - Vector in color space would be `norm(vec) / 2 + (0.5, 0.5, 0.5)`.
+ */
 static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *UNUSED(thread_data),
                                    void *bake_data, ImBuf *ibuf, const int tri_index, const int lvl,
                                    const float st[2], float tangmat[3][3], const int x, const int y)

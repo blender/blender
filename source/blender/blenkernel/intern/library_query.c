@@ -1294,7 +1294,7 @@ bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
 }
 
 /**
- * Combine \a BKE_library_ID_is_locally_used() and \a BKE_library_ID_is_indirectly_used() in a single call.
+ * Combine #BKE_library_ID_is_locally_used() and #BKE_library_ID_is_indirectly_used() in a single call.
  */
 void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
 {

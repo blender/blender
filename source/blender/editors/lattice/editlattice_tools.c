@@ -133,9 +133,9 @@ typedef enum eLattice_FlipAxes {
 } eLattice_FlipAxes;
 
 /**
- * Flip midpoint value so that relative distances between midpoint and neighbor-pair is maintained
- * ! Assumes that uvw <=> xyz (i.e. axis-aligned index-axes with coordinate-axes)
- * - Helper for lattice_flip_exec()
+ * Flip midpoint value so that relative distances between midpoint and neighbor-pair is maintained.
+ * Assumes that uvw <=> xyz (i.e. axis-aligned index-axes with coordinate-axes).
+ * - Helper for #lattice_flip_exec()
  */
 static void lattice_flip_point_value(Lattice *lt, int u, int v, int w, float mid, eLattice_FlipAxes axis)
 {
@@ -151,8 +151,8 @@ static void lattice_flip_point_value(Lattice *lt, int u, int v, int w, float mid
 }
 
 /**
- * Swap pairs of lattice points along a specified axis
- * - Helper for lattice_flip_exec()
+ * Swap pairs of lattice points along a specified axis.
+ * - Helper for #lattice_flip_exec()
  */
 static void lattice_swap_point_pairs(Lattice *lt, int u, int v, int w, float mid, eLattice_FlipAxes axis)
 {

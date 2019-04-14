@@ -922,7 +922,7 @@ static bool elem_exists(
  *
  * Passing olddata=NULL doesn't work reliably for existence checks; it will
  * return NULL both when the field is found at offset 0 and when it is not
- * found at all. For field existence checks, use elem_exists() instead.
+ * found at all. For field existence checks, use #elem_exists() instead.
  *
  * \param sdna: Old SDNA
  * \param type: Current field type name

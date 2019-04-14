@@ -449,13 +449,13 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
 }
 
 /**
- * This function is a wrapper for insert_bezt_fcurve_internal(), and should be used when
+ * This function is a wrapper for #insert_bezt_fcurve(), and should be used when
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet.
  * It returns the index at which the keyframe was added.
  *
- * \param keyframe_type: The type of keyframe (eBezTriple_KeyframeType)
+ * \param keyframe_type: The type of keyframe (#eBezTriple_KeyframeType).
  * \param flag: Optional flags (eInsertKeyFlags) for controlling how keys get added
- *              and/or whether updates get done
+ * and/or whether updates get done.
  */
 int insert_vert_fcurve(FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
 {

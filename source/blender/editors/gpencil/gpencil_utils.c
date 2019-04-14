@@ -216,7 +216,7 @@ bGPdata *ED_gpencil_data_get_active_direct(ID *screen_id, ScrArea *sa, Scene *sc
 /**
  * Get the active Grease Pencil datablock
  * \note This is the original (bmain) copy of the datablock, stored in files.
- *       Do not use for reading evaluated copies of GP Objects data
+ * Do not use for reading evaluated copies of GP Objects data
  */
 bGPdata *ED_gpencil_data_get_active(const bContext *C)
 {
@@ -228,9 +228,9 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
  * Get the evaluated copy of the active Grease Pencil datablock (where applicable)
  * - For the 3D View (i.e. "GP Objects"), this gives the evaluated copy of the GP datablock
  *   (i.e. a copy of the active GP datablock for the active object, where modifiers have been
- *   applied). This is needed to correctly work with "Copy-on-Write"
+ *   applied). This is needed to correctly work with "Copy-on-Write".
  * - For all other editors (i.e. "GP Annotations"), this just gives the active datablock
- *   like for ED_gpencil_data_get_active()
+ *   like for #ED_gpencil_data_get_active()
  */
 bGPdata *ED_gpencil_data_get_active_evaluated(const bContext *C)
 {
@@ -640,13 +640,13 @@ void gp_point_to_xy(
 /**
  * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
  *
- * Just like gp_point_to_xy(), except the resulting coordinates are floats not ints.
+ * Just like #gp_point_to_xy(), except the resulting coordinates are floats not ints.
  * Use this version to solve "stair-step" artifacts which may arise when roundtripping the calculations.
  *
- * \param r_x: [out] The screen-space x-coordinate of the point
- * \param r_y: [out] The screen-space y-coordinate of the point
+ * \param r_x: [out] The screen-space x-coordinate of the point.
+ * \param r_y: [out] The screen-space y-coordinate of the point.
  *
- * \warning This assumes that the caller has already checked whether the stroke in question can be drawn
+ * \warning This assumes that the caller has already checked whether the stroke in question can be drawn.
  */
 void gp_point_to_xy_fl(
         const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt,
@@ -808,9 +808,9 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc, Scene *scene, const float 
  * Convert tGPspoint (temporary 2D/screenspace point data used by GP modal operators)
  * to 3D coordinates.
  *
- * \param point2D: The screenspace 2D point data to convert
- * \param depth: Depth array (via ED_view3d_autodist_depth())
- * \param[out] r_out: The resulting 2D point data
+ * \param point2D: The screenspace 2D point data to convert.
+ * \param depth: Depth array (via #ED_view3d_autodist_depth()).
+ * \param[out] r_out: The resulting 2D point data.
  */
 void gp_stroke_convertcoords_tpoint(
         Scene *scene, ARegion *ar,

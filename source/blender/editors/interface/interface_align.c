@@ -260,7 +260,7 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
  * Here, BUT 3 RIGHT side would not get 'dragged' to align with BUT 1 RIGHT side, since BUT 3 has not RIGHT neighbor.
  * So, this function, when called with BUT 1, will 'walk' the whole column in \a side_s1 direction (TOP or DOWN when
  * called for RIGHT side), and force buttons like BUT 3 to align as needed, if BUT 1 and BUT 3 were detected as needing
- * top-right corner stitching in \a block_align_proximity_compute() step.
+ * top-right corner stitching in #block_align_proximity_compute() step.
  *
  * \note To avoid doing this twice, some stitching flags are cleared to break the 'stitching connection'
  *       between neighbors.

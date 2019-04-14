@@ -30,9 +30,10 @@
 
 /* *** POV INI Keywords (for format_line) *** */
 
-/* Checks the specified source string for a POV INI keyword (minus boolean & 'nil').
+/**
+ * Checks the specified source string for a POV INI keyword (minus boolean & 'nil').
  * This name must start at the beginning of the source string and must be
- * followed by a non-identifier (see text_check_identifier(char)) or null char.
+ * followed by a non-identifier (see #text_check_identifier(char)) or null char.
  *
  * If a keyword is found, the length of the matching word is returned.
  * Otherwise, -1 is returned.
@@ -40,7 +41,6 @@
  * See:
  * http://www.povray.org/documentation/view/3.7.0/212/
  */
-
 static int txtfmt_ini_find_keyword(const char *string)
 {
 	int i, len;

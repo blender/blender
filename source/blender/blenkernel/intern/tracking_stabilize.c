@@ -266,12 +266,13 @@ static StabContext *initialize_stabilization_working_context(MovieClip *clip)
 	return ctx;
 }
 
-/* Discard all private working data attached to this call context.
- * NOTE: We allocate the record for the per track baseline contribution
- *       locally for each call context (i.e. call to
- *       BKE_tracking_stabilization_data_get()
- *       Thus it is correct to discard all allocations found within the
- *       corresponding _local_ GHash
+/**
+ * Discard all private working data attached to this call context.
+ *
+ * \note We allocate the record for the per track baseline contribution
+ * locally for each call context (i.e. call to #BKE_tracking_stabilization_data_get)
+ * Thus it is correct to discard all allocations found within the
+ * corresponding _local_ GHash.
  */
 static void discard_stabilization_working_context(StabContext *ctx)
 {

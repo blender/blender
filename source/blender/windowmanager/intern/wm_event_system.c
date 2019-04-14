@@ -1084,7 +1084,7 @@ int WM_operator_repeat_interactive(bContext *C, wmOperator *op)
  * \return true if #WM_operator_repeat can run
  * simple check for now but may become more involved.
  * To be sure the operator can run call `WM_operator_poll(C, op->type)` also, since this call
- * checks if WM_operator_repeat() can run at all, not that it WILL run at any time.
+ * checks if #WM_operator_repeat() can run at all, not that it WILL run at any time.
  */
 bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 {
