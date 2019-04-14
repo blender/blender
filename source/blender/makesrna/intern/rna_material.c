@@ -658,9 +658,10 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_FLAT, "FLAT", ICON_MATPLANE, "Flat", "Flat XY plane"},
 		{MA_SPHERE, "SPHERE", ICON_MATSPHERE, "Sphere", "Sphere"},
 		{MA_CUBE, "CUBE", ICON_MATCUBE, "Cube", "Cube"},
-		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Monkey"},
 		{MA_HAIR, "HAIR", ICON_HAIR, "Hair", "Hair strands"},
-		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "World Sphere", "Large sphere with sky"},
+		{MA_SHADERBALL, "SHADERBALL", ICON_MATSHADERBALL, "Shader Ball", "Shader Ball"},
+		{MA_CLOTH, "CLOTH", ICON_MATCLOTH, "Cloth", "Cloth"},
+		{MA_FLUID, "FLUID", ICON_MATFLUID, "Fluid", "Fluid"},
 		{0, NULL, 0, NULL, NULL},
 	};
 
@@ -731,7 +732,12 @@ void RNA_def_material(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "preview_render_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "pr_type");
 	RNA_def_property_enum_items(prop, preview_type_items);
-	RNA_def_property_ui_text(prop, "Preview render type", "Type of preview render");
+	RNA_def_property_ui_text(prop, "Preview Render Type", "Type of preview render");
+	RNA_def_property_update(prop, 0, "rna_Material_update_previews");
+
+	prop = RNA_def_property(srna, "use_preview_world", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pr_flag", MA_PREVIEW_WORLD);
+	RNA_def_property_ui_text(prop, "Preview World", "Use the current world background to light the preview render");
 	RNA_def_property_update(prop, 0, "rna_Material_update_previews");
 
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);

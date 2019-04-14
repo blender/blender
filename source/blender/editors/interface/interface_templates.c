@@ -2215,7 +2215,7 @@ void uiTemplatePreview(
 	if (!ui_preview) {
 		ui_preview = MEM_callocN(sizeof(uiPreview), "uiPreview");
 		BLI_strncpy(ui_preview->preview_id, preview_id, sizeof(ui_preview->preview_id));
-		ui_preview->height = (short)(UI_UNIT_Y * 5.6f);
+		ui_preview->height = (short)(UI_UNIT_Y * 7.6f);
 		BLI_addtail(&ar->ui_previews, ui_preview);
 	}
 
@@ -2257,6 +2257,8 @@ void uiTemplatePreview(
 			col = uiLayoutColumn(row, true);
 			uiLayoutSetScaleX(col, 1.5);
 			uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
+			uiItemS(col);
+			uiItemR(col, &material_ptr, "use_preview_world", 0, "", ICON_WORLD);
 		}
 
 		if (pr_texture) {
