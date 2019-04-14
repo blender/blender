@@ -95,6 +95,7 @@ static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
 	saction->autosnap = SACTSNAP_FRAME;
 	saction->mode = SACTCONT_DOPESHEET;
 	saction->mode_prev = SACTCONT_DOPESHEET;
+	saction->flag = SACTION_SHOW_INTERPOLATION;
 
 	saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 

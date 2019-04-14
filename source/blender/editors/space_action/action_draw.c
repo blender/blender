@@ -348,6 +348,12 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	 */
 	y = (float)(-ACHANNEL_HEIGHT(ac));
 
+	int action_flag = saction->flag;
+
+	if (saction->mode == SACTCONT_TIMELINE) {
+		action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
+	}
+
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
 		const float ymaxc = (float)(y + ACHANNEL_HEIGHT_HALF(ac));
@@ -363,28 +369,28 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
 					case ALE_ALL:
-						draw_summary_channel(v2d, ale->data, y, ac->yscale_fac, saction->flag);
+						draw_summary_channel(v2d, ale->data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_SCE:
-						draw_scene_channel(v2d, ads, ale->key_data, y, ac->yscale_fac, saction->flag);
+						draw_scene_channel(v2d, ads, ale->key_data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_OB:
-						draw_object_channel(v2d, ads, ale->key_data, y, ac->yscale_fac, saction->flag);
+						draw_object_channel(v2d, ads, ale->key_data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_ACT:
-						draw_action_channel(v2d, adt, ale->key_data, y, ac->yscale_fac, saction->flag);
+						draw_action_channel(v2d, adt, ale->key_data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_GROUP:
-						draw_agroup_channel(v2d, adt, ale->data, y, ac->yscale_fac, saction->flag);
+						draw_agroup_channel(v2d, adt, ale->data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_FCURVE:
-						draw_fcurve_channel(v2d, adt, ale->key_data, y, ac->yscale_fac, saction->flag);
+						draw_fcurve_channel(v2d, adt, ale->key_data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_GPFRAME:
-						draw_gpl_channel(v2d, ads, ale->data, y, ac->yscale_fac, saction->flag);
+						draw_gpl_channel(v2d, ads, ale->data, y, ac->yscale_fac, action_flag);
 						break;
 					case ALE_MASKLAY:
-						draw_masklay_channel(v2d, ads, ale->data, y, ac->yscale_fac, saction->flag);
+						draw_masklay_channel(v2d, ads, ale->data, y, ac->yscale_fac, action_flag);
 						break;
 				}
 			}
