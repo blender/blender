@@ -57,6 +57,9 @@ static struct {
 	GPUTexture *color_src;
 	GPUTexture *depth_src;
 
+	GPUTexture *dummy_density;
+	GPUTexture *dummy_flame;
+
 	/* List of all smoke domains rendered within this frame. */
 	ListBase smoke_domains;
 } e_data = {NULL}; /* Engine data */
@@ -126,6 +129,12 @@ static void eevee_create_shader_volumes(void)
 	        datatoc_common_fullscreen_vert_glsl, NULL,
 	        datatoc_volumetric_resolve_frag_glsl,
 	        e_data.volumetric_common_lib, NULL);
+
+	float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	e_data.dummy_density = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, color);
+
+	float flame = 0.0f;
+	e_data.dummy_flame = DRW_texture_create_3d(1, 1, 1, GPU_R8, DRW_TEX_WRAP, &flame);
 }
 
 void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
@@ -406,6 +415,11 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 				DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 				DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
 				DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+
+				/* Fix principle volumetric not working with world materials. */
+				DRW_shgroup_uniform_texture(grp, "sampdensity", e_data.dummy_density);
+				DRW_shgroup_uniform_texture(grp, "sampflame", e_data.dummy_flame);
+				DRW_shgroup_uniform_vec2(grp, "unftemperature", (float[2]){0.0f, 1.0f}, 1);
 			}
 		}
 
@@ -468,6 +482,7 @@ typedef struct EEVEE_InstanceVolumeMatrix {
 void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Scene *scene, Object *ob)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	static float white[3] = {1.0f, 1.0f, 1.0f};
 
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
@@ -522,14 +537,11 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	/* Smoke Simulation */
 	if (((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
 	    (md = modifiers_findByType(ob, eModifierType_Smoke)) &&
-	    (modifier_isEnabled(scene, md, eModifierMode_Realtime)))
+	    (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
+	    ((SmokeModifierData *)md)->domain != NULL)
 	{
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		SmokeDomainSettings *sds = smd->domain;
-
-		if (sds == NULL) {
-			return;
-		}
 
 		/* Don't show smoke before simulation starts, this could be made an option in the future. */
 		const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >= sds->point_cache[0]->startframe);
@@ -545,15 +557,10 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 			BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(smd));
 		}
 
-		if (sds->tex != NULL) {
-			DRW_shgroup_uniform_texture_ref(grp, "sampdensity", &sds->tex);
-		}
-		if (sds->tex_flame != NULL) {
-			DRW_shgroup_uniform_texture_ref(grp, "sampflame", &sds->tex_flame);
-		}
+		DRW_shgroup_uniform_texture_ref(grp, "sampdensity", sds->tex ? &sds->tex : &e_data.dummy_density);
+		DRW_shgroup_uniform_texture_ref(grp, "sampflame", sds->tex_flame ? &sds->tex_flame : &e_data.dummy_flame);
 
 		/* Constant Volume color. */
-		static float white[3] = {1.0f, 1.0f, 1.0f};
 		bool use_constant_color = ((sds->active_fields & SM_ACTIVE_COLORS) == 0 &&
 		                           (sds->active_fields & SM_ACTIVE_COLOR_SET) != 0);
 
@@ -561,6 +568,12 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 		/* Output is such that 0..1 maps to 0..1000K */
 		DRW_shgroup_uniform_vec2(grp, "unftemperature", &sds->flame_ignition, 1);
+	}
+	else {
+		DRW_shgroup_uniform_texture(grp, "sampdensity", e_data.dummy_density);
+		DRW_shgroup_uniform_texture(grp, "sampflame", e_data.dummy_flame);
+		DRW_shgroup_uniform_vec3(grp, "volumeColor", white, 1);
+		DRW_shgroup_uniform_vec2(grp, "unftemperature", (float[2]){0.0f, 1.0f}, 1);
 	}
 }
 
@@ -643,6 +656,9 @@ void EEVEE_volumes_free(void)
 {
 	MEM_SAFE_FREE(e_data.volumetric_common_lib);
 	MEM_SAFE_FREE(e_data.volumetric_common_lights_lib);
+
+	DRW_TEXTURE_FREE_SAFE(e_data.dummy_density);
+	DRW_TEXTURE_FREE_SAFE(e_data.dummy_flame);
 
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_clear_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_scatter_sh);
