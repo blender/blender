@@ -85,8 +85,8 @@ set(INC_SYS
 )
 
 set(SRC
-	dna_utils.c
 	dna_genfile.c
+	dna_utils.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 	${SRC_DNA_INC}
@@ -99,8 +99,8 @@ set(LIB
 
 set_source_files_properties(
 	${CMAKE_CURRENT_BINARY_DIR}/dna.c
-	${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 	${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
+	${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
 	PROPERTIES GENERATED TRUE
 )
 
