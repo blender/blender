@@ -1302,7 +1302,7 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		/* needed to set the flags on posebones correctly */
 		ED_object_constraint_update(bmain, ob);
 
-		/* relatiols */
+		/* relations */
 		DEG_relations_tag_update(CTX_data_main(C));
 
 		/* notifiers */
