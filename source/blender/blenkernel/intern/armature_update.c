@@ -249,8 +249,9 @@ static bool splineik_evaluate_init(tSplineIK_Tree *tree, tSplineIk_EvalState *st
 static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChannel *pchan, int index, tSplineIk_EvalState *state)
 {
 	bSplineIKConstraint *ikData = tree->ikData;
-	float origHead[3], origTail[3], poseHead[3], poseTail[3], poseMat[4][4];
+	float origHead[3], origTail[3], poseHead[3], poseTail[3], basePoseMat[3][3], poseMat[3][3];
 	float splineVec[3], scaleFac, radius = 1.0f;
+	float tailBlendFac = 0.0f;
 
 	mul_v3_m4v3(poseHead, state->locrot_offset, pchan->pose_head);
 	mul_v3_m4v3(poseTail, state->locrot_offset, pchan->pose_tail);
@@ -260,24 +261,22 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 	/* first, adjust the point positions on the curve */
 	float curveLen = tree->points[index] - tree->points[index + 1];
 	float pointStart = state->curve_position;
-	float pointEnd = pointStart + curveLen * state->curve_scale;
+	float baseScale = 1.0f;
+	float pointEnd = pointStart + curveLen * baseScale * state->curve_scale;
 
 	state->curve_position = pointEnd;
 
 	/* step 1: determine the positions for the endpoints of the bone */
-	{
+	if (pointStart < 1.0f) {
 		float vec[4], dir[3], rad;
-		float tailBlendFac = 1.0f;
 
 		/* determine if the bone should still be affected by SplineIK */
-		if (pointStart >= 1.0f) {
-			/* spline doesn't affect the bone anymore, so done... */
-			pchan->flag |= POSE_DONE;
-			return;
-		}
-		else if ((pointEnd >= 1.0f) && (pointStart < 1.0f)) {
+		if (pointEnd >= 1.0f) {
 			/* blending factor depends on the amount of the bone still left on the chain */
 			tailBlendFac = (1.0f - pointStart) / (pointEnd - pointStart);
+		}
+		else {
+			tailBlendFac = 1.0f;
 		}
 
 		/* tail endpoint */
@@ -290,7 +289,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 
 			/* convert the position to pose-space, then store it */
 			mul_m4_v3(ob->imat, vec);
-			interp_v3_v3v3(poseTail, pchan->pose_tail, vec, tailBlendFac);
+			copy_v3_v3(poseTail, vec);
 
 			/* set the new radius */
 			radius = rad;
@@ -320,18 +319,21 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 	sub_v3_v3v3(splineVec, poseTail, poseHead);
 	scaleFac = len_v3(splineVec) / pchan->bone->length;
 
+	/* Adjust the scale factor towards the neutral state when rolling off the curve end. */
+	scaleFac = interpf(scaleFac, baseScale, tailBlendFac);
+
 	/* step 3: compute the shortest rotation needed to map from the bone rotation to the current axis
 	 *      - this uses the same method as is used for the Damped Track Constraint (see the code there for details)
 	 */
 	{
-		float dmat[3][3], rmat[3][3], tmat[3][3];
+		float dmat[3][3], rmat[3][3];
 		float raxis[3], rangle;
 
 		/* compute the raw rotation matrix from the bone's current matrix by extracting only the
 		 * orientation-relevant axes, and normalizing them
 		 */
-		mul_m3_m4m4(rmat, state->locrot_offset, pchan->pose_mat);
-		normalize_m3(rmat);
+		mul_m3_m4m4(basePoseMat, state->locrot_offset, pchan->pose_mat);
+		normalize_m3_m3(rmat, basePoseMat);
 
 		/* also, normalize the orientation imposed by the bone, now that we've extracted the scale factor */
 		normalize_v3(splineVec);
@@ -348,7 +350,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 		/* multiply the magnitude of the angle by the influence of the constraint to
 		 * control the influence of the SplineIK effect
 		 */
-		rangle *= tree->con->enforce;
+		rangle *= tree->con->enforce * tailBlendFac;
 
 		/* construct rotation matrix from the axis-angle rotation found above
 		 * - this call takes care to make sure that the axis provided is a unit vector first
@@ -358,9 +360,10 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 		/* combine these rotations so that the y-axis of the bone is now aligned as the spline dictates,
 		 * while still maintaining roll control from the existing bone animation
 		 */
-		mul_m3_m3m3(tmat, dmat, rmat); /* m1, m3, m2 */
-		normalize_m3(tmat); /* attempt to reduce shearing, though I doubt this'll really help too much now... */
-		copy_m4_m3(poseMat, tmat);
+		mul_m3_m3m3(poseMat, dmat, rmat);
+		normalize_m3(poseMat); /* attempt to reduce shearing, though I doubt this'll really help too much now... */
+
+		mul_m3_m3m3(basePoseMat, dmat, basePoseMat);
 
 		/* apply rotation to the accumulated parent transform */
 		mul_m4_m3m4(state->locrot_offset, dmat, state->locrot_offset);
@@ -468,6 +471,10 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 		}
 	}
 
+	/* Blend the scaling of the matrix according to the influence. */
+	sub_m3_m3m3(poseMat, poseMat, basePoseMat);
+	madd_m3_m3m3fl(poseMat, basePoseMat, poseMat, tree->con->enforce * tailBlendFac);
+
 	/* step 5: set the location of the bone in the matrix */
 	if (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) {
 		/* when the 'no-root' option is affected, the chain can retain
@@ -487,10 +494,10 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 			interp_v3_v3v3(poseHead, origHead, poseHead, tree->con->enforce);
 		}
 	}
-	copy_v3_v3(poseMat[3], poseHead);
 
 	/* finally, store the new transform */
-	copy_m4_m4(pchan->pose_mat, poseMat);
+	copy_m4_m3(pchan->pose_mat, poseMat);
+	copy_v3_v3(pchan->pose_mat[3], poseHead);
 	copy_v3_v3(pchan->pose_head, poseHead);
 
 	mul_v3_mat3_m4v3(origTail, state->locrot_offset, pchan->pose_tail);
