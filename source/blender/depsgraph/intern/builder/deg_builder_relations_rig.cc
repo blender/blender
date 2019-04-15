@@ -578,6 +578,18 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 			             "Bone Done -> Bone Done");
 		}
 
+		/* Parent relation: even though the proxy bone itself doesn't need
+		 * the parent bone, some users expect the parent to be ready if the
+		 * bone itself is (e.g. for computing the local space matrix).
+		 */
+		if (pchan->parent != NULL) {
+			OperationKey parent_key(&object->id,
+			                        NodeType::BONE,
+			                        pchan->parent->name,
+			                        OperationCode::BONE_DONE);
+			add_relation(parent_key, bone_done_key, "Parent Bone -> Child Bone");
+		}
+
 		if (pchan->prop != NULL) {
 			OperationKey bone_parameters(&object->id,
 			                             NodeType::PARAMETERS,
