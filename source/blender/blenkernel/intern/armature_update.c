@@ -230,7 +230,7 @@ static bool splineik_evaluate_init(tSplineIK_Tree *tree, tSplineIk_EvalState *st
 	unit_m4(state->locrot_offset);
 
 	/* Apply corrections for sensitivity to scaling. */
-	if ((ikData->flag & CONSTRAINT_SPLINEIK_SCALE_LIMITED) && (tree->totlength != 0.0f)) {
+	if ((ikData->yScaleMode != CONSTRAINT_SPLINEIK_YS_FIT_CURVE) && (tree->totlength != 0.0f)) {
 		/* get the current length of the curve */
 		/* NOTE: this is assumed to be correct even after the curve was resized */
 		float splineLen = cache->path->totdist;
@@ -262,6 +262,12 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 	float curveLen = tree->points[index] - tree->points[index + 1];
 	float pointStart = state->curve_position;
 	float baseScale = 1.0f;
+
+	if (ikData->yScaleMode == CONSTRAINT_SPLINEIK_YS_ORIGINAL) {
+		/* Carry over the bone Y scale to the curve range. */
+		baseScale = len_v3v3(poseHead, poseTail) / pchan->bone->length;
+	}
+
 	float pointEnd = pointStart + curveLen * baseScale * state->curve_scale;
 
 	state->curve_position = pointEnd;

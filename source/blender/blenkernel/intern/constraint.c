@@ -3959,6 +3959,8 @@ static void splineik_new_data(void *cdata)
 	data->bulge = 1.0;
 	data->bulge_max = 1.0f;
 	data->bulge_min = 1.0f;
+
+	data->yScaleMode = CONSTRAINT_SPLINEIK_YS_FIT_CURVE;
 }
 
 static void splineik_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)

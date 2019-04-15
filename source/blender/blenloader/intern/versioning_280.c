@@ -3140,6 +3140,23 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	{
+		if (!DNA_struct_elem_find(fd->filesdna, "bSplineIKConstraint", "short", "yScaleMode")) {
+			for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+				if (ob->pose) {
+					for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+						for (bConstraint *con = pchan->constraints.first; con; con = con->next) {
+							if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
+								bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+								if ((data->flag & CONSTRAINT_SPLINEIK_SCALE_LIMITED) == 0) {
+									data->yScaleMode = CONSTRAINT_SPLINEIK_YS_FIT_CURVE;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		/* Versioning code until next subversion bump goes here. */
 	}
 }

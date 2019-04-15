@@ -794,9 +794,9 @@ class ConstraintButtonsPanel:
 
         col = layout.column()
         col.label(text="Chain Scaling:")
-        col.prop(con, "use_y_stretch")
         col.prop(con, "use_curve_radius")
 
+        layout.prop(con, "y_scale_mode")
         layout.prop(con, "xz_scale_mode")
 
         if con.xz_scale_mode == 'VOLUME_PRESERVE':

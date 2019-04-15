@@ -231,6 +231,9 @@ typedef struct bSplineIKConstraint {
 	short flag;
 	/** Method used for determining the x & z scaling of the bones. */
 	short xzScaleMode;
+	/** Method used for determining the y scaling of the bones. */
+	short yScaleMode;
+	short _pad[3];
 
 		/* volume preservation settings */
 	float		bulge;
@@ -879,8 +882,10 @@ typedef enum eSplineIK_Flags {
 	CONSTRAINT_SPLINEIK_BOUND			= (1 << 0),
 	/* root of chain is not influenced by the constraint */
 	CONSTRAINT_SPLINEIK_NO_ROOT			= (1 << 1),
+#ifdef DNA_DEPRECATED
 	/* bones in the chain should not scale to fit the curve */
 	CONSTRAINT_SPLINEIK_SCALE_LIMITED	= (1 << 2),
+#endif
 	/* evenly distribute the bones along the path regardless of length */
 	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1 << 3),
 	/* don't adjust the x and z scaling of the bones by the curve radius */
@@ -902,6 +907,16 @@ typedef enum eSplineIK_XZScaleModes {
 	/* x/z scales are computed using a volume preserving technique (from Stretch To constraint) */
 	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC		= 3,
 } eSplineIK_XZScaleModes;
+
+/* bSplineIKConstraint->yScaleMode */
+typedef enum eSplineIK_YScaleModes {
+	/* no y scaling */
+	CONSTRAINT_SPLINEIK_YS_NONE        = 0,
+	/* bones in the chain should be scaled to fit the length of the curve */
+	CONSTRAINT_SPLINEIK_YS_FIT_CURVE   = 1,
+	/* bones in the chain should take their y scales from the original scaling */
+	CONSTRAINT_SPLINEIK_YS_ORIGINAL    = 2,
+} eSplineIK_YScaleModes;
 
 /* bArmatureConstraint -> flag */
 typedef enum eArmature_Flags {
