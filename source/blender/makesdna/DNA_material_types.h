@@ -122,7 +122,7 @@ typedef enum eMaterialGPencilStyle_Flag {
 	/* Fill  show main switch */
 	GP_STYLE_FILL_SHOW = (1 << 9),
 	/* Don't rotate dots/boxes */
-	GP_STYLE_COLOR_LOCK_DOTS = (1 << 10)
+	GP_STYLE_COLOR_LOCK_DOTS = (1 << 10),
 } eMaterialGPencilStyle_Flag;
 
 typedef enum eMaterialGPencilStyle_Mode {
