@@ -119,6 +119,10 @@ typedef struct GPENCIL_shgroup {
 	int caps_mode[2];
 	float obj_scale;
 	int xray_mode;
+	int use_follow_path;
+
+	float gradient_f;
+	float gradient_s[2];
 
 	/* color of the wireframe */
 	float wire_color[4];
@@ -163,6 +167,10 @@ typedef struct GPENCIL_Storage {
 	bool simplify_modif;
 	bool simplify_fx;
 	bool simplify_blend;
+
+	float gradient_f;
+	float gradient_s[2];
+	int use_follow_path;
 
 	/* Render Matrices and data */
 	float persmat[4][4], persinv[4][4];
@@ -334,6 +342,7 @@ typedef struct GpencilBatchCacheElem {
 	uint color_id;
 	uint thickness_id;
 	uint uvdata_id;
+	uint prev_pos_id;
 
 	/* size for VBO alloc */
 	int tot_vertex;

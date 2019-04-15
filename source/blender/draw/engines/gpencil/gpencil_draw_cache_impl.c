@@ -95,6 +95,7 @@ void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be, bGPDstroke *gps, shor
 		be->color_id = GPU_vertformat_attr_add(&be->format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 		be->thickness_id = GPU_vertformat_attr_add(&be->format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 		be->uvdata_id = GPU_vertformat_attr_add(&be->format, "uvdata", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		be->prev_pos_id = GPU_vertformat_attr_add(&be->format, "prev_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 		be->vbo = GPU_vertbuf_create_with_format(&be->format);
 		GPU_vertbuf_data_alloc(be->vbo, be->tot_vertex);
@@ -123,6 +124,26 @@ void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be, bGPDstroke *gps, shor
 		GPU_vertbuf_attr_set(be->vbo, be->uvdata_id, be->vbo_len, uvdata);
 
 		GPU_vertbuf_attr_set(be->vbo, be->pos_id, be->vbo_len, &pt->x);
+
+		/* use previous point to determine stroke direction */
+		bGPDspoint *pt2 = NULL;
+		if (i == 0) {
+			if (gps->totpoints > 1) {
+				/* extrapolate a point before first point */
+				float fpt[3];
+				pt2 = &gps->points[1];
+				interp_v3_v3v3(fpt, &pt2->x, &pt->x, 1.5f);
+				GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, fpt);
+			}
+			else {
+				GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, &pt->x);
+			}
+		}
+		else {
+			pt2 = &gps->points[i - 1];
+			GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, &pt2->x);
+		}
+
 		be->vbo_len++;
 	}
 }

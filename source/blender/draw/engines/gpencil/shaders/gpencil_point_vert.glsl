@@ -13,10 +13,12 @@ in vec3 pos;
 in vec4 color;
 in float thickness;
 in vec2 uvdata;
+in vec3 prev_pos;
 
 out vec4 finalColor;
 out float finalThickness;
 out vec2 finaluvdata;
+out vec4 finalprev_pos;
 
 #define TRUE 1
 
@@ -30,7 +32,8 @@ float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4( pos, 1.0 );
+	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	finalprev_pos = ModelViewProjectionMatrix * vec4(prev_pos, 1.0);
 	finalColor = color;
 
 	if (keep_size == TRUE) {

@@ -944,6 +944,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	/* copy appropriate settings for stroke */
 	gps->totpoints = totelem;
 	gps->thickness = brush->size;
+	gps->gradient_f = brush->gpencil_settings->gradient_f;
+	copy_v2_v2(gps->gradient_s, brush->gpencil_settings->gradient_s);
 	gps->flag = gpd->runtime.sbuffer_sflag;
 	gps->inittime = p->inittime;
 

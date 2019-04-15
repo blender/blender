@@ -1197,6 +1197,25 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
+	/* gradient control */
+	prop = RNA_def_property(srna, "gradient_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "gradient_f");
+	RNA_def_property_range(prop, 0.001f, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(
+		prop, "Border Opacity Factor",
+		"Amount of gradient for Dot strokes (set to 1 for full solid)");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
+	/* gradient shape ratio */
+	prop = RNA_def_property(srna, "gradient_shape", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "gradient_s");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_range(prop, 0.01f, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Aspect Ratio", "");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
 	prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "input_samples");
 	RNA_def_property_range(prop, 0, GP_MAX_INPUT_SAMPLES);

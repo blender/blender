@@ -585,6 +585,13 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Fill", "Show stroke fills of this material");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
+	/* keep Dots and Boxes aligned to screen and not to drawing path */
+	prop = RNA_def_property(srna, "use_follow_path", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_STYLE_COLOR_LOCK_DOTS);
+	RNA_def_property_ui_text(prop, "Follow Path",
+		"Keep Dots and Boxes aligned to drawing path");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_nopreview_update");
+
 	/* pass index for future compositing and editing tools */
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "index");

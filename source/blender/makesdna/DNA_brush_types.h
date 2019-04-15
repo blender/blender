@@ -111,6 +111,12 @@ typedef struct BrushGpencilSettings {
 	/** Internal grease pencil drawing flags. */
 	int flag;
 
+	/** gradient control along y for color */
+	float gradient_f;
+	/** factor xy of shape for dots gradients */
+	float gradient_s[2];
+	char _pad_2[4];
+
 	struct CurveMapping *curve_sensitivity;
 	struct CurveMapping *curve_strength;
 	struct CurveMapping *curve_jitter;

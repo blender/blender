@@ -148,6 +148,9 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
             if gpcolor.stroke_style == 'SOLID' or gpcolor.use_stroke_pattern is True:
                 col.prop(gpcolor, "color", text="Color")
 
+            if gpcolor.mode in {'DOTS', 'BOX'}:
+                col.prop(gpcolor, "use_follow_path", text="Follow Drawing Path")
+
 
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
     bl_label = "Fill"

@@ -319,6 +319,9 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	/* create new temp stroke */
 	bGPDstroke *gps = MEM_callocN(sizeof(bGPDstroke), "Temp bGPDstroke");
 	gps->thickness = 2.0f;
+	gps->gradient_f = 1.0f;
+	gps->gradient_s[0] = 1.0f;
+	gps->gradient_s[1] = 1.0f;
 	gps->inittime = 0.0f;
 
 	/* enable recalculation flag by default */
@@ -1199,6 +1202,7 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	bGPDstroke *gps;
 
 	ToolSettings *ts = tgpi->scene->toolsettings;
+	Brush *brush = tgpi->brush;
 
 	const int def_nr = tgpi->ob->actdef - 1;
 	const bool have_weight = (bool)BLI_findlink(&tgpi->ob->defbase, def_nr);
@@ -1221,7 +1225,10 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	/* prepare stroke to get transferred */
 	gps = tgpi->gpf->strokes.first;
 	if (gps) {
-		gps->thickness = tgpi->brush->size;
+		gps->thickness = brush->size;
+		gps->gradient_f = brush->gpencil_settings->gradient_f;
+		copy_v2_v2(gps->gradient_s, brush->gpencil_settings->gradient_s);
+
 		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 		gps->tot_triangles = 0;
 
