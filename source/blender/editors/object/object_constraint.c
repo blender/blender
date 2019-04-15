@@ -884,6 +884,7 @@ static void child_get_inverse_matrix(const bContext *C, Scene *scene, Object *ob
 /* ChildOf Constraint - set inverse callback */
 static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
@@ -899,6 +900,7 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 
 	child_get_inverse_matrix(C, scene, ob, con, data->invmat, owner);
 
+	ED_object_constraint_update(bmain, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
 	return OPERATOR_FINISHED;
@@ -934,6 +936,7 @@ void CONSTRAINT_OT_childof_set_inverse(wmOperatorType *ot)
 /* ChildOf Constraint - clear inverse callback */
 static int childof_clear_inverse_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : NULL;
@@ -946,6 +949,7 @@ static int childof_clear_inverse_exec(bContext *C, wmOperator *op)
 	/* simply clear the matrix */
 	unit_m4(data->invmat);
 
+	ED_object_constraint_update(bmain, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
 	return OPERATOR_FINISHED;
