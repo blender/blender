@@ -359,7 +359,8 @@ def km_view2d_buttons_list(params):
         ("view2d.scroller_activate", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("view2d.scroller_activate", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         # Pan scroll
-        ("view2d.pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
+        ("view2d.pan", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
+        ("view2d.pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
         ("view2d.pan", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
         ("view2d.scroll_down", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS'}, None),
         ("view2d.scroll_up", {"type": 'WHEELUPMOUSE', "value": 'PRESS'}, None),
@@ -368,7 +369,7 @@ def km_view2d_buttons_list(params):
         ("view2d.scroll_up", {"type": 'PAGE_UP', "value": 'PRESS'},
          {"properties": [("page", True)]}),
         # Zoom
-        ("view2d.zoom", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "ctrl": True}, None),
+        ("view2d.zoom", {"type": 'RIGHTMOUSE', "value": 'PRESS', "alt": True}, None),
         ("view2d.zoom", {"type": 'TRACKPADZOOM', "value": 'ANY'}, None),
         ("view2d.zoom", {"type": 'TRACKPADPAN', "value": 'ANY', "ctrl": True}, None),
         ("view2d.zoom_out", {"type": 'NUMPAD_MINUS', "value": 'PRESS'}, None),
@@ -585,6 +586,8 @@ def km_view3d_generic(_params):
     )
 
     items.extend([
+        ("view3d.toolshelf", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
+        ("view3d.properties", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
@@ -2237,7 +2240,6 @@ def _grease_pencil_selection(params):
          {"properties": [("extend", True), ("entire_strokes", True)]}),
         # Select linked
         ("gpencil.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
-        ("gpencil.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
         # Select alternate
         ("gpencil.select_alternate", {"type": 'L', "value": 'PRESS', "shift": True}, None),
         # Select grouped
@@ -3388,6 +3390,37 @@ def km_object_non_modal(params):
 # Modal Maps and Gizmos
 
 
+def km_knife_tool_modal_map(_params):
+    items = []
+    keymap = (
+        "Knife Tool Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("PANNING", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
+        ("ADD_CUT", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("CONFIRM", {"type": 'RET', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'NUMPAD_ENTER', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'SPACE', "value": 'PRESS', "any": True}, None),
+        ("NEW_CUT", {"type": 'E', "value": 'PRESS'}, None),
+        ("SNAP_MIDPOINTS_ON", {"type": 'LEFT_CTRL', "value": 'PRESS', "any": True}, None),
+        ("SNAP_MIDPOINTS_OFF", {"type": 'LEFT_CTRL', "value": 'RELEASE', "any": True}, None),
+        ("SNAP_MIDPOINTS_ON", {"type": 'RIGHT_CTRL', "value": 'PRESS', "any": True}, None),
+        ("SNAP_MIDPOINTS_OFF", {"type": 'RIGHT_CTRL', "value": 'RELEASE', "any": True}, None),
+        ("IGNORE_SNAP_ON", {"type": 'LEFT_SHIFT', "value": 'PRESS', "any": True}, None),
+        ("IGNORE_SNAP_OFF", {"type": 'LEFT_SHIFT', "value": 'RELEASE', "any": True}, None),
+        ("IGNORE_SNAP_ON", {"type": 'RIGHT_SHIFT', "value": 'PRESS', "any": True}, None),
+        ("IGNORE_SNAP_OFF", {"type": 'RIGHT_SHIFT', "value": 'RELEASE', "any": True}, None),
+        ("ANGLE_SNAP_TOGGLE", {"type": 'C', "value": 'PRESS'}, None),
+        ("CUT_THROUGH_TOGGLE", {"type": 'X', "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 def km_eyedropper_modal_map(_params):
     items = []
     keymap = (
@@ -3588,6 +3621,7 @@ def generate_keymaps(params=None):
         km_object_non_modal(params),
 
         # Modal maps.
+        km_knife_tool_modal_map(params),
         km_eyedropper_modal_map(params),
         km_eyedropper_colorramp_pointsampling_map(params),
         km_transform_modal_map(params),
