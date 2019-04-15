@@ -4798,8 +4798,11 @@ void PE_create_particle_edit(
 	edit = (psys) ? psys->edit : cache->edit;
 
 	if (!edit) {
-		ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
-		psys_copy_particles(psys, psys_eval);
+		ParticleSystem *psys_eval = NULL;
+		if (psys) {
+			psys_eval = psys_eval_get(depsgraph, ob, psys);
+			psys_copy_particles(psys, psys_eval);
+		}
 
 		totpoint = psys ? psys->totpart : (int)((PTCacheMem *)cache->mem_cache.first)->totpoint;
 
