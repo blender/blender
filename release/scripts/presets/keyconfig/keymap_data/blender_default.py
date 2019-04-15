@@ -817,6 +817,15 @@ def km_uv_editor(params):
         op_menu("IMAGE_MT_uvs_context_menu", params.context_menu_event),
     ])
 
+    # Fallback for MMB emulation
+    if params.use_mouse_emulate_3_button and params.select_mouse == 'LEFTMOUSE':
+        items.extend([
+            ("uv.select_loop", {"type": params.select_mouse, "value": 'DOUBLE_CLICK'},
+             {"properties": [("extend", False)]}),
+            ("uv.select_loop", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "alt": True},
+             {"properties": [("extend", True)]}),
+        ])
+
     # 3D cursor
     if params.cursor_tweak_event:
         items.extend([
