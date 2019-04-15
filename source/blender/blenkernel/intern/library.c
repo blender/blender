@@ -1968,20 +1968,27 @@ void BKE_library_make_local(
 	 * relationship), se we tag it to be fully recomputed, but this does not seems to be enough in some cases,
 	 * and evaluation code ends up trying to evaluate a not-yet-updated armature object's deformations.
 	 * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */
-	/* Also, we use this object loop to handle rigid body resetting. */
 	for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
 		if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL && ob->pose->flag & POSE_RECALC) {
 			BKE_pose_rebuild(bmain, ob, ob->data, true);
 		}
+	}
 
-		/* If there was ever any rigidbody settings in the object, we reset it. */
-		if (ob->rigidbody_object) {
-			for (Scene *scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
-				if (scene_iter->rigidbody_world) {
-					BKE_rigidbody_remove_object(bmain, scene_iter, ob);
+	/* Reset rigid body objects. */
+	for (LinkNode *it = copied_ids; it; it = it->next) {
+		ID *id = it->link;
+		if (GS(id->name) == ID_OB) {
+			Object *ob = (Object *)id;
+
+			/* If there was ever any rigidbody settings in the object, we reset it. */
+			if (ob->rigidbody_object) {
+				for (Scene *scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
+					if (scene_iter->rigidbody_world) {
+						BKE_rigidbody_remove_object(bmain, scene_iter, ob);
+					}
 				}
+				BKE_rigidbody_free_object(ob, NULL);
 			}
-			BKE_rigidbody_free_object(ob, NULL);
 		}
 	}
 
