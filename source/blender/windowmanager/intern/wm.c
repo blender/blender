@@ -219,9 +219,11 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 void WM_keyconfig_reload(bContext *C)
 {
 	if (CTX_py_init_get(C) && !G.background) {
+#ifdef WITH_PYTHON
 		BPY_execute_string(
 		        C, (const char *[]){"bpy", NULL},
 		        "bpy.utils.keyconfig_init()");
+#endif
 	}
 }
 
