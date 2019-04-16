@@ -57,7 +57,9 @@
 #include "BKE_main.h"
 #include "BKE_text.h"
 
-#include "CCL_api.h"
+#ifdef WITH_CYCLES
+#  include "CCL_api.h"
+#endif
 
 #include "BPY_extern.h"
 
