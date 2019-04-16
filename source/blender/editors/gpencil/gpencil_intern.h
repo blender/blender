@@ -497,6 +497,7 @@ void GPENCIL_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void GPENCIL_OT_vertex_group_invert(struct wmOperatorType *ot);
 void GPENCIL_OT_vertex_group_smooth(struct wmOperatorType *ot);
 void GPENCIL_OT_vertex_group_normalize(struct wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
 
 /* color handle */
 void GPENCIL_OT_lock_layer(struct wmOperatorType *ot);

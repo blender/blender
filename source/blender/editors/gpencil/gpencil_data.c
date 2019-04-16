@@ -1898,7 +1898,8 @@ static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	MDeformVert *dvert;
+	MDeformVert *dvert = NULL;
+	MDeformWeight *dw = NULL;
 	const int def_nr = ob->actdef - 1;
 	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, def_nr);
 	if (defgroup == NULL) {
@@ -1915,7 +1916,7 @@ static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *op)
 		float maxvalue = 0.0f;
 		for (int i = 0; i < gps->totpoints; i++) {
 			dvert = &gps->dvert[i];
-			MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+			dw = defvert_find_index(dvert, def_nr);
 			if ((dw != NULL) &&	(dw->weight > maxvalue)) {
 				maxvalue = dw->weight;
 			}
@@ -1925,7 +1926,7 @@ static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *op)
 		if (maxvalue > 0.0f) {
 			for (int i = 0; i < gps->totpoints; i++) {
 				dvert = &gps->dvert[i];
-				MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+				dw = defvert_find_index(dvert, def_nr);
 				if (dw != NULL) {
 					dw->weight = dw->weight / maxvalue;
 				}
@@ -1955,6 +1956,116 @@ void GPENCIL_OT_vertex_group_normalize(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* normalize all */
+static int gpencil_vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
+{
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Object *ob = CTX_data_active_object(C);
+	bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
+
+	/* sanity checks */
+	if (ELEM(NULL, ts, ob, ob->data)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	bDeformGroup *defgroup = NULL;
+	MDeformVert *dvert = NULL;
+	MDeformWeight *dw = NULL;
+	const int def_nr = ob->actdef - 1;
+	const int defbase_tot = BLI_listbase_count(&ob->defbase);
+	if (defbase_tot == 0) {
+		return OPERATOR_CANCELLED;
+	}
+
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		/* verify the strokes has something to change */
+		if (gps->totpoints == 0) {
+			continue;
+		}
+		/* look for tot value */
+		float *tot_values = MEM_callocN(gps->totpoints * sizeof(float), __func__);
+
+		for (int i = 0; i < gps->totpoints; i++) {
+			dvert = &gps->dvert[i];
+			for (int v = 0; v < defbase_tot; v++) {
+				defgroup = BLI_findlink(&ob->defbase, v);
+				/* skip NULL or locked groups */
+				if ((defgroup == NULL) || (defgroup->flag & DG_LOCK_WEIGHT)) {
+					continue;
+				}
+
+				/* skip current */
+				if ((lock_active) && (v == def_nr)) {
+					continue;
+				}
+
+				dw = defvert_find_index(dvert, v);
+				if (dw != NULL) {
+					tot_values[i] += dw->weight;
+				}
+			}
+		}
+
+		/* normalize weights */
+		for (int i = 0; i < gps->totpoints; i++) {
+			if (tot_values[i] == 0.0f) {
+				continue;
+			}
+
+			dvert = &gps->dvert[i];
+			for (int v = 0; v < defbase_tot; v++) {
+				defgroup = BLI_findlink(&ob->defbase, v);
+				/* skip NULL or locked groups */
+				if ((defgroup == NULL) || (defgroup->flag & DG_LOCK_WEIGHT)) {
+					continue;
+				}
+
+				/* skip current */
+				if ((lock_active) && (v == def_nr)) {
+					continue;
+				}
+
+				dw = defvert_find_index(dvert, v);
+				if (dw != NULL) {
+					dw->weight = dw->weight / tot_values[i];
+				}
+			}
+		}
+
+		/* free temp array */
+		MEM_SAFE_FREE(tot_values);
+	}
+	CTX_DATA_END;
+
+	/* notifiers */
+	bGPdata *gpd = ob->data;
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_vertex_group_normalize_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Normalize All Vertex Group";
+	ot->idname = "GPENCIL_OT_vertex_group_normalize_all";
+	ot->description = "Normalize all weights of all vertex groups, "
+		"so that for each vertex, the sum of all weights is 1.0";
+
+	/* api callbacks */
+	ot->poll = gpencil_vertex_group_weight_poll;
+	ot->exec = gpencil_vertex_group_normalize_all_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "lock_active", true, "Lock Active",
+		"Keep the values of the active group while normalizing others");
 }
 
 /****************************** Join ***********************************/

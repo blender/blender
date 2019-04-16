@@ -323,6 +323,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_vertex_group_invert);
 	WM_operatortype_append(GPENCIL_OT_vertex_group_smooth);
 	WM_operatortype_append(GPENCIL_OT_vertex_group_normalize);
+	WM_operatortype_append(GPENCIL_OT_vertex_group_normalize_all);
 
 	/* color handle */
 	WM_operatortype_append(GPENCIL_OT_lock_layer);

@@ -4095,6 +4095,7 @@ class VIEW3D_MT_weight_gpencil(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("gpencil.vertex_group_normalize_all", text="Normalize All")
         layout.operator("gpencil.vertex_group_normalize", text="Normalize")
 
         layout.separator()
