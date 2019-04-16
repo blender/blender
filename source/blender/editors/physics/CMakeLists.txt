@@ -25,7 +25,6 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../../../intern/elbeem/extern
 	../../../../intern/guardedalloc
 	../../../../intern/glew-mx
 )
@@ -55,6 +54,9 @@ set(LIB
 )
 
 if(WITH_MOD_FLUID)
+	list(APPEND INC
+		../../../../intern/elbeem/extern
+	)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
 

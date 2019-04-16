@@ -43,7 +43,6 @@ set(LIB
 )
 
 if(WITH_IK_SOLVER)
-	add_definitions(-DWITH_IK_SOLVER)
 	list(APPEND INC
 		../../../intern/iksolver/extern
 	)
@@ -51,10 +50,10 @@ if(WITH_IK_SOLVER)
 		intern/iksolver_plugin.c
 		intern/iksolver_plugin.h
 	)
+	add_definitions(-DWITH_IK_SOLVER)
 endif()
 
 if(WITH_IK_ITASC)
-	add_definitions(-DWITH_IK_ITASC)
 	list(APPEND INC
 		../../../intern/itasc
 	)
@@ -65,6 +64,7 @@ if(WITH_IK_ITASC)
 		intern/itasc_plugin.cpp
 		intern/itasc_plugin.h
 	)
+	add_definitions(-DWITH_IK_ITASC)
 endif()
 
 blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

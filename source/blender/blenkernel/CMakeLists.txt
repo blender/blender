@@ -44,7 +44,6 @@ set(INC
 	../../../intern/iksolver/extern
 	../../../intern/memutil
 	../../../intern/mikktspace
-	../../../intern/smoke/extern
 	../../../intern/atomic
 	../../../intern/clog
 	../../../intern/libmv
@@ -486,6 +485,9 @@ if(WITH_MOD_FLUID)
 endif()
 
 if(WITH_MOD_SMOKE)
+	list(APPEND INC
+		../../../intern/smoke/extern
+	)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
@@ -545,17 +547,17 @@ if(WITH_ALEMBIC)
 endif()
 
 if(WITH_OPENSUBDIV)
-	add_definitions(-DWITH_OPENSUBDIV)
 	list(APPEND INC_SYS
 		${OPENSUBDIV_INCLUDE_DIRS}
 	)
+	add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
 if(WITH_OPENVDB)
-	add_definitions(-DWITH_OPENVDB)
 	list(APPEND INC
 		 ../../../intern/openvdb
 	)
+	add_definitions(-DWITH_OPENVDB)
 
 	if(WITH_OPENVDB_BLOSC)
 		add_definitions(

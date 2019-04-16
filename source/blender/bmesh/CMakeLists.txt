@@ -171,10 +171,10 @@ if(MSVC AND NOT MSVC_CLANG)
 endif()
 
 if(WITH_BULLET)
-	add_definitions(-DWITH_BULLET)
 	list(APPEND INC_SYS
 		${BULLET_INCLUDE_DIRS}
 	)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 if(WITH_INTERNATIONAL)

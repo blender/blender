@@ -52,9 +52,11 @@ if(WITH_LIBMV)
 	add_definitions(-DWITH_LIBMV)
 endif()
 
-if(WITH_CYCLES AND WITH_CYCLES_LOGGING)
-	blender_include_dirs(../../intern/cycles/blender)
-	add_definitions(-DWITH_CYCLES_LOGGING)
+if(WITH_CYCLES)
+	if(WITH_CYCLES_LOGGING)
+		blender_include_dirs(../../intern/cycles/blender)
+		add_definitions(-DWITH_CYCLES_LOGGING)
+	endif()
 endif()
 
 if(WITH_CODEC_FFMPEG)
@@ -76,20 +78,20 @@ endif()
 
 if(WITH_SDL)
 	if(WITH_SDL_DYNLOAD)
-		add_definitions(-DWITH_SDL_DYNLOAD)
 		blender_include_dirs(../../extern/sdlew/include)
+		add_definitions(-DWITH_SDL_DYNLOAD)
 	endif()
 	add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_BINRELOC)
-	add_definitions(-DWITH_BINRELOC)
 	blender_include_dirs(${BINRELOC_INCLUDE_DIRS})
+	add_definitions(-DWITH_BINRELOC)
 endif()
 
 if(WITH_FREESTYLE)
-	add_definitions(-DWITH_FREESTYLE)
 	blender_include_dirs(../blender/freestyle)
+	add_definitions(-DWITH_FREESTYLE)
 endif()
 
 # Setup the exe sources and buildinfo

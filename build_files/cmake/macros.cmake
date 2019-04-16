@@ -222,7 +222,7 @@ function(blender_add_lib__impl
 	sources
 	includes
 	includes_sys
-	libraries
+	library_deps
 	)
 
 	# message(STATUS "Configuring library ${name}")
@@ -236,8 +236,8 @@ function(blender_add_lib__impl
 
 	# Use for testing 'BLENDER_SORTED_LIBS' removal.
 	if(DEFINED WITHOUT_SORTED_LIBS AND WITHOUT_SORTED_LIBS)
-		if (NOT "${libraries}" STREQUAL "")
-			target_link_libraries(${name} "${libraries}")
+		if (NOT "${library_deps}" STREQUAL "")
+			target_link_libraries(${name} "${library_deps}")
 		endif()
 	endif()
 
@@ -265,12 +265,12 @@ function(blender_add_lib_nolist
 	sources
 	includes
 	includes_sys
-	libraries
+	library_deps
 	)
 
 	add_cc_flags_custom_test(${name} PARENT_SCOPE)
 
-	blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${libraries}")
+	blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
 endfunction()
 
 function(blender_add_lib
@@ -278,12 +278,12 @@ function(blender_add_lib
 	sources
 	includes
 	includes_sys
-	libraries
+	library_deps
 	)
 
 	add_cc_flags_custom_test(${name} PARENT_SCOPE)
 
-	blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${libraries}")
+	blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endfunction()

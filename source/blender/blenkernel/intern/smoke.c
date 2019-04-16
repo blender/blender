@@ -87,9 +87,9 @@
 #  include "PIL_time.h"
 #endif
 
-#include "smoke_API.h"
-
 #ifdef WITH_SMOKE
+
+#include "smoke_API.h"
 
 #include "BLI_task.h"
 #include "BLI_kdtree.h"

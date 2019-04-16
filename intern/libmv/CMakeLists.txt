@@ -33,6 +33,10 @@ set(SRC
 	libmv-capi.h
 )
 
+set(LIB
+
+)
+
 if(WITH_LIBMV)
 	add_definitions(${GFLAGS_DEFINES})
 	add_definitions(${GLOG_DEFINES})
@@ -232,4 +236,4 @@ else()
 	)
 endif()
 
-blender_add_lib(bf_intern_libmv "${SRC}" "${INC}" "${INC_SYS}" "")
+blender_add_lib(bf_intern_libmv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

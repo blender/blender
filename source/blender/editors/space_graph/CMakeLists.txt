@@ -49,11 +49,10 @@ set(LIB
 )
 
 if(WITH_AUDASPACE)
-	add_definitions(-DWITH_AUDASPACE)
-
 	list(APPEND INC_SYS
 		${AUDASPACE_C_INCLUDE_DIRS}
 	)
+	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_INTERNATIONAL)

@@ -45,8 +45,6 @@
 
 #include "DEG_depsgraph.h"
 
-#include "LBM_fluidsim.h"
-
 #include "ED_screen.h"
 
 #include "WM_types.h"
@@ -56,6 +54,8 @@
 
 /* enable/disable overall compilation */
 #ifdef WITH_MOD_FLUID
+
+#include "LBM_fluidsim.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_path_util.h"

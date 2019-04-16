@@ -101,7 +101,6 @@ if(WITH_IMAGE_TIFF)
 	list(APPEND SRC
 		intern/tiff.c
 	)
-
 	add_definitions(-DWITH_TIFF)
 endif()
 

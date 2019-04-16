@@ -16,7 +16,11 @@ set(SRC_HEADERS
 	node_xml.h
 )
 
+set(LIB
+
+)
+
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-cycles_add_library(cycles_graph ${SRC} ${SRC_HEADERS})
+cycles_add_library(cycles_graph "${LIB}" ${SRC} ${SRC_HEADERS})

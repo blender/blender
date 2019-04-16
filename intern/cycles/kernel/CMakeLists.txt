@@ -333,6 +333,10 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_subsurface_scatter.h
 )
 
+set(LIB
+
+)
+
 # CUDA module
 
 if(WITH_CYCLES_CUDA_BINARIES)
@@ -507,7 +511,7 @@ if(CXX_HAS_AVX2)
 	set_source_files_properties(kernels/cpu/filter_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 
-cycles_add_library(cycles_kernel
+cycles_add_library(cycles_kernel "${LIB}"
 	${SRC_CPU_KERNELS}
 	${SRC_CUDA_KERNELS}
 	${SRC_OPENCL_KERNELS}

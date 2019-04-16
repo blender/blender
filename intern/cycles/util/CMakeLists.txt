@@ -27,6 +27,10 @@ set(SRC
 	util_transform.cpp
 )
 
+set(LIB
+
+)
+
 if(WITH_CYCLES_STANDALONE)
 	if (WITH_CYCLES_STANDALONE_GUI)
 		list(APPEND SRC
@@ -146,4 +150,4 @@ include_directories(SYSTEM ${INC_SYS})
 
 add_definitions(${GL_DEFINITIONS})
 
-cycles_add_library(cycles_util ${SRC} ${SRC_HEADERS})
+cycles_add_library(cycles_util "${LIB}" ${SRC} ${SRC_HEADERS})

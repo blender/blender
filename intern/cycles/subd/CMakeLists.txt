@@ -21,7 +21,11 @@ set(SRC_HEADERS
 	subd_split.h
 )
 
+set(LIB
+
+)
+
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-cycles_add_library(cycles_subd ${SRC} ${SRC_HEADERS})
+cycles_add_library(cycles_subd "${LIB}" ${SRC} ${SRC_HEADERS})
