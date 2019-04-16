@@ -1814,7 +1814,7 @@ void PARTICLE_OT_select_roots(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_select_action(ot, SEL_SELECT);
+	WM_operator_properties_select_action(ot, SEL_SELECT, true);
 }
 
 /************************ select tip operator ************************/
@@ -1884,7 +1884,7 @@ void PARTICLE_OT_select_tips(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_select_action(ot, SEL_SELECT);
+	WM_operator_properties_select_action(ot, SEL_SELECT, true);
 }
 
 /*********************** select random operator ************************/

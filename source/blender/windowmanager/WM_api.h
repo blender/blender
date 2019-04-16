@@ -377,8 +377,8 @@ void        WM_operator_properties_gesture_straightline(struct wmOperatorType *o
 void        WM_operator_properties_gesture_circle(struct wmOperatorType *ot);
 void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
 void        WM_operator_properties_select_all(struct wmOperatorType *ot);
-void        WM_operator_properties_select_action(struct wmOperatorType *ot, int default_action);
-void        WM_operator_properties_select_action_simple(struct wmOperatorType *ot, int default_action);
+void        WM_operator_properties_select_action(struct wmOperatorType *ot, int default_action, bool hide_gui);
+void        WM_operator_properties_select_action_simple(struct wmOperatorType *ot, int default_action, bool hide_gui);
 void        WM_operator_properties_select_random(struct wmOperatorType *ot);
 int         WM_operator_properties_select_random_seed_increment_get(wmOperator *op);
 void        WM_operator_properties_select_operation(struct wmOperatorType *ot);

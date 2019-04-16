@@ -140,14 +140,18 @@ void WM_operator_properties_filesel(
 }
 
 static void wm_operator_properties_select_action_ex(wmOperatorType *ot, int default_action,
-                                                    const EnumPropertyItem *select_actions)
+                                                    const EnumPropertyItem *select_actions,
+													bool hide_gui)
 {
 	PropertyRNA *prop;
 	prop = RNA_def_enum(ot->srna, "action", select_actions, default_action, "Action", "Selection action to execute");
-	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	if (hide_gui) {
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	}
 }
 
-void WM_operator_properties_select_action(wmOperatorType *ot, int default_action)
+void WM_operator_properties_select_action(wmOperatorType *ot, int default_action, bool hide_gui)
 {
 	static const EnumPropertyItem select_actions[] = {
 		{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
@@ -157,13 +161,13 @@ void WM_operator_properties_select_action(wmOperatorType *ot, int default_action
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	wm_operator_properties_select_action_ex(ot, default_action, select_actions);
+	wm_operator_properties_select_action_ex(ot, default_action, select_actions, hide_gui);
 }
 
 /**
  * only SELECT/DESELECT
  */
-void WM_operator_properties_select_action_simple(wmOperatorType *ot, int default_action)
+void WM_operator_properties_select_action_simple(wmOperatorType *ot, int default_action, bool hide_gui)
 {
 	static const EnumPropertyItem select_actions[] = {
 		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
@@ -171,7 +175,7 @@ void WM_operator_properties_select_action_simple(wmOperatorType *ot, int default
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	wm_operator_properties_select_action_ex(ot, default_action, select_actions);
+	wm_operator_properties_select_action_ex(ot, default_action, select_actions, hide_gui);
 }
 
 /**
@@ -187,7 +191,7 @@ void WM_operator_properties_select_random(wmOperatorType *ot)
 	        ot->srna, "seed", 0, 0, INT_MAX,
 	        "Random Seed", "Seed for the random number generator", 0, 255);
 
-	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
+	WM_operator_properties_select_action_simple(ot, SEL_SELECT, false);
 }
 
 int WM_operator_properties_select_random_seed_increment_get(wmOperator *op)
@@ -206,7 +210,7 @@ int WM_operator_properties_select_random_seed_increment_get(wmOperator *op)
 
 void WM_operator_properties_select_all(wmOperatorType *ot)
 {
-	WM_operator_properties_select_action(ot, SEL_TOGGLE);
+	WM_operator_properties_select_action(ot, SEL_TOGGLE, true);
 }
 
 void WM_operator_properties_border(wmOperatorType *ot)

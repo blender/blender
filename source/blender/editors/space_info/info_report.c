@@ -209,7 +209,7 @@ void INFO_OT_select_all(wmOperatorType *ot)
 	ot->exec = report_select_all_exec;
 
 	/* properties */
-	WM_operator_properties_select_action(ot, SEL_SELECT);
+	WM_operator_properties_select_action(ot, SEL_SELECT, true);
 }
 
 /* box_select operator */
