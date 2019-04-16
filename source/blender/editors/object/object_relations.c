@@ -948,6 +948,8 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 	RNA_boolean_set(&opptr, "keep_transform", true);
 #endif
 
+	uiItemO(layout, IFACE_("Object (Without Inverse)"), ICON_NONE, "OBJECT_OT_parent_no_inverse_set");
+
 	struct {
 		bool mesh, gpencil;
 	} has_children_of_type = { 0 };
