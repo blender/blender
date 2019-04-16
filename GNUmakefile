@@ -123,6 +123,11 @@ Utilities
    * update:
      updates git and all submodules
 
+   * format
+     Format source code using clang (uses PATHS if passed in). For example::
+
+        make format PATHS="source/blender/blenlib source/blender/blenkernel"
+
 Environment Variables
 
    * BUILD_CMAKE_ARGS:      Arguments passed to CMake.
@@ -509,6 +514,10 @@ update: .FORCE
 	git submodule update --init --recursive
 	git submodule foreach git checkout master
 	git submodule foreach git pull --rebase origin master
+
+format: .FORCE
+	PATH="../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
+		python3 source/tools/utils/clang_format_paths.py --expand-tabs $(PATHS)
 
 
 # -----------------------------------------------------------------------------
