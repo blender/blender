@@ -1131,6 +1131,12 @@ void Session::collect_statistics(RenderStats *render_stats)
 
 int Session::get_max_closure_count()
 {
+	if (scene->shader_manager->use_osl()) {
+		/* OSL always needs the maximum as we can't predict the
+		 * number of closures a shader might generate. */
+		return MAX_CLOSURE;
+	}
+
 	int max_closures = 0;
 	for(int i = 0; i < scene->shaders.size(); i++) {
 		int num_closures = scene->shaders[i]->graph->get_num_closures();
