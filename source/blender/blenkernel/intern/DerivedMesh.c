@@ -1721,7 +1721,9 @@ static void editbmesh_calc_modifiers(
 
 			/* set the DerivedMesh to only copy needed data */
 			CustomData_MeshMasks_update(&mask, &append_mask);
-			mask = md_datamask->mask; /* CD_MASK_ORCO may have been cleared above */ /* XXX WHAT? ovewrites mask ??? */
+			/* XXX WHAT? ovewrites mask ??? */
+			/* CD_MASK_ORCO may have been cleared above */
+			mask = md_datamask->mask;
 			mask.vmask |= CD_MASK_ORIGINDEX;
 			mask.emask |= CD_MASK_ORIGINDEX;
 			mask.pmask |= CD_MASK_ORIGINDEX;
