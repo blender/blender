@@ -125,6 +125,9 @@ typedef struct bUnitCollection {
 	int length;
 } bUnitCollection;
 
+/* Keep table lignment. */
+/* clang-format off */
+
 #define UNIT_COLLECTION_LENGTH(def) (sizeof(def) / sizeof(bUnitDef) - 1)
 #define NULL_UNIT {NULL, NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 
@@ -329,7 +332,7 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
-
+/* clang-format on*/
 
 /* internal, has some option not exposed */
 static const bUnitCollection *unit_get_system(int system, int type)
