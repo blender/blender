@@ -586,11 +586,27 @@ static eOLDrawState tree_element_active_posechannel(
 		if (!(pchan->bone->flag & BONE_HIDDEN_P)) {
 
 			if (set != OL_SETSEL_EXTEND) {
-				bPoseChannel *pchannel;
-				/* single select forces all other bones to get unselected */
-				for (pchannel = ob->pose->chanbase.first; pchannel; pchannel = pchannel->next) {
-					pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+				/* Single select forces all other bones to get unselected. */
+				uint objects_len = 0;
+				Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, NULL, &objects_len, OB_MODE_POSE);
+				for (uint object_index = 0; object_index < objects_len; object_index++) {
+					Object *ob_iter = BKE_object_pose_armature_get(objects[object_index]);
+
+					/* Sanity checks. */
+					if (ELEM(NULL, ob_iter, ob_iter->pose, ob_iter->data)) {
+						continue;
+					}
+
+					bPoseChannel *pchannel;
+					for (pchannel = ob_iter->pose->chanbase.first; pchannel; pchannel = pchannel->next) {
+						pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+					}
+
+					if (ob != ob_iter) {
+						DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
+					}
 				}
+				MEM_freeN(objects);
 			}
 
 			if ((set == OL_SETSEL_EXTEND) && (pchan->bone->flag & BONE_SELECTED)) {
