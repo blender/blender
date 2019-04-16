@@ -1873,6 +1873,69 @@ void GPENCIL_OT_vertex_group_smooth(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "repeat", 1, 1, 10000, "Iterations", "", 1, 200);
 }
 
+/* normalize */
+static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Object *ob = CTX_data_active_object(C);
+
+	/* sanity checks */
+	if (ELEM(NULL, ts, ob, ob->data))
+		return OPERATOR_CANCELLED;
+
+	MDeformVert *dvert;
+	const int def_nr = ob->actdef - 1;
+	if (!BLI_findlink(&ob->defbase, def_nr))
+		return OPERATOR_CANCELLED;
+
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		/* look for max value */
+		float maxvalue = 0.0f;
+		for (int i = 0; i < gps->totpoints; i++) {
+			dvert = &gps->dvert[i];
+			MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+			if ((dw != NULL) &&	(dw->weight > maxvalue)) {
+				maxvalue = dw->weight;
+			}
+		}
+
+		/* normalize weights */
+		if (maxvalue > 0.0f) {
+			for (int i = 0; i < gps->totpoints; i++) {
+				dvert = &gps->dvert[i];
+				MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+				if (dw != NULL) {
+					dw->weight = dw->weight / maxvalue;
+				}
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	/* notifiers */
+	bGPdata *gpd = ob->data;
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_vertex_group_normalize(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Normalize Vertex Group";
+	ot->idname = "GPENCIL_OT_vertex_group_normalize";
+	ot->description = "Normalize weights to the active vertex group";
+
+	/* api callbacks */
+	ot->poll = gpencil_vertex_group_weight_poll;
+	ot->exec = gpencil_vertex_group_normalize_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /****************************** Join ***********************************/
 
 /* userdata for joined_gpencil_fix_animdata_cb() */
