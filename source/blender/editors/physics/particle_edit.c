@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
@@ -2066,7 +2067,14 @@ bool PE_box_select(bContext *C, const rcti *rect, const int sel_op)
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		data.is_changed = PE_deselect_all_visible_ex(edit);
 	}
-	for_mouse_hit_keys(&data, select_key_op, PSEL_ALL_KEYS);
+
+	if (BLI_rcti_is_empty(rect)) {
+		/* pass */
+	}
+	else {
+		for_mouse_hit_keys(&data, select_key_op, PSEL_ALL_KEYS);
+	}
+
 	if (data.is_changed) {
 		PE_update_selection(data.depsgraph, scene, ob, 1);
 		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);

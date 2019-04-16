@@ -433,58 +433,63 @@ bool do_paintface_box_select(ViewContext *vc, const rcti *rect, int sel_op)
 {
 	Object *ob = vc->obact;
 	Mesh *me;
-	MPoly *mpoly;
-	uint *rt;
-	char *selar;
-	int a, index;
 
 	me = BKE_mesh_from_object(ob);
-	if ((me == NULL) || (me->totpoly == 0) || BLI_rcti_is_empty(rect)) {
+	if ((me == NULL) || (me->totpoly == 0)) {
 		return false;
 	}
-
-	selar = MEM_callocN(me->totpoly + 1, "selar");
 
 	bool changed = false;
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		changed |= paintface_deselect_all_visible(vc->C, vc->obact, SEL_DESELECT, false);
 	}
 
-	uint buf_len;
-	uint *buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
+	if (BLI_rcti_is_empty(rect)) {
+		/* pass */
+	}
+	else {
+		MPoly *mpoly;
+		uint *rt;
+		int a, index;
 
-	rt = buf;
+		char *selar = MEM_callocN(me->totpoly + 1, "selar");
 
-	a = buf_len;
-	while (a--) {
-		if (*rt) {
-			index = *rt;
-			if (index <= me->totpoly) {
-				selar[index] = 1;
+		uint buf_len;
+		uint *buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
+
+		rt = buf;
+
+		a = buf_len;
+		while (a--) {
+			if (*rt) {
+				index = *rt;
+				if (index <= me->totpoly) {
+					selar[index] = 1;
+				}
+			}
+			rt++;
+		}
+
+		mpoly = me->mpoly;
+		for (a = 1; a <= me->totpoly; a++, mpoly++) {
+			if ((mpoly->flag & ME_HIDE) == 0) {
+				const bool is_select = mpoly->flag & ME_FACE_SEL;
+				const bool is_inside = (selar[a] != 0);
+				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+				if (sel_op_result != -1) {
+					SET_FLAG_FROM_TEST(mpoly->flag, sel_op_result, ME_FACE_SEL);
+					changed = true;
+				}
 			}
 		}
-		rt++;
-	}
 
-	mpoly = me->mpoly;
-	for (a = 1; a <= me->totpoly; a++, mpoly++) {
-		if ((mpoly->flag & ME_HIDE) == 0) {
-			const bool is_select = mpoly->flag & ME_FACE_SEL;
-			const bool is_inside = (selar[a] != 0);
-			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-			if (sel_op_result != -1) {
-				SET_FLAG_FROM_TEST(mpoly->flag, sel_op_result, ME_FACE_SEL);
-				changed = true;
-			}
-		}
-	}
-
-	MEM_freeN(buf);
-	MEM_freeN(selar);
+		MEM_freeN(buf);
+		MEM_freeN(selar);
 
 #ifdef __APPLE__
-	glReadBuffer(GL_BACK);
+		glReadBuffer(GL_BACK);
 #endif
+	}
 
 	if (changed) {
 		paintface_flush_flags(vc->C, vc->obact, SELECT);

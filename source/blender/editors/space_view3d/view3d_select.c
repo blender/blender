@@ -700,7 +700,7 @@ static bool do_lasso_select_mesh(
 
 	if (ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
-			data.is_changed = edbm_backbuf_check_and_select_verts(vc->em, sel_op);
+			data.is_changed |= edbm_backbuf_check_and_select_verts(vc->em, sel_op);
 		}
 		else {
 			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
@@ -716,7 +716,7 @@ static bool do_lasso_select_mesh(
 
 	if (ts->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
-			data.is_changed = edbm_backbuf_check_and_select_faces(vc->em, sel_op);
+			data.is_changed |= edbm_backbuf_check_and_select_faces(vc->em, sel_op);
 		}
 		else {
 			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
@@ -1065,22 +1065,22 @@ static bool view3d_lasso_select(
 
 	if (vc->obedit == NULL) { /* Object Mode */
 		if (BKE_paint_select_face_test(ob)) {
-			changed_multi = do_lasso_select_paintface(vc, mcords, moves, sel_op);
+			changed_multi |= do_lasso_select_paintface(vc, mcords, moves, sel_op);
 		}
 		else if (BKE_paint_select_vert_test(ob)) {
-			changed_multi = do_lasso_select_paintvert(vc, mcords, moves, sel_op);
+			changed_multi |= do_lasso_select_paintvert(vc, mcords, moves, sel_op);
 		}
 		else if (ob && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
 			/* pass */
 		}
 		else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-			changed_multi = PE_lasso_select(C, mcords, moves, sel_op);
+			changed_multi |= PE_lasso_select(C, mcords, moves, sel_op);
 		}
 		else if (ob && (ob->mode & OB_MODE_POSE)) {
-			changed_multi = do_lasso_select_pose(vc, mcords, moves, sel_op);
+			changed_multi |= do_lasso_select_pose(vc, mcords, moves, sel_op);
 		}
 		else {
-			changed_multi = do_lasso_select_objects(vc, mcords, moves, sel_op);
+			changed_multi |= do_lasso_select_objects(vc, mcords, moves, sel_op);
 		}
 	}
 	else { /* Edit Mode */
@@ -2248,13 +2248,9 @@ static bool do_paintvert_box_select(
 {
 	const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 	Mesh *me;
-	MVert *mvert;
-	unsigned int *rt;
-	int a, index;
-	char *selar;
 
 	me = vc->obact->data;
-	if ((me == NULL) || (me->totvert == 0) || BLI_rcti_is_empty(rect)) {
+	if ((me == NULL) || (me->totvert == 0)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2263,7 +2259,15 @@ static bool do_paintvert_box_select(
 		changed |= paintvert_deselect_all_visible(vc->obact, SEL_DESELECT, false);
 	}
 
-	if (use_zbuf) {
+	if (BLI_rcti_is_empty(rect)) {
+		/* pass */
+	}
+	else if (use_zbuf) {
+		MVert *mvert;
+		unsigned int *rt;
+		int a, index;
+		char *selar;
+
 		selar = MEM_callocN(me->totvert + 1, "selar");
 
 		uint buf_len;
@@ -2479,7 +2483,7 @@ static bool do_mesh_box_select(
 
 	if (ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
-			data.is_changed = edbm_backbuf_check_and_select_verts(vc->em, sel_op);
+			data.is_changed |= edbm_backbuf_check_and_select_verts(vc->em, sel_op);
 		}
 		else {
 			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
@@ -2495,7 +2499,7 @@ static bool do_mesh_box_select(
 
 	if (ts->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
-			data.is_changed = edbm_backbuf_check_and_select_faces(vc->em, sel_op);
+			data.is_changed |= edbm_backbuf_check_and_select_faces(vc->em, sel_op);
 		}
 		else {
 			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
