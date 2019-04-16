@@ -70,8 +70,6 @@ enum eView2D_Units {
 
 	/* for drawing values */
 	V2D_UNIT_VALUES,
-	V2D_UNIT_DEGREES,
-	V2D_UNIT_TIME,
 };
 
 /* clamping of grid values to whole numbers */
@@ -169,6 +167,12 @@ void UI_view2d_grid_draw(struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_constant_grid_draw(struct View2D *v2d, float step);
 void UI_view2d_multi_grid_draw(struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
 void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy);
+void UI_view2d_grid_draw_numbers_horizontal(const struct Scene *scene, const struct View2D *v2d,
+                                            const View2DGrid *grid, const struct rcti *rect,
+                                            int unit, bool whole_numbers_only);
+void UI_view2d_grid_draw_numbers_vertical(const struct Scene *scene, const struct View2D *v2d,
+                                          const View2DGrid *grid, const struct rcti *rect,
+                                          int unit, float text_offset);
 void UI_view2d_grid_free(View2DGrid *grid);
 
 /* scrollbar drawing */
@@ -210,6 +214,8 @@ struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 
 void UI_view2d_scale_get(struct View2D *v2d, float *r_x, float *r_y);
+float UI_view2d_scale_get_x(const struct View2D *v2d);
+float UI_view2d_scale_get_y(const struct View2D *v2d);
 void UI_view2d_scale_get_inverse(struct View2D *v2d, float *r_x, float *r_y);
 
 void UI_view2d_center_get(struct View2D *v2d, float *r_x, float *r_y);

@@ -41,7 +41,7 @@
  *
  * \param str: destination string
  * \param maxncpy: maximum number of characters to copy ``sizeof(str)``
- * \param power: special setting for #View2D grid drawing,
+ * \param brevity_level: special setting for #View2D grid drawing,
  *        used to specify how detailed we need to be
  * \param time_seconds: time total time in seconds
  * \param fps: frames per second, typically from the #FPS macro
@@ -50,7 +50,7 @@
  */
 
 size_t BLI_timecode_string_from_time(
-        char *str, const size_t maxncpy, const int power, const float time_seconds,
+        char *str, const size_t maxncpy, const int brevity_level, const float time_seconds,
         const double fps, const short timecode_style)
 {
 	int hours = 0, minutes = 0, seconds = 0, frames = 0;
@@ -81,7 +81,7 @@ size_t BLI_timecode_string_from_time(
 		time = fmodf(time, 60);
 	}
 
-	if (power <= 0) {
+	if (brevity_level <= 0) {
 		/* seconds + frames
 		 * Frames are derived from 'fraction' of second. We need to perform some additional rounding
 		 * to cope with 'half' frames, etc., which should be fine in most cases
@@ -103,7 +103,7 @@ size_t BLI_timecode_string_from_time(
 			 *   (using separator of '+' for frames).
 			 *   When showing frames, use slightly different display to avoid confusion with mm:ss format
 			 */
-			if (power <= 0) {
+			if (brevity_level <= 0) {
 				/* include "frames" in display */
 				if (hours) {
 					rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
@@ -143,7 +143,7 @@ size_t BLI_timecode_string_from_time(
 			/* reduced SMPTE. Instead of frames, milliseconds are shown */
 
 			/* precision of decimal part */
-			const int ms_dp = (power <= 0) ? (1 - power) : 1;
+			const int ms_dp = (brevity_level <= 0) ? (1 - brevity_level) : 1;
 
 			/* to get 2 digit whole-number part for seconds display
 			 * (i.e. 3 is for 2 digits + radix, on top of full length) */
@@ -163,7 +163,7 @@ size_t BLI_timecode_string_from_time(
 			 * are separated by a comma, not a dot... */
 
 			/* precision of decimal part */
-			const int ms_dp = (power <= 0) ? (1 - power) : 1;
+			const int ms_dp = (brevity_level <= 0) ? (1 - brevity_level) : 1;
 			const int ms = round_fl_to_int((time - (float)seconds) * 1000.0f);
 
 			rlen = BLI_snprintf_rlen(
@@ -173,9 +173,9 @@ size_t BLI_timecode_string_from_time(
 		case USER_TIMECODE_SECONDS_ONLY:
 		{
 			/* only show the original seconds display */
-			/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
-			if (power <= 0) {
-				rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - power, time_seconds);
+			/* round to whole numbers if brevity_level is >= 1 (i.e. scale is coarse) */
+			if (brevity_level <= 0) {
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - brevity_level, time_seconds);
 			}
 			else {
 				rlen = BLI_snprintf_rlen(str, maxncpy, "%d", round_fl_to_int(time_seconds));
@@ -228,7 +228,7 @@ size_t BLI_timecode_string_from_time_simple(
  *
  * \param str: destination string
  * \param maxncpy: maximum number of characters to copy ``sizeof(str)``
- * \param power: special setting for #View2D grid drawing,
+ * \param brevity_level: special setting for #View2D grid drawing,
  *        used to specify how detailed we need to be
  * \param time_seconds: time total time in seconds
  * \return length of \a str
@@ -236,13 +236,13 @@ size_t BLI_timecode_string_from_time_simple(
  * \note in some cases this is used to print non-seconds values.
  */
 size_t BLI_timecode_string_from_time_seconds(
-        char *str, const size_t maxncpy, const int power, const float time_seconds)
+        char *str, const size_t maxncpy, const int brevity_level, const float time_seconds)
 {
 	size_t rlen;
 
-	/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
-	if (power <= 0) {
-		rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - power, time_seconds);
+	/* round to whole numbers if brevity_level is >= 1 (i.e. scale is coarse) */
+	if (brevity_level <= 0) {
+		rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - brevity_level, time_seconds);
 	}
 	else {
 		rlen = BLI_snprintf_rlen(str, maxncpy, "%d", round_fl_to_int(time_seconds));

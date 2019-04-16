@@ -1714,6 +1714,129 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	immUnbindProgram();
 }
 
+static void get_scale_indicator_text(
+        const Scene *scene,
+        float value,
+        int brevity_level,
+        short unit,
+        uint max_length,
+        char *r_str)
+{
+	if (unit == V2D_UNIT_SECONDS) {
+		BLI_timecode_string_from_time(r_str, max_length, brevity_level, value / (float)FPS, FPS, U.timecode_style);
+	}
+	else {
+		BLI_timecode_string_from_time_seconds(r_str, max_length, brevity_level, value);
+	}
+}
+
+void UI_view2d_grid_draw_numbers_horizontal(
+        const Scene *scene,
+        const View2D *v2d,
+        const View2DGrid *grid,
+        const rcti *rect,
+        int unit,
+        bool whole_numbers_only)
+{
+	BLI_assert(grid);
+	float xstep = grid->dx * UI_view2d_scale_get_x(v2d);
+	if (xstep <= 0.0f) {
+		return;
+	}
+
+	float initial_xpos = UI_view2d_view_to_region_x(v2d, grid->startx);
+	float ypos = (float)rect->ymin + 2 * UI_DPI_FAC;
+	float initial_value = grid->startx;
+	float value_step = grid->dx;
+	int brevity_level = grid->powerx;
+
+	/* Make sure that the value_step is >= 1 when only whole numbers are displayed.
+	 * Otherwise the same number could be displayed more than once. */
+	if (whole_numbers_only) {
+		while (value_step < 0.9999f) {
+			xstep *= 2.0f;
+			value_step *= 2.0f;
+		}
+	}
+
+	/* Skip first few steps if they don't intersect
+	 * the rectangle that will contain the numbers. */
+	while (initial_xpos < rect->xmin) {
+		initial_xpos += xstep;
+		initial_value += value_step;
+	}
+
+	if (unit == V2D_UNIT_FRAMES) {
+		brevity_level = 1;
+	}
+
+	const int font_id = BLF_default();
+	UI_FontThemeColor(font_id, TH_TEXT);
+
+	BLF_batch_draw_begin();
+
+	for (float xpos = initial_xpos, value = initial_value;
+	     xpos < rect->xmax;
+	     xpos += xstep, value += value_step)
+	{
+		char text[32];
+		get_scale_indicator_text(scene, value, brevity_level, unit, sizeof(text), text);
+		float text_width = BLF_width(font_id, text, strlen(text));
+		BLF_draw_default_ascii(xpos - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+	}
+
+	BLF_batch_draw_end();
+}
+
+void UI_view2d_grid_draw_numbers_vertical(
+        const Scene *scene,
+        const View2D *v2d,
+        const View2DGrid *grid,
+        const rcti *rect,
+        int unit,
+        float text_offset)
+{
+	BLI_assert(grid);
+	float ystep = grid->dy * UI_view2d_scale_get_y(v2d);
+	if (ystep <= 0.0f) {
+		return;
+	}
+
+	const int font_id = BLF_default();
+	UI_FontThemeColor(font_id, TH_TEXT);
+
+	BLF_enable(font_id, BLF_ROTATION);
+	BLF_rotation(font_id, M_PI_2);
+
+	float initial_value = grid->starty;
+	float value_step = grid->dy;
+	float xpos = rect->xmax - 2.0f * UI_DPI_FAC;
+	float initial_ypos = UI_view2d_view_to_region_y(v2d, grid->starty);
+
+	/* Currently only used by the sequencer to display
+	 * channel numbers in the center. */
+	initial_ypos += text_offset * ystep;
+
+	/* Skip first few steps if they don't intersect
+	 * the rectangle that will contain the numbers. */
+	while (initial_ypos < rect->ymin) {
+		initial_ypos += ystep;
+		initial_value += value_step;
+	}
+
+	for (float ypos = initial_ypos, value = initial_value;
+	     ypos < rect->ymax;
+	     ypos += ystep, value += value_step)
+	{
+		char text[32];
+		get_scale_indicator_text(scene, value, grid->powery, unit, sizeof(text), text);
+		float text_width = BLF_width(font_id, text, sizeof(text));
+		BLF_draw_default_ascii(xpos, ypos - text_width / 2.0f, 0.0f, text, sizeof(text));
+	}
+
+	BLF_disable(font_id, BLF_ROTATION);
+}
+
 /* the price we pay for not exposting structs :( */
 void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy)
 {
@@ -1904,61 +2027,10 @@ View2DScrollers *UI_view2d_scrollers_calc(
 	return scrollers;
 }
 
-/* Print scale marking along a time scrollbar */
-static void scroll_printstr(Scene *scene, float x, float y, float val, int power, short unit, char dir)
-{
-	int len;
-	char timecode_str[32];
-
-	/* adjust the scale unit to work ok */
-	if (dir == 'v') {
-		/* here we bump up the power by factor of 10, as
-		 * rotation values (hence 'degrees') are divided by 10 to
-		 * be able to show the curves at the same time
-		 */
-		if (ELEM(unit, V2D_UNIT_DEGREES, V2D_UNIT_TIME)) {
-			power += 1;
-			val *= 10;
-		}
-	}
-
-	/* get string to print */
-	if (unit == V2D_UNIT_SECONDS) {
-		/* not neces*/
-		BLI_timecode_string_from_time(timecode_str, sizeof(timecode_str), power, val, FPS, U.timecode_style);
-	}
-	else {
-		BLI_timecode_string_from_time_seconds(timecode_str, sizeof(timecode_str), power, val);
-	}
-
-	/* get length of string,
-	 * and adjust printing location to fit it into the horizontal scrollbar */
-	len = strlen(timecode_str);
-	if (dir == 'h') {
-		/* seconds/timecode display has slightly longer strings... */
-		if (unit == V2D_UNIT_SECONDS) {
-			x -= 3 * len;
-		}
-		else {
-			x -= 4 * len;
-		}
-	}
-
-	/* Add degree sympbol to end of string for vertical scrollbar? */
-	if ((dir == 'v') && (unit == V2D_UNIT_DEGREES)) {
-		timecode_str[len] = 186;
-		timecode_str[len + 1] = 0;
-	}
-
-	/* draw it */
-	BLF_draw_default_ascii(x, y, 0.0f, timecode_str, sizeof(timecode_str));
-}
-
 /* Draw scrollbars in the given 2d-region */
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
 	bTheme *btheme = UI_GetTheme();
-	Scene *scene = CTX_data_scene(C);
 	rcti vert, hor;
 	const int scroll = view2d_scroll_mapped(v2d->scroll);
 	const char emboss_alpha = btheme->tui.widget_emboss[3];
@@ -2006,73 +2078,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 
 		UI_draw_widget_scroll(&wcol, &hor, &slider, state);
 
-		/* scale indicators */
-		if ((scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
-			const int font_id = BLF_default();
-			View2DGrid *grid = vs->grid;
-			float fac, dfac, fac2, val;
-
-			/* the numbers: convert grid->startx and -dx to scroll coordinates
-			 * - fac is x-coordinate to draw to
-			 * - dfac is gap between scale markings
-			 */
-			fac = (grid->startx - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
-			fac = (float)hor.xmin + fac * BLI_rcti_size_x(&hor);
-
-			dfac = grid->dx / BLI_rctf_size_x(&v2d->cur);
-			dfac = dfac * BLI_rcti_size_x(&hor);
-
-			/* set starting value, and text color */
-			UI_FontThemeColor(font_id, TH_TEXT);
-			val = grid->startx;
-
-			/* if we're clamping to whole numbers only, make sure entries won't be repeated */
-			if (vs->xclamp == V2D_GRID_CLAMP) {
-				while (grid->dx < 0.9999f) {
-					grid->dx *= 2.0f;
-					dfac *= 2.0f;
-				}
-			}
-			if (vs->xunits == V2D_UNIT_FRAMES) {
-				grid->powerx = 1;
-			}
-
-			/* draw numbers in the appropriate range */
-			if (dfac > 0.0f) {
-				float h = 0.1f * UI_UNIT_Y + (float)(hor.ymin);
-
-				BLF_batch_draw_begin();
-
-				for (; fac < hor.xmax - 0.5f * U.widget_unit; fac += dfac, val += grid->dx) {
-
-					/* make prints look nicer for scrollers */
-					if (fac < hor.xmin + 0.5f * U.widget_unit) {
-						continue;
-					}
-
-					switch (vs->xunits) {
-						case V2D_UNIT_FRAMES:       /* frames (as whole numbers)*/
-							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
-							break;
-
-						case V2D_UNIT_FRAMESCALE:   /* frames (not always as whole numbers) */
-							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
-							break;
-
-						case V2D_UNIT_SECONDS:      /* seconds */
-							fac2 = val / (float)FPS;
-							scroll_printstr(scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
-							break;
-
-						case V2D_UNIT_DEGREES:      /* Graph Editor for rotation Drivers */
-							/* HACK: although we're drawing horizontal,
-							 * we make this draw as 'vertical', just to get degree signs */
-							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');
-							break;
-					}
-				}
-
-				BLF_batch_draw_end();
+		{
+			if (scroll & V2D_SCROLL_SCALE_HORIZONTAL) {
+				UI_view2d_grid_draw_numbers_horizontal(
+				    CTX_data_scene(C), v2d, vs->grid, &vs->hor, vs->xunits, vs->xclamp == V2D_GRID_CLAMP);
 			}
 		}
 	}
@@ -2112,51 +2121,14 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 
 		UI_draw_widget_scroll(&wcol, &vert, &slider, state);
 
-
-		/* scale indiators */
-		if ((scroll & V2D_SCROLL_SCALE_VERTICAL) && (vs->grid)) {
-			View2DGrid *grid = vs->grid;
-			float fac, dfac, val;
-
-			/* the numbers: convert grid->starty and dy to scroll coordinates
-			 * - fac is y-coordinate to draw to
-			 * - dfac is gap between scale markings
-			 * - these involve a correction for horizontal scrollbar
-			 *   NOTE: it's assumed that that scrollbar is there if this is involved!
-			 */
-			fac = (grid->starty - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
-			fac = vert.ymin + fac * BLI_rcti_size_y(&vert);
-
-			dfac = grid->dy / BLI_rctf_size_y(&v2d->cur);
-			dfac = dfac     * BLI_rcti_size_y(&vert);
-
-			/* set starting value, and text color */
-			const int font_id = BLF_default();
-			UI_FontThemeColor(font_id, TH_TEXT);
-			val = grid->starty;
-
-			/* if vertical clamping (to whole numbers) is used (i.e. in Sequencer),
-			 * apply correction */
-			if (vs->yclamp == V2D_GRID_CLAMP) {
-				fac += 0.5f * dfac;
-			}
-
-			/* draw vertical steps */
-			if (dfac > 0.0f) {
-				BLF_rotation(font_id, M_PI_2);
-				BLF_enable(font_id, BLF_ROTATION);
-
-				for (; fac < vert.ymax - 10; fac += dfac, val += grid->dy) {
-
-					/* make prints look nicer for scrollers */
-					if (fac < vert.ymin + 10) {
-						continue;
-					}
-
-					scroll_printstr(scene, (float)(vert.xmax) - 2.0f, fac, val, grid->powery, vs->yunits, 'v');
+		{
+			if (scroll & V2D_SCROLL_SCALE_VERTICAL) {
+				float text_offset = 0.0f;
+				if (vs->yclamp & V2D_GRID_CLAMP) {
+					text_offset = 0.5f;
 				}
-
-				BLF_disable(font_id, BLF_ROTATION);
+				UI_view2d_grid_draw_numbers_vertical(
+				    CTX_data_scene(C), v2d, vs->grid, &vs->vert, vs->yunits, text_offset);
 			}
 		}
 	}
@@ -2519,11 +2491,19 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
 void UI_view2d_scale_get(View2D *v2d, float *r_x, float *r_y)
 {
 	if (r_x) {
-		*r_x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
+		*r_x = UI_view2d_scale_get_x(v2d);
 	}
 	if (r_y) {
-		*r_y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
+		*r_y = UI_view2d_scale_get_y(v2d);
 	}
+}
+float UI_view2d_scale_get_x(const View2D *v2d)
+{
+	return BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
+}
+float UI_view2d_scale_get_y(const View2D *v2d)
+{
+	return BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
 /**
  * Same as ``UI_view2d_scale_get() - 1.0f / x, y``
