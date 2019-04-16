@@ -2413,6 +2413,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			wmKeyMapItem *kmi;
 
 			for (kmi = t->keymap->items.first; kmi; kmi = kmi->next) {
+				if (kmi->flag & KMI_INACTIVE) {
+					continue;
+				}
+
 				if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
 					if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) &&   event->ctrl)  ||
 					    (ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
