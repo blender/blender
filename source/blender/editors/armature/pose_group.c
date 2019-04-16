@@ -463,6 +463,8 @@ static int pose_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 	pose_group_select(ob, 1);
 
 	/* notifiers for updates */
+	bArmature *arm = ob->data;
+	DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
 	return OPERATOR_FINISHED;
@@ -494,6 +496,8 @@ static int pose_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 	pose_group_select(ob, 0);
 
 	/* notifiers for updates */
+	bArmature *arm = ob->data;
+	DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
 	return OPERATOR_FINISHED;
