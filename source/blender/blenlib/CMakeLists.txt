@@ -248,6 +248,9 @@ if(WIN32)
 	list(APPEND INC
 		../../../intern/utfconv
 	)
+	list(APPEND LIB
+		bf_intern_utfconv
+	)
 endif()
 
 # no need to compile object files for inline headers.
