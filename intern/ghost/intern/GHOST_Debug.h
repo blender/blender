@@ -27,10 +27,10 @@
 
 #ifdef _MSC_VER
 #  ifdef DEBUG
-#    pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-     // #define GHOST_DEBUG
-#  endif // DEBUG
-#endif // _MSC_VER
+     /* Suppress stl-MSVC debug info warning. */
+#    pragma warning (disable:4786)
+#  endif
+#endif
 
 #ifdef WITH_GHOST_DEBUG
 #  define GHOST_DEBUG // spit ghost events to stdout
