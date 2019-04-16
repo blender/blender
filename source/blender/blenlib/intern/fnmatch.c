@@ -19,6 +19,10 @@
 
 #ifdef WIN32
 
+
+/* Maintained by GLIBC. */
+/* clang-format off */
+
 /* Enable GNU extensions in fnmatch.h.  */
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE	1
@@ -236,6 +240,8 @@ fnmatch (const char *pattern, const char *string, int flags)
 }
 
 #endif /* _LIBC or not __GNU_LIBRARY__.  */
+
+/* clang-format on */
 
 #else
 

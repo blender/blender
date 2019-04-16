@@ -55,6 +55,9 @@ static int txtfmt_py_find_builtinfunc(const char *string)
 	 *                  if kw not in {"False", "None", "True", "def", "class"}]))
 	 */
 
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      (STR_LITERAL_STARTSWITH(string, "and",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "as",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) i = len;
@@ -87,6 +90,8 @@ static int txtfmt_py_find_builtinfunc(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "yield",    len)) i = len;
 	else                                                      i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
@@ -104,9 +109,14 @@ static int txtfmt_py_find_specialvar(const char *string)
 {
 	int i, len;
 
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      (STR_LITERAL_STARTSWITH(string, "def", len))   i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "class", len)) i = len;
 	else                                                   i = 0;
+
+	/* clang-format on */
 
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	if (i == 0 || text_check_identifier(string[i]))
@@ -138,10 +148,15 @@ static int txtfmt_py_find_bool(const char *string)
 {
 	int i, len;
 
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      (STR_LITERAL_STARTSWITH(string, "None",  len))  i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "True",  len))  i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "False", len))  i = len;
 	else                                                    i = 0;
+
+	/* clang-format on */
 
 	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
 	if (i == 0 || text_check_identifier(string[i]))
@@ -152,10 +167,16 @@ static int txtfmt_py_find_bool(const char *string)
 static char txtfmt_py_format_identifier(const char *str)
 {
 	char fmt;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      ((txtfmt_py_find_specialvar(str))   != -1) fmt = FMT_TYPE_SPECIAL;
 	else if ((txtfmt_py_find_builtinfunc(str))  != -1) fmt = FMT_TYPE_KEYWORD;
 	else if ((txtfmt_py_find_decorator(str))    != -1) fmt = FMT_TYPE_RESERVED;
 	else                                               fmt = FMT_TYPE_DEFAULT;
+
+	/* clang-format on */
 	return fmt;
 }
 
@@ -272,11 +293,16 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
+				/* Keep aligned args for readability. */
+				/* clang-format off */
+
 				/* Special vars(v) or built-in keywords(b) */
 				/* keep in sync with 'txtfmt_py_format_identifier()' */
 				if      ((i = txtfmt_py_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
 				else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
 				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_DIRECTIVE;
+
+				/* clang-format on */
 
 				if (i > 0) {
 					if (prev == FMT_TYPE_DIRECTIVE) {  /* can contain utf8 */

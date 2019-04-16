@@ -90,6 +90,9 @@
  * note that '//' comments are ignored.
  */
 
+/* Keep struct definition from wrapping. */
+/* clang-format off */
+
 /* enums shared between multiple operators */
 
 static BMO_FlagSet bmo_enum_axis_xyz[] = {
@@ -2066,6 +2069,8 @@ static BMOpDefine bmo_symmetrize_def = {
 	 BMO_OPTYPE_FLAG_SELECT_FLUSH |
 	 BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
+
+/* clang-format on */
 
 const BMOpDefine *bmo_opdefines[] = {
 	&bmo_automerge_def,

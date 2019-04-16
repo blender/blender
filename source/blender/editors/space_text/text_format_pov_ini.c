@@ -44,6 +44,10 @@
 static int txtfmt_ini_find_keyword(const char *string)
 {
 	int i, len;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	/* Language Directives */
 	if      (STR_LITERAL_STARTSWITH(string, "deprecated", len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "statistics", len)) i = len;
@@ -89,6 +93,8 @@ static int txtfmt_ini_find_keyword(const char *string)
 
 	else                                                        i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
@@ -96,11 +102,15 @@ static int txtfmt_ini_find_keyword(const char *string)
 static int txtfmt_ini_find_reserved(const char *string)
 {
 	int i, len;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	/* POV-Ray Built-in INI Variables
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
-	     if (STR_LITERAL_STARTSWITH(string, "RenderCompleteSoundEnabled",   len)) i = len;
+	if      (STR_LITERAL_STARTSWITH(string, "RenderCompleteSoundEnabled",   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Create_Continue_Trace_Log",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ParseErrorSoundEnabled",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "RenderErrorSoundEnabled",      len)) i = len;
@@ -295,6 +305,8 @@ static int txtfmt_ini_find_reserved(const char *string)
 
 	else                                                                          i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
@@ -305,6 +317,10 @@ static int txtfmt_ini_find_reserved(const char *string)
 static int txtfmt_ini_find_bool(const char *string)
 {
 	int i, len;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	/* Built-in Constants */
 	if      (STR_LITERAL_STARTSWITH(string, "false",   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "no",      len)) i = len;
@@ -321,6 +337,8 @@ static int txtfmt_ini_find_bool(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "%h",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "%w",      len)) i = len;
 	else                                                     i = 0;
+
+	/* clang-format on */
 
 	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -445,10 +463,15 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
+				/* Keep aligned args for readability. */
+				/* clang-format off */
+
 				/* Special vars(v) or built-in keywords(b) */
 				/* keep in sync with 'txtfmt_ini_format_identifier()' */
 				if      ((i = txtfmt_ini_find_keyword(str))  != -1) prev = FMT_TYPE_KEYWORD;
 				else if ((i = txtfmt_ini_find_reserved(str)) != -1) prev = FMT_TYPE_RESERVED;
+
+				/* clang-format on */
 
 				if (i > 0) {
 					text_format_fill_ascii(&str, &fmt, prev, i);

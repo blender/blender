@@ -35,6 +35,9 @@
 #  undef min
 #endif
 
+/* Maintained by FreeBSD. */
+/* clang-format off */
+
 /**
  * qsort, copied from FreeBSD source.
  * with only very minor edits, see:
@@ -176,5 +179,7 @@ loop:
 		goto loop;
 	}
 }
+
+/* clang-format on */
 
 #endif  /* __GLIBC__ */

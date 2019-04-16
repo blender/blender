@@ -39,6 +39,9 @@
 
 /* no BKE or DNA includes! */
 
+/* Keep alignment. */
+/* clang-format off */
+
 #define TEMP_STR_SIZE 256
 
 #define SEP_CHR		'#'
@@ -76,6 +79,8 @@
 #define UN_SC_ST	6.35029318f
 #define UN_SC_LB	0.45359237f
 #define UN_SC_OZ	0.028349523125f
+
+/* clang-format on */
 
 /* define a single unit */
 typedef struct bUnitDef {

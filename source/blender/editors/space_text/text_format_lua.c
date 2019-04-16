@@ -45,6 +45,9 @@ static int txtfmt_lua_find_keyword(const char *string)
 {
 	int i, len;
 
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      (STR_LITERAL_STARTSWITH(string, "and",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "break",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "do",       len)) i = len;
@@ -64,6 +67,8 @@ static int txtfmt_lua_find_keyword(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "until",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "while",    len)) i = len;
 	else                                                      i = 0;
+
+	/* clang-format on */
 
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	if (i == 0 || text_check_identifier(string[i]))
@@ -85,6 +90,9 @@ static int txtfmt_lua_find_keyword(const char *string)
 static int txtfmt_lua_find_specialvar(const char *string)
 {
 	int i, len;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
 
 	if      (STR_LITERAL_STARTSWITH(string, "assert",           len))   i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "collectgarbage",   len))   i = len;
@@ -116,6 +124,8 @@ static int txtfmt_lua_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "xpcall",           len))   i = len;
 	else                                                i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
@@ -131,6 +141,8 @@ static int txtfmt_lua_find_bool(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "false", len))  i = len;
 	else                                                    i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
@@ -140,9 +152,16 @@ static int txtfmt_lua_find_bool(const char *string)
 static char txtfmt_lua_format_identifier(const char *str)
 {
 	char fmt;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      ((txtfmt_lua_find_specialvar(str))  != -1) fmt = FMT_TYPE_SPECIAL;
 	else if ((txtfmt_lua_find_keyword(str))     != -1) fmt = FMT_TYPE_KEYWORD;
 	else                                               fmt = FMT_TYPE_DEFAULT;
+
+	/* clang-format on */
+
 	return fmt;
 }
 
@@ -265,10 +284,15 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
+				/* Keep aligned args for readability. */
+				/* clang-format off */
+
 				/* Special vars(v) or built-in keywords(b) */
 				/* keep in sync with 'txtfmt_osl_format_identifier()' */
 				if      ((i = txtfmt_lua_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
 				else if ((i = txtfmt_lua_find_keyword(str))      != -1) prev = FMT_TYPE_KEYWORD;
+
+				/* clang-format on */
 
 				if (i > 0) {
 					text_format_fill_ascii(&str, &fmt, prev, i);

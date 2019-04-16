@@ -43,6 +43,9 @@
  */
 static int txtfmt_pov_find_keyword(const char *string)
 {
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	int i, len;
 	/* Language Directives */
 	if      (STR_LITERAL_STARTSWITH(string, "deprecated",  len)) i = len;
@@ -79,6 +82,8 @@ static int txtfmt_pov_find_keyword(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "if",          len)) i = len;
 	else                                                         i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
@@ -90,6 +95,9 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
 
 	/* Float Functions */
 	if 		(STR_LITERAL_STARTSWITH(string, "conserve_energy",    len)) i = len;
@@ -232,6 +240,8 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "str",                len)) i = len;
 	else                                                                i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
@@ -245,6 +255,10 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	/* Language Keywords */
 	if      (STR_LITERAL_STARTSWITH(string, "reflection_exponent", len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "area_illumination",   len)) i = len;
@@ -461,6 +475,8 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "y",                   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "z",                   len)) i = len;
 	else                                                                 i = 0;
+
+	/* clang-format off */
 
 	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -686,16 +702,20 @@ static int txtfmt_pov_find_specialvar(const char *string)
 static int txtfmt_pov_find_bool(const char *string)
 {
 	int i, len;
-	/*Built-in Constants*/
-	if      (STR_LITERAL_STARTSWITH(string, "unofficial",   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "false",   		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "no",      		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "off",     		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "true",    		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "yes",     		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "on",      		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "pi",      		len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "tau",     		len)) i = len;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
+	/* Built-in Constants */
+	if      (STR_LITERAL_STARTSWITH(string, "unofficial",          len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "false",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "no",                  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "off",                 len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "true",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "yes",                 len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "on",                  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "pi",                  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "tau",                 len)) i = len;
 	/* Encodings */
 	else if (STR_LITERAL_STARTSWITH(string, "sint16be",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sint16le",            len)) i = len;
@@ -725,6 +745,8 @@ static int txtfmt_pov_find_bool(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "ttf",                 len)) i = len;
 	else                                                                 i = 0;
 
+	/* clang-format on */
+
 	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
@@ -732,11 +754,18 @@ static int txtfmt_pov_find_bool(const char *string)
 static char txtfmt_pov_format_identifier(const char *str)
 {
 	char fmt;
+
+	/* Keep aligned args for readability. */
+	/* clang-format off */
+
 	if      ((txtfmt_pov_find_specialvar(str))        != -1) fmt = FMT_TYPE_SPECIAL;
 	else if ((txtfmt_pov_find_keyword(str))           != -1) fmt = FMT_TYPE_KEYWORD;
 	else if ((txtfmt_pov_find_reserved_keywords(str)) != -1) fmt = FMT_TYPE_RESERVED;
 	else if ((txtfmt_pov_find_reserved_builtins(str)) != -1) fmt = FMT_TYPE_DIRECTIVE;
 	else                                                     fmt = FMT_TYPE_DEFAULT;
+
+	/* clang-format on */
+
 	return fmt;
 }
 
@@ -855,12 +884,17 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
+				/* Keep aligned args for readability. */
+				/* clang-format off */
+
 				/* Special vars(v) or built-in keywords(b) */
 				/* keep in sync with 'txtfmt_pov_format_identifier()' */
 				if      ((i = txtfmt_pov_find_specialvar(str))        != -1) prev = FMT_TYPE_SPECIAL;
 				else if ((i = txtfmt_pov_find_keyword(str))           != -1) prev = FMT_TYPE_KEYWORD;
 				else if ((i = txtfmt_pov_find_reserved_keywords(str)) != -1) prev = FMT_TYPE_RESERVED;
 				else if ((i = txtfmt_pov_find_reserved_builtins(str)) != -1) prev = FMT_TYPE_DIRECTIVE;
+
+				/* clang-format on */
 
 				if (i > 0) {
 					text_format_fill_ascii(&str, &fmt, prev, i);

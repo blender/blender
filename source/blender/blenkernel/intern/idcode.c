@@ -44,6 +44,8 @@ typedef struct {
 #define IDTYPE_FLAGS_ISLINKABLE (1 << 0)
 } IDType;
 
+/* Keep alignment for readability. */
+/* clang-format off */
 /**
  * When editing enusre that:
  * - Plural need to match rna_main.c's #MainCollectionDef.
@@ -93,6 +95,7 @@ static IDType idtypes[] = {
 	/** Keep last, not an ID exactly, only include for completeness */
 	{ID_LINK_PLACEHOLDER, "Link Placeholder", "link_placeholders", BLT_I18NCONTEXT_ID_ID, 0}, /* plural is fake */
 };
+/* clang-format on */
 
 /* -1 for ID_LINK_PLACEHOLDER */
 BLI_STATIC_ASSERT((ARRAY_SIZE(idtypes) - 1 == MAX_LIBARRAY), "Missing IDType");

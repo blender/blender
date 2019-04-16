@@ -21,6 +21,9 @@
  * \ingroup bli
  */
 
+/* Over wrapped args. */
+/* clang-format off */
+
 /* --- internal helpers --- */
 #define _VA_NARGS_GLUE(x, y) x y
 #define _VA_NARGS_RETURN_COUNT(\
@@ -42,5 +45,7 @@
 	16, 15, 14, 13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2, 1, 0))
 #define VA_NARGS_CALL_OVERLOAD(name, ...) \
 	_VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(name, VA_NARGS_COUNT(__VA_ARGS__)), (__VA_ARGS__))
+
+/* clang-format on */
 
 #endif  /* __BLI_UTILDEFINES_VARIADIC_H__ */
