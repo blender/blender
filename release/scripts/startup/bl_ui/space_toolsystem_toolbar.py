@@ -957,7 +957,7 @@ class _defs_vertex_paint:
         if context is None:
             return True
         ob = context.active_object
-        return (ob.type == 'MESH' and
+        return (ob and ob.type == 'MESH' and
                 (ob.data.use_paint_mask or
                  ob.data.use_paint_mask_vertex))
 
@@ -979,7 +979,7 @@ class _defs_texture_paint:
         if context is None:
             return True
         ob = context.active_object
-        return (ob.type == 'MESH' and
+        return (ob and ob.type == 'MESH' and
                 (ob.data.use_paint_mask))
 
     @staticmethod
@@ -1000,7 +1000,7 @@ class _defs_weight_paint:
         if context is None:
             return True
         ob = context.active_object
-        return (ob.type == 'MESH' and
+        return (ob and ob.type == 'MESH' and
                 (ob.data.use_paint_mask or
                  ob.data.use_paint_mask_vertex))
 
