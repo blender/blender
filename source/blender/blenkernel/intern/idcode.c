@@ -74,7 +74,7 @@ static IDType idtypes[] = {
 	{ID_PA,   "ParticleSettings",   "particles",       BLT_I18NCONTEXT_ID_PARTICLESETTINGS,   IDTYPE_FLAGS_ISLINKABLE},
 	{ID_PAL,  "Palettes",           "palettes",        BLT_I18NCONTEXT_ID_PALETTE,            IDTYPE_FLAGS_ISLINKABLE},
 	{ID_PC,   "PaintCurve",         "paint_curves",    BLT_I18NCONTEXT_ID_PAINTCURVE,         IDTYPE_FLAGS_ISLINKABLE},
-	{ID_LP,   "LightProbe",         "light_probes",    BLT_I18NCONTEXT_ID_LIGHTPROBE,         IDTYPE_FLAGS_ISLINKABLE},
+	{ID_LP,   "LightProbe",         "lightprobes",     BLT_I18NCONTEXT_ID_LIGHTPROBE,         IDTYPE_FLAGS_ISLINKABLE},
 	{ID_SCE,  "Scene",              "scenes",          BLT_I18NCONTEXT_ID_SCENE,              IDTYPE_FLAGS_ISLINKABLE},
 	{ID_SCR,  "Screen",             "screens",         BLT_I18NCONTEXT_ID_SCREEN,             IDTYPE_FLAGS_ISLINKABLE},
 	{ID_SEQ,  "Sequence",           "sequences",       BLT_I18NCONTEXT_ID_SEQUENCE,           0                      }, /* not actually ID data */
