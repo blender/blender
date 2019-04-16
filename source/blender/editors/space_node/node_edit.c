@@ -2234,6 +2234,9 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
 
 	ntreeUpdateTree(CTX_data_main(C), ntree);
 
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
 	return OPERATOR_FINISHED;
@@ -2282,6 +2285,9 @@ static int ntree_socket_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	ntreeUpdateTree(CTX_data_main(C), ntree);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
@@ -2357,6 +2363,9 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
 	}
 
 	ntreeUpdateTree(CTX_data_main(C), ntree);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 
 	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
