@@ -54,8 +54,13 @@ set(SRC
 )
 
 set(LIB
-	extern_gflags
 )
+
+if(NOT WITH_SYSTEM_GFLAGS)
+	list(APPEND LIB
+		extern_gflags
+	)
+endif()
 
 if(WIN32)
 	list(APPEND SRC

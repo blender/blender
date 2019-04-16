@@ -113,8 +113,7 @@ set(SRC
 )
 
 set(LIB
-	extern_ceres
-	extern_glog
+
 )
 
 if(WITH_LIBMV)
@@ -135,6 +134,11 @@ if(WITH_LIBMV)
 		\${EIGEN3_INCLUDE_DIRS}
 		\${PNG_INCLUDE_DIRS}
 		\${ZLIB_INCLUDE_DIRS}
+	)
+
+	list(APPEND LIB
+		extern_ceres
+		extern_glog
 	)
 
 	add_definitions(
