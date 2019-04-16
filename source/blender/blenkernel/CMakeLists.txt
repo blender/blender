@@ -355,8 +355,6 @@ set(SRC
 )
 
 set(LIB
-	bf_editor_animation  # FIXME, bad level (compare_ak_cfraPtr)
-
 	bf_blenfont
 	bf_blenlib
 	bf_blenloader

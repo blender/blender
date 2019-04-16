@@ -118,6 +118,7 @@ set(SRC
 )
 
 set(LIB
+	bf_editor_animation
 	bf_editor_interface
 	bf_editor_space_api
 	bf_python_gpu

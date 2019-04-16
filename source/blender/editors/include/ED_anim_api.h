@@ -792,4 +792,13 @@ void ED_drivers_editor_init(struct bContext *C, struct ScrArea *sa);
 
 /* ************************************************ */
 
+void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
+                              struct Main *bmain,
+                              struct Scene *scene,
+                              ListBase *targets,
+                              bool restore,
+                              bool current_frame_only);
+
+void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
+
 #endif /* __ED_ANIM_API_H__ */

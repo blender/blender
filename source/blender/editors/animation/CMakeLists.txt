@@ -25,6 +25,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/clog
 	../../../../intern/guardedalloc
 	../../../../intern/glew-mx
 )
@@ -41,6 +42,7 @@ set(SRC
 	anim_filter.c
 	anim_ipo_utils.c
 	anim_markers.c
+	anim_motion_paths.c
 	anim_ops.c
 	drivers.c
 	fmodifier_ui.c
