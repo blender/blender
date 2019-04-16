@@ -1343,7 +1343,7 @@ class WM_OT_properties_add(Operator):
             *type(item).bl_rna.properties.keys(),
         })
 
-        rna_idprop_ui_create(item, prop, 1.0)
+        rna_idprop_ui_create(item, prop, default=1.0)
 
         return {'FINISHED'}
 

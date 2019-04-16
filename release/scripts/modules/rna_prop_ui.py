@@ -120,7 +120,13 @@ def rna_idprop_ui_prop_default_set(item, prop, value):
             del rna_ui["default"]
 
 
-def rna_idprop_ui_create(item, prop, default, min=0.0, max=1.0, soft_min=None, soft_max=None, description=None, overridable=False):
+def rna_idprop_ui_create(
+        item, prop, *, default,
+        min=0.0, max=1.0,
+        soft_min=None, soft_max=None,
+        description=None,
+        overridable=False,
+):
     """Create and initialize a custom property with limits, defaults and other settings."""
 
     proptype = type(default)
