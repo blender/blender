@@ -1295,7 +1295,7 @@ PyTypeObject PyBVHTree_Type = {
 	NULL,                                        /* tp_cache */
 	NULL,                                        /* tp_subclasses */
 	NULL,                                        /* tp_weaklist */
-	(destructor) NULL                            /* tp_del */
+	(destructor)NULL,                            /* tp_del */
 };
 
 /* -------------------------------------------------------------------- */
@@ -1313,7 +1313,7 @@ static struct PyModuleDef bvhtree_moduledef = {
 	NULL,                                        /* m_reload */
 	NULL,                                        /* m_traverse */
 	NULL,                                        /* m_clear */
-	NULL                                         /* m_free */
+	NULL,                                        /* m_free */
 };
 
 PyMODINIT_FUNC PyInit_mathutils_bvhtree(void)

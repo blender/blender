@@ -197,7 +197,7 @@ static bNodeSocketTemplate outputs[] = {
 	{   SOCK_RGBA,  0, N_("Image")},
 	{   SOCK_FLOAT, 0, N_("Matte")},
 	{   SOCK_RGBA,  0, N_("Pick")},
-	{   -1, 0, ""   }
+	{   -1, 0, ""   },
 };
 
 void ntreeCompositCryptomatteSyncFromAdd(bNodeTree *UNUSED(ntree), bNode *node)

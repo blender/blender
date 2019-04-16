@@ -315,7 +315,7 @@ static bool image_paint_2d_clone_poll(bContext *C)
 /************************ paint operator ************************/
 typedef enum eTexPaintMode {
 	PAINT_MODE_2D,
-	PAINT_MODE_3D_PROJECT
+	PAINT_MODE_3D_PROJECT,
 } eTexPaintMode;
 
 typedef struct PaintOperation {

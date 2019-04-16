@@ -453,7 +453,7 @@ PyTypeObject PyKDTree_Type = {
 	NULL,                                        /* tp_cache */
 	NULL,                                        /* tp_subclasses */
 	NULL,                                        /* tp_weaklist */
-	(destructor) NULL                            /* tp_del */
+	(destructor)NULL,                            /* tp_del */
 };
 
 PyDoc_STRVAR(py_kdtree_doc,
@@ -468,7 +468,7 @@ static struct PyModuleDef kdtree_moduledef = {
 	NULL,                                        /* m_reload */
 	NULL,                                        /* m_traverse */
 	NULL,                                        /* m_clear */
-	NULL                                         /* m_free */
+	NULL,                                        /* m_free */
 };
 
 PyMODINIT_FUNC PyInit_mathutils_kdtree(void)

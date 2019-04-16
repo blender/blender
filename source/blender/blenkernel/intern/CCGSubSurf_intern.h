@@ -99,15 +99,15 @@ struct DerivedMesh;
 enum {
 	Vert_eEffected =    (1 << 0),
 	Vert_eChanged =     (1 << 1),
-	Vert_eSeam =        (1 << 2)
+	Vert_eSeam =        (1 << 2),
 } /*VertFlags*/;
 
 enum {
-	Edge_eEffected =    (1 << 0)
+	Edge_eEffected =    (1 << 0),
 } /*CCGEdgeFlags*/;
 
 enum {
-	Face_eEffected =    (1 << 0)
+	Face_eEffected =    (1 << 0),
 } /*FaceFlags*/;
 
 struct CCGVert {

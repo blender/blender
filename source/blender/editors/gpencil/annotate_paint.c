@@ -93,7 +93,7 @@ typedef enum eGP_StrokeAdd_Result {
 	GP_STROKEADD_INVALID    = -2,       /* error occurred - insufficient info to do so */
 	GP_STROKEADD_OVERFLOW   = -1,       /* error occurred - cannot fit any more points */
 	GP_STROKEADD_NORMAL,                /* point was successfully added */
-	GP_STROKEADD_FULL                   /* cannot add any more points to buffer */
+	GP_STROKEADD_FULL,                   /* cannot add any more points to buffer */
 } eGP_StrokeAdd_Result;
 
 /* Runtime flags */

@@ -99,7 +99,7 @@ typedef char DRWViewportEmptyList;
 	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->fbl)), \
 	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->txl)), \
 	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->psl)), \
-	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->stl)) \
+	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->stl)), \
 }
 
 /* Use of multisample framebuffers. */

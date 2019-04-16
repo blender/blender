@@ -27,7 +27,7 @@
 
 typedef enum {
 	BMW_DEPTH_FIRST,
-	BMW_BREADTH_FIRST
+	BMW_BREADTH_FIRST,
 } BMWOrder;
 
 typedef enum {

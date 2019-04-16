@@ -172,7 +172,7 @@ static bCallbackFuncStore load_pre_callback = {
 	NULL, NULL, /* next, prev */
 	remove_non_persistent_functions, /* func */
 	NULL, /* arg */
-	0 /* alloc */
+	0, /* alloc */
 };
 
 static void ensure_callback_is_registered()

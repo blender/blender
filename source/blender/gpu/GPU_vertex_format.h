@@ -43,14 +43,14 @@ typedef enum {
 
 	GPU_COMP_F32,
 
-	GPU_COMP_I10
+	GPU_COMP_I10,
 } GPUVertCompType;
 
 typedef enum {
 	GPU_FETCH_FLOAT,
 	GPU_FETCH_INT,
 	GPU_FETCH_INT_TO_FLOAT_UNIT, /* 127 (ubyte) -> 0.5 (and so on for other int types) */
-	GPU_FETCH_INT_TO_FLOAT /* 127 (any int type) -> 127.0 */
+	GPU_FETCH_INT_TO_FLOAT, /* 127 (any int type) -> 127.0 */
 } GPUVertFetchMode;
 
 typedef struct GPUVertAttr {

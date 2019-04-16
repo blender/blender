@@ -663,7 +663,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 	constrname_get_tars, /* get constraint targets */
 	constrname_flush_tars, /* flush constraint targets */
 	constrname_get_tarmat, /* get target matrix */
-	constrname_evaluate /* evaluate */
+	constrname_evaluate, /* evaluate */
 };
 #endif
 
@@ -916,7 +916,7 @@ static bConstraintTypeInfo CTI_CHILDOF = {
 	childof_get_tars, /* get constraint targets */
 	childof_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get a target matrix */
-	childof_evaluate /* evaluate */
+	childof_evaluate, /* evaluate */
 };
 
 /* -------- TrackTo Constraint ------- */
@@ -1094,7 +1094,7 @@ static bConstraintTypeInfo CTI_TRACKTO = {
 	trackto_get_tars, /* get constraint targets */
 	trackto_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	trackto_evaluate /* evaluate */
+	trackto_evaluate, /* evaluate */
 };
 
 /* --------- Inverse-Kinematics --------- */
@@ -1187,7 +1187,7 @@ static bConstraintTypeInfo CTI_KINEMATIC = {
 	kinematic_get_tars, /* get constraint targets */
 	kinematic_flush_tars, /* flush constraint targets */
 	kinematic_get_tarmat, /* get target matrix */
-	NULL /* evaluate - solved as separate loop */
+	NULL, /* evaluate - solved as separate loop */
 };
 
 /* -------- Follow-Path Constraint ---------- */
@@ -1358,7 +1358,7 @@ static bConstraintTypeInfo CTI_FOLLOWPATH = {
 	followpath_get_tars, /* get constraint targets */
 	followpath_flush_tars, /* flush constraint targets */
 	followpath_get_tarmat, /* get target matrix */
-	followpath_evaluate /* evaluate */
+	followpath_evaluate, /* evaluate */
 };
 
 /* --------- Limit Location --------- */
@@ -1406,7 +1406,7 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	loclimit_evaluate /* evaluate */
+	loclimit_evaluate, /* evaluate */
 };
 
 /* -------- Limit Rotation --------- */
@@ -1463,7 +1463,7 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	rotlimit_evaluate /* evaluate */
+	rotlimit_evaluate, /* evaluate */
 };
 
 /* --------- Limit Scale --------- */
@@ -1522,7 +1522,7 @@ static bConstraintTypeInfo CTI_SIZELIMIT = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	sizelimit_evaluate /* evaluate */
+	sizelimit_evaluate, /* evaluate */
 };
 
 /* ----------- Copy Location ------------- */
@@ -1612,7 +1612,7 @@ static bConstraintTypeInfo CTI_LOCLIKE = {
 	loclike_get_tars, /* get constraint targets */
 	loclike_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	loclike_evaluate /* evaluate */
+	loclike_evaluate, /* evaluate */
 };
 
 /* ----------- Copy Rotation ------------- */
@@ -1724,7 +1724,7 @@ static bConstraintTypeInfo CTI_ROTLIKE = {
 	rotlike_get_tars, /* get constraint targets */
 	rotlike_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	rotlike_evaluate /* evaluate */
+	rotlike_evaluate, /* evaluate */
 };
 
 /* ---------- Copy Scale ---------- */
@@ -1819,7 +1819,7 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	sizelike_get_tars, /* get constraint targets */
 	sizelike_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	sizelike_evaluate /* evaluate */
+	sizelike_evaluate, /* evaluate */
 };
 
 /* ----------- Copy Transforms ------------- */
@@ -1880,7 +1880,7 @@ static bConstraintTypeInfo CTI_TRANSLIKE = {
 	translike_get_tars, /* get constraint targets */
 	translike_flush_tars, /* flush constraint targets */
 	default_get_tarmat_full_bbone, /* get target matrix */
-	translike_evaluate /* evaluate */
+	translike_evaluate, /* evaluate */
 };
 
 /* ---------- Maintain Volume ---------- */
@@ -1937,7 +1937,7 @@ static bConstraintTypeInfo CTI_SAMEVOL = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	samevolume_evaluate /* evaluate */
+	samevolume_evaluate, /* evaluate */
 };
 
 /* ----------- Python Constraint -------------- */
@@ -2057,7 +2057,7 @@ static bConstraintTypeInfo CTI_PYTHON = {
 	pycon_get_tars, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	pycon_get_tarmat, /* get target matrix */
-	pycon_evaluate /* evaluate */
+	pycon_evaluate, /* evaluate */
 };
 
 /* ----------- Armature Constraint -------------- */
@@ -2263,7 +2263,7 @@ static bConstraintTypeInfo CTI_ARMATURE = {
 	armdef_get_tars, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	armdef_get_tarmat, /* get target matrix */
-	armdef_evaluate /* evaluate */
+	armdef_evaluate, /* evaluate */
 };
 
 /* -------- Action Constraint ----------- */
@@ -2427,7 +2427,7 @@ static bConstraintTypeInfo CTI_ACTION = {
 	actcon_get_tars, /* get constraint targets */
 	actcon_flush_tars, /* flush constraint targets */
 	actcon_get_tarmat, /* get target matrix */
-	actcon_evaluate /* evaluate */
+	actcon_evaluate, /* evaluate */
 };
 
 /* --------- Locked Track ---------- */
@@ -2735,7 +2735,7 @@ static bConstraintTypeInfo CTI_LOCKTRACK = {
 	locktrack_get_tars, /* get constraint targets */
 	locktrack_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	locktrack_evaluate /* evaluate */
+	locktrack_evaluate, /* evaluate */
 };
 
 /* ---------- Limit Distance Constraint ----------- */
@@ -2869,7 +2869,7 @@ static bConstraintTypeInfo CTI_DISTLIMIT = {
 	distlimit_get_tars, /* get constraint targets */
 	distlimit_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get a target matrix */
-	distlimit_evaluate /* evaluate */
+	distlimit_evaluate, /* evaluate */
 };
 
 /* ---------- Stretch To ------------ */
@@ -3081,7 +3081,7 @@ static bConstraintTypeInfo CTI_STRETCHTO = {
 	stretchto_get_tars, /* get constraint targets */
 	stretchto_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	stretchto_evaluate /* evaluate */
+	stretchto_evaluate, /* evaluate */
 };
 
 /* ---------- Floor ------------ */
@@ -3225,7 +3225,7 @@ static bConstraintTypeInfo CTI_MINMAX = {
 	minmax_get_tars, /* get constraint targets */
 	minmax_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	minmax_evaluate /* evaluate */
+	minmax_evaluate, /* evaluate */
 };
 
 /* -------- Clamp To ---------- */
@@ -3391,7 +3391,7 @@ static bConstraintTypeInfo CTI_CLAMPTO = {
 	clampto_get_tars, /* get constraint targets */
 	clampto_flush_tars, /* flush constraint targets */
 	clampto_get_tarmat, /* get target matrix */
-	clampto_evaluate /* evaluate */
+	clampto_evaluate, /* evaluate */
 };
 
 /* ---------- Transform Constraint ----------- */
@@ -3554,7 +3554,7 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 	transform_get_tars, /* get constraint targets */
 	transform_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get a target matrix */
-	transform_evaluate /* evaluate */
+	transform_evaluate, /* evaluate */
 };
 
 /* ---------- Shrinkwrap Constraint ----------- */
@@ -3767,7 +3767,7 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
 	shrinkwrap_get_tars, /* get constraint targets */
 	shrinkwrap_flush_tars, /* flush constraint targets */
 	shrinkwrap_get_tarmat, /* get a target matrix */
-	shrinkwrap_evaluate /* evaluate */
+	shrinkwrap_evaluate, /* evaluate */
 };
 
 /* --------- Damped Track ---------- */
@@ -3928,7 +3928,7 @@ static bConstraintTypeInfo CTI_DAMPTRACK = {
 	damptrack_get_tars, /* get constraint targets */
 	damptrack_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	damptrack_evaluate /* evaluate */
+	damptrack_evaluate, /* evaluate */
 };
 
 /* ----------- Spline IK ------------ */
@@ -4018,7 +4018,7 @@ static bConstraintTypeInfo CTI_SPLINEIK = {
 	splineik_get_tars, /* get constraint targets */
 	splineik_flush_tars, /* flush constraint targets */
 	splineik_get_tarmat, /* get target matrix */
-	NULL /* evaluate - solved as separate loop */
+	NULL, /* evaluate - solved as separate loop */
 };
 
 /* ----------- Pivot ------------- */
@@ -4142,7 +4142,7 @@ static bConstraintTypeInfo CTI_PIVOT = {
 	pivotcon_get_tars, /* get constraint targets */
 	pivotcon_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
-	pivotcon_evaluate /* evaluate */
+	pivotcon_evaluate, /* evaluate */
 };
 
 /* ----------- Follow Track ------------- */
@@ -4392,7 +4392,7 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	followtrack_evaluate /* evaluate */
+	followtrack_evaluate, /* evaluate */
 };
 
 /* ----------- Camre Solver ------------- */
@@ -4449,7 +4449,7 @@ static bConstraintTypeInfo CTI_CAMERASOLVER = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	camerasolver_evaluate /* evaluate */
+	camerasolver_evaluate, /* evaluate */
 };
 
 /* ----------- Object Solver ------------- */
@@ -4525,7 +4525,7 @@ static bConstraintTypeInfo CTI_OBJECTSOLVER = {
 	NULL, /* get constraint targets */
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
-	objectsolver_evaluate /* evaluate */
+	objectsolver_evaluate, /* evaluate */
 };
 
 /* ----------- Transform Cache ------------- */
@@ -4616,7 +4616,7 @@ static bConstraintTypeInfo CTI_TRANSFORM_CACHE = {
 	NULL,  /* get constraint targets */
 	NULL,  /* flush constraint targets */
 	NULL,  /* get target matrix */
-	transformcache_evaluate  /* evaluate */
+	transformcache_evaluate,  /* evaluate */
 };
 
 /* ************************* Constraints Type-Info *************************** */

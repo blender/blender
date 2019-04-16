@@ -40,7 +40,7 @@ struct ImBuf;
 typedef enum ThumbSize {
 	THB_NORMAL,
 	THB_LARGE,
-	THB_FAIL
+	THB_FAIL,
 } ThumbSize;
 
 typedef enum ThumbSource {

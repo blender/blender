@@ -85,15 +85,15 @@ PyTypeObject MediumType_Type = {
 
 PyLongObject _BPy_MediumType_DRY_MEDIUM = {
 	PyVarObject_HEAD_INIT(&MediumType_Type, 1)
-	{ Stroke::DRY_MEDIUM }
+	{ Stroke::DRY_MEDIUM },
 };
 PyLongObject _BPy_MediumType_HUMID_MEDIUM = {
 	PyVarObject_HEAD_INIT(&MediumType_Type, 1)
-	{ Stroke::HUMID_MEDIUM }
+	{ Stroke::HUMID_MEDIUM },
 };
 PyLongObject _BPy_MediumType_OPAQUE_MEDIUM = {
 	PyVarObject_HEAD_INIT(&MediumType_Type, 1)
-	{ Stroke::OPAQUE_MEDIUM }
+	{ Stroke::OPAQUE_MEDIUM },
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------

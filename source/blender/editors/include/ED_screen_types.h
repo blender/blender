@@ -81,7 +81,7 @@ typedef enum {
 	AE_TOP_TO_BOTTOMRIGHT,
 	/** Region located at the top, _bottom_ edge is action zone.
 	 * Region minimized to the top left */
-	AE_BOTTOM_TO_TOPLEFT
+	AE_BOTTOM_TO_TOPLEFT,
 } AZEdge;
 
 typedef enum {

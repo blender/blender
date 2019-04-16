@@ -353,12 +353,12 @@ typedef struct PaintCurve {
 typedef enum eBrushGradientSourceStroke {
 	BRUSH_GRADIENT_PRESSURE = 0, /* gradient from pressure */
 	BRUSH_GRADIENT_SPACING_REPEAT = 1, /* gradient from spacing */
-	BRUSH_GRADIENT_SPACING_CLAMP = 2 /* gradient from spacing */
+	BRUSH_GRADIENT_SPACING_CLAMP = 2, /* gradient from spacing */
 } eBrushGradientSourceStroke;
 
 typedef enum eBrushGradientSourceFill {
 	BRUSH_GRADIENT_LINEAR = 0, /* gradient from pressure */
-	BRUSH_GRADIENT_RADIAL = 1 /* gradient from spacing */
+	BRUSH_GRADIENT_RADIAL = 1, /* gradient from spacing */
 } eBrushGradientSourceFill;
 
 /* Brush.flag */
@@ -531,7 +531,7 @@ typedef enum {
 /* blur kernel types, Brush.blur_mode */
 typedef enum eBlurKernelType {
 	KERNEL_GAUSSIAN,
-	KERNEL_BOX
+	KERNEL_BOX,
 } eBlurKernelType;
 
 /* Brush.falloff_shape */

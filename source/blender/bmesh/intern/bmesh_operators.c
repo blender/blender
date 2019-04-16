@@ -68,7 +68,7 @@ const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
 	0,                      /*  7: unused */
 	sizeof(float) * 3,      /*  8: BMO_OP_SLOT_VEC */
 	sizeof(void *),	        /*  9: BMO_OP_SLOT_ELEMENT_BUF */
-	sizeof(void *)          /* 10: BMO_OP_SLOT_MAPPING */
+	sizeof(void *),         /* 10: BMO_OP_SLOT_MAPPING */
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */

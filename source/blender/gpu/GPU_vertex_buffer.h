@@ -43,7 +43,7 @@ typedef enum {
 	/* can be extended to support more types */
 	GPU_USAGE_STREAM,
 	GPU_USAGE_STATIC, /* do not keep data in memory */
-	GPU_USAGE_DYNAMIC
+	GPU_USAGE_DYNAMIC,
 } GPUUsageType;
 
 typedef struct GPUVertBuf {

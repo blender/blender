@@ -41,7 +41,7 @@ typedef enum {
 	GPU_PRIM_TRIS_ADJ,
 	GPU_PRIM_LINE_STRIP_ADJ,
 
-	GPU_PRIM_NONE
+	GPU_PRIM_NONE,
 } GPUPrimType;
 
 /* what types of primitives does each shader expect? */

@@ -172,7 +172,7 @@ typedef enum eRigidBodyOb_Type {
 	/* active geometry participant in simulation. is directly controlled by sim */
 	RBO_TYPE_ACTIVE	= 0,
 	/* passive geometry participant in simulation. is directly controlled by animsys */
-	RBO_TYPE_PASSIVE
+	RBO_TYPE_PASSIVE,
 } eRigidBodyOb_Type;
 
 /* Flags for RigidBodyOb */
@@ -223,7 +223,7 @@ typedef enum eRigidBody_MeshSource {
 	/* only deformations */
 	RBO_MESH_DEFORM,
 	/* final derived mesh */
-	RBO_MESH_FINAL
+	RBO_MESH_FINAL,
 } eRigidBody_MeshSource;
 
 /* ******************************** */

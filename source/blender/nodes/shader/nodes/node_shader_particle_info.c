@@ -32,7 +32,7 @@ static bNodeSocketTemplate outputs[] = {
 	{ SOCK_FLOAT,  0, "Size" },
 	{ SOCK_VECTOR,  0, "Velocity" },
 	{ SOCK_VECTOR,  0, "Angular Velocity" },
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 static void node_shader_exec_particle_info(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {

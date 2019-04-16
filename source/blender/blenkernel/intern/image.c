@@ -2115,7 +2115,7 @@ static const char *stamp_metadata_fields[] = {
 	"RenderTime",
 	"Memory",
 	"Hostname",
-	NULL
+	NULL,
 };
 
 /* Check whether the given metadata field name translates to a known field of

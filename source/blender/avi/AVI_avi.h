@@ -156,7 +156,7 @@ typedef enum {
 	AVI_FORMAT_RGB24,  /* The most basic of forms, 3 bytes per pixel, 1 per r, g, b */
 	AVI_FORMAT_RGB32,  /* The second most basic of forms, 4 bytes per pixel, 1 per r, g, b, alpha */
 	AVI_FORMAT_AVI_RGB, /* Same as above, but is in the weird AVI order (bottom to top, left to right) */
-	AVI_FORMAT_MJPEG /* Motion-JPEG */
+	AVI_FORMAT_MJPEG, /* Motion-JPEG */
 } AviFormat;
 
 typedef struct _AviStreamRec {
@@ -198,7 +198,7 @@ typedef enum {
 	AVI_ERROR_FORMAT,
 	AVI_ERROR_ALLOC,
 	AVI_ERROR_FOUND,
-	AVI_ERROR_OPTION
+	AVI_ERROR_OPTION,
 } AviError;
 
 /* belongs to the option-setting function. */
@@ -206,7 +206,7 @@ typedef enum {
 	AVI_OPTION_WIDTH = 0,
 	AVI_OPTION_HEIGHT,
 	AVI_OPTION_QUALITY,
-	AVI_OPTION_FRAMERATE
+	AVI_OPTION_FRAMERATE,
 } AviOption;
 
 /* The offsets that will always stay the same in AVI files we

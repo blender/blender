@@ -35,7 +35,7 @@ static bNodeSocketTemplate inputs[] = {
 	{ SOCK_FLOAT, 1, N_("Bias"),        0.0f,   0.0f,   0.0f,  0.0f, -1.0f,    1.0f, PROP_NONE },
 	{ SOCK_FLOAT, 1, N_("Brick Width"), 0.5f,   0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
 	{ SOCK_FLOAT, 1, N_("Row Height"),  0.25f,  0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Color")},

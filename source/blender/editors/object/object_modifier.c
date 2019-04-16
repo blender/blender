@@ -1610,7 +1610,7 @@ void OBJECT_OT_skin_root_mark(wmOperatorType *ot)
 
 typedef enum {
 	SKIN_LOOSE_MARK,
-	SKIN_LOOSE_CLEAR
+	SKIN_LOOSE_CLEAR,
 } SkinLooseAction;
 
 static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)

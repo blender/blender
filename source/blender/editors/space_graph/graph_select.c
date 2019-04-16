@@ -1094,7 +1094,7 @@ typedef struct tNearestVertInfo {
 typedef enum eGraphVertIndex {
 	NEAREST_HANDLE_LEFT = -1,
 	NEAREST_HANDLE_KEY,
-	NEAREST_HANDLE_RIGHT
+	NEAREST_HANDLE_RIGHT,
 } eGraphVertIndex;
 
 /* Tolerance for absolute radius (in pixels) of the vert from the cursor to use */

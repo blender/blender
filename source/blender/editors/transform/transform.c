@@ -1667,7 +1667,7 @@ typedef enum {
 	UP,
 	DOWN,
 	LEFT,
-	RIGHT
+	RIGHT,
 } ArrowDirection;
 
 #define POS_INDEX 0

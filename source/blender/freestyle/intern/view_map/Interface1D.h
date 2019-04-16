@@ -50,7 +50,7 @@ typedef enum {
 	MIN,   /*!< The value computed for the 1D element is the minimum of the values obtained for the 0D elements.*/
 	MAX,   /*!< The value computed for the 1D element is the maximum of the values obtained for the 0D elements.*/
 	FIRST, /*!< The value computed for the 1D element is the first of the values obtained for the 0D elements.*/
-	LAST   /*!< The value computed for the 1D element is the last of the values obtained for the 0D elements.*/
+	LAST,  /*!< The value computed for the 1D element is the last of the values obtained for the 0D elements.*/
 } IntegrationType;
 
 /*! Returns a single value from a set of values evaluated at each 0D element of this 1D element.

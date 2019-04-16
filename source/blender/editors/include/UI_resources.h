@@ -35,7 +35,7 @@
 typedef enum {
 	/* ui */
 #include "UI_icons.h"
-	BIFICONID_LAST
+	BIFICONID_LAST,
 } BIFIconID;
 
 #define BIFICONID_FIRST  (ICON_NONE)
@@ -310,7 +310,7 @@ typedef enum ThemeColorID {
 	TH_METADATA_TEXT,
 
 	TH_EDGE_BEVEL,
-	TH_VERTEX_BEVEL
+	TH_VERTEX_BEVEL,
 } ThemeColorID;
 
 /* specific defines per space should have higher define values */

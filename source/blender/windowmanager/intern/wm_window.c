@@ -1109,7 +1109,7 @@ typedef enum {
 	SHIFT    = 's',
 	CONTROL  = 'c',
 	ALT      = 'a',
-	OS       = 'C'
+	OS       = 'C',
 } modifierKeyType;
 
 /* check if specified modifier key type is pressed */

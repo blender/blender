@@ -62,7 +62,7 @@ typedef enum ePFieldType {
 	/** Force based on smoke simulation air flow. */
 	PFIELD_SMOKEFLOW  = 13,
 
-	NUM_PFIELD_TYPES
+	NUM_PFIELD_TYPES,
 } ePFieldType;
 
 typedef struct PartDeflect {

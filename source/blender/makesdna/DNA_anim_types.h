@@ -90,7 +90,7 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_STEPPED = 9,
 
 	/* NOTE: all new modifiers must be added above this line */
-	FMODIFIER_NUM_TYPES
+	FMODIFIER_NUM_TYPES,
 } eFModifier_Types;
 
 /** F-Curve Modifier Settings. */
@@ -227,7 +227,7 @@ typedef enum eFMod_Cycling_Modes {
 	/** repeat keyframe range, but with offset based on gradient between values */
 	FCM_EXTRAPOLATE_CYCLIC_OFFSET,
 	/** alternate between forward and reverse playback of keyframe range */
-	FCM_EXTRAPOLATE_MIRROR
+	FCM_EXTRAPOLATE_MIRROR,
 } eFMod_Cycling_Modes;
 
 
@@ -278,7 +278,7 @@ typedef enum eFMod_Noise_Modifications {
 	/** Subtract noise from the curve. */
 	FCM_NOISE_MODIF_SUBTRACT,
 	/** Multiply the curve by noise. */
-	FCM_NOISE_MODIF_MULTIPLY
+	FCM_NOISE_MODIF_MULTIPLY,
 } eFMod_Noise_Modifications;
 
 
@@ -366,7 +366,7 @@ typedef enum eDriverTarget_TransformChannels {
 	DTAR_TRANSCHAN_SCALEY,
 	DTAR_TRANSCHAN_SCALEZ,
 
-	MAX_DTAR_TRANSCHAN_TYPES
+	MAX_DTAR_TRANSCHAN_TYPES,
 } eDriverTarget_TransformChannels;
 
 /* --- */
@@ -422,7 +422,7 @@ typedef enum eDriverVar_Types {
 	 * \note This must always be th last item in this list,
 	 * so add new types above this line.
 	 */
-	MAX_DVAR_TYPES
+	MAX_DVAR_TYPES,
 } eDriverVar_Types;
 
 /* Driver Variable Flags */
@@ -513,7 +513,7 @@ typedef enum eDriver_Types {
 	/** smallest value. */
 	DRIVER_TYPE_MIN,
 	/** largest value. */
-	DRIVER_TYPE_MAX
+	DRIVER_TYPE_MAX,
 } eDriver_Types;
 
 /** Driver flags. */
@@ -636,7 +636,7 @@ typedef enum eFCurve_Extend {
 	/** just extend min/max keyframe value  */
 	FCURVE_EXTRAPOLATE_CONSTANT	= 0,
 	/** just extend gradient of segment between first segment keyframes */
-	FCURVE_EXTRAPOLATE_LINEAR
+	FCURVE_EXTRAPOLATE_LINEAR,
 } eFCurve_Extend;
 
 /* curve coloring modes */
@@ -800,7 +800,7 @@ typedef enum eNlaStrip_Type {
 	NLASTRIP_TYPE_META,
 
 	/* 'emit sound' - a strip which is used for timing when speaker emits sounds */
-	NLASTRIP_TYPE_SOUND
+	NLASTRIP_TYPE_SOUND,
 } eNlaStrip_Type;
 
 /* NLA Tracks ------------------------------------- */
@@ -904,7 +904,7 @@ typedef enum eKSP_Grouping {
 	KSP_GROUP_KSNAME,
 	/** Path should be grouped using name of inner-most context item from templates
 	 * - this is most useful for relative KeyingSets only. */
-	KSP_GROUP_TEMPLATE_ITEM
+	KSP_GROUP_TEMPLATE_ITEM,
 } eKSP_Grouping;
 
 /* ---------------- */

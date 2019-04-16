@@ -147,7 +147,7 @@ typedef enum ePoseSlide_Channels {
 
 	PS_TFM_BBONE_SHAPE,          /* Bendy Bones */
 
-	PS_TFM_PROPS                 /* Custom Properties */
+	PS_TFM_PROPS,                 /* Custom Properties */
 } ePoseSlide_Channels;
 
 /* Property enum for ePoseSlide_Channels */
@@ -1344,7 +1344,7 @@ typedef enum ePosePropagate_Termination {
 	/* only do on keyframes that are selected */
 	POSE_PROPAGATE_SELECTED_KEYS,
 	/* only do on the frames where markers are selected */
-	POSE_PROPAGATE_SELECTED_MARKERS
+	POSE_PROPAGATE_SELECTED_MARKERS,
 } ePosePropagate_Termination;
 
 /* termination data needed for some modes - assumes only one of these entries will be needed at a time */

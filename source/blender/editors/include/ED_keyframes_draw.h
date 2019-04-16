@@ -104,7 +104,7 @@ typedef enum eKeyframeShapeDrawOpts {
 	/* only the inside filling */
 	KEYFRAME_SHAPE_INSIDE,
 	/* the whole thing */
-	KEYFRAME_SHAPE_BOTH
+	KEYFRAME_SHAPE_BOTH,
 } eKeyframeShapeDrawOpts;
 
 /* Handle type. */

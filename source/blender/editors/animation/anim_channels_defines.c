@@ -226,7 +226,7 @@ static void acf_gpencil_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
 	bool showGroupColors = acf_show_channel_colors(ac);
-	
+
 	if ((showGroupColors) && (ale->type == ANIMTYPE_GPLAYER)) {
 		bGPDlayer *gpl = (bGPDlayer *)ale->data;
 		copy_v3_v3(r_color, gpl->color);
@@ -530,7 +530,7 @@ static bAnimChannelType ACF_SUMMARY =
 
 	acf_summary_setting_valid,          /* has setting */
 	acf_summary_setting_flag,           /* flag for setting */
-	acf_summary_setting_ptr             /* pointer for setting */
+	acf_summary_setting_ptr,             /* pointer for setting */
 };
 
 /* Scene ------------------------------------------- */
@@ -635,7 +635,7 @@ static bAnimChannelType ACF_SCENE =
 
 	acf_scene_setting_valid,        /* has setting */
 	acf_scene_setting_flag,         /* flag for setting */
-	acf_scene_setting_ptr           /* pointer for setting */
+	acf_scene_setting_ptr,           /* pointer for setting */
 };
 
 /* Object ------------------------------------------- */
@@ -800,7 +800,7 @@ static bAnimChannelType ACF_OBJECT =
 
 	acf_object_setting_valid,       /* has setting */
 	acf_object_setting_flag,        /* flag for setting */
-	acf_object_setting_ptr          /* pointer for setting */
+	acf_object_setting_ptr,          /* pointer for setting */
 };
 
 /* Group ------------------------------------------- */
@@ -959,7 +959,7 @@ static bAnimChannelType ACF_GROUP =
 
 	acf_group_setting_valid,        /* has setting */
 	acf_group_setting_flag,         /* flag for setting */
-	acf_group_setting_ptr           /* pointer for setting */
+	acf_group_setting_ptr,           /* pointer for setting */
 };
 
 /* F-Curve ------------------------------------------- */
@@ -1076,7 +1076,7 @@ static bAnimChannelType ACF_FCURVE =
 
 	acf_fcurve_setting_valid,       /* has setting */
 	acf_fcurve_setting_flag,        /* flag for setting */
-	acf_fcurve_setting_ptr          /* pointer for setting */
+	acf_fcurve_setting_ptr,          /* pointer for setting */
 };
 
 /* NLA Control FCurves Expander ----------------------- */
@@ -1175,7 +1175,7 @@ static bAnimChannelType ACF_NLACONTROLS =
 
 	acf_nla_controls_setting_valid, /* has setting */
 	acf_nla_controls_setting_flag,  /* flag for setting */
-	acf_nla_controls_setting_ptr    /* pointer for setting */
+	acf_nla_controls_setting_ptr,    /* pointer for setting */
 };
 
 
@@ -1218,7 +1218,7 @@ static bAnimChannelType ACF_NLACURVE =
 
 	acf_fcurve_setting_valid,       /* has setting */
 	acf_fcurve_setting_flag,        /* flag for setting */
-	acf_fcurve_setting_ptr          /* pointer for setting */
+	acf_fcurve_setting_ptr,          /* pointer for setting */
 };
 
 /* Object Action Expander  ------------------------------------------- */
@@ -1303,7 +1303,7 @@ static bAnimChannelType ACF_FILLACTD =
 
 	acf_fillactd_setting_valid,     /* has setting */
 	acf_fillactd_setting_flag,      /* flag for setting */
-	acf_fillactd_setting_ptr        /* pointer for setting */
+	acf_fillactd_setting_ptr,        /* pointer for setting */
 };
 
 /* Drivers Expander  ------------------------------------------- */
@@ -1383,7 +1383,7 @@ static bAnimChannelType ACF_FILLDRIVERS =
 
 	acf_filldrivers_setting_valid,  /* has setting */
 	acf_filldrivers_setting_flag,   /* flag for setting */
-	acf_filldrivers_setting_ptr     /* pointer for setting */
+	acf_filldrivers_setting_ptr,     /* pointer for setting */
 };
 
 
@@ -1461,7 +1461,7 @@ static bAnimChannelType ACF_DSMAT =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsmat_setting_flag,                 /* flag for setting */
-	acf_dsmat_setting_ptr                   /* pointer for setting */
+	acf_dsmat_setting_ptr,                   /* pointer for setting */
 };
 
 /* Light Expander  ------------------------------------------- */
@@ -1538,7 +1538,7 @@ static bAnimChannelType ACF_DSLIGHT =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dslight_setting_flag,               /* flag for setting */
-	acf_dslight_setting_ptr                 /* pointer for setting */
+	acf_dslight_setting_ptr,                 /* pointer for setting */
 };
 
 /* Texture Expander  ------------------------------------------- */
@@ -1622,7 +1622,7 @@ static bAnimChannelType ACF_DSTEX =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dstex_setting_flag,                 /* flag for setting */
-	acf_dstex_setting_ptr                   /* pointer for setting */
+	acf_dstex_setting_ptr,                   /* pointer for setting */
 };
 
 /* Camera Expander  ------------------------------------------- */
@@ -1704,7 +1704,7 @@ static bAnimChannelType ACF_DSCACHEFILE =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dscachefile_setting_flag,           /* flag for setting */
-	acf_dscachefile_setting_ptr             /* pointer for setting */
+	acf_dscachefile_setting_ptr,             /* pointer for setting */
 };
 
 /* Camera Expander  ------------------------------------------- */
@@ -1785,7 +1785,7 @@ static bAnimChannelType ACF_DSCAM =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dscam_setting_flag,                 /* flag for setting */
-	acf_dscam_setting_ptr                   /* pointer for setting */
+	acf_dscam_setting_ptr,                   /* pointer for setting */
 };
 
 /* Curve Expander  ------------------------------------------- */
@@ -1872,7 +1872,7 @@ static bAnimChannelType ACF_DSCUR =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dscur_setting_flag,                 /* flag for setting */
-	acf_dscur_setting_ptr                   /* pointer for setting */
+	acf_dscur_setting_ptr,                   /* pointer for setting */
 };
 
 /* Shape Key Expander  ------------------------------------------- */
@@ -1949,7 +1949,7 @@ static bAnimChannelType ACF_DSSKEY =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsskey_setting_flag,                /* flag for setting */
-	acf_dsskey_setting_ptr                  /* pointer for setting */
+	acf_dsskey_setting_ptr,                  /* pointer for setting */
 };
 
 /* World Expander  ------------------------------------------- */
@@ -2026,7 +2026,7 @@ static bAnimChannelType ACF_DSWOR =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dswor_setting_flag,                 /* flag for setting */
-	acf_dswor_setting_ptr                   /* pointer for setting */
+	acf_dswor_setting_ptr,                   /* pointer for setting */
 };
 
 /* Particle Expander  ------------------------------------------- */
@@ -2103,7 +2103,7 @@ static bAnimChannelType ACF_DSPART =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dspart_setting_flag,                /* flag for setting */
-	acf_dspart_setting_ptr                  /* pointer for setting */
+	acf_dspart_setting_ptr,                  /* pointer for setting */
 };
 
 /* MetaBall Expander  ------------------------------------------- */
@@ -2180,7 +2180,7 @@ static bAnimChannelType ACF_DSMBALL =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsmball_setting_flag,               /* flag for setting */
-	acf_dsmball_setting_ptr                 /* pointer for setting */
+	acf_dsmball_setting_ptr,                 /* pointer for setting */
 };
 
 /* Armature Expander  ------------------------------------------- */
@@ -2257,7 +2257,7 @@ static bAnimChannelType ACF_DSARM =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsarm_setting_flag,                 /* flag for setting */
-	acf_dsarm_setting_ptr                   /* pointer for setting */
+	acf_dsarm_setting_ptr,                   /* pointer for setting */
 };
 
 /* NodeTree Expander  ------------------------------------------- */
@@ -2345,7 +2345,7 @@ static bAnimChannelType ACF_DSNTREE =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsntree_setting_flag,               /* flag for setting */
-	acf_dsntree_setting_ptr                 /* pointer for setting */
+	acf_dsntree_setting_ptr,                 /* pointer for setting */
 };
 
 /* LineStyle Expander  ------------------------------------------- */
@@ -2422,7 +2422,7 @@ static bAnimChannelType ACF_DSLINESTYLE =
 
 	acf_generic_dataexpand_setting_valid,	/* has setting */
 	acf_dslinestyle_setting_flag,			/* flag for setting */
-	acf_dslinestyle_setting_ptr				/* pointer for setting */
+	acf_dslinestyle_setting_ptr,				/* pointer for setting */
 };
 
 /* Mesh Expander  ------------------------------------------- */
@@ -2499,7 +2499,7 @@ static bAnimChannelType ACF_DSMESH =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsmesh_setting_flag,                /* flag for setting */
-	acf_dsmesh_setting_ptr                  /* pointer for setting */
+	acf_dsmesh_setting_ptr,                  /* pointer for setting */
 };
 
 /* Lattice Expander  ------------------------------------------- */
@@ -2576,7 +2576,7 @@ static bAnimChannelType ACF_DSLAT =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dslat_setting_flag,                 /* flag for setting */
-	acf_dslat_setting_ptr                   /* pointer for setting */
+	acf_dslat_setting_ptr,                   /* pointer for setting */
 };
 
 /* Speaker Expander  ------------------------------------------- */
@@ -2653,7 +2653,7 @@ static bAnimChannelType ACF_DSSPK =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsspk_setting_flag,                 /* flag for setting */
-	acf_dsspk_setting_ptr                   /* pointer for setting */
+	acf_dsspk_setting_ptr,                   /* pointer for setting */
 };
 
 /* GPencil Expander  ------------------------------------------- */
@@ -2730,7 +2730,7 @@ static bAnimChannelType ACF_DSGPENCIL =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsgpencil_setting_flag,             /* flag for setting */
-	acf_dsgpencil_setting_ptr               /* pointer for setting */
+	acf_dsgpencil_setting_ptr,               /* pointer for setting */
 };
 
 /* World Expander  ------------------------------------------- */
@@ -2808,7 +2808,7 @@ static bAnimChannelType ACF_DSMCLIP =
 
 	acf_generic_dataexpand_setting_valid,   /* has setting */
 	acf_dsmclip_setting_flag,               /* flag for setting */
-	acf_dsmclip_setting_ptr                 /* pointer for setting */
+	acf_dsmclip_setting_ptr,                 /* pointer for setting */
 };
 
 /* ShapeKey Entry  ------------------------------------------- */
@@ -2916,7 +2916,7 @@ static bAnimChannelType ACF_SHAPEKEY =
 
 	acf_shapekey_setting_valid,     /* has setting */
 	acf_shapekey_setting_flag,      /* flag for setting */
-	acf_shapekey_setting_ptr        /* pointer for setting */
+	acf_shapekey_setting_ptr,        /* pointer for setting */
 };
 
 /* GPencil Datablock ------------------------------------------- */
@@ -2993,7 +2993,7 @@ static bAnimChannelType ACF_GPD =
 
 	acf_gpd_setting_valid,          /* has setting */
 	acf_gpd_setting_flag,           /* flag for setting */
-	acf_gpd_setting_ptr             /* pointer for setting */
+	acf_gpd_setting_ptr,             /* pointer for setting */
 };
 
 /* GPencil Layer ------------------------------------------- */
@@ -3086,7 +3086,7 @@ static bAnimChannelType ACF_GPL =
 
 	acf_gpl_setting_valid,          /* has setting */
 	acf_gpl_setting_flag,           /* flag for setting */
-	acf_gpl_setting_ptr             /* pointer for setting */
+	acf_gpl_setting_ptr,             /* pointer for setting */
 };
 
 
@@ -3164,7 +3164,7 @@ static bAnimChannelType ACF_MASKDATA =
 
 	acf_mask_setting_valid,          /* has setting */
 	acf_mask_setting_flag,           /* flag for setting */
-	acf_mask_setting_ptr             /* pointer for setting */
+	acf_mask_setting_ptr,             /* pointer for setting */
 };
 
 /* Mask Layer ------------------------------------------- */
@@ -3251,7 +3251,7 @@ static bAnimChannelType ACF_MASKLAYER =
 
 	acf_masklay_setting_valid,      /* has setting */
 	acf_masklay_setting_flag,       /* flag for setting */
-	acf_masklay_setting_ptr         /* pointer for setting */
+	acf_masklay_setting_ptr,         /* pointer for setting */
 };
 
 /* NLA Track ----------------------------------------------- */
@@ -3390,7 +3390,7 @@ static bAnimChannelType ACF_NLATRACK =
 
 	acf_nlatrack_setting_valid,     /* has setting */
 	acf_nlatrack_setting_flag,      /* flag for setting */
-	acf_nlatrack_setting_ptr        /* pointer for setting */
+	acf_nlatrack_setting_ptr,        /* pointer for setting */
 };
 
 /* NLA Action ----------------------------------------------- */
@@ -3556,7 +3556,7 @@ static bAnimChannelType ACF_NLAACTION =
 
 	acf_nlaaction_setting_valid,     /* has setting */
 	acf_nlaaction_setting_flag,      /* flag for setting */
-	acf_nlaaction_setting_ptr        /* pointer for setting */
+	acf_nlaaction_setting_ptr,        /* pointer for setting */
 };
 
 

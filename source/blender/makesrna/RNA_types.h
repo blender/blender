@@ -341,7 +341,7 @@ typedef enum RawPropertyType {
 	PROP_RAW_CHAR,
 	PROP_RAW_BOOLEAN,
 	PROP_RAW_DOUBLE,
-	PROP_RAW_FLOAT
+	PROP_RAW_FLOAT,
 } RawPropertyType;
 
 typedef struct RawArray {

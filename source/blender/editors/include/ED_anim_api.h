@@ -240,7 +240,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_PALETTE,
 
 	/* always as last item, the total number of channel types... */
-	ANIMTYPE_NUM_TYPES
+	ANIMTYPE_NUM_TYPES,
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */
@@ -255,7 +255,7 @@ typedef enum eAnim_KeyType {
 	ALE_SCE,            /* Scene summary */
 	ALE_OB,             /* Object summary */
 	ALE_ACT,            /* Action summary */
-	ALE_GROUP           /* Action Group summary */
+	ALE_GROUP,           /* Action Group summary */
 } eAnim_KeyType;
 
 /* Flags for specifying the types of updates (i.e. recalculation/refreshing) that

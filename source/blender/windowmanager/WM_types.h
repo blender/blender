@@ -517,7 +517,7 @@ typedef enum {  /* motion progress, for modal handlers */
 	P_STARTING,    /* <-- */
 	P_IN_PROGRESS, /* <-- only these are sent for NDOF motion*/
 	P_FINISHING,   /* <-- */
-	P_FINISHED
+	P_FINISHED,
 } wmProgress;
 
 #ifdef WITH_INPUT_NDOF

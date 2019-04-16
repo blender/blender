@@ -46,7 +46,7 @@ typedef enum MemoryBufferState {
 typedef enum MemoryBufferExtend {
 	COM_MB_CLIP,
 	COM_MB_EXTEND,
-	COM_MB_REPEAT
+	COM_MB_REPEAT,
 } MemoryBufferExtend;
 
 class MemoryProxy;

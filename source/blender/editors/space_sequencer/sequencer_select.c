@@ -209,6 +209,7 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 		}
 	}
 	if (changed) {
+		/* pass */
 	}
 }
 #endif

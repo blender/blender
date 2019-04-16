@@ -292,7 +292,7 @@ typedef enum {
 	UI_BUT_POIN_INT = 96,
 	UI_BUT_POIN_FLOAT = 128,
 /*	UI_BUT_POIN_FUNCTION = 192, */ /*UNUSED*/
-	UI_BUT_POIN_BIT = 256  /* OR'd with a bit index*/
+	UI_BUT_POIN_BIT = 256,  /* OR'd with a bit index*/
 } eButPointerType;
 
 /* requires (but->poin != NULL) */

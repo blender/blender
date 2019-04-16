@@ -27,7 +27,7 @@
 
 static bNodeSocketTemplate outputs[] = {
 	{ SOCK_VECTOR, 0, N_("Coordinates") },
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 
 static void vectorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **UNUSED(in), short UNUSED(thread))

@@ -509,7 +509,7 @@ enum {
 
 	PCHAN_COLOR_SPHEREBONE_BASE,    /* for the 'stick' of sphere (envelope) bones */
 	PCHAN_COLOR_SPHEREBONE_END,     /* for the ends of sphere (envelope) bones */
-	PCHAN_COLOR_LINEBONE            /* for the middle of line-bones */
+	PCHAN_COLOR_LINEBONE,            /* for the middle of line-bones */
 };
 
 /* This function sets the color-set for coloring a certain bone */

@@ -25,7 +25,7 @@ typedef enum MovieClipAttribute {
 	MCA_SCALE,
 	MCA_X,
 	MCA_Y,
-	MCA_ANGLE
+	MCA_ANGLE,
 } MovieClipAttribute;
 /**
  * this program converts an input color to an output value.

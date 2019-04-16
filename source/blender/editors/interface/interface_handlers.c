@@ -133,7 +133,7 @@ typedef enum uiButtonActivateType {
 	BUTTON_ACTIVATE,
 	BUTTON_ACTIVATE_APPLY,
 	BUTTON_ACTIVATE_TEXT_EDITING,
-	BUTTON_ACTIVATE_OPEN
+	BUTTON_ACTIVATE_OPEN,
 } uiButtonActivateType;
 
 typedef enum uiHandleButtonState {
@@ -147,7 +147,7 @@ typedef enum uiHandleButtonState {
 	BUTTON_STATE_TEXT_SELECTING,
 	BUTTON_STATE_MENU_OPEN,
 	BUTTON_STATE_WAIT_DRAG,
-	BUTTON_STATE_EXIT
+	BUTTON_STATE_EXIT,
 } uiHandleButtonState;
 
 

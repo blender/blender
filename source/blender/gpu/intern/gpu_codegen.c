@@ -133,7 +133,7 @@ static GPUPass *gpu_pass_cache_resolve_collision(
 typedef enum {
 	FUNCTION_QUAL_IN,
 	FUNCTION_QUAL_OUT,
-	FUNCTION_QUAL_INOUT
+	FUNCTION_QUAL_INOUT,
 } GPUFunctionQual;
 
 typedef struct GPUFunction {

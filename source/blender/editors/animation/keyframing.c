@@ -564,7 +564,7 @@ enum {
 	KEYNEEDED_DONTADD = 0,
 	KEYNEEDED_JUSTADD,
 	KEYNEEDED_DELPREV,
-	KEYNEEDED_DELNEXT
+	KEYNEEDED_DELNEXT,
 } /*eKeyNeededStatus*/;
 
 /* This helper function determines whether a new keyframe is needed */

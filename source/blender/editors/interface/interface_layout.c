@@ -118,7 +118,7 @@ typedef enum uiItemType {
 	TEMPLATE_BOX,
 
 	TEMPLATE_HEADER,
-	TEMPLATE_HEADER_ID
+	TEMPLATE_HEADER_ID,
 #endif
 } uiItemType;
 

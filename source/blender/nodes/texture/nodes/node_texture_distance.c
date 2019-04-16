@@ -30,12 +30,12 @@
 static bNodeSocketTemplate inputs[] = {
 	{ SOCK_VECTOR, 1, N_("Coordinate 1"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE },
 	{ SOCK_VECTOR, 1, N_("Coordinate 2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE },
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 
 static bNodeSocketTemplate outputs[] = {
 	{ SOCK_FLOAT, 0, N_("Value") },
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 
 static void valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)

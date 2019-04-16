@@ -253,7 +253,7 @@ typedef enum eNodeSizePreset {
 	NODE_SIZE_DEFAULT,
 	NODE_SIZE_SMALL,
 	NODE_SIZE_MIDDLE,
-	NODE_SIZE_LARGE
+	NODE_SIZE_LARGE,
 } eNodeSizePreset;
 
 struct bNodeTreeExec;

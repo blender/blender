@@ -90,7 +90,7 @@ typedef enum uiHandlePanelState {
 	PANEL_STATE_DRAG_SCALE,
 	PANEL_STATE_WAIT_UNTAB,
 	PANEL_STATE_ANIMATION,
-	PANEL_STATE_EXIT
+	PANEL_STATE_EXIT,
 } uiHandlePanelState;
 
 typedef struct uiHandlePanelData {

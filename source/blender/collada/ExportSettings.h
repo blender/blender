@@ -29,18 +29,18 @@ extern "C" {
 
 typedef enum BC_export_mesh_type {
 	BC_MESH_TYPE_VIEW,
-	BC_MESH_TYPE_RENDER
+	BC_MESH_TYPE_RENDER,
 } BC_export_mesh_type;
 
 typedef enum BC_export_transformation_type {
 	BC_TRANSFORMATION_TYPE_MATRIX,
-	BC_TRANSFORMATION_TYPE_TRANSROTLOC
+	BC_TRANSFORMATION_TYPE_TRANSROTLOC,
 } BC_export_transformation_type;
 
 
 typedef enum BC_export_animation_type {
 	BC_ANIMATION_EXPORT_SAMPLES,
-	BC_ANIMATION_EXPORT_KEYS
+	BC_ANIMATION_EXPORT_KEYS,
 } BC_export_animation_type;
 
 typedef enum BC_ui_export_section {
@@ -48,7 +48,7 @@ typedef enum BC_ui_export_section {
 	BC_UI_SECTION_GEOMETRY,
 	BC_UI_SECTION_ARMATURE,
 	BC_UI_SECTION_ANIMATION,
-	BC_UI_SECTION_COLLADA
+	BC_UI_SECTION_COLLADA,
 } BC_ui_export_section;
 
 typedef struct ExportSettings {

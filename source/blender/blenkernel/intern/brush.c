@@ -207,7 +207,7 @@ typedef enum eGPCurveMappingPreset {
 	GPCURVE_PRESET_PENCIL = 0,
 	GPCURVE_PRESET_INK = 1,
 	GPCURVE_PRESET_INKNOISE = 2,
-	GPCURVE_PRESET_MARKER = 3
+	GPCURVE_PRESET_MARKER = 3,
 } eGPCurveMappingPreset;
 
 static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)

@@ -42,7 +42,7 @@ typedef enum ShaderFxType {
 	eShaderFxType_Colorize  = 8,
 	eShaderFxType_Shadow    = 9,
 	eShaderFxType_Glow      = 10,
-	NUM_SHADER_FX_TYPES
+	NUM_SHADER_FX_TYPES,
 } ShaderFxType;
 
 typedef enum ShaderFxMode {

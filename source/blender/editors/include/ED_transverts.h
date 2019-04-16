@@ -49,7 +49,7 @@ bool ED_transverts_poll(struct bContext *C);
 enum {
 	TM_INDEX_ON      =  1,  /* tag to make trans verts */
 	TM_INDEX_OFF     =  0,  /* don't make verts */
-	TM_INDEX_SKIP    = -1   /* dont make verts (when the index values point to trans-verts) */
+	TM_INDEX_SKIP    = -1,  /* dont make verts (when the index values point to trans-verts) */
 };
 
 /* mode flags: */

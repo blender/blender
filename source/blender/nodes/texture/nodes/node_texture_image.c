@@ -27,7 +27,7 @@
 
 static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Image")},
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))

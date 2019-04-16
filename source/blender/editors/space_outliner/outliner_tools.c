@@ -651,13 +651,13 @@ typedef enum eOutliner_PropDataOps {
 typedef enum eOutliner_PropConstraintOps {
 	OL_CONSTRAINTOP_ENABLE = 1,
 	OL_CONSTRAINTOP_DISABLE,
-	OL_CONSTRAINTOP_DELETE
+	OL_CONSTRAINTOP_DELETE,
 } eOutliner_PropConstraintOps;
 
 typedef enum eOutliner_PropModifierOps {
 	OL_MODIFIER_OP_TOGVIS = 1,
 	OL_MODIFIER_OP_TOGREN,
-	OL_MODIFIER_OP_DELETE
+	OL_MODIFIER_OP_DELETE,
 } eOutliner_PropModifierOps;
 
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
@@ -1188,7 +1188,7 @@ typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_FAKE_CLEAR,
 	OUTLINER_IDOP_RENAME,
 
-	OUTLINER_IDOP_SELECT_LINKED
+	OUTLINER_IDOP_SELECT_LINKED,
 } eOutlinerIdOpTypes;
 
 // TODO: implement support for changing the ID-block used

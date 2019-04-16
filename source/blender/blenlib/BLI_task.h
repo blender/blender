@@ -72,7 +72,7 @@ int BLI_task_scheduler_num_threads(TaskScheduler *scheduler);
 
 typedef enum TaskPriority {
 	TASK_PRIORITY_LOW,
-	TASK_PRIORITY_HIGH
+	TASK_PRIORITY_HIGH,
 } TaskPriority;
 
 typedef struct TaskPool TaskPool;

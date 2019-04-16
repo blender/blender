@@ -41,7 +41,7 @@ typedef enum eStrCursorDelimType {
 	STRCUR_DELIM_OPERATOR,
 	STRCUR_DELIM_QUOTE,
 	STRCUR_DELIM_WHITESPACE,
-	STRCUR_DELIM_OTHER
+	STRCUR_DELIM_OTHER,
 } eStrCursorDelimType;
 
 static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)

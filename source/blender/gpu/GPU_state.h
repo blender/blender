@@ -33,7 +33,7 @@ typedef enum eGPUBlendFunction {
 /* These map directly to the GL_ filter functions, to minimize API add as needed*/
 typedef enum eGPUFilterFunction {
 	GPU_NEAREST,
-	GPU_LINEAR
+	GPU_LINEAR,
 } eGPUFilterFunction;
 
 void GPU_blend(bool enable);

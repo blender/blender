@@ -44,7 +44,7 @@ const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
 	BM_EDGE, /* BM_EDGES_OF_FACE */
 	BM_LOOP, /* BM_LOOPS_OF_FACE */
 	BM_LOOP, /* BM_LOOPS_OF_LOOP */
-	BM_LOOP  /* BM_LOOPS_OF_EDGE */
+	BM_LOOP, /* BM_LOOPS_OF_EDGE */
 };
 
 /**

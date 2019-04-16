@@ -28,10 +28,10 @@
 
 static bNodeSocketTemplate inputs[] = {
 	{ SOCK_RGBA, 1, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f },
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 static bNodeSocketTemplate outputs[] = {
-	{ -1, 0, "" }
+	{ -1, 0, "" },
 };
 
 static void exec(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *execdata, bNodeStack **in, bNodeStack **UNUSED(out))

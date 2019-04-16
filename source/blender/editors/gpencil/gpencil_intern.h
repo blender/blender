@@ -356,7 +356,7 @@ typedef enum eGPencil_PaintModes {
 	GP_PAINTMODE_ERASER,
 	GP_PAINTMODE_DRAW_STRAIGHT,
 	GP_PAINTMODE_DRAW_POLY,
-	GP_PAINTMODE_SET_CP
+	GP_PAINTMODE_SET_CP,
 } eGPencil_PaintModes;
 
 /* maximum sizes of gp-session buffer */
@@ -548,7 +548,7 @@ typedef enum ACTFILTER_FLAGS {
 	ACTFILTER_IPOKEYS       = (1 << 4),   /* only channels referencing ipo's */
 	ACTFILTER_ONLYICU       = (1 << 5),   /* only reference ipo-curves */
 	ACTFILTER_FORDRAWING    = (1 << 6),   /* make list for interface drawing */
-	ACTFILTER_ACTGROUPED    = (1 << 7)    /* belongs to the active group */
+	ACTFILTER_ACTGROUPED    = (1 << 7),   /* belongs to the active group */
 } ACTFILTER_FLAGS;
 
 /* Action Editor - Main Data types */
@@ -556,7 +556,7 @@ typedef enum ACTCONT_TYPES {
 	ACTCONT_NONE = 0,
 	ACTCONT_ACTION,
 	ACTCONT_SHAPEKEY,
-	ACTCONT_GPENCIL
+	ACTCONT_GPENCIL,
 } ACTCONT_TYPES;
 
 /* ****************************************************** */

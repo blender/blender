@@ -68,7 +68,7 @@ struct BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a, const BMBVHT
 enum {
 	BMBVH_RETURN_ORIG     = (1 << 0), /* use with 'cos_cage', returns hits in relation to original geometry */
 	BMBVH_RESPECT_SELECT  = (1 << 1), /* restrict to hidden geometry (overrides BMBVH_RESPECT_HIDDEN) */
-	BMBVH_RESPECT_HIDDEN  = (1 << 2)  /* omit hidden geometry */
+	BMBVH_RESPECT_HIDDEN  = (1 << 2), /* omit hidden geometry */
 };
 
 #endif  /* __BKE_EDITMESH_BVH_H__ */

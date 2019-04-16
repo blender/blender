@@ -241,7 +241,7 @@ typedef enum eGPDstroke_Caps {
 	GP_STROKE_CAP_ROUND = 0,
 	GP_STROKE_CAP_FLAT  = 1,
 
-	GP_STROKE_CAP_MAX
+	GP_STROKE_CAP_MAX,
 } GPDstroke_Caps;
 
 /* ***************************************** */
@@ -626,7 +626,7 @@ typedef enum eGP_DepthOrdering {
 /* draw modes (Use 2D or 3D position) */
 typedef enum eGP_DrawMode {
 	GP_DRAWMODE_2D = 0,
-	GP_DRAWMODE_3D = 1
+	GP_DRAWMODE_3D = 1,
 } eGP_DrawMode;
 
 /* ***************************************** */

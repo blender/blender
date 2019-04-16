@@ -1986,7 +1986,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(
 typedef enum {
 	ISECT_INSIDE,
 	ISECT_OUTSIDE,
-	ISECT_INTERSECT
+	ISECT_INTERSECT,
 } PlaneAABBIsect;
 
 /* Adapted from:

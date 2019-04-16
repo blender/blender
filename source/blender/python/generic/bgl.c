@@ -664,7 +664,7 @@ PyTypeObject BGL_bufferType = {
 	NULL,                       /*tp_cache*/
 	NULL,                       /*tp_subclasses*/
 	NULL,                       /*tp_weaklist*/
-	NULL                        /*tp_del*/
+	NULL,                       /*tp_del*/
 };
 
 

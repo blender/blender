@@ -54,7 +54,7 @@ typedef enum eBoidRuleType {
 	/** move next to a deflector object's in direction of it's tangent */
 	eBoidRuleType_FollowWall = 12,
 #endif
-	NUM_BOID_RULE_TYPES
+	NUM_BOID_RULE_TYPES,
 } eBoidRuleType;
 
 /* boidrule->flag */
@@ -108,7 +108,7 @@ typedef enum eBoidMode {
 	eBoidMode_Climbing = 2,
 	eBoidMode_Falling = 3,
 	eBoidMode_Liftoff = 4,
-	NUM_BOID_MODES
+	NUM_BOID_MODES,
 } eBoidMode;
 
 
@@ -150,7 +150,7 @@ typedef enum eBoidRulesetType {
 	eBoidRulesetType_Fuzzy = 0,
 	eBoidRulesetType_Random = 1,
 	eBoidRulesetType_Average = 2,
-	NUM_BOID_RULESET_TYPES
+	NUM_BOID_RULESET_TYPES,
 } eBoidRulesetType;
 #define BOIDSTATE_CURRENT	1
 typedef struct BoidState {

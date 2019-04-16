@@ -662,7 +662,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_ARMATURE = 30,
 
 	/* NOTE: no constraints are allowed to be added after this */
-	NUM_CONSTRAINT_TYPES
+	NUM_CONSTRAINT_TYPES,
 } eBConstraint_Types;
 
 /* bConstraint->flag */
@@ -704,7 +704,7 @@ typedef enum eBConstraint_SpaceTypes {
 	/** For posechannels - local with parent. */
 	CONSTRAINT_SPACE_PARLOCAL = 3,
 	/** For files from between 2.43-2.46 (should have been parlocal). */
-	CONSTRAINT_SPACE_INVALID = 4 /* do not exchange for anything! */
+	CONSTRAINT_SPACE_INVALID = 4, /* do not exchange for anything! */
 } eBConstraint_SpaceTypes;
 
 /* bConstraintChannel.flag */
@@ -790,7 +790,7 @@ typedef enum eTrackToAxis_Modes {
 	TRACK_Z		= 2,
 	TRACK_nX	= 3,
 	TRACK_nY	= 4,
-	TRACK_nZ	= 5
+	TRACK_nZ	= 5,
 } eTrackToAxis_Modes;
 
 /* Shrinkwrap flags */

@@ -550,7 +550,7 @@ static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 typedef enum {
 	STENCIL_TRANSLATE,
 	STENCIL_SCALE,
-	STENCIL_ROTATE
+	STENCIL_ROTATE,
 } StencilControlMode;
 
 typedef enum {

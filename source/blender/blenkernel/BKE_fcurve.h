@@ -160,7 +160,7 @@ typedef enum eFMI_Action_Types {
 	/* modifier only modifies the values of points (but times stay the same) */
 	FMI_TYPE_REPLACE_VALUES,
 	/* modifier generates a curve regardless of what came before */
-	FMI_TYPE_GENERATE_CURVE
+	FMI_TYPE_GENERATE_CURVE,
 } eFMI_Action_Types;
 
 /* Flags for the requirements of a FModifier Type */
@@ -271,7 +271,7 @@ typedef enum eFCU_Cycle_Type {
 	/* The cycle repeats identically to the base range. */
 	FCU_CYCLE_PERFECT,
 	/* The cycle accumulates the change between start and end keys. */
-	FCU_CYCLE_OFFSET
+	FCU_CYCLE_OFFSET,
 } eFCU_Cycle_Type;
 
 eFCU_Cycle_Type BKE_fcurve_get_cycle_type(struct FCurve *fcu);

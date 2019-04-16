@@ -141,7 +141,7 @@ typedef enum {
 	UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+'  */
 	UNSAFE_PATH       = 0x8, /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
 	UNSAFE_HOST       = 0x10, /* Allows '/' and ':' and '@' */
-	UNSAFE_SLASHES    = 0x20 /* Allows all characters except for '/' and '%' */
+	UNSAFE_SLASHES    = 0x20, /* Allows all characters except for '/' and '%' */
 } UnsafeCharacterSet;
 
 static const unsigned char acceptable[96] = {

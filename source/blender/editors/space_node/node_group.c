@@ -527,7 +527,7 @@ static int node_group_separate_selected(
 
 typedef enum eNodeGroupSeparateType {
 	NODE_GS_COPY,
-	NODE_GS_MOVE
+	NODE_GS_MOVE,
 } eNodeGroupSeparateType;
 
 /* Operator Property */

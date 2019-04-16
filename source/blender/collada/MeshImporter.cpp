@@ -205,7 +205,9 @@ MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Main 
 	m_bmain(bmain),
 	scene(sce),
 	view_layer(view_layer),
-	armature_importer(arm) {
+	armature_importer(arm)
+{
+	/* pass */
 }
 
 bool MeshImporter::set_poly_indices(MPoly *mpoly, MLoop *mloop, int loop_index, unsigned int *indices, int loop_count)

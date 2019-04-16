@@ -331,7 +331,7 @@ typedef enum eObRelationTypes {
 typedef enum eObjectSet {
 	OB_SET_SELECTED, /* Selected Objects */
 	OB_SET_VISIBLE,  /* Visible Objects  */
-	OB_SET_ALL       /* All Objects      */
+	OB_SET_ALL,      /* All Objects      */
 } eObjectSet;
 
 struct LinkNode *BKE_object_relational_superset(

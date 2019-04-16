@@ -36,7 +36,7 @@
 
 typedef enum eMatrixAccess_t {
 	MAT_ACCESS_ROW,
-	MAT_ACCESS_COL
+	MAT_ACCESS_COL,
 } eMatrixAccess_t;
 
 static PyObject *Matrix_copy_notest(MatrixObject *self, const float *matrix);
@@ -3078,7 +3078,7 @@ PyTypeObject matrix_Type = {
 	NULL,                               /*tp_cache*/
 	NULL,                               /*tp_subclasses*/
 	NULL,                               /*tp_weaklist*/
-	NULL                                /*tp_del*/
+	NULL,                               /*tp_del*/
 };
 
 PyObject *Matrix_CreatePyObject(

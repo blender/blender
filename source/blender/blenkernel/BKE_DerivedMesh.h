@@ -100,7 +100,7 @@ typedef struct DMFlagMat {
 
 typedef enum DerivedMeshType {
 	DM_TYPE_CDDM,
-	DM_TYPE_CCGDM
+	DM_TYPE_CCGDM,
 } DerivedMeshType;
 
 typedef enum DMForeachFlag {

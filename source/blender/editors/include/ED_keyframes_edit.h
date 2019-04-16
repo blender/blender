@@ -72,7 +72,7 @@ typedef enum eEditKeyframes_Select {
 /* "selection map" building modes */
 typedef enum eEditKeyframes_SelMap {
 	SELMAP_MORE = 0,
-	SELMAP_LESS
+	SELMAP_LESS,
 } eEditKeyframes_SelMap;
 
 /* snapping tools */
@@ -199,7 +199,7 @@ typedef enum eKeyPasteOffset {
 	/* paste keys relative to the current frame when copying */
 	KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE,
 	/* paste keys from original time */
-	KEYFRAME_PASTE_OFFSET_NONE
+	KEYFRAME_PASTE_OFFSET_NONE,
 } eKeyPasteOffset;
 
 typedef enum eKeyMergeMode {
@@ -210,7 +210,7 @@ typedef enum eKeyMergeMode {
 	/* overwrite keys in pasted range */
 	KEYFRAME_PASTE_MERGE_OVER_RANGE,
 	/* overwrite keys in pasted range (use all keyframe start & end for range) */
-	KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL
+	KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL,
 } eKeyMergeMode;
 
 /* ---------------- Looping API --------------------- */

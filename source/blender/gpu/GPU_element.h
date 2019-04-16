@@ -35,7 +35,7 @@
 typedef enum {
 	GPU_INDEX_U8, /* GL has this, Vulkan does not */
 	GPU_INDEX_U16,
-	GPU_INDEX_U32
+	GPU_INDEX_U32,
 } GPUIndexBufType;
 
 typedef struct GPUIndexBuf {

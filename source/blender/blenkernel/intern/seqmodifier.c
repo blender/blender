@@ -165,7 +165,7 @@ static SequenceModifierTypeInfo seqModifier_ColorBalance = {
 	colorBalance_init_data,                                /* init_data */
 	NULL,                                                  /* free_data */
 	NULL,                                                  /* copy_data */
-	colorBalance_apply                                     /* apply */
+	colorBalance_apply,                                    /* apply */
 };
 
 /* **** White Balance Modifier **** */
@@ -252,7 +252,7 @@ static SequenceModifierTypeInfo seqModifier_WhiteBalance = {
 	whiteBalance_init_data,                                /* init_data */
 	NULL,                                                  /* free_data */
 	NULL,                                                  /* copy_data */
-	whiteBalance_apply                                     /* apply */
+	whiteBalance_apply,                                    /* apply */
 };
 
 /* **** Curves Modifier **** */
@@ -361,7 +361,7 @@ static SequenceModifierTypeInfo seqModifier_Curves = {
 	curves_init_data,                                /* init_data */
 	curves_free_data,                                /* free_data */
 	curves_copy_data,                                /* copy_data */
-	curves_apply                                     /* apply */
+	curves_apply,                                    /* apply */
 };
 
 /* **** Hue Correct Modifier **** */
@@ -469,7 +469,7 @@ static SequenceModifierTypeInfo seqModifier_HueCorrect = {
 	hue_correct_init_data,                                 /* init_data */
 	hue_correct_free_data,                                 /* free_data */
 	hue_correct_copy_data,                                 /* copy_data */
-	hue_correct_apply                                      /* apply */
+	hue_correct_apply,                                     /* apply */
 };
 
 /* **** Bright/Contrast Modifier **** */
@@ -566,7 +566,7 @@ static SequenceModifierTypeInfo seqModifier_BrightContrast = {
 	NULL,                                                     /* init_data */
 	NULL,                                                     /* free_data */
 	NULL,                                                     /* copy_data */
-	brightcontrast_apply                                      /* apply */
+	brightcontrast_apply,                                     /* apply */
 };
 
 /* **** Mask Modifier **** */
@@ -627,7 +627,7 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
 	NULL,                                        /* init_data */
 	NULL,                                        /* free_data */
 	NULL,                                        /* copy_data */
-	maskmodifier_apply                           /* apply */
+	maskmodifier_apply,                          /* apply */
 };
 
 /* **** Tonemap Modifier **** */
@@ -848,7 +848,7 @@ static SequenceModifierTypeInfo seqModifier_Tonemap = {
 	tonemapmodifier_init_data,                      /* init_data */
 	NULL,                                           /* free_data */
 	NULL,                                           /* copy_data */
-	tonemapmodifier_apply                           /* apply */
+	tonemapmodifier_apply,                          /* apply */
 };
 
 /*********************** Modifier functions *************************/

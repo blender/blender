@@ -93,7 +93,7 @@ typedef enum eGPencil_PaintStatus {
 	GP_STATUS_IDLING = 0,   /* stroke isn't in progress yet */
 	GP_STATUS_PAINTING,     /* a stroke is in progress */
 	GP_STATUS_ERROR,        /* something wasn't correctly set up */
-	GP_STATUS_DONE          /* painting done */
+	GP_STATUS_DONE,          /* painting done */
 } eGPencil_PaintStatus;
 
 /* Return flags for adding points to stroke buffer */
@@ -101,7 +101,7 @@ typedef enum eGP_StrokeAdd_Result {
 	GP_STROKEADD_INVALID    = -2,       /* error occurred - insufficient info to do so */
 	GP_STROKEADD_OVERFLOW   = -1,       /* error occurred - cannot fit any more points */
 	GP_STROKEADD_NORMAL,                /* point was successfully added */
-	GP_STROKEADD_FULL                   /* cannot add any more points to buffer */
+	GP_STROKEADD_FULL,                   /* cannot add any more points to buffer */
 } eGP_StrokeAdd_Result;
 
 /* Runtime flags */

@@ -51,7 +51,7 @@ typedef enum {
 	 * We support 5 outputs for now (usually we wouldn't need more to preserve fill rate). */
 	/* Keep in mind that GL max is GL_MAX_DRAW_BUFFERS and is at least 8, corresponding to
 	 * the maximum number of COLOR attachments specified by glDrawBuffers. */
-	GPU_FB_MAX_ATTACHEMENT
+	GPU_FB_MAX_ATTACHEMENT,
 } GPUAttachmentType;
 
 #define GPU_FB_MAX_COLOR_ATTACHMENT (GPU_FB_MAX_ATTACHEMENT - GPU_FB_COLOR_ATTACHMENT0)

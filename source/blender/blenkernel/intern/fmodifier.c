@@ -93,7 +93,7 @@ static FModifierTypeInfo FMI_MODNAME = {
 	fcm_modname_time, /* evaluate time */
 	fcm_modname_evaluate, /* evaluate */
 	fcm_modname_time_storage, /* evaluate time with storage */
-	fcm_modname_evaluate_storage /* evaluate with storage */
+	fcm_modname_evaluate_storage, /* evaluate with storage */
 };
 #endif
 
@@ -246,7 +246,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	NULL, /* evaluate time */
 	fcm_generator_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 /* Built-In Function Generator F-Curve Modifier --------------------------- */
@@ -370,7 +370,7 @@ static FModifierTypeInfo FMI_FN_GENERATOR = {
 	NULL, /* evaluate time */
 	fcm_fn_generator_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 /* Envelope F-Curve Modifier --------------------------- */
@@ -479,7 +479,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	NULL, /* evaluate time */
 	fcm_envelope_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 /* exported function for finding points */
@@ -769,7 +769,7 @@ static FModifierTypeInfo FMI_CYCLES = {
 	NULL, /* evaluate time */
 	NULL, /* evaluate */
 	fcm_cycles_time, /* evaluate time with storage */
-	fcm_cycles_evaluate /* evaluate with storage */
+	fcm_cycles_evaluate, /* evaluate with storage */
 };
 
 /* Noise F-Curve Modifier  --------------------------- */
@@ -830,7 +830,7 @@ static FModifierTypeInfo FMI_NOISE = {
 	NULL, /* evaluate time */
 	fcm_noise_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 
@@ -887,7 +887,7 @@ static FModifierTypeInfo FMI_PYTHON = {
 	NULL /*fcm_python_time*/, /* evaluate time */
 	fcm_python_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 
@@ -932,7 +932,7 @@ static FModifierTypeInfo FMI_LIMITS = {
 	fcm_limits_time, /* evaluate time */
 	fcm_limits_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 /* Stepped F-Curve Modifier --------------------------- */
@@ -987,7 +987,7 @@ static FModifierTypeInfo FMI_STEPPED = {
 	fcm_stepped_time, /* evaluate time */
 	NULL, /* evaluate */
 	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
+	NULL, /* evaluate with storage */
 };
 
 /* F-Curve Modifier API --------------------------- */

@@ -198,7 +198,7 @@ typedef enum eSpaceButtons_Context {
 	BCONTEXT_OUTPUT = 16,
 
 	/* always as last... */
-	BCONTEXT_TOT
+	BCONTEXT_TOT,
 } eSpaceButtons_Context;
 
 /* SpaceProperties.flag */

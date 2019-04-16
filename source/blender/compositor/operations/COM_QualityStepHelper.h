@@ -22,7 +22,7 @@
 
 typedef enum QualityHelper {
 	COM_QH_INCREASE,
-	COM_QH_MULTIPLY
+	COM_QH_MULTIPLY,
 } QualityHelper;
 
 class QualityStepHelper  {

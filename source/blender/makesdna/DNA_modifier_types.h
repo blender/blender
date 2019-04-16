@@ -88,7 +88,7 @@ typedef enum ModifierType {
 	eModifierType_MeshSequenceCache = 52,
 	eModifierType_SurfaceDeform     = 53,
 	eModifierType_WeightedNormal	= 54,
-	NUM_MODIFIER_TYPES
+	NUM_MODIFIER_TYPES,
 } ModifierType;
 
 typedef enum ModifierMode {
@@ -99,7 +99,7 @@ typedef enum ModifierMode {
 	eModifierMode_Expanded          = (1 << 4),
 	eModifierMode_Virtual           = (1 << 5),
 	eModifierMode_ApplyOnSpline     = (1 << 6),
-	eModifierMode_DisableTemporary  = (1u << 31)
+	eModifierMode_DisableTemporary  = (1u << 31),
 } ModifierMode;
 
 typedef struct ModifierData {
