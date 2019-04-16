@@ -81,6 +81,8 @@ if NOT "%1" == "" (
 		set MUST_CLEAN=1
 	) else if "%1" == "verbose" (
 		set VERBOSE=1
+	) else if "%1" == "format" (
+		set FORMAT=1
 	) else (
 		echo Command "%1" unknown, aborting!
 		exit /b 1
