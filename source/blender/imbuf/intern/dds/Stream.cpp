@@ -97,7 +97,7 @@ unsigned int mem_read(Stream & mem, unsigned char *i, unsigned int cnt)
 void Stream::set_failed(const char *msg)
 {
 	if (!failed) {
-		puts(msg_error_seek);
+		puts(msg);
 		failed = true;
 	}
 }
