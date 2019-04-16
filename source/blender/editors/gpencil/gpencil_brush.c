@@ -929,6 +929,12 @@ static bool gp_brush_weight_apply(
 			gso->vrgroup = 0;
 		}
 	}
+	else {
+		bDeformGroup *defgroup = BLI_findlink(&gso->object->defbase, gso->vrgroup);
+		if (defgroup->flag & DG_LOCK_WEIGHT) {
+			return false;
+		}
+	}
 	/* get current weight */
 	MDeformWeight *dw = defvert_verify_index(dvert, gso->vrgroup);
 	float curweight = dw ? dw->weight : 0.0f;

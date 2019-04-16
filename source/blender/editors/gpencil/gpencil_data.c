@@ -1725,19 +1725,26 @@ void GPENCIL_OT_vertex_group_deselect(wmOperatorType *ot)
 }
 
 /* invert */
-static int gpencil_vertex_group_invert_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_vertex_group_invert_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 
 	/* sanity checks */
-	if (ELEM(NULL, ts, ob, ob->data))
+	if (ELEM(NULL, ts, ob, ob->data)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	MDeformVert *dvert;
 	const int def_nr = ob->actdef - 1;
-	if (!BLI_findlink(&ob->defbase, def_nr))
+	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, def_nr);
+	if (defgroup == NULL) {
 		return OPERATOR_CANCELLED;
+	}
+	if (defgroup->flag & DG_LOCK_WEIGHT) {
+		BKE_report(op->reports, RPT_ERROR, "Current Vertex Group is locked");
+		return OPERATOR_CANCELLED;
+	}
 
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
@@ -1790,15 +1797,22 @@ static int gpencil_vertex_group_smooth_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 
 	/* sanity checks */
-	if (ELEM(NULL, ts, ob, ob->data))
+	if (ELEM(NULL, ts, ob, ob->data)) {
 		return OPERATOR_CANCELLED;
+	}
+
+	const int def_nr = ob->actdef - 1;
+	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, def_nr);
+	if (defgroup == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+	if (defgroup->flag & DG_LOCK_WEIGHT) {
+		BKE_report(op->reports, RPT_ERROR, "Current Vertex Group is locked");
+		return OPERATOR_CANCELLED;
+	}
 
 	bGPDspoint *pta, *ptb, *ptc;
 	MDeformVert *dverta, *dvertb;
-
-	const int def_nr = ob->actdef - 1;
-	if (!BLI_findlink(&ob->defbase, def_nr))
-		return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
@@ -1874,19 +1888,26 @@ void GPENCIL_OT_vertex_group_smooth(wmOperatorType *ot)
 }
 
 /* normalize */
-static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 
 	/* sanity checks */
-	if (ELEM(NULL, ts, ob, ob->data))
+	if (ELEM(NULL, ts, ob, ob->data)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	MDeformVert *dvert;
 	const int def_nr = ob->actdef - 1;
-	if (!BLI_findlink(&ob->defbase, def_nr))
+	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, def_nr);
+	if (defgroup == NULL) {
 		return OPERATOR_CANCELLED;
+	}
+	if (defgroup->flag & DG_LOCK_WEIGHT) {
+		BKE_report(op->reports, RPT_ERROR, "Current Vertex Group is locked");
+		return OPERATOR_CANCELLED;
+	}
 
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{

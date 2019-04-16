@@ -342,8 +342,8 @@ class GPENCIL_UL_vgroups(UIList):
         vgroup = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
-            # icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
-            # layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
+            icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
+            layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
