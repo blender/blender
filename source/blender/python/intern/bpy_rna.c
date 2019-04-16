@@ -6337,8 +6337,8 @@ PyTypeObject pyrna_prop_array_Type = {
 	NULL,                       /* inquiry tp_clear; */
 
 	/***  Assigned meaning in release 2.1 ***/
-	/*** rich comparisons ***/
-	NULL, /* subclassed */ /* richcmpfunc tp_richcompare; */
+	/*** rich comparisons (subclassed) ***/
+	NULL, /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS
@@ -6420,8 +6420,8 @@ PyTypeObject pyrna_prop_collection_Type = {
 	NULL,                       /* inquiry tp_clear; */
 
 	/***  Assigned meaning in release 2.1 ***/
-	/*** rich comparisons ***/
-	NULL, /* subclassed */      /* richcmpfunc tp_richcompare; */
+	/*** rich comparisons (subclassed) ***/
+	NULL, /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS
@@ -6505,8 +6505,8 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 	NULL,                       /* inquiry tp_clear; */
 
 	/***  Assigned meaning in release 2.1 ***/
-	/*** rich comparisons ***/
-	NULL, /* subclassed */      /* richcmpfunc tp_richcompare; */
+	/*** rich comparisons (subclassed) ***/
+	NULL, /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS
@@ -6690,8 +6690,8 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
 	NULL,                       /* inquiry tp_clear; */
 
 	/***  Assigned meaning in release 2.1 ***/
-	/*** rich comparisons ***/
-	NULL, /* subclassed */      /* richcmpfunc tp_richcompare; */
+	/*** rich comparisons (subclassed) ***/
+	NULL, /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS

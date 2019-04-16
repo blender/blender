@@ -131,8 +131,8 @@ static PyTypeObject bpy_lib_Type = {
 	NULL,                       /* inquiry tp_clear; */
 
 	/***  Assigned meaning in release 2.1 ***/
-	/*** rich comparisons ***/
-	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
+	/*** rich comparisons (subclassed) ***/
+	NULL, /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 	0,

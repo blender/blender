@@ -329,7 +329,8 @@ void BM_mesh_wireframe(
 		}
 
 		BM_ITER_ELEM (l, &itersub, f_src, BM_LOOPS_OF_FACE) {
-			BM_elem_index_set(l, verts_loop_tot); /* set_dirty */  /* Because some faces might be skipped! */
+			/* Because some faces might be skipped! */
+			BM_elem_index_set(l, verts_loop_tot); /* set_dirty */
 
 			BM_loop_calc_face_tangent(l, tvec);
 
