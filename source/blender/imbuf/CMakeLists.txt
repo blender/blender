@@ -89,6 +89,7 @@ set(LIB
 	bf_blenloader
 	bf_intern_guardedalloc
 	bf_intern_memutil
+	bf_intern_opencolorio
 )
 
 if(WITH_IMAGE_OPENEXR)

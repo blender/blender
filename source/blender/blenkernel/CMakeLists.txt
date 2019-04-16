@@ -366,6 +366,7 @@ set(LIB
 	bf_gpu
 	bf_ikplugin
 	bf_imbuf
+	bf_intern_clog
 	bf_intern_ghost
 	bf_intern_guardedalloc
 	bf_intern_libmv  # Uses stub when disabled.
@@ -383,6 +384,9 @@ set(LIB
 if(WITH_BINRELOC)
 	list(APPEND INC_SYS
 		${BINRELOC_INCLUDE_DIRS}
+	)
+	list(APPEND LIB
+		extern_binreloc
 	)
 	add_definitions(-DWITH_BINRELOC)
 endif()

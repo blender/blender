@@ -373,6 +373,7 @@ set(SRC
 )
 
 set(LIB
+	bf_dna
 	bf_editor_armature
 	bf_editor_curve
 	bf_editor_gizmo_library

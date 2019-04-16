@@ -164,6 +164,8 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 	extern_rangetree
 )
 
