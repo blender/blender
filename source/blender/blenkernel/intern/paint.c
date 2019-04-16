@@ -1379,8 +1379,15 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 
   BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
 
-  BKE_pbvh_build_mesh(
-      pbvh, me->mpoly, me->mloop, me->mvert, me->totvert, &me->vdata, looptri, looptris_num);
+  BKE_pbvh_build_mesh(pbvh,
+                      me->mpoly,
+                      me->mloop,
+                      me->mvert,
+                      me->totvert,
+                      &me->vdata,
+                      &me->ldata,
+                      looptri,
+                      looptris_num);
 
   pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);

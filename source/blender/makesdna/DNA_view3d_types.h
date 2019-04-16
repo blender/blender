@@ -432,6 +432,7 @@ enum {
   V3D_SHADING_SINGLE_COLOR = 2,
   V3D_SHADING_TEXTURE_COLOR = 3,
   V3D_SHADING_OBJECT_COLOR = 4,
+  V3D_SHADING_VERTEX_COLOR = 5,
 };
 
 /** #View3DShading.background_type */

@@ -161,6 +161,7 @@ static void sculpt_draw_mask_cb(DRWShadingGroup *shgroup,
                      false,
                      false,
                      true,
+                     false,
                      (void (*)(void *, struct GPUBatch *))draw_fn,
                      shgroup);
   }

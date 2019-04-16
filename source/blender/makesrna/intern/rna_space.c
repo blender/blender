@@ -362,6 +362,7 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
     {V3D_SHADING_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show material color"},
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color"},
+    {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Vertex", "Show active vertex color"},
     {V3D_SHADING_TEXTURE_COLOR, "TEXTURE", 0, "Texture", "Show texture"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -1080,6 +1081,8 @@ static const EnumPropertyItem *rna_View3DShading_color_type_itemf(bContext *UNUS
         &item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_OBJECT_COLOR);
     RNA_enum_items_add_value(
         &item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_RANDOM_COLOR);
+    RNA_enum_items_add_value(
+        &item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_VERTEX_COLOR);
     if (shading->light != V3D_LIGHTING_MATCAP) {
       RNA_enum_items_add_value(
           &item, &totitem, rna_enum_shading_color_type_items, V3D_SHADING_TEXTURE_COLOR);
@@ -3001,6 +3004,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_shading_color_type_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_View3DShading_color_type_itemf");
   RNA_def_property_ui_text(prop, "Color", "Color Type");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "wireframe_color_type", PROP_ENUM, PROP_NONE);

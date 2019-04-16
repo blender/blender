@@ -542,6 +542,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh,
                          MVert *verts,
                          int totvert,
                          struct CustomData *vdata,
+                         struct CustomData *ldata,
                          const MLoopTri *looptri,
                          int looptri_num)
 {
@@ -557,6 +558,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh,
   bvh->totvert = totvert;
   bvh->leaf_limit = LEAF_LIMIT;
   bvh->vdata = vdata;
+  bvh->ldata = ldata;
 
   BB_reset(&cb);
 
@@ -1162,14 +1164,15 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
-static int pbvh_get_buffers_update_flags(PBVH *bvh)
+static int pbvh_get_buffers_update_flags(PBVH *bvh, bool show_vcol)
 {
   int update_flags = 0;
   update_flags |= bvh->show_mask ? GPU_PBVH_BUFFERS_SHOW_MASK : 0;
+  update_flags |= show_vcol ? GPU_PBVH_BUFFERS_SHOW_VCOL : 0;
   return update_flags;
 }
 
-static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, bool show_vcol)
 {
   /* can't be done in parallel with OpenGL */
   for (int n = 0; n < totnode; n++) {
@@ -1200,7 +1203,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
     }
 
     if (node->flag & PBVH_UpdateDrawBuffers) {
-      const int update_flags = pbvh_get_buffers_update_flags(bvh);
+      const int update_flags = pbvh_get_buffers_update_flags(bvh, show_vcol);
       switch (bvh->type) {
         case PBVH_GRIDS:
           GPU_pbvh_grid_buffers_update(node->draw_buffers,
@@ -1217,6 +1220,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
                                        node->vert_indices,
                                        node->uniq_verts + node->face_verts,
                                        CustomData_get_layer(bvh->vdata, CD_PAINT_MASK),
+                                       CustomData_get_layer(bvh->ldata, CD_MLOOPCOL),
                                        node->face_vert_indices,
                                        update_flags);
           break;
@@ -2229,6 +2233,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
                       bool fast,
                       bool wires,
                       bool only_mask,
+                      bool show_vcol,
                       void (*draw_fn)(void *user_data, GPUBatch *batch),
                       void *user_data)
 {
@@ -2249,7 +2254,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
                          &totnode);
 
   pbvh_update_normals(bvh, nodes, totnode, fnors);
-  pbvh_update_draw_buffers(bvh, nodes, totnode);
+  pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol);
 
   if (nodes) {
     MEM_freeN(nodes);

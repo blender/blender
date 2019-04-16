@@ -37,11 +37,12 @@
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_COMPOSITE_SHADERS (1 << 6)
-#define MAX_PREPASS_SHADERS (1 << 6)
-#define MAX_ACCUM_SHADERS (1 << 5)
+#define MAX_PREPASS_SHADERS (1 << 7)
+#define MAX_ACCUM_SHADERS (1 << 6)
 #define MAX_CAVITY_SHADERS (1 << 3)
 
 #define TEXTURE_DRAWING_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR)
+#define VERTEX_COLORS_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR)
 #define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
 #define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
 #define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP)
@@ -69,7 +70,8 @@
   (ELEM(wpd->shading.color_type, \
         V3D_SHADING_MATERIAL_COLOR, \
         V3D_SHADING_OBJECT_COLOR, \
-        V3D_SHADING_TEXTURE_COLOR))
+        V3D_SHADING_TEXTURE_COLOR, \
+        V3D_SHADING_VERTEX_COLOR))
 
 #define IS_NAVIGATING(wpd) \
   ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
@@ -213,16 +215,16 @@ BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 typedef struct WORKBENCH_PrivateData {
   struct GHash *material_hash;
   struct GHash *material_transp_hash;
-  struct GPUShader *prepass_solid_sh;
-  struct GPUShader *prepass_solid_hair_sh;
-  struct GPUShader *prepass_texture_sh;
-  struct GPUShader *prepass_texture_hair_sh;
+  struct GPUShader *prepass_sh;
+  struct GPUShader *prepass_hair_sh;
+  struct GPUShader *prepass_uniform_sh;
+  struct GPUShader *prepass_uniform_hair_sh;
   struct GPUShader *composite_sh;
   struct GPUShader *background_sh;
   struct GPUShader *transparent_accum_sh;
   struct GPUShader *transparent_accum_hair_sh;
-  struct GPUShader *transparent_accum_texture_sh;
-  struct GPUShader *transparent_accum_texture_hair_sh;
+  struct GPUShader *transparent_accum_uniform_sh;
+  struct GPUShader *transparent_accum_uniform_hair_sh;
   View3DShading shading;
   StudioLight *studio_light;
   const UserDef *preferences;
@@ -353,7 +355,8 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
                                                                       Image *ima,
                                                                       ImageUser *iuser,
                                                                       int color_type,
-                                                                      int interp);
+                                                                      int interp,
+                                                                      bool is_sculpt_mode);
 
 /* workbench_effect_aa.c */
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
@@ -382,11 +385,14 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata,
 void workbench_dof_draw_pass(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
-int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *ob);
+int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
+                                            Image *ima,
+                                            Object *ob,
+                                            bool is_sculpt_mode);
 void workbench_material_get_image_and_mat(
     Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
-                                       bool use_textures,
+                                       bool is_uniform_color,
                                        bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
                                     Object *ob,
@@ -395,10 +401,10 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
 int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd);
 int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
-                                                bool use_textures,
+                                                bool is_uniform_color,
                                                 bool is_hair);
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
-                                              bool use_textures,
+                                              bool is_uniform_color,
                                               bool is_hair);
 void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         DRWShadingGroup *grp,

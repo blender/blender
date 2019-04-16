@@ -634,6 +634,17 @@ void DRW_shgroup_call_generate_add(DRWShadingGroup *shgroup,
   BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
+/* This function tests if the current draw engine draws the vertex colors
+ * It is used when drawing sculpts
+ *
+ * XXX: should we use a callback to a the draw engine to retrieve this
+ *      setting, this makes the draw manager more clean? */
+static bool DRW_draw_vertex_color_active(const DRWContextState *draw_ctx)
+{
+  View3D *v3d = draw_ctx->v3d;
+  return v3d->shading.type == OB_SOLID && v3d->shading.color_type == V3D_SHADING_VERTEX_COLOR;
+}
+
 static void sculpt_draw_cb(DRWShadingGroup *shgroup,
                            void (*draw_fn)(DRWShadingGroup *shgroup, GPUBatch *geom),
                            void *user_data)
@@ -654,8 +665,16 @@ static void sculpt_draw_cb(DRWShadingGroup *shgroup,
   }
 
   if (pbvh) {
-    BKE_pbvh_draw_cb(
-        pbvh, NULL, NULL, fast_mode, false, false, (void (*)(void *, GPUBatch *))draw_fn, shgroup);
+    const bool show_vcol = DRW_draw_vertex_color_active(drwctx);
+    BKE_pbvh_draw_cb(pbvh,
+                     NULL,
+                     NULL,
+                     fast_mode,
+                     false,
+                     false,
+                     show_vcol,
+                     (void (*)(void *, GPUBatch *))draw_fn,
+                     shgroup);
   }
 }
 
@@ -679,8 +698,15 @@ static void sculpt_draw_wires_cb(DRWShadingGroup *shgroup,
   }
 
   if (pbvh) {
-    BKE_pbvh_draw_cb(
-        pbvh, NULL, NULL, fast_mode, true, false, (void (*)(void *, GPUBatch *))draw_fn, shgroup);
+    BKE_pbvh_draw_cb(pbvh,
+                     NULL,
+                     NULL,
+                     fast_mode,
+                     true,
+                     false,
+                     false,
+                     (void (*)(void *, GPUBatch *))draw_fn,
+                     shgroup);
   }
 }
 

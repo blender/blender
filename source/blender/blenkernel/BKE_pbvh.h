@@ -67,6 +67,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh,
                          struct MVert *verts,
                          int totvert,
                          struct CustomData *vdata,
+                         struct CustomData *ldata,
                          const struct MLoopTri *looptri,
                          int looptri_num);
 void BKE_pbvh_build_grids(PBVH *bvh,
@@ -153,6 +154,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
                       bool fast,
                       bool wires,
                       bool only_mask,
+                      bool show_vcol,
                       void (*draw_fn)(void *user_data, struct GPUBatch *batch),
                       void *user_data);
 

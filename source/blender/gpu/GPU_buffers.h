@@ -35,6 +35,7 @@ struct MLoop;
 struct MLoopTri;
 struct MPoly;
 struct MVert;
+struct MLoopCol;
 struct PBVH;
 
 /* Buffers for drawing from PBVH grids. */
@@ -57,6 +58,7 @@ GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
 
 enum {
   GPU_PBVH_BUFFERS_SHOW_MASK = (1 << 1),
+  GPU_PBVH_BUFFERS_SHOW_VCOL = (1 << 1),
 };
 
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
@@ -64,6 +66,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int *vert_indices,
                                   int totvert,
                                   const float *vmask,
+                                  const struct MLoopCol *vcol,
                                   const int (*face_vert_indices)[3],
                                   const int update_flags);
 

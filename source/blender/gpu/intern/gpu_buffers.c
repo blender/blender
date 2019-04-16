@@ -91,7 +91,7 @@ struct GPU_PBVH_Buffers {
 };
 
 static struct {
-  uint pos, nor, msk;
+  uint pos, nor, msk, col;
 } g_vbo_id = {0};
 
 /** \} */
@@ -131,7 +131,10 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
       g_vbo_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
       g_vbo_id.nor = GPU_vertformat_attr_add(
           &format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      /* TODO: Do not allocate these `.msk` and `.col` when they are not used. */
       g_vbo_id.msk = GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+      g_vbo_id.col = GPU_vertformat_attr_add(
+          &format, "c", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     }
     buffers->vert_buf = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
   }
@@ -183,10 +186,12 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int *vert_indices,
                                   int totvert,
                                   const float *vmask,
+                                  const MLoopCol *vcol,
                                   const int (*face_vert_indices)[3],
                                   const int update_flags)
 {
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
+  const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   bool empty_mask = true;
 
   {
@@ -213,6 +218,18 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
               float fmask = vmask[v_index];
               GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vidx, &fmask);
               empty_mask = empty_mask && (fmask == 0.0f);
+            }
+          }
+        }
+
+        if (vcol && show_vcol) {
+          for (uint i = 0; i < buffers->face_indices_len; i++) {
+            const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+            for (int j = 0; j < 3; j++) {
+              const int loop_index = lt->tri[j];
+              const int vidx = face_vert_indices[i][j];
+              const uchar *elem = &vcol[loop_index].r;
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vidx, elem);
             }
           }
         }
@@ -255,6 +272,12 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, v->co);
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no);
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
+
+            if (vcol && show_vcol) {
+              const uint loop_index = lt->tri[j];
+              const uchar *elem = &vcol[loop_index].r;
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, elem);
+            }
 
             vbo_index++;
           }
@@ -511,10 +534,12 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int update_flags)
 {
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
+  const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   bool empty_mask = true;
   int i, j, k, x, y;
 
   const bool smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
+  static char vcol[4] = {255, 255, 255, 255};
 
   /* Build VBO */
   const int has_mask = key->has_mask;
@@ -577,6 +602,11 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
               GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
               empty_mask = empty_mask && (fmask == 0.0f);
             }
+
+            if (show_vcol) {
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, &vcol);
+            }
+
             vbo_index += 1;
           }
         }
@@ -623,6 +653,10 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
               GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 3, &fmask);
               empty_mask = empty_mask && (fmask == 0.0f);
             }
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 0, &vcol);
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 1, &vcol);
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 2, &vcol);
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 3, &vcol);
             vbo_index += 4;
           }
         }
@@ -677,6 +711,7 @@ static void gpu_bmesh_vert_to_buffer_copy__gwn(BMVert *v,
                                                const float *fmask,
                                                const int cd_vert_mask_offset,
                                                const bool show_mask,
+                                               const bool show_vcol,
                                                bool *empty_mask)
 {
   if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
@@ -692,6 +727,11 @@ static void gpu_bmesh_vert_to_buffer_copy__gwn(BMVert *v,
       float effective_mask = fmask ? *fmask : BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
       GPU_vertbuf_attr_set(vert_buf, g_vbo_id.msk, *v_index, &effective_mask);
       *empty_mask = *empty_mask && (effective_mask == 0.0f);
+    }
+
+    if (show_vcol) {
+      static char vcol[4] = {255, 255, 255, 255};
+      GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col, *v_index, &vcol);
     }
 
     /* Assign index for use in the triangle index buffer */
@@ -751,6 +791,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    const int update_flags)
 {
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
+  const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   int tottri, totvert, maxvert = 0;
   bool empty_mask = true;
 
@@ -799,6 +840,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                            NULL,
                                            cd_vert_mask_offset,
                                            show_mask,
+                                           show_vcol,
                                            &empty_mask);
       }
 
@@ -810,6 +852,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                            NULL,
                                            cd_vert_mask_offset,
                                            show_mask,
+                                           show_vcol,
                                            &empty_mask);
       }
 
@@ -851,6 +894,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                                &fmask,
                                                cd_vert_mask_offset,
                                                show_mask,
+                                               show_vcol,
                                                &empty_mask);
           }
         }

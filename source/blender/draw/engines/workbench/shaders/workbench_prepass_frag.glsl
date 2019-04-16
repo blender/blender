@@ -16,6 +16,9 @@ in vec3 normal_viewport;
 #ifdef V3D_SHADING_TEXTURE_COLOR
 in vec2 uv_interp;
 #endif
+#ifdef V3D_SHADING_VERTEX_COLOR
+in vec3 vertexColor;
+#endif
 
 #ifdef HAIR_SHADER
 flat in float hair_rand;
@@ -37,11 +40,13 @@ void main()
   float metallic, roughness;
   vec4 color;
 
-#  ifdef V3D_SHADING_TEXTURE_COLOR
+#  if defined(V3D_SHADING_TEXTURE_COLOR)
   color = workbench_sample_texture(image, uv_interp, imageSrgb, imageNearest);
   if (color.a < ImageTransparencyCutoff) {
     discard;
   }
+#  elif defined(V3D_SHADING_VERTEX_COLOR)
+  color.rgb = vertexColor;
 #  else
   color.rgb = materialDiffuseColor;
 #  endif
