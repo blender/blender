@@ -44,8 +44,11 @@ typedef struct {
 #define IDTYPE_FLAGS_ISLINKABLE (1 << 0)
 } IDType;
 
-/* plural need to match rna_main.c's MainCollectionDef */
-/* WARNING! Keep it in sync with i18n contexts in BLT_translation.h */
+/**
+ * When editing enusre that:
+ * - Plural need to match rna_main.c's #MainCollectionDef.
+ * - Keep it in sync with i18n contexts in BLT_translation.h
+ */
 static IDType idtypes[] = {
 	/** ID's directly below must all be in #Main, and be kept in sync with #MAX_LIBARRAY (membership, not order) */
 	{ID_AC,   "Action",             "actions",         BLT_I18NCONTEXT_ID_ACTION,             IDTYPE_FLAGS_ISLINKABLE},
