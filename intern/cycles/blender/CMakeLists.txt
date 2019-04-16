@@ -48,6 +48,12 @@ set(LIB
 	cycles_util
 )
 
+if(WITH_CYCLES_LOGGING)
+	list(APPEND LIB
+		extern_glog
+	)
+endif()
+
 set(ADDON_FILES
 	addon/__init__.py
 	addon/engine.py
