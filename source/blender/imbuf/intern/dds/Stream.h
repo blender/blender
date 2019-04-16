@@ -28,8 +28,10 @@ struct Stream {
 	unsigned char *mem; // location in memory
 	unsigned int size;  // size
 	unsigned int pos;   // current position
-	Stream(unsigned char *m, unsigned int s) : mem(m), size(s), pos(0) {}
+	bool failed;        // error occured when seeking
+	Stream(unsigned char *m, unsigned int s) : mem(m), size(s), pos(0), failed(false) {}
 	unsigned int seek(unsigned int p);
+	void set_failed(const char *msg);
 };
 
 unsigned int mem_read(Stream & mem, unsigned long long & i);

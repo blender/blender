@@ -165,7 +165,9 @@ struct ImBuf *imb_load_dds(const unsigned char *mem, size_t size, int flags, cha
 			ibuf->dds_data.data = (unsigned char *)dds.readData(ibuf->dds_data.size);
 
 			/* flip compressed texture */
-			FlipDXTCImage(dds.width(), dds.height(), dds.mipmapCount(), dds.fourCC(), ibuf->dds_data.data);
+			if (ibuf->dds_data.data) {
+				FlipDXTCImage(dds.width(), dds.height(), dds.mipmapCount(), dds.fourCC(), ibuf->dds_data.data);
+			}
 		}
 		else {
 			ibuf->dds_data.data = NULL;

@@ -1148,6 +1148,12 @@ void *DirectDrawSurface::readData(uint &rsize)
 	stream.seek(header_size);
 	mem_read(stream, data, size);
 
+	if (stream.failed) {
+		free(data);
+		data = NULL;
+		rsize = 0;
+	}
+
 	// Maybe check if size == rsize? assert() isn't in this scope...
 
 	return data;
