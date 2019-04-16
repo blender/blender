@@ -124,8 +124,13 @@ set(SRC
 )
 
 set(LIB
-	extern_glew
 )
+
+if(NOT WITH_SYSTEM_GLEW)
+	list(APPEND LIB
+		${BLENDER_GLEW_LIBRARIES}
+	)
+endif()
 
 data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_uniform_color_frag.glsl SRC)
