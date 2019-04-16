@@ -150,7 +150,7 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
   if (buffers->triangles == NULL) {
     buffers->triangles = GPU_batch_create(prim,
                                           buffers->vert_buf,
-                                          /* can be NULL */
+                                          /* can be NULL if buffer is empty */
                                           buffers->index_buf);
   }
 
@@ -160,7 +160,10 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
 
   if (buffers->lines == NULL) {
     BLI_assert(buffers->index_lines_buf != NULL);
-    buffers->lines = GPU_batch_create(GPU_PRIM_LINES, buffers->vert_buf, buffers->index_lines_buf);
+    buffers->lines = GPU_batch_create(GPU_PRIM_LINES,
+                                      buffers->vert_buf,
+                                      /* can be NULL if buffer is empty */
+                                      buffers->index_lines_buf);
   }
 
   if ((buffers->lines_fast == NULL) && buffers->index_lines_buf_fast) {
