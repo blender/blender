@@ -881,6 +881,7 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
 
 void BLI_path_frame_strip(char *path, char *r_ext)
 {
+	*r_ext = '\0';
 	if (*path == '\0') {
 		return;
 	}
