@@ -987,8 +987,9 @@ bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerColl
 {
 	bool depsgraph_need_update = false;
 	LayerCollection *lc_master = view_layer->layer_collections.first;
+	bool hide_it = extend && (lc->runtime_flag & LAYER_COLLECTION_VISIBLE);
 
-	if (!ID_IS_LINKED(lc->collection)) {
+	if ((!ID_IS_LINKED(lc->collection) && !hide_it)) {
 		if (lc->collection->flag & COLLECTION_RESTRICT_VIEW) {
 			lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
 			depsgraph_need_update = true;
@@ -1003,36 +1004,41 @@ bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerColl
 	}
 
 	/* Make all the direct parents visible. */
-	LayerCollection *lc_parent = lc;
-	for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-		if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
-			lc_parent = lc_iter;
-			break;
-		}
+	if (hide_it) {
+		lc->flag |= LAYER_COLLECTION_RESTRICT_VIEW;
 	}
-
-	while (lc_parent != lc) {
-		if (!ID_IS_LINKED(lc_parent->collection)) {
-			if (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEW) {
-				lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
-				depsgraph_need_update = true;
-			}
-		}
-
-		lc_parent->flag &= ~LAYER_COLLECTION_RESTRICT_VIEW;
-
-		for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+	else {
+		LayerCollection *lc_parent = lc;
+		for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
 			if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
 				lc_parent = lc_iter;
 				break;
 			}
 		}
+
+		while (lc_parent != lc) {
+			if (!ID_IS_LINKED(lc_parent->collection)) {
+				if (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEW) {
+					lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+					depsgraph_need_update = true;
+				}
+			}
+
+			lc_parent->flag &= ~LAYER_COLLECTION_RESTRICT_VIEW;
+
+			for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+				if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
+					lc_parent = lc_iter;
+					break;
+				}
+			}
+		}
+
+		/* Make all the children visible, but respect their disable state. */
+		layer_collection_flag_unset_recursive(lc, LAYER_COLLECTION_RESTRICT_VIEW);
+
+		BKE_layer_collection_activate(view_layer, lc);
 	}
-
-	/* Make all the children visible, but respect their disable state. */
-	layer_collection_flag_unset_recursive(lc, LAYER_COLLECTION_RESTRICT_VIEW);
-
-	BKE_layer_collection_activate(view_layer, lc);
 
 	BKE_layer_collection_sync(scene, view_layer);
 
