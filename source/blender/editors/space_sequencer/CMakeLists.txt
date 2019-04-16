@@ -51,6 +51,8 @@ set(SRC
 )
 
 set(LIB
+	bf_editor_interface
+	bf_editor_util
 )
 
 if(WITH_AUDASPACE)

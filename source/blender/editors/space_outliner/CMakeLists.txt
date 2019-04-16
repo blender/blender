@@ -50,6 +50,9 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
+	bf_editor_undo
 )
 
 if(WITH_INTERNATIONAL)

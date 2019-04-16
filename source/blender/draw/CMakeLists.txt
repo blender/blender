@@ -152,6 +152,8 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 data_to_c_simple(engines/eevee/shaders/ambient_occlusion_lib.glsl SRC)

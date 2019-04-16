@@ -62,6 +62,16 @@ set(LIB
 
 )
 
+if(WITH_CUDA_DYNLOAD)
+	list(APPEND LIB
+		extern_cuew
+	)
+else()
+	list(APPEND LIB
+		${CUDA_CUDA_LIBRARY}
+	)
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 if(WITH_CYCLES_NETWORK)
 	add_definitions(-DWITH_NETWORK)

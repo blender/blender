@@ -109,6 +109,8 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 if(WITH_ALEMBIC)
@@ -116,11 +118,17 @@ if(WITH_ALEMBIC)
 	list(APPEND INC
 		../alembic
 	)
+	list(APPEND LIB
+		bf_alembic
+	)
 endif()
 
 if(WITH_MOD_REMESH)
 	list(APPEND INC
 		../../../intern/dualcon
+	)
+	list(APPEND LIB
+		bf_intern_dualcon
 	)
 	add_definitions(-DWITH_MOD_REMESH)
 endif()
@@ -134,6 +142,9 @@ if(WITH_MOD_OCEANSIM)
 endif()
 
 if(WITH_BULLET)
+	list(APPEND LIB
+		extern_bullet
+	)
 	add_definitions(-DWITH_BULLET)
 endif()
 

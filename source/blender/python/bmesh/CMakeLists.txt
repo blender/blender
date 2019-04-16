@@ -52,6 +52,9 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
+	bf_python_mathutils
 )
 
 if(WITH_FREESTYLE)

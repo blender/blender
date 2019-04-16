@@ -164,6 +164,7 @@ set(SRC
 )
 
 set(LIB
+	extern_rangetree
 )
 
 if(MSVC AND NOT MSVC_CLANG)
@@ -173,6 +174,9 @@ endif()
 if(WITH_BULLET)
 	list(APPEND INC_SYS
 		${BULLET_INCLUDE_DIRS}
+	)
+	list(APPEND LIB
+		extern_bullet
 	)
 	add_definitions(-DWITH_BULLET)
 endif()

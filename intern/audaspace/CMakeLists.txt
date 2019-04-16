@@ -41,6 +41,12 @@ endif()
 set(LIB
 )
 
+if(NOT WITH_SYSTEM_AUDASPACE)
+	list(APPEND LIB
+		audaspace
+	)
+endif()
+
 if(WITH_PYTHON)
 	list(APPEND INC_SYS
 		${PYTHON_INCLUDE_DIRS}
@@ -49,6 +55,12 @@ if(WITH_PYTHON)
 		intern/AUD_PyInit.cpp
 		intern/AUD_PyInit.h
 	)
+	if(NOT WITH_SYSTEM_AUDASPACE)
+		list(APPEND LIB
+			audaspace-py
+		)
+	endif()
+
 	add_definitions(-DWITH_PYTHON)
 endif()
 

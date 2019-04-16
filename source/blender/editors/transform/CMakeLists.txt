@@ -55,6 +55,12 @@ set(SRC
 )
 
 set(LIB
+	bf_blenfont
+	bf_blenkernel
+	bf_blenlib
+	bf_bmesh
+	bf_editor_mask
+	bf_gpu
 )
 
 if(WITH_INTERNATIONAL)

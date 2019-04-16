@@ -51,6 +51,7 @@ set(SRC
 )
 
 set(LIB
+	${GLEW_LIBRARY}
 )
 
 add_definitions(${GL_DEFINITIONS})

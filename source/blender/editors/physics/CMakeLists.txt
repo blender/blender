@@ -51,13 +51,24 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 if(WITH_MOD_FLUID)
 	list(APPEND INC
 		../../../../intern/elbeem/extern
 	)
+	list(APPEND LIB
+		bf_intern_elbeem
+	)
 	add_definitions(-DWITH_MOD_FLUID)
+endif()
+
+if(WITH_MOD_SMOKE)
+	list(APPEND LIB
+		bf_intern_smoke
+	)
 endif()
 
 if(WITH_INTERNATIONAL)

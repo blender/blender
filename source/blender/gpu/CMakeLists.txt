@@ -124,6 +124,7 @@ set(SRC
 )
 
 set(LIB
+	extern_glew
 )
 
 data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)

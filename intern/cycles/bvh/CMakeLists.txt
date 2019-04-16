@@ -36,7 +36,7 @@ set(SRC_HEADERS
 )
 
 set(LIB
-
+	cycles_render
 )
 
 include_directories(${INC})

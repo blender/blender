@@ -43,6 +43,9 @@ set(LIB
 )
 
 if(WITH_IK_SOLVER)
+	list(APPEND LIB
+		bf_intern_iksolver
+	)
 	list(APPEND INC
 		../../../intern/iksolver/extern
 	)
@@ -54,6 +57,9 @@ if(WITH_IK_SOLVER)
 endif()
 
 if(WITH_IK_ITASC)
+	list(APPEND LIB
+		bf_intern_itasc
+	)
 	list(APPEND INC
 		../../../intern/itasc
 	)

@@ -373,6 +373,23 @@ set(SRC
 )
 
 set(LIB
+	bf_editor_armature
+	bf_editor_curve
+	bf_editor_gizmo_library
+	bf_editor_gpencil
+	bf_editor_mesh
+	bf_editor_object
+	bf_editor_physics
+	bf_editor_render
+	bf_editor_scene
+	bf_editor_sculpt_paint
+	bf_editor_space_clip
+	bf_editor_space_file
+	bf_editor_space_image
+	bf_editor_space_info
+	bf_editor_space_node
+	bf_editor_space_view3d
+	bf_editor_transform
 )
 
 add_definitions(${GL_DEFINITIONS})

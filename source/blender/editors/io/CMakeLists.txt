@@ -47,13 +47,21 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 if(WITH_OPENCOLLADA)
+	list(APPEND LIB
+		bf_collada
+	)
 	add_definitions(-DWITH_COLLADA)
 endif()
 
 if(WITH_ALEMBIC)
+	list(APPEND LIB
+		bf_alembic
+	)
 	add_definitions(-DWITH_ALEMBIC)
 
 	if(WITH_ALEMBIC_HDF5)

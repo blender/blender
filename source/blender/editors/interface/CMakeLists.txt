@@ -80,6 +80,9 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
+	bf_editor_datafiles
 )
 
 if(WITH_INTERNATIONAL)

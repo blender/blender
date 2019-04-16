@@ -64,6 +64,8 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 add_definitions(${GL_DEFINITIONS})

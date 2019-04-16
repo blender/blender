@@ -52,6 +52,8 @@ set(SRC
 )
 
 set(LIB
+	bf_gpu
+	bf_intern_guardedalloc
 )
 
 if(WIN32)

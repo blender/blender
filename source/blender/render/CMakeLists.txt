@@ -80,6 +80,9 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
+	list(APPEND LIB
+		bf_imbuf_openexr
+	)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
@@ -90,6 +93,9 @@ endif()
 if(WITH_FREESTYLE)
 	list(APPEND INC
 		../freestyle
+	)
+	list(APPEND LIB
+		bf_freestyle
 	)
 	add_definitions(-DWITH_FREESTYLE)
 endif()

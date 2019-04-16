@@ -85,6 +85,9 @@ set(SRC
 )
 
 set(LIB
+	bf_intern_glew_mx
+	bf_intern_string
+	${GLEW_LIBRARY}
 )
 
 if(WITH_GHOST_DEBUG)
@@ -194,6 +197,10 @@ elseif(WITH_X11)
 
 	if(WITH_GHOST_XDND)
 		add_definitions(-DWITH_XDND)
+
+		list(APPEND LIB
+			extern_xdnd
+		)
 
 		list(APPEND INC
 			../../extern/xdnd

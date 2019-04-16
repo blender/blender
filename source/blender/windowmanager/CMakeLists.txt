@@ -107,6 +107,7 @@ set(SRC
 )
 
 set(LIB
+	bf_editor_screen
 )
 
 if(WITH_AUDASPACE)
@@ -166,6 +167,9 @@ if(WIN32)
 endif()
 
 if(WITH_COMPOSITOR)
+	list(APPEND LIB
+		bf_compositor
+	)
 	add_definitions(-DWITH_COMPOSITOR)
 endif()
 

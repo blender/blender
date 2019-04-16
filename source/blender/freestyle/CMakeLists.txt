@@ -548,6 +548,7 @@ set(SRC
 )
 
 set(LIB
+	bf_python_mathutils
 )
 
 set(INC

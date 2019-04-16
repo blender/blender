@@ -474,6 +474,9 @@ endif()
 # OSL module
 
 if(WITH_CYCLES_OSL)
+	list(APPEND LIB
+		cycles_kernel_osl
+	)
 	add_subdirectory(osl)
 	add_subdirectory(shaders)
 endif()

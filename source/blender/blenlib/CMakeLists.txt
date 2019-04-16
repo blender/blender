@@ -234,6 +234,10 @@ set(SRC
 )
 
 set(LIB
+	bf_intern_eigen
+	bf_intern_guardedalloc
+	bf_intern_numaapi
+	extern_wcwidth
 )
 
 if(WITH_MEM_VALGRIND)

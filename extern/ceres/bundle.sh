@@ -136,7 +136,7 @@ ${headers}
 )
 
 set(LIB
-
+	extern_glog
 )
 
 if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)

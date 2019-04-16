@@ -49,6 +49,9 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
+	extern_curve_fit_nd
 )
 
 if(WITH_INTERNATIONAL)

@@ -36,11 +36,16 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 if(WITH_AUDASPACE)
 	list(APPEND INC_SYS
 		${AUDASPACE_C_INCLUDE_DIRS}
+	)
+	list(APPEND LIB
+		bf_intern_audaspace
 	)
 	add_definitions(-DWITH_AUDASPACE)
 endif()

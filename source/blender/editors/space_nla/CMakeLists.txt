@@ -46,6 +46,8 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
 )
 
 if(WITH_INTERNATIONAL)

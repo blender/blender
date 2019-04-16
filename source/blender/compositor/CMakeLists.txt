@@ -540,6 +540,9 @@ set(SRC
 )
 
 set(LIB
+	bf_blenkernel
+	bf_blenlib
+	extern_clew
 )
 
 list(APPEND INC

@@ -34,7 +34,8 @@ set(SRC
 )
 
 set(LIB
-
+	extern_ceres
+	extern_glog
 )
 
 if(WITH_LIBMV)

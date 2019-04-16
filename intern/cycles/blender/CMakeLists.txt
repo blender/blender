@@ -39,6 +39,13 @@ set(SRC
 )
 
 set(LIB
+	cycles_bvh
+	cycles_device
+	cycles_graph
+	cycles_kernel
+	cycles_render
+	cycles_subd
+	cycles_util
 )
 
 set(ADDON_FILES

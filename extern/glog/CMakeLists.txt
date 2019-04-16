@@ -54,6 +54,7 @@ set(SRC
 )
 
 set(LIB
+	extern_gflags
 )
 
 if(WIN32)
