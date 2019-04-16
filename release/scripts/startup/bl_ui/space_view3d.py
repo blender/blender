@@ -257,13 +257,6 @@ class VIEW3D_HT_header(Header):
 
         layout.separator_spacer()
 
-        # Collection Visibility
-        layout.popover(
-            panel="VIEW3D_PT_collections",
-            icon='GROUP',
-            text="",
-        )
-
         # Viewport Settings
         layout.popover(
             panel="VIEW3D_PT_object_type_visibility",
@@ -4390,9 +4383,9 @@ class VIEW3D_PT_view3d_cursor(Panel):
 
 class VIEW3D_PT_collections(Panel):
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'HEADER'
+    bl_region_type = 'UI'
+    bl_category = "View"
     bl_label = "Collections Visibility"
-    bl_ui_units_x = 10
 
     def _draw_collection(self, layout, view_layer, collection, index):
         need_separator = index
