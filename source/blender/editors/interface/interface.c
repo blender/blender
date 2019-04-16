@@ -1706,7 +1706,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 	int is_push = 0;
 
 	if (but->bit) {
-		const bool state = ELEM(but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N) ? false : true;
+		const bool state = !ELEM(but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N);
 		int lvalue;
 		UI_GET_BUT_VALUE_INIT(but, *value);
 		lvalue = (int)*value;

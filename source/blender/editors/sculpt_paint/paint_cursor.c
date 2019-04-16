@@ -798,7 +798,7 @@ static void paint_draw_alpha_overlay(
 {
 	/* Color means that primary brush texture is colored and
 	 * secondary is used for alpha/mask control. */
-	bool col = ELEM(mode, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D, PAINT_MODE_VERTEX) ? true : false;
+	bool col = ELEM(mode, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D, PAINT_MODE_VERTEX);
 	eOverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
