@@ -12,11 +12,11 @@ blender_version_cycle=$(grep "BLENDER_VERSION_CYCLE\s" "$blender_srcdir/source/b
 blender_subversion=$(grep "BLENDER_SUBVERSION\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h" | awk '{print $3}')
 
 if [ "$blender_version_cycle" = "release" ] ; then
-	VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)$blender_version_char
-	SUBMODULE_EXCLUDE="^\(release/scripts/addons_contrib\)$"
+  VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)$blender_version_char
+  SUBMODULE_EXCLUDE="^\(release/scripts/addons_contrib\)$"
 else
-	VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)_$blender_subversion
-	SUBMODULE_EXCLUDE="^$"  # dummy regex
+  VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)_$blender_subversion
+  SUBMODULE_EXCLUDE="^$"  # dummy regex
 fi
 
 MANIFEST="blender-$VERSION-manifest.txt"
@@ -42,10 +42,10 @@ git ls-files | python3 -c "$FILTER_FILES_PY" > $BASE_DIR/$MANIFEST
 
 # Enumerate submodules
 for lcv in $(git submodule | awk '{print $2}' | grep -v "$SUBMODULE_EXCLUDE"); do
-	cd "$BASE_DIR"
-	cd "$blender_srcdir/$lcv"
-	git ls-files | python3 -c "$FILTER_FILES_PY" | awk '$0="'"$lcv"/'"$0' >> $BASE_DIR/$MANIFEST
-	cd "$BASE_DIR"
+  cd "$BASE_DIR"
+  cd "$blender_srcdir/$lcv"
+  git ls-files | python3 -c "$FILTER_FILES_PY" | awk '$0="'"$lcv"/'"$0' >> $BASE_DIR/$MANIFEST
+  cd "$BASE_DIR"
 done
 echo "OK"
 
@@ -54,10 +54,10 @@ echo "OK"
 cd "$blender_srcdir"
 echo -n "Creating archive:            \"$BASE_DIR/$TARBALL\" ..."
 tar --transform "s,^,blender-$VERSION/,g" \
-	--use-compress-program="gzip --best" \
-	--create \
-	--file="$BASE_DIR/$TARBALL" \
-	--files-from="$BASE_DIR/$MANIFEST"
+  --use-compress-program="gzip --best" \
+  --create \
+  --file="$BASE_DIR/$TARBALL" \
+  --files-from="$BASE_DIR/$MANIFEST"
 echo "OK"
 
 
