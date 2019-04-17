@@ -172,21 +172,25 @@ struct uiBut {
   /* both these values use depends on the button type
    * (polymorphic struct or union would be nicer for this stuff) */
 
-  /* (type == UI_BTYPE_HSVCUBE),    Use UI_GRAD_* values.
-   * (type == UI_BTYPE_NUM),        Use to store RNA 'step' value, for dragging and click-step.
-   * (type == UI_BTYPE_LABEL),      Use (a1 == 1.0f) to use a2 as a blending factor (wow, this is imaginative!).
-   * (type == UI_BTYPE_SCROLL)      Use as scroll size.
-   * (type == UI_BTYPE_SEARCH_MENU) Use as number or rows.
-   * (type == UI_BTYPE_COLOR)       Use as indication of color palette
-   * (type == UI_BTYPE_PROGRESS_BAR) Use to store progress (0..1).
+  /**
+   * For #uiBut.type:
+   * - UI_BTYPE_HSVCUBE:      Use UI_GRAD_* values.
+   * - UI_BTYPE_NUM:          Use to store RNA 'step' value, for dragging and click-step.
+   * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
+   * - UI_BTYPE_SCROLL:       Use as scroll size.
+   * - UI_BTYPE_SEARCH_MENU:  Use as number or rows.
+   * - UI_BTYPE_COLOR:        Use as indication of color palette.
+   * - UI_BTYPE_PROGRESS_BAR: Use to store progress (0..1).
    */
   float a1;
 
-  /* (type == UI_BTYPE_HSVCIRCLE ), Use to store the luminosity.
-   * (type == UI_BTYPE_NUM),        Use to store RNA 'precision' value, for dragging and click-step.
-   * (type == UI_BTYPE_LABEL),      If (a1 == 1.0f) use a2 as a blending factor.
-   * (type == UI_BTYPE_SEARCH_MENU) Use as number or columns.
-   * (type == UI_BTYPE_COLOR)       Use as index in palette (not so good, needs refactor)
+  /**
+   * For #uiBut.type:
+   * - UI_BTYPE_HSVCIRCLE:    Use to store the luminosity.
+   * - UI_BTYPE_NUM:          Use to store RNA 'precision' value, for dragging and click-step.
+   * - UI_BTYPE_LABEL:        If `(a1 == 1.0f)` use a2 as a blending factor.
+   * - UI_BTYPE_SEARCH_MENU:  Use as number or columns.
+   * - UI_BTYPE_COLOR:        Use as index in palette (not so good, needs refactor).
    */
   float a2;
 

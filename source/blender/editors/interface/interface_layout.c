@@ -731,12 +731,16 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
                                      int but_type,
                                      bool icon_only)
 {
-  /* XXX The way this function currently handles uiname parameter is insane and inconsistent with general UI API:
-   *     * uiname is the *enum property* label.
-   *     * when it is NULL or empty, we do not draw *enum items* labels, this doubles the icon_only parameter.
-   *     * we *never* draw (i.e. really use) the enum label uiname, it is just used as a mere flag!
-   *     Unfortunately, fixing this implies an API "soft break", so better to defer it for later... :/
-   *     --mont29
+  /* XXX: The way this function currently handles uiname parameter
+   * is insane and inconsistent with general UI API:
+   *
+   * - uiname is the *enum property* label.
+   * - when it is NULL or empty, we do not draw *enum items* labels,
+   *   this doubles the icon_only parameter.
+   * - we *never* draw (i.e. really use) the enum label uiname, it is just used as a mere flag!
+   *
+   * Unfortunately, fixing this implies an API "soft break", so better to defer it for later... :/
+   * - mont29
    */
 
   uiBut *but;
@@ -1533,9 +1537,10 @@ void uiItemsFullEnumO(uiLayout *layout,
     bool free;
 
     if (ui_layout_is_radial(layout)) {
-      /* XXX: While "_all()" guarantees spatial stability, it's bad when an enum has > 8 items total,
-       * but only a small subset will ever be shown at once (e.g. Mode Switch menu, after the
-       * introduction of GP editing modes)
+      /* XXX: While "_all()" guarantees spatial stability,
+       * it's bad when an enum has > 8 items total,
+       * but only a small subset will ever be shown at once
+       * (e.g. Mode Switch menu, after the introduction of GP editing modes).
        */
 #if 0
       RNA_property_enum_items_gettexted_all(
@@ -3964,9 +3969,10 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
       return;
     }
 
-    /* Even in varying column width case, we fix our columns number from weighted average width of items,
-     * a proper solving of required width would be too costly, and this should give reasonably good results
-     * in all reasonable cases... */
+    /* Even in varying column width case,
+     * we fix our columns number from weighted average width of items,
+     * a proper solving of required width would be too costly,
+     * and this should give reasonably good results in all reasonable cases. */
     if (gflow->columns_len > 0) {
       gflow->tot_columns = gflow->columns_len;
     }
@@ -4435,7 +4441,8 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 }
 
 /**
- * Check all buttons defined in this layout, and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
+ * Check all buttons defined in this layout,
+ * and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
  * Needed to handle correctly text colors of active (selected) list item.
  */
 void ui_layout_list_set_labels_active(uiLayout *layout)

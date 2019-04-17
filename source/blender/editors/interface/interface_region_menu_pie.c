@@ -310,12 +310,14 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
 /**
  * \name Pie Menu Levels
  *
- * Pie menus can't contain more than 8 items (yet). When using #uiItemsFullEnumO, a "More" button is created that calls
+ * Pie menus can't contain more than 8 items (yet).
+ * When using #uiItemsFullEnumO, a "More" button is created that calls
  * a new pie menu if the enum has too many items. We call this a new "level".
  * Indirect recursion is used, so that a theoretically unlimited number of items is supported.
  *
- * This is a implementation specifically for operator enums, needed since the object mode pie now has more than 8
- * items. Ideally we'd have some way of handling this for all kinds of pie items, but that's tricky.
+ * This is a implementation specifically for operator enums,
+ * needed since the object mode pie now has more than 8 items.
+ * Ideally we'd have some way of handling this for all kinds of pie items, but that's tricky.
  *
  * - Julian (Feb 2016)
  *

@@ -2422,8 +2422,10 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 }
 
 /**
- * \param float_precision: For number buttons the precision to use or -1 to fallback to the button default.
- * \param use_exp_float: Use exponent representation of floats when out of reasonable range (outside of 1e3/1e-3).
+ * \param float_precision: For number buttons the precision
+ * to use or -1 to fallback to the button default.
+ * \param use_exp_float: Use exponent representation of floats
+ * when out of reasonable range (outside of 1e3/1e-3).
  */
 void ui_but_string_get_ex(uiBut *but,
                           char *str,
@@ -2752,10 +2754,10 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 
           /* This is kind of hackish, in theory think we could only ever use the second member of
            * this if/else, since ui_searchbox_apply() is supposed to always set that pointer when
-           * we are storing pointers... But keeping str search first for now, to try to break as little as
-           * possible existing code. All this is band-aids anyway.
-           * Fact remains, using editstr as main 'reference' over whole search button thingy is utterly weak
-           * and should be redesigned imho, but that's not a simple task. */
+           * we are storing pointers... But keeping str search first for now,
+           * to try to break as little as possible existing code. All this is band-aids anyway.
+           * Fact remains, using editstr as main 'reference' over whole search button thingy
+           * is utterly weak and should be redesigned imho, but that's not a simple task. */
           if (prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
             RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
           }
@@ -6184,9 +6186,9 @@ static void operator_enum_call_cb(struct bContext *UNUSED(C), void *but, void *a
     if (ot->prop) {
       RNA_property_enum_set(opptr, ot->prop, POINTER_AS_INT(arg2));
       /* We do not call op from here, will be called by button code.
-       * ui_apply_but_funcs_after() (in interface_handlers.c) called this func before checking operators,
-       * because one of its parameters is the button itself!
-       */
+       * ui_apply_but_funcs_after() (in interface_handlers.c)
+       * called this func before checking operators,
+       * because one of its parameters is the button itself! */
     }
     else {
       printf("%s: op->prop for '%s' is NULL\n", __func__, ot->idname);
@@ -6195,8 +6197,8 @@ static void operator_enum_call_cb(struct bContext *UNUSED(C), void *but, void *a
 }
 
 /**
- * Same parameters as for uiDefSearchBut, with additional operator type and properties, used by callback
- * to call again the right op with the right options (properties values).
+ * Same parameters as for uiDefSearchBut, with additional operator type and properties,
+ * used by callback to call again the right op with the right options (properties values).
  */
 uiBut *uiDefSearchButO_ptr(uiBlock *block,
                            wmOperatorType *ot,

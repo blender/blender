@@ -539,9 +539,10 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
     data->prv_cols = but->a2;
   }
 
-  /* Only show key shortcuts when needed (checking RNA prop pointer is useless here, a lot of buttons are about data
-   * without having that pointer defined, let's rather try with optype!). One can also enforce that behavior by
-   * setting UI_BUT_HAS_SHORTCUT drawflag of search button. */
+  /* Only show key shortcuts when needed (checking RNA prop pointer is useless here, a lot of
+   * buttons are about data without having that pointer defined, let's rather try with optype!).
+   * One can also enforce that behavior by setting
+   * UI_BUT_HAS_SHORTCUT drawflag of search button. */
   if (but->optype != NULL || (but->drawflag & UI_BUT_HAS_SHORTCUT) != 0) {
     data->use_sep = true;
   }

@@ -1604,9 +1604,14 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
 
 /**
  * Cut off the middle of the text to fit into the given width.
- * Note in case this middle clipping would just remove a few chars, it rather clips right, which is more readable.
- * If rpart_sep is not Null, the part of str starting to first occurrence of rpart_sep is preserved at all cost (useful
- * for strings with shortcuts, like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
+ *
+ * \note in case this middle clipping would just remove a few chars,
+ * it rather clips right, which is more readable.
+ *
+ * If rpart_sep is not Null, the part of str starting to first occurrence of rpart_sep
+ * is preserved at all cost.
+ * Useful for strings with shortcuts
+ * (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
 float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
                              char *str,
@@ -1691,8 +1696,8 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
       r_len = strlen(str + r_offset) + 1; /* +1 for the trailing '\0'. */
 
       if (l_end + sep_len + r_len + rpart_len > max_len) {
-        /* Corner case, the str already takes all available mem, and the ellipsis chars would actually
-         * add more chars...
+        /* Corner case, the str already takes all available mem,
+         * and the ellipsis chars would actually add more chars.
          * Better to just trim one or two letters to the right in this case...
          * Note: with a single-char ellipsis, this should never happen! But better be safe here...
          */
@@ -1753,8 +1758,10 @@ static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rct
 }
 
 /**
- * Like ui_text_clip_middle(), but protect/preserve at all cost the right part of the string after sep.
- * Useful for strings with shortcuts (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
+ * Like #ui_text_clip_middle(), but protect/preserve at all cost
+ * the right part of the string after sep.
+ * Useful for strings with shortcuts
+ * (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
 static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
                                               uiBut *but,

@@ -663,7 +663,8 @@ static void ui_block_colorpicker(uiBlock *block, uiBut *from_but, float rgba[4],
   UI_but_func_set(bt, ui_colorpicker_rna_cb, bt, NULL);
   bt->custom_data = cpicker;
 
-  /* could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
+  /* Could use:
+   * uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND | UI_ITEM_R_SLIDER, "", ICON_NONE);
    * but need to use UI_but_func_set for updating other fake buttons */
 
   /* HSV values */

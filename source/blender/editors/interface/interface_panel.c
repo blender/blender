@@ -267,7 +267,8 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 }
 
 /**
- * XXX Disabled paneltab handling for now. Old 2.4x feature, *DO NOT* confuse it with new tool tabs in 2.70. ;)
+ * XXX Disabled paneltab handling for now. Old 2.4x feature,
+ * *DO NOT* confuse it with new tool tabs in 2.70. ;)
  * See also T41704.
  */
 /* #define UI_USE_PANELTAB */

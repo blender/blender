@@ -205,14 +205,20 @@ static void ui_selectcontext_apply(bContext *C,
 #  define DRAG_MULTINUM_THRESHOLD_DRAG_X (UI_UNIT_Y / 4)
 
 /**
- * how far to drag horizontally before we stop checking which buttons the gesture spans (in pixels),
- * locking down the buttons so we can drag freely without worrying about vertical movement. */
+ * How far to drag horizontally
+ * before we stop checking which buttons the gesture spans (in pixels),
+ * locking down the buttons so we can drag freely without worrying about vertical movement.
+ */
 #  define DRAG_MULTINUM_THRESHOLD_DRAG_Y (UI_UNIT_Y / 4)
 
 /**
- * how strict to be when detecting a vertical gesture, [0.5 == sloppy], [0.9 == strict], (unsigned dot-product)
- * note: we should be quite strict here, since doing a vertical gesture by accident should be avoided,
- * however with some care a user should be able to do a vertical movement without *missing*. */
+ * How strict to be when detecting a vertical gesture:
+ * [0.5 == sloppy], [0.9 == strict], (unsigned dot-product).
+ *
+ * \note We should be quite strict here,
+ * since doing a vertical gesture by accident should be avoided,
+ * however with some care a user should be able to do a vertical movement without _missing_.
+ */
 #  define DRAG_MULTINUM_THRESHOLD_VERTICAL (0.75f)
 
 /* a simple version of uiHandleButtonData when accessing multiple buttons */
@@ -912,8 +918,8 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
    * feature used for bone renaming, channels, etc.
    * afterfunc frees rename_orig */
   if (data->origstr && (but->flag & UI_BUT_TEXTEDIT_UPDATE)) {
-    /* In this case, we need to keep origstr available, to restore real org string in case we cancel after
-     * having typed something already. */
+    /* In this case, we need to keep origstr available,
+     * to restore real org string in case we cancel after having typed something already. */
     but->rename_orig = BLI_strdup(data->origstr);
   }
   /* only if there are afterfuncs, otherwise 'renam_orig' isn't freed */
@@ -1314,8 +1320,8 @@ static bool ui_drag_toggle_set_xy_xy(
     ui_window_to_block_fl(ar, block, &xy_b_block[0], &xy_b_block[1]);
 
     for (but = block->buttons.first; but; but = but->next) {
-      /* Note: ctrl is always true here because (at least for now) we always want to consider text control
-       *       in this case, even when not embossed. */
+      /* Note: ctrl is always true here because (at least for now)
+       * we always want to consider text control in this case, even when not embossed. */
       if (ui_but_is_interactive(but, true)) {
         if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
@@ -5302,12 +5308,14 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
         button_activate_state(C, but, BUTTON_STATE_EXIT);
         ui_apply_but(C, but->block, but, data, true);
 
-        /* button's state need to be changed to EXIT so moving mouse away from this mouse wouldn't lead
-         * to cancel changes made to this button, but changing state to EXIT also makes no button active for
-         * a while which leads to triggering operator when doing fast scrolling mouse wheel.
-         * using post activate stuff from button allows to make button be active again after checking for all
-         * all that mouse leave and cancel stuff, so quick scroll wouldn't be an issue anymore.
-         * same goes for scrolling wheel in another direction below (sergey)
+        /* Button's state need to be changed to EXIT so moving mouse away from this mouse wouldn't
+         * lead to cancel changes made to this button, but changing state to EXIT also makes no
+         * button active for a while which leads to triggering operator
+         * when doing fast scrolling mouse wheel.
+         * using post activate stuff from button allows to make button be active again after
+         * checking for all all that mouse leave and cancel stuff,
+         * so quick scroll wouldn't be an issue anymore.
+         * Same goes for scrolling wheel in another direction below (sergey).
          */
         data->postbut = but;
         data->posttype = BUTTON_ACTIVATE_OVER;
@@ -9905,7 +9913,8 @@ static int ui_handle_menus_recursive(bContext *C,
 }
 
 /**
- * Allow setting menu return value from externals. E.g. WM might need to do this for exiting files correctly.
+ * Allow setting menu return value from externals.
+ * E.g. WM might need to do this for exiting files correctly.
  */
 void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool enable)
 {

@@ -212,11 +212,14 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
 /* Refresh and Validation */
 
 /**
- * Initialize all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
- * - for some of these presets, it is expected that the region will have defined some
+ * Initialize all relevant View2D data (including view rects if first time)
+ * and/or refresh mask sizes after view resize.
+ *
+ * - For some of these presets, it is expected that the region will have defined some
  *   additional settings necessary for the customization of the 2D viewport to its requirements
- * - this function should only be called from region init() callbacks, where it is expected that
- *   this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialized.
+ * - This function should only be called from region init() callbacks, where it is expected that
+ *   this is called before #UI_view2d_size_update(),
+ *   as this one checks that the rects are properly initialized.
  */
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
@@ -238,7 +241,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       v2d->minzoom = 0.01f;
       v2d->maxzoom = 1000.0f;
 
-      /* tot rect and cur should be same size, and aligned using 'standard' OpenGL coordinates for now
+      /* View2D tot rect and cur should be same size,
+       * and aligned using 'standard' OpenGL coordinates for now:
        * - region can resize 'tot' later to fit other data
        * - keeptot is only within bounds, as strict locking is not that critical
        * - view is aligned for (0,0) -> (winx-1, winy-1) setup
@@ -271,8 +275,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       /* scroller settings are currently not set here... that is left for regions... */
       break;
     }
-    /* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead.
-     * zoom, aspect ratio, and alignment restrictions are set here */
+    /* 'stack view' - practically the same as list/channel view,
+     * except is located in the pos y half instead.
+     * Zoom, aspect ratio, and alignment restrictions are set here. */
     case V2D_COMMONVIEW_STACK: {
       /* zoom + aspect ratio are locked */
       v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
@@ -545,10 +550,12 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
 
     if (do_cur) {
       if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winx != v2d->oldwinx)) {
-        /* special exception for Outliner (and later channel-lists):
-         * - The view may be moved left to avoid contents being pushed out of view when view shrinks.
-         * - The keeptot code will make sure cur->xmin will not be less than tot->xmin (which cannot be allowed)
-         * - width is not adjusted for changed ratios here...
+        /* Special exception for Outliner (and later channel-lists):
+         * - The view may be moved left to avoid contents
+         *   being pushed out of view when view shrinks.
+         * - The keeptot code will make sure cur->xmin will not be less than tot->xmin
+         *   (which cannot be allowed).
+         * - width is not adjusted for changed ratios here.
          */
         if (winx < v2d->oldwinx) {
           float temp = v2d->oldwinx - winx;
@@ -906,8 +913,9 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 }
 
 /**
- * Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot)
- * This does not take into account if zooming the view on an axis will improve the view (if allowed)
+ * Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot).
+ * This does not take into account if zooming the view on an axis
+ * will improve the view (if allowed).
  */
 void UI_view2d_curRect_reset(View2D *v2d)
 {
@@ -1149,8 +1157,9 @@ void UI_view2d_view_ortho(View2D *v2d)
   const float eps = 0.001f;
   float xofs = 0.0f, yofs = 0.0f;
 
-  /* pixel offsets (-GLA_PIXEL_OFS) are needed to get 1:1 correspondence with pixels for smooth UI drawing,
-   * but only applied where requested
+  /* Pixel offsets (-GLA_PIXEL_OFS) are needed to get 1:1
+   * correspondence with pixels for smooth UI drawing,
+   * but only applied where requested.
    */
   /* XXX brecht: instead of zero at least use a tiny offset, otherwise
    * pixel rounding is effectively random due to float inaccuracy */
@@ -1184,15 +1193,17 @@ void UI_view2d_view_ortho(View2D *v2d)
 /**
  * Set view matrices to only use one axis of 'cur' only
  *
- * \param xaxis: if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
+ * \param xaxis: if non-zero, only use cur x-axis,
+ * otherwise use cur-yaxis (mostly this will be used for x).
  */
 void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, const bool xaxis)
 {
   rctf curmasked;
   float xofs, yofs;
 
-  /* pixel offsets (-GLA_PIXEL_OFS) are needed to get 1:1 correspondence with pixels for smooth UI drawing,
-   * but only applied where requested
+  /* Pixel offsets (-GLA_PIXEL_OFS) are needed to get 1:1
+   * correspondence with pixels for smooth UI drawing,
+   * but only applied where requested.
    */
   /* XXX temp (ton) */
   xofs = 0.0f;  // (v2d->flag & V2D_PIXELOFS_X) ? GLA_PIXEL_OFS : 0.0f;
@@ -2198,7 +2209,8 @@ void UI_view2d_listview_cell_to_view(View2D *v2d,
 }
 
 /**
- * Get the 'cell' (row, column) that the given 2D-view coordinates (i.e. in 'tot' rect space) lie in.
+ * Get the 'cell' (row, column) that the given 2D-view coordinates
+ * (i.e. in 'tot' rect space) lie in.
  *
  * \param columnwidth, rowheight: size of each 'cell'
  * \param startx, starty: coordinates (in 'tot' rect space) that the list starts from.
@@ -2255,7 +2267,8 @@ void UI_view2d_listview_view_to_cell(View2D *v2d,
  * Get the 'extreme' (min/max) column and row indices which are visible within the 'cur' rect
  *
  * \param columnwidth, rowheight: Size of each 'cell'
- * \param startx, starty: Coordinates that the list starts from, which should be (0,0) for most views
+ * \param startx, starty: Coordinates that the list starts from,
+ * which should be (0,0) for most views.
  * \param column_min, column_max, row_min, row_max: The starting and ending column/row indices
  */
 void UI_view2d_listview_visible_cells(View2D *v2d,
