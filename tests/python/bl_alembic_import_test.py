@@ -186,7 +186,7 @@ class SimpleImportTest(AbstractAlembicTest):
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(6)
         scene = bpy.context.scene
-        mesh = plane.to_mesh(bpy.context.depsgraph, True, True, False)
+        mesh = plane.to_mesh(bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[0].co.z)
@@ -196,7 +196,7 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.data.cache_files[fname].filepath = relpath
         scene.frame_set(6)
 
-        mesh = plane.to_mesh(bpy.context.depsgraph, True, True, False)
+        mesh = plane.to_mesh(bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
         self.assertAlmostEqual(1, mesh.vertices[3].co.x)
         self.assertAlmostEqual(1, mesh.vertices[3].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[3].co.z)
