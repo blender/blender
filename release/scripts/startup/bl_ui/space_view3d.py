@@ -4617,7 +4617,7 @@ class VIEW3D_PT_shading_color(Panel):
         layout = self.layout
         shading = VIEW3D_PT_shading.get_shading(context)
 
-        layout.row().prop(shading, "color_type", expand=True)
+        layout.grid_flow(columns=3, align=True).prop(shading, "color_type", expand=True)
         if shading.color_type == 'SINGLE':
             layout.row().prop(shading, "single_color", text="")
 
