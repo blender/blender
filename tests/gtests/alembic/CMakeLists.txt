@@ -34,6 +34,8 @@ set(INC
 
 set(LIB
   bf_blenloader  # Should not be needed but gives linking error without it.
+  bf_intern_opencolorio # Should not be needed but gives windows linker errors if the ocio libs are linked before this
+  bf_gpu # Should not be needed but gives windows linker errors if the ocio libs are linked before this
   bf_alembic
 )
 
