@@ -1,0 +1,227 @@
+
+# Configuration of clang-format
+# =============================
+#
+# Tested to work with versions: 6 to 8.
+
+# This causes parameters on continuations to align to the opening brace.
+#
+#   like_this_long_name(parameter_one,
+#                       parameter_two,
+#                       parameter_three);
+#
+AlignAfterOpenBracket: 'Align'
+
+# Disallow short functions on one line; break them up.
+AllowShortBlocksOnASingleLine: false
+
+# These two settings trigger stacking of parameters in most cases; this is
+# easier to read and also makes diffs easier to read (since an added or removed
+# parameter is obvious). For example, function calls will look like this:
+#
+#   like_this_long_name(parameter_one,
+#                       parameter_two,
+#                       parameter_three,
+#                       parameter_four,
+#                       parameter_five,
+#                       parameter_six);
+#
+# Instead of:
+#
+#   like_this_long_name(parameter_one, parameter_two, parameter_three, parameter_four,
+#                       parameter_five, parameter_six);
+#
+BinPackArguments: false
+BinPackParameters: false
+
+# Line width (don't exceed 100).
+ColumnLimit: 99
+
+# Cause initializer lists to have one member initialized per line, in the case
+# that all initializers can't fit on a single line.
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+# Indent the : after a constructor. For example:
+#
+#   explicit foo_class ()
+#       : member1_(5)
+#   {
+#   }
+#
+ConstructorInitializerIndentWidth: 4
+
+# Make access modifier slightly more visible.
+AccessModifierOffset: -1
+
+# This will unfortunately use spaces in some cases where it's not desired (like
+# function calls) but the overall result is better since it will allow
+# alignment to work properly with different tab width settings.
+ContinuationIndentWidth: 4
+
+# This tries to match Blender's style as much as possible. One
+BreakBeforeBraces: Custom
+BraceWrapping: {
+    AfterClass: 'false'
+    AfterControlStatement: 'false'
+    AfterEnum : 'false'
+    AfterFunction : 'true'
+    AfterNamespace : 'false'
+    AfterStruct : 'false'
+    AfterUnion : 'false'
+    BeforeCatch : 'true'
+    BeforeElse : 'true'
+    IndentBraces : 'false'
+    AfterObjCDeclaration: 'true'
+}
+
+# For switch statements, indent the cases.
+IndentCaseLabels: true
+
+# Indent after the hash inside preprocessor directives
+IndentPPDirectives: AfterHash
+
+BreakBeforeTernaryOperators: false
+
+SpaceAfterTemplateKeyword: false
+
+# Handy comment at the end of each C++ name space.
+FixNamespaceComments: true
+
+# Use "if (...)" instead of "if(...)", but have function calls like foo().
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+
+# Use two spaces before trailing comments, for example
+#
+#   foo = bar;  // comment
+#
+# Note that this doesn't work for C-style comments.
+SpacesBeforeTrailingComments: 2
+
+# Don't reflow comments, let developers define line breaks.
+# Enabling breaks some ascii art.
+ReflowComments: false
+
+# Never use tabs for indentation.
+# Note: TabWidth and IndentWidth must be the same, or strange things happen.
+UseTab: Never
+TabWidth: 2
+IndentWidth: 2
+
+# Add a big penalty on breaking after the return type of functions. For example,
+#
+#   static void foo(...)
+#
+# Instead of:
+#
+#   static void
+#   foo(very long content here that maybe could be stacked)
+#
+PenaltyReturnTypeOnItsOwnLine: 10000
+
+# Avoid having function calls broken onto a new line:
+#
+#   int a = foo(
+#       long, list, of, many, params);
+#
+# Instead of:
+#
+#   int a =
+#       foo(long, list, of, many, params);
+#
+PenaltyBreakAssignment: 100
+
+AllowShortFunctionsOnASingleLine: None
+
+# Disable for now since it complicates initial migration tests,
+# TODO: look into enabling this in the future.
+SortIncludes: false
+
+# Don't right align escaped newlines to the right because we have a wide default
+AlignEscapedNewlines: DontAlign
+
+# Always break:
+#
+#   const char *foo =
+#       "multi"
+#       "line";
+#
+# Instead of:
+#
+#   const char *foo = "multi"
+#                     "line";
+#
+AlwaysBreakBeforeMultilineStrings: true
+
+# We don't want literal strings to break,
+# however clang-format seems to ignore this (sigh).
+PenaltyBreakString: 1000000
+
+# There are macros in Blender for custom for loops; tell Clang to treat them
+# like loops rather than an expression, and so put the { on the same line.
+ForEachMacros:
+  - BLI_SMALLSTACK_ITER_BEGIN
+  - BMO_ITER
+  - BMW_ITER
+  - BM_FACES_OF_VERT_ITER_BEGIN
+  - BM_ITER_ELEM
+  - BM_ITER_MESH
+  - BM_ITER_MESH_INDEX
+  - BM_ITER_MESH_MUTABLE
+  - BM_LOOPS_OF_VERT_ITER_BEGIN
+  - BOOST_FOREACH
+  - CTX_DATA_BEGIN
+  - DEG_OBJECT_ITER_BEGIN
+  - DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN
+  - DRIVER_TARGETS_LOOPER_BEGIN
+  - DRIVER_TARGETS_USED_LOOPER_BEGIN
+  - FAKE_SELECT_MODE_BEGIN
+  - FOREACH_BASE_IN_EDIT_MODE_BEGIN
+  - FOREACH_BASE_IN_MODE_BEGIN
+  - FOREACH_BEGIN
+  - FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN
+  - FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN
+  - FOREACH_EDIT_OBJECT_BEGIN
+  - FOREACH_NODETREE_BEGIN
+  - FOREACH_OBJECT_BEGIN
+  - FOREACH_OBJECT_FLAG_BEGIN
+  - FOREACH_OBJECT_IN_EDIT_MODE_BEGIN
+  - FOREACH_OBJECT_IN_MODE_BEGIN
+  - FOREACH_OBJECT_RENDERABLE_BEGIN
+  - FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN
+  - FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN
+  - FOREACH_SCENE_COLLECTION_BEGIN
+  - FOREACH_SCENE_OBJECT_BEGIN
+  - FOREACH_SELECTED_BASE_BEGIN
+  - FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN
+  - FOREACH_SELECTED_OBJECT_BEGIN
+  - FOREACH_VIEW_LAYER_TO_RENDER_BEGIN
+  - FOREACH_VISIBLE_BASE_BEGIN
+  - FOREACH_VISIBLE_OBJECT_BEGIN
+  - GHASH_FOREACH_BEGIN
+  - GHASH_ITER
+  - GSET_FOREACH_BEGIN
+  - GSET_ITER
+  - GP_EDITABLE_STROKES_BEGIN
+  - GSET_FOREACH_BEGIN
+  - ITER_BEGIN
+  - LISTBASE_CIRCULAR_BACKWARD_BEGIN
+  - LISTBASE_CIRCULAR_FORWARD_BEGIN
+  - LISTBASE_FOREACH
+  - MAN2D_ITER_AXES_BEGIN
+  - MAN_ITER_AXES_BEGIN
+  - NODE_SOCKET_TYPES_BEGIN
+  - NODE_TREE_TYPES_BEGIN
+  - NODE_TYPES_BEGIN
+  - PIXEL_LOOPER_BEGIN
+  - RNA_BEGIN
+  - RNA_PROP_BEGIN
+  - RNA_STRUCT_BEGIN
+  - SEQP_BEGIN
+  - SEQ_BEGIN
+  - foreach
+
+# Use once we bump the minimum verison to version 8.
+# # Without this string literals that in-line 'STRINGIFY' behave strangely (a bug?).
+# StatementMacros:
+#   - STRINGIFY
