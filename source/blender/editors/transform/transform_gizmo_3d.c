@@ -352,7 +352,8 @@ static void gizmo_get_axis_color(const int axis_idx,
   else {
     bool is_plane = false;
     const int axis_idx_norm = gizmo_orientation_axis(axis_idx, &is_plane);
-    /* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
+    /* Get alpha fac based on axis angle,
+     * to fade axis out when hiding it because it points towards view. */
     if (axis_idx_norm < 3) {
       const float idot_min = g_tw_axis_range[is_plane].min;
       const float idot_max = g_tw_axis_range[is_plane].max;

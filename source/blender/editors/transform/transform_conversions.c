@@ -2004,8 +2004,8 @@ static void createTransCurveVerts(TransInfo *t)
         if (is_prop_edit && head != tail)
           calc_distanceCurveVerts(head, tail - 1);
 
-        /* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
-         * but for now just don't change handle types */
+        /* TODO - in the case of tilt and radius we can also avoid allocating the
+         * initTransDataCurveHandles but for now just don't change handle types */
         if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
           /* sets the handles based on their selection,
            * do this after the data is copied to the TransData */
@@ -2784,7 +2784,8 @@ static void createTransEditVerts(TransInfo *t)
     /**
      * Quick check if we can transform.
      *
-     * \note ignore modes here, even in edge/face modes, transform data is created by selected vertices.
+     * \note ignore modes here, even in edge/face modes,
+     * transform data is created by selected vertices.
      * \note in prop mode we need at least 1 selected.
      */
     if (bm->totvertsel == 0) {
@@ -2838,7 +2839,8 @@ static void createTransEditVerts(TransInfo *t)
     }
 
     if (is_island_center) {
-      /* In this specific case, near-by vertices will need to know the island of the nearest connected vertex. */
+      /* In this specific case, near-by vertices will need to know
+       * the island of the nearest connected vertex. */
       const bool calc_single_islands = ((prop_mode & T_PROP_CONNECTED) &&
                                         (t->around == V3D_AROUND_LOCAL_ORIGINS) &&
                                         (em->selectmode & SCE_SELECT_VERTEX));
@@ -3128,8 +3130,9 @@ void flushTransSeq(TransInfo *t)
         break;
     }
 
-    /* Update *previous* seq! Else, we would update a seq after its first transform, and if it has more than one
-     * (like e.g. SEQ_LEFTSEL and SEQ_RIGHTSEL), the others are not updated! See T38469.
+    /* Update *previous* seq! Else, we would update a seq after its first transform,
+     * and if it has more than one (like e.g. SEQ_LEFTSEL and SEQ_RIGHTSEL),
+     * the others are not updated! See T38469.
      */
     if (seq != seq_prev) {
       if (seq_prev) {
@@ -3746,8 +3749,9 @@ static void createTransNlaData(bContext *C, TransInfo *t)
               td++;
             }
 
-            /* if both handles were used, skip the next tdn (i.e. leave it blank) since the counting code is dumb...
-             * otherwise, just advance to the next one...
+            /* If both handles were used, skip the next tdn (i.e. leave it blank)
+             * since the counting code is dumb.
+             * Otherwise, just advance to the next one.
              */
             if (tdn->handle == 2)
               tdn += 2;
@@ -4699,7 +4703,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     t->frame_side = 'B';
   }
 
-  /* loop 1: count how many BezTriples (specifically their verts) are selected (or should be edited) */
+  /* Loop 1: count how many BezTriples (specifically their verts)
+   * are selected (or should be edited). */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     FCurve *fcu = (FCurve *)ale->key_data;
@@ -4719,7 +4724,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     else
       cfra = (float)CFRA;
 
-    /* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
+    /* Only include BezTriples whose 'keyframe'
+     * occurs on the same side of the current frame as mouse. */
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
       if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
         const bool sel2 = (bezt->f2 & SELECT) != 0;
@@ -4771,7 +4777,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   tc->data_len = count;
 
   tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransData (Graph Editor)");
-  /* for each 2d vert a 3d vector is allocated, so that they can be treated just as if they were 3d verts */
+  /* For each 2d vert a 3d vector is allocated,
+   * so that they can be treated just as if they were 3d verts. */
   tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D), "TransData2D (Graph Editor)");
   tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataGraph), "TransDataGraph");
   tc->custom.type.use_free = true;
@@ -4958,7 +4965,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                               unit_scale,
                               offset);
           }
-          /* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
+          /* Special hack (must be done after #initTransDataCurveHandles(),
+           * as that stores handle settings to restore...):
+           *
            * - Check if we've got entire BezTriple selected and we're scaling/rotating that point,
            *   then check if we're using auto-handles.
            * - If so, change them auto-handles to aligned handles so that handles get affected too
@@ -5293,13 +5302,15 @@ void flushTransGraphData(TransInfo *t)
     else
       td2d->loc2d[0] = td2d->loc[0];
 
-    /* Time-stepping auto-snapping modes don't get applied for Graph Editor transforms,
+    /** Time-stepping auto-snapping modes don't get applied for Graph Editor transforms,
      * as these use the generic transform modes which don't account for this sort of thing.
      * These ones aren't affected by NLA mapping, so we do this after the conversion...
      *
-     * NOTE: We also have to apply to td->loc, as that's what the handle-adjustment step below looks
-     *       to, otherwise we get "swimming handles"
-     * NOTE: We don't do this when canceling transforms, or else these changes don't go away
+     * \note We also have to apply to td->loc,
+     * as that's what the handle-adjustment step below looks to,
+     * otherwise we get "swimming handles".
+     *
+     * \note We don't do this when canceling transforms, or else these changes don't go away.
      */
     if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0 &&
         ELEM(sipo->autosnap, SACTSNAP_STEP, SACTSNAP_TSTEP)) {
@@ -5474,8 +5485,9 @@ static int SeqTransCount(TransInfo *t, Sequence *parent, ListBase *seqbase, int 
   for (seq = seqbase->first; seq; seq = seq->next) {
     seq->depth = depth;
 
-    /* seq->tmp is used by seq_tx_get_final_{left, right} to check sequence's range and clamp to it if needed.
-     * it's first place where digging into sequences tree, so store link to parent here */
+    /* 'seq->tmp' is used by seq_tx_get_final_{left, right}
+     * to check sequence's range and clamp to it if needed.
+     * It's first place where digging into sequences tree, so store link to parent here. */
     seq->tmp = parent;
 
     SeqTransInfo(t, seq, &recursive, &count, &flag); /* ignore the flag */
@@ -6265,10 +6277,14 @@ static void clear_trans_object_base_flags(TransInfo *t)
   }
 }
 
-/* auto-keyframing feature - for objects
- * tmode: should be a transform mode
+/**
+ * Auto-keyframing feature - for objects
+ *
+ * \param tmode: A transform mode.
+ *
+ * \note Context may not always be available,
+ * so must check before using it as it's a luxury for a few cases.
  */
-// NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
 void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode)
 {
   Main *bmain = CTX_data_main(C);
@@ -6292,8 +6308,9 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
     ANIM_relative_keyingset_add_source(&dsources, id, NULL, NULL);
 
     if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
-      /* only insert into active keyingset
-       * NOTE: we assume here that the active Keying Set does not need to have its iterator overridden
+      /* Only insert into active keyingset
+       * NOTE: we assume here that the active Keying Set
+       * does not need to have its iterator overridden.
        */
       ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
     }
@@ -6398,11 +6415,16 @@ bool motionpath_need_update_object(Scene *scene, Object *ob)
   return false;
 }
 
-/* auto-keyframing feature - for poses/pose-channels
- * tmode: should be a transform mode
+/**
+ * Auto-keyframing feature - for poses/pose-channels
+ *
+ * \param tmode: A transform mode.
+ *
  * targetless_ik: has targetless ik been done on any channels?
+ *
+ * \note Context may not always be available,
+ * so must check before using it as it's a luxury for a few cases.
  */
-// NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
 void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik)
 {
   Main *bmain = CTX_data_main(C);
@@ -6484,7 +6506,8 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
         else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
           bool do_loc = false, do_rot = false, do_scale = false;
 
-          /* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
+          /* Filter the conditions when this happens
+           * (assume that 'curarea->spacetype == SPACE_VIEW3D'). */
           if (tmode == TFM_TRANSLATION) {
             if (targetless_ik)
               do_rot = true;
@@ -6698,10 +6721,11 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 }
 
 /* inserting keys, pointcache, redraw events... */
-/*
- * note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)
- *       Order changed, the sequencer stuff should go back in here
- * */
+/**
+ * \note Sequencer freeing has its own function now because of a conflict
+ * with transform's order of freeing (campbell).
+ * Order changed, the sequencer stuff should go back in here
+ */
 void special_aftertrans_update(bContext *C, TransInfo *t)
 {
   Main *bmain = CTX_data_main(t->context);
@@ -6908,9 +6932,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     else if (ac.datatype == ANIMCONT_MASK) {
       /* remove duplicate frames and also make sure points are in order! */
       /* 3 cases here for curve cleanups:
-       * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
-       * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
-       * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
+       * 1) NOTRANSKEYCULL on:
+       *    Cleanup of duplicates shouldn't be done.
+       * 2) canceled == 0:
+       *    User confirmed the transform, so duplicates should be removed.
+       * 3) Canceled + duplicate:
+       *    User canceled the transform, but we made duplicates, so get rid of these.
        */
       if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
         Mask *mask;
@@ -8746,7 +8773,9 @@ static void createTransGPencil(bContext *C, TransInfo *t)
       /* undo matrix */
       invert_m4_m4(inverse_diff_mat, diff_mat);
 
-      /* Make a new frame to work on if the layer's frame and the current scene frame don't match up
+      /* Make a new frame to work on if the layer's frame
+       * and the current scene frame don't match up.
+       *
        * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
        *   spent too much time editing the wrong frame...
        */
@@ -9188,8 +9217,10 @@ void createTransData(bContext *C, TransInfo *t)
     }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    // XXX this is currently limited to active armature only...
-    // XXX active-layer checking isn't done as that should probably be checked through context instead
+    /* XXX this is currently limited to active armature only... */
+
+    /* XXX active-layer checking isn't done
+     * as that should probably be checked through context instead. */
 
     /* Multi object editing. */
     initTransDataContainers_FromObjectData(t, ob, NULL, 0);

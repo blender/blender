@@ -824,9 +824,10 @@ enum {
   TD_BEZTRIPLE = 1 << 12,
   /** when this is set, don't apply translation changes to this element */
   TD_NO_LOC = 1 << 13,
-  /** for Graph Editor autosnap, indicates that point should not undergo autosnapping */
+  /** For Graph Editor autosnap, indicates that point should not undergo autosnapping */
   TD_NOTIMESNAP = 1 << 14,
-  /** for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
+  /** For Graph Editor - curves that can only have int-values
+   * need their keyframes tagged with this. */
   TD_INTVALUES = 1 << 15,
   /** For editmode mirror, clamp to x = 0 */
   TD_MIRROR_EDGE = 1 << 16,

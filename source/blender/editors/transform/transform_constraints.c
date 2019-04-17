@@ -219,7 +219,8 @@ static void axisProjection(const TransInfo *t,
   if (angle < DEG2RADF(5.0f)) {
     project_v3_v3v3(vec, in, t->viewinv[1]);
     factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
-    /* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
+    /* Since camera distance is quite relative, use quadratic relationship.
+     * holding shift can compensate. */
     if (factor < 0.0f)
       factor *= -factor;
     else

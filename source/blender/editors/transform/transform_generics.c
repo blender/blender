@@ -374,7 +374,8 @@ static void recalcData_actedit(TransInfo *t)
   }
 
   if (ac.datatype != ANIMCONT_MASK) {
-    /* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
+    /* Get animdata blocks visible in editor,
+     * assuming that these will be the ones where things changed. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
@@ -466,9 +467,9 @@ static void recalcData_nla(TransInfo *t)
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransDataNla *tdn = tc->custom.type.data;
 
-  /* for each strip we've got, perform some additional validation of the values that got set before
-   * using RNA to set the value (which does some special operations when setting these values to make
-   * sure that everything works ok)
+  /* For each strip we've got, perform some additional validation of the values
+   * that got set before using RNA to set the value (which does some special
+   * operations when setting these values to make sure that everything works ok).
    */
   for (i = 0; i < tc->data_len; i++, tdn++) {
     NlaStrip *strip = tdn->strip;
@@ -509,7 +510,8 @@ static void recalcData_nla(TransInfo *t)
 
       /* restore to original track (if needed) */
       if (tdn->oldTrack != tdn->nlt) {
-        /* just append to end of list for now, since strips get sorted in special_aftertrans_update() */
+        /* Just append to end of list for now,
+         * since strips get sorted in special_aftertrans_update(). */
         BLI_remlink(&tdn->nlt->strips, strip);
         BLI_addtail(&tdn->oldTrack->strips, strip);
       }
@@ -530,8 +532,9 @@ static void recalcData_nla(TransInfo *t)
 
       if ((pExceeded && nExceeded) || (iter == 4)) {
         /* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
-         * - simply crop strip to fit within the bounds of the strips bounding it
-         * - if there were no neighbors, clear the transforms (make it default to the strip's current values)
+         * - Simply crop strip to fit within the bounds of the strips bounding it
+         * - If there were no neighbors, clear the transforms
+         *   (make it default to the strip's current values).
          */
         if (strip->prev && strip->next) {
           tdn->h1[0] = strip->prev->end;
@@ -621,8 +624,9 @@ static void recalcData_nla(TransInfo *t)
     /* flush transforms to child strips (since this should be a meta) */
     BKE_nlameta_flush_transforms(strip);
 
-    /* now, check if we need to try and move track
-     * - we need to calculate both, as only one may have been altered by transform if only 1 handle moved
+    /* Now, check if we need to try and move track:
+     * - we need to calculate both,
+     *   as only one may have been altered by transform if only 1 handle moved.
      */
     delta_y1 = ((int)tdn->h1[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
     delta_y2 = ((int)tdn->h2[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
@@ -632,8 +636,9 @@ static void recalcData_nla(TransInfo *t)
       int delta = (delta_y2) ? delta_y2 : delta_y1;
       int n;
 
-      /* move in the requested direction, checking at each layer if there's space for strip to pass through,
-       * stopping on the last track available or that we're able to fit in
+      /* Move in the requested direction,
+       * checking at each layer if there's space for strip to pass through,
+       * stopping on the last track available or that we're able to fit in.
        */
       if (delta > 0) {
         for (track = tdn->nlt->next, n = 0; (track) && (n < delta); track = track->next, n++) {
@@ -955,7 +960,9 @@ static void recalcData_objects(TransInfo *t)
        *
        * context is needed for keying set poll() functions.
        */
-      // TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+
+      /* TODO: autokeyframe calls need some setting to specify to add samples
+       * (FPoints) instead of keyframes? */
       if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
         int targetless_ik =
             (t->flag & T_AUTOIK);  // XXX this currently doesn't work, since flags aren't set yet!
@@ -1018,7 +1025,8 @@ static void recalcData_objects(TransInfo *t)
          * check if the auto-record feature means that we should record 'samples'
          * (i.e. uneditable animation values)
          */
-        // TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+        /* TODO: autokeyframe calls need some setting to specify to add samples
+         * (FPoints) instead of keyframes? */
         if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
           animrecord_check_state(t->scene, &ob->id, t->animtimer);
           autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
@@ -2160,7 +2168,8 @@ void calculateCenter(TransInfo *t)
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
-    /* ED_view3d_calc_zfac() defines a factor for perspective depth correction, used in ED_view3d_win_to_delta() */
+    /* ED_view3d_calc_zfac() defines a factor for perspective depth correction,
+     * used in ED_view3d_win_to_delta() */
 
     /* zfac is only used convertViewVec only in cases operator was invoked in RGN_TYPE_WINDOW
      * and never used in other cases.

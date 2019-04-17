@@ -96,7 +96,8 @@
 
 #include "transform.h"
 
-/* Disabling, since when you type you know what you are doing, and being able to set it to zero is handy. */
+/* Disabling, since when you type you know what you are doing,
+ * and being able to set it to zero is handy. */
 // #define USE_NUM_NO_ZERO
 
 static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg);
@@ -2341,8 +2342,9 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* Needed to translate tweak events to mouse buttons. */
   t->launch_event = event ? WM_userdef_event_type_from_keymap_type(event->type) : -1;
 
-  // XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
-  // For gizmo only, so assume LEFTMOUSE
+  /* XXX Remove this when wm_operator_call_internal doesn't use window->eventstate
+   * (which can have type = 0) */
+  /* For gizmo only, so assume LEFTMOUSE. */
   if (t->launch_event == 0) {
     t->launch_event = LEFTMOUSE;
   }
@@ -2365,7 +2367,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else if (t->spacetype == SPACE_IMAGE) {
     t->draw_handle_view = ED_region_draw_cb_activate(
         t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-    //t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
     t->draw_handle_cursor = WM_paint_cursor_activate(
         CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, helpline_poll, drawHelpline, t);
   }
@@ -2376,7 +2377,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, helpline_poll, drawHelpline, t);
   }
   else if (t->spacetype == SPACE_NODE) {
-    /*t->draw_handle_apply = ED_region_draw_cb_activate(t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);*/
     t->draw_handle_view = ED_region_draw_cb_activate(
         t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(
@@ -2385,14 +2385,12 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else if (t->spacetype == SPACE_GRAPH) {
     t->draw_handle_view = ED_region_draw_cb_activate(
         t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-    //t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
     t->draw_handle_cursor = WM_paint_cursor_activate(
         CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, helpline_poll, drawHelpline, t);
   }
   else if (t->spacetype == SPACE_ACTION) {
     t->draw_handle_view = ED_region_draw_cb_activate(
         t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-    //t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
     t->draw_handle_cursor = WM_paint_cursor_activate(
         CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, helpline_poll, drawHelpline, t);
   }
@@ -2678,7 +2676,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
-  /* Don't write into the values when non-modal because they are already set from operator redo values. */
+  /* Don't write into the values when non-modal because they are already set from operator redo
+   * values. */
   if (t->flag & T_MODAL) {
     /* Setup the mouse input with initial values. */
     applyMouseInput(t, &t->mouse, t->mouse.imval, t->values);
@@ -2875,7 +2874,8 @@ static void protectedAxisAngleBits(
 
     eulO_to_axis_angle(axis, angle, eul, EULER_ORDER_DEFAULT);
 
-    /* when converting to axis-angle, we need a special exception for the case when there is no axis */
+    /* When converting to axis-angle,
+     * we need a special exception for the case when there is no axis. */
     if (IS_EQF(axis[0], axis[1]) && IS_EQF(axis[1], axis[2])) {
       /* for now, rotate around y-axis then (so that it simply becomes the roll) */
       axis[1] = 1.0f;
@@ -4562,7 +4562,8 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
   applySnapping(t, &final);
 
-  /* Used to clamp final result in [-PI, PI[ range, no idea why, inheritance from 2.4x area, see T48998. */
+  /* Used to clamp final result in [-PI, PI[ range, no idea why,
+   * inheritance from 2.4x area, see T48998. */
   applyNumInput(&t->num, &final);
 
   t->values[0] = final;
@@ -6365,7 +6366,8 @@ static void slide_origdata_create_data(TransDataContainer *tc,
 
       for (i = 0; i < tc->data_len; i++, td++) {
         BMVert *eve = td->extra;
-        /* Check the vertex has been used since both sides of the mirror may be selected & sliding. */
+        /* Check the vertex has been used since both sides
+         * of the mirror may be selected & sliding. */
         if (eve && !BLI_ghash_haskey(sod->origverts, eve)) {
           sv_mirror->v = eve;
           copy_v3_v3(sv_mirror->co_orig_3d, eve->co);
@@ -7897,12 +7899,14 @@ static void doEdgeSlide(TransInfo *t, float perc)
   }
   else {
     /**
-     * Implementation note, even mode ignores the starting positions and uses only the
-     * a/b verts, this could be changed/improved so the distance is still met but the verts are moved along
-     * their original path (which may not be straight), however how it works now is OK and matches 2.4x - Campbell
+     * Implementation note, even mode ignores the starting positions and uses
+     * only the a/b verts, this could be changed/improved so the distance is
+     * still met but the verts are moved along their original path (which may not be straight),
+     * however how it works now is OK and matches 2.4x - Campbell
      *
-     * \note len_v3v3(curr_sv->dir_side[0], curr_sv->dir_side[1])
-     * is the same as the distance between the original vert locations, same goes for the lines below.
+     * \note `len_v3v3(curr_sv->dir_side[0], curr_sv->dir_side[1])`
+     * is the same as the distance between the original vert locations,
+     * same goes for the lines below.
      */
     TransDataEdgeSlideVert *curr_sv = &sld_active->sv[sld_active->curr_sv_index];
     const float curr_length_perc = curr_sv->edge_len *
@@ -9123,9 +9127,10 @@ static void doAnimEdit_SnapFrame(
       *(td->val) = val;
   }
 
-  /* if the handles are to be moved too (as side-effect of keyframes moving, to keep the general effect)
-   * offset them by the same amount so that the general angles are maintained (i.e. won't change while
-   * handles are free-to-roam and keyframes are snap-locked)
+  /* If the handles are to be moved too
+   * (as side-effect of keyframes moving, to keep the general effect)
+   * offset them by the same amount so that the general angles are maintained
+   * (i.e. won't change while handles are free-to-roam and keyframes are snap-locked).
    */
   if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
     td2d->h1[0] = td2d->ih1[0] + *td->val - td->ival;
@@ -9230,7 +9235,8 @@ static void applyTimeTranslateValue(TransInfo *t)
   {
     TransData *td = tc->data;
     TransData2D *td2d = tc->data_2d;
-    /* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
+    /* It doesn't matter whether we apply to t->data or
+     * t->data2d, but t->data2d is more convenient. */
     for (i = 0; i < tc->data_len; i++, td++, td2d++) {
       /* it is assumed that td->extra is a pointer to the AnimData,
        * whose active action is where this keyframe comes from
@@ -9416,7 +9422,8 @@ static void applyTimeSlideValue(TransInfo *t, float sval)
     saction->timeslide = cvalf;
   }
 
-  /* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
+  /* It doesn't matter whether we apply to t->data or
+   * t->data2d, but t->data2d is more convenient. */
   FOREACH_TRANS_DATA_CONTAINER(t, tc)
   {
     TransData *td = tc->data;
