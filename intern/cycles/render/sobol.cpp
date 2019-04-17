@@ -58,7 +58,11 @@ typedef struct SobolDirectionNumbers {
 	uint m[SOBOL_MAX_NUMBER];
 } SobolDirectionNumbers;
 
-static SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS-1] = {
+/* Note: this file is skipped by clang-format. */
+
+/* Keep simple alignment. */
+/* clang-format off */
+static SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS - 1] = {
 {2, 1, 0, {1}},
 {3, 2, 1, {1, 3}},
 {4, 3, 1, {1, 3, 1}},
@@ -21260,6 +21264,7 @@ static SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS-1] = {
 {21200, 18, 131020, {1, 1, 5, 1, 19, 1, 83, 3, 425, 873, 1943, 3935, 4257, 14587, 11829, 55217, 21963, 39683}},
 {21201, 18, 131059, {1, 1, 7, 11, 15, 7, 37, 239, 337, 245, 1557, 3681, 7357, 9639, 27367, 26869, 114603, 86317}}
 };
+/* clang-format on */
 
 void sobol_generate_direction_vectors(uint vectors[][SOBOL_BITS], int dimensions)
 {

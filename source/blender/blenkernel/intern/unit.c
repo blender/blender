@@ -332,7 +332,7 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
-/* clang-format on*/
+/* clang-format on */
 
 /* internal, has some option not exposed */
 static const bUnitCollection *unit_get_system(int system, int type)
