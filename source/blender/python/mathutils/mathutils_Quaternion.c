@@ -236,7 +236,7 @@ PyDoc_STRVAR(Quaternion_dot_doc,
              "   :arg other: The other quaternion to perform the dot product with.\n"
              "   :type other: :class:`Quaternion`\n"
              "   :return: The dot product.\n"
-             "   :rtype: :class:`Quaternion`\n");
+             "   :rtype: float\n");
 static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 {
   float tquat[QUAT_SIZE];
