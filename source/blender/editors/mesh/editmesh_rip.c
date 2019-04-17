@@ -904,6 +904,9 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
         if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
           e_best = e;
           i++;
+          /* Tag the edge verts so we know which verts to rip */
+          BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+          BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
         }
         totedge_manifold++;
       }
