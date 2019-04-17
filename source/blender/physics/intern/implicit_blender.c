@@ -126,7 +126,7 @@ static void print_fvector(float m3[3])
 // long float vector float (*)[3]
 ///////////////////////////
 /* print long vector on console: for debug output */
-DO_INLINE void print_lfvector(float(*fLongVector)[3], unsigned int verts)
+DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 {
   unsigned int i = 0;
   for (i = 0; i < verts; i++) {
@@ -325,9 +325,9 @@ static void print_bfmatrix(fmatrix3x3 *m)
 
     for (j = 0; j < 3; ++j) {
       for (i = 0; i < 3; ++i) {
-//              if (t[k + i + (l + j) * size] != 0.0f) {
-//                  printf("warning: overwriting value at %d, %d\n", m[q].r, m[q].c);
-//              }
+        //              if (t[k + i + (l + j) * size] != 0.0f) {
+        //                  printf("warning: overwriting value at %d, %d\n", m[q].r, m[q].c);
+        //              }
         if (k == l) {
           t[k + i + (k + j) * size] += m[q].m[i][j];
         }
@@ -412,7 +412,6 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
        */
     }
   }
-
 }
 #  endif
 
@@ -534,8 +533,7 @@ static void print_bfmatrix(fmatrix3x3 *m3)
 {
   unsigned int i = 0;
 
-  for (i = 0; i < m3[0].vcount + m3[0].scount; i++)
-  {
+  for (i = 0; i < m3[0].vcount + m3[0].scount; i++) {
     print_fmatrix(m3[i].m);
   }
 }
@@ -769,7 +767,7 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 }
 
 #  if 0 /* this version of the CG algorithm does not work very well with partial constraints (where S has non-zero elements) */
-static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
+static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
   // Solves for unknown X in equation AX=B
   unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
@@ -831,7 +829,8 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
   del_lfvector(r);
   // printf("W/O conjgrad_loopcount: %d\n", conjgrad_loopcount);
 
-  return conjgrad_loopcount < conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
+  return conjgrad_loopcount <
+         conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
 }
 #  endif
 
@@ -937,22 +936,27 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
   unsigned int i = 0;
 
   // Take only the diagonal blocks of A
-// #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
+  // #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
   for (i = 0; i < lA[0].vcount; i++) {
     // block diagonalizer
     cp_fmatrix(P[i].m, lA[i].m);
     inverse_fmatrix(Pinv[i].m, P[i].m);
-
   }
 }
 
 #    if 0
 // version 1.3
-static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
+static int cg_filtered_pre(lfVector *dv,
+                           fmatrix3x3 *lA,
+                           lfVector *lB,
+                           lfVector *z,
+                           fmatrix3x3 *S,
+                           fmatrix3x3 *P,
+                           fmatrix3x3 *Pinv)
 {
   unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
   float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
-  float conjgrad_epsilon = 0.0001; // 0.2 is dt for steps=5
+  float conjgrad_epsilon = 0.0001;  // 0.2 is dt for steps=5
   lfVector *r = create_lfvector(numverts);
   lfVector *p = create_lfvector(numverts);
   lfVector *s = create_lfvector(numverts);
@@ -978,8 +982,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
   double start = PIL_check_seconds_timer();
 #      endif
 
-  while ((deltaNew > delta0) && (iterations < conjgrad_looplimit))
-  {
+  while ((deltaNew > delta0) && (iterations < conjgrad_looplimit)) {
     iterations++;
 
     mul_bfmatrix_lfvector(s, lA, p);
@@ -1001,7 +1004,6 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
     add_lfvector_lfvectorS(p, h, p, deltaNew / deltaOld, numverts);
 
     filter(p, S);
-
   }
 
 #      ifdef DEBUG_TIME
@@ -1021,7 +1023,14 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 #    endif
 
 // version 1.4
-static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
+static int cg_filtered_pre(lfVector *dv,
+                           fmatrix3x3 *lA,
+                           lfVector *lB,
+                           lfVector *z,
+                           fmatrix3x3 *S,
+                           fmatrix3x3 *P,
+                           fmatrix3x3 *Pinv,
+                           fmatrix3x3 *bigI)
 {
   unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
   float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
@@ -1084,8 +1093,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 
   tol = (0.01 * 0.2);
 
-  while ((deltaNew > delta0 * tol * tol) && (iterations < conjgrad_looplimit))
-  {
+  while ((deltaNew > delta0 * tol * tol) && (iterations < conjgrad_looplimit)) {
     iterations++;
 
     mul_bfmatrix_lfvector(s, lA, p);
@@ -1107,7 +1115,6 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
     add_lfvector_lfvectorS(p, h, p, deltaNew / deltaOld, numverts);
 
     filter(p, S);
-
   }
 
 #    ifdef DEBUG_TIME
@@ -1542,13 +1549,18 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 
 /* unused */
 #  if 0
-BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, const float vel[3], float rest, float damping)
+BLI_INLINE void dfdx_damp(float to[3][3],
+                          const float dir[3],
+                          float length,
+                          const float vel[3],
+                          float rest,
+                          float damping)
 {
   // inner spring damping   vel is the relative velocity  of the endpoints.
   //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
-  mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
+  mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
 }
 #  endif
 
@@ -1618,8 +1630,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data,
 #  if 0
     if (length > L) {
       if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
-          ( ((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen))
-      {
+          (((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen)) {
         // cut spring!
         s->flags |= CSPRING_FLAG_DEACTIVATE;
         return false;

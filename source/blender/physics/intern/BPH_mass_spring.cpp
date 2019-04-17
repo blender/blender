@@ -480,13 +480,15 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
       BPH_mass_spring_get_motion_state(data, s->mn, x_mn, v);
 
       BKE_sim_debug_data_add_dot(clmd->debug_data, x_kl, 0.9, 0.9, 0.9, "target", 7980, s->kl);
-      BKE_sim_debug_data_add_line(clmd->debug_data, x_kl, x_mn, 0.8, 0.8, 0.8, "target", 7981, s->kl);
+      BKE_sim_debug_data_add_line(
+          clmd->debug_data, x_kl, x_mn, 0.8, 0.8, 0.8, "target", 7981, s->kl);
 
       copy_v3_v3(d, s->target);
-      BKE_sim_debug_data_add_vector(clmd->debug_data, x_kl, d, 0.8, 0.8, 0.2, "target", 7982, s->kl);
+      BKE_sim_debug_data_add_vector(
+          clmd->debug_data, x_kl, d, 0.8, 0.8, 0.2, "target", 7982, s->kl);
 
-//          copy_v3_v3(d, s->target_ij);
-//          BKE_sim_debug_data_add_vector(clmd->debug_data, x, d, 1, 0.4, 0.4, "target", 7983, s->kl);
+      //          copy_v3_v3(d, s->target_ij);
+      //          BKE_sim_debug_data_add_vector(clmd->debug_data, x, d, 1, 0.4, 0.4, "target", 7983, s->kl);
     }
 #  endif
 #endif

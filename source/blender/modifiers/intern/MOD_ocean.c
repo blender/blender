@@ -132,7 +132,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 {
 #ifdef WITH_OCEANSIM
 #  if 0
-  const OceanModifierData *omd = (const OceanModifierData *) md;
+  const OceanModifierData *omd = (const OceanModifierData *)md;
 #  endif
   OceanModifierData *tomd = (OceanModifierData *)target;
 

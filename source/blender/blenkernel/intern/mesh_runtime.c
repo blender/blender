@@ -285,9 +285,15 @@ char *BKE_mesh_runtime_debug_info(Mesh *me_eval)
 #  if 0
   const char *tstr;
   switch (me_eval->type) {
-    case DM_TYPE_CDDM:     tstr = "DM_TYPE_CDDM";     break;
-    case DM_TYPE_CCGDM:    tstr = "DM_TYPE_CCGDM";     break;
-    default:               tstr = "UNKNOWN";           break;
+    case DM_TYPE_CDDM:
+      tstr = "DM_TYPE_CDDM";
+      break;
+    case DM_TYPE_CCGDM:
+      tstr = "DM_TYPE_CCGDM";
+      break;
+    default:
+      tstr = "UNKNOWN";
+      break;
   }
   BLI_dynstr_appendf(dynstr, "    'type': '%s',\n", tstr);
 #  endif

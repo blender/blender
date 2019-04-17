@@ -1685,11 +1685,19 @@ int rna_property_override_diff_default(Main *bmain,
 
 #  if 0
           if (rna_path) {
-            printf("Checking %s, %s [%d] vs %s [%d]; is_id: %d, diffing: %d; "
-                   "insert: %d (could be used: %d, do_create: %d)\n",
-                   rna_path, propname_a ? propname_a : "", idx_a, propname_b ? propname_b : "", idx_b,
-                   is_id, is_valid_for_diffing, is_valid_for_insertion,
-                   (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) != 0, do_create);
+            printf(
+                "Checking %s, %s [%d] vs %s [%d]; is_id: %d, diffing: %d; "
+                "insert: %d (could be used: %d, do_create: %d)\n",
+                rna_path,
+                propname_a ? propname_a : "",
+                idx_a,
+                propname_b ? propname_b : "",
+                idx_b,
+                is_id,
+                is_valid_for_diffing,
+                is_valid_for_insertion,
+                (RNA_property_override_flag(prop_a) & PROPOVERRIDE_STATIC_INSERTION) != 0,
+                do_create);
           }
 #  endif
 
@@ -3045,11 +3053,17 @@ void RNA_def_rna(BlenderRNA *brna)
   prop = RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Struct");
-  RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next",
-                                    "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_BlenderRNA_structs_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
   /* included for speed, can be removed */
 #  if 0
-                                    NULL, NULL, NULL, NULL);
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
 #  else
                                     "rna_BlenderRNA_structs_length",
                                     "rna_BlenderRNA_structs_lookup_int",

@@ -447,8 +447,8 @@ int main(int argc,
   /* TODO - U.pythondir */
 #else
   printf(
-      "\n* WARNING * - Blender compiled without Python!\nthis is not intended for typical "
-      "usage\n\n");
+      "\n* WARNING * - Blender compiled without Python!\n"
+      "this is not intended for typical usage\n\n");
 #endif
 
   CTX_py_init_set(C, 1);

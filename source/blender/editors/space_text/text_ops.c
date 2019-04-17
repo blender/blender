@@ -689,9 +689,9 @@ static int text_refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUS
         for (con = pchan->constraints.first; con; con = con->next) {
           if (con->type == CONSTRAINT_TYPE_PYTHON) {
             bPythonConstraint *data = con->data;
-            if (data->text == text) BPY_pyconstraint_update(ob, con);
+            if (data->text == text)
+              BPY_pyconstraint_update(ob, con);
             update = 1;
-
           }
         }
       }
@@ -699,7 +699,8 @@ static int text_refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUS
     for (con = ob->constraints.first; con; con = con->next) {
       if (con->type == CONSTRAINT_TYPE_PYTHON) {
         bPythonConstraint *data = con->data;
-        if (data->text == text) BPY_pyconstraint_update(ob, con);
+        if (data->text == text)
+          BPY_pyconstraint_update(ob, con);
         update = 1;
       }
     }

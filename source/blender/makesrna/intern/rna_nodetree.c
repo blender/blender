@@ -4990,7 +4990,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_function_ui_description(func, "Find a socket by name");
   parm = RNA_def_string(func, "name", NULL, 0, "Socket name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  /*parm =*/ RNA_def_boolean(func, "is_output", false, "Output", "Whether the socket is an output");
+  /*parm =*/RNA_def_boolean(func, "is_output", false, "Output", "Whether the socket is an output");
   parm = RNA_def_pointer(func, "result", "NodeSocket", "", "");
   RNA_def_function_return(func, parm);
 
@@ -5001,7 +5001,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(func, "type", node_socket_type_items, SOCK_FLOAT, "Type", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  /*parm =*/ RNA_def_boolean(func, "is_output", false, "Output", "Whether the socket is an output");
+  /*parm =*/RNA_def_boolean(func, "is_output", false, "Output", "Whether the socket is an output");
   parm = RNA_def_pointer(func, "result", "NodeSocket", "", "");
   RNA_def_function_return(func, parm);
 
@@ -5335,11 +5335,11 @@ static void def_cmp_image(StructRNA *srna)
 
 #  if 0
   static const EnumPropertyItem type_items[] = {
-    {IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
-    {IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
-    {IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
-    {IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
-    {0, NULL, 0, NULL, NULL},
+      {IMA_SRC_FILE, "IMAGE", 0, "Image", ""},
+      {IMA_SRC_MOVIE, "MOVIE", "Movie", ""},
+      {IMA_SRC_SEQUENCE, "SEQUENCE", "Sequence", ""},
+      {IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
+      {0, NULL, 0, NULL, NULL},
   };
 #  endif
 
@@ -6891,9 +6891,11 @@ static void def_cmp_bokehblur(StructRNA *srna)
   prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "custom3");
   RNA_def_property_range(prop, 0.0f, 128.0f);
-  RNA_def_property_ui_text(prop, "F-stop",
-                           "Amount of focal blur, 128=infinity=perfect focus, half the value doubles "
-                           "the blur radius");
+  RNA_def_property_ui_text(
+      prop,
+      "F-stop",
+      "Amount of focal blur, 128=infinity=perfect focus, half the value doubles "
+      "the blur radius");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 #  endif
 

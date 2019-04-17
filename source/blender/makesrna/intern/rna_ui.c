@@ -1171,7 +1171,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 #  if 0
   prop = RNA_def_property(srna, "keep_aspect", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
 #  endif
 
   prop = RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);

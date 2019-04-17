@@ -1665,8 +1665,9 @@ static void rna_def_modifier_gpencilarmature(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_multi_modifier", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "multi", 0);
   RNA_def_property_ui_text(
-          prop, "Multi Modifier",
-          "Use same input as previous modifier, and mix results using overall vgroup");
+      prop,
+      "Multi Modifier",
+      "Use same input as previous modifier, and mix results using overall vgroup");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 #  endif
 

@@ -439,8 +439,8 @@ static void rna_Object_shape_key_remove(Object *ob,
 }
 
 #  if 0
-static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex,
-                                           float weight, int assignmode)
+static void rna_Mesh_assign_verts_to_group(
+    Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
 {
   if (ob->type != OB_MESH) {
     BKE_report(reports, RPT_ERROR, "Object should be of mesh type");

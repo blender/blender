@@ -867,13 +867,18 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 
 /* unused */
 #  if 0
-BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, const float vel[3], float rest, float damping)
+BLI_INLINE void dfdx_damp(float to[3][3],
+                          const float dir[3],
+                          float length,
+                          const float vel[3],
+                          float rest,
+                          float damping)
 {
   // inner spring damping   vel is the relative velocity  of the endpoints.
   //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
-  mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
+  mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
 }
 #  endif
 
@@ -940,8 +945,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data,
 #  if 0
     if (length > L) {
       if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
-          ( ((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen))
-      {
+          (((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen)) {
         // cut spring!
         s->flags |= CSPRING_FLAG_DEACTIVATE;
         return false;

@@ -788,7 +788,8 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "max_spring_extensions", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "maxspringlen");
   RNA_def_property_range(prop, 1.0, 1000.0);
-  RNA_def_property_ui_text(prop, "Maximum Spring Extension", "Maximum extension before spring gets cut");
+  RNA_def_property_ui_text(
+      prop, "Maximum Spring Extension", "Maximum extension before spring gets cut");
 #  endif
 }
 

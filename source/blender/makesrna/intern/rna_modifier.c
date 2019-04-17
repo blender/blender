@@ -1049,8 +1049,10 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 
 #  if 0 /* XXX Don't think we want this in modifier version... */
     if (BKE_object_pose_armature_get(ob_src)) {
-      RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_SELECT);
-      RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_DEFORM);
+      RNA_enum_items_add_value(
+          &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_SELECT);
+      RNA_enum_items_add_value(
+          &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_DEFORM);
     }
 #  endif
 
@@ -1373,16 +1375,28 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
      "Smooth, keep corners",
      "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
 #  if 0
-    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS, "PRESERVE_CORNERS_AND_JUNCTIONS", 0,
-     "Smooth, keep corners+junctions", "UVs are smoothed, corners on discontinuous boundary and "
+    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS,
+     "PRESERVE_CORNERS_AND_JUNCTIONS",
+     0,
+     "Smooth, keep corners+junctions",
+     "UVs are smoothed, corners on discontinuous boundary and "
      "junctions of 3 or more regions are kept sharp"},
-    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE, "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE", 0,
-     "Smooth, keep corners+junctions+concave", "UVs are smoothed, corners on discontinuous boundary, "
+    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE,
+     "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE",
+     0,
+     "Smooth, keep corners+junctions+concave",
+     "UVs are smoothed, corners on discontinuous boundary, "
      "junctions of 3 or more regions and darts and concave corners are kept sharp"},
-    {SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, "PRESERVE_BOUNDARIES", 0,
-     "Smooth, keep corners", "UVs are smoothed, boundaries are kept sharp"},
-    {SUBSURF_UV_SMOOTH_ALL, "PRESERVE_BOUNDARIES", 0,
-     "Smooth all", "UVs and boundaries are smoothed"},
+    {SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
+     "PRESERVE_BOUNDARIES",
+     0,
+     "Smooth, keep corners",
+     "UVs are smoothed, boundaries are kept sharp"},
+    {SUBSURF_UV_SMOOTH_ALL,
+     "PRESERVE_BOUNDARIES",
+     0,
+     "Smooth all",
+     "UVs and boundaries are smoothed"},
 #  endif
     {0, NULL, 0, NULL, NULL},
   };
@@ -2956,9 +2970,9 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
   PropertyRNA *prop;
 #  if 0
   static const EnumPropertyItem prop_mode_items[] = {
-    {0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh"},
-    {1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh"},
-    {0, NULL, 0, NULL, NULL},
+      {0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh"},
+      {1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh"},
+      {0, NULL, 0, NULL, NULL},
   };
 #  endif
 
@@ -4109,7 +4123,8 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 #  if 0
   prop = RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_ANGLE);
-  RNA_def_property_ui_text(prop, "Object Angle", "Use the angle between the objects rather than the fixed angle");
+  RNA_def_property_ui_text(
+      prop, "Object Angle", "Use the angle between the objects rather than the fixed angle");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 #  endif
 }
@@ -4643,8 +4658,11 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
      "Displace",
      "Displace existing geometry according to simulation"},
 #  if 0
-    {MOD_OCEAN_GEOM_SIM_ONLY, "SIM_ONLY", 0, "Sim Only",
-                              "Leaves geometry unchanged, but still runs simulation (to be used from texture)"},
+    {MOD_OCEAN_GEOM_SIM_ONLY,
+     "SIM_ONLY",
+     0,
+     "Sim Only",
+     "Leaves geometry unchanged, but still runs simulation (to be used from texture)"},
 #  endif
     {0, NULL, 0, NULL, NULL},
   };
@@ -5457,10 +5475,15 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #  if 0
-  prop = RNA_def_enum(srna, "layers_shapekey_select_src", rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC,
-                      "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
+  prop = RNA_def_enum(srna,
+                      "layers_shapekey_select_src",
+                      rna_enum_dt_layers_select_src_items,
+                      DT_LAYERS_ALL_SRC,
+                      "Source Layers Selection",
+                      "Which layers to transfer, in case of multi-layers types");
   RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_SHAPEKEY]");
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 #  endif
 
@@ -5498,10 +5521,15 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #  if 0
-  prop = RNA_def_enum(srna, "layers_shapekey_select_dst", rna_enum_dt_layers_select_dst_items, DT_LAYERS_NAME_DST,
-                      "Destination Layers Matching", "How to match source and destination layers");
+  prop = RNA_def_enum(srna,
+                      "layers_shapekey_select_dst",
+                      rna_enum_dt_layers_select_dst_items,
+                      DT_LAYERS_NAME_DST,
+                      "Destination Layers Matching",
+                      "How to match source and destination layers");
   RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_SHAPEKEY]");
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 #  endif
 

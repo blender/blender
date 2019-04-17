@@ -2453,7 +2453,7 @@ static void update_flowsfluids(
           EmissionMap em_temp = {NULL};
           float sample_size = 1.0f / (float)(subframes + 1);
 #  if 0
-          float prev_frame_pos = sample_size * (float)(subframe+1);
+          float prev_frame_pos = sample_size * (float)(subframe + 1);
 #  endif
           float sdt = dt * sample_size;
           int hires_multiplier = 1;

@@ -274,8 +274,7 @@ static bool parse_int_clamp(const char *str,
  * that parses a comma separated list of numbers.
  */
 static int *parse_int_relative_clamp_n(
-        const char *str, int pos, int neg, int min, int max,
-        int *r_value_len, const char **r_err_msg)
+    const char *str, int pos, int neg, int min, int max, int *r_value_len, const char **r_err_msg)
 {
   const char sep = ',';
   int len = 1;
@@ -293,19 +292,18 @@ static int *parse_int_relative_clamp_n(
       static const char *msg = "incorrect comma use";
       *r_err_msg = msg;
       goto fail;
-
     }
     else if (parse_int_relative_clamp(str, str_end, pos, neg, min, max, &values[i], r_err_msg)) {
       i++;
     }
     else {
-      goto fail;  /* error message already set */
+      goto fail; /* error message already set */
     }
 
-    if (str_end) {  /* next */
+    if (str_end) { /* next */
       str = str_end + 1;
     }
-    else {  /* finished */
+    else { /* finished */
       break;
     }
   }

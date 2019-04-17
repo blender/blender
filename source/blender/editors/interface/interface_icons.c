@@ -731,9 +731,11 @@ static void init_internal_icons(void)
       bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL);
 
       if (bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
-        printf("\n***WARNING***\n"
-               "Icons file '%s' too small.\n"
-               "Using built-in Icons instead\n", iconfilestr);
+        printf(
+            "\n***WARNING***\n"
+            "Icons file '%s' too small.\n"
+            "Using built-in Icons instead\n",
+            iconfilestr);
         IMB_freeImBuf(bbuf);
         bbuf = NULL;
       }

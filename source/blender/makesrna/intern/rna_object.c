@@ -2521,8 +2521,10 @@ static void rna_def_object(BlenderRNA *brna)
   /* FIXME: this is not a single field any more! (drotAxis and drotAngle) */
   RNA_def_property_float_sdna(prop, NULL, "dquat");
   RNA_def_property_float_array_default(prop, rna_default_axis_angle);
-  RNA_def_property_ui_text(prop, "Delta Rotation (Axis Angle)",
-                           "Extra rotation added to the rotation of the object (when using Axis-Angle rotations)");
+  RNA_def_property_ui_text(
+      prop,
+      "Delta Rotation (Axis Angle)",
+      "Extra rotation added to the rotation of the object (when using Axis-Angle rotations)");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 #  endif
 

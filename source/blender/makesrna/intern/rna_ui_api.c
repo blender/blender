@@ -878,30 +878,49 @@ void RNA_api_ui_layout(StructRNA *srna)
   api_ui_item_op_common(func);
   parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in operator");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "value", false, "", "Value of the property to call the operator with");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED); */
+  parm = RNA_def_boolean(
+      func, "value", false, "", "Value of the property to call the operator with");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  * /
 
-  func = RNA_def_function(srna, "operator_int", "uiItemIntO");
+      func = RNA_def_function(srna, "operator_int", "uiItemIntO");
   api_ui_item_op_common(func);
   parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in operator");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_int(func, "value", 0, INT_MIN, INT_MAX, "",
-                    "Value of the property to call the operator with", INT_MIN, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED); */
+  parm = RNA_def_int(func,
+                     "value",
+                     0,
+                     INT_MIN,
+                     INT_MAX,
+                     "",
+                     "Value of the property to call the operator with",
+                     INT_MIN,
+                     INT_MAX);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  * /
 
-  func = RNA_def_function(srna, "operator_float", "uiItemFloatO");
+      func = RNA_def_function(srna, "operator_float", "uiItemFloatO");
   api_ui_item_op_common(func);
   parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in operator");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_float(func, "value", 0, -FLT_MAX, FLT_MAX, "",
-                      "Value of the property to call the operator with", -FLT_MAX, FLT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED); */
+  parm = RNA_def_float(func,
+                       "value",
+                       0,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "",
+                       "Value of the property to call the operator with",
+                       -FLT_MAX,
+                       FLT_MAX);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  * /
 
-  func = RNA_def_function(srna, "operator_string", "uiItemStringO");
+      func = RNA_def_function(srna, "operator_string", "uiItemStringO");
   api_ui_item_op_common(func);
   parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in operator");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_string(func, "value", NULL, 0, "", "Value of the property to call the operator with");
+  parm = RNA_def_string(
+      func, "value", NULL, 0, "", "Value of the property to call the operator with");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 #  endif
 

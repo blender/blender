@@ -6080,7 +6080,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "seq_rend_type");
   RNA_def_property_enum_items(prop, rna_enum_shading_type_items);
   /* XXX Label and tooltips are obviously wrong! */
-  RNA_def_property_ui_text(prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+  RNA_def_property_ui_text(
+      prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
 #  endif
 
   prop = RNA_def_property(srna, "use_sequencer_gl_textured_solid", PROP_BOOLEAN, PROP_NONE);
@@ -7314,7 +7315,8 @@ void RNA_def_scene(BlenderRNA *brna)
 #  if 0 /* XXX: Is this actually needed? */
   prop = RNA_def_property(srna, "use_frame_drop", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_FRAME_DROP);
-  RNA_def_property_ui_text(prop, "Frame Dropping", "Play back dropping frames if frame display is too slow");
+  RNA_def_property_ui_text(
+      prop, "Frame Dropping", "Play back dropping frames if frame display is too slow");
   RNA_def_property_update(prop, NC_SCENE, NULL);
 #  endif
 
@@ -7455,8 +7457,10 @@ void RNA_def_scene(BlenderRNA *brna)
 #  if 0 /* XXX: Is this actually needed? */
   prop = RNA_def_property(srna, "use_audio_sync", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
-  RNA_def_property_ui_text(prop, "Audio Sync",
-                           "Play back and sync with audio clock, dropping frames if frame display is too slow");
+  RNA_def_property_ui_text(
+      prop,
+      "Audio Sync",
+      "Play back and sync with audio clock, dropping frames if frame display is too slow");
   RNA_def_property_update(prop, NC_SCENE, NULL);
 #  endif
 

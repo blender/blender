@@ -49,7 +49,8 @@ extern "C" {
 extern int BLI_thread_is_main(void); /* Blender-specific function */
 }
 
-static bool thread_is_main() {
+static bool thread_is_main()
+{
   /* "main" here means the GL context's thread */
   return BLI_thread_is_main();
 }

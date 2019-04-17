@@ -729,7 +729,10 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
-  BLI_split_dirfile(value, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir),
+  BLI_split_dirfile(value,
+                    seq->strip->dir,
+                    seq->strip->stripdata->name,
+                    sizeof(seq->strip->dir),
                     sizeof(seq->strip->stripdata->name));
 }
 
@@ -1954,8 +1957,8 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
   }
 
 #  if 0
-  if (count == 3) { // not used by any effects (perhaps one day plugins?)
-    prop = RNA_def_property(srna, "input_3",  PROP_POINTER, PROP_NONE);
+  if (count == 3) {  // not used by any effects (perhaps one day plugins?)
+    prop = RNA_def_property(srna, "input_3", PROP_POINTER, PROP_NONE);
     RNA_def_property_pointer_sdna(prop, NULL, "seq3");
     RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
     RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");

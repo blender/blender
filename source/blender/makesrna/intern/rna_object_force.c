@@ -537,7 +537,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
     if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
       Curve *cu = ob->data;
       cu->flag |= (CU_PATH | CU_3D);
-      do_curvebuts(B_CU3D);  /* all curves too */
+      do_curvebuts(B_CU3D); /* all curves too */
     }
 #  endif
 

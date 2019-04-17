@@ -98,8 +98,8 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
   }
 
 #  if 0
-  if ( fd == -1 ) {
-    _set_errno( EBADF );
+  if (fd == -1) {
+    _set_errno(EBADF);
     return MAP_FAILED;
   }
 #  endif

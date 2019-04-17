@@ -1125,8 +1125,7 @@ static void ui_editsource_active_but_clear(void)
 static bool ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
 {
 #  if 0
-  printf("matching buttons: '%s' == '%s'\n",
-         but_a->drawstr, but_b->drawstr);
+  printf("matching buttons: '%s' == '%s'\n", but_a->drawstr, but_b->drawstr);
 #  endif
 
   /* this just needs to be a 'good-enough' comparison so we can know beyond
@@ -1153,8 +1152,7 @@ void UI_editsource_active_but_test(uiBut *but)
   int lineno = -1;
 
 #  if 0
-  printf("comparing buttons: '%s' == '%s'\n",
-         but->drawstr, ui_editsource_info->but_orig.drawstr);
+  printf("comparing buttons: '%s' == '%s'\n", but->drawstr, ui_editsource_info->but_orig.drawstr);
 #  endif
 
   PyC_FileAndNum_Safe(&fn, &lineno);

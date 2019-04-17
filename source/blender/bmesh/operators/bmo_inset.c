@@ -190,10 +190,9 @@ static void bm_loop_customdata_merge(BMesh *bm,
 #  if 0
         &&
         /* check if the data ends up diverged */
-        (CustomData_data_equals(
-             type,
-             BM_ELEM_CD_GET_VOID_P(l_a_inner, offset),
-             BM_ELEM_CD_GET_VOID_P(l_b_inner, offset)) == false)
+        (CustomData_data_equals(type,
+                                BM_ELEM_CD_GET_VOID_P(l_a_inner, offset),
+                                BM_ELEM_CD_GET_VOID_P(l_b_inner, offset)) == false)
 #  endif
     ) {
       /* no need to allocate a temp block:
