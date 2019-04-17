@@ -29,11 +29,11 @@ set(INC_SYS
 )
 
 set(SRC
-	minilzo/minilzo.c
+  minilzo/minilzo.c
 
-	minilzo/lzoconf.h
-	minilzo/lzodefs.h
-	minilzo/minilzo.h
+  minilzo/lzoconf.h
+  minilzo/lzodefs.h
+  minilzo/minilzo.h
 )
 
 set(LIB

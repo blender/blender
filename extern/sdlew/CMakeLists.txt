@@ -19,8 +19,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	include
+  .
+  include
 )
 
 set(INC_SYS
@@ -28,8 +28,8 @@ set(INC_SYS
 )
 
 set(SRC
-	include/sdlew.h
-	src/sdlew.c
+  include/sdlew.h
+  src/sdlew.c
 )
 
 set(LIB

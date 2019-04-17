@@ -19,7 +19,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	include
+  include
 )
 
 set(INC_SYS
@@ -27,19 +27,19 @@ set(INC_SYS
 )
 
 if(UNIX)
-	list(APPEND INC_SYS
-		${X11_X11_INCLUDE_PATH}
-	)
+  list(APPEND INC_SYS
+    ${X11_X11_INCLUDE_PATH}
+  )
 endif()
 
 set(SRC
-	src/glew.c
+  src/glew.c
 
-	include/GL/eglew.h
-	include/GL/glesew.h
-	include/GL/glew.h
-	include/GL/glxew.h
-	include/GL/wglew.h
+  include/GL/eglew.h
+  include/GL/glesew.h
+  include/GL/glew.h
+  include/GL/glxew.h
+  include/GL/wglew.h
 )
 
 set(LIB

@@ -1,7 +1,7 @@
 
 # Python CTests
 if(WITH_BLENDER AND WITH_PYTHON)
-	add_subdirectory(python)
+  add_subdirectory(python)
 endif()
 
 # GTest

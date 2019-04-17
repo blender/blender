@@ -58,12 +58,12 @@ set(CYCLES_CUDA_BINARIES_ARCH sm_30;sm_35;sm_37;sm_50;sm_52;sm_60;sm_61;sm_70;sm
 
 # platform dependent options
 if(UNIX AND NOT APPLE)
-	set(WITH_JACK                ON  CACHE BOOL "" FORCE)
-	set(WITH_DOC_MANPAGE         ON  CACHE BOOL "" FORCE)
+  set(WITH_JACK                ON  CACHE BOOL "" FORCE)
+  set(WITH_DOC_MANPAGE         ON  CACHE BOOL "" FORCE)
 elseif(WIN32)
-	set(WITH_JACK                OFF CACHE BOOL "" FORCE)
+  set(WITH_JACK                OFF CACHE BOOL "" FORCE)
 elseif(APPLE)
-	set(WITH_JACK                ON  CACHE BOOL "" FORCE)
+  set(WITH_JACK                ON  CACHE BOOL "" FORCE)
 
-#	include("${CMAKE_CURRENT_SOURCE_DIR}/../platform/platform_apple_xcode.cmake")
+#   include("${CMAKE_CURRENT_SOURCE_DIR}/../platform/platform_apple_xcode.cmake")
 endif()

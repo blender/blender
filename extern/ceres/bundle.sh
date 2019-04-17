@@ -116,17 +116,17 @@ cat > CMakeLists.txt << EOF
 #       in that script too
 
 set(INC
-	.
-	include
-	internal
-	config
-	../gflags/src
+  .
+  include
+  internal
+  config
+  ../gflags/src
 )
 
 set(INC_SYS
-	\${EIGEN3_INCLUDE_DIRS}
-	\${GFLAGS_INCLUDE_DIRS}
-	\${GLOG_INCLUDE_DIRS}
+  \${EIGEN3_INCLUDE_DIRS}
+  \${GFLAGS_INCLUDE_DIRS}
+  \${GLOG_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -136,15 +136,15 @@ ${headers}
 )
 
 set(LIB
-	extern_glog
+  extern_glog
 )
 
 if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
-	list(APPEND SRC
+  list(APPEND SRC
 ${generated_sources}
-	)
+  )
 else()
-	add_definitions(-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
+  add_definitions(-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
 endif()
 
 add_definitions(\${GFLAGS_DEFINES})
@@ -152,17 +152,17 @@ add_definitions(\${GLOG_DEFINES})
 add_definitions(\${CERES_DEFINES})
 
 add_definitions(
-	-DCERES_HAVE_PTHREAD
-	-DCERES_NO_SUITESPARSE
-	-DCERES_NO_CXSPARSE
-	-DCERES_NO_LAPACK
-	-DCERES_HAVE_RWLOCK
+  -DCERES_HAVE_PTHREAD
+  -DCERES_NO_SUITESPARSE
+  -DCERES_NO_CXSPARSE
+  -DCERES_NO_LAPACK
+  -DCERES_HAVE_RWLOCK
 )
 
 if(WITH_OPENMP)
-	add_definitions(
-		-DCERES_USE_OPENMP
-	)
+  add_definitions(
+    -DCERES_USE_OPENMP
+  )
 endif()
 
 blender_add_lib(extern_ceres "\${SRC}" "\${INC}" "\${INC_SYS}" "\${LIB}")

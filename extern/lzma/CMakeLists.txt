@@ -19,7 +19,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
+  .
 )
 
 set(INC_SYS
@@ -27,19 +27,19 @@ set(INC_SYS
 )
 
 set(SRC
-	Alloc.c
-	LzFind.c
-	LzmaDec.c
-	LzmaEnc.c
-	LzmaLib.c
+  Alloc.c
+  LzFind.c
+  LzmaDec.c
+  LzmaEnc.c
+  LzmaLib.c
 
-	Alloc.h
-	LzFind.h
-	LzHash.h
-	LzmaDec.h
-	LzmaEnc.h
-	LzmaLib.h
-	Types.h
+  Alloc.h
+  LzFind.h
+  LzHash.h
+  LzmaDec.h
+  LzmaEnc.h
+  LzmaLib.h
+  Types.h
 )
 
 set(LIB

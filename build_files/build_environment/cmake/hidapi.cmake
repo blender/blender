@@ -19,11 +19,11 @@
 set(HIDAPI_EXTRA_ARGS)
 
 ExternalProject_Add(external_hidapi
-	URL ${HIDAPI_URI}
-	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH MD5=${HIDAPI_HASH}
-	PREFIX ${BUILD_DIR}/hidapi
-	PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_hidapi.txt	${BUILD_DIR}/hidapi/src/external_hidapi/cmakelists.txt && ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/hidapi/src/external_hidapi < ${PATCH_DIR}/hidapi.diff
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/hidapi -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${HIDAPI_EXTRA_ARGS}
-	INSTALL_DIR ${LIBDIR}/hidapi
+  URL ${HIDAPI_URI}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH MD5=${HIDAPI_HASH}
+  PREFIX ${BUILD_DIR}/hidapi
+  PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_hidapi.txt   ${BUILD_DIR}/hidapi/src/external_hidapi/cmakelists.txt && ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/hidapi/src/external_hidapi < ${PATCH_DIR}/hidapi.diff
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/hidapi -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${HIDAPI_EXTRA_ARGS}
+  INSTALL_DIR ${LIBDIR}/hidapi
 )

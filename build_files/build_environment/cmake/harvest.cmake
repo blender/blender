@@ -21,90 +21,90 @@
 ########################################################################
 
 if(NOT DEFINED HARVEST_TARGET)
-	set(HARVEST_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/Harvest)
+  set(HARVEST_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/Harvest)
 endif()
 message("HARVEST_TARGET = ${HARVEST_TARGET}")
 
 if(WIN32)
 if(BUILD_MODE STREQUAL Release)
-	add_custom_target(Harvest_Release_Results
-		COMMAND # jpeg rename libfile + copy include
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/jpg/lib/jpeg-static.lib ${HARVEST_TARGET}/jpeg/lib/libjpeg.lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/jpg/include/ ${HARVEST_TARGET}/jpeg/include/ &&
-				# OpenImageIO
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/include ${HARVEST_TARGET}/OpenImageIO/include &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/lib ${HARVEST_TARGET}/OpenImageIO/lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/idiff.exe ${HARVEST_TARGET}/OpenImageIO/bin/idiff.exe &&
-				# png
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/png/lib/libpng16_static.lib ${HARVEST_TARGET}/png/lib/libpng.lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/png/include/ ${HARVEST_TARGET}/png/include/ &&
-				# freeglut-> opengl
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/freeglut/lib/freeglut_static.lib ${HARVEST_TARGET}/opengl/lib/freeglut_static.lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freeglut/include/ ${HARVEST_TARGET}/opengl/include/ &&
-				# glew-> opengl
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/glew/lib/libglew32.lib ${HARVEST_TARGET}/opengl/lib/glew.lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/glew/include/ ${HARVEST_TARGET}/opengl/include/ &&
-				# sndfile
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/lib/libsndfile.dll.a ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/bin/libsndfile-1.dll ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.dll &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/include/sndfile.h ${HARVEST_TARGET}/sndfile/include/sndfile.h &&
-				# tiff
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiff.lib ${HARVEST_TARGET}/tiff/lib/libtiff.lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/tiff/include/ ${HARVEST_TARGET}/tiff/include/ &&
-				# BlendThumb
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb64/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb64.dll &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb32/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb.dll &&
-				# hidapi
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hidapi/ ${HARVEST_TARGET}/hidapi/ &&
-				# webp, straight up copy
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/webp ${HARVEST_TARGET}/webp &&
-		DEPENDS
-	)
+  add_custom_target(Harvest_Release_Results
+    COMMAND # jpeg rename libfile + copy include
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/jpg/lib/jpeg-static.lib ${HARVEST_TARGET}/jpeg/lib/libjpeg.lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/jpg/include/ ${HARVEST_TARGET}/jpeg/include/ &&
+        # OpenImageIO
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/include ${HARVEST_TARGET}/OpenImageIO/include &&
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/lib ${HARVEST_TARGET}/OpenImageIO/lib &&
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/idiff.exe ${HARVEST_TARGET}/OpenImageIO/bin/idiff.exe &&
+        # png
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/png/lib/libpng16_static.lib ${HARVEST_TARGET}/png/lib/libpng.lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/png/include/ ${HARVEST_TARGET}/png/include/ &&
+        # freeglut-> opengl
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/freeglut/lib/freeglut_static.lib ${HARVEST_TARGET}/opengl/lib/freeglut_static.lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freeglut/include/ ${HARVEST_TARGET}/opengl/include/ &&
+        # glew-> opengl
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/glew/lib/libglew32.lib ${HARVEST_TARGET}/opengl/lib/glew.lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/glew/include/ ${HARVEST_TARGET}/opengl/include/ &&
+        # sndfile
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/lib/libsndfile.dll.a ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.lib &&
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/bin/libsndfile-1.dll ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.dll &&
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/include/sndfile.h ${HARVEST_TARGET}/sndfile/include/sndfile.h &&
+        # tiff
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiff.lib ${HARVEST_TARGET}/tiff/lib/libtiff.lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/tiff/include/ ${HARVEST_TARGET}/tiff/include/ &&
+        # BlendThumb
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb64/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb64.dll &&
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb32/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb.dll &&
+        # hidapi
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hidapi/ ${HARVEST_TARGET}/hidapi/ &&
+        # webp, straight up copy
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/webp ${HARVEST_TARGET}/webp &&
+    DEPENDS
+  )
 endif()
 
 if(BUILD_MODE STREQUAL Debug)
-	add_custom_target(Harvest_Debug_Results
-				# OpenImageIO
-		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO_Util.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_Util_d.lib &&
-				# python
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ &&
-				# hdf5
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hdf5/lib ${HARVEST_TARGET}/hdf5/lib &&
-				# numpy
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}d.tar.gz &&
-				# python
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz
-		DEPENDS Package_Python
-	)
+  add_custom_target(Harvest_Debug_Results
+        # OpenImageIO
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_d.lib &&
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO_Util.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_Util_d.lib &&
+        # python
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ &&
+        # hdf5
+        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hdf5/lib ${HARVEST_TARGET}/hdf5/lib &&
+        # numpy
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}d.tar.gz &&
+        # python
+        ${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz
+    DEPENDS Package_Python
+  )
 endif()
 
 else(WIN32)
 
 function(harvest from to)
-	set(pattern "")
-	foreach(f ${ARGN})
-		set(pattern ${f})
-	endforeach()
+  set(pattern "")
+  foreach(f ${ARGN})
+    set(pattern ${f})
+  endforeach()
 
-	if(pattern STREQUAL "")
-		get_filename_component(dirpath ${to} DIRECTORY)
-		get_filename_component(filename ${to} NAME)
-		install(
-			FILES ${LIBDIR}/${from}
-			DESTINATION ${HARVEST_TARGET}/${dirpath}
-			RENAME ${filename})
-	else()
-		install(
-			DIRECTORY ${LIBDIR}/${from}/
-			DESTINATION ${HARVEST_TARGET}/${to}
-			USE_SOURCE_PERMISSIONS
-			FILES_MATCHING PATTERN ${pattern}
-			PATTERN "pkgconfig" EXCLUDE
-			PATTERN "cmake" EXCLUDE
-			PATTERN "__pycache__" EXCLUDE
-			PATTERN "tests" EXCLUDE)
-	endif()
+  if(pattern STREQUAL "")
+    get_filename_component(dirpath ${to} DIRECTORY)
+    get_filename_component(filename ${to} NAME)
+    install(
+      FILES ${LIBDIR}/${from}
+      DESTINATION ${HARVEST_TARGET}/${dirpath}
+      RENAME ${filename})
+  else()
+    install(
+      DIRECTORY ${LIBDIR}/${from}/
+      DESTINATION ${HARVEST_TARGET}/${to}
+      USE_SOURCE_PERMISSIONS
+      FILES_MATCHING PATTERN ${pattern}
+      PATTERN "pkgconfig" EXCLUDE
+      PATTERN "cmake" EXCLUDE
+      PATTERN "__pycache__" EXCLUDE
+      PATTERN "tests" EXCLUDE)
+  endif()
 endfunction()
 
 harvest(alembic/include alembic/include "*.h")
@@ -134,25 +134,25 @@ harvest(llvm/include llvm/include "*")
 harvest(llvm/bin llvm/bin "llvm-config")
 harvest(llvm/lib llvm/lib "libLLVM*.a")
 if(APPLE)
-	harvest(openmp/lib openmp/lib "*")
-	harvest(openmp/include openmp/include "*.h")
+  harvest(openmp/lib openmp/lib "*")
+  harvest(openmp/include openmp/include "*.h")
 endif()
 harvest(ogg/lib ffmpeg/lib "*.a")
 harvest(openal/include openal/include "*.h")
 if(UNIX AND NOT APPLE)
-	harvest(openal/lib openal/lib "*.a")
+  harvest(openal/lib openal/lib "*.a")
 
-	harvest(blosc/include blosc/include "*.h")
-	harvest(blosc/lib blosc/lib "*.a")
+  harvest(blosc/include blosc/include "*.h")
+  harvest(blosc/lib blosc/lib "*.a")
 
-	harvest(zlib/include zlib/include "*.h")
-	harvest(zlib/lib zlib/lib "*.a")
+  harvest(zlib/include zlib/include "*.h")
+  harvest(zlib/lib zlib/lib "*.a")
 
-	harvest(xml2/include xml2/include "*.h")
-	harvest(xml2/lib xml2/lib "*.a")
+  harvest(xml2/include xml2/include "*.h")
+  harvest(xml2/lib xml2/lib "*.a")
 else()
-	harvest(blosc/lib openvdb/lib "*.a")
-	harvest(xml2/lib opencollada/lib "*.a")
+  harvest(blosc/lib openvdb/lib "*.a")
+  harvest(xml2/lib opencollada/lib "*.a")
 endif()
 harvest(opencollada/include/opencollada opencollada/include "*.h")
 harvest(opencollada/lib/opencollada opencollada/lib "*.a")

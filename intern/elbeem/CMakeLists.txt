@@ -19,70 +19,70 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	extern
-	../guardedalloc
+  extern
+  ../guardedalloc
 )
 
 set(INC_SYS
-	${PNG_INCLUDE_DIRS}
-	${ZLIB_INCLUDE_DIRS}
+  ${PNG_INCLUDE_DIRS}
+  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/attributes.cpp
-	intern/controlparticles.cpp
-	intern/elbeem.cpp
-	intern/elbeem_control.cpp
-	intern/isosurface.cpp
-	intern/mvmcoords.cpp
-	intern/ntl_blenderdumper.cpp
-	intern/ntl_bsptree.cpp
-	intern/ntl_geometrymodel.cpp
-	intern/ntl_geometryobject.cpp
-	intern/ntl_lighting.cpp
-	intern/ntl_ray.cpp
-	intern/ntl_world.cpp
-	intern/parametrizer.cpp
-	intern/particletracer.cpp
-	intern/simulation_object.cpp
-	intern/solver_adap.cpp
-	intern/solver_control.cpp
-	intern/solver_init.cpp
-	intern/solver_interface.cpp
-	intern/solver_main.cpp
-	intern/solver_util.cpp
-	intern/utilities.cpp
+  intern/attributes.cpp
+  intern/controlparticles.cpp
+  intern/elbeem.cpp
+  intern/elbeem_control.cpp
+  intern/isosurface.cpp
+  intern/mvmcoords.cpp
+  intern/ntl_blenderdumper.cpp
+  intern/ntl_bsptree.cpp
+  intern/ntl_geometrymodel.cpp
+  intern/ntl_geometryobject.cpp
+  intern/ntl_lighting.cpp
+  intern/ntl_ray.cpp
+  intern/ntl_world.cpp
+  intern/parametrizer.cpp
+  intern/particletracer.cpp
+  intern/simulation_object.cpp
+  intern/solver_adap.cpp
+  intern/solver_control.cpp
+  intern/solver_init.cpp
+  intern/solver_interface.cpp
+  intern/solver_main.cpp
+  intern/solver_util.cpp
+  intern/utilities.cpp
 
-	extern/LBM_fluidsim.h
-	extern/elbeem.h
-	intern/attributes.h
-	intern/controlparticles.h
-	intern/elbeem_control.h
-	intern/isosurface.h
-	intern/loop_tools.h
-	intern/mcubes_tables.h
-	intern/mvmcoords.h
-	intern/ntl_blenderdumper.h
-	intern/ntl_bsptree.h
-	intern/ntl_geometryclass.h
-	intern/ntl_geometrymodel.h
-	intern/ntl_geometryobject.h
-	intern/ntl_geometryshader.h
-	intern/ntl_lighting.h
-	intern/ntl_matrices.h
-	intern/ntl_ray.h
-	intern/ntl_vector3dim.h
-	intern/ntl_world.h
-	intern/paraloopend.h
-	intern/parametrizer.h
-	intern/particletracer.h
-	intern/simulation_object.h
-	intern/solver_class.h
-	intern/solver_control.h
-	intern/solver_interface.h
-	intern/solver_relax.h
-	intern/utilities.h
-	intern/globals.h
+  extern/LBM_fluidsim.h
+  extern/elbeem.h
+  intern/attributes.h
+  intern/controlparticles.h
+  intern/elbeem_control.h
+  intern/isosurface.h
+  intern/loop_tools.h
+  intern/mcubes_tables.h
+  intern/mvmcoords.h
+  intern/ntl_blenderdumper.h
+  intern/ntl_bsptree.h
+  intern/ntl_geometryclass.h
+  intern/ntl_geometrymodel.h
+  intern/ntl_geometryobject.h
+  intern/ntl_geometryshader.h
+  intern/ntl_lighting.h
+  intern/ntl_matrices.h
+  intern/ntl_ray.h
+  intern/ntl_vector3dim.h
+  intern/ntl_world.h
+  intern/paraloopend.h
+  intern/parametrizer.h
+  intern/particletracer.h
+  intern/simulation_object.h
+  intern/solver_class.h
+  intern/solver_control.h
+  intern/solver_interface.h
+  intern/solver_relax.h
+  intern/utilities.h
+  intern/globals.h
 )
 
 set(LIB
@@ -92,31 +92,31 @@ set(LIB
 remove_strict_flags()
 
 add_definitions(
-	-DNOGUI
-	-DELBEEM_BLENDER=1
+  -DNOGUI
+  -DELBEEM_BLENDER=1
 )
 
 # not essential but quiet gcc's -Wundef
 add_definitions(
-	-DLBM_PRECISION=1
-	-DLBM_INCLUDE_TESTSOLVERS=0
-	-DFSGR_STRICT_DEBUG=0
-	-DELBEEM_MPI=0
-	-DNEWDIRVELMOTEST=0
+  -DLBM_PRECISION=1
+  -DLBM_INCLUDE_TESTSOLVERS=0
+  -DFSGR_STRICT_DEBUG=0
+  -DELBEEM_MPI=0
+  -DNEWDIRVELMOTEST=0
 )
 
 if(WIN32)
-	# We need BLI_gzopen on win32 for unicode paths
-	add_definitions(
-		-DLBM_GZIP_OVERRIDE_H="${CMAKE_SOURCE_DIR}/source/blender/blenlib/BLI_fileops.h"
-		-D LBM_GZIP_OPEN_FN="\(gzFile\)BLI_gzopen"
-	)
+  # We need BLI_gzopen on win32 for unicode paths
+  add_definitions(
+    -DLBM_GZIP_OVERRIDE_H="${CMAKE_SOURCE_DIR}/source/blender/blenlib/BLI_fileops.h"
+    -D LBM_GZIP_OPEN_FN="\(gzFile\)BLI_gzopen"
+  )
 endif()
 
 if(WITH_OPENMP)
-	add_definitions(-DPARALLEL=1)
+  add_definitions(-DPARALLEL=1)
 else()
-	add_definitions(-DPARALLEL=0)
+  add_definitions(-DPARALLEL=0)
 endif()
 
 blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

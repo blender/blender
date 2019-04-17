@@ -19,7 +19,7 @@
 #
 
 set(INC
-	include
+  include
 )
 
 set(INC_SYS
@@ -27,9 +27,9 @@ set(INC_SYS
 )
 
 set(SRC
-	binreloc.c
+  binreloc.c
 
-	include/binreloc.h
+  include/binreloc.h
 )
 
 set(LIB

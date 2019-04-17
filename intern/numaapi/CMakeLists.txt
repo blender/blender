@@ -17,7 +17,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	include
+  include
 )
 
 set(INC_SYS
@@ -25,13 +25,13 @@ set(INC_SYS
 )
 
 set(SRC
-	source/numaapi.c
-	source/numaapi_linux.c
-	source/numaapi_stub.c
-	source/numaapi_win32.c
+  source/numaapi.c
+  source/numaapi_linux.c
+  source/numaapi_stub.c
+  source/numaapi_win32.c
 
-	include/numaapi.h
-	source/build_config.h
+  include/numaapi.h
+  source/build_config.h
 )
 
 set(LIB

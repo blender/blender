@@ -29,19 +29,19 @@ set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 # ugh, any better way to do this on testing only?
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 
-#~	if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
-#~		message(FATAL_ERROR "CMake test directory not found!")
-#~	endif()
+#~  if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
+#~      message(FATAL_ERROR "CMake test directory not found!")
+#~  endif()
 
 # all calls to blender use this
 if(APPLE)
-	if(${CMAKE_GENERATOR} MATCHES "Xcode")
-		set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
-	else()
-		set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
-	endif()
+  if(${CMAKE_GENERATOR} MATCHES "Xcode")
+    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
+  else()
+    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+  endif()
 else()
-	set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+  set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no
@@ -51,12 +51,12 @@ endif()
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
 macro (COLLADA_TEST module test_name blend_file)
-	add_test(
-		NAME collada_${module}_${test_name}
-		COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${TEST_SRC_DIR}/collada/${module}/${blend_file}
-		--python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${module}_${test_name}.py --
-		--testdir ${TEST_SRC_DIR}/collada/${module}
-	)
+  add_test(
+    NAME collada_${module}_${test_name}
+    COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${TEST_SRC_DIR}/collada/${module}/${blend_file}
+    --python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${module}_${test_name}.py --
+    --testdir ${TEST_SRC_DIR}/collada/${module}
+  )
 endmacro()
 
 # Tests are disabled because they only work on Windows

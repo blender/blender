@@ -102,14 +102,14 @@ cat > CMakeLists.txt << EOF
 #       in that script too
 
 set(INC
-	.
+  .
 )
 
 set(INC_SYS
 )
 
 set(SRC
-	libmv-capi.h
+  libmv-capi.h
 )
 
 set(LIB
@@ -117,76 +117,76 @@ set(LIB
 )
 
 if(WITH_LIBMV)
-	add_definitions(\${GFLAGS_DEFINES})
-	add_definitions(\${GLOG_DEFINES})
-	add_definitions(\${CERES_DEFINES})
-	add_definitions(-DLIBMV_GFLAGS_NAMESPACE=\${GFLAGS_NAMESPACE})
+  add_definitions(\${GFLAGS_DEFINES})
+  add_definitions(\${GLOG_DEFINES})
+  add_definitions(\${CERES_DEFINES})
+  add_definitions(-DLIBMV_GFLAGS_NAMESPACE=\${GFLAGS_NAMESPACE})
 
-	list(APPEND INC
-		\${GFLAGS_INCLUDE_DIRS}
-		\${GLOG_INCLUDE_DIRS}
-		../../extern/ceres/include
-		../../extern/ceres/config
-		../guardedalloc
-	)
+  list(APPEND INC
+    \${GFLAGS_INCLUDE_DIRS}
+    \${GLOG_INCLUDE_DIRS}
+    ../../extern/ceres/include
+    ../../extern/ceres/config
+    ../guardedalloc
+  )
 
-	list(APPEND INC_SYS
-		\${EIGEN3_INCLUDE_DIRS}
-		\${PNG_INCLUDE_DIRS}
-		\${ZLIB_INCLUDE_DIRS}
-	)
+  list(APPEND INC_SYS
+    \${EIGEN3_INCLUDE_DIRS}
+    \${PNG_INCLUDE_DIRS}
+    \${ZLIB_INCLUDE_DIRS}
+  )
 
-	list(APPEND LIB
-		extern_ceres
-		extern_glog
-	)
+  list(APPEND LIB
+    extern_ceres
+    extern_glog
+  )
 
-	add_definitions(
-		-DWITH_LIBMV_GUARDED_ALLOC
-		-DLIBMV_NO_FAST_DETECTOR=
-	)
+  add_definitions(
+    -DWITH_LIBMV_GUARDED_ALLOC
+    -DLIBMV_NO_FAST_DETECTOR=
+  )
 
-	list(APPEND SRC
-		intern/autotrack.cc
-		intern/camera_intrinsics.cc
-		intern/detector.cc
-		intern/frame_accessor.cc
-		intern/homography.cc
-		intern/image.cc
-		intern/logging.cc
-		intern/reconstruction.cc
-		intern/track_region.cc
-		intern/tracks.cc
-		intern/tracksN.cc
+  list(APPEND SRC
+    intern/autotrack.cc
+    intern/camera_intrinsics.cc
+    intern/detector.cc
+    intern/frame_accessor.cc
+    intern/homography.cc
+    intern/image.cc
+    intern/logging.cc
+    intern/reconstruction.cc
+    intern/track_region.cc
+    intern/tracks.cc
+    intern/tracksN.cc
 ${sources}
 ${third_sources}
 
-		intern/autotrack.h
-		intern/camera_intrinsics.h
-		intern/detector.h
-		intern/frame_accessor.h
-		intern/homography.h
-		intern/image.h
-		intern/logging.h
-		intern/reconstruction.h
-		intern/track_region.h
-		intern/tracks.h
-		intern/tracksN.h
+    intern/autotrack.h
+    intern/camera_intrinsics.h
+    intern/detector.h
+    intern/frame_accessor.h
+    intern/homography.h
+    intern/image.h
+    intern/logging.h
+    intern/reconstruction.h
+    intern/track_region.h
+    intern/tracks.h
+    intern/tracksN.h
 ${headers}
 
 ${third_headers}
-	)
+  )
 
 
-	if(WITH_GTESTS)
-		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}" "")
+  if(WITH_GTESTS)
+    blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}" "")
 
 ${tests}
-	endif()
+  endif()
 else()
-	list(APPEND SRC
-		intern/stub.cc
-	)
+  list(APPEND SRC
+    intern/stub.cc
+  )
 endif()
 
 blender_add_lib(bf_intern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}" "\${LIB}")

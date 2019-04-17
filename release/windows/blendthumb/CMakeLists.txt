@@ -27,10 +27,10 @@ include_directories(${ZLIB_INCLUDE})
 
 #Can manually add the sources using the set command as follows:
 set(SRC
-	src/BlenderThumb.cpp
-	src/BlendThumb.def
-	src/BlendThumb.rc
-	src/Dll.cpp
+  src/BlenderThumb.cpp
+  src/BlendThumb.def
+  src/BlendThumb.rc
+  src/Dll.cpp
 )
 
 add_library(BlendThumb SHARED ${SRC})

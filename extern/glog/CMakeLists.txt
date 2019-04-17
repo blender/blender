@@ -19,81 +19,81 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	src
-	../gflags/src
+  src
+  ../gflags/src
 )
 
 set(INC_SYS
 )
 
 set(SRC
-	src/logging.cc
-	src/raw_logging.cc
-	src/utilities.cc
-	src/vlog_is_on.cc
+  src/logging.cc
+  src/raw_logging.cc
+  src/utilities.cc
+  src/vlog_is_on.cc
 
-	src/utilities.h
+  src/utilities.h
 
-	src/config.h
-	src/config_freebsd.h
-	src/config_haiku.h
-	src/config_hurd.h
-	src/config_linux.h
-	src/config_mac.h
+  src/config.h
+  src/config_freebsd.h
+  src/config_haiku.h
+  src/config_hurd.h
+  src/config_linux.h
+  src/config_mac.h
 
-	src/base/commandlineflags.h
-	src/base/googleinit.h
-	src/base/mutex.h
+  src/base/commandlineflags.h
+  src/base/googleinit.h
+  src/base/mutex.h
 
-	src/stacktrace.h
-	src/stacktrace_generic-inl.h
-	src/stacktrace_libunwind-inl.h
-	src/stacktrace_powerpc-inl.h
-	src/stacktrace_x86_64-inl.h
-	src/stacktrace_x86-inl.h
+  src/stacktrace.h
+  src/stacktrace_generic-inl.h
+  src/stacktrace_libunwind-inl.h
+  src/stacktrace_powerpc-inl.h
+  src/stacktrace_x86_64-inl.h
+  src/stacktrace_x86-inl.h
 )
 
 set(LIB
 )
 
 if(NOT WITH_SYSTEM_GFLAGS)
-	list(APPEND LIB
-		extern_gflags
-	)
+  list(APPEND LIB
+    extern_gflags
+  )
 endif()
 
 if(WIN32)
-	list(APPEND SRC
-		src/windows/port.cc
+  list(APPEND SRC
+    src/windows/port.cc
 
-		src/windows/glog/raw_logging.h
-		src/windows/glog/vlog_is_on.h
-		src/windows/glog/logging.h
-		src/windows/glog/log_severity.h
-		src/windows/port.h
-		src/windows/config.h
-	)
+    src/windows/glog/raw_logging.h
+    src/windows/glog/vlog_is_on.h
+    src/windows/glog/logging.h
+    src/windows/glog/log_severity.h
+    src/windows/port.h
+    src/windows/config.h
+  )
 
-	list(APPEND INC
-		src/windows
-	)
+  list(APPEND INC
+    src/windows
+  )
 else()
-	list(APPEND INC
-		include
-	)
-	list(APPEND SRC
-		src/demangle.cc
-		src/signalhandler.cc
-		src/symbolize.cc
+  list(APPEND INC
+    include
+  )
+  list(APPEND SRC
+    src/demangle.cc
+    src/signalhandler.cc
+    src/symbolize.cc
 
-		src/demangle.h
-		src/symbolize.h
+    src/demangle.h
+    src/symbolize.h
 
-		include/glog/logging.h
-		include/glog/log_severity.h
-		include/glog/raw_logging.h
-		include/glog/vlog_is_on.h
-	)
+    include/glog/logging.h
+    include/glog/log_severity.h
+    include/glog/raw_logging.h
+    include/glog/vlog_is_on.h
+  )
 endif()
 
 add_definitions(${GFLAGS_DEFINES})

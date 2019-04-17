@@ -19,7 +19,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
+  .
 )
 
 set(INC_SYS
@@ -27,9 +27,9 @@ set(INC_SYS
 )
 
 set(SRC
-	wcwidth.c
+  wcwidth.c
 
-	wcwidth.h
+  wcwidth.h
 )
 
 set(LIB

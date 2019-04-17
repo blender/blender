@@ -32,6 +32,6 @@ set(WITH_OPENVDB             OFF CACHE BOOL "" FORCE)
 set(WITH_ALEMBIC             OFF CACHE BOOL "" FORCE)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	# jemalloc causes linking error on import, disable.
-	set(WITH_MEM_JEMALLOC        OFF CACHE BOOL "" FORCE)
+  # jemalloc causes linking error on import, disable.
+  set(WITH_MEM_JEMALLOC        OFF CACHE BOOL "" FORCE)
 endif()

@@ -6,29 +6,29 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 # Some of the paths will depend on this
 
 if(EXISTS "/lib/x86_64-linux-gnu/libc-2.24.so")
-	message(STATUS "Building in GLibc-2.24 environment")
-	set(GLIBC "2.24")
-	set(MULTILIB "/x86_64-linux-gnu")
-	set(LIBDIR_NAME "linux_x86_64")
+  message(STATUS "Building in GLibc-2.24 environment")
+  set(GLIBC "2.24")
+  set(MULTILIB "/x86_64-linux-gnu")
+  set(LIBDIR_NAME "linux_x86_64")
 elseif(EXISTS "/lib/i386-linux-gnu//libc-2.24.so")
-	message(STATUS "Building in GLibc-2.24 environment")
-	set(GLIBC "2.24")
-	set(MULTILIB "/i386-linux-gnu")
-	set(LIBDIR_NAME "linux_i686")
+  message(STATUS "Building in GLibc-2.24 environment")
+  set(GLIBC "2.24")
+  set(MULTILIB "/i386-linux-gnu")
+  set(LIBDIR_NAME "linux_i686")
 elseif(EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
-	message(STATUS "Building in GLibc-2.19 environment")
-	set(GLIBC "2.19")
-	set(MULTILIB "/x86_64-linux-gnu")
+  message(STATUS "Building in GLibc-2.19 environment")
+  set(GLIBC "2.19")
+  set(MULTILIB "/x86_64-linux-gnu")
 elseif(EXISTS "/lib/i386-linux-gnu//libc-2.19.so")
-	message(STATUS "Building in GLibc-2.19 environment")
-	set(GLIBC "2.19")
-	set(MULTILIB "/i386-linux-gnu")
+  message(STATUS "Building in GLibc-2.19 environment")
+  set(GLIBC "2.19")
+  set(MULTILIB "/i386-linux-gnu")
 elseif(EXISTS "/lib/libc-2.11.3.so")
-	message(STATUS "Building in GLibc-2.11 environment")
-	set(GLIBC "2.11")
-	set(MULTILIB "")
+  message(STATUS "Building in GLibc-2.11 environment")
+  set(GLIBC "2.11")
+  set(MULTILIB "")
 else()
-	message(FATAL_ERROR "Unknown build environment")
+  message(FATAL_ERROR "Unknown build environment")
 endif()
 
 # Default to only build Blender
@@ -67,18 +67,18 @@ set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
 # FFmpeg libraries
 set(FFMPEG                   "/opt/lib/ffmpeg" CACHE STRING "" FORCE)
 set(FFMPEG_LIBRARIES
-	avdevice avformat avcodec avutil avfilter swscale swresample
-	/usr/lib${MULTILIB}/libxvidcore.a
-	/usr/lib${MULTILIB}/libx264.a
-	/usr/lib${MULTILIB}/libmp3lame.a
-	/usr/lib${MULTILIB}/libvpx.a
-	/usr/lib${MULTILIB}/libvorbis.a
-	/usr/lib${MULTILIB}/libogg.a
-	/usr/lib${MULTILIB}/libvorbisenc.a
-	/usr/lib${MULTILIB}/libtheora.a
-	/usr/lib${MULTILIB}/libschroedinger-1.0.a
-	/usr/lib${MULTILIB}/liborc-0.4.a
-	CACHE STRING "" FORCE
+  avdevice avformat avcodec avutil avfilter swscale swresample
+  /usr/lib${MULTILIB}/libxvidcore.a
+  /usr/lib${MULTILIB}/libx264.a
+  /usr/lib${MULTILIB}/libmp3lame.a
+  /usr/lib${MULTILIB}/libvpx.a
+  /usr/lib${MULTILIB}/libvorbis.a
+  /usr/lib${MULTILIB}/libogg.a
+  /usr/lib${MULTILIB}/libvorbisenc.a
+  /usr/lib${MULTILIB}/libtheora.a
+  /usr/lib${MULTILIB}/libschroedinger-1.0.a
+  /usr/lib${MULTILIB}/liborc-0.4.a
+  CACHE STRING "" FORCE
 )
 
 # SndFile libraries
@@ -88,9 +88,9 @@ set(SNDFILE_LIBRARY          "/usr/lib${MULTILIB}/libsndfile.a;/usr/lib${MULTILI
 set(OPENAL_ROOT_DIR           "/opt/lib/openal" CACHE STRING "" FORCE)
 set(OPENAL_INCLUDE_DIR        "${OPENAL_ROOT_DIR}/include/AL" CACHE STRING "" FORCE)
 set(OPENAL_LIBRARY
-	${OPENAL_ROOT_DIR}/lib/libopenal.a
-	${OPENAL_ROOT_DIR}/lib/libcommon.a
-	CACHE STRING "" FORCE
+  ${OPENAL_ROOT_DIR}/lib/libopenal.a
+  ${OPENAL_ROOT_DIR}/lib/libcommon.a
+  CACHE STRING "" FORCE
 )
 
 # OpenCollada libraries
@@ -112,15 +112,15 @@ set(FREETYPE_LIBRARY "/usr/lib${MULTILIB}/libfreetype.a" CACHE STRING "" FORCE)
 
 # OpenImageIO
 if(GLIBC EQUAL "2.19")
-	set(OPENIMAGEIO_LIBRARY
-		/opt/lib/oiio/lib/libOpenImageIO.a
-		/opt/lib/oiio/lib/libOpenImageIO_Util.a
-		/usr/lib${MULTILIB}/libwebp.a
-		/usr/lib${MULTILIB}/liblzma.a
-		/usr/lib${MULTILIB}/libjbig.a
-		${FREETYPE_LIBRARY}
-		CACHE STRING "" FORCE
-	)
+  set(OPENIMAGEIO_LIBRARY
+    /opt/lib/oiio/lib/libOpenImageIO.a
+    /opt/lib/oiio/lib/libOpenImageIO_Util.a
+    /usr/lib${MULTILIB}/libwebp.a
+    /usr/lib${MULTILIB}/liblzma.a
+    /usr/lib${MULTILIB}/libjbig.a
+    ${FREETYPE_LIBRARY}
+    CACHE STRING "" FORCE
+  )
 endif()
 
 # OpenSubdiv libraries
@@ -151,13 +151,13 @@ set(ZLIB_LIBRARY        "/usr/lib${MULTILIB}/libz.a"     CACHE STRING "" FORCE)
 
 # OpenVDB
 set(OPENVDB_LIBRARY
-	/opt/lib/openvdb/lib/libopenvdb.a
-	CACHE BOOL "" FORCE
+  /opt/lib/openvdb/lib/libopenvdb.a
+  CACHE BOOL "" FORCE
 )
 
 set(BLOSC_LIBRARY
-	/opt/lib/blosc/lib/libblosc.a
-	CACHE BOOL "" FORCE
+  /opt/lib/blosc/lib/libblosc.a
+  CACHE BOOL "" FORCE
 )
 
 else()

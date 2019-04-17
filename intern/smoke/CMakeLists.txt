@@ -19,62 +19,62 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	intern
-	../memutil
+  intern
+  ../memutil
 )
 
 set(INC_SYS
-	${BULLET_INCLUDE_DIRS}
-	${PNG_INCLUDE_DIRS}
-	${ZLIB_INCLUDE_DIRS}
+  ${BULLET_INCLUDE_DIRS}
+  ${PNG_INCLUDE_DIRS}
+  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/EIGENVALUE_HELPER.cpp
-	intern/FLUID_3D.cpp
-	intern/FLUID_3D_SOLVERS.cpp
-	intern/FLUID_3D_STATIC.cpp
-	intern/LU_HELPER.cpp
-	intern/SPHERE.cpp
-	intern/WTURBULENCE.cpp
-	intern/smoke_API.cpp
+  intern/EIGENVALUE_HELPER.cpp
+  intern/FLUID_3D.cpp
+  intern/FLUID_3D_SOLVERS.cpp
+  intern/FLUID_3D_STATIC.cpp
+  intern/LU_HELPER.cpp
+  intern/SPHERE.cpp
+  intern/WTURBULENCE.cpp
+  intern/smoke_API.cpp
 
-	extern/smoke_API.h
-	intern/EIGENVALUE_HELPER.h
-	intern/FFT_NOISE.h
-	intern/FLUID_3D.h
-	intern/IMAGE.h
-	intern/INTERPOLATE.h
-	intern/LU_HELPER.h
-	intern/MERSENNETWISTER.h
-	intern/OBSTACLE.h
-	intern/SPHERE.h
-	intern/VEC3.h
-	intern/WAVELET_NOISE.h
-	intern/WTURBULENCE.h
-	intern/tnt/jama_eig.h
-	intern/tnt/jama_lu.h
-	intern/tnt/tnt.h
-	intern/tnt/tnt_array1d.h
-	intern/tnt/tnt_array1d_utils.h
-	intern/tnt/tnt_array2d.h
-	intern/tnt/tnt_array2d_utils.h
-	intern/tnt/tnt_array3d.h
-	intern/tnt/tnt_array3d_utils.h
-	intern/tnt/tnt_cmat.h
-	intern/tnt/tnt_fortran_array1d.h
-	intern/tnt/tnt_fortran_array1d_utils.h
-	intern/tnt/tnt_fortran_array2d.h
-	intern/tnt/tnt_fortran_array2d_utils.h
-	intern/tnt/tnt_fortran_array3d.h
-	intern/tnt/tnt_fortran_array3d_utils.h
-	intern/tnt/tnt_i_refvec.h
-	intern/tnt/tnt_math_utils.h
-	intern/tnt/tnt_sparse_matrix_csr.h
-	intern/tnt/tnt_stopwatch.h
-	intern/tnt/tnt_subscript.h
-	intern/tnt/tnt_vec.h
-	intern/tnt/tnt_version.h
+  extern/smoke_API.h
+  intern/EIGENVALUE_HELPER.h
+  intern/FFT_NOISE.h
+  intern/FLUID_3D.h
+  intern/IMAGE.h
+  intern/INTERPOLATE.h
+  intern/LU_HELPER.h
+  intern/MERSENNETWISTER.h
+  intern/OBSTACLE.h
+  intern/SPHERE.h
+  intern/VEC3.h
+  intern/WAVELET_NOISE.h
+  intern/WTURBULENCE.h
+  intern/tnt/jama_eig.h
+  intern/tnt/jama_lu.h
+  intern/tnt/tnt.h
+  intern/tnt/tnt_array1d.h
+  intern/tnt/tnt_array1d_utils.h
+  intern/tnt/tnt_array2d.h
+  intern/tnt/tnt_array2d_utils.h
+  intern/tnt/tnt_array3d.h
+  intern/tnt/tnt_array3d_utils.h
+  intern/tnt/tnt_cmat.h
+  intern/tnt/tnt_fortran_array1d.h
+  intern/tnt/tnt_fortran_array1d_utils.h
+  intern/tnt/tnt_fortran_array2d.h
+  intern/tnt/tnt_fortran_array2d_utils.h
+  intern/tnt/tnt_fortran_array3d.h
+  intern/tnt/tnt_fortran_array3d_utils.h
+  intern/tnt/tnt_i_refvec.h
+  intern/tnt/tnt_math_utils.h
+  intern/tnt/tnt_sparse_matrix_csr.h
+  intern/tnt/tnt_stopwatch.h
+  intern/tnt/tnt_subscript.h
+  intern/tnt/tnt_vec.h
+  intern/tnt/tnt_version.h
 )
 
 set(LIB
@@ -84,16 +84,16 @@ set(LIB
 add_definitions(-DDDF_DEBUG=0)
 
 if(WITH_OPENMP)
-	add_definitions(-DPARALLEL=1)
+  add_definitions(-DPARALLEL=1)
 else()
-	add_definitions(-DPARALLEL=0)
+  add_definitions(-DPARALLEL=0)
 endif()
 
 if(WITH_FFTW3)
-	add_definitions(-DWITH_FFTW3)
-	list(APPEND INC_SYS
-		${FFTW3_INCLUDE_DIRS}
-	)
+  add_definitions(-DWITH_FFTW3)
+  list(APPEND INC_SYS
+    ${FFTW3_INCLUDE_DIRS}
+  )
 endif()
 
 blender_add_lib(bf_intern_smoke "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

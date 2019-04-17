@@ -19,8 +19,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	include
+  .
+  include
 )
 
 set(INC_SYS
@@ -28,9 +28,9 @@ set(INC_SYS
 )
 
 set(SRC
-	src/cuew.c
+  src/cuew.c
 
-	include/cuew.h
+  include/cuew.h
 )
 
 set(LIB

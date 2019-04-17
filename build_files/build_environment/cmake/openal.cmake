@@ -17,51 +17,51 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(BUILD_MODE STREQUAL Release)
-	set(OPENAL_EXTRA_ARGS
-		-DALSOFT_UTILS=OFF
-		-DALSOFT_NO_CONFIG_UTIL=ON
-		-DALSOFT_EXAMPLES=OFF
-		-DALSOFT_TESTS=OFF
-		-DALSOFT_CONFIG=OFF
-		-DALSOFT_HRTF_DEFS=OFF
-		-DALSOFT_INSTALL=ON
-		-DALSOFT_BACKEND_SNDIO=OFF
-	)
+  set(OPENAL_EXTRA_ARGS
+    -DALSOFT_UTILS=OFF
+    -DALSOFT_NO_CONFIG_UTIL=ON
+    -DALSOFT_EXAMPLES=OFF
+    -DALSOFT_TESTS=OFF
+    -DALSOFT_CONFIG=OFF
+    -DALSOFT_HRTF_DEFS=OFF
+    -DALSOFT_INSTALL=ON
+    -DALSOFT_BACKEND_SNDIO=OFF
+  )
 
-	if(UNIX)
-		set(OPENAL_EXTRA_ARGS
-			${OPENAL_EXTRA_ARGS}
-			-DLIBTYPE=STATIC
-		)
-	endif()
+  if(UNIX)
+    set(OPENAL_EXTRA_ARGS
+      ${OPENAL_EXTRA_ARGS}
+      -DLIBTYPE=STATIC
+    )
+  endif()
 
-	if(UNIX AND NOT APPLE)
-		# Ensure we have backends for playback.
-		set(OPENAL_EXTRA_ARGS
-			${OPENAL_EXTRA_ARGS}
-			-DALSOFT_REQUIRE_ALSA=ON
-			-DALSOFT_REQUIRE_OSS=ON
-			-DALSOFT_REQUIRE_PULSEAUDIO=ON
-		)
-	endif()
+  if(UNIX AND NOT APPLE)
+    # Ensure we have backends for playback.
+    set(OPENAL_EXTRA_ARGS
+      ${OPENAL_EXTRA_ARGS}
+      -DALSOFT_REQUIRE_ALSA=ON
+      -DALSOFT_REQUIRE_OSS=ON
+      -DALSOFT_REQUIRE_PULSEAUDIO=ON
+    )
+  endif()
 
-	ExternalProject_Add(external_openal
-		URL ${OPENAL_URI}
-		DOWNLOAD_DIR ${DOWNLOAD_DIR}
-		URL_HASH MD5=${OPENAL_HASH}
-		PREFIX ${BUILD_DIR}/openal
-		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openal ${DEFAULT_CMAKE_FLAGS} ${OPENAL_EXTRA_ARGS}
-		INSTALL_DIR ${LIBDIR}/openal
-		PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openal/src/external_openal < ${PATCH_DIR}/openal.diff
-	)
+  ExternalProject_Add(external_openal
+    URL ${OPENAL_URI}
+    DOWNLOAD_DIR ${DOWNLOAD_DIR}
+    URL_HASH MD5=${OPENAL_HASH}
+    PREFIX ${BUILD_DIR}/openal
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openal ${DEFAULT_CMAKE_FLAGS} ${OPENAL_EXTRA_ARGS}
+    INSTALL_DIR ${LIBDIR}/openal
+    PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openal/src/external_openal < ${PATCH_DIR}/openal.diff
+  )
 
-	if(WIN32)
-		ExternalProject_Add_Step(external_openal after_install
-			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/openal/lib/openal32.lib ${HARVEST_TARGET}/openal/lib/openal32.lib
-			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/openal/bin/openal32.dll ${HARVEST_TARGET}/openal/lib/openal32.dll
-			COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openal/include/ ${HARVEST_TARGET}/openal/include/
-			DEPENDEES install
-		)
-	endif()
+  if(WIN32)
+    ExternalProject_Add_Step(external_openal after_install
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openal/lib/openal32.lib ${HARVEST_TARGET}/openal/lib/openal32.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openal/bin/openal32.dll ${HARVEST_TARGET}/openal/lib/openal32.dll
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openal/include/ ${HARVEST_TARGET}/openal/include/
+      DEPENDEES install
+    )
+  endif()
 
 endif()

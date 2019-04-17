@@ -17,42 +17,42 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(LLVM_EXTRA_ARGS
-	-DLLVM_USE_CRT_RELEASE=MT
-	-DLLVM_USE_CRT_DEBUG=MTd
-	-DLLVM_INCLUDE_TESTS=OFF
-	-DLLVM_TARGETS_TO_BUILD=X86
-	-DLLVM_INCLUDE_EXAMPLES=OFF
-	-DLLVM_ENABLE_TERMINFO=OFF
+  -DLLVM_USE_CRT_RELEASE=MT
+  -DLLVM_USE_CRT_DEBUG=MTd
+  -DLLVM_INCLUDE_TESTS=OFF
+  -DLLVM_TARGETS_TO_BUILD=X86
+  -DLLVM_INCLUDE_EXAMPLES=OFF
+  -DLLVM_ENABLE_TERMINFO=OFF
 )
 
 if(WIN32)
-	set(LLVM_GENERATOR "Ninja")
+  set(LLVM_GENERATOR "Ninja")
 else()
-	set(LLVM_GENERATOR "Unix Makefiles")
+  set(LLVM_GENERATOR "Unix Makefiles")
 endif()
 
 # short project name due to long filename issues on windows
 ExternalProject_Add(ll
-	URL ${LLVM_URI}
-	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH MD5=${LLVM_HASH}
-	CMAKE_GENERATOR ${LLVM_GENERATOR}
-	PREFIX ${BUILD_DIR}/ll
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/llvm ${DEFAULT_CMAKE_FLAGS} ${LLVM_EXTRA_ARGS}
-	INSTALL_DIR ${LIBDIR}/llvm
+  URL ${LLVM_URI}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH MD5=${LLVM_HASH}
+  CMAKE_GENERATOR ${LLVM_GENERATOR}
+  PREFIX ${BUILD_DIR}/ll
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/llvm ${DEFAULT_CMAKE_FLAGS} ${LLVM_EXTRA_ARGS}
+  INSTALL_DIR ${LIBDIR}/llvm
 )
 
 if(MSVC)
-	if(BUILD_MODE STREQUAL Release)
-		set(LLVM_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/ ${HARVEST_TARGET}/llvm/ )
-	else()
-		set(LLVM_HARVEST_COMMAND
-			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
-			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/include/ ${HARVEST_TARGET}/llvm/debug/include/
-		)
-	endif()
-	ExternalProject_Add_Step(ll after_install
-		COMMAND ${LLVM_HARVEST_COMMAND}
-		DEPENDEES mkdir update patch download configure build install
-	)
+  if(BUILD_MODE STREQUAL Release)
+    set(LLVM_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/ ${HARVEST_TARGET}/llvm/ )
+  else()
+    set(LLVM_HARVEST_COMMAND
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/include/ ${HARVEST_TARGET}/llvm/debug/include/
+    )
+  endif()
+  ExternalProject_Add_Step(ll after_install
+    COMMAND ${LLVM_HARVEST_COMMAND}
+    DEPENDEES mkdir update patch download configure build install
+  )
 endif()

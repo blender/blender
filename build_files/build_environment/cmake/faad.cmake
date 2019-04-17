@@ -19,22 +19,22 @@
 set(FAAD_EXTRA_ARGS)
 
 if (WIN32)
-	set(FAAD_EXTRA_CONFIGURE "utils\\win32\\ac2ver.exe" "faad2" "configure.ac" > libfaad\\win32_ver.h)
+  set(FAAD_EXTRA_CONFIGURE "utils\\win32\\ac2ver.exe" "faad2" "configure.ac" > libfaad\\win32_ver.h)
 else()
-	set(FAAD_EXTRA_CONFIGURE echo .)
+  set(FAAD_EXTRA_CONFIGURE echo .)
 endif()
 
 ExternalProject_Add(external_faad
-	URL ${FAAD_URI}
-	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH MD5=${FAAD_HASH}
-	PREFIX ${BUILD_DIR}/faad
-	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/faad/src/external_faad/ && ${FAAD_EXTRA_CONFIGURE} && ${CONFIGURE_COMMAND} --disable-shared --enable-static --prefix=${LIBDIR}/faad
-	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/faad/src/external_faad/ && make -j${MAKE_THREADS}
-	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/faad/src/external_faad/ && make install
-	INSTALL_DIR ${LIBDIR}/faad
+  URL ${FAAD_URI}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH MD5=${FAAD_HASH}
+  PREFIX ${BUILD_DIR}/faad
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/faad/src/external_faad/ && ${FAAD_EXTRA_CONFIGURE} && ${CONFIGURE_COMMAND} --disable-shared --enable-static --prefix=${LIBDIR}/faad
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/faad/src/external_faad/ && make -j${MAKE_THREADS}
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/faad/src/external_faad/ && make install
+  INSTALL_DIR ${LIBDIR}/faad
 )
 
 if(MSVC)
-	set_target_properties(external_faad PROPERTIES FOLDER Mingw)
+  set_target_properties(external_faad PROPERTIES FOLDER Mingw)
 endif()

@@ -17,14 +17,14 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
+  .
 )
 
 set(SRC
-	range_tree.h
-	intern/generic_alloc_impl.h
+  range_tree.h
+  intern/generic_alloc_impl.h
 
-	intern/range_tree.c
+  intern/range_tree.c
 )
 
 set(LIB
