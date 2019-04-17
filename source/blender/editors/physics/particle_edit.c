@@ -510,9 +510,11 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
 
     /* used to calculate here but all callers have  the screen_co already, so pass as arg */
 #if 0
-  if (ED_view3d_project_int_global(data->vc.ar, co, screen_co,
-                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK)
-  {
+  if (ED_view3d_project_int_global(data->vc.ar,
+                                   co,
+                                   screen_co,
+                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN |
+                                       V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK) {
     return 0;
   }
 #endif

@@ -77,9 +77,9 @@ NodeGroup *BlenderFileLoader::Load()
 
 #if 0
   if (G.debug & G_DEBUG_FREESTYLE) {
-    cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right
-         << " b " << _viewplane_bottom << " t " << _viewplane_top
-         << " n " << _z_near << " f " << _z_far << endl;
+    cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right << " b "
+         << _viewplane_bottom << " t " << _viewplane_top << " n " << _z_near << " f " << _z_far
+         << endl;
   }
 #endif
 
@@ -143,7 +143,9 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
     }
 #if 0
     if (G.debug & G_DEBUG_FREESTYLE) {
-      printf("%d %s\n", i, (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
+      printf("%d %s\n",
+             i,
+             (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
     }
 #endif
     sum += clip[i];

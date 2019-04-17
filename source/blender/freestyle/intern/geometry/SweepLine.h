@@ -226,8 +226,8 @@ template<class T, class Point> class SweepLine {
   inline void process(Point &p,
                       vector<Segment<T, Point> *> &segments,
 #if 0
-                      binary_rule<Segment<T, Point>,Segment<T, Point> >& binrule = \
-                              binary_rule<Segment<T, Point>, Segment<T, Point> >(),
+                      binary_rule<Segment<T, Point>, Segment<T, Point>> &binrule =
+                          binary_rule<Segment<T, Point>, Segment<T, Point>>(),
 #else
                       binary_rule<Segment<T, Point>, Segment<T, Point>> &binrule,
 #endif
@@ -249,8 +249,8 @@ template<class T, class Point> class SweepLine {
 
   inline void add(Segment<T, Point> *S,
 #if 0
-                  binary_rule<Segment<T, Point>, Segment<T, Point> >& binrule = \
-                          binary_rule<Segment<T, Point>, Segment<T, Point> >(),
+                  binary_rule<Segment<T, Point>, Segment<T, Point>> &binrule =
+                      binary_rule<Segment<T, Point>, Segment<T, Point>>(),
 #else
                   binary_rule<Segment<T, Point>, Segment<T, Point>> &binrule,
 #endif

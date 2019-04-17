@@ -498,7 +498,8 @@ static void draw_clipping_setup_from_view(void)
   /* Extract Clipping Planes */
   BoundBox bbox;
 #if 0 /* It has accuracy problems. */
-  BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
+  BKE_boundbox_init_from_minmax(
+      &bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
   for (int i = 0; i < 8; i++) {
     mul_project_m4_v3(projinv, bbox.vec[i]);
   }

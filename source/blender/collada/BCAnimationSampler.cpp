@@ -332,10 +332,9 @@ bool BCAnimationSampler::get_object_samples(BCMatrixSampleMap &samples, Object *
    animation_type BC_ANIMATION_EXPORT_KEYS: Only take data from matrices for keyframes
 */
 
-void BCAnimationSampler::add_value_set(
-  BCAnimationCurve &curve,
-  BCFrameSampleMap &samples,
-  BC_export_animation_type animation_type)
+void BCAnimationSampler::add_value_set(BCAnimationCurve &curve,
+                                       BCFrameSampleMap &samples,
+                                       BC_export_animation_type animation_type)
 {
   int array_index = curve.get_array_index();
   const BC_animation_transform_type tm_type = curve.get_transform_type();

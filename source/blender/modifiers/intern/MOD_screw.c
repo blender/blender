@@ -316,7 +316,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         cross_v3_v3v3(c1, cross2, axis_vec);
         cross_v3_v3v3(c2, axis_vec, c1);
 
-
         angle = angle_v3v3(cross1, c2);
 
         cross_v3_v3v3(axis_tmp, cross1, c2);
@@ -324,7 +323,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
         if (len_v3v3(axis_tmp, axis_vec) > 1.0f)
           angle = -angle;
-
       }
     }
 #endif
@@ -1081,7 +1079,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       ii = findEd(medge_new, maxEdges, ml_new[3].v, ml_new[0].v);
       printf("%d %d\n", ii, ml_new[3].e);
       ml_new[3].e = ii;
-
     }
   }
 #endif

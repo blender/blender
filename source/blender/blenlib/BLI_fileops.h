@@ -51,8 +51,8 @@ int BLI_copy(const char *path, const char *to) ATTR_NONNULL();
 int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
 int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
 #if 0 /* Unused */
-int    BLI_move(const char *path, const char *to) ATTR_NONNULL();
-int    BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
+int BLI_move(const char *path, const char *to) ATTR_NONNULL();
+int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
 #endif
 
 /* keep in sync with the definition of struct direntry in BLI_fileops_types.h */
@@ -113,7 +113,7 @@ bool BLI_file_is_writable(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL
 bool BLI_file_touch(const char *file) ATTR_NONNULL();
 
 #if 0 /* UNUSED */
-int    BLI_file_gzip(const char *from, const char *to) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_file_gzip(const char *from, const char *to) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 #endif
 char *BLI_file_ungzip_to_mem(const char *from_file, int *r_size) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();

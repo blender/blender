@@ -315,8 +315,8 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
       /* keyframes aren't editable */
       (fcu->flag & FCURVE_PROTECTED) ||
 #if 0 /* handles can still be selected and handle types set, better draw - campbell */
-          /* editing the handles here will cause weird/incorrect interpolation issues */
-          (fcu->flag & FCURVE_INT_VALUES) ||
+      /* editing the handles here will cause weird/incorrect interpolation issues */
+      (fcu->flag & FCURVE_INT_VALUES) ||
 #endif
       /* group that curve belongs to is not editable */
       ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||

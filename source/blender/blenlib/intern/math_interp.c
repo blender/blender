@@ -54,10 +54,8 @@ static float P(float k)
 static float P(float k)
 {
   return (float)(1.0f / 6.0f) *
-          (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f *
-           pow(MAX2(k + 1.0f, 0), 3.0f) + 6.0f *
-           pow(MAX2(k, 0), 3.0f) - 4.0f *
-           pow(MAX2(k - 1.0f, 0), 3.0f));
+         (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f * pow(MAX2(k + 1.0f, 0), 3.0f) +
+          6.0f * pow(MAX2(k, 0), 3.0f) - 4.0f * pow(MAX2(k - 1.0f, 0), 3.0f));
 }
 #endif
 

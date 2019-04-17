@@ -157,7 +157,6 @@ void GPU_draw_primitive(GPUPrimType, int v_count);
 
 /* Can multiple batches share a GPUVertBuf? Use ref count? */
 
-
 /* We often need a batch with its own data, to be created and discarded together. */
 /* WithOwn variants reduce number of system allocations. */
 
@@ -179,7 +178,10 @@ typedef struct BatchWithOwnVertexBufferAndElementList {
 
 GPUBatch *create_BatchWithOwnVertexBuffer(GPUPrimType, GPUVertFormat *, uint v_len, GPUIndexBuf *);
 GPUBatch *create_BatchWithOwnElementList(GPUPrimType, GPUVertBuf *, uint prim_len);
-GPUBatch *create_BatchWithOwnVertexBufferAndElementList(GPUPrimType, GPUVertFormat *, uint v_len, uint prim_len);
+GPUBatch *create_BatchWithOwnVertexBufferAndElementList(GPUPrimType,
+                                                        GPUVertFormat *,
+                                                        uint v_len,
+                                                        uint prim_len);
 /* verts: shared, own */
 /* elem: none, shared, own */
 GPUBatch *create_BatchInGeneral(GPUPrimType, VertexBufferStuff, ElementListStuff);

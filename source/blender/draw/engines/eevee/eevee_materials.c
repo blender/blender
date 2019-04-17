@@ -115,15 +115,15 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
   static float samples_len = 8192.0f;
   static float inv_samples_len = 1.0f / 8192.0f;
 
-  char *lib_str = BLI_string_joinN(
-          datatoc_bsdf_common_lib_glsl,
-          datatoc_bsdf_sampling_lib_glsl);
+  char *lib_str = BLI_string_joinN(datatoc_bsdf_common_lib_glsl, datatoc_bsdf_sampling_lib_glsl);
 
-  struct GPUShader *sh = DRW_shader_create_with_lib(
-          datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, datatoc_bsdf_lut_frag_glsl, lib_str,
-          "#define HAMMERSLEY_SIZE 8192\n"
-          "#define BRDF_LUT_SIZE 64\n"
-          "#define NOISE_SIZE 64\n");
+  struct GPUShader *sh = DRW_shader_create_with_lib(datatoc_lightprobe_vert_glsl,
+                                                    datatoc_lightprobe_geom_glsl,
+                                                    datatoc_bsdf_lut_frag_glsl,
+                                                    lib_str,
+                                                    "#define HAMMERSLEY_SIZE 8192\n"
+                                                    "#define BRDF_LUT_SIZE 64\n"
+                                                    "#define NOISE_SIZE 64\n");
 
   DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
@@ -150,11 +150,14 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
   glReadPixels(0, 0, w, h, GL_RGB, GL_FLOAT, data);
 
   printf("{");
-  for (int i = 0; i < w*h * 3; i+=3) {
-    printf("%ff, %ff, ", data[i],  data[i+1]); i+=3;
-    printf("%ff, %ff, ", data[i],  data[i+1]); i+=3;
-    printf("%ff, %ff, ", data[i],  data[i+1]); i+=3;
-    printf("%ff, %ff, \n", data[i],  data[i+1]);
+  for (int i = 0; i < w * h * 3; i += 3) {
+    printf("%ff, %ff, ", data[i], data[i + 1]);
+    i += 3;
+    printf("%ff, %ff, ", data[i], data[i + 1]);
+    i += 3;
+    printf("%ff, %ff, ", data[i], data[i + 1]);
+    i += 3;
+    printf("%ff, %ff, \n", data[i], data[i + 1]);
   }
   printf("}");
 
@@ -174,15 +177,13 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
   static float inv_samples_len = 1.0f / 8192.0f;
 
   char *frag_str = BLI_string_joinN(
-          datatoc_bsdf_common_lib_glsl,
-          datatoc_bsdf_sampling_lib_glsl,
-          datatoc_btdf_lut_frag_glsl);
+      datatoc_bsdf_common_lib_glsl, datatoc_bsdf_sampling_lib_glsl, datatoc_btdf_lut_frag_glsl);
 
   struct GPUShader *sh = DRW_shader_create_fullscreen(frag_str,
-          "#define HAMMERSLEY_SIZE 8192\n"
-          "#define BRDF_LUT_SIZE 64\n"
-          "#define NOISE_SIZE 64\n"
-          "#define LUT_SIZE 64\n");
+                                                      "#define HAMMERSLEY_SIZE 8192\n"
+                                                      "#define BRDF_LUT_SIZE 64\n"
+                                                      "#define NOISE_SIZE 64\n"
+                                                      "#define LUT_SIZE 64\n");
 
   MEM_freeN(frag_str);
 
@@ -222,20 +223,28 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
 
 #  if 1
     fprintf(f, "\t{\n\t\t");
-    for (int i = 0; i < w*h * 3; i+=3) {
+    for (int i = 0; i < w * h * 3; i += 3) {
       fprintf(f, "%ff,", data[i]);
-      if (((i/3)+1) % 12 == 0) fprintf(f, "\n\t\t");
-      else fprintf(f, " ");
+      if (((i / 3) + 1) % 12 == 0)
+        fprintf(f, "\n\t\t");
+      else
+        fprintf(f, " ");
     }
     fprintf(f, "\n\t},\n");
 #  else
-    for (int i = 0; i < w*h * 3; i+=3) {
-      if (data[i] < 0.01) printf(" ");
-      else if (data[i] < 0.3) printf(".");
-      else if (data[i] < 0.6) printf("+");
-      else if (data[i] < 0.9) printf("%%");
-      else printf("#");
-      if ((i/3+1) % 64 == 0) printf("\n");
+    for (int i = 0; i < w * h * 3; i += 3) {
+      if (data[i] < 0.01)
+        printf(" ");
+      else if (data[i] < 0.3)
+        printf(".");
+      else if (data[i] < 0.6)
+        printf("+");
+      else if (data[i] < 0.9)
+        printf("%%");
+      else
+        printf("#");
+      if ((i / 3 + 1) % 64 == 0)
+        printf("\n");
     }
 #  endif
 

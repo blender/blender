@@ -1080,9 +1080,8 @@ static void do_lasso_select_node(int mcords[][2], short moves, const eSelectOp s
 
     ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
     const bool is_select = node->flag & SELECT;
-    const bool is_inside = (
-            BLI_rcti_isect_pt_v(&rect, node_cent) &&
-            BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1]));
+    const bool is_inside = (BLI_rcti_isect_pt_v(&rect, node_cent) &&
+                            BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1]));
     const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
     if (sel_op_result != -1) {
       SET_FLAG_FROM_TEST(node->flag, sel_op_result, SELECT);

@@ -420,11 +420,11 @@ const EnumPropertyItem rna_enum_event_type_mask_items[] = {
 
 #if 0
 static const EnumPropertyItem keymap_modifiers_items[] = {
-  {KM_ANY, "ANY", 0, "Any", ""},
-  {0, "NONE", 0, "None", ""},
-  {1, "FIRST", 0, "First", ""},
-  {2, "SECOND", 0, "Second", ""},
-  {0, NULL, 0, NULL, NULL},
+    {KM_ANY, "ANY", 0, "Any", ""},
+    {0, "NONE", 0, "None", ""},
+    {1, "FIRST", 0, "First", ""},
+    {2, "SECOND", 0, "Second", ""},
+    {0, NULL, 0, NULL, NULL},
 };
 #endif
 

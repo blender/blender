@@ -167,7 +167,8 @@ static bool pose_has_protected_selected(Object *ob, short warn)
       }
     }
     if (pchan) {
-      if (warn) error("Cannot change Proxy protected bones");
+      if (warn)
+        error("Cannot change Proxy protected bones");
       return 1;
     }
   }

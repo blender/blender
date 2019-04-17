@@ -1431,7 +1431,7 @@ void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
                                             real epsilon)
 {
 #if 0
-  iAlgo = ray_casting; // for testing algorithms equivalence
+  iAlgo = ray_casting;  // for testing algorithms equivalence
 #endif
   switch (iAlgo) {
     case ray_casting:
@@ -1780,7 +1780,7 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real ep
         ++p;
 #if 0
         for (; p != pend; ++p) {
-          WFace *f = (WFace*)((*p)->userdata);
+          WFace *f = (WFace *)((*p)->userdata);
           ViewShape *vs = ioViewMap->viewShape(f->GetVertex(0)->shape()->GetId());
           if (vs != vshape) {
             sameShape = false;
@@ -2030,9 +2030,9 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
   Vec3r B(fe->vertexB()->point2d());
   int viewport[4];
   SilhouetteGeomEngine::retrieveViewport(viewport);
-  if ((A.x() < viewport[0]) || (A.x() > viewport[2]) || (A.y() < viewport[1]) || (A.y() > viewport[3]) ||
-      (B.x() < viewport[0]) || (B.x() > viewport[2]) || (B.y() < viewport[1]) || (B.y() > viewport[3]))
-  {
+  if ((A.x() < viewport[0]) || (A.x() > viewport[2]) || (A.y() < viewport[1]) ||
+      (A.y() > viewport[3]) || (B.x() < viewport[0]) || (B.x() > viewport[2]) ||
+      (B.y() < viewport[1]) || (B.y() > viewport[3])) {
     cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
     //return 0;
   }
@@ -2206,10 +2206,10 @@ void ViewMapBuilder::ComputeIntersections(ViewMap *ioViewMap,
   }
 #if 0
   if (_global.debug & G_DEBUG_FREESTYLE) {
-    ViewMap::viewvertices_container& vvertices = ioViewMap->ViewVertices();
+    ViewMap::viewvertices_container &vvertices = ioViewMap->ViewVertices();
     for (ViewMap::viewvertices_container::iterator vv = vvertices.begin(), vvend = vvertices.end();
-         vv != vvend; ++vv)
-    {
+         vv != vvend;
+         ++vv) {
       if ((*vv)->getNature() == Nature::T_VERTEX) {
         TVertex *tvertex = (TVertex *)(*vv);
         cout << "TVertex " << tvertex->getId() << " has :" << endl;
@@ -2295,8 +2295,10 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
   unsigned fEdgesSize = ioViewMap->FEdges().size();
 #if 0
   if (_global.debug & G_DEBUG_FREESTYLE) {
-    ViewMap::fedges_container& fedges = ioViewMap->FEdges();
-    for (ViewMap::fedges_container::const_iterator f = fedges.begin(), end = fedges.end(); f != end; ++f) {
+    ViewMap::fedges_container &fedges = ioViewMap->FEdges();
+    for (ViewMap::fedges_container::const_iterator f = fedges.begin(), end = fedges.end();
+         f != end;
+         ++f) {
       cout << (*f)->aMaterialIndex() << "-" << (*f)->bMaterialIndex() << endl;
     }
   }

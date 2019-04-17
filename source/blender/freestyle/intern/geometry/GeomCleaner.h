@@ -240,7 +240,7 @@ class IndexedVertex {
 };
 
 #if 0
-bool operator<(const IndexedVertex& iv1, const IndexedVertex& iv2)
+bool operator<(const IndexedVertex &iv1, const IndexedVertex &iv2)
 {
   return iv1.operator<(iv2);
 }

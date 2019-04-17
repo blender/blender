@@ -413,7 +413,8 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
   GPU_framebuffer_texture_detach(stl->g_data->minzbuffer);
 
   /* Create lower levels */
-  GPU_framebuffer_recursive_downsample(fbl->downsample_fb, stl->g_data->minzbuffer, 8, &min_downsample_cb, vedata);
+  GPU_framebuffer_recursive_downsample(
+      fbl->downsample_fb, stl->g_data->minzbuffer, 8, &min_downsample_cb, vedata);
   DRW_stats_group_end();
 #endif
   int minmax_size[3], depth_size[3];

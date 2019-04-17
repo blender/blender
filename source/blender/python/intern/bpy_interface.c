@@ -184,7 +184,7 @@ void BPY_modules_update(bContext *C)
 #if 0 /* slow, this runs all the time poll, draw etc 100's of time a sec. */
   PyObject *mod = PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
   PyModule_AddObject(mod, "data", BPY_rna_module());
-  PyModule_AddObject(mod, "types", BPY_rna_types());  /* atm this does not need updating */
+  PyModule_AddObject(mod, "types", BPY_rna_types()); /* atm this does not need updating */
 #endif
 
   /* refreshes the main struct */
@@ -213,9 +213,9 @@ static PyObject *CCL_initPython(void)
 static struct _inittab bpy_internal_modules[] = {
     {"mathutils", PyInit_mathutils},
 #if 0
-  {"mathutils.geometry", PyInit_mathutils_geometry},
-  {"mathutils.noise", PyInit_mathutils_noise},
-  {"mathutils.kdtree", PyInit_mathutils_kdtree},
+    {"mathutils.geometry", PyInit_mathutils_geometry},
+    {"mathutils.noise", PyInit_mathutils_noise},
+    {"mathutils.kdtree", PyInit_mathutils_kdtree},
 #endif
     {"_bpy_path", BPyInit__bpy_path},
     {"bgl", BPyInit_bgl},
@@ -223,9 +223,9 @@ static struct _inittab bpy_internal_modules[] = {
     {"imbuf", BPyInit_imbuf},
     {"bmesh", BPyInit_bmesh},
 #if 0
-  {"bmesh.types", BPyInit_bmesh_types},
-  {"bmesh.utils", BPyInit_bmesh_utils},
-  {"bmesh.utils", BPyInit_bmesh_geometry},
+    {"bmesh.types", BPyInit_bmesh_types},
+    {"bmesh.utils", BPyInit_bmesh_utils},
+    {"bmesh.utils", BPyInit_bmesh_geometry},
 #endif
 #ifdef WITH_AUDASPACE
     {"aud", AUD_initPython},
@@ -841,7 +841,8 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
         if (BPy_StructRNA_Check(list_item)) {
 #if 0
-          CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
+          CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink),
+                                                    "bpy_context_get");
           link->ptr = ((BPy_StructRNA *)item)->ptr;
           BLI_addtail(&result->list, link);
 #endif

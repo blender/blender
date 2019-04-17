@@ -368,10 +368,10 @@ class WEdge;
 class WOEdge {
  protected:
 #if 0
-  WOEdge *_paCWEdge;     // edge reached when traveling clockwise on aFace from the edge
-  WOEdge *_pbCWEdge;     // edge reached when traveling clockwise on bFace from the edge
-  WOEdge *_paCCWEdge;    // edge reached when traveling counterclockwise on aFace from the edge
-  WOEdge *_pbCCWEdge;    // edge reached when traveling counterclockwise on bFace from the edge
+  WOEdge *_paCWEdge;   // edge reached when traveling clockwise on aFace from the edge
+  WOEdge *_pbCWEdge;   // edge reached when traveling clockwise on bFace from the edge
+  WOEdge *_paCCWEdge;  // edge reached when traveling counterclockwise on aFace from the edge
+  WOEdge *_pbCCWEdge;  // edge reached when traveling counterclockwise on bFace from the edge
 #endif
   WVertex *_paVertex;  // starting vertex
   WVertex *_pbVertex;  // ending vertex
@@ -1099,7 +1099,7 @@ class WShape {
   }
 
 #if 0
-  inline void bbox(Vec3f& min, Vec3f& max)
+  inline void bbox(Vec3f &min, Vec3f &max)
   {
     min = _min;
     max = _max;
@@ -1160,7 +1160,7 @@ class WShape {
   }
 
 #if 0
-  inline void setBBox(const Vec3f& min, const Vec3f& max)
+  inline void setBBox(const Vec3f &min, const Vec3f &max)
   {
     _min = min;
     _max = max;
@@ -1275,7 +1275,9 @@ class WShape {
     _max = _VertexList[0]->GetVertex();
 
     Vec3f v;
-    for (vector<WVertex *>::iterator wv = _VertexList.begin(), wvend = _VertexList.end(); wv != wvend; wv++) {
+    for (vector<WVertex *>::iterator wv = _VertexList.begin(), wvend = _VertexList.end();
+         wv != wvend;
+         wv++) {
       for (unsigned int i = 0; i < 3; i++) {
         v = (*wv)->GetVertex();
         if (v[i] < _min[i])

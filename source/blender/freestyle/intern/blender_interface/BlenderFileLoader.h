@@ -98,7 +98,10 @@ class BlenderFileLoader {
 
 #if 0
   /*! Gets the smallest edge size read */
-  inline real minEdgeSize() {return _minEdgeSize;}
+  inline real minEdgeSize()
+  {
+    return _minEdgeSize;
+  }
 #endif
 
   /*! Modifiers */

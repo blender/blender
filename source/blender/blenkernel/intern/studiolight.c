@@ -485,12 +485,24 @@ static void studiolight_calculate_radiance_cubemap_buffers(StudioLight *sl)
           NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 #if 0
-      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_X_POS], "/tmp/studiolight_radiance_left.png", IB_rectfloat);
-      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_X_NEG], "/tmp/studiolight_radiance_right.png", IB_rectfloat);
-      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Y_POS], "/tmp/studiolight_radiance_front.png", IB_rectfloat);
-      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Y_NEG], "/tmp/studiolight_radiance_back.png", IB_rectfloat);
-      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Z_POS], "/tmp/studiolight_radiance_bottom.png", IB_rectfloat);
-      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Z_NEG], "/tmp/studiolight_radiance_top.png", IB_rectfloat);
+      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_X_POS],
+                  "/tmp/studiolight_radiance_left.png",
+                  IB_rectfloat);
+      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_X_NEG],
+                  "/tmp/studiolight_radiance_right.png",
+                  IB_rectfloat);
+      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Y_POS],
+                  "/tmp/studiolight_radiance_front.png",
+                  IB_rectfloat);
+      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Y_NEG],
+                  "/tmp/studiolight_radiance_back.png",
+                  IB_rectfloat);
+      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Z_POS],
+                  "/tmp/studiolight_radiance_bottom.png",
+                  IB_rectfloat);
+      IMB_saveiff(sl->radiance_cubemap_buffers[STUDIOLIGHT_Z_NEG],
+                  "/tmp/studiolight_radiance_top.png",
+                  IB_rectfloat);
 #endif
       MEM_freeN(colbuf);
     }

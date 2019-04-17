@@ -209,14 +209,13 @@ static void *bmw_VertShellWalker_step(BMWalker *walker)
 
   BMW_state_remove(walker);
 
-
   /* find the next edge whose other vertex has not been visite */
   curedge = shellWalk.curedge;
   do {
     if (!BLI_gset_haskey(walker->visit_set, curedge)) {
       if (!walker->restrictflag ||
-          (walker->restrictflag && BMO_edge_flag_test(walker->bm, curedge, walker->restrictflag)))
-      {
+          (walker->restrictflag &&
+           BMO_edge_flag_test(walker->bm, curedge, walker->restrictflag))) {
         BMwShellWalker *newstate;
 
         v_old = BM_edge_other_vert(curedge, shellWalk.base);

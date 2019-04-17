@@ -449,7 +449,6 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_gesture_circle(ot);
-
 }
 #endif
 
@@ -726,8 +725,7 @@ const int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C),
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  RNA_BEGIN (op->ptr, itemptr, "path")
-  {
+  RNA_BEGIN (op->ptr, itemptr, "path") {
     float loc[2];
 
     RNA_float_get_array(&itemptr, "loc", loc);

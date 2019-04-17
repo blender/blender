@@ -85,7 +85,7 @@ int BLI_file_gzip(const char *from, const char *to)
       break;
     }
     else if (readsize == 0)
-      break;  /* done reading */
+      break; /* done reading */
 
     if (gzwrite(gzfile, buffer, readsize) <= 0) {
       rval = -1; /* error happened in writing */

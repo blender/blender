@@ -2420,11 +2420,13 @@ static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
 
   BLI_assert(filelist->filelist.entries == NULL);
 
-  if (filelist->filelist.root[0] == '/') filelist->filelist.root[0] = '\0';
+  if (filelist->filelist.root[0] == '/')
+    filelist->filelist.root[0] = '\0';
 
   if (filelist->filelist.root[0]) {
     idcode = groupname_to_code(filelist->filelist.root);
-    if (idcode == 0) filelist->filelist.root[0] = '\0';
+    if (idcode == 0)
+      filelist->filelist.root[0] = '\0';
   }
 
   if (filelist->dir[0] == 0) {
@@ -2472,7 +2474,8 @@ static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
     idcode = groupname_to_code(filelist->filelist.root);
 
     lb = which_libbase(bmain, idcode);
-    if (lb == NULL) return;
+    if (lb == NULL)
+      return;
 
     filelist->filelist.nbr_entries = 0;
     for (id = lb->first; id; id = id->next) {
@@ -2523,19 +2526,21 @@ static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
             }
           }
 #  endif
-//                  files->entry->nr = totbl + 1;
+          //                  files->entry->nr = totbl + 1;
           files->entry->poin = id;
           fake = id->flag & LIB_FAKEUSER;
-          if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
+          if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO ||
+              idcode == ID_IM) {
             files->typeflag |= FILE_TYPE_IMAGE;
           }
-//                  if      (id->lib && fake) BLI_snprintf(files->extra, sizeof(files->entry->extra), "LF %d",    id->us);
-//                  else if (id->lib)         BLI_snprintf(files->extra, sizeof(files->entry->extra), "L    %d",  id->us);
-//                  else if (fake)            BLI_snprintf(files->extra, sizeof(files->entry->extra), "F    %d",  id->us);
-//                  else                      BLI_snprintf(files->extra, sizeof(files->entry->extra), "      %d", id->us);
+          //                  if      (id->lib && fake) BLI_snprintf(files->extra, sizeof(files->entry->extra), "LF %d",    id->us);
+          //                  else if (id->lib)         BLI_snprintf(files->extra, sizeof(files->entry->extra), "L    %d",  id->us);
+          //                  else if (fake)            BLI_snprintf(files->extra, sizeof(files->entry->extra), "F    %d",  id->us);
+          //                  else                      BLI_snprintf(files->extra, sizeof(files->entry->extra), "      %d", id->us);
 
           if (id->lib) {
-            if (totlib == 0) firstlib = files;
+            if (totlib == 0)
+              firstlib = files;
             totlib++;
           }
 

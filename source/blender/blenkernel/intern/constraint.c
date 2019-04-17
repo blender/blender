@@ -665,18 +665,18 @@ static void constraint_target_to_mat4(Object *ob,
  */
 #if 0
 static bConstraintTypeInfo CTI_CONSTRNAME = {
-  CONSTRAINT_TYPE_CONSTRNAME, /* type */
-  sizeof(bConstrNameConstraint), /* size */
-  "ConstrName", /* name */
-  "bConstrNameConstraint", /* struct name */
-  constrname_free, /* free data */
-  constrname_id_looper, /* id looper */
-  constrname_copy, /* copy data */
-  constrname_new_data, /* new data */
-  constrname_get_tars, /* get constraint targets */
-  constrname_flush_tars, /* flush constraint targets */
-  constrname_get_tarmat, /* get target matrix */
-  constrname_evaluate, /* evaluate */
+    CONSTRAINT_TYPE_CONSTRNAME,    /* type */
+    sizeof(bConstrNameConstraint), /* size */
+    "ConstrName",                  /* name */
+    "bConstrNameConstraint",       /* struct name */
+    constrname_free,               /* free data */
+    constrname_id_looper,          /* id looper */
+    constrname_copy,               /* copy data */
+    constrname_new_data,           /* new data */
+    constrname_get_tars,           /* get constraint targets */
+    constrname_flush_tars,         /* flush constraint targets */
+    constrname_get_tarmat,         /* get target matrix */
+    constrname_evaluate,           /* evaluate */
 };
 #endif
 

@@ -55,7 +55,7 @@ static void initData(ModifierData *md)
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
-  const ArmatureModifierData *amd = (const ArmatureModifierData *) md;
+  const ArmatureModifierData *amd = (const ArmatureModifierData *)md;
 #endif
   ArmatureModifierData *tamd = (ArmatureModifierData *)target;
 

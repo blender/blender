@@ -135,7 +135,12 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
   char *cb_event_str = NULL;
   int cb_event;
 
-  if (!PyArg_ParseTuple(args, "OO!|s:bpy_struct.callback_add", &cb_func, &PyTuple_Type, &cb_args, &cb_event_str)) {
+  if (!PyArg_ParseTuple(args,
+                        "OO!|s:bpy_struct.callback_add",
+                        &cb_func,
+                        &PyTuple_Type,
+                        &cb_args,
+                        &cb_event_str)) {
     return NULL;
   }
 
@@ -147,9 +152,8 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
   if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
     if (cb_event_str) {
       if (pyrna_enum_value_from_id(
-                  region_draw_mode_items, cb_event_str,
-                  &cb_event, "bpy_struct.callback_add()") == -1)
-      {
+              region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") ==
+          -1) {
         return NULL;
       }
     }
@@ -157,7 +161,8 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
       cb_event = REGION_DRAW_POST_PIXEL;
     }
 
-    handle = ED_region_draw_cb_activate(((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_event);
+    handle = ED_region_draw_cb_activate(
+        ((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_event);
     Py_INCREF(args);
   }
   else {
@@ -181,7 +186,8 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
   handle = PyCapsule_GetPointer(py_handle, rna_capsual_id);
 
   if (handle == NULL) {
-    PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed");
+    PyErr_SetString(PyExc_ValueError,
+                    "callback_remove(handle): NULL handle given, invalid or already removed");
     return NULL;
   }
 

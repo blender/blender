@@ -752,8 +752,8 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 #if 0
       if (node->id)
         ;  // XXX BIF_preview_changed(-1);
-      // allqueue(REDRAWBUTSSHADING, 1);
-      // allqueue(REDRAWIPO, 0);
+           // allqueue(REDRAWBUTSSHADING, 1);
+           // allqueue(REDRAWIPO, 0);
 #endif
     }
   }
@@ -804,7 +804,8 @@ static int edit_node_invoke_properties(bContext *C, wmOperator *op)
   return 1;
 }
 
-static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **rnode, bNodeSocket **rsock, int *rin_out)
+static void edit_node_properties_get(
+    wmOperator *op, bNodeTree *ntree, bNode **rnode, bNodeSocket **rsock, int *rin_out)
 {
   bNode *node;
   bNodeSocket *sock = NULL;
@@ -819,8 +820,12 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 
   sockindex = RNA_int_get(op->ptr, "socket");
   switch (in_out) {
-    case SOCK_IN:   sock = BLI_findlink(&node->inputs, sockindex);  break;
-    case SOCK_OUT:  sock = BLI_findlink(&node->outputs, sockindex); break;
+    case SOCK_IN:
+      sock = BLI_findlink(&node->inputs, sockindex);
+      break;
+    case SOCK_OUT:
+      sock = BLI_findlink(&node->outputs, sockindex);
+      break;
   }
 
   if (rnode)

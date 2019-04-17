@@ -3064,10 +3064,18 @@ int dynamicPaint_createUVSurface(Scene *scene,
 
             if (tempPoints[index].tri_index != -1) {
               int nidx = tempPoints[index].neighbour_pixel;
-              fprintf(dump_file, "%d\t%d,%d\t%u\t%d,%d\t%d\t", fidx, tx, h-1-ty, tempPoints[index].tri_index, nidx<0?-1:(nidx%w), nidx<0?-1:h-1-(nidx/w), ed->flags[fidx]);
+              fprintf(dump_file,
+                      "%d\t%d,%d\t%u\t%d,%d\t%d\t",
+                      fidx,
+                      tx,
+                      h - 1 - ty,
+                      tempPoints[index].tri_index,
+                      nidx < 0 ? -1 : (nidx % w),
+                      nidx < 0 ? -1 : h - 1 - (nidx / w),
+                      ed->flags[fidx]);
               for (int i = 0; i < ed->n_num[fidx]; i++) {
-                int tgt = tmp[ed->n_target[ed->n_index[fidx]+i]];
-                fprintf(dump_file, "%s%d,%d", i?" ":"", tgt%w, h-1-tgt/w);
+                int tgt = tmp[ed->n_target[ed->n_index[fidx] + i]];
+                fprintf(dump_file, "%s%d,%d", i ? " " : "", tgt % w, h - 1 - tgt / w);
               }
               fprintf(dump_file, "\n");
             }

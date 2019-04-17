@@ -86,8 +86,7 @@ static float edbm_rip_edgedist_squared(ARegion *ar,
 
 #if 0
 static float edbm_rip_linedist(
-        ARegion *ar, float mat[4][4],
-        const float co1[3], const float co2[3], const float mvalf[2])
+    ARegion *ar, float mat[4][4], const float co1[3], const float co2[3], const float mvalf[2])
 {
   float vec1[2], vec2[2];
 

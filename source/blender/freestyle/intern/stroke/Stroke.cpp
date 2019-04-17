@@ -834,7 +834,6 @@ Stroke::vertex_container::reverse_iterator Stroke::vertices_last(float sampling)
   return _Vertices.rbegin();
 }
 
-
 inline Vec3r shaded_color(int iCombination = 0) const;
 
 inline Vec<3, real> Stroke::orientation2d(const_vertex_iterator it) const
@@ -871,7 +870,7 @@ Material Stroke::material() const
 int Stroke::qi() const
 {
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
-  int qi_= (*v)->qi();
+  int qi_ = (*v)->qi();
   for (; v != vend; ++v) {
     if ((*v)->qi() != qi_)
       Exception::raiseException();
@@ -965,10 +964,9 @@ float Stroke::shape_importance(int iCombination) const
   return shape_importance_edge_function<Stroke>(*this, iCombination);
 }
 
-
-float Stroke::local_average_depth(int iCombination ) const
+float Stroke::local_average_depth(int iCombination) const
 {
-  return local_average_depth_edge_function<Stroke >(*this, iCombination);
+  return local_average_depth_edge_function<Stroke>(*this, iCombination);
 }
 
 float Stroke::local_depth_variance(int iCombination) const
@@ -976,7 +974,7 @@ float Stroke::local_depth_variance(int iCombination) const
   return local_depth_variance_edge_function<Stroke>(*this, iCombination);
 }
 
-real Stroke::local_average_density(float sigma , int iCombination ) const
+real Stroke::local_average_density(float sigma, int iCombination) const
 {
   return density_edge_function<Stroke>(*this, iCombination);
 }

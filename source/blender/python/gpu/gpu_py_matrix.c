@@ -505,12 +505,9 @@ static struct PyMethodDef bpygpu_matrix_methods[] = {
 
 /* TODO */
 #if 0
-  {"rotate", (PyCFunction)bpygpu_matrix_rotate,
-   METH_O, bpygpu_matrix_rotate_doc},
-  {"rotate_axis", (PyCFunction)bpygpu_matrix_rotate_axis,
-   METH_O, bpygpu_matrix_rotate_axis_doc},
-  {"look_at", (PyCFunction)bpygpu_matrix_look_at,
-   METH_O, bpygpu_matrix_look_at_doc},
+    {"rotate", (PyCFunction)bpygpu_matrix_rotate, METH_O, bpygpu_matrix_rotate_doc},
+    {"rotate_axis", (PyCFunction)bpygpu_matrix_rotate_axis, METH_O, bpygpu_matrix_rotate_axis_doc},
+    {"look_at", (PyCFunction)bpygpu_matrix_look_at, METH_O, bpygpu_matrix_look_at_doc},
 #endif
 
     /* Write State */

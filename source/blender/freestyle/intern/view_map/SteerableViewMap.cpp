@@ -279,7 +279,7 @@ void SteerableViewMap::saveSteerableViewMap() const
       GrayImage *img = _imagesPyramids[i]->getLevel(j);
       int ow = img->width();
       int oh = img->height();
-      float coeff = 1.0f; // 100 * 255; // * pow(2, j);
+      float coeff = 1.0f;  // 100 * 255; // * pow(2, j);
       QImage qtmp(ow, oh, 32);
       for (unsigned int y = 0; y < oh; ++y) {
         for (unsigned int x = 0; x < ow; ++x) {

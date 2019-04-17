@@ -167,7 +167,7 @@ enum {
    * And if not, should be a general flag. But seems unnecessary for now... */
 #if 0
   /** if viewport preview is ready */
-  MOD_DPAINT_PREVIEW_READY      = 1 << 0,
+  MOD_DPAINT_PREVIEW_READY = 1 << 0,
 #endif
   /** surface is already baking, so it wont get updated (loop) */
   MOD_DPAINT_BAKING = 1 << 1,

@@ -76,8 +76,8 @@ Controller::Controller()
 {
   const string sep(Config::DIR_SEP.c_str());
 #if 0
-  const string filename = Config::Path::getInstance()->getHomeDir() + sep + Config::OPTIONS_DIR + sep +
-                          Config::OPTIONS_CURRENT_DIRS_FILE;
+  const string filename = Config::Path::getInstance()->getHomeDir() + sep + Config::OPTIONS_DIR +
+                          sep + Config::OPTIONS_CURRENT_DIRS_FILE;
   _current_dirs = new ConfigIO(filename, Config::APPLICATION_NAME + "CurrentDirs", true);
 #endif
 
@@ -337,7 +337,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   }
 
   soc QFileInfo qfi(iFileName);
-  soc string basename((const char*)qfi.fileName().toAscii().data());
+  soc string basename((const char *)qfi.fileName().toAscii().data());
   char cleaned[FILE_MAX];
   BLI_strncpy(cleaned, iFileName, FILE_MAX);
   BLI_cleanup_file(NULL, cleaned);
@@ -633,31 +633,31 @@ void Controller::ComputeSteerableViewMap()
   // Build 4 nodes containing the edges in the 4 directions
   NodeGroup *ng[Canvas::NB_STEERABLE_VIEWMAP];
   unsigned i;
-  real c = 32.0f/255.0f; // see SteerableViewMap::readSteerableViewMapPixel() for information about this 32.
+  real c =
+      32.0f /
+      255.0f;  // see SteerableViewMap::readSteerableViewMapPixel() for information about this 32.
   for (i = 0; i < Canvas::NB_STEERABLE_VIEWMAP; ++i) {
     ng[i] = new NodeGroup;
   }
   NodeShape *completeNS = new NodeShape;
-  completeNS->material().setDiffuse(c,c,c,1);
-  ng[Canvas::NB_STEERABLE_VIEWMAP-1]->AddChild(completeNS);
+  completeNS->material().setDiffuse(c, c, c, 1);
+  ng[Canvas::NB_STEERABLE_VIEWMAP - 1]->AddChild(completeNS);
   SteerableViewMap *svm = _Canvas->getSteerableViewMap();
   svm->Reset();
 
-  ViewMap::fedges_container& fedges = _ViewMap->FEdges();
+  ViewMap::fedges_container &fedges = _ViewMap->FEdges();
   LineRep *fRep;
   NodeShape *ns;
-  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end();
-       f != fend;
-       ++f)
-  {
+  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend;
+       ++f) {
     if ((*f)->viewedge()->qi() != 0)
       continue;
     fRep = new LineRep((*f)->vertexA()->point2d(), (*f)->vertexB()->point2d());
-    completeNS->AddRep(fRep); // add to the complete map anyway
+    completeNS->AddRep(fRep);  // add to the complete map anyway
     double *oweights = svm->AddFEdge(*f);
     for (i = 0; i < (Canvas::NB_STEERABLE_VIEWMAP - 1); ++i) {
       ns = new NodeShape;
-      double wc = oweights[i]*c;
+      double wc = oweights[i] * c;
       if (oweights[i] == 0)
         continue;
       ns->material().setDiffuse(wc, wc, wc, 1);
@@ -712,7 +712,6 @@ void Controller::ComputeSteerableViewMap()
     qimg.save(QString("newsteerable") + QString::number(i) + QString(".bmp"), "BMP");
 #  endif
   }
-
 
   svm->buildImagesPyramids(img, false, 0, 1.0f);
 #endif
@@ -1085,10 +1084,11 @@ void Controller::displayDensityCurves(int x, int y)
   // display the curves
 #if 0
   for (i = 0; i < nbCurves; ++i)
-    _pDensityCurvesWindow->setOrientationCurve(i, Vec2d(0, 0), Vec2d(nbPoints, 1), curves[i], "scale", "density");
+    _pDensityCurvesWindow->setOrientationCurve(
+        i, Vec2d(0, 0), Vec2d(nbPoints, 1), curves[i], "scale", "density");
   for (i = 1; i <= 8; ++i)
-    _pDensityCurvesWindow->setLevelCurve(i, Vec2d(0, 0), Vec2d(nbCurves, 1), curvesDirection[i],
-                                         "orientation", "density");
+    _pDensityCurvesWindow->setLevelCurve(
+        i, Vec2d(0, 0), Vec2d(nbCurves, 1), curvesDirection[i], "orientation", "density");
   _pDensityCurvesWindow->show();
 #endif
 }

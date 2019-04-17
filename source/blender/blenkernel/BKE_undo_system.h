@@ -187,7 +187,9 @@ void BKE_undosys_type_free_all(void);
 
 /* ID Accessor */
 #if 0 /* functionality is only used internally for now. */
-void BKE_undosys_foreach_ID_ref(UndoStack *ustack, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data);
+void BKE_undosys_foreach_ID_ref(UndoStack *ustack,
+                                UndoTypeForEachIDRefFn foreach_ID_ref_fn,
+                                void *user_data);
 #endif
 
 /* Use when the undo step stores many arbitrary pointers. */

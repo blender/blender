@@ -119,7 +119,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
     /* see comment in executeRegion describing coordinate mapping,
      * here it simply goes other way around
      */
-    int full_width  = rd->xsch * rd->size / 100;
+    int full_width = rd->xsch * rd->size / 100;
     int full_height = rd->ysch * rd->size / 100;
 
     dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;

@@ -63,7 +63,7 @@ static void freeData(ModifierData *md)
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
-  const ExplodeModifierData *emd = (const ExplodeModifierData *) md;
+  const ExplodeModifierData *emd = (const ExplodeModifierData *)md;
 #endif
   ExplodeModifierData *temd = (ExplodeModifierData *)target;
 

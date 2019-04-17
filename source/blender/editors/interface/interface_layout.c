@@ -112,7 +112,7 @@ typedef enum uiItemType {
 
   ITEM_LAYOUT_ROOT
 #if 0
-  TEMPLATE_COLUMN_FLOW,
+      TEMPLATE_COLUMN_FLOW,
   TEMPLATE_SPLIT,
   TEMPLATE_BOX,
 
@@ -1538,7 +1538,8 @@ void uiItemsFullEnumO(uiLayout *layout,
        * introduction of GP editing modes)
        */
 #if 0
-      RNA_property_enum_items_gettexted_all(block->evil_C, &ptr, prop, &item_array, &totitem, &free);
+      RNA_property_enum_items_gettexted_all(
+          block->evil_C, &ptr, prop, &item_array, &totitem, &free);
 #else
       RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item_array, &totitem, &free);
 #endif

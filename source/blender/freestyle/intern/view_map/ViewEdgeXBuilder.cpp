@@ -229,7 +229,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   while (!stopSharpViewEdge(currentWEdge.e)) {
     edgesChain.push_back(currentWEdge);
     ++size;
-    currentWEdge.e->userdata = (void *)1; // processed
+    currentWEdge.e->userdata = (void *)1;  // processed
     // Find the next edge!
     currentWEdge = FindNextWEdge(currentWEdge);
   }
@@ -239,7 +239,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   while (!stopSharpViewEdge(currentWEdge.e)) {
     edgesChain.push_front(currentWEdge);
     ++size;
-    currentWEdge.e->userdata = (void *)1; // processed
+    currentWEdge.e->userdata = (void *)1;  // processed
     // Find the previous edge!
     currentWEdge = FindPreviousWEdge(currentWEdge);
   }

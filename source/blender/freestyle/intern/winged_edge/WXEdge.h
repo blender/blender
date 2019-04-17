@@ -696,7 +696,7 @@ class WXFace : public WFace {
 
 class WXShape : public WShape {
 #if 0
-public:
+ public:
   typedef WXShape type_name;
 #endif
 

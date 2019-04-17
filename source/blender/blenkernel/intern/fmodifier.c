@@ -79,21 +79,21 @@ void *fmodifiers_storage_get(FModifierStackStorage *storage, FModifier *fcm);
  */
 #if 0
 static FModifierTypeInfo FMI_MODNAME = {
-  FMODIFIER_TYPE_MODNAME, /* type */
-  sizeof(FMod_ModName), /* size */
-  FMI_TYPE_SOME_ACTION, /* action type */
-  FMI_REQUIRES_SOME_REQUIREMENT, /* requirements */
-  "Modifier Name", /* name */
-  "FMod_ModName", /* struct name */
-  fcm_modname_free, /* free data */
-  fcm_modname_relink, /* relink data */
-  fcm_modname_copy, /* copy data */
-  fcm_modname_new_data, /* new data */
-  fcm_modname_verify, /* verify */
-  fcm_modname_time, /* evaluate time */
-  fcm_modname_evaluate, /* evaluate */
-  fcm_modname_time_storage, /* evaluate time with storage */
-  fcm_modname_evaluate_storage, /* evaluate with storage */
+    FMODIFIER_TYPE_MODNAME,        /* type */
+    sizeof(FMod_ModName),          /* size */
+    FMI_TYPE_SOME_ACTION,          /* action type */
+    FMI_REQUIRES_SOME_REQUIREMENT, /* requirements */
+    "Modifier Name",               /* name */
+    "FMod_ModName",                /* struct name */
+    fcm_modname_free,              /* free data */
+    fcm_modname_relink,            /* relink data */
+    fcm_modname_copy,              /* copy data */
+    fcm_modname_new_data,          /* new data */
+    fcm_modname_verify,            /* verify */
+    fcm_modname_time,              /* evaluate time */
+    fcm_modname_evaluate,          /* evaluate */
+    fcm_modname_time_storage,      /* evaluate time with storage */
+    fcm_modname_evaluate_storage,  /* evaluate with storage */
 };
 #endif
 

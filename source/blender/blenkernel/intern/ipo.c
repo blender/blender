@@ -235,22 +235,28 @@ static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
       return "color";
 #if 0
     case OB_PD_FSTR:
-      if (ob->pd) poin = &(ob->pd->f_strength);
+      if (ob->pd)
+        poin = &(ob->pd->f_strength);
       break;
     case OB_PD_FFALL:
-      if (ob->pd) poin = &(ob->pd->f_power);
+      if (ob->pd)
+        poin = &(ob->pd->f_power);
       break;
     case OB_PD_SDAMP:
-      if (ob->pd) poin = &(ob->pd->pdef_damp);
+      if (ob->pd)
+        poin = &(ob->pd->pdef_damp);
       break;
     case OB_PD_RDAMP:
-      if (ob->pd) poin = &(ob->pd->pdef_rdamp);
+      if (ob->pd)
+        poin = &(ob->pd->pdef_rdamp);
       break;
     case OB_PD_PERM:
-      if (ob->pd) poin = &(ob->pd->pdef_perm);
+      if (ob->pd)
+        poin = &(ob->pd->pdef_perm);
       break;
     case OB_PD_FMAXD:
-      if (ob->pd) poin = &(ob->pd->maxdist);
+      if (ob->pd)
+        poin = &(ob->pd->maxdist);
       break;
 #endif
   }
@@ -414,31 +420,44 @@ static const char *mtex_adrcodes_to_paths(int adrcode, int *UNUSED(array_index))
   switch (adrcode) {
 #if 0  // XXX these are not wrapped in RNA yet!
     case MAP_OFS_X:
-      poin = &(mtex->ofs[0]); break;
+      poin = &(mtex->ofs[0]);
+      break;
     case MAP_OFS_Y:
-      poin = &(mtex->ofs[1]); break;
+      poin = &(mtex->ofs[1]);
+      break;
     case MAP_OFS_Z:
-      poin = &(mtex->ofs[2]); break;
+      poin = &(mtex->ofs[2]);
+      break;
     case MAP_SIZE_X:
-      poin = &(mtex->size[0]); break;
+      poin = &(mtex->size[0]);
+      break;
     case MAP_SIZE_Y:
-      poin = &(mtex->size[1]); break;
+      poin = &(mtex->size[1]);
+      break;
     case MAP_SIZE_Z:
-      poin = &(mtex->size[2]); break;
+      poin = &(mtex->size[2]);
+      break;
     case MAP_R:
-      poin = &(mtex->r); break;
+      poin = &(mtex->r);
+      break;
     case MAP_G:
-      poin = &(mtex->g); break;
+      poin = &(mtex->g);
+      break;
     case MAP_B:
-      poin = &(mtex->b); break;
+      poin = &(mtex->b);
+      break;
     case MAP_DVAR:
-      poin = &(mtex->def_var); break;
+      poin = &(mtex->def_var);
+      break;
     case MAP_COLF:
-      poin = &(mtex->colfac); break;
+      poin = &(mtex->colfac);
+      break;
     case MAP_NORF:
-      poin = &(mtex->norfac); break;
+      poin = &(mtex->norfac);
+      break;
     case MAP_VARF:
-      poin = &(mtex->varfac); break;
+      poin = &(mtex->varfac);
+      break;
 #endif
     case MAP_DISP:
       prop = "warp_factor";
@@ -659,9 +678,11 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 
 #if 0   // XXX these are not defined in RNA
     case CAM_YF_APERT:
-      poin = &(ca->YF_aperture); break;
+      poin = &(ca->YF_aperture);
+      break;
     case CAM_YF_FDIST:
-      poin = &(ca->dof_distance); break;
+      poin = &(ca->dof_distance);
+      break;
 #endif  // XXX these are not defined in RNA
 
     case CAM_SHIFT_X:
@@ -837,22 +858,28 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
      * as the similar object forces */
 #if 0
     case PART_PD_FSTR:
-      if (part->pd) poin = &(part->pd->f_strength);
+      if (part->pd)
+        poin = &(part->pd->f_strength);
       break;
     case PART_PD_FFALL:
-      if (part->pd) poin = &(part->pd->f_power);
+      if (part->pd)
+        poin = &(part->pd->f_power);
       break;
     case PART_PD_FMAXD:
-      if (part->pd) poin = &(part->pd->maxdist);
+      if (part->pd)
+        poin = &(part->pd->maxdist);
       break;
     case PART_PD2_FSTR:
-      if (part->pd2) poin = &(part->pd2->f_strength);
+      if (part->pd2)
+        poin = &(part->pd2->f_strength);
       break;
     case PART_PD2_FFALL:
-      if (part->pd2) poin = &(part->pd2->f_power);
+      if (part->pd2)
+        poin = &(part->pd2->f_power);
       break;
     case PART_PD2_FMAXD:
-      if (part->pd2) poin = &(part->pd2->maxdist);
+      if (part->pd2)
+        poin = &(part->pd2->maxdist);
       break;
 #endif
   }

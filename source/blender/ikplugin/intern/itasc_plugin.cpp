@@ -483,7 +483,7 @@ static void RemoveEulerAngleFromMatrix(KDL::Rotation &R, double angle, int axis)
 }
 
 #if 0
-static void GetEulerXZY(const KDL::Rotation& R, double& X, double& Z, double& Y)
+static void GetEulerXZY(const KDL::Rotation &R, double &X, double &Z, double &Y)
 {
   if (fabs(R(0, 1)) > 1.0 - KDL::epsilon) {
     X = -KDL::sign(R(0, 1)) * KDL::atan2(R(1, 2), R(1, 0));
@@ -497,7 +497,7 @@ static void GetEulerXZY(const KDL::Rotation& R, double& X, double& Z, double& Y)
   }
 }
 
-static void GetEulerXYZ(const KDL::Rotation& R, double& X, double& Y, double& Z)
+static void GetEulerXYZ(const KDL::Rotation &R, double &X, double &Y, double &Z)
 {
   if (fabs(R(0, 2)) > 1.0 - KDL::epsilon) {
     X = KDL::sign(R(0, 2)) * KDL::atan2(-R(1, 0), R(1, 1));

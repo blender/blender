@@ -168,8 +168,9 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   //protected://FIXME
  public:
 #if 0
-  inline edge_iterator_base(value_type ifeA, value_type ifeB, value_type ibeA, value_type ibeB, value_type iter)
-  : parent_class()
+  inline edge_iterator_base(
+      value_type ifeA, value_type ifeB, value_type ibeA, value_type ibeB, value_type iter)
+      : parent_class()
   {
     _Nature = Nature::T_VERTEX;
     _feA = ifeA;

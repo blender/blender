@@ -107,7 +107,8 @@ static void txt_format_text(SpaceText *st)
 {
   TextLine *linep;
 
-  if (!st->text) return;
+  if (!st->text)
+    return;
 
   for (linep = st->text->lines.first; linep; linep = linep->next)
     txt_format_line(st, linep, 0);
@@ -989,18 +990,23 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
   int i, br, lines;
   int boxw, boxh, l, x, y /* , top */ /* UNUSED */;
 
-  if (!st || !st->text) return;
-  if (!texttool_text_is_active(st->text)) return;
+  if (!st || !st->text)
+    return;
+  if (!texttool_text_is_active(st->text))
+    return;
 
   docs = texttool_docs_get();
 
-  if (!docs) return;
+  if (!docs)
+    return;
 
   text_draw_context_init(st, &tdc);
 
   /* Count the visible lines to the cursor */
-  for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++) ;
-  if (l < 0) return;
+  for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++)
+    ;
+  if (l < 0)
+    return;
 
   if (st->showlinenrs) {
     x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET + TEXTXLOC - 4;
@@ -1017,7 +1023,8 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
   boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
 
   /* Draw panel */
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformThemeColor(TH_BACK);
@@ -1044,9 +1051,12 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 
   UI_FontThemeColor(tdc.font_id, TH_TEXT);
 
-  i = 0; br = DOC_WIDTH; lines = 0; // XXX -doc_scroll;
+  i = 0;
+  br = DOC_WIDTH;
+  lines = 0;  // XXX -doc_scroll;
   for (p = docs; *p; p++) {
-    if (*p == '\r' && *(++p) != '\n') *(--p) = '\n';  /* Fix line endings */
+    if (*p == '\r' && *(++p) != '\n')
+      *(--p) = '\n'; /* Fix line endings */
     if (*p == ' ' || *p == '\t')
       br = i;
     else if (*p == '\n') {
@@ -1055,7 +1065,9 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
         y -= st->lheight_dpi;
         text_draw(st, &tdc, buf, 0, 0, x + 4, y - 3, NULL);
       }
-      i = 0; br = DOC_WIDTH; lines++;
+      i = 0;
+      br = DOC_WIDTH;
+      lines++;
     }
     buf[i++] = *p;
     if (i == DOC_WIDTH) { /* Reached the width, go to last break and wrap there */
@@ -1065,9 +1077,12 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
         text_draw(st, &tdc, buf, 0, 0, x + 4, y - 3, NULL);
       }
       p -= i - br - 1; /* Rewind pointer to last break */
-      i = 0; br = DOC_WIDTH; lines++;
+      i = 0;
+      br = DOC_WIDTH;
+      lines++;
     }
-    if (lines >= DOC_HEIGHT) break;
+    if (lines >= DOC_HEIGHT)
+      break;
   }
 }
 #endif

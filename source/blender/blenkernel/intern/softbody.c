@@ -1804,35 +1804,36 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3], float L, float len
   float m, delta_ij;
   int i, j;
   if (L < len) {
-    for (i=0;i<3;i++) {
-      for (j=0;j<3;j++) {
-        delta_ij = (i==j ? (1.0f): (0.0f));
-        m=factor*(dir[i]*dir[j] + (1-L/len)*(delta_ij - dir[i]*dir[j]));
-        EIG_linear_solver_matrix_add(ia+i, op+ic+j, m);
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+        delta_ij = (i == j ? (1.0f) : (0.0f));
+        m = factor * (dir[i] * dir[j] + (1 - L / len) * (delta_ij - dir[i] * dir[j]));
+        EIG_linear_solver_matrix_add(ia + i, op + ic + j, m);
       }
     }
   }
   else {
-    for (i=0;i<3;i++) {
-      for (j=0;j<3;j++) {
-        m=factor*dir[i]*dir[j];
-        EIG_linear_solver_matrix_add(ia+i, op+ic+j, m);
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+        m = factor * dir[i] * dir[j];
+        EIG_linear_solver_matrix_add(ia + i, op + ic + j, m);
       }
     }
   }
 }
 
-
 static void dfdx_goal(int ia, int ic, int op, float factor)
 {
   int i;
-  for (i=0;i<3;i++) EIG_linear_solver_matrix_add(ia+i, op+ic+i, factor);
+  for (i = 0; i < 3; i++)
+    EIG_linear_solver_matrix_add(ia + i, op + ic + i, factor);
 }
 
 static void dfdv_goal(int ia, int ic, float factor)
 {
   int i;
-  for (i=0;i<3;i++) EIG_linear_solver_matrix_add(ia+i, ic+i, factor);
+  for (i = 0; i < 3; i++)
+    EIG_linear_solver_matrix_add(ia + i, ic + i, factor);
 }
 #endif /* if 0 */
 
@@ -1852,16 +1853,16 @@ static void sb_spring_force(
     bp1 = &sb->bpoint[bs->v1];
     bp2 = &sb->bpoint[bs->v2];
 #if 0 /* UNUSED */
-    ia =3*bs->v1;
-    ic =3*bs->v2;
+    ia = 3 * bs->v1;
+    ic = 3 * bs->v2;
 #endif
   }
   else if (bpi == bs->v2) {
     bp1 = &sb->bpoint[bs->v2];
     bp2 = &sb->bpoint[bs->v1];
 #if 0 /* UNUSED */
-    ia =3*bs->v2;
-    ic =3*bs->v1;
+    ia = 3 * bs->v2;
+    ic = 3 * bs->v1;
 #endif
   }
   else {
@@ -2284,8 +2285,10 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
   /* old one with homogeneous masses  */
   /* claim a minimum mass for vertex */
 #if 0
-  if (sb->nodemass > 0.009999f) timeovermass = forcetime / sb->nodemass;
-  else timeovermass = forcetime / 0.009999f;
+  if (sb->nodemass > 0.009999f)
+    timeovermass = forcetime / sb->nodemass;
+  else
+    timeovermass = forcetime / 0.009999f;
 #endif
 
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
@@ -2339,11 +2342,11 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
       /* the freezer coming sooner or later */
 #if 0
-      if ((dot_v3v3(dx, dx)<freezeloc )&&(dot_v3v3(bp->force, bp->force)<freezeforce )) {
-        bp->frozen /=2;
+      if ((dot_v3v3(dx, dx) < freezeloc) && (dot_v3v3(bp->force, bp->force) < freezeforce)) {
+        bp->frozen /= 2;
       }
       else {
-        bp->frozen = min_ff(bp->frozen*1.05f, 1.0f);
+        bp->frozen = min_ff(bp->frozen * 1.05f, 1.0f);
       }
       mul_v3_fl(dx, bp->frozen);
 #endif
@@ -2417,73 +2420,72 @@ static void softbody_restore_prev_step(Object *ob)
 #if 0
 static void softbody_store_step(Object *ob)
 {
-  SoftBody *sb= ob->soft; /* is supposed to be there*/
+  SoftBody *sb = ob->soft; /* is supposed to be there*/
   BodyPoint *bp;
   int a;
 
-  for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+  for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
     copy_v3_v3(bp->prevvec, bp->vec);
     copy_v3_v3(bp->prevpos, bp->pos);
   }
 }
 
-
 /* used by predictors and correctors */
 static void softbody_store_state(Object *ob, float *ppos, float *pvel)
 {
-  SoftBody *sb= ob->soft; /* is supposed to be there*/
+  SoftBody *sb = ob->soft; /* is supposed to be there*/
   BodyPoint *bp;
   int a;
-  float *pp=ppos, *pv=pvel;
+  float *pp = ppos, *pv = pvel;
 
-  for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+  for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
 
     copy_v3_v3(pv, bp->vec);
-    pv+=3;
+    pv += 3;
 
     copy_v3_v3(pp, bp->pos);
-    pp+=3;
+    pp += 3;
   }
 }
 
 /* used by predictors and correctors */
 static void softbody_retrieve_state(Object *ob, float *ppos, float *pvel)
 {
-  SoftBody *sb= ob->soft; /* is supposed to be there*/
+  SoftBody *sb = ob->soft; /* is supposed to be there*/
   BodyPoint *bp;
   int a;
-  float *pp=ppos, *pv=pvel;
+  float *pp = ppos, *pv = pvel;
 
-  for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+  for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
 
     copy_v3_v3(bp->vec, pv);
-    pv+=3;
+    pv += 3;
 
     copy_v3_v3(bp->pos, pp);
-    pp+=3;
+    pp += 3;
   }
 }
 
 /* used by predictors and correctors */
 static void softbody_swap_state(Object *ob, float *ppos, float *pvel)
 {
-  SoftBody *sb= ob->soft; /* is supposed to be there*/
+  SoftBody *sb = ob->soft; /* is supposed to be there*/
   BodyPoint *bp;
   int a;
-  float *pp=ppos, *pv=pvel;
+  float *pp = ppos, *pv = pvel;
   float temp[3];
 
-  for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+  for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
 
     copy_v3_v3(temp, bp->vec);
     copy_v3_v3(bp->vec, pv);
     copy_v3_v3(pv, temp);
-    pv+=3;
+    pv += 3;
 
     copy_v3_v3(temp, bp->pos);
     copy_v3_v3(bp->pos, pp);
     copy_v3_v3(pp, temp);
-    pp+=3;
+    pp += 3;
   }
 }
 #endif

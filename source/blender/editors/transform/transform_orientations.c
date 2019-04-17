@@ -587,8 +587,7 @@ static unsigned int bm_mesh_edges_select_get_n(BMesh *bm, BMEdge **elems, const 
 static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const unsigned int n)
 {
   return bm_mesh_elems_select_get_n__internal(
-          bm, (BMElem **)elems, min_ii(n, bm->totfacesel),
-          BM_FACES_OF_MESH, BM_FACE);
+      bm, (BMElem **)elems, min_ii(n, bm->totfacesel), BM_FACES_OF_MESH, BM_FACE);
 }
 #endif
 

@@ -1108,7 +1108,6 @@ void *RE_gpu_context_get(Render *re)
 #if 0
 void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 {
-
 }
 #endif
 

@@ -63,7 +63,8 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ)
                 current_cell_->getOrigin() + cell_size_)) {
 #if 0
         Vec3d bboxdiag(_scene3d->bbox().getMax() - _scene3d->bbox().getMin());
-        if ((t > 1.0e-06 * (min(min(bboxdiag.x(), bboxdiag.y()), bboxdiag.z()))) && (t < raylength)) {
+        if ((t > 1.0e-06 * (min(min(bboxdiag.x(), bboxdiag.y()), bboxdiag.z()))) &&
+            (t < raylength)) {
 #else
         if (tmp_t < t_) {
 #endif

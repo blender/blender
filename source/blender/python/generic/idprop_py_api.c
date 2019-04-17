@@ -168,8 +168,7 @@ PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent)
 static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 {
   switch (prop->type) {
-    case IDP_STRING:
-    {
+    case IDP_STRING: {
       char *st;
       if (!PyUnicode_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "expected a string!");
@@ -198,8 +197,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
       return 0;
     }
 
-    case IDP_INT:
-    {
+    case IDP_INT: {
       int ivalue = PyLong_AsSsize_t(value);
       if (ivalue == -1 && PyErr_Occurred()) {
         PyErr_SetString(PyExc_TypeError, "expected an int type");
@@ -208,8 +206,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
       IDP_Int(prop) = ivalue;
       break;
     }
-    case IDP_FLOAT:
-    {
+    case IDP_FLOAT: {
       float fvalue = (float)PyFloat_AsDouble(value);
       if (fvalue == -1 && PyErr_Occurred()) {
         PyErr_SetString(PyExc_TypeError, "expected a float");
@@ -218,8 +215,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
       IDP_Float(self->prop) = fvalue;
       break;
     }
-    case IDP_DOUBLE:
-    {
+    case IDP_DOUBLE: {
       double dvalue = PyFloat_AsDouble(value);
       if (dvalue == -1 && PyErr_Occurred()) {
         PyErr_SetString(PyExc_TypeError, "expected a float");

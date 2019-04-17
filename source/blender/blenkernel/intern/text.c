@@ -1563,7 +1563,8 @@ static void dump_buffer(TextUndoBuf *utxt)
 {
   int i = 0;
 
-  while (i++ < utxt->undo_pos) printf("%d: %d %c\n", i, utxt->buf[i], utxt->buf[i]);
+  while (i++ < utxt->undo_pos)
+    printf("%d: %d %c\n", i, utxt->buf[i], utxt->buf[i]);
 }
 
 /* Note: this function is outdated and must be updated if needed for future use */
@@ -1646,27 +1647,38 @@ void txt_print_undo(Text *text)
       i++;
       printf(" - Char is ");
       switch (op) {
-        case UNDO_INSERT_1: case UNDO_BS_1: case UNDO_DEL_1:
+        case UNDO_INSERT_1:
+        case UNDO_BS_1:
+        case UNDO_DEL_1:
           printf("%c", utxt->buf[i]);
           i++;
           break;
-        case UNDO_INSERT_2: case UNDO_BS_2: case UNDO_DEL_2:
+        case UNDO_INSERT_2:
+        case UNDO_BS_2:
+        case UNDO_DEL_2:
           printf("%c%c", utxt->buf[i], utxt->buf[i + 1]);
           i += 2;
           break;
-        case UNDO_INSERT_3: case UNDO_BS_3: case UNDO_DEL_3:
+        case UNDO_INSERT_3:
+        case UNDO_BS_3:
+        case UNDO_DEL_3:
           printf("%c%c%c", utxt->buf[i], utxt->buf[i + 1], utxt->buf[i + 2]);
           i += 3;
           break;
-        case UNDO_INSERT_4: case UNDO_BS_4: case UNDO_DEL_4:
-        {
+        case UNDO_INSERT_4:
+        case UNDO_BS_4:
+        case UNDO_DEL_4: {
           unsigned int uc;
           char c[BLI_UTF8_MAX + 1];
           size_t c_len;
-          uc = utxt->buf[i]; i++;
-          uc = uc + (utxt->buf[i] << 8); i++;
-          uc = uc + (utxt->buf[i] << 16); i++;
-          uc = uc + (utxt->buf[i] << 24); i++;
+          uc = utxt->buf[i];
+          i++;
+          uc = uc + (utxt->buf[i] << 8);
+          i++;
+          uc = uc + (utxt->buf[i] << 16);
+          i++;
+          uc = uc + (utxt->buf[i] << 24);
+          i++;
           c_len = BLI_str_utf8_from_unicode(uc, c);
           c[c_len] = '\0';
           puts(c);
@@ -1677,49 +1689,70 @@ void txt_print_undo(Text *text)
     else if (op == UNDO_DBLOCK || op == UNDO_IBLOCK) {
       i++;
 
-      linep = utxt->buf[i]; i++;
-      linep = linep + (utxt->buf[i] << 8); i++;
-      linep = linep + (utxt->buf[i] << 16); i++;
-      linep = linep + (utxt->buf[i] << 24); i++;
+      linep = utxt->buf[i];
+      i++;
+      linep = linep + (utxt->buf[i] << 8);
+      i++;
+      linep = linep + (utxt->buf[i] << 16);
+      i++;
+      linep = linep + (utxt->buf[i] << 24);
+      i++;
 
       printf(" (length %d) <", linep);
 
       while (linep > 0) {
         putchar(utxt->buf[i]);
-        linep--; i++;
+        linep--;
+        i++;
       }
 
-      linep = utxt->buf[i]; i++;
-      linep = linep + (utxt->buf[i] << 8); i++;
-      linep = linep + (utxt->buf[i] << 16); i++;
-      linep = linep + (utxt->buf[i] << 24); i++;
+      linep = utxt->buf[i];
+      i++;
+      linep = linep + (utxt->buf[i] << 8);
+      i++;
+      linep = linep + (utxt->buf[i] << 16);
+      i++;
+      linep = linep + (utxt->buf[i] << 24);
+      i++;
       printf("> (%d)", linep);
     }
     else if (op == UNDO_INDENT || op == UNDO_UNINDENT) {
       i++;
 
-      charp = utxt->buf[i]; i++;
-      charp = charp + (utxt->buf[i] << 8); i++;
+      charp = utxt->buf[i];
+      i++;
+      charp = charp + (utxt->buf[i] << 8);
+      i++;
 
-      linep = utxt->buf[i]; i++;
-      linep = linep + (utxt->buf[i] << 8); i++;
-      linep = linep + (utxt->buf[i] << 16); i++;
-      linep = linep + (utxt->buf[i] << 24); i++;
+      linep = utxt->buf[i];
+      i++;
+      linep = linep + (utxt->buf[i] << 8);
+      i++;
+      linep = linep + (utxt->buf[i] << 16);
+      i++;
+      linep = linep + (utxt->buf[i] << 24);
+      i++;
 
       printf("to <%d, %d> ", linep, charp);
 
-      charp = utxt->buf[i]; i++;
-      charp = charp + (utxt->buf[i] << 8); i++;
+      charp = utxt->buf[i];
+      i++;
+      charp = charp + (utxt->buf[i] << 8);
+      i++;
 
-      linep = utxt->buf[i]; i++;
-      linep = linep + (utxt->buf[i] << 8); i++;
-      linep = linep + (utxt->buf[i] << 16); i++;
-      linep = linep + (utxt->buf[i] << 24); i++;
+      linep = utxt->buf[i];
+      i++;
+      linep = linep + (utxt->buf[i] << 8);
+      i++;
+      linep = linep + (utxt->buf[i] << 16);
+      i++;
+      linep = linep + (utxt->buf[i] << 24);
+      i++;
 
       printf("from <%d, %d>", linep, charp);
     }
 
-    printf(" %d\n",  i);
+    printf(" %d\n", i);
     i++;
   }
 }

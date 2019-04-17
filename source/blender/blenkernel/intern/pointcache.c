@@ -1838,9 +1838,7 @@ static bool foreach_object_particle_ptcache(Object *object,
     }
     /* Hair needs to be included in id-list for cache edit mode to work. */
 #if 0
-    if ((psys->part->type == PART_HAIR) &&
-        (psys->flag & PSYS_HAIR_DYNAMICS) == 0)
-    {
+    if ((psys->part->type == PART_HAIR) && (psys->flag & PSYS_HAIR_DYNAMICS) == 0) {
       continue;
     }
 #endif

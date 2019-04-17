@@ -121,12 +121,23 @@ SequencerDrawView sequencer_view3d_cb = NULL; /* NULL in background mode */
 #if 0 /* unused function */
 static void printf_strip(Sequence *seq)
 {
-  fprintf(stderr, "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), "
+  fprintf(stderr,
+          "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), "
           "(startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
-          seq->name, seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->machine,
-          seq->startdisp, seq->enddisp);
+          seq->name,
+          seq->len,
+          seq->start,
+          seq->startofs,
+          seq->endofs,
+          seq->startstill,
+          seq->endstill,
+          seq->machine,
+          seq->startdisp,
+          seq->enddisp);
 
-  fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0),
+  fprintf(stderr,
+          "\tseq_tx_set_final_left: %d %d\n\n",
+          seq_tx_get_final_left(seq, 0),
           seq_tx_get_final_right(seq, 0));
 }
 #endif

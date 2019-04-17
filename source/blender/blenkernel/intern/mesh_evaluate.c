@@ -1119,7 +1119,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 
   MLoopNorSpace *lnor_space = data->lnor_space;
 #if 0 /* Not needed for 'fan' loops. */
-  float (*lnor)[3] = data->lnor;
+  float(*lnor)[3] = data->lnor;
 #endif
   const MLoop *ml_curr = data->ml_curr;
   const MLoop *ml_prev = data->ml_prev;
@@ -1537,7 +1537,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
           data->ml_curr_index = ml_curr_index;
 #if 0 /* Not needed for 'single' loop. */
           data->ml_prev_index = ml_prev_index;
-          data->e2l_prev = NULL;  /* Tag as 'single' task. */
+          data->e2l_prev = NULL; /* Tag as 'single' task. */
 #endif
           data->mp_index = mp_index;
           if (lnors_spacearr) {

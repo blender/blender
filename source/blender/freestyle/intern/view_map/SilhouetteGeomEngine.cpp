@@ -262,7 +262,8 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
     }
 #if 0
     if (G.debug & G_DEBUG_FREESTYLE) {
-      cout << "SilhouetteGeomEngine::ImageToWorldParameter(): #iters = " << i << ", dist = " << dist << "\n";
+      cout << "SilhouetteGeomEngine::ImageToWorldParameter(): #iters = " << i
+           << ", dist = " << dist << "\n";
     }
 #endif
     if (i == max_iters && G.debug & G_DEBUG_FREESTYLE) {

@@ -85,7 +85,7 @@ class ControllerExporter : public COLLADASW::LibraryControllers,
 
   void wrote(Object *ob_arm);
 
-  void find_objects_using_armature(Object *ob_arm, std::vector<Object *>& objects, Scene *sce);
+  void find_objects_using_armature(Object *ob_arm, std::vector<Object *> &objects, Scene *sce);
 #endif
 
   std::string get_controller_id(Object *ob_arm, Object *ob);

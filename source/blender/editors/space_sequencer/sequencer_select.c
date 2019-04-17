@@ -541,12 +541,12 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 #if 0  // XXX probably need to redo this differently for 2.5
   if (marker) {
     int mval[2], xo, yo;
-//      getmouseco_areawin(mval);
+    //      getmouseco_areawin(mval);
     xo = mval[0];
     yo = mval[1];
 
     while (get_mbut()) {
-//          getmouseco_areawin(mval);
+      //          getmouseco_areawin(mval);
       if (abs(mval[0] - xo) + abs(mval[1] - yo) > 4) {
         transform_markers('g', 0);
         return;

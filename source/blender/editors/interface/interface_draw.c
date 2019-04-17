@@ -167,8 +167,13 @@ void UI_draw_roundbox_4fv(
 {
 #if 0
   float vec[7][2] = {
-    {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-    {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+      {0.195, 0.02},
+      {0.383, 0.067},
+      {0.55, 0.169},
+      {0.707, 0.293},
+      {0.831, 0.45},
+      {0.924, 0.617},
+      {0.98, 0.805},
   };
   int a;
 
@@ -270,13 +275,16 @@ void UI_draw_roundbox_4fv(
 }
 
 #if 0
-static void round_box_shade_col(uint attr, const float col1[3], float const col2[3], const float fac)
+static void round_box_shade_col(uint attr,
+                                const float col1[3],
+                                float const col2[3],
+                                const float fac)
 {
   float col[4] = {
-    fac * col1[0] + (1.0f - fac) * col2[0],
-    fac * col1[1] + (1.0f - fac) * col2[1],
-    fac * col1[2] + (1.0f - fac) * col2[2],
-    1.0f,
+      fac * col1[0] + (1.0f - fac) * col2[0],
+      fac * col1[1] + (1.0f - fac) * col2[1],
+      fac * col1[2] + (1.0f - fac) * col2[2],
+      1.0f,
   };
   immAttr4fv(attr, col);
 }
@@ -296,8 +304,13 @@ void UI_draw_roundbox_shade_x(bool filled,
 {
 #if 0
   float vec[7][2] = {
-    {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-    {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+      {0.195, 0.02},
+      {0.383, 0.067},
+      {0.55, 0.169},
+      {0.707, 0.293},
+      {0.831, 0.45},
+      {0.924, 0.617},
+      {0.98, 0.805},
   };
   const float div = maxy - miny;
   const float idiv = 1.0f / div;
@@ -317,9 +330,9 @@ void UI_draw_roundbox_shade_x(bool filled,
   }
 
   /* 'shade' defines strength of shading */
-  coltop[0]  = min_ff(1.0f, col[0] + shadetop);
-  coltop[1]  = min_ff(1.0f, col[1] + shadetop);
-  coltop[2]  = min_ff(1.0f, col[2] + shadetop);
+  coltop[0] = min_ff(1.0f, col[0] + shadetop);
+  coltop[1] = min_ff(1.0f, col[1] + shadetop);
+  coltop[2] = min_ff(1.0f, col[2] + shadetop);
   coldown[0] = max_ff(0.0f, col[0] + shadedown);
   coldown[1] = max_ff(0.0f, col[1] + shadedown);
   coldown[2] = max_ff(0.0f, col[2] + shadedown);
@@ -440,13 +453,24 @@ void UI_draw_roundbox_shade_x(bool filled,
 #if 0  /* unused */
 /* linear vertical shade within button or in outline */
 /* view2d scrollers use it */
-void UI_draw_roundbox_shade_y(
-        bool filled, float minx, float miny, float maxx, float maxy,
-        float rad, float shadeleft, float shaderight, const float col[4])
+void UI_draw_roundbox_shade_y(bool filled,
+                              float minx,
+                              float miny,
+                              float maxx,
+                              float maxy,
+                              float rad,
+                              float shadeleft,
+                              float shaderight,
+                              const float col[4])
 {
   float vec[7][2] = {
-    {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-    {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805},
+      {0.195, 0.02},
+      {0.383, 0.067},
+      {0.55, 0.169},
+      {0.707, 0.293},
+      {0.831, 0.45},
+      {0.924, 0.617},
+      {0.98, 0.805},
   };
   const float div = maxx - minx;
   const float idiv = 1.0f / div;
@@ -466,13 +490,12 @@ void UI_draw_roundbox_shade_y(
   immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
   /* 'shade' defines strength of shading */
-  colLeft[0]  = min_ff(1.0f, col[0] + shadeleft);
-  colLeft[1]  = min_ff(1.0f, col[1] + shadeleft);
-  colLeft[2]  = min_ff(1.0f, col[2] + shadeleft);
+  colLeft[0] = min_ff(1.0f, col[0] + shadeleft);
+  colLeft[1] = min_ff(1.0f, col[1] + shadeleft);
+  colLeft[2] = min_ff(1.0f, col[2] + shadeleft);
   colRight[0] = max_ff(0.0f, col[0] + shaderight);
   colRight[1] = max_ff(0.0f, col[1] + shaderight);
   colRight[2] = max_ff(0.0f, col[2] + shaderight);
-
 
   vert_count += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 9 : 1;
   vert_count += (roundboxtype & UI_CNR_TOP_RIGHT) ? 9 : 1;
@@ -2461,7 +2484,8 @@ void ui_draw_dropshadow(
     /* alpha ranges from 2 to 20 or so */
 #if 0 /* Old Method (pre 2.8) */
     float color[4] = {0.0f, 0.0f, 0.0f, calpha};
-    UI_draw_roundbox_4fv(true, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a, color);
+    UI_draw_roundbox_4fv(
+        true, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a, color);
 #endif
     /* Compute final visibility to match old method result. */
     /* TODO we could just find a better fit function inside the shader instead of this. */

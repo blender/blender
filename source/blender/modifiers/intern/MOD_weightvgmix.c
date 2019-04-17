@@ -55,8 +55,7 @@ static float mix_weight(float weight, float weight2, char mix_mode)
    * XXX Don't know why, but the switch version takes many CPU time,
    *     and produces lag in realtime playback...
    */
-  switch (mix_mode)
-  {
+  switch (mix_mode) {
     case MOD_WVG_MIX_ADD:
       return (weight + weight2);
     case MOD_WVG_MIX_SUB:

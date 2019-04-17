@@ -1761,7 +1761,7 @@ inline Vec3r ViewEdge::orientation2d(int iCombination) const
   return edge_orientation2d_function<ViewEdge>(*this, iCombination);
 }
 
-inline Vec3r  ViewEdge::orientation3d(int iCombination) const
+inline Vec3r ViewEdge::orientation3d(int iCombination) const
 {
   return edge_orientation3d_function<ViewEdge>(*this, iCombination);
 }
@@ -1771,7 +1771,7 @@ inline real ViewEdge::z_discontinuity(int iCombination) const
   return z_discontinuity_edge_function<ViewEdge>(*this, iCombination);
 }
 
-inline float ViewEdge::local_average_depth(int iCombination ) const
+inline float ViewEdge::local_average_depth(int iCombination) const
 {
   return local_average_depth_edge_function<ViewEdge>(*this, iCombination);
 }

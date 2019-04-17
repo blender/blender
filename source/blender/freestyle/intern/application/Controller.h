@@ -94,10 +94,22 @@ class Controller {
                       vector<ViewEdge *>::iterator vedges_end);
 
 #if 0
-  NodeGroup *debugNode() {return _DebugNode;}
-  AppView *view() {return _pView;}
-  NodeGroup *debugScene() {return _DebugNode;}
-  Grid& grid() {return _Grid;}
+  NodeGroup *debugNode()
+  {
+    return _DebugNode;
+  }
+  AppView *view()
+  {
+    return _pView;
+  }
+  NodeGroup *debugScene()
+  {
+    return _DebugNode;
+  }
+  Grid &grid()
+  {
+    return _Grid;
+  }
 #endif
 
   void toggleVisibilityAlgo();
@@ -192,7 +204,7 @@ class Controller {
 
 #if 0
   // Silhouette structure:
-  std::vector<SShape*> _SShapes;
+  std::vector<SShape *> _SShapes;
   NodeGroup *_SRoot;
 
   // Silhouette

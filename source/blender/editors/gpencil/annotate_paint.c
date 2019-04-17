@@ -2429,7 +2429,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* event doesn't need to be handled */
 #if 0
       printf("unhandled event -> %d (mmb? = %d | mmv? = %d)\n",
-             event->type, event->type == MIDDLEMOUSE, event->type==MOUSEMOVE);
+             event->type,
+             event->type == MIDDLEMOUSE,
+             event->type == MOUSEMOVE);
 #endif
       break;
   }

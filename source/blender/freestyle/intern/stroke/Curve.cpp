@@ -253,12 +253,18 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
   if (G.debug & G_DEBUG_FREESTYLE) {
     printf("__A           0x%p p (%f, %f)\n", __A, __A->getPoint2D().x(), __A->getPoint2D().y());
     printf("__B           0x%p p (%f, %f)\n", __B, __B->getPoint2D().x(), __B->getPoint2D().y());
-    printf("iVertexB->A() 0x%p p (%f, %f)\n", iVertexB->A(), iVertexB->A()->getPoint2D().x(),
-                                              iVertexB->A()->getPoint2D().y());
-    printf("iVertexB->B() 0x%p p (%f, %f)\n", iVertexB->B(), iVertexB->B()->getPoint2D().x(),
-                                              iVertexB->B()->getPoint2D().y());
+    printf("iVertexB->A() 0x%p p (%f, %f)\n",
+           iVertexB->A(),
+           iVertexB->A()->getPoint2D().x(),
+           iVertexB->A()->getPoint2D().y());
+    printf("iVertexB->B() 0x%p p (%f, %f)\n",
+           iVertexB->B(),
+           iVertexB->B()->getPoint2D().x(),
+           iVertexB->B()->getPoint2D().y());
     printf("_t2d            %f p (%f, %f)\n", _t2d, getPoint2D().x(), getPoint2D().y());
-    printf("iVertexB->t2d() %f p (%f, %f)\n", iVertexB->t2d(), iVertexB->getPoint2D().x(),
+    printf("iVertexB->t2d() %f p (%f, %f)\n",
+           iVertexB->t2d(),
+           iVertexB->getPoint2D().x(),
            iVertexB->getPoint2D().y());
   }
 #endif
@@ -314,7 +320,6 @@ float CurvePoint::shape_importance() const
     return __B->shape_importance();
   return __A->shape_importance();
 }
-
 
 const unsigned CurvePoint::qi() const
 {
@@ -404,18 +409,18 @@ real CurvePoint::z_discontinuity() const
 #if 0
 float CurvePoint::local_average_depth() const
 {
-  return local_average_depth_function<CurvePoint >(this);
+  return local_average_depth_function<CurvePoint>(this);
 }
 
 float CurvePoint::local_depth_variance() const
 {
-  return local_depth_variance_function<CurvePoint >(this);
+  return local_depth_variance_function<CurvePoint>(this);
 }
 
 real CurvePoint::local_average_density(float sigma) const
 {
   //return local_average_density<CurvePoint >(this);
-  return density_function<CurvePoint >(this);
+  return density_function<CurvePoint>(this);
 }
 
 Vec3r shaded_color() const;
@@ -484,7 +489,7 @@ real CurvePoint::curvatureFredo() const
   return ((1 - _t2d) * __A->curvatureFredo() + _t2d * __B->curvatureFredo());
 }
 
-Vec2d CurvePoint::directionFredo () const
+Vec2d CurvePoint::directionFredo() const
 {
   if (__A == 0)
     return __B->directionFredo();
@@ -676,10 +681,9 @@ Vec3r Curve::orientation2d(point_iterator it) const
   return (*it)->orientation2d();
 }
 
-template <class BaseVertex>
-Vec3r Curve::orientation2d(int iCombination) const
+template<class BaseVertex> Vec3r Curve::orientation2d(int iCombination) const
 {
-  return edge_orientation2d_function<Curve >(this, iCombination);
+  return edge_orientation2d_function<Curve>(this, iCombination);
 }
 
 Vec3r Curve::orientation3d(point_iterator it) const
@@ -689,7 +693,7 @@ Vec3r Curve::orientation3d(point_iterator it) const
 
 Vec3r Curve::orientation3d(int iCombination) const
 {
-  return edge_orientation3d_function<Curve >(this, iCombination);
+  return edge_orientation3d_function<Curve>(this, iCombination);
 }
 
 real curvature2d(point_iterator it) const
@@ -702,7 +706,7 @@ real curvature2d(int iCombination = 0) const;
 Material Curve::material() const
 {
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
-  const Material& mat = (*v)->material();
+  const Material &mat = (*v)->material();
   for (; v != vend; ++v) {
     if ((*v)->material() != mat)
       Exception::raiseException();
@@ -747,7 +751,7 @@ bool Curve::occluders_empty() const
   return empty;
 }
 
-const Polygon3r& occludee() const
+const Polygon3r &occludee() const
 {
   return *(_FEdgeA->aFace());
 }
@@ -789,7 +793,6 @@ int Curve::shape_id() const
   return id.first;
 }
 
-
 const SShape *Curve::shape() const
 {
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
@@ -801,13 +804,11 @@ const SShape *Curve::shape() const
   return sshape;
 }
 
-
 occluder_container::const_iterator Curve::occluders_begin() const
 {
   const_vertex_iterator v = vertices_begin();
   return (*v)->occluders_begin();
 }
-
 
 occluder_container::const_iterator Curve::occluders_end() const
 {
@@ -835,7 +836,7 @@ float Curve::local_average_depth(int iCombination) const
   return local_average_depth_edge_function<Curve>(this, iCombination);
 }
 
-float Curve::local_depth_variance(int iCombination ) const
+float Curve::local_depth_variance(int iCombination) const
 {
   return local_depth_variance_edge_function<Curve>(this, iCombination);
 #  if 0
@@ -846,7 +847,7 @@ float Curve::local_depth_variance(int iCombination ) const
 #  endif
 }
 
-real Curve::local_average_density(float sigma, int iCombination ) const
+real Curve::local_average_density(float sigma, int iCombination) const
 {
   return density_edge_function<Curve>(this, iCombination);
 #  if 0
@@ -860,7 +861,7 @@ real Curve::local_average_density(float sigma, int iCombination ) const
 /* UNUSED */
 // #define EPS_CURVA_DIR 0.01
 
-void Curve::computeCurvatureAndOrientation ()
+void Curve::computeCurvatureAndOrientation()
 {
   const_vertex_iterator v = vertices_begin(), vend = vertices_end(), v2, prevV, v0;
   Vec2d p0, p1, p2;
@@ -874,7 +875,7 @@ void Curve::computeCurvatureAndOrientation ()
   p1 = Vec2d(p[0], p[1]);
   Vec2d prevDir(p1 - p0);
 
-  for (; v! = vend; ++v) {
+  for (; v ! = vend; ++v) {
     v2 = v;
     ++v2;
     if (v2 == vend)

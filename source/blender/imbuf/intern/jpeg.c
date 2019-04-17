@@ -96,8 +96,8 @@ static void jpeg_error(j_common_ptr cinfo)
 
 #if 0
 typedef struct {
-  unsigned char  *buffer;
-  int             filled;
+  unsigned char *buffer;
+  int filled;
 } buffer_struct;
 #endif
 
@@ -572,7 +572,8 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   /* just write RGBA as RGB,
    * unsupported feature only confuses other s/w */
 
-  if (ibuf->planes == 32) cinfo->in_color_space = JCS_UNKNOWN;
+  if (ibuf->planes == 32)
+    cinfo->in_color_space = JCS_UNKNOWN;
 #endif
   switch (cinfo->in_color_space) {
     case JCS_RGB:

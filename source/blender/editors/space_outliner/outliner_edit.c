@@ -1296,8 +1296,8 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 #if 0
 
 /* find next element that has this name */
-static TreeElement *outliner_find_name(SpaceOutliner *soops, ListBase *lb, char *name, int flags,
-                                       TreeElement *prev, int *prevFound)
+static TreeElement *outliner_find_name(
+    SpaceOutliner *soops, ListBase *lb, char *name, int flags, TreeElement *prev, int *prevFound)
 {
   TreeElement *te, *tes;
 
@@ -1318,16 +1318,18 @@ static TreeElement *outliner_find_name(SpaceOutliner *soops, ListBase *lb, char 
     }
 
     tes = outliner_find_name(soops, &te->subtree, name, flags, prev, prevFound);
-    if (tes) return tes;
+    if (tes)
+      return tes;
   }
 
   /* nothing valid found */
   return NULL;
 }
 
-static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOutliner *soops, int again, int flags)
+static void outliner_find_panel(
+    Scene *UNUSED(scene), ARegion *ar, SpaceOutliner *soops, int again, int flags)
 {
-  ReportList *reports = NULL; // CTX_wm_reports(C);
+  ReportList *reports = NULL;  // CTX_wm_reports(C);
   TreeElement *te = NULL;
   TreeElement *last_find;
   TreeStoreElem *tselem;
@@ -1354,10 +1356,10 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOutliner
   else {
     /* pop up panel - no previous, or user didn't want search after previous */
     name[0] = '\0';
-// XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) {
-//          te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
-//      }
-//      else return; /* XXX RETURN! XXX */
+    // XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) {
+    //          te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
+    //      }
+    //      else return; /* XXX RETURN! XXX */
   }
 
   /* do selection and reveal */
@@ -1374,7 +1376,8 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOutliner
 
       /* make te->ys center of view */
       ytop = (int)(te->ys + BLI_rctf_size_y(&ar->v2d.mask) / 2);
-      if (ytop > 0) ytop = 0;
+      if (ytop > 0)
+        ytop = 0;
       ar->v2d.cur.ymax = (float)ytop;
       ar->v2d.cur.ymin = (float)(ytop - BLI_rctf_size_y(&ar->v2d.mask));
 

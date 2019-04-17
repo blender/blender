@@ -134,8 +134,8 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*poly_nors)[3], float (*r_ver
 #if 0
           add_v3_v3v3(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
           normalize_v3_length(
-                  edge_normal,
-                  angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
+              edge_normal,
+              angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
 #else
           mid_v3_v3v3_angle_weighted(
               edge_normal, poly_nors[edge_ref->p1], poly_nors[edge_ref->p2]);
@@ -455,8 +455,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       ml2 = mloop + mp->loopstart + mesh->totloop;
 #if 0
       for (j = 0; j < mp->totloop; j++) {
-        CustomData_copy_data(&mesh->ldata, &result->ldata, mp->loopstart + j,
-                             mp->loopstart + (loop_end - j) + mesh->totloop, 1);
+        CustomData_copy_data(&mesh->ldata,
+                             &result->ldata,
+                             mp->loopstart + j,
+                             mp->loopstart + (loop_end - j) + mesh->totloop,
+                             1);
       }
 #else
       /* slightly more involved, keep the first vertex the same for the copy,

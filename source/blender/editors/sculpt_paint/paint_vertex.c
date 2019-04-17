@@ -565,9 +565,11 @@ static void do_weight_paint_normalize_all_locked_try_active(MDeformVert *dvert,
 }
 
 #if 0 /* UNUSED */
-static bool has_unselected_unlocked_bone_group(
-        int defbase_tot, bool *defbase_sel, int selected,
-        const bool *lock_flags, const bool *vgroup_validmap)
+static bool has_unselected_unlocked_bone_group(int defbase_tot,
+                                               bool *defbase_sel,
+                                               int selected,
+                                               const bool *lock_flags,
+                                               const bool *vgroup_validmap)
 {
   int i;
   if (defbase_tot == selected) {

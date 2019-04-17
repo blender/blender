@@ -275,8 +275,7 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
       /* loop over data selecting */
       switch (ale->type) {
 #if 0 /* XXX: Keyframes are not currently shown here */
-        case ANIMTYPE_GPDATABLOCK:
-        {
+        case ANIMTYPE_GPDATABLOCK: {
           bGPdata *gpd = ale->data;
           bGPDlayer *gpl;
           for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -478,8 +477,7 @@ static void region_select_action_keys(
       /* loop over data selecting */
       switch (ale->type) {
 #if 0 /* XXX: Keyframes are not currently shown here */
-        case ANIMTYPE_GPDATABLOCK:
-        {
+        case ANIMTYPE_GPDATABLOCK: {
           bGPdata *gpd = ale->data;
           bGPDlayer *gpl;
           for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {

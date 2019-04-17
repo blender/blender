@@ -1036,22 +1036,22 @@ static void set_filter_seq(Scene *scene)
   Sequence *seq;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
+  if (ed == NULL)
+    return;
 
-  if (ed == NULL) return;
+  if (okee("Set Deinterlace") == 0)
+    return;
 
-  if (okee("Set Deinterlace") == 0) return;
-
-  SEQP_BEGIN (ed, seq)
-  {
+  SEQP_BEGIN (ed, seq) {
     if (seq->flag & SELECT) {
       if (seq->type == SEQ_TYPE_MOVIE) {
         seq->flag |= SEQ_FILTERY;
         BKE_sequence_reload_new_file(scene, seq, false);
         BKE_sequence_calc(scene, seq);
       }
-
     }
-  } SEQ_END;
+  }
+  SEQ_END;
 }
 #endif
 
@@ -1228,7 +1228,8 @@ bool sequencer_edit_poll(bContext *C)
 bool sequencer_strip_poll(bContext *C)
 {
   Editing *ed;
-  return (((ed = BKE_sequencer_editing_get(CTX_data_scene(C), false)) != NULL) && (ed->act_seq != NULL));
+  return (((ed = BKE_sequencer_editing_get(CTX_data_scene(C), false)) != NULL) &&
+          (ed->act_seq != NULL));
 }
 #endif
 
@@ -2886,9 +2887,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
   /* Apply aspect, dosnt need to be that accurate */
   imgwidth = (int)(imgwidth * (scene->r.xasp / scene->r.yasp));
 
-  if (((imgwidth >= width) || (imgheight >= height)) &&
-      ((width > 0) && (height > 0)))
-  {
+  if (((imgwidth >= width) || (imgheight >= height)) && ((width > 0) && (height > 0))) {
     /* Find the zoom value that will fit the image in the image space */
     zoomX = ((float)width) / ((float)imgwidth);
     zoomY = ((float)height) / ((float)imgheight);
@@ -2965,10 +2964,14 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 
 #if 0
 static const EnumPropertyItem view_type_items[] = {
-  {SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
-  {SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
-  {SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
-  {0, NULL, 0, NULL, NULL},
+    {SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
+    {SEQ_VIEW_PREVIEW, "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
+    {SEQ_VIEW_SEQUENCE_PREVIEW,
+     "SEQUENCER_PREVIEW",
+     ICON_SEQ_SEQUENCER,
+     "Sequencer and Image Preview",
+     ""},
+    {0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -3169,7 +3172,8 @@ static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
   Sequence *parent = NULL;
   Sequence *seq;
 
-  if (ed == NULL) return NULL;
+  if (ed == NULL)
+    return NULL;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if ((seq != child) && seq_is_parent(seq, child)) {

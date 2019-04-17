@@ -417,7 +417,8 @@ static void paint_undosys_step_decode_restore_ids(ImageUndoStep *us)
 {
   ID *image_prev[2] = {NULL};
   for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
-    tile->ima = (Image *)BKE_undosys_ID_map_lookup_with_prev(us->id_map, &tile->ima->id, image_prev);
+    tile->ima = (Image *)BKE_undosys_ID_map_lookup_with_prev(
+        us->id_map, &tile->ima->id, image_prev);
   }
 }
 #endif

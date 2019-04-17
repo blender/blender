@@ -165,11 +165,7 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 #if 0 /* for future high quality blur */
           /* Future matrix */
           eevee_motion_blur_camera_get_matrix_at_time(
-                  scene,
-                  ar, rv3d, v3d,
-                  ob_camera_eval,
-                  ctime + delta,
-                  effects->future_world_to_ndc);
+              scene, ar, rv3d, v3d, ob_camera_eval, ctime + delta, effects->future_world_to_ndc);
 #endif
           invert_m4_m4(effects->current_ndc_to_world, effects->current_world_to_ndc);
         }

@@ -1448,11 +1448,14 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 
 #if 0 /* gives python decoding errors while generating docs :( */
         char error_str[256];
-        BLI_snprintf(error_str, sizeof(error_str),
+        BLI_snprintf(error_str,
+                     sizeof(error_str),
                      "RNA Warning: Current value \"%d\" "
                      "matches no enum in '%s', '%s', '%s'",
-                     val, RNA_struct_identifier(ptr->type),
-                     ptr_name, RNA_property_identifier(prop));
+                     val,
+                     RNA_struct_identifier(ptr->type),
+                     ptr_name,
+                     RNA_property_identifier(prop));
 
         PyErr_Warn(PyExc_RuntimeWarning, error_str);
 #endif
@@ -1464,8 +1467,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 
       ret = PyUnicode_FromString("");
 #if 0
-      PyErr_Format(PyExc_AttributeError,
-                   "RNA Error: Current value \"%d\" matches no enum", val);
+      PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
       ret = NULL;
 #endif
     }
@@ -2807,14 +2809,18 @@ static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self,
       Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
       /* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
-      if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) return NULL;
-      if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop))    return NULL;
+      if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start))
+        return NULL;
+      if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop))
+        return NULL;
 
       if (start < 0 || stop < 0) {
         /* only get the length for negative values */
         Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
-        if (start < 0) start += len;
-        if (stop  < 0) stop  += len;
+        if (start < 0)
+          start += len;
+        if (stop < 0)
+          stop += len;
       }
 
       if (stop - start <= 0) {
@@ -4262,9 +4268,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
   }
   else {
 #if 0
-    PyErr_Format(PyExc_AttributeError,
-                 "bpy_struct: attribute \"%.200s\" not found",
-                 name);
+    PyErr_Format(PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" not found", name);
     ret = NULL;
 #endif
     /* Include this in case this instance is a subtype of a python class
@@ -5113,14 +5117,14 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
       array_tot = RNA_property_array_length(&self->ptr, self->prop);
     }
 
-
     target_tot = array_tot * (*attr_tot);
 
     /* rna_access.c - rna_raw_access(...) uses this same method */
     if (target_tot != (*tot)) {
       PyErr_Format(PyExc_TypeError,
                    "foreach_get(attr, sequence) sequence length mismatch given %d, needed %d",
-                   *tot, target_tot);
+                   *tot,
+                   target_tot);
       return -1;
     }
 #endif
@@ -5482,11 +5486,14 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 /* experimental */
 /* unused for now */
 #if 0
-  {"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
-  {"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
+    {"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
+    {"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
 
-  {"callback_add", (PyCFunction)pyrna_callback_classmethod_add, METH_VARARGS | METH_CLASS, NULL},
-  {"callback_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_CLASS, NULL},
+    {"callback_add", (PyCFunction)pyrna_callback_classmethod_add, METH_VARARGS | METH_CLASS, NULL},
+    {"callback_remove",
+     (PyCFunction)pyrna_callback_classmethod_remove,
+     METH_VARARGS | METH_CLASS,
+     NULL},
 #endif
     {NULL, NULL, 0, NULL},
 };
@@ -5852,7 +5859,10 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
     int lineno;
     PyC_FileAndNum(&fn, &lineno);
     printf("pyrna_func_call > %.200s.%.200s : %.200s:%d\n",
-           RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), fn, lineno);
+           RNA_struct_identifier(self_ptr->type),
+           RNA_function_identifier(self_func),
+           fn,
+           lineno);
   }
 #endif
 
@@ -7090,8 +7100,8 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 
     /* always use O not N when calling, N causes refcount errors */
 #if 0
-    newclass = PyObject_CallFunction(metaclass, "s(O) {sss()}",
-                                     idname, py_base, "__module__", "bpy.types", "__slots__");
+    newclass = PyObject_CallFunction(
+        metaclass, "s(O) {sss()}", idname, py_base, "__module__", "bpy.types", "__slots__");
 #else
     {
       /* longhand of the call above */
@@ -8521,8 +8531,10 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 #if 0
   if (RNA_struct_py_type_get(srna)) {
     PyErr_Format(PyExc_ValueError,
-                 "register_class(...): %.200s's parent class %.200s is already registered, this is not allowed",
-                 ((PyTypeObject *)py_class)->tp_name, RNA_struct_identifier(srna));
+                 "register_class(...): %.200s's parent class %.200s is already registered, this "
+                 "is not allowed",
+                 ((PyTypeObject *)py_class)->tp_name,
+                 RNA_struct_identifier(srna));
     return NULL;
   }
 #endif

@@ -69,7 +69,7 @@ static void freeData(ModifierData *md)
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
-  const ParticleSystemModifierData *psmd = (const ParticleSystemModifierData *) md;
+  const ParticleSystemModifierData *psmd = (const ParticleSystemModifierData *)md;
 #endif
   ParticleSystemModifierData *tpsmd = (ParticleSystemModifierData *)target;
 
@@ -214,9 +214,12 @@ static void deformVerts(ModifierData *md,
 /* disabled particles in editmode for now, until support for proper evaluated mesh
  * updates is coded */
 #if 0
-static void deformVertsEM(
-        ModifierData *md, Object *ob, BMEditMesh *editData,
-        Mesh *mesh, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(ModifierData *md,
+                          Object *ob,
+                          BMEditMesh *editData,
+                          Mesh *mesh,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
   const bool do_temp_mesh = (mesh == NULL);
   if (do_temp_mesh) {

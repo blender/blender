@@ -204,7 +204,8 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
   bNode *node = node_v;
   Tex *tex;
 
-  if (node->menunr < 1) return;
+  if (node->menunr < 1)
+    return;
 
   if (node->id) {
     id_us_min(node->id);

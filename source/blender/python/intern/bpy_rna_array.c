@@ -283,8 +283,12 @@ static int validate_array_length(PyObject *rvalue,
         /* BLI_snprintf(error_str, error_str_size,
          *              "%s.%s: array length cannot be changed to %d",
          *              RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
-        PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d",
-                     error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
+        PyErr_Format(PyExc_ValueError,
+                     "%s %s.%s: array length cannot be changed to %d",
+                     error_prefix,
+                     RNA_struct_identifier(ptr->type),
+                     RNA_property_identifier(prop),
+                     tot);
         return -1;
       }
 #else
@@ -883,7 +887,10 @@ PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 #if 0
 /* XXX this is not used (and never will?) */
 /* Given an array property, creates an N-dimensional tuple of values. */
-static PyObject *pyrna_py_from_array_internal(PointerRNA *ptr, PropertyRNA *prop, int dim, int *index)
+static PyObject *pyrna_py_from_array_internal(PointerRNA *ptr,
+                                              PropertyRNA *prop,
+                                              int dim,
+                                              int *index)
 {
   PyObject *tuple;
   int i, len;

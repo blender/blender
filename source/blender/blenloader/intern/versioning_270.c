@@ -1156,9 +1156,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
           /* Copy over the settings stored in the GP datablock linked to the scene, for minimal disruption */
           ts->gpencil_v3d_align = 0;
 
-          if (gpd->flag & GP_DATA_VIEWALIGN)    ts->gpencil_v3d_align |= GP_PROJECT_VIEWSPACE;
-          if (gpd->flag & GP_DATA_DEPTH_VIEW)   ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_VIEW;
-          if (gpd->flag & GP_DATA_DEPTH_STROKE) ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE;
+          if (gpd->flag & GP_DATA_VIEWALIGN)
+            ts->gpencil_v3d_align |= GP_PROJECT_VIEWSPACE;
+          if (gpd->flag & GP_DATA_DEPTH_VIEW)
+            ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_VIEW;
+          if (gpd->flag & GP_DATA_DEPTH_STROKE)
+            ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE;
 
           if (gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS)
             ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE_ENDPOINTS;

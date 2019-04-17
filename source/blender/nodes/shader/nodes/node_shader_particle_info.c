@@ -27,7 +27,7 @@ static bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, 0, "Lifetime"},
     {SOCK_VECTOR, 0, "Location"},
 #if 0 /* quaternion sockets not yet supported */
-  { SOCK_QUATERNION,  0, "Rotation" },
+    {SOCK_QUATERNION, 0, "Rotation"},
 #endif
     {SOCK_FLOAT, 0, "Size"},
     {SOCK_VECTOR, 0, "Velocity"},

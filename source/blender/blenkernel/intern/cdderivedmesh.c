@@ -1149,9 +1149,10 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 void CDDM_calc_normals(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  float (*poly_nors)[3];
+  float(*poly_nors)[3];
 
-  if (dm->numVertData == 0) return;
+  if (dm->numVertData == 0)
+    return;
 
   /* we don't want to overwrite any referenced layers */
   cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
@@ -1162,8 +1163,14 @@ void CDDM_calc_normals(DerivedMesh *dm)
     poly_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, dm->numPolyData);
   }
 
-  BKE_mesh_calc_normals_poly(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-                                 dm->numLoopData, dm->numPolyData, poly_nors, false);
+  BKE_mesh_calc_normals_poly(cddm->mvert,
+                             dm->numVertData,
+                             CDDM_get_loops(dm),
+                             CDDM_get_polys(dm),
+                             dm->numLoopData,
+                             dm->numPolyData,
+                             poly_nors,
+                             false);
 
   cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }

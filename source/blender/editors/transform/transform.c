@@ -6731,7 +6731,8 @@ static BMLoop *get_next_loop(
           cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
 #if 0
           /* rough guess, we can  do better! */
-          normalize_v3_length(vec_accum, (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
+          normalize_v3_length(vec_accum,
+                              (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
 #else
           /* be clever, check the opposite ngon edge to slide into.
            * this gives best results */

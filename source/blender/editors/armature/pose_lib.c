@@ -1834,9 +1834,15 @@ void POSELIB_OT_browse_interactive(wmOperatorType *ot)
   // XXX: percentage vs factor?
   /* not used yet */
 #if 0
-  RNA_def_float_factor(
-          ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor",
-          "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f);
+  RNA_def_float_factor(ot->srna,
+                       "blend_factor",
+                       1.0f,
+                       0.0f,
+                       1.0f,
+                       "Blend Factor",
+                       "Amount that the pose is applied on top of the existing poses",
+                       0.0f,
+                       1.0f);
 #endif
 }
 

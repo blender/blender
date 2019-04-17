@@ -965,9 +965,7 @@ static void connect_frames(SkinOutput *so, BMVert *frame1[4], BMVert *frame2[4])
     /* simple method, works mostly */
     float p[3], no[3];
     sub_v3_v3v3(p, q[3][0]->co, q[0][0]->co);
-    normal_quad_v3(no,
-            q[0][0]->co, q[0][1]->co,
-            q[0][2]->co, q[0][3]->co);
+    normal_quad_v3(no, q[0][0]->co, q[0][1]->co, q[0][2]->co, q[0][3]->co);
     swap = dot_v3v3(no, p) > 0;
   }
 #else

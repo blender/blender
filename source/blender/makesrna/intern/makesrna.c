@@ -1382,18 +1382,33 @@ static char *rna_def_property_lookup_int_func(FILE *f,
 
   if (dp->dnalengthname || dp->dnalengthfixed) {
     if (dp->dnalengthname)
-      fprintf(f, "\n    rna_array_lookup_int(ptr, &RNA_%s, data->%s, sizeof(data->%s[0]), data->%s, index);\n",
-              item_type, dp->dnaname, dp->dnaname, dp->dnalengthname);
+      fprintf(f,
+              "\n    rna_array_lookup_int(ptr, &RNA_%s, data->%s, sizeof(data->%s[0]), data->%s, "
+              "index);\n",
+              item_type,
+              dp->dnaname,
+              dp->dnaname,
+              dp->dnalengthname);
     else
-      fprintf(f, "\n    rna_array_lookup_int(ptr, &RNA_%s, data->%s, sizeof(data->%s[0]), %d, index);\n",
-              item_type, dp->dnaname, dp->dnaname, dp->dnalengthfixed);
+      fprintf(
+          f,
+          "\n    rna_array_lookup_int(ptr, &RNA_%s, data->%s, sizeof(data->%s[0]), %d, index);\n",
+          item_type,
+          dp->dnaname,
+          dp->dnaname,
+          dp->dnalengthfixed);
   }
   else {
     if (dp->dnapointerlevel == 0)
-      fprintf(f, "\n    return rna_listbase_lookup_int(ptr, &RNA_%s, &data->%s, index);\n",
-              item_type, dp->dnaname);
+      fprintf(f,
+              "\n    return rna_listbase_lookup_int(ptr, &RNA_%s, &data->%s, index);\n",
+              item_type,
+              dp->dnaname);
     else
-      fprintf(f, "\n    return rna_listbase_lookup_int(ptr, &RNA_%s, data->%s, index);\n", item_type, dp->dnaname);
+      fprintf(f,
+              "\n    return rna_listbase_lookup_int(ptr, &RNA_%s, data->%s, index);\n",
+              item_type,
+              dp->dnaname);
   }
 #endif
 
@@ -2275,13 +2290,23 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDe
       CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)dp->prop;
 
       if (cprop->type)
-        fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", (const char *)cprop->type, srna->identifier,
-                prop->identifier, (cprop->length ? "true" : "false"),
-                (cprop->lookupint ? "true" : "false"), (cprop->lookupstring ? "true" : "false"));
+        fprintf(f,
+                "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)",
+                (const char *)cprop->type,
+                srna->identifier,
+                prop->identifier,
+                (cprop->length ? "true" : "false"),
+                (cprop->lookupint ? "true" : "false"),
+                (cprop->lookupstring ? "true" : "false"));
       else
-        fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", "UnknownType", srna->identifier,
-                prop->identifier, (cprop->length ? "true" : "false"),
-                (cprop->lookupint ? "true" : "false"), (cprop->lookupstring ? "true" : "false"));
+        fprintf(f,
+                "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)",
+                "UnknownType",
+                srna->identifier,
+                prop->identifier,
+                (cprop->length ? "true" : "false"),
+                (cprop->lookupint ? "true" : "false"),
+                (cprop->lookupstring ? "true" : "false"));
 #endif
       break;
     }

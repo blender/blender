@@ -676,7 +676,10 @@ static float frontface(const Brush *br,
 
 #if 0
 
-static bool sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float location[3], const float area_no[3])
+static bool sculpt_brush_test_cyl(SculptBrushTest *test,
+                                  float co[3],
+                                  float location[3],
+                                  const float area_no[3])
 {
   if (sculpt_brush_test_sphere_fast(test, co)) {
     float t1[3], t2[3], t3[3], dist;

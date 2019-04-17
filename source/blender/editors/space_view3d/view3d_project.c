@@ -498,7 +498,10 @@ void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], 
 
 /* very similar to ED_view3d_win_to_3d() but has no advantage, de-duplicating */
 #if 0
-bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval[2], const bool do_fallback)
+bool view3d_get_view_aligned_coordinate(ARegion *ar,
+                                        float fp[3],
+                                        const int mval[2],
+                                        const bool do_fallback)
 {
   RegionView3D *rv3d = ar->regiondata;
   float dvec[3];
@@ -508,8 +511,7 @@ bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval
   ret = ED_view3d_project_int_global(ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
 
   if (ret == V3D_PROJ_RET_OK) {
-    const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
-                             (float)(mval_cpy[1] - mval[1])};
+    const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]), (float)(mval_cpy[1] - mval[1])};
     const float zfac = ED_view3d_calc_zfac(rv3d, fp, NULL);
     ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
     sub_v3_v3(fp, dvec);

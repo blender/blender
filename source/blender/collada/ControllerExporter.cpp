@@ -123,7 +123,8 @@ void ControllerExporter::operator()(Object *ob)
 
 bool ArmatureExporter::already_written(Object *ob_arm)
 {
-  return std::find(written_armatures.begin(), written_armatures.end(), ob_arm) != written_armatures.end();
+  return std::find(written_armatures.begin(), written_armatures.end(), ob_arm) !=
+         written_armatures.end();
 }
 
 void ArmatureExporter::wrote(Object *ob_arm)
@@ -131,11 +132,13 @@ void ArmatureExporter::wrote(Object *ob_arm)
   written_armatures.push_back(ob_arm);
 }
 
-void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<Object *>& objects, Scene *sce)
+void ArmatureExporter::find_objects_using_armature(Object *ob_arm,
+                                                   std::vector<Object *> &objects,
+                                                   Scene *sce)
 {
   objects.clear();
 
-  Base *base = (Base *) sce->base.first;
+  Base *base = (Base *)sce->base.first;
   while (base) {
     Object *ob = base->object;
 
@@ -174,10 +177,10 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 #if 0
   me->dvert :
 
-  typedef struct MDeformVert {
+      typedef struct MDeformVert {
     struct MDeformWeight *dw;
     int totweight;
-    int flag;   // flag only in use for weightpaint now
+    int flag;  // flag only in use for weightpaint now
   } MDeformVert;
 
   typedef struct MDeformWeight {

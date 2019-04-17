@@ -190,7 +190,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
     char *name = ob->id.name;
 #if 0
     if (G.debug & G_DEBUG_FREESTYLE) {
-      cout << "removing " << name[0] << name[1] << ":" << (name+2) << endl;
+      cout << "removing " << name[0] << name[1] << ":" << (name + 2) << endl;
     }
 #endif
     switch (ob->type) {
@@ -598,7 +598,8 @@ int BlenderStrokeRenderer::get_stroke_count() const
 void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 {
 #if 0
-  Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, (ViewLayer *)freestyle_scene->view_layers.first, OB_MESH);
+  Object *object_mesh = BKE_object_add(
+      freestyle_bmain, freestyle_scene, (ViewLayer *)freestyle_scene->view_layers.first, OB_MESH);
   DEG_relations_tag_update(freestyle_bmain);
 #else
   Object *object_mesh = NewMesh();

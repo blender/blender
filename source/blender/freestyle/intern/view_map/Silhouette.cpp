@@ -294,7 +294,7 @@ real FEdge::z_discontinuity() const
 #if 0
   real result;
   z_discontinuity_functor<SVertex> _functor;
-  Evaluate<SVertex, z_discontinuity_functor<SVertex> >(&_functor, iCombination, result);
+  Evaluate<SVertex, z_discontinuity_functor<SVertex>>(&_functor, iCombination, result);
 #endif
   Vec3r middle((_VertexB->point3d() - _VertexA->point3d()));
   middle /= 2;
@@ -306,7 +306,7 @@ real FEdge::z_discontinuity() const
 }
 
 #if 0
-float FEdge::local_average_depth(int iCombination ) const
+float FEdge::local_average_depth(int iCombination) const
 {
   float result;
   local_average_depth_functor<SVertex> functor;
@@ -315,7 +315,7 @@ float FEdge::local_average_depth(int iCombination ) const
   return result;
 }
 
-float FEdge::local_depth_variance(int iCombination ) const
+float FEdge::local_depth_variance(int iCombination) const
 {
   float result;
 
@@ -326,7 +326,7 @@ float FEdge::local_depth_variance(int iCombination ) const
   return result;
 }
 
-real FEdge::local_average_density( float sigma, int iCombination) const
+real FEdge::local_average_density(float sigma, int iCombination) const
 {
   float result;
 
@@ -337,7 +337,7 @@ real FEdge::local_average_density( float sigma, int iCombination) const
   return result;
 }
 
-Vec3r FEdge::normal(int& oException /* = Exception::NO_EXCEPTION */)
+Vec3r FEdge::normal(int &oException /* = Exception::NO_EXCEPTION */)
 {
   Vec3r Na = _VertexA->normal(oException);
   if (oException != Exception::NO_EXCEPTION)
@@ -352,7 +352,7 @@ Vec3r FEdge::curvature2d_as_vector(int iCombination) const
 {
   Vec3r result;
   curvature2d_as_vector_functor<SVertex> _functor;
-  Evaluate<Vec3r, curvature2d_as_vector_functor<SVertex> >(&_functor, iCombination, result);
+  Evaluate<Vec3r, curvature2d_as_vector_functor<SVertex>>(&_functor, iCombination, result);
   return result;
 }
 
@@ -360,7 +360,7 @@ real FEdge::curvature2d_as_angle(int iCombination) const
 {
   real result;
   curvature2d_as_angle_functor<SVertex> _functor;
-  Evaluate<real, curvature2d_as_angle_functor<SVertex> >(&_functor, iCombination, result);
+  Evaluate<real, curvature2d_as_angle_functor<SVertex>>(&_functor, iCombination, result);
   return result;
 }
 #endif

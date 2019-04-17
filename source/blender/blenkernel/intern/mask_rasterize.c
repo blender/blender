@@ -1212,7 +1212,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 /* 2D ray test */
 #if 0
 static float maskrasterize_layer_z_depth_tri(const float pt[2],
-                                             const float v1[3], const float v2[3], const float v3[3])
+                                             const float v1[3],
+                                             const float v2[3],
+                                             const float v3[3])
 {
   float w[3];
   barycentric_weights_v2(v1, v2, v3, pt, w);
@@ -1240,10 +1242,7 @@ static float maskrasterize_layer_isect(unsigned int *face,
 
 #if 0
     /* not essential but avoids unneeded extra lookups */
-    if ((cos[0][2] < dist_orig) ||
-        (cos[1][2] < dist_orig) ||
-        (cos[2][2] < dist_orig))
-    {
+    if ((cos[0][2] < dist_orig) || (cos[1][2] < dist_orig) || (cos[2][2] < dist_orig)) {
       if (isect_point_tri_v2_cw(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
         /* we know all tris are close for now */
         return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);

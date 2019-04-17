@@ -89,8 +89,7 @@ static void workspace_change_update(WorkSpace *workspace_new,
   /* needs to be done before changing mode! (to ensure right context) */
   UNUSED_VARS(workspace_old, workspace_new, C, wm);
 #if 0
-  Object *ob_act = CTX_data_active_object(C)
-  eObjectMode mode_old = workspace_old->object_mode;
+  Object *ob_act = CTX_data_active_object(C) eObjectMode mode_old = workspace_old->object_mode;
   eObjectMode mode_new = workspace_new->object_mode;
 
   if (mode_old != mode_new) {

@@ -64,7 +64,7 @@ static void initData(ModifierData *md)
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
-  const SubsurfModifierData *smd = (const SubsurfModifierData *) md;
+  const SubsurfModifierData *smd = (const SubsurfModifierData *)md;
 #endif
   SubsurfModifierData *tsmd = (SubsurfModifierData *)target;
 

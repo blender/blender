@@ -30,9 +30,9 @@ using namespace std;
 namespace Freestyle {
 
 #if 0
-ImagePyramid::ImagePyramid(const GrayImage& level0, unsigned nbLevels)
+ImagePyramid::ImagePyramid(const GrayImage &level0, unsigned nbLevels)
 {
-  BuildPyramid(level0,nbLevels);
+  BuildPyramid(level0, nbLevels);
 }
 #endif
 

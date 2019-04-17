@@ -1241,7 +1241,7 @@ static void icon_preview_endjob(void *customdata)
         if (prv_img->gputexture[i]) {
           GPU_texture_free(prv_img->gputexture[i]);
           prv_img->gputexture[i] = NULL;
-          WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ip->id);
+          WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ip->id);
         }
       }
     }

@@ -840,7 +840,8 @@ static char *code_generate_fragment(GPUMaterial *material,
   BLI_dynstr_free(ds);
 
 #if 0
-  if (G.debug & G_DEBUG) printf("%s\n", code);
+  if (G.debug & G_DEBUG)
+    printf("%s\n", code);
 #endif
 
   return code;
@@ -1107,7 +1108,8 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
   BLI_dynstr_free(ds);
 
 #if 0
-  if (G.debug & G_DEBUG) printf("%s\n", code);
+  if (G.debug & G_DEBUG)
+    printf("%s\n", code);
 #endif
 
   return code;

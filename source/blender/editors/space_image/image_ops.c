@@ -3403,14 +3403,14 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     {
       ScrArea *sa, *cur = curarea;
 
-      node_curvemap_sample(fp);   /* sends global to node editor */
+      node_curvemap_sample(fp); /* sends global to node editor */
       for (sa = G.curscreen->areabase.first; sa; sa = sa->next) {
         if (sa->spacetype == SPACE_NODE) {
           areawinset(sa->win);
           scrarea_do_windraw(sa);
         }
       }
-      node_curvemap_sample(NULL);     /* clears global in node editor */
+      node_curvemap_sample(NULL); /* clears global in node editor */
       curarea = cur;
     }
 #endif
@@ -3650,8 +3650,12 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 
   BKE_image_all_free_anim_ibufs(scene->r.cfra);
   ntreeCompositTagAnimated(scene->nodetree);
-  ntreeCompositExecTree(scene->nodetree, &scene->r, 0, scene->r.cfra != rcd->old_cfra,
-                        &scene->view_settings, &scene->display_settings);  /* 1 is no previews */
+  ntreeCompositExecTree(scene->nodetree,
+                        &scene->r,
+                        0,
+                        scene->r.cfra != rcd->old_cfra,
+                        &scene->view_settings,
+                        &scene->display_settings); /* 1 is no previews */
 
   ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -3714,7 +3718,8 @@ static int image_record_composite_exec(bContext *C, wmOperator *op)
   if (!image_record_composite_init(C, op))
     return OPERATOR_CANCELLED;
 
-  while (image_record_composite_apply(C, op)) {}
+  while (image_record_composite_apply(C, op)) {
+  }
 
   image_record_composite_exit(C, op);
 

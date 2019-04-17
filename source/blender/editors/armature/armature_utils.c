@@ -610,7 +610,7 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
         print_m4("premat", premat);
         print_m4("postmat", postmat);
         print_m4("difmat", difmat);
-        printf("Roll = %f\n",  RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
+        printf("Roll = %f\n", RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
 #endif
 
         curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);

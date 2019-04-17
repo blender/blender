@@ -3128,7 +3128,8 @@ static void mesh_create_loop_uv_and_tan(MeshRenderData *rdata, GPUVertBuf *vbo)
   for (uint i = 0; i < uv_len; i++) {
     const char *attr_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
 #if 0 /* these are clamped. Maybe use them as an option in the future */
-    uv_id[i] = GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_I16, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    uv_id[i] = GPU_vertformat_attr_add(
+        &format, attr_name, GPU_COMP_I16, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
 #else
     uv_id[i] = GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 #endif
@@ -4433,8 +4434,10 @@ BLI_INLINE void edit_uv_preprocess_stretch_angle(float (*auv)[2],
 }
 
 #if 0 /* here for reference, this is done in shader now. */
-BLI_INLINE float edit_uv_get_loop_stretch_angle(
-        const float auv0[2], const float auv1[2], const float av0[3], const float av1[3])
+BLI_INLINE float edit_uv_get_loop_stretch_angle(const float auv0[2],
+                                                const float auv1[2],
+                                                const float av0[3],
+                                                const float av1[3])
 {
   float uvang = angle_normalized_v2v2(auv0, auv1);
   float ang = angle_normalized_v3v3(av0, av1);

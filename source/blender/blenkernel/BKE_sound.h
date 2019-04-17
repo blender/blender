@@ -61,7 +61,10 @@ struct bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepat
 #if 0
 struct bSound *BKE_sound_new_buffer(struct Main *bmain, struct bSound *source);
 
-struct bSound *BKE_sound_new_limiter(struct Main *bmain, struct bSound *source, float start, float end);
+struct bSound *BKE_sound_new_limiter(struct Main *bmain,
+                                     struct bSound *source,
+                                     float start,
+                                     float end);
 #endif
 
 void BKE_sound_cache(struct bSound *sound);

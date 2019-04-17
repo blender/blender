@@ -65,11 +65,11 @@ static const EnumPropertyItem DT_layer_items[] = {
      "Vertex Group(s)",
      "Transfer active or all vertex groups"},
 #if 0 /* XXX For now, would like to finish/merge work from 2014 gsoc first. */
-  {DT_TYPE_SHAPEKEY, "SHAPEKEYS", 0, "Shapekey(s)", "Transfer active or all shape keys"},
+    {DT_TYPE_SHAPEKEY, "SHAPEKEYS", 0, "Shapekey(s)", "Transfer active or all shape keys"},
 #endif
 #if 0 /* XXX When SkinModifier is enabled,
         * it seems to erase its own CD_MVERT_SKIN layer from final DM :( */
-  {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
+    {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
     {0, "", 0, "Edge Data", ""},

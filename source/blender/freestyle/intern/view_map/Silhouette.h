@@ -333,12 +333,12 @@ class SVertex : public Interface0D {
     _directionFredo = d;
   }
 
-  real curvatureFredo ()
+  real curvatureFredo()
   {
     return _curvatureFredo;
   }
 
-  const Vec2r directionFredo ()
+  const Vec2r directionFredo()
   {
     return _directionFredo;
   }
@@ -657,7 +657,7 @@ class FEdge : public Interface1D {
   int invisibility() const;
 
 #if 0
-  inline const vector<Polygon3r>& occluders() const
+  inline const vector<Polygon3r> &occluders() const
   {
     return _Occluders;
   }
@@ -765,7 +765,7 @@ class FEdge : public Interface1D {
   }
 
 #if 0
-  inline void AddOccluder(Polygon3r& iPolygon)
+  inline void AddOccluder(Polygon3r &iPolygon)
   {
     _Occluders.push_back(iPolygon);
   }
@@ -783,12 +783,12 @@ class FEdge : public Interface1D {
     _hasVisibilityPoint = iBool;
   }
 
-  inline void setVisibilityPointA(const Vec3r& iPoint)
+  inline void setVisibilityPointA(const Vec3r &iPoint)
   {
     _VisibilityPointA = iPoint;
   }
 
-  inline void setVisibilityPointB(const Vec3r& iPoint)
+  inline void setVisibilityPointB(const Vec3r &iPoint)
   {
     _VisibilityPointB = iPoint;
   }
@@ -891,7 +891,7 @@ class FEdge : public Interface1D {
   const SShape *occluded_shape() const;
 
 #if 0
-  inline const bool  occludee_empty() const
+  inline const bool occludee_empty() const
   {
     return _occludeeEmpty;
   }
@@ -904,7 +904,9 @@ class FEdge : public Interface1D {
   inline float local_average_depth(int iCombination = 0) const;
   inline float local_depth_variance(int iCombination = 0) const;
   inline real local_average_density(float sigma = 2.3f, int iCombination = 0) const;
-  inline Vec3r shaded_color(int iCombination = 0) const {}
+  inline Vec3r shaded_color(int iCombination = 0) const
+  {
+  }
 #endif
 
   int viewedge_nature() const;

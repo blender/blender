@@ -389,13 +389,11 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
   }
 
 #if 0
-  png_set_filter(png_ptr, 0,
-                 PNG_FILTER_NONE  | PNG_FILTER_VALUE_NONE  |
-                 PNG_FILTER_SUB   | PNG_FILTER_VALUE_SUB   |
-                 PNG_FILTER_UP    | PNG_FILTER_VALUE_UP    |
-                 PNG_FILTER_AVG   | PNG_FILTER_VALUE_AVG   |
-                 PNG_FILTER_PAETH | PNG_FILTER_VALUE_PAETH |
-                 PNG_ALL_FILTERS);
+  png_set_filter(png_ptr,
+                 0,
+                 PNG_FILTER_NONE | PNG_FILTER_VALUE_NONE | PNG_FILTER_SUB | PNG_FILTER_VALUE_SUB |
+                     PNG_FILTER_UP | PNG_FILTER_VALUE_UP | PNG_FILTER_AVG | PNG_FILTER_VALUE_AVG |
+                     PNG_FILTER_PAETH | PNG_FILTER_VALUE_PAETH | PNG_ALL_FILTERS);
 #endif
 
   png_set_compression_level(png_ptr, compression);

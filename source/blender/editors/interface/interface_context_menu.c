@@ -655,12 +655,16 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 #if 0 /* Disabled for now. */
           ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
           uiItemFullO_ptr(
-                  layout, ot, "Overrides Type", ICON_NONE,
-                  NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+              layout, ot, "Overrides Type", ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
           RNA_boolean_set(&op_ptr, "all", true);
-          uiItemFullO_ptr(
-                  layout, ot, "Single Override Type", ICON_NONE,
-                  NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+          uiItemFullO_ptr(layout,
+                          ot,
+                          "Single Override Type",
+                          ICON_NONE,
+                          NULL,
+                          WM_OP_INVOKE_DEFAULT,
+                          0,
+                          &op_ptr);
           RNA_boolean_set(&op_ptr, "all", false);
 #endif
           uiItemBooleanO(layout,
@@ -678,9 +682,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
         }
         else {
 #if 0 /* Disabled for now. */
-          uiItemFullO(
-                  layout, "UI_OT_override_type_set_button", "Override Type", ICON_NONE,
-                  NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+          uiItemFullO(layout,
+                      "UI_OT_override_type_set_button",
+                      "Override Type",
+                      ICON_NONE,
+                      NULL,
+                      WM_OP_INVOKE_DEFAULT,
+                      0,
+                      &op_ptr);
           RNA_boolean_set(&op_ptr, "all", false);
 #endif
           uiItemBooleanO(layout,
@@ -896,9 +905,15 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     if (kmi) {
       if (ISKEYBOARD(kmi->type)) {
 #if 0 /* would rather use a block but, but gets weirdly positioned... */
-        uiDefBlockBut(
-                block, menu_change_shortcut, but, "Change Shortcut",
-                0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
+        uiDefBlockBut(block,
+                      menu_change_shortcut,
+                      but,
+                      "Change Shortcut",
+                      0,
+                      0,
+                      uiLayoutGetWidth(layout),
+                      UI_UNIT_Y,
+                      "");
 #endif
 
         but2 = uiDefIconTextBut(block,
@@ -1005,9 +1020,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
       /* XXX inactive option, not for public! */
 #if 0
-      uiItemFullO(
-              layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE,
-              NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr_props);
+      uiItemFullO(layout,
+                  "WM_OT_doc_edit",
+                  "Submit Description",
+                  ICON_NONE,
+                  NULL,
+                  WM_OP_INVOKE_DEFAULT,
+                  0,
+                  &ptr_props);
       RNA_string_set(&ptr_props, "doc_id", buf);
       RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 #endif

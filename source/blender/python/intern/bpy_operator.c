@@ -298,9 +298,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
     {
       /* no props */
       if (kw != NULL) {
-        PyErr_Format(PyExc_AttributeError,
-                     "Operator \"%s\" does not take any args",
-                     opname);
+        PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
         return NULL;
       }
 

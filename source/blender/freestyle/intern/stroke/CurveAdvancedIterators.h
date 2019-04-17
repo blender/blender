@@ -66,7 +66,7 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
   typedef __point_iterator<CurvePoint_const_traits> const_iterator;
 
 #if 0
-  typedef Vertex vertex_type ;
+  typedef Vertex vertex_type;
   typedef vertex_container_iterator vertex_iterator_type;
   typedef CurvePoint<Vertex> Point;
   typedef Point point_type;
@@ -76,7 +76,8 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
 #  if defined(__GNUC__) && (__GNUC__ < 3)
   typedef bidirectional_iterator<CurvePoint<Vertex>, ptrdiff_t> bidirectional_point_iterator;
 #  else
-  typedef iterator<bidirectional_iterator_tag, CurvePoint<Vertex>, ptrdiff_t> bidirectional_point_iterator;
+  typedef iterator<bidirectional_iterator_tag, CurvePoint<Vertex>, ptrdiff_t>
+      bidirectional_point_iterator;
 #  endif
 #endif
   friend class Curve;

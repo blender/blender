@@ -75,11 +75,11 @@ ArmatureImporter::~ArmatureImporter()
 #if 0
 JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 {
-  const COLLADAFW::UniqueId& joint_id = node->getUniqueId();
+  const COLLADAFW::UniqueId &joint_id = node->getUniqueId();
 
   if (joint_id_to_joint_index_map.find(joint_id) == joint_id_to_joint_index_map.end()) {
-    fprintf(stderr, "Cannot find a joint index by joint id for %s.\n",
-            node->getOriginalId().c_str());
+    fprintf(
+        stderr, "Cannot find a joint index by joint id for %s.\n", node->getOriginalId().c_str());
     return NULL;
   }
 
@@ -371,7 +371,7 @@ void ArmatureImporter::set_leaf_bone_shapes(Object *ob_arm)
 
   std::vector<LeafBone>::iterator it;
   for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
-    LeafBone& leaf = *it;
+    LeafBone &leaf = *it;
 
     bPoseChannel *pchan = BKE_pose_channel_find_name(pose, leaf.name);
     if (pchan) {
@@ -396,7 +396,7 @@ void ArmatureImporter::set_euler_rotmode()
     std::map<COLLADAFW::UniqueId, SkinInfo>::iterator sit;
 
     for (sit = skin_by_data_uid.begin(); sit != skin_by_data_uid.end(); sit++) {
-      SkinInfo& skin = sit->second;
+      SkinInfo &skin = sit->second;
 
       if (skin.uses_joint_or_descendant(joint)) {
         bPoseChannel *pchan = skin.get_pose_channel_from_node(joint);
@@ -430,23 +430,26 @@ Object *ArmatureImporter::get_empty_for_leaves()
 Object *ArmatureImporter::find_armature(COLLADAFW::Node *node)
 {
   JointData *jd = get_joint_data(node);
-  if (jd) return jd->ob_arm;
+  if (jd)
+    return jd->ob_arm;
 
-  COLLADAFW::NodePointerArray& children = node->getChildNodes();
+  COLLADAFW::NodePointerArray &children = node->getChildNodes();
   for (int i = 0; i < children.getCount(); i++) {
     Object *ob_arm = find_armature(children[i]);
-    if (ob_arm) return ob_arm;
+    if (ob_arm)
+      return ob_arm;
   }
 
   return NULL;
 }
 
-ArmatureJoints& ArmatureImporter::get_armature_joints(Object *ob_arm)
+ArmatureJoints &ArmatureImporter::get_armature_joints(Object *ob_arm)
 {
   // try finding it
   std::vector<ArmatureJoints>::iterator it;
   for (it = armature_joints.begin(); it != armature_joints.end(); it++) {
-    if ((*it).ob_arm == ob_arm) return *it;
+    if ((*it).ob_arm == ob_arm)
+      return *it;
   }
 
   // not found, create one
@@ -800,7 +803,9 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 
 #if 0
 // link with meshes, create vertex groups, assign weights
-void ArmatureImporter::link_armature(Object *ob_arm, const COLLADAFW::UniqueId& geom_id, const COLLADAFW::UniqueId& controller_data_id)
+void ArmatureImporter::link_armature(Object *ob_arm,
+                                     const COLLADAFW::UniqueId &geom_id,
+                                     const COLLADAFW::UniqueId &controller_data_id)
 {
   Object *ob = mesh_importer->get_object_by_geom_uid(geom_id);
 
@@ -814,7 +819,7 @@ void ArmatureImporter::link_armature(Object *ob_arm, const COLLADAFW::UniqueId& 
     return;
   }
 
-  SkinInfo& skin = skin_by_data_uid[conroller_data_id];
+  SkinInfo &skin = skin_by_data_uid[conroller_data_id];
 
   // create vertex groups
 }

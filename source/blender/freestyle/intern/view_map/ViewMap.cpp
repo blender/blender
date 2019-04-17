@@ -271,7 +271,7 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
 }
 
 #if 0
-FEdge *ViewMap::Connect(FEdge *ioEdge, SVertex *ioVertex, vector<ViewEdge*>& oNewVEdges)
+FEdge *ViewMap::Connect(FEdge *ioEdge, SVertex *ioVertex, vector<ViewEdge *> &oNewVEdges)
 {
   SShape *sshape = ioEdge->shape();
   FEdge *newFEdge = sshape->SplitEdgeIn2(ioEdge, ioVertex);

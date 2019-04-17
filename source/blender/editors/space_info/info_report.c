@@ -46,11 +46,16 @@ int info_report_mask(SpaceInfo *UNUSED(sinfo))
 #if 0
   int report_mask = 0;
 
-  if (sinfo->rpt_mask & INFO_RPT_DEBUG) report_mask |= RPT_DEBUG_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_INFO)  report_mask |= RPT_INFO_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_OP)    report_mask |= RPT_OPERATOR_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_WARN)  report_mask |= RPT_WARNING_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_ERR)   report_mask |= RPT_ERROR_ALL;
+  if (sinfo->rpt_mask & INFO_RPT_DEBUG)
+    report_mask |= RPT_DEBUG_ALL;
+  if (sinfo->rpt_mask & INFO_RPT_INFO)
+    report_mask |= RPT_INFO_ALL;
+  if (sinfo->rpt_mask & INFO_RPT_OP)
+    report_mask |= RPT_OPERATOR_ALL;
+  if (sinfo->rpt_mask & INFO_RPT_WARN)
+    report_mask |= RPT_WARNING_ALL;
+  if (sinfo->rpt_mask & INFO_RPT_ERR)
+    report_mask |= RPT_ERROR_ALL;
 
   return report_mask;
 #endif
@@ -71,10 +76,8 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
   sc->type = CONSOLE_TYPE_PYTHON;
 
   for (report = reports->list.last; report; report = report->prev) {
-    if ((report->type & report_mask) &&
-        (report->type & RPT_OPERATOR_ALL | RPT_PROPERTY_ALL) &&
-        (report->flag & SELECT))
-    {
+    if ((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL | RPT_PROPERTY_ALL) &&
+        (report->flag & SELECT)) {
       console_history_add_str(sc, report->message, 0);
       WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
 

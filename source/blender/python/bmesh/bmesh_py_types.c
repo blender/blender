@@ -4071,9 +4071,8 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
      * the previous action. */
 #if 0
     if (BM_mesh_validate(self->bm) == false) {
-      PyErr_Format(PyExc_ReferenceError,
-                   "BMesh used by %.200s has become invalid",
-                   Py_TYPE(self)->tp_name);
+      PyErr_Format(
+          PyExc_ReferenceError, "BMesh used by %.200s has become invalid", Py_TYPE(self)->tp_name);
       return -1;
     }
 #endif

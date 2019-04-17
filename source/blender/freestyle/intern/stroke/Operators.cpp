@@ -206,7 +206,9 @@ error:
 }
 
 #if 0
-void Operators::bidirectionalChain(ViewEdgeIterator& it, UnaryPredicate1D& pred, UnaryFunction1D_void& modifier)
+void Operators::bidirectionalChain(ViewEdgeIterator &it,
+                                   UnaryPredicate1D &pred,
+                                   UnaryFunction1D_void &modifier)
 {
   if (_current_view_edges_set.empty())
     return;
@@ -217,12 +219,11 @@ void Operators::bidirectionalChain(ViewEdgeIterator& it, UnaryPredicate1D& pred,
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
-       ++it_edge)
-  {
+       ++it_edge) {
     if (pred(**it_edge))
       continue;
 
-    edge = dynamic_cast<ViewEdge*>(*it_edge);
+    edge = dynamic_cast<ViewEdge *>(*it_edge);
     it.setBegin(edge);
     it.setCurrentEdge(edge);
 
@@ -253,7 +254,7 @@ void Operators::bidirectionalChain(ViewEdgeIterator& it, UnaryPredicate1D& pred,
     _current_set = &_current_chains_set;
 }
 
-void Operators::bidirectionalChain(ViewEdgeIterator& it, UnaryPredicate1D& pred)
+void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
 {
   if (_current_view_edges_set.empty())
     return;
@@ -267,12 +268,11 @@ void Operators::bidirectionalChain(ViewEdgeIterator& it, UnaryPredicate1D& pred)
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
-       ++it_edge)
-  {
+       ++it_edge) {
     if (pred(**it_edge) || pred_ts(**it_edge))
       continue;
 
-    edge = dynamic_cast<ViewEdge*>(*it_edge);
+    edge = dynamic_cast<ViewEdge *>(*it_edge);
     it.setBegin(edge);
     it.setCurrentEdge(edge);
 
@@ -835,7 +835,7 @@ static int __recursiveSplit(Chain *_curve,
   CurveInternal::CurvePointIterator split = second;
   Interface0DIterator it0d = it.castToInterface0DIterator();
 #if 0
-  real _min                                  = func(it0d);
+  real _min = func(it0d);
   ++it;
 #endif
   real _min = FLT_MAX;

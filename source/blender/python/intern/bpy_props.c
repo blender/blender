@@ -1382,7 +1382,11 @@ static size_t strswapbufcpy(char *buf, const char **orig)
   char *dst = buf;
   size_t i = 0;
   *orig = buf;
-  while ((*dst = *src)) { dst++; src++; i++; }
+  while ((*dst = *src)) {
+    dst++;
+    src++;
+    i++;
+  }
   return i + 1; /* include '\0' */
 }
 #endif
@@ -1541,7 +1545,8 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
    * immediately after use, so we need to duplicate them, ugh.
    * annoying because it works most of the time without this. */
   {
-    EnumPropertyItem *items_dup = MEM_mallocN((sizeof(EnumPropertyItem) * (seq_len + 1)) + (sizeof(char) * totbuf),
+    EnumPropertyItem *items_dup = MEM_mallocN((sizeof(EnumPropertyItem) * (seq_len + 1)) +
+                                                  (sizeof(char) * totbuf),
                                               "enum_items_from_py2");
     EnumPropertyItem *items_ptr = items_dup;
     char *buf = ((char *)items_dup) + (sizeof(EnumPropertyItem) * (seq_len + 1));

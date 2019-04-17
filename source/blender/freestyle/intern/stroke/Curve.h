@@ -525,7 +525,7 @@ class Curve : public Interface1D {
   int occluders_size() const;
   bool occluders_empty() const;
 
-  const Polygon3r& occludee() const
+  const Polygon3r &occludee() const
   {
     return *(_FEdgeA->aFace());
   }

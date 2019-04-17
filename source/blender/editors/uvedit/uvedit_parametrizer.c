@@ -1393,7 +1393,12 @@ static int p_polygon_point_in(float *cp1, float *cp2, float *p)
     return (p_area_signed(cp1, cp2, p) >= 0.0f);
 }
 
-static void p_polygon_kernel_clip(float (*oldpoints)[2], int noldpoints, float (*newpoints)[2], int *nnewpoints, float *cp1, float *cp2)
+static void p_polygon_kernel_clip(float (*oldpoints)[2],
+                                  int noldpoints,
+                                  float (*newpoints)[2],
+                                  int *nnewpoints,
+                                  float *cp1,
+                                  float *cp2)
 {
   float *p2, *p1, isect[2];
   int i, p2in, p1in;
@@ -1438,7 +1443,7 @@ static void p_polygon_kernel_clip(float (*oldpoints)[2], int noldpoints, float (
 static void p_polygon_kernel_center(float (*points)[2], int npoints, float *center)
 {
   int i, size, nnewpoints = npoints;
-  float (*oldpoints)[2], (*newpoints)[2], *p1, *p2;
+  float(*oldpoints)[2], (*newpoints)[2], *p1, *p2;
 
   size = npoints * 3;
   oldpoints = MEM_mallocN(sizeof(float) * 2 * size, "PPolygonOldPoints");
@@ -1477,7 +1482,7 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
       newpoints = MEM_mallocN(sizeof(float) * 2 * size, "newpoints");
     }
     else {
-      float (*sw_points)[2] = oldpoints;
+      float(*sw_points)[2] = oldpoints;
       oldpoints = newpoints;
       newpoints = sw_points;
     }
@@ -1616,7 +1621,7 @@ static void p_vert_harmonic_insert(PVert *v)
      * weights fails */
 
     int npoints = 0, i;
-    float (*points)[2];
+    float(*points)[2];
 
     e = v->edge;
     do {
@@ -1939,8 +1944,7 @@ static PBool p_collapse_allowed(PEdge *edge, PEdge *pair)
   if (oldv->flag & PVERT_PIN)
     return P_FALSE;
 
-  return (p_collapse_allowed_topologic(edge, pair) &&
-          p_collapse_allowed_geometric(edge, pair));
+  return (p_collapse_allowed_topologic(edge, pair) && p_collapse_allowed_geometric(edge, pair));
 }
 
 static float p_collapse_cost(PEdge *edge, PEdge *pair)

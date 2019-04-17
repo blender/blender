@@ -900,17 +900,15 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
 
 #if 0
 
-static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
+static float *editmesh_get_mirror_uv(
+    BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
 {
   float vec[2];
   float cent_vec[2];
   float cent[2];
 
   /* ignore nan verts */
-  if (isnan(uv[0]) || !isfinite(uv[0]) ||
-      isnan(uv[1]) || !isfinite(uv[1])
-      )
-  {
+  if (isnan(uv[0]) || !isfinite(uv[0]) || isnan(uv[1]) || !isfinite(uv[1])) {
     return NULL;
   }
 
@@ -937,15 +935,14 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       uv_poly_center(efa, cent, cd_loop_uv_offset);
 
-      if ( (fabsf(cent[0] - cent_vec[0]) < 0.001f) && (fabsf(cent[1] - cent_vec[1]) < 0.001f) ) {
+      if ((fabsf(cent[0] - cent_vec[0]) < 0.001f) && (fabsf(cent[1] - cent_vec[1]) < 0.001f)) {
         BMIter liter;
         BMLoop *l;
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-          if ( (fabsf(luv->uv[0] - vec[0]) < 0.001f) && (fabsf(luv->uv[1] - vec[1]) < 0.001f) ) {
+          if ((fabsf(luv->uv[0] - vec[0]) < 0.001f) && (fabsf(luv->uv[1] - vec[1]) < 0.001f)) {
             return luv->uv;
-
           }
         }
       }

@@ -136,7 +136,12 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
     }
 
 #if 0 /* ARG!. workaround for a bug in blenders use of vsnprintf */
-    BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", _PyUnicode_AsString(pystring), filename, lineno);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "%s\nlocation: %s:%d\n",
+                _PyUnicode_AsString(pystring),
+                filename,
+                lineno);
 #else
     pystring_format = PyUnicode_FromFormat(
         TIP_("%s\nlocation: %s:%d\n"), _PyUnicode_AsString(pystring), filename, lineno);

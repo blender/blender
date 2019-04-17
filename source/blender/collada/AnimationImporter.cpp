@@ -351,7 +351,8 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
     std::vector<FCurve *> &rot_fcurves = fcurves_actionGroup_map[grp];
 
-    if (rot_fcurves.size() > 3) continue;
+    if (rot_fcurves.size() > 3)
+      continue;
 
     for (i = 0; i < rot_fcurves.size(); i++)
       eulcu[rot_fcurves[i]->array_index] = rot_fcurves[i];
@@ -366,7 +367,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
       create_fcurve(0, rna_path),
       create_fcurve(1, rna_path),
       create_fcurve(2, rna_path),
-      create_fcurve(3, rna_path)
+      create_fcurve(3, rna_path),
     };
 
     bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, grp->name);
@@ -379,7 +380,8 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
       FCurve *cu = eulcu[i];
 
-      if (!cu) continue;
+      if (!cu)
+        continue;
 
       for (int j = 0; j < cu->totvert; j++) {
         float frame = cu->bezt[j].vec[1][0];
@@ -387,7 +389,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
         float eul[3] = {
           eulcu[0] ? evaluate_fcurve(eulcu[0], frame) : 0.0f,
           eulcu[1] ? evaluate_fcurve(eulcu[1], frame) : 0.0f,
-          eulcu[2] ? evaluate_fcurve(eulcu[2], frame) : 0.0f
+          eulcu[2] ? evaluate_fcurve(eulcu[2], frame) : 0.0f,
         };
 
         // make eul relative to bone rest pose
@@ -410,7 +412,8 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
     // now replace old Euler curves
 
     for (i = 0; i < 3; i++) {
-      if (!eulcu[i]) continue;
+      if (!eulcu[i])
+        continue;
 
       action_groups_remove_channel(act, eulcu[i]);
       free_fcurve(eulcu[i]);
@@ -574,14 +577,13 @@ void AnimationImporter::Assign_transform_animations(
 
     case COLLADAFW::Transformation::MATRIX:
 #if 0
-      {
-        COLLADAFW::Matrix *mat = (COLLADAFW::Matrix*)transform;
-        COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
-        switch (binding->animationClass) {
-          case COLLADAFW::AnimationList::TRANSFORM:
-
-        }
+    {
+      COLLADAFW::Matrix *mat = (COLLADAFW::Matrix *)transform;
+      COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
+      switch (binding->animationClass) {
+        case COLLADAFW::AnimationList::TRANSFORM:
       }
+    }
 #endif
       unused_fcurve(curves);
       break;
@@ -2045,7 +2047,8 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root,
 #if 0
 // recursively evaluates joint tree until end is found, mat then is world-space matrix of end
 // mat must be identity on enter, node must be root
-bool AnimationImporter::evaluate_joint_world_transform_at_frame(float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end, float fra)
+bool AnimationImporter::evaluate_joint_world_transform_at_frame(
+    float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end, float fra)
 {
   float m[4][4];
   if (par) {
@@ -2062,7 +2065,7 @@ bool AnimationImporter::evaluate_joint_world_transform_at_frame(float mat[4][4],
     return true;
   }
   else {
-    COLLADAFW::NodePointerArray& children = node->getChildNodes();
+    COLLADAFW::NodePointerArray &children = node->getChildNodes();
     for (int i = 0; i < children.getCount(); i++) {
       if (evaluate_joint_world_transform_at_frame(mat, m, children[i], end, fra))
         return true;

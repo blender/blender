@@ -389,9 +389,14 @@ void BPH_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[
 }
 
 #if 0
-BLI_INLINE void hair_volume_eval_grid_vertex(
-        HairGridVert *vert, const float loc[3], float radius, float dist_scale,
-        const float x2[3], const float v2[3], const float x3[3], const float v3[3])
+BLI_INLINE void hair_volume_eval_grid_vertex(HairGridVert *vert,
+                                             const float loc[3],
+                                             float radius,
+                                             float dist_scale,
+                                             const float x2[3],
+                                             const float v2[3],
+                                             const float x3[3],
+                                             const float v3[3])
 {
   float closest[3], lambda, dist, weight;
 
@@ -418,14 +423,31 @@ BLI_INLINE int major_axis_v3(const float v[3])
   return a > b ? (a > c ? 0 : 2) : (b > c ? 1 : 2);
 }
 
-BLI_INLINE void hair_volume_add_segment_2D(
-        HairGrid *grid,
-        const float UNUSED(x1[3]), const float UNUSED(v1[3]), const float x2[3], const float v2[3],
-        const float x3[3], const float v3[3], const float UNUSED(x4[3]), const float UNUSED(v4[3]),
-        const float UNUSED(dir1[3]), const float dir2[3], const float UNUSED(dir3[3]),
-        int resj, int resk, int jmin, int jmax, int kmin, int kmax,
-        HairGridVert *vert, int stride_j, int stride_k, const float loc[3], int axis_j, int axis_k,
-        int debug_i)
+BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
+                                           const float UNUSED(x1[3]),
+                                           const float UNUSED(v1[3]),
+                                           const float x2[3],
+                                           const float v2[3],
+                                           const float x3[3],
+                                           const float v3[3],
+                                           const float UNUSED(x4[3]),
+                                           const float UNUSED(v4[3]),
+                                           const float UNUSED(dir1[3]),
+                                           const float dir2[3],
+                                           const float UNUSED(dir3[3]),
+                                           int resj,
+                                           int resk,
+                                           int jmin,
+                                           int jmax,
+                                           int kmin,
+                                           int kmax,
+                                           HairGridVert *vert,
+                                           int stride_j,
+                                           int stride_k,
+                                           const float loc[3],
+                                           int axis_j,
+                                           int axis_k,
+                                           int debug_i)
 {
   const float radius = 1.5f;
   const float dist_scale = grid->inv_cellsize;
@@ -439,12 +461,12 @@ BLI_INLINE void hair_volume_add_segment_2D(
   CLAMP_MAX(kmax, resk - 1);
 
   HairGridVert *vert_j = vert + jmin * stride_j;
-  float loc_j[3] = { loc[0], loc[1], loc[2] };
+  float loc_j[3] = {loc[0], loc[1], loc[2]};
   loc_j[axis_j] += (float)jmin;
   for (j = jmin; j <= jmax; ++j, vert_j += stride_j, loc_j[axis_j] += 1.0f) {
 
     HairGridVert *vert_k = vert_j + kmin * stride_k;
-    float loc_k[3] = { loc_j[0], loc_j[1], loc_j[2] };
+    float loc_k[3] = {loc_j[0], loc_j[1], loc_j[2]};
     loc_k[axis_k] += (float)kmin;
     for (k = kmin; k <= kmax; ++k, vert_k += stride_k, loc_k[axis_k] += 1.0f) {
 
@@ -478,13 +500,20 @@ BLI_INLINE void hair_volume_add_segment_2D(
  * The radius of influence around a segment is assumed to be at most 2*cellsize,
  * i.e. only cells containing the segment and their direct neighbors are examined.
  */
-void BPH_hair_volume_add_segment(
-        HairGrid *grid,
-        const float x1[3], const float v1[3], const float x2[3], const float v2[3],
-        const float x3[3], const float v3[3], const float x4[3], const float v4[3],
-        const float dir1[3], const float dir2[3], const float dir3[3])
+void BPH_hair_volume_add_segment(HairGrid *grid,
+                                 const float x1[3],
+                                 const float v1[3],
+                                 const float x2[3],
+                                 const float v2[3],
+                                 const float x3[3],
+                                 const float v3[3],
+                                 const float x4[3],
+                                 const float v4[3],
+                                 const float dir1[3],
+                                 const float dir2[3],
+                                 const float dir3[3])
 {
-  const int res[3] = { grid->res[0], grid->res[1], grid->res[2] };
+  const int res[3] = {grid->res[0], grid->res[1], grid->res[2]};
 
   /* find the primary direction from the major axis of the direction vector */
   const int axis0 = major_axis_v3(dir2);
@@ -492,7 +521,7 @@ void BPH_hair_volume_add_segment(
   const int axis2 = (axis0 + 2) % 3;
 
   /* vertex buffer offset factors along cardinal axes */
-  const int strides[3] = { 1, res[0], res[0] * res[1] };
+  const int strides[3] = {1, res[0], res[0] * res[1]};
   const int stride0 = strides[axis0];
   const int stride1 = strides[axis1];
   const int stride2 = strides[axis2];
@@ -505,7 +534,7 @@ void BPH_hair_volume_add_segment(
 
   /* start/end points, so increment along axis0 is always positive */
   const float *start = x2[axis0] < x3[axis0] ? x2 : x3;
-  const float *end   = x2[axis0] < x3[axis0] ? x3 : x2;
+  const float *end = x2[axis0] < x3[axis0] ? x3 : x2;
   const float start0 = start[axis0], start1 = start[axis1], start2 = start[axis2];
   const float end0 = end[axis0];
 
@@ -550,11 +579,31 @@ void BPH_hair_volume_add_segment(
     loc0[axis1] = 0.0f;
     loc0[axis2] = 0.0f;
 
-    hair_volume_add_segment_2D(
-            grid, x1, v1, x2, v2, x3, v3, x4, v4, dir1, dir2, dir3,
-            res[axis1], res[axis2], jmin - 1, jmax + 2, kmin - 1, kmax + 2,
-            vert0, stride1, stride2, loc0, axis1, axis2,
-            i);
+    hair_volume_add_segment_2D(grid,
+                               x1,
+                               v1,
+                               x2,
+                               v2,
+                               x3,
+                               v3,
+                               x4,
+                               v4,
+                               dir1,
+                               dir2,
+                               dir3,
+                               res[axis1],
+                               res[axis2],
+                               jmin - 1,
+                               jmax + 2,
+                               kmin - 1,
+                               kmax + 2,
+                               vert0,
+                               stride1,
+                               stride2,
+                               loc0,
+                               axis1,
+                               axis2,
+                               i);
   }
 }
 #else
@@ -769,7 +818,8 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
             interp_v3_v3v3(col, col0, coln, fac);
           }
           if (fac > 0.05f)
-            BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5522, i, j, k);
+            BKE_sim_debug_data_add_circle(
+                grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5522, i, j, k);
         }
 #endif
       }
@@ -895,7 +945,8 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
         for (j = 0; j < resA[1]; ++j) {
           for (i = 0; i < resA[0]; ++i) {
             int u = i * strideA0 + j * strideA1 + k * strideA2;
-            bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
+            bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
+                             MARGIN_k1;
             if (i != slice)
               continue;
 
@@ -923,12 +974,13 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
               interp_v3_v3v3(col, col0, coln, fac);
             }
             if (fac > 0.05f)
-              BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5533, i, j, k);
+              BKE_sim_debug_data_add_circle(
+                  grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5533, i, j, k);
 
             if (!is_margin) {
               float dvel[3];
               sub_v3_v3v3(dvel, vert->velocity_smooth, vert->velocity);
-//                          BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", 5566, i, j, k);
+              //                          BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", 5566, i, j, k);
             }
 
             if (!is_margin) {
@@ -938,8 +990,8 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
               float col[3];
 
               interp_v3_v3v3(col, col0, colp, d);
-//                          if (d > 0.05f)
-//                              BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", 5544, i, j, k);
+              //                          if (d > 0.05f)
+              //                              BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", 5544, i, j, k);
             }
           }
         }
@@ -964,7 +1016,8 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
  * See https://en.wikipedia.org/wiki/Filter_%28large_eddy_simulation%29
  */
 
-BLI_INLINE void hair_volume_filter_box_convolute(HairVertexGrid *grid, float invD, const int kernel_size[3], int i, int j, int k)
+BLI_INLINE void hair_volume_filter_box_convolute(
+    HairVertexGrid *grid, float invD, const int kernel_size[3], int i, int j, int k)
 {
   int res = grid->res;
   int p, q, r;
@@ -1109,7 +1162,9 @@ void BPH_hair_volume_grid_geometry(
 }
 
 #if 0
-static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd, lfVector *lX, unsigned int numverts)
+static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
+                                                       lfVector *lX,
+                                                       unsigned int numverts)
 {
   int res = hair_grid_res;
   int size = hair_grid_size(res);

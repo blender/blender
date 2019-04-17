@@ -2351,8 +2351,10 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 {
   float v1[2], v2[2];
 
-  v1[0] = p1[0] - p2[0];    v1[1] = p1[1] - p2[1];
-  v2[0] = p3[0] - p2[0];    v2[1] = p3[1] - p2[1];
+  v1[0] = p1[0] - p2[0];
+  v1[1] = p1[1] - p2[1];
+  v2[0] = p3[0] - p2[0];
+  v2[1] = p3[1] - p2[1];
 
   return -atan2f(v1[0] * v2[1] - v1[1] * v2[0], v1[0] * v2[0] + v1[1] * v2[1]);
 }
@@ -3035,8 +3037,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
     if (pixel_bounds_array(uv_clip, &bounds_px, ibuf->x, ibuf->y, uv_clip_tot)) {
 #if 0
       project_paint_undo_tiles_init(
-              &bounds_px, ps->projImages + image_index, tmpibuf,
-              tile_width, threaded, ps->do_masking);
+          &bounds_px, ps->projImages + image_index, tmpibuf, tile_width, threaded, ps->do_masking);
 #endif
       /* clip face and */
 

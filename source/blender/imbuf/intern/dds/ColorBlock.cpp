@@ -32,17 +32,18 @@
 #include <Common.h>
 
 #if 0
-  // Get approximate luminance.
-  inline static uint colorLuminance(Color32 c)
-  {
-    return c.r + c.g + c.b;
-  }
+// Get approximate luminance.
+inline static uint colorLuminance(Color32 c)
+{
+  return c.r + c.g + c.b;
+}
 
-  // Get the euclidean distance between the given colors.
-  inline static uint colorDistance(Color32 c0, Color32 c1)
-  {
-    return (c0.r - c1.r) * (c0.r - c1.r) + (c0.g - c1.g) * (c0.g - c1.g) + (c0.b - c1.b) * (c0.b - c1.b);
-  }
+// Get the euclidean distance between the given colors.
+inline static uint colorDistance(Color32 c0, Color32 c1)
+{
+  return (c0.r - c1.r) * (c0.r - c1.r) + (c0.g - c1.g) * (c0.g - c1.g) +
+         (c0.b - c1.b) * (c0.b - c1.b);
+}
 #endif
 
 /// Default constructor.
@@ -173,18 +174,16 @@ bool ColorBlock::isSingleColorNoAlpha() const
 {
   Color32 c;
   int i;
-  for (i = 0; i < 16; i++)
-  {
-    if (m_color[i].a != 0) c = m_color[i];
+  for (i = 0; i < 16; i++) {
+    if (m_color[i].a != 0)
+      c = m_color[i];
   }
 
   Color32 mask(0xFF, 0xFF, 0xFF, 0x00);
   uint u = c.u & mask.u;
 
-  for (; i < 16; i++)
-  {
-    if (u != (m_color[i].u & mask.u))
-    {
+  for (; i < 16; i++) {
+    if (u != (m_color[i].u & mask.u)) {
       return false;
     }
   }
@@ -200,16 +199,15 @@ uint ColorBlock::countUniqueColors() const
   uint count = 0;
 
   // @@ This does not have to be o(n^2)
-  for (int i = 0; i < 16; i++)
-  {
+  for (int i = 0; i < 16; i++) {
     bool unique = true;
     for (int j = 0; j < i; j++) {
-      if ( m_color[i] != m_color[j] ) {
+      if (m_color[i] != m_color[j]) {
         unique = false;
       }
     }
 
-    if ( unique ) {
+    if (unique) {
       count++;
     }
   }
@@ -255,9 +253,9 @@ void ColorBlock::diameterRange(Color32 *start, Color32 *end) const
   uint best_dist = 0;
 
   for (int i = 0; i < 16; i++) {
-    for (int j = i+1; j < 16; j++) {
+    for (int j = i + 1; j < 16; j++) {
       uint dist = colorDistance(m_color[i], m_color[j]);
-      if ( dist > best_dist ) {
+      if (dist > best_dist) {
         best_dist = dist;
         c0 = m_color[i];
         c1 = m_color[j];
@@ -277,8 +275,7 @@ void ColorBlock::luminanceRange(Color32 *start, Color32 *end) const
 
   maxLuminance = minLuminance = colorLuminance(m_color[0]);
 
-  for (uint i = 1; i < 16; i++)
-  {
+  for (uint i = 1; i < 16; i++) {
     uint luminance = colorLuminance(m_color[i]);
 
     if (luminance > maxLuminance) {
@@ -301,14 +298,25 @@ void ColorBlock::boundsRange(Color32 *start, Color32 *end) const
   Color32 minColor(255, 255, 255);
   Color32 maxColor(0, 0, 0);
 
-  for (uint i = 0; i < 16; i++)
-  {
-    if (m_color[i].r < minColor.r) { minColor.r = m_color[i].r; }
-    if (m_color[i].g < minColor.g) { minColor.g = m_color[i].g; }
-    if (m_color[i].b < minColor.b) { minColor.b = m_color[i].b; }
-    if (m_color[i].r > maxColor.r) { maxColor.r = m_color[i].r; }
-    if (m_color[i].g > maxColor.g) { maxColor.g = m_color[i].g; }
-    if (m_color[i].b > maxColor.b) { maxColor.b = m_color[i].b; }
+  for (uint i = 0; i < 16; i++) {
+    if (m_color[i].r < minColor.r) {
+      minColor.r = m_color[i].r;
+    }
+    if (m_color[i].g < minColor.g) {
+      minColor.g = m_color[i].g;
+    }
+    if (m_color[i].b < minColor.b) {
+      minColor.b = m_color[i].b;
+    }
+    if (m_color[i].r > maxColor.r) {
+      maxColor.r = m_color[i].r;
+    }
+    if (m_color[i].g > maxColor.g) {
+      maxColor.g = m_color[i].g;
+    }
+    if (m_color[i].b > maxColor.b) {
+      maxColor.b = m_color[i].b;
+    }
   }
 
   // Offset range by 1/16 of the extents
@@ -335,16 +343,31 @@ void ColorBlock::boundsRangeAlpha(Color32 *start, Color32 *end) const
   Color32 minColor(255, 255, 255, 255);
   Color32 maxColor(0, 0, 0, 0);
 
-  for (uint i = 0; i < 16; i++)
-  {
-    if (m_color[i].r < minColor.r) { minColor.r = m_color[i].r; }
-    if (m_color[i].g < minColor.g) { minColor.g = m_color[i].g; }
-    if (m_color[i].b < minColor.b) { minColor.b = m_color[i].b; }
-    if (m_color[i].a < minColor.a) { minColor.a = m_color[i].a; }
-    if (m_color[i].r > maxColor.r) { maxColor.r = m_color[i].r; }
-    if (m_color[i].g > maxColor.g) { maxColor.g = m_color[i].g; }
-    if (m_color[i].b > maxColor.b) { maxColor.b = m_color[i].b; }
-    if (m_color[i].a > maxColor.a) { maxColor.a = m_color[i].a; }
+  for (uint i = 0; i < 16; i++) {
+    if (m_color[i].r < minColor.r) {
+      minColor.r = m_color[i].r;
+    }
+    if (m_color[i].g < minColor.g) {
+      minColor.g = m_color[i].g;
+    }
+    if (m_color[i].b < minColor.b) {
+      minColor.b = m_color[i].b;
+    }
+    if (m_color[i].a < minColor.a) {
+      minColor.a = m_color[i].a;
+    }
+    if (m_color[i].r > maxColor.r) {
+      maxColor.r = m_color[i].r;
+    }
+    if (m_color[i].g > maxColor.g) {
+      maxColor.g = m_color[i].g;
+    }
+    if (m_color[i].b > maxColor.b) {
+      maxColor.b = m_color[i].b;
+    }
+    if (m_color[i].a > maxColor.a) {
+      maxColor.a = m_color[i].a;
+    }
   }
 
   // Offset range by 1/16 of the extents
@@ -374,19 +397,19 @@ void ColorBlock::boundsRangeAlpha(Color32 *start, Color32 *end) const
 void ColorBlock::sortColorsByAbsoluteValue()
 {
   // Dummy selection sort.
-  for ( uint a = 0; a < 16; a++ ) {
+  for (uint a = 0; a < 16; a++) {
     uint max = a;
     Color16 cmax(m_color[a]);
 
-    for ( uint b = a+1; b < 16; b++ ) {
+    for (uint b = a + 1; b < 16; b++) {
       Color16 cb(m_color[b]);
 
-      if ( cb.u > cmax.u ) {
+      if (cb.u > cmax.u) {
         max = b;
         cmax = cb;
       }
     }
-    swap( m_color[a], m_color[max] );
+    swap(m_color[a], m_color[max]);
   }
 }
 #endif
@@ -402,16 +425,15 @@ void ColorBlock::computeRange(Vector3::Arg axis, Color32 *start, Color32 *end) c
   float min, max;
   min = max = dot(Vector3(m_color[0].r, m_color[0].g, m_color[0].b), axis);
 
-  for (uint i = 1; i < 16; i++)
-  {
+  for (uint i = 1; i < 16; i++) {
     const Vector3 vec(m_color[i].r, m_color[i].g, m_color[i].b);
 
     float val = dot(vec, axis);
-    if ( val < min ) {
+    if (val < min) {
       mini = i;
       min = val;
     }
-    else if ( val > max ) {
+    else if (val > max) {
       maxi = i;
       max = val;
     }
@@ -424,7 +446,7 @@ void ColorBlock::computeRange(Vector3::Arg axis, Color32 *start, Color32 *end) c
 
 #if 0
 /// Sort colors in the given axis.
-void ColorBlock::sortColors(const Vector3 & axis)
+void ColorBlock::sortColors(const Vector3 &axis)
 {
   float luma_array[16];
 
@@ -434,15 +456,15 @@ void ColorBlock::sortColors(const Vector3 & axis)
   }
 
   // Dummy selection sort.
-  for ( uint a = 0; a < 16; a++ ) {
+  for (uint a = 0; a < 16; a++) {
     uint min = a;
-    for ( uint b = a+1; b < 16; b++ ) {
-      if ( luma_array[b] < luma_array[min] ) {
+    for (uint b = a + 1; b < 16; b++) {
+      if (luma_array[b] < luma_array[min]) {
         min = b;
       }
     }
-    swap( luma_array[a], luma_array[min] );
-    swap( m_color[a], m_color[min] );
+    swap(luma_array[a], luma_array[min]);
+    swap(m_color[a], m_color[min]);
   }
 }
 #endif

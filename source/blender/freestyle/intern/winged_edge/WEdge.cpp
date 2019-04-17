@@ -103,7 +103,7 @@ WFace *WVertex::face_iterator::operator*()
 }
 
 #if 0
-bool WVertex::isBoundary () const
+bool WVertex::isBoundary() const
 {
   return _Border;
 }

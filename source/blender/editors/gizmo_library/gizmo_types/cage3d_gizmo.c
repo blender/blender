@@ -338,10 +338,10 @@ static void gizmo_cage3d_draw_intern(
   else {
 #if 0
     const rctf _r = {
-      .xmin = -size_real[0],
-      .ymin = -size_real[1],
-      .xmax = size_real[0],
-      .ymax = size_real[1],
+        .xmin = -size_real[0],
+        .ymin = -size_real[1],
+        .xmax = size_real[0],
+        .ymax = size_real[1],
     };
 #endif
     if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX) {

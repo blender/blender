@@ -191,7 +191,8 @@ void image_preview_event(int event)
     BIF_store_spare();
 
     /* 1 is do_previews */
-    ntreeCompositExecTree(scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);
+    ntreeCompositExecTree(
+        scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);
 
     G.scene->nodetree->timecursor = NULL;
     G.scene->nodetree->test_break = NULL;
@@ -202,7 +203,6 @@ void image_preview_event(int event)
     WM_event_add_notifier(C, NC_IMAGE, ima_v);
   }
 }
-
 
 /* nothing drawn here, we use it to store values */
 static void preview_cb(ScrArea *sa, struct uiBlock *block)
@@ -221,18 +221,24 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 
   /* while dragging we need to update the rects, otherwise it doesn't end with correct one */
 
-  BLI_rctf_init(&dispf, 15.0f, BLI_rcti_size_x(&block->rect) - 15.0f, 15.0f, (BLI_rctf_size_y(&block->rect)) - 15.0f);
+  BLI_rctf_init(&dispf,
+                15.0f,
+                BLI_rcti_size_x(&block->rect) - 15.0f,
+                15.0f,
+                (BLI_rctf_size_y(&block->rect)) - 15.0f);
   ui_graphics_to_window_rct(sa->win, &dispf, disprect);
 
   /* correction for gla draw */
   BLI_rcti_translate(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
 
   calc_image_view(sima, 'p');
-//  printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
+  //  printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
   /* map to image space coordinates */
-  mval[0] = disprect->xmin; mval[1] = disprect->ymin;
+  mval[0] = disprect->xmin;
+  mval[1] = disprect->ymin;
   areamouseco_to_ipoco(v2d, mval, &dispf.xmin, &dispf.ymin);
-  mval[0] = disprect->xmax; mval[1] = disprect->ymax;
+  mval[0] = disprect->xmax;
+  mval[1] = disprect->ymax;
   areamouseco_to_ipoco(v2d, mval, &dispf.xmax, &dispf.ymax);
 
   /* map to render coordinates */
@@ -245,8 +251,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
   CLAMP(disprect->xmax, 0, winx);
   CLAMP(disprect->ymin, 0, winy);
   CLAMP(disprect->ymax, 0, winy);
-//  printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
-
+  //  printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
 }
 
 static bool is_preview_allowed(ScrArea *cur)
@@ -268,8 +273,7 @@ static bool is_preview_allowed(ScrArea *cur)
   return 1;
 }
 
-
-static void image_panel_preview(ScrArea *sa, short cntrl)   // IMAGE_HANDLER_PREVIEW
+static void image_panel_preview(ScrArea *sa, short cntrl)  // IMAGE_HANDLER_PREVIEW
 {
   uiBlock *block;
   SpaceImage *sima = sa->spacedata.first;
@@ -287,10 +291,10 @@ static void image_panel_preview(ScrArea *sa, short cntrl)   // IMAGE_HANDLER_PRE
 
   ofsx = -150 + (sa->winx / 2) / sima->blockscale;
   ofsy = -100 + (sa->winy / 2) / sima->blockscale;
-  if (uiNewPanel(C, ar, block, "Preview", "Image", ofsx, ofsy, 300, 200) == 0) return;
+  if (uiNewPanel(C, ar, block, "Preview", "Image", ofsx, ofsy, 300, 200) == 0)
+    return;
 
   UI_but_func_drawextra_set(block, preview_cb);
-
 }
 #endif
 
@@ -1063,17 +1067,73 @@ void uiTemplateImage(uiLayout *layout,
         iuser = ntree_get_active_iuser(scene->nodetree);
         if (iuser) {
           UI_block_align_begin(block);
-          uiDefIconTextBut(block, UI_BTYPE_BUT, B_SIMA_RECORD, ICON_REC, "Record", 10, 120, 100, 20, 0, 0, 0, 0, 0, "");
-          uiDefIconTextBut(block, UI_BTYPE_BUT, B_SIMA_PLAY, ICON_PLAY, "Play",    110, 120, 100, 20, 0, 0, 0, 0, 0, "");
-          but = uiDefBut(block, UI_BTYPE_BUT, B_NOP, "Free Cache", 210, 120, 100, 20, 0, 0, 0, 0, 0, "");
+          uiDefIconTextBut(block,
+                           UI_BTYPE_BUT,
+                           B_SIMA_RECORD,
+                           ICON_REC,
+                           "Record",
+                           10,
+                           120,
+                           100,
+                           20,
+                           0,
+                           0,
+                           0,
+                           0,
+                           0,
+                           "");
+          uiDefIconTextBut(block,
+                           UI_BTYPE_BUT,
+                           B_SIMA_PLAY,
+                           ICON_PLAY,
+                           "Play",
+                           110,
+                           120,
+                           100,
+                           20,
+                           0,
+                           0,
+                           0,
+                           0,
+                           0,
+                           "");
+          but = uiDefBut(
+              block, UI_BTYPE_BUT, B_NOP, "Free Cache", 210, 120, 100, 20, 0, 0, 0, 0, 0, "");
           UI_but_func_set(but, image_freecache_cb, ima, NULL);
 
           if (iuser->frames)
             BLI_snprintf(str, sizeof(str), "(%d) Frames:", iuser->framenr);
-          else strcpy(str, "Frames:");
+          else
+            strcpy(str, "Frames:");
           UI_block_align_begin(block);
-          uiDefButI(block, UI_BTYPE_NUM, imagechanged, str,        10, 90, 150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Number of images of a movie to use");
-          uiDefButI(block, UI_BTYPE_NUM, imagechanged, "StartFr:", 160, 90, 150, 20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Global starting frame of the movie");
+          uiDefButI(block,
+                    UI_BTYPE_NUM,
+                    imagechanged,
+                    str,
+                    10,
+                    90,
+                    150,
+                    20,
+                    &iuser->frames,
+                    0.0,
+                    MAXFRAMEF,
+                    0,
+                    0,
+                    "Number of images of a movie to use");
+          uiDefButI(block,
+                    UI_BTYPE_NUM,
+                    imagechanged,
+                    "StartFr:",
+                    160,
+                    90,
+                    150,
+                    20,
+                    &iuser->sfra,
+                    1.0,
+                    MAXFRAMEF,
+                    0,
+                    0,
+                    "Global starting frame of the movie");
         }
 #endif
       }

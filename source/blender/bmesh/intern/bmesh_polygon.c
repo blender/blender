@@ -1587,7 +1587,7 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
        */
 #if 0
       const bool split_13 = (BM_verts_calc_rotate_beauty(
-              l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) < 0.0f);
+                                 l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) < 0.0f);
 #else
       float axis_mat[3][3], v_quad[4][2];
       axis_dominant_v3_to_m3(axis_mat, efa->no);

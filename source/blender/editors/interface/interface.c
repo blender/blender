@@ -1274,7 +1274,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 #if 0
           else {
             printf("ERROR in %s(): Couldn't get path for scene property - %s\n",
-                   __func__, RNA_property_identifier(prop));
+                   __func__,
+                   RNA_property_identifier(prop));
           }
 #endif
         }

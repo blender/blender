@@ -81,7 +81,7 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
 
   void wrote(Object *ob_arm);
 
-  void find_objects_using_armature(Object *ob_arm, std::vector<Object *>& objects, Scene *sce);
+  void find_objects_using_armature(Object *ob_arm, std::vector<Object *> &objects, Scene *sce);
 #endif
 
   // Scene, SceneExporter and the list of child_objects

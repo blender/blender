@@ -1026,19 +1026,24 @@ static void bm_mesh_loops_calc_normals_no_autosmooth(BMesh *bm,
  * Updates the loop normals of a mesh. Assumes vertex and face normals are valid (else call BM_mesh_normals_update()
  * first)!
  */
-void BM_mesh_loop_normals_update(
-        BMesh *bm, const bool use_split_normals, const float split_angle, float (*r_lnos)[3],
-        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], const int cd_loop_clnors_offset)
+void BM_mesh_loop_normals_update(BMesh *bm,
+                                 const bool use_split_normals,
+                                 const float split_angle,
+                                 float (*r_lnos)[3],
+                                 MLoopNorSpaceArray *r_lnors_spacearr,
+                                 short (*clnors_data)[2],
+                                 const int cd_loop_clnors_offset)
 {
   const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
 
   if (use_split_normals) {
-          /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
+    /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
            * When using custom loop normals, disable the angle feature! */
-          bm_mesh_edges_sharp_tag(bm, NULL, NULL, has_clnors ? (float)M_PI : split_angle, r_lnos);
+    bm_mesh_edges_sharp_tag(bm, NULL, NULL, has_clnors ? (float)M_PI : split_angle, r_lnos);
 
-          /* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
-          bm_mesh_loops_calc_normals(bm, NULL, NULL, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
+    /* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+    bm_mesh_loops_calc_normals(
+        bm, NULL, NULL, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
   }
   else {
     BLI_assert(!r_lnors_spacearr);
@@ -1839,8 +1844,13 @@ void BM_mesh_elem_index_validate(
 
       /* dirty may have been incorrectly set */
       fprintf(stderr,
-              "Invalid Dirty: at %s, %s (%s), dirty flag was set but all index values are correct, '%s', '%s'\n",
-              location, func, type_names[i], msg_a, msg_b);
+              "Invalid Dirty: at %s, %s (%s), dirty flag was set but all index values are "
+              "correct, '%s', '%s'\n",
+              location,
+              func,
+              type_names[i],
+              msg_a,
+              msg_b);
 #endif
     }
   }
@@ -1848,9 +1858,7 @@ void BM_mesh_elem_index_validate(
 #if 0 /* mostly annoying, even in debug mode */
 #  ifdef DEBUG
   if (is_any_error == 0) {
-    fprintf(stderr,
-            "Valid Index Success: at %s, %s, '%s', '%s'\n",
-            location, func, msg_a, msg_b);
+    fprintf(stderr, "Valid Index Success: at %s, %s, '%s', '%s'\n", location, func, msg_a, msg_b);
   }
 #  endif
 #endif

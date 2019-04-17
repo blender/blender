@@ -828,14 +828,9 @@ void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *pre
   float projmat_trans[4][4];
   transpose_m4_m4(projmat_trans, projmat);
   if (!isect_plane_plane_plane_v3(
-          projmat_trans[0], projmat_trans[1], projmat_trans[3],
-          precalc->ray_origin))
-  {
+          projmat_trans[0], projmat_trans[1], projmat_trans[3], precalc->ray_origin)) {
     /* Orthographic projection. */
-    isect_plane_plane_v3(
-            px, py,
-            precalc->ray_origin,
-            precalc->ray_direction);
+    isect_plane_plane_v3(px, py, precalc->ray_origin, precalc->ray_direction);
   }
   else {
     /* Perspective projection. */
@@ -1908,8 +1903,7 @@ bool isect_ray_tri_watertight_v3(const float ray_origin[3],
          * otherwise we won't match any of the other intersect functions here...
          * which would be confusing */
 #if 0
-        ||
-        (sign_T > *r_lambda * xor_signmask(det, sign_mask))
+        || (sign_T > *r_lambda * xor_signmask(det, sign_mask))
 #endif
     ) {
       return false;
@@ -1945,10 +1939,14 @@ bool isect_ray_tri_watertight_v3_simple(const float ray_origin[3],
  * A version of #isect_ray_tri_v3 which takes a threshold argument
  * so rays slightly outside the triangle to be considered as intersecting.
  */
-bool isect_ray_tri_threshold_v3(
-        const float ray_origin[3], const float ray_direction[3],
-        const float v0[3], const float v1[3], const float v2[3],
-        float *r_lambda, float r_uv[2], const float threshold)
+bool isect_ray_tri_threshold_v3(const float ray_origin[3],
+                                const float ray_direction[3],
+                                const float v0[3],
+                                const float v1[3],
+                                const float v2[3],
+                                float *r_lambda,
+                                float r_uv[2],
+                                const float threshold)
 {
   const float epsilon = 0.00000001f;
   float p[3], s[3], e1[3], e2[3], q[3];
@@ -1960,14 +1958,16 @@ bool isect_ray_tri_threshold_v3(
 
   cross_v3_v3v3(p, ray_direction, e2);
   a = dot_v3v3(e1, p);
-  if ((a > -epsilon) && (a < epsilon)) return false;
+  if ((a > -epsilon) && (a < epsilon))
+    return false;
   f = 1.0f / a;
 
   sub_v3_v3v3(s, ray_origin, v0);
 
   cross_v3_v3v3(q, s, e1);
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) return false;
+  if ((*r_lambda < 0.0f))
+    return false;
 
   u = f * dot_v3v3(s, p);
   v = f * dot_v3v3(ray_direction, q);
@@ -1978,13 +1978,19 @@ bool isect_ray_tri_threshold_v3(
     dv = v - t;
   }
   else {
-    if      (u < 0) du = u;
-    else if (u > 1) du = u - 1;
-    else            du = 0.0f;
+    if (u < 0)
+      du = u;
+    else if (u > 1)
+      du = u - 1;
+    else
+      du = 0.0f;
 
-    if      (v < 0) dv = v;
-    else if (v > 1) dv = v - 1;
-    else            dv = 0.0f;
+    if (v < 0)
+      dv = v;
+    else if (v > 1)
+      dv = v - 1;
+    else
+      dv = 0.0f;
   }
 
   mul_v3_fl(e1, du);
@@ -5212,20 +5218,20 @@ typedef union {
 
 static vFloat vec_splat_float(float val)
 {
-  return (vFloat) {val, val, val, val};
+  return (vFloat){val, val, val, val};
 }
 
 static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float *q2, float *q3)
 {
   vFloat vcos, rlen, vrx, vry, vrz, vsrx, vsry, vsrz, gx, gy, gz, vangle;
-  vUInt8 rotate = (vUInt8) {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
+  vUInt8 rotate = (vUInt8){4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
   vFloatResult vresult;
   float result;
 
   /* compute r* */
-  vrx = (vFloat) {q0[0], q1[0], q2[0], q3[0]} -vec_splat_float(p[0]);
-  vry = (vFloat) {q0[1], q1[1], q2[1], q3[1]} -vec_splat_float(p[1]);
-  vrz = (vFloat) {q0[2], q1[2], q2[2], q3[2]} -vec_splat_float(p[2]);
+  vrx = (vFloat){q0[0], q1[0], q2[0], q3[0]} - vec_splat_float(p[0]);
+  vry = (vFloat){q0[1], q1[1], q2[1], q3[1]} - vec_splat_float(p[1]);
+  vrz = (vFloat){q0[2], q1[2], q2[2], q3[2]} - vec_splat_float(p[2]);
 
   /* normalize r* */
   rlen = vec_rsqrte(vrx * vrx + vry * vry + vrz * vrz + vec_splat_float(1e-16f));
@@ -5255,9 +5261,9 @@ static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float
   vangle = vacosf(vcos);
 
   /* dot */
-  vresult.v = (vec_splat_float(n[0]) * gx +
-               vec_splat_float(n[1]) * gy +
-               vec_splat_float(n[2]) * gz) * vangle;
+  vresult.v = (vec_splat_float(n[0]) * gx + vec_splat_float(n[1]) * gy +
+               vec_splat_float(n[2]) * gz) *
+              vangle;
 
   result = (vresult.f[0] + vresult.f[1] + vresult.f[2] + vresult.f[3]) * (0.5f / (float)M_PI);
   result = MAX2(result, 0.0f);

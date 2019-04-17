@@ -360,7 +360,7 @@ typedef enum ePchan_Flag {
   POSE_IKTREE = (1 << 13),
 #if 0
   /* has Spline IK */
-  POSE_HAS_IKS    =   (1 << 14),
+  POSE_HAS_IKS = (1 << 14),
 #endif
   /* spline IK solving */
   POSE_IKSPLINE = (1 << 15),

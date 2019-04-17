@@ -140,7 +140,7 @@ static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
         format_status(INCOMPLETE_ATTACHMENT) format_status(INCOMPLETE_MISSING_ATTACHMENT)
             format_status(UNSUPPORTED)
 #if 0 /* for OpenGL ES only */
-    format_status(INCOMPLETE_DIMENSIONS)
+                format_status(INCOMPLETE_DIMENSIONS)
 #else /* for desktop GL only */
                 format_status(INCOMPLETE_DRAW_BUFFER) format_status(INCOMPLETE_READ_BUFFER)
                     format_status(INCOMPLETE_MULTISAMPLE) format_status(UNDEFINED)

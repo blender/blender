@@ -105,7 +105,7 @@ static bool notValid(Vec2r p)
 }
 
 #if 0
-static real crossP(const Vec2r& A, const Vec2r& B)
+static real crossP(const Vec2r &A, const Vec2r &B)
 {
   return A[0] * B[1] - A[1] * B[0];
 }
@@ -498,8 +498,8 @@ void Strip::setVertexColor(const vector<StrokeVertex *> &iStrokeVertices)
     _vertices[i]->setAlpha(sv->attribute().getAlpha());
     i++;
 #if 0
-    cerr << "col=("<<sv->attribute().getColor()[0] << ", "
-         << sv->attribute().getColor()[1] << ", " << sv->attribute().getColor()[2] << ")" << endl;
+    cerr << "col=(" << sv->attribute().getColor()[0] << ", " << sv->attribute().getColor()[1]
+         << ", " << sv->attribute().getColor()[2] << ")" << endl;
 #endif
   }
 }
@@ -545,8 +545,8 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
   fact = (float(tiles) + 0.5) / l;
 
 #if 0
-  cerr << "l=" << l << "  tiles=" << tiles << "    _averageThicnkess="
-       << _averageThickness << "    strokeLength=" << (*v)->strokeLength() << endl;
+  cerr << "l=" << l << "  tiles=" << tiles << "    _averageThicnkess=" << _averageThickness
+       << "    strokeLength=" << (*v)->strokeLength() << endl;
 #endif
 
   vector<StrokeVertexRep *>::iterator currentSV = _vertices.begin();
@@ -690,7 +690,7 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
 
   for (i = 0; i < _sizeStrip; i++)
     cerr << "(" << _texCoord[i][0] << ", " << _texCoord[i][1] << ") ";
-    cerr << endl;
+  cerr << endl;
 
   Vec2r vec_tmp;
   for (i = 0; i < _sizeStrip / 2; i++)
@@ -718,7 +718,7 @@ StrokeRep::StrokeRep()
   if (ptm)
     _textureId = ptm->getDefaultTextureId();
 #if 0
-  _averageTextureAlpha = 0.5; //default value
+  _averageTextureAlpha = 0.5;  //default value
   if (_strokeType == OIL_STROKE)
     _averageTextureAlpha = 0.75;
   if (_strokeType >= NO_BLEND_STROKE)
@@ -749,7 +749,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
   }
 
 #if 0
-  _averageTextureAlpha = 0.5; //default value
+  _averageTextureAlpha = 0.5;  //default value
   if (_strokeType == OIL_STROKE)
     _averageTextureAlpha = 0.75;
   if (_strokeType >= NO_BLEND_STROKE)

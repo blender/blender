@@ -165,14 +165,22 @@ int wm_gesture_evaluate(wmGesture *gesture)
 
 #if 0
       /* debug */
-      if (val == 1) printf("tweak north\n");
-      if (val == 2) printf("tweak north-east\n");
-      if (val == 3) printf("tweak east\n");
-      if (val == 4) printf("tweak south-east\n");
-      if (val == 5) printf("tweak south\n");
-      if (val == 6) printf("tweak south-west\n");
-      if (val == 7) printf("tweak west\n");
-      if (val == 8) printf("tweak north-west\n");
+      if (val == 1)
+        printf("tweak north\n");
+      if (val == 2)
+        printf("tweak north-east\n");
+      if (val == 3)
+        printf("tweak east\n");
+      if (val == 4)
+        printf("tweak south-east\n");
+      if (val == 5)
+        printf("tweak south\n");
+      if (val == 6)
+        printf("tweak south-west\n");
+      if (val == 7)
+        printf("tweak west\n");
+      if (val == 8)
+        printf("tweak north-west\n");
 #endif
       return val;
     }

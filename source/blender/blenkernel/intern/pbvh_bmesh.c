@@ -431,7 +431,6 @@ static int pbvh_bmesh_node_offset_from_elem(PBVH *bvh, BMElem *ele)
       BLI_assert(ele->head.htype == BM_FACE);
       return bvh->cd_face_node_offset;
   }
-
 }
 
 static int pbvh_bmesh_node_index_from_elem(PBVH *bvh, void *key)
@@ -543,7 +542,7 @@ static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
   BMFace *f;
   int count = 0;
 
-  BM_FACES_OF_VERT_ITER_BEGIN(f, v) {
+  BM_FACES_OF_VERT_ITER_BEGIN (f, v) {
     PBVHNode *f_node = pbvh_bmesh_node_from_face(bvh, f);
     if (f_node == node) {
       count++;
@@ -2105,18 +2104,14 @@ static void pbvh_bmesh_print(PBVH *bvh)
 
   BMIter iter;
   BMFace *f;
-  BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
-    fprintf(stderr, "  %d -> %d\n",
-            BM_elem_index_get(f),
-            pbvh_bmesh_node_index_from_face(bvh, f));
+  BM_ITER_MESH (f, &iter, bvh->bm, BM_FACES_OF_MESH) {
+    fprintf(stderr, "  %d -> %d\n", BM_elem_index_get(f), pbvh_bmesh_node_index_from_face(bvh, f));
   }
 
   fprintf(stderr, "bm_vert_to_node:\n");
   BMVert *v;
-  BM_ITER_MESH(v, &iter, bvh->bm, BM_FACES_OF_MESH) {
-    fprintf(stderr, "  %d -> %d\n",
-            BM_elem_index_get(v),
-            pbvh_bmesh_node_index_from_vert(bvh, v));
+  BM_ITER_MESH (v, &iter, bvh->bm, BM_FACES_OF_MESH) {
+    fprintf(stderr, "  %d -> %d\n", BM_elem_index_get(v), pbvh_bmesh_node_index_from_vert(bvh, v));
   }
 
   for (int n = 0; n < bvh->totnode; n++) {
@@ -2127,16 +2122,13 @@ static void pbvh_bmesh_print(PBVH *bvh)
     GSetIterator gs_iter;
     fprintf(stderr, "node %d\n  faces:\n", n);
     GSET_ITER (gs_iter, node->bm_faces)
-      fprintf(stderr, "    %d\n",
-              BM_elem_index_get((BMFace *)BLI_gsetIterator_getKey(&gs_iter)));
+      fprintf(stderr, "    %d\n", BM_elem_index_get((BMFace *)BLI_gsetIterator_getKey(&gs_iter)));
     fprintf(stderr, "  unique verts:\n");
     GSET_ITER (gs_iter, node->bm_unique_verts)
-      fprintf(stderr, "    %d\n",
-              BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
+      fprintf(stderr, "    %d\n", BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
     fprintf(stderr, "  other verts:\n");
     GSET_ITER (gs_iter, node->bm_other_verts)
-      fprintf(stderr, "    %d\n",
-              BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
+      fprintf(stderr, "    %d\n", BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
   }
 }
 

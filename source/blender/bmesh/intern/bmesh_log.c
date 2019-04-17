@@ -1125,11 +1125,9 @@ void bm_log_print(const BMLog *log, const char *description)
   int i;
 
   printf("%s:\n", description);
-  printf("    % 2d: [ initial ]%s\n", 0,
-         (!log->current_entry) ? current : "");
+  printf("    % 2d: [ initial ]%s\n", 0, (!log->current_entry) ? current : "");
   for (entry = log->entries.first, i = 1; entry; entry = entry->next, i++) {
-    printf("    % 2d: [%p]%s\n", i, entry,
-           (entry == log->current_entry) ? current : "");
+    printf("    % 2d: [%p]%s\n", i, entry, (entry == log->current_entry) ? current : "");
   }
 }
 #endif

@@ -739,9 +739,16 @@ void view3d_winmatrix_set(Depsgraph *depsgraph, ARegion *ar, const View3D *v3d, 
   rv3d->is_persp = !is_ortho;
 
 #if 0
-  printf("%s: %d %d %f %f %f %f %f %f\n", __func__, winx, winy,
-         viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax,
-         clipsta, clipend);
+  printf("%s: %d %d %f %f %f %f %f %f\n",
+         __func__,
+         winx,
+         winy,
+         viewplane.xmin,
+         viewplane.ymin,
+         viewplane.xmax,
+         viewplane.ymax,
+         clipsta,
+         clipend);
 #endif
 
   if (rect) { /* picking */

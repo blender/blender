@@ -479,8 +479,7 @@ static void paint_brush_stroke_add_step(bContext *C,
   if (tablet && (pressure >= 0.99f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
        BKE_brush_use_alpha_pressure(scene, pop->s.brush) ||
-       BKE_brush_use_size_pressure(scene, pop->s.brush)))
-  {
+       BKE_brush_use_size_pressure(scene, pop->s.brush))) {
     return;
   }
 
@@ -493,8 +492,7 @@ static void paint_brush_stroke_add_step(bContext *C,
   if (tablet && (pressure < 0.0002f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
        BKE_brush_use_alpha_pressure(scene, pop->s.brush) ||
-       BKE_brush_use_size_pressure(scene, pop->s.brush)))
-  {
+       BKE_brush_use_size_pressure(scene, pop->s.brush))) {
     return;
   }
 #endif

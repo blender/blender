@@ -1173,9 +1173,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               float point[3];
 #if 0
               const float dist_sq_test = dist_squared_ray_to_seg_v3(
-                      ray_origin, ray_direction,
-                      e->v1->co,  e->v2->co,
-                      point, &depth);
+                  ray_origin, ray_direction, e->v1->co, e->v2->co, point, &depth);
 #else
               if (coords) {
                 mid_v3_v3v3(
@@ -1801,7 +1799,8 @@ static bool mouse_mesh_loop(
         length_2 = len_squared_v2v2(mvalf, v2_co);
       }
 #if 0
-      printf("mouse to v1: %f\nmouse to v2: %f\n", len_squared_v2v2(mvalf, v1_co),
+      printf("mouse to v1: %f\nmouse to v2: %f\n",
+             len_squared_v2v2(mvalf, v1_co),
              len_squared_v2v2(mvalf, v2_co));
 #endif
       BM_select_history_store(em->bm, (length_1 < length_2) ? eed->v1 : eed->v2);

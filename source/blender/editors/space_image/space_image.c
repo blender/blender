@@ -745,7 +745,8 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 
   /* scrollers? */
 #if 0
-  scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+  scrollers = UI_view2d_scrollers_calc(
+      C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
   UI_view2d_scrollers_draw(C, v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 #endif

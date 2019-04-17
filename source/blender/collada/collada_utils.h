@@ -181,9 +181,10 @@ inline bool bc_startswith(std::string const &value, std::string const &starting)
 }
 
 #if 0 /* UNUSED */
-inline bool bc_endswith(std::string const & value, std::string const & ending)
+inline bool bc_endswith(std::string const &value, std::string const &ending)
 {
-  if (ending.size() > value.size()) return false;
+  if (ending.size() > value.size())
+    return false;
   return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 #endif

@@ -879,7 +879,8 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
              __func__,
              (int)ctime,
              BLI_listbase_count(&masklay->splines_shapes),
-             masklay_shape_a->frame, masklay_shape_b->frame);
+             masklay_shape_a->frame,
+             masklay_shape_b->frame);
 #endif
       BKE_mask_layer_shape_to_mask_interp(
           masklay, masklay_shape_a, masklay_shape_b, (ctime - masklay_shape_a->frame) / w);

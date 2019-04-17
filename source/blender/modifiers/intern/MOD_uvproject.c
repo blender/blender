@@ -75,7 +75,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
 #if 0
-  UVProjectModifierData *umd = (UVProjectModifierData *) md;
+  UVProjectModifierData *umd = (UVProjectModifierData *)md;
 #endif
 
   foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);

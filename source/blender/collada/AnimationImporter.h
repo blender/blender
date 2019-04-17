@@ -238,7 +238,8 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
 #if 0
   // recursively evaluates joint tree until end is found, mat then is world-space matrix of end
   // mat must be identity on enter, node must be root
-  bool evaluate_joint_world_transform_at_frame(float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end, float fra);
+  bool evaluate_joint_world_transform_at_frame(
+      float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end, float fra);
 #endif
 
   void add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurve *fcu);

@@ -119,7 +119,7 @@ enum {
   DT_LAYERS_NAME_DST = -2,
   DT_LAYERS_INDEX_DST = -3,
 #if 0 /* TODO */
-  DT_LAYERS_CREATE_DST                 = -4,  /* Never replace existing data in dst, always create new layers. */
+  DT_LAYERS_CREATE_DST = -4, /* Never replace existing data in dst, always create new layers. */
 #endif
 };
 

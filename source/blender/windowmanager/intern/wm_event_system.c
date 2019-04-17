@@ -1716,7 +1716,9 @@ int WM_operator_call_py(bContext *C,
       wm->op_undo_depth--;
   }
   else {
-    CLOG_WARN(WM_LOG_OPERATORS, "\"%s\" operator has no exec function, Python cannot call it", op->type->name);
+    CLOG_WARN(WM_LOG_OPERATORS,
+              "\"%s\" operator has no exec function, Python cannot call it",
+              op->type->name);
   }
 
 #endif

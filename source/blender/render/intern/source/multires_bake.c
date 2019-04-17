@@ -984,8 +984,10 @@ static unsigned short get_ao_random2(const int i)
   return ao_random_table_2[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
 }
 
-static void build_permutation_table(unsigned short permutation[], unsigned short temp_permutation[],
-                                    const int number_of_rays, const int is_first_perm_table)
+static void build_permutation_table(unsigned short permutation[],
+                                    unsigned short temp_permutation[],
+                                    const int number_of_rays,
+                                    const int is_first_perm_table)
 {
   int i, k;
 
@@ -1031,11 +1033,13 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
   grid_data = hidm->getGridData(hidm);
   hidm->getGridKey(hidm, &key);
 
-  /* face_side = (grid_size << 1) - 1; */  /* UNUSED */
+  /* face_side = (grid_size << 1) - 1; */ /* UNUSED */
   num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
 
-  raytree = ao_data->raytree = RE_rayobject_create(bkr->raytrace_structure, num_faces, bkr->octree_resolution);
-  face = ao_data->rayfaces = (RayFace *)MEM_callocN(num_faces * sizeof(RayFace), "ObjectRen faces");
+  raytree = ao_data->raytree = RE_rayobject_create(
+      bkr->raytrace_structure, num_faces, bkr->octree_resolution);
+  face = ao_data->rayfaces = (RayFace *)MEM_callocN(num_faces * sizeof(RayFace),
+                                                    "ObjectRen faces");
 
   for (i = 0; i < num_grids; i++) {
     int x, y;
@@ -1083,8 +1087,10 @@ static void *init_ao_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
   ao_data->permutation_table_2 = MEM_callocN(permutation_size, "multires AO baker perm2");
   temp_permutation_table = MEM_callocN(permutation_size, "multires AO baker temp perm");
 
-  build_permutation_table(ao_data->permutation_table_1, temp_permutation_table, bkr->number_of_rays, 1);
-  build_permutation_table(ao_data->permutation_table_2, temp_permutation_table, bkr->number_of_rays, 0);
+  build_permutation_table(
+      ao_data->permutation_table_1, temp_permutation_table, bkr->number_of_rays, 1);
+  build_permutation_table(
+      ao_data->permutation_table_2, temp_permutation_table, bkr->number_of_rays, 0);
 
   MEM_freeN(temp_permutation_table);
 
@@ -1113,17 +1119,23 @@ static void build_coordinate_frame(float axisX[3], float axisY[3], const float a
 
   if (faX <= faY && faX <= faZ) {
     const float len = sqrtf(axisZ[1] * axisZ[1] + axisZ[2] * axisZ[2]);
-    axisY[0] = 0; axisY[1] = axisZ[2] / len; axisY[2] = -axisZ[1] / len;
+    axisY[0] = 0;
+    axisY[1] = axisZ[2] / len;
+    axisY[2] = -axisZ[1] / len;
     cross_v3_v3v3(axisX, axisY, axisZ);
   }
   else if (faY <= faZ) {
     const float len = sqrtf(axisZ[0] * axisZ[0] + axisZ[2] * axisZ[2]);
-    axisX[0] = axisZ[2] / len; axisX[1] = 0; axisX[2] = -axisZ[0] / len;
+    axisX[0] = axisZ[2] / len;
+    axisX[1] = 0;
+    axisX[2] = -axisZ[0] / len;
     cross_v3_v3v3(axisY, axisZ, axisX);
   }
   else {
     const float len = sqrtf(axisZ[0] * axisZ[0] + axisZ[1] * axisZ[1]);
-    axisX[0] = axisZ[1] / len; axisX[1] = -axisZ[0] / len; axisX[2] = 0;
+    axisX[0] = axisZ[1] / len;
+    axisX[1] = -axisZ[0] / len;
+    axisX[2] = 0;
     cross_v3_v3v3(axisY, axisZ, axisX);
   }
 }
@@ -1143,9 +1155,17 @@ static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_dire
   return RE_rayobject_raycast(ao_data->raytree, &isect);
 }
 
-static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *UNUSED(thread_data),
-                              void *bake_data, ImBuf *ibuf, const int tri_index, const int lvl,
-                              const float st[2], float UNUSED(tangmat[3][3]), const int x, const int y)
+static void apply_ao_callback(DerivedMesh *lores_dm,
+                              DerivedMesh *hires_dm,
+                              void *UNUSED(thread_data),
+                              void *bake_data,
+                              ImBuf *ibuf,
+                              const int tri_index,
+                              const int lvl,
+                              const float st[2],
+                              float UNUSED(tangmat[3][3]),
+                              const int x,
+                              const int y)
 {
   const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
   MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
@@ -1180,9 +1200,8 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
   CLAMP(uv[0], 0.0f, 1.0f);
   CLAMP(uv[1], 0.0f, 1.0f);
 
-  get_ccgdm_data(lores_dm, hires_dm,
-                 ao_data->orig_index_mp_to_orig,
-                 lvl, lt, uv[0], uv[1], pos, nrm);
+  get_ccgdm_data(
+      lores_dm, hires_dm, ao_data->orig_index_mp_to_orig, lvl, lt, uv[0], uv[1], pos, nrm);
 
   /* offset ray origin by user bias along normal */
   for (i = 0; i < 3; i++)
@@ -1204,11 +1223,14 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
     /* use N-Rooks to distribute our N ray samples across
      * a multi-dimensional domain (2D)
      */
-    const unsigned short I = ao_data->permutation_table_1[(i + perm_offs) % ao_data->number_of_rays];
+    const unsigned short I =
+        ao_data->permutation_table_1[(i + perm_offs) % ao_data->number_of_rays];
     const unsigned short J = ao_data->permutation_table_2[i];
 
-    const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) / ((float)MAX_NUMBER_OF_AO_RAYS);
-    const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) / ((float)MAX_NUMBER_OF_AO_RAYS);
+    const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
+                        ((float)MAX_NUMBER_OF_AO_RAYS);
+    const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
+                        ((float)MAX_NUMBER_OF_AO_RAYS);
     const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
     const float Theta = (float)(2 * M_PI) * ((J + JitTh) / ao_data->number_of_rays);
 

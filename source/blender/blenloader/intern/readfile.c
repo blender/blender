@@ -3724,7 +3724,8 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
     bNodeInstanceHash *new_previews = BKE_node_instance_hash_new("node previews");
     bNodeInstanceHashIterator iter;
 
-    NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
+    NODE_INSTANCE_HASH_ITER(iter, ntree->previews)
+    {
       bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
       if (preview) {
         bNodePreview *new_preview = newimaadr(fd, preview);

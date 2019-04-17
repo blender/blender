@@ -362,16 +362,15 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
   for (link = lb.first; link; link = link->next) {
     const char *identifier = link->data;
-    PointerRNA ctx_item_ptr = {{0}}; // CTX_data_pointer_get(C, identifier); // XXX, this isnt working
+    PointerRNA ctx_item_ptr = {
+        {0}};  // CTX_data_pointer_get(C, identifier); // XXX, this isnt working
 
     if (ctx_item_ptr.type == NULL) {
       continue;
     }
 
     if (ptr->id.data == ctx_item_ptr.id.data) {
-      if ((ptr->data == ctx_item_ptr.data) &&
-          (ptr->type == ctx_item_ptr.type))
-      {
+      if ((ptr->data == ctx_item_ptr.data) && (ptr->type == ctx_item_ptr.type)) {
         /* found! */
         member_found = identifier;
         break;
@@ -801,7 +800,20 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg)
   BLI_assert(search_menu->use_previews ||
              (search_menu->prv_cols == 0 && search_menu->prv_rows == 0));
 #if 0 /* ok, this isn't so easy... */
-  uiDefBut(block, UI_BTYPE_LABEL, 0, RNA_struct_ui_name(op->type->srna), 10, 10, UI_searchbox_size_x(), UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+  uiDefBut(block,
+           UI_BTYPE_LABEL,
+           0,
+           RNA_struct_ui_name(op->type->srna),
+           10,
+           10,
+           UI_searchbox_size_x(),
+           UI_UNIT_Y,
+           NULL,
+           0.0,
+           0.0,
+           0,
+           0,
+           "");
 #endif
   but = uiDefSearchButO_ptr(block,
                             op->type,
@@ -3722,7 +3734,10 @@ const EnumPropertyItem *RNA_action_itemf(bContext *C,
       C, ptr, r_free, C ? (ID *)CTX_data_main(C)->actions.first : NULL, false, NULL, NULL);
 }
 #if 0 /* UNUSED */
-const EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+const EnumPropertyItem *RNA_action_local_itemf(bContext *C,
+                                               PointerRNA *ptr,
+                                               PropertyRNA *UNUSED(prop),
+                                               bool *r_free)
 {
   return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, true);
 }

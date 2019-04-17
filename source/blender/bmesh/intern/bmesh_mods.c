@@ -531,14 +531,15 @@ BMEdge *BM_vert_collapse_edge(
 
   /* in this case we want to keep all faces and not join them,
    * rather just get rid of the vertex - see bug [#28645] */
-  BMVert *tv  = BM_edge_other_vert(e_kill, v_kill);
+  BMVert *tv = BM_edge_other_vert(e_kill, v_kill);
   if (tv) {
     BMEdge *e2 = bmesh_disk_edge_next(e_kill, v_kill);
     if (e2) {
       BMVert *tv2 = BM_edge_other_vert(e2, v_kill);
       if (tv2) {
         /* only action, other calls here only get the edge to return */
-        e_new = bmesh_kernel_join_edge_kill_vert(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
+        e_new = bmesh_kernel_join_edge_kill_vert(
+            bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
       }
     }
   }
@@ -748,11 +749,12 @@ bool BM_face_validate(BMFace *face, FILE *err)
   }
 
   BLI_array_grow_items(verts, face->len);
-  BM_ITER_ELEM_INDEX (l, &iter, face, BM_LOOPS_OF_FACE, i) {
+  BM_ITER_ELEM_INDEX(l, &iter, face, BM_LOOPS_OF_FACE, i)
+  {
     verts[i] = l->v;
     if (l->e->v1 == l->e->v2) {
       fprintf(err, "Found bmesh edge with identical verts!\n");
-      fprintf(err, "  edge ptr: %p, vert: %p\n",  l->e, l->e->v1);
+      fprintf(err, "  edge ptr: %p, vert: %p\n", l->e, l->e->v1);
       fflush(err);
       ret = false;
     }

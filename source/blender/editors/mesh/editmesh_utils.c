@@ -363,10 +363,8 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
    * cycles.
    */
 #if 0
-  for (Object *other_object = bmain->objects.first;
-       other_object != NULL;
-       other_object = other_object->id.next)
-  {
+  for (Object *other_object = bmain->objects.first; other_object != NULL;
+       other_object = other_object->id.next) {
     if (other_object->data == ob->data) {
       BKE_object_free_derived_caches(other_object);
     }

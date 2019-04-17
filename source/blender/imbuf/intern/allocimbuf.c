@@ -587,7 +587,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
 static void imbuf_cache_destructor(void *data)
 {
-  ImBuf *ibuf = (ImBuf *) data;
+  ImBuf *ibuf = (ImBuf *)data;
 
   imb_freerectImBuf(ibuf);
   imb_freerectfloatImBuf(ibuf);
@@ -597,7 +597,6 @@ static void imbuf_cache_destructor(void *data)
 
   ibuf->c_handle = NULL;
 }
-
 
 static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 {
