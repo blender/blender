@@ -716,10 +716,17 @@ float Camera::world_to_raster_size(float3 P)
     float3 raster = transform_perspective(&full_cameratoraster, make_float3(dir.x, dir.y, 0.0f));
 
     ray.t = 1.0f;
-    camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), raster.x, raster.y, 0.0f, 0.0f, &ray);
-    if(ray.t == 0.0f) {
+    camera_sample_panorama(
+        &kernel_camera, kernel_camera_motion.data(), raster.x, raster.y, 0.0f, 0.0f, &ray);
+    if (ray.t == 0.0f) {
       /* No differentials, just use from directly ahead. */
-      camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*full_width, 0.5f*full_height, 0.0f, 0.0f, &ray);
+      camera_sample_panorama(&kernel_camera,
+                             kernel_camera_motion.data(),
+                             0.5f * full_width,
+                             0.5f * full_height,
+                             0.0f,
+                             0.0f,
+                             &ray);
     }
 #else
     camera_sample_panorama(&kernel_camera,

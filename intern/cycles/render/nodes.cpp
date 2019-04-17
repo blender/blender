@@ -3888,7 +3888,7 @@ void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attribute
   if (!output("Location")->links.empty())
     attributes->add(ATTR_STD_PARTICLE);
 #if 0 /* not yet supported */
-  if(!output("Rotation")->links.empty())
+  if (!output("Rotation")->links.empty())
     attributes->add(ATTR_STD_PARTICLE);
 #endif
   if (!output("Size")->links.empty())
@@ -3933,7 +3933,7 @@ void ParticleInfoNode::compile(SVMCompiler &compiler)
   /* quaternion data is not yet supported by Cycles */
 #if 0
   out = output("Rotation");
-  if(!out->links.empty()) {
+  if (!out->links.empty()) {
     compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ROTATION, compiler.stack_assign(out));
   }
 #endif

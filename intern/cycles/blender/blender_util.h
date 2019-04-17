@@ -54,8 +54,8 @@ static inline BL::Mesh object_to_mesh(BL::BlendData &data,
   bool subsurf_mod_show_render = false;
   bool subsurf_mod_show_viewport = false;
 
-  if(subdivision_type != Mesh::SUBDIVISION_NONE) {
-    BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
+  if (subdivision_type != Mesh::SUBDIVISION_NONE) {
+    BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length() - 1];
 
     subsurf_mod_show_render = subsurf_mod.show_render();
     subsurf_mod_show_viewport = subsurf_mod.show_viewport();
@@ -83,8 +83,8 @@ static inline BL::Mesh object_to_mesh(BL::BlendData &data,
   }
 
 #if 0
-  if(subdivision_type != Mesh::SUBDIVISION_NONE) {
-    BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
+  if (subdivision_type != Mesh::SUBDIVISION_NONE) {
+    BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length() - 1];
 
     subsurf_mod.show_render(subsurf_mod_show_render);
     subsurf_mod.show_viewport(subsurf_mod_show_viewport);

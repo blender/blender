@@ -379,7 +379,10 @@ float IK_SolverGetPoleAngle(IK_Solver *solver)
 }
 
 #if 0
-static void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight)
+static void IK_SolverAddCenterOfMass(IK_Solver *solver,
+                                     IK_Segment *root,
+                                     float goal[3],
+                                     float weight)
 {
   if (solver == NULL || root == NULL)
     return;

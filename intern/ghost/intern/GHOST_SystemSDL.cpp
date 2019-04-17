@@ -360,8 +360,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       GHOST_TInt32 y_root = sdl_sub_evt.y + y_win;
 
 #if 0
-      if (window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
-      {
+      if (window->getCursorGrabMode() != GHOST_kGrabDisable &&
+          window->getCursorGrabMode() != GHOST_kGrabNormal) {
         GHOST_TInt32 x_new = x_root;
         GHOST_TInt32 y_new = y_root;
         GHOST_TInt32 x_accum, y_accum;
@@ -390,10 +390,15 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
             SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win);
           }
 
-          g_event = new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x_new, y_new);
+          g_event = new GHOST_EventCursor(
+              getMilliSeconds(), GHOST_kEventCursorMove, window, x_new, y_new);
         }
         else {
-          g_event = new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x_root + x_accum, y_root + y_accum);
+          g_event = new GHOST_EventCursor(getMilliSeconds(),
+                                          GHOST_kEventCursorMove,
+                                          window,
+                                          x_root + x_accum,
+                                          y_root + y_accum);
         }
       }
       else

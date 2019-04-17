@@ -307,8 +307,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     /* TODO: don't use lights for excluded layers used as mask layer,
      * when dynamic overrides are back. */
 #if 0
-    if(!((layer_flag & view_layer.holdout_layer) &&
-         (layer_flag & view_layer.exclude_layer)))
+    if (!((layer_flag & view_layer.holdout_layer) && (layer_flag & view_layer.exclude_layer)))
 #endif
     {
       sync_light(b_parent,
@@ -345,7 +344,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   /* TODO: make holdout objects on excluded layer invisible for non-camera rays. */
 #if 0
-  if(use_holdout && (layer_flag & view_layer.exclude_layer)) {
+  if (use_holdout && (layer_flag & view_layer.exclude_layer)) {
     visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
   }
 #endif

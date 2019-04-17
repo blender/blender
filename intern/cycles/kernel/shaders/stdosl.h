@@ -235,15 +235,42 @@ int clamp(int x, int minval, int maxval)
   return max(min(x, maxval), minval);
 }
 #if 0
-normal mix (normal x, normal y, normal a) { return x*(1-a) + y*a; }
-normal mix (normal x, normal y, float  a) { return x*(1-a) + y*a; }
-vector mix (vector x, vector y, vector a) { return x*(1-a) + y*a; }
-vector mix (vector x, vector y, float  a) { return x*(1-a) + y*a; }
-point  mix (point  x, point  y, point  a) { return x*(1-a) + y*a; }
-point  mix (point  x, point  y, float  a) { return x*(1-a) + y*a; }
-color  mix (color  x, color  y, color  a) { return x*(1-a) + y*a; }
-color  mix (color  x, color  y, float  a) { return x*(1-a) + y*a; }
-float  mix (float  x, float  y, float  a) { return x*(1-a) + y*a; }
+normal mix(normal x, normal y, normal a)
+{
+  return x * (1 - a) + y * a;
+}
+normal mix(normal x, normal y, float a)
+{
+  return x * (1 - a) + y * a;
+}
+vector mix(vector x, vector y, vector a)
+{
+  return x * (1 - a) + y * a;
+}
+vector mix(vector x, vector y, float a)
+{
+  return x * (1 - a) + y * a;
+}
+point mix(point x, point y, point a)
+{
+  return x * (1 - a) + y * a;
+}
+point mix(point x, point y, float a)
+{
+  return x * (1 - a) + y * a;
+}
+color mix(color x, color y, color a)
+{
+  return x * (1 - a) + y * a;
+}
+color mix(color x, color y, float a)
+{
+  return x * (1 - a) + y * a;
+}
+float mix(float x, float y, float a)
+{
+  return x * (1 - a) + y * a;
+}
 #else
 normal mix(normal x, normal y, normal a) BUILTIN;
 normal mix(normal x, normal y, float a) BUILTIN;
@@ -369,7 +396,7 @@ point rotate(point p, float angle, point a, point b)
      * anisotropic shader where angle is usually constant.
      */
 #if 0
-    sincos (angle, sinang, cosang);
+  sincos(angle, sinang, cosang);
 #else
   sinang = sin(angle);
   cosang = cos(angle);

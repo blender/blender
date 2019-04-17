@@ -495,7 +495,7 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       float3 *fdata = attr->data_float3();
 
 #if 0
-      if(subdivide_uvs) {
+      if (subdivide_uvs) {
         attr->flags |= ATTR_SUBDIVIDED;
       }
 #endif

@@ -1160,13 +1160,14 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
   if (hwnd) {
 #if 0
     // Disabled due to bug in Intel drivers, see T51959
-    if(msg == WM_NCCREATE) {
+    if (msg == WM_NCCREATE) {
       // Tell Windows to automatically handle scaling of non-client areas
       // such as the caption bar. EnableNonClientDpiScaling was introduced in Windows 10
       HMODULE m_user32 = ::LoadLibrary("User32.dll");
       if (m_user32) {
         GHOST_WIN32_EnableNonClientDpiScaling fpEnableNonClientDpiScaling =
-          (GHOST_WIN32_EnableNonClientDpiScaling) ::GetProcAddress(m_user32, "EnableNonClientDpiScaling");
+            (GHOST_WIN32_EnableNonClientDpiScaling)::GetProcAddress(m_user32,
+                                                                    "EnableNonClientDpiScaling");
 
         if (fpEnableNonClientDpiScaling) {
           fpEnableNonClientDpiScaling(hwnd);

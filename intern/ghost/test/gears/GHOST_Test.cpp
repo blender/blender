@@ -479,12 +479,14 @@ bool Application::processEvent(GHOST_IEvent *event)
 
   switch (event->getType()) {
 #if 0
-  case GHOST_kEventUnknown:
-    break;
-  case GHOST_kEventCursorButton:
-    std::cout << "GHOST_kEventCursorButton"; break;
-  case GHOST_kEventCursorMove:
-    std::cout << "GHOST_kEventCursorMove"; break;
+    case GHOST_kEventUnknown:
+      break;
+    case GHOST_kEventCursorButton:
+      std::cout << "GHOST_kEventCursorButton";
+      break;
+    case GHOST_kEventCursorMove:
+      std::cout << "GHOST_kEventCursorMove";
+      break;
 #endif
     case GHOST_kEventWheel: {
       GHOST_TEventWheelData *wheelData = (GHOST_TEventWheelData *)event->getData();

@@ -99,7 +99,7 @@ MIKK_INLINE float Length(const SVec3 v)
 }
 
 #if 0  // UNUSED
-MIKK_INLINE SVec3       Normalize( const SVec3 v )
+MIKK_INLINE SVec3 Normalize(const SVec3 v)
 {
   return vscale(1.0f / Length(v), v);
 }

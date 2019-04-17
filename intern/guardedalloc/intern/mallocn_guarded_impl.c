@@ -907,7 +907,8 @@ short MEM_guarded_testN(void *vmemh)
   mem_lock_thread();
 
   membl = membase->first;
-  if (membl) membl = MEMNEXT(membl);
+  if (membl)
+    membl = MEMNEXT(membl);
 
   while (membl) {
     if (vmemh == membl + 1) {
@@ -917,7 +918,8 @@ short MEM_guarded_testN(void *vmemh)
 
     if (membl->next)
       membl = MEMNEXT(membl->next);
-    else break;
+    else
+      break;
   }
 
   mem_unlock_thread();
@@ -1013,8 +1015,10 @@ static void addtail(volatile localListBase *listbase, void *vlink)
   /* for a generic API error checks here is fine but
    * the limited use here they will never be NULL */
 #if 0
-  if (link == NULL) return;
-  if (listbase == NULL) return;
+  if (link == NULL)
+    return;
+  if (listbase == NULL)
+    return;
 #endif
 
   link->next = NULL;
@@ -1034,8 +1038,10 @@ static void remlink(volatile localListBase *listbase, void *vlink)
   /* for a generic API error checks here is fine but
    * the limited use here they will never be NULL */
 #if 0
-  if (link == NULL) return;
-  if (listbase == NULL) return;
+  if (link == NULL)
+    return;
+  if (listbase == NULL)
+    return;
 #endif
 
   if (link->next)

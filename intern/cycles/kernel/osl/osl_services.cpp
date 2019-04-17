@@ -733,7 +733,7 @@ bool OSLRenderServices::get_object_standard_attribute(
     return set_attribute_float3(f, type, derivatives, val);
   }
 #if 0 /* unsupported */
-  else if(name == u_particle_rotation) {
+  else if (name == u_particle_rotation) {
     int particle_id = object_particle_id(kg, sd->object);
     float4 f = particle_rotation(kg, particle_id);
     return set_attribute_float4(f, type, derivatives, val);

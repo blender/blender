@@ -615,15 +615,15 @@ std::vector<STR_String> STR_String::Explode(char c) const
 
 #if 0
 
-int     STR_String::Serialize(pCStream stream)
+int STR_String::Serialize(pCStream stream)
 {
   if (stream->GetAccess() == CStream::Access_Read) {
     int ln;
     stream->Read(&ln, sizeof(ln));
     AllocBuffer(ln, false);
     stream->Read(this->m_data, ln);
-    this->m_data[ln]    = '\0';
-    this->m_len         = ln;
+    this->m_data[ln] = '\0';
+    this->m_len = ln;
   }
   else {
     stream->Write(&this->m_len, sizeof(this->m_len));

@@ -417,12 +417,12 @@ ccl_device_inline float triangle_area(const float3 v1, const float3 v2, const fl
 ccl_device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
 {
 #if 0
-  if(fabsf(N.y) >= 0.999f) {
+  if (fabsf(N.y) >= 0.999f) {
     *a = make_float3(1, 0, 0);
     *b = make_float3(0, 0, 1);
     return;
   }
-  if(fabsf(N.z) >= 0.999f) {
+  if (fabsf(N.z) >= 0.999f) {
     *a = make_float3(1, 0, 0);
     *b = make_float3(0, 1, 0);
     return;

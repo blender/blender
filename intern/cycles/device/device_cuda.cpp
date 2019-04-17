@@ -653,7 +653,7 @@ class CUDADevice : public Device {
     /* For testing mapped host memory, fill up device memory. */
     const size_t keep_mb = 1024;
 
-    while(free_after > keep_mb * 1024 * 1024LL) {
+    while (free_after > keep_mb * 1024 * 1024LL) {
       CUdeviceptr tmp;
       cuda_assert(cuMemAlloc(&tmp, 10 * 1024 * 1024LL));
       cuMemGetInfo(&free_after, &total);

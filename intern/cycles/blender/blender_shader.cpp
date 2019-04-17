@@ -656,13 +656,12 @@ static ShaderNode *add_node(Scene *scene,
       /* TODO: restore */
       /* TODO(sergey): Does not work properly when we change builtin type. */
 #if 0
-      if(b_image.is_updated()) {
-        scene->image_manager->tag_reload_image(
-                image->filename.string(),
-                image->builtin_data,
-                get_image_interpolation(b_image_node),
-                get_image_extension(b_image_node),
-                image->use_alpha);
+      if (b_image.is_updated()) {
+        scene->image_manager->tag_reload_image(image->filename.string(),
+                                               image->builtin_data,
+                                               get_image_interpolation(b_image_node),
+                                               get_image_extension(b_image_node),
+                                               image->use_alpha);
       }
 #endif
     }
@@ -702,13 +701,12 @@ static ShaderNode *add_node(Scene *scene,
       /* TODO: restore */
       /* TODO(sergey): Does not work properly when we change builtin type. */
 #if 0
-      if(b_image.is_updated()) {
-        scene->image_manager->tag_reload_image(
-                env->filename.string(),
-                env->builtin_data,
-                get_image_interpolation(b_env_node),
-                EXTENSION_REPEAT,
-                env->use_alpha);
+      if (b_image.is_updated()) {
+        scene->image_manager->tag_reload_image(env->filename.string(),
+                                               env->builtin_data,
+                                               get_image_interpolation(b_env_node),
+                                               EXTENSION_REPEAT,
+                                               env->use_alpha);
       }
 #endif
     }

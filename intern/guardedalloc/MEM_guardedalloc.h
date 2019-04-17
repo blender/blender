@@ -70,10 +70,10 @@ extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 extern void (*MEM_freeN)(void *vmemh);
 
 #if 0 /* UNUSED */
-  /**
+/**
    * Return zero if memory is not in allocated list
    */
-  extern short (*MEM_testN)(void *vmemh);
+extern short (*MEM_testN)(void *vmemh);
 #endif
 
 /**
