@@ -525,6 +525,7 @@ enum {
 #define V3D_SHOW_X (1 << 1)
 #define V3D_SHOW_Y (1 << 2)
 #define V3D_SHOW_Z (1 << 3)
+#define V3D_SHOW_ORTHO_GRID (1 << 4)
 
 /** #TransformOrientationSlot.type */
 enum {

@@ -747,6 +747,12 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
   ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
+static bool rna_RegionView3D_is_orthographic_side_view_get(PointerRNA *ptr)
+{
+  RegionView3D *rv3d = (RegionView3D *)(ptr->data);
+  return RV3D_VIEW_IS_AXIS(rv3d->view);
+}
+
 static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   ID *id = ptr->id.data;
@@ -2931,6 +2937,11 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like gizmos and outlines");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
+  prop = RNA_def_property(srna, "show_ortho_grid", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_ORTHO_GRID);
+  RNA_def_property_ui_text(prop, "Display Grid", "Show grid in othographic side view");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
   RNA_def_property_ui_text(
@@ -3776,6 +3787,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "is_persp", 1);
   RNA_def_property_ui_text(prop, "Is Perspective", "");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_orthographic_side_view", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "view", 0);
+  RNA_def_property_boolean_funcs(prop, "rna_RegionView3D_is_orthographic_side_view_get", NULL);
+  RNA_def_property_ui_text(prop, "Is Axis Aligned", "Is current view an orthographic side view");
 
   /* This isn't directly accessible from the UI, only an operator. */
   prop = RNA_def_property(srna, "use_clip_planes", PROP_BOOLEAN, PROP_NONE);

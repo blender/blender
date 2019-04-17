@@ -4836,15 +4836,19 @@ class VIEW3D_PT_overlay_guides(Panel):
 
         split = col.split()
         sub = split.column()
-        sub.prop(overlay, "show_floor", text="Grid")
 
-        if overlay.show_floor:
-            sub = col.column(align=True)
-            sub.active = bool(overlay.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
-            subsub = sub.row(align=True)
-            subsub.active = overlay.show_floor
-            subsub.prop(overlay, "grid_scale", text="Scale")
-            subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
+        row = sub.row()
+        row_el = row.column()
+        row_el.prop(overlay, "show_ortho_grid", text="Grid")
+        grid_active = view.region_quadviews or (view.region_3d.is_orthographic_side_view and not view.region_3d.is_perspective)
+        row_el.active = grid_active
+        row.prop(overlay, "show_floor", text="Floor")
+
+        if overlay.show_floor or overlay.show_ortho_grid:
+            sub = col.row(align=True)
+            sub.active = (overlay.show_floor and not view.region_3d.is_orthographic_side_view) or (overlay.show_ortho_grid and grid_active)
+            sub.prop(overlay, "grid_scale", text="Scale")
+            sub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
         sub = split.column()
         row = sub.row()
