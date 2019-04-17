@@ -46,4 +46,4 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Time;
 /* MOD_gpencil_util.c */
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);
 
-#endif  /* __MOD_GPENCIL_MODIFIERTYPES_H__ */
+#endif /* __MOD_GPENCIL_MODIFIERTYPES_H__ */

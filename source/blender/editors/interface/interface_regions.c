@@ -41,28 +41,28 @@
 
 ARegion *ui_region_temp_add(bScreen *sc)
 {
-	ARegion *ar;
+  ARegion *ar;
 
-	ar = MEM_callocN(sizeof(ARegion), "area region");
-	BLI_addtail(&sc->regionbase, ar);
+  ar = MEM_callocN(sizeof(ARegion), "area region");
+  BLI_addtail(&sc->regionbase, ar);
 
-	ar->regiontype = RGN_TYPE_TEMPORARY;
-	ar->alignment = RGN_ALIGN_FLOAT;
+  ar->regiontype = RGN_TYPE_TEMPORARY;
+  ar->alignment = RGN_ALIGN_FLOAT;
 
-	return ar;
+  return ar;
 }
 
 void ui_region_temp_remove(bContext *C, bScreen *sc, ARegion *ar)
 {
-	wmWindow *win = CTX_wm_window(C);
+  wmWindow *win = CTX_wm_window(C);
 
-	BLI_assert(ar->regiontype == RGN_TYPE_TEMPORARY);
-	BLI_assert(BLI_findindex(&sc->regionbase, ar) != -1);
-	if (win) {
-		wm_draw_region_clear(win, ar);
-	}
+  BLI_assert(ar->regiontype == RGN_TYPE_TEMPORARY);
+  BLI_assert(BLI_findindex(&sc->regionbase, ar) != -1);
+  if (win) {
+    wm_draw_region_clear(win, ar);
+  }
 
-	ED_region_exit(C, ar);
-	BKE_area_region_free(NULL, ar);     /* NULL: no spacetype */
-	BLI_freelinkN(&sc->regionbase, ar);
+  ED_region_exit(C, ar);
+  BKE_area_region_free(NULL, ar); /* NULL: no spacetype */
+  BLI_freelinkN(&sc->regionbase, ar);
 }

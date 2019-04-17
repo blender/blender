@@ -27,52 +27,61 @@
 
 #ifdef _MSC_VER
 #  ifdef DEBUG
-     /* Suppress stl-MSVC debug info warning. */
-#    pragma warning (disable:4786)
+/* Suppress stl-MSVC debug info warning. */
+#    pragma warning(disable : 4786)
 #  endif
 #endif
 
 #ifdef WITH_GHOST_DEBUG
-#  define GHOST_DEBUG // spit ghost events to stdout
-#endif // WITH_GHOST_DEBUG
+#  define GHOST_DEBUG  // spit ghost events to stdout
+#endif                 // WITH_GHOST_DEBUG
 
 #ifdef GHOST_DEBUG
 #  include <iostream>
-#  include <stdio.h> //for printf()
-#endif // GHOST_DEBUG
-
+#  include <stdio.h>  //for printf()
+#endif                // GHOST_DEBUG
 
 #ifdef GHOST_DEBUG
-#  define GHOST_PRINT(x) { std::cout << x; } (void)0
-#  define GHOST_PRINTF(x, ...) { printf(x, __VA_ARGS__); } (void)0
+#  define GHOST_PRINT(x) \
+    { \
+      std::cout << x; \
+    } \
+    (void)0
+#  define GHOST_PRINTF(x, ...) \
+    { \
+      printf(x, __VA_ARGS__); \
+    } \
+    (void)0
 #else  // GHOST_DEBUG
 #  define GHOST_PRINT(x)
 #  define GHOST_PRINTF(x, ...)
-#endif // GHOST_DEBUG
+#endif  // GHOST_DEBUG
 
 #ifdef WITH_ASSERT_ABORT
-#  include <stdio.h>  //for fprintf()
-#  include <stdlib.h> //for abort()
-#  define GHOST_ASSERT(x, info)                                               \
-	{                                                                         \
-		if (!(x)) {                                                           \
-			fprintf(stderr, "GHOST_ASSERT failed: ");                         \
-			fprintf(stderr, info);                                            \
-			fprintf(stderr, "\n");                                            \
-			abort();                                                          \
-		}                                                                     \
-	} (void)0
+#  include <stdio.h>   //for fprintf()
+#  include <stdlib.h>  //for abort()
+#  define GHOST_ASSERT(x, info) \
+    { \
+      if (!(x)) { \
+        fprintf(stderr, "GHOST_ASSERT failed: "); \
+        fprintf(stderr, info); \
+        fprintf(stderr, "\n"); \
+        abort(); \
+      } \
+    } \
+    (void)0
 #elif defined(GHOST_DEBUG)
-#  define GHOST_ASSERT(x, info)                                               \
-	{                                                                         \
-	    if (!(x)) {                                                           \
-	        GHOST_PRINT("GHOST_ASSERT failed: ");                             \
-	        GHOST_PRINT(info);                                                \
-	        GHOST_PRINT("\n");                                                \
-	    }                                                                     \
-	} (void)0
+#  define GHOST_ASSERT(x, info) \
+    { \
+      if (!(x)) { \
+        GHOST_PRINT("GHOST_ASSERT failed: "); \
+        GHOST_PRINT(info); \
+        GHOST_PRINT("\n"); \
+      } \
+    } \
+    (void)0
 #else  // GHOST_DEBUG
 #  define GHOST_ASSERT(x, info) ((void)0)
-#endif // GHOST_DEBUG
+#endif  // GHOST_DEBUG
 
-#endif // __GHOST_DEBUG_H__
+#endif  // __GHOST_DEBUG_H__

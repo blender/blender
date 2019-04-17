@@ -20,58 +20,61 @@
 
 NormalizeOperation::NormalizeOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_VALUE);
-	this->addOutputSocket(COM_DT_VALUE);
-	this->m_imageReader = NULL;
-	this->m_cachedInstance = NULL;
-	this->setComplex(true);
+  this->addInputSocket(COM_DT_VALUE);
+  this->addOutputSocket(COM_DT_VALUE);
+  this->m_imageReader = NULL;
+  this->m_cachedInstance = NULL;
+  this->setComplex(true);
 }
 void NormalizeOperation::initExecution()
 {
-	this->m_imageReader = this->getInputSocketReader(0);
-	NodeOperation::initMutex();
+  this->m_imageReader = this->getInputSocketReader(0);
+  NodeOperation::initMutex();
 }
 
 void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	/* using generic two floats struct to store x: min  y: mult */
-	NodeTwoFloats *minmult = (NodeTwoFloats *)data;
+  /* using generic two floats struct to store x: min  y: mult */
+  NodeTwoFloats *minmult = (NodeTwoFloats *)data;
 
-	this->m_imageReader->read(output, x, y, NULL);
+  this->m_imageReader->read(output, x, y, NULL);
 
-	output[0] = (output[0] - minmult->x) * minmult->y;
+  output[0] = (output[0] - minmult->x) * minmult->y;
 
-	/* clamp infinities */
-	if (output[0] > 1.0f)
-		output[0] = 1.0f;
-	else if (output[0] < 0.0f)
-		output[0] = 0.0f;
+  /* clamp infinities */
+  if (output[0] > 1.0f)
+    output[0] = 1.0f;
+  else if (output[0] < 0.0f)
+    output[0] = 0.0f;
 }
 
 void NormalizeOperation::deinitExecution()
 {
-	this->m_imageReader = NULL;
-	if (this->m_cachedInstance) {
-		delete this->m_cachedInstance;
-	}
-	NodeOperation::deinitMutex();
+  this->m_imageReader = NULL;
+  if (this->m_cachedInstance) {
+    delete this->m_cachedInstance;
+  }
+  NodeOperation::deinitMutex();
 }
 
-bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
+bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/,
+                                                          ReadBufferOperation *readOperation,
+                                                          rcti *output)
 {
-	rcti imageInput;
-	if (this->m_cachedInstance) return false;
+  rcti imageInput;
+  if (this->m_cachedInstance)
+    return false;
 
-	NodeOperation *operation = getInputOperation(0);
-	imageInput.xmax = operation->getWidth();
-	imageInput.xmin = 0;
-	imageInput.ymax = operation->getHeight();
-	imageInput.ymin = 0;
+  NodeOperation *operation = getInputOperation(0);
+  imageInput.xmax = operation->getWidth();
+  imageInput.xmin = 0;
+  imageInput.ymax = operation->getHeight();
+  imageInput.ymin = 0;
 
-	if (operation->determineDependingAreaOfInterest(&imageInput, readOperation, output) ) {
-		return true;
-	}
-	return false;
+  if (operation->determineDependingAreaOfInterest(&imageInput, readOperation, output)) {
+    return true;
+  }
+  return false;
 }
 
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel */
@@ -79,43 +82,43 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/, Read
 
 void *NormalizeOperation::initializeTileData(rcti *rect)
 {
-	lockMutex();
-	if (this->m_cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
-		/* using generic two floats struct to store x: min  y: mult */
-		NodeTwoFloats *minmult = new NodeTwoFloats();
+  lockMutex();
+  if (this->m_cachedInstance == NULL) {
+    MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
+    /* using generic two floats struct to store x: min  y: mult */
+    NodeTwoFloats *minmult = new NodeTwoFloats();
 
-		float *buffer = tile->getBuffer();
-		int p = tile->getWidth() * tile->getHeight();
-		float *bc = buffer;
+    float *buffer = tile->getBuffer();
+    int p = tile->getWidth() * tile->getHeight();
+    float *bc = buffer;
 
-		float minv = 1.0f + BLENDER_ZMAX;
-		float maxv = -1.0f - BLENDER_ZMAX;
+    float minv = 1.0f + BLENDER_ZMAX;
+    float maxv = -1.0f - BLENDER_ZMAX;
 
-		float value;
-		while (p--) {
-			value = bc[0];
-			if ((value > maxv) && (value <= BLENDER_ZMAX)) {
-				maxv = value;
-			}
-			if ((value < minv) && (value >= -BLENDER_ZMAX)) {
-				minv = value;
-			}
-			bc ++;
-		}
+    float value;
+    while (p--) {
+      value = bc[0];
+      if ((value > maxv) && (value <= BLENDER_ZMAX)) {
+        maxv = value;
+      }
+      if ((value < minv) && (value >= -BLENDER_ZMAX)) {
+        minv = value;
+      }
+      bc++;
+    }
 
-		minmult->x = minv;
-		/* The rare case of flat buffer  would cause a divide by 0 */
-		minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.0f);
+    minmult->x = minv;
+    /* The rare case of flat buffer  would cause a divide by 0 */
+    minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.0f);
 
-		this->m_cachedInstance = minmult;
-	}
+    this->m_cachedInstance = minmult;
+  }
 
-	unlockMutex();
-	return this->m_cachedInstance;
+  unlockMutex();
+  return this->m_cachedInstance;
 }
 
 void NormalizeOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
-	/* pass */
+  /* pass */
 }

@@ -23,4 +23,4 @@
 
 PyObject *BPY_msgbus_module(void);
 
-#endif  /* __BPY_MSGBUS_H__ */
+#endif /* __BPY_MSGBUS_H__ */

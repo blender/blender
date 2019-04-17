@@ -28,36 +28,36 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-
 class PlaneCornerPinMaskOperation : public PlaneDistortMaskOperation {
-private:
-	bool m_corners_ready;
+ private:
+  bool m_corners_ready;
 
-public:
-	PlaneCornerPinMaskOperation();
+ public:
+  PlaneCornerPinMaskOperation();
 
-	void initExecution();
-	void deinitExecution();
+  void initExecution();
+  void deinitExecution();
 
-	void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect);
 
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 
-
 class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
-private:
-	bool m_corners_ready;
+ private:
+  bool m_corners_ready;
 
-public:
-	PlaneCornerPinWarpImageOperation();
+ public:
+  PlaneCornerPinWarpImageOperation();
 
-	void initExecution();
-	void deinitExecution();
+  void initExecution();
+  void deinitExecution();
 
-	void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect);
 
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
 };
 
 #endif

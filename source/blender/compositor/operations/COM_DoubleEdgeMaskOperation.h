@@ -20,41 +20,49 @@
 #define __COM_DOUBLEEDGEMASKOPERATION_H__
 #include "COM_NodeOperation.h"
 
-
 class DoubleEdgeMaskOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputOuterMask;
-	SocketReader *m_inputInnerMask;
-	bool m_adjecentOnly;
-	bool m_keepInside;
-	float *m_cachedInstance;
-public:
-	DoubleEdgeMaskOperation();
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputOuterMask;
+  SocketReader *m_inputInnerMask;
+  bool m_adjecentOnly;
+  bool m_keepInside;
+  float *m_cachedInstance;
 
-	void doDoubleEdgeMask(float *inner, float *outer, float *res);
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+ public:
+  DoubleEdgeMaskOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  void doDoubleEdgeMask(float *inner, float *outer, float *res);
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	void *initializeTileData(rcti *rect);
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+  void *initializeTileData(rcti *rect);
 
-	void setAdjecentOnly(bool adjecentOnly) { this->m_adjecentOnly = adjecentOnly; }
-	void setKeepInside(bool keepInside) { this->m_keepInside = keepInside; }
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
+
+  void setAdjecentOnly(bool adjecentOnly)
+  {
+    this->m_adjecentOnly = adjecentOnly;
+  }
+  void setKeepInside(bool keepInside)
+  {
+    this->m_keepInside = keepInside;
+  }
 };
 #endif

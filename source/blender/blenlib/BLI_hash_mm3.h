@@ -33,4 +33,4 @@ uint32_t BLI_hash_mm3(const unsigned char *data, size_t len, uint32_t seed);
 }
 #endif
 
-#endif  /* __BLI_HASH_MM2A_H__ */
+#endif /* __BLI_HASH_MM2A_H__ */

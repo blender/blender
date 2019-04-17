@@ -24,8 +24,7 @@
  * \ingroup Node
  */
 class KeyingScreenNode : public Node {
-public:
-	KeyingScreenNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
-
+ public:
+  KeyingScreenNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };

@@ -37,8 +37,8 @@ extern PyTypeObject Chain_Type;
 
 /*---------------------------Python BPy_Chain structure definition----------*/
 typedef struct {
-	BPy_FrsCurve py_c;
-	Chain *c;
+  BPy_FrsCurve py_c;
+  Chain *c;
 } BPy_Chain;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

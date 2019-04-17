@@ -26,16 +26,13 @@
 /* BLI_array_alloca / alloca */
 
 #if defined(__GNUC__) || defined(__clang__)
-#if defined(__cplusplus) && (__cplusplus > 199711L)
-#define BLI_array_alloca(arr, realsize) \
-	(decltype(arr))alloca(sizeof(*arr) * (realsize))
+#  if defined(__cplusplus) && (__cplusplus > 199711L)
+#    define BLI_array_alloca(arr, realsize) (decltype(arr)) alloca(sizeof(*arr) * (realsize))
+#  else
+#    define BLI_array_alloca(arr, realsize) (typeof(arr)) alloca(sizeof(*arr) * (realsize))
+#  endif
 #else
-#define BLI_array_alloca(arr, realsize) \
-	(typeof(arr))alloca(sizeof(*arr) * (realsize))
-#endif
-#else
-#define BLI_array_alloca(arr, realsize) \
-	alloca(sizeof(*arr) * (realsize))
+#  define BLI_array_alloca(arr, realsize) alloca(sizeof(*arr) * (realsize))
 #endif
 
 #endif /* __BLI_ALLOCA_H__ */

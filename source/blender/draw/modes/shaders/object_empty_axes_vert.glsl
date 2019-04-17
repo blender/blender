@@ -19,20 +19,20 @@ flat out vec4 finalColor;
 
 void main()
 {
-	float draw_size = 4.0 * size;
-	vec3 chosen_axis = InstanceModelMatrix[int(axis)].xyz;
-	vec3 loc = InstanceModelMatrix[3].xyz;
-	vec3 wpos = loc + chosen_axis * fract(axis) * draw_size;
-	vec3 spos = screenVecs[0].xyz * screenPos.x + screenVecs[1].xyz * screenPos.y;
-	/* Scale uniformly by axis length */
-	spos *= length(chosen_axis) * draw_size;
+  float draw_size = 4.0 * size;
+  vec3 chosen_axis = InstanceModelMatrix[int(axis)].xyz;
+  vec3 loc = InstanceModelMatrix[3].xyz;
+  vec3 wpos = loc + chosen_axis * fract(axis) * draw_size;
+  vec3 spos = screenVecs[0].xyz * screenPos.x + screenVecs[1].xyz * screenPos.y;
+  /* Scale uniformly by axis length */
+  spos *= length(chosen_axis) * draw_size;
 
-	vec4 pos_4d = vec4(wpos + spos, 1.0);
-	gl_Position = ViewProjectionMatrix * pos_4d;
+  vec4 pos_4d = vec4(wpos + spos, 1.0);
+  gl_Position = ViewProjectionMatrix * pos_4d;
 
-	finalColor = vec4(color, 1.0);
+  finalColor = vec4(color, 1.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+  world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
 #endif
 }

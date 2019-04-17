@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class TimeNode : public Node {
-public:
-	TimeNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  TimeNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

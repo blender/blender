@@ -30,7 +30,10 @@ struct Main;
 
 void BKE_lightprobe_init(struct LightProbe *probe);
 void *BKE_lightprobe_add(struct Main *bmain, const char *name);
-void BKE_lightprobe_copy_data(struct Main *bmain, struct LightProbe *probe_dst, const struct LightProbe *probe_src, const int flag);
+void BKE_lightprobe_copy_data(struct Main *bmain,
+                              struct LightProbe *probe_dst,
+                              const struct LightProbe *probe_src,
+                              const int flag);
 struct LightProbe *BKE_lightprobe_copy(struct Main *bmain, const struct LightProbe *probe);
 void BKE_lightprobe_make_local(struct Main *bmain, struct LightProbe *probe, const bool lib_local);
 void BKE_lightprobe_free(struct LightProbe *probe);

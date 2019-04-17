@@ -10,13 +10,13 @@ flat out vec4 faceColor;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-	ivec4 data_m = data & dataMask;
+  ivec4 data_m = data & dataMask;
 
-	faceColor = EDIT_MESH_face_color(data_m.x);
+  faceColor = EDIT_MESH_face_color(data_m.x);
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
 }

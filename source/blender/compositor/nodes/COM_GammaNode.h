@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class GammaNode : public Node {
-public:
-	GammaNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  GammaNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

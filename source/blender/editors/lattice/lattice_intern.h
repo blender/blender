@@ -21,7 +21,6 @@
  * \ingroup edlattice
  */
 
-
 #ifndef __LATTICE_INTERN_H__
 #define __LATTICE_INTERN_H__
 
@@ -37,4 +36,4 @@ void LATTICE_OT_select_mirror(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 void LATTICE_OT_flip(struct wmOperatorType *ot);
 
-#endif  /* __LATTICE_INTERN_H__ */
+#endif /* __LATTICE_INTERN_H__ */

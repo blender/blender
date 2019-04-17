@@ -21,63 +21,65 @@
 
 DifferenceMatteOperation::DifferenceMatteOperation() : NodeOperation()
 {
-	addInputSocket(COM_DT_COLOR);
-	addInputSocket(COM_DT_COLOR);
-	addOutputSocket(COM_DT_VALUE);
+  addInputSocket(COM_DT_COLOR);
+  addInputSocket(COM_DT_COLOR);
+  addOutputSocket(COM_DT_VALUE);
 
-	this->m_inputImage1Program = NULL;
-	this->m_inputImage2Program = NULL;
+  this->m_inputImage1Program = NULL;
+  this->m_inputImage2Program = NULL;
 }
 
 void DifferenceMatteOperation::initExecution()
 {
-	this->m_inputImage1Program = this->getInputSocketReader(0);
-	this->m_inputImage2Program = this->getInputSocketReader(1);
+  this->m_inputImage1Program = this->getInputSocketReader(0);
+  this->m_inputImage2Program = this->getInputSocketReader(1);
 }
 void DifferenceMatteOperation::deinitExecution()
 {
-	this->m_inputImage1Program = NULL;
-	this->m_inputImage2Program = NULL;
+  this->m_inputImage1Program = NULL;
+  this->m_inputImage2Program = NULL;
 }
 
-void DifferenceMatteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void DifferenceMatteOperation::executePixelSampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-	float inColor1[4];
-	float inColor2[4];
+  float inColor1[4];
+  float inColor2[4];
 
-	const float tolerance = this->m_settings->t1;
-	const float falloff = this->m_settings->t2;
-	float difference;
-	float alpha;
+  const float tolerance = this->m_settings->t1;
+  const float falloff = this->m_settings->t2;
+  float difference;
+  float alpha;
 
-	this->m_inputImage1Program->readSampled(inColor1, x, y, sampler);
-	this->m_inputImage2Program->readSampled(inColor2, x, y, sampler);
+  this->m_inputImage1Program->readSampled(inColor1, x, y, sampler);
+  this->m_inputImage2Program->readSampled(inColor2, x, y, sampler);
 
-	difference = (fabsf(inColor2[0] - inColor1[0]) +
-	              fabsf(inColor2[1] - inColor1[1]) +
-	              fabsf(inColor2[2] - inColor1[2]));
+  difference = (fabsf(inColor2[0] - inColor1[0]) + fabsf(inColor2[1] - inColor1[1]) +
+                fabsf(inColor2[2] - inColor1[2]));
 
-	/* average together the distances */
-	difference = difference / 3.0f;
+  /* average together the distances */
+  difference = difference / 3.0f;
 
-	/* make 100% transparent */
-	if (difference <= tolerance) {
-		output[0] = 0.0f;
-	}
-	/*in the falloff region, make partially transparent */
-	else if (difference <= falloff + tolerance) {
-		difference = difference - tolerance;
-		alpha = difference / falloff;
-		/*only change if more transparent than before */
-		if (alpha < inColor1[3]) {
-			output[0] = alpha;
-		}
-		else { /* leave as before */
-			output[0] = inColor1[3];
-		}
-	}
-	else {
-		/* foreground object */
-		output[0] = inColor1[3];
-	}
+  /* make 100% transparent */
+  if (difference <= tolerance) {
+    output[0] = 0.0f;
+  }
+  /*in the falloff region, make partially transparent */
+  else if (difference <= falloff + tolerance) {
+    difference = difference - tolerance;
+    alpha = difference / falloff;
+    /*only change if more transparent than before */
+    if (alpha < inColor1[3]) {
+      output[0] = alpha;
+    }
+    else { /* leave as before */
+      output[0] = inColor1[3];
+    }
+  }
+  else {
+    /* foreground object */
+    output[0] = inColor1[3];
+  }
 }

@@ -22,36 +22,32 @@
  * \ingroup cmpnodes
  */
 
-
 #include "../node_composite_util.h"
 
 /* **************** BLUR ******************** */
 static bNodeSocketTemplate cmp_node_bokehblur_in[] = {
-	{   SOCK_RGBA, 1, N_("Image"),          0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{   SOCK_RGBA, 1, N_("Bokeh"),          1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-	{   SOCK_FLOAT, 1, N_("Size"),          1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
-	{   SOCK_FLOAT, 1, N_("Bounding box"),  1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-	{   -1, 0, ""   }
-};
+    {SOCK_RGBA, 1, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, 1, N_("Bokeh"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
+    {SOCK_FLOAT, 1, N_("Bounding box"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {-1, 0, ""}};
 
 static bNodeSocketTemplate cmp_node_bokehblur_out[] = {
-	{   SOCK_RGBA, 0, N_("Image"),          0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{   -1, 0, ""   }
-};
+    {SOCK_RGBA, 0, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, {-1, 0, ""}};
 
 static void node_composit_init_bokehblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom3 = 4.0f;
-	node->custom4 = 16.0f;
+  node->custom3 = 4.0f;
+  node->custom4 = 16.0f;
 }
 
 void register_node_type_cmp_bokehblur(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER, 0);
-	node_type_socket_templates(&ntype, cmp_node_bokehblur_in, cmp_node_bokehblur_out);
-	node_type_init(&ntype, node_composit_init_bokehblur);
+  cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER, 0);
+  node_type_socket_templates(&ntype, cmp_node_bokehblur_in, cmp_node_bokehblur_out);
+  node_type_init(&ntype, node_composit_init_bokehblur);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

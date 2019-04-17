@@ -34,25 +34,25 @@ extern "C" {
 #include "DEG_depsgraph_query.h"
 }
 
+using Alembic::Abc::ISampleSelector;
 using Alembic::AbcGeom::OObject;
 using Alembic::AbcGeom::OXform;
-using Alembic::Abc::ISampleSelector;
 
 /* ************************************************************************** */
 
 static bool has_parent_camera(Object *ob)
 {
-	if (!ob->parent) {
-		return false;
-	}
+  if (!ob->parent) {
+    return false;
+  }
 
-	Object *parent = ob->parent;
+  Object *parent = ob->parent;
 
-	if (parent->type == OB_CAMERA) {
-		return true;
-	}
+  if (parent->type == OB_CAMERA) {
+    return true;
+  }
 
-	return has_parent_camera(parent);
+  return has_parent_camera(parent);
 }
 
 /* ************************************************************************** */
@@ -62,79 +62,78 @@ AbcTransformWriter::AbcTransformWriter(Object *ob,
                                        AbcTransformWriter *parent,
                                        unsigned int time_sampling,
                                        ExportSettings &settings)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
-    , m_proxy_from(NULL)
+    : AbcObjectWriter(ob, time_sampling, settings, parent), m_proxy_from(NULL)
 {
-	m_is_animated = hasAnimation(m_object);
+  m_is_animated = hasAnimation(m_object);
 
-	if (!m_is_animated) {
-		time_sampling = 0;
-	}
+  if (!m_is_animated) {
+    time_sampling = 0;
+  }
 
-	m_xform = OXform(abc_parent, get_id_name(m_object), time_sampling);
-	m_schema = m_xform.getSchema();
+  m_xform = OXform(abc_parent, get_id_name(m_object), time_sampling);
+  m_schema = m_xform.getSchema();
 
-	/* Blender objects can't have a parent without inheriting the transform. */
-	m_inherits_xform = parent != NULL;
+  /* Blender objects can't have a parent without inheriting the transform. */
+  m_inherits_xform = parent != NULL;
 }
 
 void AbcTransformWriter::do_write()
 {
-	Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
+  Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
 
-	if (m_first_frame) {
-		m_visibility = Alembic::AbcGeom::CreateVisibilityProperty(m_xform, m_xform.getSchema().getTimeSampling());
-	}
+  if (m_first_frame) {
+    m_visibility = Alembic::AbcGeom::CreateVisibilityProperty(
+        m_xform, m_xform.getSchema().getTimeSampling());
+  }
 
-	m_visibility.set(!(ob_eval->restrictflag & OB_RESTRICT_VIEW));
+  m_visibility.set(!(ob_eval->restrictflag & OB_RESTRICT_VIEW));
 
-	if (!m_first_frame && !m_is_animated) {
-		return;
-	}
+  if (!m_first_frame && !m_is_animated) {
+    return;
+  }
 
-	float yup_mat[4][4];
-	create_transform_matrix(ob_eval, yup_mat,
-	                        m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD,
-	                        m_proxy_from);
+  float yup_mat[4][4];
+  create_transform_matrix(
+      ob_eval, yup_mat, m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD, m_proxy_from);
 
-	/* Only apply rotation to root camera, parenting will propagate it. */
-	if (ob_eval->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(ob_eval))) {
-		float rot_mat[4][4];
-		axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
-		mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
-	}
+  /* Only apply rotation to root camera, parenting will propagate it. */
+  if (ob_eval->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(ob_eval))) {
+    float rot_mat[4][4];
+    axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
+    mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
+  }
 
-	if (!ob_eval->parent || !m_inherits_xform) {
-		/* Only apply scaling to root objects, parenting will propagate it. */
-		float scale_mat[4][4];
-		scale_m4_fl(scale_mat, m_settings.global_scale);
-		scale_mat[3][3] = m_settings.global_scale;  /* also scale translation */
-		mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
-		yup_mat[3][3] /= m_settings.global_scale;  /* normalise the homogeneous component */
-	}
+  if (!ob_eval->parent || !m_inherits_xform) {
+    /* Only apply scaling to root objects, parenting will propagate it. */
+    float scale_mat[4][4];
+    scale_m4_fl(scale_mat, m_settings.global_scale);
+    scale_mat[3][3] = m_settings.global_scale; /* also scale translation */
+    mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
+    yup_mat[3][3] /= m_settings.global_scale; /* normalise the homogeneous component */
+  }
 
-	m_matrix = convert_matrix(yup_mat);
-	m_sample.setMatrix(m_matrix);
-	m_sample.setInheritsXforms(m_inherits_xform);
-	m_schema.set(m_sample);
+  m_matrix = convert_matrix(yup_mat);
+  m_sample.setMatrix(m_matrix);
+  m_sample.setInheritsXforms(m_inherits_xform);
+  m_schema.set(m_sample);
 }
 
 Imath::Box3d AbcTransformWriter::bounds()
 {
-	Imath::Box3d bounds;
+  Imath::Box3d bounds;
 
-	for (int i = 0; i < m_children.size(); ++i) {
-		Imath::Box3d box(m_children[i]->bounds());
-		bounds.extendBy(box);
-	}
+  for (int i = 0; i < m_children.size(); ++i) {
+    Imath::Box3d box(m_children[i]->bounds());
+    bounds.extendBy(box);
+  }
 
-	return Imath::transform(bounds, m_matrix);
+  return Imath::transform(bounds, m_matrix);
 }
 
 bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
 {
-	/* TODO(kevin): implement this. */
-	return true;
+  /* TODO(kevin): implement this. */
+  return true;
 }
 
 /* ************************************************************************** */
@@ -142,41 +141,43 @@ bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
 AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
 {
-	/* Empties have no data. It makes the import of Alembic files easier to
-	 * understand when we name the empty after its name in Alembic. */
-	m_object_name = object.getName();
+  /* Empties have no data. It makes the import of Alembic files easier to
+   * understand when we name the empty after its name in Alembic. */
+  m_object_name = object.getName();
 
-	Alembic::AbcGeom::IXform xform(object, Alembic::AbcGeom::kWrapExisting);
-	m_schema = xform.getSchema();
+  Alembic::AbcGeom::IXform xform(object, Alembic::AbcGeom::kWrapExisting);
+  m_schema = xform.getSchema();
 
-	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
+  get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcEmptyReader::valid() const
 {
-	return m_schema.valid();
+  return m_schema.valid();
 }
 
-bool AbcEmptyReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
-                                         const Object *const ob,
-                                         const char **err_str) const
+bool AbcEmptyReader::accepts_object_type(
+    const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+    const Object *const ob,
+    const char **err_str) const
 {
-	if (!Alembic::AbcGeom::IXform::matches(alembic_header)) {
-		*err_str = "Object type mismatch, Alembic object path pointed to XForm when importing, but not any more.";
-		return false;
-	}
+  if (!Alembic::AbcGeom::IXform::matches(alembic_header)) {
+    *err_str =
+        "Object type mismatch, Alembic object path pointed to XForm when importing, but not any "
+        "more.";
+    return false;
+  }
 
-	if (ob->type != OB_EMPTY) {
-		*err_str = "Object type mismatch, Alembic object path points to XForm.";
-		return false;
-	}
+  if (ob->type != OB_EMPTY) {
+    *err_str = "Object type mismatch, Alembic object path points to XForm.";
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 void AbcEmptyReader::readObjectData(Main *bmain, const ISampleSelector &UNUSED(sample_sel))
 {
-	m_object = BKE_object_add_only_object(bmain, OB_EMPTY,
-	                                      m_object_name.c_str());
-	m_object->data = NULL;
+  m_object = BKE_object_add_only_object(bmain, OB_EMPTY, m_object_name.c_str());
+  m_object->data = NULL;
 }

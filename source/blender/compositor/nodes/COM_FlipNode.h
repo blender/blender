@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class FlipNode : public Node {
-public:
-	FlipNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  FlipNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

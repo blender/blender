@@ -35,46 +35,43 @@
 #include "BLI_math.h"
 #include "BLI_linklist.h"
 
-class UnitConverter
-{
-private:
-	COLLADAFW::FileInfo::Unit unit;
-	COLLADAFW::FileInfo::UpAxisType up_axis;
+class UnitConverter {
+ private:
+  COLLADAFW::FileInfo::Unit unit;
+  COLLADAFW::FileInfo::UpAxisType up_axis;
 
-	float x_up_mat4[4][4];
-	float y_up_mat4[4][4];
-	float z_up_mat4[4][4];
-	float scale_mat4[4][4];
+  float x_up_mat4[4][4];
+  float y_up_mat4[4][4];
+  float z_up_mat4[4][4];
+  float scale_mat4[4][4];
 
-public:
+ public:
+  enum UnitSystem {
+    None,
+    Metric,
+    Imperial,
+  };
 
-	enum UnitSystem {
-		None,
-		Metric,
-		Imperial,
-	};
+  // Initialize with Z_UP, since Blender uses right-handed, z-up
+  UnitConverter();
 
-	// Initialize with Z_UP, since Blender uses right-handed, z-up
-	UnitConverter();
+  void read_asset(const COLLADAFW::FileInfo *asset);
 
-	void read_asset(const COLLADAFW::FileInfo *asset);
+  void convertVector3(COLLADABU::Math::Vector3 &vec, float *v);
 
-	void convertVector3(COLLADABU::Math::Vector3 &vec, float *v);
+  UnitConverter::UnitSystem isMetricSystem(void);
 
-	UnitConverter::UnitSystem isMetricSystem(void);
+  float getLinearMeter(void);
 
-	float getLinearMeter(void);
+  // TODO need also for angle conversion, time conversion...
 
-	// TODO need also for angle conversion, time conversion...
+  static void dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4 &in);
+  static void mat4_to_dae(float out[4][4], float in[4][4]);
+  static void mat4_to_dae_double(double out[4][4], float in[4][4]);
 
-	static void dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4& in);
-	static void mat4_to_dae(float out[4][4], float in[4][4]);
-	static void mat4_to_dae_double(double out[4][4], float in[4][4]);
-
-	float(&get_rotation())[4][4];
-	float(&get_scale())[4][4];
-	void calculate_scale(Scene &sce);
-
+  float (&get_rotation())[4][4];
+  float (&get_scale())[4][4];
+  void calculate_scale(Scene &sce);
 };
 
 extern void clear_global_id_map();

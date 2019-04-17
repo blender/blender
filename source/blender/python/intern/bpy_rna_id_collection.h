@@ -23,4 +23,4 @@
 
 int BPY_rna_id_collection_module(PyObject *);
 
-#endif  /* __BPY_RNA_ID_COLLECTION_H__ */
+#endif /* __BPY_RNA_ID_COLLECTION_H__ */

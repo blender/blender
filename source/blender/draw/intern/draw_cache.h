@@ -52,9 +52,12 @@ struct GPUBatch *DRW_cache_object_all_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_object_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_object_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob);
-struct GPUBatch **DRW_cache_object_surface_material_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
-        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
+struct GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
+                                                        struct GPUMaterial **gpumat_array,
+                                                        uint gpumat_array_len,
+                                                        char **auto_layer_names,
+                                                        int **auto_layer_is_srgb,
+                                                        int *auto_layer_count);
 struct GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob);
 
 /* Empties */
@@ -127,9 +130,12 @@ struct GPUBatch *DRW_cache_mesh_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_edges_get(struct Object *ob);
-struct GPUBatch **DRW_cache_mesh_surface_shaded_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
-        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
+struct GPUBatch **DRW_cache_mesh_surface_shaded_get(struct Object *ob,
+                                                    struct GPUMaterial **gpumat_array,
+                                                    uint gpumat_array_len,
+                                                    char **auto_layer_names,
+                                                    int **auto_layer_is_srgb,
+                                                    int *auto_layer_count);
 struct GPUBatch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_vertpaint_get(struct Object *ob);
@@ -140,8 +146,9 @@ void DRW_cache_mesh_sculpt_coords_ensure(struct Object *ob);
 
 /* Curve */
 struct GPUBatch *DRW_cache_curve_surface_get(struct Object *ob);
-struct GPUBatch **DRW_cache_curve_surface_shaded_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+struct GPUBatch **DRW_cache_curve_surface_shaded_get(struct Object *ob,
+                                                     struct GPUMaterial **gpumat_array,
+                                                     uint gpumat_array_len);
 struct GPUBatch *DRW_cache_curve_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_wire_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob);
@@ -156,16 +163,18 @@ struct GPUBatch *DRW_cache_text_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_text_edge_detection_get(Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_text_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_text_edge_wire_get(struct Object *ob);
-struct GPUBatch **DRW_cache_text_surface_shaded_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+struct GPUBatch **DRW_cache_text_surface_shaded_get(struct Object *ob,
+                                                    struct GPUMaterial **gpumat_array,
+                                                    uint gpumat_array_len);
 struct GPUBatch *DRW_cache_text_face_wireframe_get(Object *ob);
 
 /* Surface */
 struct GPUBatch *DRW_cache_surf_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_surf_edge_wire_get(struct Object *ob);
 struct GPUBatch *DRW_cache_surf_loose_edges_get(struct Object *ob);
-struct GPUBatch **DRW_cache_surf_surface_shaded_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+struct GPUBatch **DRW_cache_surf_surface_shaded_get(struct Object *ob,
+                                                    struct GPUMaterial **gpumat_array,
+                                                    uint gpumat_array_len);
 struct GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob);
 struct GPUBatch *DRW_cache_surf_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
@@ -175,21 +184,27 @@ struct GPUBatch *DRW_cache_lattice_wire_get(struct Object *ob, bool use_weight);
 struct GPUBatch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
 /* Particles */
-struct GPUBatch *DRW_cache_particles_get_hair(
-        struct Object *object, struct ParticleSystem *psys, struct ModifierData *md);
-struct GPUBatch *DRW_cache_particles_get_dots(
-        struct Object *object, struct ParticleSystem *psys);
-struct GPUBatch *DRW_cache_particles_get_edit_strands(
-        struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit, bool use_weight);
-struct GPUBatch *DRW_cache_particles_get_edit_inner_points(
-        struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
-struct GPUBatch *DRW_cache_particles_get_edit_tip_points(
-        struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
+struct GPUBatch *DRW_cache_particles_get_hair(struct Object *object,
+                                              struct ParticleSystem *psys,
+                                              struct ModifierData *md);
+struct GPUBatch *DRW_cache_particles_get_dots(struct Object *object, struct ParticleSystem *psys);
+struct GPUBatch *DRW_cache_particles_get_edit_strands(struct Object *object,
+                                                      struct ParticleSystem *psys,
+                                                      struct PTCacheEdit *edit,
+                                                      bool use_weight);
+struct GPUBatch *DRW_cache_particles_get_edit_inner_points(struct Object *object,
+                                                           struct ParticleSystem *psys,
+                                                           struct PTCacheEdit *edit);
+struct GPUBatch *DRW_cache_particles_get_edit_tip_points(struct Object *object,
+                                                         struct ParticleSystem *psys,
+                                                         struct PTCacheEdit *edit);
 struct GPUBatch *DRW_cache_particles_get_prim(int type);
 
 /* Metaball */
 struct GPUBatch *DRW_cache_mball_surface_get(struct Object *ob);
-struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob,
+                                                     struct GPUMaterial **gpumat_array,
+                                                     uint gpumat_array_len);
 struct GPUBatch *DRW_cache_mball_face_wireframe_get(Object *ob);
 struct GPUBatch *DRW_cache_mball_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 

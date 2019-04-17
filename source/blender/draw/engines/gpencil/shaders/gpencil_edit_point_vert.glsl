@@ -9,7 +9,7 @@ out float finalThickness;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4( pos, 1.0 );
-	finalColor = color;
-	finalThickness = size;
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  finalColor = color;
+  finalThickness = size;
 }

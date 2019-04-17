@@ -19,58 +19,58 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	../blenkernel
-	../blenlib
-	../blentranslation
-	../editors/include
-	../gpu
-	../makesdna
-	../makesrna
-	../imbuf
-	../../../intern/guardedalloc
-	../../../intern/glew-mx
+  .
+  ../blenkernel
+  ../blenlib
+  ../blentranslation
+  ../editors/include
+  ../gpu
+  ../makesdna
+  ../makesrna
+  ../imbuf
+  ../../../intern/guardedalloc
+  ../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
-	${FREETYPE_INCLUDE_DIRS}
+  ${GLEW_INCLUDE_PATH}
+  ${FREETYPE_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/blf.c
-	intern/blf_dir.c
-	intern/blf_font.c
-	intern/blf_font_i18n.c
-	intern/blf_glyph.c
-	intern/blf_thumbs.c
-	intern/blf_util.c
+  intern/blf.c
+  intern/blf_dir.c
+  intern/blf_font.c
+  intern/blf_font_i18n.c
+  intern/blf_glyph.c
+  intern/blf_thumbs.c
+  intern/blf_util.c
 
-	BLF_api.h
-	intern/blf_internal.h
-	intern/blf_internal_types.h
+  BLF_api.h
+  intern/blf_internal.h
+  intern/blf_internal_types.h
 )
 
 set(LIB
-	bf_gpu
-	bf_intern_guardedalloc
+  bf_gpu
+  bf_intern_guardedalloc
 )
 
 if(WIN32)
-	list(APPEND SRC
-		intern/blf_font_win32_compat.c
-	)
+  list(APPEND SRC
+    intern/blf_font_win32_compat.c
+  )
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
-	list(APPEND INC
-		../python
-	)
+  add_definitions(-DWITH_PYTHON)
+  list(APPEND INC
+    ../python
+  )
 endif()
 
 add_definitions(${GL_DEFINITIONS})

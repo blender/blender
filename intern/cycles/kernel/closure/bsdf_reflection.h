@@ -39,42 +39,59 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device int bsdf_reflection_setup(MicrofacetBsdf *bsdf)
 {
-	bsdf->type = CLOSURE_BSDF_REFLECTION_ID;
-	return SD_BSDF;
+  bsdf->type = CLOSURE_BSDF_REFLECTION_ID;
+  return SD_BSDF;
 }
 
-ccl_device float3 bsdf_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_reflection_eval_reflect(const ShaderClosure *sc,
+                                               const float3 I,
+                                               const float3 omega_in,
+                                               float *pdf)
 {
-	return make_float3(0.0f, 0.0f, 0.0f);
+  return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device float3 bsdf_reflection_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_reflection_eval_transmit(const ShaderClosure *sc,
+                                                const float3 I,
+                                                const float3 omega_in,
+                                                float *pdf)
 {
-	return make_float3(0.0f, 0.0f, 0.0f);
+  return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_reflection_sample(const ShaderClosure *sc,
+                                      float3 Ng,
+                                      float3 I,
+                                      float3 dIdx,
+                                      float3 dIdy,
+                                      float randu,
+                                      float randv,
+                                      float3 *eval,
+                                      float3 *omega_in,
+                                      float3 *domega_in_dx,
+                                      float3 *domega_in_dy,
+                                      float *pdf)
 {
-	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
-	float3 N = bsdf->N;
+  const MicrofacetBsdf *bsdf = (const MicrofacetBsdf *)sc;
+  float3 N = bsdf->N;
 
-	// only one direction is possible
-	float cosNO = dot(N, I);
-	if(cosNO > 0) {
-		*omega_in = (2 * cosNO) * N - I;
-		if(dot(Ng, *omega_in) > 0) {
+  // only one direction is possible
+  float cosNO = dot(N, I);
+  if (cosNO > 0) {
+    *omega_in = (2 * cosNO) * N - I;
+    if (dot(Ng, *omega_in) > 0) {
 #ifdef __RAY_DIFFERENTIALS__
-			*domega_in_dx = 2 * dot(N, dIdx) * N - dIdx;
-			*domega_in_dy = 2 * dot(N, dIdy) * N - dIdy;
+      *domega_in_dx = 2 * dot(N, dIdx) * N - dIdx;
+      *domega_in_dy = 2 * dot(N, dIdy) * N - dIdy;
 #endif
-			/* Some high number for MIS. */
-			*pdf = 1e6f;
-			*eval = make_float3(1e6f, 1e6f, 1e6f);
-		}
-	}
-	return LABEL_REFLECT|LABEL_SINGULAR;
+      /* Some high number for MIS. */
+      *pdf = 1e6f;
+      *eval = make_float3(1e6f, 1e6f, 1e6f);
+    }
+  }
+  return LABEL_REFLECT | LABEL_SINGULAR;
 }
 
 CCL_NAMESPACE_END
 
-#endif  /* __BSDF_REFLECTION_H__ */
+#endif /* __BSDF_REFLECTION_H__ */

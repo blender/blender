@@ -21,7 +21,6 @@
  * \ingroup GHOST
  */
 
-
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
  */
@@ -33,12 +32,11 @@
 GHOST_CallbackEventConsumer::GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
                                                          GHOST_TUserDataPtr userData)
 {
-	m_eventCallback = eventCallback;
-	m_userData = userData;
+  m_eventCallback = eventCallback;
+  m_userData = userData;
 }
-
 
 bool GHOST_CallbackEventConsumer::processEvent(GHOST_IEvent *event)
 {
-	return m_eventCallback((GHOST_EventHandle)event, m_userData) != 0;
+  return m_eventCallback((GHOST_EventHandle)event, m_userData) != 0;
 }

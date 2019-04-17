@@ -39,67 +39,92 @@ namespace DEG {
 
 const char *nodeClassAsString(NodeClass node_class)
 {
-	switch (node_class) {
-		case NodeClass::GENERIC: return "GENERIC";
-		case NodeClass::COMPONENT: return "COMPONENT";
-		case NodeClass::OPERATION: return "OPERATION";
-	}
-	BLI_assert(!"Unhandled node class, should never happen.");
-	return "UNKNOWN";
+  switch (node_class) {
+    case NodeClass::GENERIC:
+      return "GENERIC";
+    case NodeClass::COMPONENT:
+      return "COMPONENT";
+    case NodeClass::OPERATION:
+      return "OPERATION";
+  }
+  BLI_assert(!"Unhandled node class, should never happen.");
+  return "UNKNOWN";
 }
 
 const char *nodeTypeAsString(NodeType type)
 {
-	switch (type) {
-		case NodeType::UNDEFINED: return "UNDEFINED";
-		case NodeType::OPERATION: return "OPERATION";
-		/* **** Generic Types **** */
-		case NodeType::TIMESOURCE: return "TIMESOURCE";
-		case NodeType::ID_REF: return "ID_REF";
-		/* **** Outer Types **** */
-		case NodeType::PARAMETERS: return "PARAMETERS";
-		case NodeType::PROXY: return "PROXY";
-		case NodeType::ANIMATION: return "ANIMATION";
-		case NodeType::TRANSFORM: return "TRANSFORM";
-		case NodeType::GEOMETRY: return "GEOMETRY";
-		case NodeType::SEQUENCER: return "SEQUENCER";
-		case NodeType::LAYER_COLLECTIONS: return "LAYER_COLLECTIONS";
-		case NodeType::COPY_ON_WRITE: return "COPY_ON_WRITE";
-		case NodeType::OBJECT_FROM_LAYER: return "OBJECT_FROM_LAYER";
-		/* **** Evaluation-Related Outer Types (with Subdata) **** */
-		case NodeType::EVAL_POSE: return "EVAL_POSE";
-		case NodeType::BONE: return "BONE";
-		case NodeType::PARTICLE_SYSTEM: return "PARTICLE_SYSTEM";
-		case NodeType::PARTICLE_SETTINGS: return "PARTICLE_SETTINGS";
-		case NodeType::SHADING: return "SHADING";
-		case NodeType::SHADING_PARAMETERS: return "SHADING_PARAMETERS";
-		case NodeType::CACHE: return "CACHE";
-		case NodeType::POINT_CACHE: return "POINT_CACHE";
-		case NodeType::BATCH_CACHE: return "BATCH_CACHE";
-		/* Duplication. */
-		case NodeType::DUPLI: return "DUPLI";
-		/* Synchronization. */
-		case NodeType::SYNCHRONIZATION: return "SYNCHRONIZATION";
-		/* Generic datablock. */
-		case NodeType::GENERIC_DATABLOCK: return "GENERIC_DATABLOCK";
+  switch (type) {
+    case NodeType::UNDEFINED:
+      return "UNDEFINED";
+    case NodeType::OPERATION:
+      return "OPERATION";
+    /* **** Generic Types **** */
+    case NodeType::TIMESOURCE:
+      return "TIMESOURCE";
+    case NodeType::ID_REF:
+      return "ID_REF";
+    /* **** Outer Types **** */
+    case NodeType::PARAMETERS:
+      return "PARAMETERS";
+    case NodeType::PROXY:
+      return "PROXY";
+    case NodeType::ANIMATION:
+      return "ANIMATION";
+    case NodeType::TRANSFORM:
+      return "TRANSFORM";
+    case NodeType::GEOMETRY:
+      return "GEOMETRY";
+    case NodeType::SEQUENCER:
+      return "SEQUENCER";
+    case NodeType::LAYER_COLLECTIONS:
+      return "LAYER_COLLECTIONS";
+    case NodeType::COPY_ON_WRITE:
+      return "COPY_ON_WRITE";
+    case NodeType::OBJECT_FROM_LAYER:
+      return "OBJECT_FROM_LAYER";
+    /* **** Evaluation-Related Outer Types (with Subdata) **** */
+    case NodeType::EVAL_POSE:
+      return "EVAL_POSE";
+    case NodeType::BONE:
+      return "BONE";
+    case NodeType::PARTICLE_SYSTEM:
+      return "PARTICLE_SYSTEM";
+    case NodeType::PARTICLE_SETTINGS:
+      return "PARTICLE_SETTINGS";
+    case NodeType::SHADING:
+      return "SHADING";
+    case NodeType::SHADING_PARAMETERS:
+      return "SHADING_PARAMETERS";
+    case NodeType::CACHE:
+      return "CACHE";
+    case NodeType::POINT_CACHE:
+      return "POINT_CACHE";
+    case NodeType::BATCH_CACHE:
+      return "BATCH_CACHE";
+    /* Duplication. */
+    case NodeType::DUPLI:
+      return "DUPLI";
+    /* Synchronization. */
+    case NodeType::SYNCHRONIZATION:
+      return "SYNCHRONIZATION";
+    /* Generic datablock. */
+    case NodeType::GENERIC_DATABLOCK:
+      return "GENERIC_DATABLOCK";
 
-		/* Total number of meaningful node types. */
-		case NodeType::NUM_TYPES: return "SpecialCase";
-	}
-	BLI_assert(!"Unhandled node type, should never happen.");
-	return "UNKNOWN";
+    /* Total number of meaningful node types. */
+    case NodeType::NUM_TYPES:
+      return "SpecialCase";
+  }
+  BLI_assert(!"Unhandled node type, should never happen.");
+  return "UNKNOWN";
 }
 
 /*******************************************************************************
  * Type information.
  */
 
-Node::TypeInfo::TypeInfo(NodeType type,
-                             const char *type_name,
-                             int id_recalc_tag)
-        : type(type),
-          type_name(type_name),
-          id_recalc_tag(id_recalc_tag)
+Node::TypeInfo::TypeInfo(NodeType type, const char *type_name, int id_recalc_tag)
+    : type(type), type_name(type_name), id_recalc_tag(id_recalc_tag)
 {
 }
 
@@ -109,17 +134,17 @@ Node::TypeInfo::TypeInfo(NodeType type,
 
 Node::Stats::Stats()
 {
-	reset();
+  reset();
 }
 
 void Node::Stats::reset()
 {
-	current_time = 0.0;
+  current_time = 0.0;
 }
 
 void Node::Stats::reset_current()
 {
-	current_time = 0.0;
+  current_time = 0.0;
 }
 
 /*******************************************************************************
@@ -128,37 +153,37 @@ void Node::Stats::reset_current()
 
 Node::Node()
 {
-	name = "";
+  name = "";
 }
 
 Node::~Node()
 {
-	/* Free links. */
-	/* NOTE: We only free incoming links. This is to avoid double-free of links
-	 * when we're trying to free same link from both it's sides. We don't have
-	 * dangling links so this is not a problem from memory leaks point of view. */
-	for (Relation *rel : inlinks) {
-		OBJECT_GUARDED_DELETE(rel, Relation);
-	}
+  /* Free links. */
+  /* NOTE: We only free incoming links. This is to avoid double-free of links
+   * when we're trying to free same link from both it's sides. We don't have
+   * dangling links so this is not a problem from memory leaks point of view. */
+  for (Relation *rel : inlinks) {
+    OBJECT_GUARDED_DELETE(rel, Relation);
+  }
 }
-
 
 /* Generic identifier for Depsgraph Nodes. */
 string Node::identifier() const
 {
-	return string(nodeTypeAsString(type)) + " : " + name;
+  return string(nodeTypeAsString(type)) + " : " + name;
 }
 
-NodeClass Node::get_class() const {
-	if (type == NodeType::OPERATION) {
-		return NodeClass::OPERATION;
-	}
-	else if (type < NodeType::PARAMETERS) {
-		return NodeClass::GENERIC;
-	}
-	else {
-		return NodeClass::COMPONENT;
-	}
+NodeClass Node::get_class() const
+{
+  if (type == NodeType::OPERATION) {
+    return NodeClass::OPERATION;
+  }
+  else if (type < NodeType::PARAMETERS) {
+    return NodeClass::GENERIC;
+  }
+  else {
+    return NodeClass::COMPONENT;
+  }
 }
 
 /*******************************************************************************
@@ -173,8 +198,8 @@ static DepsNodeFactoryImpl<IDNode> DNTI_ID_REF;
 
 void deg_register_base_depsnodes()
 {
-	register_node_typeinfo(&DNTI_TIMESOURCE);
-	register_node_typeinfo(&DNTI_ID_REF);
+  register_node_typeinfo(&DNTI_TIMESOURCE);
+  register_node_typeinfo(&DNTI_ID_REF);
 }
 
 }  // namespace DEG

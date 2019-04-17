@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ChromaMatteNode : public Node {
-public:
-	ChromaMatteNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ChromaMatteNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_ChromaMatteNODE_H */
+#endif /* COM_ChromaMatteNODE_H */

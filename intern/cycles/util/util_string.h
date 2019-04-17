@@ -25,30 +25,30 @@
 
 CCL_NAMESPACE_BEGIN
 
+using std::istringstream;
+using std::ostringstream;
 using std::string;
 using std::stringstream;
-using std::ostringstream;
-using std::istringstream;
 using std::to_string;
 
 #ifdef __GNUC__
-#define PRINTF_ATTRIBUTE __attribute__((format(printf, 1, 2)))
+#  define PRINTF_ATTRIBUTE __attribute__((format(printf, 1, 2)))
 #else
-#define PRINTF_ATTRIBUTE
+#  define PRINTF_ATTRIBUTE
 #endif
 
 string string_printf(const char *format, ...) PRINTF_ATTRIBUTE;
 
-bool string_iequals(const string& a, const string& b);
-void string_split(vector<string>& tokens,
-                  const string& str,
-                  const string& separators = "\t ",
+bool string_iequals(const string &a, const string &b);
+void string_split(vector<string> &tokens,
+                  const string &str,
+                  const string &separators = "\t ",
                   bool skip_empty_tokens = true);
-void string_replace(string& haystack, const string& needle, const string& other);
-bool string_startswith(const string& s, const char *start);
-bool string_endswith(const string& s, const char *end);
-string string_strip(const string& s);
-string string_remove_trademark(const string& s);
+void string_replace(string &haystack, const string &needle, const string &other);
+bool string_startswith(const string &s, const char *start);
+bool string_endswith(const string &s, const char *end);
+string string_strip(const string &s);
+string string_remove_trademark(const string &s);
 string string_from_bool(const bool var);
 string to_string(const char *str);
 
@@ -61,9 +61,9 @@ string to_string(const char *str);
  */
 #ifdef _WIN32
 using std::wstring;
-wstring string_to_wstring(const string& path);
-string string_from_wstring(const wstring& path);
-string string_to_ansi(const string& str);
+wstring string_to_wstring(const string &path);
+string string_from_wstring(const wstring &path);
+string string_to_ansi(const string &str);
 #endif
 
 /* Make a string from a size in bytes in human readable form */
@@ -73,4 +73,4 @@ string string_human_readable_number(size_t num);
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_STRING_H__ */
+#endif /* __UTIL_STRING_H__ */

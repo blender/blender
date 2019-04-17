@@ -41,4 +41,4 @@ extern PyObject *bpy_intern_str_register;
 extern PyObject *bpy_intern_str_self;
 extern PyObject *bpy_intern_str_unregister;
 
-#endif  /* __BPY_INTERN_STRING_H__ */
+#endif /* __BPY_INTERN_STRING_H__ */

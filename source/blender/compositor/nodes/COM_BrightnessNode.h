@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class BrightnessNode : public Node {
-public:
-	BrightnessNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  BrightnessNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

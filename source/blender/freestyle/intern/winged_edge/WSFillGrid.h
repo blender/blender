@@ -29,55 +29,55 @@
 
 namespace Freestyle {
 
-class WSFillGrid
-{
-public:
-	inline WSFillGrid(Grid *grid = NULL, WingedEdge *winged_edge = NULL)
-	{
-		_winged_edge = winged_edge;
-		_grid = grid;
-		_polygon_id = 0;
-	}
+class WSFillGrid {
+ public:
+  inline WSFillGrid(Grid *grid = NULL, WingedEdge *winged_edge = NULL)
+  {
+    _winged_edge = winged_edge;
+    _grid = grid;
+    _polygon_id = 0;
+  }
 
-	virtual ~WSFillGrid() {}
+  virtual ~WSFillGrid()
+  {
+  }
 
-	void fillGrid();
+  void fillGrid();
 
-	/*! Accessors */
-	WingedEdge *getWingedEdge()
-	{
-		return _winged_edge;
-	}
+  /*! Accessors */
+  WingedEdge *getWingedEdge()
+  {
+    return _winged_edge;
+  }
 
-	Grid *getGrid()
-	{
-		return _grid;
-	}
+  Grid *getGrid()
+  {
+    return _grid;
+  }
 
-	/*! Modifiers */
-	void setWingedEdge(WingedEdge *winged_edge)
-	{
-		if (winged_edge)
-			_winged_edge = winged_edge;
-	}
+  /*! Modifiers */
+  void setWingedEdge(WingedEdge *winged_edge)
+  {
+    if (winged_edge)
+      _winged_edge = winged_edge;
+  }
 
-	void setGrid(Grid *grid)
-	{
-		if (grid)
-			_grid = grid;
-	}
+  void setGrid(Grid *grid)
+  {
+    if (grid)
+      _grid = grid;
+  }
 
-private:
-	Grid *_grid;
-	WingedEdge *_winged_edge;
-	unsigned _polygon_id;
+ private:
+  Grid *_grid;
+  WingedEdge *_winged_edge;
+  unsigned _polygon_id;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WSFillGrid")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WSFillGrid")
 #endif
-
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_WS_FILL_GRID_H__
+#endif  // __FREESTYLE_WS_FILL_GRID_H__

@@ -26,35 +26,35 @@
 /* ************************************************************************** */
 
 class AbcNurbsWriter : public AbcObjectWriter {
-	std::vector<Alembic::AbcGeom::ONuPatchSchema> m_nurbs_schema;
-	bool m_is_animated;
+  std::vector<Alembic::AbcGeom::ONuPatchSchema> m_nurbs_schema;
+  bool m_is_animated;
 
-public:
-	AbcNurbsWriter(Object *ob,
-	               AbcTransformWriter *parent,
-	               uint32_t time_sampling,
-	               ExportSettings &settings);
+ public:
+  AbcNurbsWriter(Object *ob,
+                 AbcTransformWriter *parent,
+                 uint32_t time_sampling,
+                 ExportSettings &settings);
 
-private:
-	virtual void do_write();
+ private:
+  virtual void do_write();
 
-	bool isAnimated() const;
+  bool isAnimated() const;
 };
 
 /* ************************************************************************** */
 
 class AbcNurbsReader : public AbcObjectReader {
-	std::vector<std::pair<Alembic::AbcGeom::INuPatchSchema, Alembic::Abc::IObject>> m_schemas;
+  std::vector<std::pair<Alembic::AbcGeom::INuPatchSchema, Alembic::Abc::IObject>> m_schemas;
 
-public:
-	AbcNurbsReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+ public:
+  AbcNurbsReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-	bool valid() const;
+  bool valid() const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 
-private:
-	void getNurbsPatches(const Alembic::Abc::IObject &obj);
+ private:
+  void getNurbsPatches(const Alembic::Abc::IObject &obj);
 };
 
-#endif  /* __ABC_NURBS_H__ */
+#endif /* __ABC_NURBS_H__ */

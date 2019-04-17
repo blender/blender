@@ -21,12 +21,12 @@
 #include "internal/opensubdiv_gl_mesh_fvar.h"
 
 OpenSubdiv_GLMeshInternal::OpenSubdiv_GLMeshInternal()
-    : evaluator_type(OPENSUBDIV_EVALUATOR_CPU),
-      mesh_interface(NULL),
-      fvar_data(NULL) {
+    : evaluator_type(OPENSUBDIV_EVALUATOR_CPU), mesh_interface(NULL), fvar_data(NULL)
+{
 }
 
-OpenSubdiv_GLMeshInternal::~OpenSubdiv_GLMeshInternal() {
+OpenSubdiv_GLMeshInternal::~OpenSubdiv_GLMeshInternal()
+{
   delete mesh_interface;
   delete fvar_data;
 }

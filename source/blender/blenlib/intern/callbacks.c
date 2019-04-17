@@ -28,39 +28,39 @@ static ListBase callback_slots[BLI_CB_EVT_TOT] = {{NULL}};
 
 void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt)
 {
-	ListBase *lb = &callback_slots[evt];
-	bCallbackFuncStore *funcstore;
+  ListBase *lb = &callback_slots[evt];
+  bCallbackFuncStore *funcstore;
 
-	for (funcstore = lb->first; funcstore; funcstore = funcstore->next) {
-		funcstore->func(bmain, self, funcstore->arg);
-	}
+  for (funcstore = lb->first; funcstore; funcstore = funcstore->next) {
+    funcstore->func(bmain, self, funcstore->arg);
+  }
 }
 
 void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
-	ListBase *lb = &callback_slots[evt];
-	BLI_addtail(lb, funcstore);
+  ListBase *lb = &callback_slots[evt];
+  BLI_addtail(lb, funcstore);
 }
 
 void BLI_callback_global_init(void)
 {
-	/* do nothing */
+  /* do nothing */
 }
 
 /* call on application exit */
 void BLI_callback_global_finalize(void)
 {
-	eCbEvent evt;
-	for (evt = 0; evt < BLI_CB_EVT_TOT; evt++) {
-		ListBase *lb = &callback_slots[evt];
-		bCallbackFuncStore *funcstore;
-		bCallbackFuncStore *funcstore_next;
-		for (funcstore = lb->first; funcstore; funcstore = funcstore_next) {
-			funcstore_next = funcstore->next;
-			BLI_remlink(lb, funcstore);
-			if (funcstore->alloc) {
-				MEM_freeN(funcstore);
-			}
-		}
-	}
+  eCbEvent evt;
+  for (evt = 0; evt < BLI_CB_EVT_TOT; evt++) {
+    ListBase *lb = &callback_slots[evt];
+    bCallbackFuncStore *funcstore;
+    bCallbackFuncStore *funcstore_next;
+    for (funcstore = lb->first; funcstore; funcstore = funcstore_next) {
+      funcstore_next = funcstore->next;
+      BLI_remlink(lb, funcstore);
+      if (funcstore->alloc) {
+        MEM_freeN(funcstore);
+      }
+    }
+  }
 }

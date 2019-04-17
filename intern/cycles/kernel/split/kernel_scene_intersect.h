@@ -25,55 +25,56 @@ CCL_NAMESPACE_BEGIN
  */
 ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 {
-	/* Fetch use_queues_flag */
-	char local_use_queues_flag = *kernel_split_params.use_queues_flag;
-	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+  /* Fetch use_queues_flag */
+  char local_use_queues_flag = *kernel_split_params.use_queues_flag;
+  ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
-	if(local_use_queues_flag) {
-		ray_index = get_ray_index(kg, ray_index,
-		                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
-		                          kernel_split_state.queue_data,
-		                          kernel_split_params.queue_size,
-		                          0);
+  int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+  if (local_use_queues_flag) {
+    ray_index = get_ray_index(kg,
+                              ray_index,
+                              QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+                              kernel_split_state.queue_data,
+                              kernel_split_params.queue_size,
+                              0);
 
-		if(ray_index == QUEUE_EMPTY_SLOT) {
-			return;
-		}
-	}
+    if (ray_index == QUEUE_EMPTY_SLOT) {
+      return;
+    }
+  }
 
-	/* All regenerated rays become active here */
-	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED)) {
+  /* All regenerated rays become active here */
+  if (IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED)) {
 #ifdef __BRANCHED_PATH__
-		if(kernel_split_state.branched_state[ray_index].waiting_on_shared_samples) {
-			kernel_split_path_end(kg, ray_index);
-		}
-		else
-#endif  /* __BRANCHED_PATH__ */
-		{
-			ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE);
-		}
-	}
+    if (kernel_split_state.branched_state[ray_index].waiting_on_shared_samples) {
+      kernel_split_path_end(kg, ray_index);
+    }
+    else
+#endif /* __BRANCHED_PATH__ */
+    {
+      ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE);
+    }
+  }
 
-	if(!IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
-		return;
-	}
+  if (!IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
+    return;
+  }
 
-	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-	Ray ray = kernel_split_state.ray[ray_index];
-	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+  ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+  Ray ray = kernel_split_state.ray[ray_index];
+  PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 
-	Intersection isect;
-	bool hit = kernel_path_scene_intersect(kg, state, &ray, &isect, L);
-	kernel_split_state.isect[ray_index] = isect;
+  Intersection isect;
+  bool hit = kernel_path_scene_intersect(kg, state, &ray, &isect, L);
+  kernel_split_state.isect[ray_index] = isect;
 
-	if(!hit) {
-		/* Change the state of rays that hit the background;
-		 * These rays undergo special processing in the
-		 * background_bufferUpdate kernel.
-		 */
-		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_HIT_BACKGROUND);
-	}
+  if (!hit) {
+    /* Change the state of rays that hit the background;
+     * These rays undergo special processing in the
+     * background_bufferUpdate kernel.
+     */
+    ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_HIT_BACKGROUND);
+  }
 }
 
 CCL_NAMESPACE_END

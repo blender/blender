@@ -16,16 +16,14 @@
 
 #include "stdosl.h"
 
-shader node_bevel(
-	int samples = 4,
-	float Radius = 0.05,
-	normal NormalIn = N,
-	output normal NormalOut = N)
+shader node_bevel(int samples = 4,
+                  float Radius = 0.05,
+                  normal NormalIn = N,
+                  output normal NormalOut = N)
 {
-	/* Abuse texture call with special @bevel token. */
-	vector bevel_N = (normal)(color)texture("@bevel", samples, Radius);
+  /* Abuse texture call with special @bevel token. */
+  vector bevel_N = (normal)(color)texture("@bevel", samples, Radius);
 
-	/* Preserve input normal. */
-	NormalOut = normalize(NormalIn + (bevel_N - N));
+  /* Preserve input normal. */
+  NormalOut = normalize(NormalIn + (bevel_N - N));
 }
-

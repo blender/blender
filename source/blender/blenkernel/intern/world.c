@@ -21,7 +21,6 @@
  * \ingroup bke
  */
 
-
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -51,48 +50,48 @@
 /** Free (or release) any data used by this world (does not free the world itself). */
 void BKE_world_free(World *wrld)
 {
-	BKE_animdata_free((ID *)wrld, false);
+  BKE_animdata_free((ID *)wrld, false);
 
-	DRW_drawdata_free((ID *)wrld);
+  DRW_drawdata_free((ID *)wrld);
 
-	/* is no lib link block, but world extension */
-	if (wrld->nodetree) {
-		ntreeFreeNestedTree(wrld->nodetree);
-		MEM_freeN(wrld->nodetree);
-		wrld->nodetree = NULL;
-	}
+  /* is no lib link block, but world extension */
+  if (wrld->nodetree) {
+    ntreeFreeNestedTree(wrld->nodetree);
+    MEM_freeN(wrld->nodetree);
+    wrld->nodetree = NULL;
+  }
 
-	GPU_material_free(&wrld->gpumaterial);
+  GPU_material_free(&wrld->gpumaterial);
 
-	BKE_icon_id_delete((struct ID *)wrld);
-	BKE_previewimg_free(&wrld->preview);
+  BKE_icon_id_delete((struct ID *)wrld);
+  BKE_previewimg_free(&wrld->preview);
 }
 
 void BKE_world_init(World *wrld)
 {
-	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
 
-	wrld->horr = 0.05f;
-	wrld->horg = 0.05f;
-	wrld->horb = 0.05f;
+  wrld->horr = 0.05f;
+  wrld->horg = 0.05f;
+  wrld->horb = 0.05f;
 
-	wrld->aodist = 10.0f;
-	wrld->aoenergy = 1.0f;
+  wrld->aodist = 10.0f;
+  wrld->aoenergy = 1.0f;
 
-	wrld->preview = NULL;
-	wrld->miststa = 5.0f;
-	wrld->mistdist = 25.0f;
+  wrld->preview = NULL;
+  wrld->miststa = 5.0f;
+  wrld->mistdist = 25.0f;
 }
 
 World *BKE_world_add(Main *bmain, const char *name)
 {
-	World *wrld;
+  World *wrld;
 
-	wrld = BKE_libblock_alloc(bmain, ID_WO, name, 0);
+  wrld = BKE_libblock_alloc(bmain, ID_WO, name, 0);
 
-	BKE_world_init(wrld);
+  BKE_world_init(wrld);
 
-	return wrld;
+  return wrld;
 }
 
 /**
@@ -105,66 +104,66 @@ World *BKE_world_add(Main *bmain, const char *name)
  */
 void BKE_world_copy_data(Main *bmain, World *wrld_dst, const World *wrld_src, const int flag)
 {
-	if (wrld_src->nodetree) {
-		/* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
-		 *       (see BKE_libblock_copy_ex()). */
-		BKE_id_copy_ex(bmain, (ID *)wrld_src->nodetree, (ID **)&wrld_dst->nodetree, flag);
-	}
+  if (wrld_src->nodetree) {
+    /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
+     *       (see BKE_libblock_copy_ex()). */
+    BKE_id_copy_ex(bmain, (ID *)wrld_src->nodetree, (ID **)&wrld_dst->nodetree, flag);
+  }
 
-	BLI_listbase_clear(&wrld_dst->gpumaterial);
-	BLI_listbase_clear((ListBase *)&wrld_dst->drawdata);
+  BLI_listbase_clear(&wrld_dst->gpumaterial);
+  BLI_listbase_clear((ListBase *)&wrld_dst->drawdata);
 
-	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-		BKE_previewimg_id_copy(&wrld_dst->id, &wrld_src->id);
-	}
-	else {
-		wrld_dst->preview = NULL;
-	}
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&wrld_dst->id, &wrld_src->id);
+  }
+  else {
+    wrld_dst->preview = NULL;
+  }
 }
 
 World *BKE_world_copy(Main *bmain, const World *wrld)
 {
-	World *wrld_copy;
-	BKE_id_copy(bmain, &wrld->id, (ID **)&wrld_copy);
-	return wrld_copy;
+  World *wrld_copy;
+  BKE_id_copy(bmain, &wrld->id, (ID **)&wrld_copy);
+  return wrld_copy;
 }
 
 World *BKE_world_localize(World *wrld)
 {
-	/* TODO(bastien): Replace with something like:
-	 *
-	 *   World *wrld_copy;
-	 *   BKE_id_copy_ex(bmain, &wrld->id, (ID **)&wrld_copy,
-	 *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
-	 *                  false);
-	 *   return wrld_copy;
-	 *
-	 * NOTE: Only possible once nested node trees are fully converted to that too. */
+  /* TODO(bastien): Replace with something like:
+   *
+   *   World *wrld_copy;
+   *   BKE_id_copy_ex(bmain, &wrld->id, (ID **)&wrld_copy,
+   *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
+   *                  false);
+   *   return wrld_copy;
+   *
+   * NOTE: Only possible once nested node trees are fully converted to that too. */
 
-	World *wrldn;
+  World *wrldn;
 
-	wrldn = BKE_libblock_copy_for_localize(&wrld->id);
+  wrldn = BKE_libblock_copy_for_localize(&wrld->id);
 
-	if (wrld->nodetree)
-		wrldn->nodetree = ntreeLocalize(wrld->nodetree);
+  if (wrld->nodetree)
+    wrldn->nodetree = ntreeLocalize(wrld->nodetree);
 
-	wrldn->preview = NULL;
+  wrldn->preview = NULL;
 
-	BLI_listbase_clear(&wrldn->gpumaterial);
-	BLI_listbase_clear((ListBase *)&wrldn->drawdata);
+  BLI_listbase_clear(&wrldn->gpumaterial);
+  BLI_listbase_clear((ListBase *)&wrldn->drawdata);
 
-	wrldn->id.tag |= LIB_TAG_LOCALIZED;
+  wrldn->id.tag |= LIB_TAG_LOCALIZED;
 
-	return wrldn;
+  return wrldn;
 }
 
 void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
 {
-	BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
+  BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
 }
 
 void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
 {
-	DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
-	GPU_material_free(&world->gpumaterial);
+  DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
+  GPU_material_free(&world->gpumaterial);
 }

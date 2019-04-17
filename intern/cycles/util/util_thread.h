@@ -45,103 +45,115 @@ typedef std::condition_variable thread_condition_variable;
  * custom stack size on macOS. */
 
 class thread {
-public:
-	/* NOTE: Node index of -1 means that affinity will be inherited from the
-	 * parent thread and no override on top of that will happen. */
-	thread(function<void()> run_cb, int node = -1);
-	~thread();
+ public:
+  /* NOTE: Node index of -1 means that affinity will be inherited from the
+   * parent thread and no override on top of that will happen. */
+  thread(function<void()> run_cb, int node = -1);
+  ~thread();
 
-	static void *run(void *arg);
-	bool join();
+  static void *run(void *arg);
+  bool join();
 
-protected:
-	function<void()> run_cb_;
+ protected:
+  function<void()> run_cb_;
 #ifdef __APPLE__
-	pthread_t pthread_id;
+  pthread_t pthread_id;
 #else
-	std::thread std_thread;
+  std::thread std_thread;
 #endif
-	bool joined_;
-	int node_;
+  bool joined_;
+  int node_;
 };
 
 /* Own wrapper around pthread's spin lock to make it's use easier. */
 
 class thread_spin_lock {
-public:
+ public:
 #ifdef __APPLE__
-	inline thread_spin_lock() {
-		spin_ = OS_SPINLOCK_INIT;
-	}
+  inline thread_spin_lock()
+  {
+    spin_ = OS_SPINLOCK_INIT;
+  }
 
-	inline void lock() {
-		OSSpinLockLock(&spin_);
-	}
+  inline void lock()
+  {
+    OSSpinLockLock(&spin_);
+  }
 
-	inline void unlock() {
-		OSSpinLockUnlock(&spin_);
-	}
+  inline void unlock()
+  {
+    OSSpinLockUnlock(&spin_);
+  }
 #elif defined(_WIN32)
-	inline thread_spin_lock() {
-		const DWORD SPIN_COUNT = 50000;
-		InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
-	}
+  inline thread_spin_lock()
+  {
+    const DWORD SPIN_COUNT = 50000;
+    InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
+  }
 
-	inline ~thread_spin_lock() {
-		DeleteCriticalSection(&cs_);
-	}
+  inline ~thread_spin_lock()
+  {
+    DeleteCriticalSection(&cs_);
+  }
 
-	inline void lock() {
-		EnterCriticalSection(&cs_);
-	}
+  inline void lock()
+  {
+    EnterCriticalSection(&cs_);
+  }
 
-	inline void unlock() {
-		LeaveCriticalSection(&cs_);
-	}
+  inline void unlock()
+  {
+    LeaveCriticalSection(&cs_);
+  }
 #else
-	inline thread_spin_lock() {
-		pthread_spin_init(&spin_, 0);
-	}
+  inline thread_spin_lock()
+  {
+    pthread_spin_init(&spin_, 0);
+  }
 
-	inline ~thread_spin_lock() {
-		pthread_spin_destroy(&spin_);
-	}
+  inline ~thread_spin_lock()
+  {
+    pthread_spin_destroy(&spin_);
+  }
 
-	inline void lock() {
-		pthread_spin_lock(&spin_);
-	}
+  inline void lock()
+  {
+    pthread_spin_lock(&spin_);
+  }
 
-	inline void unlock() {
-		pthread_spin_unlock(&spin_);
-	}
+  inline void unlock()
+  {
+    pthread_spin_unlock(&spin_);
+  }
 #endif
-protected:
+ protected:
 #ifdef __APPLE__
-	OSSpinLock spin_;
+  OSSpinLock spin_;
 #elif defined(_WIN32)
-	CRITICAL_SECTION cs_;
+  CRITICAL_SECTION cs_;
 #else
-	pthread_spinlock_t spin_;
+  pthread_spinlock_t spin_;
 #endif
 };
 
 class thread_scoped_spin_lock {
-public:
-	explicit thread_scoped_spin_lock(thread_spin_lock& lock)
-	        : lock_(lock) {
-		lock_.lock();
-	}
+ public:
+  explicit thread_scoped_spin_lock(thread_spin_lock &lock) : lock_(lock)
+  {
+    lock_.lock();
+  }
 
-	~thread_scoped_spin_lock() {
-		lock_.unlock();
-	}
+  ~thread_scoped_spin_lock()
+  {
+    lock_.unlock();
+  }
 
-	/* TODO(sergey): Implement manual control over lock/unlock. */
+  /* TODO(sergey): Implement manual control over lock/unlock. */
 
-protected:
-	thread_spin_lock& lock_;
+ protected:
+  thread_spin_lock &lock_;
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_THREAD_H__ */
+#endif /* __UTIL_THREAD_H__ */

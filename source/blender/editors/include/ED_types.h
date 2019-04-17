@@ -28,13 +28,11 @@
 
 /* old blender defines... should be deprecated? */
 #define DESELECT 0
-#define SELECT   1
-#define ACTIVE   2
+#define SELECT 1
+#define ACTIVE 2
 
 /* proposal = put scene pointers on function calls? */
 // #define BASACT                    (scene->basact)
 // #define OBACT                     (BASACT ? BASACT->object : NULL)
-
-
 
 #endif /* __ED_TYPES_H__ */

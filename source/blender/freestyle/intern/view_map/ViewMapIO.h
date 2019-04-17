@@ -36,9 +36,9 @@ namespace ViewMapIO {
 
 static const unsigned ZERO = UINT_MAX;
 
-int load(istream& in, ViewMap *vm, ProgressBar *pb = NULL);
+int load(istream &in, ViewMap *vm, ProgressBar *pb = NULL);
 
-int save(ostream& out, ViewMap *vm, ProgressBar *pb = NULL);
+int save(ostream &out, ViewMap *vm, ProgressBar *pb = NULL);
 
 namespace Options {
 
@@ -53,60 +53,54 @@ void rmFlags(const unsigned char flags);
 
 unsigned char getFlags();
 
-void setModelsPath(const string& path);
+void setModelsPath(const string &path);
 
 string getModelsPath();
 
-}; // End of namepace Options
+};  // namespace Options
 
 #ifdef IRIX
 
 namespace Internal {
 
-template <unsigned S>
-ostream& write(ostream& out, const char *str)
+template<unsigned S> ostream &write(ostream &out, const char *str)
 {
-	out.put(str[S - 1]);
-	return write<S - 1>(out, str);
+  out.put(str[S - 1]);
+  return write<S - 1>(out, str);
 }
 
-template<>
-ostream& write<1>(ostream& out, const char *str)
+template<> ostream &write<1>(ostream &out, const char *str)
 {
-	return out.put(str[0]);
+  return out.put(str[0]);
 }
 
-template<>
-ostream& write<0>(ostream& out, const char *)
+template<> ostream &write<0>(ostream &out, const char *)
 {
-	return out;
+  return out;
 }
 
-template <unsigned S>
-istream& read(istream& in, char *str)
+template<unsigned S> istream &read(istream &in, char *str)
 {
-	in.get(str[S - 1]);
-	return read<S - 1>(in, str);
+  in.get(str[S - 1]);
+  return read<S - 1>(in, str);
 }
 
-template<>
-istream& read<1>(istream& in, char *str)
+template<> istream &read<1>(istream &in, char *str)
 {
-	return in.get(str[0]);
+  return in.get(str[0]);
 }
 
-template<>
-istream& read<0>(istream& in, char *)
+template<> istream &read<0>(istream &in, char *)
 {
-	return in;
+  return in;
 }
 
-} // End of namespace Internal
+}  // End of namespace Internal
 
-#endif // IRIX
+#endif  // IRIX
 
-} // End of namespace ViewMapIO
+}  // End of namespace ViewMapIO
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_VIEW_MAP_IO_H__
+#endif  // __FREESTYLE_VIEW_MAP_IO_H__

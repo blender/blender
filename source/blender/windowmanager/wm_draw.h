@@ -21,7 +21,6 @@
  * \ingroup wm
  */
 
-
 #ifndef __WM_DRAW_H__
 #define __WM_DRAW_H__
 
@@ -32,10 +31,10 @@ struct GPUTexture;
 struct GPUViewport;
 
 typedef struct wmDrawBuffer {
-	struct GPUOffScreen *offscreen[2];
-	struct GPUViewport *viewport[2];
-	bool stereo;
-	int bound_view;
+  struct GPUOffScreen *offscreen[2];
+  struct GPUViewport *viewport[2];
+  bool stereo;
+  int bound_view;
 } wmDrawBuffer;
 
 struct ARegion;

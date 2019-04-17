@@ -20,42 +20,47 @@
 #define __COM_ELLIPSEMASKOPERATION_H__
 #include "COM_NodeOperation.h"
 
-
 class EllipseMaskOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputMask;
-	SocketReader *m_inputValue;
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputMask;
+  SocketReader *m_inputValue;
 
-	float m_sine;
-	float m_cosine;
-	float m_aspectRatio;
-	int m_maskType;
+  float m_sine;
+  float m_cosine;
+  float m_aspectRatio;
+  int m_maskType;
 
-	NodeEllipseMask *m_data;
-public:
-	EllipseMaskOperation();
+  NodeEllipseMask *m_data;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  EllipseMaskOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	void setData(NodeEllipseMask *data) { this->m_data = data; }
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void setMaskType(int maskType) { this->m_maskType = maskType; }
+  void setData(NodeEllipseMask *data)
+  {
+    this->m_data = data;
+  }
 
+  void setMaskType(int maskType)
+  {
+    this->m_maskType = maskType;
+  }
 };
 #endif

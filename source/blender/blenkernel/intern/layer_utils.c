@@ -34,89 +34,93 @@
 
 #include "MEM_guardedalloc.h"
 
-Base **BKE_view_layer_array_from_bases_in_mode_params(
-        ViewLayer *view_layer, View3D *v3d, uint *r_len,
-        const struct ObjectsInModeParams *params)
+Base **BKE_view_layer_array_from_bases_in_mode_params(ViewLayer *view_layer,
+                                                      View3D *v3d,
+                                                      uint *r_len,
+                                                      const struct ObjectsInModeParams *params)
 {
-	if (params->no_dup_data) {
-		FOREACH_BASE_IN_MODE_BEGIN(view_layer, v3d, -1, params->object_mode, base_iter) {
-			ID *id = base_iter->object->data;
-			if (id) {
-				id->tag |= LIB_TAG_DOIT;
-			}
-		} FOREACH_BASE_IN_MODE_END;
-	}
+  if (params->no_dup_data) {
+    FOREACH_BASE_IN_MODE_BEGIN (view_layer, v3d, -1, params->object_mode, base_iter) {
+      ID *id = base_iter->object->data;
+      if (id) {
+        id->tag |= LIB_TAG_DOIT;
+      }
+    }
+    FOREACH_BASE_IN_MODE_END;
+  }
 
-	Base **base_array = NULL;
-	BLI_array_declare(base_array);
+  Base **base_array = NULL;
+  BLI_array_declare(base_array);
 
-	FOREACH_BASE_IN_MODE_BEGIN(view_layer, v3d, -1, params->object_mode, base_iter) {
-		if (params->filter_fn) {
-			if (!params->filter_fn(base_iter->object, params->filter_userdata)) {
-				continue;
-			}
-		}
-		if (params->no_dup_data) {
-			ID *id = base_iter->object->data;
-			if (id) {
-				if (id->tag & LIB_TAG_DOIT) {
-					id->tag &= ~LIB_TAG_DOIT;
-				}
-				else {
-					continue;
-				}
-			}
-		}
-		BLI_array_append(base_array, base_iter);
-	} FOREACH_BASE_IN_MODE_END;
+  FOREACH_BASE_IN_MODE_BEGIN (view_layer, v3d, -1, params->object_mode, base_iter) {
+    if (params->filter_fn) {
+      if (!params->filter_fn(base_iter->object, params->filter_userdata)) {
+        continue;
+      }
+    }
+    if (params->no_dup_data) {
+      ID *id = base_iter->object->data;
+      if (id) {
+        if (id->tag & LIB_TAG_DOIT) {
+          id->tag &= ~LIB_TAG_DOIT;
+        }
+        else {
+          continue;
+        }
+      }
+    }
+    BLI_array_append(base_array, base_iter);
+  }
+  FOREACH_BASE_IN_MODE_END;
 
-	base_array = MEM_reallocN(base_array, sizeof(*base_array) * BLI_array_len(base_array));
-	/* We always need a valid allocation (prevent crash on free). */
-	if (base_array == NULL) {
-		base_array = MEM_mallocN(0, __func__);
-	}
-	*r_len = BLI_array_len(base_array);
-	return base_array;
+  base_array = MEM_reallocN(base_array, sizeof(*base_array) * BLI_array_len(base_array));
+  /* We always need a valid allocation (prevent crash on free). */
+  if (base_array == NULL) {
+    base_array = MEM_mallocN(0, __func__);
+  }
+  *r_len = BLI_array_len(base_array);
+  return base_array;
 }
 
-Object **BKE_view_layer_array_from_objects_in_mode_params(
-        ViewLayer *view_layer, View3D *v3d, uint *r_len,
-        const struct ObjectsInModeParams *params)
+Object **BKE_view_layer_array_from_objects_in_mode_params(ViewLayer *view_layer,
+                                                          View3D *v3d,
+                                                          uint *r_len,
+                                                          const struct ObjectsInModeParams *params)
 {
-	Base **base_array = BKE_view_layer_array_from_bases_in_mode_params(
-	        view_layer, v3d, r_len, params);
-	if (base_array != NULL) {
-		for (uint i = 0; i < *r_len; i++) {
-			((Object **)base_array)[i] = base_array[i]->object;
-		}
-	}
-	return (Object **)base_array;
+  Base **base_array = BKE_view_layer_array_from_bases_in_mode_params(
+      view_layer, v3d, r_len, params);
+  if (base_array != NULL) {
+    for (uint i = 0; i < *r_len; i++) {
+      ((Object **)base_array)[i] = base_array[i]->object;
+    }
+  }
+  return (Object **)base_array;
 }
 
 bool BKE_view_layer_filter_edit_mesh_has_uvs(Object *ob, void *UNUSED(user_data))
 {
-	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_mesh;
-		if (em != NULL) {
-			if (CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV) != -1) {
-				return true;
-			}
-		}
-	}
-	return false;
+  if (ob->type == OB_MESH) {
+    Mesh *me = ob->data;
+    BMEditMesh *em = me->edit_mesh;
+    if (em != NULL) {
+      if (CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV) != -1) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool BKE_view_layer_filter_edit_mesh_has_edges(Object *ob, void *UNUSED(user_data))
 {
-	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_mesh;
-		if (em != NULL) {
-			if (em->bm->totedge != 0) {
-				return true;
-			}
-		}
-	}
-	return false;
+  if (ob->type == OB_MESH) {
+    Mesh *me = ob->data;
+    BMEditMesh *em = me->edit_mesh;
+    if (em != NULL) {
+      if (em->bm->totedge != 0) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

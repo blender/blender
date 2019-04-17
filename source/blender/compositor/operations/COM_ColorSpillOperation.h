@@ -25,34 +25,44 @@
  * it assumes we are in sRGB color space.
  */
 class ColorSpillOperation : public NodeOperation {
-protected:
-	NodeColorspill *m_settings;
-	SocketReader *m_inputImageReader;
-	SocketReader *m_inputFacReader;
-	int m_spillChannel;
-	int m_spillMethod;
-	int m_channel2;
-	int m_channel3;
-	float m_rmut, m_gmut, m_bmut;
-public:
-	/**
-	 * Default constructor
-	 */
-	ColorSpillOperation();
+ protected:
+  NodeColorspill *m_settings;
+  SocketReader *m_inputImageReader;
+  SocketReader *m_inputFacReader;
+  int m_spillChannel;
+  int m_spillMethod;
+  int m_channel2;
+  int m_channel3;
+  float m_rmut, m_gmut, m_bmut;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Default constructor
+   */
+  ColorSpillOperation();
 
-	void initExecution();
-	void deinitExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	void setSettings(NodeColorspill *nodeColorSpill) { this->m_settings = nodeColorSpill; }
-	void setSpillChannel(int channel) { this->m_spillChannel = channel; }
-	void setSpillMethod(int method) { this->m_spillMethod = method; }
+  void initExecution();
+  void deinitExecution();
 
-	float calculateMapValue(float fac, float *input);
+  void setSettings(NodeColorspill *nodeColorSpill)
+  {
+    this->m_settings = nodeColorSpill;
+  }
+  void setSpillChannel(int channel)
+  {
+    this->m_spillChannel = channel;
+  }
+  void setSpillMethod(int method)
+  {
+    this->m_spillMethod = method;
+  }
+
+  float calculateMapValue(float fac, float *input);
 };
 
 #endif

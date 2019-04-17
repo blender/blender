@@ -20,10 +20,12 @@
 
 #include <cstddef>
 
-OpenSubdiv_Evaluator* openSubdiv_createEvaluatorFromTopologyRefiner(
-    struct OpenSubdiv_TopologyRefiner* /*topology_refiner*/) {
+OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
+    struct OpenSubdiv_TopologyRefiner * /*topology_refiner*/)
+{
   return NULL;
 }
 
-void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator* /*evaluator*/) {
+void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator * /*evaluator*/)
+{
 }

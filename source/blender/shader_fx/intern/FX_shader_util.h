@@ -21,8 +21,7 @@
  * \ingroup shader_fx
  */
 
-
 #ifndef __FX_SHADER_UTIL_H__
 #define __FX_SHADER_UTIL_H__
 
-#endif  /* __FX_SHADER_UTIL_H__ */
+#endif /* __FX_SHADER_UTIL_H__ */

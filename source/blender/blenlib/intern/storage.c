@@ -30,13 +30,14 @@
 #include <sys/stat.h>
 
 #if defined(__NetBSD__) || defined(__DragonFly__) || defined(__HAIKU__)
-   /* Other modern unix os's should probably use this also */
+/* Other modern unix os's should probably use this also */
 #  include <sys/statvfs.h>
 #  define USE_STATFS_STATVFS
 #endif
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
-   /* For statfs */
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || \
+    defined(__DragonFly__)
+/* For statfs */
 #  include <sys/param.h>
 #  include <sys/mount.h>
 #endif
@@ -46,7 +47,7 @@
 #endif
 
 #include <fcntl.h>
-#include <string.h>  /* strcpy etc.. */
+#include <string.h> /* strcpy etc.. */
 
 #ifdef WIN32
 #  include <io.h>
@@ -76,19 +77,19 @@
  */
 char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
-	const char *pwd = BLI_getenv("PWD");
-	if (pwd) {
-		size_t srclen = BLI_strnlen(pwd, maxncpy);
-		if (srclen != maxncpy) {
-			memcpy(dir, pwd, srclen + 1);
-			return dir;
-		}
-		else {
-			return NULL;
-		}
-	}
+  const char *pwd = BLI_getenv("PWD");
+  if (pwd) {
+    size_t srclen = BLI_strnlen(pwd, maxncpy);
+    if (srclen != maxncpy) {
+      memcpy(dir, pwd, srclen + 1);
+      return dir;
+    }
+    else {
+      return NULL;
+    }
+  }
 
-	return getcwd(dir, maxncpy);
+  return getcwd(dir, maxncpy);
 }
 
 /**
@@ -98,81 +99,81 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 double BLI_dir_free_space(const char *dir)
 {
 #ifdef WIN32
-	DWORD sectorspc, bytesps, freec, clusters;
-	char tmp[4];
+  DWORD sectorspc, bytesps, freec, clusters;
+  char tmp[4];
 
-	tmp[0] = '\\'; tmp[1] = 0; /* Just a failsafe */
-	if (dir[0] == '/' || dir[0] == '\\') {
-		tmp[0] = '\\';
-		tmp[1] = 0;
-	}
-	else if (dir[1] == ':') {
-		tmp[0] = dir[0];
-		tmp[1] = ':';
-		tmp[2] = '\\';
-		tmp[3] = 0;
-	}
+  tmp[0] = '\\';
+  tmp[1] = 0; /* Just a failsafe */
+  if (dir[0] == '/' || dir[0] == '\\') {
+    tmp[0] = '\\';
+    tmp[1] = 0;
+  }
+  else if (dir[1] == ':') {
+    tmp[0] = dir[0];
+    tmp[1] = ':';
+    tmp[2] = '\\';
+    tmp[3] = 0;
+  }
 
-	GetDiskFreeSpace(tmp, &sectorspc, &bytesps, &freec, &clusters);
+  GetDiskFreeSpace(tmp, &sectorspc, &bytesps, &freec, &clusters);
 
-	return (double) (freec * bytesps * sectorspc);
+  return (double)(freec * bytesps * sectorspc);
 #else
 
-#ifdef USE_STATFS_STATVFS
-	struct statvfs disk;
-#else
-	struct statfs disk;
-#endif
+#  ifdef USE_STATFS_STATVFS
+  struct statvfs disk;
+#  else
+  struct statfs disk;
+#  endif
 
-	char name[FILE_MAXDIR], *slash;
-	int len = strlen(dir);
+  char name[FILE_MAXDIR], *slash;
+  int len = strlen(dir);
 
-	if (len >= FILE_MAXDIR) {
-		/* path too long */
-		return -1;
-	}
+  if (len >= FILE_MAXDIR) {
+    /* path too long */
+    return -1;
+  }
 
-	strcpy(name, dir);
+  strcpy(name, dir);
 
-	if (len) {
-		slash = strrchr(name, '/');
-		if (slash) {
-			slash[1] = 0;
-		}
-	}
-	else {
-		strcpy(name, "/");
-	}
+  if (len) {
+    slash = strrchr(name, '/');
+    if (slash) {
+      slash[1] = 0;
+    }
+  }
+  else {
+    strcpy(name, "/");
+  }
 
-#if  defined(USE_STATFS_STATVFS)
-	if (statvfs(name, &disk)) {
-		return -1;
-	}
-#elif defined(USE_STATFS_4ARGS)
-	if (statfs(name, &disk, sizeof(struct statfs), 0)) {
-		return -1;
-	}
-#else
-	if (statfs(name, &disk)) {
-		return -1;
-	}
-#endif
+#  if defined(USE_STATFS_STATVFS)
+  if (statvfs(name, &disk)) {
+    return -1;
+  }
+#  elif defined(USE_STATFS_4ARGS)
+  if (statfs(name, &disk, sizeof(struct statfs), 0)) {
+    return -1;
+  }
+#  else
+  if (statfs(name, &disk)) {
+    return -1;
+  }
+#  endif
 
-	return ( ((double) disk.f_bsize) * ((double) disk.f_bfree));
+  return (((double)disk.f_bsize) * ((double)disk.f_bfree));
 #endif
 }
-
 
 /**
  * Returns the file size of an opened file descriptor.
  */
 size_t BLI_file_descriptor_size(int file)
 {
-	struct stat st;
-	if ((file < 0) || (fstat(file, &st) == -1)) {
-		return -1;
-	}
-	return st.st_size;
+  struct stat st;
+  if ((file < 0) || (fstat(file, &st) == -1)) {
+    return -1;
+  }
+  return st.st_size;
 }
 
 /**
@@ -180,11 +181,11 @@ size_t BLI_file_descriptor_size(int file)
  */
 size_t BLI_file_size(const char *path)
 {
-	BLI_stat_t stats;
-	if (BLI_stat(path, &stats) == -1) {
-		return -1;
-	}
-	return stats.st_size;
+  BLI_stat_t stats;
+  if (BLI_stat(path, &stats) == -1) {
+    return -1;
+  }
+  return stats.st_size;
 }
 
 /**
@@ -194,78 +195,76 @@ size_t BLI_file_size(const char *path)
 int BLI_exists(const char *name)
 {
 #if defined(WIN32)
-	BLI_stat_t st;
-	wchar_t *tmp_16 = alloc_utf16_from_8(name, 1);
-	int len, res;
-	unsigned int old_error_mode;
+  BLI_stat_t st;
+  wchar_t *tmp_16 = alloc_utf16_from_8(name, 1);
+  int len, res;
+  unsigned int old_error_mode;
 
-	len = wcslen(tmp_16);
-	/* in Windows #stat doesn't recognize dir ending on a slash
-	 * so we remove it here */
-	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/')) {
-		tmp_16[len - 1] = '\0';
-	}
-	/* two special cases where the trailing slash is needed:
-	 * 1. after the share part of a UNC path
-	 * 2. after the C:\ when the path is the volume only
-	 */
-	if ((len >= 3) && (tmp_16[0] ==  L'\\') && (tmp_16[1] ==  L'\\')) {
-		BLI_cleanup_unc_16(tmp_16);
-	}
+  len = wcslen(tmp_16);
+  /* in Windows #stat doesn't recognize dir ending on a slash
+   * so we remove it here */
+  if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/')) {
+    tmp_16[len - 1] = '\0';
+  }
+  /* two special cases where the trailing slash is needed:
+   * 1. after the share part of a UNC path
+   * 2. after the C:\ when the path is the volume only
+   */
+  if ((len >= 3) && (tmp_16[0] == L'\\') && (tmp_16[1] == L'\\')) {
+    BLI_cleanup_unc_16(tmp_16);
+  }
 
-	if ((tmp_16[1] ==  L':') && (tmp_16[2] ==  L'\0')) {
-		tmp_16[2] = L'\\';
-		tmp_16[3] = L'\0';
-	}
+  if ((tmp_16[1] == L':') && (tmp_16[2] == L'\0')) {
+    tmp_16[2] = L'\\';
+    tmp_16[3] = L'\0';
+  }
 
+  /* change error mode so user does not get a "no disk in drive" popup
+   * when looking for a file on an empty CD/DVD drive */
+  old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
 
-	/* change error mode so user does not get a "no disk in drive" popup
-	 * when looking for a file on an empty CD/DVD drive */
-	old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+  res = BLI_wstat(tmp_16, &st);
 
-	res = BLI_wstat(tmp_16, &st);
+  SetErrorMode(old_error_mode);
 
-	SetErrorMode(old_error_mode);
-
-	free(tmp_16);
-	if (res == -1) {
-		return(0);
-	}
+  free(tmp_16);
+  if (res == -1) {
+    return (0);
+  }
 #else
-	struct stat st;
-	BLI_assert(!BLI_path_is_rel(name));
-	if (stat(name, &st)) {
-		return(0);
-	}
+  struct stat st;
+  BLI_assert(!BLI_path_is_rel(name));
+  if (stat(name, &st)) {
+    return (0);
+  }
 #endif
-	return(st.st_mode);
+  return (st.st_mode);
 }
-
 
 #ifdef WIN32
 int BLI_stat(const char *path, BLI_stat_t *buffer)
 {
-	int r;
-	UTF16_ENCODE(path);
+  int r;
+  UTF16_ENCODE(path);
 
-	r = BLI_wstat(path_16, buffer);
+  r = BLI_wstat(path_16, buffer);
 
-	UTF16_UN_ENCODE(path);
-	return r;
+  UTF16_UN_ENCODE(path);
+  return r;
 }
 
 int BLI_wstat(const wchar_t *path, BLI_stat_t *buffer)
 {
-#if defined(_MSC_VER)
-	return _wstat64(path, buffer);
-#else
-	return _wstat(path, buffer);
-#endif
+#  if defined(_MSC_VER)
+  return _wstat64(path, buffer);
+#  else
+  return _wstat(path, buffer);
+#  endif
 }
 #else
 int BLI_stat(const char *path, struct stat *buffer)
 {
-	return stat(path, buffer);
+  return stat(path, buffer);
 }
 #endif
 
@@ -275,7 +274,7 @@ int BLI_stat(const char *path, struct stat *buffer)
  */
 bool BLI_is_dir(const char *file)
 {
-	return S_ISDIR(BLI_exists(file));
+  return S_ISDIR(BLI_exists(file));
 }
 
 /**
@@ -283,83 +282,83 @@ bool BLI_is_dir(const char *file)
  */
 bool BLI_is_file(const char *path)
 {
-	const int mode = BLI_exists(path);
-	return (mode && !S_ISDIR(mode));
+  const int mode = BLI_exists(path);
+  return (mode && !S_ISDIR(mode));
 }
 
 void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
 {
-	FILE *fp = BLI_fopen(filepath, "r");
-	void *mem = NULL;
+  FILE *fp = BLI_fopen(filepath, "r");
+  void *mem = NULL;
 
-	if (fp) {
-		fseek(fp, 0L, SEEK_END);
-		const long int filelen = ftell(fp);
-		if (filelen == -1) {
-			goto finally;
-		}
-		fseek(fp, 0L, SEEK_SET);
+  if (fp) {
+    fseek(fp, 0L, SEEK_END);
+    const long int filelen = ftell(fp);
+    if (filelen == -1) {
+      goto finally;
+    }
+    fseek(fp, 0L, SEEK_SET);
 
-		mem = MEM_mallocN(filelen + pad_bytes, __func__);
-		if (mem == NULL) {
-			goto finally;
-		}
+    mem = MEM_mallocN(filelen + pad_bytes, __func__);
+    if (mem == NULL) {
+      goto finally;
+    }
 
-		const long int filelen_read = fread(mem, 1, filelen, fp);
-		if ((filelen_read < 0) || ferror(fp)) {
-			MEM_freeN(mem);
-			mem = NULL;
-			goto finally;
-		}
+    const long int filelen_read = fread(mem, 1, filelen, fp);
+    if ((filelen_read < 0) || ferror(fp)) {
+      MEM_freeN(mem);
+      mem = NULL;
+      goto finally;
+    }
 
-		if (filelen_read < filelen) {
-			mem = MEM_reallocN(mem, filelen_read + pad_bytes);
-			if (mem == NULL) {
-				goto finally;
-			}
-		}
+    if (filelen_read < filelen) {
+      mem = MEM_reallocN(mem, filelen_read + pad_bytes);
+      if (mem == NULL) {
+        goto finally;
+      }
+    }
 
-		*r_size = filelen_read;
+    *r_size = filelen_read;
 
-finally:
-		fclose(fp);
-	}
+  finally:
+    fclose(fp);
+  }
 
-	return mem;
+  return mem;
 }
 
 void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
 {
-	FILE *fp = BLI_fopen(filepath, "rb");
-	void *mem = NULL;
+  FILE *fp = BLI_fopen(filepath, "rb");
+  void *mem = NULL;
 
-	if (fp) {
-		fseek(fp, 0L, SEEK_END);
-		const long int filelen = ftell(fp);
-		if (filelen == -1) {
-			goto finally;
-		}
-		fseek(fp, 0L, SEEK_SET);
+  if (fp) {
+    fseek(fp, 0L, SEEK_END);
+    const long int filelen = ftell(fp);
+    if (filelen == -1) {
+      goto finally;
+    }
+    fseek(fp, 0L, SEEK_SET);
 
-		mem = MEM_mallocN(filelen + pad_bytes, __func__);
-		if (mem == NULL) {
-			goto finally;
-		}
+    mem = MEM_mallocN(filelen + pad_bytes, __func__);
+    if (mem == NULL) {
+      goto finally;
+    }
 
-		const long int filelen_read = fread(mem, 1, filelen, fp);
-		if ((filelen_read != filelen) || ferror(fp)) {
-			MEM_freeN(mem);
-			mem = NULL;
-			goto finally;
-		}
+    const long int filelen_read = fread(mem, 1, filelen, fp);
+    if ((filelen_read != filelen) || ferror(fp)) {
+      MEM_freeN(mem);
+      mem = NULL;
+      goto finally;
+    }
 
-		*r_size = filelen_read;
+    *r_size = filelen_read;
 
-finally:
-		fclose(fp);
-	}
+  finally:
+    fclose(fp);
+  }
 
-	return mem;
+  return mem;
 }
 
 /**
@@ -367,48 +366,48 @@ finally:
  */
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
-	FILE *fp = BLI_fopen(name, "r");
-	LinkNodePair lines = {NULL, NULL};
-	char *buf;
-	size_t size;
+  FILE *fp = BLI_fopen(name, "r");
+  LinkNodePair lines = {NULL, NULL};
+  char *buf;
+  size_t size;
 
-	if (!fp) {
-		return NULL;
-	}
+  if (!fp) {
+    return NULL;
+  }
 
-	fseek(fp, 0, SEEK_END);
-	size = (size_t)ftell(fp);
-	fseek(fp, 0, SEEK_SET);
+  fseek(fp, 0, SEEK_END);
+  size = (size_t)ftell(fp);
+  fseek(fp, 0, SEEK_SET);
 
-	if (UNLIKELY(size == (size_t)-1)) {
-		fclose(fp);
-		return NULL;
-	}
+  if (UNLIKELY(size == (size_t)-1)) {
+    fclose(fp);
+    return NULL;
+  }
 
-	buf = MEM_mallocN(size, "file_as_lines");
-	if (buf) {
-		size_t i, last = 0;
+  buf = MEM_mallocN(size, "file_as_lines");
+  if (buf) {
+    size_t i, last = 0;
 
-		/*
-		 * size = because on win32 reading
-		 * all the bytes in the file will return
-		 * less bytes because of `CRNL` changes.
-		 */
-		size = fread(buf, 1, size, fp);
-		for (i = 0; i <= size; i++) {
-			if (i == size || buf[i] == '\n') {
-				char *line = BLI_strdupn(&buf[last], i - last);
-				BLI_linklist_append(&lines, line);
-				last = i + 1;
-			}
-		}
+    /*
+     * size = because on win32 reading
+     * all the bytes in the file will return
+     * less bytes because of `CRNL` changes.
+     */
+    size = fread(buf, 1, size, fp);
+    for (i = 0; i <= size; i++) {
+      if (i == size || buf[i] == '\n') {
+        char *line = BLI_strdupn(&buf[last], i - last);
+        BLI_linklist_append(&lines, line);
+        last = i + 1;
+      }
+    }
 
-		MEM_freeN(buf);
-	}
+    MEM_freeN(buf);
+  }
 
-	fclose(fp);
+  fclose(fp);
 
-	return lines.list;
+  return lines.list;
 }
 
 /*
@@ -416,36 +415,36 @@ LinkNode *BLI_file_read_as_lines(const char *name)
  */
 void BLI_file_free_lines(LinkNode *lines)
 {
-	BLI_linklist_freeN(lines);
+  BLI_linklist_freeN(lines);
 }
 
 /** is file1 older then file2 */
 bool BLI_file_older(const char *file1, const char *file2)
 {
 #ifdef WIN32
-	struct _stat st1, st2;
+  struct _stat st1, st2;
 
-	UTF16_ENCODE(file1);
-	UTF16_ENCODE(file2);
+  UTF16_ENCODE(file1);
+  UTF16_ENCODE(file2);
 
-	if (_wstat(file1_16, &st1)) {
-		return false;
-	}
-	if (_wstat(file2_16, &st2)) {
-		return false;
-	}
+  if (_wstat(file1_16, &st1)) {
+    return false;
+  }
+  if (_wstat(file2_16, &st2)) {
+    return false;
+  }
 
-	UTF16_UN_ENCODE(file2);
-	UTF16_UN_ENCODE(file1);
+  UTF16_UN_ENCODE(file2);
+  UTF16_UN_ENCODE(file1);
 #else
-	struct stat st1, st2;
+  struct stat st1, st2;
 
-	if (stat(file1, &st1)) {
-		return false;
-	}
-	if (stat(file2, &st2)) {
-		return false;
-	}
+  if (stat(file1, &st1)) {
+    return false;
+  }
+  if (stat(file2, &st2)) {
+    return false;
+  }
 #endif
-	return (st1.st_mtime < st2.st_mtime);
+  return (st1.st_mtime < st2.st_mtime);
 }

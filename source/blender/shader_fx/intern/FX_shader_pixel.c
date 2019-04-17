@@ -29,30 +29,30 @@
 
 static void initData(ShaderFxData *fx)
 {
-	PixelShaderFxData *gpfx = (PixelShaderFxData *)fx;
-	ARRAY_SET_ITEMS(gpfx->size, 5, 5);
-	ARRAY_SET_ITEMS(gpfx->rgba, 0.0f, 0.0f, 0.0f, 0.9f);
+  PixelShaderFxData *gpfx = (PixelShaderFxData *)fx;
+  ARRAY_SET_ITEMS(gpfx->size, 5, 5);
+  ARRAY_SET_ITEMS(gpfx->rgba, 0.0f, 0.0f, 0.0f, 0.9f);
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-	BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copyData_generic(md, target);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Pixel = {
-	/* name */              "Pixelate",
-	/* structName */        "PixelShaderFxData",
-	/* structSize */        sizeof(PixelShaderFxData),
-	/* type */              eShaderFxType_GpencilType,
-	/* flags */             eShaderFxTypeFlag_Single,
+    /* name */ "Pixelate",
+    /* structName */ "PixelShaderFxData",
+    /* structSize */ sizeof(PixelShaderFxData),
+    /* type */ eShaderFxType_GpencilType,
+    /* flags */ eShaderFxTypeFlag_Single,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
 };

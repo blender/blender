@@ -29,79 +29,116 @@
 
 /* Writes the image to a single-layer file. */
 class OutputSingleLayerOperation : public NodeOperation {
-protected:
-	const RenderData *m_rd;
-	const bNodeTree *m_tree;
+ protected:
+  const RenderData *m_rd;
+  const bNodeTree *m_tree;
 
-	ImageFormatData *m_format;
-	char m_path[FILE_MAX];
+  ImageFormatData *m_format;
+  char m_path[FILE_MAX];
 
-	float *m_outputBuffer;
-	DataType m_datatype;
-	SocketReader *m_imageInput;
+  float *m_outputBuffer;
+  DataType m_datatype;
+  SocketReader *m_imageInput;
 
-	const ColorManagedViewSettings *m_viewSettings;
-	const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *m_viewSettings;
+  const ColorManagedDisplaySettings *m_displaySettings;
 
-	const char *m_viewName;
-public:
-	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
-	                           const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings, const char *viewName);
+  const char *m_viewName;
 
-	void executeRegion(rcti *rect, unsigned int tileNumber);
-	bool isOutputOperation(bool /*rendering*/) const { return true; }
-	void initExecution();
-	void deinitExecution();
-	CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+ public:
+  OutputSingleLayerOperation(const RenderData *rd,
+                             const bNodeTree *tree,
+                             DataType datatype,
+                             ImageFormatData *format,
+                             const char *path,
+                             const ColorManagedViewSettings *viewSettings,
+                             const ColorManagedDisplaySettings *displaySettings,
+                             const char *viewName);
 
-	bool isFileOutputOperation() const { return true; }
+  void executeRegion(rcti *rect, unsigned int tileNumber);
+  bool isOutputOperation(bool /*rendering*/) const
+  {
+    return true;
+  }
+  void initExecution();
+  void deinitExecution();
+  CompositorPriority getRenderPriority() const
+  {
+    return COM_PRIORITY_LOW;
+  }
+
+  bool isFileOutputOperation() const
+  {
+    return true;
+  }
 };
 
 /* extra info for OpenEXR layers */
 struct OutputOpenExrLayer {
-	OutputOpenExrLayer(const char *name, DataType datatype, bool use_layer);
+  OutputOpenExrLayer(const char *name, DataType datatype, bool use_layer);
 
-	char name[EXR_TOT_MAXNAME - 2];
-	DataType datatype;
-	bool use_layer;
+  char name[EXR_TOT_MAXNAME - 2];
+  DataType datatype;
+  bool use_layer;
 
-	/* internals */
-	float *outputBuffer;
-	SocketReader *imageInput;
+  /* internals */
+  float *outputBuffer;
+  SocketReader *imageInput;
 };
 
 /* Writes inputs into OpenEXR multilayer channels. */
 class OutputOpenExrMultiLayerOperation : public NodeOperation {
-protected:
-	typedef std::vector<OutputOpenExrLayer> LayerList;
+ protected:
+  typedef std::vector<OutputOpenExrLayer> LayerList;
 
-	const RenderData *m_rd;
-	const bNodeTree *m_tree;
+  const RenderData *m_rd;
+  const bNodeTree *m_tree;
 
-	char m_path[FILE_MAX];
-	char m_exr_codec;
-	bool m_exr_half_float;
-	LayerList m_layers;
-	const char *m_viewName;
+  char m_path[FILE_MAX];
+  char m_exr_codec;
+  bool m_exr_half_float;
+  LayerList m_layers;
+  const char *m_viewName;
 
-public:
-	OutputOpenExrMultiLayerOperation(const RenderData *rd, const bNodeTree *tree, const char *path,
-	                                 char exr_codec, bool exr_half_float, const char *viewName);
+ public:
+  OutputOpenExrMultiLayerOperation(const RenderData *rd,
+                                   const bNodeTree *tree,
+                                   const char *path,
+                                   char exr_codec,
+                                   bool exr_half_float,
+                                   const char *viewName);
 
-	void add_layer(const char *name, DataType datatype, bool use_layer);
+  void add_layer(const char *name, DataType datatype, bool use_layer);
 
-	void executeRegion(rcti *rect, unsigned int tileNumber);
-	bool isOutputOperation(bool /*rendering*/) const { return true; }
-	void initExecution();
-	void deinitExecution();
-	CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+  void executeRegion(rcti *rect, unsigned int tileNumber);
+  bool isOutputOperation(bool /*rendering*/) const
+  {
+    return true;
+  }
+  void initExecution();
+  void deinitExecution();
+  CompositorPriority getRenderPriority() const
+  {
+    return COM_PRIORITY_LOW;
+  }
 
-	bool isFileOutputOperation() const { return true; }
+  bool isFileOutputOperation() const
+  {
+    return true;
+  }
 };
 
-void add_exr_channels(void *exrhandle, const char *layerName, const DataType datatype, const char *viewName,
-                      const size_t width, bool use_half_float, float *buf);
-void free_exr_channels(void *exrhandle, const RenderData *rd, const char *layerName, const DataType datatype);
+void add_exr_channels(void *exrhandle,
+                      const char *layerName,
+                      const DataType datatype,
+                      const char *viewName,
+                      const size_t width,
+                      bool use_half_float,
+                      float *buf);
+void free_exr_channels(void *exrhandle,
+                       const RenderData *rd,
+                       const char *layerName,
+                       const DataType datatype);
 int get_datatype_size(DataType datatype);
 
 #endif

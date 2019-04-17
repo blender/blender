@@ -35,119 +35,126 @@ namespace internal {
   * \param iters: On input the max number of iteration, on output the number of performed iterations.
   * \param tol_error: On input the tolerance error, on output an estimation of the relative error.
   */
-template<typename MatrixType, typename Rhs, typename Dest, typename FilterMatrixType, typename Preconditioner>
-EIGEN_DONT_INLINE
-void constrained_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
-                                    const FilterMatrixType &filter,
-                                    const Preconditioner& precond, int& iters,
-                                    typename Dest::RealScalar& tol_error)
+template<typename MatrixType,
+         typename Rhs,
+         typename Dest,
+         typename FilterMatrixType,
+         typename Preconditioner>
+EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
+                                                      const Rhs &rhs,
+                                                      Dest &x,
+                                                      const FilterMatrixType &filter,
+                                                      const Preconditioner &precond,
+                                                      int &iters,
+                                                      typename Dest::RealScalar &tol_error)
 {
-  using std::sqrt;
   using std::abs;
+  using std::sqrt;
   typedef typename Dest::RealScalar RealScalar;
   typedef typename Dest::Scalar Scalar;
-  typedef Matrix<Scalar,Dynamic,1> VectorType;
+  typedef Matrix<Scalar, Dynamic, 1> VectorType;
 
   RealScalar tol = tol_error;
   int maxIters = iters;
 
   int n = mat.cols();
 
-  VectorType residual = filter * (rhs - mat * x); //initial residual
+  VectorType residual = filter * (rhs - mat * x);  //initial residual
 
   RealScalar rhsNorm2 = (filter * rhs).squaredNorm();
-  if(rhsNorm2 == 0)
-  {
+  if (rhsNorm2 == 0) {
     /* XXX TODO set constrained result here */
     x.setZero();
     iters = 0;
     tol_error = 0;
     return;
   }
-  RealScalar threshold = tol*tol*rhsNorm2;
+  RealScalar threshold = tol * tol * rhsNorm2;
   RealScalar residualNorm2 = residual.squaredNorm();
-  if (residualNorm2 < threshold)
-  {
+  if (residualNorm2 < threshold) {
     iters = 0;
     tol_error = sqrt(residualNorm2 / rhsNorm2);
     return;
   }
 
   VectorType p(n);
-  p = filter * precond.solve(residual);          //initial search direction
+  p = filter * precond.solve(residual);  //initial search direction
 
   VectorType z(n), tmp(n);
-  RealScalar absNew = numext::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
+  RealScalar absNew = numext::real(
+      residual.dot(p));  // the square of the absolute value of r scaled by invM
   int i = 0;
-  while(i < maxIters)
-  {
-    tmp.noalias() = filter * (mat * p);            // the bottleneck of the algorithm
+  while (i < maxIters) {
+    tmp.noalias() = filter * (mat * p);  // the bottleneck of the algorithm
 
-    Scalar alpha = absNew / p.dot(tmp);         // the amount we travel on dir
-    x += alpha * p;                             // update solution
-    residual -= alpha * tmp;                    // update residue
+    Scalar alpha = absNew / p.dot(tmp);  // the amount we travel on dir
+    x += alpha * p;                      // update solution
+    residual -= alpha * tmp;             // update residue
 
     residualNorm2 = residual.squaredNorm();
-    if(residualNorm2 < threshold)
+    if (residualNorm2 < threshold)
       break;
 
-    z = precond.solve(residual);                // approximately solve for "A z = residual"
+    z = precond.solve(residual);  // approximately solve for "A z = residual"
 
     RealScalar absOld = absNew;
-    absNew = numext::real(residual.dot(z));     // update the absolute value of r
-    RealScalar beta = absNew / absOld;          // calculate the Gram-Schmidt value used to create the new search direction
-    p = filter * (z + beta * p);             // update search direction
+    absNew = numext::real(residual.dot(z));  // update the absolute value of r
+    RealScalar beta =
+        absNew /
+        absOld;  // calculate the Gram-Schmidt value used to create the new search direction
+    p = filter * (z + beta * p);  // update search direction
     i++;
   }
   tol_error = sqrt(residualNorm2 / rhsNorm2);
   iters = i;
 }
 
-}
+}  // namespace internal
 
 #if 0 /* unused */
 template<typename MatrixType>
 struct MatrixFilter
 {
-	MatrixFilter() :
-	    m_cmat(NULL)
-	{
-	}
+  MatrixFilter() :
+      m_cmat(NULL)
+  {
+  }
 
-	MatrixFilter(const MatrixType &cmat) :
-	    m_cmat(&cmat)
-	{
-	}
+  MatrixFilter(const MatrixType &cmat) :
+      m_cmat(&cmat)
+  {
+  }
 
-	void setMatrix(const MatrixType &cmat) { m_cmat = &cmat; }
+  void setMatrix(const MatrixType &cmat) { m_cmat = &cmat; }
 
-	template <typename VectorType>
-	void apply(VectorType v) const
-	{
-		v = (*m_cmat) * v;
-	}
+  template <typename VectorType>
+  void apply(VectorType v) const
+  {
+    v = (*m_cmat) * v;
+  }
 
 protected:
-	const MatrixType *m_cmat;
+  const MatrixType *m_cmat;
 };
 #endif
 
-template< typename _MatrixType, int _UpLo=Lower,
-          typename _FilterMatrixType = _MatrixType,
-          typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
+template<typename _MatrixType,
+         int _UpLo = Lower,
+         typename _FilterMatrixType = _MatrixType,
+         typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar>>
 class ConstrainedConjugateGradient;
 
 namespace internal {
 
-template< typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
-struct traits<ConstrainedConjugateGradient<_MatrixType,_UpLo,_FilterMatrixType,_Preconditioner> >
-{
+template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
+struct traits<
+    ConstrainedConjugateGradient<_MatrixType, _UpLo, _FilterMatrixType, _Preconditioner>> {
   typedef _MatrixType MatrixType;
   typedef _FilterMatrixType FilterMatrixType;
   typedef _Preconditioner Preconditioner;
 };
 
-}
+}  // namespace internal
 
 /** \ingroup IterativeLinearSolvers_Module
   * \brief A conjugate gradient solver for sparse self-adjoint problems with additional constraints
@@ -197,16 +204,18 @@ struct traits<ConstrainedConjugateGradient<_MatrixType,_UpLo,_FilterMatrixType,_
   *
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
-template< typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
-class ConstrainedConjugateGradient : public IterativeSolverBase<ConstrainedConjugateGradient<_MatrixType,_UpLo,_FilterMatrixType,_Preconditioner> >
-{
+template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
+class ConstrainedConjugateGradient
+    : public IterativeSolverBase<
+          ConstrainedConjugateGradient<_MatrixType, _UpLo, _FilterMatrixType, _Preconditioner>> {
   typedef IterativeSolverBase<ConstrainedConjugateGradient> Base;
-  using Base::mp_matrix;
   using Base::m_error;
-  using Base::m_iterations;
   using Base::m_info;
   using Base::m_isInitialized;
-public:
+  using Base::m_iterations;
+  using Base::mp_matrix;
+
+ public:
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::Index Index;
@@ -214,14 +223,13 @@ public:
   typedef _FilterMatrixType FilterMatrixType;
   typedef _Preconditioner Preconditioner;
 
-  enum {
-    UpLo = _UpLo
-  };
+  enum { UpLo = _UpLo };
 
-public:
-
+ public:
   /** Default constructor. */
-  ConstrainedConjugateGradient() : Base() {}
+  ConstrainedConjugateGradient() : Base()
+  {
+  }
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
     *
@@ -233,44 +241,58 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  ConstrainedConjugateGradient(const MatrixType& A) : Base(A) {}
+  ConstrainedConjugateGradient(const MatrixType &A) : Base(A)
+  {
+  }
 
-  ~ConstrainedConjugateGradient() {}
+  ~ConstrainedConjugateGradient()
+  {
+  }
 
-  FilterMatrixType &filter() { return m_filter; }
-  const FilterMatrixType &filter() const { return m_filter; }
+  FilterMatrixType &filter()
+  {
+    return m_filter;
+  }
+  const FilterMatrixType &filter() const
+  {
+    return m_filter;
+  }
 
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
     * \a x0 as an initial solution.
     *
     * \sa compute()
     */
-  template<typename Rhs,typename Guess>
+  template<typename Rhs, typename Guess>
   inline const internal::solve_retval_with_guess<ConstrainedConjugateGradient, Rhs, Guess>
-  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
+  solveWithGuess(const MatrixBase<Rhs> &b, const Guess &x0) const
   {
     eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");
-    eigen_assert(Base::rows()==b.rows()
-              && "ConjugateGradient::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::solve_retval_with_guess
-            <ConstrainedConjugateGradient, Rhs, Guess>(*this, b.derived(), x0);
+    eigen_assert(
+        Base::rows() == b.rows() &&
+        "ConjugateGradient::solve(): invalid number of rows of the right hand side matrix b");
+    return internal::solve_retval_with_guess<ConstrainedConjugateGradient, Rhs, Guess>(
+        *this, b.derived(), x0);
   }
 
   /** \internal */
-  template<typename Rhs,typename Dest>
-  void _solveWithGuess(const Rhs& b, Dest& x) const
+  template<typename Rhs, typename Dest> void _solveWithGuess(const Rhs &b, Dest &x) const
   {
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
-    for(int j=0; j<b.cols(); ++j)
-    {
+    for (int j = 0; j < b.cols(); ++j) {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;
 
-      typename Dest::ColXpr xj(x,j);
-      internal::constrained_conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(), b.col(j), xj, m_filter,
-	                                           Base::m_preconditioner, m_iterations, m_error);
+      typename Dest::ColXpr xj(x, j);
+      internal::constrained_conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(),
+                                               b.col(j),
+                                               xj,
+                                               m_filter,
+                                               Base::m_preconditioner,
+                                               m_iterations,
+                                               m_error);
     }
 
     m_isInitialized = true;
@@ -278,35 +300,34 @@ public:
   }
 
   /** \internal */
-  template<typename Rhs,typename Dest>
-  void _solve(const Rhs& b, Dest& x) const
+  template<typename Rhs, typename Dest> void _solve(const Rhs &b, Dest &x) const
   {
     x.setOnes();
-    _solveWithGuess(b,x);
+    _solveWithGuess(b, x);
   }
 
-protected:
+ protected:
   FilterMatrixType m_filter;
 };
-
 
 namespace internal {
 
 template<typename _MatrixType, int _UpLo, typename _Filter, typename _Preconditioner, typename Rhs>
-struct solve_retval<ConstrainedConjugateGradient<_MatrixType,_UpLo,_Filter,_Preconditioner>, Rhs>
-  : solve_retval_base<ConstrainedConjugateGradient<_MatrixType,_UpLo,_Filter,_Preconditioner>, Rhs>
-{
-  typedef ConstrainedConjugateGradient<_MatrixType,_UpLo,_Filter,_Preconditioner> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
+struct solve_retval<ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _Preconditioner>,
+                    Rhs>
+    : solve_retval_base<ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _Preconditioner>,
+                        Rhs> {
+  typedef ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _Preconditioner> Dec;
+  EIGEN_MAKE_SOLVE_HELPERS(Dec, Rhs)
 
-  template<typename Dest> void evalTo(Dest& dst) const
+  template<typename Dest> void evalTo(Dest &dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve(rhs(), dst);
   }
 };
 
-} // end namespace internal
+}  // end namespace internal
 
-} // end namespace Eigen
+}  // end namespace Eigen
 
-#endif // __CONSTRAINEDCONJUGATEGRADIENT_H__
+#endif  // __CONSTRAINEDCONJUGATEGRADIENT_H__

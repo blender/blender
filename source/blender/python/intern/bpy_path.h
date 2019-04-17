@@ -18,7 +18,6 @@
  * \ingroup pythonintern
  */
 
-
 #ifndef __BPY_PATH_H__
 #define __BPY_PATH_H__
 

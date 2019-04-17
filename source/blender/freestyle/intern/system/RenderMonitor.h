@@ -27,49 +27,50 @@ extern "C" {
 }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class RenderMonitor
-{
-public:
-	inline RenderMonitor(Render *re)
-	{
-		_re = re;
-	}
+class RenderMonitor {
+ public:
+  inline RenderMonitor(Render *re)
+  {
+    _re = re;
+  }
 
-	virtual ~RenderMonitor() {}
+  virtual ~RenderMonitor()
+  {
+  }
 
-	inline void setInfo(string info)
-	{
-		if (_re && !info.empty()) {
-			_re->i.infostr = info.c_str();
-			_re->stats_draw(_re->sdh, &_re->i);
-			_re->i.infostr = NULL;
-		}
-	}
+  inline void setInfo(string info)
+  {
+    if (_re && !info.empty()) {
+      _re->i.infostr = info.c_str();
+      _re->stats_draw(_re->sdh, &_re->i);
+      _re->i.infostr = NULL;
+    }
+  }
 
-	inline void progress(float i)
-	{
-		if (_re)
-			_re->progress(_re->prh, i);
-	}
+  inline void progress(float i)
+  {
+    if (_re)
+      _re->progress(_re->prh, i);
+  }
 
-	inline bool testBreak()
-	{
-		return _re && _re->test_break(_re->tbh);
-	}
+  inline bool testBreak()
+  {
+    return _re && _re->test_break(_re->tbh);
+  }
 
-protected:
-	Render *_re;
+ protected:
+  Render *_re;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RenderMonitor")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RenderMonitor")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_RENDER_MONITOR_H__
+#endif  // __FREESTYLE_RENDER_MONITOR_H__

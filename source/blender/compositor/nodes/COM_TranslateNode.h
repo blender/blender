@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class TranslateNode : public Node {
-public:
-	TranslateNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  TranslateNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

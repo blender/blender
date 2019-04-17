@@ -33,109 +33,110 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(
-        ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
-        Mesh *UNUSED(mesh),
-        float (*vertexCos)[3],
-        int numVerts)
+static void deformVerts(ModifierData *UNUSED(md),
+                        const ModifierEvalContext *ctx,
+                        Mesh *UNUSED(mesh),
+                        float (*vertexCos)[3],
+                        int numVerts)
 {
-	Key *key = BKE_key_from_object(ctx->object);
+  Key *key = BKE_key_from_object(ctx->object);
 
-	if (key && key->block.first) {
-		int deformedVerts_tot;
-		BKE_key_evaluate_object_ex(
-		            ctx->object, &deformedVerts_tot,
-		            (float *)vertexCos, sizeof(*vertexCos) * numVerts);
-
-	}
+  if (key && key->block.first) {
+    int deformedVerts_tot;
+    BKE_key_evaluate_object_ex(
+        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * numVerts);
+  }
 }
 
-static void deformMatrices(
-        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
-        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+static void deformMatrices(ModifierData *md,
+                           const ModifierEvalContext *ctx,
+                           Mesh *mesh,
+                           float (*vertexCos)[3],
+                           float (*defMats)[3][3],
+                           int numVerts)
 {
-	Key *key = BKE_key_from_object(ctx->object);
-	KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
-	float scale[3][3];
+  Key *key = BKE_key_from_object(ctx->object);
+  KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
+  float scale[3][3];
 
-	(void)vertexCos; /* unused */
+  (void)vertexCos; /* unused */
 
-	if (kb && kb->totelem == numVerts && kb != key->refkey) {
-		int a;
+  if (kb && kb->totelem == numVerts && kb != key->refkey) {
+    int a;
 
-		if (ctx->object->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
-		else scale_m3_fl(scale, kb->curval);
+    if (ctx->object->shapeflag & OB_SHAPE_LOCK)
+      scale_m3_fl(scale, 1);
+    else
+      scale_m3_fl(scale, kb->curval);
 
-		for (a = 0; a < numVerts; a++)
-			copy_m3_m3(defMats[a], scale);
-	}
+    for (a = 0; a < numVerts; a++)
+      copy_m3_m3(defMats[a], scale);
+  }
 
-	deformVerts(md, ctx, mesh, vertexCos, numVerts);
+  deformVerts(md, ctx, mesh, vertexCos, numVerts);
 }
 
-static void deformVertsEM(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        struct BMEditMesh *UNUSED(editData),
-        Mesh *mesh,
-        float (*vertexCos)[3],
-        int numVerts)
+static void deformVertsEM(ModifierData *md,
+                          const ModifierEvalContext *ctx,
+                          struct BMEditMesh *UNUSED(editData),
+                          Mesh *mesh,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
-	Key *key = BKE_key_from_object(ctx->object);
+  Key *key = BKE_key_from_object(ctx->object);
 
-	if (key && key->type == KEY_RELATIVE)
-		deformVerts(md, ctx, mesh, vertexCos, numVerts);
+  if (key && key->type == KEY_RELATIVE)
+    deformVerts(md, ctx, mesh, vertexCos, numVerts);
 }
 
-static void deformMatricesEM(
-        ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
-        struct BMEditMesh *UNUSED(editData),
-        Mesh *UNUSED(mesh),
-        float (*vertexCos)[3],
-        float (*defMats)[3][3],
-        int numVerts)
+static void deformMatricesEM(ModifierData *UNUSED(md),
+                             const ModifierEvalContext *ctx,
+                             struct BMEditMesh *UNUSED(editData),
+                             Mesh *UNUSED(mesh),
+                             float (*vertexCos)[3],
+                             float (*defMats)[3][3],
+                             int numVerts)
 {
-	Key *key = BKE_key_from_object(ctx->object);
-	KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
-	float scale[3][3];
+  Key *key = BKE_key_from_object(ctx->object);
+  KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
+  float scale[3][3];
 
-	(void)vertexCos; /* unused */
+  (void)vertexCos; /* unused */
 
-	if (kb && kb->totelem == numVerts && kb != key->refkey) {
-		int a;
-		scale_m3_fl(scale, kb->curval);
+  if (kb && kb->totelem == numVerts && kb != key->refkey) {
+    int a;
+    scale_m3_fl(scale, kb->curval);
 
-		for (a = 0; a < numVerts; a++)
-			copy_m3_m3(defMats[a], scale);
-	}
+    for (a = 0; a < numVerts; a++)
+      copy_m3_m3(defMats[a], scale);
+  }
 }
-
 
 ModifierTypeInfo modifierType_ShapeKey = {
-	/* name */              "ShapeKey",
-	/* structName */        "ShapeKeyModifierData",
-	/* structSize */        sizeof(ShapeKeyModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs |
-	                        eModifierTypeFlag_AcceptsLattice |
-	                        eModifierTypeFlag_SupportsEditmode,
+    /* name */ "ShapeKey",
+    /* structName */ "ShapeKeyModifierData",
+    /* structSize */ sizeof(ShapeKeyModifierData),
+    /* type */ eModifierTypeType_OnlyDeform,
+    /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsLattice |
+        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          NULL,
+    /* copyData */ NULL,
 
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    deformMatrices,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  deformMatricesEM,
-	/* applyModifier */     NULL,
+    /* deformVerts */ deformVerts,
+    /* deformMatrices */ deformMatrices,
+    /* deformVertsEM */ deformVertsEM,
+    /* deformMatricesEM */ deformMatricesEM,
+    /* applyModifier */ NULL,
 
-	/* initData */          NULL,
-	/* requiredDataMask */  NULL,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+    /* initData */ NULL,
+    /* requiredDataMask */ NULL,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* dependsOnNormals */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ NULL,
 };

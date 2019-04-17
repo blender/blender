@@ -23,4 +23,4 @@
 
 PyObject *BPyInit_gpu_matrix(void);
 
-#endif  /* __GPU_PY_MATRIX_H__ */
+#endif /* __GPU_PY_MATRIX_H__ */

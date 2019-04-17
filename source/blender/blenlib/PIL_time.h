@@ -30,27 +30,29 @@ extern "C" {
 #endif
 
 extern
-/** Return an indication of time, expressed	as
+    /** Return an indication of time, expressed as
  * seconds since some fixed point. Successive calls
  * are guaranteed to generate values greater than or
  * equal to the last call.
  */
-double  PIL_check_seconds_timer(void);
+    double
+    PIL_check_seconds_timer(void);
 
 extern
-/**
+    /**
  * int version of #PIL_check_seconds_timer
  */
-long int PIL_check_seconds_timer_i(void);
+    long int
+    PIL_check_seconds_timer_i(void);
 
 /**
  * Platform-independent sleep function.
  * \param ms: Number of milliseconds to sleep
  */
-void    PIL_sleep_ms(int ms);
+void PIL_sleep_ms(int ms);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __PIL_TIME_H__ */
+#endif /* __PIL_TIME_H__ */

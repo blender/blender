@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class VectorBlurNode : public Node {
-public:
-	VectorBlurNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  VectorBlurNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

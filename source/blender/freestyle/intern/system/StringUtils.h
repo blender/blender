@@ -39,19 +39,18 @@ namespace Freestyle {
 
 namespace StringUtils {
 
-void getPathName(const string& path, const string& base, vector<string>& pathnames);
+void getPathName(const string &path, const string &base, vector<string> &pathnames);
 
 // STL related
-struct ltstr
-{
-	bool operator()(const char *s1, const char *s2) const
-	{
-		return strcmp(s1, s2) < 0;
-	}
+struct ltstr {
+  bool operator()(const char *s1, const char *s2) const
+  {
+    return strcmp(s1, s2) < 0;
+  }
 };
 
-} // end of namespace StringUtils
+}  // end of namespace StringUtils
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_STRING_UTILS_H__
+#endif  // __FREESTYLE_STRING_UTILS_H__

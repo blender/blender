@@ -22,38 +22,40 @@
 #include "DNA_node_types.h"
 
 class ProjectorLensDistortionOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputProgram;
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputProgram;
 
-	float m_dispersion;
-	bool m_dispersionAvailable;
+  float m_dispersion;
+  bool m_dispersionAvailable;
 
-	float m_kr, m_kr2;
-public:
-	ProjectorLensDistortionOperation();
+  float m_kr, m_kr2;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+ public:
+  ProjectorLensDistortionOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	void *initializeTileData(rcti *rect);
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+  void *initializeTileData(rcti *rect);
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void updateDispersion();
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
 
+  void updateDispersion();
 };
 #endif

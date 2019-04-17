@@ -25,7 +25,7 @@
 #  pragma GCC diagnostic ignored "-Wlogical-op"
 #endif
 
-#ifdef __EIGEN3_SVD_C_API_CC__  /* quiet warning */
+#ifdef __EIGEN3_SVD_C_API_CC__ /* quiet warning */
 #endif
 
 #include <Eigen/Core>
@@ -41,31 +41,31 @@ using Eigen::NoQRPreconditioner;
 using Eigen::ComputeThinU;
 using Eigen::ComputeThinV;
 
+using Eigen::Map;
 using Eigen::MatrixXf;
 using Eigen::VectorXf;
-using Eigen::Map;
 
 using Eigen::Matrix4f;
 
 void EIG_svd_square_matrix(const int size, const float *matrix, float *r_U, float *r_S, float *r_V)
 {
-	/* Since our matrix is squared, we can use thinU/V. */
-	unsigned int flags = (r_U ? ComputeThinU : 0) | (r_V ? ComputeThinV : 0);
+  /* Since our matrix is squared, we can use thinU/V. */
+  unsigned int flags = (r_U ? ComputeThinU : 0) | (r_V ? ComputeThinV : 0);
 
-	/* Blender and Eigen matrices are both column-major. */
-	JacobiSVD<MatrixXf, NoQRPreconditioner> svd(Map<MatrixXf>((float *)matrix, size, size), flags);
+  /* Blender and Eigen matrices are both column-major. */
+  JacobiSVD<MatrixXf, NoQRPreconditioner> svd(Map<MatrixXf>((float *)matrix, size, size), flags);
 
-	if (r_U) {
-		Map<MatrixXf>(r_U, size, size) = svd.matrixU();
-	}
+  if (r_U) {
+    Map<MatrixXf>(r_U, size, size) = svd.matrixU();
+  }
 
-	if (r_S) {
-		Map<VectorXf>(r_S, size) = svd.singularValues();
-	}
+  if (r_S) {
+    Map<VectorXf>(r_S, size) = svd.singularValues();
+  }
 
-	if (r_V) {
-		Map<MatrixXf>(r_V, size, size) = svd.matrixV();
-	}
+  if (r_V) {
+    Map<MatrixXf>(r_V, size, size) = svd.matrixV();
+  }
 }
 
-#endif  /* __EIGEN3_SVD_C_API_CC__ */
+#endif /* __EIGEN3_SVD_C_API_CC__ */

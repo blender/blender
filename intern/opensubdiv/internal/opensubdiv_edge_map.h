@@ -31,7 +31,7 @@ class EdgeKey {
   inline EdgeKey(int v1, int v2);
 
   inline size_t hash() const;
-  inline bool operator==(const EdgeKey& other) const;
+  inline bool operator==(const EdgeKey &other) const;
 
   // These indices are guaranteed to be so v1 < v2.
   int v1;
@@ -39,8 +39,7 @@ class EdgeKey {
 };
 
 // Map from an edge defined by its verticies index to a custom tag value.
-template<typename T>
-class EdgeTagMap {
+template<typename T> class EdgeTagMap {
  public:
   typedef EdgeKey key_type;
   typedef T value_type;
@@ -49,16 +48,16 @@ class EdgeTagMap {
 
   // Modifiers.
   inline void clear();
-  inline void insert(const key_type& key, const value_type& value);
-  inline void insert(int v1, int v2, const value_type& value);
+  inline void insert(const key_type &key, const value_type &value);
+  inline void insert(int v1, int v2, const value_type &value);
 
   // Lookup.
-  value_type& at(const key_type& key);
-  value_type& at(key_type&& key);
-  value_type& at(int v1, int v2);
+  value_type &at(const key_type &key);
+  value_type &at(key_type &&key);
+  value_type &at(int v1, int v2);
 
-  value_type& operator[](const key_type& key);
-  value_type& operator[](key_type&& key);
+  value_type &operator[](const key_type &key);
+  value_type &operator[](key_type &&key);
 
  protected:
   unordered_map<key_type, value_type> edge_tags_;
@@ -69,77 +68,79 @@ class EdgeTagMap {
 
 // EdgeKey.
 
-EdgeKey::EdgeKey()
-    : v1(-1),
-      v2(-1) {
+EdgeKey::EdgeKey() : v1(-1), v2(-1)
+{
 }
 
-EdgeKey::EdgeKey(int v1, int v2) {
+EdgeKey::EdgeKey(int v1, int v2)
+{
   assert(v1 >= 0);
   assert(v2 >= 0);
   assert(v1 != v2);
   if (v1 < v2) {
     this->v1 = v1;
     this->v2 = v2;
-  } else {
+  }
+  else {
     this->v1 = v2;
     this->v2 = v1;
   }
 }
 
-size_t EdgeKey::hash() const {
+size_t EdgeKey::hash() const
+{
   return (static_cast<uint64_t>(v1) << 32) | v2;
 }
 
-bool EdgeKey::operator==(const EdgeKey& other) const {
-  return v1 == other.v1 &&
-         v2 == other.v2;
+bool EdgeKey::operator==(const EdgeKey &other) const
+{
+  return v1 == other.v1 && v2 == other.v2;
 }
 
 // EdgeTagMap.
 
-template<typename T>
-EdgeTagMap<T>::EdgeTagMap() {
+template<typename T> EdgeTagMap<T>::EdgeTagMap()
+{
 }
 
-template<typename T>
-void EdgeTagMap<T>::clear() {
+template<typename T> void EdgeTagMap<T>::clear()
+{
   edge_tags_.clear();
 }
 
-template<typename T>
-void EdgeTagMap<T>::insert(const key_type& key, const value_type& value) {
+template<typename T> void EdgeTagMap<T>::insert(const key_type &key, const value_type &value)
+{
   edge_tags_.insert(make_pair(key, value));
 }
 
-template<typename T>
-void EdgeTagMap<T>::insert(int v1, int v2, const value_type& value) {
+template<typename T> void EdgeTagMap<T>::insert(int v1, int v2, const value_type &value)
+{
   insert(EdgeKey(v1, v2), value);
 }
 
-template<typename T>
-typename EdgeTagMap<T>::value_type& EdgeTagMap<T>::at(const key_type& key) {
+template<typename T> typename EdgeTagMap<T>::value_type &EdgeTagMap<T>::at(const key_type &key)
+{
   return edge_tags_.at[key];
 }
 
-template<typename T>
-typename EdgeTagMap<T>::value_type& EdgeTagMap<T>::at(key_type&& key) {
+template<typename T> typename EdgeTagMap<T>::value_type &EdgeTagMap<T>::at(key_type &&key)
+{
   return edge_tags_.at[key];
 }
 
-template<typename T>
-typename EdgeTagMap<T>::value_type& EdgeTagMap<T>::at(int v1, int v2) {
+template<typename T> typename EdgeTagMap<T>::value_type &EdgeTagMap<T>::at(int v1, int v2)
+{
   return edge_tags_.at(EdgeKey(v1, v2));
 }
 
 template<typename T>
-typename EdgeTagMap<T>::value_type& EdgeTagMap<T>::operator[](
-    const key_type& key) {
+typename EdgeTagMap<T>::value_type &EdgeTagMap<T>::operator[](const key_type &key)
+{
   return edge_tags_[key];
 }
 
-template<typename T>
-typename EdgeTagMap<T>::value_type& EdgeTagMap<T>::operator[](key_type&& key) {
+template<typename T> typename EdgeTagMap<T>::value_type &EdgeTagMap<T>::operator[](key_type &&key)
+{
   return edge_tags_[key];
 }
 
@@ -147,9 +148,9 @@ typename EdgeTagMap<T>::value_type& EdgeTagMap<T>::operator[](key_type&& key) {
 
 namespace std {
 
-template <>
-struct hash<opensubdiv_capi::EdgeKey> {
-  std::size_t operator()(const opensubdiv_capi::EdgeKey& key) const {
+template<> struct hash<opensubdiv_capi::EdgeKey> {
+  std::size_t operator()(const opensubdiv_capi::EdgeKey &key) const
+  {
     return key.hash();
   }
 };

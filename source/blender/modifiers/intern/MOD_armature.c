@@ -21,7 +21,6 @@
  * \ingroup modifiers
  */
 
-
 #include <string.h>
 
 #include "BLI_utildefines.h"
@@ -46,157 +45,198 @@
 
 #include "MOD_util.h"
 
-
 static void initData(ModifierData *md)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-	amd->deformflag = ARM_DEF_VGROUP;
+  amd->deformflag = ARM_DEF_VGROUP;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
-	const ArmatureModifierData *amd = (const ArmatureModifierData *) md;
+  const ArmatureModifierData *amd = (const ArmatureModifierData *) md;
 #endif
-	ArmatureModifierData *tamd = (ArmatureModifierData *) target;
+  ArmatureModifierData *tamd = (ArmatureModifierData *)target;
 
-	modifier_copyData_generic(md, target, flag);
-	tamd->prevCos = NULL;
+  modifier_copyData_generic(md, target, flag);
+  tamd->prevCos = NULL;
 }
 
-static void requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *UNUSED(md),
+                             CustomData_MeshMasks *r_cddata_masks)
 {
-	/* ask for vertexgroups */
-	r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  /* ask for vertexgroups */
+  r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene),
+                       ModifierData *md,
+                       bool UNUSED(useRenderParams))
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-	return !amd->object;
+  return !amd->object;
 }
 
-static void foreachObjectLink(
-        ModifierData *md, Object *ob,
-        ObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-	walk(userData, ob, &amd->object, IDWALK_CB_NOP);
+  walk(userData, ob, &amd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *)md;
-	if (amd->object != NULL) {
-		DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
-		DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
-	}
-	DEG_add_modifier_to_transform_relation(ctx->node, "Armature Modifier");
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
+  if (amd->object != NULL) {
+    DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
+    DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
+  }
+  DEG_add_modifier_to_transform_relation(ctx->node, "Armature Modifier");
 }
 
-static void deformVerts(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        Mesh *mesh,
-        float (*vertexCos)[3],
-        int numVerts)
+static void deformVerts(ModifierData *md,
+                        const ModifierEvalContext *ctx,
+                        Mesh *mesh,
+                        float (*vertexCos)[3],
+                        int numVerts)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
+  MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-	armature_deform_verts(amd->object, ctx->object, mesh, vertexCos, NULL,
-	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name, NULL);
+  armature_deform_verts(amd->object,
+                        ctx->object,
+                        mesh,
+                        vertexCos,
+                        NULL,
+                        numVerts,
+                        amd->deformflag,
+                        (float(*)[3])amd->prevCos,
+                        amd->defgrp_name,
+                        NULL);
 
-	/* free cache */
-	if (amd->prevCos) {
-		MEM_freeN(amd->prevCos);
-		amd->prevCos = NULL;
-	}
+  /* free cache */
+  if (amd->prevCos) {
+    MEM_freeN(amd->prevCos);
+    amd->prevCos = NULL;
+  }
 }
 
-static void deformVertsEM(
-        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
-        Mesh *mesh, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(ModifierData *md,
+                          const ModifierEvalContext *ctx,
+                          struct BMEditMesh *em,
+                          Mesh *mesh,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 
-	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
+  MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, NULL,
-	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name, NULL);
+  armature_deform_verts(amd->object,
+                        ctx->object,
+                        mesh_src,
+                        vertexCos,
+                        NULL,
+                        numVerts,
+                        amd->deformflag,
+                        (float(*)[3])amd->prevCos,
+                        amd->defgrp_name,
+                        NULL);
 
-	/* free cache */
-	if (amd->prevCos) {
-		MEM_freeN(amd->prevCos);
-		amd->prevCos = NULL;
-	}
+  /* free cache */
+  if (amd->prevCos) {
+    MEM_freeN(amd->prevCos);
+    amd->prevCos = NULL;
+  }
 
-	if (mesh_src != mesh) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (mesh_src != mesh) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
-static void deformMatricesEM(
-        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
-        Mesh *mesh, float (*vertexCos)[3],
-        float (*defMats)[3][3], int numVerts)
+static void deformMatricesEM(ModifierData *md,
+                             const ModifierEvalContext *ctx,
+                             struct BMEditMesh *em,
+                             Mesh *mesh,
+                             float (*vertexCos)[3],
+                             float (*defMats)[3][3],
+                             int numVerts)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 
-	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats,
-	                      numVerts, amd->deformflag, NULL, amd->defgrp_name, NULL);
+  armature_deform_verts(amd->object,
+                        ctx->object,
+                        mesh_src,
+                        vertexCos,
+                        defMats,
+                        numVerts,
+                        amd->deformflag,
+                        NULL,
+                        amd->defgrp_name,
+                        NULL);
 
-	if (mesh_src != mesh) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (mesh_src != mesh) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
-static void deformMatrices(
-        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
-        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+static void deformMatrices(ModifierData *md,
+                           const ModifierEvalContext *ctx,
+                           Mesh *mesh,
+                           float (*vertexCos)[3],
+                           float (*defMats)[3][3],
+                           int numVerts)
 {
-	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
-	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats,
-	                      numVerts, amd->deformflag, NULL, amd->defgrp_name, NULL);
+  armature_deform_verts(amd->object,
+                        ctx->object,
+                        mesh_src,
+                        vertexCos,
+                        defMats,
+                        numVerts,
+                        amd->deformflag,
+                        NULL,
+                        amd->defgrp_name,
+                        NULL);
 
-	if (mesh_src != mesh) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (mesh_src != mesh) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
 ModifierTypeInfo modifierType_Armature = {
-	/* name */              "Armature",
-	/* structName */        "ArmatureModifierData",
-	/* structSize */        sizeof(ArmatureModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs |
-	                        eModifierTypeFlag_AcceptsLattice |
-	                        eModifierTypeFlag_SupportsEditmode,
+    /* name */ "Armature",
+    /* structName */ "ArmatureModifierData",
+    /* structSize */ sizeof(ArmatureModifierData),
+    /* type */ eModifierTypeType_OnlyDeform,
+    /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsLattice |
+        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    deformMatrices,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  deformMatricesEM,
-	/* applyModifier */     NULL,
+    /* deformVerts */ deformVerts,
+    /* deformMatrices */ deformMatrices,
+    /* deformVertsEM */ deformVertsEM,
+    /* deformMatricesEM */ deformMatricesEM,
+    /* applyModifier */ NULL,
 
-	/* initData */          initData,
-	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
-	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+    /* initData */ initData,
+    /* requiredDataMask */ requiredDataMask,
+    /* freeData */ NULL,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ NULL,
+    /* dependsOnNormals */ NULL,
+    /* foreachObjectLink */ foreachObjectLink,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ NULL,
 };

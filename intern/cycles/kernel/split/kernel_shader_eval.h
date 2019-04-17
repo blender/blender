@@ -22,45 +22,46 @@ CCL_NAMESPACE_BEGIN
 ccl_device void kernel_shader_eval(KernelGlobals *kg)
 {
 
-	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
-	/* Sorting on cuda split is not implemented */
+  int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+  /* Sorting on cuda split is not implemented */
 #ifdef __KERNEL_CUDA__
-	int queue_index = kernel_split_params.queue_index[QUEUE_ACTIVE_AND_REGENERATED_RAYS];
+  int queue_index = kernel_split_params.queue_index[QUEUE_ACTIVE_AND_REGENERATED_RAYS];
 #else
-	int queue_index = kernel_split_params.queue_index[QUEUE_SHADER_SORTED_RAYS];
+  int queue_index = kernel_split_params.queue_index[QUEUE_SHADER_SORTED_RAYS];
 #endif
-	if(ray_index >= queue_index) {
-		return;
-	}
-	ray_index = get_ray_index(kg, ray_index,
+  if (ray_index >= queue_index) {
+    return;
+  }
+  ray_index = get_ray_index(kg,
+                            ray_index,
 #ifdef __KERNEL_CUDA__
-	                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+                            QUEUE_ACTIVE_AND_REGENERATED_RAYS,
 #else
-	                          QUEUE_SHADER_SORTED_RAYS,
+                            QUEUE_SHADER_SORTED_RAYS,
 #endif
-	                          kernel_split_state.queue_data,
-	                          kernel_split_params.queue_size,
-	                          0);
+                            kernel_split_state.queue_data,
+                            kernel_split_params.queue_size,
+                            0);
 
-	if(ray_index == QUEUE_EMPTY_SLOT) {
-		return;
-	}
+  if (ray_index == QUEUE_EMPTY_SLOT) {
+    return;
+  }
 
-	ccl_global char *ray_state = kernel_split_state.ray_state;
-	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+  ccl_global char *ray_state = kernel_split_state.ray_state;
+  if (IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
+    ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 
-		shader_eval_surface(kg, kernel_split_sd(sd, ray_index), state, state->flag);
+    shader_eval_surface(kg, kernel_split_sd(sd, ray_index), state, state->flag);
 #ifdef __BRANCHED_PATH__
-		if(kernel_data.integrator.branched) {
-			shader_merge_closures(kernel_split_sd(sd, ray_index));
-		}
-		else
+    if (kernel_data.integrator.branched) {
+      shader_merge_closures(kernel_split_sd(sd, ray_index));
+    }
+    else
 #endif
-		{
-			shader_prepare_closures(kernel_split_sd(sd, ray_index), state);
-		}
-	}
+    {
+      shader_prepare_closures(kernel_split_sd(sd, ray_index), state);
+    }
+  }
 }
 
 CCL_NAMESPACE_END

@@ -23,51 +23,52 @@
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class TimeStamp
-{
-public:
-	static inline TimeStamp *instance()
-	{
-		return &_instance;
-	}
+class TimeStamp {
+ public:
+  static inline TimeStamp *instance()
+  {
+    return &_instance;
+  }
 
-	inline unsigned getTimeStamp() const
-	{
-		return _time_stamp;
-	}
+  inline unsigned getTimeStamp() const
+  {
+    return _time_stamp;
+  }
 
-	inline void increment()
-	{
-		++_time_stamp;
-	}
+  inline void increment()
+  {
+    ++_time_stamp;
+  }
 
-	inline void reset()
-	{
-		_time_stamp = 1;
-	}
+  inline void reset()
+  {
+    _time_stamp = 1;
+  }
 
-protected:
-	TimeStamp()
-	{
-		_time_stamp = 1;
-	}
+ protected:
+  TimeStamp()
+  {
+    _time_stamp = 1;
+  }
 
-	TimeStamp(const TimeStamp&) {}
+  TimeStamp(const TimeStamp &)
+  {
+  }
 
-private:
-	static TimeStamp _instance;
-	unsigned _time_stamp;
+ private:
+  static TimeStamp _instance;
+  unsigned _time_stamp;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TimeStamp")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TimeStamp")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_TIME_STAMP_H__
+#endif  // __FREESTYLE_TIME_STAMP_H__

@@ -13,6 +13,6 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = color;
-	fragColor.xyz *= clamp(dot(normalize(normal), light), 0.0, 1.0);
+  fragColor = color;
+  fragColor.xyz *= clamp(dot(normalize(normal), light), 0.0, 1.0);
 }

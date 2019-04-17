@@ -16,55 +16,53 @@
 
 #include "stdosl.h"
 
-shader node_geometry(
-	normal NormalIn = N,
-	string bump_offset = "center",
+shader node_geometry(normal NormalIn = N,
+                     string bump_offset = "center",
 
-	output point Position = point(0.0, 0.0, 0.0),
-	output normal Normal = normal(0.0, 0.0, 0.0),
-	output normal Tangent = normal(0.0, 0.0, 0.0),
-	output normal TrueNormal = normal(0.0, 0.0, 0.0),
-	output vector Incoming = vector(0.0, 0.0, 0.0),
-	output point Parametric = point(0.0, 0.0, 0.0),
-	output float Backfacing = 0.0,
-	output float Pointiness = 0.0)
+                     output point Position = point(0.0, 0.0, 0.0),
+                     output normal Normal = normal(0.0, 0.0, 0.0),
+                     output normal Tangent = normal(0.0, 0.0, 0.0),
+                     output normal TrueNormal = normal(0.0, 0.0, 0.0),
+                     output vector Incoming = vector(0.0, 0.0, 0.0),
+                     output point Parametric = point(0.0, 0.0, 0.0),
+                     output float Backfacing = 0.0,
+                     output float Pointiness = 0.0)
 {
-	Position = P;
-	Normal = NormalIn;
-	TrueNormal = Ng;
-	Incoming = I;
-	Parametric = point(u, v, 0.0);
-	Backfacing = backfacing();
+  Position = P;
+  Normal = NormalIn;
+  TrueNormal = Ng;
+  Incoming = I;
+  Parametric = point(u, v, 0.0);
+  Backfacing = backfacing();
 
-	if (bump_offset == "dx") {
-		Position += Dx(Position);
-		Parametric += Dx(Parametric);
-	}
-	else if (bump_offset == "dy") {
-		Position += Dy(Position);
-		Parametric += Dy(Parametric);
-	}
+  if (bump_offset == "dx") {
+    Position += Dx(Position);
+    Parametric += Dx(Parametric);
+  }
+  else if (bump_offset == "dy") {
+    Position += Dy(Position);
+    Parametric += Dy(Parametric);
+  }
 
-	/* first try to get tangent attribute */
-	point generated;
+  /* first try to get tangent attribute */
+  point generated;
 
-	/* try to create spherical tangent from generated coordinates */
-	if (getattribute("geom:generated", generated)) {
-		normal data = normal(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
-		vector T = transform("object", "world", data);
-		Tangent = cross(Normal, normalize(cross(T, Normal)));
-	}
-	else {
-		/* otherwise use surface derivatives */
-		Tangent = normalize(dPdu);
-	}
+  /* try to create spherical tangent from generated coordinates */
+  if (getattribute("geom:generated", generated)) {
+    normal data = normal(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
+    vector T = transform("object", "world", data);
+    Tangent = cross(Normal, normalize(cross(T, Normal)));
+  }
+  else {
+    /* otherwise use surface derivatives */
+    Tangent = normalize(dPdu);
+  }
 
-	getattribute("geom:pointiness", Pointiness);
-	if (bump_offset == "dx") {
-		Pointiness += Dx(Pointiness);
-	}
-	else if (bump_offset == "dy") {
-		Pointiness += Dy(Pointiness);
-	}
+  getattribute("geom:pointiness", Pointiness);
+  if (bump_offset == "dx") {
+    Pointiness += Dx(Pointiness);
+  }
+  else if (bump_offset == "dy") {
+    Pointiness += Dy(Pointiness);
+  }
 }
-

@@ -16,19 +16,20 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_node_brightness(ShaderData *sd, float *stack, uint in_color, uint out_color, uint node)
+ccl_device void svm_node_brightness(
+    ShaderData *sd, float *stack, uint in_color, uint out_color, uint node)
 {
-	uint bright_offset, contrast_offset;
-	float3 color = stack_load_float3(stack, in_color);
+  uint bright_offset, contrast_offset;
+  float3 color = stack_load_float3(stack, in_color);
 
-	decode_node_uchar4(node, &bright_offset, &contrast_offset, NULL, NULL);
-	float brightness = stack_load_float(stack, bright_offset);
-	float contrast  = stack_load_float(stack, contrast_offset);
+  decode_node_uchar4(node, &bright_offset, &contrast_offset, NULL, NULL);
+  float brightness = stack_load_float(stack, bright_offset);
+  float contrast = stack_load_float(stack, contrast_offset);
 
-	color = svm_brightness_contrast(color, brightness, contrast);
+  color = svm_brightness_contrast(color, brightness, contrast);
 
-	if(stack_valid(out_color))
-		stack_store_float3(stack, out_color, color);
+  if (stack_valid(out_color))
+    stack_store_float3(stack, out_color, color);
 }
 
 CCL_NAMESPACE_END

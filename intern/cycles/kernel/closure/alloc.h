@@ -18,69 +18,72 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device ShaderClosure *closure_alloc(ShaderData *sd, int size, ClosureType type, float3 weight)
 {
-	kernel_assert(size <= sizeof(ShaderClosure));
+  kernel_assert(size <= sizeof(ShaderClosure));
 
-	if(sd->num_closure_left == 0)
-		return NULL;
+  if (sd->num_closure_left == 0)
+    return NULL;
 
-	ShaderClosure *sc = &sd->closure[sd->num_closure];
+  ShaderClosure *sc = &sd->closure[sd->num_closure];
 
-	sc->type = type;
-	sc->weight = weight;
+  sc->type = type;
+  sc->weight = weight;
 
-	sd->num_closure++;
-	sd->num_closure_left--;
+  sd->num_closure++;
+  sd->num_closure_left--;
 
-	return sc;
+  return sc;
 }
 
 ccl_device ccl_addr_space void *closure_alloc_extra(ShaderData *sd, int size)
 {
-	/* Allocate extra space for closure that need more parameters. We allocate
-	 * in chunks of sizeof(ShaderClosure) starting from the end of the closure
-	 * array.
-	 *
-	 * This lets us keep the same fast array iteration over closures, as we
-	 * found linked list iteration and iteration with skipping to be slower. */
-	int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
+  /* Allocate extra space for closure that need more parameters. We allocate
+   * in chunks of sizeof(ShaderClosure) starting from the end of the closure
+   * array.
+   *
+   * This lets us keep the same fast array iteration over closures, as we
+   * found linked list iteration and iteration with skipping to be slower. */
+  int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
 
-	if(num_extra > sd->num_closure_left) {
-		/* Remove previous closure if it was allocated. */
-		sd->num_closure--;
-		sd->num_closure_left++;
-		return NULL;
-	}
+  if (num_extra > sd->num_closure_left) {
+    /* Remove previous closure if it was allocated. */
+    sd->num_closure--;
+    sd->num_closure_left++;
+    return NULL;
+  }
 
-	sd->num_closure_left -= num_extra;
-	return (ccl_addr_space void*)(sd->closure + sd->num_closure + sd->num_closure_left);
+  sd->num_closure_left -= num_extra;
+  return (ccl_addr_space void *)(sd->closure + sd->num_closure + sd->num_closure_left);
 }
 
 ccl_device_inline ShaderClosure *bsdf_alloc(ShaderData *sd, int size, float3 weight)
 {
-	ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+  ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
 
-	if(sc == NULL)
-		return NULL;
+  if (sc == NULL)
+    return NULL;
 
-	float sample_weight = fabsf(average(weight));
-	sc->sample_weight = sample_weight;
-	return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
+  float sample_weight = fabsf(average(weight));
+  sc->sample_weight = sample_weight;
+  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
 }
 
 #ifdef __OSL__
-ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd, int size, float3 weight, void *data)
+ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd,
+                                                int size,
+                                                float3 weight,
+                                                void *data)
 {
-	ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+  ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
 
-	if(!sc)
-		return NULL;
+  if (!sc)
+    return NULL;
 
-	memcpy((void *)sc, data, size);
+  memcpy((void *)sc, data, size);
 
-	float sample_weight = fabsf(average(weight));
-	sc->weight = weight;
-	sc->sample_weight = sample_weight;
-	return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
+  float sample_weight = fabsf(average(weight));
+  sc->weight = weight;
+  sc->sample_weight = sample_weight;
+  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
 }
 #endif
 

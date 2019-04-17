@@ -27,7 +27,7 @@
 #  if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
 #    define __KERNEL_SSE2__
 #  endif
-#endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE2 */
+#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE2 */
 
 #include "kernel/kernel.h"
 #define KERNEL_ARCH cpu_sse2

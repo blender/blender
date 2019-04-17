@@ -50,7 +50,7 @@ struct Tex;
  * we clamp weightf to this value (or its negative version).
  * Also used to avoid null power factor.
  */
-#define MOD_WVG_ZEROFLOOR		1.0e-32f
+#define MOD_WVG_ZEROFLOOR 1.0e-32f
 
 /* Maps new_w weights in place, using either one of the predefined functions, or a custom curve.
  * Return values are in new_w.
@@ -58,7 +58,8 @@ struct Tex;
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cmap, struct RNG *rng);
+void weightvg_do_map(
+    int num, float *new_w, short mode, struct CurveMapping *cmap, struct RNG *rng);
 
 /* Applies new_w weights to org_w ones, using either a texture, vgroup or constant value as factor.
  * Return values are in org_w.
@@ -66,20 +67,35 @@ void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cma
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * XXX The standard "factor" value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
-void weightvg_do_mask(
-        const ModifierEvalContext *ctx,
-        const int num, const int *indices, float *org_w, const float *new_w, Object *ob,
-        struct Mesh *mesh, const float fact, const char defgrp_name[MAX_VGROUP_NAME],
-        struct Scene *scene, Tex *texture, const int tex_use_channel, const int tex_mapping,
-        Object *tex_map_object, const char *tex_uvlayer_name);
+void weightvg_do_mask(const ModifierEvalContext *ctx,
+                      const int num,
+                      const int *indices,
+                      float *org_w,
+                      const float *new_w,
+                      Object *ob,
+                      struct Mesh *mesh,
+                      const float fact,
+                      const char defgrp_name[MAX_VGROUP_NAME],
+                      struct Scene *scene,
+                      Tex *texture,
+                      const int tex_use_channel,
+                      const int tex_mapping,
+                      Object *tex_map_object,
+                      const char *tex_uvlayer_name);
 
 /* Applies weights to given vgroup (defgroup), and optionally add/remove vertices from the group.
  * If indices is not NULL, it must be a table of same length as weights, mapping to the real
  * vertex index (in case the weight table does not cover the whole vertices...).
  */
-void weightvg_update_vg(
-        struct MDeformVert *dvert, int defgrp_idx, struct MDeformWeight **dws, int num,
-        const int *indices, const float *weights, const bool do_add,
-        const float add_thresh, const bool do_rem, const float rem_thresh);
+void weightvg_update_vg(struct MDeformVert *dvert,
+                        int defgrp_idx,
+                        struct MDeformWeight **dws,
+                        int num,
+                        const int *indices,
+                        const float *weights,
+                        const bool do_add,
+                        const float add_thresh,
+                        const bool do_rem,
+                        const float rem_thresh);
 
 #endif /* __MOD_WEIGHTVG_UTIL_H__ */

@@ -17,16 +17,14 @@
 #include "stdosl.h"
 #include "node_ramp_util.h"
 
-shader node_rgb_ramp(
-	color ramp_color[] = {0.0},
-	float ramp_alpha[] = {0.0},
-	int interpolate = 1,
+shader node_rgb_ramp(color ramp_color[] = {0.0},
+                     float ramp_alpha[] = {0.0},
+                     int interpolate = 1,
 
-	float Fac = 0.0,
-	output color Color = 0.0,
-	output float Alpha = 1.0)
+                     float Fac = 0.0,
+                     output color Color = 0.0,
+                     output float Alpha = 1.0)
 {
-	Color = rgb_ramp_lookup(ramp_color, Fac, interpolate, 0);
-	Alpha = rgb_ramp_lookup(ramp_alpha, Fac, interpolate, 0);
+  Color = rgb_ramp_lookup(ramp_color, Fac, interpolate, 0);
+  Alpha = rgb_ramp_lookup(ramp_alpha, Fac, interpolate, 0);
 }
-

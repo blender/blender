@@ -20,13 +20,13 @@ uniform sampler2D depthBuffer;
 #endif
 
 #ifdef MIN_PASS
-#define minmax2(a, b) min(a, b)
-#define minmax3(a, b, c) min(min(a, b), c)
-#define minmax4(a, b, c, d) min(min(min(a, b), c), d)
+#  define minmax2(a, b) min(a, b)
+#  define minmax3(a, b, c) min(min(a, b), c)
+#  define minmax4(a, b, c, d) min(min(min(a, b), c), d)
 #else /* MAX_PASS */
-#define minmax2(a, b) max(a, b)
-#define minmax3(a, b, c) max(max(a, b), c)
-#define minmax4(a, b, c, d) max(max(max(a, b), c), d)
+#  define minmax2(a, b) max(a, b)
+#  define minmax3(a, b, c) max(max(a, b), c)
+#  define minmax4(a, b, c, d) max(max(max(a, b), c), d)
 #endif
 
 /* On some AMD card / driver combination, it is needed otherwise,
@@ -37,59 +37,59 @@ out vec4 fragColor;
 
 void main()
 {
-	ivec2 texelPos = ivec2(gl_FragCoord.xy);
-	ivec2 mipsize = textureSize(depthBuffer, 0).xy;
+  ivec2 texelPos = ivec2(gl_FragCoord.xy);
+  ivec2 mipsize = textureSize(depthBuffer, 0).xy;
 
 #ifndef COPY_DEPTH
-	texelPos *= 2;
+  texelPos *= 2;
 #endif
 
 #ifdef COPY_DEPTH
-	float val = sampleLowerMip(texelPos);
+  float val = sampleLowerMip(texelPos);
 #else
-	vec4 samp;
+  vec4 samp;
 #  ifdef GPU_ARB_texture_gather
-	/* + 1.0 to gather at the center of target 4 texels. */
-	samp = gatherLowerMip((vec2(texelPos) + 1.0) / vec2(mipsize));
+  /* + 1.0 to gather at the center of target 4 texels. */
+  samp = gatherLowerMip((vec2(texelPos) + 1.0) / vec2(mipsize));
 #  else
-	samp.x = sampleLowerMip(texelPos);
-	samp.y = sampleLowerMip(texelPos + ivec2(1, 0));
-	samp.z = sampleLowerMip(texelPos + ivec2(1, 1));
-	samp.w = sampleLowerMip(texelPos + ivec2(0, 1));
+  samp.x = sampleLowerMip(texelPos);
+  samp.y = sampleLowerMip(texelPos + ivec2(1, 0));
+  samp.z = sampleLowerMip(texelPos + ivec2(1, 1));
+  samp.w = sampleLowerMip(texelPos + ivec2(0, 1));
 #  endif
 
-	float val = minmax4(samp.x, samp.y, samp.z, samp.w);
+  float val = minmax4(samp.x, samp.y, samp.z, samp.w);
 
-	/* if we are reducing an odd-width texture then fetch the edge texels */
-	if (((mipsize.x & 1) != 0) && (texelPos.x == mipsize.x - 3)) {
-		/* if both edges are odd, fetch the top-left corner texel */
-		if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
-			samp.x = sampleLowerMip(texelPos + ivec2(2, 2));
-			val = minmax2(val, samp.x);
-		}
+  /* if we are reducing an odd-width texture then fetch the edge texels */
+  if (((mipsize.x & 1) != 0) && (texelPos.x == mipsize.x - 3)) {
+    /* if both edges are odd, fetch the top-left corner texel */
+    if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
+      samp.x = sampleLowerMip(texelPos + ivec2(2, 2));
+      val = minmax2(val, samp.x);
+    }
 #  ifdef GPU_ARB_texture_gather
-		samp = gatherLowerMip((vec2(texelPos) + vec2(2.0, 1.0)) / vec2(mipsize));
+    samp = gatherLowerMip((vec2(texelPos) + vec2(2.0, 1.0)) / vec2(mipsize));
 #  else
-		samp.y = sampleLowerMip(texelPos + ivec2(2, 0));
-		samp.z = sampleLowerMip(texelPos + ivec2(2, 1));
+    samp.y = sampleLowerMip(texelPos + ivec2(2, 0));
+    samp.z = sampleLowerMip(texelPos + ivec2(2, 1));
 #  endif
-		val = minmax3(val, samp.y, samp.z);
-	}
-	/* if we are reducing an odd-height texture then fetch the edge texels */
-	if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
+    val = minmax3(val, samp.y, samp.z);
+  }
+  /* if we are reducing an odd-height texture then fetch the edge texels */
+  if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
 #  ifdef GPU_ARB_texture_gather
-		samp = gatherLowerMip((vec2(texelPos) + vec2(1.0, 2.0)) / vec2(mipsize));
+    samp = gatherLowerMip((vec2(texelPos) + vec2(1.0, 2.0)) / vec2(mipsize));
 #  else
-		samp.x = sampleLowerMip(texelPos + ivec2(0, 2));
-		samp.y = sampleLowerMip(texelPos + ivec2(1, 2));
+    samp.x = sampleLowerMip(texelPos + ivec2(0, 2));
+    samp.y = sampleLowerMip(texelPos + ivec2(1, 2));
 #  endif
-		val = minmax3(val, samp.x, samp.y);
-	}
+    val = minmax3(val, samp.x, samp.y);
+  }
 #endif
 
 #if defined(GPU_INTEL) || defined(GPU_ATI)
-	/* Use color format instead of 24bit depth texture */
-	fragColor = vec4(val);
+  /* Use color format instead of 24bit depth texture */
+  fragColor = vec4(val);
 #endif
-	gl_FragDepth = val;
+  gl_FragDepth = val;
 }

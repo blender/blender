@@ -43,75 +43,73 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "paint_intern.h"  /* own include */
-
+#include "paint_intern.h" /* own include */
 
 /* Opaque Structs for internal use */
 
 /* stored while painting */
 struct VertProjHandle {
-	CoNo *vcosnos;
+  CoNo *vcosnos;
 
-	bool use_update;
+  bool use_update;
 
-	/* use for update */
-	float *dists_sq;
+  /* use for update */
+  float *dists_sq;
 
-	Object *ob;
-	Scene *scene;
+  Object *ob;
+  Scene *scene;
 };
 
 /* only for passing to the callbacks */
 struct VertProjUpdate {
-	struct VertProjHandle *vp_handle;
+  struct VertProjHandle *vp_handle;
 
-	/* runtime */
-	ARegion *ar;
-	const float *mval_fl;
+  /* runtime */
+  ARegion *ar;
+  const float *mval_fl;
 };
-
 
 /* -------------------------------------------------------------------- */
 /* Internal Init */
 
 static void vpaint_proj_dm_map_cosnos_init__map_cb(
-        void *userData, int index, const float co[3],
-        const float no_f[3], const short no_s[3])
+    void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
 {
-	struct VertProjHandle *vp_handle = userData;
-	CoNo *co_no = &vp_handle->vcosnos[index];
+  struct VertProjHandle *vp_handle = userData;
+  CoNo *co_no = &vp_handle->vcosnos[index];
 
-	/* check if we've been here before (normal should not be 0) */
-	if (!is_zero_v3(co_no->no)) {
-		/* remember that multiple dm verts share the same source vert */
-		vp_handle->use_update = true;
-		return;
-	}
+  /* check if we've been here before (normal should not be 0) */
+  if (!is_zero_v3(co_no->no)) {
+    /* remember that multiple dm verts share the same source vert */
+    vp_handle->use_update = true;
+    return;
+  }
 
-	copy_v3_v3(co_no->co, co);
-	if (no_f) {
-		copy_v3_v3(co_no->no, no_f);
-	}
-	else {
-		normal_short_to_float_v3(co_no->no, no_s);
-	}
+  copy_v3_v3(co_no->co, co);
+  if (no_f) {
+    copy_v3_v3(co_no->no, no_f);
+  }
+  else {
+    normal_short_to_float_v3(co_no->no, no_s);
+  }
 }
 
-static void vpaint_proj_dm_map_cosnos_init(
-        struct Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob,
-        struct VertProjHandle *vp_handle)
+static void vpaint_proj_dm_map_cosnos_init(struct Depsgraph *depsgraph,
+                                           Scene *UNUSED(scene),
+                                           Object *ob,
+                                           struct VertProjHandle *vp_handle)
 {
-	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Mesh *me = ob->data;
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Mesh *me = ob->data;
 
-	CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
+  CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
+  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
-	memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * me->totvert);
-	BKE_mesh_foreach_mapped_vert(me_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
+  memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * me->totvert);
+  BKE_mesh_foreach_mapped_vert(
+      me_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
 }
-
 
 /* -------------------------------------------------------------------- */
 /* Internal Update */
@@ -119,119 +117,119 @@ static void vpaint_proj_dm_map_cosnos_init(
 /* Same as init but take mouse location into account */
 
 static void vpaint_proj_dm_map_cosnos_update__map_cb(
-        void *userData, int index, const float co[3],
-        const float no_f[3], const short no_s[3])
+    void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
 {
-	struct VertProjUpdate *vp_update = userData;
-	struct VertProjHandle *vp_handle = vp_update->vp_handle;
+  struct VertProjUpdate *vp_update = userData;
+  struct VertProjHandle *vp_handle = vp_update->vp_handle;
 
-	CoNo *co_no = &vp_handle->vcosnos[index];
+  CoNo *co_no = &vp_handle->vcosnos[index];
 
-	/* find closest vertex */
-	{
-		/* first find distance to this vertex */
-		float co_ss[2];  /* screenspace */
+  /* find closest vertex */
+  {
+    /* first find distance to this vertex */
+    float co_ss[2]; /* screenspace */
 
-		if (ED_view3d_project_float_object(
-		            vp_update->ar,
-		            co, co_ss,
-		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
-		{
-			const float dist_sq = len_squared_v2v2(vp_update->mval_fl, co_ss);
-			if (dist_sq > vp_handle->dists_sq[index]) {
-				/* bail out! */
-				return;
-			}
+    if (ED_view3d_project_float_object(
+            vp_update->ar, co, co_ss, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) ==
+        V3D_PROJ_RET_OK) {
+      const float dist_sq = len_squared_v2v2(vp_update->mval_fl, co_ss);
+      if (dist_sq > vp_handle->dists_sq[index]) {
+        /* bail out! */
+        return;
+      }
 
-			vp_handle->dists_sq[index] = dist_sq;
-		}
-		else if (vp_handle->dists_sq[index] != FLT_MAX) {
-			/* already initialized & couldn't project this 'co' */
-			return;
-		}
-	}
-	/* continue with regular functionality */
+      vp_handle->dists_sq[index] = dist_sq;
+    }
+    else if (vp_handle->dists_sq[index] != FLT_MAX) {
+      /* already initialized & couldn't project this 'co' */
+      return;
+    }
+  }
+  /* continue with regular functionality */
 
-	copy_v3_v3(co_no->co, co);
-	if (no_f) {
-		copy_v3_v3(co_no->no, no_f);
-	}
-	else {
-		normal_short_to_float_v3(co_no->no, no_s);
-	}
+  copy_v3_v3(co_no->co, co);
+  if (no_f) {
+    copy_v3_v3(co_no->no, no_f);
+  }
+  else {
+    normal_short_to_float_v3(co_no->no, no_s);
+  }
 }
 
-static void vpaint_proj_dm_map_cosnos_update(
-        struct Depsgraph *depsgraph, struct VertProjHandle *vp_handle,
-        ARegion *ar, const float mval_fl[2])
+static void vpaint_proj_dm_map_cosnos_update(struct Depsgraph *depsgraph,
+                                             struct VertProjHandle *vp_handle,
+                                             ARegion *ar,
+                                             const float mval_fl[2])
 {
-	struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
+  struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
 
-	Object *ob = vp_handle->ob;
-	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Mesh *me = ob->data;
+  Object *ob = vp_handle->ob;
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Mesh *me = ob->data;
 
-	CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
+  CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
+  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
-	/* quick sanity check - we shouldn't have to run this if there are no modifiers */
-	BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
+  /* quick sanity check - we shouldn't have to run this if there are no modifiers */
+  BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
-	copy_vn_fl(vp_handle->dists_sq, me->totvert, FLT_MAX);
-	BKE_mesh_foreach_mapped_vert(me_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
+  copy_vn_fl(vp_handle->dists_sq, me->totvert, FLT_MAX);
+  BKE_mesh_foreach_mapped_vert(
+      me_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
 }
-
 
 /* -------------------------------------------------------------------- */
 /* Public Functions */
 
-struct VertProjHandle *ED_vpaint_proj_handle_create(
-        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
-        CoNo **r_vcosnos)
+struct VertProjHandle *ED_vpaint_proj_handle_create(struct Depsgraph *depsgraph,
+                                                    Scene *scene,
+                                                    Object *ob,
+                                                    CoNo **r_vcosnos)
 {
-	struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
-	Mesh *me = ob->data;
+  struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
+  Mesh *me = ob->data;
 
-	/* setup the handle */
-	vp_handle->vcosnos = MEM_mallocN(sizeof(CoNo) * me->totvert, "vertexcosnos map");
-	vp_handle->use_update = false;
+  /* setup the handle */
+  vp_handle->vcosnos = MEM_mallocN(sizeof(CoNo) * me->totvert, "vertexcosnos map");
+  vp_handle->use_update = false;
 
-	/* sets 'use_update' if needed */
-	vpaint_proj_dm_map_cosnos_init(depsgraph, scene, ob, vp_handle);
+  /* sets 'use_update' if needed */
+  vpaint_proj_dm_map_cosnos_init(depsgraph, scene, ob, vp_handle);
 
-	if (vp_handle->use_update) {
-		vp_handle->dists_sq = MEM_mallocN(sizeof(float) * me->totvert, __func__);
+  if (vp_handle->use_update) {
+    vp_handle->dists_sq = MEM_mallocN(sizeof(float) * me->totvert, __func__);
 
-		vp_handle->ob = ob;
-		vp_handle->scene = scene;
-	}
-	else {
-		vp_handle->dists_sq = NULL;
+    vp_handle->ob = ob;
+    vp_handle->scene = scene;
+  }
+  else {
+    vp_handle->dists_sq = NULL;
 
-		vp_handle->ob = NULL;
-		vp_handle->scene = NULL;
-	}
+    vp_handle->ob = NULL;
+    vp_handle->scene = NULL;
+  }
 
-	*r_vcosnos = vp_handle->vcosnos;
-	return vp_handle;
+  *r_vcosnos = vp_handle->vcosnos;
+  return vp_handle;
 }
 
-void  ED_vpaint_proj_handle_update(
-        struct Depsgraph *depsgraph, struct VertProjHandle *vp_handle,
-        ARegion *ar, const float mval_fl[2])
+void ED_vpaint_proj_handle_update(struct Depsgraph *depsgraph,
+                                  struct VertProjHandle *vp_handle,
+                                  ARegion *ar,
+                                  const float mval_fl[2])
 {
-	if (vp_handle->use_update) {
-		vpaint_proj_dm_map_cosnos_update(depsgraph, vp_handle, ar, mval_fl);
-	}
+  if (vp_handle->use_update) {
+    vpaint_proj_dm_map_cosnos_update(depsgraph, vp_handle, ar, mval_fl);
+  }
 }
 
-void  ED_vpaint_proj_handle_free(struct VertProjHandle *vp_handle)
+void ED_vpaint_proj_handle_free(struct VertProjHandle *vp_handle)
 {
-	if (vp_handle->use_update) {
-		MEM_freeN(vp_handle->dists_sq);
-	}
+  if (vp_handle->use_update) {
+    MEM_freeN(vp_handle->dists_sq);
+  }
 
-	MEM_freeN(vp_handle->vcosnos);
-	MEM_freeN(vp_handle);
+  MEM_freeN(vp_handle->vcosnos);
+  MEM_freeN(vp_handle);
 }

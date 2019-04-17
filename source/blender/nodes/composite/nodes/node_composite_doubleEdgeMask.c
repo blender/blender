@@ -23,24 +23,41 @@
 #include "node_composite_util.h"
 /* **************** Double Edge Mask ******************** */
 
-
 static bNodeSocketTemplate cmp_node_doubleedgemask_in[] = {
-	{ SOCK_FLOAT, 1, "Inner Mask", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f, PROP_NONE},	// inner mask socket definition
-	{ SOCK_FLOAT, 1, "Outer Mask", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f, PROP_NONE},	// outer mask socket definition
-	{ -1, 0, ""	},																	// input socket array terminator
+    {SOCK_FLOAT,
+     1,
+     "Inner Mask",
+     0.8f,
+     0.8f,
+     0.8f,
+     1.0f,
+     0.0f,
+     1.0f,
+     PROP_NONE},  // inner mask socket definition
+    {SOCK_FLOAT,
+     1,
+     "Outer Mask",
+     0.8f,
+     0.8f,
+     0.8f,
+     1.0f,
+     0.0f,
+     1.0f,
+     PROP_NONE},  // outer mask socket definition
+    {-1, 0, ""},  // input socket array terminator
 };
 static bNodeSocketTemplate cmp_node_doubleedgemask_out[] = {
-	{ SOCK_FLOAT, 0, "Mask"},		// output socket definition
-	{ -1, 0, "" },					// output socket array terminator
+    {SOCK_FLOAT, 0, "Mask"},  // output socket definition
+    {-1, 0, ""},              // output socket array terminator
 };
 
 void register_node_type_cmp_doubleedgemask(void)
 {
-	static bNodeType ntype;	// allocate a node type data structure
+  static bNodeType ntype;  // allocate a node type data structure
 
-	cmp_node_type_base(&ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, 0);
-	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
-	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
+  cmp_node_type_base(&ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, 0);
+  node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
+  node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

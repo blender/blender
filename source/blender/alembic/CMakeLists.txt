@@ -19,66 +19,66 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	../blenkernel
-	../blenlib
-	../blenloader
-	../bmesh
-	../depsgraph
-	../editors/include
-	../makesdna
-	../makesrna
-	../windowmanager
-	../../../intern/guardedalloc
-	../../../intern/utfconv
+  .
+  ../blenkernel
+  ../blenlib
+  ../blenloader
+  ../bmesh
+  ../depsgraph
+  ../editors/include
+  ../makesdna
+  ../makesrna
+  ../windowmanager
+  ../../../intern/guardedalloc
+  ../../../intern/utfconv
 )
 
 set(INC_SYS
-	${ALEMBIC_INCLUDE_DIRS}
-	${BOOST_INCLUDE_DIR}
-	${HDF5_INCLUDE_DIRS}
-	${OPENEXR_INCLUDE_DIRS}
+  ${ALEMBIC_INCLUDE_DIRS}
+  ${BOOST_INCLUDE_DIR}
+  ${HDF5_INCLUDE_DIRS}
+  ${OPENEXR_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/abc_archive.cc
-	intern/abc_camera.cc
-	intern/abc_curves.cc
-	intern/abc_customdata.cc
-	intern/abc_exporter.cc
-	intern/abc_hair.cc
-	intern/abc_mball.cc
-	intern/abc_mesh.cc
-	intern/abc_nurbs.cc
-	intern/abc_object.cc
-	intern/abc_points.cc
-	intern/abc_transform.cc
-	intern/abc_util.cc
-	intern/alembic_capi.cc
+  intern/abc_archive.cc
+  intern/abc_camera.cc
+  intern/abc_curves.cc
+  intern/abc_customdata.cc
+  intern/abc_exporter.cc
+  intern/abc_hair.cc
+  intern/abc_mball.cc
+  intern/abc_mesh.cc
+  intern/abc_nurbs.cc
+  intern/abc_object.cc
+  intern/abc_points.cc
+  intern/abc_transform.cc
+  intern/abc_util.cc
+  intern/alembic_capi.cc
 
-	ABC_alembic.h
-	intern/abc_archive.h
-	intern/abc_camera.h
-	intern/abc_curves.h
-	intern/abc_customdata.h
-	intern/abc_exporter.h
-	intern/abc_hair.h
-	intern/abc_mball.h
-	intern/abc_mesh.h
-	intern/abc_nurbs.h
-	intern/abc_object.h
-	intern/abc_points.h
-	intern/abc_transform.h
-	intern/abc_util.h
+  ABC_alembic.h
+  intern/abc_archive.h
+  intern/abc_camera.h
+  intern/abc_curves.h
+  intern/abc_customdata.h
+  intern/abc_exporter.h
+  intern/abc_hair.h
+  intern/abc_mball.h
+  intern/abc_mesh.h
+  intern/abc_nurbs.h
+  intern/abc_object.h
+  intern/abc_points.h
+  intern/abc_transform.h
+  intern/abc_util.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
+  bf_blenkernel
+  bf_blenlib
 )
 
 if(WITH_ALEMBIC_HDF5)
-	add_definitions(-DWITH_ALEMBIC_HDF5)
+  add_definitions(-DWITH_ALEMBIC_HDF5)
 endif()
 
 blender_add_lib(bf_alembic "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

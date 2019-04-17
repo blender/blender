@@ -28,61 +28,60 @@ extern "C" {
 #include "BLI_linklist.h"
 
 typedef enum BC_export_mesh_type {
-	BC_MESH_TYPE_VIEW,
-	BC_MESH_TYPE_RENDER,
+  BC_MESH_TYPE_VIEW,
+  BC_MESH_TYPE_RENDER,
 } BC_export_mesh_type;
 
 typedef enum BC_export_transformation_type {
-	BC_TRANSFORMATION_TYPE_MATRIX,
-	BC_TRANSFORMATION_TYPE_TRANSROTLOC,
+  BC_TRANSFORMATION_TYPE_MATRIX,
+  BC_TRANSFORMATION_TYPE_TRANSROTLOC,
 } BC_export_transformation_type;
 
-
 typedef enum BC_export_animation_type {
-	BC_ANIMATION_EXPORT_SAMPLES,
-	BC_ANIMATION_EXPORT_KEYS,
+  BC_ANIMATION_EXPORT_SAMPLES,
+  BC_ANIMATION_EXPORT_KEYS,
 } BC_export_animation_type;
 
 typedef enum BC_ui_export_section {
-	BC_UI_SECTION_MAIN,
-	BC_UI_SECTION_GEOMETRY,
-	BC_UI_SECTION_ARMATURE,
-	BC_UI_SECTION_ANIMATION,
-	BC_UI_SECTION_COLLADA,
+  BC_UI_SECTION_MAIN,
+  BC_UI_SECTION_GEOMETRY,
+  BC_UI_SECTION_ARMATURE,
+  BC_UI_SECTION_ANIMATION,
+  BC_UI_SECTION_COLLADA,
 } BC_ui_export_section;
 
 typedef struct ExportSettings {
-	bool apply_modifiers;
-	BC_export_mesh_type export_mesh_type;
+  bool apply_modifiers;
+  BC_export_mesh_type export_mesh_type;
 
-	bool selected;
-	bool include_children;
-	bool include_armatures;
-	bool include_shapekeys;
-	bool deform_bones_only;
-	bool include_animations;
-	bool include_all_actions;
-	int sampling_rate;
-	bool keep_smooth_curves;
-	bool keep_keyframes;
-	bool keep_flat_curves;
+  bool selected;
+  bool include_children;
+  bool include_armatures;
+  bool include_shapekeys;
+  bool deform_bones_only;
+  bool include_animations;
+  bool include_all_actions;
+  int sampling_rate;
+  bool keep_smooth_curves;
+  bool keep_keyframes;
+  bool keep_flat_curves;
 
-	bool active_uv_only;
-	BC_export_animation_type export_animation_type;
-	bool use_texture_copies;
+  bool active_uv_only;
+  BC_export_animation_type export_animation_type;
+  bool use_texture_copies;
 
-	bool triangulate;
-	bool use_object_instantiation;
-	bool use_blender_profile;
-	bool sort_by_name;
-	BC_export_transformation_type export_transformation_type;
+  bool triangulate;
+  bool use_object_instantiation;
+  bool use_blender_profile;
+  bool sort_by_name;
+  BC_export_transformation_type export_transformation_type;
 
-	bool open_sim;
-	bool limit_precision;
-	bool keep_bind_info;
+  bool open_sim;
+  bool limit_precision;
+  bool keep_bind_info;
 
-	char *filepath;
-	LinkNode *export_set;
+  char *filepath;
+  LinkNode *export_set;
 } ExportSettings;
 
 #ifdef __cplusplus

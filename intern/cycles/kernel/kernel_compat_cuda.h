@@ -42,22 +42,22 @@ typedef unsigned long long CUtexObject;
 
 __device__ half __float2half(const float f)
 {
-       half val;
-       asm("{  cvt.rn.f16.f32 %0, %1;}\n" : "=h"(val) : "f"(f));
-       return val;
+  half val;
+  asm("{  cvt.rn.f16.f32 %0, %1;}\n" : "=h"(val) : "f"(f));
+  return val;
 }
 
 /* Qualifier wrappers for different names on different devices */
 
-#define ccl_device  __device__ __inline__
+#define ccl_device __device__ __inline__
 #if __CUDA_ARCH__ < 500
-#  define ccl_device_inline  __device__ __forceinline__
-#  define ccl_device_forceinline  __device__ __forceinline__
+#  define ccl_device_inline __device__ __forceinline__
+#  define ccl_device_forceinline __device__ __forceinline__
 #else
-#  define ccl_device_inline  __device__ __inline__
-#  define ccl_device_forceinline  __device__ __forceinline__
+#  define ccl_device_inline __device__ __inline__
+#  define ccl_device_forceinline __device__ __forceinline__
 #endif
-#define ccl_device_noinline  __device__ __noinline__
+#define ccl_device_noinline __device__ __noinline__
 #define ccl_global
 #define ccl_static_constant __constant__
 #define ccl_constant const
@@ -75,8 +75,7 @@ __device__ half __float2half(const float f)
 
 #define ATTR_FALLTHROUGH
 
-#define CCL_MAX_LOCAL_SIZE (CUDA_THREADS_BLOCK_WIDTH*CUDA_THREADS_BLOCK_WIDTH)
-
+#define CCL_MAX_LOCAL_SIZE (CUDA_THREADS_BLOCK_WIDTH * CUDA_THREADS_BLOCK_WIDTH)
 
 /* No assert supported for CUDA */
 
@@ -91,46 +90,62 @@ __device__ half __float2half(const float f)
 
 ccl_device_inline uint ccl_local_id(uint d)
 {
-	switch(d) {
-		case 0: return threadIdx.x;
-		case 1: return threadIdx.y;
-		case 2: return threadIdx.z;
-		default: return 0;
-	}
+  switch (d) {
+    case 0:
+      return threadIdx.x;
+    case 1:
+      return threadIdx.y;
+    case 2:
+      return threadIdx.z;
+    default:
+      return 0;
+  }
 }
 
 #define ccl_global_id(d) (ccl_group_id(d) * ccl_local_size(d) + ccl_local_id(d))
 
 ccl_device_inline uint ccl_local_size(uint d)
 {
-	switch(d) {
-		case 0: return blockDim.x;
-		case 1: return blockDim.y;
-		case 2: return blockDim.z;
-		default: return 0;
-	}
+  switch (d) {
+    case 0:
+      return blockDim.x;
+    case 1:
+      return blockDim.y;
+    case 2:
+      return blockDim.z;
+    default:
+      return 0;
+  }
 }
 
 #define ccl_global_size(d) (ccl_num_groups(d) * ccl_local_size(d))
 
 ccl_device_inline uint ccl_group_id(uint d)
 {
-	switch(d) {
-		case 0: return blockIdx.x;
-		case 1: return blockIdx.y;
-		case 2: return blockIdx.z;
-		default: return 0;
-	}
+  switch (d) {
+    case 0:
+      return blockIdx.x;
+    case 1:
+      return blockIdx.y;
+    case 2:
+      return blockIdx.z;
+    default:
+      return 0;
+  }
 }
 
 ccl_device_inline uint ccl_num_groups(uint d)
 {
-	switch(d) {
-		case 0: return gridDim.x;
-		case 1: return gridDim.y;
-		case 2: return gridDim.z;
-		default: return 0;
-	}
+  switch (d) {
+    case 0:
+      return gridDim.x;
+    case 1:
+      return gridDim.y;
+    case 2:
+      return gridDim.z;
+    default:
+      return 0;
+  }
 }
 
 /* Textures */
@@ -150,4 +165,4 @@ ccl_device_inline uint ccl_num_groups(uint d)
 #define logf(x) __logf(((float)(x)))
 #define expf(x) __expf(((float)(x)))
 
-#endif  /* __KERNEL_COMPAT_CUDA_H__ */
+#endif /* __KERNEL_COMPAT_CUDA_H__ */

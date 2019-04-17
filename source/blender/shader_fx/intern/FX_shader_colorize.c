@@ -31,32 +31,32 @@
 
 static void initData(ShaderFxData *fx)
 {
-	ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
-	ARRAY_SET_ITEMS(gpfx->low_color, 0.0f, 0.0f, 0.0f, 1.0f);
-	ARRAY_SET_ITEMS(gpfx->high_color, 1.0f, 1.0f, 1.0f, 1.0f);
-	gpfx->mode = eShaderFxColorizeMode_GrayScale;
-	gpfx->factor = 0.5f;
+  ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
+  ARRAY_SET_ITEMS(gpfx->low_color, 0.0f, 0.0f, 0.0f, 1.0f);
+  ARRAY_SET_ITEMS(gpfx->high_color, 1.0f, 1.0f, 1.0f, 1.0f);
+  gpfx->mode = eShaderFxColorizeMode_GrayScale;
+  gpfx->factor = 0.5f;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-	BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copyData_generic(md, target);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Colorize = {
-	/* name */              "Colorize",
-	/* structName */        "ColorizeShaderFxData",
-	/* structSize */        sizeof(ColorizeShaderFxData),
-	/* type */              eShaderFxType_GpencilType,
-	/* flags */             0,
+    /* name */ "Colorize",
+    /* structName */ "ColorizeShaderFxData",
+    /* structSize */ sizeof(ColorizeShaderFxData),
+    /* type */ eShaderFxType_GpencilType,
+    /* flags */ 0,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
 };

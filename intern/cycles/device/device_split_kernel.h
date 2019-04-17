@@ -27,106 +27,115 @@ CCL_NAMESPACE_BEGIN
  * Since some bytes may be needed for aligning chunks of memory;
  * This is the amount of memory that we dedicate for that purpose.
  */
-#define DATA_ALLOCATION_MEM_FACTOR 5000000 //5MB
+#define DATA_ALLOCATION_MEM_FACTOR 5000000  //5MB
 
 /* Types used for split kernel */
 
 class KernelDimensions {
-public:
-	size_t global_size[2];
-	size_t local_size[2];
+ public:
+  size_t global_size[2];
+  size_t local_size[2];
 
-	KernelDimensions(size_t global_size_[2], size_t local_size_[2])
-	{
-		memcpy(global_size, global_size_, sizeof(global_size));
-		memcpy(local_size, local_size_, sizeof(local_size));
-	}
+  KernelDimensions(size_t global_size_[2], size_t local_size_[2])
+  {
+    memcpy(global_size, global_size_, sizeof(global_size));
+    memcpy(local_size, local_size_, sizeof(local_size));
+  }
 };
 
 class SplitKernelFunction {
-public:
-	virtual ~SplitKernelFunction() {}
+ public:
+  virtual ~SplitKernelFunction()
+  {
+  }
 
-	/* enqueue the kernel, returns false if there is an error */
-	virtual bool enqueue(const KernelDimensions& dim, device_memory& kg, device_memory& data) = 0;
+  /* enqueue the kernel, returns false if there is an error */
+  virtual bool enqueue(const KernelDimensions &dim, device_memory &kg, device_memory &data) = 0;
 };
 
 class DeviceSplitKernel {
-private:
-	Device *device;
+ private:
+  Device *device;
 
-	SplitKernelFunction *kernel_path_init;
-	SplitKernelFunction *kernel_scene_intersect;
-	SplitKernelFunction *kernel_lamp_emission;
-	SplitKernelFunction *kernel_do_volume;
-	SplitKernelFunction *kernel_queue_enqueue;
-	SplitKernelFunction *kernel_indirect_background;
-	SplitKernelFunction *kernel_shader_setup;
-	SplitKernelFunction *kernel_shader_sort;
-	SplitKernelFunction *kernel_shader_eval;
-	SplitKernelFunction *kernel_holdout_emission_blurring_pathtermination_ao;
-	SplitKernelFunction *kernel_subsurface_scatter;
-	SplitKernelFunction *kernel_direct_lighting;
-	SplitKernelFunction *kernel_shadow_blocked_ao;
-	SplitKernelFunction *kernel_shadow_blocked_dl;
-	SplitKernelFunction *kernel_enqueue_inactive;
-	SplitKernelFunction *kernel_next_iteration_setup;
-	SplitKernelFunction *kernel_indirect_subsurface;
-	SplitKernelFunction *kernel_buffer_update;
+  SplitKernelFunction *kernel_path_init;
+  SplitKernelFunction *kernel_scene_intersect;
+  SplitKernelFunction *kernel_lamp_emission;
+  SplitKernelFunction *kernel_do_volume;
+  SplitKernelFunction *kernel_queue_enqueue;
+  SplitKernelFunction *kernel_indirect_background;
+  SplitKernelFunction *kernel_shader_setup;
+  SplitKernelFunction *kernel_shader_sort;
+  SplitKernelFunction *kernel_shader_eval;
+  SplitKernelFunction *kernel_holdout_emission_blurring_pathtermination_ao;
+  SplitKernelFunction *kernel_subsurface_scatter;
+  SplitKernelFunction *kernel_direct_lighting;
+  SplitKernelFunction *kernel_shadow_blocked_ao;
+  SplitKernelFunction *kernel_shadow_blocked_dl;
+  SplitKernelFunction *kernel_enqueue_inactive;
+  SplitKernelFunction *kernel_next_iteration_setup;
+  SplitKernelFunction *kernel_indirect_subsurface;
+  SplitKernelFunction *kernel_buffer_update;
 
-	/* Global memory variables [porting]; These memory is used for
-	 * co-operation between different kernels; Data written by one
-	 * kernel will be available to another kernel via this global
-	 * memory.
-	 */
-	device_only_memory<uchar> split_data;
-	device_vector<uchar> ray_state;
-	device_only_memory<int> queue_index; /* Array of size num_queues that tracks the size of each queue. */
+  /* Global memory variables [porting]; These memory is used for
+   * co-operation between different kernels; Data written by one
+   * kernel will be available to another kernel via this global
+   * memory.
+   */
+  device_only_memory<uchar> split_data;
+  device_vector<uchar> ray_state;
+  device_only_memory<int>
+      queue_index; /* Array of size num_queues that tracks the size of each queue. */
 
-	/* Flag to make sceneintersect and lampemission kernel use queues. */
-	device_only_memory<char> use_queues_flag;
+  /* Flag to make sceneintersect and lampemission kernel use queues. */
+  device_only_memory<char> use_queues_flag;
 
-	/* Approximate time it takes to complete one sample */
-	double avg_time_per_sample;
+  /* Approximate time it takes to complete one sample */
+  double avg_time_per_sample;
 
-	/* Work pool with respect to each work group. */
-	device_only_memory<unsigned int> work_pool_wgs;
+  /* Work pool with respect to each work group. */
+  device_only_memory<unsigned int> work_pool_wgs;
 
-	/* Cached kernel-dependent data, initialized once. */
-	bool kernel_data_initialized;
-	size_t local_size[2];
-	size_t global_size[2];
+  /* Cached kernel-dependent data, initialized once. */
+  bool kernel_data_initialized;
+  size_t local_size[2];
+  size_t global_size[2];
 
-public:
-	explicit DeviceSplitKernel(Device* device);
-	virtual ~DeviceSplitKernel();
+ public:
+  explicit DeviceSplitKernel(Device *device);
+  virtual ~DeviceSplitKernel();
 
-	bool load_kernels(const DeviceRequestedFeatures& requested_features);
-	bool path_trace(DeviceTask *task,
-	                RenderTile& rtile,
-	                device_memory& kgbuffer,
-	                device_memory& kernel_data);
+  bool load_kernels(const DeviceRequestedFeatures &requested_features);
+  bool path_trace(DeviceTask *task,
+                  RenderTile &rtile,
+                  device_memory &kgbuffer,
+                  device_memory &kernel_data);
 
-	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads) = 0;
-	size_t max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, uint64_t max_buffer_size);
+  virtual uint64_t state_buffer_size(device_memory &kg,
+                                     device_memory &data,
+                                     size_t num_threads) = 0;
+  size_t max_elements_for_max_buffer_size(device_memory &kg,
+                                          device_memory &data,
+                                          uint64_t max_buffer_size);
 
-	virtual bool enqueue_split_kernel_data_init(const KernelDimensions& dim,
-	                                            RenderTile& rtile,
-	                                            int num_global_elements,
-	                                            device_memory& kernel_globals,
-	                                            device_memory& kernel_data_,
-	                                            device_memory& split_data,
-	                                            device_memory& ray_state,
-	                                            device_memory& queue_index,
-	                                            device_memory& use_queues_flag,
-	                                            device_memory& work_pool_wgs) = 0;
+  virtual bool enqueue_split_kernel_data_init(const KernelDimensions &dim,
+                                              RenderTile &rtile,
+                                              int num_global_elements,
+                                              device_memory &kernel_globals,
+                                              device_memory &kernel_data_,
+                                              device_memory &split_data,
+                                              device_memory &ray_state,
+                                              device_memory &queue_index,
+                                              device_memory &use_queues_flag,
+                                              device_memory &work_pool_wgs) = 0;
 
-	virtual SplitKernelFunction* get_split_kernel_function(const string& kernel_name,
-	                                                       const DeviceRequestedFeatures&) = 0;
-	virtual int2 split_kernel_local_size() = 0;
-	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask *task) = 0;
+  virtual SplitKernelFunction *get_split_kernel_function(const string &kernel_name,
+                                                         const DeviceRequestedFeatures &) = 0;
+  virtual int2 split_kernel_local_size() = 0;
+  virtual int2 split_kernel_global_size(device_memory &kg,
+                                        device_memory &data,
+                                        DeviceTask *task) = 0;
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __DEVICE_SPLIT_KERNEL_H__ */
+#endif /* __DEVICE_SPLIT_KERNEL_H__ */

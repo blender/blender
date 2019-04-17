@@ -18,7 +18,6 @@
  * \ingroup modifiers
  */
 
-
 #ifndef __MOD_UTIL_H__
 #define __MOD_UTIL_H__
 
@@ -36,23 +35,27 @@ struct Scene;
 struct Tex;
 
 void MOD_init_texture(struct MappingInfoModifierData *dmd, const struct ModifierEvalContext *ctx);
-void MOD_get_texture_coords(
-        struct MappingInfoModifierData *dmd,
-        const struct ModifierEvalContext *ctx,
-        struct Object *ob,
-        struct Mesh *mesh,
-        float (*cos)[3],
-        float (*r_texco)[3]);
+void MOD_get_texture_coords(struct MappingInfoModifierData *dmd,
+                            const struct ModifierEvalContext *ctx,
+                            struct Object *ob,
+                            struct Mesh *mesh,
+                            float (*cos)[3],
+                            float (*r_texco)[3]);
 
 void MOD_previous_vcos_store(struct ModifierData *md, float (*vertexCos)[3]);
 
-struct Mesh *MOD_deform_mesh_eval_get(
-        struct Object *ob, struct BMEditMesh *em, struct Mesh *mesh,
-        float (*vertexCos)[3], const int num_verts,
-        const bool use_normals, const bool use_orco);
+struct Mesh *MOD_deform_mesh_eval_get(struct Object *ob,
+                                      struct BMEditMesh *em,
+                                      struct Mesh *mesh,
+                                      float (*vertexCos)[3],
+                                      const int num_verts,
+                                      const bool use_normals,
+                                      const bool use_orco);
 
-void MOD_get_vgroup(
-        struct Object *ob, struct Mesh *mesh,
-        const char *name, struct MDeformVert **dvert, int *defgrp_index);
+void MOD_get_vgroup(struct Object *ob,
+                    struct Mesh *mesh,
+                    const char *name,
+                    struct MDeformVert **dvert,
+                    int *defgrp_index);
 
 #endif /* __MOD_UTIL_H__ */

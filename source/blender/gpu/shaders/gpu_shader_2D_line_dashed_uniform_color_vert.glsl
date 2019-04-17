@@ -16,6 +16,6 @@ out vec4 color_vert;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
-	color_vert = color;
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+  color_vert = color;
 }

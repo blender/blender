@@ -20,31 +20,30 @@
 #define __COM_GAMMAOPERATION_H__
 #include "COM_NodeOperation.h"
 
-
 class GammaOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputProgram;
-	SocketReader *m_inputGammaProgram;
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputProgram;
+  SocketReader *m_inputGammaProgram;
 
-public:
-	GammaOperation();
+ public:
+  GammaOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 };
 #endif

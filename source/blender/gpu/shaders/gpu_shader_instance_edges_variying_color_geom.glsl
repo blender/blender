@@ -27,39 +27,39 @@ flat out vec4 finalColor;
 
 void emitLine(vec4 color)
 {
-	gl_Position = ProjectionMatrix * MV_pos[0];
+  gl_Position = ProjectionMatrix * MV_pos[0];
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_set_clip_distance(gl_in[0].gl_ClipDistance);
+  world_clip_planes_set_clip_distance(gl_in[0].gl_ClipDistance);
 #endif
-	EmitVertex();
+  EmitVertex();
 
-	gl_Position = ProjectionMatrix * MV_pos[1];
+  gl_Position = ProjectionMatrix * MV_pos[1];
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
+  world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
 #endif
-	finalColor = color;
-	EmitVertex();
+  finalColor = color;
+  EmitVertex();
 
-	EndPrimitive();
+  EndPrimitive();
 }
 
 void main()
 {
-	float finalEdgeClass = max(edgeClass[0], edgeClass[1]);
+  float finalEdgeClass = max(edgeClass[0], edgeClass[1]);
 
-	if (finalEdgeClass > 0.0f) {
-		// front-facing edge
-		if (drawFront)
-			emitLine(vec4(fCol[0], 0.75));
-	}
-	else if (finalEdgeClass < 0.0f) {
-		// back-facing edge
-		if (drawBack)
-			emitLine(vec4(fCol[0], 0.5));
-	}
-	else {
-		// exactly one face is front-facing, silhouette edge
-		if (drawSilhouette)
-			emitLine(vec4(fCol[0], 1.0));
-	}
+  if (finalEdgeClass > 0.0f) {
+    // front-facing edge
+    if (drawFront)
+      emitLine(vec4(fCol[0], 0.75));
+  }
+  else if (finalEdgeClass < 0.0f) {
+    // back-facing edge
+    if (drawBack)
+      emitLine(vec4(fCol[0], 0.5));
+  }
+  else {
+    // exactly one face is front-facing, silhouette edge
+    if (drawSilhouette)
+      emitLine(vec4(fCol[0], 1.0));
+  }
 }

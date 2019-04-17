@@ -31,13 +31,13 @@ extern "C" {
 
 extern PyTypeObject GetProjectedXF0D_Type;
 
-#define BPy_GetProjectedXF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetProjectedXF0D_Type))
+#define BPy_GetProjectedXF0D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetProjectedXF0D_Type))
 
 /*---------------------------Python BPy_GetProjectedXF0D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction0DDouble py_uf0D_double;
+  BPy_UnaryFunction0DDouble py_uf0D_double;
 } BPy_GetProjectedXF0D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -23,9 +23,13 @@
 #ifndef __BMESH_TRIANGULATE_H__
 #define __BMESH_TRIANGULATE_H__
 
-void BM_mesh_triangulate(
-        BMesh *bm, const int quad_method, const int ngon_method,
-        const int min_vertices, const bool tag_only,
-        BMOperator *op, BMOpSlot *slot_facemap_out, BMOpSlot *slot_doubles_out);
+void BM_mesh_triangulate(BMesh *bm,
+                         const int quad_method,
+                         const int ngon_method,
+                         const int min_vertices,
+                         const bool tag_only,
+                         BMOperator *op,
+                         BMOpSlot *slot_facemap_out,
+                         BMOpSlot *slot_doubles_out);
 
-#endif  /* __BMESH_TRIANGULATE_H__ */
+#endif /* __BMESH_TRIANGULATE_H__ */

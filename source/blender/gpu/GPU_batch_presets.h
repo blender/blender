@@ -45,4 +45,4 @@ bool gpu_batch_presets_unregister(struct GPUBatch *preset_batch);
 void gpu_batch_presets_reset(void);
 void gpu_batch_presets_exit(void);
 
-#endif  /* __GPU_BATCH_PRESETS_H__ */
+#endif /* __GPU_BATCH_PRESETS_H__ */

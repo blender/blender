@@ -22,15 +22,16 @@
 
 ValueNode::ValueNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void ValueNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void ValueNode::convertToOperations(NodeConverter &converter,
+                                    const CompositorContext & /*context*/) const
 {
-	SetValueOperation *operation = new SetValueOperation();
-	NodeOutput *output = this->getOutputSocket(0);
-	operation->setValue(output->getEditorValueFloat());
-	converter.addOperation(operation);
+  SetValueOperation *operation = new SetValueOperation();
+  NodeOutput *output = this->getOutputSocket(0);
+  operation->setValue(output->getEditorValueFloat());
+  converter.addOperation(operation);
 
-	converter.mapOutputSocket(output, operation->getOutputSocket());
+  converter.mapOutputSocket(output, operation->getOutputSocket());
 }

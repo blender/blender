@@ -41,126 +41,129 @@
 #include "sequencer_intern.h"
 
 typedef struct PreviewJob {
-	ListBase previews;
-	ThreadMutex *mutex;
-	Scene *scene;
-	int total;
-	int processed;
+  ListBase previews;
+  ThreadMutex *mutex;
+  Scene *scene;
+  int total;
+  int processed;
 } PreviewJob;
 
 typedef struct PreviewJobAudio {
-	struct PreviewJobAudio *next, *prev;
-	bSound *sound;
-	int lr; /* sample left or right */
-	int startframe;
-	bool waveform; /* reload sound or waveform */
+  struct PreviewJobAudio *next, *prev;
+  bSound *sound;
+  int lr; /* sample left or right */
+  int startframe;
+  bool waveform; /* reload sound or waveform */
 } PreviewJobAudio;
 
 static void free_preview_job(void *data)
 {
-	PreviewJob *pj = (PreviewJob *)data;
+  PreviewJob *pj = (PreviewJob *)data;
 
-	BLI_mutex_free(pj->mutex);
-	BLI_freelistN(&pj->previews);
-	MEM_freeN(pj);
+  BLI_mutex_free(pj->mutex);
+  BLI_freelistN(&pj->previews);
+  MEM_freeN(pj);
 }
 
 /* only this runs inside thread */
 static void preview_startjob(void *data, short *stop, short *do_update, float *progress)
 {
-	PreviewJob *pj = data;
-	PreviewJobAudio *previewjb;
+  PreviewJob *pj = data;
+  PreviewJobAudio *previewjb;
 
-	BLI_mutex_lock(pj->mutex);
-	previewjb = pj->previews.first;
-	BLI_mutex_unlock(pj->mutex);
+  BLI_mutex_lock(pj->mutex);
+  previewjb = pj->previews.first;
+  BLI_mutex_unlock(pj->mutex);
 
-	while (previewjb) {
-		PreviewJobAudio *preview_next;
-		bSound *sound = previewjb->sound;
+  while (previewjb) {
+    PreviewJobAudio *preview_next;
+    bSound *sound = previewjb->sound;
 
-		BKE_sound_read_waveform(sound, stop);
+    BKE_sound_read_waveform(sound, stop);
 
-		if (*stop || G.is_break) {
-			BLI_mutex_lock(pj->mutex);
-			previewjb = previewjb->next;
-			BLI_mutex_unlock(pj->mutex);
-			while (previewjb) {
-				sound = previewjb->sound;
+    if (*stop || G.is_break) {
+      BLI_mutex_lock(pj->mutex);
+      previewjb = previewjb->next;
+      BLI_mutex_unlock(pj->mutex);
+      while (previewjb) {
+        sound = previewjb->sound;
 
-				/* make sure we cleanup the loading flag! */
-				BLI_spin_lock(sound->spinlock);
-				sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
-				BLI_spin_unlock(sound->spinlock);
+        /* make sure we cleanup the loading flag! */
+        BLI_spin_lock(sound->spinlock);
+        sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
+        BLI_spin_unlock(sound->spinlock);
 
-				BLI_mutex_lock(pj->mutex);
-				previewjb = previewjb->next;
-				BLI_mutex_unlock(pj->mutex);
-			}
+        BLI_mutex_lock(pj->mutex);
+        previewjb = previewjb->next;
+        BLI_mutex_unlock(pj->mutex);
+      }
 
-			BLI_mutex_lock(pj->mutex);
-			BLI_freelistN(&pj->previews);
-			pj->total = 0;
-			pj->processed = 0;
-			BLI_mutex_unlock(pj->mutex);
-			break;
-		}
+      BLI_mutex_lock(pj->mutex);
+      BLI_freelistN(&pj->previews);
+      pj->total = 0;
+      pj->processed = 0;
+      BLI_mutex_unlock(pj->mutex);
+      break;
+    }
 
-		BLI_mutex_lock(pj->mutex);
-		preview_next = previewjb->next;
-		BLI_freelinkN(&pj->previews, previewjb);
-		previewjb = preview_next;
-		pj->processed++;
-		*progress = (pj->total > 0) ? (float)pj->processed / (float)pj->total : 1.0f;
-		*do_update = true;
-		BLI_mutex_unlock(pj->mutex);
-	}
+    BLI_mutex_lock(pj->mutex);
+    preview_next = previewjb->next;
+    BLI_freelinkN(&pj->previews, previewjb);
+    previewjb = preview_next;
+    pj->processed++;
+    *progress = (pj->total > 0) ? (float)pj->processed / (float)pj->total : 1.0f;
+    *do_update = true;
+    BLI_mutex_unlock(pj->mutex);
+  }
 }
 
 static void preview_endjob(void *data)
 {
-	PreviewJob *pj = data;
+  PreviewJob *pj = data;
 
-	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
-
 
 void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
 {
-	/* first, get the preview job, if it exists */
-	wmJob *wm_job;
-	PreviewJob *pj;
-	ScrArea *sa = CTX_wm_area(C);
-	PreviewJobAudio *audiojob = MEM_callocN(sizeof(PreviewJobAudio), "preview_audio");
-	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Strip Previews",
-	                     WM_JOB_PROGRESS, WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
+  /* first, get the preview job, if it exists */
+  wmJob *wm_job;
+  PreviewJob *pj;
+  ScrArea *sa = CTX_wm_area(C);
+  PreviewJobAudio *audiojob = MEM_callocN(sizeof(PreviewJobAudio), "preview_audio");
+  wm_job = WM_jobs_get(CTX_wm_manager(C),
+                       CTX_wm_window(C),
+                       sa,
+                       "Strip Previews",
+                       WM_JOB_PROGRESS,
+                       WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
 
-	pj = WM_jobs_customdata_get(wm_job);
+  pj = WM_jobs_customdata_get(wm_job);
 
-	if (!pj) {
-		pj = MEM_callocN(sizeof(PreviewJob), "preview rebuild job");
+  if (!pj) {
+    pj = MEM_callocN(sizeof(PreviewJob), "preview rebuild job");
 
-		pj->mutex = BLI_mutex_alloc();
-		pj->scene = CTX_data_scene(C);
+    pj->mutex = BLI_mutex_alloc();
+    pj->scene = CTX_data_scene(C);
 
-		WM_jobs_customdata_set(wm_job, pj, free_preview_job);
-		WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
-		WM_jobs_callbacks(wm_job, preview_startjob, NULL, NULL, preview_endjob);
-	}
+    WM_jobs_customdata_set(wm_job, pj, free_preview_job);
+    WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
+    WM_jobs_callbacks(wm_job, preview_startjob, NULL, NULL, preview_endjob);
+  }
 
-	/* attempt to lock mutex of job here */
+  /* attempt to lock mutex of job here */
 
-	audiojob->sound = seq->sound;
+  audiojob->sound = seq->sound;
 
-	BLI_mutex_lock(pj->mutex);
-	BLI_addtail(&pj->previews, audiojob);
-	pj->total++;
-	BLI_mutex_unlock(pj->mutex);
+  BLI_mutex_lock(pj->mutex);
+  BLI_addtail(&pj->previews, audiojob);
+  pj->total++;
+  BLI_mutex_unlock(pj->mutex);
 
-	if (!WM_jobs_is_running(wm_job)) {
-		G.is_break = false;
-		WM_jobs_start(CTX_wm_manager(C), wm_job);
-	}
+  if (!WM_jobs_is_running(wm_job)) {
+    G.is_break = false;
+    WM_jobs_start(CTX_wm_manager(C), wm_job);
+  }
 
-	ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(sa);
 }

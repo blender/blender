@@ -25,69 +25,69 @@
 #include "../system/PythonInterpreter.h"
 
 extern "C" {
-#include "BLI_utildefines.h" // BLI_assert()
+#include "BLI_utildefines.h"  // BLI_assert()
 
 struct Text;
 }
 
 namespace Freestyle {
 
-class BufferedStyleModule : public StyleModule
-{
-public:
-	BufferedStyleModule(const string& buffer, const string& file_name, Interpreter *inter) : StyleModule(file_name, inter)
-	{
-		_buffer = buffer;
-	}
+class BufferedStyleModule : public StyleModule {
+ public:
+  BufferedStyleModule(const string &buffer, const string &file_name, Interpreter *inter)
+      : StyleModule(file_name, inter)
+  {
+    _buffer = buffer;
+  }
 
-	virtual ~BufferedStyleModule()
-	{
-	}
+  virtual ~BufferedStyleModule()
+  {
+  }
 
-protected:
-	virtual int interpret()
-	{
-		PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter*>(_inter);
-		BLI_assert(py_inter != 0);
-		return py_inter->interpretString(_buffer, getFileName());
-	}
+ protected:
+  virtual int interpret()
+  {
+    PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter *>(_inter);
+    BLI_assert(py_inter != 0);
+    return py_inter->interpretString(_buffer, getFileName());
+  }
 
-private:
-	string _buffer;
+ private:
+  string _buffer;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BufferedStyleModule")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BufferedStyleModule")
 #endif
 };
 
-class BlenderStyleModule : public StyleModule
-{
-public:
-	BlenderStyleModule(struct Text *text, const string &name, Interpreter *inter) : StyleModule(name, inter)
-	{
-		_text = text;
-	}
+class BlenderStyleModule : public StyleModule {
+ public:
+  BlenderStyleModule(struct Text *text, const string &name, Interpreter *inter)
+      : StyleModule(name, inter)
+  {
+    _text = text;
+  }
 
-	virtual ~BlenderStyleModule()
-	{
-	}
+  virtual ~BlenderStyleModule()
+  {
+  }
 
-protected:
-	virtual int interpret()
-	{
-		PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter*>(_inter);
-		BLI_assert(py_inter != 0);
-		return py_inter->interpretText(_text, getFileName());
-	}
+ protected:
+  virtual int interpret()
+  {
+    PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter *>(_inter);
+    BLI_assert(py_inter != 0);
+    return py_inter->interpretText(_text, getFileName());
+  }
 
-private:
-	struct Text *_text;
+ private:
+  struct Text *_text;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStyleModule")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStyleModule")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __BLENDERSTYLEMODULE_H__
+#endif  // __BLENDERSTYLEMODULE_H__

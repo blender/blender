@@ -16,10 +16,7 @@
 
 #include "stdosl.h"
 
-shader node_rgb_to_bw(
-	color Color = 0.0,
-	output float Val = 0.0)
+shader node_rgb_to_bw(color Color = 0.0, output float Val = 0.0)
 {
-	Val = Color[0] * 0.2126 + Color[1] * 0.7152 + Color[2] * 0.0722;
+  Val = Color[0] * 0.2126 + Color[1] * 0.7152 + Color[2] * 0.0722;
 }
-

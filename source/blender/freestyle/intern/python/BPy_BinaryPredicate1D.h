@@ -37,12 +37,12 @@ extern "C" {
 
 extern PyTypeObject BinaryPredicate1D_Type;
 
-#define BPy_BinaryPredicate1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BinaryPredicate1D_Type))
+#define BPy_BinaryPredicate1D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&BinaryPredicate1D_Type))
 
 /*---------------------------Python BPy_BinaryPredicate1D structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	BinaryPredicate1D *bp1D;
+  PyObject_HEAD BinaryPredicate1D *bp1D;
 } BPy_BinaryPredicate1D;
 
 /*---------------------------Python BPy_BinaryPredicate1D visible prototypes-----------*/
@@ -54,6 +54,5 @@ int BinaryPredicate1D_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_BINARYPREDICATE1D_H__ */

@@ -50,133 +50,140 @@
 #define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
 
 PyDoc_STRVAR(bpy_utils_previews_new_doc,
-".. method:: new(name)\n"
-"\n"
-"   Generate a new empty preview, or return existing one matching ``name``.\n"
-"\n"
-"   :arg name: The name (unique id) identifying the preview.\n"
-"   :type name: string\n"
-"   :return: The Preview matching given name, or a new empty one.\n"
-"   :rtype: :class:`bpy.types.ImagePreview`\n"
-);
+             ".. method:: new(name)\n"
+             "\n"
+             "   Generate a new empty preview, or return existing one matching ``name``.\n"
+             "\n"
+             "   :arg name: The name (unique id) identifying the preview.\n"
+             "   :type name: string\n"
+             "   :return: The Preview matching given name, or a new empty one.\n"
+             "   :rtype: :class:`bpy.types.ImagePreview`\n");
 static PyObject *bpy_utils_previews_new(PyObject *UNUSED(self), PyObject *args)
 {
-	char *name;
-	PreviewImage *prv;
-	PointerRNA ptr;
+  char *name;
+  PreviewImage *prv;
+  PointerRNA ptr;
 
-	if (!PyArg_ParseTuple(args, "s:new", &name)) {
-		return NULL;
-	}
+  if (!PyArg_ParseTuple(args, "s:new", &name)) {
+    return NULL;
+  }
 
-	prv = BKE_previewimg_cached_ensure(name);
-	RNA_pointer_create(NULL, &RNA_ImagePreview, prv, &ptr);
+  prv = BKE_previewimg_cached_ensure(name);
+  RNA_pointer_create(NULL, &RNA_ImagePreview, prv, &ptr);
 
-	return pyrna_struct_CreatePyObject(&ptr);
+  return pyrna_struct_CreatePyObject(&ptr);
 }
 
-PyDoc_STRVAR(bpy_utils_previews_load_doc,
-".. method:: load(name, filepath, filetype, force_reload=False)\n"
-"\n"
-"   Generate a new preview from given file path, or return existing one matching ``name``.\n"
-"\n"
-"   :arg name: The name (unique id) identifying the preview.\n"
-"   :type name: string\n"
-"   :arg filepath: The file path to generate the preview from.\n"
-"   :type filepath: string\n"
-"   :arg filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES "].\n"
-"   :type filetype: string\n"
-"   :arg force_reload: If True, force running thumbnail manager even if preview already exists in cache.\n"
-"   :type force_reload: bool\n"
-"   :return: The Preview matching given name, or a new empty one.\n"
-"   :rtype: :class:`bpy.types.ImagePreview`\n"
-);
+PyDoc_STRVAR(
+    bpy_utils_previews_load_doc,
+    ".. method:: load(name, filepath, filetype, force_reload=False)\n"
+    "\n"
+    "   Generate a new preview from given file path, or return existing one matching ``name``.\n"
+    "\n"
+    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :type name: string\n"
+    "   :arg filepath: The file path to generate the preview from.\n"
+    "   :type filepath: string\n"
+    "   :arg filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
+    "].\n"
+    "   :type filetype: string\n"
+    "   :arg force_reload: If True, force running thumbnail manager even if preview already "
+    "exists in cache.\n"
+    "   :type force_reload: bool\n"
+    "   :return: The Preview matching given name, or a new empty one.\n"
+    "   :rtype: :class:`bpy.types.ImagePreview`\n");
 static PyObject *bpy_utils_previews_load(PyObject *UNUSED(self), PyObject *args)
 {
-	char *name, *path, *path_type_s;
-	int path_type, force_reload = false;
+  char *name, *path, *path_type_s;
+  int path_type, force_reload = false;
 
-	PreviewImage *prv;
-	PointerRNA ptr;
+  PreviewImage *prv;
+  PointerRNA ptr;
 
-	if (!PyArg_ParseTuple( args, "sss|p:load", &name, &path, &path_type_s, &force_reload)) {
-		return NULL;
-	}
+  if (!PyArg_ParseTuple(args, "sss|p:load", &name, &path, &path_type_s, &force_reload)) {
+    return NULL;
+  }
 
-	if (STREQ(path_type_s, "IMAGE")) {
-		path_type = THB_SOURCE_IMAGE;
-	}
-	else if (STREQ(path_type_s, "MOVIE")) {
-		path_type = THB_SOURCE_MOVIE;
-	}
-	else if (STREQ(path_type_s, "BLEND")) {
-		path_type = THB_SOURCE_BLEND;
-	}
-	else if (STREQ(path_type_s, "FONT")) {
-		path_type = THB_SOURCE_FONT;
-	}
-	else {
-		PyErr_Format(PyExc_ValueError,
-		             "load: invalid '%s' filetype, only [" STR_SOURCE_TYPES "] "
-		             "are supported", path_type_s);
-		return NULL;
-	}
+  if (STREQ(path_type_s, "IMAGE")) {
+    path_type = THB_SOURCE_IMAGE;
+  }
+  else if (STREQ(path_type_s, "MOVIE")) {
+    path_type = THB_SOURCE_MOVIE;
+  }
+  else if (STREQ(path_type_s, "BLEND")) {
+    path_type = THB_SOURCE_BLEND;
+  }
+  else if (STREQ(path_type_s, "FONT")) {
+    path_type = THB_SOURCE_FONT;
+  }
+  else {
+    PyErr_Format(PyExc_ValueError,
+                 "load: invalid '%s' filetype, only [" STR_SOURCE_TYPES
+                 "] "
+                 "are supported",
+                 path_type_s);
+    return NULL;
+  }
 
-	prv = BKE_previewimg_cached_thumbnail_read(name, path, path_type, force_reload);
-	RNA_pointer_create(NULL, &RNA_ImagePreview, prv, &ptr);
+  prv = BKE_previewimg_cached_thumbnail_read(name, path, path_type, force_reload);
+  RNA_pointer_create(NULL, &RNA_ImagePreview, prv, &ptr);
 
-	return pyrna_struct_CreatePyObject(&ptr);
+  return pyrna_struct_CreatePyObject(&ptr);
 }
 
 PyDoc_STRVAR(bpy_utils_previews_release_doc,
-".. method:: release(name)\n"
-"\n"
-"   Release (free) a previously created preview.\n"
-"\n"
-"\n"
-"   :arg name: The name (unique id) identifying the preview.\n"
-"   :type name: string\n"
-);
+             ".. method:: release(name)\n"
+             "\n"
+             "   Release (free) a previously created preview.\n"
+             "\n"
+             "\n"
+             "   :arg name: The name (unique id) identifying the preview.\n"
+             "   :type name: string\n");
 static PyObject *bpy_utils_previews_release(PyObject *UNUSED(self), PyObject *args)
 {
-	char *name;
+  char *name;
 
-	if (!PyArg_ParseTuple(args, "s:release", &name)) {
-		return NULL;
-	}
+  if (!PyArg_ParseTuple(args, "s:release", &name)) {
+    return NULL;
+  }
 
-	BKE_previewimg_cached_release(name);
+  BKE_previewimg_cached_release(name);
 
-	Py_RETURN_NONE;
+  Py_RETURN_NONE;
 }
 
 static struct PyMethodDef bpy_utils_previews_methods[] = {
-	/* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
-	{"new", (PyCFunction)bpy_utils_previews_new, METH_VARARGS, bpy_utils_previews_new_doc},
-	{"load", (PyCFunction)bpy_utils_previews_load, METH_VARARGS, bpy_utils_previews_load_doc},
-	{"release", (PyCFunction)bpy_utils_previews_release, METH_VARARGS, bpy_utils_previews_release_doc},
-	{NULL, NULL, 0, NULL},
+    /* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
+    {"new", (PyCFunction)bpy_utils_previews_new, METH_VARARGS, bpy_utils_previews_new_doc},
+    {"load", (PyCFunction)bpy_utils_previews_load, METH_VARARGS, bpy_utils_previews_load_doc},
+    {"release",
+     (PyCFunction)bpy_utils_previews_release,
+     METH_VARARGS,
+     bpy_utils_previews_release_doc},
+    {NULL, NULL, 0, NULL},
 };
 
-PyDoc_STRVAR(bpy_utils_previews_doc,
-"This object contains basic static methods to handle cached (non-ID) previews in Blender\n"
-"(low-level API, not exposed to final users)."
-);
+PyDoc_STRVAR(
+    bpy_utils_previews_doc,
+    "This object contains basic static methods to handle cached (non-ID) previews in Blender\n"
+    "(low-level API, not exposed to final users).");
 static struct PyModuleDef bpy_utils_previews_module = {
-	PyModuleDef_HEAD_INIT,
-	"bpy._utils_previews",
-	bpy_utils_previews_doc,
-	0,
-	bpy_utils_previews_methods,
-	NULL, NULL, NULL, NULL,
+    PyModuleDef_HEAD_INIT,
+    "bpy._utils_previews",
+    bpy_utils_previews_doc,
+    0,
+    bpy_utils_previews_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
 };
-
 
 PyObject *BPY_utils_previews_module(void)
 {
-	PyObject *submodule;
+  PyObject *submodule;
 
-	submodule = PyModule_Create(&bpy_utils_previews_module);
+  submodule = PyModule_Create(&bpy_utils_previews_module);
 
-	return submodule;
+  return submodule;
 }

@@ -21,7 +21,6 @@
  * \ingroup GHOST
  */
 
-
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
  */
@@ -32,12 +31,12 @@
 
 #include <assert.h>
 
-GHOST_Window::GHOST_Window(
-        GHOST_TUns32 width, GHOST_TUns32 height,
-        GHOST_TWindowState state,
-        const bool wantStereoVisual,
-        const bool /*exclusive*/,
-        const GHOST_TUns16 wantNumOfAASamples)
+GHOST_Window::GHOST_Window(GHOST_TUns32 width,
+                           GHOST_TUns32 height,
+                           GHOST_TWindowState state,
+                           const bool wantStereoVisual,
+                           const bool /*exclusive*/,
+                           const GHOST_TUns16 wantNumOfAASamples)
     : m_drawingContextType(GHOST_kDrawingContextTypeNone),
       m_cursorVisible(true),
       m_cursorGrab(GHOST_kGrabDisable),
@@ -46,189 +45,197 @@ GHOST_Window::GHOST_Window(
       m_wantNumOfAASamples(wantNumOfAASamples),
       m_context(new GHOST_ContextNone(false, 0))
 {
-	m_isUnsavedChanges = false;
-	m_canAcceptDragOperation = false;
+  m_isUnsavedChanges = false;
+  m_canAcceptDragOperation = false;
 
-	m_progressBarVisible = false;
+  m_progressBarVisible = false;
 
-	m_cursorGrabAccumPos[0] = 0;
-	m_cursorGrabAccumPos[1] = 0;
+  m_cursorGrabAccumPos[0] = 0;
+  m_cursorGrabAccumPos[1] = 0;
 
-	m_nativePixelSize = 1.0f;
+  m_nativePixelSize = 1.0f;
 
-	m_fullScreen = state == GHOST_kWindowStateFullScreen;
-	if (m_fullScreen) {
-		m_fullScreenWidth = width;
-		m_fullScreenHeight = height;
-	}
+  m_fullScreen = state == GHOST_kWindowStateFullScreen;
+  if (m_fullScreen) {
+    m_fullScreenWidth = width;
+    m_fullScreenHeight = height;
+  }
 }
-
 
 GHOST_Window::~GHOST_Window()
 {
-	delete m_context;
+  delete m_context;
 }
 
 void *GHOST_Window::getOSWindow() const
 {
-	return NULL;
+  return NULL;
 }
 
 GHOST_TSuccess GHOST_Window::setDrawingContextType(GHOST_TDrawingContextType type)
 {
-	if (type != m_drawingContextType) {
-		delete m_context;
-		m_context = NULL;
+  if (type != m_drawingContextType) {
+    delete m_context;
+    m_context = NULL;
 
-		if (type != GHOST_kDrawingContextTypeNone)
-			m_context = newDrawingContext(type);
+    if (type != GHOST_kDrawingContextTypeNone)
+      m_context = newDrawingContext(type);
 
-		if (m_context != NULL) {
-			m_drawingContextType = type;
-		}
-		else {
-			m_context = new GHOST_ContextNone(m_wantStereoVisual, m_wantNumOfAASamples);
-			m_drawingContextType = GHOST_kDrawingContextTypeNone;
-		}
+    if (m_context != NULL) {
+      m_drawingContextType = type;
+    }
+    else {
+      m_context = new GHOST_ContextNone(m_wantStereoVisual, m_wantNumOfAASamples);
+      m_drawingContextType = GHOST_kDrawingContextTypeNone;
+    }
 
-		return (type == m_drawingContextType) ? GHOST_kSuccess : GHOST_kFailure;
-	}
-	else {
-		return GHOST_kSuccess;
-	}
+    return (type == m_drawingContextType) ? GHOST_kSuccess : GHOST_kFailure;
+  }
+  else {
+    return GHOST_kSuccess;
+  }
 }
 
 GHOST_TSuccess GHOST_Window::swapBuffers()
 {
-	return m_context->swapBuffers();
+  return m_context->swapBuffers();
 }
 
 GHOST_TSuccess GHOST_Window::setSwapInterval(int interval)
 {
-	return m_context->setSwapInterval(interval);
+  return m_context->setSwapInterval(interval);
 }
 
-GHOST_TSuccess GHOST_Window::getSwapInterval(int& intervalOut)
+GHOST_TSuccess GHOST_Window::getSwapInterval(int &intervalOut)
 {
-	return m_context->getSwapInterval(intervalOut);
+  return m_context->getSwapInterval(intervalOut);
 }
 
 GHOST_TUns16 GHOST_Window::getNumOfAASamples()
 {
-	return m_context->getNumOfAASamples();
+  return m_context->getNumOfAASamples();
 }
 
 GHOST_TSuccess GHOST_Window::activateDrawingContext()
 {
-	return m_context->activateDrawingContext();
+  return m_context->activateDrawingContext();
 }
 
 GHOST_TSuccess GHOST_Window::updateDrawingContext()
 {
-	return m_context->updateDrawingContext();
+  return m_context->updateDrawingContext();
 }
 
 GHOST_TSuccess GHOST_Window::releaseNativeHandles()
 {
-	return m_context->releaseNativeHandles();
+  return m_context->releaseNativeHandles();
 }
 
 GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 {
-	if (setWindowCursorVisibility(visible)) {
-		m_cursorVisible = visible;
-		return GHOST_kSuccess;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+  if (setWindowCursorVisibility(visible)) {
+    m_cursorVisible = visible;
+    return GHOST_kSuccess;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
 
-GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2])
+GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
+                                           GHOST_Rect *bounds,
+                                           GHOST_TInt32 mouse_ungrab_xy[2])
 {
-	if (m_cursorGrab == mode)
-		return GHOST_kSuccess;
+  if (m_cursorGrab == mode)
+    return GHOST_kSuccess;
 
-	/* override with new location */
-	if (mouse_ungrab_xy) {
-		assert(mode == GHOST_kGrabDisable);
-		m_cursorGrabInitPos[0] = mouse_ungrab_xy[0];
-		m_cursorGrabInitPos[1] = mouse_ungrab_xy[1];
-	}
+  /* override with new location */
+  if (mouse_ungrab_xy) {
+    assert(mode == GHOST_kGrabDisable);
+    m_cursorGrabInitPos[0] = mouse_ungrab_xy[0];
+    m_cursorGrabInitPos[1] = mouse_ungrab_xy[1];
+  }
 
-	if (setWindowCursorGrab(mode)) {
+  if (setWindowCursorGrab(mode)) {
 
-		if (mode == GHOST_kGrabDisable)
-			m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1;
-		else if (bounds) {
-			m_cursorGrabBounds = *bounds;
-		}
-		else {  /* if bounds not defined, use window */
-			getClientBounds(m_cursorGrabBounds);
-		}
-		m_cursorGrab = mode;
-		return GHOST_kSuccess;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+    if (mode == GHOST_kGrabDisable)
+      m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1;
+    else if (bounds) {
+      m_cursorGrabBounds = *bounds;
+    }
+    else { /* if bounds not defined, use window */
+      getClientBounds(m_cursorGrabBounds);
+    }
+    m_cursorGrab = mode;
+    return GHOST_kSuccess;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
 
-GHOST_TSuccess GHOST_Window::getCursorGrabBounds(GHOST_Rect& bounds)
+GHOST_TSuccess GHOST_Window::getCursorGrabBounds(GHOST_Rect &bounds)
 {
-	bounds = m_cursorGrabBounds;
-	return (bounds.m_l == -1 && bounds.m_r == -1) ? GHOST_kFailure : GHOST_kSuccess;
+  bounds = m_cursorGrabBounds;
+  return (bounds.m_l == -1 && bounds.m_r == -1) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_Window::setCursorShape(GHOST_TStandardCursor cursorShape)
 {
-	if (setWindowCursorShape(cursorShape)) {
-		m_cursorShape = cursorShape;
-		return GHOST_kSuccess;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+  if (setWindowCursorShape(cursorShape)) {
+    m_cursorShape = cursorShape;
+    return GHOST_kSuccess;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
 
-GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2],
-                                                  int hotX, int hotY)
+GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 bitmap[16][2],
+                                                  GHOST_TUns8 mask[16][2],
+                                                  int hotX,
+                                                  int hotY)
 {
-	return setCustomCursorShape((GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask,
-	                            16, 16, hotX, hotY, 0, 1);
+  return setCustomCursorShape(
+      (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotX, hotY, 0, 1);
 }
 
-GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask,
-                                                  int sizex, int sizey, int hotX, int hotY,
-                                                  int fg_color, int bg_color)
+GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap,
+                                                  GHOST_TUns8 *mask,
+                                                  int sizex,
+                                                  int sizey,
+                                                  int hotX,
+                                                  int hotY,
+                                                  int fg_color,
+                                                  int bg_color)
 {
-	if (setWindowCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, fg_color, bg_color)) {
-		m_cursorShape = GHOST_kStandardCursorCustom;
-		return GHOST_kSuccess;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+  if (setWindowCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, fg_color, bg_color)) {
+    m_cursorShape = GHOST_kStandardCursorCustom;
+    return GHOST_kSuccess;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
 
 void GHOST_Window::setAcceptDragOperation(bool canAccept)
 {
-	m_canAcceptDragOperation = canAccept;
+  m_canAcceptDragOperation = canAccept;
 }
 
 bool GHOST_Window::canAcceptDragOperation() const
 {
-	return m_canAcceptDragOperation;
+  return m_canAcceptDragOperation;
 }
 
 GHOST_TSuccess GHOST_Window::setModifiedState(bool isUnsavedChanges)
 {
-	m_isUnsavedChanges = isUnsavedChanges;
+  m_isUnsavedChanges = isUnsavedChanges;
 
-	return GHOST_kSuccess;
+  return GHOST_kSuccess;
 }
 
 bool GHOST_Window::getModifiedState()
 {
-	return m_isUnsavedChanges;
+  return m_isUnsavedChanges;
 }

@@ -33,32 +33,29 @@ extern PyTypeObject BPy_BMLayerAccessLoop_Type;
 extern PyTypeObject BPy_BMLayerCollection_Type;
 extern PyTypeObject BPy_BMLayerItem_Type;
 
-#define BPy_BMLayerAccess_Check(v)      (Py_TYPE(v) == &BPy_BMLayerAccess_Type)
-#define BPy_BMLayerCollection_Check(v)  (Py_TYPE(v) == &BPy_BMLayerCollection_Type)
-#define BPy_BMLayerItem_Check(v)        (Py_TYPE(v) == &BPy_BMLayerItem_Type)
+#define BPy_BMLayerAccess_Check(v) (Py_TYPE(v) == &BPy_BMLayerAccess_Type)
+#define BPy_BMLayerCollection_Check(v) (Py_TYPE(v) == &BPy_BMLayerCollection_Type)
+#define BPy_BMLayerItem_Check(v) (Py_TYPE(v) == &BPy_BMLayerItem_Type)
 
 /* all layers for vert/edge/face/loop */
 typedef struct BPy_BMLayerAccess {
-	PyObject_VAR_HEAD
-	struct BMesh *bm; /* keep first */
-	char htype;
+  PyObject_VAR_HEAD struct BMesh *bm; /* keep first */
+  char htype;
 } BPy_BMLayerAccess;
 
 /* access different layer types deform/uv/vertexcolor */
 typedef struct BPy_BMLayerCollection {
-	PyObject_VAR_HEAD
-	struct BMesh *bm; /* keep first */
-	char htype;
-	int  type; /* customdata type - CD_XXX */
+  PyObject_VAR_HEAD struct BMesh *bm; /* keep first */
+  char htype;
+  int type; /* customdata type - CD_XXX */
 } BPy_BMLayerCollection;
 
 /* access a specific layer directly */
 typedef struct BPy_BMLayerItem {
-	PyObject_VAR_HEAD
-	struct BMesh *bm; /* keep first */
-	char htype;
-	int  type;  /* customdata type - CD_XXX */
-	int  index; /* index of this layer type */
+  PyObject_VAR_HEAD struct BMesh *bm; /* keep first */
+  char htype;
+  int type;  /* customdata type - CD_XXX */
+  int index; /* index of this layer type */
 } BPy_BMLayerItem;
 
 PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, const char htype);
@@ -69,7 +66,6 @@ void BPy_BM_init_types_customdata(void);
 
 /* __getitem__ / __setitem__ */
 PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer);
-int       BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObject *value);
-
+int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObject *value);
 
 #endif /* __BMESH_PY_TYPES_CUSTOMDATA_H__ */

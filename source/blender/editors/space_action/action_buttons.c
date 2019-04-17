@@ -21,7 +21,6 @@
  * \ingroup spaction
  */
 
-
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -43,7 +42,6 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -56,7 +54,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "action_intern.h"   // own include
+#include "action_intern.h"  // own include
 
 /* ******************* action editor space & buttons ************** */
 
@@ -65,56 +63,56 @@
 void action_buttons_register(ARegionType *UNUSED(art))
 {
 #if 0
-	PanelType *pt;
+  PanelType *pt;
 
-	// TODO: AnimData / Actions List
+  // TODO: AnimData / Actions List
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype action panel properties");
-	strcpy(pt->idname, "ACTION_PT_properties");
-	strcpy(pt->label, N_("Active F-Curve"));
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = action_anim_panel_properties;
-	pt->poll = action_anim_panel_poll;
-	BLI_addtail(&art->paneltypes, pt);
+  pt = MEM_callocN(sizeof(PanelType), "spacetype action panel properties");
+  strcpy(pt->idname, "ACTION_PT_properties");
+  strcpy(pt->label, N_("Active F-Curve"));
+  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->draw = action_anim_panel_properties;
+  pt->poll = action_anim_panel_poll;
+  BLI_addtail(&art->paneltypes, pt);
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype action panel properties");
-	strcpy(pt->idname, "ACTION_PT_key_properties");
-	strcpy(pt->label, N_("Active Keyframe"));
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = action_anim_panel_key_properties;
-	pt->poll = action_anim_panel_poll;
-	BLI_addtail(&art->paneltypes, pt);
+  pt = MEM_callocN(sizeof(PanelType), "spacetype action panel properties");
+  strcpy(pt->idname, "ACTION_PT_key_properties");
+  strcpy(pt->label, N_("Active Keyframe"));
+  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->draw = action_anim_panel_key_properties;
+  pt->poll = action_anim_panel_poll;
+  BLI_addtail(&art->paneltypes, pt);
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype action panel modifiers");
-	strcpy(pt->idname, "ACTION_PT_modifiers");
-	strcpy(pt->label, N_("Modifiers"));
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = action_anim_panel_modifiers;
-	pt->poll = action_anim_panel_poll;
-	BLI_addtail(&art->paneltypes, pt);
+  pt = MEM_callocN(sizeof(PanelType), "spacetype action panel modifiers");
+  strcpy(pt->idname, "ACTION_PT_modifiers");
+  strcpy(pt->label, N_("Modifiers"));
+  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->draw = action_anim_panel_modifiers;
+  pt->poll = action_anim_panel_poll;
+  BLI_addtail(&art->paneltypes, pt);
 #endif
 }
 
 static int action_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar = action_has_buttons_region(sa);
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = action_has_buttons_region(sa);
 
-	if (ar)
-		ED_region_toggle_hidden(C, ar);
+  if (ar)
+    ED_region_toggle_hidden(C, ar);
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 void ACTION_OT_properties(wmOperatorType *ot)
 {
-	ot->name = "Toggle Sidebar";
-	ot->idname = "ACTION_OT_properties";
-	ot->description = "Toggle the properties region visibility";
+  ot->name = "Toggle Sidebar";
+  ot->idname = "ACTION_OT_properties";
+  ot->description = "Toggle the properties region visibility";
 
-	ot->exec = action_properties_toggle_exec;
-	ot->poll = ED_operator_action_active;
+  ot->exec = action_properties_toggle_exec;
+  ot->poll = ED_operator_action_active;
 
-	/* flags */
-	ot->flag = 0;
+  /* flags */
+  ot->flag = 0;
 }

@@ -64,90 +64,91 @@
 
 bool ui_but_menu_step_poll(const uiBut *but)
 {
-	BLI_assert(but->type == UI_BTYPE_MENU);
+  BLI_assert(but->type == UI_BTYPE_MENU);
 
-	/* currently only RNA buttons */
-	return ((but->menu_step_func != NULL) ||
-	        (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM));
+  /* currently only RNA buttons */
+  return ((but->menu_step_func != NULL) ||
+          (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM));
 }
 
 int ui_but_menu_step(uiBut *but, int direction)
 {
-	if (ui_but_menu_step_poll(but)) {
-		if (but->menu_step_func) {
-			return but->menu_step_func(but->block->evil_C, direction, but->poin);
-		}
-		else {
-			const int curval = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
-			return RNA_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, curval, direction);
-		}
-	}
+  if (ui_but_menu_step_poll(but)) {
+    if (but->menu_step_func) {
+      return but->menu_step_func(but->block->evil_C, direction, but->poin);
+    }
+    else {
+      const int curval = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+      return RNA_property_enum_step(
+          but->block->evil_C, &but->rnapoin, but->rnaprop, curval, direction);
+    }
+  }
 
-	printf("%s: cannot cycle button '%s'\n", __func__, but->str);
-	return 0;
+  printf("%s: cannot cycle button '%s'\n", __func__, but->str);
+  return 0;
 }
 
 static uint ui_popup_string_hash(const char *str)
 {
-	/* sometimes button contains hotkey, sometimes not, strip for proper compare */
-	int hash;
-	const char *delimit = strrchr(str, UI_SEP_CHAR);
+  /* sometimes button contains hotkey, sometimes not, strip for proper compare */
+  int hash;
+  const char *delimit = strrchr(str, UI_SEP_CHAR);
 
-	if (delimit) {
-		hash = BLI_ghashutil_strhash_n(str, delimit - str);
-	}
-	else {
-		hash = BLI_ghashutil_strhash(str);
-	}
+  if (delimit) {
+    hash = BLI_ghashutil_strhash_n(str, delimit - str);
+  }
+  else {
+    hash = BLI_ghashutil_strhash(str);
+  }
 
-	return hash;
+  return hash;
 }
 
 uint ui_popup_menu_hash(const char *str)
 {
-	return BLI_ghashutil_strhash(str);
+  return BLI_ghashutil_strhash(str);
 }
 
 /* but == NULL read, otherwise set */
 static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 {
-	static uint mem[256];
-	static bool first = true;
+  static uint mem[256];
+  static bool first = true;
 
-	const uint hash = block->puphash;
-	const uint hash_mod = hash & 255;
+  const uint hash = block->puphash;
+  const uint hash_mod = hash & 255;
 
-	if (first) {
-		/* init */
-		memset(mem, -1, sizeof(mem));
-		first = 0;
-	}
+  if (first) {
+    /* init */
+    memset(mem, -1, sizeof(mem));
+    first = 0;
+  }
 
-	if (but) {
-		/* set */
-		mem[hash_mod] = ui_popup_string_hash(but->str);
-		return NULL;
-	}
-	else {
-		/* get */
-		for (but = block->buttons.first; but; but = but->next) {
-			if (ui_popup_string_hash(but->str) == mem[hash_mod]) {
-				return but;
-			}
-		}
+  if (but) {
+    /* set */
+    mem[hash_mod] = ui_popup_string_hash(but->str);
+    return NULL;
+  }
+  else {
+    /* get */
+    for (but = block->buttons.first; but; but = but->next) {
+      if (ui_popup_string_hash(but->str) == mem[hash_mod]) {
+        return but;
+      }
+    }
 
-		return NULL;
-	}
+    return NULL;
+  }
 }
 
 uiBut *ui_popup_menu_memory_get(uiBlock *block)
 {
-	return ui_popup_menu_memory__internal(block, NULL);
+  return ui_popup_menu_memory__internal(block, NULL);
 }
 
 void ui_popup_menu_memory_set(uiBlock *block, uiBut *but)
 {
-	ui_popup_menu_memory__internal(block, but);
+  ui_popup_menu_memory__internal(block, but);
 }
 
 /** \} */
@@ -157,213 +158,211 @@ void ui_popup_menu_memory_set(uiBlock *block, uiBut *but)
  * \{ */
 
 struct uiPopupMenu {
-	uiBlock *block;
-	uiLayout *layout;
-	uiBut *but;
-	ARegion *butregion;
+  uiBlock *block;
+  uiLayout *layout;
+  uiBut *but;
+  ARegion *butregion;
 
-	int mx, my;
-	bool popup, slideout;
+  int mx, my;
+  bool popup, slideout;
 
-	uiMenuCreateFunc menu_func;
-	void *menu_arg;
+  uiMenuCreateFunc menu_func;
+  void *menu_arg;
 };
 
 static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
 {
-	uiBlock *block;
-	uiPopupMenu *pup = arg_pup;
-	int minwidth, width, height;
-	char direction;
-	bool flip;
+  uiBlock *block;
+  uiPopupMenu *pup = arg_pup;
+  int minwidth, width, height;
+  char direction;
+  bool flip;
 
-	if (pup->menu_func) {
-		pup->block->handle = handle;
-		pup->menu_func(C, pup->layout, pup->menu_arg);
-		pup->block->handle = NULL;
-	}
+  if (pup->menu_func) {
+    pup->block->handle = handle;
+    pup->menu_func(C, pup->layout, pup->menu_arg);
+    pup->block->handle = NULL;
+  }
 
-	if (pup->but) {
-		/* minimum width to enforece */
-		if (pup->but->drawstr[0]) {
-			minwidth = BLI_rctf_size_x(&pup->but->rect);
-		}
-		else {
-			/* For buttons with no text, use the minimum (typically icon only). */
-			minwidth = UI_MENU_WIDTH_MIN;
-		}
+  if (pup->but) {
+    /* minimum width to enforece */
+    if (pup->but->drawstr[0]) {
+      minwidth = BLI_rctf_size_x(&pup->but->rect);
+    }
+    else {
+      /* For buttons with no text, use the minimum (typically icon only). */
+      minwidth = UI_MENU_WIDTH_MIN;
+    }
 
-		if (pup->block->direction != 0) {
-			/* allow overriding the direction from menu_func */
-			direction = pup->block->direction;
-		}
-		else {
-			direction = UI_DIR_DOWN;
-		}
-	}
-	else {
-		minwidth = UI_MENU_WIDTH_MIN;
-		direction = UI_DIR_DOWN;
-	}
+    if (pup->block->direction != 0) {
+      /* allow overriding the direction from menu_func */
+      direction = pup->block->direction;
+    }
+    else {
+      direction = UI_DIR_DOWN;
+    }
+  }
+  else {
+    minwidth = UI_MENU_WIDTH_MIN;
+    direction = UI_DIR_DOWN;
+  }
 
-	flip = (direction == UI_DIR_DOWN);
+  flip = (direction == UI_DIR_DOWN);
 
-	block = pup->block;
+  block = pup->block;
 
-	/* in some cases we create the block before the region,
-	 * so we set it delayed here if necessary */
-	if (BLI_findindex(&handle->region->uiblocks, block) == -1) {
-		UI_block_region_set(block, handle->region);
-	}
+  /* in some cases we create the block before the region,
+   * so we set it delayed here if necessary */
+  if (BLI_findindex(&handle->region->uiblocks, block) == -1) {
+    UI_block_region_set(block, handle->region);
+  }
 
-	block->direction = direction;
+  block->direction = direction;
 
-	UI_block_layout_resolve(block, &width, &height);
+  UI_block_layout_resolve(block, &width, &height);
 
-	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
+  UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
 
-	if (pup->popup) {
-		uiBut *bt;
-		int offset[2];
+  if (pup->popup) {
+    uiBut *bt;
+    int offset[2];
 
-		uiBut *but_activate = NULL;
-		UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
-		UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-		UI_block_direction_set(block, direction);
+    uiBut *but_activate = NULL;
+    UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
+    UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+    UI_block_direction_set(block, direction);
 
-		/* offset the mouse position, possibly based on earlier selection */
-		if ((block->flag & UI_BLOCK_POPUP_MEMORY) &&
-		    (bt = ui_popup_menu_memory_get(block)))
-		{
-			/* position mouse on last clicked item, at 0.8*width of the
-			 * button, so it doesn't overlap the text too much, also note
-			 * the offset is negative because we are inverse moving the
-			 * block to be under the mouse */
-			offset[0] = -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect));
-			offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
+    /* offset the mouse position, possibly based on earlier selection */
+    if ((block->flag & UI_BLOCK_POPUP_MEMORY) && (bt = ui_popup_menu_memory_get(block))) {
+      /* position mouse on last clicked item, at 0.8*width of the
+       * button, so it doesn't overlap the text too much, also note
+       * the offset is negative because we are inverse moving the
+       * block to be under the mouse */
+      offset[0] = -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect));
+      offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
 
-			if (ui_but_is_editable(bt)) {
-				but_activate = bt;
-			}
-		}
-		else {
-			/* position mouse at 0.8*width of the button and below the tile
-			 * on the first item */
-			offset[0] = 0;
-			for (bt = block->buttons.first; bt; bt = bt->next) {
-				offset[0] = min_ii(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
-			}
+      if (ui_but_is_editable(bt)) {
+        but_activate = bt;
+      }
+    }
+    else {
+      /* position mouse at 0.8*width of the button and below the tile
+       * on the first item */
+      offset[0] = 0;
+      for (bt = block->buttons.first; bt; bt = bt->next) {
+        offset[0] = min_ii(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
+      }
 
-			offset[1] = 2.1 * UI_UNIT_Y;
+      offset[1] = 2.1 * UI_UNIT_Y;
 
-			for (bt = block->buttons.first; bt; bt = bt->next) {
-				if (ui_but_is_editable(bt)) {
-					but_activate = bt;
-					break;
-				}
-			}
-		}
+      for (bt = block->buttons.first; bt; bt = bt->next) {
+        if (ui_but_is_editable(bt)) {
+          but_activate = bt;
+          break;
+        }
+      }
+    }
 
-		/* in rare cases this is needed since moving the popup
-		 * to be within the window bounds may move it away from the mouse,
-		 * This ensures we set an item to be active. */
-		if (but_activate) {
-			ui_but_activate_over(C, handle->region, but_activate);
-		}
+    /* in rare cases this is needed since moving the popup
+     * to be within the window bounds may move it away from the mouse,
+     * This ensures we set an item to be active. */
+    if (but_activate) {
+      ui_but_activate_over(C, handle->region, but_activate);
+    }
 
-		block->minbounds = minwidth;
-		UI_block_bounds_set_menu(block, 1, offset);
-	}
-	else {
-		/* for a header menu we set the direction automatic */
-		if (!pup->slideout && flip) {
-			ScrArea *sa = CTX_wm_area(C);
-			ARegion *ar = CTX_wm_region(C);
-			if (sa && ar) {
-				if (ar->regiontype == RGN_TYPE_HEADER) {
-					if (ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
-						UI_block_direction_set(block, UI_DIR_UP);
-						UI_block_order_flip(block);
-					}
-				}
-				if (ar->regiontype == RGN_TYPE_FOOTER) {
-					if (ED_area_footer_alignment(sa) == RGN_ALIGN_BOTTOM) {
-						UI_block_direction_set(block, UI_DIR_UP);
-						UI_block_order_flip(block);
-					}
-				}
-			}
-		}
+    block->minbounds = minwidth;
+    UI_block_bounds_set_menu(block, 1, offset);
+  }
+  else {
+    /* for a header menu we set the direction automatic */
+    if (!pup->slideout && flip) {
+      ScrArea *sa = CTX_wm_area(C);
+      ARegion *ar = CTX_wm_region(C);
+      if (sa && ar) {
+        if (ar->regiontype == RGN_TYPE_HEADER) {
+          if (ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
+            UI_block_direction_set(block, UI_DIR_UP);
+            UI_block_order_flip(block);
+          }
+        }
+        if (ar->regiontype == RGN_TYPE_FOOTER) {
+          if (ED_area_footer_alignment(sa) == RGN_ALIGN_BOTTOM) {
+            UI_block_direction_set(block, UI_DIR_UP);
+            UI_block_order_flip(block);
+          }
+        }
+      }
+    }
 
-		block->minbounds = minwidth;
-		UI_block_bounds_set_text(block, 3.0f * UI_UNIT_X);
-	}
+    block->minbounds = minwidth;
+    UI_block_bounds_set_text(block, 3.0f * UI_UNIT_X);
+  }
 
-	/* if menu slides out of other menu, override direction */
-	if (pup->slideout) {
-		UI_block_direction_set(block, UI_DIR_RIGHT);
-	}
+  /* if menu slides out of other menu, override direction */
+  if (pup->slideout) {
+    UI_block_direction_set(block, UI_DIR_RIGHT);
+  }
 
-	return pup->block;
+  return pup->block;
 }
 
 uiPopupBlockHandle *ui_popup_menu_create(
-        bContext *C, ARegion *butregion, uiBut *but,
-        uiMenuCreateFunc menu_func, void *arg)
+    bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
-	wmWindow *window = CTX_wm_window(C);
-	uiStyle *style = UI_style_get_dpi();
-	uiPopupBlockHandle *handle;
-	uiPopupMenu *pup;
+  wmWindow *window = CTX_wm_window(C);
+  uiStyle *style = UI_style_get_dpi();
+  uiPopupBlockHandle *handle;
+  uiPopupMenu *pup;
 
-	pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
-	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS_PULLDOWN);
-	pup->block->flag |= UI_BLOCK_NUMSELECT;  /* default menus to numselect */
-	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
-	pup->slideout = but ? ui_block_is_menu(but->block) : false;
-	pup->but = but;
-	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
+  pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
+  pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS_PULLDOWN);
+  pup->block->flag |= UI_BLOCK_NUMSELECT; /* default menus to numselect */
+  pup->layout = UI_block_layout(
+      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+  pup->slideout = but ? ui_block_is_menu(but->block) : false;
+  pup->but = but;
+  uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
 
-	if (!but) {
-		/* no button to start from, means we are a popup */
-		pup->mx = window->eventstate->x;
-		pup->my = window->eventstate->y;
-		pup->popup = true;
-		pup->block->flag |= UI_BLOCK_NO_FLIP;
-	}
-	/* some enums reversing is strange, currently we have no good way to
-	 * reverse some enum's but not others, so reverse all so the first menu
-	 * items are always close to the mouse cursor */
-	else {
+  if (!but) {
+    /* no button to start from, means we are a popup */
+    pup->mx = window->eventstate->x;
+    pup->my = window->eventstate->y;
+    pup->popup = true;
+    pup->block->flag |= UI_BLOCK_NO_FLIP;
+  }
+  /* some enums reversing is strange, currently we have no good way to
+   * reverse some enum's but not others, so reverse all so the first menu
+   * items are always close to the mouse cursor */
+  else {
 #if 0
-		/* if this is an rna button then we can assume its an enum
-		 * flipping enums is generally not good since the order can be
-		 * important [#28786] */
-		if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
-			pup->block->flag |= UI_BLOCK_NO_FLIP;
-		}
+    /* if this is an rna button then we can assume its an enum
+     * flipping enums is generally not good since the order can be
+     * important [#28786] */
+    if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+      pup->block->flag |= UI_BLOCK_NO_FLIP;
+    }
 #endif
-		if (but->context) {
-			uiLayoutContextCopy(pup->layout, but->context);
-		}
-	}
+    if (but->context) {
+      uiLayoutContextCopy(pup->layout, but->context);
+    }
+  }
 
-	/* menu is created from a callback */
-	pup->menu_func = menu_func;
-	pup->menu_arg = arg;
+  /* menu is created from a callback */
+  pup->menu_func = menu_func;
+  pup->menu_arg = arg;
 
-	handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
+  handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
 
-	if (!but) {
-		handle->popup = true;
+  if (!but) {
+    handle->popup = true;
 
-		UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-		WM_event_add_mousemove(C);
-	}
+    UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+    WM_event_add_mousemove(C);
+  }
 
-	MEM_freeN(pup);
+  MEM_freeN(pup);
 
-	return handle;
+  return handle;
 }
 
 /** \} */
@@ -376,48 +375,66 @@ uiPopupBlockHandle *ui_popup_menu_create(
  * Only return handler, and set optional title.
  * \param block_name: Assigned to uiBlock.name (useful info for debugging).
  */
-uiPopupMenu *UI_popup_menu_begin_ex(bContext *C, const char *title, const char *block_name, int icon)
+uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
+                                    const char *title,
+                                    const char *block_name,
+                                    int icon)
 {
-	uiStyle *style = UI_style_get_dpi();
-	uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
-	uiBut *but;
+  uiStyle *style = UI_style_get_dpi();
+  uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
+  uiBut *but;
 
-	pup->block = UI_block_begin(C, NULL, block_name, UI_EMBOSS_PULLDOWN);
-	pup->block->flag |= UI_BLOCK_POPUP_MEMORY | UI_BLOCK_IS_FLIP;
-	pup->block->puphash = ui_popup_menu_hash(title);
-	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+  pup->block = UI_block_begin(C, NULL, block_name, UI_EMBOSS_PULLDOWN);
+  pup->block->flag |= UI_BLOCK_POPUP_MEMORY | UI_BLOCK_IS_FLIP;
+  pup->block->puphash = ui_popup_menu_hash(title);
+  pup->layout = UI_block_layout(
+      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
 
-	/* note, this intentionally differs from the menu & submenu default because many operators
-	 * use popups like this to select one of their options -
-	 * where having invoke doesn't make sense */
-	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
+  /* note, this intentionally differs from the menu & submenu default because many operators
+   * use popups like this to select one of their options -
+   * where having invoke doesn't make sense */
+  uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 
-	/* create in advance so we can let buttons point to retval already */
-	pup->block->handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
+  /* create in advance so we can let buttons point to retval already */
+  pup->block->handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 
-	/* create title button */
-	if (title[0]) {
-		char titlestr[256];
+  /* create title button */
+  if (title[0]) {
+    char titlestr[256];
 
-		if (icon) {
-			BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
-			uiDefIconTextBut(
-			        pup->block, UI_BTYPE_LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-		}
-		else {
-			but = uiDefBut(pup->block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-			but->drawflag = UI_BUT_TEXT_LEFT;
-		}
+    if (icon) {
+      BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
+      uiDefIconTextBut(pup->block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       icon,
+                       titlestr,
+                       0,
+                       0,
+                       200,
+                       UI_UNIT_Y,
+                       NULL,
+                       0.0,
+                       0.0,
+                       0,
+                       0,
+                       "");
+    }
+    else {
+      but = uiDefBut(
+          pup->block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+      but->drawflag = UI_BUT_TEXT_LEFT;
+    }
 
-		uiItemS(pup->layout);
-	}
+    uiItemS(pup->layout);
+  }
 
-	return pup;
+  return pup;
 }
 
 uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
 {
-	return UI_popup_menu_begin_ex(C, title, __func__, icon);
+  return UI_popup_menu_begin_ex(C, title, __func__, icon);
 }
 
 /**
@@ -425,54 +442,54 @@ uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
  */
 void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *but)
 {
-	pup->but = but;
-	pup->butregion = butregion;
+  pup->but = but;
+  pup->butregion = butregion;
 }
 
 /* set the whole structure to work */
 void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 {
-	wmWindow *window = CTX_wm_window(C);
-	uiPopupBlockHandle *menu;
-	uiBut *but = NULL;
-	ARegion *butregion = NULL;
+  wmWindow *window = CTX_wm_window(C);
+  uiPopupBlockHandle *menu;
+  uiBut *but = NULL;
+  ARegion *butregion = NULL;
 
-	pup->popup = true;
-	pup->mx = window->eventstate->x;
-	pup->my = window->eventstate->y;
+  pup->popup = true;
+  pup->mx = window->eventstate->x;
+  pup->my = window->eventstate->y;
 
-	if (pup->but) {
-		but = pup->but;
-		butregion = pup->butregion;
-	}
+  if (pup->but) {
+    but = pup->but;
+    butregion = pup->butregion;
+  }
 
-	menu = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
-	menu->popup = true;
+  menu = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
+  menu->popup = true;
 
-	UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
-	WM_event_add_mousemove(C);
+  UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
+  WM_event_add_mousemove(C);
 
-	MEM_freeN(pup);
+  MEM_freeN(pup);
 }
 
 bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
 {
-	if (!UI_block_is_empty(pup->block)) {
-		UI_popup_menu_end(C, pup);
-		return true;
-	}
-	else {
-		UI_block_layout_resolve(pup->block, NULL, NULL);
-		MEM_freeN(pup->block->handle);
-		UI_block_free(C, pup->block);
-		MEM_freeN(pup);
-		return false;
-	}
+  if (!UI_block_is_empty(pup->block)) {
+    UI_popup_menu_end(C, pup);
+    return true;
+  }
+  else {
+    UI_block_layout_resolve(pup->block, NULL, NULL);
+    MEM_freeN(pup->block->handle);
+    UI_block_free(C, pup->block);
+    MEM_freeN(pup);
+    return false;
+  }
 }
 
 uiLayout *UI_popup_menu_layout(uiPopupMenu *pup)
 {
-	return pup->layout;
+  return pup->layout;
 }
 
 /** \} */
@@ -483,79 +500,79 @@ uiLayout *UI_popup_menu_layout(uiPopupMenu *pup)
 
 void UI_popup_menu_reports(bContext *C, ReportList *reports)
 {
-	Report *report;
+  Report *report;
 
-	uiPopupMenu *pup = NULL;
-	uiLayout *layout;
+  uiPopupMenu *pup = NULL;
+  uiLayout *layout;
 
-	if (!CTX_wm_window(C)) {
-		return;
-	}
+  if (!CTX_wm_window(C)) {
+    return;
+  }
 
-	for (report = reports->list.first; report; report = report->next) {
-		int icon;
-		const char *msg, *msg_next;
+  for (report = reports->list.first; report; report = report->next) {
+    int icon;
+    const char *msg, *msg_next;
 
-		if (report->type < reports->printlevel) {
-			continue;
-		}
+    if (report->type < reports->printlevel) {
+      continue;
+    }
 
-		if (pup == NULL) {
-			char title[UI_MAX_DRAW_STR];
-			BLI_snprintf(title, sizeof(title), "%s: %s", IFACE_("Report"), report->typestr);
-			/* popup_menu stuff does just what we need (but pass meaningful block name) */
-			pup = UI_popup_menu_begin_ex(C, title, __func__, ICON_NONE);
-			layout = UI_popup_menu_layout(pup);
-		}
-		else {
-			uiItemS(layout);
-		}
+    if (pup == NULL) {
+      char title[UI_MAX_DRAW_STR];
+      BLI_snprintf(title, sizeof(title), "%s: %s", IFACE_("Report"), report->typestr);
+      /* popup_menu stuff does just what we need (but pass meaningful block name) */
+      pup = UI_popup_menu_begin_ex(C, title, __func__, ICON_NONE);
+      layout = UI_popup_menu_layout(pup);
+    }
+    else {
+      uiItemS(layout);
+    }
 
-		/* split each newline into a label */
-		msg = report->message;
-		icon = UI_icon_from_report_type(report->type);
-		do {
-			char buf[UI_MAX_DRAW_STR];
-			msg_next = strchr(msg, '\n');
-			if (msg_next) {
-				msg_next++;
-				BLI_strncpy(buf, msg, MIN2(sizeof(buf), msg_next - msg));
-				msg = buf;
-			}
-			uiItemL(layout, msg, icon);
-			icon = ICON_NONE;
-		} while ((msg = msg_next) && *msg);
-	}
+    /* split each newline into a label */
+    msg = report->message;
+    icon = UI_icon_from_report_type(report->type);
+    do {
+      char buf[UI_MAX_DRAW_STR];
+      msg_next = strchr(msg, '\n');
+      if (msg_next) {
+        msg_next++;
+        BLI_strncpy(buf, msg, MIN2(sizeof(buf), msg_next - msg));
+        msg = buf;
+      }
+      uiItemL(layout, msg, icon);
+      icon = ICON_NONE;
+    } while ((msg = msg_next) && *msg);
+  }
 
-	if (pup) {
-		UI_popup_menu_end(C, pup);
-	}
+  if (pup) {
+    UI_popup_menu_end(C, pup);
+  }
 }
 
 int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 {
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	MenuType *mt = WM_menutype_find(idname, true);
+  uiPopupMenu *pup;
+  uiLayout *layout;
+  MenuType *mt = WM_menutype_find(idname, true);
 
-	if (mt == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Menu \"%s\" not found", idname);
-		return OPERATOR_CANCELLED;
-	}
+  if (mt == NULL) {
+    BKE_reportf(reports, RPT_ERROR, "Menu \"%s\" not found", idname);
+    return OPERATOR_CANCELLED;
+  }
 
-	if (WM_menutype_poll(C, mt) == false) {
-		/* cancel but allow event to pass through, just like operators do */
-		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
-	}
+  if (WM_menutype_poll(C, mt) == false) {
+    /* cancel but allow event to pass through, just like operators do */
+    return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+  }
 
-	pup = UI_popup_menu_begin(C, IFACE_(mt->label), ICON_NONE);
-	layout = UI_popup_menu_layout(pup);
+  pup = UI_popup_menu_begin(C, IFACE_(mt->label), ICON_NONE);
+  layout = UI_popup_menu_layout(pup);
 
-	UI_menutype_draw(C, mt, layout);
+  UI_menutype_draw(C, mt, layout);
 
-	UI_popup_menu_end(C, pup);
+  UI_popup_menu_end(C, pup);
 
-	return OPERATOR_INTERFACE;
+  return OPERATOR_INTERFACE;
 }
 
 /** \} */
@@ -564,104 +581,108 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 /** \name Popup Block API
  * \{ */
 
-void UI_popup_block_invoke_ex(bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext)
+void UI_popup_block_invoke_ex(
+    bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext)
 {
-	wmWindow *window = CTX_wm_window(C);
-	uiPopupBlockHandle *handle;
+  wmWindow *window = CTX_wm_window(C);
+  uiPopupBlockHandle *handle;
 
-	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
-	handle->popup = true;
-	handle->can_refresh = true;
-	handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
-	handle->opcontext = opcontext;
+  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
+  handle->popup = true;
+  handle->can_refresh = true;
+  handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
+  handle->opcontext = opcontext;
 
-	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-	UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
-	WM_event_add_mousemove(C);
+  UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
+  WM_event_add_mousemove(C);
 }
 
 void UI_popup_block_invoke(bContext *C, uiBlockCreateFunc func, void *arg)
 {
-	UI_popup_block_invoke_ex(C, func, arg, NULL, WM_OP_INVOKE_DEFAULT);
+  UI_popup_block_invoke_ex(C, func, arg, NULL, WM_OP_INVOKE_DEFAULT);
 }
 
-void UI_popup_block_ex(
-        bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func,
-        void *arg, wmOperator *op)
+void UI_popup_block_ex(bContext *C,
+                       uiBlockCreateFunc func,
+                       uiBlockHandleFunc popup_func,
+                       uiBlockCancelFunc cancel_func,
+                       void *arg,
+                       wmOperator *op)
 {
-	wmWindow *window = CTX_wm_window(C);
-	uiPopupBlockHandle *handle;
+  wmWindow *window = CTX_wm_window(C);
+  uiPopupBlockHandle *handle;
 
-	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
-	handle->popup = true;
-	handle->retvalue = 1;
-	handle->can_refresh = true;
+  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
+  handle->popup = true;
+  handle->retvalue = 1;
+  handle->can_refresh = true;
 
-	handle->popup_op = op;
-	handle->popup_arg = arg;
-	handle->popup_func = popup_func;
-	handle->cancel_func = cancel_func;
-	// handle->opcontext = opcontext;
+  handle->popup_op = op;
+  handle->popup_arg = arg;
+  handle->popup_func = popup_func;
+  handle->cancel_func = cancel_func;
+  // handle->opcontext = opcontext;
 
-	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-	UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
-	WM_event_add_mousemove(C);
+  UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
+  WM_event_add_mousemove(C);
 }
 
 #if 0 /* UNUSED */
 void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int opcontext)
 {
-	wmWindow *window = CTX_wm_window(C);
-	uiPopupBlockHandle *handle;
+  wmWindow *window = CTX_wm_window(C);
+  uiPopupBlockHandle *handle;
 
-	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, op);
-	handle->popup = 1;
-	handle->retvalue = 1;
-	handle->can_refresh = true;
+  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, op);
+  handle->popup = 1;
+  handle->retvalue = 1;
+  handle->can_refresh = true;
 
-	handle->popup_arg = op;
-	handle->popup_func = operator_cb;
-	handle->cancel_func = confirm_cancel_operator;
-	handle->opcontext = opcontext;
+  handle->popup_arg = op;
+  handle->popup_func = operator_cb;
+  handle->cancel_func = confirm_cancel_operator;
+  handle->opcontext = opcontext;
 
-	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-	WM_event_add_mousemove(C);
+  UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  WM_event_add_mousemove(C);
 }
 #endif
 
 void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 {
-	/* if loading new .blend while popup is open, window will be NULL */
-	if (block->handle) {
-		if (win) {
-			const bScreen *screen = WM_window_get_active_screen(win);
+  /* if loading new .blend while popup is open, window will be NULL */
+  if (block->handle) {
+    if (win) {
+      const bScreen *screen = WM_window_get_active_screen(win);
 
-			UI_popup_handlers_remove(&win->modalhandlers, block->handle);
-			ui_popup_block_free(C, block->handle);
+      UI_popup_handlers_remove(&win->modalhandlers, block->handle);
+      ui_popup_block_free(C, block->handle);
 
-			/* In the case we have nested popups,
-			 * closing one may need to redraw another, see: T48874 */
-			for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
-				ED_region_tag_refresh_ui(ar);
-			}
-		}
-	}
+      /* In the case we have nested popups,
+       * closing one may need to redraw another, see: T48874 */
+      for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
+        ED_region_tag_refresh_ui(ar);
+      }
+    }
+  }
 }
 
 bool UI_popup_block_name_exists(bContext *C, const char *name)
 {
-	bScreen *sc = CTX_wm_screen(C);
-	uiBlock *block;
-	ARegion *ar;
+  bScreen *sc = CTX_wm_screen(C);
+  uiBlock *block;
+  ARegion *ar;
 
-	for (ar = sc->regionbase.first; ar; ar = ar->next) {
-		for (block = ar->uiblocks.first; block; block = block->next) {
-			if (STREQ(block->name, name)) {
-				return true;
-			}
-		}
-	}
-	return false;
+  for (ar = sc->regionbase.first; ar; ar = ar->next) {
+    for (block = ar->uiblocks.first; block; block = block->next) {
+      if (STREQ(block->name, name)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /** \} */

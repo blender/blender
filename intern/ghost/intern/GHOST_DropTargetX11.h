@@ -30,101 +30,100 @@
 
 #include "xdnd.h"
 
-class GHOST_DropTargetX11
-{
-public:
-	/**
-	 * Constructor
-	 *
-	 * \param window	The window to register as drop target.
-	 * \param system	The associated system.
-	 */
-	GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system);
+class GHOST_DropTargetX11 {
+ public:
+  /**
+   * Constructor
+   *
+   * \param window    The window to register as drop target.
+   * \param system    The associated system.
+   */
+  GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system);
 
-	/**
-	 * Destructor
-	 */
-	~GHOST_DropTargetX11();
+  /**
+   * Destructor
+   */
+  ~GHOST_DropTargetX11();
 
-	/**
-	 * Handler of ClientMessage X11 event
-	 */
-	bool GHOST_HandleClientMessage(XEvent *event);
+  /**
+   * Handler of ClientMessage X11 event
+   */
+  bool GHOST_HandleClientMessage(XEvent *event);
 
-	/**
-	 * Get data to pass in event.
-	 * It checks the type and calls specific functions for each type.
-	 * \param dropType - type of dropped entity.
-	 * \param dropBuffer - buffer returned from source application
-	 * \param dropBufferSize - size of returned buffer
-	 * \return Pointer to data.
-	 */
-	void *getGhostData(Atom dropType, unsigned char *dropBuffer, int dropBufferSize);
+  /**
+   * Get data to pass in event.
+   * It checks the type and calls specific functions for each type.
+   * \param dropType - type of dropped entity.
+   * \param dropBuffer - buffer returned from source application
+   * \param dropBufferSize - size of returned buffer
+   * \return Pointer to data.
+   */
+  void *getGhostData(Atom dropType, unsigned char *dropBuffer, int dropBufferSize);
 
-private:
-	/* Internal helper functions */
+ private:
+  /* Internal helper functions */
 
-	/**
-	 * Initialize XDND and all related X atoms
-	 */
-	void Initialize(void);
+  /**
+   * Initialize XDND and all related X atoms
+   */
+  void Initialize(void);
 
-	/**
-	 * Uninitialize XDND and all related X atoms
-	 */
-	void Uninitialize(void);
+  /**
+   * Uninitialize XDND and all related X atoms
+   */
+  void Uninitialize(void);
 
-	/**
-	 * Get data to be passed to event from text/uri-list mime type
-	 * \param dropBuffer - buffer returned from source application
-	 * \param dropBufferSize - size of dropped buffer
-	 * \return pointer to newly created GHOST data
-	 */
-	void *getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize);
+  /**
+   * Get data to be passed to event from text/uri-list mime type
+   * \param dropBuffer - buffer returned from source application
+   * \param dropBufferSize - size of dropped buffer
+   * \return pointer to newly created GHOST data
+   */
+  void *getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize);
 
-	/**
-	 * Decode URL (i.e. converts "file:///a%20b/test" to "file:///a b/test")
-	 * \param decodedOut - buffer for decoded URL
-	 * \param bufferSize - size of output buffer
-	 * \param encodedIn - input encoded buffer to be decoded
-	 */
-	void UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn);
+  /**
+   * Decode URL (i.e. converts "file:///a%20b/test" to "file:///a b/test")
+   * \param decodedOut - buffer for decoded URL
+   * \param bufferSize - size of output buffer
+   * \param encodedIn - input encoded buffer to be decoded
+   */
+  void UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn);
 
-	/**
-	 * Fully decode file URL (i.e. converts "file:///a%20b/test" to "/a b/test")
-	 * \param fileUrl - file path URL to be fully decoded
-	 * \return decoded file path (resutl should be free-d)
-	 */
-	char *FileUrlDecode(char *fileUrl);
+  /**
+   * Fully decode file URL (i.e. converts "file:///a%20b/test" to "/a b/test")
+   * \param fileUrl - file path URL to be fully decoded
+   * \return decoded file path (resutl should be free-d)
+   */
+  char *FileUrlDecode(char *fileUrl);
 
-	/* The associated GHOST_WindowWin32. */
-	GHOST_WindowX11 *m_window;
-	/* The System. */
-	GHOST_SystemX11 *m_system;
+  /* The associated GHOST_WindowWin32. */
+  GHOST_WindowX11 *m_window;
+  /* The System. */
+  GHOST_SystemX11 *m_system;
 
-	/* Data type of the dragged object */
-	GHOST_TDragnDropTypes m_draggedObjectType;
+  /* Data type of the dragged object */
+  GHOST_TDragnDropTypes m_draggedObjectType;
 
-	/* is dnd stuff initialzied */
-	static bool m_xdndInitialized;
+  /* is dnd stuff initialzied */
+  static bool m_xdndInitialized;
 
-	/* class holding internal stiff of xdnd library */
-	static DndClass m_dndClass;
+  /* class holding internal stiff of xdnd library */
+  static DndClass m_dndClass;
 
-	/* list of supported types to eb draggeg into */
-	static Atom *m_dndTypes;
+  /* list of supported types to eb draggeg into */
+  static Atom *m_dndTypes;
 
-	/* list of supported dran'n'drop actions */
-	static Atom *m_dndActions;
+  /* list of supported dran'n'drop actions */
+  static Atom *m_dndActions;
 
-	/* List of supported MIME types to be dragged into */
-	static const char *m_dndMimeTypes[];
+  /* List of supported MIME types to be dragged into */
+  static const char *m_dndMimeTypes[];
 
-	/* counter of references to global XDND structures */
-	static int m_refCounter;
+  /* counter of references to global XDND structures */
+  static int m_refCounter;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetX11")
+  MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetX11")
 #endif
 };
 

@@ -39,40 +39,60 @@ struct bGPDstroke;
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 void BKE_lattice_init(struct Lattice *lt);
 struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);
-void BKE_lattice_copy_data(struct Main *bmain, struct Lattice *lt_dst, const struct Lattice *lt_src, const int flag);
+void BKE_lattice_copy_data(struct Main *bmain,
+                           struct Lattice *lt_dst,
+                           const struct Lattice *lt_src,
+                           const int flag);
 struct Lattice *BKE_lattice_copy(struct Main *bmain, const struct Lattice *lt);
 void BKE_lattice_free(struct Lattice *lt);
 void BKE_lattice_make_local(struct Main *bmain, struct Lattice *lt, const bool lib_local);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
-struct LatticeDeformData *init_latt_deform(struct Object *oblatt, struct Object *ob) ATTR_WARN_UNUSED_RESULT;
+struct LatticeDeformData *init_latt_deform(struct Object *oblatt,
+                                           struct Object *ob) ATTR_WARN_UNUSED_RESULT;
 void calc_latt_deform(struct LatticeDeformData *lattice_deform_data, float co[3], float weight);
 void end_latt_deform(struct LatticeDeformData *lattice_deform_data);
 
 bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
-void curve_deform_verts(
-        struct Object *cuOb, struct Object *target, float (*vertexCos)[3],
-        int numVerts, struct MDeformVert *dvert, const int defgrp_index, short defaxis);
-void curve_deform_vector(
-        struct Object *cuOb, struct Object *target,
-        float orco[3], float vec[3], float mat[3][3], int no_rot_axis);
+void curve_deform_verts(struct Object *cuOb,
+                        struct Object *target,
+                        float (*vertexCos)[3],
+                        int numVerts,
+                        struct MDeformVert *dvert,
+                        const int defgrp_index,
+                        short defaxis);
+void curve_deform_vector(struct Object *cuOb,
+                         struct Object *target,
+                         float orco[3],
+                         float vec[3],
+                         float mat[3][3],
+                         int no_rot_axis);
 
-void lattice_deform_verts(
-        struct Object *laOb, struct Object *target,
-        struct Mesh *mesh, float (*vertexCos)[3],
-        int numVerts, const char *vgroup, float influence);
-void armature_deform_verts(
-        struct Object *armOb, struct Object *target,
-        const struct Mesh *mesh, float (*vertexCos)[3],
-        float (*defMats)[3][3], int numVerts, int deformflag,
-        float (*prevCos)[3], const char *defgrp_name,
-        struct bGPDstroke *gps);
+void lattice_deform_verts(struct Object *laOb,
+                          struct Object *target,
+                          struct Mesh *mesh,
+                          float (*vertexCos)[3],
+                          int numVerts,
+                          const char *vgroup,
+                          float influence);
+void armature_deform_verts(struct Object *armOb,
+                           struct Object *target,
+                           const struct Mesh *mesh,
+                           float (*vertexCos)[3],
+                           float (*defMats)[3][3],
+                           int numVerts,
+                           int deformflag,
+                           float (*prevCos)[3],
+                           const char *defgrp_name,
+                           struct bGPDstroke *gps);
 
 float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
-void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
-void    BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
+void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
+void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph,
+                                struct Scene *scene,
+                                struct Object *ob);
 
 struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
 struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
@@ -87,24 +107,26 @@ void BKE_lattice_transform(struct Lattice *lt, float mat[4][4], bool do_keys);
 
 bool BKE_lattice_is_any_selected(const struct Lattice *lt);
 
-int  BKE_lattice_index_from_uvw(struct Lattice *lt, const int u, const int v, const int w);
+int BKE_lattice_index_from_uvw(struct Lattice *lt, const int u, const int v, const int w);
 void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index, int *r_u, int *r_v, int *r_w);
-int  BKE_lattice_index_flip(struct Lattice *lt, const int index,
-                            const bool flip_u, const bool flip_v, const bool flip_w);
-void BKE_lattice_bitmap_from_flag(struct Lattice *lt, unsigned int *bitmap, const short flag,
-                                  const bool clear, const bool respecthide);
+int BKE_lattice_index_flip(
+    struct Lattice *lt, const int index, const bool flip_u, const bool flip_v, const bool flip_w);
+void BKE_lattice_bitmap_from_flag(struct Lattice *lt,
+                                  unsigned int *bitmap,
+                                  const short flag,
+                                  const bool clear,
+                                  const bool respecthide);
 
 /* **** Depsgraph evaluation **** */
 
 struct Depsgraph;
 
-void BKE_lattice_eval_geometry(struct Depsgraph *depsgraph,
-                               struct Lattice *latt);
+void BKE_lattice_eval_geometry(struct Depsgraph *depsgraph, struct Lattice *latt);
 
 /* Draw Cache */
 enum {
-	BKE_LATTICE_BATCH_DIRTY_ALL = 0,
-	BKE_LATTICE_BATCH_DIRTY_SELECT,
+  BKE_LATTICE_BATCH_DIRTY_ALL = 0,
+  BKE_LATTICE_BATCH_DIRTY_SELECT,
 };
 void BKE_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void BKE_lattice_batch_cache_free(struct Lattice *lt);
@@ -112,4 +134,4 @@ void BKE_lattice_batch_cache_free(struct Lattice *lt);
 extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(struct Lattice *lt, int mode);
 extern void (*BKE_lattice_batch_cache_free_cb)(struct Lattice *lt);
 
-#endif  /* __BKE_LATTICE_H__ */
+#endif /* __BKE_LATTICE_H__ */

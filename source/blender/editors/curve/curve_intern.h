@@ -21,7 +21,6 @@
  * \ingroup edcurve
  */
 
-
 #ifndef __CURVE_INTERN_H__
 #define __CURVE_INTERN_H__
 
@@ -34,24 +33,42 @@ struct ViewContext;
 struct wmOperatorType;
 
 /* editfont.c */
-enum { DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_NEXT_WORD, DEL_PREV_WORD, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
+enum {
+  DEL_NEXT_CHAR,
+  DEL_PREV_CHAR,
+  DEL_NEXT_WORD,
+  DEL_PREV_WORD,
+  DEL_SELECTION,
+  DEL_NEXT_SEL,
+  DEL_PREV_SEL
+};
 enum { CASE_LOWER, CASE_UPPER };
-enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD,
-       PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
+enum {
+  LINE_BEGIN,
+  LINE_END,
+  PREV_CHAR,
+  NEXT_CHAR,
+  PREV_WORD,
+  NEXT_WORD,
+  PREV_LINE,
+  NEXT_LINE,
+  PREV_PAGE,
+  NEXT_PAGE
+};
 
 typedef enum eVisible_Types {
-	HIDDEN = true,
-	VISIBLE = false,
+  HIDDEN = true,
+  VISIBLE = false,
 } eVisible_Types;
 
 typedef enum eEndPoint_Types {
-	FIRST = true,
-	LAST = false,
+  FIRST = true,
+  LAST = false,
 } eEndPoint_Types;
 
 typedef enum eCurveElem_Types {
-	CURVE_VERTEX = 0,
-	CURVE_SEGMENT,
+  CURVE_VERTEX = 0,
+  CURVE_SEGMENT,
 } eCurveElem_Types;
 
 /* internal select utils */
@@ -85,7 +102,6 @@ void FONT_OT_unlink(struct wmOperatorType *ot);
 
 void FONT_OT_textbox_add(struct wmOperatorType *ot);
 void FONT_OT_textbox_remove(struct wmOperatorType *ot);
-
 
 /* editcurve.c */
 void CURVE_OT_hide(struct wmOperatorType *ot);
@@ -124,17 +140,24 @@ void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
 
 /* exported for editcurve_undo.c */
 struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
-void          ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
+void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
-bool ED_curve_pick_vert(
-        struct ViewContext *vc, short sel,
-        struct Nurb **r_nurb, struct BezTriple **r_bezt, struct BPoint **r_bp, short *r_handle,
-        struct Base **r_base);
+bool ED_curve_pick_vert(struct ViewContext *vc,
+                        short sel,
+                        struct Nurb **r_nurb,
+                        struct BezTriple **r_bezt,
+                        struct BPoint **r_bp,
+                        short *r_handle,
+                        struct Base **r_base);
 
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
 bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const short flag);
-bool ed_editnurb_spin(float viewmat[4][4], struct View3D *v3d, struct Object *obedit, const float axis[3], const float cent[3]);
+bool ed_editnurb_spin(float viewmat[4][4],
+                      struct View3D *v3d,
+                      struct Object *obedit,
+                      const float axis[3],
+                      const float cent[3]);
 
 /* editcurve_select.c */
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);

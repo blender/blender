@@ -40,85 +40,85 @@ class ViewerOperation;
  * and map original node sockets to their inputs or outputs.
  */
 class NodeConverter {
-public:
-	NodeConverter(NodeOperationBuilder *builder);
+ public:
+  NodeConverter(NodeOperationBuilder *builder);
 
-	/**
-	 * Insert a new operation into the operations graph.
-	 * The operation must be created by the node.
-	 */
-	void addOperation(NodeOperation *operation);
+  /**
+   * Insert a new operation into the operations graph.
+   * The operation must be created by the node.
+   */
+  void addOperation(NodeOperation *operation);
 
-	/**
-	 * Map input socket of the node to an operation socket.
-	 * Links between nodes will then generate equivalent links between
-	 * the mapped operation sockets.
-	 *
-	 * \note A \a Node input can be mapped to multiple \a NodeOperation inputs.
-	 */
-	void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
-	/**
-	 * Map output socket of the node to an operation socket.
-	 * Links between nodes will then generate equivalent links between
-	 * the mapped operation sockets.
-	 *
-	 * \note A \a Node output can only be mapped to one \a NodeOperation output.
-	 * Any existing operation output mapping will be replaced.
-	 */
-	void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
+  /**
+   * Map input socket of the node to an operation socket.
+   * Links between nodes will then generate equivalent links between
+   * the mapped operation sockets.
+   *
+   * \note A \a Node input can be mapped to multiple \a NodeOperation inputs.
+   */
+  void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
+  /**
+   * Map output socket of the node to an operation socket.
+   * Links between nodes will then generate equivalent links between
+   * the mapped operation sockets.
+   *
+   * \note A \a Node output can only be mapped to one \a NodeOperation output.
+   * Any existing operation output mapping will be replaced.
+   */
+  void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
 
-	/**
-	 * Create a proxy operation for a node input.
-	 * This operation will be removed later and replaced
-	 * by direct links between the connected operations.
-	 */
-	NodeOperationOutput *addInputProxy(NodeInput *input, bool use_conversion);
-	/**
-	 * Create a proxy operation for a node output.
-	 * This operation will be removed later and replaced
-	 * by direct links between the connected operations.
-	 */
-	NodeOperationInput *addOutputProxy(NodeOutput *output, bool use_conversion);
+  /**
+   * Create a proxy operation for a node input.
+   * This operation will be removed later and replaced
+   * by direct links between the connected operations.
+   */
+  NodeOperationOutput *addInputProxy(NodeInput *input, bool use_conversion);
+  /**
+   * Create a proxy operation for a node output.
+   * This operation will be removed later and replaced
+   * by direct links between the connected operations.
+   */
+  NodeOperationInput *addOutputProxy(NodeOutput *output, bool use_conversion);
 
-	/** Define a constant input value. */
-	void addInputValue(NodeOperationInput *input, float value);
-	/** Define a constant input color. */
-	void addInputColor(NodeOperationInput *input, const float value[4]);
-	/** Define a constant input vector. */
-	void addInputVector(NodeOperationInput *input, const float value[3]);
+  /** Define a constant input value. */
+  void addInputValue(NodeOperationInput *input, float value);
+  /** Define a constant input color. */
+  void addInputColor(NodeOperationInput *input, const float value[4]);
+  /** Define a constant input vector. */
+  void addInputVector(NodeOperationInput *input, const float value[3]);
 
-	/** Define a constant output value. */
-	void addOutputValue(NodeOutput *output, float value);
-	/** Define a constant output color. */
-	void addOutputColor(NodeOutput *output, const float value[4]);
-	/** Define a constant output vector. */
-	void addOutputVector(NodeOutput *output, const float value[3]);
+  /** Define a constant output value. */
+  void addOutputValue(NodeOutput *output, float value);
+  /** Define a constant output color. */
+  void addOutputColor(NodeOutput *output, const float value[4]);
+  /** Define a constant output vector. */
+  void addOutputVector(NodeOutput *output, const float value[3]);
 
-	/** Add an explicit link between two operations. */
-	void addLink(NodeOperationOutput *from, NodeOperationInput *to);
+  /** Add an explicit link between two operations. */
+  void addLink(NodeOperationOutput *from, NodeOperationInput *to);
 
-	/** Add a preview operation for a operation output. */
-	void addPreview(NodeOperationOutput *output);
-	/** Add a preview operation for a node input. */
-	void addNodeInputPreview(NodeInput *input);
+  /** Add a preview operation for a operation output. */
+  void addPreview(NodeOperationOutput *output);
+  /** Add a preview operation for a node input. */
+  void addNodeInputPreview(NodeInput *input);
 
-	/**
-	 * When a node has no valid data
-	 * \note missing image / group pointer, or missing renderlayer from EXR
-	 */
-	NodeOperation *setInvalidOutput(NodeOutput *output);
+  /**
+   * When a node has no valid data
+   * \note missing image / group pointer, or missing renderlayer from EXR
+   */
+  NodeOperation *setInvalidOutput(NodeOutput *output);
 
-	/** Define a viewer operation as the active output, if possible */
-	void registerViewer(ViewerOperation *viewer);
-	/** The currently active viewer output operation */
-	ViewerOperation *active_viewer() const;
+  /** Define a viewer operation as the active output, if possible */
+  void registerViewer(ViewerOperation *viewer);
+  /** The currently active viewer output operation */
+  ViewerOperation *active_viewer() const;
 
-private:
-	/** The internal builder for storing the results of the graph construction. */
-	NodeOperationBuilder *m_builder;
+ private:
+  /** The internal builder for storing the results of the graph construction. */
+  NodeOperationBuilder *m_builder;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompiler")
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompiler")
 #endif
 };
 

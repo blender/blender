@@ -44,123 +44,136 @@ class WriteBufferOperation;
 class ViewerOperation;
 
 class NodeOperationBuilder {
-public:
-	class Link {
-	private:
-		NodeOperationOutput *m_from;
-		NodeOperationInput *m_to;
+ public:
+  class Link {
+   private:
+    NodeOperationOutput *m_from;
+    NodeOperationInput *m_to;
 
-	public:
-		Link(NodeOperationOutput *from, NodeOperationInput *to) :
-		    m_from(from),
-		    m_to(to)
-		{}
+   public:
+    Link(NodeOperationOutput *from, NodeOperationInput *to) : m_from(from), m_to(to)
+    {
+    }
 
-		NodeOperationOutput *from() const { return m_from; }
-		NodeOperationInput *to() const { return m_to; }
-	};
+    NodeOperationOutput *from() const
+    {
+      return m_from;
+    }
+    NodeOperationInput *to() const
+    {
+      return m_to;
+    }
+  };
 
-	typedef std::vector<NodeOperation *> Operations;
-	typedef std::vector<Link> Links;
-	typedef std::vector<ExecutionGroup *> Groups;
+  typedef std::vector<NodeOperation *> Operations;
+  typedef std::vector<Link> Links;
+  typedef std::vector<ExecutionGroup *> Groups;
 
-	typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
-	typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
+  typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
+  typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
 
-	typedef std::vector<NodeOperationInput *> OpInputs;
-	typedef std::map<NodeInput *, OpInputs> OpInputInverseMap;
+  typedef std::vector<NodeOperationInput *> OpInputs;
+  typedef std::map<NodeInput *, OpInputs> OpInputInverseMap;
 
-private:
-	const CompositorContext *m_context;
-	NodeGraph m_graph;
+ private:
+  const CompositorContext *m_context;
+  NodeGraph m_graph;
 
-	Operations m_operations;
-	Links m_links;
-	Groups m_groups;
+  Operations m_operations;
+  Links m_links;
+  Groups m_groups;
 
-	/** Maps operation inputs to node inputs */
-	InputSocketMap m_input_map;
-	/** Maps node outputs to operation outputs */
-	OutputSocketMap m_output_map;
+  /** Maps operation inputs to node inputs */
+  InputSocketMap m_input_map;
+  /** Maps node outputs to operation outputs */
+  OutputSocketMap m_output_map;
 
-	Node *m_current_node;
+  Node *m_current_node;
 
-	/** Operation that will be writing to the viewer image
-	 *  Only one operation can occupy this place at a time,
-	 *  to avoid race conditions
-	 */
-	ViewerOperation *m_active_viewer;
+  /** Operation that will be writing to the viewer image
+   *  Only one operation can occupy this place at a time,
+   *  to avoid race conditions
+   */
+  ViewerOperation *m_active_viewer;
 
-public:
-	NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
-	~NodeOperationBuilder();
+ public:
+  NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
+  ~NodeOperationBuilder();
 
-	const CompositorContext &context() const { return *m_context; }
+  const CompositorContext &context() const
+  {
+    return *m_context;
+  }
 
-	void convertToOperations(ExecutionSystem *system);
+  void convertToOperations(ExecutionSystem *system);
 
-	void addOperation(NodeOperation *operation);
+  void addOperation(NodeOperation *operation);
 
-	/** Map input socket of the current node to an operation socket */
-	void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
-	/** Map output socket of the current node to an operation socket */
-	void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
+  /** Map input socket of the current node to an operation socket */
+  void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
+  /** Map output socket of the current node to an operation socket */
+  void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
 
-	void addLink(NodeOperationOutput *from, NodeOperationInput *to);
-	void removeInputLink(NodeOperationInput *to);
+  void addLink(NodeOperationOutput *from, NodeOperationInput *to);
+  void removeInputLink(NodeOperationInput *to);
 
-	/** Add a preview operation for a operation output */
-	void addPreview(NodeOperationOutput *output);
-	/** Add a preview operation for a node input */
-	void addNodeInputPreview(NodeInput *input);
+  /** Add a preview operation for a operation output */
+  void addPreview(NodeOperationOutput *output);
+  /** Add a preview operation for a node input */
+  void addNodeInputPreview(NodeInput *input);
 
-	/** Define a viewer operation as the active output, if possible */
-	void registerViewer(ViewerOperation *viewer);
-	/** The currently active viewer output operation */
-	ViewerOperation *active_viewer() const { return m_active_viewer; }
+  /** Define a viewer operation as the active output, if possible */
+  void registerViewer(ViewerOperation *viewer);
+  /** The currently active viewer output operation */
+  ViewerOperation *active_viewer() const
+  {
+    return m_active_viewer;
+  }
 
-protected:
-	static NodeInput *find_node_input(const InputSocketMap &map, NodeOperationInput *op_input);
-	static const OpInputs &find_operation_inputs(const OpInputInverseMap &map, NodeInput *node_input);
-	static NodeOperationOutput *find_operation_output(const OutputSocketMap &map, NodeOutput *node_output);
+ protected:
+  static NodeInput *find_node_input(const InputSocketMap &map, NodeOperationInput *op_input);
+  static const OpInputs &find_operation_inputs(const OpInputInverseMap &map,
+                                               NodeInput *node_input);
+  static NodeOperationOutput *find_operation_output(const OutputSocketMap &map,
+                                                    NodeOutput *node_output);
 
-	/** Add datatype conversion where needed */
-	void add_datatype_conversions();
+  /** Add datatype conversion where needed */
+  void add_datatype_conversions();
 
-	/** Construct a constant value operation for every unconnected input */
-	void add_operation_input_constants();
-	void add_input_constant_value(NodeOperationInput *input, NodeInput *node_input);
+  /** Construct a constant value operation for every unconnected input */
+  void add_operation_input_constants();
+  void add_input_constant_value(NodeOperationInput *input, NodeInput *node_input);
 
-	/** Replace proxy operations with direct links */
-	void resolve_proxies();
+  /** Replace proxy operations with direct links */
+  void resolve_proxies();
 
-	/** Calculate resolution for each operation */
-	void determineResolutions();
+  /** Calculate resolution for each operation */
+  void determineResolutions();
 
-	/** Helper function to store connected inputs for replacement */
-	OpInputs cache_output_links(NodeOperationOutput *output) const;
-	/** Find a connected write buffer operation to an OpOutput */
-	WriteBufferOperation *find_attached_write_buffer_operation(NodeOperationOutput *output) const;
-	/** Add read/write buffer operations around complex operations */
-	void add_complex_operation_buffers();
-	void add_input_buffers(NodeOperation *operation, NodeOperationInput *input);
-	void add_output_buffers(NodeOperation *operation, NodeOperationOutput *output);
+  /** Helper function to store connected inputs for replacement */
+  OpInputs cache_output_links(NodeOperationOutput *output) const;
+  /** Find a connected write buffer operation to an OpOutput */
+  WriteBufferOperation *find_attached_write_buffer_operation(NodeOperationOutput *output) const;
+  /** Add read/write buffer operations around complex operations */
+  void add_complex_operation_buffers();
+  void add_input_buffers(NodeOperation *operation, NodeOperationInput *input);
+  void add_output_buffers(NodeOperation *operation, NodeOperationOutput *output);
 
-	/** Remove unreachable operations */
-	void prune_operations();
+  /** Remove unreachable operations */
+  void prune_operations();
 
-	/** Sort operations by link dependencies */
-	void sort_operations();
+  /** Sort operations by link dependencies */
+  void sort_operations();
 
-	/** Create execution groups */
-	void group_operations();
-	ExecutionGroup *make_group(NodeOperation *op);
+  /** Create execution groups */
+  void group_operations();
+  ExecutionGroup *make_group(NodeOperation *op);
 
-private:
-	PreviewOperation *make_preview_operation() const;
+ private:
+  PreviewOperation *make_preview_operation() const;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
 #endif
 };
 

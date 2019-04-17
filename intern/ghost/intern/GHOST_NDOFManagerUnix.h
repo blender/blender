@@ -22,16 +22,15 @@
 /* Event capture is handled within the NDOF manager on Linux,
  * so there's no need for SystemX11 to look for them. */
 
-class GHOST_NDOFManagerUnix : public GHOST_NDOFManager
-{
-public:
-	GHOST_NDOFManagerUnix(GHOST_System&);
-	~GHOST_NDOFManagerUnix();
-	bool available();
-	bool processEvents();
+class GHOST_NDOFManagerUnix : public GHOST_NDOFManager {
+ public:
+  GHOST_NDOFManagerUnix(GHOST_System &);
+  ~GHOST_NDOFManagerUnix();
+  bool available();
+  bool processEvents();
 
-private:
-	bool m_available;
+ private:
+  bool m_available;
 };
 
-#endif  /* __GHOST_NDOFMANAGERUNIX_H__ */
+#endif /* __GHOST_NDOFMANAGERUNIX_H__ */

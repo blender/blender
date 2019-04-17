@@ -26,36 +26,36 @@
 /* ************************************************************************** */
 
 class AbcCameraWriter : public AbcObjectWriter {
-	Alembic::AbcGeom::OCameraSchema m_camera_schema;
-	Alembic::AbcGeom::CameraSample m_camera_sample;
-	Alembic::AbcGeom::OCompoundProperty m_custom_data_container;
-	Alembic::AbcGeom::OFloatProperty m_stereo_distance;
-	Alembic::AbcGeom::OFloatProperty m_eye_separation;
+  Alembic::AbcGeom::OCameraSchema m_camera_schema;
+  Alembic::AbcGeom::CameraSample m_camera_sample;
+  Alembic::AbcGeom::OCompoundProperty m_custom_data_container;
+  Alembic::AbcGeom::OFloatProperty m_stereo_distance;
+  Alembic::AbcGeom::OFloatProperty m_eye_separation;
 
-public:
-	AbcCameraWriter(Object *ob,
-	                AbcTransformWriter *parent,
-	                uint32_t time_sampling,
-	                ExportSettings &settings);
+ public:
+  AbcCameraWriter(Object *ob,
+                  AbcTransformWriter *parent,
+                  uint32_t time_sampling,
+                  ExportSettings &settings);
 
-private:
-	virtual void do_write();
+ private:
+  virtual void do_write();
 };
 
 /* ************************************************************************** */
 
 class AbcCameraReader : public AbcObjectReader {
-	Alembic::AbcGeom::ICameraSchema m_schema;
+  Alembic::AbcGeom::ICameraSchema m_schema;
 
-public:
-	AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+ public:
+  AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-	bool valid() const;
-	bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
-	                         const Object *const ob,
-	                         const char **err_str) const;
+  bool valid() const;
+  bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                           const Object *const ob,
+                           const char **err_str) const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 };
 
-#endif  /* __ABC_CAMERA_H__ */
+#endif /* __ABC_CAMERA_H__ */

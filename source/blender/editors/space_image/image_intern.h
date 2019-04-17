@@ -21,7 +21,6 @@
  * \ingroup spimage
  */
 
-
 #ifndef __IMAGE_INTERN_H__
 #define __IMAGE_INTERN_H__
 

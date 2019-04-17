@@ -50,7 +50,6 @@
 #ifndef __BLI_BLENLIB_H__
 #define __BLI_BLENLIB_H__
 
-
 #include <stdlib.h>
 
 #ifdef __cplusplus

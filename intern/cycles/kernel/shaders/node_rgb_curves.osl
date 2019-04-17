@@ -17,25 +17,23 @@
 #include "stdosl.h"
 #include "node_ramp_util.h"
 
-shader node_rgb_curves(
-	color ramp[] = {0.0},
-	float min_x = 0.0,
-	float max_x = 1.0,
+shader node_rgb_curves(color ramp[] = {0.0},
+                       float min_x = 0.0,
+                       float max_x = 1.0,
 
-	color ColorIn = 0.0,
-	float Fac = 0.0,
-	output color ColorOut = 0.0)
+                       color ColorIn = 0.0,
+                       float Fac = 0.0,
+                       output color ColorOut = 0.0)
 {
-	color c = (ColorIn - color(min_x, min_x, min_x)) / (max_x - min_x);
+  color c = (ColorIn - color(min_x, min_x, min_x)) / (max_x - min_x);
 
-	color r = rgb_ramp_lookup(ramp, c[0], 1, 1);
-	color g = rgb_ramp_lookup(ramp, c[1], 1, 1);
-	color b = rgb_ramp_lookup(ramp, c[2], 1, 1);
+  color r = rgb_ramp_lookup(ramp, c[0], 1, 1);
+  color g = rgb_ramp_lookup(ramp, c[1], 1, 1);
+  color b = rgb_ramp_lookup(ramp, c[2], 1, 1);
 
-	ColorOut[0] = r[0];
-	ColorOut[1] = g[1];
-	ColorOut[2] = b[2];
+  ColorOut[0] = r[0];
+  ColorOut[1] = g[1];
+  ColorOut[2] = b[2];
 
-	ColorOut = mix(ColorIn, ColorOut, Fac);
+  ColorOut = mix(ColorIn, ColorOut, Fac);
 }
-

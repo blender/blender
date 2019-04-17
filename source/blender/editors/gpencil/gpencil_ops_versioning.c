@@ -22,7 +22,7 @@
  * \ingroup edgpencil
  */
 
- /* allow to use deprecated functionality */
+/* allow to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
 #include <stdio.h>
@@ -56,162 +56,161 @@
 
 #include "gpencil_intern.h"
 
- /* Free all of a gp-colors */
+/* Free all of a gp-colors */
 static void free_gpencil_colors(bGPDpalette *palette)
 {
-	/* error checking */
-	if (palette == NULL) {
-		return;
-	}
+  /* error checking */
+  if (palette == NULL) {
+    return;
+  }
 
-	/* free colors */
-	BLI_freelistN(&palette->colors);
+  /* free colors */
+  BLI_freelistN(&palette->colors);
 }
 
 /* Free all of the gp-palettes and colors */
 static void free_palettes(ListBase *list)
 {
-	bGPDpalette *palette_next;
+  bGPDpalette *palette_next;
 
-	/* error checking */
-	if (list == NULL) {
-		return;
-	}
+  /* error checking */
+  if (list == NULL) {
+    return;
+  }
 
-	/* delete palettes */
-	for (bGPDpalette *palette = list->first; palette; palette = palette_next) {
-		palette_next = palette->next;
-		/* free palette colors */
-		free_gpencil_colors(palette);
+  /* delete palettes */
+  for (bGPDpalette *palette = list->first; palette; palette = palette_next) {
+    palette_next = palette->next;
+    /* free palette colors */
+    free_gpencil_colors(palette);
 
-		MEM_freeN(palette);
-	}
-	BLI_listbase_clear(list);
+    MEM_freeN(palette);
+  }
+  BLI_listbase_clear(list);
 }
 
 /* ***************** Convert old 2.7 files to 2.8 ************************ */
 static bool gpencil_convert_old_files_poll(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_scene(C);
 
-	return (int) (scene->gpd != NULL);
+  return (int)(scene->gpd != NULL);
 }
 
 static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	const bool is_annotation = RNA_boolean_get(op->ptr, "annotation");
-	bGPdata *gpd = scene->gpd;
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const bool is_annotation = RNA_boolean_get(op->ptr, "annotation");
+  bGPdata *gpd = scene->gpd;
 
-	/* Convert grease pencil scene datablock to GP object */
-	if ((!is_annotation) && (view_layer != NULL)) {
-		Object *ob;
-		ob = BKE_object_add_for_data(bmain, view_layer, OB_GPENCIL, "GP_Scene", &scene->gpd->id, false);
-		zero_v3(ob->loc);
+  /* Convert grease pencil scene datablock to GP object */
+  if ((!is_annotation) && (view_layer != NULL)) {
+    Object *ob;
+    ob = BKE_object_add_for_data(
+        bmain, view_layer, OB_GPENCIL, "GP_Scene", &scene->gpd->id, false);
+    zero_v3(ob->loc);
 
-		/* convert grease pencil palettes (version >= 2.78)  to materials and weights */
-		for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
-			for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
+    /* convert grease pencil palettes (version >= 2.78)  to materials and weights */
+    for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
+      for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor;
+           palcolor = palcolor->next) {
 
-				/* create material slot */
-				Material *ma = BKE_gpencil_object_material_new(bmain, ob, palcolor->info, NULL);
+        /* create material slot */
+        Material *ma = BKE_gpencil_object_material_new(bmain, ob, palcolor->info, NULL);
 
-				/* copy color settings */
-				MaterialGPencilStyle *gp_style = ma->gp_style;
-				copy_v4_v4(gp_style->stroke_rgba, palcolor->color);
-				copy_v4_v4(gp_style->fill_rgba, palcolor->fill);
+        /* copy color settings */
+        MaterialGPencilStyle *gp_style = ma->gp_style;
+        copy_v4_v4(gp_style->stroke_rgba, palcolor->color);
+        copy_v4_v4(gp_style->fill_rgba, palcolor->fill);
 
-				/* set basic settings */
-				gp_style->pattern_gridsize = 0.1f;
-				gp_style->gradient_radius = 0.5f;
-				ARRAY_SET_ITEMS(gp_style->mix_rgba, 1.0f, 1.0f, 1.0f, 0.2f);
-				ARRAY_SET_ITEMS(gp_style->gradient_scale, 1.0f, 1.0f);
-				ARRAY_SET_ITEMS(gp_style->texture_scale, 1.0f, 1.0f);
-				gp_style->texture_opacity = 1.0f;
-				gp_style->texture_pixsize = 100.0f;
+        /* set basic settings */
+        gp_style->pattern_gridsize = 0.1f;
+        gp_style->gradient_radius = 0.5f;
+        ARRAY_SET_ITEMS(gp_style->mix_rgba, 1.0f, 1.0f, 1.0f, 0.2f);
+        ARRAY_SET_ITEMS(gp_style->gradient_scale, 1.0f, 1.0f);
+        ARRAY_SET_ITEMS(gp_style->texture_scale, 1.0f, 1.0f);
+        gp_style->texture_opacity = 1.0f;
+        gp_style->texture_pixsize = 100.0f;
 
-				gp_style->flag |= GP_STYLE_STROKE_SHOW;
-				gp_style->flag |= GP_STYLE_FILL_SHOW;
+        gp_style->flag |= GP_STYLE_STROKE_SHOW;
+        gp_style->flag |= GP_STYLE_FILL_SHOW;
 
-				/* fix strokes */
-				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-					for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-						for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-							if ((gps->colorname[0] != '\0') &&
-							    (STREQ(gps->colorname, palcolor->info)))
-							{
-								gps->mat_nr = ob->totcol - 1;
-								gps->colorname[0] = '\0';
-								/* weights array */
-								gps->dvert = NULL;
-							}
-						}
-					}
-				}
-			}
-		}
+        /* fix strokes */
+        for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+          for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+            for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+              if ((gps->colorname[0] != '\0') && (STREQ(gps->colorname, palcolor->info))) {
+                gps->mat_nr = ob->totcol - 1;
+                gps->colorname[0] = '\0';
+                /* weights array */
+                gps->dvert = NULL;
+              }
+            }
+          }
+        }
+      }
+    }
 
-		/* free palettes */
-		free_palettes(&gpd->palettes);
+    /* free palettes */
+    free_palettes(&gpd->palettes);
 
-		/* disable all GP modes */
-		ED_gpencil_setup_modes(C, gpd, 0);
+    /* disable all GP modes */
+    ED_gpencil_setup_modes(C, gpd, 0);
 
-		/* set cache as dirty */
-		BKE_gpencil_batch_cache_dirty_tag(ob->data);
+    /* set cache as dirty */
+    BKE_gpencil_batch_cache_dirty_tag(ob->data);
 
-		scene->gpd = NULL;
-	}
+    scene->gpd = NULL;
+  }
 
-	if (is_annotation) {
-		for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
-			for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
-				/* fix layers */
-				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-					/* unlock/unhide layer */
-					gpl->flag &= ~GP_LAYER_LOCKED;
-					gpl->flag &= ~GP_LAYER_HIDE;
-					/* set opacity to 1 */
-					gpl->opacity = 1.0f;
-					/* disable tint */
-					gpl->tintcolor[3] = 0.0f;
-					for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-						for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-							if ((gps->colorname[0] != '\0') &&
-							    (STREQ(gps->colorname, palcolor->info)))
-							{
-								/* copy color settings */
-								copy_v4_v4(gpl->color, palcolor->color);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+  if (is_annotation) {
+    for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
+      for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor;
+           palcolor = palcolor->next) {
+        /* fix layers */
+        for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+          /* unlock/unhide layer */
+          gpl->flag &= ~GP_LAYER_LOCKED;
+          gpl->flag &= ~GP_LAYER_HIDE;
+          /* set opacity to 1 */
+          gpl->opacity = 1.0f;
+          /* disable tint */
+          gpl->tintcolor[3] = 0.0f;
+          for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+            for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+              if ((gps->colorname[0] != '\0') && (STREQ(gps->colorname, palcolor->info))) {
+                /* copy color settings */
+                copy_v4_v4(gpl->color, palcolor->color);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
-	/* notifiers */
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  /* notifiers */
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_convert_old_files(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Convert Grease Pencil";
-	ot->idname = "GPENCIL_OT_convert_old_files";
-	ot->description = "Convert 2.7x grease pencil files to 2.80";
+  /* identifiers */
+  ot->name = "Convert Grease Pencil";
+  ot->idname = "GPENCIL_OT_convert_old_files";
+  ot->description = "Convert 2.7x grease pencil files to 2.80";
 
-	/* callbacks */
-	ot->exec = gpencil_convert_old_files_exec;
-	ot->poll = gpencil_convert_old_files_poll;
+  /* callbacks */
+  ot->exec = gpencil_convert_old_files_exec;
+  ot->poll = gpencil_convert_old_files_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "annotation", 0, "Annotation", "Convert to Annotations");
+  /* props */
+  ot->prop = RNA_def_boolean(ot->srna, "annotation", 0, "Annotation", "Convert to Annotations");
 }

@@ -58,129 +58,130 @@
 #endif
 
 struct MemBuf {
-	struct MemBuf *next;
-	uchar data[0];
+  struct MemBuf *next;
+  uchar data[0];
 };
 
 struct MemArena {
-	unsigned char *curbuf;
-	const char *name;
-	struct MemBuf *bufs;
+  unsigned char *curbuf;
+  const char *name;
+  struct MemBuf *bufs;
 
-	size_t bufsize, cursize;
-	size_t align;
+  size_t bufsize, cursize;
+  size_t align;
 
-	bool use_calloc;
+  bool use_calloc;
 };
 
 static void memarena_buf_free_all(struct MemBuf *mb)
 {
-	while (mb != NULL) {
-		struct MemBuf *mb_next = mb->next;
-		MEM_freeN(mb);
-		mb = mb_next;
-	}
+  while (mb != NULL) {
+    struct MemBuf *mb_next = mb->next;
+    MEM_freeN(mb);
+    mb = mb_next;
+  }
 }
 
 MemArena *BLI_memarena_new(const size_t bufsize, const char *name)
 {
-	MemArena *ma = MEM_callocN(sizeof(*ma), "memarena");
-	ma->bufsize = bufsize;
-	ma->align = 8;
-	ma->name = name;
+  MemArena *ma = MEM_callocN(sizeof(*ma), "memarena");
+  ma->bufsize = bufsize;
+  ma->align = 8;
+  ma->name = name;
 
-	VALGRIND_CREATE_MEMPOOL(ma, 0, false);
+  VALGRIND_CREATE_MEMPOOL(ma, 0, false);
 
-	return ma;
+  return ma;
 }
 
 void BLI_memarena_use_calloc(MemArena *ma)
 {
-	ma->use_calloc = 1;
+  ma->use_calloc = 1;
 }
 
 void BLI_memarena_use_malloc(MemArena *ma)
 {
-	ma->use_calloc = 0;
+  ma->use_calloc = 0;
 }
 
 void BLI_memarena_use_align(struct MemArena *ma, const size_t align)
 {
-	/* Align must be a power of two. */
-	BLI_assert((align & (align - 1)) == 0);
+  /* Align must be a power of two. */
+  BLI_assert((align & (align - 1)) == 0);
 
-	ma->align = align;
+  ma->align = align;
 }
 
 void BLI_memarena_free(MemArena *ma)
 {
-	memarena_buf_free_all(ma->bufs);
+  memarena_buf_free_all(ma->bufs);
 
-	VALGRIND_DESTROY_MEMPOOL(ma);
+  VALGRIND_DESTROY_MEMPOOL(ma);
 
-	MEM_freeN(ma);
+  MEM_freeN(ma);
 }
 
 /** Pad num up by \a amt (must be power of two). */
-#define PADUP(num, amt) (((num) + ((amt) - 1)) & ~((amt) - 1))
+#define PADUP(num, amt) (((num) + ((amt)-1)) & ~((amt)-1))
 
 /** Align alloc'ed memory (needed if `align > 8`). */
 static void memarena_curbuf_align(MemArena *ma)
 {
-	unsigned char *tmp;
+  unsigned char *tmp;
 
-	tmp = (unsigned char *)PADUP((intptr_t)ma->curbuf, (int)ma->align);
-	ma->cursize -= (size_t)(tmp - ma->curbuf);
-	ma->curbuf = tmp;
+  tmp = (unsigned char *)PADUP((intptr_t)ma->curbuf, (int)ma->align);
+  ma->cursize -= (size_t)(tmp - ma->curbuf);
+  ma->curbuf = tmp;
 }
 
 void *BLI_memarena_alloc(MemArena *ma, size_t size)
 {
-	void *ptr;
+  void *ptr;
 
-	/* Ensure proper alignment by rounding size up to multiple of 8. */
-	size = PADUP(size, ma->align);
+  /* Ensure proper alignment by rounding size up to multiple of 8. */
+  size = PADUP(size, ma->align);
 
-	if (UNLIKELY(size > ma->cursize)) {
-		if (size > ma->bufsize - (ma->align - 1)) {
-			ma->cursize = PADUP(size + 1, ma->align);
-		}
-		else {
-			ma->cursize = ma->bufsize;
-		}
+  if (UNLIKELY(size > ma->cursize)) {
+    if (size > ma->bufsize - (ma->align - 1)) {
+      ma->cursize = PADUP(size + 1, ma->align);
+    }
+    else {
+      ma->cursize = ma->bufsize;
+    }
 
-		struct MemBuf *mb = (ma->use_calloc ? MEM_callocN : MEM_mallocN)(sizeof(*mb) + ma->cursize, ma->name);
-		ma->curbuf = mb->data;
-		mb->next = ma->bufs;
-		ma->bufs = mb;
+    struct MemBuf *mb = (ma->use_calloc ? MEM_callocN : MEM_mallocN)(sizeof(*mb) + ma->cursize,
+                                                                     ma->name);
+    ma->curbuf = mb->data;
+    mb->next = ma->bufs;
+    ma->bufs = mb;
 
-		ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
+    ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
 
-		memarena_curbuf_align(ma);
-	}
+    memarena_curbuf_align(ma);
+  }
 
-	ptr = ma->curbuf;
-	ma->curbuf += size;
-	ma->cursize -= size;
+  ptr = ma->curbuf;
+  ma->curbuf += size;
+  ma->cursize -= size;
 
-	VALGRIND_MEMPOOL_ALLOC(ma, ptr, size);
+  VALGRIND_MEMPOOL_ALLOC(ma, ptr, size);
 
-	ASAN_UNPOISON_MEMORY_REGION(ptr, size);
+  ASAN_UNPOISON_MEMORY_REGION(ptr, size);
 
-	return ptr;
+  return ptr;
 }
 
 void *BLI_memarena_calloc(MemArena *ma, size_t size)
 {
-	void *ptr;
+  void *ptr;
 
-	/* No need to use this function call if we're calloc'ing by default. */
-	BLI_assert(ma->use_calloc == false);
+  /* No need to use this function call if we're calloc'ing by default. */
+  BLI_assert(ma->use_calloc == false);
 
-	ptr = BLI_memarena_alloc(ma, size);
-	memset(ptr, 0, size);
+  ptr = BLI_memarena_alloc(ma, size);
+  memset(ptr, 0, size);
 
-	return ptr;
+  return ptr;
 }
 
 /**
@@ -189,29 +190,29 @@ void *BLI_memarena_calloc(MemArena *ma, size_t size)
  */
 void BLI_memarena_clear(MemArena *ma)
 {
-	if (ma->bufs) {
-		unsigned char *curbuf_prev;
-		size_t curbuf_used;
+  if (ma->bufs) {
+    unsigned char *curbuf_prev;
+    size_t curbuf_used;
 
-		if (ma->bufs->next) {
-			memarena_buf_free_all(ma->bufs->next);
-			ma->bufs->next = NULL;
-		}
+    if (ma->bufs->next) {
+      memarena_buf_free_all(ma->bufs->next);
+      ma->bufs->next = NULL;
+    }
 
-		curbuf_prev = ma->curbuf;
-		ma->curbuf = ma->bufs->data;
-		memarena_curbuf_align(ma);
+    curbuf_prev = ma->curbuf;
+    ma->curbuf = ma->bufs->data;
+    memarena_curbuf_align(ma);
 
-		/* restore to original size */
-		curbuf_used = (size_t)(curbuf_prev - ma->curbuf);
-		ma->cursize += curbuf_used;
+    /* restore to original size */
+    curbuf_used = (size_t)(curbuf_prev - ma->curbuf);
+    ma->cursize += curbuf_used;
 
-		if (ma->use_calloc) {
-			memset(ma->curbuf, 0, curbuf_used);
-		}
-		ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
-	}
+    if (ma->use_calloc) {
+      memset(ma->curbuf, 0, curbuf_used);
+    }
+    ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
+  }
 
-	VALGRIND_DESTROY_MEMPOOL(ma);
-	VALGRIND_CREATE_MEMPOOL(ma, 0, false);
+  VALGRIND_DESTROY_MEMPOOL(ma);
+  VALGRIND_CREATE_MEMPOOL(ma, 0, false);
 }

@@ -24,81 +24,103 @@
 //#define COM_DEFOCUS_SEARCH
 
 class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepHelper {
-private:
-	int m_maxBlur;
-	float m_threshold;
-	bool m_do_size_scale;  /* scale size, matching 'BokehBlurNode' */
-	SocketReader *m_inputProgram;
-	SocketReader *m_inputBokehProgram;
-	SocketReader *m_inputSizeProgram;
+ private:
+  int m_maxBlur;
+  float m_threshold;
+  bool m_do_size_scale; /* scale size, matching 'BokehBlurNode' */
+  SocketReader *m_inputProgram;
+  SocketReader *m_inputBokehProgram;
+  SocketReader *m_inputSizeProgram;
 #ifdef COM_DEFOCUS_SEARCH
-	SocketReader *m_inputSearchProgram;
+  SocketReader *m_inputSearchProgram;
 #endif
 
-public:
-	VariableSizeBokehBlurOperation();
+ public:
+  VariableSizeBokehBlurOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect);
 
-	void deinitializeTileData(rcti *rect, void *data);
+  void deinitializeTileData(rcti *rect, void *data);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
 
-	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
+  void setMaxBlur(int maxRadius)
+  {
+    this->m_maxBlur = maxRadius;
+  }
 
-	void setThreshold(float threshold) { this->m_threshold = threshold; }
+  void setThreshold(float threshold)
+  {
+    this->m_threshold = threshold;
+  }
 
-	void setDoScaleSize(bool scale_size) { this->m_do_size_scale = scale_size; }
+  void setDoScaleSize(bool scale_size)
+  {
+    this->m_do_size_scale = scale_size;
+  }
 
-	void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
+  void executeOpenCL(OpenCLDevice *device,
+                     MemoryBuffer *outputMemoryBuffer,
+                     cl_mem clOutputBuffer,
+                     MemoryBuffer **inputMemoryBuffers,
+                     list<cl_mem> *clMemToCleanUp,
+                     list<cl_kernel> *clKernelsToCleanUp);
 };
 
 #ifdef COM_DEFOCUS_SEARCH
 class InverseSearchRadiusOperation : public NodeOperation {
-private:
-	int m_maxBlur;
-	SocketReader *m_inputRadius;
-public:
-	static const int DIVIDER = 4;
+ private:
+  int m_maxBlur;
+  SocketReader *m_inputRadius;
 
-	InverseSearchRadiusOperation();
+ public:
+  static const int DIVIDER = 4;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelChunk(float output[4], int x, int y, void *data);
+  InverseSearchRadiusOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
-	void *initializeTileData(rcti *rect);
-	void deinitializeTileData(rcti *rect, void *data);
+  /**
+   * the inner loop of this program
+   */
+  void executePixelChunk(float output[4], int x, int y, void *data);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
+  void *initializeTileData(rcti *rect);
+  void deinitializeTileData(rcti *rect, void *data);
 
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+
+  void setMaxBlur(int maxRadius)
+  {
+    this->m_maxBlur = maxRadius;
+  }
 };
 #endif
 #endif

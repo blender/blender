@@ -24,8 +24,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-#define KERNEL_NAME_JOIN(x, y, z) x ## _ ## y ## _ ## z
-#define KERNEL_NAME_EVAL(arch, name)  KERNEL_NAME_JOIN(kernel, arch, name)
+#define KERNEL_NAME_JOIN(x, y, z) x##_##y##_##z
+#define KERNEL_NAME_EVAL(arch, name) KERNEL_NAME_JOIN(kernel, arch, name)
 #define KERNEL_FUNCTION_FULL_NAME(name) KERNEL_NAME_EVAL(KERNEL_ARCH, name)
 
 struct KernelGlobals;
@@ -38,10 +38,7 @@ void *kernel_osl_memory(KernelGlobals *kg);
 bool kernel_osl_use(KernelGlobals *kg);
 
 void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t size);
-void kernel_tex_copy(KernelGlobals *kg,
-                     const char *name,
-                     void *mem,
-                     size_t size);
+void kernel_tex_copy(KernelGlobals *kg, const char *name, void *mem, size_t size);
 
 #define KERNEL_ARCH cpu
 #include "kernel/kernels/cpu/kernel_cpu.h"
@@ -63,4 +60,4 @@ void kernel_tex_copy(KernelGlobals *kg,
 
 CCL_NAMESPACE_END
 
-#endif  /* __KERNEL_H__ */
+#endif /* __KERNEL_H__ */

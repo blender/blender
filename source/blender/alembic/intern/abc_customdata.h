@@ -37,51 +37,52 @@ using Alembic::Abc::ICompoundProperty;
 using Alembic::Abc::OCompoundProperty;
 
 struct UVSample {
-	std::vector<Imath::V2f> uvs;
-	std::vector<uint32_t> indices;
+  std::vector<Imath::V2f> uvs;
+  std::vector<uint32_t> indices;
 };
 
 struct CDStreamConfig {
-	MLoop *mloop;
-	int totloop;
+  MLoop *mloop;
+  int totloop;
 
-	MPoly *mpoly;
-	int totpoly;
+  MPoly *mpoly;
+  int totpoly;
 
-	MVert *mvert;
-	int totvert;
+  MVert *mvert;
+  int totvert;
 
-	MLoopUV *mloopuv;
+  MLoopUV *mloopuv;
 
-	CustomData *loopdata;
+  CustomData *loopdata;
 
-	bool pack_uvs;
+  bool pack_uvs;
 
-	/* TODO(kevin): might need a better way to handle adding and/or updating
-	 * custom datas such that it updates the custom data holder and its pointers
-	 * properly. */
-	void *user_data;
-	void *(*add_customdata_cb)(void *user_data, const char *name, int data_type);
+  /* TODO(kevin): might need a better way to handle adding and/or updating
+   * custom datas such that it updates the custom data holder and its pointers
+   * properly. */
+  void *user_data;
+  void *(*add_customdata_cb)(void *user_data, const char *name, int data_type);
 
-	float weight;
-	float time;
-	Alembic::AbcGeom::index_t index;
-	Alembic::AbcGeom::index_t ceil_index;
+  float weight;
+  float time;
+  Alembic::AbcGeom::index_t index;
+  Alembic::AbcGeom::index_t ceil_index;
 
-	CDStreamConfig()
-	    : mloop(NULL)
-	    , totloop(0)
-	    , mpoly(NULL)
-	    , totpoly(0)
-	    , totvert(0)
-	    , pack_uvs(false)
-	    , user_data(NULL)
-	    , add_customdata_cb(NULL)
-	    , weight(0.0f)
-	    , time(0.0f)
-	    , index(0)
-	    , ceil_index(0)
-	{}
+  CDStreamConfig()
+      : mloop(NULL),
+        totloop(0),
+        mpoly(NULL),
+        totpoly(0),
+        totvert(0),
+        pack_uvs(false),
+        user_data(NULL),
+        add_customdata_cb(NULL),
+        weight(0.0f),
+        time(0.0f),
+        index(0),
+        ceil_index(0)
+  {
+  }
 };
 
 /* Get the UVs for the main UV property on a OSchema.
@@ -95,9 +96,9 @@ void write_custom_data(const OCompoundProperty &prop,
                        CustomData *data,
                        int data_type);
 
-void read_custom_data(const std::string & iobject_full_name,
+void read_custom_data(const std::string &iobject_full_name,
                       const ICompoundProperty &prop,
                       const CDStreamConfig &config,
                       const Alembic::Abc::ISampleSelector &iss);
 
-#endif  /* __ABC_CUSTOMDATA_H__ */
+#endif /* __ABC_CUSTOMDATA_H__ */

@@ -16,19 +16,17 @@
 
 #include "stdosl.h"
 
-shader node_convert_from_point(
-	point value_point = point(0.0, 0.0, 0.0),
-	output string value_string = "",
-	output float value_float = 0.0,
-	output int value_int = 0,
-	output vector value_vector = vector(0.0, 0.0, 0.0),
-	output color value_color = 0.0,
-	output normal value_normal = normal(0.0, 0.0, 0.0))
+shader node_convert_from_point(point value_point = point(0.0, 0.0, 0.0),
+                               output string value_string = "",
+                               output float value_float = 0.0,
+                               output int value_int = 0,
+                               output vector value_vector = vector(0.0, 0.0, 0.0),
+                               output color value_color = 0.0,
+                               output normal value_normal = normal(0.0, 0.0, 0.0))
 {
-	value_float = (value_point[0] + value_point[1] + value_point[2]) * (1.0 / 3.0);
-	value_int = (int)((value_normal[0] + value_normal[1] + value_normal[2]) * (1.0 / 3.0));
-	value_vector = vector(value_point[0], value_point[1], value_point[2]);
-	value_color = color(value_point[0], value_point[1], value_point[2]);
-	value_normal = normal(value_point[0], value_point[1], value_point[2]);
+  value_float = (value_point[0] + value_point[1] + value_point[2]) * (1.0 / 3.0);
+  value_int = (int)((value_normal[0] + value_normal[1] + value_normal[2]) * (1.0 / 3.0));
+  value_vector = vector(value_point[0], value_point[1], value_point[2]);
+  value_color = color(value_point[0], value_point[1], value_point[2]);
+  value_normal = normal(value_point[0], value_point[1], value_point[2]);
 }
-

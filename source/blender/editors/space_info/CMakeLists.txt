@@ -16,44 +16,44 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blenloader
-	../../blentranslation
-	../../depsgraph
-	../../imbuf
-	../../bmesh
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../blentranslation
+  ../../depsgraph
+  ../../imbuf
+  ../../bmesh
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	info_draw.c
-	info_ops.c
-	info_report.c
-	info_stats.c
-	space_info.c
-	textview.c
+  info_draw.c
+  info_ops.c
+  info_report.c
+  info_stats.c
+  space_info.c
+  textview.c
 
-	info_intern.h
-	textview.h
+  info_intern.h
+  textview.h
 )
 
 set(LIB
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

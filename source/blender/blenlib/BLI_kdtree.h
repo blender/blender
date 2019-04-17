@@ -66,4 +66,4 @@
 #undef KDTreeNearest
 #undef KDTREE_PREFIX_ID
 
-#endif  /* __BLI_KDTREE_H__ */
+#endif /* __BLI_KDTREE_H__ */

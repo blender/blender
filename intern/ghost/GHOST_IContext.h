@@ -28,7 +28,6 @@
 #include "STR_String.h"
 #include "GHOST_Types.h"
 
-
 /**
  * Interface for GHOST context.
  *
@@ -36,31 +35,30 @@
  * GHOST_ISystem::createOffscreenContext method.
  * \see GHOST_ISystem#createOffscreenContext
  */
-class GHOST_IContext
-{
-public:
-	/**
-	 * Destructor.
-	 */
-	virtual ~GHOST_IContext()
-	{
-	}
+class GHOST_IContext {
+ public:
+  /**
+   * Destructor.
+   */
+  virtual ~GHOST_IContext()
+  {
+  }
 
-	/**
-	 * Activates the drawing context.
-	 * \return  A boolean success indicator.
-	 */
-	virtual GHOST_TSuccess activateDrawingContext() = 0;
+  /**
+   * Activates the drawing context.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess activateDrawingContext() = 0;
 
-	/**
-	 * Release the drawing context of the calling thread.
-	 * \return  A boolean success indicator.
-	 */
-	virtual GHOST_TSuccess releaseDrawingContext() = 0;
+  /**
+   * Release the drawing context of the calling thread.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess releaseDrawingContext() = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IContext")
+  MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IContext")
 #endif
 };
 
-#endif // __GHOST_IContext_H__
+#endif  // __GHOST_IContext_H__

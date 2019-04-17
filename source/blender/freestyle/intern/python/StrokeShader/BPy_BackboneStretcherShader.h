@@ -32,19 +32,17 @@ extern "C" {
 extern PyTypeObject BackboneStretcherShader_Type;
 
 #define BPy_BackboneStretcherShader_Check(v) \
-            (PyObject_IsInstance((PyObject *)v, (PyObject *)&BackboneStretcherShader_Type))
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&BackboneStretcherShader_Type))
 
 /*---------------------------Python BPy_BackboneStretcherShader structure definition----------*/
 typedef struct {
-	BPy_StrokeShader py_ss;
+  BPy_StrokeShader py_ss;
 } BPy_BackboneStretcherShader;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H__ */

@@ -33,12 +33,12 @@ extern "C" {
 
 extern PyTypeObject Stroke_Type;
 
-#define BPy_Stroke_Check(v)	(((PyObject *)v)->ob_type == &Stroke_Type)
+#define BPy_Stroke_Check(v) (((PyObject *)v)->ob_type == &Stroke_Type)
 
 /*---------------------------Python BPy_Stroke structure definition----------*/
 typedef struct {
-	BPy_Interface1D py_if1D;
-	Stroke *s;
+  BPy_Interface1D py_if1D;
+  Stroke *s;
 } BPy_Stroke;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

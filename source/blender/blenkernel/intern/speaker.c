@@ -32,31 +32,31 @@
 
 void BKE_speaker_init(Speaker *spk)
 {
-	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(spk, id));
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(spk, id));
 
-	spk->attenuation = 1.0f;
-	spk->cone_angle_inner = 360.0f;
-	spk->cone_angle_outer = 360.0f;
-	spk->cone_volume_outer = 1.0f;
-	spk->distance_max = FLT_MAX;
-	spk->distance_reference = 1.0f;
-	spk->flag = 0;
-	spk->pitch = 1.0f;
-	spk->sound = NULL;
-	spk->volume = 1.0f;
-	spk->volume_max = 1.0f;
-	spk->volume_min = 0.0f;
+  spk->attenuation = 1.0f;
+  spk->cone_angle_inner = 360.0f;
+  spk->cone_angle_outer = 360.0f;
+  spk->cone_volume_outer = 1.0f;
+  spk->distance_max = FLT_MAX;
+  spk->distance_reference = 1.0f;
+  spk->flag = 0;
+  spk->pitch = 1.0f;
+  spk->sound = NULL;
+  spk->volume = 1.0f;
+  spk->volume_max = 1.0f;
+  spk->volume_min = 0.0f;
 }
 
 void *BKE_speaker_add(Main *bmain, const char *name)
 {
-	Speaker *spk;
+  Speaker *spk;
 
-	spk =  BKE_libblock_alloc(bmain, ID_SPK, name, 0);
+  spk = BKE_libblock_alloc(bmain, ID_SPK, name, 0);
 
-	BKE_speaker_init(spk);
+  BKE_speaker_init(spk);
 
-	return spk;
+  return spk;
 }
 
 /**
@@ -67,24 +67,27 @@ void *BKE_speaker_add(Main *bmain, const char *name)
  *
  * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_speaker_copy_data(Main *UNUSED(bmain), Speaker *UNUSED(spk_dst), const Speaker *UNUSED(spk_src), const int UNUSED(flag))
+void BKE_speaker_copy_data(Main *UNUSED(bmain),
+                           Speaker *UNUSED(spk_dst),
+                           const Speaker *UNUSED(spk_src),
+                           const int UNUSED(flag))
 {
-	/* Nothing to do! */
+  /* Nothing to do! */
 }
 
 Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
 {
-	Speaker *spk_copy;
-	BKE_id_copy(bmain, &spk->id, (ID **)&spk_copy);
-	return spk_copy;
+  Speaker *spk_copy;
+  BKE_id_copy(bmain, &spk->id, (ID **)&spk_copy);
+  return spk_copy;
 }
 
 void BKE_speaker_make_local(Main *bmain, Speaker *spk, const bool lib_local)
 {
-	BKE_id_make_local_generic(bmain, &spk->id, true, lib_local);
+  BKE_id_make_local_generic(bmain, &spk->id, true, lib_local);
 }
 
 void BKE_speaker_free(Speaker *spk)
 {
-	BKE_animdata_free((ID *)spk, false);
+  BKE_animdata_free((ID *)spk, false);
 }

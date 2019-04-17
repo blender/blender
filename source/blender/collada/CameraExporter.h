@@ -32,15 +32,15 @@ extern "C" {
 #include "ExportSettings.h"
 #include "DNA_camera_types.h"
 
-class CamerasExporter: COLLADASW::LibraryCameras
-{
-public:
-	CamerasExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
-	void exportCameras(Scene *sce);
-	void operator()(Object *ob, Scene *sce);
-private:
-	bool exportBlenderProfile(COLLADASW::Camera &cla,Camera *cam);
-	const ExportSettings *export_settings;
+class CamerasExporter : COLLADASW::LibraryCameras {
+ public:
+  CamerasExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+  void exportCameras(Scene *sce);
+  void operator()(Object *ob, Scene *sce);
+
+ private:
+  bool exportBlenderProfile(COLLADASW::Camera &cla, Camera *cam);
+  const ExportSettings *export_settings;
 };
 
 #endif

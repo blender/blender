@@ -23,4 +23,4 @@
 
 PyObject *BPyInit_gpu_select(void);
 
-#endif  /* __GPU_PY_SELECT_H__ */
+#endif /* __GPU_PY_SELECT_H__ */

@@ -27,10 +27,10 @@
 #include "render/shader.h"
 
 #ifdef WITH_OSL
-#include <OSL/llvm_util.h>
-#include <OSL/oslcomp.h>
-#include <OSL/oslexec.h>
-#include <OSL/oslquery.h>
+#  include <OSL/llvm_util.h>
+#  include <OSL/oslcomp.h>
+#  include <OSL/oslexec.h>
+#  include <OSL/oslquery.h>
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -52,70 +52,73 @@ class ShaderOutput;
  * to auto detect closures in the shader for MIS and transparent shadows */
 
 struct OSLShaderInfo {
-	OSLShaderInfo()
-	: has_surface_emission(false), has_surface_transparent(false),
-	  has_surface_bssrdf(false)
-	{}
+  OSLShaderInfo()
+      : has_surface_emission(false), has_surface_transparent(false), has_surface_bssrdf(false)
+  {
+  }
 
-	OSL::OSLQuery query;
-	bool has_surface_emission;
-	bool has_surface_transparent;
-	bool has_surface_bssrdf;
+  OSL::OSLQuery query;
+  bool has_surface_emission;
+  bool has_surface_transparent;
+  bool has_surface_bssrdf;
 };
 
 /* Shader Manage */
 
 class OSLShaderManager : public ShaderManager {
-public:
-	OSLShaderManager();
-	~OSLShaderManager();
+ public:
+  OSLShaderManager();
+  ~OSLShaderManager();
 
-	static void free_memory();
+  static void free_memory();
 
-	void reset(Scene *scene);
+  void reset(Scene *scene);
 
-	bool use_osl() { return true; }
+  bool use_osl()
+  {
+    return true;
+  }
 
-	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
+  void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
+  void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
-	/* osl compile and query */
-	static bool osl_compile(const string& inputfile, const string& outputfile);
-	static bool osl_query(OSL::OSLQuery& query, const string& filepath);
+  /* osl compile and query */
+  static bool osl_compile(const string &inputfile, const string &outputfile);
+  static bool osl_query(OSL::OSLQuery &query, const string &filepath);
 
-	/* shader file loading, all functions return pointer to hash string if found */
-	const char *shader_test_loaded(const string& hash);
-	const char *shader_load_bytecode(const string& hash, const string& bytecode);
-	const char *shader_load_filepath(string filepath);
-	OSLShaderInfo *shader_loaded_info(const string& hash);
+  /* shader file loading, all functions return pointer to hash string if found */
+  const char *shader_test_loaded(const string &hash);
+  const char *shader_load_bytecode(const string &hash, const string &bytecode);
+  const char *shader_load_filepath(string filepath);
+  OSLShaderInfo *shader_loaded_info(const string &hash);
 
-	/* create OSL node using OSLQuery */
-	OSLNode *osl_node(const std::string& filepath,
-	                  const std::string& bytecode_hash = "",
-	                  const std::string& bytecode = "");
+  /* create OSL node using OSLQuery */
+  OSLNode *osl_node(const std::string &filepath,
+                    const std::string &bytecode_hash = "",
+                    const std::string &bytecode = "");
 
-protected:
-	void texture_system_init();
-	void texture_system_free();
+ protected:
+  void texture_system_init();
+  void texture_system_free();
 
-	void shading_system_init();
-	void shading_system_free();
+  void shading_system_init();
+  void shading_system_free();
 
-	OSL::ShadingSystem *ss;
-	OSL::TextureSystem *ts;
-	OSLRenderServices *services;
-	OSL::ErrorHandler errhandler;
-	map<string, OSLShaderInfo> loaded_shaders;
+  OSL::ShadingSystem *ss;
+  OSL::TextureSystem *ts;
+  OSLRenderServices *services;
+  OSL::ErrorHandler errhandler;
+  map<string, OSLShaderInfo> loaded_shaders;
 
-	static OSL::TextureSystem *ts_shared;
-	static thread_mutex ts_shared_mutex;
-	static int ts_shared_users;
+  static OSL::TextureSystem *ts_shared;
+  static thread_mutex ts_shared_mutex;
+  static int ts_shared_users;
 
-	static OSL::ShadingSystem *ss_shared;
-	static OSLRenderServices *services_shared;
-	static thread_mutex ss_shared_mutex;
-	static thread_mutex ss_mutex;
-	static int ss_shared_users;
+  static OSL::ShadingSystem *ss_shared;
+  static OSLRenderServices *services_shared;
+  static thread_mutex ss_shared_mutex;
+  static thread_mutex ss_mutex;
+  static int ss_shared_users;
 };
 
 #endif
@@ -123,55 +126,59 @@ protected:
 /* Graph Compiler */
 
 class OSLCompiler {
-public:
-	OSLCompiler(void *manager, void *shadingsys,
-	            ImageManager *image_manager,
-	            LightManager *light_manager);
-	void compile(Scene *scene, OSLGlobals *og, Shader *shader);
+ public:
+  OSLCompiler(void *manager,
+              void *shadingsys,
+              ImageManager *image_manager,
+              LightManager *light_manager);
+  void compile(Scene *scene, OSLGlobals *og, Shader *shader);
 
-	void add(ShaderNode *node, const char *name, bool isfilepath = false);
+  void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
-	void parameter(ShaderNode *node, const char *name);
+  void parameter(ShaderNode *node, const char *name);
 
-	void parameter(const char *name, float f);
-	void parameter_color(const char *name, float3 f);
-	void parameter_vector(const char *name, float3 f);
-	void parameter_normal(const char *name, float3 f);
-	void parameter_point(const char *name, float3 f);
-	void parameter(const char *name, int f);
-	void parameter(const char *name, const char *s);
-	void parameter(const char *name, ustring str);
-	void parameter(const char *name, const Transform& tfm);
+  void parameter(const char *name, float f);
+  void parameter_color(const char *name, float3 f);
+  void parameter_vector(const char *name, float3 f);
+  void parameter_normal(const char *name, float3 f);
+  void parameter_point(const char *name, float3 f);
+  void parameter(const char *name, int f);
+  void parameter(const char *name, const char *s);
+  void parameter(const char *name, ustring str);
+  void parameter(const char *name, const Transform &tfm);
 
-	void parameter_array(const char *name, const float f[], int arraylen);
-	void parameter_color_array(const char *name, const array<float3>& f);
+  void parameter_array(const char *name, const float f[], int arraylen);
+  void parameter_color_array(const char *name, const array<float3> &f);
 
-	void parameter_attribute(const char *name, ustring s);
+  void parameter_attribute(const char *name, ustring s);
 
-	ShaderType output_type() { return current_type; }
+  ShaderType output_type()
+  {
+    return current_type;
+  }
 
-	bool background;
-	ImageManager *image_manager;
-	LightManager *light_manager;
+  bool background;
+  ImageManager *image_manager;
+  LightManager *light_manager;
 
-private:
+ private:
 #ifdef WITH_OSL
-	string id(ShaderNode *node);
-	OSL::ShaderGroupRef compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
-	bool node_skip_input(ShaderNode *node, ShaderInput *input);
-	string compatible_name(ShaderNode *node, ShaderInput *input);
-	string compatible_name(ShaderNode *node, ShaderOutput *output);
+  string id(ShaderNode *node);
+  OSL::ShaderGroupRef compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
+  bool node_skip_input(ShaderNode *node, ShaderInput *input);
+  string compatible_name(ShaderNode *node, ShaderInput *input);
+  string compatible_name(ShaderNode *node, ShaderOutput *output);
 
-	void find_dependencies(ShaderNodeSet& dependencies, ShaderInput *input);
-	void generate_nodes(const ShaderNodeSet& nodes);
+  void find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input);
+  void generate_nodes(const ShaderNodeSet &nodes);
 #endif
 
-	void *shadingsys;
-	void *manager;
-	ShaderType current_type;
-	Shader *current_shader;
+  void *shadingsys;
+  void *manager;
+  ShaderType current_type;
+  Shader *current_shader;
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __OSL_H__  */
+#endif /* __OSL_H__  */

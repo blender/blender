@@ -21,19 +21,22 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 
-Device *device_cpu_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
+Device *device_cpu_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
 bool device_opencl_init();
-Device *device_opencl_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
-bool device_opencl_compile_kernel(const vector<string>& parameters);
+Device *device_opencl_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
+bool device_opencl_compile_kernel(const vector<string> &parameters);
 bool device_cuda_init();
-Device *device_cuda_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
-Device *device_network_create(DeviceInfo& info, Stats &stats, Profiler &profiler, const char *address);
-Device *device_multi_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background);
+Device *device_cuda_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
+Device *device_network_create(DeviceInfo &info,
+                              Stats &stats,
+                              Profiler &profiler,
+                              const char *address);
+Device *device_multi_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
 
-void device_cpu_info(vector<DeviceInfo>& devices);
-void device_opencl_info(vector<DeviceInfo>& devices);
-void device_cuda_info(vector<DeviceInfo>& devices);
-void device_network_info(vector<DeviceInfo>& devices);
+void device_cpu_info(vector<DeviceInfo> &devices);
+void device_opencl_info(vector<DeviceInfo> &devices);
+void device_cuda_info(vector<DeviceInfo> &devices);
+void device_network_info(vector<DeviceInfo> &devices);
 
 string device_cpu_capabilities();
 string device_opencl_capabilities();
@@ -41,4 +44,4 @@ string device_cuda_capabilities();
 
 CCL_NAMESPACE_END
 
-#endif  /* __DEVICE_INTERN_H__ */
+#endif /* __DEVICE_INTERN_H__ */

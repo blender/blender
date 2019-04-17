@@ -33,26 +33,21 @@ struct ID;
 namespace DEG {
 
 struct DepsNodeFactory {
-	virtual NodeType type() const = 0;
-	virtual const char *type_name() const = 0;
+  virtual NodeType type() const = 0;
+  virtual const char *type_name() const = 0;
 
-	virtual int id_recalc_tag() const = 0;
+  virtual int id_recalc_tag() const = 0;
 
-	virtual Node *create_node(const ID *id,
-	                          const char *subdata,
-	                          const char *name) const = 0;
+  virtual Node *create_node(const ID *id, const char *subdata, const char *name) const = 0;
 };
 
-template <class ModeObjectType>
-struct DepsNodeFactoryImpl : public DepsNodeFactory {
-	virtual NodeType type() const override;
-	virtual const char *type_name() const override;
+template<class ModeObjectType> struct DepsNodeFactoryImpl : public DepsNodeFactory {
+  virtual NodeType type() const override;
+  virtual const char *type_name() const override;
 
-	virtual int id_recalc_tag() const override;
+  virtual int id_recalc_tag() const override;
 
-	virtual Node *create_node(const ID *id,
-	                          const char *subdata,
-	                          const char *name) const override;
+  virtual Node *create_node(const ID *id, const char *subdata, const char *name) const override;
 };
 
 /* Register typeinfo */

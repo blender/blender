@@ -44,23 +44,33 @@ void text_scroll_to_cursor(struct SpaceText *st, struct ARegion *ar, const bool 
 void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *sa, const bool center);
 void text_update_cursor_moved(struct bContext *C);
 
-#define TXT_OFFSET			((int)(0.5f * U.widget_unit))
-#define TXT_SCROLL_WIDTH	U.widget_unit
-#define TXT_SCROLL_SPACE	((int)(0.1f * U.widget_unit))
-#define TXT_LINE_SPACING	((int)(0.3f * st->lheight_dpi)) /* space between lines */
-#define TEXTXLOC			(st->cwidth * st->linenrs_tot)
+#define TXT_OFFSET ((int)(0.5f * U.widget_unit))
+#define TXT_SCROLL_WIDTH U.widget_unit
+#define TXT_SCROLL_SPACE ((int)(0.1f * U.widget_unit))
+#define TXT_LINE_SPACING ((int)(0.3f * st->lheight_dpi)) /* space between lines */
+#define TEXTXLOC (st->cwidth * st->linenrs_tot)
 
-#define SUGG_LIST_SIZE	7
-#define SUGG_LIST_WIDTH	20
-#define DOC_WIDTH		40
-#define DOC_HEIGHT		10
+#define SUGG_LIST_SIZE 7
+#define SUGG_LIST_WIDTH 20
+#define DOC_WIDTH 40
+#define DOC_HEIGHT 10
 
-#define TOOL_SUGG_LIST	0x01
-#define TOOL_DOCUMENT	0x02
+#define TOOL_SUGG_LIST 0x01
+#define TOOL_DOCUMENT 0x02
 
 int wrap_width(const struct SpaceText *st, struct ARegion *ar);
-void wrap_offset(const struct SpaceText *st, struct ARegion *ar, struct TextLine *linein, int cursin, int *offl, int *offc);
-void wrap_offset_in_line(const struct SpaceText *st, struct ARegion *ar, struct TextLine *linep, int cursin, int *offl, int *offc);
+void wrap_offset(const struct SpaceText *st,
+                 struct ARegion *ar,
+                 struct TextLine *linein,
+                 int cursin,
+                 int *offl,
+                 int *offc);
+void wrap_offset_in_line(const struct SpaceText *st,
+                         struct ARegion *ar,
+                         struct TextLine *linep,
+                         int cursin,
+                         int *offl,
+                         int *offc);
 int text_get_char_pos(const struct SpaceText *st, const char *line, int cur);
 
 void text_drawcache_tag_update(struct SpaceText *st, int full);
@@ -70,12 +80,27 @@ int text_do_suggest_select(struct SpaceText *st, struct ARegion *ar);
 void text_pop_suggest_list(void);
 
 int text_get_visible_lines(const struct SpaceText *st, struct ARegion *ar, const char *str);
-int text_get_span_wrap(const struct SpaceText *st, struct ARegion *ar, struct TextLine *from, struct TextLine *to);
+int text_get_span_wrap(const struct SpaceText *st,
+                       struct ARegion *ar,
+                       struct TextLine *from,
+                       struct TextLine *to);
 int text_get_total_lines(struct SpaceText *st, struct ARegion *ar);
 
 /* text_ops.c */
-enum { LINE_BEGIN, LINE_END, FILE_TOP, FILE_BOTTOM, PREV_CHAR, NEXT_CHAR,
-       PREV_WORD, NEXT_WORD, PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
+enum {
+  LINE_BEGIN,
+  LINE_END,
+  FILE_TOP,
+  FILE_BOTTOM,
+  PREV_CHAR,
+  NEXT_CHAR,
+  PREV_WORD,
+  NEXT_WORD,
+  PREV_LINE,
+  NEXT_LINE,
+  PREV_PAGE,
+  NEXT_PAGE
+};
 enum { DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_NEXT_WORD, DEL_PREV_WORD };
 
 void TEXT_OT_new(struct wmOperatorType *ot);

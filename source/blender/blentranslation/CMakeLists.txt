@@ -19,53 +19,53 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	../blenkernel
-	../blenlib
-	../makesdna
-	../makesrna
-	../../../intern/guardedalloc
-	../../../intern/locale
+  .
+  ../blenkernel
+  ../blenlib
+  ../makesdna
+  ../makesrna
+  ../../../intern/guardedalloc
+  ../../../intern/locale
 )
 
 set(INC_SYS
 )
 
 set(SRC
-	intern/blt_lang.c
-	intern/blt_translation.c
+  intern/blt_lang.c
+  intern/blt_translation.c
 
-	BLT_lang.h
-	BLT_translation.h
+  BLT_lang.h
+  BLT_translation.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
+  bf_blenkernel
+  bf_blenlib
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
-	list(APPEND LIB
-		bf_intern_locale
-	)
+  add_definitions(-DWITH_INTERNATIONAL)
+  list(APPEND LIB
+    bf_intern_locale
+  )
 endif()
 
 if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
-	list(APPEND INC
-		../python
-	)
+  add_definitions(-DWITH_PYTHON)
+  list(APPEND INC
+    ../python
+  )
 endif()
 
 if(WIN32)
-	if(WITH_INPUT_IME)
-		add_definitions(-DWITH_INPUT_IME)
-	endif()
+  if(WITH_INPUT_IME)
+    add_definitions(-DWITH_INPUT_IME)
+  endif()
 endif()
 
 blender_add_lib(bf_blentranslation "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_INTERNATIONAL)
-	add_subdirectory(msgfmt)
+  add_subdirectory(msgfmt)
 endif()

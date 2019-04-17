@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class MapValueNode : public Node {
-public:
-	MapValueNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  MapValueNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* __COM_MAPVALUENODE_H__ */
+#endif /* __COM_MAPVALUENODE_H__ */

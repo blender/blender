@@ -41,108 +41,115 @@
 
 static void initData(GpencilModifierData *md)
 {
-	SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->flag |= GP_SMOOTH_MOD_LOCATION;
-	gpmd->factor = 0.5f;
-	gpmd->layername[0] = '\0';
-	gpmd->vgname[0] = '\0';
-	gpmd->step = 1;
+  SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  gpmd->flag |= GP_SMOOTH_MOD_LOCATION;
+  gpmd->factor = 0.5f;
+  gpmd->layername[0] = '\0';
+  gpmd->vgname[0] = '\0';
+  gpmd->step = 1;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
 /* aply smooth effect based on stroke direction */
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *gpl,
+                         bGPDstroke *gps)
 {
-	SmoothGpencilModifierData *mmd = (SmoothGpencilModifierData *)md;
-	const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  SmoothGpencilModifierData *mmd = (SmoothGpencilModifierData *)md;
+  const int def_nr = defgroup_name_index(ob, mmd->vgname);
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, mmd->layer_pass, 3, gpl, gps,
-	            mmd->flag & GP_SMOOTH_INVERT_LAYER, mmd->flag & GP_SMOOTH_INVERT_PASS,
-	            mmd->flag & GP_SMOOTH_INVERT_LAYERPASS))
-	{
-		return;
-	}
+  if (!is_stroke_affected_by_modifier(ob,
+                                      mmd->layername,
+                                      mmd->pass_index,
+                                      mmd->layer_pass,
+                                      3,
+                                      gpl,
+                                      gps,
+                                      mmd->flag & GP_SMOOTH_INVERT_LAYER,
+                                      mmd->flag & GP_SMOOTH_INVERT_PASS,
+                                      mmd->flag & GP_SMOOTH_INVERT_LAYERPASS)) {
+    return;
+  }
 
-	/* smooth stroke */
-	if (mmd->factor > 0.0f) {
-		for (int r = 0; r < mmd->step; r++) {
-			for (int i = 0; i < gps->totpoints; i++) {
-				MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
+  /* smooth stroke */
+  if (mmd->factor > 0.0f) {
+    for (int r = 0; r < mmd->step; r++) {
+      for (int i = 0; i < gps->totpoints; i++) {
+        MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 
-				/* verify vertex group */
-				const float weight = get_modifier_point_weight(
-				        dvert, (mmd->flag & GP_SMOOTH_INVERT_VGROUP) != 0, def_nr);
-				if (weight < 0.0f) {
-					continue;
-				}
+        /* verify vertex group */
+        const float weight = get_modifier_point_weight(
+            dvert, (mmd->flag & GP_SMOOTH_INVERT_VGROUP) != 0, def_nr);
+        if (weight < 0.0f) {
+          continue;
+        }
 
-				const float val = mmd->factor * weight;
-				/* perform smoothing */
-				if (mmd->flag & GP_SMOOTH_MOD_LOCATION) {
-					BKE_gpencil_smooth_stroke(gps, i, val);
-				}
-				if (mmd->flag & GP_SMOOTH_MOD_STRENGTH) {
-					BKE_gpencil_smooth_stroke_strength(gps, i, val);
-				}
-				if ((mmd->flag & GP_SMOOTH_MOD_THICKNESS)  && (val > 0.0f)) {
-					/* thickness need to repeat process several times */
-					for (int r2 = 0; r2 < r * 10; r2++) {
-						BKE_gpencil_smooth_stroke_thickness(gps, i, val);
-					}
-				}
-				if (mmd->flag & GP_SMOOTH_MOD_UV) {
-					BKE_gpencil_smooth_stroke_uv(gps, i, val);
-				}
-			}
-		}
-	}
+        const float val = mmd->factor * weight;
+        /* perform smoothing */
+        if (mmd->flag & GP_SMOOTH_MOD_LOCATION) {
+          BKE_gpencil_smooth_stroke(gps, i, val);
+        }
+        if (mmd->flag & GP_SMOOTH_MOD_STRENGTH) {
+          BKE_gpencil_smooth_stroke_strength(gps, i, val);
+        }
+        if ((mmd->flag & GP_SMOOTH_MOD_THICKNESS) && (val > 0.0f)) {
+          /* thickness need to repeat process several times */
+          for (int r2 = 0; r2 < r * 10; r2++) {
+            BKE_gpencil_smooth_stroke_thickness(gps, i, val);
+          }
+        }
+        if (mmd->flag & GP_SMOOTH_MOD_UV) {
+          BKE_gpencil_smooth_stroke_uv(gps, i, val);
+        }
+      }
+    }
+  }
 }
 
-static void bakeModifier(
-        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(struct Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
 {
-	bGPdata *gpd = ob->data;
+  bGPdata *gpd = ob->data;
 
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md, depsgraph, ob, gpl, gps);
-			}
-		}
-	}
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        deformStroke(md, depsgraph, ob, gpl, gps);
+      }
+    }
+  }
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Smooth = {
-	/* name */              "Smooth",
-	/* structName */        "SmoothGpencilModifierData",
-	/* structSize */        sizeof(SmoothGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Smooth",
+    /* structName */ "SmoothGpencilModifierData",
+    /* structSize */ sizeof(SmoothGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

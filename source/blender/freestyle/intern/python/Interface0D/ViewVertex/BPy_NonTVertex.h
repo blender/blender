@@ -37,8 +37,8 @@ extern PyTypeObject NonTVertex_Type;
 
 /*---------------------------Python BPy_NonTVertex structure definition----------*/
 typedef struct {
-	BPy_ViewVertex py_vv;
-	NonTVertex *ntv;
+  BPy_ViewVertex py_vv;
+  NonTVertex *ntv;
 } BPy_NonTVertex;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -20,37 +20,42 @@
 #define __COM_INVERTOPERATION_H__
 #include "COM_NodeOperation.h"
 
-
 class InvertOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputValueProgram;
-	SocketReader *m_inputColorProgram;
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputValueProgram;
+  SocketReader *m_inputColorProgram;
 
-	bool m_alpha;
-	bool m_color;
+  bool m_alpha;
+  bool m_color;
 
-public:
-	InvertOperation();
+ public:
+  InvertOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void setColor(bool color) { this->m_color = color; }
-	void setAlpha(bool alpha) { this->m_alpha = alpha; }
+  void setColor(bool color)
+  {
+    this->m_color = color;
+  }
+  void setAlpha(bool alpha)
+  {
+    this->m_alpha = alpha;
+  }
 };
 #endif

@@ -22,38 +22,52 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_bsdf_diffuse_in[] = {
-	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("Roughness"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Roughness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_VECTOR,
+     1,
+     N_("Normal"),
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     -1.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_HIDE_VALUE},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_bsdf_diffuse_out[] = {
-	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	},
+    {SOCK_SHADER, 0, N_("BSDF")},
+    {-1, 0, ""},
 };
 
-static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat,
+                                        bNode *node,
+                                        bNodeExecData *UNUSED(execdata),
+                                        GPUNodeStack *in,
+                                        GPUNodeStack *out)
 {
-	if (!in[2].link)
-		GPU_link(mat, "world_normals_get", &in[2].link);
+  if (!in[2].link)
+    GPU_link(mat, "world_normals_get", &in[2].link);
 
-	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
+  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
-	return GPU_stack_link(mat, node, "node_bsdf_diffuse", in, out);
+  return GPU_stack_link(mat, node, "node_bsdf_diffuse", in, out);
 }
 
 /* node type definition */
 void register_node_type_sh_bsdf_diffuse(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_BSDF_DIFFUSE, "Diffuse BSDF", NODE_CLASS_SHADER, 0);
-	node_type_socket_templates(&ntype, sh_node_bsdf_diffuse_in, sh_node_bsdf_diffuse_out);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, NULL);
-	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_bsdf_diffuse);
+  sh_node_type_base(&ntype, SH_NODE_BSDF_DIFFUSE, "Diffuse BSDF", NODE_CLASS_SHADER, 0);
+  node_type_socket_templates(&ntype, sh_node_bsdf_diffuse_in, sh_node_bsdf_diffuse_out);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  node_type_init(&ntype, NULL);
+  node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_bsdf_diffuse);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

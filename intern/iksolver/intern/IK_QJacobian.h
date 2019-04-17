@@ -26,72 +26,69 @@
 
 #include "IK_Math.h"
 
-class IK_QJacobian
-{
-public:
-	IK_QJacobian();
-	~IK_QJacobian();
+class IK_QJacobian {
+ public:
+  IK_QJacobian();
+  ~IK_QJacobian();
 
-	// Call once to initialize
-	void ArmMatrices(int dof, int task_size);
-	void SetDoFWeight(int dof, double weight);
+  // Call once to initialize
+  void ArmMatrices(int dof, int task_size);
+  void SetDoFWeight(int dof, double weight);
 
-	// Iteratively called
-	void SetBetas(int id, int size, const Vector3d& v);
-	void SetDerivatives(int id, int dof_id, const Vector3d& v, double norm_weight);
+  // Iteratively called
+  void SetBetas(int id, int size, const Vector3d &v);
+  void SetDerivatives(int id, int dof_id, const Vector3d &v, double norm_weight);
 
-	void Invert();
+  void Invert();
 
-	double AngleUpdate(int dof_id) const;
-	double AngleUpdateNorm() const;
+  double AngleUpdate(int dof_id) const;
+  double AngleUpdateNorm() const;
 
-	// DoF locking for inner clamping loop
-	void Lock(int dof_id, double delta);
+  // DoF locking for inner clamping loop
+  void Lock(int dof_id, double delta);
 
-	// Secondary task
-	bool ComputeNullProjection();
+  // Secondary task
+  bool ComputeNullProjection();
 
-	void Restrict(VectorXd& d_theta, MatrixXd& nullspace);
-	void SubTask(IK_QJacobian& jacobian);
+  void Restrict(VectorXd &d_theta, MatrixXd &nullspace);
+  void SubTask(IK_QJacobian &jacobian);
 
-private:
-	
-	void InvertSDLS();
-	void InvertDLS();
+ private:
+  void InvertSDLS();
+  void InvertDLS();
 
-	int m_dof, m_task_size;
-	bool m_transpose;
+  int m_dof, m_task_size;
+  bool m_transpose;
 
-	// the jacobian matrix and it's null space projector
-	MatrixXd m_jacobian, m_jacobian_tmp;
-	MatrixXd m_nullspace;
+  // the jacobian matrix and it's null space projector
+  MatrixXd m_jacobian, m_jacobian_tmp;
+  MatrixXd m_nullspace;
 
-	/// the vector of intermediate betas
-	VectorXd m_beta;
+  /// the vector of intermediate betas
+  VectorXd m_beta;
 
-	/// the vector of computed angle changes
-	VectorXd m_d_theta;
-	VectorXd m_d_norm_weight;
+  /// the vector of computed angle changes
+  VectorXd m_d_theta;
+  VectorXd m_d_norm_weight;
 
-	/// space required for SVD computation
-	VectorXd m_svd_w;
-	MatrixXd m_svd_v;
-	MatrixXd m_svd_u;
+  /// space required for SVD computation
+  VectorXd m_svd_w;
+  MatrixXd m_svd_v;
+  MatrixXd m_svd_u;
 
-	VectorXd m_svd_u_beta;
+  VectorXd m_svd_u_beta;
 
-	// space required for SDLS
+  // space required for SDLS
 
-	bool m_sdls;
-	VectorXd m_norm;
-	VectorXd m_d_theta_tmp;
-	double m_min_damp;
+  bool m_sdls;
+  VectorXd m_norm;
+  VectorXd m_d_theta_tmp;
+  double m_min_damp;
 
-	// null space task vector
-	VectorXd m_alpha;
+  // null space task vector
+  VectorXd m_alpha;
 
-	// dof weighting
-	VectorXd m_weight;
-	VectorXd m_weight_sqrt;
+  // dof weighting
+  VectorXd m_weight;
+  VectorXd m_weight_sqrt;
 };
-

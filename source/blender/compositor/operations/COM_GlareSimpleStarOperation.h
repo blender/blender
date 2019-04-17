@@ -23,9 +23,12 @@
 #include "COM_GlareBaseOperation.h"
 
 class GlareSimpleStarOperation : public GlareBaseOperation {
-public:
-	GlareSimpleStarOperation() : GlareBaseOperation() {}
-protected:
-	void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
+ public:
+  GlareSimpleStarOperation() : GlareBaseOperation()
+  {
+  }
+
+ protected:
+  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
 };
 #endif

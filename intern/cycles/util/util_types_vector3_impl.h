@@ -24,24 +24,20 @@
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
-template<typename T>
-ccl_always_inline vector3<T>::vector3()
+template<typename T> ccl_always_inline vector3<T>::vector3()
+{
+}
+
+template<typename T> ccl_always_inline vector3<T>::vector3(const T &a) : x(a), y(a), z(a)
 {
 }
 
 template<typename T>
-ccl_always_inline vector3<T>::vector3(const T& a)
-        : x(a), y(a), z(a)
+ccl_always_inline vector3<T>::vector3(const T &x, const T &y, const T &z) : x(x), y(y), z(z)
 {
 }
-
-template<typename T>
-ccl_always_inline vector3<T>::vector3(const T& x, const T& y, const T& z)
-        : x(x), y(y), z(z)
-{
-}
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_VECTOR3_IMPL_H__ */
+#endif /* __UTIL_TYPES_VECTOR3_IMPL_H__ */

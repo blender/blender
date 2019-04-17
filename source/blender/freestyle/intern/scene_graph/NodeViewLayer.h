@@ -32,31 +32,34 @@ using namespace std;
 
 namespace Freestyle {
 
-class NodeViewLayer : public Node
-{
-public:
-	inline NodeViewLayer(Scene& scene, ViewLayer& view_layer) : Node(), _Scene(scene), _ViewLayer(view_layer) {}
-	virtual ~NodeViewLayer() {}
+class NodeViewLayer : public Node {
+ public:
+  inline NodeViewLayer(Scene &scene, ViewLayer &view_layer)
+      : Node(), _Scene(scene), _ViewLayer(view_layer)
+  {
+  }
+  virtual ~NodeViewLayer()
+  {
+  }
 
-	inline struct Scene& scene() const
-	{
-		return _Scene;
-	}
+  inline struct Scene &scene() const
+  {
+    return _Scene;
+  }
 
-	inline struct ViewLayer& sceneLayer() const
-	{
-		return _ViewLayer;
-	}
+  inline struct ViewLayer &sceneLayer() const
+  {
+    return _ViewLayer;
+  }
 
-	/*! Accept the corresponding visitor */
-	virtual void accept(SceneVisitor& v);
+  /*! Accept the corresponding visitor */
+  virtual void accept(SceneVisitor &v);
 
-protected:
-
-	Scene& _Scene;
-	ViewLayer& _ViewLayer;
+ protected:
+  Scene &_Scene;
+  ViewLayer &_ViewLayer;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_NODE_VIEW_LAYER_H__
+#endif  // __FREESTYLE_NODE_VIEW_LAYER_H__

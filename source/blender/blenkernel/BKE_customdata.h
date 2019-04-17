@@ -41,7 +41,9 @@ struct ID;
 typedef uint64_t CustomDataMask;
 
 /*a data type large enough to hold 1 element from any customdata layer type*/
-typedef struct {unsigned char data[64]; } CDBlockBytes;
+typedef struct {
+  unsigned char data[64];
+} CDBlockBytes;
 
 extern const CustomData_MeshMasks CD_MASK_BAREMESH;
 extern const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX;
@@ -61,24 +63,27 @@ extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
 
 /* add/copy/merge allocation types */
 typedef enum eCDAllocType {
-	CD_ASSIGN    = 0,  /* use the data pointer */
-	CD_CALLOC    = 1,  /* allocate blank memory */
-	CD_DEFAULT   = 2,  /* allocate and set to default */
-	CD_REFERENCE = 3,  /* use data pointers, set layer flag NOFREE */
-	CD_DUPLICATE = 4,  /* do a full copy of all layers, only allowed if source
-	                    * has same number of elements */
+  CD_ASSIGN = 0,    /* use the data pointer */
+  CD_CALLOC = 1,    /* allocate blank memory */
+  CD_DEFAULT = 2,   /* allocate and set to default */
+  CD_REFERENCE = 3, /* use data pointers, set layer flag NOFREE */
+  CD_DUPLICATE = 4, /* do a full copy of all layers, only allowed if source
+                      * has same number of elements */
 } eCDAllocType;
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
 void customData_mask_layers__print(const struct CustomData_MeshMasks *mask);
 
-typedef void (*cd_interp)(const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
+typedef void (*cd_interp)(
+    const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
 typedef void (*cd_copy)(const void *source, void *dest, int count);
 typedef bool (*cd_validate)(void *item, const uint totitems, const bool do_fixes);
 
-void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst, const CustomData_MeshMasks *mask_src);
-bool CustomData_MeshMasks_are_matching(const CustomData_MeshMasks *mask_ref, const CustomData_MeshMasks *mask_required);
+void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst,
+                                 const CustomData_MeshMasks *mask_src);
+bool CustomData_MeshMasks_are_matching(const CustomData_MeshMasks *mask_ref,
+                                       const CustomData_MeshMasks *mask_required);
 
 /**
  * Checks if the layer at physical offset \a layer_n (in data->layers) support math
@@ -105,7 +110,8 @@ bool CustomData_has_referenced(const struct CustomData *data);
 void CustomData_data_copy_value(int type, const void *source, void *dest);
 
 /* Same as above, but doing advanced mixing. Only available for a few types of data (like colors...). */
-void CustomData_data_mix_value(int type, const void *source, void *dest, const int mixmode, const float mixfactor);
+void CustomData_data_mix_value(
+    int type, const void *source, void *dest, const int mixmode, const float mixfactor);
 
 /* compares if data1 is equal to data2.  type is a valid CustomData type
  * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
@@ -119,18 +125,22 @@ void CustomData_data_add(int type, void *data1, const void *data2);
 /* initializes a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
  * if a layer should be copied or not. alloctype must be one of the above. */
-void CustomData_copy(
-        const struct CustomData *source, struct CustomData *dest,
-        CustomDataMask mask, eCDAllocType alloctype, int totelem);
+void CustomData_copy(const struct CustomData *source,
+                     struct CustomData *dest,
+                     CustomDataMask mask,
+                     eCDAllocType alloctype,
+                     int totelem);
 
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
 
 /* same as the above, except that this will preserve existing layers, and only
  * add the layers that were not there yet */
-bool CustomData_merge(
-        const struct CustomData *source, struct CustomData *dest,
-        CustomDataMask mask, eCDAllocType alloctype, int totelem);
+bool CustomData_merge(const struct CustomData *source,
+                      struct CustomData *dest,
+                      CustomDataMask mask,
+                      eCDAllocType alloctype,
+                      int totelem);
 
 /* Reallocate custom data to a new element count.
  * Only affects on data layers which are owned by the CustomData itself,
@@ -143,9 +153,12 @@ void CustomData_realloc(struct CustomData *data, int totelem);
 /* bmesh version of CustomData_merge; merges the layouts of source and dest,
  * then goes through the mesh and makes sure all the customdata blocks are
  * consistent with the new layout.*/
-bool CustomData_bmesh_merge(
-        const struct CustomData *source, struct CustomData *dest,
-        CustomDataMask mask, eCDAllocType alloctype, struct BMesh *bm, const char htype);
+bool CustomData_bmesh_merge(const struct CustomData *source,
+                            struct CustomData *dest,
+                            CustomDataMask mask,
+                            eCDAllocType alloctype,
+                            struct BMesh *bm,
+                            const char htype);
 
 /** NULL's all members and resets the typemap. */
 void CustomData_reset(struct CustomData *data);
@@ -166,12 +179,14 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
  * defined above. returns the data of the layer.
  */
 void *CustomData_add_layer(
-        struct CustomData *data, int type, eCDAllocType alloctype,
-        void *layer, int totelem);
+    struct CustomData *data, int type, eCDAllocType alloctype, void *layer, int totelem);
 /*same as above but accepts a name */
-void *CustomData_add_layer_named(
-        struct CustomData *data, int type, eCDAllocType alloctype,
-        void *layer, int totelem, const char *name);
+void *CustomData_add_layer_named(struct CustomData *data,
+                                 int type,
+                                 eCDAllocType alloctype,
+                                 void *layer,
+                                 int totelem,
+                                 const char *name);
 
 /* frees the active or first data layer with the give type.
  * returns 1 on success, 0 if no layer with the given type is found
@@ -199,18 +214,24 @@ int CustomData_number_of_layers_typemask(const struct CustomData *data, CustomDa
 
 /* duplicate data of a layer with flag NOFREE, and remove that flag.
  * returns the layer data */
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int type, const int totelem);
-void *CustomData_duplicate_referenced_layer_n(struct CustomData *data, const int type, const int n, const int totelem);
+void *CustomData_duplicate_referenced_layer(struct CustomData *data,
+                                            const int type,
+                                            const int totelem);
+void *CustomData_duplicate_referenced_layer_n(struct CustomData *data,
+                                              const int type,
+                                              const int n,
+                                              const int totelem);
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-                                                  const int type, const char *name, const int totelem);
+                                                  const int type,
+                                                  const char *name,
+                                                  const int totelem);
 bool CustomData_is_referenced_layer(struct CustomData *data, int type);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask
  * will be copied
  */
-void CustomData_set_only_copy(const struct CustomData *data,
-                              CustomDataMask mask);
+void CustomData_set_only_copy(const struct CustomData *data, CustomDataMask mask);
 
 /* copies data from one CustomData object to another
  * objects need not be compatible, each source layer is copied to the
@@ -218,21 +239,27 @@ void CustomData_set_only_copy(const struct CustomData *data,
  * return 1 on success, 0 on failure
  */
 void CustomData_copy_data(const struct CustomData *source,
-                          struct CustomData *dest, int source_index,
-                          int dest_index, int count);
+                          struct CustomData *dest,
+                          int source_index,
+                          int dest_index,
+                          int count);
 void CustomData_copy_data_named(const struct CustomData *source,
-                                struct CustomData *dest, int source_index,
-                                int dest_index, int count);
+                                struct CustomData *dest,
+                                int source_index,
+                                int dest_index,
+                                int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
 void CustomData_bmesh_copy_data(const struct CustomData *source,
-                                struct CustomData *dest, void *src_block,
+                                struct CustomData *dest,
+                                void *src_block,
                                 void **dest_block);
 
 /* Copies data of a single layer of a given type. */
 void CustomData_copy_layer_type_data(const struct CustomData *source,
                                      struct CustomData *destination,
                                      int type,
-                                     int source_index, int destination_index,
+                                     int source_index,
+                                     int destination_index,
                                      int count);
 
 /* frees data in a CustomData object
@@ -252,18 +279,26 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
  * count gives the number of source elements to interpolate from
  * dest_index gives the dest element to write the interpolated value to
  */
-void CustomData_interp(
-        const struct CustomData *source, struct CustomData *dest,
-        const int *src_indices, const float *weights, const float *sub_weights,
-        int count, int dest_index);
-void CustomData_bmesh_interp_n(
-        struct CustomData *data, const void **src_blocks, const float *weights,
-        const float *sub_weights, int count, void *dst_block_ofs, int n);
-void CustomData_bmesh_interp(
-        struct CustomData *data, const void **src_blocks,
-        const float *weights, const float *sub_weights, int count,
-        void *dst_block);
-
+void CustomData_interp(const struct CustomData *source,
+                       struct CustomData *dest,
+                       const int *src_indices,
+                       const float *weights,
+                       const float *sub_weights,
+                       int count,
+                       int dest_index);
+void CustomData_bmesh_interp_n(struct CustomData *data,
+                               const void **src_blocks,
+                               const float *weights,
+                               const float *sub_weights,
+                               int count,
+                               void *dst_block_ofs,
+                               int n);
+void CustomData_bmesh_interp(struct CustomData *data,
+                             const void **src_blocks,
+                             const float *weights,
+                             const float *sub_weights,
+                             int count,
+                             void *dst_block);
 
 /* swaps the data in the element corners, to new corners with indices as
  * specified in corner_indices. for edges this is an array of length 2, for
@@ -313,23 +348,19 @@ int CustomData_get_stencil_layer(const struct CustomData *data, int type);
  * layer of type
  * no effect if there is no layer of type
  */
-void CustomData_set(
-        const struct CustomData *data, int index, int type,
-        const void *source);
+void CustomData_set(const struct CustomData *data, int index, int type, const void *source);
 
-void CustomData_bmesh_set(
-        const struct CustomData *data, void *block, int type,
-        const void *source);
+void CustomData_bmesh_set(const struct CustomData *data,
+                          void *block,
+                          int type,
+                          const void *source);
 
 void CustomData_bmesh_set_n(
-        struct CustomData *data, void *block, int type, int n,
-        const void *source);
+    struct CustomData *data, void *block, int type, int n, const void *source);
 /* sets the data of the block at physical layer n.  no real type checking
  * is performed.
  */
-void CustomData_bmesh_set_layer_n(
-        struct CustomData *data, void *block, int n,
-        const void *source);
+void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n, const void *source);
 
 /* set the pointer of to the first layer of type. the old data is not freed.
  * returns the value of ptr if the layer is found, NULL otherwise
@@ -360,13 +391,19 @@ void CustomData_bmesh_free_block_data(struct CustomData *data, void *block);
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
  * blocks of data. the CustomData's must not be compatible */
 void CustomData_to_bmesh_block(const struct CustomData *source,
-                               struct CustomData *dest, int src_index, void **dest_block, bool use_default_init);
+                               struct CustomData *dest,
+                               int src_index,
+                               void **dest_block,
+                               bool use_default_init);
 void CustomData_from_bmesh_block(const struct CustomData *source,
-                                 struct CustomData *dest, void *src_block, int dest_index);
+                                 struct CustomData *dest,
+                                 void *src_block,
+                                 int dest_index);
 
-void CustomData_file_write_prepare(
-        struct CustomData *data,
-        struct CustomDataLayer **r_write_layers, struct CustomDataLayer *write_layers_buff, size_t write_layers_size);
+void CustomData_file_write_prepare(struct CustomData *data,
+                                   struct CustomDataLayer **r_write_layers,
+                                   struct CustomDataLayer *write_layers_buff,
+                                   size_t write_layers_size);
 
 /* query info over types */
 void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num);
@@ -374,13 +411,16 @@ int CustomData_sizeof(int type);
 
 /* get the name of a layer type */
 const char *CustomData_layertype_name(int type);
-bool        CustomData_layertype_is_singleton(int type);
-int         CustomData_layertype_layers_max(const int type);
+bool CustomData_layertype_is_singleton(int type);
+int CustomData_layertype_layers_max(const int type);
 
 /* make sure the name of layer at index is unique */
 void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 
-void CustomData_validate_layer_name(const struct CustomData *data, int type, const char *name, char *outname);
+void CustomData_validate_layer_name(const struct CustomData *data,
+                                    int type,
+                                    const char *name,
+                                    char *outname);
 
 /* for file reading compatibility, returns false if the layer was freed,
  * only after this test passes, layer->data should be assigned */
@@ -390,7 +430,8 @@ bool CustomData_verify_versions(struct CustomData *data, int index);
 void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *ldata, int totloop);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
-void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
+void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata,
+                                                       struct CustomData *ldata);
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, const char htype);
 
 #ifndef NDEBUG
@@ -398,102 +439,118 @@ bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool f
 #endif
 
 /* Layer data validation. */
-bool CustomData_layer_validate(struct CustomDataLayer *layer, const uint totitems, const bool do_fixes);
+bool CustomData_layer_validate(struct CustomDataLayer *layer,
+                               const uint totitems,
+                               const bool do_fixes);
 
 /* External file storage */
 
-void CustomData_external_add(struct CustomData *data,
-                             struct ID *id, int type, int totelem, const char *filename);
-void CustomData_external_remove(struct CustomData *data,
-                                struct ID *id, int type, int totelem);
+void CustomData_external_add(
+    struct CustomData *data, struct ID *id, int type, int totelem, const char *filename);
+void CustomData_external_remove(struct CustomData *data, struct ID *id, int type, int totelem);
 bool CustomData_external_test(struct CustomData *data, int type);
 
-void CustomData_external_write(struct CustomData *data,
-                               struct ID *id, CustomDataMask mask, int totelem, int free);
+void CustomData_external_write(
+    struct CustomData *data, struct ID *id, CustomDataMask mask, int totelem, int free);
 void CustomData_external_read(struct CustomData *data,
-                              struct ID *id, CustomDataMask mask, int totelem);
+                              struct ID *id,
+                              CustomDataMask mask,
+                              int totelem);
 void CustomData_external_reload(struct CustomData *data,
-                                struct ID *id, CustomDataMask mask, int totelem);
+                                struct ID *id,
+                                CustomDataMask mask,
+                                int totelem);
 
 /* Mesh-to-mesh transfer data. */
 
 struct CustomDataTransferLayerMap;
 struct MeshPairRemap;
 
-typedef void (*cd_datatransfer_interp)(
-        const struct CustomDataTransferLayerMap *laymap, void *dest,
-        const void **sources, const float *weights, const int count, const float mix_factor);
+typedef void (*cd_datatransfer_interp)(const struct CustomDataTransferLayerMap *laymap,
+                                       void *dest,
+                                       const void **sources,
+                                       const float *weights,
+                                       const int count,
+                                       const float mix_factor);
 
 /**
  * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs, or otherwise not (directly)
  * accessible to usual CDLayer system). */
 enum {
-	CD_FAKE             = 1 << 8,
+  CD_FAKE = 1 << 8,
 
-	/* Vertices. */
-	CD_FAKE_MDEFORMVERT = CD_FAKE | CD_MDEFORMVERT,  /* *sigh* due to how vgroups are stored :( . */
-	CD_FAKE_SHAPEKEY    = CD_FAKE | CD_SHAPEKEY,  /* Not available as real CD layer in non-bmesh context. */
+  /* Vertices. */
+  CD_FAKE_MDEFORMVERT = CD_FAKE | CD_MDEFORMVERT, /* *sigh* due to how vgroups are stored :( . */
+  CD_FAKE_SHAPEKEY = CD_FAKE |
+                     CD_SHAPEKEY, /* Not available as real CD layer in non-bmesh context. */
 
-	/* Edges. */
-	CD_FAKE_SEAM        = CD_FAKE | 100,  /* UV seam flag for edges. */
-	CD_FAKE_CREASE      = CD_FAKE | CD_CREASE,  /* *sigh*. */
+  /* Edges. */
+  CD_FAKE_SEAM = CD_FAKE | 100,         /* UV seam flag for edges. */
+  CD_FAKE_CREASE = CD_FAKE | CD_CREASE, /* *sigh*. */
 
-	/* Multiple types of mesh elements... */
-	CD_FAKE_BWEIGHT     = CD_FAKE | CD_BWEIGHT,  /* *sigh*. */
-	CD_FAKE_UV          = CD_FAKE | CD_MLOOPUV,  /* UV flag, because we handle both loop's UVs and poly's textures. */
+  /* Multiple types of mesh elements... */
+  CD_FAKE_BWEIGHT = CD_FAKE | CD_BWEIGHT, /* *sigh*. */
+  CD_FAKE_UV = CD_FAKE |
+               CD_MLOOPUV, /* UV flag, because we handle both loop's UVs and poly's textures. */
 
-	CD_FAKE_LNOR        = CD_FAKE | CD_CUSTOMLOOPNORMAL,  /* Because we play with clnor and temp lnor layers here. */
+  CD_FAKE_LNOR = CD_FAKE |
+                 CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */
 
-	CD_FAKE_SHARP       = CD_FAKE | 200,  /* Sharp flag for edges, smooth flag for faces. */
+  CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
 };
 
 enum {
-	ME_VERT = 1 << 0,
-	ME_EDGE = 1 << 1,
-	ME_POLY = 1 << 2,
-	ME_LOOP = 1 << 3,
+  ME_VERT = 1 << 0,
+  ME_EDGE = 1 << 1,
+  ME_POLY = 1 << 2,
+  ME_LOOP = 1 << 3,
 };
 
 /**
  * How to filter out some elements (to leave untouched).
  * Note those options are highly dependent on type of transferred data! */
 enum {
-	CDT_MIX_NOMIX                   = -1,  /* Special case, only used because we abuse 'copy' CD callback. */
-	CDT_MIX_TRANSFER                = 0,
-	CDT_MIX_REPLACE_ABOVE_THRESHOLD = 1,
-	CDT_MIX_REPLACE_BELOW_THRESHOLD = 2,
-	CDT_MIX_MIX                     = 16,
-	CDT_MIX_ADD                     = 17,
-	CDT_MIX_SUB                     = 18,
-	CDT_MIX_MUL                     = 19,
-	/* etc. etc. */
+  CDT_MIX_NOMIX = -1, /* Special case, only used because we abuse 'copy' CD callback. */
+  CDT_MIX_TRANSFER = 0,
+  CDT_MIX_REPLACE_ABOVE_THRESHOLD = 1,
+  CDT_MIX_REPLACE_BELOW_THRESHOLD = 2,
+  CDT_MIX_MIX = 16,
+  CDT_MIX_ADD = 17,
+  CDT_MIX_SUB = 18,
+  CDT_MIX_MUL = 19,
+  /* etc. etc. */
 };
 
 typedef struct CustomDataTransferLayerMap {
-	struct CustomDataTransferLayerMap *next, *prev;
+  struct CustomDataTransferLayerMap *next, *prev;
 
-	int data_type;
-	int mix_mode;
-	float mix_factor;
-	const float *mix_weights;  /* If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
+  int data_type;
+  int mix_mode;
+  float mix_factor;
+  const float *
+      mix_weights; /* If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
 
-	const void *data_src;  /* Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
-	void *data_dst;      /* Data dest array (same type as dat_src). */
-	int   data_src_n;    /* Index to affect in data_src (used e.g. for vgroups). */
-	int   data_dst_n;    /* Index to affect in data_dst (used e.g. for vgroups). */
-	size_t elem_size;    /* Size of one element of data_src/data_dst. */
+  const void *
+      data_src; /* Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
+  void *data_dst;   /* Data dest array (same type as dat_src). */
+  int data_src_n;   /* Index to affect in data_src (used e.g. for vgroups). */
+  int data_dst_n;   /* Index to affect in data_dst (used e.g. for vgroups). */
+  size_t elem_size; /* Size of one element of data_src/data_dst. */
 
-	size_t data_size;    /* Size of actual data we transfer. */
-	size_t data_offset;  /* Offset of actual data we transfer (in element contained in data_src/dst). */
-	uint64_t data_flag;  /* For bitflag transfer, flag(s) to affect in transferred data. */
+  size_t data_size; /* Size of actual data we transfer. */
+  size_t
+      data_offset; /* Offset of actual data we transfer (in element contained in data_src/dst). */
+  uint64_t data_flag; /* For bitflag transfer, flag(s) to affect in transferred data. */
 
-	void *interp_data;   /* Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
+  void *
+      interp_data; /* Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
 
-	cd_datatransfer_interp interp;
+  cd_datatransfer_interp interp;
 } CustomDataTransferLayerMap;
 
 /* Those functions assume src_n and dst_n layers of given type exist in resp. src and dst. */
-void CustomData_data_transfer(const struct MeshPairRemap *me_remap, const CustomDataTransferLayerMap *laymap);
+void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
+                              const CustomDataTransferLayerMap *laymap);
 
 #ifdef __cplusplus
 }

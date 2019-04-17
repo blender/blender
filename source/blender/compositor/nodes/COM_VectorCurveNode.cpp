@@ -22,15 +22,16 @@
 
 VectorCurveNode::VectorCurveNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void VectorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void VectorCurveNode::convertToOperations(NodeConverter &converter,
+                                          const CompositorContext & /*context*/) const
 {
-	VectorCurveOperation *operation = new VectorCurveOperation();
-	operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-	converter.addOperation(operation);
+  VectorCurveOperation *operation = new VectorCurveOperation();
+  operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class VectorCurveNode : public Node {
-public:
-	VectorCurveNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  VectorCurveNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

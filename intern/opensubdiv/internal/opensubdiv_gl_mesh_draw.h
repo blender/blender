@@ -25,11 +25,11 @@ struct OpenSubdiv_GLMesh;
 
 namespace opensubdiv_capi {
 
-void GLMeshDisplayPrepare(struct OpenSubdiv_GLMesh* gl_mesh,
+void GLMeshDisplayPrepare(struct OpenSubdiv_GLMesh *gl_mesh,
                           const bool use_osd_glsl,
                           const int active_uv_index);
 
-void GLMeshDisplayDrawPatches(OpenSubdiv_GLMesh* gl_mesh,
+void GLMeshDisplayDrawPatches(OpenSubdiv_GLMesh *gl_mesh,
                               const bool fill_quads,
                               const int start_patch,
                               const int num_patches);

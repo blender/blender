@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class DistanceMatteNode : public Node {
-public:
-	DistanceMatteNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  DistanceMatteNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_DistanceMatteNODE_H */
+#endif /* COM_DistanceMatteNODE_H */

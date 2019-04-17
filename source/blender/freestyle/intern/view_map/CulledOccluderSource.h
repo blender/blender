@@ -27,34 +27,35 @@
 
 namespace Freestyle {
 
-class CulledOccluderSource : public OccluderSource
-{
-	// Disallow copying and assignment
-	CulledOccluderSource(const CulledOccluderSource& other);
-	CulledOccluderSource& operator=(const CulledOccluderSource& other);
+class CulledOccluderSource : public OccluderSource {
+  // Disallow copying and assignment
+  CulledOccluderSource(const CulledOccluderSource &other);
+  CulledOccluderSource &operator=(const CulledOccluderSource &other);
 
-public:
-	CulledOccluderSource(const GridHelpers::Transform& transform, WingedEdge& we, ViewMap& viewMap,
-	                     bool extensiveFEdgeSearch = true);
-	virtual ~CulledOccluderSource();
+ public:
+  CulledOccluderSource(const GridHelpers::Transform &transform,
+                       WingedEdge &we,
+                       ViewMap &viewMap,
+                       bool extensiveFEdgeSearch = true);
+  virtual ~CulledOccluderSource();
 
-	void cullViewEdges(ViewMap& viewMap, bool extensiveFEdgeSearch);
+  void cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSearch);
 
-	bool next();
+  bool next();
 
-	void getOccluderProscenium(real proscenium[4]);
+  void getOccluderProscenium(real proscenium[4]);
 
-private:
-	bool testCurrent();
-	void expandGridSpaceOccluderProscenium(FEdge *fe);
+ private:
+  bool testCurrent();
+  void expandGridSpaceOccluderProscenium(FEdge *fe);
 
-	real occluderProscenium[4];
-	real gridSpaceOccluderProscenium[4];
+  real occluderProscenium[4];
+  real gridSpaceOccluderProscenium[4];
 
-	unsigned long rejected;
-	bool gridSpaceOccluderProsceniumInitialized;
+  unsigned long rejected;
+  bool gridSpaceOccluderProsceniumInitialized;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_CULLED_OCCLUDER_SOURCE_H__
+#endif  // __FREESTYLE_CULLED_OCCLUDER_SOURCE_H__

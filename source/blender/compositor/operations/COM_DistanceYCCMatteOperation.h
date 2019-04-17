@@ -21,20 +21,18 @@
 #include "COM_MixOperation.h"
 #include "COM_DistanceRGBMatteOperation.h"
 
-
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
 class DistanceYCCMatteOperation : public DistanceRGBMatteOperation {
-protected:
-	virtual float calculateDistance(float key[4], float image[4]);
+ protected:
+  virtual float calculateDistance(float key[4], float image[4]);
 
-public:
-	/**
-	 * Default constructor
-	 */
-	DistanceYCCMatteOperation();
-
+ public:
+  /**
+   * Default constructor
+   */
+  DistanceYCCMatteOperation();
 };
 #endif

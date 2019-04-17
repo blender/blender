@@ -19,11 +19,11 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	../glew-mx
-	../guardedalloc
-	../../source/blender/blenlib
-	../../source/blender/gpu
+  .
+  ../glew-mx
+  ../guardedalloc
+  ../../source/blender/blenlib
+  ../../source/blender/gpu
 )
 
 set(INC_SYS
@@ -31,44 +31,44 @@ set(INC_SYS
 )
 
 set(SRC
-	ocio_capi.cc
-	fallback_impl.cc
+  ocio_capi.cc
+  fallback_impl.cc
 
-	ocio_capi.h
-	ocio_impl.h
+  ocio_capi.h
+  ocio_impl.h
 )
 
 set(LIB
 )
 
 if(WITH_OPENCOLORIO)
-	add_definitions(
-		-DWITH_OCIO
-	)
+  add_definitions(
+    -DWITH_OCIO
+  )
 
-	add_definitions(${GL_DEFINITIONS})
+  add_definitions(${GL_DEFINITIONS})
 
-	list(APPEND INC_SYS
-		${OPENCOLORIO_INCLUDE_DIRS}
-		${GLEW_INCLUDE_PATH}
-	)
+  list(APPEND INC_SYS
+    ${OPENCOLORIO_INCLUDE_DIRS}
+    ${GLEW_INCLUDE_PATH}
+  )
 
-	list(APPEND SRC
-		ocio_impl.cc
-		ocio_impl_glsl.cc
-	)
+  list(APPEND SRC
+    ocio_impl.cc
+    ocio_impl_glsl.cc
+  )
 
-	if(WIN32)
-		list(APPEND INC_SYS
-			${BOOST_INCLUDE_DIR}
-		)
-		add_definitions(
-			-DOpenColorIO_STATIC
-		)
-	endif()
+  if(WIN32)
+    list(APPEND INC_SYS
+      ${BOOST_INCLUDE_DIR}
+    )
+    add_definitions(
+      -DOpenColorIO_STATIC
+    )
+  endif()
 
-	data_to_c_simple(gpu_shader_display_transform.glsl SRC)
-	data_to_c_simple(gpu_shader_display_transform_vertex.glsl SRC)
+  data_to_c_simple(gpu_shader_display_transform.glsl SRC)
+  data_to_c_simple(gpu_shader_display_transform_vertex.glsl SRC)
 endif()
 
 

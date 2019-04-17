@@ -37,19 +37,18 @@ extern "C" {
 
 extern PyTypeObject Interface1D_Type;
 
-#define BPy_Interface1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Interface1D_Type))
+#define BPy_Interface1D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&Interface1D_Type))
 
 /*---------------------------Python BPy_Interface1D structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	Interface1D *if1D;
-	bool borrowed; /* true if *if1D is a borrowed object */
+  PyObject_HEAD Interface1D *if1D;
+  bool borrowed; /* true if *if1D is a borrowed object */
 } BPy_Interface1D;
 
 /*---------------------------Python BPy_Interface1D visible prototypes-----------*/
 
 int Interface1D_Init(PyObject *module);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

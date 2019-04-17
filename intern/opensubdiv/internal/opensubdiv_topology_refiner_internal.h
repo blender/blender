@@ -32,7 +32,7 @@ struct OpenSubdiv_TopologyRefinerInternal {
   OpenSubdiv_TopologyRefinerInternal();
   ~OpenSubdiv_TopologyRefinerInternal();
 
-  OpenSubdiv::Far::TopologyRefiner* osd_topology_refiner;
+  OpenSubdiv::Far::TopologyRefiner *osd_topology_refiner;
 
   // Subdivision settingsa this refiner is created for.
   //

@@ -21,26 +21,25 @@
  * \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
 
 /* **************** Premul and Key Alpha Convert ******************** */
 
 static bNodeSocketTemplate cmp_node_premulkey_in[] = {
-	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate cmp_node_premulkey_out[] = {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
 };
 
 void register_node_type_cmp_premulkey(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTOR, 0);
-	node_type_socket_templates(&ntype, cmp_node_premulkey_in, cmp_node_premulkey_out);
+  cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_premulkey_in, cmp_node_premulkey_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

@@ -22,7 +22,6 @@
  * \ingroup ikplugin
  */
 
-
 #ifndef __IKPLUGIN_API_H__
 #define __IKPLUGIN_API_H__
 
@@ -35,15 +34,21 @@ struct Object;
 struct Scene;
 struct bPoseChannel;
 
-
 struct IKPlugin {
-	void (*initialize_tree_func)(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime);
-	void (*execute_tree_func)(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime);
-	void (*release_tree_func)(struct Scene *scene, struct Object *ob, float ctime);
-	void (*remove_armature_func)(struct bPose *pose);
-	void (*clear_cache)(struct bPose *pose);
-	void (*update_param)(struct bPose *pose);
-	void (*test_constraint)(struct Object *ob, struct bConstraint *cons);
+  void (*initialize_tree_func)(struct Depsgraph *depsgraph,
+                               struct Scene *scene,
+                               struct Object *ob,
+                               float ctime);
+  void (*execute_tree_func)(struct Depsgraph *depsgraph,
+                            struct Scene *scene,
+                            struct Object *ob,
+                            struct bPoseChannel *pchan,
+                            float ctime);
+  void (*release_tree_func)(struct Scene *scene, struct Object *ob, float ctime);
+  void (*remove_armature_func)(struct bPose *pose);
+  void (*clear_cache)(struct bPose *pose);
+  void (*update_param)(struct bPose *pose);
+  void (*test_constraint)(struct Object *ob, struct bConstraint *cons);
 };
 
 typedef struct IKPlugin IKPlugin;
@@ -52,4 +57,4 @@ typedef struct IKPlugin IKPlugin;
 }
 #endif
 
-#endif  /* __IKPLUGIN_API_H__ */
+#endif /* __IKPLUGIN_API_H__ */

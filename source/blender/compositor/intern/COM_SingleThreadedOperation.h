@@ -21,36 +21,40 @@
 #include "COM_NodeOperation.h"
 
 class SingleThreadedOperation : public NodeOperation {
-private:
-	MemoryBuffer *m_cachedInstance;
+ private:
+  MemoryBuffer *m_cachedInstance;
 
-protected:
-	inline bool isCached() {
-		return this->m_cachedInstance != NULL;
-	}
+ protected:
+  inline bool isCached()
+  {
+    return this->m_cachedInstance != NULL;
+  }
 
-public:
-	SingleThreadedOperation();
+ public:
+  SingleThreadedOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect);
 
-	virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
+  virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
 
-	int isSingleThreaded() { return true; }
+  int isSingleThreaded()
+  {
+    return true;
+  }
 };
 #endif

@@ -29,25 +29,25 @@ enum { TABLE_CHUNK_SIZE = 256 };
 enum { TABLE_OFFSET_INVALID = -1 };
 
 class LookupTables {
-public:
-	struct Table {
-		size_t offset;
-		size_t size;
-	};
+ public:
+  struct Table {
+    size_t offset;
+    size_t size;
+  };
 
-	bool need_update;
-	list<Table> lookup_tables;
+  bool need_update;
+  list<Table> lookup_tables;
 
-	LookupTables();
-	~LookupTables();
+  LookupTables();
+  ~LookupTables();
 
-	void device_update(Device *device, DeviceScene *dscene);
-	void device_free(Device *device, DeviceScene *dscene);
+  void device_update(Device *device, DeviceScene *dscene);
+  void device_free(Device *device, DeviceScene *dscene);
 
-	size_t add_table(DeviceScene *dscene, vector<float>& data);
-	void remove_table(size_t *offset);
+  size_t add_table(DeviceScene *dscene, vector<float> &data);
+  void remove_table(size_t *offset);
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __TABLES_H__ */
+#endif /* __TABLES_H__ */

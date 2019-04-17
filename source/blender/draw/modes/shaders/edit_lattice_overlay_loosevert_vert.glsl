@@ -20,26 +20,25 @@ flat out vec4 eData2;
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
-	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
+  return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
 }
 
 void main()
 {
-	clipCase = 0;
+  clipCase = 0;
 
-	vec4 pPos = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  vec4 pPos = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-	/* only vertex position 0 is used */
-	eData1 = eData2 = vec4(1e10);
-	eData2.zw = proj(pPos);
+  /* only vertex position 0 is used */
+  eData1 = eData2 = vec4(1e10);
+  eData2.zw = proj(pPos);
 
-	vertFlag = data;
+  vertFlag = data;
 
-	gl_PointSize = sizeVertex;
-	gl_Position = pPos;
+  gl_PointSize = sizeVertex;
+  gl_Position = pPos;
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
-
 }

@@ -19,14 +19,14 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(CMAKE_COMPILER_IS_GNUCC)
-	remove_cc_flag(
-		"-Wshadow"
-		"-Werror=shadow"
-	)
+  remove_cc_flag(
+    "-Wshadow"
+    "-Werror=shadow"
+  )
 endif()
 
 set(INC
-	.
+  .
 )
 
 set(INC_SYS
@@ -34,9 +34,9 @@ set(INC_SYS
 )
 
 set(SRC
-	mikktspace.c
+  mikktspace.c
 
-	mikktspace.h
+  mikktspace.h
 )
 
 set(LIB

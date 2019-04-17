@@ -13,10 +13,10 @@ out vec4 color;
 
 void main()
 {
-	/* Manual mat4*vec2 */
-	pos_rect  = ModelViewProjectionMatrix[0].xyxy * pos.xxzz;
-	pos_rect += ModelViewProjectionMatrix[1].xyxy * pos.yyww;
-	pos_rect += ModelViewProjectionMatrix[3].xyxy;
-	tex_rect = tex;
-	color = col;
+  /* Manual mat4*vec2 */
+  pos_rect = ModelViewProjectionMatrix[0].xyxy * pos.xxzz;
+  pos_rect += ModelViewProjectionMatrix[1].xyxy * pos.yyww;
+  pos_rect += ModelViewProjectionMatrix[3].xyxy;
+  tex_rect = tex;
+  color = col;
 }

@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class MovieDistortionNode : public Node {
-public:
-	MovieDistortionNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  MovieDistortionNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

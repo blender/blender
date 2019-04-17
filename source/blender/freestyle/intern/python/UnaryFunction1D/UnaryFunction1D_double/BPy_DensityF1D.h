@@ -35,9 +35,8 @@ extern PyTypeObject DensityF1D_Type;
 
 /*---------------------------Python BPy_DensityF1D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction1DDouble py_uf1D_double;
+  BPy_UnaryFunction1DDouble py_uf1D_double;
 } BPy_DensityF1D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

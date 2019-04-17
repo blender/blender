@@ -16,7 +16,6 @@
  * Copyright 2011, Blender Foundation.
  */
 
-
 #ifndef __COM_IMAGEOPERATION_H__
 #define __COM_IMAGEOPERATION_H__
 
@@ -24,70 +23,84 @@
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 extern "C" {
-#  include "RE_pipeline.h"
-#  include "RE_shader_ext.h"
-#  include "RE_render_ext.h"
-#  include "MEM_guardedalloc.h"
+#include "RE_pipeline.h"
+#include "RE_shader_ext.h"
+#include "RE_render_ext.h"
+#include "MEM_guardedalloc.h"
 }
 
 /**
  * \brief Base class for all image operations
  */
 class BaseImageOperation : public NodeOperation {
-protected:
-	ImBuf *m_buffer;
-	Image *m_image;
-	ImageUser *m_imageUser;
-	float *m_imageFloatBuffer;
-	unsigned int *m_imageByteBuffer;
-	float *m_depthBuffer;
-	int m_imageheight;
-	int m_imagewidth;
-	int m_framenumber;
-	int m_numberOfChannels;
-	const RenderData *m_rd;
-	const char *m_viewName;
+ protected:
+  ImBuf *m_buffer;
+  Image *m_image;
+  ImageUser *m_imageUser;
+  float *m_imageFloatBuffer;
+  unsigned int *m_imageByteBuffer;
+  float *m_depthBuffer;
+  int m_imageheight;
+  int m_imagewidth;
+  int m_framenumber;
+  int m_numberOfChannels;
+  const RenderData *m_rd;
+  const char *m_viewName;
 
-	BaseImageOperation();
-	/**
-	 * Determine the output resolution. The resolution is retrieved from the Renderer
-	 */
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  BaseImageOperation();
+  /**
+   * Determine the output resolution. The resolution is retrieved from the Renderer
+   */
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
-	virtual ImBuf *getImBuf();
+  virtual ImBuf *getImBuf();
 
-public:
-
-	void initExecution();
-	void deinitExecution();
-	void setImage(Image *image) { this->m_image = image; }
-	void setImageUser(ImageUser *imageuser) { this->m_imageUser = imageuser; }
-	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
-	void setViewName(const char *viewName) { this->m_viewName = viewName; }
-	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+ public:
+  void initExecution();
+  void deinitExecution();
+  void setImage(Image *image)
+  {
+    this->m_image = image;
+  }
+  void setImageUser(ImageUser *imageuser)
+  {
+    this->m_imageUser = imageuser;
+  }
+  void setRenderData(const RenderData *rd)
+  {
+    this->m_rd = rd;
+  }
+  void setViewName(const char *viewName)
+  {
+    this->m_viewName = viewName;
+  }
+  void setFramenumber(int framenumber)
+  {
+    this->m_framenumber = framenumber;
+  }
 };
 class ImageOperation : public BaseImageOperation {
-public:
-	/**
-	 * Constructor
-	 */
-	ImageOperation();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Constructor
+   */
+  ImageOperation();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 class ImageAlphaOperation : public BaseImageOperation {
-public:
-	/**
-	 * Constructor
-	 */
-	ImageAlphaOperation();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Constructor
+   */
+  ImageAlphaOperation();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 class ImageDepthOperation : public BaseImageOperation {
-public:
-	/**
-	 * Constructor
-	 */
-	ImageDepthOperation();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Constructor
+   */
+  ImageDepthOperation();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 #endif

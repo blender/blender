@@ -29,7 +29,7 @@
 #    define __KERNEL_SSE3__
 #    define __KERNEL_SSSE3__
 #  endif
-#endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE3 */
+#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE3 */
 
 #include "kernel/kernel.h"
 #define KERNEL_ARCH cpu_sse3

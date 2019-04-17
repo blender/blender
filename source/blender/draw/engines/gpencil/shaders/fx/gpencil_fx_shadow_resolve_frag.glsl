@@ -10,23 +10,23 @@ out vec4 FragColor;
 
 void main()
 {
-	ivec2 uv = ivec2(gl_FragCoord.xy);
+  ivec2 uv = ivec2(gl_FragCoord.xy);
 
-	float stroke_depth = texelFetch(strokeDepth, uv.xy, 0).r;
-	float shadow_depth = texelFetch(shadowDepth, uv.xy, 0).r;
-	vec4 stroke_pixel= texelFetch(strokeColor, uv.xy, 0);
-	vec4 shadow_pixel= texelFetch(shadowColor, uv.xy, 0);
+  float stroke_depth = texelFetch(strokeDepth, uv.xy, 0).r;
+  float shadow_depth = texelFetch(shadowDepth, uv.xy, 0).r;
+  vec4 stroke_pixel = texelFetch(strokeColor, uv.xy, 0);
+  vec4 shadow_pixel = texelFetch(shadowColor, uv.xy, 0);
 
-	/* copy original pixel */
-	vec4 outcolor = stroke_pixel;
-	float outdepth = stroke_depth;
+  /* copy original pixel */
+  vec4 outcolor = stroke_pixel;
+  float outdepth = stroke_depth;
 
-	/* if stroke is not on top, copy shadow */
-	if ((stroke_pixel.a <= 0.2) && (shadow_pixel.a > 0.0))  {
-		outcolor = shadow_pixel;
-		outdepth = shadow_depth;
-	}
+  /* if stroke is not on top, copy shadow */
+  if ((stroke_pixel.a <= 0.2) && (shadow_pixel.a > 0.0)) {
+    outcolor = shadow_pixel;
+    outdepth = shadow_depth;
+  }
 
-	gl_FragDepth = outdepth;
-	FragColor = outcolor;
+  gl_FragDepth = outdepth;
+  FragColor = outcolor;
 }

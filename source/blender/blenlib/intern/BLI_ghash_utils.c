@@ -30,7 +30,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_hash_mm2a.h"
-#include "BLI_ghash.h"  /* own include */
+#include "BLI_ghash.h" /* own include */
 
 /* keep last */
 #include "BLI_strict_flags.h"
@@ -43,94 +43,94 @@
 /* works but slower */
 uint BLI_ghashutil_ptrhash(const void *key)
 {
-	return (uint)(intptr_t)key;
+  return (uint)(intptr_t)key;
 }
 #else
 /* Based Python3.7's pointer hashing function. */
 uint BLI_ghashutil_ptrhash(const void *key)
 {
-	size_t y = (size_t)key;
-	/* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
-	 * excessive hash collisions for dicts and sets */
+  size_t y = (size_t)key;
+  /* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
+   * excessive hash collisions for dicts and sets */
 
-	/* Note: Unlike Python 'sizeof(uint)' is used instead of 'sizeof(void *)',
-	 * Otherwise casting to 'uint' ignores the upper bits on 64bit platforms. */
-	return (uint)(y >> 4) | ((uint)y << (8 * sizeof(uint) - 4));
+  /* Note: Unlike Python 'sizeof(uint)' is used instead of 'sizeof(void *)',
+   * Otherwise casting to 'uint' ignores the upper bits on 64bit platforms. */
+  return (uint)(y >> 4) | ((uint)y << (8 * sizeof(uint) - 4));
 }
 #endif
 bool BLI_ghashutil_ptrcmp(const void *a, const void *b)
 {
-	return (a != b);
+  return (a != b);
 }
 
 uint BLI_ghashutil_uinthash_v4(const uint key[4])
 {
-	uint hash;
-	hash  = key[0];
-	hash *= 37;
-	hash += key[1];
-	hash *= 37;
-	hash += key[2];
-	hash *= 37;
-	hash += key[3];
-	return hash;
+  uint hash;
+  hash = key[0];
+  hash *= 37;
+  hash += key[1];
+  hash *= 37;
+  hash += key[2];
+  hash *= 37;
+  hash += key[3];
+  return hash;
 }
 uint BLI_ghashutil_uinthash_v4_murmur(const uint key[4])
 {
-	return BLI_hash_mm2((const unsigned char *)key, sizeof(int) * 4  /* sizeof(key) */, 0);
+  return BLI_hash_mm2((const unsigned char *)key, sizeof(int) * 4 /* sizeof(key) */, 0);
 }
 
 bool BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b)
 {
-	return (memcmp(a, b, sizeof(uint[4])) != 0);
+  return (memcmp(a, b, sizeof(uint[4])) != 0);
 }
 
 uint BLI_ghashutil_uinthash(uint key)
 {
-	key += ~(key << 16);
-	key ^=  (key >>  5);
-	key +=  (key <<  3);
-	key ^=  (key >> 13);
-	key += ~(key <<  9);
-	key ^=  (key >> 17);
+  key += ~(key << 16);
+  key ^= (key >> 5);
+  key += (key << 3);
+  key ^= (key >> 13);
+  key += ~(key << 9);
+  key ^= (key >> 17);
 
-	return key;
+  return key;
 }
 
 uint BLI_ghashutil_inthash_p(const void *ptr)
 {
-	uintptr_t key = (uintptr_t)ptr;
+  uintptr_t key = (uintptr_t)ptr;
 
-	key += ~(key << 16);
-	key ^=  (key >>  5);
-	key +=  (key <<  3);
-	key ^=  (key >> 13);
-	key += ~(key <<  9);
-	key ^=  (key >> 17);
+  key += ~(key << 16);
+  key ^= (key >> 5);
+  key += (key << 3);
+  key ^= (key >> 13);
+  key += ~(key << 9);
+  key ^= (key >> 17);
 
-	return (uint)(key & 0xffffffff);
+  return (uint)(key & 0xffffffff);
 }
 
 uint BLI_ghashutil_inthash_p_murmur(const void *ptr)
 {
-	uintptr_t key = (uintptr_t)ptr;
+  uintptr_t key = (uintptr_t)ptr;
 
-	return BLI_hash_mm2((const unsigned char *)&key, sizeof(key), 0);
+  return BLI_hash_mm2((const unsigned char *)&key, sizeof(key), 0);
 }
 
 uint BLI_ghashutil_inthash_p_simple(const void *ptr)
 {
-	return POINTER_AS_UINT(ptr);
+  return POINTER_AS_UINT(ptr);
 }
 
 bool BLI_ghashutil_intcmp(const void *a, const void *b)
 {
-	return (a != b);
+  return (a != b);
 }
 
 size_t BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b)
 {
-	return hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
+  return hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
 }
 
 /**
@@ -144,64 +144,63 @@ size_t BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b)
  */
 uint BLI_ghashutil_strhash_n(const char *key, size_t n)
 {
-	const signed char *p;
-	uint h = 5381;
+  const signed char *p;
+  uint h = 5381;
 
-	for (p = (const signed char *)key; n-- && *p != '\0'; p++) {
-		h = (uint)((h << 5) + h) + (uint)*p;
-	}
+  for (p = (const signed char *)key; n-- && *p != '\0'; p++) {
+    h = (uint)((h << 5) + h) + (uint)*p;
+  }
 
-	return h;
+  return h;
 }
 uint BLI_ghashutil_strhash_p(const void *ptr)
 {
-	const signed char *p;
-	uint h = 5381;
+  const signed char *p;
+  uint h = 5381;
 
-	for (p = ptr; *p != '\0'; p++) {
-		h = (uint)((h << 5) + h) + (uint)*p;
-	}
+  for (p = ptr; *p != '\0'; p++) {
+    h = (uint)((h << 5) + h) + (uint)*p;
+  }
 
-	return h;
+  return h;
 }
 uint BLI_ghashutil_strhash_p_murmur(const void *ptr)
 {
-	const unsigned char *key = ptr;
+  const unsigned char *key = ptr;
 
-	return BLI_hash_mm2(key, strlen((const char *)key) + 1, 0);
+  return BLI_hash_mm2(key, strlen((const char *)key) + 1, 0);
 }
 bool BLI_ghashutil_strcmp(const void *a, const void *b)
 {
-	return (a == b) ? false : !STREQ(a, b);
+  return (a == b) ? false : !STREQ(a, b);
 }
 
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 {
-	GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");
-	pair->first = first;
-	pair->second = second;
-	return pair;
+  GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");
+  pair->first = first;
+  pair->second = second;
+  return pair;
 }
 
 uint BLI_ghashutil_pairhash(const void *ptr)
 {
-	const GHashPair *pair = ptr;
-	uint hash = BLI_ghashutil_ptrhash(pair->first);
-	return hash ^ BLI_ghashutil_ptrhash(pair->second);
+  const GHashPair *pair = ptr;
+  uint hash = BLI_ghashutil_ptrhash(pair->first);
+  return hash ^ BLI_ghashutil_ptrhash(pair->second);
 }
 
 bool BLI_ghashutil_paircmp(const void *a, const void *b)
 {
-	const GHashPair *A = a;
-	const GHashPair *B = b;
+  const GHashPair *A = a;
+  const GHashPair *B = b;
 
-	return ((A->first != B->first) ||
-	        (A->second != B->second));
+  return ((A->first != B->first) || (A->second != B->second));
 }
 
 void BLI_ghashutil_pairfree(void *ptr)
 {
-	MEM_freeN(ptr);
+  MEM_freeN(ptr);
 }
 
 /** \} */
@@ -212,38 +211,38 @@ void BLI_ghashutil_pairfree(void *ptr)
 
 GHash *BLI_ghash_ptr_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_ghash_new_ex(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info, nentries_reserve);
+  return BLI_ghash_new_ex(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info, nentries_reserve);
 }
 GHash *BLI_ghash_ptr_new(const char *info)
 {
-	return BLI_ghash_ptr_new_ex(info, 0);
+  return BLI_ghash_ptr_new_ex(info, 0);
 }
 
 GHash *BLI_ghash_str_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_ghash_new_ex(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, info, nentries_reserve);
+  return BLI_ghash_new_ex(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, info, nentries_reserve);
 }
 GHash *BLI_ghash_str_new(const char *info)
 {
-	return BLI_ghash_str_new_ex(info, 0);
+  return BLI_ghash_str_new_ex(info, 0);
 }
 
 GHash *BLI_ghash_int_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_ghash_new_ex(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, info, nentries_reserve);
+  return BLI_ghash_new_ex(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, info, nentries_reserve);
 }
 GHash *BLI_ghash_int_new(const char *info)
 {
-	return BLI_ghash_int_new_ex(info, 0);
+  return BLI_ghash_int_new_ex(info, 0);
 }
 
 GHash *BLI_ghash_pair_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_ghash_new_ex(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info, nentries_reserve);
+  return BLI_ghash_new_ex(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info, nentries_reserve);
 }
 GHash *BLI_ghash_pair_new(const char *info)
 {
-	return BLI_ghash_pair_new_ex(info, 0);
+  return BLI_ghash_pair_new_ex(info, 0);
 }
 
 /** \} */
@@ -254,29 +253,29 @@ GHash *BLI_ghash_pair_new(const char *info)
 
 GSet *BLI_gset_ptr_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_gset_new_ex(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info, nentries_reserve);
+  return BLI_gset_new_ex(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info, nentries_reserve);
 }
 GSet *BLI_gset_ptr_new(const char *info)
 {
-	return BLI_gset_ptr_new_ex(info, 0);
+  return BLI_gset_ptr_new_ex(info, 0);
 }
 
 GSet *BLI_gset_str_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_gset_new_ex(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, info, nentries_reserve);
+  return BLI_gset_new_ex(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, info, nentries_reserve);
 }
 GSet *BLI_gset_str_new(const char *info)
 {
-	return BLI_gset_str_new_ex(info, 0);
+  return BLI_gset_str_new_ex(info, 0);
 }
 
 GSet *BLI_gset_pair_new_ex(const char *info, const uint nentries_reserve)
 {
-	return BLI_gset_new_ex(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info, nentries_reserve);
+  return BLI_gset_new_ex(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info, nentries_reserve);
 }
 GSet *BLI_gset_pair_new(const char *info)
 {
-	return BLI_gset_pair_new_ex(info, 0);
+  return BLI_gset_pair_new_ex(info, 0);
 }
 
 /** \} */

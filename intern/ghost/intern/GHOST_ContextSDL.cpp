@@ -31,20 +31,17 @@
 #include <cstdio>
 #include <cstring>
 
-
 SDL_GLContext GHOST_ContextSDL::s_sharedContext = NULL;
-int           GHOST_ContextSDL::s_sharedCount   = 0;
+int GHOST_ContextSDL::s_sharedCount = 0;
 
-
-GHOST_ContextSDL::GHOST_ContextSDL(
-        bool stereoVisual,
-        GHOST_TUns16 numOfAASamples,
-        SDL_Window *window,
-        int contextProfileMask,
-        int contextMajorVersion,
-        int contextMinorVersion,
-        int contextFlags,
-        int contextResetNotificationStrategy)
+GHOST_ContextSDL::GHOST_ContextSDL(bool stereoVisual,
+                                   GHOST_TUns16 numOfAASamples,
+                                   SDL_Window *window,
+                                   int contextProfileMask,
+                                   int contextMajorVersion,
+                                   int contextMinorVersion,
+                                   int contextFlags,
+                                   int contextResetNotificationStrategy)
     : GHOST_Context(stereoVisual, numOfAASamples),
       m_window(window),
       m_hidden_window(NULL),
@@ -55,168 +52,159 @@ GHOST_ContextSDL::GHOST_ContextSDL(
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
       m_context(NULL)
 {
-	// assert(m_window  != NULL);
+  // assert(m_window  != NULL);
 }
-
 
 GHOST_ContextSDL::~GHOST_ContextSDL()
 {
-	if (m_context != NULL) {
-		if (m_window != NULL && m_context == SDL_GL_GetCurrentContext())
-			SDL_GL_MakeCurrent(m_window, NULL);
+  if (m_context != NULL) {
+    if (m_window != NULL && m_context == SDL_GL_GetCurrentContext())
+      SDL_GL_MakeCurrent(m_window, NULL);
 
-		if (m_context != s_sharedContext || s_sharedCount == 1) {
-			assert(s_sharedCount > 0);
+    if (m_context != s_sharedContext || s_sharedCount == 1) {
+      assert(s_sharedCount > 0);
 
-			s_sharedCount--;
+      s_sharedCount--;
 
-			if (s_sharedCount == 0)
-				s_sharedContext = NULL;
+      if (s_sharedCount == 0)
+        s_sharedContext = NULL;
 
-			SDL_GL_DeleteContext(m_context);
-		}
+      SDL_GL_DeleteContext(m_context);
+    }
 
-		if (m_hidden_window != NULL)
-			SDL_DestroyWindow(m_hidden_window);
-	}
+    if (m_hidden_window != NULL)
+      SDL_DestroyWindow(m_hidden_window);
+  }
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::swapBuffers()
 {
-	SDL_GL_SwapWindow(m_window);
+  SDL_GL_SwapWindow(m_window);
 
-	return GHOST_kSuccess;
+  return GHOST_kSuccess;
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::activateDrawingContext()
 {
-	if (m_context) {
-		return SDL_GL_MakeCurrent(m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+  if (m_context) {
+    return SDL_GL_MakeCurrent(m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::releaseDrawingContext()
 {
-	if (m_context) {
-		/* Untested, may not work */
-		return SDL_GL_MakeCurrent(NULL, NULL) ? GHOST_kSuccess : GHOST_kFailure;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+  if (m_context) {
+    /* Untested, may not work */
+    return SDL_GL_MakeCurrent(NULL, NULL) ? GHOST_kSuccess : GHOST_kFailure;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 {
 #ifdef GHOST_OPENGL_ALPHA
-	const bool needAlpha   = true;
+  const bool needAlpha = true;
 #else
-	const bool needAlpha   = false;
+  const bool needAlpha = false;
 #endif
 
 #ifdef GHOST_OPENGL_STENCIL
-	const bool needStencil = true;
+  const bool needStencil = true;
 #else
-	const bool needStencil = false;
+  const bool needStencil = false;
 #endif
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_contextProfileMask);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_contextMajorVersion);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_contextMinorVersion);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, m_contextFlags);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_contextProfileMask);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_contextMajorVersion);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_contextMinorVersion);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, m_contextFlags);
 
-	SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 
-	if (needAlpha) {
-		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	}
+  if (needAlpha) {
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+  }
 
-	if (needStencil) {
-		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
-	}
+  if (needStencil) {
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
+  }
 
-	if (m_stereoVisual) {
-		SDL_GL_SetAttribute(SDL_GL_STEREO, 1);
-	}
+  if (m_stereoVisual) {
+    SDL_GL_SetAttribute(SDL_GL_STEREO, 1);
+  }
 
-	if (m_numOfAASamples) {
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_numOfAASamples);
-	}
+  if (m_numOfAASamples) {
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_numOfAASamples);
+  }
 
-	if (m_window == NULL) {
-		m_hidden_window = SDL_CreateWindow(
-		    "Offscreen Context Windows",
-		    SDL_WINDOWPOS_UNDEFINED,
-		    SDL_WINDOWPOS_UNDEFINED,
-		    1, 1,
-		    SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIDDEN
-		);
+  if (m_window == NULL) {
+    m_hidden_window = SDL_CreateWindow("Offscreen Context Windows",
+                                       SDL_WINDOWPOS_UNDEFINED,
+                                       SDL_WINDOWPOS_UNDEFINED,
+                                       1,
+                                       1,
+                                       SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS |
+                                           SDL_WINDOW_HIDDEN);
 
-		m_window = m_hidden_window;
-	}
+    m_window = m_hidden_window;
+  }
 
-	m_context = SDL_GL_CreateContext(m_window);
+  m_context = SDL_GL_CreateContext(m_window);
 
-	GHOST_TSuccess success;
+  GHOST_TSuccess success;
 
-	if (m_context != NULL) {
-		if (!s_sharedContext)
-			s_sharedContext = m_context;
+  if (m_context != NULL) {
+    if (!s_sharedContext)
+      s_sharedContext = m_context;
 
-		s_sharedCount++;
+    s_sharedCount++;
 
-		success = (SDL_GL_MakeCurrent(m_window, m_context) < 0) ?
-		           GHOST_kFailure : GHOST_kSuccess;
+    success = (SDL_GL_MakeCurrent(m_window, m_context) < 0) ? GHOST_kFailure : GHOST_kSuccess;
 
-		initContextGLEW();
+    initContextGLEW();
 
-		initClearGL();
-		SDL_GL_SwapWindow(m_window);
+    initClearGL();
+    SDL_GL_SwapWindow(m_window);
 
-		success = GHOST_kSuccess;
-	}
-	else {
-		success = GHOST_kFailure;
-	}
+    success = GHOST_kSuccess;
+  }
+  else {
+    success = GHOST_kFailure;
+  }
 
-	return success;
+  return success;
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::releaseNativeHandles()
 {
-	m_window = NULL;
+  m_window = NULL;
 
-	return GHOST_kSuccess;
+  return GHOST_kSuccess;
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::setSwapInterval(int interval)
 {
-	if (SDL_GL_SetSwapInterval(interval) != -1) {
-		return GHOST_kSuccess;
-	}
-	else {
-		return GHOST_kFailure;
-	}
+  if (SDL_GL_SetSwapInterval(interval) != -1) {
+    return GHOST_kSuccess;
+  }
+  else {
+    return GHOST_kFailure;
+  }
 }
-
 
 GHOST_TSuccess GHOST_ContextSDL::getSwapInterval(int &intervalOut)
 {
-	intervalOut = SDL_GL_GetSwapInterval();
-	return GHOST_kSuccess;
+  intervalOut = SDL_GL_GetSwapInterval();
+  return GHOST_kSuccess;
 }

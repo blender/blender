@@ -17,9 +17,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	../atomic
-	../guardedalloc
+  .
+  ../atomic
+  ../guardedalloc
 )
 
 set(INC_SYS
@@ -27,9 +27,9 @@ set(INC_SYS
 )
 
 set(SRC
-	clog.c
+  clog.c
 
-	CLG_log.h
+  CLG_log.h
 )
 
 set(LIB

@@ -26,8 +26,8 @@
  * \ingroup Node
  */
 class HueSaturationValueNode : public Node {
-public:
-	HueSaturationValueNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  HueSaturationValueNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 #endif

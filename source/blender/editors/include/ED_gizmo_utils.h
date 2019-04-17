@@ -27,16 +27,16 @@ struct bContext;
 struct wmGizmoGroupType;
 
 /** Wrapper function (operator name can't be guessed). */
-bool ED_gizmo_poll_or_unlink_delayed_from_operator(
-        const struct bContext *C, struct wmGizmoGroupType *gzgt,
-        const char *idname);
+bool ED_gizmo_poll_or_unlink_delayed_from_operator(const struct bContext *C,
+                                                   struct wmGizmoGroupType *gzgt,
+                                                   const char *idname);
 
-bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(
-        const struct bContext *C, struct wmGizmoGroupType *gzgt,
-        const char *gzgt_idname);
+bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const struct bContext *C,
+                                                  struct wmGizmoGroupType *gzgt,
+                                                  const char *gzgt_idname);
 
 /** Use this as poll function directly for: #wmGizmoGroupType.poll */
-bool ED_gizmo_poll_or_unlink_delayed_from_tool(
-        const struct bContext *C, struct wmGizmoGroupType *gzgt);
+bool ED_gizmo_poll_or_unlink_delayed_from_tool(const struct bContext *C,
+                                               struct wmGizmoGroupType *gzgt);
 
-#endif  /* __ED_GIZMO_UTILS_H__ */
+#endif /* __ED_GIZMO_UTILS_H__ */

@@ -32,7 +32,7 @@
 #include "../winged_edge/WEdge.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
@@ -40,175 +40,177 @@ namespace Freestyle {
 namespace GridHelpers {
 
 /*! Computes the distance from a point P to a segment AB */
-template<class T>
-T closestPointToSegment(const T& P, const T& A, const T& B, real& distance)
+template<class T> T closestPointToSegment(const T &P, const T &A, const T &B, real &distance)
 {
-	T AB, AP, BP;
-	AB = B - A;
-	AP = P - A;
-	BP = P - B;
+  T AB, AP, BP;
+  AB = B - A;
+  AP = P - A;
+  BP = P - B;
 
-	real c1(AB * AP);
-	if (c1 <= 0) {
-		distance = AP.norm();
-		return A; // A is closest point
-	}
+  real c1(AB * AP);
+  if (c1 <= 0) {
+    distance = AP.norm();
+    return A;  // A is closest point
+  }
 
-	real c2(AB * AB);
-	if (c2 <= c1) {
-		distance = BP.norm();
-		return B; // B is closest point
-	}
+  real c2(AB * AB);
+  if (c2 <= c1) {
+    distance = BP.norm();
+    return B;  // B is closest point
+  }
 
-	real b = c1 / c2;
-	T Pb, PPb;
-	Pb = A + b * AB;
-	PPb = P - Pb;
+  real b = c1 / c2;
+  T Pb, PPb;
+  Pb = A + b * AB;
+  PPb = P - Pb;
 
-	distance = PPb.norm();
-	return Pb; // closest point lies on AB
+  distance = PPb.norm();
+  return Pb;  // closest point lies on AB
 }
 
-inline Vec3r closestPointOnPolygon(const Vec3r& point, const Polygon3r& poly)
+inline Vec3r closestPointOnPolygon(const Vec3r &point, const Polygon3r &poly)
 {
-	// First cast a ray from the point onto the polygon plane
-	// If the ray intersects the polygon, then the intersection point
-	// is the closest point on the polygon
-	real t, u, v;
-	if (poly.rayIntersect(point, poly.getNormal(), t, u, v)) {
-		return point + poly.getNormal() * t;
-	}
+  // First cast a ray from the point onto the polygon plane
+  // If the ray intersects the polygon, then the intersection point
+  // is the closest point on the polygon
+  real t, u, v;
+  if (poly.rayIntersect(point, poly.getNormal(), t, u, v)) {
+    return point + poly.getNormal() * t;
+  }
 
-	// Otherwise, get the nearest point on each edge, and take the closest
-	real distance;
-	Vec3r closest = closestPointToSegment(point, poly.getVertices()[2], poly.getVertices()[0], distance);
-	for (unsigned int i = 0; i < 2; ++i) {
-		real t;
-		Vec3r p = closestPointToSegment(point, poly.getVertices()[i], poly.getVertices()[i + 1], t);
-		if (t < distance) {
-			distance = t;
-			closest = p;
-		}
-	}
-	return closest;
+  // Otherwise, get the nearest point on each edge, and take the closest
+  real distance;
+  Vec3r closest = closestPointToSegment(
+      point, poly.getVertices()[2], poly.getVertices()[0], distance);
+  for (unsigned int i = 0; i < 2; ++i) {
+    real t;
+    Vec3r p = closestPointToSegment(point, poly.getVertices()[i], poly.getVertices()[i + 1], t);
+    if (t < distance) {
+      distance = t;
+      closest = p;
+    }
+  }
+  return closest;
 }
 
-inline real distancePointToPolygon(const Vec3r& point, const Polygon3r& poly)
+inline real distancePointToPolygon(const Vec3r &point, const Polygon3r &poly)
 {
-	// First cast a ray from the point onto the polygon plane
-	// If the ray intersects the polygon, then the intersection point
-	// is the closest point on the polygon
-	real t, u, v;
-	if (poly.rayIntersect(point, poly.getNormal(), t, u, v)) {
-		return (t > 0.0) ? t : -t;
-	}
+  // First cast a ray from the point onto the polygon plane
+  // If the ray intersects the polygon, then the intersection point
+  // is the closest point on the polygon
+  real t, u, v;
+  if (poly.rayIntersect(point, poly.getNormal(), t, u, v)) {
+    return (t > 0.0) ? t : -t;
+  }
 
-	// Otherwise, get the nearest point on each edge, and take the closest
-	real distance = GeomUtils::distPointSegment(point, poly.getVertices()[2], poly.getVertices()[0]);
-	for (unsigned int i = 0; i < 2; ++i) {
-		real t = GeomUtils::distPointSegment(point, poly.getVertices()[i], poly.getVertices()[i + 1]);
-		if (t < distance) {
-			distance = t;
-		}
-	}
-	return distance;
+  // Otherwise, get the nearest point on each edge, and take the closest
+  real distance = GeomUtils::distPointSegment(point, poly.getVertices()[2], poly.getVertices()[0]);
+  for (unsigned int i = 0; i < 2; ++i) {
+    real t = GeomUtils::distPointSegment(point, poly.getVertices()[i], poly.getVertices()[i + 1]);
+    if (t < distance) {
+      distance = t;
+    }
+  }
+  return distance;
 }
 
-class Transform
-{
-public:
-	virtual ~Transform () = 0;
-	virtual Vec3r operator()(const Vec3r& point) const = 0;
+class Transform {
+ public:
+  virtual ~Transform() = 0;
+  virtual Vec3r operator()(const Vec3r &point) const = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridHelpers:Transform")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridHelpers:Transform")
 #endif
 };
 
-inline bool insideProscenium (const real proscenium[4], const Polygon3r& polygon)
+inline bool insideProscenium(const real proscenium[4], const Polygon3r &polygon)
 {
-	// N.B. The bounding box check is redundant for inserting occluders into cells, because the cell selection code
-	// in insertOccluders has already guaranteed that the bounding boxes will overlap.
-	// First check the viewport edges, since they are the easiest case
-	// Check if the bounding box is entirely outside the proscenium
-	Vec3r bbMin, bbMax;
-	polygon.getBBox(bbMin, bbMax);
-	if (bbMax[0] < proscenium[0] || bbMin[0] > proscenium[1] || bbMax[1] < proscenium[2] || bbMin[1] > proscenium[3]) {
-		return false;
-	}
+  // N.B. The bounding box check is redundant for inserting occluders into cells, because the cell selection code
+  // in insertOccluders has already guaranteed that the bounding boxes will overlap.
+  // First check the viewport edges, since they are the easiest case
+  // Check if the bounding box is entirely outside the proscenium
+  Vec3r bbMin, bbMax;
+  polygon.getBBox(bbMin, bbMax);
+  if (bbMax[0] < proscenium[0] || bbMin[0] > proscenium[1] || bbMax[1] < proscenium[2] ||
+      bbMin[1] > proscenium[3]) {
+    return false;
+  }
 
-	Vec3r boxCenter(proscenium[0] + (proscenium[1] - proscenium[0]) / 2.0,
-	                proscenium[2] + (proscenium[3] - proscenium[2]) / 2.0, 0.0);
-	Vec3r boxHalfSize((proscenium[1] - proscenium[0]) / 2.0,
-	                  (proscenium[3] - proscenium[2]) / 2.0, 1.0);
-	Vec3r triverts[3] = {
-		Vec3r(polygon.getVertices()[0][0], polygon.getVertices()[0][1], 0.0),
-		Vec3r(polygon.getVertices()[1][0], polygon.getVertices()[1][1], 0.0),
-		Vec3r(polygon.getVertices()[2][0], polygon.getVertices()[2][1], 0.0),
-	};
-	return GeomUtils::overlapTriangleBox(boxCenter, boxHalfSize, triverts);
+  Vec3r boxCenter(proscenium[0] + (proscenium[1] - proscenium[0]) / 2.0,
+                  proscenium[2] + (proscenium[3] - proscenium[2]) / 2.0,
+                  0.0);
+  Vec3r boxHalfSize(
+      (proscenium[1] - proscenium[0]) / 2.0, (proscenium[3] - proscenium[2]) / 2.0, 1.0);
+  Vec3r triverts[3] = {
+      Vec3r(polygon.getVertices()[0][0], polygon.getVertices()[0][1], 0.0),
+      Vec3r(polygon.getVertices()[1][0], polygon.getVertices()[1][1], 0.0),
+      Vec3r(polygon.getVertices()[2][0], polygon.getVertices()[2][1], 0.0),
+  };
+  return GeomUtils::overlapTriangleBox(boxCenter, boxHalfSize, triverts);
 }
 
-inline vector<Vec3r> enumerateVertices(const vector<WOEdge*>& fedges)
+inline vector<Vec3r> enumerateVertices(const vector<WOEdge *> &fedges)
 {
-	vector<Vec3r> points;
-	// Iterate over vertices, storing projections in points
-	for (vector<WOEdge*>::const_iterator woe = fedges.begin(), woend = fedges.end(); woe != woend; woe++) {
-		points.push_back((*woe)->GetaVertex()->GetVertex());
-	}
+  vector<Vec3r> points;
+  // Iterate over vertices, storing projections in points
+  for (vector<WOEdge *>::const_iterator woe = fedges.begin(), woend = fedges.end(); woe != woend;
+       woe++) {
+    points.push_back((*woe)->GetaVertex()->GetVertex());
+  }
 
-	return points;
+  return points;
 }
 
 void getDefaultViewProscenium(real viewProscenium[4]);
 
-inline void expandProscenium (real proscenium[4], const Polygon3r& polygon)
+inline void expandProscenium(real proscenium[4], const Polygon3r &polygon)
 {
-	Vec3r bbMin, bbMax;
-	polygon.getBBox(bbMin, bbMax);
+  Vec3r bbMin, bbMax;
+  polygon.getBBox(bbMin, bbMax);
 
-	const real epsilon = 1.0e-6;
+  const real epsilon = 1.0e-6;
 
-	if (bbMin[0] <= proscenium[0]) {
-		proscenium[0] = bbMin[0] - epsilon;
-	}
+  if (bbMin[0] <= proscenium[0]) {
+    proscenium[0] = bbMin[0] - epsilon;
+  }
 
-	if (bbMin[1] <= proscenium[2]) {
-		proscenium[2] = bbMin[1] - epsilon;
-	}
+  if (bbMin[1] <= proscenium[2]) {
+    proscenium[2] = bbMin[1] - epsilon;
+  }
 
-	if (bbMax[0] >= proscenium[1]) {
-		proscenium[1] = bbMax[0] + epsilon;
-	}
+  if (bbMax[0] >= proscenium[1]) {
+    proscenium[1] = bbMax[0] + epsilon;
+  }
 
-	if (bbMax[1] >= proscenium[3]) {
-		proscenium[3] = bbMax[1] + epsilon;
-	}
+  if (bbMax[1] >= proscenium[3]) {
+    proscenium[3] = bbMax[1] + epsilon;
+  }
 }
 
-inline void expandProscenium (real proscenium[4], const Vec3r& point)
+inline void expandProscenium(real proscenium[4], const Vec3r &point)
 {
-	const real epsilon = 1.0e-6;
+  const real epsilon = 1.0e-6;
 
-	if (point[0] <= proscenium[0]) {
-		proscenium[0] = point[0] - epsilon;
-	}
+  if (point[0] <= proscenium[0]) {
+    proscenium[0] = point[0] - epsilon;
+  }
 
-	if (point[1] <= proscenium[2]) {
-		proscenium[2] = point[1] - epsilon;
-	}
+  if (point[1] <= proscenium[2]) {
+    proscenium[2] = point[1] - epsilon;
+  }
 
-	if (point[0] >= proscenium[1]) {
-		proscenium[1] = point[0] + epsilon;
-	}
+  if (point[0] >= proscenium[1]) {
+    proscenium[1] = point[0] + epsilon;
+  }
 
-	if (point[1] >= proscenium[3]) {
-		proscenium[3] = point[1] + epsilon;
-	}
+  if (point[1] >= proscenium[3]) {
+    proscenium[3] = point[1] + epsilon;
+  }
 }
 
-};  // GridHelpers namespace
+};  // namespace GridHelpers
 
 } /* namespace Freestyle */
 
-#endif // __GRIDHELPERS_H__
+#endif  // __GRIDHELPERS_H__

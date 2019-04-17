@@ -19,52 +19,50 @@
 /* "Bump Mapping Unparameterized Surfaces on the GPU"
  * Morten S. Mikkelsen, 2010 */
 
-surface node_bump(
-	int invert = 0,
-	int use_object_space = 0,
-	normal NormalIn = N,
-	float Strength = 0.1,
-	float Distance = 1.0,
-	float SampleCenter = 0.0,
-	float SampleX = 0.0,
-	float SampleY = 0.0,
-	output normal NormalOut = N)
+surface node_bump(int invert = 0,
+                  int use_object_space = 0,
+                  normal NormalIn = N,
+                  float Strength = 0.1,
+                  float Distance = 1.0,
+                  float SampleCenter = 0.0,
+                  float SampleX = 0.0,
+                  float SampleY = 0.0,
+                  output normal NormalOut = N)
 {
-	point Ptmp = P;
-	normal Normal = NormalIn;
+  point Ptmp = P;
+  normal Normal = NormalIn;
 
-	if (use_object_space) {
-		Ptmp = transform("object", Ptmp);
-		Normal = normalize(transform("object", Normal));
-	}
+  if (use_object_space) {
+    Ptmp = transform("object", Ptmp);
+    Normal = normalize(transform("object", Normal));
+  }
 
-	/* get surface tangents from normal */
-	vector dPdx = Dx(Ptmp);
-	vector dPdy = Dy(Ptmp);
+  /* get surface tangents from normal */
+  vector dPdx = Dx(Ptmp);
+  vector dPdy = Dy(Ptmp);
 
-	vector Rx = cross(dPdy, Normal);
-	vector Ry = cross(Normal, dPdx);
+  vector Rx = cross(dPdy, Normal);
+  vector Ry = cross(Normal, dPdx);
 
-	/* compute surface gradient and determinant */
-	float det = dot(dPdx, Rx);
-	vector surfgrad = (SampleX - SampleCenter) * Rx + (SampleY - SampleCenter) * Ry;
+  /* compute surface gradient and determinant */
+  float det = dot(dPdx, Rx);
+  vector surfgrad = (SampleX - SampleCenter) * Rx + (SampleY - SampleCenter) * Ry;
 
-	float absdet = fabs(det);
+  float absdet = fabs(det);
 
-	float strength = max(Strength, 0.0);
-	float dist = Distance;
+  float strength = max(Strength, 0.0);
+  float dist = Distance;
 
-	if (invert)
-		dist *= -1.0;
-	
-	/* compute and output perturbed normal */
-	NormalOut = normalize(absdet * Normal - dist * sign(det) * surfgrad);
-	NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
+  if (invert)
+    dist *= -1.0;
 
-	if (use_object_space) {
-		NormalOut = normalize(transform("object", "world", NormalOut));
-	}
+  /* compute and output perturbed normal */
+  NormalOut = normalize(absdet * Normal - dist * sign(det) * surfgrad);
+  NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
 
-	NormalOut = ensure_valid_reflection(Ng, I, NormalOut);
+  if (use_object_space) {
+    NormalOut = normalize(transform("object", "world", NormalOut));
+  }
+
+  NormalOut = ensure_valid_reflection(Ng, I, NormalOut);
 }
-

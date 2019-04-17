@@ -309,8 +309,12 @@ extern "C" {
  *            should be checked further, probably it'll be also needed for preview
  *            generation in display space
  */
-void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rendering,
-                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,
+void COM_execute(RenderData *rd,
+                 Scene *scene,
+                 bNodeTree *editingtree,
+                 int rendering,
+                 const ColorManagedViewSettings *viewSettings,
+                 const ColorManagedDisplaySettings *displaySettings,
                  const char *viewName);
 
 /**
@@ -329,4 +333,4 @@ void COM_deinitialize(void);
 }
 #endif
 
-#endif  /* __COM_COMPOSITOR_H__ */
+#endif /* __COM_COMPOSITOR_H__ */

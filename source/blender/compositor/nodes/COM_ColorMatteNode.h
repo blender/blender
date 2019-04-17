@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ColorMatteNode : public Node {
-public:
-	ColorMatteNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ColorMatteNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_ColorMatteNODE_H */
+#endif /* COM_ColorMatteNODE_H */

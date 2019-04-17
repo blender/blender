@@ -45,8 +45,8 @@ class LeafNode;
 class Object;
 class Progress;
 
-#define BVH_ONODE_SIZE           16
-#define BVH_ONODE_LEAF_SIZE      1
+#define BVH_ONODE_SIZE 16
+#define BVH_ONODE_LEAF_SIZE 1
 #define BVH_UNALIGNED_ONODE_SIZE 28
 
 /* BVH8
@@ -54,48 +54,44 @@ class Progress;
 * Octo BVH, with each node having eight children, to use with SIMD instructions.
 */
 class BVH8 : public BVH {
-protected:
-	/* constructor */
-	friend class BVH;
-	BVH8(const BVHParams& params, const vector<Object*>& objects);
+ protected:
+  /* constructor */
+  friend class BVH;
+  BVH8(const BVHParams &params, const vector<Object *> &objects);
 
-	/* Building process. */
-	virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
+  /* Building process. */
+  virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
 
-	/* pack */
-	void pack_nodes(const BVHNode *root) override;
+  /* pack */
+  void pack_nodes(const BVHNode *root) override;
 
-	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
-	void pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num);
+  void pack_leaf(const BVHStackEntry &e, const LeafNode *leaf);
+  void pack_inner(const BVHStackEntry &e, const BVHStackEntry *en, int num);
 
-	void pack_aligned_inner(const BVHStackEntry& e,
-	                        const BVHStackEntry *en,
-	                        int num);
-	void pack_aligned_node(int idx,
-	                       const BoundBox *bounds,
-	                       const int *child,
-	                       const uint visibility,
-	                       const float time_from,
-	                       const float time_to,
-	                       const int num);
+  void pack_aligned_inner(const BVHStackEntry &e, const BVHStackEntry *en, int num);
+  void pack_aligned_node(int idx,
+                         const BoundBox *bounds,
+                         const int *child,
+                         const uint visibility,
+                         const float time_from,
+                         const float time_to,
+                         const int num);
 
-	void pack_unaligned_inner(const BVHStackEntry& e,
-	                          const BVHStackEntry *en,
-	                          int num);
-	void pack_unaligned_node(int idx,
-	                         const Transform *aligned_space,
-	                         const BoundBox *bounds,
-	                         const int *child,
-	                         const uint visibility,
-	                         const float time_from,
-	                         const float time_to,
-	                         const int num);
+  void pack_unaligned_inner(const BVHStackEntry &e, const BVHStackEntry *en, int num);
+  void pack_unaligned_node(int idx,
+                           const Transform *aligned_space,
+                           const BoundBox *bounds,
+                           const int *child,
+                           const uint visibility,
+                           const float time_from,
+                           const float time_to,
+                           const int num);
 
-	/* refit */
-	void refit_nodes() override;
-	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
+  /* refit */
+  void refit_nodes() override;
+  void refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility);
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __BVH8_H__ */
+#endif /* __BVH8_H__ */

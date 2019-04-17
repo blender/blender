@@ -21,42 +21,55 @@
 #include "RE_shader_ext.h"
 
 static bNodeSocketTemplate outputs[] = {
-	{ SOCK_FLOAT,  0, "Index" },
-	{ SOCK_FLOAT,  0, "Random" },
-	{ SOCK_FLOAT,  0, "Age" },
-	{ SOCK_FLOAT,  0, "Lifetime" },
-	{ SOCK_VECTOR,  0, "Location" },
-#if 0	/* quaternion sockets not yet supported */
-	{ SOCK_QUATERNION,  0, "Rotation" },
+    {SOCK_FLOAT, 0, "Index"},
+    {SOCK_FLOAT, 0, "Random"},
+    {SOCK_FLOAT, 0, "Age"},
+    {SOCK_FLOAT, 0, "Lifetime"},
+    {SOCK_VECTOR, 0, "Location"},
+#if 0 /* quaternion sockets not yet supported */
+  { SOCK_QUATERNION,  0, "Rotation" },
 #endif
-	{ SOCK_FLOAT,  0, "Size" },
-	{ SOCK_VECTOR,  0, "Velocity" },
-	{ SOCK_VECTOR,  0, "Angular Velocity" },
-	{ -1, 0, "" },
+    {SOCK_FLOAT, 0, "Size"},
+    {SOCK_VECTOR, 0, "Velocity"},
+    {SOCK_VECTOR, 0, "Angular Velocity"},
+    {-1, 0, ""},
 };
-static void node_shader_exec_particle_info(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
+static void node_shader_exec_particle_info(void *UNUSED(data),
+                                           int UNUSED(thread),
+                                           bNode *UNUSED(node),
+                                           bNodeExecData *UNUSED(execdata),
+                                           bNodeStack **UNUSED(in),
+                                           bNodeStack **UNUSED(out))
 {
 }
 
-static int gpu_shader_particle_info(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_particle_info(GPUMaterial *mat,
+                                    bNode *node,
+                                    bNodeExecData *UNUSED(execdata),
+                                    GPUNodeStack *in,
+                                    GPUNodeStack *out)
 {
 
-	return GPU_stack_link(mat, node, "particle_info", in, out,
-	                      GPU_builtin(GPU_PARTICLE_SCALAR_PROPS),
-	                      GPU_builtin(GPU_PARTICLE_LOCATION),
-	                      GPU_builtin(GPU_PARTICLE_VELOCITY),
-	                      GPU_builtin(GPU_PARTICLE_ANG_VELOCITY));
+  return GPU_stack_link(mat,
+                        node,
+                        "particle_info",
+                        in,
+                        out,
+                        GPU_builtin(GPU_PARTICLE_SCALAR_PROPS),
+                        GPU_builtin(GPU_PARTICLE_LOCATION),
+                        GPU_builtin(GPU_PARTICLE_VELOCITY),
+                        GPU_builtin(GPU_PARTICLE_ANG_VELOCITY));
 }
 
 /* node type definition */
 void register_node_type_sh_particle_info(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT, 0);
-	node_type_socket_templates(&ntype, NULL, outputs);
-	node_type_exec(&ntype, NULL, NULL, node_shader_exec_particle_info);
-	node_type_gpu(&ntype, gpu_shader_particle_info);
+  sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT, 0);
+  node_type_socket_templates(&ntype, NULL, outputs);
+  node_type_exec(&ntype, NULL, NULL, node_shader_exec_particle_info);
+  node_type_gpu(&ntype, gpu_shader_particle_info);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

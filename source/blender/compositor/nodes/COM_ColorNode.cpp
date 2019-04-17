@@ -22,17 +22,18 @@
 
 ColorNode::ColorNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void ColorNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void ColorNode::convertToOperations(NodeConverter &converter,
+                                    const CompositorContext & /*context*/) const
 {
-	SetColorOperation *operation = new SetColorOperation();
-	NodeOutput *output = this->getOutputSocket(0);
-	float col[4];
-	output->getEditorValueColor(col);
-	operation->setChannels(col);
-	converter.addOperation(operation);
+  SetColorOperation *operation = new SetColorOperation();
+  NodeOutput *output = this->getOutputSocket(0);
+  float col[4];
+  output->getEditorValueColor(col);
+  operation->setChannels(col);
+  converter.addOperation(operation);
 
-	converter.mapOutputSocket(output, operation->getOutputSocket());
+  converter.mapOutputSocket(output, operation->getOutputSocket());
 }

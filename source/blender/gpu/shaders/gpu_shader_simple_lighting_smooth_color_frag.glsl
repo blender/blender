@@ -12,5 +12,5 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = finalColor * max(0.0, dot(normalize(normal), light));
+  fragColor = finalColor * max(0.0, dot(normalize(normal), light));
 }

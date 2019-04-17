@@ -23,4 +23,4 @@
 
 int BPY_rna_gizmo_module(PyObject *);
 
-#endif  /* __BPY_RNA_GIZMO_H__ */
+#endif /* __BPY_RNA_GIZMO_H__ */

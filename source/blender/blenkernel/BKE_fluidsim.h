@@ -32,14 +32,19 @@ struct Scene;
 
 /* old interface */
 
-void initElbeemMesh(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
-                    int *numVertices, float **vertices,
-                    int *numTriangles, int **triangles,
-                    int useGlobalCoords, int modifierIndex);
+void initElbeemMesh(struct Depsgraph *depsgraph,
+                    struct Scene *scene,
+                    struct Object *ob,
+                    int *numVertices,
+                    float **vertices,
+                    int *numTriangles,
+                    int **triangles,
+                    int useGlobalCoords,
+                    int modifierIndex);
 
 /* bounding box & memory estimate */
-void fluid_get_bb(struct MVert *mvert, int totvert, float obmat[4][4],
-                  float start[3], float size[3]);
+void fluid_get_bb(
+    struct MVert *mvert, int totvert, float obmat[4][4], float start[3], float size[3]);
 
 void fluid_estimate_memory(struct Object *ob, struct FluidsimSettings *fss, char *value);
 

@@ -12,10 +12,10 @@ out vec4 finalColor;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	finalColor = color;
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  finalColor = color;
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
 }

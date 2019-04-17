@@ -36,8 +36,8 @@ typedef struct OpenSubdiv_GLMeshInternal {
   ~OpenSubdiv_GLMeshInternal();
 
   eOpenSubdivEvaluator evaluator_type;
-  OpenSubdiv::Osd::GLMeshInterface* mesh_interface;
-  opensubdiv_capi::GLMeshFVarData* fvar_data;
+  OpenSubdiv::Osd::GLMeshInterface *mesh_interface;
+  opensubdiv_capi::GLMeshFVarData *fvar_data;
 } OpenSubdiv_GLMeshInternal;
 
 #endif  // OPENSUBDIV_GL_MESH_INTERNAL_H_

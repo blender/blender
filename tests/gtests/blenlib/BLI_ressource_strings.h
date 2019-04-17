@@ -607,4 +607,4 @@ const char words10k[] =
 
 /* clang-format on */
 
-#endif  /* __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__ */
+#endif /* __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__ */

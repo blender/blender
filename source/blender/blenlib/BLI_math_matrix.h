@@ -86,47 +86,87 @@ void mul_m4_m4_pre(float R[4][4], const float A[4][4]);
 void mul_m4_m4_post(float R[4][4], const float B[4][4]);
 
 /* mul_m3_series */
-void _va_mul_m3_series_3(
-        float R[3][3], const float M1[3][3], const float M2[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_4(
-        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_5(
-        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
-        const float M4[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_6(
-        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
-        const float M4[3][3], const float M5[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_7(
-        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
-        const float M4[3][3], const float M5[3][3], const float M6[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_8(
-        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
-        const float M4[3][3], const float M5[3][3], const float M6[3][3], const float M7[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_9(
-        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
-        const float M4[3][3], const float M5[3][3], const float M6[3][3], const float M7[3][3],
-        const float M8[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_3(float R[3][3], const float M1[3][3], const float M2[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_4(float R[3][3],
+                         const float M1[3][3],
+                         const float M2[3][3],
+                         const float M3[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_5(float R[3][3],
+                         const float M1[3][3],
+                         const float M2[3][3],
+                         const float M3[3][3],
+                         const float M4[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_6(float R[3][3],
+                         const float M1[3][3],
+                         const float M2[3][3],
+                         const float M3[3][3],
+                         const float M4[3][3],
+                         const float M5[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_7(float R[3][3],
+                         const float M1[3][3],
+                         const float M2[3][3],
+                         const float M3[3][3],
+                         const float M4[3][3],
+                         const float M5[3][3],
+                         const float M6[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_8(float R[3][3],
+                         const float M1[3][3],
+                         const float M2[3][3],
+                         const float M3[3][3],
+                         const float M4[3][3],
+                         const float M5[3][3],
+                         const float M6[3][3],
+                         const float M7[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_9(float R[3][3],
+                         const float M1[3][3],
+                         const float M2[3][3],
+                         const float M3[3][3],
+                         const float M4[3][3],
+                         const float M5[3][3],
+                         const float M6[3][3],
+                         const float M7[3][3],
+                         const float M8[3][3]) ATTR_NONNULL();
 /* mul_m4_series */
-void _va_mul_m4_series_3(
-        float R[4][4], const float M1[4][4], const float M2[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_4(
-        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_5(
-        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
-        const float M4[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_6(
-        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
-        const float M4[4][4], const float M5[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_7(
-        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
-        const float M4[4][4], const float M5[4][4], const float M6[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_8(
-        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
-        const float M4[4][4], const float M5[4][4], const float M6[4][4], const float M7[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_9(
-        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
-        const float M4[4][4], const float M5[4][4], const float M6[4][4], const float M7[4][4],
-        const float M8[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_3(float R[4][4], const float M1[4][4], const float M2[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_4(float R[4][4],
+                         const float M1[4][4],
+                         const float M2[4][4],
+                         const float M3[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_5(float R[4][4],
+                         const float M1[4][4],
+                         const float M2[4][4],
+                         const float M3[4][4],
+                         const float M4[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_6(float R[4][4],
+                         const float M1[4][4],
+                         const float M2[4][4],
+                         const float M3[4][4],
+                         const float M4[4][4],
+                         const float M5[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_7(float R[4][4],
+                         const float M1[4][4],
+                         const float M2[4][4],
+                         const float M3[4][4],
+                         const float M4[4][4],
+                         const float M5[4][4],
+                         const float M6[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_8(float R[4][4],
+                         const float M1[4][4],
+                         const float M2[4][4],
+                         const float M3[4][4],
+                         const float M4[4][4],
+                         const float M5[4][4],
+                         const float M6[4][4],
+                         const float M7[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_9(float R[4][4],
+                         const float M1[4][4],
+                         const float M2[4][4],
+                         const float M3[4][4],
+                         const float M4[4][4],
+                         const float M5[4][4],
+                         const float M6[4][4],
+                         const float M7[4][4],
+                         const float M8[4][4]) ATTR_NONNULL();
 
 #define mul_m3_series(...) VA_NARGS_CALL_OVERLOAD(_va_mul_m3_series_, __VA_ARGS__)
 #define mul_m4_series(...) VA_NARGS_CALL_OVERLOAD(_va_mul_m4_series_, __VA_ARGS__)
@@ -178,7 +218,6 @@ void mul_v4d_m4v4d(double r[4], const float M[4][4], const double v[4]);
 void mul_v3_m3v3_db(double r[3], const double M[3][3], const double a[3]);
 void mul_m3_v3_db(const double M[3][3], double r[3]);
 
-
 /****************************** Linear Algebra *******************************/
 
 void transpose_m3(float R[3][3]);
@@ -217,11 +256,9 @@ void adjoint_m2_m2(float R[2][2], const float A[2][2]);
 void adjoint_m3_m3(float R[3][3], const float A[3][3]);
 void adjoint_m4_m4(float R[4][4], const float A[4][4]);
 
-float determinant_m2(float a, float b,
-                     float c, float d);
-float determinant_m3(float a, float b, float c,
-                     float d, float e, float f,
-                     float g, float h, float i);
+float determinant_m2(float a, float b, float c, float d);
+float determinant_m3(
+    float a, float b, float c, float d, float e, float f, float g, float h, float i);
 float determinant_m3_array(const float m[3][3]);
 float determinant_m4(const float A[4][4]);
 
@@ -262,13 +299,20 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], const float wmat
 void mat3_polar_decompose(const float mat3[3][3], float r_U[3][3], float r_P[3][3]);
 
 void loc_eul_size_to_mat4(float R[4][4],
-                          const float loc[3], const float eul[3], const float size[3]);
-void loc_eulO_size_to_mat4(float R[4][4],
-                           const float loc[3], const float eul[3], const float size[3], const short order);
+                          const float loc[3],
+                          const float eul[3],
+                          const float size[3]);
+void loc_eulO_size_to_mat4(
+    float R[4][4], const float loc[3], const float eul[3], const float size[3], const short order);
 void loc_quat_size_to_mat4(float R[4][4],
-                           const float loc[3], const float quat[4], const float size[3]);
+                           const float loc[3],
+                           const float quat[4],
+                           const float size[3]);
 void loc_axisangle_size_to_mat4(float R[4][4],
-                                const float loc[3], const float axis[4], const float angle, const float size[3]);
+                                const float loc[3],
+                                const float axis[4],
+                                const float angle,
+                                const float size[3]);
 
 void blend_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], const float t);
 void blend_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4], const float t);
@@ -287,20 +331,24 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4]);
 
 /* SpaceTransform helper */
 typedef struct SpaceTransform {
-	float local2target[4][4];
-	float target2local[4][4];
+  float local2target[4][4];
+  float target2local[4][4];
 
 } SpaceTransform;
 
-void BLI_space_transform_from_matrices(struct SpaceTransform *data, const float local[4][4], const float target[4][4]);
-void BLI_space_transform_global_from_matrices(struct SpaceTransform *data, const float local[4][4], const float target[4][4]);
+void BLI_space_transform_from_matrices(struct SpaceTransform *data,
+                                       const float local[4][4],
+                                       const float target[4][4]);
+void BLI_space_transform_global_from_matrices(struct SpaceTransform *data,
+                                              const float local[4][4],
+                                              const float target[4][4]);
 void BLI_space_transform_apply(const struct SpaceTransform *data, float co[3]);
 void BLI_space_transform_invert(const struct SpaceTransform *data, float co[3]);
 void BLI_space_transform_apply_normal(const struct SpaceTransform *data, float no[3]);
 void BLI_space_transform_invert_normal(const struct SpaceTransform *data, float no[3]);
 
 #define BLI_SPACE_TRANSFORM_SETUP(data, local, target) \
-	BLI_space_transform_from_matrices((data), (local)->obmat, (target)->obmat)
+  BLI_space_transform_from_matrices((data), (local)->obmat, (target)->obmat)
 
 /*********************************** Other ***********************************/
 

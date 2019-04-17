@@ -23,17 +23,18 @@
 
 DirectionalBlurNode::DirectionalBlurNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void DirectionalBlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void DirectionalBlurNode::convertToOperations(NodeConverter &converter,
+                                              const CompositorContext &context) const
 {
-	NodeDBlurData *data = (NodeDBlurData *)this->getbNode()->storage;
-	DirectionalBlurOperation *operation = new DirectionalBlurOperation();
-	operation->setQuality(context.getQuality());
-	operation->setData(data);
-	converter.addOperation(operation);
+  NodeDBlurData *data = (NodeDBlurData *)this->getbNode()->storage;
+  DirectionalBlurOperation *operation = new DirectionalBlurOperation();
+  operation->setQuality(context.getQuality());
+  operation->setData(data);
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

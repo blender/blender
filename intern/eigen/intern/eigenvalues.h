@@ -24,10 +24,13 @@
 extern "C" {
 #endif
 
-bool EIG_self_adjoint_eigen_solve(const int size, const float *matrix, float *r_eigen_values, float *r_eigen_vectors);
+bool EIG_self_adjoint_eigen_solve(const int size,
+                                  const float *matrix,
+                                  float *r_eigen_values,
+                                  float *r_eigen_vectors);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __EIGEN3_EIGENVALUES_C_API_H__ */
+#endif /* __EIGEN3_EIGENVALUES_C_API_H__ */

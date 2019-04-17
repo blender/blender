@@ -56,9 +56,9 @@ extern "C" {
  * graph container.
  */
 void DEG_graph_build_from_view_layer(struct Depsgraph *graph,
-                                      struct Main *bmain,
-                                      struct Scene *scene,
-                                      struct ViewLayer *view_layer);
+                                     struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ViewLayer *view_layer);
 
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
@@ -82,43 +82,43 @@ void DEG_relations_tag_update(struct Main *bmain);
 struct DepsNodeHandle;
 
 typedef enum eDepsSceneComponentType {
-	/* Parameters Component - Default when nothing else fits
-	 * (i.e. just SDNA property setting). */
-	DEG_SCENE_COMP_PARAMETERS,
-	/* Animation Component
-	 * TODO(sergey): merge in with parameters?  */
-	DEG_SCENE_COMP_ANIMATION,
-	/* Sequencer Component (Scene Only). */
-	DEG_SCENE_COMP_SEQUENCER,
+  /* Parameters Component - Default when nothing else fits
+   * (i.e. just SDNA property setting). */
+  DEG_SCENE_COMP_PARAMETERS,
+  /* Animation Component
+   * TODO(sergey): merge in with parameters?  */
+  DEG_SCENE_COMP_ANIMATION,
+  /* Sequencer Component (Scene Only). */
+  DEG_SCENE_COMP_SEQUENCER,
 } eDepsSceneComponentType;
 
 typedef enum eDepsObjectComponentType {
-	/* Parameters Component - Default when nothing else fits
-	 * (i.e. just SDNA property setting). */
-	DEG_OB_COMP_PARAMETERS,
-	/* Generic "Proxy-Inherit" Component.
-	 * TODO(sergey): Also for instancing of subgraphs? */
-	DEG_OB_COMP_PROXY,
-	/* Animation Component.
-	 *
-	 * TODO(sergey): merge in with parameters? */
-	DEG_OB_COMP_ANIMATION,
-	/* Transform Component (Parenting/Constraints) */
-	DEG_OB_COMP_TRANSFORM,
-	/* Geometry Component (Mesh/Displist) */
-	DEG_OB_COMP_GEOMETRY,
+  /* Parameters Component - Default when nothing else fits
+   * (i.e. just SDNA property setting). */
+  DEG_OB_COMP_PARAMETERS,
+  /* Generic "Proxy-Inherit" Component.
+   * TODO(sergey): Also for instancing of subgraphs? */
+  DEG_OB_COMP_PROXY,
+  /* Animation Component.
+   *
+   * TODO(sergey): merge in with parameters? */
+  DEG_OB_COMP_ANIMATION,
+  /* Transform Component (Parenting/Constraints) */
+  DEG_OB_COMP_TRANSFORM,
+  /* Geometry Component (Mesh/Displist) */
+  DEG_OB_COMP_GEOMETRY,
 
-	/* Evaluation-Related Outer Types (with Subdata) */
+  /* Evaluation-Related Outer Types (with Subdata) */
 
-	/* Pose Component - Owner/Container of Bones Eval */
-	DEG_OB_COMP_EVAL_POSE,
-	/* Bone Component - Child/Subcomponent of Pose */
-	DEG_OB_COMP_BONE,
+  /* Pose Component - Owner/Container of Bones Eval */
+  DEG_OB_COMP_EVAL_POSE,
+  /* Bone Component - Child/Subcomponent of Pose */
+  DEG_OB_COMP_BONE,
 
-	/* Material Shading Component */
-	DEG_OB_COMP_SHADING,
-	/* Cache Component */
-	DEG_OB_COMP_CACHE,
+  /* Material Shading Component */
+  DEG_OB_COMP_SHADING,
+  /* Cache Component */
+  DEG_OB_COMP_CACHE,
 } eDepsObjectComponentType;
 
 void DEG_add_scene_relation(struct DepsNodeHandle *node_handle,
@@ -150,9 +150,8 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
  * This function will take care of checking which operation is required to
  * have transformation for the modifier, taking into account possible simulation
  * solvers. */
-void DEG_add_modifier_to_transform_relation(
-        struct DepsNodeHandle *node_handle,
-        const char *description);
+void DEG_add_modifier_to_transform_relation(struct DepsNodeHandle *node_handle,
+                                            const char *description);
 
 /* Adds relations from the given component of a given object to the given node
  * handle AND the component to the point cache component of the node's ID. */
@@ -162,7 +161,9 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
                                         const char *description);
 
 void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, struct ID *id, uint32_t flag);
-void DEG_add_customdata_mask(struct DepsNodeHandle *handle, struct Object *object, const struct CustomData_MeshMasks *masks);
+void DEG_add_customdata_mask(struct DepsNodeHandle *handle,
+                             struct Object *object,
+                             const struct CustomData_MeshMasks *masks);
 
 struct ID *DEG_get_id_from_handle(struct DepsNodeHandle *node_handle);
 struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);
@@ -173,4 +174,4 @@ struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);
 } /* extern "C" */
 #endif
 
-#endif  /* __DEG_DEPSGRAPH_BUILD_H__ */
+#endif /* __DEG_DEPSGRAPH_BUILD_H__ */

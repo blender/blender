@@ -32,7 +32,7 @@
 #    define __KERNEL_SSE41__
 #    define __KERNEL_AVX__
 #  endif
-#endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX */
+#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX */
 
 #include "kernel/kernel.h"
 #define KERNEL_ARCH cpu_avx

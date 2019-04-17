@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class TonemapNode : public Node {
-public:
-	TonemapNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  TonemapNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

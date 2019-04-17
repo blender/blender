@@ -54,174 +54,178 @@
 
 static void initData(GpencilModifierData *md)
 {
-	MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->layername[0] = '\0';
-	gpmd->object = NULL;
-	gpmd->flag |= GP_MIRROR_AXIS_X;
+  MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  gpmd->layername[0] = '\0';
+  gpmd->object = NULL;
+  gpmd->flag |= GP_MIRROR_AXIS_X;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
 static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstroke *gps, int axis)
 {
-	int i;
-	bGPDspoint *pt;
-	float factor[3] = { 1.0f, 1.0f, 1.0f };
-	factor[axis] = -1.0f;
+  int i;
+  bGPDspoint *pt;
+  float factor[3] = {1.0f, 1.0f, 1.0f};
+  factor[axis] = -1.0f;
 
-	float clear[3] = { 0.0f, 0.0f, 0.0f };
-	clear[axis] = 1.0f;
+  float clear[3] = {0.0f, 0.0f, 0.0f};
+  clear[axis] = 1.0f;
 
-	float ob_origin[3];
-	float pt_origin[3];
+  float ob_origin[3];
+  float pt_origin[3];
 
-	if (mmd->object) {
-		float inv_mat[4][4];
+  if (mmd->object) {
+    float inv_mat[4][4];
 
-		invert_m4_m4(inv_mat, mmd->object->obmat);
-		mul_v3_m4v3(ob_origin, inv_mat, ob->obmat[3]);
-	}
-	else {
-		copy_v3_v3(ob_origin, ob->obmat[3]);
-	}
+    invert_m4_m4(inv_mat, mmd->object->obmat);
+    mul_v3_m4v3(ob_origin, inv_mat, ob->obmat[3]);
+  }
+  else {
+    copy_v3_v3(ob_origin, ob->obmat[3]);
+  }
 
-	/* only works with current axis */
-	mul_v3_v3(ob_origin, clear);
+  /* only works with current axis */
+  mul_v3_v3(ob_origin, clear);
 
-	mul_v3_v3fl(pt_origin, ob_origin, -2.0f);
+  mul_v3_v3fl(pt_origin, ob_origin, -2.0f);
 
-	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-		mul_v3_v3(&pt->x, factor);
-		if (mmd->object) {
-			add_v3_v3(&pt->x, pt_origin);
-		}
-	}
+  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+    mul_v3_v3(&pt->x, factor);
+    if (mmd->object) {
+      add_v3_v3(&pt->x, pt_origin);
+    }
+  }
 }
 
 /* Generic "generateStrokes" callback */
-static void generateStrokes(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
+static void generateStrokes(GpencilModifierData *md,
+                            Depsgraph *UNUSED(depsgraph),
+                            Object *ob,
+                            bGPDlayer *gpl,
+                            bGPDframe *gpf)
 {
-	MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
-	bGPDstroke *gps, *gps_new = NULL;
-	int tot_strokes;
-	int i;
+  MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+  bGPDstroke *gps, *gps_new = NULL;
+  int tot_strokes;
+  int i;
 
-	/* check each axis for mirroring */
-	for (int xi = 0; xi < 3; ++xi) {
-		if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
+  /* check each axis for mirroring */
+  for (int xi = 0; xi < 3; ++xi) {
+    if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
 
-			/* count strokes to avoid infinite loop after adding new strokes to tail of listbase */
-			tot_strokes = BLI_listbase_count(&gpf->strokes);
+      /* count strokes to avoid infinite loop after adding new strokes to tail of listbase */
+      tot_strokes = BLI_listbase_count(&gpf->strokes);
 
-			for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
-				if (is_stroke_affected_by_modifier(
-				            ob, mmd->layername, mmd->pass_index, mmd->layer_pass,
-				            1, gpl, gps,
-				            mmd->flag & GP_MIRROR_INVERT_LAYER,
-				            mmd->flag & GP_MIRROR_INVERT_PASS,
-				            mmd->flag & GP_MIRROR_INVERT_LAYERPASS))
-				{
-					gps_new = BKE_gpencil_stroke_duplicate(gps);
-					update_position(ob, mmd, gps_new, xi);
-					BLI_addtail(&gpf->strokes, gps_new);
-				}
-			}
-		}
-	}
+      for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
+        if (is_stroke_affected_by_modifier(ob,
+                                           mmd->layername,
+                                           mmd->pass_index,
+                                           mmd->layer_pass,
+                                           1,
+                                           gpl,
+                                           gps,
+                                           mmd->flag & GP_MIRROR_INVERT_LAYER,
+                                           mmd->flag & GP_MIRROR_INVERT_PASS,
+                                           mmd->flag & GP_MIRROR_INVERT_LAYERPASS)) {
+          gps_new = BKE_gpencil_stroke_duplicate(gps);
+          update_position(ob, mmd, gps_new, xi);
+          BLI_addtail(&gpf->strokes, gps_new);
+        }
+      }
+    }
+  }
 }
 
-static void bakeModifier(
-        Main *bmain, Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
 {
-	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	bGPdata *gpd = ob->data;
-	int oldframe = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  bGPdata *gpd = ob->data;
+  int oldframe = (int)DEG_get_ctime(depsgraph);
 
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			/* apply mirror effects on this frame */
-			CFRA = gpf->framenum;
-			BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      /* apply mirror effects on this frame */
+      CFRA = gpf->framenum;
+      BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 
-			/* compute mirror effects on this frame */
-			generateStrokes(md, depsgraph, ob, gpl, gpf);
-		}
-	}
+      /* compute mirror effects on this frame */
+      generateStrokes(md, depsgraph, ob, gpl, gpf);
+    }
+  }
 
-	/* return frame state and DB to original state */
-	CFRA = oldframe;
-	BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  /* return frame state and DB to original state */
+  CFRA = oldframe;
+  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 }
 
 static bool isDisabled(GpencilModifierData *UNUSED(md), int UNUSED(userRenderParams))
 {
-	//MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+  //MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
 
-	return false;
+  return false;
 }
 
 static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-	MirrorGpencilModifierData *lmd = (MirrorGpencilModifierData *)md;
-	if (lmd->object != NULL) {
-		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Mirror Modifier");
-		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
-	}
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
+  MirrorGpencilModifierData *lmd = (MirrorGpencilModifierData *)md;
+  if (lmd->object != NULL) {
+    DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Mirror Modifier");
+    DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
+  }
+  DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
 }
 
-static void foreachObjectLink(
-        GpencilModifierData *md, Object *ob,
-        ObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(GpencilModifierData *md,
+                              Object *ob,
+                              ObjectWalkFunc walk,
+                              void *userData)
 {
-	MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+  MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
 
-	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
 static int getDuplicationFactor(GpencilModifierData *md)
 {
-	MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
-	int factor = 1;
-	/* create a duplication for each axis */
-	for (int xi = 0; xi < 3; ++xi) {
-		if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
-			factor++;
-		}
-	}
-	CLAMP_MIN(factor, 1);
+  MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+  int factor = 1;
+  /* create a duplication for each axis */
+  for (int xi = 0; xi < 3; ++xi) {
+    if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
+      factor++;
+    }
+  }
+  CLAMP_MIN(factor, 1);
 
-	return factor;
+  return factor;
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Mirror = {
-	/* name */              "Mirror",
-	/* structName */        "MirrorGpencilModifierData",
-	/* structSize */        sizeof(MirrorGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Mirror",
+    /* structName */ "MirrorGpencilModifierData",
+    /* structSize */ sizeof(MirrorGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      NULL,
-	/* generateStrokes */   generateStrokes,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ NULL,
+    /* generateStrokes */ generateStrokes,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ getDuplicationFactor,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ foreachObjectLink,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ getDuplicationFactor,
 };

@@ -47,65 +47,66 @@ struct wmWindowManager;
 typedef struct BlendHandle BlendHandle;
 
 typedef enum eBlenFileType {
-	BLENFILETYPE_BLEND = 1,
-	BLENFILETYPE_PUB = 2,
-	BLENFILETYPE_RUNTIME = 3,
+  BLENFILETYPE_BLEND = 1,
+  BLENFILETYPE_PUB = 2,
+  BLENFILETYPE_RUNTIME = 3,
 } eBlenFileType;
 
 typedef struct BlendFileData {
-	struct Main *main;
-	struct UserDef *user;
+  struct Main *main;
+  struct UserDef *user;
 
-	int fileflags;
-	int globalf;
-	char filename[1024];    /* 1024 = FILE_MAX */
+  int fileflags;
+  int globalf;
+  char filename[1024]; /* 1024 = FILE_MAX */
 
-	struct bScreen *curscreen; /* TODO think this isn't needed anymore? */
-	struct Scene *curscene;
-	struct ViewLayer *cur_view_layer; /* layer to activate in workspaces when reading without UI */
+  struct bScreen *curscreen; /* TODO think this isn't needed anymore? */
+  struct Scene *curscene;
+  struct ViewLayer *cur_view_layer; /* layer to activate in workspaces when reading without UI */
 
-	eBlenFileType type;
+  eBlenFileType type;
 } BlendFileData;
 
 typedef struct WorkspaceConfigFileData {
-	struct Main *main; /* has to be freed when done reading file data */
+  struct Main *main; /* has to be freed when done reading file data */
 
-	struct ListBase workspaces;
+  struct ListBase workspaces;
 } WorkspaceConfigFileData;
 
 struct BlendFileReadParams {
-	uint skip_flags : 2;  /* eBLOReadSkip */
-	uint is_startup : 1;
+  uint skip_flags : 2; /* eBLOReadSkip */
+  uint is_startup : 1;
 };
 
 /* skip reading some data-block types (may want to skip screen data too). */
 typedef enum eBLOReadSkip {
-	BLO_READ_SKIP_NONE          = 0,
-	BLO_READ_SKIP_USERDEF       = (1 << 0),
-	BLO_READ_SKIP_DATA          = (1 << 1),
+  BLO_READ_SKIP_NONE = 0,
+  BLO_READ_SKIP_USERDEF = (1 << 0),
+  BLO_READ_SKIP_DATA = (1 << 1),
 } eBLOReadSkip;
-#define BLO_READ_SKIP_ALL \
-	(BLO_READ_SKIP_USERDEF | BLO_READ_SKIP_DATA)
+#define BLO_READ_SKIP_ALL (BLO_READ_SKIP_USERDEF | BLO_READ_SKIP_DATA)
 
-BlendFileData *BLO_read_from_file(
-        const char *filepath,
-        eBLOReadSkip skip_flags,
-        struct ReportList *reports);
-BlendFileData *BLO_read_from_memory(
-        const void *mem, int memsize,
-        eBLOReadSkip skip_flags,
-        struct ReportList *reports);
-BlendFileData *BLO_read_from_memfile(
-        struct Main *oldmain, const char *filename, struct MemFile *memfile,
-        eBLOReadSkip skip_flags,
-        struct ReportList *reports);
+BlendFileData *BLO_read_from_file(const char *filepath,
+                                  eBLOReadSkip skip_flags,
+                                  struct ReportList *reports);
+BlendFileData *BLO_read_from_memory(const void *mem,
+                                    int memsize,
+                                    eBLOReadSkip skip_flags,
+                                    struct ReportList *reports);
+BlendFileData *BLO_read_from_memfile(struct Main *oldmain,
+                                     const char *filename,
+                                     struct MemFile *memfile,
+                                     eBLOReadSkip skip_flags,
+                                     struct ReportList *reports);
 
 void BLO_blendfiledata_free(BlendFileData *bfd);
 
 BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct ReportList *reports);
 BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize);
 
-struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, int *tot_names);
+struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
+                                                     int ofblocktype,
+                                                     int *tot_names);
 struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev);
 struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
@@ -123,31 +124,41 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
  * Note: merged with 'user-level' options from operators etc. in 16 lower bits
  *       (see eFileSel_Params_Flag in DNA_space_types.h). */
 typedef enum BLO_LibLinkFlags {
-	/* Generate a placeholder (empty ID) if not found in current lib file. */
-	BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
-	/* Force loaded ID to be tagged as LIB_TAG_INDIRECT (used in reload context only). */
-	BLO_LIBLINK_FORCE_INDIRECT   = 1 << 17,
+  /* Generate a placeholder (empty ID) if not found in current lib file. */
+  BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
+  /* Force loaded ID to be tagged as LIB_TAG_INDIRECT (used in reload context only). */
+  BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
 } BLO_LinkFlags;
 
 struct Main *BLO_library_link_begin(struct Main *mainvar, BlendHandle **bh, const char *filepath);
-struct ID *BLO_library_link_named_part(struct Main *mainl, BlendHandle **bh, const short idcode, const char *name);
+struct ID *BLO_library_link_named_part(struct Main *mainl,
+                                       BlendHandle **bh,
+                                       const short idcode,
+                                       const char *name);
 struct ID *BLO_library_link_named_part_ex(
-        struct Main *mainl, BlendHandle **bh,
-        const short idcode, const char *name, const int flag);
-void BLO_library_link_end(
-        struct Main *mainl, BlendHandle **bh, int flag,
-        struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, const struct View3D *v3d);
+    struct Main *mainl, BlendHandle **bh, const short idcode, const char *name, const int flag);
+void BLO_library_link_end(struct Main *mainl,
+                          BlendHandle **bh,
+                          int flag,
+                          struct Main *bmain,
+                          struct Scene *scene,
+                          struct ViewLayer *view_layer,
+                          const struct View3D *v3d);
 
-int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const unsigned int id_types_mask);
+int BLO_library_link_copypaste(struct Main *mainl,
+                               BlendHandle *bh,
+                               const unsigned int id_types_mask);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
 /* internal function but we need to expose it */
-void blo_lib_link_restore(
-        struct Main *oldmain, struct Main *newmain, struct wmWindowManager *curwm,
-        struct Scene *curscene, struct ViewLayer *cur_render_layer);
+void blo_lib_link_restore(struct Main *oldmain,
+                          struct Main *newmain,
+                          struct wmWindowManager *curwm,
+                          struct Scene *curscene,
+                          struct ViewLayer *cur_render_layer);
 
-typedef void (*BLOExpandDoitCallback) (void *fdhandle, struct Main *mainvar, void *idv);
+typedef void (*BLOExpandDoitCallback)(void *fdhandle, struct Main *mainvar, void *idv);
 
 void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
@@ -168,4 +179,4 @@ extern const struct bTheme U_theme_default;
 }
 #endif
 
-#endif  /* __BLO_READFILE_H__ */
+#endif /* __BLO_READFILE_H__ */

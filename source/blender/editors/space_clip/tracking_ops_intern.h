@@ -31,8 +31,7 @@ struct bContext;
 
 /* tracking_utils.c */
 
-void clip_tracking_clear_invisible_track_selection(struct SpaceClip *sc,
-                                                   struct MovieClip *clip);
+void clip_tracking_clear_invisible_track_selection(struct SpaceClip *sc, struct MovieClip *clip);
 
 void clip_tracking_show_cursor(struct bContext *C);
 void clip_tracking_hide_cursor(struct bContext *C);

@@ -55,110 +55,108 @@
  * \{ */
 
 typedef struct ValueInteraction {
-	struct {
-		float mval[2];
-		float prop_value;
-	} init;
-	struct {
-		float prop_value;
-		eWM_GizmoFlagTweak tweak_flag;
-	} prev;
-	float range[2];
+  struct {
+    float mval[2];
+    float prop_value;
+  } init;
+  struct {
+    float prop_value;
+    eWM_GizmoFlagTweak tweak_flag;
+  } prev;
+  float range[2];
 } ValueInteraction;
 
 static void gizmo_value_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
 {
-	/* pass */
+  /* pass */
 }
 
-static int gizmo_value_modal(
-        bContext *C, wmGizmo *gz, const wmEvent *event,
-        eWM_GizmoFlagTweak tweak_flag)
+static int gizmo_value_modal(bContext *C,
+                             wmGizmo *gz,
+                             const wmEvent *event,
+                             eWM_GizmoFlagTweak tweak_flag)
 {
-	ValueInteraction *inter = gz->interaction_data;
-	if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
-		return OPERATOR_RUNNING_MODAL;
-	}
-	ARegion *ar = CTX_wm_region(C);
-	const float value_scale = 4.0f;  /* Could be option. */
-	const float value_range = inter->range[1] - inter->range[0];
-	float value_delta = (
-	        inter->init.prop_value +
-	        (((event->mval[0] - inter->init.mval[0]) / ar->winx) * value_range)) * value_scale;
+  ValueInteraction *inter = gz->interaction_data;
+  if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+  ARegion *ar = CTX_wm_region(C);
+  const float value_scale = 4.0f; /* Could be option. */
+  const float value_range = inter->range[1] - inter->range[0];
+  float value_delta = (inter->init.prop_value +
+                       (((event->mval[0] - inter->init.mval[0]) / ar->winx) * value_range)) *
+                      value_scale;
 
+  if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
+    const double snap = 0.1;
+    value_delta = (float)roundf((double)value_delta / snap) * snap;
+  }
+  if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
+    value_delta *= 0.1f;
+  }
+  const float value_final = inter->init.prop_value + value_delta;
 
-	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
-		const double snap = 0.1;
-		value_delta = (float)roundf((double)value_delta / snap) * snap;
+  if (value_final != inter->prev.prop_value) {
+    /* set the property for the operator and call its modal function */
+    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+    if (WM_gizmo_target_property_is_valid(gz_prop)) {
+      WM_gizmo_target_property_float_set(C, gz, gz_prop, value_final);
+    }
 
-	}
-	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
-		value_delta *= 0.1f;
-	}
-	const float value_final = inter->init.prop_value + value_delta;
+    {
+      ScrArea *sa = CTX_wm_area(C);
+      char str[64];
+      SNPRINTF(str, "%.4f", value_final);
+      ED_area_status_text(sa, str);
+    }
+  }
 
-	if (value_final != inter->prev.prop_value) {
-		/* set the property for the operator and call its modal function */
-		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
-		if (WM_gizmo_target_property_is_valid(gz_prop)) {
-			WM_gizmo_target_property_float_set(C, gz, gz_prop, value_final);
-		}
+  inter->prev.prop_value = value_final;
+  inter->prev.tweak_flag = tweak_flag;
 
-		{
-			ScrArea *sa = CTX_wm_area(C);
-			char str[64];
-			SNPRINTF(str, "%.4f", value_final);
-			ED_area_status_text(sa, str);
-		}
-	}
-
-	inter->prev.prop_value = value_final;
-	inter->prev.tweak_flag = tweak_flag;
-
-	return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_RUNNING_MODAL;
 }
 
-
-static int gizmo_value_invoke(
-        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
+static int gizmo_value_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
-	ValueInteraction *inter = MEM_callocN(sizeof(ValueInteraction), __func__);
+  ValueInteraction *inter = MEM_callocN(sizeof(ValueInteraction), __func__);
 
-	inter->init.mval[0] = event->mval[0];
-	inter->init.mval[1] = event->mval[1];
-	inter->prev.prop_value = -FLT_MAX;
+  inter->init.mval[0] = event->mval[0];
+  inter->init.mval[1] = event->mval[1];
+  inter->prev.prop_value = -FLT_MAX;
 
-	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
-	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		inter->init.prop_value = WM_gizmo_target_property_float_get(gz, gz_prop);
-		if (!WM_gizmo_target_property_float_range_get(gz, gz_prop, inter->range)) {
-			inter->range[0] = 0.0f;
-			inter->range[1] = 1.0f;
-		}
-	}
+  wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+  if (WM_gizmo_target_property_is_valid(gz_prop)) {
+    inter->init.prop_value = WM_gizmo_target_property_float_get(gz, gz_prop);
+    if (!WM_gizmo_target_property_float_range_get(gz, gz_prop, inter->range)) {
+      inter->range[0] = 0.0f;
+      inter->range[1] = 1.0f;
+    }
+  }
 
-	gz->interaction_data = inter;
+  gz->interaction_data = inter;
 
-	return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static void gizmo_value_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	ED_area_status_text(sa, NULL);
-	if (cancel) {
-		ValueInteraction *inter = gz->interaction_data;
-		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
-		if (WM_gizmo_target_property_is_valid(gz_prop)) {
-			WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init.prop_value);
-		}
-	}
+  ScrArea *sa = CTX_wm_area(C);
+  ED_area_status_text(sa, NULL);
+  if (cancel) {
+    ValueInteraction *inter = gz->interaction_data;
+    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+    if (WM_gizmo_target_property_is_valid(gz_prop)) {
+      WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init.prop_value);
+    }
+  }
 }
 
-static int gizmo_value_test_select(
-        bContext *UNUSED(C), wmGizmo *UNUSED(gz), const int UNUSED(mval[2]))
+static int gizmo_value_test_select(bContext *UNUSED(C),
+                                   wmGizmo *UNUSED(gz),
+                                   const int UNUSED(mval[2]))
 {
-	return 0;
+  return 0;
 }
 
 /** \} */
@@ -170,25 +168,25 @@ static int gizmo_value_test_select(
 
 static void GIZMO_GT_value_2d(wmGizmoType *gzt)
 {
-	/* identifiers */
-	gzt->idname = "GIZMO_GT_value_2d";
+  /* identifiers */
+  gzt->idname = "GIZMO_GT_value_2d";
 
-	/* api callbacks */
-	gzt->draw = gizmo_value_draw;
-	gzt->invoke = gizmo_value_invoke;
-	gzt->exit = gizmo_value_exit;
-	gzt->modal = gizmo_value_modal;
-	gzt->test_select = gizmo_value_test_select;
+  /* api callbacks */
+  gzt->draw = gizmo_value_draw;
+  gzt->invoke = gizmo_value_invoke;
+  gzt->exit = gizmo_value_exit;
+  gzt->modal = gizmo_value_modal;
+  gzt->test_select = gizmo_value_test_select;
 
-	gzt->struct_size = sizeof(wmGizmo);
+  gzt->struct_size = sizeof(wmGizmo);
 
-	WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
-	/* Options: relative / absolute */
+  WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
+  /* Options: relative / absolute */
 }
 
 void ED_gizmotypes_value_2d(void)
 {
-	WM_gizmotype_append(GIZMO_GT_value_2d);
+  WM_gizmotype_append(GIZMO_GT_value_2d);
 }
 
 /** \} */

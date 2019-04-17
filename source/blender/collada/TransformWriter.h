@@ -29,25 +29,22 @@
 #include "collada_utils.h"
 #include "collada.h"
 
-class TransformWriter
-{
-protected:
-	void add_node_transform(
-	        COLLADASW::Node& node,
-	        float mat[4][4],
-	        float parent_mat[4][4],
-	        bool limit_precision=false);
+class TransformWriter {
+ protected:
+  void add_node_transform(COLLADASW::Node &node,
+                          float mat[4][4],
+                          float parent_mat[4][4],
+                          bool limit_precision = false);
 
-	void add_node_transform_ob(
-	        COLLADASW::Node& node,
-	        Object *ob,
-	        BC_export_transformation_type transformation_type,
-	        bool limit_precision = false);
+  void add_node_transform_ob(COLLADASW::Node &node,
+                             Object *ob,
+                             BC_export_transformation_type transformation_type,
+                             bool limit_precision = false);
 
-	void add_node_transform_identity(COLLADASW::Node& node);
+  void add_node_transform_identity(COLLADASW::Node &node);
 
-private:
-	void add_transform(COLLADASW::Node& node, float loc[3], float rot[3], float scale[3]);
+ private:
+  void add_transform(COLLADASW::Node &node, float loc[3], float rot[3], float scale[3]);
 };
 
 #endif

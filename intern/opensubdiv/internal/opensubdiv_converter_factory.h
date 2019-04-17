@@ -29,8 +29,8 @@ struct OpenSubdiv_Converter;
 
 namespace opensubdiv_capi {
 
-OpenSubdiv::Far::TopologyRefiner* createOSDTopologyRefinerFromConverter(
-    struct OpenSubdiv_Converter* converter);
+OpenSubdiv::Far::TopologyRefiner *createOSDTopologyRefinerFromConverter(
+    struct OpenSubdiv_Converter *converter);
 
 }  // namespace opensubdiv_capi
 

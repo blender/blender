@@ -36,15 +36,20 @@ typedef struct DRWInstanceDataList DRWInstanceDataList;
 struct DRWShadingGroup;
 
 void *DRW_instance_data_next(DRWInstanceData *idata);
-DRWInstanceData *DRW_instance_data_request(
-        DRWInstanceDataList *idatalist, uint attr_size);
+DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint attr_size);
 
-void DRW_batching_buffer_request(
-        DRWInstanceDataList *idatalist, GPUVertFormat *format, GPUPrimType type, struct DRWShadingGroup *shgroup,
-        GPUBatch **r_batch, GPUVertBuf **r_vert);
-void DRW_instancing_buffer_request(
-        DRWInstanceDataList *idatalist, GPUVertFormat *format, GPUBatch *instance, struct DRWShadingGroup *shgroup,
-        GPUBatch **r_batch, GPUVertBuf **r_vert);
+void DRW_batching_buffer_request(DRWInstanceDataList *idatalist,
+                                 GPUVertFormat *format,
+                                 GPUPrimType type,
+                                 struct DRWShadingGroup *shgroup,
+                                 GPUBatch **r_batch,
+                                 GPUVertBuf **r_vert);
+void DRW_instancing_buffer_request(DRWInstanceDataList *idatalist,
+                                   GPUVertFormat *format,
+                                   GPUBatch *instance,
+                                   struct DRWShadingGroup *shgroup,
+                                   GPUBatch **r_batch,
+                                   GPUVertBuf **r_vert);
 
 /* Upload all instance data to the GPU as soon as possible. */
 void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist);

@@ -22,17 +22,19 @@
 
 TonemapNode::TonemapNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void TonemapNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void TonemapNode::convertToOperations(NodeConverter &converter,
+                                      const CompositorContext & /*context*/) const
 {
-	NodeTonemap *data = (NodeTonemap *)this->getbNode()->storage;
+  NodeTonemap *data = (NodeTonemap *)this->getbNode()->storage;
 
-	TonemapOperation *operation = data->type == 1 ? new PhotoreceptorTonemapOperation() : new TonemapOperation();
-	operation->setData(data);
-	converter.addOperation(operation);
+  TonemapOperation *operation = data->type == 1 ? new PhotoreceptorTonemapOperation() :
+                                                  new TonemapOperation();
+  operation->setData(data);
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

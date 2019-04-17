@@ -23,7 +23,7 @@
 #ifndef __DRW_ENGINE_H__
 #define __DRW_ENGINE_H__
 
-#include "BLI_sys_types.h"  /* for bool */
+#include "BLI_sys_types.h" /* for bool */
 
 struct ARegion;
 struct DRWInstanceDataList;
@@ -53,17 +53,17 @@ struct rcti;
 
 /* Buffer and textures used by the viewport by default */
 typedef struct DefaultFramebufferList {
-	struct GPUFrameBuffer *default_fb;
-	struct GPUFrameBuffer *color_only_fb;
-	struct GPUFrameBuffer *depth_only_fb;
-	struct GPUFrameBuffer *multisample_fb;
+  struct GPUFrameBuffer *default_fb;
+  struct GPUFrameBuffer *color_only_fb;
+  struct GPUFrameBuffer *depth_only_fb;
+  struct GPUFrameBuffer *multisample_fb;
 } DefaultFramebufferList;
 
 typedef struct DefaultTextureList {
-	struct GPUTexture *color;
-	struct GPUTexture *depth;
-	struct GPUTexture *multisample_color;
-	struct GPUTexture *multisample_depth;
+  struct GPUTexture *color;
+  struct GPUTexture *depth;
+  struct GPUTexture *multisample_color;
+  struct GPUTexture *multisample_depth;
 } DefaultTextureList;
 
 void DRW_engines_register(void);
@@ -72,62 +72,66 @@ void DRW_engines_free(void);
 bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);
 void DRW_engine_register(struct DrawEngineType *draw_engine_type);
 void DRW_engine_viewport_data_size_get(
-        const void *engine_type,
-        int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
+    const void *engine_type, int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
 
 typedef struct DRWUpdateContext {
-	struct Main *bmain;
-	struct Depsgraph *depsgraph;
-	struct Scene *scene;
-	struct ViewLayer *view_layer;
-	struct ARegion *ar;
-	struct View3D *v3d;
-	struct RenderEngineType *engine_type;
+  struct Main *bmain;
+  struct Depsgraph *depsgraph;
+  struct Scene *scene;
+  struct ViewLayer *view_layer;
+  struct ARegion *ar;
+  struct View3D *v3d;
+  struct RenderEngineType *engine_type;
 } DRWUpdateContext;
 void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
 
-
-typedef enum eDRWSelectStage { DRW_SELECT_PASS_PRE = 1, DRW_SELECT_PASS_POST, } eDRWSelectStage;
-typedef bool (*DRW_SelectPassFn)(
-        eDRWSelectStage stage, void *user_data);
-typedef bool (*DRW_ObjectFilterFn)(
-        struct Object *ob, void *user_data);
+typedef enum eDRWSelectStage {
+  DRW_SELECT_PASS_PRE = 1,
+  DRW_SELECT_PASS_POST,
+} eDRWSelectStage;
+typedef bool (*DRW_SelectPassFn)(eDRWSelectStage stage, void *user_data);
+typedef bool (*DRW_ObjectFilterFn)(struct Object *ob, void *user_data);
 
 void DRW_draw_view(const struct bContext *C);
 void DRW_draw_region_engine_info(int xoffset, int yoffset);
 
-void DRW_draw_render_loop_ex(
-        struct Depsgraph *depsgraph,
-        struct RenderEngineType *engine_type,
-        struct ARegion *ar, struct View3D *v3d,
-        struct GPUViewport *viewport,
-        const struct bContext *evil_C);
-void DRW_draw_render_loop(
-        struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d,
-        struct GPUViewport *viewport);
-void DRW_draw_render_loop_offscreen(
-        struct Depsgraph *depsgraph,
-        struct RenderEngineType *engine_type,
-        struct ARegion *ar, struct View3D *v3d,
-        const bool draw_background,
-        const bool do_color_management,
-        struct GPUOffScreen *ofs,
-        struct GPUViewport *viewport);
-void DRW_draw_select_loop(
-        struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d,
-        bool use_obedit_skip, bool draw_surface, bool use_nearest, const struct rcti *rect,
-        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data,
-        DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data);
-void DRW_draw_depth_loop(
-        struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d,
-        struct GPUViewport *viewport);
-void DRW_draw_depth_loop_gpencil(
-        struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d,
-        struct GPUViewport *viewport);
+void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
+                             struct RenderEngineType *engine_type,
+                             struct ARegion *ar,
+                             struct View3D *v3d,
+                             struct GPUViewport *viewport,
+                             const struct bContext *evil_C);
+void DRW_draw_render_loop(struct Depsgraph *depsgraph,
+                          struct ARegion *ar,
+                          struct View3D *v3d,
+                          struct GPUViewport *viewport);
+void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
+                                    struct RenderEngineType *engine_type,
+                                    struct ARegion *ar,
+                                    struct View3D *v3d,
+                                    const bool draw_background,
+                                    const bool do_color_management,
+                                    struct GPUOffScreen *ofs,
+                                    struct GPUViewport *viewport);
+void DRW_draw_select_loop(struct Depsgraph *depsgraph,
+                          struct ARegion *ar,
+                          struct View3D *v3d,
+                          bool use_obedit_skip,
+                          bool draw_surface,
+                          bool use_nearest,
+                          const struct rcti *rect,
+                          DRW_SelectPassFn select_pass_fn,
+                          void *select_pass_user_data,
+                          DRW_ObjectFilterFn object_filter_fn,
+                          void *object_filter_user_data);
+void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
+                         struct ARegion *ar,
+                         struct View3D *v3d,
+                         struct GPUViewport *viewport);
+void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
+                                 struct ARegion *ar,
+                                 struct View3D *v3d,
+                                 struct GPUViewport *viewport);
 
 void DRW_framebuffer_select_id_setup(struct ARegion *ar, const bool clear);
 void DRW_framebuffer_select_id_release(struct ARegion *ar);

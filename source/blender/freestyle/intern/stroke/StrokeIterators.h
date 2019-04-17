@@ -46,187 +46,190 @@ namespace StrokeInternal {
  * \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
  *  Otherwise, incrementing \a it1 will also increment \a it2.
  */
-class StrokeVertexIterator : public Interface0DIteratorNested
-{
-public:
-	/*! Default constructor. */
-	StrokeVertexIterator() {}
+class StrokeVertexIterator : public Interface0DIteratorNested {
+ public:
+  /*! Default constructor. */
+  StrokeVertexIterator()
+  {
+  }
 
-	/*! Copy constructor. */
-	StrokeVertexIterator(const StrokeVertexIterator& vi)
-	{
-		_it = vi._it;
-		_begin = vi._begin;
-		_end = vi._end;
-	}
+  /*! Copy constructor. */
+  StrokeVertexIterator(const StrokeVertexIterator &vi)
+  {
+    _it = vi._it;
+    _begin = vi._begin;
+    _end = vi._end;
+  }
 
-	StrokeVertexIterator(const Stroke::vertex_container::iterator& it,
-	                     const Stroke::vertex_container::iterator& begin,
-	                     const Stroke::vertex_container::iterator& end)
-	{
-		_it = it;
-		_begin = begin;
-		_end = end;
-	}
+  StrokeVertexIterator(const Stroke::vertex_container::iterator &it,
+                       const Stroke::vertex_container::iterator &begin,
+                       const Stroke::vertex_container::iterator &end)
+  {
+    _it = it;
+    _begin = begin;
+    _end = end;
+  }
 
-	virtual ~StrokeVertexIterator() {}
+  virtual ~StrokeVertexIterator()
+  {
+  }
 
-	/*! Casts this StrokeVertexIterator into an Interface0DIterator.
-	 *  Useful for any call to a function of the type UnaryFunction0D.
-	 */
-	inline Interface0DIterator castToInterface0DIterator() const
-	{
-		Interface0DIterator ret(new StrokeVertexIterator(*this));
-		return ret;
-	}
+  /*! Casts this StrokeVertexIterator into an Interface0DIterator.
+   *  Useful for any call to a function of the type UnaryFunction0D.
+   */
+  inline Interface0DIterator castToInterface0DIterator() const
+  {
+    Interface0DIterator ret(new StrokeVertexIterator(*this));
+    return ret;
+  }
 
-	/*! operator=
-	 *  \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
-	 *  \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
-	 *  Otherwise, incrementing \a it1 will also increment \a it2.
-	 */
-	StrokeVertexIterator& operator=(const StrokeVertexIterator& vi)
-	{
-		_it = vi._it;
-		_begin = vi._begin;
-		_end = vi._end;
-		return *this;
-	}
+  /*! operator=
+   *  \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
+   *  \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
+   *  Otherwise, incrementing \a it1 will also increment \a it2.
+   */
+  StrokeVertexIterator &operator=(const StrokeVertexIterator &vi)
+  {
+    _it = vi._it;
+    _begin = vi._begin;
+    _end = vi._end;
+    return *this;
+  }
 
-	/*! Returns the string "StrokeVertexIterator". */
-	virtual string getExactTypeName() const
-	{
-		return "StrokeVertexIterator";
-	}
+  /*! Returns the string "StrokeVertexIterator". */
+  virtual string getExactTypeName() const
+  {
+    return "StrokeVertexIterator";
+  }
 
-	/*! Returns a reference to the pointed StrokeVertex.
-	 *  In the scripting language, you must call "getObject()"instead.
-	 */
-	virtual StrokeVertex& operator*()
-	{
-		return **_it;
-	}
+  /*! Returns a reference to the pointed StrokeVertex.
+   *  In the scripting language, you must call "getObject()"instead.
+   */
+  virtual StrokeVertex &operator*()
+  {
+    return **_it;
+  }
 
-	/*! Returns a pointer to the pointed StrokeVertex.
-	 * Can't be called in the scripting language.
-	 */
-	virtual StrokeVertex *operator->()
-	{
-		return &(operator*());
-	}
+  /*! Returns a pointer to the pointed StrokeVertex.
+   * Can't be called in the scripting language.
+   */
+  virtual StrokeVertex *operator->()
+  {
+    return &(operator*());
+  }
 
-	/*! Increments. In the scripting language, call "increment()". */
-	virtual StrokeVertexIterator& operator++()
-	{
-		increment();
-		return *this;
-	}
+  /*! Increments. In the scripting language, call "increment()". */
+  virtual StrokeVertexIterator &operator++()
+  {
+    increment();
+    return *this;
+  }
 
-	/*! Increments. In the scripting language, call "increment()". */
-	virtual StrokeVertexIterator operator++(int)
-	{
-		StrokeVertexIterator ret(*this);
-		increment();
-		return ret;
-	}
+  /*! Increments. In the scripting language, call "increment()". */
+  virtual StrokeVertexIterator operator++(int)
+  {
+    StrokeVertexIterator ret(*this);
+    increment();
+    return ret;
+  }
 
-	/*! Decrements. In the scripting language, call "decrement()". */
-	virtual StrokeVertexIterator& operator--()
-	{
-		decrement();
-		return *this;
-	}
+  /*! Decrements. In the scripting language, call "decrement()". */
+  virtual StrokeVertexIterator &operator--()
+  {
+    decrement();
+    return *this;
+  }
 
-	/*! Decrements. In the scripting language, call "decrement()". */
-	virtual StrokeVertexIterator operator--(int)
-	{
-		StrokeVertexIterator ret(*this);
-		decrement();
-		return ret;
-	}
+  /*! Decrements. In the scripting language, call "decrement()". */
+  virtual StrokeVertexIterator operator--(int)
+  {
+    StrokeVertexIterator ret(*this);
+    decrement();
+    return ret;
+  }
 
-	/*! Increments. */
-	virtual int increment()
-	{
-		++_it;
-		return 0;
-	}
+  /*! Increments. */
+  virtual int increment()
+  {
+    ++_it;
+    return 0;
+  }
 
-	/*! Decrements. */
-	virtual int decrement()
-	{
-		--_it;
-		return 0;
-	}
+  /*! Decrements. */
+  virtual int decrement()
+  {
+    --_it;
+    return 0;
+  }
 
-	/*! Returns true if the pointed StrokeVertex is the first of the Stroke. */
-	bool isBegin() const
-	{
-		return _it == _begin;
-	}
+  /*! Returns true if the pointed StrokeVertex is the first of the Stroke. */
+  bool isBegin() const
+  {
+    return _it == _begin;
+  }
 
-	/*! Returns true if the pointed StrokeVertex is the final valid StrokeVertex of the Stroke. */
-	bool atLast()
-	{
-		if (_it == _end)
-			return false;
+  /*! Returns true if the pointed StrokeVertex is the final valid StrokeVertex of the Stroke. */
+  bool atLast()
+  {
+    if (_it == _end)
+      return false;
 
-		++_it;
-		bool result = (_it == _end);
-		--_it;
-		return result;
-	}
+    ++_it;
+    bool result = (_it == _end);
+    --_it;
+    return result;
+  }
 
-	/*! Returns true if the pointed StrokeVertex is after the last StrokeVertex of the Stroke. */
-	bool isEnd() const
-	{
-		return _it == _end;
-	}
+  /*! Returns true if the pointed StrokeVertex is after the last StrokeVertex of the Stroke. */
+  bool isEnd() const
+  {
+    return _it == _end;
+  }
 
-	/*! operator == */
-	virtual bool operator==(const Interface0DIteratorNested& it) const
-	{
-		const StrokeVertexIterator *it_exact = dynamic_cast<const StrokeVertexIterator *>(&it);
-		if (!it_exact)
-			return false;
-		return (_it == it_exact->_it);
-	}
+  /*! operator == */
+  virtual bool operator==(const Interface0DIteratorNested &it) const
+  {
+    const StrokeVertexIterator *it_exact = dynamic_cast<const StrokeVertexIterator *>(&it);
+    if (!it_exact)
+      return false;
+    return (_it == it_exact->_it);
+  }
 
-	/*! Returns the curvilinear abscissa of the current point */
-	virtual float t() const
-	{
-		return (*_it)->curvilinearAbscissa();
-	}
+  /*! Returns the curvilinear abscissa of the current point */
+  virtual float t() const
+  {
+    return (*_it)->curvilinearAbscissa();
+  }
 
-	/*! Returns the point's parameter in the stroke */
-	virtual float u() const
-	{
-		return (*_it)->u();
-	}
+  /*! Returns the point's parameter in the stroke */
+  virtual float u() const
+  {
+    return (*_it)->u();
+  }
 
-	/*! Cloning method */
-	virtual StrokeVertexIterator *copy() const
-	{
-		return new StrokeVertexIterator(*this);
-	}
+  /*! Cloning method */
+  virtual StrokeVertexIterator *copy() const
+  {
+    return new StrokeVertexIterator(*this);
+  }
 
-	//
-	// Not exported in Python
-	//
-	//////////////////////////////////////////////////
-	const Stroke::vertex_container::iterator& getIt()
-	{
-		return _it;
-	}
+  //
+  // Not exported in Python
+  //
+  //////////////////////////////////////////////////
+  const Stroke::vertex_container::iterator &getIt()
+  {
+    return _it;
+  }
 
-private:
-	Stroke::vertex_container::iterator _it;
-	Stroke::vertex_container::iterator _begin;
-	Stroke::vertex_container::iterator _end;
+ private:
+  Stroke::vertex_container::iterator _it;
+  Stroke::vertex_container::iterator _begin;
+  Stroke::vertex_container::iterator _end;
 };
 
-} // end of namespace StrokeInternal
+}  // end of namespace StrokeInternal
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_STROKE_ITERATORS_H__
+#endif  // __FREESTYLE_STROKE_ITERATORS_H__

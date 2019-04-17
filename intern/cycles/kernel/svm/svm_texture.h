@@ -20,44 +20,44 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline float noise_turbulence(float3 p, float octaves, int hard)
 {
-	float fscale = 1.0f;
-	float amp = 1.0f;
-	float sum = 0.0f;
-	int i, n;
+  float fscale = 1.0f;
+  float amp = 1.0f;
+  float sum = 0.0f;
+  int i, n;
 
-	octaves = clamp(octaves, 0.0f, 16.0f);
-	n = float_to_int(octaves);
+  octaves = clamp(octaves, 0.0f, 16.0f);
+  n = float_to_int(octaves);
 
-	for(i = 0; i <= n; i++) {
-		float t = noise(fscale*p);
+  for (i = 0; i <= n; i++) {
+    float t = noise(fscale * p);
 
-		if(hard)
-			t = fabsf(2.0f*t - 1.0f);
+    if (hard)
+      t = fabsf(2.0f * t - 1.0f);
 
-		sum += t*amp;
-		amp *= 0.5f;
-		fscale *= 2.0f;
-	}
+    sum += t * amp;
+    amp *= 0.5f;
+    fscale *= 2.0f;
+  }
 
-	float rmd = octaves - floorf(octaves);
+  float rmd = octaves - floorf(octaves);
 
-	if(rmd != 0.0f) {
-		float t = noise(fscale*p);
+  if (rmd != 0.0f) {
+    float t = noise(fscale * p);
 
-		if(hard)
-			t = fabsf(2.0f*t - 1.0f);
+    if (hard)
+      t = fabsf(2.0f * t - 1.0f);
 
-		float sum2 = sum + t*amp;
+    float sum2 = sum + t * amp;
 
-		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
-		sum2 *= ((float)(1 << (n+1))/(float)((1 << (n+2)) - 1));
+    sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
+    sum2 *= ((float)(1 << (n + 1)) / (float)((1 << (n + 2)) - 1));
 
-		return (1.0f - rmd)*sum + rmd*sum2;
-	}
-	else {
-		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
-		return sum;
-	}
+    return (1.0f - rmd) * sum + rmd * sum2;
+  }
+  else {
+    sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
+    return sum;
+  }
 }
 
 CCL_NAMESPACE_END

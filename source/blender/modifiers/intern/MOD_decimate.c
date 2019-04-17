@@ -50,196 +50,195 @@
 
 static void initData(ModifierData *md)
 {
-	DecimateModifierData *dmd = (DecimateModifierData *) md;
+  DecimateModifierData *dmd = (DecimateModifierData *)md;
 
-	dmd->percent = 1.0;
-	dmd->angle   = DEG2RADF(5.0f);
-	dmd->defgrp_factor = 1.0;
+  dmd->percent = 1.0;
+  dmd->angle = DEG2RADF(5.0f);
+  dmd->defgrp_factor = 1.0;
 }
 
-static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
 {
-	DecimateModifierData *dmd = (DecimateModifierData *) md;
+  DecimateModifierData *dmd = (DecimateModifierData *)md;
 
-	/* ask for vertexgroups if we need them */
-	if (dmd->defgrp_name[0] != '\0' && (dmd->defgrp_factor > 0.0f)) {
-		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-	}
+  /* ask for vertexgroups if we need them */
+  if (dmd->defgrp_name[0] != '\0' && (dmd->defgrp_factor > 0.0f)) {
+    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  }
 }
 
-static DecimateModifierData *getOriginalModifierData(
-        const DecimateModifierData *dmd, const ModifierEvalContext *ctx)
+static DecimateModifierData *getOriginalModifierData(const DecimateModifierData *dmd,
+                                                     const ModifierEvalContext *ctx)
 {
-	Object *ob_orig = DEG_get_original_object(ctx->object);
-	return (DecimateModifierData *)modifiers_findByName(ob_orig, dmd->modifier.name);
+  Object *ob_orig = DEG_get_original_object(ctx->object);
+  return (DecimateModifierData *)modifiers_findByName(ob_orig, dmd->modifier.name);
 }
 
-static void updateFaceCount(
-        const ModifierEvalContext *ctx, DecimateModifierData *dmd, int face_count)
+static void updateFaceCount(const ModifierEvalContext *ctx,
+                            DecimateModifierData *dmd,
+                            int face_count)
 {
-	dmd->face_count = face_count;
+  dmd->face_count = face_count;
 
-	if (DEG_is_active(ctx->depsgraph)) {
-		/* update for display only */
-		DecimateModifierData *dmd_orig = getOriginalModifierData(dmd, ctx);
-		dmd_orig->face_count = face_count;
-	}
+  if (DEG_is_active(ctx->depsgraph)) {
+    /* update for display only */
+    DecimateModifierData *dmd_orig = getOriginalModifierData(dmd, ctx);
+    dmd_orig->face_count = face_count;
+  }
 }
 
-static Mesh *applyModifier(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        Mesh *meshData)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
-	DecimateModifierData *dmd = (DecimateModifierData *) md;
-	Mesh *mesh = meshData, *result = NULL;
-	BMesh *bm;
-	bool calc_face_normal;
-	float *vweights = NULL;
+  DecimateModifierData *dmd = (DecimateModifierData *)md;
+  Mesh *mesh = meshData, *result = NULL;
+  BMesh *bm;
+  bool calc_face_normal;
+  float *vweights = NULL;
 
 #ifdef USE_TIMEIT
-	TIMEIT_START(decim);
+  TIMEIT_START(decim);
 #endif
 
-	/* set up front so we dont show invalid info in the UI */
-	updateFaceCount(ctx, dmd, mesh->totpoly);
+  /* set up front so we dont show invalid info in the UI */
+  updateFaceCount(ctx, dmd, mesh->totpoly);
 
-	switch (dmd->mode) {
-		case MOD_DECIM_MODE_COLLAPSE:
-			if (dmd->percent == 1.0f) {
-				return mesh;
-			}
-			calc_face_normal = true;
-			break;
-		case MOD_DECIM_MODE_UNSUBDIV:
-			if (dmd->iter == 0) {
-				return mesh;
-			}
-			calc_face_normal = false;
-			break;
-		case MOD_DECIM_MODE_DISSOLVE:
-			if (dmd->angle == 0.0f) {
-				return mesh;
-			}
-			calc_face_normal = true;
-			break;
-		default:
-			return mesh;
-	}
+  switch (dmd->mode) {
+    case MOD_DECIM_MODE_COLLAPSE:
+      if (dmd->percent == 1.0f) {
+        return mesh;
+      }
+      calc_face_normal = true;
+      break;
+    case MOD_DECIM_MODE_UNSUBDIV:
+      if (dmd->iter == 0) {
+        return mesh;
+      }
+      calc_face_normal = false;
+      break;
+    case MOD_DECIM_MODE_DISSOLVE:
+      if (dmd->angle == 0.0f) {
+        return mesh;
+      }
+      calc_face_normal = true;
+      break;
+    default:
+      return mesh;
+  }
 
-	if (dmd->face_count <= 3) {
-		modifier_setError(md, "Modifier requires more than 3 input faces");
-		return mesh;
-	}
+  if (dmd->face_count <= 3) {
+    modifier_setError(md, "Modifier requires more than 3 input faces");
+    return mesh;
+  }
 
-	if (dmd->mode == MOD_DECIM_MODE_COLLAPSE) {
-		if (dmd->defgrp_name[0] && (dmd->defgrp_factor > 0.0f)) {
-			MDeformVert *dvert;
-			int defgrp_index;
+  if (dmd->mode == MOD_DECIM_MODE_COLLAPSE) {
+    if (dmd->defgrp_name[0] && (dmd->defgrp_factor > 0.0f)) {
+      MDeformVert *dvert;
+      int defgrp_index;
 
-			MOD_get_vgroup(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
+      MOD_get_vgroup(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
-			if (dvert) {
-				const unsigned int vert_tot = mesh->totvert;
-				unsigned int i;
+      if (dvert) {
+        const unsigned int vert_tot = mesh->totvert;
+        unsigned int i;
 
-				vweights = MEM_malloc_arrayN(vert_tot, sizeof(float), __func__);
+        vweights = MEM_malloc_arrayN(vert_tot, sizeof(float), __func__);
 
-				if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
-					for (i = 0; i < vert_tot; i++) {
-						vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
-					}
-				}
-				else {
-					for (i = 0; i < vert_tot; i++) {
-						vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
-					}
-				}
-			}
-		}
-	}
+        if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
+          for (i = 0; i < vert_tot; i++) {
+            vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+          }
+        }
+        else {
+          for (i = 0; i < vert_tot; i++) {
+            vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
+          }
+        }
+      }
+    }
+  }
 
-	bm = BKE_mesh_to_bmesh_ex(
-	        mesh,
-	        &(struct BMeshCreateParams){0},
-	        &(struct BMeshFromMeshParams){
-	            .calc_face_normal = calc_face_normal,
-	            .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX, .emask = CD_MASK_ORIGINDEX, .pmask = CD_MASK_ORIGINDEX},
-	        });
+  bm = BKE_mesh_to_bmesh_ex(mesh,
+                            &(struct BMeshCreateParams){0},
+                            &(struct BMeshFromMeshParams){
+                                .calc_face_normal = calc_face_normal,
+                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
+                                                  .emask = CD_MASK_ORIGINDEX,
+                                                  .pmask = CD_MASK_ORIGINDEX},
+                            });
 
-	switch (dmd->mode) {
-		case MOD_DECIM_MODE_COLLAPSE:
-		{
-			const bool do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
-			const int symmetry_axis = (dmd->flag & MOD_DECIM_FLAG_SYMMETRY) ? dmd->symmetry_axis : -1;
-			const float symmetry_eps = 0.00002f;
-			BM_mesh_decimate_collapse(
-			        bm, dmd->percent, vweights, dmd->defgrp_factor, do_triangulate,
-			        symmetry_axis, symmetry_eps);
-			break;
-		}
-		case MOD_DECIM_MODE_UNSUBDIV:
-		{
-			BM_mesh_decimate_unsubdivide(bm, dmd->iter);
-			break;
-		}
-		case MOD_DECIM_MODE_DISSOLVE:
-		{
-			const bool do_dissolve_boundaries = (dmd->flag & MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS) != 0;
-			BM_mesh_decimate_dissolve(bm, dmd->angle, do_dissolve_boundaries, (BMO_Delimit)dmd->delimit);
-			break;
-		}
-	}
+  switch (dmd->mode) {
+    case MOD_DECIM_MODE_COLLAPSE: {
+      const bool do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
+      const int symmetry_axis = (dmd->flag & MOD_DECIM_FLAG_SYMMETRY) ? dmd->symmetry_axis : -1;
+      const float symmetry_eps = 0.00002f;
+      BM_mesh_decimate_collapse(bm,
+                                dmd->percent,
+                                vweights,
+                                dmd->defgrp_factor,
+                                do_triangulate,
+                                symmetry_axis,
+                                symmetry_eps);
+      break;
+    }
+    case MOD_DECIM_MODE_UNSUBDIV: {
+      BM_mesh_decimate_unsubdivide(bm, dmd->iter);
+      break;
+    }
+    case MOD_DECIM_MODE_DISSOLVE: {
+      const bool do_dissolve_boundaries = (dmd->flag & MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS) != 0;
+      BM_mesh_decimate_dissolve(bm, dmd->angle, do_dissolve_boundaries, (BMO_Delimit)dmd->delimit);
+      break;
+    }
+  }
 
-	if (vweights) {
-		MEM_freeN(vweights);
-	}
+  if (vweights) {
+    MEM_freeN(vweights);
+  }
 
-	updateFaceCount(ctx, dmd, bm->totface);
+  updateFaceCount(ctx, dmd, bm->totface);
 
-	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
-	BLI_assert(bm->vtoolflagpool == NULL &&
-	           bm->etoolflagpool == NULL &&
-	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
-	BLI_assert(bm->vtable == NULL &&
-	           bm->etable == NULL &&
-	           bm->ftable == NULL);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
+  BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL &&
+             bm->ftoolflagpool == NULL); /* make sure we never alloc'd these */
+  BLI_assert(bm->vtable == NULL && bm->etable == NULL && bm->ftable == NULL);
 
-	BM_mesh_free(bm);
+  BM_mesh_free(bm);
 
 #ifdef USE_TIMEIT
-	TIMEIT_END(decim);
+  TIMEIT_END(decim);
 #endif
 
-	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
-	return result;
+  return result;
 }
 
 ModifierTypeInfo modifierType_Decimate = {
-	/* name */              "Decimate",
-	/* structName */        "DecimateModifierData",
-	/* structSize */        sizeof(DecimateModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-	                        eModifierTypeFlag_AcceptsCVs,
+    /* name */ "Decimate",
+    /* structName */ "DecimateModifierData",
+    /* structSize */ sizeof(DecimateModifierData),
+    /* type */ eModifierTypeType_Nonconstructive,
+    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
 
-	/* copyData */          modifier_copyData_generic,
+    /* copyData */ modifier_copyData_generic,
 
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
+    /* deformVerts */ NULL,
+    /* deformMatrices */ NULL,
+    /* deformVertsEM */ NULL,
+    /* deformMatricesEM */ NULL,
+    /* applyModifier */ applyModifier,
 
-	/* initData */          initData,
-	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+    /* initData */ initData,
+    /* requiredDataMask */ requiredDataMask,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* dependsOnNormals */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ NULL,
 };

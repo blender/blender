@@ -216,41 +216,83 @@ extern const EnumPropertyItem rna_enum_context_mode_items[];
 int rna_node_tree_type_to_enum(struct bNodeTreeType *typeinfo);
 int rna_node_tree_idname_to_enum(const char *idname);
 struct bNodeTreeType *rna_node_tree_type_from_enum(int value);
-const EnumPropertyItem *rna_node_tree_type_itemf(
-        void *data, bool (*poll)(void *data, struct bNodeTreeType *), bool *r_free);
+const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
+                                                 bool (*poll)(void *data, struct bNodeTreeType *),
+                                                 bool *r_free);
 
 int rna_node_type_to_enum(struct bNodeType *typeinfo);
 int rna_node_idname_to_enum(const char *idname);
 struct bNodeType *rna_node_type_from_enum(int value);
-const EnumPropertyItem *rna_node_type_itemf(void *data, bool (*poll)(void *data, struct bNodeType *), bool *r_free);
+const EnumPropertyItem *rna_node_type_itemf(void *data,
+                                            bool (*poll)(void *data, struct bNodeType *),
+                                            bool *r_free);
 
 int rna_node_socket_type_to_enum(struct bNodeSocketType *typeinfo);
 int rna_node_socket_idname_to_enum(const char *idname);
 struct bNodeSocketType *rna_node_socket_type_from_enum(int value);
 const EnumPropertyItem *rna_node_socket_type_itemf(
-        void *data, bool (*poll)(void *data, struct bNodeSocketType *), bool *r_free);
+    void *data, bool (*poll)(void *data, struct bNodeSocketType *), bool *r_free);
 
 struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
 
-const EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+const EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C,
+                                                       struct PointerRNA *ptr,
+                                                       struct PropertyRNA *prop,
+                                                       bool *r_free);
 
 /* Generic functions, return an enum from library data, index is the position
  * in the linked list can add more for different types as needed */
-const EnumPropertyItem *RNA_action_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+const EnumPropertyItem *RNA_action_itemf(struct bContext *C,
+                                         struct PointerRNA *ptr,
+                                         struct PropertyRNA *prop,
+                                         bool *r_free);
 // EnumPropertyItem *RNA_action_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_collection_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_collection_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_image_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_image_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_scene_without_active_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_scene_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_movieclip_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_movieclip_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_mask_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-const EnumPropertyItem *RNA_mask_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+const EnumPropertyItem *RNA_collection_itemf(struct bContext *C,
+                                             struct PointerRNA *ptr,
+                                             struct PropertyRNA *prop,
+                                             bool *r_free);
+const EnumPropertyItem *RNA_collection_local_itemf(struct bContext *C,
+                                                   struct PointerRNA *ptr,
+                                                   struct PropertyRNA *prop,
+                                                   bool *r_free);
+const EnumPropertyItem *RNA_image_itemf(struct bContext *C,
+                                        struct PointerRNA *ptr,
+                                        struct PropertyRNA *prop,
+                                        bool *r_free);
+const EnumPropertyItem *RNA_image_local_itemf(struct bContext *C,
+                                              struct PointerRNA *ptr,
+                                              struct PropertyRNA *prop,
+                                              bool *r_free);
+const EnumPropertyItem *RNA_scene_itemf(struct bContext *C,
+                                        struct PointerRNA *ptr,
+                                        struct PropertyRNA *prop,
+                                        bool *r_free);
+const EnumPropertyItem *RNA_scene_without_active_itemf(struct bContext *C,
+                                                       struct PointerRNA *ptr,
+                                                       struct PropertyRNA *prop,
+                                                       bool *r_free);
+const EnumPropertyItem *RNA_scene_local_itemf(struct bContext *C,
+                                              struct PointerRNA *ptr,
+                                              struct PropertyRNA *prop,
+                                              bool *r_free);
+const EnumPropertyItem *RNA_movieclip_itemf(struct bContext *C,
+                                            struct PointerRNA *ptr,
+                                            struct PropertyRNA *prop,
+                                            bool *r_free);
+const EnumPropertyItem *RNA_movieclip_local_itemf(struct bContext *C,
+                                                  struct PointerRNA *ptr,
+                                                  struct PropertyRNA *prop,
+                                                  bool *r_free);
+const EnumPropertyItem *RNA_mask_itemf(struct bContext *C,
+                                       struct PointerRNA *ptr,
+                                       struct PropertyRNA *prop,
+                                       bool *r_free);
+const EnumPropertyItem *RNA_mask_local_itemf(struct bContext *C,
+                                             struct PointerRNA *ptr,
+                                             struct PropertyRNA *prop,
+                                             bool *r_free);
 
 /* Non confirming, utility function. */
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(struct bContext *C, bool *r_free);

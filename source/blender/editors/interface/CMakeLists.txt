@@ -16,95 +16,95 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blenloader
-	../../blentranslation
-	../../depsgraph
-	../../draw
-	../../gpu
-	../../imbuf
-	../../makesdna
-	../../makesrna
-	../../python
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../blentranslation
+  ../../depsgraph
+  ../../draw
+  ../../gpu
+  ../../imbuf
+  ../../makesdna
+  ../../makesrna
+  ../../python
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	interface.c
-	interface_align.c
-	interface_anim.c
-	interface_context_menu.c
-	interface_draw.c
-	interface_eyedropper.c
-	interface_eyedropper_color.c
-	interface_eyedropper_colorband.c
-	interface_eyedropper_datablock.c
-	interface_eyedropper_depth.c
-	interface_eyedropper_driver.c
-	interface_handlers.c
-	interface_icons.c
-	interface_icons_event.c
-	interface_layout.c
-	interface_ops.c
-	interface_panel.c
-	interface_query.c
-	interface_region_color_picker.c
-	interface_region_hud.c
-	interface_region_menu_pie.c
-	interface_region_menu_popup.c
-	interface_region_popover.c
-	interface_region_popup.c
-	interface_region_search.c
-	interface_region_tooltip.c
-	interface_regions.c
-	interface_style.c
-	interface_templates.c
-	interface_utils.c
-	interface_widgets.c
-	resources.c
-	view2d.c
-	view2d_ops.c
+  interface.c
+  interface_align.c
+  interface_anim.c
+  interface_context_menu.c
+  interface_draw.c
+  interface_eyedropper.c
+  interface_eyedropper_color.c
+  interface_eyedropper_colorband.c
+  interface_eyedropper_datablock.c
+  interface_eyedropper_depth.c
+  interface_eyedropper_driver.c
+  interface_handlers.c
+  interface_icons.c
+  interface_icons_event.c
+  interface_layout.c
+  interface_ops.c
+  interface_panel.c
+  interface_query.c
+  interface_region_color_picker.c
+  interface_region_hud.c
+  interface_region_menu_pie.c
+  interface_region_menu_popup.c
+  interface_region_popover.c
+  interface_region_popup.c
+  interface_region_search.c
+  interface_region_tooltip.c
+  interface_regions.c
+  interface_style.c
+  interface_templates.c
+  interface_utils.c
+  interface_widgets.c
+  resources.c
+  view2d.c
+  view2d_ops.c
 
-	interface_eyedropper_intern.h
-	interface_intern.h
-	interface_regions_intern.h
+  interface_eyedropper_intern.h
+  interface_intern.h
+  interface_regions_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
-	bf_editor_datafiles
+  bf_blenkernel
+  bf_blenlib
+  bf_editor_datafiles
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_HEADLESS)
-	add_definitions(-DWITH_HEADLESS)
+  add_definitions(-DWITH_HEADLESS)
 endif()
 
 if(WITH_CYCLES)
-	add_definitions(-DWITH_CYCLES)
+  add_definitions(-DWITH_CYCLES)
 endif()
 
 if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
+  add_definitions(-DWITH_PYTHON)
 endif()
 
 if(WIN32)
-	if(WITH_INPUT_IME)
-		add_definitions(-DWITH_INPUT_IME)
-	endif()
+  if(WITH_INPUT_IME)
+    add_definitions(-DWITH_INPUT_IME)
+  endif()
 endif()
 
 add_definitions(${GL_DEFINITIONS})

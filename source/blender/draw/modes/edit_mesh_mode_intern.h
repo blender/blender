@@ -27,8 +27,9 @@ struct UnitSettings;
 struct View3D;
 
 /* edit_mesh_mode_text.c */
-void DRW_edit_mesh_mode_text_measure_stats(
-        struct ARegion *ar, struct View3D *v3d,
-        struct Object *ob, const UnitSettings *unit);
+void DRW_edit_mesh_mode_text_measure_stats(struct ARegion *ar,
+                                           struct View3D *v3d,
+                                           struct Object *ob,
+                                           const UnitSettings *unit);
 
 #endif /* __EDIT_MESH_MODE_INTERN_H__ */

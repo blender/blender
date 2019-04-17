@@ -21,7 +21,6 @@
  * \ingroup modifiers
  */
 
-
 #include <string.h>
 
 #include "BLI_utildefines.h"
@@ -42,162 +41,169 @@
 
 static bool dependsOnNormals(ModifierData *md);
 
-
 static void initData(ModifierData *md)
 {
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
-	smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
-	smd->shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
-	smd->keepDist   = 0.0f;
+  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
+  smd->shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
+  smd->keepDist = 0.0f;
 
-	smd->target     = NULL;
-	smd->auxTarget  = NULL;
+  smd->target = NULL;
+  smd->auxTarget = NULL;
 }
 
-static void requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
 {
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
-	/* ask for vertexgroups if we need them */
-	if (smd->vgroup_name[0] != '\0') {
-		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-	}
+  /* ask for vertexgroups if we need them */
+  if (smd->vgroup_name[0] != '\0') {
+    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  }
 
-	if ((smd->shrinkType == MOD_SHRINKWRAP_PROJECT) &&
-	    (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL))
-	{
-		r_cddata_masks->vmask |= CD_MASK_MVERT;  /* XXX Really? These should always be present, always... */
-	}
+  if ((smd->shrinkType == MOD_SHRINKWRAP_PROJECT) &&
+      (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)) {
+    r_cddata_masks->vmask |=
+        CD_MASK_MVERT; /* XXX Really? These should always be present, always... */
+  }
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene),
+                       ModifierData *md,
+                       bool UNUSED(useRenderParams))
 {
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
-	return !smd->target;
+  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  return !smd->target;
 }
-
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
+  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
-	walk(userData, ob, &smd->target, IDWALK_CB_NOP);
-	walk(userData, ob, &smd->auxTarget, IDWALK_CB_NOP);
+  walk(userData, ob, &smd->target, IDWALK_CB_NOP);
+  walk(userData, ob, &smd->auxTarget, IDWALK_CB_NOP);
 }
 
-static void deformVerts(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        Mesh *mesh,
-        float (*vertexCos)[3],
-        int numVerts)
+static void deformVerts(ModifierData *md,
+                        const ModifierEvalContext *ctx,
+                        Mesh *mesh,
+                        float (*vertexCos)[3],
+                        int numVerts)
 {
-	ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
-	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	Mesh *mesh_src = NULL;
+  ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
+  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  Mesh *mesh_src = NULL;
 
-	if (ctx->object->type == OB_MESH) {
-		/* mesh_src is only needed for vgroups. */
-		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-	}
+  if (ctx->object->type == OB_MESH) {
+    /* mesh_src is only needed for vgroups. */
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  }
 
-	struct MDeformVert *dvert = NULL;
-	int defgrp_index = -1;
-	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
+  struct MDeformVert *dvert = NULL;
+  int defgrp_index = -1;
+  MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
-	shrinkwrapModifier_deform(swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+  shrinkwrapModifier_deform(
+      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
-	if (!ELEM(mesh_src, NULL, mesh)) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
-static void deformVertsEM(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        struct BMEditMesh *editData, Mesh *mesh,
-        float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(ModifierData *md,
+                          const ModifierEvalContext *ctx,
+                          struct BMEditMesh *editData,
+                          Mesh *mesh,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
-	ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
-	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
+  ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
+  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(
+      ctx->object, editData, mesh, NULL, numVerts, false, false);
 
-	struct MDeformVert *dvert = NULL;
-	int defgrp_index = -1;
-	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
+  struct MDeformVert *dvert = NULL;
+  int defgrp_index = -1;
+  MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
-	shrinkwrapModifier_deform(swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+  shrinkwrapModifier_deform(
+      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
-	if (!ELEM(mesh_src, NULL, mesh)) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
-	CustomData_MeshMasks mask = {0};
+  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  CustomData_MeshMasks mask = {0};
 
-	if (BKE_shrinkwrap_needs_normals(smd->shrinkType, smd->shrinkMode)) {
-		mask.vmask |= CD_MASK_NORMAL;
-		mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
-	}
+  if (BKE_shrinkwrap_needs_normals(smd->shrinkType, smd->shrinkMode)) {
+    mask.vmask |= CD_MASK_NORMAL;
+    mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
+  }
 
-	if (smd->target != NULL) {
-		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
-		DEG_add_customdata_mask(ctx->node, smd->target, &mask);
-		if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-			DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
-		}
-	}
-	if (smd->auxTarget != NULL) {
-		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
-		DEG_add_customdata_mask(ctx->node, smd->auxTarget, &mask);
-		if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-			DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
-		}
-	}
-	DEG_add_modifier_to_transform_relation(ctx->node, "Shrinkwrap Modifier");
+  if (smd->target != NULL) {
+    DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
+    DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+    DEG_add_customdata_mask(ctx->node, smd->target, &mask);
+    if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+      DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
+    }
+  }
+  if (smd->auxTarget != NULL) {
+    DEG_add_object_relation(
+        ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
+    DEG_add_object_relation(
+        ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+    DEG_add_customdata_mask(ctx->node, smd->auxTarget, &mask);
+    if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+      DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
+    }
+  }
+  DEG_add_modifier_to_transform_relation(ctx->node, "Shrinkwrap Modifier");
 }
 
 static bool dependsOnNormals(ModifierData *md)
 {
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
-	if (smd->target && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
-		return (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL);
+  if (smd->target && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
+    return (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL);
 
-	return false;
+  return false;
 }
 
 ModifierTypeInfo modifierType_Shrinkwrap = {
-	/* name */              "Shrinkwrap",
-	/* structName */        "ShrinkwrapModifierData",
-	/* structSize */        sizeof(ShrinkwrapModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-	                        eModifierTypeFlag_AcceptsCVs |
-	                        eModifierTypeFlag_AcceptsLattice |
-	                        eModifierTypeFlag_SupportsEditmode |
-	                        eModifierTypeFlag_EnableInEditmode,
+    /* name */ "Shrinkwrap",
+    /* structName */ "ShrinkwrapModifierData",
+    /* structSize */ sizeof(ShrinkwrapModifierData),
+    /* type */ eModifierTypeType_OnlyDeform,
+    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+        eModifierTypeFlag_AcceptsLattice | eModifierTypeFlag_SupportsEditmode |
+        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          modifier_copyData_generic,
+    /* copyData */ modifier_copyData_generic,
 
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+    /* deformVerts */ deformVerts,
+    /* deformMatrices */ NULL,
+    /* deformVertsEM */ deformVertsEM,
+    /* deformMatricesEM */ NULL,
+    /* applyModifier */ NULL,
 
-	/* initData */          initData,
-	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */  dependsOnNormals,
-	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+    /* initData */ initData,
+    /* requiredDataMask */ requiredDataMask,
+    /* freeData */ NULL,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ NULL,
+    /* dependsOnNormals */ dependsOnNormals,
+    /* foreachObjectLink */ foreachObjectLink,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ NULL,
 };

@@ -27,7 +27,8 @@
 
 namespace opensubdiv_capi {
 
-OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type) {
+OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type)
+{
   switch (type) {
     case OSD_SCHEME_BILINEAR:
       return OpenSubdiv::Sdc::SCHEME_BILINEAR;
@@ -40,9 +41,9 @@ OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type) {
   return OpenSubdiv::Sdc::SCHEME_CATMARK;
 }
 
-OpenSubdiv::Sdc::Options::FVarLinearInterpolation
-getFVarLinearInterpolationFromCAPI(
-    OpenSubdiv_FVarLinearInterpolation linear_interpolation) {
+OpenSubdiv::Sdc::Options::FVarLinearInterpolation getFVarLinearInterpolationFromCAPI(
+    OpenSubdiv_FVarLinearInterpolation linear_interpolation)
+{
   typedef OpenSubdiv::Sdc::Options Options;
   switch (linear_interpolation) {
     case OSD_FVAR_LINEAR_INTERPOLATION_NONE:
@@ -62,9 +63,9 @@ getFVarLinearInterpolationFromCAPI(
   return Options::FVAR_LINEAR_NONE;
 }
 
-OpenSubdiv_FVarLinearInterpolation
-getCAPIFVarLinearInterpolationFromOSD(
-     OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation) {
+OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
+    OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation)
+{
   typedef OpenSubdiv::Sdc::Options Options;
   switch (linear_interpolation) {
     case Options::FVAR_LINEAR_NONE:

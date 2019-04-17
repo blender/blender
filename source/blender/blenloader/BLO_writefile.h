@@ -30,10 +30,14 @@ struct Main;
 struct MemFile;
 struct ReportList;
 
-extern bool BLO_write_file(
-        struct Main *mainvar, const char *filepath, int write_flags,
-        struct ReportList *reports, const struct BlendThumbnail *thumb);
-extern bool BLO_write_file_mem(
-        struct Main *mainvar, struct MemFile *compare, struct MemFile *current, int write_flags);
+extern bool BLO_write_file(struct Main *mainvar,
+                           const char *filepath,
+                           int write_flags,
+                           struct ReportList *reports,
+                           const struct BlendThumbnail *thumb);
+extern bool BLO_write_file_mem(struct Main *mainvar,
+                               struct MemFile *compare,
+                               struct MemFile *current,
+                               int write_flags);
 
 #endif

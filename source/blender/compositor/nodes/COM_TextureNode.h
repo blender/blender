@@ -24,7 +24,7 @@
  * \ingroup Node
  */
 class TextureNode : public Node {
-public:
-	TextureNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  TextureNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };

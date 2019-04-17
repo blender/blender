@@ -53,7 +53,7 @@
 
 /* quiet unused define warnings */
 #if defined(__KERNEL_SSE2__)
-    /* do nothing */
+/* do nothing */
 #endif
 
 #include "kernel/filter/filter.h"

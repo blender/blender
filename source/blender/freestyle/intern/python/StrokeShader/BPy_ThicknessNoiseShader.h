@@ -31,19 +31,18 @@ extern "C" {
 
 extern PyTypeObject ThicknessNoiseShader_Type;
 
-#define BPy_ThicknessNoiseShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ThicknessNoiseShader_Type))
+#define BPy_ThicknessNoiseShader_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ThicknessNoiseShader_Type))
 
 /*---------------------------Python BPy_ThicknessNoiseShader structure definition----------*/
 typedef struct {
-	BPy_StrokeShader py_ss;
+  BPy_StrokeShader py_ss;
 } BPy_ThicknessNoiseShader;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_THICKNESSNOISESHADER_H__ */

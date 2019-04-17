@@ -23,9 +23,12 @@
 #include "COM_GlareBaseOperation.h"
 
 class GlareStreaksOperation : public GlareBaseOperation {
-public:
-	GlareStreaksOperation() : GlareBaseOperation() {}
-protected:
-	void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
+ public:
+  GlareStreaksOperation() : GlareBaseOperation()
+  {
+  }
+
+ protected:
+  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
 };
 #endif

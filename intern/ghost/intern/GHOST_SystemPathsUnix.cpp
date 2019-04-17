@@ -30,10 +30,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <stdio.h>   /* for fprintf only */
-#include <cstdlib>   /* for exit */
+#include <stdio.h> /* for fprintf only */
+#include <cstdlib> /* for exit */
 
-#include <pwd.h>     /* for get home without use getenv() */
+#include <pwd.h> /* for get home without use getenv() */
 #include <string>
 
 using std::string;
@@ -54,67 +54,66 @@ GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix()
 
 const GHOST_TUns8 *GHOST_SystemPathsUnix::getSystemDir(int, const char *versionstr) const
 {
-	/* no prefix assumes a portable build which only uses bundled scripts */
-	if (static_path) {
-		static string system_path = string(static_path) + "/blender/" + versionstr;
-		return (GHOST_TUns8 *)system_path.c_str();
-	}
+  /* no prefix assumes a portable build which only uses bundled scripts */
+  if (static_path) {
+    static string system_path = string(static_path) + "/blender/" + versionstr;
+    return (GHOST_TUns8 *)system_path.c_str();
+  }
 
-	return NULL;
+  return NULL;
 }
 
 const GHOST_TUns8 *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionstr) const
 {
-	static string user_path = "";
-	static int last_version = 0;
+  static string user_path = "";
+  static int last_version = 0;
 
-	/* in blender 2.64, we migrate to XDG. to ensure the copy previous settings
-	 * operator works we give a different path depending on the requested version */
-	if (version < 264) {
-		if (user_path.empty() || last_version != version) {
-			const char *home = getenv("HOME");
+  /* in blender 2.64, we migrate to XDG. to ensure the copy previous settings
+   * operator works we give a different path depending on the requested version */
+  if (version < 264) {
+    if (user_path.empty() || last_version != version) {
+      const char *home = getenv("HOME");
 
-			last_version = version;
+      last_version = version;
 
-			if (home) {
-				user_path = string(home) + "/.blender/" + versionstr;
-			}
-			else {
-				return NULL;
-			}
-		}
-		return (GHOST_TUns8 *)user_path.c_str();
-	}
-	else {
-		if (user_path.empty() || last_version != version) {
-			const char *home = getenv("XDG_CONFIG_HOME");
+      if (home) {
+        user_path = string(home) + "/.blender/" + versionstr;
+      }
+      else {
+        return NULL;
+      }
+    }
+    return (GHOST_TUns8 *)user_path.c_str();
+  }
+  else {
+    if (user_path.empty() || last_version != version) {
+      const char *home = getenv("XDG_CONFIG_HOME");
 
-			last_version = version;
+      last_version = version;
 
-			if (home) {
-				user_path = string(home) + "/blender/" + versionstr;
-			}
-			else {
-				home = getenv("HOME");
+      if (home) {
+        user_path = string(home) + "/blender/" + versionstr;
+      }
+      else {
+        home = getenv("HOME");
 
-				if (home == NULL)
-					home = getpwuid(getuid())->pw_dir;
+        if (home == NULL)
+          home = getpwuid(getuid())->pw_dir;
 
-				user_path = string(home) + "/.config/blender/" + versionstr;
-			}
-		}
+        user_path = string(home) + "/.config/blender/" + versionstr;
+      }
+    }
 
-		return (const GHOST_TUns8 *)user_path.c_str();
-	}
+    return (const GHOST_TUns8 *)user_path.c_str();
+  }
 }
 
 const GHOST_TUns8 *GHOST_SystemPathsUnix::getBinaryDir() const
 {
-	return NULL;
+  return NULL;
 }
 
 void GHOST_SystemPathsUnix::addToSystemRecentFiles(const char * /*filename*/) const
 {
-	/* XXXXX TODO: Implementation for X11 if possible */
-
+  /* XXXXX TODO: Implementation for X11 if possible */
 }

@@ -6,7 +6,7 @@ uniform sampler2D image;
 
 void main()
 {
-	float depth = texture(image, texCoord_interp).r;
-	fragColor = vec4(depth);
-	gl_FragDepth = depth;
+  float depth = texture(image, texCoord_interp).r;
+  fragColor = vec4(depth);
+  gl_FragDepth = depth;
 }

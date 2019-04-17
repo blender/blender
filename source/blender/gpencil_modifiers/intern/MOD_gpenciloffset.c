@@ -45,96 +45,104 @@
 
 static void initData(GpencilModifierData *md)
 {
-	OffsetGpencilModifierData *gpmd = (OffsetGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->layername[0] = '\0';
-	gpmd->vgname[0] = '\0';
-	ARRAY_SET_ITEMS(gpmd->loc, 0.0f, 0.0f, 0.0f);
-	ARRAY_SET_ITEMS(gpmd->rot, 0.0f, 0.0f, 0.0f);
-	ARRAY_SET_ITEMS(gpmd->scale, 0.0f, 0.0f, 0.0f);
+  OffsetGpencilModifierData *gpmd = (OffsetGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  gpmd->layername[0] = '\0';
+  gpmd->vgname[0] = '\0';
+  ARRAY_SET_ITEMS(gpmd->loc, 0.0f, 0.0f, 0.0f);
+  ARRAY_SET_ITEMS(gpmd->rot, 0.0f, 0.0f, 0.0f);
+  ARRAY_SET_ITEMS(gpmd->scale, 0.0f, 0.0f, 0.0f);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
 /* change stroke offsetness */
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *gpl,
+                         bGPDstroke *gps)
 {
-	OffsetGpencilModifierData *mmd = (OffsetGpencilModifierData *)md;
-	const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  OffsetGpencilModifierData *mmd = (OffsetGpencilModifierData *)md;
+  const int def_nr = defgroup_name_index(ob, mmd->vgname);
 
-	float mat[4][4];
-	float loc[3], rot[3], scale[3];
+  float mat[4][4];
+  float loc[3], rot[3], scale[3];
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-	            mmd->flag & GP_OFFSET_INVERT_LAYER, mmd->flag & GP_OFFSET_INVERT_PASS,
-	            mmd->flag & GP_OFFSET_INVERT_LAYERPASS))
-	{
-		return;
-	}
+  if (!is_stroke_affected_by_modifier(ob,
+                                      mmd->layername,
+                                      mmd->pass_index,
+                                      mmd->layer_pass,
+                                      1,
+                                      gpl,
+                                      gps,
+                                      mmd->flag & GP_OFFSET_INVERT_LAYER,
+                                      mmd->flag & GP_OFFSET_INVERT_PASS,
+                                      mmd->flag & GP_OFFSET_INVERT_LAYERPASS)) {
+    return;
+  }
 
-	for (int i = 0; i < gps->totpoints; i++) {
-		bGPDspoint *pt = &gps->points[i];
-		MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
+  for (int i = 0; i < gps->totpoints; i++) {
+    bGPDspoint *pt = &gps->points[i];
+    MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 
-		/* verify vertex group */
-		const float weight = get_modifier_point_weight(dvert, (mmd->flag & GP_OFFSET_INVERT_VGROUP) != 0, def_nr);
-		if (weight < 0.0f) {
-			continue;
-		}
-		/* calculate matrix */
-		mul_v3_v3fl(loc, mmd->loc, weight);
-		mul_v3_v3fl(rot, mmd->rot, weight);
-		mul_v3_v3fl(scale, mmd->scale, weight);
-		add_v3_fl(scale, 1.0);
-		loc_eul_size_to_mat4(mat, loc, rot, scale);
+    /* verify vertex group */
+    const float weight = get_modifier_point_weight(
+        dvert, (mmd->flag & GP_OFFSET_INVERT_VGROUP) != 0, def_nr);
+    if (weight < 0.0f) {
+      continue;
+    }
+    /* calculate matrix */
+    mul_v3_v3fl(loc, mmd->loc, weight);
+    mul_v3_v3fl(rot, mmd->rot, weight);
+    mul_v3_v3fl(scale, mmd->scale, weight);
+    add_v3_fl(scale, 1.0);
+    loc_eul_size_to_mat4(mat, loc, rot, scale);
 
-		mul_m4_v3(mat, &pt->x);
-	}
+    mul_m4_v3(mat, &pt->x);
+  }
 }
 
-static void bakeModifier(
-        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(struct Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
 {
-	bGPdata *gpd = ob->data;
+  bGPdata *gpd = ob->data;
 
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md, depsgraph, ob, gpl, gps);
-			}
-		}
-	}
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        deformStroke(md, depsgraph, ob, gpl, gps);
+      }
+    }
+  }
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Offset = {
-	/* name */              "Offset",
-	/* structName */        "OffsetGpencilModifierData",
-	/* structSize */        sizeof(OffsetGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Offset",
+    /* structName */ "OffsetGpencilModifierData",
+    /* structSize */ sizeof(OffsetGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

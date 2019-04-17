@@ -17,25 +17,24 @@
 #include "stdosl.h"
 #include "oslutil.h"
 
-shader node_wireframe(
-	string bump_offset = "center",
-	int use_pixel_size = 0,
-	float Size = 0.01,
-	output float Fac = 0.0)
+shader node_wireframe(string bump_offset = "center",
+                      int use_pixel_size = 0,
+                      float Size = 0.01,
+                      output float Fac = 0.0)
 {
-	Fac = wireframe("triangles", Size, use_pixel_size);
-	/* TODO(sergey): Since we can't use autodiff here we do algebraic
-	 * calculation of derivatives by definition. We could probably
-	 * optimize this a bit by doing some extra calculation in wireframe().
-	 */
-	if (bump_offset == "dx") {
-		point dx = Dx(P);
-		P -= dx;
-		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dx);
-	}
-	else if (bump_offset == "dy") {
-		point dy = Dy(P);
-		P -= dy;
-		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dy);
-	}
+  Fac = wireframe("triangles", Size, use_pixel_size);
+  /* TODO(sergey): Since we can't use autodiff here we do algebraic
+   * calculation of derivatives by definition. We could probably
+   * optimize this a bit by doing some extra calculation in wireframe().
+   */
+  if (bump_offset == "dx") {
+    point dx = Dx(P);
+    P -= dx;
+    Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dx);
+  }
+  else if (bump_offset == "dy") {
+    point dy = Dy(P);
+    P -= dy;
+    Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dy);
+  }
 }

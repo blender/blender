@@ -26,23 +26,23 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 __forceinline uint uint4::operator[](uint i) const
 {
-	util_assert(i < 3);
-	return *(&x + i);
+  util_assert(i < 3);
+  return *(&x + i);
 }
 
-__forceinline uint& uint4::operator[](uint i)
+__forceinline uint &uint4::operator[](uint i)
 {
-	util_assert(i < 3);
-	return *(&x + i);
+  util_assert(i < 3);
+  return *(&x + i);
 }
 
 ccl_device_inline uint4 make_uint4(uint x, uint y, uint z, uint w)
 {
-	uint4 a = {x, y, z, w};
-	return a;
+  uint4 a = {x, y, z, w};
+  return a;
 }
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_UINT4_IMPL_H__ */
+#endif /* __UTIL_TYPES_UINT4_IMPL_H__ */

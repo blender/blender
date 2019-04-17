@@ -37,14 +37,12 @@ OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type);
 
 // Convert face-varying interpolation type from C-API to an OpenSubdiv
 // native enum.
-OpenSubdiv::Sdc::Options::FVarLinearInterpolation
-getFVarLinearInterpolationFromCAPI(
+OpenSubdiv::Sdc::Options::FVarLinearInterpolation getFVarLinearInterpolationFromCAPI(
     OpenSubdiv_FVarLinearInterpolation linear_interpolation);
 
 // Similar to above, just other way around.
-OpenSubdiv_FVarLinearInterpolation
-getCAPIFVarLinearInterpolationFromOSD(
-     OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation);
+OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
+    OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation);
 
 }  // namespace opensubdiv_capi
 

@@ -26,9 +26,11 @@
  * \ingroup Node
  */
 class ZCombineNode : public Node {
-public:
-	ZCombineNode(bNode *editorNode) : Node(editorNode) {}
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ZCombineNode(bNode *editorNode) : Node(editorNode)
+  {
+  }
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

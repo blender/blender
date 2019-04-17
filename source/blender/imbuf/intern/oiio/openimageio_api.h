@@ -21,7 +21,6 @@
  * \ingroup openimageio
  */
 
-
 #ifndef __OPENIMAGEIO_API_H__
 #define __OPENIMAGEIO_API_H__
 
@@ -33,11 +32,11 @@ extern "C" {
 
 struct ImBuf;
 
-int		imb_is_a_photoshop			(const char *name);
+int imb_is_a_photoshop(const char *name);
 
-int		imb_save_photoshop			(struct ImBuf *ibuf, const char *name, int flags);
+int imb_save_photoshop(struct ImBuf *ibuf, const char *name, int flags);
 
-struct ImBuf *imb_load_photoshop (const char *name, int flags, char *colorspace);
+struct ImBuf *imb_load_photoshop(const char *name, int flags, char *colorspace);
 
 int OIIO_getVersionHex(void);
 
@@ -46,4 +45,4 @@ int OIIO_getVersionHex(void);
 
 #endif
 
-#endif  /* __OPENIMAGEIO_API_H__ */
+#endif /* __OPENIMAGEIO_API_H__ */

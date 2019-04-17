@@ -48,133 +48,137 @@
 
 static void initData(GpencilModifierData *md)
 {
-	OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->factor = 1.0f;
-	gpmd->layername[0] = '\0';
-	gpmd->vgname[0] = '\0';
-	gpmd->flag |= GP_OPACITY_CREATE_COLORS;
-	gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
+  OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  gpmd->factor = 1.0f;
+  gpmd->layername[0] = '\0';
+  gpmd->vgname[0] = '\0';
+  gpmd->flag |= GP_OPACITY_CREATE_COLORS;
+  gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
 /* opacity strokes */
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *gpl,
+                         bGPDstroke *gps)
 {
-	OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
-	const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
+  const int def_nr = defgroup_name_index(ob, mmd->vgname);
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-	            mmd->flag & GP_OPACITY_INVERT_LAYER, mmd->flag & GP_OPACITY_INVERT_PASS,
-	            mmd->flag & GP_OPACITY_INVERT_LAYERPASS))
-	{
-		return;
-	}
+  if (!is_stroke_affected_by_modifier(ob,
+                                      mmd->layername,
+                                      mmd->pass_index,
+                                      mmd->layer_pass,
+                                      1,
+                                      gpl,
+                                      gps,
+                                      mmd->flag & GP_OPACITY_INVERT_LAYER,
+                                      mmd->flag & GP_OPACITY_INVERT_PASS,
+                                      mmd->flag & GP_OPACITY_INVERT_LAYERPASS)) {
+    return;
+  }
 
-	if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
-		gps->runtime.tmp_stroke_rgba[3] *= mmd->factor;
-		/* if factor is > 1, then force opacity */
-		if (mmd->factor > 1.0f) {
-			gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
-		}
-		CLAMP(gps->runtime.tmp_stroke_rgba[3], 0.0f, 1.0f);
-	}
+  if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
+    gps->runtime.tmp_stroke_rgba[3] *= mmd->factor;
+    /* if factor is > 1, then force opacity */
+    if (mmd->factor > 1.0f) {
+      gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
+    }
+    CLAMP(gps->runtime.tmp_stroke_rgba[3], 0.0f, 1.0f);
+  }
 
-	if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
-		gps->runtime.tmp_fill_rgba[3] *= mmd->factor;
-		/* if factor is > 1, then force opacity */
-		if (mmd->factor > 1.0f && gps->runtime.tmp_fill_rgba[3] > 1e-5) {
-			gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
-		}
-		CLAMP(gps->runtime.tmp_fill_rgba[3], 0.0f, 1.0f);
-	}
+  if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
+    gps->runtime.tmp_fill_rgba[3] *= mmd->factor;
+    /* if factor is > 1, then force opacity */
+    if (mmd->factor > 1.0f && gps->runtime.tmp_fill_rgba[3] > 1e-5) {
+      gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
+    }
+    CLAMP(gps->runtime.tmp_fill_rgba[3], 0.0f, 1.0f);
+  }
 
-	/* if opacity > 1.0, affect the strength of the stroke */
-	if (mmd->factor > 1.0f) {
-		for (int i = 0; i < gps->totpoints; i++) {
-			bGPDspoint *pt = &gps->points[i];
-			MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
+  /* if opacity > 1.0, affect the strength of the stroke */
+  if (mmd->factor > 1.0f) {
+    for (int i = 0; i < gps->totpoints; i++) {
+      bGPDspoint *pt = &gps->points[i];
+      MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 
-			/* verify vertex group */
-			const float weight = get_modifier_point_weight(dvert, (mmd->flag & GP_OPACITY_INVERT_VGROUP) != 0, def_nr);
-			if (weight < 0.0f) {
-				pt->strength += mmd->factor - 1.0f;
-			}
-			else {
-				pt->strength += (mmd->factor - 1.0f) * weight;
-			}
-			CLAMP(pt->strength, 0.0f, 1.0f);
-		}
-	}
+      /* verify vertex group */
+      const float weight = get_modifier_point_weight(
+          dvert, (mmd->flag & GP_OPACITY_INVERT_VGROUP) != 0, def_nr);
+      if (weight < 0.0f) {
+        pt->strength += mmd->factor - 1.0f;
+      }
+      else {
+        pt->strength += (mmd->factor - 1.0f) * weight;
+      }
+      CLAMP(pt->strength, 0.0f, 1.0f);
+    }
+  }
 }
 
-static void bakeModifier(
-	Main *bmain, Depsgraph *depsgraph,
-	GpencilModifierData *md, Object *ob)
+static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
 {
-	OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
-	bGPdata *gpd = ob->data;
+  OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
+  bGPdata *gpd = ob->data;
 
-	GHash *gh_color = BLI_ghash_str_new("GP_Opacity modifier");
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+  GHash *gh_color = BLI_ghash_str_new("GP_Opacity modifier");
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
-				Material *mat = give_current_material(ob, gps->mat_nr + 1);
-				if (mat == NULL)
-					continue;
-				MaterialGPencilStyle *gp_style = mat->gp_style;
-				/* skip stroke if it doesn't have color info */
-				if (ELEM(NULL, gp_style))
-					continue;
+        Material *mat = give_current_material(ob, gps->mat_nr + 1);
+        if (mat == NULL)
+          continue;
+        MaterialGPencilStyle *gp_style = mat->gp_style;
+        /* skip stroke if it doesn't have color info */
+        if (ELEM(NULL, gp_style))
+          continue;
 
-				copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
-				copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
+        copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
+        copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
 
-				deformStroke(md, depsgraph, ob, gpl, gps);
+        deformStroke(md, depsgraph, ob, gpl, gps);
 
-				gpencil_apply_modifier_material(
-				        bmain, ob, mat, gh_color, gps,
-				        (bool)(mmd->flag & GP_OPACITY_CREATE_COLORS));
-			}
-		}
-	}
-	/* free hash buffers */
-	if (gh_color) {
-		BLI_ghash_free(gh_color, NULL, NULL);
-		gh_color = NULL;
-	}
+        gpencil_apply_modifier_material(
+            bmain, ob, mat, gh_color, gps, (bool)(mmd->flag & GP_OPACITY_CREATE_COLORS));
+      }
+    }
+  }
+  /* free hash buffers */
+  if (gh_color) {
+    BLI_ghash_free(gh_color, NULL, NULL);
+    gh_color = NULL;
+  }
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Opacity = {
-	/* name */              "Opacity",
-	/* structName */        "OpacityGpencilModifierData",
-	/* structSize */        sizeof(OpacityGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Opacity",
+    /* structName */ "OpacityGpencilModifierData",
+    /* structSize */ sizeof(OpacityGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

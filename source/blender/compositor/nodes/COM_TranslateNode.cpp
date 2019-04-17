@@ -25,45 +25,46 @@
 
 TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void TranslateNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void TranslateNode::convertToOperations(NodeConverter &converter,
+                                        const CompositorContext &context) const
 {
-	bNode *bnode = this->getbNode();
-	NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
+  bNode *bnode = this->getbNode();
+  NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
 
-	NodeInput *inputSocket = this->getInputSocket(0);
-	NodeInput *inputXSocket = this->getInputSocket(1);
-	NodeInput *inputYSocket = this->getInputSocket(2);
-	NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *inputSocket = this->getInputSocket(0);
+  NodeInput *inputXSocket = this->getInputSocket(1);
+  NodeInput *inputYSocket = this->getInputSocket(2);
+  NodeOutput *outputSocket = this->getOutputSocket(0);
 
-	TranslateOperation *operation = new TranslateOperation();
-	if (data->relative) {
-		const RenderData *rd = context.getRenderData();
-		float fx = rd->xsch * rd->size / 100.0f;
-		float fy = rd->ysch * rd->size / 100.0f;
+  TranslateOperation *operation = new TranslateOperation();
+  if (data->relative) {
+    const RenderData *rd = context.getRenderData();
+    float fx = rd->xsch * rd->size / 100.0f;
+    float fy = rd->ysch * rd->size / 100.0f;
 
-		operation->setFactorXY(fx, fy);
-	}
+    operation->setFactorXY(fx, fy);
+  }
 
-	converter.addOperation(operation);
-	converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
-	converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
-	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.addOperation(operation);
+  converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
+  converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
+  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 
-	if (data->wrap_axis) {
-		WriteBufferOperation *writeOperation = new WriteBufferOperation(COM_DT_COLOR);
-		WrapOperation *wrapOperation = new WrapOperation(COM_DT_COLOR);
-		wrapOperation->setMemoryProxy(writeOperation->getMemoryProxy());
-		wrapOperation->setWrapping(data->wrap_axis);
+  if (data->wrap_axis) {
+    WriteBufferOperation *writeOperation = new WriteBufferOperation(COM_DT_COLOR);
+    WrapOperation *wrapOperation = new WrapOperation(COM_DT_COLOR);
+    wrapOperation->setMemoryProxy(writeOperation->getMemoryProxy());
+    wrapOperation->setWrapping(data->wrap_axis);
 
-		converter.addOperation(writeOperation);
-		converter.addOperation(wrapOperation);
-		converter.mapInputSocket(inputSocket, writeOperation->getInputSocket(0));
-		converter.addLink(wrapOperation->getOutputSocket(), operation->getInputSocket(0));
-	}
-	else {
-		converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-	}
+    converter.addOperation(writeOperation);
+    converter.addOperation(wrapOperation);
+    converter.mapInputSocket(inputSocket, writeOperation->getInputSocket(0));
+    converter.addLink(wrapOperation->getOutputSocket(), operation->getInputSocket(0));
+  }
+  else {
+    converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+  }
 }

@@ -31,11 +31,12 @@ extern "C" {
 
 extern PyTypeObject ContourUP1D_Type;
 
-#define BPy_ContourUP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ContourUP1D_Type))
+#define BPy_ContourUP1D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ContourUP1D_Type))
 
 /*---------------------------Python BPy_ContourUP1D structure definition----------*/
 typedef struct {
-	BPy_UnaryPredicate1D py_up1D;
+  BPy_UnaryPredicate1D py_up1D;
 } BPy_ContourUP1D;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -10,18 +10,18 @@ in float rad;
 
 void main()
 {
-	vec3 final_pos = pos;
+  vec3 final_pos = pos;
 
-	float flip = (gl_InstanceID != 0) ? -1.0 : 1.0;
+  float flip = (gl_InstanceID != 0) ? -1.0 : 1.0;
 
-	if (gl_VertexID % 2 == 0) {
-		final_pos += normalSize * rad * (flip * nor - tan);
-	}
+  if (gl_VertexID % 2 == 0) {
+    final_pos += normalSize * rad * (flip * nor - tan);
+  }
 
-	vec4 final_pos_4d = vec4(final_pos, 1.0);
-	gl_Position = ModelViewProjectionMatrix * final_pos_4d;
+  vec4 final_pos_4d = vec4(final_pos, 1.0);
+  gl_Position = ModelViewProjectionMatrix * final_pos_4d;
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * final_pos_4d).xyz);
+  world_clip_planes_calc_clip_distance((ModelMatrix * final_pos_4d).xyz);
 #endif
 }

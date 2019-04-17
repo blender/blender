@@ -22,7 +22,6 @@
  * Cineon image file format library routines.
  */
 
-
 #ifndef __LOGMEMFILE_H__
 #define __LOGMEMFILE_H__
 
@@ -37,4 +36,4 @@ int logimage_read_uchar(unsigned char *x, LogImageFile *logFile);
 int logimage_read_ushort(unsigned short *x, LogImageFile *logFile);
 int logimage_read_uint(unsigned int *x, LogImageFile *logFile);
 
-#endif  /* __LOGMEMFILE_H__ */
+#endif /* __LOGMEMFILE_H__ */

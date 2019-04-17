@@ -21,11 +21,11 @@
 #include "util/util_types.h"
 
 #ifdef WITH_OPENSUBDIV
-#ifdef _MSC_VER
-#  include "iso646.h"
-#endif
+#  ifdef _MSC_VER
+#    include "iso646.h"
+#  endif
 
-#include <opensubdiv/far/patchTable.h>
+#  include <opensubdiv/far/patchTable.h>
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -34,7 +34,9 @@ CCL_NAMESPACE_BEGIN
 using namespace OpenSubdiv;
 #else
 /* forward declare for when OpenSubdiv is unavailable */
-namespace Far { struct PatchTable; }
+namespace Far {
+struct PatchTable;
+}
 #endif
 
 #define PATCH_ARRAY_SIZE 4
@@ -43,20 +45,20 @@ namespace Far { struct PatchTable; }
 #define PATCH_NODE_SIZE 1
 
 struct PackedPatchTable {
-	array<uint> table;
+  array<uint> table;
 
-	size_t num_arrays;
-	size_t num_indices;
-	size_t num_patches;
-	size_t num_nodes;
+  size_t num_arrays;
+  size_t num_indices;
+  size_t num_patches;
+  size_t num_nodes;
 
-	/* calculated size from num_* members */
-	size_t total_size();
+  /* calculated size from num_* members */
+  size_t total_size();
 
-	void pack(Far::PatchTable* patch_table, int offset = 0);
-	void copy_adjusting_offsets(uint* dest, int doffset);
+  void pack(Far::PatchTable *patch_table, int offset = 0);
+  void copy_adjusting_offsets(uint *dest, int doffset);
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __SUBD_PATCH_TABLE_H__ */
+#endif /* __SUBD_PATCH_TABLE_H__ */

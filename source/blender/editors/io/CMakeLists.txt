@@ -16,18 +16,18 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../depsgraph
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../collada
-	../../alembic
-	../../../../intern/guardedalloc
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../collada
+  ../../alembic
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -35,42 +35,42 @@ set(INC_SYS
 )
 
 set(SRC
-	io_alembic.c
-	io_cache.c
-	io_collada.c
-	io_ops.c
+  io_alembic.c
+  io_cache.c
+  io_collada.c
+  io_ops.c
 
-	io_alembic.h
-	io_cache.h
-	io_collada.h
-	io_ops.h
+  io_alembic.h
+  io_cache.h
+  io_collada.h
+  io_ops.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
+  bf_blenkernel
+  bf_blenlib
 )
 
 if(WITH_OPENCOLLADA)
-	list(APPEND LIB
-		bf_collada
-	)
-	add_definitions(-DWITH_COLLADA)
+  list(APPEND LIB
+    bf_collada
+  )
+  add_definitions(-DWITH_COLLADA)
 endif()
 
 if(WITH_ALEMBIC)
-	list(APPEND LIB
-		bf_alembic
-	)
-	add_definitions(-DWITH_ALEMBIC)
+  list(APPEND LIB
+    bf_alembic
+  )
+  add_definitions(-DWITH_ALEMBIC)
 
-	if(WITH_ALEMBIC_HDF5)
-		add_definitions(-DWITH_ALEMBIC_HDF5)
-	endif()
+  if(WITH_ALEMBIC_HDF5)
+    add_definitions(-DWITH_ALEMBIC_HDF5)
+  endif()
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

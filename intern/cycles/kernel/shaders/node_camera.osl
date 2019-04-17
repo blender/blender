@@ -16,16 +16,14 @@
 
 #include "stdosl.h"
 
-shader node_camera(
-	output vector ViewVector = vector(0.0, 0.0, 0.0),
-	output float ViewZDepth = 0.0,
-	output float ViewDistance = 0.0)
+shader node_camera(output vector ViewVector = vector(0.0, 0.0, 0.0),
+                   output float ViewZDepth = 0.0,
+                   output float ViewDistance = 0.0)
 {
-	ViewVector = (vector)transform("world", "camera", P);
+  ViewVector = (vector)transform("world", "camera", P);
 
-	ViewZDepth = fabs(ViewVector[2]);
-	ViewDistance = length(ViewVector);
+  ViewZDepth = fabs(ViewVector[2]);
+  ViewDistance = length(ViewVector);
 
-	ViewVector = normalize(ViewVector);
+  ViewVector = normalize(ViewVector);
 }
-

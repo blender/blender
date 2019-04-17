@@ -26,37 +26,40 @@
  * it assumes we are in sRGB color space.
  */
 class MapValueOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputOperation;
-	TexMapping *m_settings;
-public:
-	/**
-	 * Default constructor
-	 */
-	MapValueOperation();
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputOperation;
+  TexMapping *m_settings;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Default constructor
+   */
+  MapValueOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * \brief set the TexMapping settings
-	 */
-	void setSettings(TexMapping *settings) { this->m_settings = settings; }
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
+  /**
+   * \brief set the TexMapping settings
+   */
+  void setSettings(TexMapping *settings)
+  {
+    this->m_settings = settings;
+  }
 };
 #endif

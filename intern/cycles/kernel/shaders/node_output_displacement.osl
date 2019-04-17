@@ -18,6 +18,5 @@
 
 displacement node_output_displacement(vector Displacement = 0.0)
 {
-	P += Displacement;
+  P += Displacement;
 }
-

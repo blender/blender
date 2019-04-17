@@ -23,4 +23,4 @@
 
 PyObject *BPY_app_opensubdiv_struct(void);
 
-#endif  /* __BPY_APP_OPENSUBDIV_H__ */
+#endif /* __BPY_APP_OPENSUBDIV_H__ */

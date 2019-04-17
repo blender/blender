@@ -21,7 +21,6 @@
  * \ingroup modifiers
  */
 
-
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -42,117 +41,110 @@
 /* Fluidsim */
 static void initData(ModifierData *md)
 {
-	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
+  FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
 
-	fluidsim_init(fluidmd);
+  fluidsim_init(fluidmd);
 }
 static void freeData(ModifierData *md)
 {
-	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
+  FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
 
-	fluidsim_free(fluidmd);
+  fluidsim_free(fluidmd);
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int UNUSED(flag))
 {
-	const FluidsimModifierData *fluidmd = (const FluidsimModifierData *) md;
-	FluidsimModifierData *tfluidmd = (FluidsimModifierData *) target;
+  const FluidsimModifierData *fluidmd = (const FluidsimModifierData *)md;
+  FluidsimModifierData *tfluidmd = (FluidsimModifierData *)target;
 
-	/* Free any FSS that was allocated in initData() */
-	if (tfluidmd->fss) {
-		MEM_SAFE_FREE(tfluidmd->fss->meshVelocities);
-		MEM_freeN(tfluidmd->fss);
-	}
+  /* Free any FSS that was allocated in initData() */
+  if (tfluidmd->fss) {
+    MEM_SAFE_FREE(tfluidmd->fss->meshVelocities);
+    MEM_freeN(tfluidmd->fss);
+  }
 
-	if (fluidmd->fss == NULL) {
-		tfluidmd->fss = NULL;
-		return;
-	}
+  if (fluidmd->fss == NULL) {
+    tfluidmd->fss = NULL;
+    return;
+  }
 
-	tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
-	if (tfluidmd->fss->meshVelocities != NULL) {
-		tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
-	}
+  tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
+  if (tfluidmd->fss->meshVelocities != NULL) {
+    tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
+  }
 }
 
-
-
-static Mesh *applyModifier(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        Mesh *mesh)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
-	Mesh *result = NULL;
+  FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
+  Mesh *result = NULL;
 
-	/* check for alloc failing */
-	if (!fluidmd->fss) {
-		initData(md);
+  /* check for alloc failing */
+  if (!fluidmd->fss) {
+    initData(md);
 
-		if (!fluidmd->fss) {
-			return mesh;
-		}
-	}
+    if (!fluidmd->fss) {
+      return mesh;
+    }
+  }
 
-	result = fluidsimModifier_do(fluidmd, ctx, mesh);
+  result = fluidsimModifier_do(fluidmd, ctx, mesh);
 
-	return result ? result : mesh;
+  return result ? result : mesh;
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
-	if (fluidmd && fluidmd->fss) {
-		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-			FOREACH_SCENE_OBJECT_BEGIN(ctx->scene, ob1)
-			{
-				if (ob1 != ctx->object) {
-					FluidsimModifierData *fluidmdtmp =
-					        (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
+  FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
+  if (fluidmd && fluidmd->fss) {
+    if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
+      FOREACH_SCENE_OBJECT_BEGIN (ctx->scene, ob1) {
+        if (ob1 != ctx->object) {
+          FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(
+              ob1, eModifierType_Fluidsim);
 
-					/* Only put dependencies from NON-DOMAIN fluids in here. */
-					if (fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN)) {
-						DEG_add_object_relation(ctx->node, ob1, DEG_OB_COMP_TRANSFORM, "Fluidsim Object");
-					}
-				}
-			}
-			FOREACH_SCENE_OBJECT_END;
-		}
-	}
+          /* Only put dependencies from NON-DOMAIN fluids in here. */
+          if (fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN)) {
+            DEG_add_object_relation(ctx->node, ob1, DEG_OB_COMP_TRANSFORM, "Fluidsim Object");
+          }
+        }
+      }
+      FOREACH_SCENE_OBJECT_END;
+    }
+  }
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
 {
-	return true;
+  return true;
 }
 
-
 ModifierTypeInfo modifierType_Fluidsim = {
-	/* name */              "Fluidsim",
-	/* structName */        "FluidsimModifierData",
-	/* structSize */        sizeof(FluidsimModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
+    /* name */ "Fluidsim",
+    /* structName */ "FluidsimModifierData",
+    /* structSize */ sizeof(FluidsimModifierData),
+    /* type */ eModifierTypeType_Nonconstructive,
 
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-	                        eModifierTypeFlag_RequiresOriginalData |
-	                        eModifierTypeFlag_Single,
+    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData |
+        eModifierTypeFlag_Single,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
+    /* deformVerts */ NULL,
+    /* deformMatrices */ NULL,
+    /* deformVertsEM */ NULL,
+    /* deformMatricesEM */ NULL,
+    /* applyModifier */ applyModifier,
 
-	/* initData */          initData,
-	/* requiredDataMask */  NULL,
-	/* freeData */          freeData,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+    /* initData */ initData,
+    /* requiredDataMask */ NULL,
+    /* freeData */ freeData,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ dependsOnTime,
+    /* dependsOnNormals */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ NULL,
 };

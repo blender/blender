@@ -20,59 +20,63 @@
 
 TranslateOperation::TranslateOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
-	this->addInputSocket(COM_DT_VALUE);
-	this->addInputSocket(COM_DT_VALUE);
-	this->addOutputSocket(COM_DT_COLOR);
-	this->setResolutionInputSocketIndex(0);
-	this->m_inputOperation = NULL;
-	this->m_inputXOperation = NULL;
-	this->m_inputYOperation = NULL;
-	this->m_isDeltaSet = false;
-	this->m_factorX = 1.0f;
-	this->m_factorY = 1.0f;
+  this->addInputSocket(COM_DT_COLOR);
+  this->addInputSocket(COM_DT_VALUE);
+  this->addInputSocket(COM_DT_VALUE);
+  this->addOutputSocket(COM_DT_COLOR);
+  this->setResolutionInputSocketIndex(0);
+  this->m_inputOperation = NULL;
+  this->m_inputXOperation = NULL;
+  this->m_inputYOperation = NULL;
+  this->m_isDeltaSet = false;
+  this->m_factorX = 1.0f;
+  this->m_factorY = 1.0f;
 }
 void TranslateOperation::initExecution()
 {
-	this->m_inputOperation = this->getInputSocketReader(0);
-	this->m_inputXOperation = this->getInputSocketReader(1);
-	this->m_inputYOperation = this->getInputSocketReader(2);
+  this->m_inputOperation = this->getInputSocketReader(0);
+  this->m_inputXOperation = this->getInputSocketReader(1);
+  this->m_inputYOperation = this->getInputSocketReader(2);
 }
 
 void TranslateOperation::deinitExecution()
 {
-	this->m_inputOperation = NULL;
-	this->m_inputXOperation = NULL;
-	this->m_inputYOperation = NULL;
+  this->m_inputOperation = NULL;
+  this->m_inputXOperation = NULL;
+  this->m_inputYOperation = NULL;
 }
 
-
-void TranslateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
+void TranslateOperation::executePixelSampled(float output[4],
+                                             float x,
+                                             float y,
+                                             PixelSampler /*sampler*/)
 {
-	ensureDelta();
+  ensureDelta();
 
-	float originalXPos = x - this->getDeltaX();
-	float originalYPos = y - this->getDeltaY();
+  float originalXPos = x - this->getDeltaX();
+  float originalYPos = y - this->getDeltaY();
 
-	this->m_inputOperation->readSampled(output, originalXPos, originalYPos, COM_PS_BILINEAR);
+  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, COM_PS_BILINEAR);
 }
 
-bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,
+                                                          ReadBufferOperation *readOperation,
+                                                          rcti *output)
 {
-	rcti newInput;
+  rcti newInput;
 
-	ensureDelta();
+  ensureDelta();
 
-	newInput.xmin = input->xmin - this->getDeltaX();
-	newInput.xmax = input->xmax - this->getDeltaX();
-	newInput.ymin = input->ymin - this->getDeltaY();
-	newInput.ymax = input->ymax - this->getDeltaY();
+  newInput.xmin = input->xmin - this->getDeltaX();
+  newInput.xmax = input->xmax - this->getDeltaX();
+  newInput.ymin = input->ymin - this->getDeltaY();
+  newInput.ymax = input->ymax - this->getDeltaY();
 
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 void TranslateOperation::setFactorXY(float factorX, float factorY)
 {
-	m_factorX = factorX;
-	m_factorY = factorY;
+  m_factorX = factorX;
+  m_factorY = factorY;
 }

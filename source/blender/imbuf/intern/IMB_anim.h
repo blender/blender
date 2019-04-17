@@ -21,7 +21,6 @@
  * \ingroup imbuf
  */
 
-
 #ifndef __IMB_ANIM_H__
 #define __IMB_ANIM_H__
 
@@ -34,9 +33,9 @@
 #  include <commdlg.h>
 #  include <vfw.h>
 
-#  undef AVIIF_KEYFRAME // redefined in AVI_avi.h
-#  undef AVIIF_LIST // redefined in AVI_avi.h
-#endif /* _WIN32 */
+#  undef AVIIF_KEYFRAME  // redefined in AVI_avi.h
+#  undef AVIIF_LIST      // redefined in AVI_avi.h
+#endif                   /* _WIN32 */
 
 #include <sys/types.h>
 #include <ctype.h>
@@ -74,84 +73,84 @@
 #endif
 
 /* anim.curtype, runtime only */
-#define ANIM_NONE       0
-#define ANIM_SEQUENCE   (1 << 0)
-#define ANIM_MOVIE      (1 << 4)
-#define ANIM_AVI        (1 << 6)
-#define ANIM_FFMPEG     (1 << 8)
+#define ANIM_NONE 0
+#define ANIM_SEQUENCE (1 << 0)
+#define ANIM_MOVIE (1 << 4)
+#define ANIM_AVI (1 << 6)
+#define ANIM_FFMPEG (1 << 8)
 
-#define MAXNUMSTREAMS       50
+#define MAXNUMSTREAMS 50
 
 struct IDProperty;
 struct _AviMovie;
 struct anim_index;
 
 struct anim {
-	int ib_flags;
-	int curtype;
-	int curposition;    /* index  0 = 1e,  1 = 2e, enz. */
-	int duration;
-	int frs_sec;
-	double frs_sec_base;
-	int x, y;
+  int ib_flags;
+  int curtype;
+  int curposition; /* index  0 = 1e,  1 = 2e, enz. */
+  int duration;
+  int frs_sec;
+  double frs_sec_base;
+  int x, y;
 
-	/* for number */
-	char name[1024];
-	/* for sequence */
-	char first[1024];
+  /* for number */
+  char name[1024];
+  /* for sequence */
+  char first[1024];
 
-	/* movie */
-	void *movie;
-	void *track;
-	void *params;
-	int orientation;
-	size_t framesize;
-	int interlacing;
-	int preseek;
-	int streamindex;
+  /* movie */
+  void *movie;
+  void *track;
+  void *params;
+  int orientation;
+  size_t framesize;
+  int interlacing;
+  int preseek;
+  int streamindex;
 
-	/* avi */
-	struct _AviMovie *avi;
+  /* avi */
+  struct _AviMovie *avi;
 
 #if defined(_WIN32)
-	/* windows avi */
-	int avistreams;
-	int firstvideo;
-	int pfileopen;
-	PAVIFILE pfile;
-	PAVISTREAM pavi[MAXNUMSTREAMS];     // the current streams
-	PGETFRAME pgf;
+  /* windows avi */
+  int avistreams;
+  int firstvideo;
+  int pfileopen;
+  PAVIFILE pfile;
+  PAVISTREAM pavi[MAXNUMSTREAMS];  // the current streams
+  PGETFRAME pgf;
 #endif
 
 #ifdef WITH_FFMPEG
-	AVFormatContext *pFormatCtx;
-	AVCodecContext *pCodecCtx;
-	AVCodec *pCodec;
-	AVFrame *pFrame;
-	int pFrameComplete;
-	AVFrame *pFrameRGB;
-	AVFrame *pFrameDeinterlaced;
-	struct SwsContext *img_convert_ctx;
-	int videoStream;
+  AVFormatContext *pFormatCtx;
+  AVCodecContext *pCodecCtx;
+  AVCodec *pCodec;
+  AVFrame *pFrame;
+  int pFrameComplete;
+  AVFrame *pFrameRGB;
+  AVFrame *pFrameDeinterlaced;
+  struct SwsContext *img_convert_ctx;
+  int videoStream;
 
-	struct ImBuf *last_frame;
-	int64_t last_pts;
-	int64_t next_pts;
-	AVPacket next_packet;
+  struct ImBuf *last_frame;
+  int64_t last_pts;
+  int64_t next_pts;
+  AVPacket next_packet;
 #endif
 
-	char index_dir[768];
+  char index_dir[768];
 
-	int proxies_tried;
-	int indices_tried;
+  int proxies_tried;
+  int indices_tried;
 
-	struct anim *proxy_anim[IMB_PROXY_MAX_SLOT];
-	struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
+  struct anim *proxy_anim[IMB_PROXY_MAX_SLOT];
+  struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
 
-	char colorspace[64];
-	char suffix[64]; /* MAX_NAME - multiview */
+  char colorspace[64];
+  char suffix[64]; /* MAX_NAME - multiview */
 
-	struct IDProperty *metadata;
+  struct IDProperty *metadata;
 };
 
 #endif

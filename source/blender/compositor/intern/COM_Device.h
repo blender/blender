@@ -28,31 +28,38 @@
  */
 class Device {
 
-public:
-	/**
-	 * \brief Declaration of the virtual destructor
-	 * \note resolve warning gcc 4.7
-	 */
-	virtual ~Device() {}
+ public:
+  /**
+   * \brief Declaration of the virtual destructor
+   * \note resolve warning gcc 4.7
+   */
+  virtual ~Device()
+  {
+  }
 
-	/**
-	 * \brief initialize the device
-	 */
-	virtual bool initialize() { return true; }
+  /**
+   * \brief initialize the device
+   */
+  virtual bool initialize()
+  {
+    return true;
+  }
 
-	/**
-	 * \brief deinitialize the device
-	 */
-	virtual void deinitialize() {}
+  /**
+   * \brief deinitialize the device
+   */
+  virtual void deinitialize()
+  {
+  }
 
-	/**
-	 * \brief execute a WorkPackage
-	 * \param work: the WorkPackage to execute
-	 */
-	virtual void execute(WorkPackage *work) = 0;
+  /**
+   * \brief execute a WorkPackage
+   * \param work: the WorkPackage to execute
+   */
+  virtual void execute(WorkPackage *work) = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Device")
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:Device")
 #endif
 };
 

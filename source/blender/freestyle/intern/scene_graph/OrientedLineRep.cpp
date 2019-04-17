@@ -25,13 +25,13 @@
 
 namespace Freestyle {
 
-void OrientedLineRep::accept(SceneVisitor& v)
+void OrientedLineRep::accept(SceneVisitor &v)
 {
-	Rep::accept(v);
-	if (!frs_material())
-		v.visitOrientedLineRep(*this);
-	else
-		v.visitLineRep(*this);
+  Rep::accept(v);
+  if (!frs_material())
+    v.visitOrientedLineRep(*this);
+  else
+    v.visitLineRep(*this);
 }
 
 } /* namespace Freestyle */

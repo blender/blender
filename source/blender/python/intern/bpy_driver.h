@@ -24,4 +24,4 @@
 int bpy_pydriver_create_dict(void);
 extern PyObject *bpy_pydriver_Dict;
 
-#endif  /* __BPY_DRIVER_H__ */
+#endif /* __BPY_DRIVER_H__ */

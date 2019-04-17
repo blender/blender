@@ -32,47 +32,46 @@ extern "C" {
 #include "COLLADAFWEffectCommon.h"
 
 typedef enum BC_pbr_inputs {
-	BC_PBR_DIFFUSE = 0,
-	BC_PBR_METALLIC = 4,
-	BC_PBR_IOR = 14,
+  BC_PBR_DIFFUSE = 0,
+  BC_PBR_METALLIC = 4,
+  BC_PBR_IOR = 14,
 } BC_pbr_inputs;
 
 typedef std::map<std::string, bNode *> NodeMap;
 
 class MaterialNode {
 
-private:
-	bContext *mContext;
-	Material *material;
-	COLLADAFW::EffectCommon *effect;
-	UidImageMap *uid_image_map = nullptr;
-	KeyImageMap *key_image_map = nullptr;
+ private:
+  bContext *mContext;
+  Material *material;
+  COLLADAFW::EffectCommon *effect;
+  UidImageMap *uid_image_map = nullptr;
+  KeyImageMap *key_image_map = nullptr;
 
-	NodeMap node_map;
-	bNodeTree *ntree;
+  NodeMap node_map;
+  bNodeTree *ntree;
 
-	bNode *shader_node;
-	bNode *output_node;
+  bNode *shader_node;
+  bNode *output_node;
 
-	bNodeTree *prepare_material_nodetree();
-	bNode *add_node(int node_type, int locx, int locy, std::string label);
-	void add_link(bNode *from_node, int from_index, bNode *to_node, int to_index);
-	bNode *add_texture_node(COLLADAFW::ColorOrTexture &cot, int locx, int locy, std::string label);
-	void setShaderType();
+  bNodeTree *prepare_material_nodetree();
+  bNode *add_node(int node_type, int locx, int locy, std::string label);
+  void add_link(bNode *from_node, int from_index, bNode *to_node, int to_index);
+  bNode *add_texture_node(COLLADAFW::ColorOrTexture &cot, int locx, int locy, std::string label);
+  void setShaderType();
 
-public:
-	MaterialNode(bContext *C, COLLADAFW::EffectCommon *ef, Material *ma, UidImageMap &uid_image_map);
-	MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map);
-	void set_diffuse(COLLADAFW::ColorOrTexture &cot, std::string label);
-	Image *get_diffuse_image();
-	void set_specular(COLLADAFW::ColorOrTexture &cot, std::string label);
-	void set_ambient(COLLADAFW::ColorOrTexture &cot, std::string label);
-	void set_reflective(COLLADAFW::ColorOrTexture &cot, std::string label);
-	void set_emission(COLLADAFW::ColorOrTexture &cot, std::string label);
-	void set_opacity(COLLADAFW::ColorOrTexture &cot, std::string label);
-	void set_reflectivity(float val);
-	void set_ior(float val);
-
+ public:
+  MaterialNode(bContext *C, COLLADAFW::EffectCommon *ef, Material *ma, UidImageMap &uid_image_map);
+  MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map);
+  void set_diffuse(COLLADAFW::ColorOrTexture &cot, std::string label);
+  Image *get_diffuse_image();
+  void set_specular(COLLADAFW::ColorOrTexture &cot, std::string label);
+  void set_ambient(COLLADAFW::ColorOrTexture &cot, std::string label);
+  void set_reflective(COLLADAFW::ColorOrTexture &cot, std::string label);
+  void set_emission(COLLADAFW::ColorOrTexture &cot, std::string label);
+  void set_opacity(COLLADAFW::ColorOrTexture &cot, std::string label);
+  void set_reflectivity(float val);
+  void set_ior(float val);
 };
 
 #endif

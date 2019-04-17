@@ -19,8 +19,11 @@
 #include "internal/opensubdiv_topology_refiner_internal.h"
 
 OpenSubdiv_TopologyRefinerInternal::OpenSubdiv_TopologyRefinerInternal()
-    : osd_topology_refiner(NULL) {}
+    : osd_topology_refiner(NULL)
+{
+}
 
-OpenSubdiv_TopologyRefinerInternal::~OpenSubdiv_TopologyRefinerInternal() {
+OpenSubdiv_TopologyRefinerInternal::~OpenSubdiv_TopologyRefinerInternal()
+{
   delete osd_topology_refiner;
 }

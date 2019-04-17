@@ -32,18 +32,18 @@ struct PackedFile;
 struct VFont;
 
 typedef struct VFontData {
-	struct GHash *characters;
-	char name[128];
-	float scale;
-	/* Calculated from the font. */
-	float em_height;
-	float ascender;
+  struct GHash *characters;
+  char name[128];
+  float scale;
+  /* Calculated from the font. */
+  float em_height;
+  float ascender;
 } VFontData;
 
 typedef struct VChar {
-	ListBase nurbsbase;
-	unsigned int index;
-	float width;
+  ListBase nurbsbase;
+  unsigned int index;
+  float width;
 } VChar;
 
 VFontData *BLI_vfontdata_from_freetypefont(struct PackedFile *pf);

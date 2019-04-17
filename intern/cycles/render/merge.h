@@ -25,17 +25,17 @@ CCL_NAMESPACE_BEGIN
 /* Merge OpenEXR multilayer renders. */
 
 class ImageMerger {
-public:
-	ImageMerger();
-	bool run();
+ public:
+  ImageMerger();
+  bool run();
 
-	/* Error message after running, in case of failure. */
-	string error;
+  /* Error message after running, in case of failure. */
+  string error;
 
-	/* List of image filepaths to merge. */
-	vector<string> input;
-	/* Output filepath. */
-	string output;
+  /* List of image filepaths to merge. */
+  vector<string> input;
+  /* Output filepath. */
+  string output;
 };
 
 CCL_NAMESPACE_END

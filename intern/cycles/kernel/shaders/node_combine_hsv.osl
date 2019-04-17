@@ -16,12 +16,7 @@
 
 #include "stdosl.h"
 
-shader node_combine_hsv(
-	float H = 0.0,
-	float S = 0.0,
-	float V = 0.0,
-	output color Color = 0.8)
+shader node_combine_hsv(float H = 0.0, float S = 0.0, float V = 0.0, output color Color = 0.8)
 {
-	Color = color("hsv", H, S, V);	
+  Color = color("hsv", H, S, V);
 }
-

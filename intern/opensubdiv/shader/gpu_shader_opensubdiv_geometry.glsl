@@ -18,9 +18,9 @@
  */
 
 struct VertexData {
-	vec4 position;
-	vec3 normal;
-	vec2 uv;
+  vec4 position;
+  vec3 normal;
+  vec2 uv;
 };
 
 layout(lines_adjacency) in;
@@ -36,76 +36,77 @@ uniform int PrimitiveIdBase;
 uniform int osd_fvar_count;
 uniform int osd_active_uv_offset;
 
-in block {
-	VertexData v;
-} inpt[];
+in block
+{
+  VertexData v;
+}
+inpt[];
 
-#define INTERP_FACE_VARYING_2(result, fvarOffset, tessCoord)  \
-	{ \
-		vec2 v[4]; \
-		int primOffset = (gl_PrimitiveID + PrimitiveIdBase) * 4; \
-		for (int i = 0; i < 4; ++i) { \
-			int index = (primOffset + i) * osd_fvar_count + fvarOffset; \
-			v[i] = vec2(texelFetch(FVarDataBuffer, index).s, \
-			            texelFetch(FVarDataBuffer, index + 1).s); \
-		} \
-		result = mix(mix(v[0], v[1], tessCoord.s), \
-		             mix(v[3], v[2], tessCoord.s), \
-		             tessCoord.t); \
-	}
+#define INTERP_FACE_VARYING_2(result, fvarOffset, tessCoord) \
+  { \
+    vec2 v[4]; \
+    int primOffset = (gl_PrimitiveID + PrimitiveIdBase) * 4; \
+    for (int i = 0; i < 4; ++i) { \
+      int index = (primOffset + i) * osd_fvar_count + fvarOffset; \
+      v[i] = vec2(texelFetch(FVarDataBuffer, index).s, texelFetch(FVarDataBuffer, index + 1).s); \
+    } \
+    result = mix(mix(v[0], v[1], tessCoord.s), mix(v[3], v[2], tessCoord.s), tessCoord.t); \
+  }
 
 uniform samplerBuffer FVarDataBuffer;
 uniform isamplerBuffer FVarDataOffsetBuffer;
 
-out block {
-	VertexData v;
-} outpt;
+out block
+{
+  VertexData v;
+}
+outpt;
 
 #ifdef FLAT_SHADING
 void emit(int index, vec3 normal)
 {
-	outpt.v.position = inpt[index].v.position;
-	outpt.v.normal = normal;
+  outpt.v.position = inpt[index].v.position;
+  outpt.v.normal = normal;
 
-	/* TODO(sergey): Only uniform subdivisions atm. */
-	vec2 quadst[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
-	vec2 st = quadst[index];
+  /* TODO(sergey): Only uniform subdivisions atm. */
+  vec2 quadst[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
+  vec2 st = quadst[index];
 
-	INTERP_FACE_VARYING_2(outpt.v.uv, osd_active_uv_offset, st);
+  INTERP_FACE_VARYING_2(outpt.v.uv, osd_active_uv_offset, st);
 
-	gl_Position = projectionMatrix * inpt[index].v.position;
-	EmitVertex();
+  gl_Position = projectionMatrix * inpt[index].v.position;
+  EmitVertex();
 }
 
 #  ifdef WIREFRAME
 void emit_edge(int v0, int v1, vec3 normal)
 {
-	emit(v0, normal);
-	emit(v1, normal);
+  emit(v0, normal);
+  emit(v1, normal);
 }
 #  endif
 
 #else
 void emit(int index)
 {
-	outpt.v.position = inpt[index].v.position;
-	outpt.v.normal = inpt[index].v.normal;
+  outpt.v.position = inpt[index].v.position;
+  outpt.v.normal = inpt[index].v.normal;
 
-	/* TODO(sergey): Only uniform subdivisions atm. */
-	vec2 quadst[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
-	vec2 st = quadst[index];
+  /* TODO(sergey): Only uniform subdivisions atm. */
+  vec2 quadst[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
+  vec2 st = quadst[index];
 
-	INTERP_FACE_VARYING_2(outpt.v.uv, osd_active_uv_offset, st);
+  INTERP_FACE_VARYING_2(outpt.v.uv, osd_active_uv_offset, st);
 
-	gl_Position = projectionMatrix * inpt[index].v.position;
-	EmitVertex();
+  gl_Position = projectionMatrix * inpt[index].v.position;
+  EmitVertex();
 }
 
 #  ifdef WIREFRAME
 void emit_edge(int v0, int v1)
 {
-	emit(v0);
-	emit(v1);
+  emit(v0);
+  emit(v1);
 }
 #  endif
 
@@ -113,36 +114,36 @@ void emit_edge(int v0, int v1)
 
 void main()
 {
-	gl_PrimitiveID = gl_PrimitiveIDIn;
+  gl_PrimitiveID = gl_PrimitiveIDIn;
 
 #ifdef FLAT_SHADING
-	vec3 A = (inpt[0].v.position - inpt[1].v.position).xyz;
-	vec3 B = (inpt[3].v.position - inpt[1].v.position).xyz;
-	vec3 flat_normal = normalize(cross(B, A));
+  vec3 A = (inpt[0].v.position - inpt[1].v.position).xyz;
+  vec3 B = (inpt[3].v.position - inpt[1].v.position).xyz;
+  vec3 flat_normal = normalize(cross(B, A));
 #  ifndef WIREFRAME
-	emit(0, flat_normal);
-	emit(1, flat_normal);
-	emit(3, flat_normal);
-	emit(2, flat_normal);
+  emit(0, flat_normal);
+  emit(1, flat_normal);
+  emit(3, flat_normal);
+  emit(2, flat_normal);
 #  else
-	emit_edge(0, 1, flat_normal);
-	emit_edge(1, 2, flat_normal);
-	emit_edge(2, 3, flat_normal);
-	emit_edge(3, 0, flat_normal);
+  emit_edge(0, 1, flat_normal);
+  emit_edge(1, 2, flat_normal);
+  emit_edge(2, 3, flat_normal);
+  emit_edge(3, 0, flat_normal);
 #  endif
 #else
 #  ifndef WIREFRAME
-	emit(0);
-	emit(1);
-	emit(3);
-	emit(2);
+  emit(0);
+  emit(1);
+  emit(3);
+  emit(2);
 #  else
-	emit_edge(0, 1);
-	emit_edge(1, 2);
-	emit_edge(2, 3);
-	emit_edge(3, 0);
+  emit_edge(0, 1);
+  emit_edge(1, 2);
+  emit_edge(2, 3);
+  emit_edge(3, 0);
 #  endif
 #endif
 
-	EndPrimitive();
+  EndPrimitive();
 }

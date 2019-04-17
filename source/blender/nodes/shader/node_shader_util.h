@@ -21,7 +21,6 @@
  * \ingroup nodes
  */
 
-
 #ifndef __NODE_SHADER_UTIL_H__
 #define __NODE_SHADER_UTIL_H__
 
@@ -70,24 +69,28 @@
 #include "GPU_material.h"
 #include "GPU_uniformbuffer.h"
 
-
 bool sh_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
-void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
-
+void sh_node_type_base(
+    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 
 /* ********* exec data struct, remains internal *********** */
 
 typedef struct ShaderCallData {
-	/* Empty for now, may be reused if we convert shader to texture nodes. */
-	int dummy;
+  /* Empty for now, may be reused if we convert shader to texture nodes. */
+  int dummy;
 } ShaderCallData;
 
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeStack *ns);
 void node_data_from_gpu_stack(struct bNodeStack *ns, struct GPUNodeStack *gs);
-void node_shader_gpu_tex_mapping(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out);
+void node_shader_gpu_tex_mapping(struct GPUMaterial *mat,
+                                 struct bNode *node,
+                                 struct GPUNodeStack *in,
+                                 struct GPUNodeStack *out);
 
-void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct GPUMaterial *mat, struct bNode *output_node);
+void ntreeExecGPUNodes(struct bNodeTreeExec *exec,
+                       struct GPUMaterial *mat,
+                       struct bNode *output_node);
 
 #endif

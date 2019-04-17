@@ -29,7 +29,10 @@ struct SpaceText;
 struct TextUndoBuf;
 struct UndoType;
 
-bool ED_text_region_location_from_cursor(struct SpaceText *st, struct ARegion *ar, const int cursor_co[2], int r_pixel_co[2]);
+bool ED_text_region_location_from_cursor(struct SpaceText *st,
+                                         struct ARegion *ar,
+                                         const int cursor_co[2],
+                                         int r_pixel_co[2]);
 
 /* text_undo.c */
 void ED_text_undosys_type(struct UndoType *ut);

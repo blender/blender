@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ColorBalanceNode : public Node {
-public:
-	ColorBalanceNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ColorBalanceNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_ColorBalanceNODE_H */
+#endif /* COM_ColorBalanceNODE_H */

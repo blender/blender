@@ -56,77 +56,76 @@ static ustring u_random_walk("random_walk");
 static ustring u_principled_random_walk("principled_random_walk");
 
 class CBSSRDFClosure : public CClosurePrimitive {
-public:
-	Bssrdf params;
-	ustring method;
+ public:
+  Bssrdf params;
+  ustring method;
 
-	CBSSRDFClosure()
-	{
-		params.texture_blur = 0.0f;
-		params.sharpness = 0.0f;
-		params.roughness = 0.0f;
-	}
+  CBSSRDFClosure()
+  {
+    params.texture_blur = 0.0f;
+    params.sharpness = 0.0f;
+    params.roughness = 0.0f;
+  }
 
-	void setup(ShaderData *sd, int path_flag, float3 weight)
-	{
-		if(method == u_cubic) {
-			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_CUBIC_ID);
-		}
-		else if(method == u_gaussian) {
-			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_GAUSSIAN_ID);
-		}
-		else if(method == u_burley) {
-			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_BURLEY_ID);
-		}
-		else if(method == u_principled) {
-			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_ID);
-		}
-		else if(method == u_random_walk) {
-			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_RANDOM_WALK_ID);
-		}
-		else if(method == u_principled_random_walk) {
-			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
-		}
-	}
+  void setup(ShaderData *sd, int path_flag, float3 weight)
+  {
+    if (method == u_cubic) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_CUBIC_ID);
+    }
+    else if (method == u_gaussian) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_GAUSSIAN_ID);
+    }
+    else if (method == u_burley) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_BURLEY_ID);
+    }
+    else if (method == u_principled) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_ID);
+    }
+    else if (method == u_random_walk) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_RANDOM_WALK_ID);
+    }
+    else if (method == u_principled_random_walk) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
+    }
+  }
 
-	void alloc(ShaderData *sd, int path_flag, float3 weight, ClosureType type)
-	{
-		Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
+  void alloc(ShaderData *sd, int path_flag, float3 weight, ClosureType type)
+  {
+    Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 
-		if(bssrdf) {
-			/* disable in case of diffuse ancestor, can't see it well then and
-			 * adds considerably noise due to probabilities of continuing path
-			 * getting lower and lower */
-			if(path_flag & PATH_RAY_DIFFUSE_ANCESTOR) {
-				params.radius = make_float3(0.0f, 0.0f, 0.0f);
-			}
+    if (bssrdf) {
+      /* disable in case of diffuse ancestor, can't see it well then and
+       * adds considerably noise due to probabilities of continuing path
+       * getting lower and lower */
+      if (path_flag & PATH_RAY_DIFFUSE_ANCESTOR) {
+        params.radius = make_float3(0.0f, 0.0f, 0.0f);
+      }
 
-			/* create one closure per color channel */
-			bssrdf->radius = params.radius;
-			bssrdf->albedo = params.albedo;
-			bssrdf->texture_blur = params.texture_blur;
-			bssrdf->sharpness = params.sharpness;
-			bssrdf->N = params.N;
-			bssrdf->roughness = params.roughness;
-			sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type);
-		}
-	}
+      /* create one closure per color channel */
+      bssrdf->radius = params.radius;
+      bssrdf->albedo = params.albedo;
+      bssrdf->texture_blur = params.texture_blur;
+      bssrdf->sharpness = params.sharpness;
+      bssrdf->N = params.N;
+      bssrdf->roughness = params.roughness;
+      sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type);
+    }
+  }
 };
 
 ClosureParam *closure_bssrdf_params()
 {
-	static ClosureParam params[] = {
-		CLOSURE_STRING_PARAM(CBSSRDFClosure, method),
-		CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.N),
-		CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.radius),
-		CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.albedo),
-		CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.texture_blur, "texture_blur"),
-		CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.sharpness, "sharpness"),
-		CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.roughness, "roughness"),
-		CLOSURE_STRING_KEYPARAM(CBSSRDFClosure, label, "label"),
-		CLOSURE_FINISH_PARAM(CBSSRDFClosure)
-	};
-	return params;
+  static ClosureParam params[] = {
+      CLOSURE_STRING_PARAM(CBSSRDFClosure, method),
+      CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.N),
+      CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.radius),
+      CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.albedo),
+      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.texture_blur, "texture_blur"),
+      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.sharpness, "sharpness"),
+      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.roughness, "roughness"),
+      CLOSURE_STRING_KEYPARAM(CBSSRDFClosure, label, "label"),
+      CLOSURE_FINISH_PARAM(CBSSRDFClosure)};
+  return params;
 }
 
 CCLOSURE_PREPARE(closure_bssrdf_prepare, CBSSRDFClosure)

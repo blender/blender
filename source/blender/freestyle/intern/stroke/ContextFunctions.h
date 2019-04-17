@@ -55,7 +55,10 @@ BBox<Vec2i> GetBorderCF();
 
 // Load map
 /*! Loads an image map for further reading */
-void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels = 4, float iSigma = 1.0f);
+void LoadMapCF(const char *iFileName,
+               const char *iMapName,
+               unsigned iNbLevels = 4,
+               float iSigma = 1.0f);
 
 // ReadMapPixel
 /*! Reads a pixel in a user-defined map
@@ -100,8 +103,8 @@ float ReadDirectionalViewMapPixelCF(int iOrientation, int level, unsigned x, uns
 // DEBUG
 FEdge *GetSelectedFEdgeCF();
 
-} // end of namespace ContextFunctions
+}  // end of namespace ContextFunctions
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_CONTEXT_FUNCTIONS_H__
+#endif  // __FREESTYLE_CONTEXT_FUNCTIONS_H__

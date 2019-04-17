@@ -18,7 +18,6 @@
  * \ingroup pygen
  */
 
-
 /* Note, the BGE needs to use this too, keep it minimal */
 
 #ifndef __BPY_INTERNAL_IMPORT_H__
@@ -26,26 +25,26 @@
 
 /* python redefines :/ */
 #ifdef _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
+#  undef _POSIX_C_SOURCE
 #endif
 
 #ifdef _XOPEN_SOURCE
-#undef _XOPEN_SOURCE
+#  undef _XOPEN_SOURCE
 #endif
 
 struct Text;
 
 void bpy_import_init(PyObject *builtins);
 
-bool        bpy_text_compile(struct Text *text);
-PyObject   *bpy_text_import(struct Text *text);
-PyObject   *bpy_text_import_name(const char *name, int *found);
-PyObject   *bpy_text_reimport(PyObject *module, int *found);
-/* void		bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */
+bool bpy_text_compile(struct Text *text);
+PyObject *bpy_text_import(struct Text *text);
+PyObject *bpy_text_import_name(const char *name, int *found);
+PyObject *bpy_text_reimport(PyObject *module, int *found);
+/* void     bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */
 
 void bpy_text_filename_get(char *fn, size_t fn_len, struct Text *text);
 
 struct Main *bpy_import_main_get(void);
 void bpy_import_main_set(struct Main *maggie);
 
-#endif				/* __BPY_INTERNAL_IMPORT_H__ */
+#endif /* __BPY_INTERNAL_IMPORT_H__ */

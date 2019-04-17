@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class PixelateNode : public Node {
-public:
-	PixelateNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  PixelateNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

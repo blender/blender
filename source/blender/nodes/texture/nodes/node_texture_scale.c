@@ -21,52 +21,56 @@
  * \ingroup texnodes
  */
 
-
 #include <math.h>
 #include "node_texture_util.h"
 
 static bNodeSocketTemplate inputs[] = {
-	{ SOCK_RGBA,   1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f },
-	{ SOCK_VECTOR, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f,  -10.0f, 10.0f, PROP_XYZ },
-	{ -1, 0, "" },
+    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f, -10.0f, 10.0f, PROP_XYZ},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate outputs[] = {
-	{ SOCK_RGBA, 0, N_("Color")},
-	{ -1, 0, "" },
+    {SOCK_RGBA, 0, N_("Color")},
+    {-1, 0, ""},
 };
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
-	float scale[3], new_co[3], new_dxt[3], new_dyt[3];
-	TexParams np = *p;
+  float scale[3], new_co[3], new_dxt[3], new_dyt[3];
+  TexParams np = *p;
 
-	np.co = new_co;
-	np.dxt = new_dxt;
-	np.dyt = new_dyt;
+  np.co = new_co;
+  np.dxt = new_dxt;
+  np.dyt = new_dyt;
 
-	tex_input_vec(scale, in[1], p, thread);
+  tex_input_vec(scale, in[1], p, thread);
 
-	mul_v3_v3v3(new_co, p->co, scale);
-	if (p->osatex) {
-		mul_v3_v3v3(new_dxt, p->dxt, scale);
-		mul_v3_v3v3(new_dyt, p->dyt, scale);
-	}
+  mul_v3_v3v3(new_co, p->co, scale);
+  if (p->osatex) {
+    mul_v3_v3v3(new_dxt, p->dxt, scale);
+    mul_v3_v3v3(new_dyt, p->dyt, scale);
+  }
 
-	tex_input_rgba(out, in[0], &np, thread);
+  tex_input_rgba(out, in[0], &np, thread);
 }
-static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)
+static void exec(void *data,
+                 int UNUSED(thread),
+                 bNode *node,
+                 bNodeExecData *execdata,
+                 bNodeStack **in,
+                 bNodeStack **out)
 {
-	tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, data);
 }
 
 void register_node_type_tex_scale(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	tex_node_type_base(&ntype, TEX_NODE_SCALE, "Scale", NODE_CLASS_DISTORT, 0);
-	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_exec(&ntype, NULL, NULL, exec);
+  tex_node_type_base(&ntype, TEX_NODE_SCALE, "Scale", NODE_CLASS_DISTORT, 0);
+  node_type_socket_templates(&ntype, inputs, outputs);
+  node_type_exec(&ntype, NULL, NULL, exec);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

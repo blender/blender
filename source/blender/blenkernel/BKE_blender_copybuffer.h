@@ -33,13 +33,18 @@ struct bContext;
 void BKE_copybuffer_begin(struct Main *bmain_src);
 void BKE_copybuffer_tag_ID(struct ID *id);
 bool BKE_copybuffer_save(struct Main *bmain_src, const char *filename, struct ReportList *reports);
-bool BKE_copybuffer_read(
-        struct Main *bmain_dst, const char *libname, struct ReportList *reports, const unsigned int id_types_mask);
-int BKE_copybuffer_paste(
-        struct bContext *C, const char *libname, const short flag, struct ReportList *reports, const unsigned int id_types_mask);
+bool BKE_copybuffer_read(struct Main *bmain_dst,
+                         const char *libname,
+                         struct ReportList *reports,
+                         const unsigned int id_types_mask);
+int BKE_copybuffer_paste(struct bContext *C,
+                         const char *libname,
+                         const short flag,
+                         struct ReportList *reports,
+                         const unsigned int id_types_mask);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __BKE_BLENDER_COPYBUFFER_H__ */
+#endif /* __BKE_BLENDER_COPYBUFFER_H__ */

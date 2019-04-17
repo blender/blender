@@ -17,15 +17,14 @@
 #include "stdosl.h"
 #include "node_color.h"
 
-shader node_separate_hsv(
-	color Color = 0.8,
-	output float H = 0.0,
-	output float S = 0.0,
-	output float V = 0.0)
+shader node_separate_hsv(color Color = 0.8,
+                         output float H = 0.0,
+                         output float S = 0.0,
+                         output float V = 0.0)
 {
-	color col = rgb_to_hsv(Color);
-	
-	H = col[0];
-	S = col[1];
-	V = col[2];
+  color col = rgb_to_hsv(Color);
+
+  H = col[0];
+  S = col[1];
+  V = col[2];
 }

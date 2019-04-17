@@ -16,26 +16,24 @@
 
 #include "stdosl.h"
 
-shader node_attribute(
-	string bump_offset = "center",
-	string name = "",
-	output point Vector = point(0.0, 0.0, 0.0),
-	output color Color = 0.0,
-	output float Fac = 0.0)
+shader node_attribute(string bump_offset = "center",
+                      string name = "",
+                      output point Vector = point(0.0, 0.0, 0.0),
+                      output color Color = 0.0,
+                      output float Fac = 0.0)
 {
-	getattribute(name, Color);
-	Vector = point(Color);
-	getattribute(name, Fac);
+  getattribute(name, Color);
+  Vector = point(Color);
+  getattribute(name, Fac);
 
-	if (bump_offset == "dx") {
-		Color += Dx(Color);
-		Vector += Dx(Vector);
-		Fac += Dx(Fac);
-	}
-	else if (bump_offset == "dy") {
-		Color += Dy(Color);
-		Vector += Dy(Vector);
-		Fac += Dy(Fac);
-	}
+  if (bump_offset == "dx") {
+    Color += Dx(Color);
+    Vector += Dx(Vector);
+    Fac += Dx(Fac);
+  }
+  else if (bump_offset == "dy") {
+    Color += Dy(Color);
+    Vector += Dy(Vector);
+    Fac += Dy(Fac);
+  }
 }
-

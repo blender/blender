@@ -22,32 +22,34 @@
 #include "DNA_texture_types.h"
 
 class ColorRampOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputProgram;
-	ColorBand *m_colorBand;
-public:
-	ColorRampOperation();
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputProgram;
+  ColorBand *m_colorBand;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  ColorRampOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	void setColorBand(ColorBand *colorBand) {
-		this->m_colorBand = colorBand;
-	}
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
+
+  void setColorBand(ColorBand *colorBand)
+  {
+    this->m_colorBand = colorBand;
+  }
 };
 #endif

@@ -23,24 +23,25 @@
 
 /* These map directly to the GL_ blend functions, to minimize API add as needed*/
 typedef enum eGPUBlendFunction {
-	GPU_ONE,
-	GPU_SRC_ALPHA,
-	GPU_ONE_MINUS_SRC_ALPHA,
-	GPU_DST_COLOR,
-	GPU_ZERO,
+  GPU_ONE,
+  GPU_SRC_ALPHA,
+  GPU_ONE_MINUS_SRC_ALPHA,
+  GPU_DST_COLOR,
+  GPU_ZERO,
 } eGPUBlendFunction;
 
 /* These map directly to the GL_ filter functions, to minimize API add as needed*/
 typedef enum eGPUFilterFunction {
-	GPU_NEAREST,
-	GPU_LINEAR,
+  GPU_NEAREST,
+  GPU_LINEAR,
 } eGPUFilterFunction;
 
 void GPU_blend(bool enable);
 void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor);
-void GPU_blend_set_func_separate(
-        eGPUBlendFunction src_rgb, eGPUBlendFunction dst_rgb,
-        eGPUBlendFunction src_alpha, eGPUBlendFunction dst_alpha);
+void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
+                                 eGPUBlendFunction dst_rgb,
+                                 eGPUBlendFunction src_alpha,
+                                 eGPUBlendFunction dst_alpha);
 void GPU_depth_range(float near, float far);
 void GPU_depth_test(bool enable);
 bool GPU_depth_test_enabled(void);
@@ -57,4 +58,4 @@ void GPU_viewport_size_get_i(int coords[4]);
 void GPU_flush(void);
 void GPU_finish(void);
 
-#endif  /* __GPU_STATE_H__ */
+#endif /* __GPU_STATE_H__ */

@@ -31,27 +31,28 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_keyingscreen_out[] = {
-	{	SOCK_RGBA,  0, "Screen"},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, "Screen"},
+    {-1, 0, ""},
 };
 
 static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeKeyingScreenData *data;
+  NodeKeyingScreenData *data;
 
-	data = MEM_callocN(sizeof(NodeKeyingScreenData), "node keyingscreen data");
+  data = MEM_callocN(sizeof(NodeKeyingScreenData), "node keyingscreen data");
 
-	node->storage = data;
+  node->storage = data;
 }
 
 void register_node_type_cmp_keyingscreen(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, 0);
-	node_type_socket_templates(&ntype, NULL, cmp_node_keyingscreen_out);
-	node_type_init(&ntype, node_composit_init_keyingscreen);
-	node_type_storage(&ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
+  cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, 0);
+  node_type_socket_templates(&ntype, NULL, cmp_node_keyingscreen_out);
+  node_type_init(&ntype, node_composit_init_keyingscreen);
+  node_type_storage(
+      &ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

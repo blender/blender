@@ -31,9 +31,9 @@
 
 void AttrBinding_clear(GPUAttrBinding *binding);
 
-void get_attr_locations(
-        const GPUVertFormat *format, GPUAttrBinding *binding, const GPUShaderInterface *shaderface);
-uint read_attr_location(
-        const GPUAttrBinding *binding, uint a_idx);
+void get_attr_locations(const GPUVertFormat *format,
+                        GPUAttrBinding *binding,
+                        const GPUShaderInterface *shaderface);
+uint read_attr_location(const GPUAttrBinding *binding, uint a_idx);
 
 #endif /* __GPU_ATTR_BINDING_PRIVATE_H__ */

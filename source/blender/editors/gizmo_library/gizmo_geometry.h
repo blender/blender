@@ -26,16 +26,15 @@
  *        called geom_xxx_gizmo.c
  */
 
-
 #ifndef __GIZMO_GEOMETRY_H__
 #define __GIZMO_GEOMETRY_H__
 
 typedef struct GizmoGeomInfo {
-	int nverts;
-	int ntris;
-	const float (*verts)[3];
-	const float (*normals)[3];
-	const unsigned short *indices;
+  int nverts;
+  int ntris;
+  const float (*verts)[3];
+  const float (*normals)[3];
+  const unsigned short *indices;
 } GizmoGeomInfo;
 
 /* arrow gizmo */
@@ -47,4 +46,4 @@ extern GizmoGeomInfo wm_gizmo_geom_data_cube;
 /* dial gizmo */
 extern GizmoGeomInfo wm_gizmo_geom_data_dial;
 
-#endif  /* __GIZMO_GEOMETRY_H__ */
+#endif /* __GIZMO_GEOMETRY_H__ */

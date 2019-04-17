@@ -44,44 +44,46 @@ struct wmOperatorType;
 /* context data */
 
 typedef struct ButsContextPath {
-	PointerRNA ptr[8];
-	int len;
-	int flag;
-	int collection_ctx;
+  PointerRNA ptr[8];
+  int len;
+  int flag;
+  int collection_ctx;
 } ButsContextPath;
 
 typedef struct ButsTextureUser {
-	struct ButsTextureUser *next, *prev;
+  struct ButsTextureUser *next, *prev;
 
-	struct ID *id;
+  struct ID *id;
 
-	PointerRNA ptr;
-	PropertyRNA *prop;
+  PointerRNA ptr;
+  PropertyRNA *prop;
 
-	struct bNodeTree *ntree;
-	struct bNode *node;
+  struct bNodeTree *ntree;
+  struct bNode *node;
 
-	const char *category;
-	int icon;
-	const char *name;
+  const char *category;
+  int icon;
+  const char *name;
 
-	int index;
+  int index;
 } ButsTextureUser;
 
 typedef struct ButsContextTexture {
-	ListBase users;
+  ListBase users;
 
-	struct Tex *texture;
+  struct Tex *texture;
 
-	struct ButsTextureUser *user;
-	int index;
+  struct ButsTextureUser *user;
+  int index;
 } ButsContextTexture;
 
 /* internal exports only */
 
 /* buttons_context.c */
 void buttons_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
-int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
+int buttons_context(const struct bContext *C,
+                    const char *member,
+                    struct bContextDataResult *result);
 void buttons_context_draw(const struct bContext *C, struct uiLayout *layout);
 void buttons_context_register(struct ARegionType *art);
 struct ID *buttons_context_id_path(const struct bContext *C);

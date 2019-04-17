@@ -28,48 +28,51 @@
 /* ************************************************************************** */
 
 class AbcTransformWriter : public AbcObjectWriter {
-	Alembic::AbcGeom::OXform m_xform;
-	Alembic::AbcGeom::OXformSchema m_schema;
-	Alembic::AbcGeom::XformSample m_sample;
-	Alembic::AbcGeom::OVisibilityProperty m_visibility;
-	Alembic::Abc::M44d m_matrix;
+  Alembic::AbcGeom::OXform m_xform;
+  Alembic::AbcGeom::OXformSchema m_schema;
+  Alembic::AbcGeom::XformSample m_sample;
+  Alembic::AbcGeom::OVisibilityProperty m_visibility;
+  Alembic::Abc::M44d m_matrix;
 
-	bool m_is_animated;
-	bool m_inherits_xform;
+  bool m_is_animated;
+  bool m_inherits_xform;
 
-public:
-	Object *m_proxy_from;
+ public:
+  Object *m_proxy_from;
 
-public:
-	AbcTransformWriter(Object *ob,
-	                   const Alembic::AbcGeom::OObject &abc_parent,
-	                   AbcTransformWriter *parent,
-	                   unsigned int time_sampling,
-	                   ExportSettings &settings);
+ public:
+  AbcTransformWriter(Object *ob,
+                     const Alembic::AbcGeom::OObject &abc_parent,
+                     AbcTransformWriter *parent,
+                     unsigned int time_sampling,
+                     ExportSettings &settings);
 
-	Alembic::AbcGeom::OXform &alembicXform() { return m_xform;}
-	virtual Imath::Box3d bounds();
+  Alembic::AbcGeom::OXform &alembicXform()
+  {
+    return m_xform;
+  }
+  virtual Imath::Box3d bounds();
 
-private:
-	virtual void do_write();
+ private:
+  virtual void do_write();
 
-	bool hasAnimation(Object *ob) const;
+  bool hasAnimation(Object *ob) const;
 };
 
 /* ************************************************************************** */
 
 class AbcEmptyReader : public AbcObjectReader {
-	Alembic::AbcGeom::IXformSchema m_schema;
+  Alembic::AbcGeom::IXformSchema m_schema;
 
-public:
-	AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+ public:
+  AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-	bool valid() const;
-	bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
-	                         const Object *const ob,
-	                         const char **err_str) const;
+  bool valid() const;
+  bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                           const Object *const ob,
+                           const char **err_str) const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 };
 
-#endif  /* __ABC_TRANSFORM_H__ */
+#endif /* __ABC_TRANSFORM_H__ */

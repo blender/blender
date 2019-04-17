@@ -36,4 +36,4 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock);
 
 char *BLI_hash_md5_to_hexdigest(void *resblock, char r_hex_digest[33]);
 
-#endif  /* __BLI_HASH_MD5_H__ */
+#endif /* __BLI_HASH_MD5_H__ */

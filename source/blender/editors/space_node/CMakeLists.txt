@@ -16,59 +16,59 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../depsgraph
-	../../imbuf
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../nodes
-	../../render/extern/include
-	../../windowmanager
-	../../compositor
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../depsgraph
+  ../../imbuf
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../nodes
+  ../../render/extern/include
+  ../../windowmanager
+  ../../compositor
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	drawnode.c
-	node_add.c
-	node_buttons.c
-	node_draw.c
-	node_edit.c
-	node_gizmo.c
-	node_group.c
-	node_ops.c
-	node_relationships.c
-	node_select.c
-	node_templates.c
-	node_toolbar.c
-	node_view.c
-	space_node.c
+  drawnode.c
+  node_add.c
+  node_buttons.c
+  node_draw.c
+  node_edit.c
+  node_gizmo.c
+  node_group.c
+  node_ops.c
+  node_relationships.c
+  node_select.c
+  node_templates.c
+  node_toolbar.c
+  node_view.c
+  space_node.c
 
-	node_intern.h
+  node_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
-	bf_editor_screen
+  bf_blenkernel
+  bf_blenlib
+  bf_editor_screen
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_COMPOSITOR)
-	add_definitions(-DWITH_COMPOSITOR)
+  add_definitions(-DWITH_COMPOSITOR)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

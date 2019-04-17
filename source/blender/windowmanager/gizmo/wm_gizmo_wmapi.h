@@ -28,7 +28,6 @@
  * Only included in wm.h and lower level files.
  */
 
-
 #ifndef __WM_GIZMO_WMAPI_H__
 #define __WM_GIZMO_WMAPI_H__
 
@@ -38,7 +37,6 @@ struct wmEventHandler_Op;
 struct wmGizmoMap;
 struct wmOperator;
 struct wmOperatorType;
-
 
 /* -------------------------------------------------------------------- */
 /* wmGizmo */
@@ -66,21 +64,26 @@ void wm_gizmomap_remove(struct wmGizmoMap *gzmap);
 
 void wm_gizmos_keymap(struct wmKeyConfig *keyconf);
 
-void wm_gizmomaps_handled_modal_update(
-        bContext *C, struct wmEvent *event, struct wmEventHandler_Op *handler);
+void wm_gizmomaps_handled_modal_update(bContext *C,
+                                       struct wmEvent *event,
+                                       struct wmEventHandler_Op *handler);
 void wm_gizmomap_handler_context_op(bContext *C, struct wmEventHandler_Op *handler);
 void wm_gizmomap_handler_context_gizmo(bContext *C, struct wmEventHandler_Gizmo *handler);
 
-struct wmGizmo *wm_gizmomap_highlight_find(
-        struct wmGizmoMap *gzmap, bContext *C, const struct wmEvent *event,
-        int *r_part);
-bool wm_gizmomap_highlight_set(
-        struct wmGizmoMap *gzmap, const bContext *C,
-        struct wmGizmo *gz, int part);
+struct wmGizmo *wm_gizmomap_highlight_find(struct wmGizmoMap *gzmap,
+                                           bContext *C,
+                                           const struct wmEvent *event,
+                                           int *r_part);
+bool wm_gizmomap_highlight_set(struct wmGizmoMap *gzmap,
+                               const bContext *C,
+                               struct wmGizmo *gz,
+                               int part);
 struct wmGizmo *wm_gizmomap_highlight_get(struct wmGizmoMap *gzmap);
-void wm_gizmomap_modal_set(
-        struct wmGizmoMap *gzmap, bContext *C, struct wmGizmo *gz,
-        const struct wmEvent *event, bool enable);
+void wm_gizmomap_modal_set(struct wmGizmoMap *gzmap,
+                           bContext *C,
+                           struct wmGizmo *gz,
+                           const struct wmEvent *event,
+                           bool enable);
 
 struct wmGizmo *wm_gizmomap_modal_get(struct wmGizmoMap *gzmap);
 struct wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len);
@@ -91,4 +94,4 @@ struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 
 void wm_gizmomaptypes_free(void);
 
-#endif  /* __WM_GIZMO_WMAPI_H__ */
+#endif /* __WM_GIZMO_WMAPI_H__ */

@@ -43,20 +43,17 @@ extern PyTypeObject BBox_Type;
 
 /*---------------------------Python BPy_BBox structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	BBox<Vec3r> *bb;
+  PyObject_HEAD BBox<Vec3r> *bb;
 } BPy_BBox;
 
 /*---------------------------Python BPy_BBox visible prototypes-----------*/
 
 int BBox_Init(PyObject *module);
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_BBOX_H__ */

@@ -24,22 +24,23 @@
 
 MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void MovieDistortionNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void MovieDistortionNode::convertToOperations(NodeConverter &converter,
+                                              const CompositorContext &context) const
 {
-	bNode *bnode = this->getbNode();
-	MovieClip *clip = (MovieClip *)bnode->id;
+  bNode *bnode = this->getbNode();
+  MovieClip *clip = (MovieClip *)bnode->id;
 
-	NodeInput *inputSocket = this->getInputSocket(0);
-	NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *inputSocket = this->getInputSocket(0);
+  NodeOutput *outputSocket = this->getOutputSocket(0);
 
-	MovieDistortionOperation *operation = new MovieDistortionOperation(bnode->custom1 == 1);
-	operation->setMovieClip(clip);
-	operation->setFramenumber(context.getFramenumber());
-	converter.addOperation(operation);
+  MovieDistortionOperation *operation = new MovieDistortionOperation(bnode->custom1 == 1);
+  operation->setMovieClip(clip);
+  operation->setFramenumber(context.getFramenumber());
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

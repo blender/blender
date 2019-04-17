@@ -24,21 +24,22 @@
 
 InpaintNode::InpaintNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void InpaintNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void InpaintNode::convertToOperations(NodeConverter &converter,
+                                      const CompositorContext & /*context*/) const
 {
 
-	bNode *editorNode = this->getbNode();
+  bNode *editorNode = this->getbNode();
 
-	/* if (editorNode->custom1 == CMP_NODE_INPAINT_SIMPLE) { */
-	if (true) {
-		InpaintSimpleOperation *operation = new InpaintSimpleOperation();
-		operation->setIterations(editorNode->custom2);
-		converter.addOperation(operation);
+  /* if (editorNode->custom1 == CMP_NODE_INPAINT_SIMPLE) { */
+  if (true) {
+    InpaintSimpleOperation *operation = new InpaintSimpleOperation();
+    operation->setIterations(editorNode->custom2);
+    converter.addOperation(operation);
 
-		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
-	}
+    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  }
 }

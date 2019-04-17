@@ -29,10 +29,10 @@
 #include "GPU_common.h"
 
 typedef struct GPUAttrBinding {
-	/** Store 4 bits for each of the 16 attributes. */
-	uint64_t loc_bits;
-	/** 1 bit for each attribute. */
-	uint16_t enabled_bits;
+  /** Store 4 bits for each of the 16 attributes. */
+  uint64_t loc_bits;
+  /** 1 bit for each attribute. */
+  uint16_t enabled_bits;
 } GPUAttrBinding;
 
 #endif /* __GPU_ATTR_BINDING_H__ */

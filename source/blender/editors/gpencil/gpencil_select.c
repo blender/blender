@@ -69,16 +69,16 @@
 
 static bool gpencil_select_poll(bContext *C)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
 
-	/* we just need some visible strokes, and to be in editmode or other modes only to catch event */
-	if (GPENCIL_ANY_MODE(gpd)) {
-		/* TODO: include a check for visible strokes? */
-		if (gpd->layers.first)
-			return true;
-	}
+  /* we just need some visible strokes, and to be in editmode or other modes only to catch event */
+  if (GPENCIL_ANY_MODE(gpd)) {
+    /* TODO: include a check for visible strokes? */
+    if (gpd->layers.first)
+      return true;
+  }
 
-	return false;
+  return false;
 }
 
 /** \} */
@@ -89,47 +89,47 @@ static bool gpencil_select_poll(bContext *C)
 
 static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	int action = RNA_enum_get(op->ptr, "action");
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  int action = RNA_enum_get(op->ptr, "action");
 
-	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
-		return OPERATOR_CANCELLED;
-	}
+  if (gpd == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+    return OPERATOR_CANCELLED;
+  }
 
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	ED_gpencil_select_toggle_all(C, action);
+  ED_gpencil_select_toggle_all(C, action);
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_all(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "(De)select All Strokes";
-	ot->idname = "GPENCIL_OT_select_all";
-	ot->description = "Change selection of all Grease Pencil strokes currently visible";
+  /* identifiers */
+  ot->name = "(De)select All Strokes";
+  ot->idname = "GPENCIL_OT_select_all";
+  ot->description = "Change selection of all Grease Pencil strokes currently visible";
 
-	/* callbacks */
-	ot->exec = gpencil_select_all_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_all_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	WM_operator_properties_select_all(ot);
+  WM_operator_properties_select_all(ot);
 }
 
 /** \} */
@@ -140,56 +140,55 @@ void GPENCIL_OT_select_all(wmOperatorType *ot)
 
 static int gpencil_select_linked_exec(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
 
-	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
-		return OPERATOR_CANCELLED;
-	}
+  if (gpd == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+    return OPERATOR_CANCELLED;
+  }
 
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	/* select all points in selected strokes */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		if (gps->flag & GP_STROKE_SELECT) {
-			bGPDspoint *pt;
-			int i;
+  /* select all points in selected strokes */
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    if (gps->flag & GP_STROKE_SELECT) {
+      bGPDspoint *pt;
+      int i;
 
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				pt->flag |= GP_SPOINT_SELECT;
-			}
-		}
-	}
-	CTX_DATA_END;
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+        pt->flag |= GP_SPOINT_SELECT;
+      }
+    }
+  }
+  CTX_DATA_END;
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_linked(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Select Linked";
-	ot->idname = "GPENCIL_OT_select_linked";
-	ot->description = "Select all points in same strokes as already selected points";
+  /* identifiers */
+  ot->name = "Select Linked";
+  ot->idname = "GPENCIL_OT_select_linked";
+  ot->description = "Select all points in same strokes as already selected points";
 
-	/* callbacks */
-	ot->exec = gpencil_select_linked_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_linked_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
@@ -200,80 +199,83 @@ void GPENCIL_OT_select_linked(wmOperatorType *ot)
 
 static int gpencil_select_alternate_exec(bContext *C, wmOperator *op)
 {
-	const bool unselect_ends = RNA_boolean_get(op->ptr, "unselect_ends");
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
+  const bool unselect_ends = RNA_boolean_get(op->ptr, "unselect_ends");
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
 
-	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
-		return OPERATOR_CANCELLED;
-	}
+  if (gpd == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+    return OPERATOR_CANCELLED;
+  }
 
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	/* select all points in selected strokes */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		if ((gps->flag & GP_STROKE_SELECT) && (gps->totpoints > 1)) {
-			bGPDspoint *pt;
-			int row = 0;
-			int start = 0;
-			if (unselect_ends) {
-				start = 1;
-			}
+  /* select all points in selected strokes */
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    if ((gps->flag & GP_STROKE_SELECT) && (gps->totpoints > 1)) {
+      bGPDspoint *pt;
+      int row = 0;
+      int start = 0;
+      if (unselect_ends) {
+        start = 1;
+      }
 
-			for (int i = start; i < gps->totpoints; i++) {
-				pt = &gps->points[i];
-				if ((row % 2) == 0) {
-					pt->flag |= GP_SPOINT_SELECT;
-				}
-				else {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
-				row++;
-			}
+      for (int i = start; i < gps->totpoints; i++) {
+        pt = &gps->points[i];
+        if ((row % 2) == 0) {
+          pt->flag |= GP_SPOINT_SELECT;
+        }
+        else {
+          pt->flag &= ~GP_SPOINT_SELECT;
+        }
+        row++;
+      }
 
-			/* unselect start and end points */
-			if (unselect_ends) {
-				pt = &gps->points[0];
-				pt->flag &= ~GP_SPOINT_SELECT;
+      /* unselect start and end points */
+      if (unselect_ends) {
+        pt = &gps->points[0];
+        pt->flag &= ~GP_SPOINT_SELECT;
 
-				pt = &gps->points[gps->totpoints - 1];
-				pt->flag &= ~GP_SPOINT_SELECT;
-			}
-		}
-	}
-	CTX_DATA_END;
+        pt = &gps->points[gps->totpoints - 1];
+        pt->flag &= ~GP_SPOINT_SELECT;
+      }
+    }
+  }
+  CTX_DATA_END;
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_alternate(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Alternated";
-	ot->idname = "GPENCIL_OT_select_alternate";
-	ot->description = "Select alternative points in same strokes as already selected points";
+  /* identifiers */
+  ot->name = "Alternated";
+  ot->idname = "GPENCIL_OT_select_alternate";
+  ot->description = "Select alternative points in same strokes as already selected points";
 
-	/* callbacks */
-	ot->exec = gpencil_select_alternate_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_alternate_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "unselect_ends", true, "Unselect Ends", "Do not select the first and last point of the stroke");
+  /* properties */
+  RNA_def_boolean(ot->srna,
+                  "unselect_ends",
+                  true,
+                  "Unselect Ends",
+                  "Do not select the first and last point of the stroke");
 }
 
 /** \} */
@@ -283,14 +285,14 @@ void GPENCIL_OT_select_alternate(wmOperatorType *ot)
  * \{ */
 
 typedef enum eGP_SelectGrouped {
-	/* Select strokes in the same layer */
-	GP_SEL_SAME_LAYER     = 0,
+  /* Select strokes in the same layer */
+  GP_SEL_SAME_LAYER = 0,
 
-	/* Select strokes with the same color */
-	GP_SEL_SAME_MATERIAL     = 1,
+  /* Select strokes with the same color */
+  GP_SEL_SAME_MATERIAL = 1,
 
-	/* TODO: All with same prefix - Useful for isolating all layers for a particular character for instance */
-	/* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
+  /* TODO: All with same prefix - Useful for isolating all layers for a particular character for instance */
+  /* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
 } eGP_SelectGrouped;
 
 /* ----------------------------------- */
@@ -298,146 +300,143 @@ typedef enum eGP_SelectGrouped {
 /* On each visible layer, check for selected strokes - if found, select all others */
 static void gp_select_same_layer(bContext *C)
 {
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
-	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
-	{
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
-		bGPDstroke *gps;
-		bool found = false;
+  CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
+    bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
+    bGPDstroke *gps;
+    bool found = false;
 
-		if (gpf == NULL)
-			continue;
+    if (gpf == NULL)
+      continue;
 
-		/* Search for a selected stroke */
-		for (gps = gpf->strokes.first; gps; gps = gps->next) {
-			if (ED_gpencil_stroke_can_use(C, gps)) {
-				if (gps->flag & GP_STROKE_SELECT) {
-					found = true;
-					break;
-				}
-			}
-		}
+    /* Search for a selected stroke */
+    for (gps = gpf->strokes.first; gps; gps = gps->next) {
+      if (ED_gpencil_stroke_can_use(C, gps)) {
+        if (gps->flag & GP_STROKE_SELECT) {
+          found = true;
+          break;
+        }
+      }
+    }
 
-		/* Select all if found */
-		if (found) {
-			for (gps = gpf->strokes.first; gps; gps = gps->next) {
-				if (ED_gpencil_stroke_can_use(C, gps)) {
-					bGPDspoint *pt;
-					int i;
+    /* Select all if found */
+    if (found) {
+      for (gps = gpf->strokes.first; gps; gps = gps->next) {
+        if (ED_gpencil_stroke_can_use(C, gps)) {
+          bGPDspoint *pt;
+          int i;
 
-					for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-						pt->flag |= GP_SPOINT_SELECT;
-					}
+          for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+            pt->flag |= GP_SPOINT_SELECT;
+          }
 
-					gps->flag |= GP_STROKE_SELECT;
-				}
-			}
-		}
-	}
-	CTX_DATA_END;
+          gps->flag |= GP_STROKE_SELECT;
+        }
+      }
+    }
+  }
+  CTX_DATA_END;
 }
 
 /* Select all strokes with same colors as selected ones */
 static void gp_select_same_material(bContext *C)
 {
-	/* First, build set containing all the colors of selected strokes */
-	GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
+  /* First, build set containing all the colors of selected strokes */
+  GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		if (gps->flag & GP_STROKE_SELECT) {
-			/* add instead of insert here, otherwise the uniqueness check gets skipped,
-			 * and we get many duplicate entries...
-			 */
-			BLI_gset_add(selected_colors, &gps->mat_nr);
-		}
-	}
-	CTX_DATA_END;
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    if (gps->flag & GP_STROKE_SELECT) {
+      /* add instead of insert here, otherwise the uniqueness check gets skipped,
+       * and we get many duplicate entries...
+       */
+      BLI_gset_add(selected_colors, &gps->mat_nr);
+    }
+  }
+  CTX_DATA_END;
 
-	/* Second, select any visible stroke that uses these colors */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		if (BLI_gset_haskey(selected_colors, &gps->mat_nr)) {
-			/* select this stroke */
-			bGPDspoint *pt;
-			int i;
+  /* Second, select any visible stroke that uses these colors */
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    if (BLI_gset_haskey(selected_colors, &gps->mat_nr)) {
+      /* select this stroke */
+      bGPDspoint *pt;
+      int i;
 
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				pt->flag |= GP_SPOINT_SELECT;
-			}
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+        pt->flag |= GP_SPOINT_SELECT;
+      }
 
-			gps->flag |= GP_STROKE_SELECT;
-		}
-	}
-	CTX_DATA_END;
+      gps->flag |= GP_STROKE_SELECT;
+    }
+  }
+  CTX_DATA_END;
 
-	/* free memomy */
-	if (selected_colors != NULL) {
-		BLI_gset_free(selected_colors, NULL);
-	}
+  /* free memomy */
+  if (selected_colors != NULL) {
+    BLI_gset_free(selected_colors, NULL);
+  }
 }
-
 
 /* ----------------------------------- */
 
 static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 {
-	eGP_SelectGrouped mode = RNA_enum_get(op->ptr, "type");
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  eGP_SelectGrouped mode = RNA_enum_get(op->ptr, "type");
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	switch (mode) {
-		case GP_SEL_SAME_LAYER:
-			gp_select_same_layer(C);
-			break;
-		case GP_SEL_SAME_MATERIAL:
-			gp_select_same_material(C);
-			break;
+  switch (mode) {
+    case GP_SEL_SAME_LAYER:
+      gp_select_same_layer(C);
+      break;
+    case GP_SEL_SAME_MATERIAL:
+      gp_select_same_material(C);
+      break;
 
-		default:
-			BLI_assert(!"unhandled select grouped gpencil mode");
-			break;
-	}
+    default:
+      BLI_assert(!"unhandled select grouped gpencil mode");
+      break;
+  }
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 {
-	static const EnumPropertyItem prop_select_grouped_types[] = {
-		{GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
-		{GP_SEL_SAME_MATERIAL, "MATERIAL", 0, "Material", "Shared materials"},
-		{0, NULL, 0, NULL, NULL},
-	};
+  static const EnumPropertyItem prop_select_grouped_types[] = {
+      {GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
+      {GP_SEL_SAME_MATERIAL, "MATERIAL", 0, "Material", "Shared materials"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
-	/* identifiers */
-	ot->name = "Select Grouped";
-	ot->idname = "GPENCIL_OT_select_grouped";
-	ot->description = "Select all strokes with similar characteristics";
+  /* identifiers */
+  ot->name = "Select Grouped";
+  ot->idname = "GPENCIL_OT_select_grouped";
+  ot->description = "Select all strokes with similar characteristics";
 
-	/* callbacks */
-	ot->invoke = WM_menu_invoke;
-	ot->exec = gpencil_select_grouped_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = gpencil_select_grouped_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* props */
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, GP_SEL_SAME_LAYER, "Type", "");
+  /* props */
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", prop_select_grouped_types, GP_SEL_SAME_LAYER, "Type", "");
 }
 
 /** \} */
@@ -448,71 +447,77 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 
 static int gpencil_select_first_exec(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		/* skip stroke if we're only manipulating selected strokes */
-		if (only_selected && !(gps->flag & GP_STROKE_SELECT)) {
-			continue;
-		}
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    /* skip stroke if we're only manipulating selected strokes */
+    if (only_selected && !(gps->flag & GP_STROKE_SELECT)) {
+      continue;
+    }
 
-		/* select first point */
-		BLI_assert(gps->totpoints >= 1);
+    /* select first point */
+    BLI_assert(gps->totpoints >= 1);
 
-		gps->points->flag |= GP_SPOINT_SELECT;
-		gps->flag |= GP_STROKE_SELECT;
+    gps->points->flag |= GP_SPOINT_SELECT;
+    gps->flag |= GP_STROKE_SELECT;
 
-		/* deselect rest? */
-		if ((extend == false) && (gps->totpoints > 1)) {
-			/* start from index 1, to skip the first point that we'd just selected... */
-			bGPDspoint *pt = &gps->points[1];
-			int i = 1;
+    /* deselect rest? */
+    if ((extend == false) && (gps->totpoints > 1)) {
+      /* start from index 1, to skip the first point that we'd just selected... */
+      bGPDspoint *pt = &gps->points[1];
+      int i = 1;
 
-			for (; i < gps->totpoints; i++, pt++) {
-				pt->flag &= ~GP_SPOINT_SELECT;
-			}
-		}
-	}
-	CTX_DATA_END;
+      for (; i < gps->totpoints; i++, pt++) {
+        pt->flag &= ~GP_SPOINT_SELECT;
+      }
+    }
+  }
+  CTX_DATA_END;
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_first(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Select First";
-	ot->idname = "GPENCIL_OT_select_first";
-	ot->description = "Select first point in Grease Pencil strokes";
+  /* identifiers */
+  ot->name = "Select First";
+  ot->idname = "GPENCIL_OT_select_first";
+  ot->description = "Select first point in Grease Pencil strokes";
 
-	/* callbacks */
-	ot->exec = gpencil_select_first_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_first_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "only_selected_strokes", false, "Selected Strokes Only",
-	                "Only select the first point of strokes that already have points selected");
+  /* properties */
+  RNA_def_boolean(ot->srna,
+                  "only_selected_strokes",
+                  false,
+                  "Selected Strokes Only",
+                  "Only select the first point of strokes that already have points selected");
 
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting all other selected points");
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  false,
+                  "Extend",
+                  "Extend selection instead of deselecting all other selected points");
 }
 
 /** \} */
@@ -523,71 +528,77 @@ void GPENCIL_OT_select_first(wmOperatorType *ot)
 
 static int gpencil_select_last_exec(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		/* skip stroke if we're only manipulating selected strokes */
-		if (only_selected && !(gps->flag & GP_STROKE_SELECT)) {
-			continue;
-		}
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    /* skip stroke if we're only manipulating selected strokes */
+    if (only_selected && !(gps->flag & GP_STROKE_SELECT)) {
+      continue;
+    }
 
-		/* select last point */
-		BLI_assert(gps->totpoints >= 1);
+    /* select last point */
+    BLI_assert(gps->totpoints >= 1);
 
-		gps->points[gps->totpoints - 1].flag |= GP_SPOINT_SELECT;
-		gps->flag |= GP_STROKE_SELECT;
+    gps->points[gps->totpoints - 1].flag |= GP_SPOINT_SELECT;
+    gps->flag |= GP_STROKE_SELECT;
 
-		/* deselect rest? */
-		if ((extend == false) && (gps->totpoints > 1)) {
-			/* don't include the last point... */
-			bGPDspoint *pt = gps->points;
-			int i = 1;
+    /* deselect rest? */
+    if ((extend == false) && (gps->totpoints > 1)) {
+      /* don't include the last point... */
+      bGPDspoint *pt = gps->points;
+      int i = 1;
 
-			for (; i < gps->totpoints - 1; i++, pt++) {
-				pt->flag &= ~GP_SPOINT_SELECT;
-			}
-		}
-	}
-	CTX_DATA_END;
+      for (; i < gps->totpoints - 1; i++, pt++) {
+        pt->flag &= ~GP_SPOINT_SELECT;
+      }
+    }
+  }
+  CTX_DATA_END;
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_last(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Select Last";
-	ot->idname = "GPENCIL_OT_select_last";
-	ot->description = "Select last point in Grease Pencil strokes";
+  /* identifiers */
+  ot->name = "Select Last";
+  ot->idname = "GPENCIL_OT_select_last";
+  ot->description = "Select last point in Grease Pencil strokes";
 
-	/* callbacks */
-	ot->exec = gpencil_select_last_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_last_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "only_selected_strokes", false, "Selected Strokes Only",
-	                "Only select the last point of strokes that already have points selected");
+  /* properties */
+  RNA_def_boolean(ot->srna,
+                  "only_selected_strokes",
+                  false,
+                  "Selected Strokes Only",
+                  "Only select the last point of strokes that already have points selected");
 
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting all other selected points");
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  false,
+                  "Extend",
+                  "Extend selection instead of deselecting all other selected points");
 }
 
 /** \} */
@@ -598,81 +609,80 @@ void GPENCIL_OT_select_last(wmOperatorType *ot)
 
 static int gpencil_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		if (gps->flag & GP_STROKE_SELECT) {
-			bGPDspoint *pt;
-			int i;
-			bool prev_sel;
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    if (gps->flag & GP_STROKE_SELECT) {
+      bGPDspoint *pt;
+      int i;
+      bool prev_sel;
 
-			/* First Pass: Go in forward order, expanding selection if previous was selected (pre changes)...
-			 * - This pass covers the "after" edges of selection islands
-			 */
-			prev_sel = false;
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				if (pt->flag & GP_SPOINT_SELECT) {
-					/* selected point - just set flag for next point */
-					prev_sel = true;
-				}
-				else {
-					/* unselected point - expand selection if previous was selected... */
-					if (prev_sel) {
-						pt->flag |= GP_SPOINT_SELECT;
-					}
-					prev_sel = false;
-				}
-			}
+      /* First Pass: Go in forward order, expanding selection if previous was selected (pre changes)...
+       * - This pass covers the "after" edges of selection islands
+       */
+      prev_sel = false;
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+        if (pt->flag & GP_SPOINT_SELECT) {
+          /* selected point - just set flag for next point */
+          prev_sel = true;
+        }
+        else {
+          /* unselected point - expand selection if previous was selected... */
+          if (prev_sel) {
+            pt->flag |= GP_SPOINT_SELECT;
+          }
+          prev_sel = false;
+        }
+      }
 
-			/* Second Pass: Go in reverse order, doing the same as before (except in opposite order)
-			 * - This pass covers the "before" edges of selection islands
-			 */
-			prev_sel = false;
-			for (pt -= 1; i > 0; i--, pt--) {
-				if (pt->flag & GP_SPOINT_SELECT) {
-					prev_sel = true;
-				}
-				else {
-					/* unselected point - expand selection if previous was selected... */
-					if (prev_sel) {
-						pt->flag |= GP_SPOINT_SELECT;
-					}
-					prev_sel = false;
-				}
-			}
-		}
-	}
-	CTX_DATA_END;
+      /* Second Pass: Go in reverse order, doing the same as before (except in opposite order)
+       * - This pass covers the "before" edges of selection islands
+       */
+      prev_sel = false;
+      for (pt -= 1; i > 0; i--, pt--) {
+        if (pt->flag & GP_SPOINT_SELECT) {
+          prev_sel = true;
+        }
+        else {
+          /* unselected point - expand selection if previous was selected... */
+          if (prev_sel) {
+            pt->flag |= GP_SPOINT_SELECT;
+          }
+          prev_sel = false;
+        }
+      }
+    }
+  }
+  CTX_DATA_END;
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_more(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Select More";
-	ot->idname = "GPENCIL_OT_select_more";
-	ot->description = "Grow sets of selected Grease Pencil points";
+  /* identifiers */
+  ot->name = "Select More";
+  ot->idname = "GPENCIL_OT_select_more";
+  ot->description = "Grow sets of selected Grease Pencil points";
 
-	/* callbacks */
-	ot->exec = gpencil_select_more_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_more_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
@@ -683,82 +693,81 @@ void GPENCIL_OT_select_more(wmOperatorType *ot)
 
 static int gpencil_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		if (gps->flag & GP_STROKE_SELECT) {
-			bGPDspoint *pt;
-			int i;
-			bool prev_sel;
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    if (gps->flag & GP_STROKE_SELECT) {
+      bGPDspoint *pt;
+      int i;
+      bool prev_sel;
 
-			/* First Pass: Go in forward order, shrinking selection if previous was not selected (pre changes)...
-			 * - This pass covers the "after" edges of selection islands
-			 */
-			prev_sel = false;
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				if (pt->flag & GP_SPOINT_SELECT) {
-					/* shrink if previous wasn't selected */
-					if (prev_sel == false) {
-						pt->flag &= ~GP_SPOINT_SELECT;
-					}
-					prev_sel = true;
-				}
-				else {
-					/* mark previous as being unselected - and hence, is trigger for shrinking */
-					prev_sel = false;
-				}
-			}
+      /* First Pass: Go in forward order, shrinking selection if previous was not selected (pre changes)...
+       * - This pass covers the "after" edges of selection islands
+       */
+      prev_sel = false;
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+        if (pt->flag & GP_SPOINT_SELECT) {
+          /* shrink if previous wasn't selected */
+          if (prev_sel == false) {
+            pt->flag &= ~GP_SPOINT_SELECT;
+          }
+          prev_sel = true;
+        }
+        else {
+          /* mark previous as being unselected - and hence, is trigger for shrinking */
+          prev_sel = false;
+        }
+      }
 
-			/* Second Pass: Go in reverse order, doing the same as before (except in opposite order)
-			 * - This pass covers the "before" edges of selection islands
-			 */
-			prev_sel = false;
-			for (pt -= 1; i > 0; i--, pt--) {
-				if (pt->flag & GP_SPOINT_SELECT) {
-					/* shrink if previous wasn't selected */
-					if (prev_sel == false) {
-						pt->flag &= ~GP_SPOINT_SELECT;
-					}
-					prev_sel = true;
-				}
-				else {
-					/* mark previous as being unselected - and hence, is trigger for shrinking */
-					prev_sel = false;
-				}
-			}
-		}
-	}
-	CTX_DATA_END;
+      /* Second Pass: Go in reverse order, doing the same as before (except in opposite order)
+       * - This pass covers the "before" edges of selection islands
+       */
+      prev_sel = false;
+      for (pt -= 1; i > 0; i--, pt--) {
+        if (pt->flag & GP_SPOINT_SELECT) {
+          /* shrink if previous wasn't selected */
+          if (prev_sel == false) {
+            pt->flag &= ~GP_SPOINT_SELECT;
+          }
+          prev_sel = true;
+        }
+        else {
+          /* mark previous as being unselected - and hence, is trigger for shrinking */
+          prev_sel = false;
+        }
+      }
+    }
+  }
+  CTX_DATA_END;
 
-	/* updates */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	return OPERATOR_FINISHED;
+  WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_less(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Select Less";
-	ot->idname = "GPENCIL_OT_select_less";
-	ot->description = "Shrink sets of selected Grease Pencil points";
+  /* identifiers */
+  ot->name = "Select Less";
+  ot->idname = "GPENCIL_OT_select_less";
+  ot->description = "Shrink sets of selected Grease Pencil points";
 
-	/* callbacks */
-	ot->exec = gpencil_select_less_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->exec = gpencil_select_less_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
@@ -771,216 +780,213 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
 /* NOTE: Code here is adapted (i.e. copied directly) from gpencil_paint.c::gp_stroke_eraser_dostroke()
  *       It would be great to de-duplicate the logic here sometime, but that can wait...
  */
-static bool gp_stroke_do_circle_sel(
-        bGPDlayer *gpl,
-        bGPDstroke *gps, GP_SpaceConversion *gsc,
-        const int mx, const int my, const int radius,
-        const bool select, rcti *rect, float diff_mat[4][4], const int selectmode,
-        const float scale)
+static bool gp_stroke_do_circle_sel(bGPDlayer *gpl,
+                                    bGPDstroke *gps,
+                                    GP_SpaceConversion *gsc,
+                                    const int mx,
+                                    const int my,
+                                    const int radius,
+                                    const bool select,
+                                    rcti *rect,
+                                    float diff_mat[4][4],
+                                    const int selectmode,
+                                    const float scale)
 {
-	bGPDspoint *pt1 = NULL;
-	bGPDspoint *pt2 = NULL;
-	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
-	int i;
-	bool changed = false;
+  bGPDspoint *pt1 = NULL;
+  bGPDspoint *pt2 = NULL;
+  int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+  int i;
+  bool changed = false;
 
-	if (gps->totpoints == 1) {
-		bGPDspoint pt_temp;
-		gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-		gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
+  if (gps->totpoints == 1) {
+    bGPDspoint pt_temp;
+    gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+    gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
-		/* do boundbox check first */
-		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
-			/* only check if point is inside */
-			if (((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my)) <= radius * radius) {
-				/* change selection */
-				if (select) {
-					gps->points->flag |= GP_SPOINT_SELECT;
-					gps->flag |= GP_STROKE_SELECT;
-				}
-				else {
-					gps->points->flag &= ~GP_SPOINT_SELECT;
-					gps->flag &= ~GP_STROKE_SELECT;
-				}
+    /* do boundbox check first */
+    if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
+      /* only check if point is inside */
+      if (((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my)) <= radius * radius) {
+        /* change selection */
+        if (select) {
+          gps->points->flag |= GP_SPOINT_SELECT;
+          gps->flag |= GP_STROKE_SELECT;
+        }
+        else {
+          gps->points->flag &= ~GP_SPOINT_SELECT;
+          gps->flag &= ~GP_STROKE_SELECT;
+        }
 
-				return true;
-			}
-		}
-	}
-	else {
-		/* Loop over the points in the stroke, checking for intersections
-		 * - an intersection means that we touched the stroke
-		 */
-		bool hit = false;
-		for (i = 0; (i + 1) < gps->totpoints; i++) {
-			/* get points to work with */
-			pt1 = gps->points + i;
-			pt2 = gps->points + i + 1;
-			bGPDspoint npt;
-			gp_point_to_parent_space(pt1, diff_mat, &npt);
-			gp_point_to_xy(gsc, gps, &npt, &x0, &y0);
+        return true;
+      }
+    }
+  }
+  else {
+    /* Loop over the points in the stroke, checking for intersections
+     * - an intersection means that we touched the stroke
+     */
+    bool hit = false;
+    for (i = 0; (i + 1) < gps->totpoints; i++) {
+      /* get points to work with */
+      pt1 = gps->points + i;
+      pt2 = gps->points + i + 1;
+      bGPDspoint npt;
+      gp_point_to_parent_space(pt1, diff_mat, &npt);
+      gp_point_to_xy(gsc, gps, &npt, &x0, &y0);
 
-			gp_point_to_parent_space(pt2, diff_mat, &npt);
-			gp_point_to_xy(gsc, gps, &npt, &x1, &y1);
+      gp_point_to_parent_space(pt2, diff_mat, &npt);
+      gp_point_to_xy(gsc, gps, &npt, &x1, &y1);
 
-			/* check that point segment of the boundbox of the selection stroke */
-			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
-			    ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1)))
-			{
-				float mval[2]  = {(float)mx, (float)my};
-				float mvalo[2] = {(float)mx, (float)my}; /* dummy - this isn't used... */
+      /* check that point segment of the boundbox of the selection stroke */
+      if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
+          ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1))) {
+        float mval[2] = {(float)mx, (float)my};
+        float mvalo[2] = {(float)mx, (float)my}; /* dummy - this isn't used... */
 
-				/* check if point segment of stroke had anything to do with
-				 * eraser region  (either within stroke painted, or on its lines)
-				 * - this assumes that linewidth is irrelevant
-				 */
-				if (gp_stroke_inside_circle(mval, mvalo, radius, x0, y0, x1, y1)) {
-					/* change selection of stroke, and then of both points
-					 * (as the last point otherwise wouldn't get selected
-					 * as we only do n-1 loops through).
-					 */
-					hit = true;
-					if (select) {
-						pt1->flag |= GP_SPOINT_SELECT;
-						pt2->flag |= GP_SPOINT_SELECT;
+        /* check if point segment of stroke had anything to do with
+         * eraser region  (either within stroke painted, or on its lines)
+         * - this assumes that linewidth is irrelevant
+         */
+        if (gp_stroke_inside_circle(mval, mvalo, radius, x0, y0, x1, y1)) {
+          /* change selection of stroke, and then of both points
+           * (as the last point otherwise wouldn't get selected
+           * as we only do n-1 loops through).
+           */
+          hit = true;
+          if (select) {
+            pt1->flag |= GP_SPOINT_SELECT;
+            pt2->flag |= GP_SPOINT_SELECT;
 
-						changed = true;
-					}
-					else {
-						pt1->flag &= ~GP_SPOINT_SELECT;
-						pt2->flag &= ~GP_SPOINT_SELECT;
+            changed = true;
+          }
+          else {
+            pt1->flag &= ~GP_SPOINT_SELECT;
+            pt2->flag &= ~GP_SPOINT_SELECT;
 
-						changed = true;
-					}
-				}
-			}
-			/* if stroke mode, don't check more points */
-			if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
-				break;
-			}
-		}
+            changed = true;
+          }
+        }
+      }
+      /* if stroke mode, don't check more points */
+      if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
+        break;
+      }
+    }
 
-		/* if stroke mode expand selection */
-		if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
-			for (i = 0, pt1 = gps->points; i < gps->totpoints; i++, pt1++) {
-				if (select) {
-					pt1->flag |= GP_SPOINT_SELECT;
-				}
-				else {
-					pt1->flag &= ~GP_SPOINT_SELECT;
-				}
-			}
-		}
+    /* if stroke mode expand selection */
+    if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
+      for (i = 0, pt1 = gps->points; i < gps->totpoints; i++, pt1++) {
+        if (select) {
+          pt1->flag |= GP_SPOINT_SELECT;
+        }
+        else {
+          pt1->flag &= ~GP_SPOINT_SELECT;
+        }
+      }
+    }
 
-		/* expand selection to segment */
-		if ((hit) && (selectmode == GP_SELECTMODE_SEGMENT) && (select)) {
-			float r_hita[3], r_hitb[3];
-			bool hit_select = (bool)(pt1->flag & GP_SPOINT_SELECT);
-			ED_gpencil_select_stroke_segment(
-			        gpl, gps, pt1, hit_select, false, scale, r_hita, r_hitb);
-		}
+    /* expand selection to segment */
+    if ((hit) && (selectmode == GP_SELECTMODE_SEGMENT) && (select)) {
+      float r_hita[3], r_hitb[3];
+      bool hit_select = (bool)(pt1->flag & GP_SPOINT_SELECT);
+      ED_gpencil_select_stroke_segment(gpl, gps, pt1, hit_select, false, scale, r_hita, r_hitb);
+    }
 
-		/* Ensure that stroke selection is in sync with its points */
-		BKE_gpencil_stroke_sync_selection(gps);
-	}
+    /* Ensure that stroke selection is in sync with its points */
+    BKE_gpencil_stroke_sync_selection(gps);
+  }
 
-	return changed;
+  return changed;
 }
-
 
 static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	const int selectmode = ts->gpencil_selectmode;
-	const float scale = ts->gp_sculpt.isect_threshold;
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  const int selectmode = ts->gpencil_selectmode;
+  const float scale = ts->gp_sculpt.isect_threshold;
 
-	/* if not edit/sculpt mode, the event is catched but not processed */
-	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
-		return OPERATOR_CANCELLED;
-	}
+  /* if not edit/sculpt mode, the event is catched but not processed */
+  if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
 
-	ScrArea *sa = CTX_wm_area(C);
+  ScrArea *sa = CTX_wm_area(C);
 
-	const int mx = RNA_int_get(op->ptr, "x");
-	const int my = RNA_int_get(op->ptr, "y");
-	const int radius = RNA_int_get(op->ptr, "radius");
+  const int mx = RNA_int_get(op->ptr, "x");
+  const int my = RNA_int_get(op->ptr, "y");
+  const int radius = RNA_int_get(op->ptr, "radius");
 
-	GP_SpaceConversion gsc = {NULL};
-	/* for bounding rect around circle (for quicky intersection testing) */
-	rcti rect = {0};
+  GP_SpaceConversion gsc = {NULL};
+  /* for bounding rect around circle (for quicky intersection testing) */
+  rcti rect = {0};
 
-	bool changed = false;
+  bool changed = false;
 
+  /* sanity checks */
+  if (sa == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No active area");
+    return OPERATOR_CANCELLED;
+  }
 
-	/* sanity checks */
-	if (sa == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No active area");
-		return OPERATOR_CANCELLED;
-	}
+  const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
+                                              WM_gesture_is_modal_first(op->customdata));
+  const bool select = (sel_op != SEL_OP_SUB);
+  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+    ED_gpencil_select_toggle_all(C, SEL_DESELECT);
+    changed = true;
+  }
 
-	const eSelectOp sel_op = ED_select_op_modal(
-	        RNA_enum_get(op->ptr, "mode"), WM_gesture_is_modal_first(op->customdata));
-	const bool select = (sel_op != SEL_OP_SUB);
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		ED_gpencil_select_toggle_all(C, SEL_DESELECT);
-		changed = true;
-	}
+  /* init space conversion stuff */
+  gp_point_conversion_init(C, &gsc);
 
-	/* init space conversion stuff */
-	gp_point_conversion_init(C, &gsc);
+  /* rect is rectangle of selection circle */
+  rect.xmin = mx - radius;
+  rect.ymin = my - radius;
+  rect.xmax = mx + radius;
+  rect.ymax = my + radius;
 
+  /* find visible strokes, and select if hit */
+  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
+    changed |= gp_stroke_do_circle_sel(
+        gpl, gps, &gsc, mx, my, radius, select, &rect, gpstroke_iter.diff_mat, selectmode, scale);
+  }
+  GP_EDITABLE_STROKES_END(gpstroke_iter);
 
-	/* rect is rectangle of selection circle */
-	rect.xmin = mx - radius;
-	rect.ymin = my - radius;
-	rect.xmax = mx + radius;
-	rect.ymax = my + radius;
+  /* updates */
+  if (changed) {
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	/* find visible strokes, and select if hit */
-	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-	{
-		changed |= gp_stroke_do_circle_sel(
-		        gpl, gps, &gsc, mx, my, radius, select, &rect,
-		        gpstroke_iter.diff_mat, selectmode, scale);
-	}
-	GP_EDITABLE_STROKES_END(gpstroke_iter);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  }
 
-	/* updates */
-	if (changed) {
-		DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-
-		/* copy on write tag is needed, or else no refresh happens */
-		DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
-
-		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	}
-
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 void GPENCIL_OT_select_circle(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Circle Select";
-	ot->description = "Select Grease Pencil strokes using brush selection";
-	ot->idname = "GPENCIL_OT_select_circle";
+  /* identifiers */
+  ot->name = "Circle Select";
+  ot->description = "Select Grease Pencil strokes using brush selection";
+  ot->idname = "GPENCIL_OT_select_circle";
 
-	/* callbacks */
-	ot->invoke = WM_gesture_circle_invoke;
-	ot->modal = WM_gesture_circle_modal;
-	ot->exec = gpencil_circle_select_exec;
-	ot->poll = gpencil_select_poll;
-	ot->cancel = WM_gesture_circle_cancel;
+  /* callbacks */
+  ot->invoke = WM_gesture_circle_invoke;
+  ot->modal = WM_gesture_circle_modal;
+  ot->exec = gpencil_circle_select_exec;
+  ot->poll = gpencil_select_poll;
+  ot->cancel = WM_gesture_circle_cancel;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
-	/* properties */
-	WM_operator_properties_gesture_circle(ot);
-	WM_operator_properties_select_operation_simple(ot);
+  /* properties */
+  WM_operator_properties_gesture_circle(ot);
+  WM_operator_properties_select_operation_simple(ot);
 }
 
 /** \} */
@@ -992,135 +998,132 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
  *
  * \{ */
 
-typedef bool (*GPencilTestFn)(
-        bGPDstroke *gps, bGPDspoint *pt,
-        const GP_SpaceConversion *gsc, const float diff_mat[4][4], void *user_data);
+typedef bool (*GPencilTestFn)(bGPDstroke *gps,
+                              bGPDspoint *pt,
+                              const GP_SpaceConversion *gsc,
+                              const float diff_mat[4][4],
+                              void *user_data);
 
-static int gpencil_generic_select_exec(
-        bContext *C, wmOperator *op,
-        GPencilTestFn is_inside_fn, void *user_data)
+static int gpencil_generic_select_exec(bContext *C,
+                                       wmOperator *op,
+                                       GPencilTestFn is_inside_fn,
+                                       void *user_data)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	ScrArea *sa = CTX_wm_area(C);
-	const bool strokemode = (
-	        (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) &&
-	        ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
-	const bool segmentmode = (
-	        (ts->gpencil_selectmode == GP_SELECTMODE_SEGMENT) &&
-	        ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
-	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
-	const float scale = ts->gp_sculpt.isect_threshold;
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  ScrArea *sa = CTX_wm_area(C);
+  const bool strokemode = ((ts->gpencil_selectmode == GP_SELECTMODE_STROKE) &&
+                           ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
+  const bool segmentmode = ((ts->gpencil_selectmode == GP_SELECTMODE_SEGMENT) &&
+                            ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
+  const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const float scale = ts->gp_sculpt.isect_threshold;
 
+  GP_SpaceConversion gsc = {NULL};
 
-	GP_SpaceConversion gsc = {NULL};
+  bool changed = false;
 
-	bool changed = false;
+  /* sanity checks */
+  if (sa == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No active area");
+    return OPERATOR_CANCELLED;
+  }
 
-	/* sanity checks */
-	if (sa == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No active area");
-		return OPERATOR_CANCELLED;
-	}
+  /* init space conversion stuff */
+  gp_point_conversion_init(C, &gsc);
 
-	/* init space conversion stuff */
-	gp_point_conversion_init(C, &gsc);
+  /* deselect all strokes first? */
+  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 
-	/* deselect all strokes first? */
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+    CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+      bGPDspoint *pt;
+      int i;
 
-		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-		{
-			bGPDspoint *pt;
-			int i;
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+        pt->flag &= ~GP_SPOINT_SELECT;
+      }
 
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				pt->flag &= ~GP_SPOINT_SELECT;
-			}
+      gps->flag &= ~GP_STROKE_SELECT;
+    }
+    CTX_DATA_END;
+  }
 
-			gps->flag &= ~GP_STROKE_SELECT;
-		}
-		CTX_DATA_END;
-	}
+  /* select/deselect points */
+  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
 
-	/* select/deselect points */
-	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-	{
+    bGPDspoint *pt;
+    int i;
+    bool hit = false;
+    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      /* convert point coords to screenspace */
+      const bool is_inside = is_inside_fn(gps, pt, &gsc, gpstroke_iter.diff_mat, user_data);
 
-		bGPDspoint *pt;
-		int i;
-		bool hit = false;
-		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-			/* convert point coords to screenspace */
-			const bool is_inside = is_inside_fn(gps, pt, &gsc, gpstroke_iter.diff_mat, user_data);
+      if (strokemode == false) {
+        const bool is_select = (pt->flag & GP_SPOINT_SELECT) != 0;
+        const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+        if (sel_op_result != -1) {
+          SET_FLAG_FROM_TEST(pt->flag, sel_op_result, GP_SPOINT_SELECT);
+          changed = true;
 
-			if (strokemode == false) {
-				const bool is_select = (pt->flag & GP_SPOINT_SELECT) != 0;
-				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-				if (sel_op_result != -1) {
-					SET_FLAG_FROM_TEST(pt->flag, sel_op_result, GP_SPOINT_SELECT);
-					changed = true;
+          /* expand selection to segment */
+          if ((sel_op_result != -1) && (segmentmode)) {
+            bool hit_select = (bool)(pt->flag & GP_SPOINT_SELECT);
+            float r_hita[3], r_hitb[3];
+            ED_gpencil_select_stroke_segment(
+                gpl, gps, pt, hit_select, false, scale, r_hita, r_hitb);
+          }
+        }
+      }
+      else {
+        if (is_inside) {
+          hit = true;
+          break;
+        }
+      }
+    }
 
-					/* expand selection to segment */
-					if ((sel_op_result != -1) && (segmentmode)) {
-						bool hit_select = (bool)(pt->flag & GP_SPOINT_SELECT);
-						float r_hita[3], r_hitb[3];
-						ED_gpencil_select_stroke_segment(
-						        gpl, gps, pt, hit_select, false, scale, r_hita, r_hitb);
-					}
+    /* if stroke mode expand selection */
+    if (strokemode) {
+      const bool is_select = BKE_gpencil_stroke_select_check(gps);
+      const bool is_inside = hit;
+      const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+      if (sel_op_result != -1) {
+        for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+          if (sel_op_result) {
+            pt->flag |= GP_SPOINT_SELECT;
+          }
+          else {
+            pt->flag &= ~GP_SPOINT_SELECT;
+          }
+        }
+        changed = true;
+      }
+    }
 
-				}
-			}
-			else {
-				if (is_inside) {
-					hit = true;
-					break;
-				}
-			}
-		}
+    /* Ensure that stroke selection is in sync with its points */
+    BKE_gpencil_stroke_sync_selection(gps);
+  }
+  GP_EDITABLE_STROKES_END(gpstroke_iter);
 
-		/* if stroke mode expand selection */
-		if (strokemode) {
-			const bool is_select = BKE_gpencil_stroke_select_check(gps);
-			const bool is_inside = hit;
-			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-			if (sel_op_result != -1) {
-				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-					if (sel_op_result) {
-						pt->flag |= GP_SPOINT_SELECT;
-					}
-					else {
-						pt->flag &= ~GP_SPOINT_SELECT;
-					}
-				}
-				changed = true;
-			}
-		}
+  /* if paint mode,delete selected points */
+  if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
+    gp_delete_selected_point_wrap(C);
+    changed = true;
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  }
 
-		/* Ensure that stroke selection is in sync with its points */
-		BKE_gpencil_stroke_sync_selection(gps);
-	}
-	GP_EDITABLE_STROKES_END(gpstroke_iter);
+  /* updates */
+  if (changed) {
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-	/* if paint mode,delete selected points */
-	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
-		gp_delete_selected_point_wrap(C);
-		changed = true;
-		DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-	}
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-	/* updates */
-	if (changed) {
-		DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  }
 
-		/* copy on write tag is needed, or else no refresh happens */
-		DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
-
-		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	}
-
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 /** \} */
@@ -1130,52 +1133,51 @@ static int gpencil_generic_select_exec(
  * \{ */
 
 struct GP_SelectBoxUserData {
-	rcti rect;
+  rcti rect;
 };
 
-static bool gpencil_test_box(
-        bGPDstroke *gps, bGPDspoint *pt,
-        const GP_SpaceConversion *gsc, const float diff_mat[4][4], void *user_data)
+static bool gpencil_test_box(bGPDstroke *gps,
+                             bGPDspoint *pt,
+                             const GP_SpaceConversion *gsc,
+                             const float diff_mat[4][4],
+                             void *user_data)
 {
-	const struct GP_SelectBoxUserData *data = user_data;
-	bGPDspoint pt2;
-	int x0, y0;
-	gp_point_to_parent_space(pt, diff_mat, &pt2);
-	gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
-	return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) &&
-	        BLI_rcti_isect_pt(&data->rect, x0, y0));
+  const struct GP_SelectBoxUserData *data = user_data;
+  bGPDspoint pt2;
+  int x0, y0;
+  gp_point_to_parent_space(pt, diff_mat, &pt2);
+  gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+  return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0));
 }
 
 static int gpencil_box_select_exec(bContext *C, wmOperator *op)
 {
-	struct GP_SelectBoxUserData data = {0};
-	WM_operator_properties_border_to_rcti(op, &data.rect);
-	return gpencil_generic_select_exec(
-	        C, op,
-	        gpencil_test_box, &data);
+  struct GP_SelectBoxUserData data = {0};
+  WM_operator_properties_border_to_rcti(op, &data.rect);
+  return gpencil_generic_select_exec(C, op, gpencil_test_box, &data);
 }
 
 void GPENCIL_OT_select_box(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Box Select";
-	ot->description = "Select Grease Pencil strokes within a rectangular region";
-	ot->idname = "GPENCIL_OT_select_box";
+  /* identifiers */
+  ot->name = "Box Select";
+  ot->description = "Select Grease Pencil strokes within a rectangular region";
+  ot->idname = "GPENCIL_OT_select_box";
 
-	/* callbacks */
-	ot->invoke = WM_gesture_box_invoke;
-	ot->exec = gpencil_box_select_exec;
-	ot->modal = WM_gesture_box_modal;
-	ot->cancel = WM_gesture_box_cancel;
+  /* callbacks */
+  ot->invoke = WM_gesture_box_invoke;
+  ot->exec = gpencil_box_select_exec;
+  ot->modal = WM_gesture_box_modal;
+  ot->cancel = WM_gesture_box_cancel;
 
-	ot->poll = gpencil_select_poll;
+  ot->poll = gpencil_select_poll;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
-	/* properties */
-	WM_operator_properties_gesture_box(ot);
-	WM_operator_properties_select_operation(ot);
+  /* properties */
+  WM_operator_properties_gesture_box(ot);
+  WM_operator_properties_select_operation(ot);
 }
 
 /** \} */
@@ -1185,67 +1187,65 @@ void GPENCIL_OT_select_box(wmOperatorType *ot)
  * \{ */
 
 struct GP_SelectLassoUserData {
-	rcti rect;
-	const int (*mcords)[2];
-	int         mcords_len;
+  rcti rect;
+  const int (*mcords)[2];
+  int mcords_len;
 };
 
-static bool gpencil_test_lasso(
-        bGPDstroke *gps, bGPDspoint *pt,
-        const GP_SpaceConversion *gsc, const float diff_mat[4][4],
-        void *user_data)
+static bool gpencil_test_lasso(bGPDstroke *gps,
+                               bGPDspoint *pt,
+                               const GP_SpaceConversion *gsc,
+                               const float diff_mat[4][4],
+                               void *user_data)
 {
-	const struct GP_SelectLassoUserData *data = user_data;
-	bGPDspoint pt2;
-	int x0, y0;
-	gp_point_to_parent_space(pt, diff_mat, &pt2);
-	gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
-	/* test if in lasso boundbox + within the lasso noose */
-	return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) &&
-	        BLI_rcti_isect_pt(&data->rect, x0, y0) &&
-	        BLI_lasso_is_point_inside(data->mcords, data->mcords_len, x0, y0, INT_MAX));
+  const struct GP_SelectLassoUserData *data = user_data;
+  bGPDspoint pt2;
+  int x0, y0;
+  gp_point_to_parent_space(pt, diff_mat, &pt2);
+  gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+  /* test if in lasso boundbox + within the lasso noose */
+  return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
+          BLI_lasso_is_point_inside(data->mcords, data->mcords_len, x0, y0, INT_MAX));
 }
 
 static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 {
-	struct GP_SelectLassoUserData data = {0};
-	data.mcords = WM_gesture_lasso_path_to_array(C, op, &data.mcords_len);
+  struct GP_SelectLassoUserData data = {0};
+  data.mcords = WM_gesture_lasso_path_to_array(C, op, &data.mcords_len);
 
-	/* Sanity check. */
-	if (data.mcords == NULL) {
-		return OPERATOR_PASS_THROUGH;
-	}
+  /* Sanity check. */
+  if (data.mcords == NULL) {
+    return OPERATOR_PASS_THROUGH;
+  }
 
-	/* Compute boundbox of lasso (for faster testing later). */
-	BLI_lasso_boundbox(&data.rect, data.mcords, data.mcords_len);
+  /* Compute boundbox of lasso (for faster testing later). */
+  BLI_lasso_boundbox(&data.rect, data.mcords, data.mcords_len);
 
-	int ret = gpencil_generic_select_exec(
-	        C, op,
-	        gpencil_test_lasso, &data);
+  int ret = gpencil_generic_select_exec(C, op, gpencil_test_lasso, &data);
 
-	MEM_freeN((void *)data.mcords);
+  MEM_freeN((void *)data.mcords);
 
-	return ret;
+  return ret;
 }
 
 void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 {
-	ot->name = "Lasso Select Strokes";
-	ot->description = "Select Grease Pencil strokes using lasso selection";
-	ot->idname = "GPENCIL_OT_select_lasso";
+  ot->name = "Lasso Select Strokes";
+  ot->description = "Select Grease Pencil strokes using lasso selection";
+  ot->idname = "GPENCIL_OT_select_lasso";
 
-	ot->invoke = WM_gesture_lasso_invoke;
-	ot->modal = WM_gesture_lasso_modal;
-	ot->exec = gpencil_lasso_select_exec;
-	ot->poll = gpencil_select_poll;
-	ot->cancel = WM_gesture_lasso_cancel;
+  ot->invoke = WM_gesture_lasso_invoke;
+  ot->modal = WM_gesture_lasso_modal;
+  ot->exec = gpencil_lasso_select_exec;
+  ot->poll = gpencil_select_poll;
+  ot->cancel = WM_gesture_lasso_cancel;
 
-	/* flags */
-	ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  /* flags */
+  ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
-	/* properties */
-	WM_operator_properties_select_operation(ot);
-	WM_operator_properties_gesture_lasso(ot);
+  /* properties */
+  WM_operator_properties_select_operation(ot);
+  WM_operator_properties_gesture_lasso(ot);
 }
 
 /** \} */
@@ -1257,215 +1257,225 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 /* helper to deselect all selected strokes/points */
 static void deselect_all_selected(bContext *C)
 {
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-	{
-		/* deselect stroke and its points if selected */
-		if (gps->flag & GP_STROKE_SELECT) {
-			bGPDspoint *pt;
-			int i;
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    /* deselect stroke and its points if selected */
+    if (gps->flag & GP_STROKE_SELECT) {
+      bGPDspoint *pt;
+      int i;
 
-			/* deselect points */
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				pt->flag &= ~GP_SPOINT_SELECT;
-			}
+      /* deselect points */
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+        pt->flag &= ~GP_SPOINT_SELECT;
+      }
 
-			/* deselect stroke itself too */
-			gps->flag &= ~GP_STROKE_SELECT;
-		}
-	}
-	CTX_DATA_END;
+      /* deselect stroke itself too */
+      gps->flag &= ~GP_STROKE_SELECT;
+    }
+  }
+  CTX_DATA_END;
 }
 
 static int gpencil_select_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	const float scale = ts->gp_sculpt.isect_threshold;
+  ScrArea *sa = CTX_wm_area(C);
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  const float scale = ts->gp_sculpt.isect_threshold;
 
-	/* "radius" is simply a threshold (screen space) to make it easier to test with a tolerance */
-	const float radius = 0.50f * U.widget_unit;
-	const int radius_squared = (int)(radius * radius);
+  /* "radius" is simply a threshold (screen space) to make it easier to test with a tolerance */
+  const float radius = 0.50f * U.widget_unit;
+  const int radius_squared = (int)(radius * radius);
 
-	bool extend = RNA_boolean_get(op->ptr, "extend");
-	bool deselect = RNA_boolean_get(op->ptr, "deselect");
-	bool toggle = RNA_boolean_get(op->ptr, "toggle");
-	bool whole = RNA_boolean_get(op->ptr, "entire_strokes");
+  bool extend = RNA_boolean_get(op->ptr, "extend");
+  bool deselect = RNA_boolean_get(op->ptr, "deselect");
+  bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  bool whole = RNA_boolean_get(op->ptr, "entire_strokes");
 
-	int mval[2] = {0};
+  int mval[2] = {0};
 
-	GP_SpaceConversion gsc = {NULL};
+  GP_SpaceConversion gsc = {NULL};
 
-	bGPDlayer *hit_layer = NULL;
-	bGPDstroke *hit_stroke = NULL;
-	bGPDspoint *hit_point = NULL;
-	int hit_distance = radius_squared;
+  bGPDlayer *hit_layer = NULL;
+  bGPDstroke *hit_stroke = NULL;
+  bGPDspoint *hit_point = NULL;
+  int hit_distance = radius_squared;
 
-	/* sanity checks */
-	if (sa == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No active area");
-		return OPERATOR_CANCELLED;
-	}
+  /* sanity checks */
+  if (sa == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No active area");
+    return OPERATOR_CANCELLED;
+  }
 
-	/* if select mode is stroke, use whole stroke */
-	if (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) {
-		whole = true;
-	}
+  /* if select mode is stroke, use whole stroke */
+  if (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) {
+    whole = true;
+  }
 
-	/* init space conversion stuff */
-	gp_point_conversion_init(C, &gsc);
+  /* init space conversion stuff */
+  gp_point_conversion_init(C, &gsc);
 
-	/* get mouse location */
-	RNA_int_get_array(op->ptr, "location", mval);
+  /* get mouse location */
+  RNA_int_get_array(op->ptr, "location", mval);
 
-	/* First Pass: Find stroke point which gets hit */
-	/* XXX: maybe we should go from the top of the stack down instead... */
-	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-	{
-		bGPDspoint *pt;
-		int i;
+  /* First Pass: Find stroke point which gets hit */
+  /* XXX: maybe we should go from the top of the stack down instead... */
+  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
+    bGPDspoint *pt;
+    int i;
 
-		/* firstly, check for hit-point */
-		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-			int xy[2];
+    /* firstly, check for hit-point */
+    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      int xy[2];
 
-			bGPDspoint pt2;
-			gp_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
-			gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
+      bGPDspoint pt2;
+      gp_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
+      gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
-			/* do boundbox check first */
-			if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {
-				const int pt_distance = len_manhattan_v2v2_int(mval, xy);
+      /* do boundbox check first */
+      if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {
+        const int pt_distance = len_manhattan_v2v2_int(mval, xy);
 
-				/* check if point is inside */
-				if (pt_distance <= radius_squared) {
-					/* only use this point if it is a better match than the current hit - T44685 */
-					if (pt_distance < hit_distance) {
-						hit_layer = gpl;
-						hit_stroke = gps;
-						hit_point = pt;
-						hit_distance = pt_distance;
-					}
-				}
-			}
-		}
-	}
-	GP_EDITABLE_STROKES_END(gpstroke_iter);
+        /* check if point is inside */
+        if (pt_distance <= radius_squared) {
+          /* only use this point if it is a better match than the current hit - T44685 */
+          if (pt_distance < hit_distance) {
+            hit_layer = gpl;
+            hit_stroke = gps;
+            hit_point = pt;
+            hit_distance = pt_distance;
+          }
+        }
+      }
+    }
+  }
+  GP_EDITABLE_STROKES_END(gpstroke_iter);
 
-	/* Abort if nothing hit... */
-	if (ELEM(NULL, hit_stroke, hit_point)) {
+  /* Abort if nothing hit... */
+  if (ELEM(NULL, hit_stroke, hit_point)) {
 
-		/* since left mouse select change, deselect all if click outside any hit */
-		deselect_all_selected(C);
+    /* since left mouse select change, deselect all if click outside any hit */
+    deselect_all_selected(C);
 
-		/* copy on write tag is needed, or else no refresh happens */
-		DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-		DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
-		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+    WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 
-		return OPERATOR_CANCELLED;
-	}
+    return OPERATOR_CANCELLED;
+  }
 
-	/* adjust selection behavior - for toggle option */
-	if (toggle) {
-		deselect = (hit_point->flag & GP_SPOINT_SELECT) != 0;
-	}
+  /* adjust selection behavior - for toggle option */
+  if (toggle) {
+    deselect = (hit_point->flag & GP_SPOINT_SELECT) != 0;
+  }
 
-	/* If not extending selection, deselect everything else */
-	if (extend == false) {
-		deselect_all_selected(C);
-	}
+  /* If not extending selection, deselect everything else */
+  if (extend == false) {
+    deselect_all_selected(C);
+  }
 
-	/* Perform selection operations... */
-	if (whole) {
-		bGPDspoint *pt;
-		int i;
+  /* Perform selection operations... */
+  if (whole) {
+    bGPDspoint *pt;
+    int i;
 
-		/* entire stroke's points */
-		for (i = 0, pt = hit_stroke->points; i < hit_stroke->totpoints; i++, pt++) {
-			if (deselect == false)
-				pt->flag |= GP_SPOINT_SELECT;
-			else
-				pt->flag &= ~GP_SPOINT_SELECT;
-		}
+    /* entire stroke's points */
+    for (i = 0, pt = hit_stroke->points; i < hit_stroke->totpoints; i++, pt++) {
+      if (deselect == false)
+        pt->flag |= GP_SPOINT_SELECT;
+      else
+        pt->flag &= ~GP_SPOINT_SELECT;
+    }
 
-		/* stroke too... */
-		if (deselect == false)
-			hit_stroke->flag |= GP_STROKE_SELECT;
-		else
-			hit_stroke->flag &= ~GP_STROKE_SELECT;
-	}
-	else {
-		/* just the point (and the stroke) */
-		if (deselect == false) {
-			/* we're adding selection, so selection must be true */
-			hit_point->flag  |= GP_SPOINT_SELECT;
-			hit_stroke->flag |= GP_STROKE_SELECT;
+    /* stroke too... */
+    if (deselect == false)
+      hit_stroke->flag |= GP_STROKE_SELECT;
+    else
+      hit_stroke->flag &= ~GP_STROKE_SELECT;
+  }
+  else {
+    /* just the point (and the stroke) */
+    if (deselect == false) {
+      /* we're adding selection, so selection must be true */
+      hit_point->flag |= GP_SPOINT_SELECT;
+      hit_stroke->flag |= GP_STROKE_SELECT;
 
-			/* expand selection to segment */
-			if (ts->gpencil_selectmode == GP_SELECTMODE_SEGMENT) {
-				float r_hita[3], r_hitb[3];
-				bool hit_select = (bool)(hit_point->flag & GP_SPOINT_SELECT);
-				ED_gpencil_select_stroke_segment(
-				        hit_layer, hit_stroke, hit_point, hit_select,
-				        false, scale, r_hita, r_hitb);
-			}
-		}
-		else {
-			/* deselect point */
-			hit_point->flag &= ~GP_SPOINT_SELECT;
+      /* expand selection to segment */
+      if (ts->gpencil_selectmode == GP_SELECTMODE_SEGMENT) {
+        float r_hita[3], r_hitb[3];
+        bool hit_select = (bool)(hit_point->flag & GP_SPOINT_SELECT);
+        ED_gpencil_select_stroke_segment(
+            hit_layer, hit_stroke, hit_point, hit_select, false, scale, r_hita, r_hitb);
+      }
+    }
+    else {
+      /* deselect point */
+      hit_point->flag &= ~GP_SPOINT_SELECT;
 
-			/* ensure that stroke is selected correctly */
-			BKE_gpencil_stroke_sync_selection(hit_stroke);
-		}
-	}
+      /* ensure that stroke is selected correctly */
+      BKE_gpencil_stroke_sync_selection(hit_stroke);
+    }
+  }
 
-	/* updates */
-	if (hit_point != NULL) {
-		DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+  /* updates */
+  if (hit_point != NULL) {
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-		/* copy on write tag is needed, or else no refresh happens */
-		DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
-		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	}
+    WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  }
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 static int gpencil_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	RNA_int_set_array(op->ptr, "location", event->mval);
-	return gpencil_select_exec(C, op);
+  RNA_int_set_array(op->ptr, "location", event->mval);
+  return gpencil_select_exec(C, op);
 }
 
 void GPENCIL_OT_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
+  PropertyRNA *prop;
 
-	/* identifiers */
-	ot->name = "Select";
-	ot->description = "Select Grease Pencil strokes and/or stroke points";
-	ot->idname = "GPENCIL_OT_select";
+  /* identifiers */
+  ot->name = "Select";
+  ot->description = "Select Grease Pencil strokes and/or stroke points";
+  ot->idname = "GPENCIL_OT_select";
 
-	/* callbacks */
-	ot->invoke = gpencil_select_invoke;
-	ot->exec = gpencil_select_exec;
-	ot->poll = gpencil_select_poll;
+  /* callbacks */
+  ot->invoke = gpencil_select_invoke;
+  ot->exec = gpencil_select_exec;
+  ot->poll = gpencil_select_poll;
 
-	/* flag */
-	ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  /* flag */
+  ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
-	/* properties */
-	WM_operator_properties_mouse_select(ot);
+  /* properties */
+  WM_operator_properties_mouse_select(ot);
 
-	prop = RNA_def_boolean(ot->srna, "entire_strokes", false, "Entire Strokes", "Select entire strokes instead of just the nearest stroke vertex");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "entire_strokes",
+                         false,
+                         "Entire Strokes",
+                         "Select entire strokes instead of just the nearest stroke vertex");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-	prop = RNA_def_int_vector(ot->srna, "location", 2, NULL, INT_MIN, INT_MAX, "Location", "Mouse location", INT_MIN, INT_MAX);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_int_vector(ot->srna,
+                            "location",
+                            2,
+                            NULL,
+                            INT_MIN,
+                            INT_MAX,
+                            "Location",
+                            "Mouse location",
+                            INT_MIN,
+                            INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */

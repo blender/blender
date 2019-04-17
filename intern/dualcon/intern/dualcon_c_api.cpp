@@ -23,141 +23,139 @@
 #include <float.h>
 
 #if defined(_WIN32)
-#define isnan(n) _isnan(n)
+#  define isnan(n) _isnan(n)
 #endif
 
 static void veccopy(float dst[3], const float src[3])
 {
-	dst[0] = src[0];
-	dst[1] = src[1];
-	dst[2] = src[2];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
 }
 
 #define GET_TRI(_mesh, _n) \
-	(*(DualConTri)(((char *)(_mesh)->looptri) + ((_n) * (_mesh)->tri_stride)))
+  (*(DualConTri)(((char *)(_mesh)->looptri) + ((_n) * (_mesh)->tri_stride)))
 
-#define GET_CO(_mesh, _n) \
-	(*(DualConCo)(((char *)(_mesh)->co) + ((_n) * (_mesh)->co_stride)))
+#define GET_CO(_mesh, _n) (*(DualConCo)(((char *)(_mesh)->co) + ((_n) * (_mesh)->co_stride)))
 
 #define GET_LOOP(_mesh, _n) \
-	(*(DualConLoop)(((char *)(_mesh)->mloop) + ((_n) * (_mesh)->loop_stride)))
+  (*(DualConLoop)(((char *)(_mesh)->mloop) + ((_n) * (_mesh)->loop_stride)))
 
-class DualConInputReader : public ModelReader
-{
-private:
-const DualConInput *input_mesh;
-int tottri, curtri;
-float min[3], max[3], maxsize;
-float scale;
-public:
-DualConInputReader(const DualConInput *mesh, float _scale)
-	: input_mesh(mesh), scale(_scale)
-{
-	reset();
-}
+class DualConInputReader : public ModelReader {
+ private:
+  const DualConInput *input_mesh;
+  int tottri, curtri;
+  float min[3], max[3], maxsize;
+  float scale;
 
-void reset()
-{
-	curtri = 0;
-	maxsize = 0;
-	tottri = input_mesh->tottri;
+ public:
+  DualConInputReader(const DualConInput *mesh, float _scale) : input_mesh(mesh), scale(_scale)
+  {
+    reset();
+  }
 
-	veccopy(min, input_mesh->min);
-	veccopy(max, input_mesh->max);
+  void reset()
+  {
+    curtri = 0;
+    maxsize = 0;
+    tottri = input_mesh->tottri;
 
-	/* initialize maxsize */
-	for (int i = 0; i < 3; i++) {
-		float d = max[i] - min[i];
-		if (d > maxsize)
-			maxsize = d;
-	}
+    veccopy(min, input_mesh->min);
+    veccopy(max, input_mesh->max);
 
-	/* redo the bounds */
-	for (int i = 0; i < 3; i++)
-	{
-		min[i] = (max[i] + min[i]) / 2 - maxsize / 2;
-		max[i] = (max[i] + min[i]) / 2 + maxsize / 2;
-	}
+    /* initialize maxsize */
+    for (int i = 0; i < 3; i++) {
+      float d = max[i] - min[i];
+      if (d > maxsize)
+        maxsize = d;
+    }
 
-	for (int i = 0; i < 3; i++)
-		min[i] -= maxsize * (1 / scale - 1) / 2;
-	maxsize *= 1 / scale;
-}
+    /* redo the bounds */
+    for (int i = 0; i < 3; i++) {
+      min[i] = (max[i] + min[i]) / 2 - maxsize / 2;
+      max[i] = (max[i] + min[i]) / 2 + maxsize / 2;
+    }
 
-Triangle *getNextTriangle()
-{
-	if (curtri == input_mesh->tottri)
-		return NULL;
+    for (int i = 0; i < 3; i++)
+      min[i] -= maxsize * (1 / scale - 1) / 2;
+    maxsize *= 1 / scale;
+  }
 
-	Triangle *t = new Triangle();
+  Triangle *getNextTriangle()
+  {
+    if (curtri == input_mesh->tottri)
+      return NULL;
 
-	unsigned int *tr = GET_TRI(input_mesh, curtri);
-	veccopy(t->vt[0], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[0])));
-	veccopy(t->vt[1], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[1])));
-	veccopy(t->vt[2], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[2])));
+    Triangle *t = new Triangle();
 
-	curtri++;
+    unsigned int *tr = GET_TRI(input_mesh, curtri);
+    veccopy(t->vt[0], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[0])));
+    veccopy(t->vt[1], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[1])));
+    veccopy(t->vt[2], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[2])));
 
-	/* remove triangle if it contains invalid coords */
-	for (int i = 0; i < 3; i++) {
-		const float *co = t->vt[i];
-		if (isnan(co[0]) || isnan(co[1]) || isnan(co[2])) {
-			delete t;
-			return getNextTriangle();
-		}
-	}
+    curtri++;
 
-	return t;
-}
+    /* remove triangle if it contains invalid coords */
+    for (int i = 0; i < 3; i++) {
+      const float *co = t->vt[i];
+      if (isnan(co[0]) || isnan(co[1]) || isnan(co[2])) {
+        delete t;
+        return getNextTriangle();
+      }
+    }
 
-int getNextTriangle(int t[3])
-{
-	if (curtri == input_mesh->tottri)
-		return 0;
+    return t;
+  }
 
-	unsigned int *tr = GET_TRI(input_mesh, curtri);
-	t[0] = tr[0];
-	t[1] = tr[1];
-	t[2] = tr[2];
+  int getNextTriangle(int t[3])
+  {
+    if (curtri == input_mesh->tottri)
+      return 0;
 
-	curtri++;
+    unsigned int *tr = GET_TRI(input_mesh, curtri);
+    t[0] = tr[0];
+    t[1] = tr[1];
+    t[2] = tr[2];
 
-	return 1;
-}
+    curtri++;
 
-int getNumTriangles()
-{
-	return tottri;
-}
+    return 1;
+  }
 
-int getNumVertices()
-{
-	return input_mesh->totco;
-}
+  int getNumTriangles()
+  {
+    return tottri;
+  }
 
-float getBoundingBox(float origin[3])
-{
-	veccopy(origin, min);
-	return maxsize;
-}
+  int getNumVertices()
+  {
+    return input_mesh->totco;
+  }
 
-/* output */
-void getNextVertex(float /*v*/[3])
-{
-	/* not used */
-}
+  float getBoundingBox(float origin[3])
+  {
+    veccopy(origin, min);
+    return maxsize;
+  }
 
-/* stubs */
-void printInfo() {
-}
-int getMemory() {
-	return sizeof(DualConInputReader);
-}
+  /* output */
+  void getNextVertex(float /*v*/[3])
+  {
+    /* not used */
+  }
+
+  /* stubs */
+  void printInfo()
+  {
+  }
+  int getMemory()
+  {
+    return sizeof(DualConInputReader);
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:DualConInputReader")
+  MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:DualConInputReader")
 #endif
-
 };
 
 void *dualcon(const DualConInput *input_mesh,
@@ -173,9 +171,8 @@ void *dualcon(const DualConInput *input_mesh,
               float scale,
               int depth)
 {
-	DualConInputReader r(input_mesh, scale);
-	Octree o(&r, alloc_output, add_vert, add_quad,
-	         flags, mode, depth, threshold, hermite_num);
-	o.scanConvert();
-	return o.getOutputMesh();
+  DualConInputReader r(input_mesh, scale);
+  Octree o(&r, alloc_output, add_vert, add_quad, flags, mode, depth, threshold, hermite_num);
+  o.scanConvert();
+  return o.getOutputMesh();
 }

@@ -22,51 +22,68 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tangent_out[] = {
-	{	SOCK_VECTOR, 0, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_VECTOR, 0, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, 0, ""},
 };
 
 static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeShaderTangent *attr = MEM_callocN(sizeof(NodeShaderTangent), "NodeShaderTangent");
-	attr->axis = SHD_TANGENT_AXIS_Z;
-	node->storage = attr;
+  NodeShaderTangent *attr = MEM_callocN(sizeof(NodeShaderTangent), "NodeShaderTangent");
+  attr->axis = SHD_TANGENT_AXIS_Z;
+  node->storage = attr;
 }
 
-static int node_shader_gpu_tangent(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tangent(GPUMaterial *mat,
+                                   bNode *node,
+                                   bNodeExecData *UNUSED(execdata),
+                                   GPUNodeStack *in,
+                                   GPUNodeStack *out)
 {
-	NodeShaderTangent *attr = node->storage;
+  NodeShaderTangent *attr = node->storage;
 
-	if (attr->direction_type == SHD_TANGENT_UVMAP) {
-		return GPU_stack_link(mat, node, "node_tangentmap", in, out, GPU_attribute(CD_TANGENT, ""), GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
-	}
-	else {
-		GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
+  if (attr->direction_type == SHD_TANGENT_UVMAP) {
+    return GPU_stack_link(mat,
+                          node,
+                          "node_tangentmap",
+                          in,
+                          out,
+                          GPU_attribute(CD_TANGENT, ""),
+                          GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
+  }
+  else {
+    GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 
-		if (attr->axis == SHD_TANGENT_AXIS_X)
-			GPU_link(mat, "tangent_orco_x", orco, &orco);
-		else if (attr->axis == SHD_TANGENT_AXIS_Y)
-			GPU_link(mat, "tangent_orco_y", orco, &orco);
-		else
-			GPU_link(mat, "tangent_orco_z", orco, &orco);
+    if (attr->axis == SHD_TANGENT_AXIS_X)
+      GPU_link(mat, "tangent_orco_x", orco, &orco);
+    else if (attr->axis == SHD_TANGENT_AXIS_Y)
+      GPU_link(mat, "tangent_orco_y", orco, &orco);
+    else
+      GPU_link(mat, "tangent_orco_z", orco, &orco);
 
-		return GPU_stack_link(
-		        mat, node, "node_tangent", in, out, GPU_builtin(GPU_VIEW_NORMAL), orco,
-		        GPU_builtin(GPU_OBJECT_MATRIX), GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
-	}
+    return GPU_stack_link(mat,
+                          node,
+                          "node_tangent",
+                          in,
+                          out,
+                          GPU_builtin(GPU_VIEW_NORMAL),
+                          orco,
+                          GPU_builtin(GPU_OBJECT_MATRIX),
+                          GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
+  }
 }
 
 /* node type definition */
 void register_node_type_sh_tangent(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT, 0);
-	node_type_socket_templates(&ntype, NULL, sh_node_tangent_out);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, node_shader_init_tangent);
-	node_type_gpu(&ntype, node_shader_gpu_tangent);
-	node_type_storage(&ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
+  sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT, 0);
+  node_type_socket_templates(&ntype, NULL, sh_node_tangent_out);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  node_type_init(&ntype, node_shader_init_tangent);
+  node_type_gpu(&ntype, node_shader_gpu_tangent);
+  node_type_storage(
+      &ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

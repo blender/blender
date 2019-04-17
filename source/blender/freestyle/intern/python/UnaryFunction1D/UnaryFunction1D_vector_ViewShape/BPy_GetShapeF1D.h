@@ -31,13 +31,13 @@ extern "C" {
 
 extern PyTypeObject GetShapeF1D_Type;
 
-#define BPy_GetShapeF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetShapeF1D_Type))
+#define BPy_GetShapeF1D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetShapeF1D_Type))
 
 /*---------------------------Python BPy_GetShapeF1D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction1DVectorViewShape py_uf1D_vectorviewshape;
+  BPy_UnaryFunction1DVectorViewShape py_uf1D_vectorviewshape;
 } BPy_GetShapeF1D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -63,8 +63,8 @@ bool system_cpu_support_avx2();
 size_t system_physical_ram();
 
 /* Start a new process of the current application with the given arguments. */
-bool system_call_self(const vector<string>& args);
+bool system_call_self(const vector<string> &args);
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_SYSTEM_H__ */
+#endif /* __UTIL_SYSTEM_H__ */

@@ -39,51 +39,77 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device int bsdf_refraction_setup(MicrofacetBsdf *bsdf)
 {
-	bsdf->type = CLOSURE_BSDF_REFRACTION_ID;
-	return SD_BSDF;
+  bsdf->type = CLOSURE_BSDF_REFRACTION_ID;
+  return SD_BSDF;
 }
 
-ccl_device float3 bsdf_refraction_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_refraction_eval_reflect(const ShaderClosure *sc,
+                                               const float3 I,
+                                               const float3 omega_in,
+                                               float *pdf)
 {
-	return make_float3(0.0f, 0.0f, 0.0f);
+  return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device float3 bsdf_refraction_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_refraction_eval_transmit(const ShaderClosure *sc,
+                                                const float3 I,
+                                                const float3 omega_in,
+                                                float *pdf)
 {
-	return make_float3(0.0f, 0.0f, 0.0f);
+  return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_refraction_sample(const ShaderClosure *sc,
+                                      float3 Ng,
+                                      float3 I,
+                                      float3 dIdx,
+                                      float3 dIdy,
+                                      float randu,
+                                      float randv,
+                                      float3 *eval,
+                                      float3 *omega_in,
+                                      float3 *domega_in_dx,
+                                      float3 *domega_in_dy,
+                                      float *pdf)
 {
-	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
-	float m_eta = bsdf->ior;
-	float3 N = bsdf->N;
+  const MicrofacetBsdf *bsdf = (const MicrofacetBsdf *)sc;
+  float m_eta = bsdf->ior;
+  float3 N = bsdf->N;
 
-	float3 R, T;
+  float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__
-	float3 dRdx, dRdy, dTdx, dTdy;
+  float3 dRdx, dRdy, dTdx, dTdy;
 #endif
-	bool inside;
-	float fresnel;
-	fresnel = fresnel_dielectric(m_eta, N, I, &R, &T,
+  bool inside;
+  float fresnel;
+  fresnel = fresnel_dielectric(m_eta,
+                               N,
+                               I,
+                               &R,
+                               &T,
 #ifdef __RAY_DIFFERENTIALS__
-		dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
+                               dIdx,
+                               dIdy,
+                               &dRdx,
+                               &dRdy,
+                               &dTdx,
+                               &dTdy,
 #endif
-		&inside);
+                               &inside);
 
-	if(!inside && fresnel != 1.0f) {
-		/* Some high number for MIS. */
-		*pdf = 1e6f;
-		*eval = make_float3(1e6f, 1e6f, 1e6f);
-		*omega_in = T;
+  if (!inside && fresnel != 1.0f) {
+    /* Some high number for MIS. */
+    *pdf = 1e6f;
+    *eval = make_float3(1e6f, 1e6f, 1e6f);
+    *omega_in = T;
 #ifdef __RAY_DIFFERENTIALS__
-		*domega_in_dx = dTdx;
-		*domega_in_dy = dTdy;
+    *domega_in_dx = dTdx;
+    *domega_in_dy = dTdy;
 #endif
-	}
-	return LABEL_TRANSMIT|LABEL_SINGULAR;
+  }
+  return LABEL_TRANSMIT | LABEL_SINGULAR;
 }
 
 CCL_NAMESPACE_END
 
-#endif  /* __BSDF_REFRACTION_H__ */
+#endif /* __BSDF_REFRACTION_H__ */

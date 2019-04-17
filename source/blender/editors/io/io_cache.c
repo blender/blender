@@ -47,119 +47,123 @@
 
 static void cachefile_init(bContext *C, wmOperator *op)
 {
-	PropertyPointerRNA *pprop;
+  PropertyPointerRNA *pprop;
 
-	op->customdata = pprop = MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
-	UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  op->customdata = pprop = MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-		char filepath[FILE_MAX];
-		Main *bmain = CTX_data_main(C);
+  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+    char filepath[FILE_MAX];
+    Main *bmain = CTX_data_main(C);
 
-		BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-		BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
-		RNA_string_set(op->ptr, "filepath", filepath);
-	}
+    BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
+    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
+    RNA_string_set(op->ptr, "filepath", filepath);
+  }
 
-	cachefile_init(C, op);
+  cachefile_init(C, op);
 
-	WM_event_add_fileselect(C, op);
+  WM_event_add_fileselect(C, op);
 
-	return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_RUNNING_MODAL;
 
-	UNUSED_VARS(event);
+  UNUSED_VARS(event);
 }
 
 static void open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-	MEM_freeN(op->customdata);
-	op->customdata = NULL;
+  MEM_freeN(op->customdata);
+  op->customdata = NULL;
 }
 
 static int cachefile_open_exec(bContext *C, wmOperator *op)
 {
-	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-		BKE_report(op->reports, RPT_ERROR, "No filename given");
-		return OPERATOR_CANCELLED;
-	}
+  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    return OPERATOR_CANCELLED;
+  }
 
-	char filename[FILE_MAX];
-	RNA_string_get(op->ptr, "filepath", filename);
+  char filename[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filename);
 
-	Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
 
-	CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filename), 0);
-	BLI_strncpy(cache_file->filepath, filename, FILE_MAX);
-	BKE_cachefile_reload(bmain, cache_file);
+  CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filename), 0);
+  BLI_strncpy(cache_file->filepath, filename, FILE_MAX);
+  BKE_cachefile_reload(bmain, cache_file);
 
-	/* Will be set when running invoke, not exec directly. */
-	if (op->customdata != NULL) {
-		/* hook into UI */
-		PropertyPointerRNA *pprop = op->customdata;
-		if (pprop->prop) {
-			/* When creating new ID blocks, use is already 1, but RNA
-			 * pointer see also increases user, so this compensates it. */
-			id_us_min(&cache_file->id);
+  /* Will be set when running invoke, not exec directly. */
+  if (op->customdata != NULL) {
+    /* hook into UI */
+    PropertyPointerRNA *pprop = op->customdata;
+    if (pprop->prop) {
+      /* When creating new ID blocks, use is already 1, but RNA
+       * pointer see also increases user, so this compensates it. */
+      id_us_min(&cache_file->id);
 
-			PointerRNA idptr;
-			RNA_id_pointer_create(&cache_file->id, &idptr);
-			RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
-			RNA_property_update(C, &pprop->ptr, pprop->prop);
-		}
+      PointerRNA idptr;
+      RNA_id_pointer_create(&cache_file->id, &idptr);
+      RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
+      RNA_property_update(C, &pprop->ptr, pprop->prop);
+    }
 
-		MEM_freeN(op->customdata);
-	}
+    MEM_freeN(op->customdata);
+  }
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 void CACHEFILE_OT_open(wmOperatorType *ot)
 {
-	ot->name = "Open Cache File";
-	ot->description = "Load a cache file";
-	ot->idname = "CACHEFILE_OT_open";
+  ot->name = "Open Cache File";
+  ot->description = "Load a cache file";
+  ot->idname = "CACHEFILE_OT_open";
 
-	ot->invoke = cachefile_open_invoke;
-	ot->exec = cachefile_open_exec;
-	ot->cancel = open_cancel;
+  ot->invoke = cachefile_open_invoke;
+  ot->exec = cachefile_open_exec;
+  ot->cancel = open_cancel;
 
-	WM_operator_properties_filesel(ot, FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
-	                               FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH,
-	                               FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
+                                 FILE_BLENDER,
+                                 FILE_SAVE,
+                                 WM_FILESEL_FILEPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_ALPHA);
 }
 
 /* ***************************** Reload Operator **************************** */
 
 static int cachefile_reload_exec(bContext *C, wmOperator *op)
 {
-	CacheFile *cache_file = CTX_data_edit_cachefile(C);
+  CacheFile *cache_file = CTX_data_edit_cachefile(C);
 
-	if (!cache_file) {
-		return OPERATOR_CANCELLED;
-	}
+  if (!cache_file) {
+    return OPERATOR_CANCELLED;
+  }
 
-	Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
 
-	BLI_freelistN(&cache_file->object_paths);
-	BKE_cachefile_reload(bmain, cache_file);
+  BLI_freelistN(&cache_file->object_paths);
+  BKE_cachefile_reload(bmain, cache_file);
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 
-	UNUSED_VARS(op);
+  UNUSED_VARS(op);
 }
 
 void CACHEFILE_OT_reload(wmOperatorType *ot)
 {
-	ot->name = "Refresh Archive";
-	ot->description = "Update objects paths list with new data from the archive";
-	ot->idname = "CACHEFILE_OT_reload";
+  ot->name = "Refresh Archive";
+  ot->description = "Update objects paths list with new data from the archive";
+  ot->idname = "CACHEFILE_OT_reload";
 
-	/* api callbacks */
-	ot->exec = cachefile_reload_exec;
+  /* api callbacks */
+  ot->exec = cachefile_reload_exec;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

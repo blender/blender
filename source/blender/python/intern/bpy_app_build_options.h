@@ -23,4 +23,4 @@
 
 PyObject *BPY_app_build_options_struct(void);
 
-#endif  /* __BPY_APP_BUILD_OPTIONS_H__ */
+#endif /* __BPY_APP_BUILD_OPTIONS_H__ */

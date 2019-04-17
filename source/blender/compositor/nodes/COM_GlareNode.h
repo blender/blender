@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class GlareNode : public Node {
-public:
-	GlareNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  GlareNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

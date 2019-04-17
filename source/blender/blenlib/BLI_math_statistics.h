@@ -38,13 +38,17 @@ extern "C" {
 
 /********************************** Covariance Matrices *********************************/
 
-void BLI_covariance_m_vn_ex(
-        const int n, const float *cos_vn, const int nbr_cos_v3, const float *center, const bool use_sample_correction,
-        float *r_covmat);
-void BLI_covariance_m3_v3n(
-        const float (*cos_v3)[3], const int nbr_cos_v3, const bool use_sample_correction,
-        float r_covmat[3][3], float r_center[3]);
-
+void BLI_covariance_m_vn_ex(const int n,
+                            const float *cos_vn,
+                            const int nbr_cos_v3,
+                            const float *center,
+                            const bool use_sample_correction,
+                            float *r_covmat);
+void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
+                           const int nbr_cos_v3,
+                           const bool use_sample_correction,
+                           float r_covmat[3][3],
+                           float r_center[3]);
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop

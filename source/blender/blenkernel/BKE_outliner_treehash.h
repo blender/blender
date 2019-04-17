@@ -38,10 +38,16 @@ void BKE_outliner_treehash_add_element(void *treehash, struct TreeStoreElem *ele
 void BKE_outliner_treehash_remove_element(void *treehash, struct TreeStoreElem *elem);
 
 /* find first unused element with specific type, nr and id */
-struct TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash, short type, short nr, struct ID *id);
+struct TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash,
+                                                          short type,
+                                                          short nr,
+                                                          struct ID *id);
 
 /* find user or unused element with specific type, nr and id */
-struct TreeStoreElem *BKE_outliner_treehash_lookup_any(void *treehash, short type, short nr, struct ID *id);
+struct TreeStoreElem *BKE_outliner_treehash_lookup_any(void *treehash,
+                                                       short type,
+                                                       short nr,
+                                                       struct ID *id);
 
 /* free treehash structure */
 void BKE_outliner_treehash_free(void *treehash);

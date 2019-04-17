@@ -23,48 +23,59 @@
 #include "COM_QualityStepHelper.h"
 
 class BokehBlurOperation : public NodeOperation, public QualityStepHelper {
-private:
-	SocketReader *m_inputProgram;
-	SocketReader *m_inputBokehProgram;
-	SocketReader *m_inputBoundingBoxReader;
-	void updateSize();
-	float m_size;
-	bool m_sizeavailable;
-	float m_bokehMidX;
-	float m_bokehMidY;
-	float m_bokehDimension;
-	bool m_extend_bounds;
-public:
-	BokehBlurOperation();
+ private:
+  SocketReader *m_inputProgram;
+  SocketReader *m_inputBokehProgram;
+  SocketReader *m_inputBoundingBoxReader;
+  void updateSize();
+  float m_size;
+  bool m_sizeavailable;
+  float m_bokehMidX;
+  float m_bokehMidY;
+  float m_bokehDimension;
+  bool m_extend_bounds;
 
-	void *initializeTileData(rcti *rect);
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+ public:
+  BokehBlurOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  void *initializeTileData(rcti *rect);
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void setSize(float size) { this->m_size = size; this->m_sizeavailable = true; }
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
 
-	void executeOpenCL(OpenCLDevice *device,
-	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
-	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
-	                   list<cl_kernel> *clKernelsToCleanUp);
+  void setSize(float size)
+  {
+    this->m_size = size;
+    this->m_sizeavailable = true;
+  }
 
-	void setExtendBounds(bool extend_bounds) { this->m_extend_bounds = extend_bounds; }
+  void executeOpenCL(OpenCLDevice *device,
+                     MemoryBuffer *outputMemoryBuffer,
+                     cl_mem clOutputBuffer,
+                     MemoryBuffer **inputMemoryBuffers,
+                     list<cl_mem> *clMemToCleanUp,
+                     list<cl_kernel> *clKernelsToCleanUp);
 
-	void determineResolution(unsigned int resolution[2],
-	                         unsigned int preferredResolution[2]);
+  void setExtendBounds(bool extend_bounds)
+  {
+    this->m_extend_bounds = extend_bounds;
+  }
+
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 #endif

@@ -51,232 +51,224 @@
 
 #include "ED_screen.h"
 
-#include "view3d_intern.h"  /* own include */
+#include "view3d_intern.h" /* own include */
 
 #include "BLI_strict_flags.h"
 
-
 typedef struct View3DCameraControl {
 
-	/* -------------------------------------------------------------------- */
-	/* Context (assign these to vars before use) */
-	Scene        *ctx_scene;
-	View3D       *ctx_v3d;
-	RegionView3D *ctx_rv3d;
+  /* -------------------------------------------------------------------- */
+  /* Context (assign these to vars before use) */
+  Scene *ctx_scene;
+  View3D *ctx_v3d;
+  RegionView3D *ctx_rv3d;
 
+  /* -------------------------------------------------------------------- */
+  /* internal vars */
 
-	/* -------------------------------------------------------------------- */
-	/* internal vars */
+  /* for parenting calculation */
+  float view_mat_prev[4][4];
 
-	/* for parenting calculation */
-	float view_mat_prev[4][4];
+  /* -------------------------------------------------------------------- */
+  /* optional capabilities */
 
+  bool use_parent_root;
 
-	/* -------------------------------------------------------------------- */
-	/* optional capabilities */
+  /* -------------------------------------------------------------------- */
+  /* initial values */
 
-	bool use_parent_root;
+  /* root most parent */
+  Object *root_parent;
 
+  /* backup values */
+  float dist_backup;
+  /* backup the views distance since we use a zero dist for fly mode */
+  float ofs_backup[3];
+  /* backup the views offset in case the user cancels flying in non camera mode */
 
-	/* -------------------------------------------------------------------- */
-	/* initial values */
+  /* backup the views quat in case the user cancels flying in non camera mode.
+   * (quat for view, eul for camera) */
+  float rot_backup[4];
+  /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+  char persp_backup;
 
-	/* root most parent */
-	Object *root_parent;
+  /* are we flying an ortho camera in perspective view,
+   * which was originally in ortho view?
+   * could probably figure it out but better be explicit */
+  bool is_ortho_cam;
 
-	/* backup values */
-	float dist_backup;
-	/* backup the views distance since we use a zero dist for fly mode */
-	float ofs_backup[3];
-	/* backup the views offset in case the user cancels flying in non camera mode */
-
-	/* backup the views quat in case the user cancels flying in non camera mode.
-	 * (quat for view, eul for camera) */
-	float rot_backup[4];
-	/* remember if were ortho or not, only used for restoring the view if it was a ortho view */
-	char persp_backup;
-
-	/* are we flying an ortho camera in perspective view,
-	 * which was originally in ortho view?
-	 * could probably figure it out but better be explicit */
-	bool is_ortho_cam;
-
-	/* backup the objects transform */
-	void *obtfm;
+  /* backup the objects transform */
+  void *obtfm;
 } View3DCameraControl;
-
 
 BLI_INLINE Object *view3d_cameracontrol_object(View3DCameraControl *vctrl)
 {
-	return vctrl->root_parent ? vctrl->root_parent : vctrl->ctx_v3d->camera;
+  return vctrl->root_parent ? vctrl->root_parent : vctrl->ctx_v3d->camera;
 }
-
 
 /**
  * Returns the object which is being manipulated or NULL.
  */
 Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
 {
-	RegionView3D *rv3d = vctrl->ctx_rv3d;
+  RegionView3D *rv3d = vctrl->ctx_rv3d;
 
-	if (rv3d->persp == RV3D_CAMOB) {
-		return view3d_cameracontrol_object(vctrl);
-	}
-	else {
-		return NULL;
-	}
+  if (rv3d->persp == RV3D_CAMOB) {
+    return view3d_cameracontrol_object(vctrl);
+  }
+  else {
+    return NULL;
+  }
 }
-
 
 /**
  * Creates a #View3DCameraControl handle and sets up
  * the view for first-person style navigation.
  */
-struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
-        Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d,
-        const bool use_parent_root)
+struct View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
+                                                            Scene *scene,
+                                                            View3D *v3d,
+                                                            RegionView3D *rv3d,
+                                                            const bool use_parent_root)
 {
-	View3DCameraControl *vctrl;
+  View3DCameraControl *vctrl;
 
-	vctrl = MEM_callocN(sizeof(View3DCameraControl), __func__);
+  vctrl = MEM_callocN(sizeof(View3DCameraControl), __func__);
 
-	/* Store context */
-	vctrl->ctx_scene = scene;
-	vctrl->ctx_v3d = v3d;
-	vctrl->ctx_rv3d = rv3d;
+  /* Store context */
+  vctrl->ctx_scene = scene;
+  vctrl->ctx_v3d = v3d;
+  vctrl->ctx_rv3d = rv3d;
 
-	vctrl->use_parent_root = use_parent_root;
+  vctrl->use_parent_root = use_parent_root;
 
-	vctrl->persp_backup = rv3d->persp;
-	vctrl->dist_backup = rv3d->dist;
+  vctrl->persp_backup = rv3d->persp;
+  vctrl->dist_backup = rv3d->dist;
 
-	/* check for flying ortho camera - which we cant support well
-	 * we _could_ also check for an ortho camera but this is easier */
-	if ((rv3d->persp == RV3D_CAMOB) &&
-	    (rv3d->is_persp == false))
-	{
-		((Camera *)v3d->camera->data)->type = CAM_PERSP;
-		vctrl->is_ortho_cam = true;
-	}
+  /* check for flying ortho camera - which we cant support well
+   * we _could_ also check for an ortho camera but this is easier */
+  if ((rv3d->persp == RV3D_CAMOB) && (rv3d->is_persp == false)) {
+    ((Camera *)v3d->camera->data)->type = CAM_PERSP;
+    vctrl->is_ortho_cam = true;
+  }
 
-	if (rv3d->persp == RV3D_CAMOB) {
-		Object *ob_back;
-		if (use_parent_root && (vctrl->root_parent = v3d->camera->parent)) {
-			while (vctrl->root_parent->parent) {
-				vctrl->root_parent = vctrl->root_parent->parent;
-			}
-			ob_back = vctrl->root_parent;
-		}
-		else {
-			ob_back = v3d->camera;
-		}
+  if (rv3d->persp == RV3D_CAMOB) {
+    Object *ob_back;
+    if (use_parent_root && (vctrl->root_parent = v3d->camera->parent)) {
+      while (vctrl->root_parent->parent) {
+        vctrl->root_parent = vctrl->root_parent->parent;
+      }
+      ob_back = vctrl->root_parent;
+    }
+    else {
+      ob_back = v3d->camera;
+    }
 
-		/* store the original camera loc and rot */
-		vctrl->obtfm = BKE_object_tfm_backup(ob_back);
+    /* store the original camera loc and rot */
+    vctrl->obtfm = BKE_object_tfm_backup(ob_back);
 
-		BKE_object_where_is_calc(depsgraph, scene, v3d->camera);
-		negate_v3_v3(rv3d->ofs, v3d->camera->obmat[3]);
+    BKE_object_where_is_calc(depsgraph, scene, v3d->camera);
+    negate_v3_v3(rv3d->ofs, v3d->camera->obmat[3]);
 
-		rv3d->dist = 0.0;
-	}
-	else {
-		/* perspective or ortho */
-		if (rv3d->persp == RV3D_ORTHO) {
-			/* if ortho projection, make perspective */
-			rv3d->persp = RV3D_PERSP;
-		}
+    rv3d->dist = 0.0;
+  }
+  else {
+    /* perspective or ortho */
+    if (rv3d->persp == RV3D_ORTHO) {
+      /* if ortho projection, make perspective */
+      rv3d->persp = RV3D_PERSP;
+    }
 
-		copy_qt_qt(vctrl->rot_backup, rv3d->viewquat);
-		copy_v3_v3(vctrl->ofs_backup, rv3d->ofs);
+    copy_qt_qt(vctrl->rot_backup, rv3d->viewquat);
+    copy_v3_v3(vctrl->ofs_backup, rv3d->ofs);
 
-		/* the dist defines a vector that is infront of the offset
-		 * to rotate the view about.
-		 * this is no good for fly mode because we
-		 * want to rotate about the viewers center.
-		 * but to correct the dist removal we must
-		 * alter offset so the view doesn't jump. */
+    /* the dist defines a vector that is infront of the offset
+     * to rotate the view about.
+     * this is no good for fly mode because we
+     * want to rotate about the viewers center.
+     * but to correct the dist removal we must
+     * alter offset so the view doesn't jump. */
 
-		ED_view3d_distance_set(rv3d, 0.0f);
-		/* Done with correcting for the dist */
-	}
+    ED_view3d_distance_set(rv3d, 0.0f);
+    /* Done with correcting for the dist */
+  }
 
-	ED_view3d_to_m4(vctrl->view_mat_prev, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+  ED_view3d_to_m4(vctrl->view_mat_prev, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
-	return vctrl;
+  return vctrl;
 }
-
 
 /**
  * Updates cameras from the ``rv3d`` values, optionally auto-keyframing.
  */
-void ED_view3d_cameracontrol_update(
-        View3DCameraControl *vctrl,
-        /* args for keyframing */
-        const bool use_autokey,
-        struct bContext *C, const bool do_rotate, const bool do_translate)
+void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
+                                    /* args for keyframing */
+                                    const bool use_autokey,
+                                    struct bContext *C,
+                                    const bool do_rotate,
+                                    const bool do_translate)
 {
-	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera
-	 * to the view */
+  /* we are in camera view so apply the view ofs and quat to the view matrix and set the camera
+   * to the view */
 
-	Scene *scene       = vctrl->ctx_scene;
-	View3D *v3d        = vctrl->ctx_v3d;
-	RegionView3D *rv3d = vctrl->ctx_rv3d;
+  Scene *scene = vctrl->ctx_scene;
+  View3D *v3d = vctrl->ctx_v3d;
+  RegionView3D *rv3d = vctrl->ctx_rv3d;
 
-	ID *id_key;
+  ID *id_key;
 
-	/* transform the parent or the camera? */
-	if (vctrl->root_parent) {
-		Object *ob_update;
+  /* transform the parent or the camera? */
+  if (vctrl->root_parent) {
+    Object *ob_update;
 
-		float view_mat[4][4];
-		float prev_view_imat[4][4];
-		float diff_mat[4][4];
-		float parent_mat[4][4];
+    float view_mat[4][4];
+    float prev_view_imat[4][4];
+    float diff_mat[4][4];
+    float parent_mat[4][4];
 
-		invert_m4_m4(prev_view_imat, vctrl->view_mat_prev);
-		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-		mul_m4_m4m4(diff_mat, view_mat, prev_view_imat);
-		mul_m4_m4m4(parent_mat, diff_mat, vctrl->root_parent->obmat);
+    invert_m4_m4(prev_view_imat, vctrl->view_mat_prev);
+    ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+    mul_m4_m4m4(diff_mat, view_mat, prev_view_imat);
+    mul_m4_m4m4(parent_mat, diff_mat, vctrl->root_parent->obmat);
 
-		BKE_object_apply_mat4(vctrl->root_parent, parent_mat, true, false);
+    BKE_object_apply_mat4(vctrl->root_parent, parent_mat, true, false);
 
-		ob_update = v3d->camera->parent;
-		while (ob_update) {
-			DEG_id_tag_update(&ob_update->id, ID_RECALC_TRANSFORM);
-			ob_update = ob_update->parent;
-		}
+    ob_update = v3d->camera->parent;
+    while (ob_update) {
+      DEG_id_tag_update(&ob_update->id, ID_RECALC_TRANSFORM);
+      ob_update = ob_update->parent;
+    }
 
-		copy_m4_m4(vctrl->view_mat_prev, view_mat);
+    copy_m4_m4(vctrl->view_mat_prev, view_mat);
 
-		id_key = &vctrl->root_parent->id;
-	}
-	else {
-		float view_mat[4][4];
-		float scale_mat[4][4];
-		float scale_back[3];
+    id_key = &vctrl->root_parent->id;
+  }
+  else {
+    float view_mat[4][4];
+    float scale_mat[4][4];
+    float scale_back[3];
 
-		/* even though we handle the scale matrix, this still changes over time */
-		copy_v3_v3(scale_back, v3d->camera->scale);
+    /* even though we handle the scale matrix, this still changes over time */
+    copy_v3_v3(scale_back, v3d->camera->scale);
 
-		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-		size_to_mat4(scale_mat, v3d->camera->scale);
-		mul_m4_m4m4(view_mat, view_mat, scale_mat);
+    ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+    size_to_mat4(scale_mat, v3d->camera->scale);
+    mul_m4_m4m4(view_mat, view_mat, scale_mat);
 
-		BKE_object_apply_mat4(v3d->camera, view_mat, true, true);
+    BKE_object_apply_mat4(v3d->camera, view_mat, true, true);
 
-		DEG_id_tag_update(&v3d->camera->id, ID_RECALC_TRANSFORM);
+    DEG_id_tag_update(&v3d->camera->id, ID_RECALC_TRANSFORM);
 
-		copy_v3_v3(v3d->camera->scale, scale_back);
+    copy_v3_v3(v3d->camera->scale, scale_back);
 
-		id_key = &v3d->camera->id;
-	}
+    id_key = &v3d->camera->id;
+  }
 
-	/* record the motion */
-	if (use_autokey) {
-		ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
-	}
+  /* record the motion */
+  if (use_autokey) {
+    ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
+  }
 }
-
 
 /**
  * Release view control.
@@ -284,54 +276,52 @@ void ED_view3d_cameracontrol_update(
  * \param restore: Sets the view state to the values that were set
  *                 before #ED_view3d_control_acquire was called.
  */
-void ED_view3d_cameracontrol_release(
-        View3DCameraControl *vctrl,
-        const bool restore)
+void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, const bool restore)
 {
-	View3D *v3d        = vctrl->ctx_v3d;
-	RegionView3D *rv3d = vctrl->ctx_rv3d;
+  View3D *v3d = vctrl->ctx_v3d;
+  RegionView3D *rv3d = vctrl->ctx_rv3d;
 
-	if (restore) {
-		/* Revert to original view? */
-		if (vctrl->persp_backup == RV3D_CAMOB) { /* a camera view */
-			Object *ob_back = view3d_cameracontrol_object(vctrl);
+  if (restore) {
+    /* Revert to original view? */
+    if (vctrl->persp_backup == RV3D_CAMOB) { /* a camera view */
+      Object *ob_back = view3d_cameracontrol_object(vctrl);
 
-			/* store the original camera loc and rot */
-			BKE_object_tfm_restore(ob_back, vctrl->obtfm);
+      /* store the original camera loc and rot */
+      BKE_object_tfm_restore(ob_back, vctrl->obtfm);
 
-			DEG_id_tag_update(&ob_back->id, ID_RECALC_TRANSFORM);
-		}
-		else {
-			/* Non Camera we need to reset the view back
-			 * to the original location because the user canceled. */
-			copy_qt_qt(rv3d->viewquat, vctrl->rot_backup);
-			rv3d->persp = vctrl->persp_backup;
-		}
-		/* always, is set to zero otherwise */
-		copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
-		rv3d->dist = vctrl->dist_backup;
-	}
-	else if (vctrl->persp_backup == RV3D_CAMOB) { /* camera */
-		DEG_id_tag_update((ID *)view3d_cameracontrol_object(vctrl), ID_RECALC_TRANSFORM);
+      DEG_id_tag_update(&ob_back->id, ID_RECALC_TRANSFORM);
+    }
+    else {
+      /* Non Camera we need to reset the view back
+       * to the original location because the user canceled. */
+      copy_qt_qt(rv3d->viewquat, vctrl->rot_backup);
+      rv3d->persp = vctrl->persp_backup;
+    }
+    /* always, is set to zero otherwise */
+    copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
+    rv3d->dist = vctrl->dist_backup;
+  }
+  else if (vctrl->persp_backup == RV3D_CAMOB) { /* camera */
+    DEG_id_tag_update((ID *)view3d_cameracontrol_object(vctrl), ID_RECALC_TRANSFORM);
 
-		/* always, is set to zero otherwise */
-		copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
-		rv3d->dist = vctrl->dist_backup;
-	}
-	else { /* not camera */
-		/* Apply the fly mode view */
-		/* restore the dist */
-		ED_view3d_distance_set(rv3d, vctrl->dist_backup);
-		/* Done with correcting for the dist */
-	}
+    /* always, is set to zero otherwise */
+    copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
+    rv3d->dist = vctrl->dist_backup;
+  }
+  else { /* not camera */
+    /* Apply the fly mode view */
+    /* restore the dist */
+    ED_view3d_distance_set(rv3d, vctrl->dist_backup);
+    /* Done with correcting for the dist */
+  }
 
-	if (vctrl->is_ortho_cam) {
-		((Camera *)v3d->camera->data)->type = CAM_ORTHO;
-	}
+  if (vctrl->is_ortho_cam) {
+    ((Camera *)v3d->camera->data)->type = CAM_ORTHO;
+  }
 
-	if (vctrl->obtfm) {
-		MEM_freeN(vctrl->obtfm);
-	}
+  if (vctrl->obtfm) {
+    MEM_freeN(vctrl->obtfm);
+  }
 
-	MEM_freeN(vctrl);
+  MEM_freeN(vctrl);
 }

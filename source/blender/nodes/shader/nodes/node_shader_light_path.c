@@ -22,37 +22,41 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_light_path_out[] = {
-	{	SOCK_FLOAT, 0, N_("Is Camera Ray"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Is Shadow Ray"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Is Diffuse Ray"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Is Glossy Ray"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Is Singular Ray"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Is Reflection Ray"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Is Transmission Ray"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Ray Length"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Ray Depth"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Diffuse Depth"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Glossy Depth"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Transparent Depth"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Transmission Depth"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_FLOAT, 0, N_("Is Camera Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Is Shadow Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Is Diffuse Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Is Glossy Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Is Singular Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Is Reflection Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Is Transmission Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Ray Length"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Ray Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Diffuse Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Glossy Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Transparent Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("Transmission Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, 0, ""},
 };
 
-static int node_shader_gpu_light_path(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_light_path(GPUMaterial *mat,
+                                      bNode *node,
+                                      bNodeExecData *UNUSED(execdata),
+                                      GPUNodeStack *in,
+                                      GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, node, "node_light_path", in, out);
+  return GPU_stack_link(mat, node, "node_light_path", in, out);
 }
 
 /* node type definition */
 void register_node_type_sh_light_path(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_LIGHT_PATH, "Light Path", NODE_CLASS_INPUT, 0);
-	node_type_socket_templates(&ntype, NULL, sh_node_light_path_out);
-	node_type_init(&ntype, NULL);
-	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_light_path);
+  sh_node_type_base(&ntype, SH_NODE_LIGHT_PATH, "Light Path", NODE_CLASS_INPUT, 0);
+  node_type_socket_templates(&ntype, NULL, sh_node_light_path_out);
+  node_type_init(&ntype, NULL);
+  node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_light_path);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

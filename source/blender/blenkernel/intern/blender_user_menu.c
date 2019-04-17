@@ -36,30 +36,26 @@
 /** \name Menu Type
  * \{ */
 
-bUserMenu *BKE_blender_user_menu_find(
-        ListBase *lb, char space_type, const char *context)
+bUserMenu *BKE_blender_user_menu_find(ListBase *lb, char space_type, const char *context)
 {
-	for (bUserMenu *um = lb->first; um; um = um->next) {
-		if ((space_type == um->space_type) &&
-		    (STREQ(context, um->context)))
-		{
-			return um;
-		}
-	}
-	return NULL;
+  for (bUserMenu *um = lb->first; um; um = um->next) {
+    if ((space_type == um->space_type) && (STREQ(context, um->context))) {
+      return um;
+    }
+  }
+  return NULL;
 }
 
-bUserMenu *BKE_blender_user_menu_ensure(
-        ListBase *lb, char space_type, const char *context)
+bUserMenu *BKE_blender_user_menu_ensure(ListBase *lb, char space_type, const char *context)
 {
-	bUserMenu *um = BKE_blender_user_menu_find(lb, space_type, context);
-	if (um == NULL) {
-		um = MEM_callocN(sizeof(bUserMenu), __func__);
-		um->space_type = space_type;
-		STRNCPY(um->context, context);
-		BLI_addhead(lb, um);
-	}
-	return um;
+  bUserMenu *um = BKE_blender_user_menu_find(lb, space_type, context);
+  if (um == NULL) {
+    um = MEM_callocN(sizeof(bUserMenu), __func__);
+    um->space_type = space_type;
+    STRNCPY(um->context, context);
+    BLI_addhead(lb, um);
+  }
+  return um;
 }
 
 /** \} */
@@ -70,48 +66,48 @@ bUserMenu *BKE_blender_user_menu_ensure(
 
 bUserMenuItem *BKE_blender_user_menu_item_add(ListBase *lb, int type)
 {
-	uint size;
+  uint size;
 
-	if (type == USER_MENU_TYPE_SEP) {
-		size = sizeof(bUserMenuItem);
-	}
-	else if (type == USER_MENU_TYPE_OPERATOR) {
-		size = sizeof(bUserMenuItem_Op);
-	}
-	else if (type == USER_MENU_TYPE_MENU) {
-		size = sizeof(bUserMenuItem_Menu);
-	}
-	else if (type == USER_MENU_TYPE_PROP) {
-		size = sizeof(bUserMenuItem_Prop);
-	}
-	else {
-		size = sizeof(bUserMenuItem);
-		BLI_assert(0);
-	}
+  if (type == USER_MENU_TYPE_SEP) {
+    size = sizeof(bUserMenuItem);
+  }
+  else if (type == USER_MENU_TYPE_OPERATOR) {
+    size = sizeof(bUserMenuItem_Op);
+  }
+  else if (type == USER_MENU_TYPE_MENU) {
+    size = sizeof(bUserMenuItem_Menu);
+  }
+  else if (type == USER_MENU_TYPE_PROP) {
+    size = sizeof(bUserMenuItem_Prop);
+  }
+  else {
+    size = sizeof(bUserMenuItem);
+    BLI_assert(0);
+  }
 
-	bUserMenuItem *umi = MEM_callocN(size, __func__);
-	umi->type = type;
-	BLI_addtail(lb, umi);
-	return umi;
+  bUserMenuItem *umi = MEM_callocN(size, __func__);
+  umi->type = type;
+  BLI_addtail(lb, umi);
+  return umi;
 }
 
 void BKE_blender_user_menu_item_free(bUserMenuItem *umi)
 {
-	if (umi->type == USER_MENU_TYPE_OPERATOR) {
-		bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
-		if (umi_op->prop) {
-			IDP_FreeProperty(umi_op->prop);
-			MEM_freeN(umi_op->prop);
-		}
-	}
-	MEM_freeN(umi);
+  if (umi->type == USER_MENU_TYPE_OPERATOR) {
+    bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
+    if (umi_op->prop) {
+      IDP_FreeProperty(umi_op->prop);
+      MEM_freeN(umi_op->prop);
+    }
+  }
+  MEM_freeN(umi);
 }
 
 void BKE_blender_user_menu_item_free_list(ListBase *lb)
 {
-	for (bUserMenuItem *umi = lb->first, *umi_next; umi; umi = umi_next) {
-		umi_next = umi->next;
-		BKE_blender_user_menu_item_free(umi);
-	}
-	BLI_listbase_clear(lb);
+  for (bUserMenuItem *umi = lb->first, *umi_next; umi; umi = umi_next) {
+    umi_next = umi->next;
+    BKE_blender_user_menu_item_free(umi);
+  }
+  BLI_listbase_clear(lb);
 }

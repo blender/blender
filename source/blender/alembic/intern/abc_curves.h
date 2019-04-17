@@ -32,55 +32,54 @@ struct Curve;
 /* ************************************************************************** */
 
 class AbcCurveWriter : public AbcObjectWriter {
-	Alembic::AbcGeom::OCurvesSchema m_schema;
-	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
+  Alembic::AbcGeom::OCurvesSchema m_schema;
+  Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
 
-public:
-	AbcCurveWriter(Object *ob,
-	               AbcTransformWriter *parent,
-	               uint32_t time_sampling,
-	               ExportSettings &settings);
+ public:
+  AbcCurveWriter(Object *ob,
+                 AbcTransformWriter *parent,
+                 uint32_t time_sampling,
+                 ExportSettings &settings);
 
-protected:
-	void do_write();
+ protected:
+  void do_write();
 };
 
 class AbcCurveMeshWriter : public AbcGenericMeshWriter {
-public:
-	AbcCurveMeshWriter(Object *ob,
-	                   AbcTransformWriter *parent,
-	                   uint32_t time_sampling,
-	                   ExportSettings &settings);
+ public:
+  AbcCurveMeshWriter(Object *ob,
+                     AbcTransformWriter *parent,
+                     uint32_t time_sampling,
+                     ExportSettings &settings);
 
-protected:
-	Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree);
+ protected:
+  Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree);
 };
 
 /* ************************************************************************** */
 
 class AbcCurveReader : public AbcObjectReader {
-	Alembic::AbcGeom::ICurvesSchema m_curves_schema;
+  Alembic::AbcGeom::ICurvesSchema m_curves_schema;
 
-public:
-	AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+ public:
+  AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-	bool valid() const;
-	bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
-	                         const Object *const ob,
-	                         const char **err_str) const;
+  bool valid() const;
+  bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                           const Object *const ob,
+                           const char **err_str) const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-	struct Mesh *read_mesh(struct Mesh *existing_mesh,
-	                       const Alembic::Abc::ISampleSelector &sample_sel,
-	                       int read_flag,
-	                       const char **err_str);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  struct Mesh *read_mesh(struct Mesh *existing_mesh,
+                         const Alembic::Abc::ISampleSelector &sample_sel,
+                         int read_flag,
+                         const char **err_str);
 
-	void read_curve_sample(Curve *cu,
-	                       const Alembic::AbcGeom::ICurvesSchema &schema,
-	                       const Alembic::Abc::ISampleSelector &sample_selector);
-
+  void read_curve_sample(Curve *cu,
+                         const Alembic::AbcGeom::ICurvesSchema &schema,
+                         const Alembic::Abc::ISampleSelector &sample_selector);
 };
 
 /* ************************************************************************** */
 
-#endif  /* __ABC_CURVES_H__ */
+#endif /* __ABC_CURVES_H__ */

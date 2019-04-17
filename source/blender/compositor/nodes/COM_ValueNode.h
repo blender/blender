@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ValueNode : public Node {
-public:
-	ValueNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ValueNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

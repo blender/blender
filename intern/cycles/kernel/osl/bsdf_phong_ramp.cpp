@@ -46,37 +46,36 @@ CCL_NAMESPACE_BEGIN
 using namespace OSL;
 
 class PhongRampClosure : public CBSDFClosure {
-public:
-	PhongRampBsdf params;
-	Color3 colors[8];
+ public:
+  PhongRampBsdf params;
+  Color3 colors[8];
 
-	void setup(ShaderData *sd, int /* path_flag */, float3 weight)
-	{
-	    PhongRampBsdf *bsdf = (PhongRampBsdf*)bsdf_alloc_osl(sd, sizeof(PhongRampBsdf), weight, &params);
+  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+  {
+    PhongRampBsdf *bsdf = (PhongRampBsdf *)bsdf_alloc_osl(
+        sd, sizeof(PhongRampBsdf), weight, &params);
 
-		if(bsdf) {
-			bsdf->colors = (float3*)closure_alloc_extra(sd, sizeof(float3)*8);
+    if (bsdf) {
+      bsdf->colors = (float3 *)closure_alloc_extra(sd, sizeof(float3) * 8);
 
-			if(bsdf->colors) {
-				for(int i = 0; i < 8; i++)
-					bsdf->colors[i] = TO_FLOAT3(colors[i]);
+      if (bsdf->colors) {
+        for (int i = 0; i < 8; i++)
+          bsdf->colors[i] = TO_FLOAT3(colors[i]);
 
-				sd->flag |= bsdf_phong_ramp_setup(bsdf);
-			}
-		}
-	}
+        sd->flag |= bsdf_phong_ramp_setup(bsdf);
+      }
+    }
+  }
 };
 
 ClosureParam *closure_bsdf_phong_ramp_params()
 {
-	static ClosureParam params[] = {
-		CLOSURE_FLOAT3_PARAM(PhongRampClosure, params.N),
-		CLOSURE_FLOAT_PARAM(PhongRampClosure, params.exponent),
-		CLOSURE_COLOR_ARRAY_PARAM(PhongRampClosure, colors, 8),
-		CLOSURE_STRING_KEYPARAM(PhongRampClosure, label, "label"),
-		CLOSURE_FINISH_PARAM(PhongRampClosure)
-	};
-	return params;
+  static ClosureParam params[] = {CLOSURE_FLOAT3_PARAM(PhongRampClosure, params.N),
+                                  CLOSURE_FLOAT_PARAM(PhongRampClosure, params.exponent),
+                                  CLOSURE_COLOR_ARRAY_PARAM(PhongRampClosure, colors, 8),
+                                  CLOSURE_STRING_KEYPARAM(PhongRampClosure, label, "label"),
+                                  CLOSURE_FINISH_PARAM(PhongRampClosure)};
+  return params;
 }
 
 CCLOSURE_PREPARE(closure_bsdf_phong_ramp_prepare, PhongRampClosure)

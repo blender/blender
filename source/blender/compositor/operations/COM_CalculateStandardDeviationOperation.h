@@ -26,18 +26,17 @@
  * \ingroup operation
  */
 class CalculateStandardDeviationOperation : public CalculateMeanOperation {
-protected:
-	float m_standardDeviation;
+ protected:
+  float m_standardDeviation;
 
-public:
-	CalculateStandardDeviationOperation();
+ public:
+  CalculateStandardDeviationOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	void *initializeTileData(rcti *rect);
-
+  void *initializeTileData(rcti *rect);
 };
 #endif

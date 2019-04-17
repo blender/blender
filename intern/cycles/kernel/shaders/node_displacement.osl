@@ -16,23 +16,21 @@
 
 #include "stdosl.h"
 
-shader node_displacement(
-	string space = "object",
-	float Height = 0.0,
-	float Midlevel = 0.5,
-	float Scale = 1.0,
-	normal Normal = N,
-	output vector Displacement = vector(0.0, 0.0, 0.0))
+shader node_displacement(string space = "object",
+                         float Height = 0.0,
+                         float Midlevel = 0.5,
+                         float Scale = 1.0,
+                         normal Normal = N,
+                         output vector Displacement = vector(0.0, 0.0, 0.0))
 {
-	Displacement = Normal;
-	if(space == "object") {
-		Displacement = transform("object", Displacement);
-	}
+  Displacement = Normal;
+  if (space == "object") {
+    Displacement = transform("object", Displacement);
+  }
 
-	Displacement = normalize(Displacement) * (Height - Midlevel) * Scale;
+  Displacement = normalize(Displacement) * (Height - Midlevel) * Scale;
 
-	if(space == "object") {
-		Displacement = transform("object", "world", Displacement);
-	}
+  if (space == "object") {
+    Displacement = transform("object", "world", Displacement);
+  }
 }
-

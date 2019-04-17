@@ -21,7 +21,6 @@
  * \ingroup openexr
  */
 
-
 #ifndef __OPENEXR_API_H__
 #define __OPENEXR_API_H__
 
@@ -31,19 +30,17 @@ extern "C" {
 
 #include <stdio.h>
 
-void		imb_initopenexr					(void);
-void		imb_exitopenexr					(void);
+void imb_initopenexr(void);
+void imb_exitopenexr(void);
 
-int		imb_is_a_openexr			(const unsigned char *mem);
+int imb_is_a_openexr(const unsigned char *mem);
 
-int		imb_save_openexr			(struct ImBuf *ibuf, const char *name, int flags);
+int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags);
 
-struct ImBuf *imb_load_openexr		(const unsigned char *mem, size_t size, int flags, char *colorspace);
+struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags, char *colorspace);
 
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif /* __OPENEXR_API_H */

@@ -37,8 +37,8 @@ extern PyTypeObject ViewEdge_Type;
 
 /*---------------------------Python BPy_ViewEdge structure definition----------*/
 typedef struct {
-	BPy_Interface1D py_if1D;
-	ViewEdge *ve;
+  BPy_Interface1D py_if1D;
+  ViewEdge *ve;
 } BPy_ViewEdge;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

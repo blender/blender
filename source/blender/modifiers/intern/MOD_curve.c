@@ -45,128 +45,124 @@
 
 static void initData(ModifierData *md)
 {
-	CurveModifierData *cmd = (CurveModifierData *) md;
+  CurveModifierData *cmd = (CurveModifierData *)md;
 
-	cmd->defaxis = MOD_CURVE_POSX;
+  cmd->defaxis = MOD_CURVE_POSX;
 }
 
-static void  requiredDataMask(Object *UNUSED(ob), ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
 {
-	CurveModifierData *cmd = (CurveModifierData *)md;
+  CurveModifierData *cmd = (CurveModifierData *)md;
 
-	/* ask for vertexgroups if we need them */
-	if (cmd->name[0] != '\0') {
-		r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-	}
+  /* ask for vertexgroups if we need them */
+  if (cmd->name[0] != '\0') {
+    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  }
 }
 
 static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(userRenderParams))
 {
-	CurveModifierData *cmd = (CurveModifierData *) md;
+  CurveModifierData *cmd = (CurveModifierData *)md;
 
-	return !cmd->object;
+  return !cmd->object;
 }
 
-static void foreachObjectLink(
-        ModifierData *md, Object *ob,
-        ObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
-	CurveModifierData *cmd = (CurveModifierData *) md;
+  CurveModifierData *cmd = (CurveModifierData *)md;
 
-	walk(userData, ob, &cmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, &cmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-	CurveModifierData *cmd = (CurveModifierData *)md;
-	if (cmd->object != NULL) {
-		/* TODO(sergey): Need to do the same eval_flags trick for path
-		 * as happening in legacy depsgraph callback.
-		 */
-		/* TODO(sergey): Currently path is evaluated as a part of modifier stack,
-		 * might be changed in the future.
-		 */
-		DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_TRANSFORM, "Curve Modifier");
-		DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_GEOMETRY, "Curve Modifier");
-		DEG_add_special_eval_flag(ctx->node, &cmd->object->id, DAG_EVAL_NEED_CURVE_PATH);
-	}
+  CurveModifierData *cmd = (CurveModifierData *)md;
+  if (cmd->object != NULL) {
+    /* TODO(sergey): Need to do the same eval_flags trick for path
+     * as happening in legacy depsgraph callback.
+     */
+    /* TODO(sergey): Currently path is evaluated as a part of modifier stack,
+     * might be changed in the future.
+     */
+    DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_TRANSFORM, "Curve Modifier");
+    DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_GEOMETRY, "Curve Modifier");
+    DEG_add_special_eval_flag(ctx->node, &cmd->object->id, DAG_EVAL_NEED_CURVE_PATH);
+  }
 
-	DEG_add_modifier_to_transform_relation(ctx->node, "Curve Modifier");
+  DEG_add_modifier_to_transform_relation(ctx->node, "Curve Modifier");
 }
 
-static void deformVerts(
-        ModifierData *md,
-        const ModifierEvalContext *ctx,
-        Mesh *mesh,
-        float (*vertexCos)[3],
-        int numVerts)
+static void deformVerts(ModifierData *md,
+                        const ModifierEvalContext *ctx,
+                        Mesh *mesh,
+                        float (*vertexCos)[3],
+                        int numVerts)
 {
-	CurveModifierData *cmd = (CurveModifierData *) md;
-	Mesh *mesh_src = NULL;
+  CurveModifierData *cmd = (CurveModifierData *)md;
+  Mesh *mesh_src = NULL;
 
-	if (ctx->object->type == OB_MESH && cmd->name[0] != '\0') {
-		/* mesh_src is only needed for vgroups. */
-		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-	}
+  if (ctx->object->type == OB_MESH && cmd->name[0] != '\0') {
+    /* mesh_src is only needed for vgroups. */
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  }
 
-	struct MDeformVert *dvert = NULL;
-	int defgrp_index = -1;
-	MOD_get_vgroup(ctx->object, mesh_src, cmd->name, &dvert, &defgrp_index);
+  struct MDeformVert *dvert = NULL;
+  int defgrp_index = -1;
+  MOD_get_vgroup(ctx->object, mesh_src, cmd->name, &dvert, &defgrp_index);
 
-	/* silly that defaxis and curve_deform_verts are off by 1
-	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(cmd->object, ctx->object,
-	                   vertexCos, numVerts, dvert, defgrp_index, cmd->defaxis - 1);
+  /* silly that defaxis and curve_deform_verts are off by 1
+   * but leave for now to save having to call do_versions */
+  curve_deform_verts(
+      cmd->object, ctx->object, vertexCos, numVerts, dvert, defgrp_index, cmd->defaxis - 1);
 
-	if (!ELEM(mesh_src, NULL, mesh)) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
-static void deformVertsEM(
-        ModifierData *md,
-        const ModifierEvalContext *ctx,
-        struct BMEditMesh *em,
-        Mesh *mesh,
-        float (*vertexCos)[3],
-        int numVerts)
+static void deformVertsEM(ModifierData *md,
+                          const ModifierEvalContext *ctx,
+                          struct BMEditMesh *em,
+                          Mesh *mesh,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
-	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 
-	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
+  deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
-	if (!ELEM(mesh_src, NULL, mesh)) {
-		BKE_id_free(NULL, mesh_src);
-	}
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
-
 
 ModifierTypeInfo modifierType_Curve = {
-	/* name */              "Curve",
-	/* structName */        "CurveModifierData",
-	/* structSize */        sizeof(CurveModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs |
-	                        eModifierTypeFlag_AcceptsLattice |
-	                        eModifierTypeFlag_SupportsEditmode,
+    /* name */ "Curve",
+    /* structName */ "CurveModifierData",
+    /* structSize */ sizeof(CurveModifierData),
+    /* type */ eModifierTypeType_OnlyDeform,
+    /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsLattice |
+        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          modifier_copyData_generic,
+    /* copyData */ modifier_copyData_generic,
 
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+    /* deformVerts */ deformVerts,
+    /* deformMatrices */ NULL,
+    /* deformVertsEM */ deformVertsEM,
+    /* deformMatricesEM */ NULL,
+    /* applyModifier */ NULL,
 
-	/* initData */          initData,
-	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */  NULL,
-	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   NULL,
+    /* initData */ initData,
+    /* requiredDataMask */ requiredDataMask,
+    /* freeData */ NULL,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ NULL,
+    /* dependsOnNormals */ NULL,
+    /* foreachObjectLink */ foreachObjectLink,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ NULL,
 };

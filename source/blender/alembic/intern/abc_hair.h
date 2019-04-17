@@ -29,36 +29,36 @@ struct ParticleSystem;
 /* ************************************************************************** */
 
 class AbcHairWriter : public AbcObjectWriter {
-	ParticleSystem *m_psys;
+  ParticleSystem *m_psys;
 
-	Alembic::AbcGeom::OCurvesSchema m_schema;
-	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
+  Alembic::AbcGeom::OCurvesSchema m_schema;
+  Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
 
-	bool m_uv_warning_shown;
+  bool m_uv_warning_shown;
 
-public:
-	AbcHairWriter(Object *ob,
-	              AbcTransformWriter *parent,
-	              uint32_t time_sampling,
-	              ExportSettings &settings,
-	              ParticleSystem *psys);
+ public:
+  AbcHairWriter(Object *ob,
+                AbcTransformWriter *parent,
+                uint32_t time_sampling,
+                ExportSettings &settings,
+                ParticleSystem *psys);
 
-private:
-	virtual void do_write();
+ private:
+  virtual void do_write();
 
-	void write_hair_sample(struct Mesh *mesh,
-	                       ParticleSettings *part,
-	                       std::vector<Imath::V3f> &verts,
-	                       std::vector<Imath::V3f> &norm_values,
-	                       std::vector<Imath::V2f> &uv_values,
-	                       std::vector<int32_t> &hvertices);
+  void write_hair_sample(struct Mesh *mesh,
+                         ParticleSettings *part,
+                         std::vector<Imath::V3f> &verts,
+                         std::vector<Imath::V3f> &norm_values,
+                         std::vector<Imath::V2f> &uv_values,
+                         std::vector<int32_t> &hvertices);
 
-	void write_hair_child_sample(struct Mesh *mesh,
-	                             ParticleSettings *part,
-	                             std::vector<Imath::V3f> &verts,
-	                             std::vector<Imath::V3f> &norm_values,
-	                             std::vector<Imath::V2f> &uv_values,
-	                             std::vector<int32_t> &hvertices);
+  void write_hair_child_sample(struct Mesh *mesh,
+                               ParticleSettings *part,
+                               std::vector<Imath::V3f> &verts,
+                               std::vector<Imath::V3f> &norm_values,
+                               std::vector<Imath::V2f> &uv_values,
+                               std::vector<int32_t> &hvertices);
 };
 
-#endif  /* __ABC_HAIR_H__ */
+#endif /* __ABC_HAIR_H__ */

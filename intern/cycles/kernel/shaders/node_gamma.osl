@@ -16,10 +16,7 @@
 
 #include "stdosl.h"
 
-shader node_gamma(
-	color ColorIn = 0.8,
-	float Gamma = 1.0,
-	output color ColorOut = 0.0)
+shader node_gamma(color ColorIn = 0.8, float Gamma = 1.0, output color ColorOut = 0.0)
 {
-	ColorOut = pow(ColorIn, Gamma);
+  ColorOut = pow(ColorIn, Gamma);
 }

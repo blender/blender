@@ -27,47 +27,47 @@
 struct wmEvent;
 
 typedef struct NumInput {
-	/** idx_max < NUM_MAX_ELEMENTS */
-	short  idx_max;
-	int    unit_sys;
-	/** Each value can have a different type */
-	int    unit_type[NUM_MAX_ELEMENTS];
-	bool   unit_use_radians;
+  /** idx_max < NUM_MAX_ELEMENTS */
+  short idx_max;
+  int unit_sys;
+  /** Each value can have a different type */
+  int unit_type[NUM_MAX_ELEMENTS];
+  bool unit_use_radians;
 
-	/** Flags affecting all values' behavior */
-	short  flag;
-	/** Per-value flags */
-	short  val_flag[NUM_MAX_ELEMENTS];
-	/** Direct value of the input */
-	float  val[NUM_MAX_ELEMENTS];
-	/** Original value of the input, for reset */
-	float  val_org[NUM_MAX_ELEMENTS];
-	/** Increment steps */
-	float  val_inc[NUM_MAX_ELEMENTS];
+  /** Flags affecting all values' behavior */
+  short flag;
+  /** Per-value flags */
+  short val_flag[NUM_MAX_ELEMENTS];
+  /** Direct value of the input */
+  float val[NUM_MAX_ELEMENTS];
+  /** Original value of the input, for reset */
+  float val_org[NUM_MAX_ELEMENTS];
+  /** Increment steps */
+  float val_inc[NUM_MAX_ELEMENTS];
 
-	/** Active element/value */
-	short  idx;
-	/** String as typed by user for edited value (we assume ASCII world!) */
-	char   str[NUM_STR_REP_LEN];
-	/** Current position of cursor in edited value str
-	 * (first byte of "current" letter, so 0 for an empty str) */
-	int    str_cur;
+  /** Active element/value */
+  short idx;
+  /** String as typed by user for edited value (we assume ASCII world!) */
+  char str[NUM_STR_REP_LEN];
+  /** Current position of cursor in edited value str
+   * (first byte of "current" letter, so 0 for an empty str) */
+  int str_cur;
 } NumInput;
 
 /* NumInput.flag */
 enum {
-	NUM_AFFECT_ALL      = (1 << 0),
-	/* (1 << 9) and above are reserved for internal flags! */
+  NUM_AFFECT_ALL = (1 << 0),
+  /* (1 << 9) and above are reserved for internal flags! */
 };
 
 /* NumInput.val_flag[] */
 enum {
-	/* Public! */
-	NUM_NULL_ONE        = (1 << 0),
-	NUM_NO_NEGATIVE     = (1 << 1),
-	NUM_NO_ZERO         = (1 << 2),
-	NUM_NO_FRACTION     = (1 << 3),
-	/* (1 << 9) and above are reserved for internal flags! */
+  /* Public! */
+  NUM_NULL_ONE = (1 << 0),
+  NUM_NO_NEGATIVE = (1 << 1),
+  NUM_NO_ZERO = (1 << 2),
+  NUM_NO_FRACTION = (1 << 3),
+  /* (1 << 9) and above are reserved for internal flags! */
 };
 
 struct UnitSettings;
@@ -92,11 +92,12 @@ bool hasNumInput(const NumInput *n);
 bool applyNumInput(NumInput *n, float *vec);
 bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event);
 
-#define NUM_MODAL_INCREMENT_UP   18
+#define NUM_MODAL_INCREMENT_UP 18
 #define NUM_MODAL_INCREMENT_DOWN 19
 
-bool user_string_to_number(bContext *C, const char *str, const struct UnitSettings *unit, int type, double *r_value);
+bool user_string_to_number(
+    bContext *C, const char *str, const struct UnitSettings *unit, int type, double *r_value);
 
 /** \} */
 
-#endif  /* __ED_NUMINPUT_H__ */
+#endif /* __ED_NUMINPUT_H__ */

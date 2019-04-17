@@ -19,10 +19,10 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	..
-	../../../intern/guardedalloc
-	../../../source/blender/blenlib
+  .
+  ..
+  ../../../intern/guardedalloc
+  ../../../source/blender/blenlib
 )
 
 include_directories(${INC})

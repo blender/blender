@@ -21,7 +21,6 @@
  * \ingroup shader_fx
  */
 
-
 #include <stdio.h>
 
 #include "MEM_guardedalloc.h"
@@ -36,15 +35,15 @@
 void shaderfx_type_init(ShaderFxTypeInfo *types[])
 {
 #define INIT_FX_TYPE(typeName) (types[eShaderFxType_##typeName] = &shaderfx_Type_##typeName)
-	INIT_FX_TYPE(Blur);
-	INIT_FX_TYPE(Colorize);
-	INIT_FX_TYPE(Flip);
-	INIT_FX_TYPE(Glow);
-	INIT_FX_TYPE(Light);
-	INIT_FX_TYPE(Pixel);
-	INIT_FX_TYPE(Rim);
-	INIT_FX_TYPE(Shadow);
-	INIT_FX_TYPE(Swirl);
-	INIT_FX_TYPE(Wave);
+  INIT_FX_TYPE(Blur);
+  INIT_FX_TYPE(Colorize);
+  INIT_FX_TYPE(Flip);
+  INIT_FX_TYPE(Glow);
+  INIT_FX_TYPE(Light);
+  INIT_FX_TYPE(Pixel);
+  INIT_FX_TYPE(Rim);
+  INIT_FX_TYPE(Shadow);
+  INIT_FX_TYPE(Swirl);
+  INIT_FX_TYPE(Wave);
 #undef INIT_FX_TYPE
 }

@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class FilterNode : public Node {
-public:
-	FilterNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  FilterNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* __COM_FILTERNODE_H__ */
+#endif /* __COM_FILTERNODE_H__ */

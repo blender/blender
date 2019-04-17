@@ -21,62 +21,60 @@
  * \ingroup GHOST
  */
 
-
 #ifndef __GHOST_SYSTEMPATHSWIN32_H__
 #define __GHOST_SYSTEMPATHSWIN32_H__
 
 #ifndef WIN32
-#error WIN32 only!
-#endif // WIN32
+#  error WIN32 only!
+#endif  // WIN32
 
 #undef _WIN32_WINNT
-#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define _WIN32_WINNT 0x501  // require Windows XP or newer
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "GHOST_SystemPaths.h"
-
 
 /**
  * WIN32 Implementation of GHOST_SystemPaths class.
  * \see GHOST_SystemPaths.
  */
 class GHOST_SystemPathsWin32 : public GHOST_SystemPaths {
-public:
-	/**
-	 * Constructor.
-	 */
-	GHOST_SystemPathsWin32();
+ public:
+  /**
+   * Constructor.
+   */
+  GHOST_SystemPathsWin32();
 
-	/**
-	 * Destructor.
-	 */
-	~GHOST_SystemPathsWin32();
+  /**
+   * Destructor.
+   */
+  ~GHOST_SystemPathsWin32();
 
-	/**
-	 * Determine the base dir in which shared resources are located. It will first try to use
-	 * "unpack and run" path, then look for properly installed path, including versioning.
-	 * \return Unsigned char string pointing to system dir (eg /usr/share/).
-	 */
-	const GHOST_TUns8 *getSystemDir(int version, const char *versionstr) const;
+  /**
+   * Determine the base dir in which shared resources are located. It will first try to use
+   * "unpack and run" path, then look for properly installed path, including versioning.
+   * \return Unsigned char string pointing to system dir (eg /usr/share/).
+   */
+  const GHOST_TUns8 *getSystemDir(int version, const char *versionstr) const;
 
-	/**
-	 * Determine the base dir in which user configuration is stored, including versioning.
-	 * If needed, it will create the base directory.
-	 * \return Unsigned char string pointing to user dir (eg ~/).
-	 */
-	const GHOST_TUns8 *getUserDir(int version, const char *versionstr) const;
+  /**
+   * Determine the base dir in which user configuration is stored, including versioning.
+   * If needed, it will create the base directory.
+   * \return Unsigned char string pointing to user dir (eg ~/).
+   */
+  const GHOST_TUns8 *getUserDir(int version, const char *versionstr) const;
 
-	/**
-	 * Determine the directory of the current binary
-	 * \return Unsigned char string pointing to the binary dir
-	 */
-	const GHOST_TUns8 *getBinaryDir() const;
+  /**
+   * Determine the directory of the current binary
+   * \return Unsigned char string pointing to the binary dir
+   */
+  const GHOST_TUns8 *getBinaryDir() const;
 
-	/**
-	 * Add the file to the operating system most recently used files
-	 */
-	void addToSystemRecentFiles(const char *filename) const;
+  /**
+   * Add the file to the operating system most recently used files
+   */
+  void addToSystemRecentFiles(const char *filename) const;
 };
 
-#endif // __GHOST_SYSTEMPATHSWIN32_H__
+#endif  // __GHOST_SYSTEMPATHSWIN32_H__

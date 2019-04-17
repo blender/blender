@@ -25,11 +25,11 @@
 #include "kernel/filter/filter_kernel.h"
 
 #ifdef KERNEL_STUB
-#  define STUB_ASSERT(arch, name) assert(!(#name " kernel stub for architecture " #arch " was called!"))
+#  define STUB_ASSERT(arch, name) \
+    assert(!(#name " kernel stub for architecture " #arch " was called!"))
 #endif
 
 CCL_NAMESPACE_BEGIN
-
 
 /* Denoise filter */
 
@@ -42,23 +42,25 @@ void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
                                                      float *sampleVariance,
                                                      float *sampleVarianceV,
                                                      float *bufferVariance,
-                                                     int* prefilter_rect,
+                                                     int *prefilter_rect,
                                                      int buffer_pass_stride,
                                                      int buffer_denoising_offset)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_divide_shadow);
+  STUB_ASSERT(KERNEL_ARCH, filter_divide_shadow);
 #else
-	kernel_filter_divide_shadow(sample, tile_info,
-	                            x, y,
-	                            unfilteredA,
-	                            unfilteredB,
-	                            sampleVariance,
-	                            sampleVarianceV,
-	                            bufferVariance,
-	                            load_int4(prefilter_rect),
-	                            buffer_pass_stride,
-	                            buffer_denoising_offset);
+  kernel_filter_divide_shadow(sample,
+                              tile_info,
+                              x,
+                              y,
+                              unfilteredA,
+                              unfilteredB,
+                              sampleVariance,
+                              sampleVarianceV,
+                              bufferVariance,
+                              load_int4(prefilter_rect),
+                              buffer_pass_stride,
+                              buffer_denoising_offset);
 #endif
 }
 
@@ -68,23 +70,28 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
                                                    int v_offset,
                                                    int x,
                                                    int y,
-                                                   float *mean, float *variance,
+                                                   float *mean,
+                                                   float *variance,
                                                    float scale,
-                                                   int* prefilter_rect,
+                                                   int *prefilter_rect,
                                                    int buffer_pass_stride,
                                                    int buffer_denoising_offset)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_get_feature);
+  STUB_ASSERT(KERNEL_ARCH, filter_get_feature);
 #else
-	kernel_filter_get_feature(sample, tile_info,
-	                          m_offset, v_offset,
-	                          x, y,
-	                          mean, variance,
-	                          scale,
-	                          load_int4(prefilter_rect),
-	                          buffer_pass_stride,
-	                          buffer_denoising_offset);
+  kernel_filter_get_feature(sample,
+                            tile_info,
+                            m_offset,
+                            v_offset,
+                            x,
+                            y,
+                            mean,
+                            variance,
+                            scale,
+                            load_int4(prefilter_rect),
+                            buffer_pass_stride,
+                            buffer_denoising_offset);
 #endif
 }
 
@@ -95,16 +102,18 @@ void KERNEL_FUNCTION_FULL_NAME(filter_write_feature)(int sample,
                                                      float *from,
                                                      float *buffer,
                                                      int out_offset,
-                                                     int* prefilter_rect)
+                                                     int *prefilter_rect)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_write_feature);
+  STUB_ASSERT(KERNEL_ARCH, filter_write_feature);
 #else
-	kernel_filter_write_feature(sample, x, y, load_int4(buffer_params), from, buffer, out_offset, load_int4(prefilter_rect));
+  kernel_filter_write_feature(
+      sample, x, y, load_int4(buffer_params), from, buffer, out_offset, load_int4(prefilter_rect));
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(filter_detect_outliers)(int x, int y,
+void KERNEL_FUNCTION_FULL_NAME(filter_detect_outliers)(int x,
+                                                       int y,
                                                        ccl_global float *image,
                                                        ccl_global float *variance,
                                                        ccl_global float *depth,
@@ -113,35 +122,31 @@ void KERNEL_FUNCTION_FULL_NAME(filter_detect_outliers)(int x, int y,
                                                        int pass_stride)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_detect_outliers);
+  STUB_ASSERT(KERNEL_ARCH, filter_detect_outliers);
 #else
-	kernel_filter_detect_outliers(x, y, image, variance, depth, output, load_int4(rect), pass_stride);
+  kernel_filter_detect_outliers(
+      x, y, image, variance, depth, output, load_int4(rect), pass_stride);
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(filter_combine_halves)(int x, int y,
-                                                      float *mean,
-                                                      float *variance,
-                                                      float *a,
-                                                      float *b,
-                                                      int* prefilter_rect,
-                                                      int r)
+void KERNEL_FUNCTION_FULL_NAME(filter_combine_halves)(
+    int x, int y, float *mean, float *variance, float *a, float *b, int *prefilter_rect, int r)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_combine_halves);
+  STUB_ASSERT(KERNEL_ARCH, filter_combine_halves);
 #else
-	kernel_filter_combine_halves(x, y, mean, variance, a, b, load_int4(prefilter_rect), r);
+  kernel_filter_combine_halves(x, y, mean, variance, a, b, load_int4(prefilter_rect), r);
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float* buffer,
+void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float *buffer,
                                                            TileInfo *tile_info,
                                                            int x,
                                                            int y,
                                                            int storage_ofs,
                                                            float *transform,
                                                            int *rank,
-                                                           int* prefilter_rect,
+                                                           int *prefilter_rect,
                                                            int pass_stride,
                                                            int frame_stride,
                                                            bool use_time,
@@ -149,21 +154,22 @@ void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float* buffer,
                                                            float pca_threshold)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_construct_transform);
+  STUB_ASSERT(KERNEL_ARCH, filter_construct_transform);
 #else
-	rank += storage_ofs;
-	transform += storage_ofs*TRANSFORM_SIZE;
-	kernel_filter_construct_transform(buffer,
-	                                  tile_info,
-	                                  x, y,
-	                                  load_int4(prefilter_rect),
-	                                  pass_stride,
-	                                  frame_stride,
-	                                  use_time,
-	                                  transform,
-	                                  rank,
-	                                  radius,
-	                                  pca_threshold);
+  rank += storage_ofs;
+  transform += storage_ofs * TRANSFORM_SIZE;
+  kernel_filter_construct_transform(buffer,
+                                    tile_info,
+                                    x,
+                                    y,
+                                    load_int4(prefilter_rect),
+                                    pass_stride,
+                                    frame_stride,
+                                    use_time,
+                                    transform,
+                                    rank,
+                                    radius,
+                                    pca_threshold);
 #endif
 }
 
@@ -181,44 +187,40 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_difference)(int dx,
                                                            float k_2)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_nlm_calc_difference);
+  STUB_ASSERT(KERNEL_ARCH, filter_nlm_calc_difference);
 #else
-	kernel_filter_nlm_calc_difference(dx, dy,
-	                                  weight_image,
-	                                  variance_image,
-	                                  scale_image,
-	                                  difference_image,
-	                                  load_int4(rect),
-	                                  stride,
-	                                  channel_offset,
-	                                  frame_offset,
-	                                  a, k_2);
+  kernel_filter_nlm_calc_difference(dx,
+                                    dy,
+                                    weight_image,
+                                    variance_image,
+                                    scale_image,
+                                    difference_image,
+                                    load_int4(rect),
+                                    stride,
+                                    channel_offset,
+                                    frame_offset,
+                                    a,
+                                    k_2);
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(filter_nlm_blur)(float *difference_image,
-                                                float *out_image,
-                                                int *rect,
-                                                int stride,
-                                                int f)
+void KERNEL_FUNCTION_FULL_NAME(filter_nlm_blur)(
+    float *difference_image, float *out_image, int *rect, int stride, int f)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_nlm_blur);
+  STUB_ASSERT(KERNEL_ARCH, filter_nlm_blur);
 #else
-	kernel_filter_nlm_blur(difference_image, out_image, load_int4(rect), stride, f);
+  kernel_filter_nlm_blur(difference_image, out_image, load_int4(rect), stride, f);
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_weight)(float *difference_image,
-                                                       float *out_image,
-                                                       int *rect,
-                                                       int stride,
-                                                       int f)
+void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_weight)(
+    float *difference_image, float *out_image, int *rect, int stride, int f)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_nlm_calc_weight);
+  STUB_ASSERT(KERNEL_ARCH, filter_nlm_calc_weight);
 #else
-	kernel_filter_nlm_calc_weight(difference_image, out_image, load_int4(rect), stride, f);
+  kernel_filter_nlm_calc_weight(difference_image, out_image, load_int4(rect), stride, f);
 #endif
 }
 
@@ -235,17 +237,19 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_update_output)(int dx,
                                                          int f)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_nlm_update_output);
+  STUB_ASSERT(KERNEL_ARCH, filter_nlm_update_output);
 #else
-	kernel_filter_nlm_update_output(dx, dy,
-	                                difference_image,
-	                                image,
-	                                temp_image,
-	                                out_image,
-	                                accum_image,
-	                                load_int4(rect),
-	                                channel_offset,
-	                                stride, f);
+  kernel_filter_nlm_update_output(dx,
+                                  dy,
+                                  difference_image,
+                                  image,
+                                  temp_image,
+                                  out_image,
+                                  accum_image,
+                                  load_int4(rect),
+                                  channel_offset,
+                                  stride,
+                                  f);
 #endif
 }
 
@@ -267,19 +271,24 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
                                                              bool use_time)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_nlm_construct_gramian);
+  STUB_ASSERT(KERNEL_ARCH, filter_nlm_construct_gramian);
 #else
-	kernel_filter_nlm_construct_gramian(dx, dy, t,
-	                                    difference_image,
-	                                    buffer,
-	                                    transform, rank,
-	                                    XtWX, XtWY,
-	                                    load_int4(rect),
-	                                    load_int4(filter_window),
-	                                    stride, f,
-	                                    pass_stride,
-	                                    frame_offset,
-	                                    use_time);
+  kernel_filter_nlm_construct_gramian(dx,
+                                      dy,
+                                      t,
+                                      difference_image,
+                                      buffer,
+                                      transform,
+                                      rank,
+                                      XtWX,
+                                      XtWY,
+                                      load_int4(rect),
+                                      load_int4(filter_window),
+                                      stride,
+                                      f,
+                                      pass_stride,
+                                      frame_offset,
+                                      use_time);
 #endif
 }
 
@@ -289,9 +298,9 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_normalize)(float *out_image,
                                                      int stride)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_nlm_normalize);
+  STUB_ASSERT(KERNEL_ARCH, filter_nlm_normalize);
 #else
-	kernel_filter_nlm_normalize(out_image, accum_image, load_int4(rect), stride);
+  kernel_filter_nlm_normalize(out_image, accum_image, load_int4(rect), stride);
 #endif
 }
 
@@ -306,12 +315,12 @@ void KERNEL_FUNCTION_FULL_NAME(filter_finalize)(int x,
                                                 int sample)
 {
 #ifdef KERNEL_STUB
-	STUB_ASSERT(KERNEL_ARCH, filter_finalize);
+  STUB_ASSERT(KERNEL_ARCH, filter_finalize);
 #else
-	XtWX += storage_ofs*XTWX_SIZE;
-	XtWY += storage_ofs*XTWY_SIZE;
-	rank += storage_ofs;
-	kernel_filter_finalize(x, y, buffer, rank, 1, XtWX, XtWY, load_int4(buffer_params), sample);
+  XtWX += storage_ofs * XTWX_SIZE;
+  XtWY += storage_ofs * XTWY_SIZE;
+  rank += storage_ofs;
+  kernel_filter_finalize(x, y, buffer, rank, 1, XtWX, XtWY, load_int4(buffer_params), sample);
 #endif
 }
 

@@ -107,77 +107,86 @@ class ExecutionGroup;
  * \brief the ExecutionSystem contains the whole compositor tree.
  */
 class ExecutionSystem {
-public:
-	typedef std::vector<NodeOperation*> Operations;
-	typedef std::vector<ExecutionGroup*> Groups;
+ public:
+  typedef std::vector<NodeOperation *> Operations;
+  typedef std::vector<ExecutionGroup *> Groups;
 
-private:
-	/**
-	 * \brief the context used during execution
-	 */
-	CompositorContext m_context;
+ private:
+  /**
+   * \brief the context used during execution
+   */
+  CompositorContext m_context;
 
-	/**
-	 * \brief vector of operations
-	 */
-	Operations m_operations;
+  /**
+   * \brief vector of operations
+   */
+  Operations m_operations;
 
-	/**
-	 * \brief vector of groups
-	 */
-	Groups m_groups;
+  /**
+   * \brief vector of groups
+   */
+  Groups m_groups;
 
-private: //methods
-	/**
-	 * find all execution group with output nodes
-	 */
-	void findOutputExecutionGroup(vector<ExecutionGroup *> *result, CompositorPriority priority) const;
+ private:  //methods
+  /**
+   * find all execution group with output nodes
+   */
+  void findOutputExecutionGroup(vector<ExecutionGroup *> *result,
+                                CompositorPriority priority) const;
 
-	/**
-	 * find all execution group with output nodes
-	 */
-	void findOutputExecutionGroup(vector<ExecutionGroup *> *result) const;
+  /**
+   * find all execution group with output nodes
+   */
+  void findOutputExecutionGroup(vector<ExecutionGroup *> *result) const;
 
-public:
-	/**
-	 * \brief Create a new ExecutionSystem and initialize it with the
-	 * editingtree.
-	 *
-	 * \param editingtree: [bNodeTree *]
-	 * \param rendering: [true false]
-	 */
-	ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
-	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,
-	                const char *viewName);
+ public:
+  /**
+   * \brief Create a new ExecutionSystem and initialize it with the
+   * editingtree.
+   *
+   * \param editingtree: [bNodeTree *]
+   * \param rendering: [true false]
+   */
+  ExecutionSystem(RenderData *rd,
+                  Scene *scene,
+                  bNodeTree *editingtree,
+                  bool rendering,
+                  bool fastcalculation,
+                  const ColorManagedViewSettings *viewSettings,
+                  const ColorManagedDisplaySettings *displaySettings,
+                  const char *viewName);
 
-	/**
-	 * Destructor
-	 */
-	~ExecutionSystem();
+  /**
+   * Destructor
+   */
+  ~ExecutionSystem();
 
-	void set_operations(const Operations &operations, const Groups &groups);
+  void set_operations(const Operations &operations, const Groups &groups);
 
-	/**
-	 * \brief execute this system
-	 * - initialize the NodeOperation's and ExecutionGroup's
-	 * - schedule the output ExecutionGroup's based on their priority
-	 * - deinitialize the ExecutionGroup's and NodeOperation's
-	 */
-	void execute();
+  /**
+   * \brief execute this system
+   * - initialize the NodeOperation's and ExecutionGroup's
+   * - schedule the output ExecutionGroup's based on their priority
+   * - deinitialize the ExecutionGroup's and NodeOperation's
+   */
+  void execute();
 
-	/**
-	 * \brief get the reference to the compositor context
-	 */
-	const CompositorContext &getContext() const { return this->m_context; }
+  /**
+   * \brief get the reference to the compositor context
+   */
+  const CompositorContext &getContext() const
+  {
+    return this->m_context;
+  }
 
-private:
-	void executeGroups(CompositorPriority priority);
+ private:
+  void executeGroups(CompositorPriority priority);
 
-	/* allow the DebugInfo class to look at internals */
-	friend class DebugInfo;
+  /* allow the DebugInfo class to look at internals */
+  friend class DebugInfo;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
 #endif
 };
 

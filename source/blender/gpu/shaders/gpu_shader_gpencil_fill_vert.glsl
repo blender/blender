@@ -6,6 +6,6 @@ out vec2 texCoord_interp;
 
 void main(void)
 {
-	gl_Position = ModelViewProjectionMatrix * vec4( pos, 1.0 );
-	texCoord_interp = texCoord;
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  texCoord_interp = texCoord;
 }

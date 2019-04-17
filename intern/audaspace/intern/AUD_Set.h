@@ -21,7 +21,7 @@
 /** \file
  * \ingroup audaspace
  */
- 
+
 #ifndef __AUD_SET_H__
 #define __AUD_SET_H__
 
@@ -67,4 +67,4 @@ extern void *AUD_getSet(void *set);
 }
 #endif
 
-#endif //__AUD_SET_H__
+#endif  //__AUD_SET_H__

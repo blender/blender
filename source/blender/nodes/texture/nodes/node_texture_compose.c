@@ -21,41 +21,45 @@
  * \ingroup texnodes
  */
 
-
 #include "node_texture_util.h"
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate inputs[] = {
-	{ SOCK_FLOAT, 1, N_("Red"),   0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, N_("Green"), 0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, N_("Blue"),  0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ -1, 0, "" },
+    {SOCK_FLOAT, 1, N_("Red"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Green"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Blue"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate outputs[] = {
-	{ SOCK_RGBA, 0, N_("Color") },
-	{ -1, 0, "" },
+    {SOCK_RGBA, 0, N_("Color")},
+    {-1, 0, ""},
 };
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
-	int i;
-	for (i = 0; i < 4; i++)
-		out[i] = tex_input_value(in[i], p, thread);
+  int i;
+  for (i = 0; i < 4; i++)
+    out[i] = tex_input_value(in[i], p, thread);
 }
 
-static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)
+static void exec(void *data,
+                 int UNUSED(thread),
+                 bNode *node,
+                 bNodeExecData *execdata,
+                 bNodeStack **in,
+                 bNodeStack **out)
 {
-	tex_output(node, execdata, in, out[0], &colorfn, data);
+  tex_output(node, execdata, in, out[0], &colorfn, data);
 }
 
 void register_node_type_tex_compose(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	tex_node_type_base(&ntype, TEX_NODE_COMPOSE, "Combine RGBA", NODE_CLASS_OP_COLOR, 0);
-	node_type_socket_templates(&ntype, inputs, outputs);
-	node_type_exec(&ntype, NULL, NULL, exec);
+  tex_node_type_base(&ntype, TEX_NODE_COMPOSE, "Combine RGBA", NODE_CLASS_OP_COLOR, 0);
+  node_type_socket_templates(&ntype, inputs, outputs);
+  node_type_exec(&ntype, NULL, NULL, exec);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

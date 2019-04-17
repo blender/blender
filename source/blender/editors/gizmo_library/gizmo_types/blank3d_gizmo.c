@@ -25,7 +25,6 @@
  * \brief Gizmo to use as a fallback (catch events).
  */
 
-
 #include "BKE_context.h"
 
 #include "ED_view3d.h"
@@ -38,22 +37,23 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-
 static void gizmo_blank_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
 {
-	/* pass */
+  /* pass */
 }
 
-static int gizmo_blank_invoke(
-        bContext *UNUSED(C), wmGizmo *UNUSED(gz), const wmEvent *UNUSED(event))
+static int gizmo_blank_invoke(bContext *UNUSED(C),
+                              wmGizmo *UNUSED(gz),
+                              const wmEvent *UNUSED(event))
 {
-	return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_RUNNING_MODAL;
 }
 
-static int gizmo_blank_test_select(
-        bContext *UNUSED(C), wmGizmo *UNUSED(gz), const int UNUSED(mval[2]))
+static int gizmo_blank_test_select(bContext *UNUSED(C),
+                                   wmGizmo *UNUSED(gz),
+                                   const int UNUSED(mval[2]))
 {
-	return 0;
+  return 0;
 }
 
 /* -------------------------------------------------------------------- */
@@ -63,20 +63,20 @@ static int gizmo_blank_test_select(
 
 static void GIZMO_GT_blank_3d(wmGizmoType *gzt)
 {
-	/* identifiers */
-	gzt->idname = "GIZMO_GT_blank_3d";
+  /* identifiers */
+  gzt->idname = "GIZMO_GT_blank_3d";
 
-	/* api callbacks */
-	gzt->draw = gizmo_blank_draw;
-	gzt->invoke = gizmo_blank_invoke;
-	gzt->test_select = gizmo_blank_test_select;
+  /* api callbacks */
+  gzt->draw = gizmo_blank_draw;
+  gzt->invoke = gizmo_blank_invoke;
+  gzt->test_select = gizmo_blank_test_select;
 
-	gzt->struct_size = sizeof(wmGizmo);
+  gzt->struct_size = sizeof(wmGizmo);
 }
 
 void ED_gizmotypes_blank_3d(void)
 {
-	WM_gizmotype_append(GIZMO_GT_blank_3d);
+  WM_gizmotype_append(GIZMO_GT_blank_3d);
 }
 
 /** \} */

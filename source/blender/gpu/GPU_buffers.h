@@ -41,44 +41,46 @@ struct PBVH;
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* build */
-GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
-        const int (*face_vert_indices)[3],
-        const struct MPoly *mpoly, const struct MLoop *mloop, const struct MLoopTri *looptri,
-        const struct MVert *verts,
-        const int *face_indices,
-        const int  face_indices_len);
+GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
+                                              const struct MPoly *mpoly,
+                                              const struct MLoop *mloop,
+                                              const struct MLoopTri *looptri,
+                                              const struct MVert *verts,
+                                              const int *face_indices,
+                                              const int face_indices_len);
 
-GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
-        int totgrid,
-        unsigned int **grid_hidden);
+GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, unsigned int **grid_hidden);
 
 GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
 
 /* update */
 
 enum {
-	GPU_PBVH_BUFFERS_SHOW_MASK = (1 << 1),
+  GPU_PBVH_BUFFERS_SHOW_MASK = (1 << 1),
 };
 
-void GPU_pbvh_mesh_buffers_update(
-        GPU_PBVH_Buffers *buffers, const struct MVert *mvert,
-        const int *vert_indices, int totvert, const float *vmask,
-        const int (*face_vert_indices)[3],
-        const int update_flags);
+void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
+                                  const struct MVert *mvert,
+                                  const int *vert_indices,
+                                  int totvert,
+                                  const float *vmask,
+                                  const int (*face_vert_indices)[3],
+                                  const int update_flags);
 
-void GPU_pbvh_bmesh_buffers_update(
-        GPU_PBVH_Buffers *buffers,
-        struct BMesh *bm,
-        struct GSet *bm_faces,
-        struct GSet *bm_unique_verts,
-        struct GSet *bm_other_verts,
-        const int update_flags);
+void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
+                                   struct BMesh *bm,
+                                   struct GSet *bm_faces,
+                                   struct GSet *bm_unique_verts,
+                                   struct GSet *bm_other_verts,
+                                   const int update_flags);
 
-void GPU_pbvh_grid_buffers_update(
-        GPU_PBVH_Buffers *buffers, struct CCGElem **grids,
-        const struct DMFlagMat *grid_flag_mats,
-        int *grid_indices, int totgrid, const struct CCGKey *key,
-        const int update_flags);
+void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
+                                  struct CCGElem **grids,
+                                  const struct DMFlagMat *grid_flag_mats,
+                                  int *grid_indices,
+                                  int totgrid,
+                                  const struct CCGKey *key,
+                                  const int update_flags);
 
 /* draw */
 struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast, bool wires);

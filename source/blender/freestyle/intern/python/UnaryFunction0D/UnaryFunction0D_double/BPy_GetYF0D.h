@@ -35,9 +35,8 @@ extern PyTypeObject GetYF0D_Type;
 
 /*---------------------------Python BPy_GetYF0D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction0DDouble py_uf0D_double;
+  BPy_UnaryFunction0DDouble py_uf0D_double;
 } BPy_GetYF0D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

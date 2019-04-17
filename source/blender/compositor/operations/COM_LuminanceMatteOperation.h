@@ -20,29 +20,32 @@
 #define __COM_LUMINANCEMATTEOPERATION_H__
 #include "COM_MixOperation.h"
 
-
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
 class LuminanceMatteOperation : public NodeOperation {
-private:
-	NodeChroma *m_settings;
-	SocketReader *m_inputImageProgram;
-public:
-	/**
-	 * Default constructor
-	 */
-	LuminanceMatteOperation();
+ private:
+  NodeChroma *m_settings;
+  SocketReader *m_inputImageProgram;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Default constructor
+   */
+  LuminanceMatteOperation();
 
-	void initExecution();
-	void deinitExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	void setSettings(NodeChroma *nodeChroma) { this->m_settings = nodeChroma; }
+  void initExecution();
+  void deinitExecution();
+
+  void setSettings(NodeChroma *nodeChroma)
+  {
+    this->m_settings = nodeChroma;
+  }
 };
 #endif

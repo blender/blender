@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ColorNode : public Node {
-public:
-	ColorNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ColorNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

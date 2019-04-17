@@ -50,63 +50,61 @@ namespace DEG {
  */
 
 enum {
-	OP_VISITED = 1,
-	OP_REACHABLE = 2,
+  OP_VISITED = 1,
+  OP_REACHABLE = 2,
 };
 
 static void deg_graph_tag_paths_recursive(Node *node)
 {
-	if (node->custom_flags & OP_VISITED) {
-		return;
-	}
-	node->custom_flags |= OP_VISITED;
-	for (Relation *rel : node->inlinks) {
-		deg_graph_tag_paths_recursive(rel->from);
-		/* Do this only in inlinks loop, so the target node does not get
-		 * flagged. */
-		rel->from->custom_flags |= OP_REACHABLE;
-	}
+  if (node->custom_flags & OP_VISITED) {
+    return;
+  }
+  node->custom_flags |= OP_VISITED;
+  for (Relation *rel : node->inlinks) {
+    deg_graph_tag_paths_recursive(rel->from);
+    /* Do this only in inlinks loop, so the target node does not get
+     * flagged. */
+    rel->from->custom_flags |= OP_REACHABLE;
+  }
 }
 
 void deg_graph_transitive_reduction(Depsgraph *graph)
 {
-	int num_removed_relations = 0;
-	for (OperationNode *target : graph->operations) {
-		/* Clear tags. */
-		for (OperationNode *node : graph->operations) {
-			node->custom_flags = 0;
-		}
-		/* Mark nodes from which we can reach the target
-		 * start with children, so the target node and direct children are not
-		 * flagged. */
-		target->custom_flags |= OP_VISITED;
-		for (Relation *rel : target->inlinks) {
-			deg_graph_tag_paths_recursive(rel->from);
-		}
-		/* Remove redundant paths to the target. */
-		for (Node::Relations::const_iterator it_rel = target->inlinks.begin();
-		     it_rel != target->inlinks.end();
-		     )
-		{
-			Relation *rel = *it_rel;
-			if (rel->from->type == NodeType::TIMESOURCE) {
-				/* HACK: time source nodes don't get "custom_flags" flag
-				 * set/cleared. */
-				/* TODO: there will be other types in future, so iterators above
-				 * need modifying. */
-				++it_rel;
-			}
-			else if (rel->from->custom_flags & OP_REACHABLE) {
-				rel->unlink();
-				OBJECT_GUARDED_DELETE(rel, Relation);
-				++num_removed_relations;
-			}
-			else {
-				++it_rel;
-			}
-		}
-	}
-	DEG_DEBUG_PRINTF((::Depsgraph *)graph, BUILD, "Removed %d relations\n", num_removed_relations);
+  int num_removed_relations = 0;
+  for (OperationNode *target : graph->operations) {
+    /* Clear tags. */
+    for (OperationNode *node : graph->operations) {
+      node->custom_flags = 0;
+    }
+    /* Mark nodes from which we can reach the target
+     * start with children, so the target node and direct children are not
+     * flagged. */
+    target->custom_flags |= OP_VISITED;
+    for (Relation *rel : target->inlinks) {
+      deg_graph_tag_paths_recursive(rel->from);
+    }
+    /* Remove redundant paths to the target. */
+    for (Node::Relations::const_iterator it_rel = target->inlinks.begin();
+         it_rel != target->inlinks.end();) {
+      Relation *rel = *it_rel;
+      if (rel->from->type == NodeType::TIMESOURCE) {
+        /* HACK: time source nodes don't get "custom_flags" flag
+         * set/cleared. */
+        /* TODO: there will be other types in future, so iterators above
+         * need modifying. */
+        ++it_rel;
+      }
+      else if (rel->from->custom_flags & OP_REACHABLE) {
+        rel->unlink();
+        OBJECT_GUARDED_DELETE(rel, Relation);
+        ++num_removed_relations;
+      }
+      else {
+        ++it_rel;
+      }
+    }
+  }
+  DEG_DEBUG_PRINTF((::Depsgraph *)graph, BUILD, "Removed %d relations\n", num_removed_relations);
 }
 
 }  // namespace DEG

@@ -30,93 +30,91 @@ class Scene;
 void curvebounds(float *lower, float *upper, float3 *p, int dim);
 
 typedef enum CurvePrimitiveType {
-	CURVE_TRIANGLES = 0,
-	CURVE_LINE_SEGMENTS = 1,
-	CURVE_SEGMENTS = 2,
-	CURVE_RIBBONS = 3,
+  CURVE_TRIANGLES = 0,
+  CURVE_LINE_SEGMENTS = 1,
+  CURVE_SEGMENTS = 2,
+  CURVE_RIBBONS = 3,
 
-	CURVE_NUM_PRIMITIVE_TYPES,
+  CURVE_NUM_PRIMITIVE_TYPES,
 } CurvePrimitiveType;
 
 typedef enum CurveShapeType {
-	CURVE_RIBBON = 0,
-	CURVE_THICK = 1,
+  CURVE_RIBBON = 0,
+  CURVE_THICK = 1,
 
-	CURVE_NUM_SHAPE_TYPES,
+  CURVE_NUM_SHAPE_TYPES,
 } CurveShapeType;
 
 typedef enum CurveTriangleMethod {
-	CURVE_CAMERA_TRIANGLES,
-	CURVE_TESSELATED_TRIANGLES
+  CURVE_CAMERA_TRIANGLES,
+  CURVE_TESSELATED_TRIANGLES
 } CurveTriangleMethod;
 
 typedef enum CurveLineMethod {
-	CURVE_ACCURATE,
-	CURVE_CORRECTED,
-	CURVE_UNCORRECTED
+  CURVE_ACCURATE,
+  CURVE_CORRECTED,
+  CURVE_UNCORRECTED
 } CurveLineMethod;
 
 class ParticleCurveData {
 
-public:
+ public:
+  ParticleCurveData();
+  ~ParticleCurveData();
 
-	ParticleCurveData();
-	~ParticleCurveData();
+  array<int> psys_firstcurve;
+  array<int> psys_curvenum;
+  array<int> psys_shader;
 
-	array<int> psys_firstcurve;
-	array<int> psys_curvenum;
-	array<int> psys_shader;
+  array<float> psys_rootradius;
+  array<float> psys_tipradius;
+  array<float> psys_shape;
+  array<bool> psys_closetip;
 
-	array<float> psys_rootradius;
-	array<float> psys_tipradius;
-	array<float> psys_shape;
-	array<bool> psys_closetip;
+  array<int> curve_firstkey;
+  array<int> curve_keynum;
+  array<float> curve_length;
+  array<float2> curve_uv;
+  array<float3> curve_vcol;
 
-	array<int> curve_firstkey;
-	array<int> curve_keynum;
-	array<float> curve_length;
-	array<float2> curve_uv;
-	array<float3> curve_vcol;
-
-	array<float3> curvekey_co;
-	array<float> curvekey_time;
+  array<float3> curvekey_co;
+  array<float> curvekey_time;
 };
 
 /* HairSystem Manager */
 
 class CurveSystemManager {
-public:
+ public:
+  CurvePrimitiveType primitive;
+  CurveShapeType curve_shape;
+  CurveLineMethod line_method;
+  CurveTriangleMethod triangle_method;
+  int resolution;
+  int subdivisions;
 
-	CurvePrimitiveType primitive;
-	CurveShapeType curve_shape;
-	CurveLineMethod line_method;
-	CurveTriangleMethod triangle_method;
-	int resolution;
-	int subdivisions;
+  float minimum_width;
+  float maximum_width;
 
-	float minimum_width;
-	float maximum_width;
+  bool use_curves;
+  bool use_encasing;
+  bool use_backfacing;
+  bool use_tangent_normal_geometry;
 
-	bool use_curves;
-	bool use_encasing;
-	bool use_backfacing;
-	bool use_tangent_normal_geometry;
+  bool need_update;
+  bool need_mesh_update;
 
-	bool need_update;
-	bool need_mesh_update;
+  CurveSystemManager();
+  ~CurveSystemManager();
 
-	CurveSystemManager();
-	~CurveSystemManager();
+  void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
+  void device_free(Device *device, DeviceScene *dscene);
+  bool modified(const CurveSystemManager &CurveSystemManager);
+  bool modified_mesh(const CurveSystemManager &CurveSystemManager);
 
-	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_free(Device *device, DeviceScene *dscene);
-	bool modified(const CurveSystemManager& CurveSystemManager);
-	bool modified_mesh(const CurveSystemManager& CurveSystemManager);
-
-	void tag_update(Scene *scene);
-	void tag_update_mesh();
+  void tag_update(Scene *scene);
+  void tag_update_mesh();
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __CURVES_H__ */
+#endif /* __CURVES_H__ */

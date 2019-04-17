@@ -32,60 +32,59 @@
 /********************************** Covariance Matrices *********************************/
 
 typedef struct CovarianceData {
-	const float *cos_vn;
-	const float *center;
-	float *r_covmat;
-	float covfac;
-	int n;
-	int nbr_cos_vn;
+  const float *cos_vn;
+  const float *center;
+  float *r_covmat;
+  float covfac;
+  int n;
+  int nbr_cos_vn;
 } CovarianceData;
 
-static void covariance_m_vn_ex_task_cb(
-        void *__restrict userdata,
-        const int a,
-        const ParallelRangeTLS *__restrict UNUSED(tls))
+static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
+                                       const int a,
+                                       const ParallelRangeTLS *__restrict UNUSED(tls))
 {
-	CovarianceData *data = userdata;
-	const float *cos_vn = data->cos_vn;
-	const float *center = data->center;
-	float *r_covmat = data->r_covmat;
-	const int n = data->n;
-	const int nbr_cos_vn = data->nbr_cos_vn;
+  CovarianceData *data = userdata;
+  const float *cos_vn = data->cos_vn;
+  const float *center = data->center;
+  float *r_covmat = data->r_covmat;
+  const int n = data->n;
+  const int nbr_cos_vn = data->nbr_cos_vn;
 
-	int k;
+  int k;
 
-	/* Covariance matrices are always symmetrical, so we can compute only one half of it,
-	 * and mirror it to the other half (at the end of the func).
-	 *
-	 * This allows using a flat loop of n*n with same results as imbricated one over half the matrix:
-	 *
-	 *     for (i = 0; i < n; i++) {
-	 *         for (j = i; j < n; j++) {
-	 *             ...
-	 *         }
-	 *      }
-	 */
-	const int i = a / n;
-	const int j = a % n;
-	if (j < i) {
-		return;
-	}
+  /* Covariance matrices are always symmetrical, so we can compute only one half of it,
+   * and mirror it to the other half (at the end of the func).
+   *
+   * This allows using a flat loop of n*n with same results as imbricated one over half the matrix:
+   *
+   *     for (i = 0; i < n; i++) {
+   *         for (j = i; j < n; j++) {
+   *             ...
+   *         }
+   *      }
+   */
+  const int i = a / n;
+  const int j = a % n;
+  if (j < i) {
+    return;
+  }
 
-	if (center) {
-		for (k = 0; k < nbr_cos_vn; k++) {
-			r_covmat[a] += (cos_vn[k * n + i] - center[i]) * (cos_vn[k * n + j] - center[j]);
-		}
-	}
-	else {
-		for (k = 0; k < nbr_cos_vn; k++) {
-			r_covmat[a] += cos_vn[k * n + i] * cos_vn[k * n + j];
-		}
-	}
-	r_covmat[a] *= data->covfac;
-	if (j != i) {
-		/* Mirror result to other half... */
-		r_covmat[j * n + i] = r_covmat[a];
-	}
+  if (center) {
+    for (k = 0; k < nbr_cos_vn; k++) {
+      r_covmat[a] += (cos_vn[k * n + i] - center[i]) * (cos_vn[k * n + j] - center[j]);
+    }
+  }
+  else {
+    for (k = 0; k < nbr_cos_vn; k++) {
+      r_covmat[a] += cos_vn[k * n + i] * cos_vn[k * n + j];
+    }
+  }
+  r_covmat[a] *= data->covfac;
+  if (j != i) {
+    /* Mirror result to other half... */
+    r_covmat[j * n + i] = r_covmat[a];
+  }
 }
 
 /**
@@ -99,30 +98,33 @@ static void covariance_m_vn_ex_task_cb(
  *                              (i.e. get 'sample varince' instead of 'population variance').
  * \return r_covmat the computed covariance matrix.
  */
-void BLI_covariance_m_vn_ex(
-        const int n, const float *cos_vn, const int nbr_cos_vn, const float *center, const bool use_sample_correction,
-        float *r_covmat)
+void BLI_covariance_m_vn_ex(const int n,
+                            const float *cos_vn,
+                            const int nbr_cos_vn,
+                            const float *center,
+                            const bool use_sample_correction,
+                            float *r_covmat)
 {
-	/* Note about that division: see https://en.wikipedia.org/wiki/Bessel%27s_correction.
-	 * In a nutshell, it must be 1 / (n - 1) for 'sample data', and 1 / n for 'population data'...
-	 */
-	const float covfac = 1.0f / (float)(use_sample_correction ? nbr_cos_vn - 1 : nbr_cos_vn);
+  /* Note about that division: see https://en.wikipedia.org/wiki/Bessel%27s_correction.
+   * In a nutshell, it must be 1 / (n - 1) for 'sample data', and 1 / n for 'population data'...
+   */
+  const float covfac = 1.0f / (float)(use_sample_correction ? nbr_cos_vn - 1 : nbr_cos_vn);
 
-	memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
+  memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
 
-	CovarianceData data = {
-		.cos_vn = cos_vn, .center = center, .r_covmat = r_covmat,
-		.covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
-	};
+  CovarianceData data = {
+      .cos_vn = cos_vn,
+      .center = center,
+      .r_covmat = r_covmat,
+      .covfac = covfac,
+      .n = n,
+      .nbr_cos_vn = nbr_cos_vn,
+  };
 
-	ParallelRangeSettings settings;
-	BLI_parallel_range_settings_defaults(&settings);
-	settings.use_threading = ((nbr_cos_vn * n * n) >= 10000);
-	BLI_task_parallel_range(
-	            0, n * n,
-	            &data,
-	            covariance_m_vn_ex_task_cb,
-	            &settings);
+  ParallelRangeSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((nbr_cos_vn * n * n) >= 10000);
+  BLI_task_parallel_range(0, n * n, &data, covariance_m_vn_ex_task_cb, &settings);
 }
 
 /**
@@ -133,23 +135,26 @@ void BLI_covariance_m_vn_ex(
  * \return r_covmat the computed covariance matrix.
  * \return r_center the computed center (mean) of 3D points (may be NULL).
  */
-void BLI_covariance_m3_v3n(
-        const float (*cos_v3)[3], const int nbr_cos_v3, const bool use_sample_correction,
-        float r_covmat[3][3], float r_center[3])
+void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
+                           const int nbr_cos_v3,
+                           const bool use_sample_correction,
+                           float r_covmat[3][3],
+                           float r_center[3])
 {
-	float center[3];
-	const float mean_fac = 1.0f / (float)nbr_cos_v3;
-	int i;
+  float center[3];
+  const float mean_fac = 1.0f / (float)nbr_cos_v3;
+  int i;
 
-	zero_v3(center);
-	for (i = 0; i < nbr_cos_v3; i++) {
-		/* Applying mean_fac here rather than once at the end reduce compute errors... */
-		madd_v3_v3fl(center, cos_v3[i], mean_fac);
-	}
+  zero_v3(center);
+  for (i = 0; i < nbr_cos_v3; i++) {
+    /* Applying mean_fac here rather than once at the end reduce compute errors... */
+    madd_v3_v3fl(center, cos_v3[i], mean_fac);
+  }
 
-	if (r_center) {
-		copy_v3_v3(r_center, center);
-	}
+  if (r_center) {
+    copy_v3_v3(r_center, center);
+  }
 
-	BLI_covariance_m_vn_ex(3, (const float *)cos_v3, nbr_cos_v3, center, use_sample_correction, (float *)r_covmat);
+  BLI_covariance_m_vn_ex(
+      3, (const float *)cos_v3, nbr_cos_v3, center, use_sample_correction, (float *)r_covmat);
 }

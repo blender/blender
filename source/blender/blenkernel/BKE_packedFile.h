@@ -22,8 +22,8 @@
 /** \file
  * \ingroup bke
  */
-#define RET_OK      0
-#define RET_ERROR   1
+#define RET_OK 0
+#define RET_ERROR 1
 
 struct ID;
 struct Image;
@@ -35,25 +35,32 @@ struct bSound;
 
 /* pack */
 struct PackedFile *dupPackedFile(const struct PackedFile *pf_src);
-struct PackedFile *newPackedFile(struct ReportList *reports, const char *filename, const char *relabase);
+struct PackedFile *newPackedFile(struct ReportList *reports,
+                                 const char *filename,
+                                 const char *relabase);
 struct PackedFile *newPackedFileMemory(void *mem, int memlen);
 
 void packAll(struct Main *bmain, struct ReportList *reports, bool verbose);
 void packLibraries(struct Main *bmain, struct ReportList *reports);
 
 /* unpack */
-char *unpackFile(
-        struct ReportList *reports, const char *ref_file_name,
-        const char *abs_name, const char *local_name, struct PackedFile *pf, int how);
+char *unpackFile(struct ReportList *reports,
+                 const char *ref_file_name,
+                 const char *abs_name,
+                 const char *local_name,
+                 struct PackedFile *pf,
+                 int how);
 int unpackVFont(struct Main *bmain, struct ReportList *reports, struct VFont *vfont, int how);
 int unpackSound(struct Main *bmain, struct ReportList *reports, struct bSound *sound, int how);
 int unpackImage(struct Main *bmain, struct ReportList *reports, struct Image *ima, int how);
 void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
 int unpackLibraries(struct Main *bmain, struct ReportList *reports);
 
-int writePackedFile(
-        struct ReportList *reports, const char *ref_file_name,
-        const char *filename, struct PackedFile *pf, const bool guimode);
+int writePackedFile(struct ReportList *reports,
+                    const char *ref_file_name,
+                    const char *filename,
+                    struct PackedFile *pf,
+                    const bool guimode);
 
 /* free */
 void freePackedFile(struct PackedFile *pf);

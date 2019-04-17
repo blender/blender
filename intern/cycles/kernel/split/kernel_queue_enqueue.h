@@ -35,58 +35,53 @@ CCL_NAMESPACE_BEGIN
  *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with
  *     RAY_TO_REGENERATE, RAY_UPDATE_BUFFER, RAY_HIT_BACKGROUND rays.
  */
-ccl_device void kernel_queue_enqueue(KernelGlobals *kg,
-                                     ccl_local_param QueueEnqueueLocals *locals)
+ccl_device void kernel_queue_enqueue(KernelGlobals *kg, ccl_local_param QueueEnqueueLocals *locals)
 {
-	/* We have only 2 cases (Hit/Not-Hit) */
-	int lidx = ccl_local_id(1) * ccl_local_size(0) + ccl_local_id(0);
-	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+  /* We have only 2 cases (Hit/Not-Hit) */
+  int lidx = ccl_local_id(1) * ccl_local_size(0) + ccl_local_id(0);
+  int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
 
-	if(lidx == 0) {
-		locals->queue_atomics[0] = 0;
-		locals->queue_atomics[1] = 0;
-	}
-	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+  if (lidx == 0) {
+    locals->queue_atomics[0] = 0;
+    locals->queue_atomics[1] = 0;
+  }
+  ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-	int queue_number = -1;
+  int queue_number = -1;
 
-	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_HIT_BACKGROUND) ||
-	   IS_STATE(kernel_split_state.ray_state, ray_index, RAY_UPDATE_BUFFER) ||
-	   IS_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE)) {
-		queue_number = QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS;
-	}
-	else if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE) ||
-	        IS_STATE(kernel_split_state.ray_state, ray_index, RAY_HAS_ONLY_VOLUME) ||
-	        IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED)) {
-		queue_number = QUEUE_ACTIVE_AND_REGENERATED_RAYS;
-	}
+  if (IS_STATE(kernel_split_state.ray_state, ray_index, RAY_HIT_BACKGROUND) ||
+      IS_STATE(kernel_split_state.ray_state, ray_index, RAY_UPDATE_BUFFER) ||
+      IS_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE)) {
+    queue_number = QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS;
+  }
+  else if (IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE) ||
+           IS_STATE(kernel_split_state.ray_state, ray_index, RAY_HAS_ONLY_VOLUME) ||
+           IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED)) {
+    queue_number = QUEUE_ACTIVE_AND_REGENERATED_RAYS;
+  }
 
-	unsigned int my_lqidx;
-	if(queue_number != -1) {
-		my_lqidx = get_local_queue_index(queue_number, locals->queue_atomics);
-	}
-	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+  unsigned int my_lqidx;
+  if (queue_number != -1) {
+    my_lqidx = get_local_queue_index(queue_number, locals->queue_atomics);
+  }
+  ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-	if(lidx == 0) {
-		locals->queue_atomics[QUEUE_ACTIVE_AND_REGENERATED_RAYS] =
-		        get_global_per_queue_offset(QUEUE_ACTIVE_AND_REGENERATED_RAYS,
-		                                    locals->queue_atomics,
-		                                    kernel_split_params.queue_index);
-		locals->queue_atomics[QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS] =
-		        get_global_per_queue_offset(QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
-		                                    locals->queue_atomics,
-		                                    kernel_split_params.queue_index);
-	}
-	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+  if (lidx == 0) {
+    locals->queue_atomics[QUEUE_ACTIVE_AND_REGENERATED_RAYS] = get_global_per_queue_offset(
+        QUEUE_ACTIVE_AND_REGENERATED_RAYS, locals->queue_atomics, kernel_split_params.queue_index);
+    locals->queue_atomics[QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS] = get_global_per_queue_offset(
+        QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
+        locals->queue_atomics,
+        kernel_split_params.queue_index);
+  }
+  ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-	unsigned int my_gqidx;
-	if(queue_number != -1) {
-		my_gqidx = get_global_queue_index(queue_number,
-		                                  kernel_split_params.queue_size,
-		                                  my_lqidx,
-		                                  locals->queue_atomics);
-		kernel_split_state.queue_data[my_gqidx] = ray_index;
-	}
+  unsigned int my_gqidx;
+  if (queue_number != -1) {
+    my_gqidx = get_global_queue_index(
+        queue_number, kernel_split_params.queue_size, my_lqidx, locals->queue_atomics);
+    kernel_split_state.queue_data[my_gqidx] = ray_index;
+  }
 }
 
 CCL_NAMESPACE_END

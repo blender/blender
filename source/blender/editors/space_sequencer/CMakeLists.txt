@@ -16,55 +16,55 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../imbuf
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/atomic
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../imbuf
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/atomic
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	sequencer_add.c
-	sequencer_buttons.c
-	sequencer_draw.c
-	sequencer_edit.c
-	sequencer_modifier.c
-	sequencer_ops.c
-	sequencer_preview.c
-	sequencer_scopes.c
-	sequencer_select.c
-	sequencer_view.c
-	space_sequencer.c
+  sequencer_add.c
+  sequencer_buttons.c
+  sequencer_draw.c
+  sequencer_edit.c
+  sequencer_modifier.c
+  sequencer_ops.c
+  sequencer_preview.c
+  sequencer_scopes.c
+  sequencer_select.c
+  sequencer_view.c
+  space_sequencer.c
 
-	sequencer_intern.h
+  sequencer_intern.h
 )
 
 set(LIB
-	bf_editor_interface
-	bf_editor_util
+  bf_editor_interface
+  bf_editor_util
 )
 
 if(WITH_AUDASPACE)
-	add_definitions(-DWITH_AUDASPACE)
+  add_definitions(-DWITH_AUDASPACE)
 
-	list(APPEND INC_SYS
-		${AUDASPACE_C_INCLUDE_DIRS}
-	)
+  list(APPEND INC_SYS
+    ${AUDASPACE_C_INCLUDE_DIRS}
+  )
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

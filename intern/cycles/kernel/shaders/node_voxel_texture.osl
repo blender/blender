@@ -16,32 +16,30 @@
 
 #include "stdosl.h"
 
-shader node_voxel_texture(
-	string filename = "",
-	string interpolation = "linear",
-	int use_mapping = 0,
-	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	point Vector = P,
-	output float Density = 0,
-	output color Color = 0)
+shader node_voxel_texture(string filename = "",
+                          string interpolation = "linear",
+                          int use_mapping = 0,
+                          matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                          point Vector = P,
+                          output float Density = 0,
+                          output color Color = 0)
 {
-	point p = Vector;
-	if (use_mapping) {
-		p = transform(mapping, p);
-	}
-	else {
-		p = transform("object", Vector);
-		matrix tfm;
-		if (getattribute("geom:generated_transform", tfm))
-			p = transform(tfm, p);
-	}
-	if (p[0] < 0.0 || p[1] < 0.0 || p[2] < 0.0 ||
-	    p[0] > 1.0 || p[1] > 1.0 || p[2] > 1.0)
-	{
-		Density = 0;
-		Color = color(0, 0, 0);
-	}
-	else {
-		Color = (color)texture3d(filename, p, "wrap", "periodic", "interp", interpolation, "alpha", Density);
-	}
+  point p = Vector;
+  if (use_mapping) {
+    p = transform(mapping, p);
+  }
+  else {
+    p = transform("object", Vector);
+    matrix tfm;
+    if (getattribute("geom:generated_transform", tfm))
+      p = transform(tfm, p);
+  }
+  if (p[0] < 0.0 || p[1] < 0.0 || p[2] < 0.0 || p[0] > 1.0 || p[1] > 1.0 || p[2] > 1.0) {
+    Density = 0;
+    Color = color(0, 0, 0);
+  }
+  else {
+    Color = (color)texture3d(
+        filename, p, "wrap", "periodic", "interp", interpolation, "alpha", Density);
+  }
 }

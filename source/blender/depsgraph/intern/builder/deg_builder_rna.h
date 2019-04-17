@@ -41,58 +41,56 @@ class RNANodeQueryIDData;
  * interested in a result of the given property or whether we are linking some
  * dependency to that property. */
 enum class RNAPointerSource {
-	/* Query will return pointer to an entry operation of component which is
-	 * responsible for evaluation of the given property. */
-	ENTRY,
-	/* Query will return pointer to an exit operation of component which is
-	 * responsible for evaluation of the given property.
-	 * More precisely, it will return operation at which the property is known
-	 * to be evaluated. */
-	EXIT,
+  /* Query will return pointer to an entry operation of component which is
+   * responsible for evaluation of the given property. */
+  ENTRY,
+  /* Query will return pointer to an exit operation of component which is
+   * responsible for evaluation of the given property.
+   * More precisely, it will return operation at which the property is known
+   * to be evaluated. */
+  EXIT,
 };
 
 /* A helper structure which wraps all fields needed to find a node inside of
  * the dependency graph. */
 class RNANodeIdentifier {
-public:
-	RNANodeIdentifier();
+ public:
+  RNANodeIdentifier();
 
-	/* Check whether this identifier is valid and usable. */
-	bool is_valid() const;
+  /* Check whether this identifier is valid and usable. */
+  bool is_valid() const;
 
-	ID *id;
-	NodeType type;
-	const char *component_name;
-	OperationCode operation_code;
-	const char *operation_name;
-	int operation_name_tag;
+  ID *id;
+  NodeType type;
+  const char *component_name;
+  OperationCode operation_code;
+  const char *operation_name;
+  int operation_name_tag;
 };
 
 /* Helper class which performs optimized lookups of a node within a given
  * dependency graph which satisfies given RNA pointer or RAN path. */
 class RNANodeQuery {
-public:
-	RNANodeQuery(Depsgraph *depsgraph);
-	~RNANodeQuery();
+ public:
+  RNANodeQuery(Depsgraph *depsgraph);
+  ~RNANodeQuery();
 
-	Node *find_node(const PointerRNA *ptr,
-	                const PropertyRNA *prop,
-	                RNAPointerSource source);
+  Node *find_node(const PointerRNA *ptr, const PropertyRNA *prop, RNAPointerSource source);
 
-protected:
-	Depsgraph *depsgraph_;
+ protected:
+  Depsgraph *depsgraph_;
 
-	/* Indexed by an ID, returns RNANodeQueryIDData associated with that ID. */
-	GHash *id_data_map_;
+  /* Indexed by an ID, returns RNANodeQueryIDData associated with that ID. */
+  GHash *id_data_map_;
 
-	/* Construct identifier of the node which correspods given configuration
-	 * of RNA property. */
-	RNANodeIdentifier construct_node_identifier(const PointerRNA *ptr,
-	                                            const PropertyRNA *prop,
-	                                            RNAPointerSource source);
+  /* Construct identifier of the node which correspods given configuration
+   * of RNA property. */
+  RNANodeIdentifier construct_node_identifier(const PointerRNA *ptr,
+                                              const PropertyRNA *prop,
+                                              RNAPointerSource source);
 
-	/* Make sure ID data exists for the given ID, and returns it. */
-	RNANodeQueryIDData *ensure_id_data(const ID *id);
+  /* Make sure ID data exists for the given ID, and returns it. */
+  RNANodeQueryIDData *ensure_id_data(const ID *id);
 };
 
 }  // namespace DEG

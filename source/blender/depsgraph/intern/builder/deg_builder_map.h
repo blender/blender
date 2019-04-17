@@ -29,32 +29,35 @@ struct ID;
 namespace DEG {
 
 class BuilderMap {
-public:
-	BuilderMap();
-	~BuilderMap();
+ public:
+  BuilderMap();
+  ~BuilderMap();
 
-	/* Check whether given ID is already handled by builder (or if it's being
-	 * handled). */
-	bool checkIsBuilt(ID *id);
+  /* Check whether given ID is already handled by builder (or if it's being
+   * handled). */
+  bool checkIsBuilt(ID *id);
 
-	/* Tag given ID as handled/built. */
-	void tagBuild(ID *id);
+  /* Tag given ID as handled/built. */
+  void tagBuild(ID *id);
 
-	/* Combination of previous two functions, returns truth if ID was already
-	 * handled, or tags is handled otherwise and return false. */
-	bool checkIsBuiltAndTag(ID *id);
+  /* Combination of previous two functions, returns truth if ID was already
+   * handled, or tags is handled otherwise and return false. */
+  bool checkIsBuiltAndTag(ID *id);
 
-	template<typename T> bool checkIsBuilt(T *datablock) {
-		return checkIsBuilt(&datablock->id);
-	}
-	template<typename T> void tagBuild(T *datablock) {
-		tagBuild(&datablock->id);
-	}
-	template<typename T> bool checkIsBuiltAndTag(T *datablock) {
-		return checkIsBuiltAndTag(&datablock->id);
-	}
+  template<typename T> bool checkIsBuilt(T *datablock)
+  {
+    return checkIsBuilt(&datablock->id);
+  }
+  template<typename T> void tagBuild(T *datablock)
+  {
+    tagBuild(&datablock->id);
+  }
+  template<typename T> bool checkIsBuiltAndTag(T *datablock)
+  {
+    return checkIsBuiltAndTag(&datablock->id);
+  }
 
-	GSet *set;
+  GSet *set;
 };
 
 }  // namespace DEG

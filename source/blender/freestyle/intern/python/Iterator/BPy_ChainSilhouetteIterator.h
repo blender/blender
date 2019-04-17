@@ -34,12 +34,12 @@ extern "C" {
 extern PyTypeObject ChainSilhouetteIterator_Type;
 
 #define BPy_ChainSilhouetteIterator_Check(v) \
-            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainSilhouetteIterator_Type))
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainSilhouetteIterator_Type))
 
 /*---------------------------Python BPy_ChainSilhouetteIterator structure definition----------*/
 typedef struct {
-	BPy_ChainingIterator py_c_it;
-	ChainSilhouetteIterator *cs_it;
+  BPy_ChainingIterator py_c_it;
+  ChainSilhouetteIterator *cs_it;
 } BPy_ChainSilhouetteIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

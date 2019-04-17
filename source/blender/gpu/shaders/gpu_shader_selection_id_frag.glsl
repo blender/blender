@@ -9,5 +9,5 @@ out uint fragColor;
 
 void main()
 {
-	fragColor = id;
+  fragColor = id;
 }

@@ -36,13 +36,13 @@
  * arguments would be expected to be non-null
  */
 #ifdef __GNUC__
-#  define ATTR_NONNULL(args ...) __attribute__((nonnull(args)))
+#  define ATTR_NONNULL(args...) __attribute__((nonnull(args)))
 #else
 #  define ATTR_NONNULL(...)
 #endif
 
 /* never returns NULL */
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 409  /* gcc4.9+ only */
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 409 /* gcc4.9+ only */
 #  define ATTR_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
 #  define ATTR_RETURNS_NONNULL
@@ -64,7 +64,7 @@
 
 /* the function return value points to memory (2 args for 'size * tot') */
 #if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
-#  define ATTR_ALLOC_SIZE(args ...) __attribute__((alloc_size(args)))
+#  define ATTR_ALLOC_SIZE(args...) __attribute__((alloc_size(args)))
 #else
 #  define ATTR_ALLOC_SIZE(...)
 #endif
@@ -78,14 +78,15 @@
 
 /* hint to compiler that function uses printf-style format string */
 #ifdef __GNUC__
-#  define ATTR_PRINTF_FORMAT(format_param, dots_param) __attribute__((format(printf, format_param, dots_param)))
+#  define ATTR_PRINTF_FORMAT(format_param, dots_param) \
+    __attribute__((format(printf, format_param, dots_param)))
 #else
 #  define ATTR_PRINTF_FORMAT(format_param, dots_param)
 #endif
 
 /* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
 #ifndef ATTR_FALLTHROUGH
-#  if defined(__GNUC__) && (__GNUC__ >= 7)  /* gcc7.0+ only */
+#  if defined(__GNUC__) && (__GNUC__ >= 7) /* gcc7.0+ only */
 #    define ATTR_FALLTHROUGH __attribute__((fallthrough))
 #  else
 #    define ATTR_FALLTHROUGH ((void)0)
@@ -99,4 +100,4 @@
 #  define ATTR_ALIGN(x) __attribute__((aligned(x)))
 #endif
 
-#endif  /* __BLI_COMPILER_ATTRS_H__ */
+#endif /* __BLI_COMPILER_ATTRS_H__ */

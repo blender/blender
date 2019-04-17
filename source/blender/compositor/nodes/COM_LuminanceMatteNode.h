@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class LuminanceMatteNode : public Node {
-public:
-	LuminanceMatteNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  LuminanceMatteNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* __COM_LUMINANCEMATTENODE_H__ */
+#endif /* __COM_LUMINANCEMATTENODE_H__ */

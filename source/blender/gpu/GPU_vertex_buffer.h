@@ -40,27 +40,27 @@
 /* Is GPUVertBuf always used as part of a GPUBatch? */
 
 typedef enum {
-	/* can be extended to support more types */
-	GPU_USAGE_STREAM,
-	GPU_USAGE_STATIC, /* do not keep data in memory */
-	GPU_USAGE_DYNAMIC,
+  /* can be extended to support more types */
+  GPU_USAGE_STREAM,
+  GPU_USAGE_STATIC, /* do not keep data in memory */
+  GPU_USAGE_DYNAMIC,
 } GPUUsageType;
 
 typedef struct GPUVertBuf {
-	GPUVertFormat format;
-	uint vertex_len;    /* number of verts we want to draw */
-	uint vertex_alloc;  /* number of verts data */
-	bool dirty;
-	unsigned char *data; /* NULL indicates data in VRAM (unmapped) */
-	uint32_t vbo_id; /* 0 indicates not yet allocated */
-	GPUUsageType usage; /* usage hint for GL optimisation */
+  GPUVertFormat format;
+  uint vertex_len;   /* number of verts we want to draw */
+  uint vertex_alloc; /* number of verts data */
+  bool dirty;
+  unsigned char *data; /* NULL indicates data in VRAM (unmapped) */
+  uint32_t vbo_id;     /* 0 indicates not yet allocated */
+  GPUUsageType usage;  /* usage hint for GL optimisation */
 } GPUVertBuf;
 
 GPUVertBuf *GPU_vertbuf_create(GPUUsageType);
 GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *, GPUUsageType);
 
 #define GPU_vertbuf_create_with_format(format) \
-	GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
+  GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
 
 void GPU_vertbuf_discard(GPUVertBuf *);
 
@@ -68,7 +68,7 @@ void GPU_vertbuf_init(GPUVertBuf *, GPUUsageType);
 void GPU_vertbuf_init_with_format_ex(GPUVertBuf *, const GPUVertFormat *, GPUUsageType);
 
 #define GPU_vertbuf_init_with_format(verts, format) \
-	GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_STATIC)
+  GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_STATIC)
 
 uint GPU_vertbuf_size_get(const GPUVertBuf *);
 void GPU_vertbuf_data_alloc(GPUVertBuf *, uint v_len);
@@ -81,34 +81,36 @@ void GPU_vertbuf_data_len_set(GPUVertBuf *, uint v_len);
  * should not be a problem. */
 
 void GPU_vertbuf_attr_set(GPUVertBuf *, uint a_idx, uint v_idx, const void *data);
-void GPU_vertbuf_attr_fill(GPUVertBuf *, uint a_idx, const void *data); /* tightly packed, non interleaved input data */
+void GPU_vertbuf_attr_fill(GPUVertBuf *,
+                           uint a_idx,
+                           const void *data); /* tightly packed, non interleaved input data */
 void GPU_vertbuf_attr_fill_stride(GPUVertBuf *, uint a_idx, uint stride, const void *data);
 
 /* For low level access only */
 typedef struct GPUVertBufRaw {
-	uint size;
-	uint stride;
-	unsigned char *data;
-	unsigned char *data_init;
+  uint size;
+  uint stride;
+  unsigned char *data;
+  unsigned char *data_init;
 #if TRUST_NO_ONE
-	/* Only for overflow check */
-	unsigned char *_data_end;
+  /* Only for overflow check */
+  unsigned char *_data_end;
 #endif
 } GPUVertBufRaw;
 
 GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
 {
-	unsigned char *data = a->data;
-	a->data += a->stride;
+  unsigned char *data = a->data;
+  a->data += a->stride;
 #if TRUST_NO_ONE
-	assert(data < a->_data_end);
+  assert(data < a->_data_end);
 #endif
-	return (void *)data;
+  return (void *)data;
 }
 
 GPU_INLINE uint GPU_vertbuf_raw_used(GPUVertBufRaw *a)
 {
-	return ((a->data - a->data_init) / a->stride);
+  return ((a->data - a->data_init) / a->stride);
 }
 
 void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *, uint a_idx, GPUVertBufRaw *access);
@@ -119,11 +121,12 @@ void GPU_vertbuf_use(GPUVertBuf *);
 uint GPU_vertbuf_get_memory_usage(void);
 
 /* Macros */
-#define GPU_VERTBUF_DISCARD_SAFE(verts) do { \
-	if (verts != NULL) { \
-		GPU_vertbuf_discard(verts); \
-		verts = NULL; \
-	} \
-} while (0)
+#define GPU_VERTBUF_DISCARD_SAFE(verts) \
+  do { \
+    if (verts != NULL) { \
+      GPU_vertbuf_discard(verts); \
+      verts = NULL; \
+    } \
+  } while (0)
 
 #endif /* __GPU_VERTEX_BUFFER_H__ */

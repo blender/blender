@@ -37,10 +37,7 @@ NodeType geometry_tag_to_component(const ID *id);
 void id_tag_update(Main *bmain, ID *id, int flag, eUpdateSource update_source);
 
 /* Tag given ID for an update with in a given dependency graph. */
-void graph_id_tag_update(Main *bmain,
-                         Depsgraph *graph,
-                         ID *id,
-                         int flag,
-                         eUpdateSource update_source);
+void graph_id_tag_update(
+    Main *bmain, Depsgraph *graph, ID *id, int flag, eUpdateSource update_source);
 
 }  // namespace DEG

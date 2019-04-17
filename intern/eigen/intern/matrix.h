@@ -30,4 +30,4 @@ bool EIG_invert_m4_m4(float inverse[4][4], const float matrix[4][4]);
 }
 #endif
 
-#endif  /* __EIGEN3_MATRIX_C_API_H__ */
+#endif /* __EIGEN3_MATRIX_C_API_H__ */

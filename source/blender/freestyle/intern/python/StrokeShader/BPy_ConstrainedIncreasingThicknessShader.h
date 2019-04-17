@@ -32,19 +32,17 @@ extern "C" {
 extern PyTypeObject ConstrainedIncreasingThicknessShader_Type;
 
 #define BPy_ConstrainedIncreasingThicknessShader_Check(v) \
-            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstrainedIncreasingThicknessShader_Type))
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstrainedIncreasingThicknessShader_Type))
 
 /*---------------------------Python BPy_ConstrainedIncreasingThicknessShader structure definition----------*/
 typedef struct {
-	BPy_StrokeShader py_ss;
+  BPy_StrokeShader py_ss;
 } BPy_ConstrainedIncreasingThicknessShader;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H__ */

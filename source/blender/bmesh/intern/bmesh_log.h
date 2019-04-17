@@ -93,9 +93,7 @@ const short *BM_log_original_vert_no(BMLog *log, BMVert *v);
 float BM_log_original_mask(BMLog *log, BMVert *v);
 
 /* Get the logged data of a vertex (avoid multiple lookups) */
-void BM_log_original_vert_data(
-        BMLog *log, BMVert *v,
-        const float **r_co, const short **r_no);
+void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const short **r_no);
 
 /* For internal use only (unit testing) */
 BMLogEntry *BM_log_current_entry(BMLog *log);

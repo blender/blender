@@ -17,45 +17,45 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../depsgraph
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/eigen
-	../../../../intern/glew-mx
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/eigen
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	gizmo_draw_utils.c
-	gizmo_geometry.h
-	gizmo_library_intern.h
-	gizmo_library_presets.c
-	gizmo_library_utils.c
-	geometry/geom_arrow_gizmo.c
-	geometry/geom_cube_gizmo.c
-	geometry/geom_dial_gizmo.c
-	gizmo_group_types/value2d_gizmo_group.c
-	gizmo_types/arrow2d_gizmo.c
-	gizmo_types/arrow3d_gizmo.c
-	gizmo_types/blank3d_gizmo.c
-	gizmo_types/button2d_gizmo.c
-	gizmo_types/cage2d_gizmo.c
-	gizmo_types/cage3d_gizmo.c
-	gizmo_types/dial3d_gizmo.c
-	gizmo_types/move3d_gizmo.c
-	gizmo_types/primitive3d_gizmo.c
-	gizmo_types/value2d_gizmo.c
+  gizmo_draw_utils.c
+  gizmo_geometry.h
+  gizmo_library_intern.h
+  gizmo_library_presets.c
+  gizmo_library_utils.c
+  geometry/geom_arrow_gizmo.c
+  geometry/geom_cube_gizmo.c
+  geometry/geom_dial_gizmo.c
+  gizmo_group_types/value2d_gizmo_group.c
+  gizmo_types/arrow2d_gizmo.c
+  gizmo_types/arrow3d_gizmo.c
+  gizmo_types/blank3d_gizmo.c
+  gizmo_types/button2d_gizmo.c
+  gizmo_types/cage2d_gizmo.c
+  gizmo_types/cage3d_gizmo.c
+  gizmo_types/dial3d_gizmo.c
+  gizmo_types/move3d_gizmo.c
+  gizmo_types/primitive3d_gizmo.c
+  gizmo_types/value2d_gizmo.c
 )
 
 set(LIB

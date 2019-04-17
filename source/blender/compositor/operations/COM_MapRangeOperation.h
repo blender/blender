@@ -26,42 +26,45 @@
  * it assumes we are in sRGB color space.
  */
 class MapRangeOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputOperation;
-	SocketReader *m_sourceMinOperation;
-	SocketReader *m_sourceMaxOperation;
-	SocketReader *m_destMinOperation;
-	SocketReader *m_destMaxOperation;
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputOperation;
+  SocketReader *m_sourceMinOperation;
+  SocketReader *m_sourceMaxOperation;
+  SocketReader *m_destMinOperation;
+  SocketReader *m_destMaxOperation;
 
-	bool m_useClamp;
-public:
-	/**
-	 * Default constructor
-	 */
-	MapRangeOperation();
+  bool m_useClamp;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  /**
+   * Default constructor
+   */
+  MapRangeOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * Clamp the output
-	 */
-	void setUseClamp(bool value) { this->m_useClamp = value; }
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
+  /**
+   * Clamp the output
+   */
+  void setUseClamp(bool value)
+  {
+    this->m_useClamp = value;
+  }
 };
 #endif

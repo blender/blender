@@ -11,7 +11,7 @@ out vec4 color;
 
 void main()
 {
-	pos_rect = pos;
-	tex_rect = tex;
-	color = col;
+  pos_rect = pos;
+  tex_rect = tex;
+  color = col;
 }

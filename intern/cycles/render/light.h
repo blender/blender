@@ -36,108 +36,103 @@ class Scene;
 class Shader;
 
 class Light : public Node {
-public:
-	NODE_DECLARE;
+ public:
+  NODE_DECLARE;
 
-	Light();
+  Light();
 
-	LightType type;
-	float3 co;
+  LightType type;
+  float3 co;
 
-	float3 dir;
-	float size;
+  float3 dir;
+  float size;
 
-	float3 axisu;
-	float sizeu;
-	float3 axisv;
-	float sizev;
-	bool round;
+  float3 axisu;
+  float sizeu;
+  float3 axisv;
+  float sizev;
+  bool round;
 
-	Transform tfm;
+  Transform tfm;
 
-	int map_resolution;
+  int map_resolution;
 
-	float spot_angle;
-	float spot_smooth;
+  float spot_angle;
+  float spot_smooth;
 
-	bool cast_shadow;
-	bool use_mis;
-	bool use_diffuse;
-	bool use_glossy;
-	bool use_transmission;
-	bool use_scatter;
+  bool cast_shadow;
+  bool use_mis;
+  bool use_diffuse;
+  bool use_glossy;
+  bool use_transmission;
+  bool use_scatter;
 
-	bool is_portal;
-	bool is_enabled;
+  bool is_portal;
+  bool is_enabled;
 
-	Shader *shader;
-	int samples;
-	int max_bounces;
-	uint random_id;
+  Shader *shader;
+  int samples;
+  int max_bounces;
+  uint random_id;
 
-	void tag_update(Scene *scene);
+  void tag_update(Scene *scene);
 
-	/* Check whether the light has contribution the the scene. */
-	bool has_contribution(Scene *scene);
+  /* Check whether the light has contribution the the scene. */
+  bool has_contribution(Scene *scene);
 };
 
 class LightManager {
-public:
-	bool use_light_visibility;
-	bool need_update;
+ public:
+  bool use_light_visibility;
+  bool need_update;
 
-	LightManager();
-	~LightManager();
+  LightManager();
+  ~LightManager();
 
-	/* IES texture management */
-	int add_ies(ustring ies);
-	int add_ies_from_file(ustring filename);
-	void remove_ies(int slot);
+  /* IES texture management */
+  int add_ies(ustring ies);
+  int add_ies_from_file(ustring filename);
+  void remove_ies(int slot);
 
-	void device_update(Device *device,
-	                   DeviceScene *dscene,
-	                   Scene *scene,
-	                   Progress& progress);
-	void device_free(Device *device, DeviceScene *dscene);
+  void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
+  void device_free(Device *device, DeviceScene *dscene);
 
-	void tag_update(Scene *scene);
+  void tag_update(Scene *scene);
 
-	/* Check whether there is a background light. */
-	bool has_background_light(Scene *scene);
+  /* Check whether there is a background light. */
+  bool has_background_light(Scene *scene);
 
-protected:
-	/* Optimization: disable light which is either unsupported or
-	 * which doesn't contribute to the scene or which is only used for MIS
-	 * and scene doesn't need MIS.
-	 */
-	void disable_ineffective_light(Scene *scene);
+ protected:
+  /* Optimization: disable light which is either unsupported or
+   * which doesn't contribute to the scene or which is only used for MIS
+   * and scene doesn't need MIS.
+   */
+  void disable_ineffective_light(Scene *scene);
 
-	void device_update_points(Device *device,
-	                          DeviceScene *dscene,
-	                          Scene *scene);
-	void device_update_distribution(Device *device,
-	                                DeviceScene *dscene,
-	                                Scene *scene,
-	                                Progress& progress);
-	void device_update_background(Device *device,
-	                              DeviceScene *dscene,
-	                              Scene *scene,
-	                              Progress& progress);
-	void device_update_ies(DeviceScene *dscene);
+  void device_update_points(Device *device, DeviceScene *dscene, Scene *scene);
+  void device_update_distribution(Device *device,
+                                  DeviceScene *dscene,
+                                  Scene *scene,
+                                  Progress &progress);
+  void device_update_background(Device *device,
+                                DeviceScene *dscene,
+                                Scene *scene,
+                                Progress &progress);
+  void device_update_ies(DeviceScene *dscene);
 
-	/* Check whether light manager can use the object as a light-emissive. */
-	bool object_usable_as_light(Object *object);
+  /* Check whether light manager can use the object as a light-emissive. */
+  bool object_usable_as_light(Object *object);
 
-	struct IESSlot {
-		IESFile ies;
-		uint hash;
-		int users;
-	};
+  struct IESSlot {
+    IESFile ies;
+    uint hash;
+    int users;
+  };
 
-	vector<IESSlot*> ies_slots;
-	thread_mutex ies_mutex;
+  vector<IESSlot *> ies_slots;
+  thread_mutex ies_mutex;
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __LIGHT_H__ */
+#endif /* __LIGHT_H__ */

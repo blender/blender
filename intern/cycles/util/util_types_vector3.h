@@ -24,18 +24,16 @@
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
-template<typename T>
-class vector3
-{
-public:
-	T x, y, z;
+template<typename T> class vector3 {
+ public:
+  T x, y, z;
 
-	__forceinline vector3();
-	__forceinline vector3(const T& a);
-	__forceinline vector3(const T& x, const T& y, const T& z);
+  __forceinline vector3();
+  __forceinline vector3(const T &a);
+  __forceinline vector3(const T &x, const T &y, const T &z);
 };
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_VECTOR3_H__ */
+#endif /* __UTIL_TYPES_VECTOR3_H__ */

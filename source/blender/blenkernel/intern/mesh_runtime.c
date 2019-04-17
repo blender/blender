@@ -49,7 +49,7 @@ static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
  */
 void BKE_mesh_runtime_reset(Mesh *mesh)
 {
-	memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+  memset(&mesh->runtime, 0, sizeof(mesh->runtime));
 }
 
 /* Clear all pointers which we don't want to be shared on copying the datablock.
@@ -57,21 +57,21 @@ void BKE_mesh_runtime_reset(Mesh *mesh)
  * it's deformed only, or that its custom data layers are out of date.) */
 void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
 {
-	Mesh_Runtime *runtime = &mesh->runtime;
+  Mesh_Runtime *runtime = &mesh->runtime;
 
-	runtime->edit_data = NULL;
-	runtime->batch_cache = NULL;
-	runtime->subdiv_ccg = NULL;
-	memset(&runtime->looptris, 0, sizeof(runtime->looptris));
-	runtime->bvh_cache = NULL;
-	runtime->shrinkwrap_data = NULL;
+  runtime->edit_data = NULL;
+  runtime->batch_cache = NULL;
+  runtime->subdiv_ccg = NULL;
+  memset(&runtime->looptris, 0, sizeof(runtime->looptris));
+  runtime->bvh_cache = NULL;
+  runtime->shrinkwrap_data = NULL;
 }
 
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
-	BKE_mesh_runtime_clear_geometry(mesh);
-	BKE_mesh_batch_cache_free(mesh);
-	BKE_mesh_runtime_clear_edit_data(mesh);
+  BKE_mesh_runtime_clear_geometry(mesh);
+  BKE_mesh_batch_cache_free(mesh);
+  BKE_mesh_runtime_clear_edit_data(mesh);
 }
 
 /* This is a ported copy of DM_ensure_looptri_data(dm) */
@@ -82,135 +82,137 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
  */
 static void mesh_ensure_looptri_data(Mesh *mesh)
 {
-	const unsigned int totpoly = mesh->totpoly;
-	const int looptris_len = poly_to_tri_count(totpoly, mesh->totloop);
+  const unsigned int totpoly = mesh->totpoly;
+  const int looptris_len = poly_to_tri_count(totpoly, mesh->totloop);
 
-	BLI_assert(mesh->runtime.looptris.array_wip == NULL);
+  BLI_assert(mesh->runtime.looptris.array_wip == NULL);
 
-	SWAP(MLoopTri *, mesh->runtime.looptris.array, mesh->runtime.looptris.array_wip);
+  SWAP(MLoopTri *, mesh->runtime.looptris.array, mesh->runtime.looptris.array_wip);
 
-	if ((looptris_len > mesh->runtime.looptris.len_alloc) ||
-	    (looptris_len < mesh->runtime.looptris.len_alloc * 2) ||
-	    (totpoly == 0))
-	{
-		MEM_SAFE_FREE(mesh->runtime.looptris.array_wip);
-		mesh->runtime.looptris.len_alloc = 0;
-		mesh->runtime.looptris.len = 0;
-	}
+  if ((looptris_len > mesh->runtime.looptris.len_alloc) ||
+      (looptris_len < mesh->runtime.looptris.len_alloc * 2) || (totpoly == 0)) {
+    MEM_SAFE_FREE(mesh->runtime.looptris.array_wip);
+    mesh->runtime.looptris.len_alloc = 0;
+    mesh->runtime.looptris.len = 0;
+  }
 
-	if (totpoly) {
-		if (mesh->runtime.looptris.array_wip == NULL) {
-			mesh->runtime.looptris.array_wip = MEM_malloc_arrayN(looptris_len, sizeof(*mesh->runtime.looptris.array_wip), __func__);
-			mesh->runtime.looptris.len_alloc = looptris_len;
-		}
+  if (totpoly) {
+    if (mesh->runtime.looptris.array_wip == NULL) {
+      mesh->runtime.looptris.array_wip = MEM_malloc_arrayN(
+          looptris_len, sizeof(*mesh->runtime.looptris.array_wip), __func__);
+      mesh->runtime.looptris.len_alloc = looptris_len;
+    }
 
-		mesh->runtime.looptris.len = looptris_len;
-	}
+    mesh->runtime.looptris.len = looptris_len;
+  }
 }
 
 /* This is a ported copy of CDDM_recalc_looptri(dm). */
 void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
 {
-	mesh_ensure_looptri_data(mesh);
-	BLI_assert(mesh->totpoly == 0 || mesh->runtime.looptris.array_wip != NULL);
+  mesh_ensure_looptri_data(mesh);
+  BLI_assert(mesh->totpoly == 0 || mesh->runtime.looptris.array_wip != NULL);
 
-	BKE_mesh_recalc_looptri(
-	        mesh->mloop, mesh->mpoly,
-	        mesh->mvert,
-	        mesh->totloop, mesh->totpoly,
-	        mesh->runtime.looptris.array_wip);
+  BKE_mesh_recalc_looptri(mesh->mloop,
+                          mesh->mpoly,
+                          mesh->mvert,
+                          mesh->totloop,
+                          mesh->totpoly,
+                          mesh->runtime.looptris.array_wip);
 
-	BLI_assert(mesh->runtime.looptris.array == NULL);
-	atomic_cas_ptr((void **)&mesh->runtime.looptris.array, mesh->runtime.looptris.array, mesh->runtime.looptris.array_wip);
-	mesh->runtime.looptris.array_wip = NULL;
+  BLI_assert(mesh->runtime.looptris.array == NULL);
+  atomic_cas_ptr((void **)&mesh->runtime.looptris.array,
+                 mesh->runtime.looptris.array,
+                 mesh->runtime.looptris.array_wip);
+  mesh->runtime.looptris.array_wip = NULL;
 }
 
 /* This is a ported copy of dm_getNumLoopTri(dm). */
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
 {
-	const int looptri_len = poly_to_tri_count(mesh->totpoly, mesh->totloop);
-	BLI_assert(ELEM(mesh->runtime.looptris.len, 0, looptri_len));
-	return looptri_len;
+  const int looptri_len = poly_to_tri_count(mesh->totpoly, mesh->totloop);
+  BLI_assert(ELEM(mesh->runtime.looptris.len, 0, looptri_len));
+  return looptri_len;
 }
 
 /* This is a ported copy of dm_getLoopTriArray(dm). */
 const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 {
-	MLoopTri *looptri;
+  MLoopTri *looptri;
 
-	BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_READ);
-	looptri = mesh->runtime.looptris.array;
-	BLI_rw_mutex_unlock(&loops_cache_lock);
+  BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_READ);
+  looptri = mesh->runtime.looptris.array;
+  BLI_rw_mutex_unlock(&loops_cache_lock);
 
-	if (looptri != NULL) {
-		BLI_assert(BKE_mesh_runtime_looptri_len(mesh) == mesh->runtime.looptris.len);
-	}
-	else {
-		BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
-		/* We need to ensure array is still NULL inside mutex-protected code, some other thread might have already
-		 * recomputed those looptris. */
-		if (mesh->runtime.looptris.array == NULL) {
-			BKE_mesh_runtime_looptri_recalc(mesh);
-		}
-		looptri = mesh->runtime.looptris.array;
-		BLI_rw_mutex_unlock(&loops_cache_lock);
-	}
-	return looptri;
+  if (looptri != NULL) {
+    BLI_assert(BKE_mesh_runtime_looptri_len(mesh) == mesh->runtime.looptris.len);
+  }
+  else {
+    BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
+    /* We need to ensure array is still NULL inside mutex-protected code, some other thread might have already
+     * recomputed those looptris. */
+    if (mesh->runtime.looptris.array == NULL) {
+      BKE_mesh_runtime_looptri_recalc(mesh);
+    }
+    looptri = mesh->runtime.looptris.array;
+    BLI_rw_mutex_unlock(&loops_cache_lock);
+  }
+  return looptri;
 }
 
 /* This is a copy of DM_verttri_from_looptri(). */
-void BKE_mesh_runtime_verttri_from_looptri(
-        MVertTri *r_verttri, const MLoop *mloop,
-        const MLoopTri *looptri, int looptri_num)
+void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
+                                           const MLoop *mloop,
+                                           const MLoopTri *looptri,
+                                           int looptri_num)
 {
-	int i;
-	for (i = 0; i < looptri_num; i++) {
-		r_verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
-		r_verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
-		r_verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;
-	}
+  int i;
+  for (i = 0; i < looptri_num; i++) {
+    r_verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
+    r_verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
+    r_verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;
+  }
 }
-
 
 bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh)
 {
-	if (mesh->runtime.edit_data != NULL) {
-		return false;
-	}
+  if (mesh->runtime.edit_data != NULL) {
+    return false;
+  }
 
-	mesh->runtime.edit_data = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
-	return true;
+  mesh->runtime.edit_data = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
+  return true;
 }
 
 bool BKE_mesh_runtime_clear_edit_data(Mesh *mesh)
 {
-	if (mesh->runtime.edit_data == NULL) {
-		return false;
-	}
+  if (mesh->runtime.edit_data == NULL) {
+    return false;
+  }
 
-	if (mesh->runtime.edit_data->polyCos != NULL)
-		MEM_freeN((void *)mesh->runtime.edit_data->polyCos);
-	if (mesh->runtime.edit_data->polyNos != NULL)
-		MEM_freeN((void *)mesh->runtime.edit_data->polyNos);
-	if (mesh->runtime.edit_data->vertexCos != NULL)
-		MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
-	if (mesh->runtime.edit_data->vertexNos != NULL)
-		MEM_freeN((void *)mesh->runtime.edit_data->vertexNos);
+  if (mesh->runtime.edit_data->polyCos != NULL)
+    MEM_freeN((void *)mesh->runtime.edit_data->polyCos);
+  if (mesh->runtime.edit_data->polyNos != NULL)
+    MEM_freeN((void *)mesh->runtime.edit_data->polyNos);
+  if (mesh->runtime.edit_data->vertexCos != NULL)
+    MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
+  if (mesh->runtime.edit_data->vertexNos != NULL)
+    MEM_freeN((void *)mesh->runtime.edit_data->vertexNos);
 
-	MEM_SAFE_FREE(mesh->runtime.edit_data);
-	return true;
+  MEM_SAFE_FREE(mesh->runtime.edit_data);
+  return true;
 }
 
 void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
-	bvhcache_free(&mesh->runtime.bvh_cache);
-	MEM_SAFE_FREE(mesh->runtime.looptris.array);
-	/* TODO(sergey): Does this really belong here? */
-	if (mesh->runtime.subdiv_ccg != NULL) {
-		BKE_subdiv_ccg_destroy(mesh->runtime.subdiv_ccg);
-		mesh->runtime.subdiv_ccg = NULL;
-	}
-	BKE_shrinkwrap_discard_boundary_data(mesh);
+  bvhcache_free(&mesh->runtime.bvh_cache);
+  MEM_SAFE_FREE(mesh->runtime.looptris.array);
+  /* TODO(sergey): Does this really belong here? */
+  if (mesh->runtime.subdiv_ccg != NULL) {
+    BKE_subdiv_ccg_destroy(mesh->runtime.subdiv_ccg);
+    mesh->runtime.subdiv_ccg = NULL;
+  }
+  BKE_shrinkwrap_discard_boundary_data(mesh);
 }
 
 /** \} */
@@ -225,15 +227,15 @@ void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
 
 void BKE_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 {
-	if (me->runtime.batch_cache) {
-		BKE_mesh_batch_cache_dirty_tag_cb(me, mode);
-	}
+  if (me->runtime.batch_cache) {
+    BKE_mesh_batch_cache_dirty_tag_cb(me, mode);
+  }
 }
 void BKE_mesh_batch_cache_free(Mesh *me)
 {
-	if (me->runtime.batch_cache) {
-		BKE_mesh_batch_cache_free_cb(me);
-	}
+  if (me->runtime.batch_cache) {
+    BKE_mesh_batch_cache_free_cb(me);
+  }
 }
 
 /** \} */
@@ -244,147 +246,166 @@ void BKE_mesh_batch_cache_free(Mesh *me)
  * to help track down differences output */
 
 #ifndef NDEBUG
-#include "BLI_dynstr.h"
+#  include "BLI_dynstr.h"
 
-static void mesh_runtime_debug_info_layers(
-        DynStr *dynstr, CustomData *cd)
+static void mesh_runtime_debug_info_layers(DynStr *dynstr, CustomData *cd)
 {
-	int type;
+  int type;
 
-	for (type = 0; type < CD_NUMTYPES; type++) {
-		if (CustomData_has_layer(cd, type)) {
-			/* note: doesn't account for multiple layers */
-			const char *name = CustomData_layertype_name(type);
-			const int size = CustomData_sizeof(type);
-			const void *pt = CustomData_get_layer(cd, type);
-			const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
-			const char *structname;
-			int structnum;
-			CustomData_file_write_info(type, &structname, &structnum);
-			BLI_dynstr_appendf(
-			        dynstr,
-			        "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-			        name, structname, type, (const void *)pt, size, pt_size);
-		}
-	}
+  for (type = 0; type < CD_NUMTYPES; type++) {
+    if (CustomData_has_layer(cd, type)) {
+      /* note: doesn't account for multiple layers */
+      const char *name = CustomData_layertype_name(type);
+      const int size = CustomData_sizeof(type);
+      const void *pt = CustomData_get_layer(cd, type);
+      const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
+      const char *structname;
+      int structnum;
+      CustomData_file_write_info(type, &structname, &structnum);
+      BLI_dynstr_appendf(
+          dynstr,
+          "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+          name,
+          structname,
+          type,
+          (const void *)pt,
+          size,
+          pt_size);
+    }
+  }
 }
 
 char *BKE_mesh_runtime_debug_info(Mesh *me_eval)
 {
-	DynStr *dynstr = BLI_dynstr_new();
-	char *ret;
+  DynStr *dynstr = BLI_dynstr_new();
+  char *ret;
 
-	BLI_dynstr_append(dynstr, "{\n");
-	BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)me_eval);
-#if 0
-	const char *tstr;
-	switch (me_eval->type) {
-		case DM_TYPE_CDDM:     tstr = "DM_TYPE_CDDM";     break;
-		case DM_TYPE_CCGDM:    tstr = "DM_TYPE_CCGDM";     break;
-		default:               tstr = "UNKNOWN";           break;
-	}
-	BLI_dynstr_appendf(dynstr, "    'type': '%s',\n", tstr);
-#endif
-	BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", me_eval->totvert);
-	BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", me_eval->totedge);
-	BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me_eval->totface);
-	BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me_eval->totpoly);
-	BLI_dynstr_appendf(dynstr, "    'deformed_only': %d,\n", me_eval->runtime.deformed_only);
+  BLI_dynstr_append(dynstr, "{\n");
+  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)me_eval);
+#  if 0
+  const char *tstr;
+  switch (me_eval->type) {
+    case DM_TYPE_CDDM:     tstr = "DM_TYPE_CDDM";     break;
+    case DM_TYPE_CCGDM:    tstr = "DM_TYPE_CCGDM";     break;
+    default:               tstr = "UNKNOWN";           break;
+  }
+  BLI_dynstr_appendf(dynstr, "    'type': '%s',\n", tstr);
+#  endif
+  BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", me_eval->totvert);
+  BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", me_eval->totedge);
+  BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me_eval->totface);
+  BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me_eval->totpoly);
+  BLI_dynstr_appendf(dynstr, "    'deformed_only': %d,\n", me_eval->runtime.deformed_only);
 
-	BLI_dynstr_append(dynstr, "    'vertexLayers': (\n");
-	mesh_runtime_debug_info_layers(dynstr, &me_eval->vdata);
-	BLI_dynstr_append(dynstr, "    ),\n");
+  BLI_dynstr_append(dynstr, "    'vertexLayers': (\n");
+  mesh_runtime_debug_info_layers(dynstr, &me_eval->vdata);
+  BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_append(dynstr, "    'edgeLayers': (\n");
-	mesh_runtime_debug_info_layers(dynstr, &me_eval->edata);
-	BLI_dynstr_append(dynstr, "    ),\n");
+  BLI_dynstr_append(dynstr, "    'edgeLayers': (\n");
+  mesh_runtime_debug_info_layers(dynstr, &me_eval->edata);
+  BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_append(dynstr, "    'loopLayers': (\n");
-	mesh_runtime_debug_info_layers(dynstr, &me_eval->ldata);
-	BLI_dynstr_append(dynstr, "    ),\n");
+  BLI_dynstr_append(dynstr, "    'loopLayers': (\n");
+  mesh_runtime_debug_info_layers(dynstr, &me_eval->ldata);
+  BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_append(dynstr, "    'polyLayers': (\n");
-	mesh_runtime_debug_info_layers(dynstr, &me_eval->pdata);
-	BLI_dynstr_append(dynstr, "    ),\n");
+  BLI_dynstr_append(dynstr, "    'polyLayers': (\n");
+  mesh_runtime_debug_info_layers(dynstr, &me_eval->pdata);
+  BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_append(dynstr, "    'tessFaceLayers': (\n");
-	mesh_runtime_debug_info_layers(dynstr, &me_eval->fdata);
-	BLI_dynstr_append(dynstr, "    ),\n");
+  BLI_dynstr_append(dynstr, "    'tessFaceLayers': (\n");
+  mesh_runtime_debug_info_layers(dynstr, &me_eval->fdata);
+  BLI_dynstr_append(dynstr, "    ),\n");
 
-	BLI_dynstr_append(dynstr, "}\n");
+  BLI_dynstr_append(dynstr, "}\n");
 
-	ret = BLI_dynstr_get_cstring(dynstr);
-	BLI_dynstr_free(dynstr);
-	return ret;
+  ret = BLI_dynstr_get_cstring(dynstr);
+  BLI_dynstr_free(dynstr);
+  return ret;
 }
 
 void BKE_mesh_runtime_debug_print(Mesh *me_eval)
 {
-	char *str = BKE_mesh_runtime_debug_info(me_eval);
-	puts(str);
-	fflush(stdout);
-	MEM_freeN(str);
+  char *str = BKE_mesh_runtime_debug_info(me_eval);
+  puts(str);
+  fflush(stdout);
+  MEM_freeN(str);
 }
 
 /* XXX Should go in customdata file? */
 void BKE_mesh_runtime_debug_print_cdlayers(CustomData *data)
 {
-	int i;
-	const CustomDataLayer *layer;
+  int i;
+  const CustomDataLayer *layer;
 
-	printf("{\n");
+  printf("{\n");
 
-	for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
+  for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
 
-		const char *name = CustomData_layertype_name(layer->type);
-		const int size = CustomData_sizeof(layer->type);
-		const char *structname;
-		int structnum;
-		CustomData_file_write_info(layer->type, &structname, &structnum);
-		printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-		       name, structname, layer->type, (const void *)layer->data, size, (int)(MEM_allocN_len(layer->data) / size));
-	}
+    const char *name = CustomData_layertype_name(layer->type);
+    const int size = CustomData_sizeof(layer->type);
+    const char *structname;
+    int structnum;
+    CustomData_file_write_info(layer->type, &structname, &structnum);
+    printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+           name,
+           structname,
+           layer->type,
+           (const void *)layer->data,
+           size,
+           (int)(MEM_allocN_len(layer->data) / size));
+  }
 
-	printf("}\n");
+  printf("}\n");
 }
 
 bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
 {
-	const bool do_verbose = true;
-	const bool do_fixes = false;
+  const bool do_verbose = true;
+  const bool do_fixes = false;
 
-	bool is_valid = true;
-	bool changed = true;
+  bool is_valid = true;
+  bool changed = true;
 
-	if (do_verbose) {
-		printf("MESH: %s\n", me_eval->id.name + 2);
-	}
+  if (do_verbose) {
+    printf("MESH: %s\n", me_eval->id.name + 2);
+  }
 
-	is_valid &= BKE_mesh_validate_all_customdata(
-	        &me_eval->vdata, me_eval->totvert,
-	        &me_eval->edata, me_eval->totedge,
-	        &me_eval->ldata, me_eval->totloop,
-	        &me_eval->pdata, me_eval->totpoly,
-	        false,  /* setting mask here isn't useful, gives false positives */
-	        do_verbose, do_fixes,
-	        &changed);
+  is_valid &= BKE_mesh_validate_all_customdata(
+      &me_eval->vdata,
+      me_eval->totvert,
+      &me_eval->edata,
+      me_eval->totedge,
+      &me_eval->ldata,
+      me_eval->totloop,
+      &me_eval->pdata,
+      me_eval->totpoly,
+      false, /* setting mask here isn't useful, gives false positives */
+      do_verbose,
+      do_fixes,
+      &changed);
 
-	is_valid &= BKE_mesh_validate_arrays(
-	        me_eval,
-	        me_eval->mvert, me_eval->totvert,
-	        me_eval->medge, me_eval->totedge,
-	        me_eval->mface, me_eval->totface,
-	        me_eval->mloop, me_eval->totloop,
-	        me_eval->mpoly, me_eval->totpoly,
-	        me_eval->dvert,
-	        do_verbose, do_fixes,
-	        &changed);
+  is_valid &= BKE_mesh_validate_arrays(me_eval,
+                                       me_eval->mvert,
+                                       me_eval->totvert,
+                                       me_eval->medge,
+                                       me_eval->totedge,
+                                       me_eval->mface,
+                                       me_eval->totface,
+                                       me_eval->mloop,
+                                       me_eval->totloop,
+                                       me_eval->mpoly,
+                                       me_eval->totpoly,
+                                       me_eval->dvert,
+                                       do_verbose,
+                                       do_fixes,
+                                       &changed);
 
-	BLI_assert(changed == false);
+  BLI_assert(changed == false);
 
-	return is_valid;
+  return is_valid;
 }
 
-#endif  /* NDEBUG */
+#endif /* NDEBUG */
 
 /** \} */

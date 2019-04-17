@@ -25,15 +25,15 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
 struct uchar2 {
-	uchar x, y;
+  uchar x, y;
 
-	__forceinline uchar operator[](int i) const;
-	__forceinline uchar& operator[](int i);
+  __forceinline uchar operator[](int i) const;
+  __forceinline uchar &operator[](int i);
 };
 
 ccl_device_inline uchar2 make_uchar2(uchar x, uchar y);
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_UCHAR2_H__ */
+#endif /* __UTIL_TYPES_UCHAR2_H__ */

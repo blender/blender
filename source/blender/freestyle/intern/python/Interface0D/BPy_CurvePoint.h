@@ -37,8 +37,8 @@ extern PyTypeObject CurvePoint_Type;
 
 /*---------------------------Python BPy_CurvePoint structure definition----------*/
 typedef struct {
-	BPy_Interface0D py_if0D;
-	CurvePoint *cp;
+  BPy_Interface0D py_if0D;
+  CurvePoint *cp;
 } BPy_CurvePoint;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

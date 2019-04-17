@@ -9,6 +9,6 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = finalColor * (global + (1.0 - global) * max(0.0, dot(normalize(normal), light)));
-	fragColor.a = alpha;
+  fragColor = finalColor * (global + (1.0 - global) * max(0.0, dot(normalize(normal), light)));
+  fragColor.a = alpha;
 }

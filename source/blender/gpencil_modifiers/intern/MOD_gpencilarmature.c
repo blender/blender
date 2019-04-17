@@ -54,147 +54,148 @@
 
 static void initData(GpencilModifierData *md)
 {
-	ArmatureGpencilModifierData *gpmd = (ArmatureGpencilModifierData *)md;
-	gpmd->object = NULL;
-	gpmd->deformflag = ARM_DEF_VGROUP;
+  ArmatureGpencilModifierData *gpmd = (ArmatureGpencilModifierData *)md;
+  gpmd->object = NULL;
+  gpmd->deformflag = ARM_DEF_VGROUP;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
-static void gpencil_deform_verts(
-	ArmatureGpencilModifierData *mmd, Object *target,
-	bGPDstroke *gps)
+static void gpencil_deform_verts(ArmatureGpencilModifierData *mmd, Object *target, bGPDstroke *gps)
 {
-	bGPDspoint *pt = gps->points;
-	float *all_vert_coords = MEM_callocN(sizeof(float) * 3 * gps->totpoints, __func__);
-	int i;
+  bGPDspoint *pt = gps->points;
+  float *all_vert_coords = MEM_callocN(sizeof(float) * 3 * gps->totpoints, __func__);
+  int i;
 
-	BKE_gpencil_dvert_ensure(gps);
+  BKE_gpencil_dvert_ensure(gps);
 
-	/* prepare array of points */
-	for (i = 0; i < gps->totpoints; i++, pt++) {
-		float *pt_coords = &all_vert_coords[3 * i];
-		float co[3];
-		copy_v3_v3(co, &pt->x);
-		copy_v3_v3(pt_coords, co);
-	}
+  /* prepare array of points */
+  for (i = 0; i < gps->totpoints; i++, pt++) {
+    float *pt_coords = &all_vert_coords[3 * i];
+    float co[3];
+    copy_v3_v3(co, &pt->x);
+    copy_v3_v3(pt_coords, co);
+  }
 
-	/* deform verts */
-	armature_deform_verts(
-	        mmd->object, target, NULL,
-	        (float(*)[3])all_vert_coords,
-	        NULL, gps->totpoints,
-	        mmd->deformflag,
-	        (float(*)[3])mmd->prevCos,
-	        mmd->vgname, gps);
+  /* deform verts */
+  armature_deform_verts(mmd->object,
+                        target,
+                        NULL,
+                        (float(*)[3])all_vert_coords,
+                        NULL,
+                        gps->totpoints,
+                        mmd->deformflag,
+                        (float(*)[3])mmd->prevCos,
+                        mmd->vgname,
+                        gps);
 
-	/* Apply deformed coordinates */
-	pt = gps->points;
-	for (i = 0; i < gps->totpoints; i++, pt++) {
-		float *pt_coords = &all_vert_coords[3 * i];
-		copy_v3_v3(&pt->x, pt_coords);
-	}
+  /* Apply deformed coordinates */
+  pt = gps->points;
+  for (i = 0; i < gps->totpoints; i++, pt++) {
+    float *pt_coords = &all_vert_coords[3 * i];
+    copy_v3_v3(&pt->x, pt_coords);
+  }
 
-	MEM_SAFE_FREE(all_vert_coords);
-
+  MEM_SAFE_FREE(all_vert_coords);
 }
 
 /* deform stroke */
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *UNUSED(gpl), bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *UNUSED(gpl),
+                         bGPDstroke *gps)
 {
-	ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
-	if (!mmd->object) {
-		return;
-	}
+  ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
+  if (!mmd->object) {
+    return;
+  }
 
-	gpencil_deform_verts(mmd, ob, gps);
+  gpencil_deform_verts(mmd, ob, gps);
 }
 
-static void bakeModifier(
-        Main *bmain, Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
 {
-	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
-	ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
-	GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
-	bGPdata *gpd = (bGPdata *)ob->data;
-	int oldframe = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
+  GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
+  bGPdata *gpd = (bGPdata *)ob->data;
+  int oldframe = (int)DEG_get_ctime(depsgraph);
 
-	if (mmd->object == NULL)
-		return;
+  if (mmd->object == NULL)
+    return;
 
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			/* apply armature effects on this frame
-			 * NOTE: this assumes that we don't want armature animation on non-keyframed frames
-			 */
-			CFRA = gpf->framenum;
-			BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      /* apply armature effects on this frame
+       * NOTE: this assumes that we don't want armature animation on non-keyframed frames
+       */
+      CFRA = gpf->framenum;
+      BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 
-			/* compute armature effects on this frame */
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md_eval, depsgraph, object_eval, gpl, gps);
-			}
-		}
-	}
+      /* compute armature effects on this frame */
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        deformStroke(md_eval, depsgraph, object_eval, gpl, gps);
+      }
+    }
+  }
 
-	/* return frame state and DB to original state */
-	CFRA = oldframe;
-	BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  /* return frame state and DB to original state */
+  CFRA = oldframe;
+  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 }
 
 static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
 {
-	ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
+  ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 
-	return !mmd->object;
+  return !mmd->object;
 }
 
 static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-	ArmatureGpencilModifierData *lmd = (ArmatureGpencilModifierData *)md;
-	if (lmd->object != NULL) {
-		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
-		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
-	}
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
+  ArmatureGpencilModifierData *lmd = (ArmatureGpencilModifierData *)md;
+  if (lmd->object != NULL) {
+    DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
+    DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
+  }
+  DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
 }
 
-static void foreachObjectLink(
-        GpencilModifierData *md, Object *ob,
-        ObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(GpencilModifierData *md,
+                              Object *ob,
+                              ObjectWalkFunc walk,
+                              void *userData)
 {
-	ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
+  ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 
-	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Armature = {
-	/* name */              "Armature",
-	/* structName */        "ArmatureGpencilModifierData",
-	/* structSize */        sizeof(ArmatureGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Armature",
+    /* structName */ "ArmatureGpencilModifierData",
+    /* structSize */ sizeof(ArmatureGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ foreachObjectLink,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

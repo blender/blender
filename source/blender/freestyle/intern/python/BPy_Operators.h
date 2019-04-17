@@ -41,13 +41,12 @@ extern PyTypeObject Operators_Type;
 
 /*---------------------------Python BPy_Operators structure definition----------*/
 typedef struct {
-	PyObject_HEAD
+  PyObject_HEAD
 } BPy_Operators;
 
 /*---------------------------Python BPy_Operators visible prototypes-----------*/
 
 int Operators_Init(PyObject *module);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

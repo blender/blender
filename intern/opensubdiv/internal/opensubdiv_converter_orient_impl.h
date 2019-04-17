@@ -27,7 +27,8 @@
 
 namespace opensubdiv_capi {
 
-inline void reverseFaceVertices(int* face_vertices, const int num_vertices) {
+inline void reverseFaceVertices(int *face_vertices, const int num_vertices)
+{
   int last_vert = face_vertices[num_vertices - 1];
   for (int i = num_vertices - 1; i > 0; --i) {
     face_vertices[i] = face_vertices[i - 1];
@@ -35,21 +36,23 @@ inline void reverseFaceVertices(int* face_vertices, const int num_vertices) {
   face_vertices[0] = last_vert;
 }
 
-inline int getLoopWinding(int vert0_of_face, int vert1_of_face) {
+inline int getLoopWinding(int vert0_of_face, int vert1_of_face)
+{
   int delta_face = vert1_of_face - vert0_of_face;
   if (abs(delta_face) != 1) {
     if (delta_face > 0) {
       delta_face = -1;
-    } else {
+    }
+    else {
       delta_face = 1;
     }
   }
   return delta_face;
 }
 
-inline void reverseFaceLoops(
-    OpenSubdiv::Far::IndexArray* face_vertices,
-    OpenSubdiv::Far::IndexArray* face_edges) {
+inline void reverseFaceLoops(OpenSubdiv::Far::IndexArray *face_vertices,
+                             OpenSubdiv::Far::IndexArray *face_edges)
+{
   const int num_face_vertices = face_vertices->size();
   for (int i = 0; i < num_face_vertices / 2; ++i) {
     const int j = num_face_vertices - i - 1;

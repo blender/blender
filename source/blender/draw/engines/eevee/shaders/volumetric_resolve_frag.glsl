@@ -13,9 +13,9 @@ out vec4 FragColor;
 
 void main()
 {
-	vec2 uvs = gl_FragCoord.xy / vec2(textureSize(inSceneDepth, 0));
-	vec4 scene_color = texture(inSceneColor, uvs);
-	float scene_depth = texture(inSceneDepth, uvs).r;
+  vec2 uvs = gl_FragCoord.xy / vec2(textureSize(inSceneDepth, 0));
+  vec4 scene_color = texture(inSceneColor, uvs);
+  float scene_depth = texture(inSceneDepth, uvs).r;
 
-	FragColor = volumetric_resolve(scene_color, uvs, scene_depth);
+  FragColor = volumetric_resolve(scene_color, uvs, scene_depth);
 }

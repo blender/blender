@@ -34,27 +34,27 @@ namespace DEG {
 
 bool terminal_do_color(void)
 {
-	return (G.debug & G_DEBUG_DEPSGRAPH_PRETTY) != 0;
+  return (G.debug & G_DEBUG_DEPSGRAPH_PRETTY) != 0;
 }
 
 string color_for_pointer(const void *pointer)
 {
-	if (!terminal_do_color()) {
-		return "";
-	}
-	int r, g, b;
-	BLI_hash_pointer_to_color(pointer, &r, &g, &b);
-	char buffer[64];
-	BLI_snprintf(buffer, sizeof(buffer), TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
-	return string(buffer);
+  if (!terminal_do_color()) {
+    return "";
+  }
+  int r, g, b;
+  BLI_hash_pointer_to_color(pointer, &r, &g, &b);
+  char buffer[64];
+  BLI_snprintf(buffer, sizeof(buffer), TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
+  return string(buffer);
 }
 
 string color_end(void)
 {
-	if (!terminal_do_color()) {
-		return "";
-	}
-	return string(TRUECOLOR_ANSI_COLOR_FINISH);
+  if (!terminal_do_color()) {
+    return "";
+  }
+  return string(TRUECOLOR_ANSI_COLOR_FINISH);
 }
 
 }  // namespace DEG

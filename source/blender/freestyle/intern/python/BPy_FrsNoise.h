@@ -42,21 +42,18 @@ extern PyTypeObject FrsNoise_Type;
 
 /*---------------------------Python BPy_FrsNoise structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	Noise *n;
-	PseudoNoise *pn;
+  PyObject_HEAD Noise *n;
+  PseudoNoise *pn;
 } BPy_FrsNoise;
 
 /*---------------------------Python BPy_FrsNoise visible prototypes-----------*/
 
 int FrsNoise_Init(PyObject *module);
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_FRSNOISE_H__ */

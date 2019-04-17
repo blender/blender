@@ -16,7 +16,7 @@ out vec4 finalColor;
 
 void main()
 {
-	normal = normalize(NormalMatrix * nor);
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	finalColor = color;
+  normal = normalize(NormalMatrix * nor);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  finalColor = color;
 }

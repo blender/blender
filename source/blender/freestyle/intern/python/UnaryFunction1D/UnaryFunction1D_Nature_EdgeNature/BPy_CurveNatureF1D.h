@@ -31,13 +31,13 @@ extern "C" {
 
 extern PyTypeObject CurveNatureF1D_Type;
 
-#define BPy_CurveNatureF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurveNatureF1D_Type))
+#define BPy_CurveNatureF1D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurveNatureF1D_Type))
 
 /*---------------------------Python BPy_CurveNatureF1D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction1DEdgeNature py_uf1D_edgenature;
+  BPy_UnaryFunction1DEdgeNature py_uf1D_edgenature;
 } BPy_CurveNatureF1D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -22,18 +22,21 @@
 #include "COM_ReadBufferOperation.h"
 
 class WrapOperation : public ReadBufferOperation {
-private:
-	int m_wrappingType;
-public:
-	WrapOperation(DataType datetype);
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ private:
+  int m_wrappingType;
 
-	void setWrapping(int wrapping_type);
-	float getWrappedOriginalXPos(float x);
-	float getWrappedOriginalYPos(float y);
+ public:
+  WrapOperation(DataType datetype);
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	void setFactorXY(float factorX, float factorY);
+  void setWrapping(int wrapping_type);
+  float getWrappedOriginalXPos(float x);
+  float getWrappedOriginalYPos(float y);
+
+  void setFactorXY(float factorX, float factorY);
 };
 
 #endif

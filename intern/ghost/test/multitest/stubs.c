@@ -24,5 +24,10 @@
 
 struct ImBuf;
 
-void IMB_freeImBuf(struct ImBuf *UNUSED(ibuf)) {}
-void IMB_colormanagement_display_to_scene_linear_v3(float UNUSED(pixel[3]), struct ColorManagedDisplay *UNUSED(display)) {}
+void IMB_freeImBuf(struct ImBuf *UNUSED(ibuf))
+{
+}
+void IMB_colormanagement_display_to_scene_linear_v3(float UNUSED(pixel[3]),
+                                                    struct ColorManagedDisplay *UNUSED(display))
+{
+}

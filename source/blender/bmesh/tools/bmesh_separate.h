@@ -21,8 +21,6 @@
  * \ingroup bmesh
  */
 
-void BM_mesh_separate_faces(
-        BMesh *bm,
-        BMFaceFilterFunc filter_fn, void *user_data);
+void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data);
 
 #endif /* __BMESH_SEPARATE_H__ */

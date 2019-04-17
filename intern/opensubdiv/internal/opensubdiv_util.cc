@@ -25,17 +25,19 @@
 
 namespace opensubdiv_capi {
 
-void stringSplit(vector<string>* tokens,
-                 const string& str,
-                 const string& separators,
-                 bool skip_empty) {
+void stringSplit(vector<string> *tokens,
+                 const string &str,
+                 const string &separators,
+                 bool skip_empty)
+{
   size_t token_start = 0, token_length = 0;
   for (size_t i = 0; i < str.length(); ++i) {
     const char ch = str[i];
     if (separators.find(ch) == string::npos) {
       // Append non-separator char to a token.
       ++token_length;
-    } else {
+    }
+    else {
       // Append current token to the list (if any).
       if (token_length > 0 || !skip_empty) {
         string token = str.substr(token_start, token_length);
@@ -48,8 +50,7 @@ void stringSplit(vector<string>* tokens,
   }
   // Append token which might be at the end of the string.
   if ((token_length != 0) ||
-      (!skip_empty && token_start > 0 &&
-       separators.find(str[token_start-1]) != string::npos)) {
+      (!skip_empty && token_start > 0 && separators.find(str[token_start - 1]) != string::npos)) {
     string token = str.substr(token_start, token_length);
     tokens->push_back(token);
   }

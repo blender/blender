@@ -22,21 +22,22 @@
 #include "DNA_color_types.h"
 
 class CurveBaseOperation : public NodeOperation {
-protected:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	CurveMapping *m_curveMapping;
-public:
-	CurveBaseOperation();
-	~CurveBaseOperation();
+ protected:
+  /**
+   * Cached reference to the inputProgram
+   */
+  CurveMapping *m_curveMapping;
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
-	void deinitExecution();
+ public:
+  CurveBaseOperation();
+  ~CurveBaseOperation();
 
-	void setCurveMapping(CurveMapping *mapping);
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
+  void deinitExecution();
+
+  void setCurveMapping(CurveMapping *mapping);
 };
 #endif

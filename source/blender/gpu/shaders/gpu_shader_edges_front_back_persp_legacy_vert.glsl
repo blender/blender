@@ -42,27 +42,27 @@ const vec4 invisible = vec4(0.0);
 
 bool front(vec3 N)
 {
-	vec4 xformed = ModelViewMatrix * vec4(pos, 1.0);
-	return dot(NormalMatrix * N, normalize(-xformed.xyz)) > 0.0;
+  vec4 xformed = ModelViewMatrix * vec4(pos, 1.0);
+  return dot(NormalMatrix * N, normalize(-xformed.xyz)) > 0.0;
 }
 
 void main()
 {
-	bool face_1_front = front(N1);
-	bool face_2_front = front(N2);
+  bool face_1_front = front(N1);
+  bool face_2_front = front(N2);
 
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-	if (face_1_front && face_2_front) {
-		// front-facing edge
-		finalColor = drawFront ? frontColor : invisible;
-	}
-	else if (face_1_front || face_2_front) {
-		// exactly one face is front-facing, silhouette edge
-		finalColor = drawSilhouette ? silhouetteColor : invisible;
-	}
-	else {
-		// back-facing edge
-		finalColor = drawBack ? backColor : invisible;
-	}
+  if (face_1_front && face_2_front) {
+    // front-facing edge
+    finalColor = drawFront ? frontColor : invisible;
+  }
+  else if (face_1_front || face_2_front) {
+    // exactly one face is front-facing, silhouette edge
+    finalColor = drawSilhouette ? silhouetteColor : invisible;
+  }
+  else {
+    // back-facing edge
+    finalColor = drawBack ? backColor : invisible;
+  }
 }

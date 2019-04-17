@@ -21,12 +21,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-using std::sort;
-using std::swap;
 using std::max;
 using std::min;
 using std::remove;
+using std::sort;
+using std::swap;
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_ALGORITHM_H__ */
+#endif /* __UTIL_ALGORITHM_H__ */

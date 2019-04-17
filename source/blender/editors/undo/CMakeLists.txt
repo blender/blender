@@ -16,38 +16,38 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blenloader
-	../../blentranslation
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/clog
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../blentranslation
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/clog
 )
 
 set(SRC
-	ed_undo.c
-	memfile_undo.c
-	undo_system_types.c
+  ed_undo.c
+  memfile_undo.c
+  undo_system_types.c
 
-	undo_intern.h
+  undo_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
-	bf_editor_curve
-	bf_editor_lattice
-	bf_editor_mesh
-	bf_editor_metaball
-	bf_editor_physics
+  bf_blenkernel
+  bf_blenlib
+  bf_editor_curve
+  bf_editor_lattice
+  bf_editor_mesh
+  bf_editor_metaball
+  bf_editor_physics
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_editor_undo "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

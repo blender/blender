@@ -22,58 +22,58 @@ flat in float hair_rand;
 #endif
 
 #ifdef MATDATA_PASS_ENABLED
-layout(location=0) out vec4 materialData;
+layout(location = 0) out vec4 materialData;
 #endif
 #ifdef OBJECT_ID_PASS_ENABLED
-layout(location=1) out uint objectId;
+layout(location = 1) out uint objectId;
 #endif
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-layout(location=2) out WB_Normal normalViewport;
+layout(location = 2) out WB_Normal normalViewport;
 #endif
 
 void main()
 {
 #ifdef MATDATA_PASS_ENABLED
-	float metallic, roughness;
-	vec4 color;
+  float metallic, roughness;
+  vec4 color;
 
 #  ifdef V3D_SHADING_TEXTURE_COLOR
-	color = workbench_sample_texture(image, uv_interp, imageSrgb, imageNearest);
-	if (color.a < ImageTransparencyCutoff) {
-		discard;
-	}
+  color = workbench_sample_texture(image, uv_interp, imageSrgb, imageNearest);
+  if (color.a < ImageTransparencyCutoff) {
+    discard;
+  }
 #  else
-	color.rgb = materialDiffuseColor;
+  color.rgb = materialDiffuseColor;
 #  endif
 
 #  ifdef V3D_LIGHTING_MATCAP
-	/* Encode front facing in metallic channel. */
-	metallic = float(gl_FrontFacing);
-	roughness = 0.0;
+  /* Encode front facing in metallic channel. */
+  metallic = float(gl_FrontFacing);
+  roughness = 0.0;
 #  else
-	metallic = materialMetallic;
-	roughness = materialRoughness;
+  metallic = materialMetallic;
+  roughness = materialRoughness;
 #  endif
 
 #  ifdef HAIR_SHADER
-	/* Add some variation to the hairs to avoid uniform look. */
-	float hair_variation = hair_rand * 0.1;
-	color = clamp(color - hair_variation, 0.0, 1.0);
-	metallic = clamp(materialMetallic - hair_variation, 0.0, 1.0);
-	roughness = clamp(materialRoughness - hair_variation, 0.0, 1.0);
+  /* Add some variation to the hairs to avoid uniform look. */
+  float hair_variation = hair_rand * 0.1;
+  color = clamp(color - hair_variation, 0.0, 1.0);
+  metallic = clamp(materialMetallic - hair_variation, 0.0, 1.0);
+  roughness = clamp(materialRoughness - hair_variation, 0.0, 1.0);
 #  endif
 
-	materialData.rgb = color.rgb;
-	materialData.a   = workbench_float_pair_encode(roughness, metallic);
+  materialData.rgb = color.rgb;
+  materialData.a = workbench_float_pair_encode(roughness, metallic);
 #endif /* MATDATA_PASS_ENABLED */
 
 #ifdef OBJECT_ID_PASS_ENABLED
-	objectId = uint(object_id);
+  objectId = uint(object_id);
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-	vec3 n = (gl_FrontFacing) ? normal_viewport : -normal_viewport;
-	n = normalize(n);
-	normalViewport = workbench_normal_encode(n);
+  vec3 n = (gl_FrontFacing) ? normal_viewport : -normal_viewport;
+  n = normalize(n);
+  normalViewport = workbench_normal_encode(n);
 #endif
 }

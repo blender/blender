@@ -22,31 +22,31 @@ out vec4 vColSize;
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
-	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
+  return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
 }
 
 void main()
 {
-	/* This is slow and run per vertex, but it's still faster than
-	 * doing it per instance on CPU and sending it on via instance attribute. */
-	mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
+  /* This is slow and run per vertex, but it's still faster than
+   * doing it per instance on CPU and sending it on via instance attribute. */
+  mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
 
-	vec4 worldPosition = InstanceModelMatrix * vec4(pos, 1.0);
-	vec4 viewpos = ViewMatrix * worldPosition;
+  vec4 worldPosition = InstanceModelMatrix * vec4(pos, 1.0);
+  vec4 viewpos = ViewMatrix * worldPosition;
 
-	vPos = viewpos.xyz;
-	pPos = ProjectionMatrix * viewpos;
+  vPos = viewpos.xyz;
+  pPos = ProjectionMatrix * viewpos;
 
-	/* TODO FIX: there is still a problem with this vector
-	 * when the bone is scaled or in persp mode. But it's
-	 * barelly visible at the outline corners. */
-	ssNor = normalize((NormalMatrix * snor).xy);
+  /* TODO FIX: there is still a problem with this vector
+   * when the bone is scaled or in persp mode. But it's
+   * barelly visible at the outline corners. */
+  ssNor = normalize((NormalMatrix * snor).xy);
 
-	ssPos = proj(pPos);
+  ssPos = proj(pPos);
 
-	vColSize = outlineColorSize;
+  vColSize = outlineColorSize;
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance(worldPosition.xyz);
+  world_clip_planes_calc_clip_distance(worldPosition.xyz);
 #endif
 }

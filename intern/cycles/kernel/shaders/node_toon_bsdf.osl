@@ -16,17 +16,15 @@
 
 #include "stdosl.h"
 
-shader node_toon_bsdf(
-	color Color = 0.8,
-	string component = "diffuse",
-	float Size = 0.5,
-	float Smooth = 0.0,
-	normal Normal = N,
-	output closure color BSDF = 0)
+shader node_toon_bsdf(color Color = 0.8,
+                      string component = "diffuse",
+                      float Size = 0.5,
+                      float Smooth = 0.0,
+                      normal Normal = N,
+                      output closure color BSDF = 0)
 {
-	if (component == "diffuse")
-		BSDF = Color * diffuse_toon(Normal, Size, Smooth);
-	else if (component == "glossy")
-		BSDF = Color * glossy_toon(Normal, Size, Smooth);
+  if (component == "diffuse")
+    BSDF = Color * diffuse_toon(Normal, Size, Smooth);
+  else if (component == "glossy")
+    BSDF = Color * glossy_toon(Normal, Size, Smooth);
 }
-

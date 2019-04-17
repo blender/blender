@@ -21,7 +21,6 @@
  * \ingroup depsgraph
  */
 
-
 #pragma once
 
 namespace DEG {

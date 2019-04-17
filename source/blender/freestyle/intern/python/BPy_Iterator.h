@@ -41,14 +41,12 @@ extern PyTypeObject Iterator_Type;
 
 /*---------------------------Python BPy_Iterator structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	Iterator *it;
+  PyObject_HEAD Iterator *it;
 } BPy_Iterator;
 
 /*---------------------------Python BPy_Iterator visible prototypes-----------*/
 
 int Iterator_Init(PyObject *module);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -113,7 +113,8 @@ ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_fetch_and_sub_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new);
-ATOMIC_INLINE size_t atomic_fetch_and_update_max_z(size_t *p, size_t x); /* Uses CAS loop, see warning below. */
+ATOMIC_INLINE size_t
+atomic_fetch_and_update_max_z(size_t *p, size_t x); /* Uses CAS loop, see warning below. */
 
 ATOMIC_INLINE unsigned int atomic_add_and_fetch_u(unsigned int *p, unsigned int x);
 ATOMIC_INLINE unsigned int atomic_sub_and_fetch_u(unsigned int *p, unsigned int x);
@@ -122,7 +123,6 @@ ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int 
 ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsigned int _new);
 
 ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new);
-
 
 ATOMIC_INLINE float atomic_cas_float(float *v, float old, float _new);
 

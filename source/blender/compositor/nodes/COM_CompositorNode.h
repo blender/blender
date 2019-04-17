@@ -26,8 +26,8 @@
  * \ingroup Node
  */
 class CompositorNode : public Node {
-public:
-	CompositorNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  CompositorNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 #endif

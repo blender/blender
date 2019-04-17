@@ -18,41 +18,40 @@
 
 #include "stdosl.h"
 
-shader node_hair_bsdf(
-	color Color = 0.8,
-	string component = "reflection",
-	float Offset = 0.0,
-	float RoughnessU = 0.1,
-	float RoughnessV = 1.0,
-	normal Tangent = normal(0, 0, 0),
-	output closure color BSDF = 0)
+shader node_hair_bsdf(color Color = 0.8,
+                      string component = "reflection",
+                      float Offset = 0.0,
+                      float RoughnessU = 0.1,
+                      float RoughnessV = 1.0,
+                      normal Tangent = normal(0, 0, 0),
+                      output closure color BSDF = 0)
 {
-	float roughnessh = clamp(RoughnessU, 0.001, 1.0);
-	float roughnessv = clamp(RoughnessV, 0.001, 1.0);
-	float offset = -Offset;
+  float roughnessh = clamp(RoughnessU, 0.001, 1.0);
+  float roughnessv = clamp(RoughnessV, 0.001, 1.0);
+  float offset = -Offset;
 
-	normal T;
-	float IsCurve = 0;
-	getattribute("geom:is_curve", IsCurve);
+  normal T;
+  float IsCurve = 0;
+  getattribute("geom:is_curve", IsCurve);
 
-	if (isconnected(Tangent)) {
-		T = Tangent;
-	}
-	else if(!IsCurve) {
-		T = normalize(dPdv);
-		offset = 0.0;
-	}
-	else {
-		T = normalize(dPdu);
-	}
+  if (isconnected(Tangent)) {
+    T = Tangent;
+  }
+  else if (!IsCurve) {
+    T = normalize(dPdv);
+    offset = 0.0;
+  }
+  else {
+    T = normalize(dPdu);
+  }
 
-	if (backfacing() && IsCurve) {
-		BSDF = transparent();
-	}
-	else {
-		if (component == "reflection")
-			BSDF = Color * hair_reflection(Ng, roughnessh, roughnessv, T, offset);
-		else
-			BSDF = Color * hair_transmission(Ng, roughnessh, roughnessv, T, offset);
-	}
+  if (backfacing() && IsCurve) {
+    BSDF = transparent();
+  }
+  else {
+    if (component == "reflection")
+      BSDF = Color * hair_reflection(Ng, roughnessh, roughnessv, T, offset);
+    else
+      BSDF = Color * hair_transmission(Ng, roughnessh, roughnessv, T, offset);
+  }
 }

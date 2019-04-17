@@ -145,4 +145,4 @@ void immActivate(void);
 void immDeactivate(void);
 void immDestroy(void);
 
-#endif  /* __GPU_IMMEDIATE_H__ */
+#endif /* __GPU_IMMEDIATE_H__ */

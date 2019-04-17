@@ -25,4 +25,4 @@ PyObject *BPyInit_imbuf(void);
 
 extern PyTypeObject Py_ImBuf_Type;
 
-#endif  /* __IMBUF_PY_API_H__ */
+#endif /* __IMBUF_PY_API_H__ */

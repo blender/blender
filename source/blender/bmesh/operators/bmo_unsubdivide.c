@@ -34,24 +34,24 @@
  */
 void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 {
-	BMVert *v;
-	BMIter iter;
+  BMVert *v;
+  BMIter iter;
 
-	const int iterations = max_ii(1, BMO_slot_int_get(op->slots_in, "iterations"));
+  const int iterations = max_ii(1, BMO_slot_int_get(op->slots_in, "iterations"));
 
-	BMOpSlot *vinput = BMO_slot_get(op->slots_in, "verts");
-	BMVert **vinput_arr = (BMVert **)vinput->data.buf;
-	int v_index;
+  BMOpSlot *vinput = BMO_slot_get(op->slots_in, "verts");
+  BMVert **vinput_arr = (BMVert **)vinput->data.buf;
+  int v_index;
 
-	/* tag verts */
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		BM_elem_flag_disable(v, BM_ELEM_TAG);
-	}
-	for (v_index = 0; v_index < vinput->len; v_index++) {
-		v = vinput_arr[v_index];
-		BM_elem_flag_enable(v, BM_ELEM_TAG);
-	}
+  /* tag verts */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    BM_elem_flag_disable(v, BM_ELEM_TAG);
+  }
+  for (v_index = 0; v_index < vinput->len; v_index++) {
+    v = vinput_arr[v_index];
+    BM_elem_flag_enable(v, BM_ELEM_TAG);
+  }
 
-	/* do all the real work here */
-	BM_mesh_decimate_unsubdivide_ex(bm, iterations, true);
+  /* do all the real work here */
+  BM_mesh_decimate_unsubdivide_ex(bm, iterations, true);
 }

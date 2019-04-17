@@ -29,20 +29,20 @@
 /* analogue of PyEval_SaveThread() */
 BPy_ThreadStatePtr BPY_thread_save(void)
 {
-	PyThreadState *tstate = PyThreadState_Swap(NULL);
-	/* note: tstate can be NULL when quitting Blender */
+  PyThreadState *tstate = PyThreadState_Swap(NULL);
+  /* note: tstate can be NULL when quitting Blender */
 
-	if (tstate && PyEval_ThreadsInitialized()) {
-		PyEval_ReleaseLock();
-	}
+  if (tstate && PyEval_ThreadsInitialized()) {
+    PyEval_ReleaseLock();
+  }
 
-	return (BPy_ThreadStatePtr)tstate;
+  return (BPy_ThreadStatePtr)tstate;
 }
 
 /* analogue of PyEval_RestoreThread() */
 void BPY_thread_restore(BPy_ThreadStatePtr tstate)
 {
-	if (tstate) {
-		PyEval_RestoreThread((PyThreadState *)tstate);
-	}
+  if (tstate) {
+    PyEval_RestoreThread((PyThreadState *)tstate);
+  }
 }

@@ -29,20 +29,20 @@
 /** 1: select, 0: deselect, -1: pass. */
 int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside)
 {
-	switch (sel_op) {
-		case SEL_OP_ADD:
-			return (!is_select && (is_inside)) ? 1 : -1;
-		case SEL_OP_SUB:
-			return (is_select && is_inside) ? 0 : -1;
-		case SEL_OP_SET:
-			return is_inside ? 1 : 0;
-		case SEL_OP_AND:
-			return (is_select && is_inside) ? -1 : (is_select ? 0 : -1);
-		case SEL_OP_XOR:
-			return (is_select && is_inside) ? 0 : ((!is_select && is_inside) ? 1 : -1);
-	}
-	BLI_assert(!"invalid sel_op");
-	return -1;
+  switch (sel_op) {
+    case SEL_OP_ADD:
+      return (!is_select && (is_inside)) ? 1 : -1;
+    case SEL_OP_SUB:
+      return (is_select && is_inside) ? 0 : -1;
+    case SEL_OP_SET:
+      return is_inside ? 1 : 0;
+    case SEL_OP_AND:
+      return (is_select && is_inside) ? -1 : (is_select ? 0 : -1);
+    case SEL_OP_XOR:
+      return (is_select && is_inside) ? 0 : ((!is_select && is_inside) ? 1 : -1);
+  }
+  BLI_assert(!"invalid sel_op");
+  return -1;
 }
 /**
  * Use when we've de-selected all items first (for modes that need it).
@@ -50,23 +50,25 @@ int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool
  * \note In some cases changing selection needs to perform other checks,
  * so it's more straightforward to deselect all, then select.
  */
-int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select, const bool is_inside)
+int ED_select_op_action_deselected(const eSelectOp sel_op,
+                                   const bool is_select,
+                                   const bool is_inside)
 {
-	switch (sel_op) {
-		case SEL_OP_ADD:
-			return (!is_select && is_inside) ? 1 : -1;
-		case SEL_OP_SUB:
-			return (is_select && is_inside) ? 0 : -1;
-		case SEL_OP_SET:
-			/* Only difference w/ function above. */
-			return is_inside ? 1 : -1;
-		case SEL_OP_AND:
-			return (is_select && is_inside) ? -1 : (is_select ? 0 : -1);
-		case SEL_OP_XOR:
-			return (is_select && is_inside) ? 0 : ((!is_select && is_inside) ? 1 : -1);
-	}
-	BLI_assert(!"invalid sel_op");
-	return -1;
+  switch (sel_op) {
+    case SEL_OP_ADD:
+      return (!is_select && is_inside) ? 1 : -1;
+    case SEL_OP_SUB:
+      return (is_select && is_inside) ? 0 : -1;
+    case SEL_OP_SET:
+      /* Only difference w/ function above. */
+      return is_inside ? 1 : -1;
+    case SEL_OP_AND:
+      return (is_select && is_inside) ? -1 : (is_select ? 0 : -1);
+    case SEL_OP_XOR:
+      return (is_select && is_inside) ? 0 : ((!is_select && is_inside) ? 1 : -1);
+  }
+  BLI_assert(!"invalid sel_op");
+  return -1;
 }
 
 /**
@@ -74,60 +76,63 @@ int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select,
  */
 eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first)
 {
-	if (sel_op == SEL_OP_SET) {
-		if (is_first == false) {
-			return SEL_OP_ADD;
-		}
-	}
-	return sel_op;
+  if (sel_op == SEL_OP_SET) {
+    if (is_first == false) {
+      return SEL_OP_ADD;
+    }
+  }
+  return sel_op;
 }
 
 int ED_select_similar_compare_float(const float delta, const float thresh, const int compare)
 {
-	switch (compare) {
-		case SIM_CMP_EQ:
-			return (fabsf(delta) < thresh + FLT_EPSILON);
-		case SIM_CMP_GT:
-			return ((delta + thresh) > -FLT_EPSILON);
-		case SIM_CMP_LT:
-			return ((delta - thresh) < FLT_EPSILON);
-		default:
-			BLI_assert(0);
-			return 0;
-	}
+  switch (compare) {
+    case SIM_CMP_EQ:
+      return (fabsf(delta) < thresh + FLT_EPSILON);
+    case SIM_CMP_GT:
+      return ((delta + thresh) > -FLT_EPSILON);
+    case SIM_CMP_LT:
+      return ((delta - thresh) < FLT_EPSILON);
+    default:
+      BLI_assert(0);
+      return 0;
+  }
 }
 
-bool ED_select_similar_compare_float_tree(const KDTree_1d *tree, const float length, const float thresh, const int compare)
+bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
+                                          const float length,
+                                          const float thresh,
+                                          const int compare)
 {
-	/* Length of the edge we want to compare against. */
-	float nearest_edge_length;
+  /* Length of the edge we want to compare against. */
+  float nearest_edge_length;
 
-	switch (compare) {
-		case SIM_CMP_EQ:
-			/* Compare to the edge closest to the current edge. */
-			nearest_edge_length = length;
-			break;
-		case SIM_CMP_GT:
-			/* Compare against the shortest edge. */
-			/* -FLT_MAX leads to some precision issues and the wrong edge being selected.
-			 * For example, in a tree with 1, 2 and 3, which is stored squared as 1, 4, 9, it returns as the nearest
-			 * length/node the "4" instead of "1". */
-			nearest_edge_length = -1.0f;
-			break;
-		case SIM_CMP_LT:
-			/* Compare against the longest edge. */
-			nearest_edge_length = FLT_MAX;
-			break;
-		default:
-			BLI_assert(0);
-			return false;
-	}
+  switch (compare) {
+    case SIM_CMP_EQ:
+      /* Compare to the edge closest to the current edge. */
+      nearest_edge_length = length;
+      break;
+    case SIM_CMP_GT:
+      /* Compare against the shortest edge. */
+      /* -FLT_MAX leads to some precision issues and the wrong edge being selected.
+       * For example, in a tree with 1, 2 and 3, which is stored squared as 1, 4, 9, it returns as the nearest
+       * length/node the "4" instead of "1". */
+      nearest_edge_length = -1.0f;
+      break;
+    case SIM_CMP_LT:
+      /* Compare against the longest edge. */
+      nearest_edge_length = FLT_MAX;
+      break;
+    default:
+      BLI_assert(0);
+      return false;
+  }
 
-	KDTreeNearest_1d nearest;
-	if (BLI_kdtree_1d_find_nearest(tree, &nearest_edge_length, &nearest) != -1) {
-		float delta = length - nearest.co[0];
-		return ED_select_similar_compare_float(delta, thresh, compare);
-	}
+  KDTreeNearest_1d nearest;
+  if (BLI_kdtree_1d_find_nearest(tree, &nearest_edge_length, &nearest) != -1) {
+    float delta = length - nearest.co[0];
+    return ED_select_similar_compare_float(delta, thresh, compare);
+  }
 
-	return false;
+  return false;
 }

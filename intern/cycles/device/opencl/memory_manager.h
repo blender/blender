@@ -29,78 +29,77 @@ CCL_NAMESPACE_BEGIN
 class OpenCLDevice;
 
 class MemoryManager {
-public:
-	static const int NUM_DEVICE_BUFFERS = 8;
+ public:
+  static const int NUM_DEVICE_BUFFERS = 8;
 
-	struct BufferDescriptor {
-		uint device_buffer;
-		cl_ulong offset;
-	};
+  struct BufferDescriptor {
+    uint device_buffer;
+    cl_ulong offset;
+  };
 
-private:
-	struct DeviceBuffer;
+ private:
+  struct DeviceBuffer;
 
-	struct Allocation {
-		device_memory *mem;
+  struct Allocation {
+    device_memory *mem;
 
-		DeviceBuffer *device_buffer;
-		size_t size; /* Size of actual allocation, may be larger than requested. */
+    DeviceBuffer *device_buffer;
+    size_t size; /* Size of actual allocation, may be larger than requested. */
 
-		BufferDescriptor desc;
+    BufferDescriptor desc;
 
-		bool needs_copy_to_device;
+    bool needs_copy_to_device;
 
-		Allocation() : mem(NULL), device_buffer(NULL), size(0), needs_copy_to_device(false)
-		{
-		}
-	};
+    Allocation() : mem(NULL), device_buffer(NULL), size(0), needs_copy_to_device(false)
+    {
+    }
+  };
 
-	struct DeviceBuffer {
-		device_only_memory<uchar> *buffer;
-		vector<Allocation*> allocations;
-		size_t size; /* Size of all allocations. */
+  struct DeviceBuffer {
+    device_only_memory<uchar> *buffer;
+    vector<Allocation *> allocations;
+    size_t size; /* Size of all allocations. */
 
-		DeviceBuffer()
-		: buffer(NULL), size(0)
-		{
-		}
+    DeviceBuffer() : buffer(NULL), size(0)
+    {
+    }
 
-		~DeviceBuffer()
-		{
-			delete buffer;
-			buffer = NULL;
-		}
+    ~DeviceBuffer()
+    {
+      delete buffer;
+      buffer = NULL;
+    }
 
-		void add_allocation(Allocation& allocation);
+    void add_allocation(Allocation &allocation);
 
-		void update_device_memory(OpenCLDevice *device);
+    void update_device_memory(OpenCLDevice *device);
 
-		void free(OpenCLDevice *device);
-	};
+    void free(OpenCLDevice *device);
+  };
 
-	OpenCLDevice *device;
+  OpenCLDevice *device;
 
-	DeviceBuffer device_buffers[NUM_DEVICE_BUFFERS];
+  DeviceBuffer device_buffers[NUM_DEVICE_BUFFERS];
 
-	typedef unordered_map<string, Allocation> AllocationsMap;
-	AllocationsMap allocations;
+  typedef unordered_map<string, Allocation> AllocationsMap;
+  AllocationsMap allocations;
 
-	bool need_update;
+  bool need_update;
 
-	DeviceBuffer* smallest_device_buffer();
+  DeviceBuffer *smallest_device_buffer();
 
-public:
-	MemoryManager(OpenCLDevice *device);
+ public:
+  MemoryManager(OpenCLDevice *device);
 
-	void free(); /* Free all memory. */
+  void free(); /* Free all memory. */
 
-	void alloc(const char *name, device_memory& mem);
-	bool free(device_memory& mem);
+  void alloc(const char *name, device_memory &mem);
+  bool free(device_memory &mem);
 
-	BufferDescriptor get_descriptor(string name);
+  BufferDescriptor get_descriptor(string name);
 
-	void update_device_memory();
-	void set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg);
+  void update_device_memory();
+  void set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg);
 };
 
 CCL_NAMESPACE_END

@@ -18,6 +18,5 @@
 
 volume node_output_volume(closure color Volume = 0)
 {
-	Ci = Volume;
+  Ci = Volume;
 }
-

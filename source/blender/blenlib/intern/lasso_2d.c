@@ -30,63 +30,76 @@
 
 void BLI_lasso_boundbox(rcti *rect, const int mcords[][2], const unsigned int moves)
 {
-	unsigned int a;
+  unsigned int a;
 
-	rect->xmin = rect->xmax = mcords[0][0];
-	rect->ymin = rect->ymax = mcords[0][1];
+  rect->xmin = rect->xmax = mcords[0][0];
+  rect->ymin = rect->ymax = mcords[0][1];
 
-	for (a = 1; a < moves; a++) {
-		if      (mcords[a][0] < rect->xmin) { rect->xmin = mcords[a][0]; }
-		else if (mcords[a][0] > rect->xmax) { rect->xmax = mcords[a][0]; }
-		if      (mcords[a][1] < rect->ymin) { rect->ymin = mcords[a][1]; }
-		else if (mcords[a][1] > rect->ymax) { rect->ymax = mcords[a][1]; }
-	}
+  for (a = 1; a < moves; a++) {
+    if (mcords[a][0] < rect->xmin) {
+      rect->xmin = mcords[a][0];
+    }
+    else if (mcords[a][0] > rect->xmax) {
+      rect->xmax = mcords[a][0];
+    }
+    if (mcords[a][1] < rect->ymin) {
+      rect->ymin = mcords[a][1];
+    }
+    else if (mcords[a][1] > rect->ymax) {
+      rect->ymax = mcords[a][1];
+    }
+  }
 }
 
-
-bool BLI_lasso_is_point_inside(const int mcords[][2], const unsigned int moves,
-                               const int sx, const int sy,
+bool BLI_lasso_is_point_inside(const int mcords[][2],
+                               const unsigned int moves,
+                               const int sx,
+                               const int sy,
                                const int error_value)
 {
-	if (sx == error_value || moves == 0) {
-		return false;
-	}
-	else {
-		int pt[2] = {sx, sy};
-		return isect_point_poly_v2_int(pt, mcords, moves, true);
-	}
+  if (sx == error_value || moves == 0) {
+    return false;
+  }
+  else {
+    int pt[2] = {sx, sy};
+    return isect_point_poly_v2_int(pt, mcords, moves, true);
+  }
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
-bool BLI_lasso_is_edge_inside(const int mcords[][2], const unsigned int moves,
-                              int x0, int y0, int x1, int y1,
+bool BLI_lasso_is_edge_inside(const int mcords[][2],
+                              const unsigned int moves,
+                              int x0,
+                              int y0,
+                              int x1,
+                              int y1,
                               const int error_value)
 {
 
-	if (x0 == error_value || x1 == error_value || moves == 0) {
-		return false;
-	}
+  if (x0 == error_value || x1 == error_value || moves == 0) {
+    return false;
+  }
 
-	const int v1[2] = {x0, y0}, v2[2] = {x1, y1};
+  const int v1[2] = {x0, y0}, v2[2] = {x1, y1};
 
-	/* check points in lasso */
-	if (BLI_lasso_is_point_inside(mcords, moves, v1[0], v1[1], error_value)) {
-		return true;
-	}
-	if (BLI_lasso_is_point_inside(mcords, moves, v2[0], v2[1], error_value)) {
-		return true;
-	}
+  /* check points in lasso */
+  if (BLI_lasso_is_point_inside(mcords, moves, v1[0], v1[1], error_value)) {
+    return true;
+  }
+  if (BLI_lasso_is_point_inside(mcords, moves, v2[0], v2[1], error_value)) {
+    return true;
+  }
 
-	/* no points in lasso, so we have to intersect with lasso edge */
+  /* no points in lasso, so we have to intersect with lasso edge */
 
-	if (isect_seg_seg_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) {
-		return true;
-	}
-	for (unsigned int a = 0; a < moves - 1; a++) {
-		if (isect_seg_seg_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) {
-			return true;
-		}
-	}
+  if (isect_seg_seg_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) {
+    return true;
+  }
+  for (unsigned int a = 0; a < moves - 1; a++) {
+    if (isect_seg_seg_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) {
+      return true;
+    }
+  }
 
-	return false;
+  return false;
 }

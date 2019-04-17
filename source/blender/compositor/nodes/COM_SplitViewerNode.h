@@ -26,8 +26,8 @@
  * \ingroup Node
  */
 class SplitViewerNode : public Node {
-public:
-	SplitViewerNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  SplitViewerNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 #endif

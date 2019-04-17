@@ -62,10 +62,10 @@ int glaGetOneInt(int param);
 void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y);
 
 typedef struct IMMDrawPixelsTexState {
-	struct GPUShader *shader;
-	unsigned int pos;
-	unsigned int texco;
-	bool do_shader_unbind;
+  struct GPUShader *shader;
+  unsigned int pos;
+  unsigned int texco;
+  bool do_shader_unbind;
 } IMMDrawPixelsTexState;
 
 /* To be used before calling immDrawPixelsTex
@@ -88,19 +88,65 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
  * 1-to-1 mapping to screen space.
  */
 void immDrawPixelsTex(IMMDrawPixelsTexState *state,
-                      float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
-                      float xzoom, float yzoom, float color[4]);
+                      float x,
+                      float y,
+                      int img_w,
+                      int img_h,
+                      int format,
+                      int type,
+                      int zoomfilter,
+                      void *rect,
+                      float xzoom,
+                      float yzoom,
+                      float color[4]);
 void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
-                               float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
-                               float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
-                               float xzoom, float yzoom, float color[4]);
+                               float x,
+                               float y,
+                               int img_w,
+                               int img_h,
+                               int format,
+                               int type,
+                               int zoomfilter,
+                               void *rect,
+                               float clip_min_x,
+                               float clip_min_y,
+                               float clip_max_x,
+                               float clip_max_y,
+                               float xzoom,
+                               float yzoom,
+                               float color[4]);
 void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
-                            float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
-                            float xzoom, float yzoom, float color[4]);
+                            float x,
+                            float y,
+                            int img_w,
+                            int img_h,
+                            int format,
+                            int type,
+                            int zoomfilter,
+                            void *rect,
+                            float scaleX,
+                            float scaleY,
+                            float xzoom,
+                            float yzoom,
+                            float color[4]);
 void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
-                                     float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
-                                     float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
-                                     float xzoom, float yzoom, float color[4]);
+                                     float x,
+                                     float y,
+                                     int img_w,
+                                     int img_h,
+                                     int format,
+                                     int type,
+                                     int zoomfilter,
+                                     void *rect,
+                                     float scaleX,
+                                     float scaleY,
+                                     float clip_min_x,
+                                     float clip_min_y,
+                                     float clip_max_x,
+                                     float clip_max_y,
+                                     float xzoom,
+                                     float yzoom,
+                                     float color[4]);
 
 void set_inverted_drawing(int enable);
 
@@ -111,28 +157,46 @@ void bglPolygonOffset(float viewdist, float dist);
 /* **** Color management helper functions for GLSL display/transform ***** */
 
 /* Draw imbuf on a screen, preferably using GLSL display transform */
-void glaDrawImBuf_glsl(struct ImBuf *ibuf, float x, float y, int zoomfilter,
+void glaDrawImBuf_glsl(struct ImBuf *ibuf,
+                       float x,
+                       float y,
+                       int zoomfilter,
                        struct ColorManagedViewSettings *view_settings,
                        struct ColorManagedDisplaySettings *display_settings,
-                       float zoom_x, float zoom_y);
-void glaDrawImBuf_glsl_clipping(struct ImBuf *ibuf, float x, float y, int zoomfilter,
+                       float zoom_x,
+                       float zoom_y);
+void glaDrawImBuf_glsl_clipping(struct ImBuf *ibuf,
+                                float x,
+                                float y,
+                                int zoomfilter,
                                 struct ColorManagedViewSettings *view_settings,
                                 struct ColorManagedDisplaySettings *display_settings,
-                                float clip_min_x, float clip_min_y,
-                                float clip_max_x, float clip_max_y,
-                                float zoom_x, float zoom_y);
-
+                                float clip_min_x,
+                                float clip_min_y,
+                                float clip_max_x,
+                                float clip_max_y,
+                                float zoom_x,
+                                float zoom_y);
 
 /* Draw imbuf on a screen, preferably using GLSL display transform */
-void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter,
-                           float zoom_x, float zoom_y);
+void glaDrawImBuf_glsl_ctx(const struct bContext *C,
+                           struct ImBuf *ibuf,
+                           float x,
+                           float y,
+                           int zoomfilter,
+                           float zoom_x,
+                           float zoom_y);
 void glaDrawImBuf_glsl_ctx_clipping(const struct bContext *C,
                                     struct ImBuf *ibuf,
-                                    float x, float y,
+                                    float x,
+                                    float y,
                                     int zoomfilter,
-                                    float clip_min_x, float clip_min_y,
-                                    float clip_max_x, float clip_max_y,
-                                    float zoom_x, float zoom_y);
+                                    float clip_min_x,
+                                    float clip_min_y,
+                                    float clip_max_x,
+                                    float clip_max_y,
+                                    float zoom_x,
+                                    float zoom_y);
 
 void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoomx, float zoomy);
 

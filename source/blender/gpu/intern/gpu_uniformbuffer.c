@@ -35,28 +35,28 @@
 #include "GPU_uniformbuffer.h"
 
 typedef enum eGPUUniformBufferFlag {
-	GPU_UBO_FLAG_INITIALIZED = (1 << 0),
-	GPU_UBO_FLAG_DIRTY = (1 << 1),
+  GPU_UBO_FLAG_INITIALIZED = (1 << 0),
+  GPU_UBO_FLAG_DIRTY = (1 << 1),
 } eGPUUniformBufferFlag;
 
 typedef enum eGPUUniformBufferType {
-	GPU_UBO_STATIC = 0,
-	GPU_UBO_DYNAMIC = 1,
+  GPU_UBO_STATIC = 0,
+  GPU_UBO_DYNAMIC = 1,
 } eGPUUniformBufferType;
 
 struct GPUUniformBuffer {
-	int size;           /* in bytes */
-	GLuint bindcode;    /* opengl identifier for UBO */
-	int bindpoint;      /* current binding point */
-	eGPUUniformBufferType type;
+  int size;        /* in bytes */
+  GLuint bindcode; /* opengl identifier for UBO */
+  int bindpoint;   /* current binding point */
+  eGPUUniformBufferType type;
 };
 
 #define GPUUniformBufferStatic GPUUniformBuffer
 
 typedef struct GPUUniformBufferDynamic {
-	GPUUniformBuffer buffer;
-	void *data;                  /* Continuous memory block to copy to GPU. */
-	char flag;
+  GPUUniformBuffer buffer;
+  void *data; /* Continuous memory block to copy to GPU. */
+  char flag;
 } GPUUniformBufferDynamic;
 
 /* Prototypes */
@@ -69,38 +69,38 @@ static void gpu_uniformbuffer_inputs_sort(struct ListBase *inputs);
 
 static void gpu_uniformbuffer_initialize(GPUUniformBuffer *ubo, const void *data)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, ubo->bindcode);
-	glBufferData(GL_UNIFORM_BUFFER, ubo->size, data, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBuffer(GL_UNIFORM_BUFFER, ubo->bindcode);
+  glBufferData(GL_UNIFORM_BUFFER, ubo->size, data, GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_out[256])
 {
-	GPUUniformBuffer *ubo = MEM_callocN(sizeof(GPUUniformBufferStatic), "GPUUniformBufferStatic");
-	ubo->size = size;
-	ubo->bindpoint = -1;
+  GPUUniformBuffer *ubo = MEM_callocN(sizeof(GPUUniformBufferStatic), "GPUUniformBufferStatic");
+  ubo->size = size;
+  ubo->bindpoint = -1;
 
-	/* Generate Buffer object */
-	ubo->bindcode = GPU_buf_alloc();
+  /* Generate Buffer object */
+  ubo->bindcode = GPU_buf_alloc();
 
-	if (!ubo->bindcode) {
-		if (err_out) {
-			BLI_strncpy(err_out, "GPUUniformBuffer: UBO create failed", 256);
-		}
-		GPU_uniformbuffer_free(ubo);
-		return NULL;
-	}
+  if (!ubo->bindcode) {
+    if (err_out) {
+      BLI_strncpy(err_out, "GPUUniformBuffer: UBO create failed", 256);
+    }
+    GPU_uniformbuffer_free(ubo);
+    return NULL;
+  }
 
-	if (ubo->size > GPU_max_ubo_size()) {
-		if (err_out) {
-			BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
-		}
-		GPU_uniformbuffer_free(ubo);
-		return NULL;
-	}
+  if (ubo->size > GPU_max_ubo_size()) {
+    if (err_out) {
+      BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
+    }
+    GPU_uniformbuffer_free(ubo);
+    return NULL;
+  }
 
-	gpu_uniformbuffer_initialize(ubo, data);
-	return ubo;
+  gpu_uniformbuffer_initialize(ubo, data);
+  return ubo;
 }
 
 /**
@@ -111,59 +111,60 @@ GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_
  */
 GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_out[256])
 {
-	/* There is no point on creating an UBO if there is no arguments. */
-	if (BLI_listbase_is_empty(inputs)) {
-		return NULL;
-	}
+  /* There is no point on creating an UBO if there is no arguments. */
+  if (BLI_listbase_is_empty(inputs)) {
+    return NULL;
+  }
 
-	GPUUniformBufferDynamic *ubo = MEM_callocN(sizeof(GPUUniformBufferDynamic), "GPUUniformBufferDynamic");
-	ubo->buffer.type = GPU_UBO_DYNAMIC;
-	ubo->buffer.bindpoint = -1;
-	ubo->flag = GPU_UBO_FLAG_DIRTY;
+  GPUUniformBufferDynamic *ubo = MEM_callocN(sizeof(GPUUniformBufferDynamic),
+                                             "GPUUniformBufferDynamic");
+  ubo->buffer.type = GPU_UBO_DYNAMIC;
+  ubo->buffer.bindpoint = -1;
+  ubo->flag = GPU_UBO_FLAG_DIRTY;
 
-	/* Generate Buffer object. */
-	ubo->buffer.bindcode = GPU_buf_alloc();
+  /* Generate Buffer object. */
+  ubo->buffer.bindcode = GPU_buf_alloc();
 
-	if (!ubo->buffer.bindcode) {
-		if (err_out) {
-			BLI_strncpy(err_out, "GPUUniformBuffer: UBO create failed", 256);
-		}
-		GPU_uniformbuffer_free(&ubo->buffer);
-		return NULL;
-	}
+  if (!ubo->buffer.bindcode) {
+    if (err_out) {
+      BLI_strncpy(err_out, "GPUUniformBuffer: UBO create failed", 256);
+    }
+    GPU_uniformbuffer_free(&ubo->buffer);
+    return NULL;
+  }
 
-	if (ubo->buffer.size > GPU_max_ubo_size()) {
-		if (err_out) {
-			BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
-		}
-		GPU_uniformbuffer_free(&ubo->buffer);
-		return NULL;
-	}
+  if (ubo->buffer.size > GPU_max_ubo_size()) {
+    if (err_out) {
+      BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
+    }
+    GPU_uniformbuffer_free(&ubo->buffer);
+    return NULL;
+  }
 
-	/* Make sure we comply to the ubo alignment requirements. */
-	gpu_uniformbuffer_inputs_sort(inputs);
+  /* Make sure we comply to the ubo alignment requirements. */
+  gpu_uniformbuffer_inputs_sort(inputs);
 
-	for (LinkData *link = inputs->first; link; link = link->next) {
-		const eGPUType gputype = get_padded_gpu_type(link);
-		ubo->buffer.size += gputype * sizeof(float);
-	}
+  for (LinkData *link = inputs->first; link; link = link->next) {
+    const eGPUType gputype = get_padded_gpu_type(link);
+    ubo->buffer.size += gputype * sizeof(float);
+  }
 
-	/* Allocate the data. */
-	ubo->data = MEM_mallocN(ubo->buffer.size, __func__);
+  /* Allocate the data. */
+  ubo->data = MEM_mallocN(ubo->buffer.size, __func__);
 
-	/* Now that we know the total ubo size we can start populating it. */
-	float *offset = ubo->data;
-	for (LinkData *link = inputs->first; link; link = link->next) {
-		GPUInput *input = link->data;
-		memcpy(offset, input->vec, input->type * sizeof(float));
-		offset += get_padded_gpu_type(link);
-	}
+  /* Now that we know the total ubo size we can start populating it. */
+  float *offset = ubo->data;
+  for (LinkData *link = inputs->first; link; link = link->next) {
+    GPUInput *input = link->data;
+    memcpy(offset, input->vec, input->type * sizeof(float));
+    offset += get_padded_gpu_type(link);
+  }
 
-	/* Note since we may create the UBOs in the CPU in a different thread than the main drawing one,
-	 * we don't create the UBO in the GPU here. This will happen when we first bind the UBO.
-	 */
+  /* Note since we may create the UBOs in the CPU in a different thread than the main drawing one,
+   * we don't create the UBO in the GPU here. This will happen when we first bind the UBO.
+   */
 
-	return &ubo->buffer;
+  return &ubo->buffer;
 }
 
 /**
@@ -171,36 +172,36 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
  */
 static void gpu_uniformbuffer_dynamic_free(GPUUniformBuffer *ubo_)
 {
-	BLI_assert(ubo_->type == GPU_UBO_DYNAMIC);
-	GPUUniformBufferDynamic *ubo = (GPUUniformBufferDynamic *)ubo_;
+  BLI_assert(ubo_->type == GPU_UBO_DYNAMIC);
+  GPUUniformBufferDynamic *ubo = (GPUUniformBufferDynamic *)ubo_;
 
-	ubo->buffer.size = 0;
-	if (ubo->data) {
-		MEM_freeN(ubo->data);
-	}
+  ubo->buffer.size = 0;
+  if (ubo->data) {
+    MEM_freeN(ubo->data);
+  }
 }
 
 void GPU_uniformbuffer_free(GPUUniformBuffer *ubo)
 {
-	if (ubo->type == GPU_UBO_DYNAMIC) {
-		gpu_uniformbuffer_dynamic_free(ubo);
-	}
+  if (ubo->type == GPU_UBO_DYNAMIC) {
+    gpu_uniformbuffer_dynamic_free(ubo);
+  }
 
-	GPU_buf_free(ubo->bindcode);
-	MEM_freeN(ubo);
+  GPU_buf_free(ubo->bindcode);
+  MEM_freeN(ubo);
 }
 
 static void gpu_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, ubo->bindcode);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, ubo->size, data);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBuffer(GL_UNIFORM_BUFFER, ubo->bindcode);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, ubo->size, data);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void GPU_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data)
 {
-	BLI_assert(ubo->type == GPU_UBO_STATIC);
-	gpu_uniformbuffer_update(ubo, data);
+  BLI_assert(ubo->type == GPU_UBO_STATIC);
+  gpu_uniformbuffer_update(ubo, data);
 }
 
 /**
@@ -209,18 +210,18 @@ void GPU_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data)
  */
 void GPU_uniformbuffer_dynamic_update(GPUUniformBuffer *ubo_)
 {
-	BLI_assert(ubo_->type == GPU_UBO_DYNAMIC);
-	GPUUniformBufferDynamic *ubo = (GPUUniformBufferDynamic *)ubo_;
+  BLI_assert(ubo_->type == GPU_UBO_DYNAMIC);
+  GPUUniformBufferDynamic *ubo = (GPUUniformBufferDynamic *)ubo_;
 
-	if (ubo->flag & GPU_UBO_FLAG_INITIALIZED) {
-		gpu_uniformbuffer_update(ubo_, ubo->data);
-	}
-	else {
-		ubo->flag |= GPU_UBO_FLAG_INITIALIZED;
-		gpu_uniformbuffer_initialize(ubo_, ubo->data);
-	}
+  if (ubo->flag & GPU_UBO_FLAG_INITIALIZED) {
+    gpu_uniformbuffer_update(ubo_, ubo->data);
+  }
+  else {
+    ubo->flag |= GPU_UBO_FLAG_INITIALIZED;
+    gpu_uniformbuffer_initialize(ubo_, ubo->data);
+  }
 
-	ubo->flag &= ~GPU_UBO_FLAG_DIRTY;
+  ubo->flag &= ~GPU_UBO_FLAG_DIRTY;
 }
 
 /**
@@ -229,18 +230,16 @@ void GPU_uniformbuffer_dynamic_update(GPUUniformBuffer *ubo_)
  */
 static eGPUType get_padded_gpu_type(LinkData *link)
 {
-	GPUInput *input = link->data;
-	eGPUType gputype = input->type;
+  GPUInput *input = link->data;
+  eGPUType gputype = input->type;
 
-	/* Unless the vec3 is followed by a float we need to treat it as a vec4. */
-	if (gputype == GPU_VEC3 &&
-	    (link->next != NULL) &&
-	    (((GPUInput *)link->next->data)->type != GPU_FLOAT))
-	{
-		gputype = GPU_VEC4;
-	}
+  /* Unless the vec3 is followed by a float we need to treat it as a vec4. */
+  if (gputype == GPU_VEC3 && (link->next != NULL) &&
+      (((GPUInput *)link->next->data)->type != GPU_FLOAT)) {
+    gputype = GPU_VEC4;
+  }
 
-	return gputype;
+  return gputype;
 }
 
 /**
@@ -249,9 +248,9 @@ static eGPUType get_padded_gpu_type(LinkData *link)
  */
 static int inputs_cmp(const void *a, const void *b)
 {
-	const LinkData *link_a = a, *link_b = b;
-	const GPUInput *input_a = link_a->data, *input_b = link_b->data;
-	return input_a->type < input_b->type ? 1 : 0;
+  const LinkData *link_a = a, *link_b = b;
+  const GPUInput *input_a = link_a->data, *input_b = link_b->data;
+  return input_a->type < input_b->type ? 1 : 0;
 }
 
 /**
@@ -260,82 +259,80 @@ static int inputs_cmp(const void *a, const void *b)
  */
 static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
 {
-	/* Order them as vec4, vec3, vec2, float. */
-	BLI_listbase_sort(inputs, inputs_cmp);
+  /* Order them as vec4, vec3, vec2, float. */
+  BLI_listbase_sort(inputs, inputs_cmp);
 
-	/* Creates a lookup table for the different types; */
-	LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {NULL};
-	eGPUType cur_type = MAX_UBO_GPU_TYPE + 1;
+  /* Creates a lookup table for the different types; */
+  LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {NULL};
+  eGPUType cur_type = MAX_UBO_GPU_TYPE + 1;
 
-	for (LinkData *link = inputs->first; link; link = link->next) {
-		GPUInput *input = link->data;
-		if (input->type == cur_type) {
-			continue;
-		}
-		else {
-			inputs_lookup[input->type] = link;
-			cur_type = input->type;
-		}
-	}
+  for (LinkData *link = inputs->first; link; link = link->next) {
+    GPUInput *input = link->data;
+    if (input->type == cur_type) {
+      continue;
+    }
+    else {
+      inputs_lookup[input->type] = link;
+      cur_type = input->type;
+    }
+  }
 
-	/* If there is no GPU_VEC3 there is no need for alignment. */
-	if (inputs_lookup[GPU_VEC3] == NULL) {
-		return;
-	}
+  /* If there is no GPU_VEC3 there is no need for alignment. */
+  if (inputs_lookup[GPU_VEC3] == NULL) {
+    return;
+  }
 
-	LinkData *link = inputs_lookup[GPU_VEC3];
-	while (link != NULL && ((GPUInput *)link->data)->type == GPU_VEC3) {
-		LinkData *link_next = link->next;
+  LinkData *link = inputs_lookup[GPU_VEC3];
+  while (link != NULL && ((GPUInput *)link->data)->type == GPU_VEC3) {
+    LinkData *link_next = link->next;
 
-		/* If GPU_VEC3 is followed by nothing or a GPU_FLOAT, no need for alignment. */
-		if ((link_next == NULL) ||
-		    ((GPUInput *)link_next->data)->type == GPU_FLOAT)
-		{
-			break;
-		}
+    /* If GPU_VEC3 is followed by nothing or a GPU_FLOAT, no need for alignment. */
+    if ((link_next == NULL) || ((GPUInput *)link_next->data)->type == GPU_FLOAT) {
+      break;
+    }
 
-		/* If there is a float, move it next to current vec3. */
-		if (inputs_lookup[GPU_FLOAT] != NULL) {
-			LinkData *float_input = inputs_lookup[GPU_FLOAT];
-			inputs_lookup[GPU_FLOAT] = float_input->next;
+    /* If there is a float, move it next to current vec3. */
+    if (inputs_lookup[GPU_FLOAT] != NULL) {
+      LinkData *float_input = inputs_lookup[GPU_FLOAT];
+      inputs_lookup[GPU_FLOAT] = float_input->next;
 
-			BLI_remlink(inputs, float_input);
-			BLI_insertlinkafter(inputs, link, float_input);
-		}
+      BLI_remlink(inputs, float_input);
+      BLI_insertlinkafter(inputs, link, float_input);
+    }
 
-		link = link_next;
-	}
+    link = link_next;
+  }
 }
 
 void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number)
 {
-	if (number >= GPU_max_ubo_binds()) {
-		fprintf(stderr, "Not enough UBO slots.\n");
-		return;
-	}
+  if (number >= GPU_max_ubo_binds()) {
+    fprintf(stderr, "Not enough UBO slots.\n");
+    return;
+  }
 
-	if (ubo->type == GPU_UBO_DYNAMIC) {
-		GPUUniformBufferDynamic *ubo_dynamic = (GPUUniformBufferDynamic *)ubo;
-		if (ubo_dynamic->flag & GPU_UBO_FLAG_DIRTY) {
-			GPU_uniformbuffer_dynamic_update(ubo);
-		}
-	}
+  if (ubo->type == GPU_UBO_DYNAMIC) {
+    GPUUniformBufferDynamic *ubo_dynamic = (GPUUniformBufferDynamic *)ubo;
+    if (ubo_dynamic->flag & GPU_UBO_FLAG_DIRTY) {
+      GPU_uniformbuffer_dynamic_update(ubo);
+    }
+  }
 
-	if (ubo->bindcode != 0) {
-		glBindBufferBase(GL_UNIFORM_BUFFER, number, ubo->bindcode);
-	}
+  if (ubo->bindcode != 0) {
+    glBindBufferBase(GL_UNIFORM_BUFFER, number, ubo->bindcode);
+  }
 
-	ubo->bindpoint = number;
+  ubo->bindpoint = number;
 }
 
 void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo)
 {
-	ubo->bindpoint = -1;
+  ubo->bindpoint = -1;
 }
 
 int GPU_uniformbuffer_bindpoint(GPUUniformBuffer *ubo)
 {
-	return ubo->bindpoint;
+  return ubo->bindpoint;
 }
 
 #undef MAX_UBO_GPU_TYPE

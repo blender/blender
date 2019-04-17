@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ColorCurveNode : public Node {
-public:
-	ColorCurveNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ColorCurveNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

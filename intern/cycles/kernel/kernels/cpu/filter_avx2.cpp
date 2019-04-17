@@ -33,7 +33,7 @@
 #    define __KERNEL_AVX__
 #    define __KERNEL_AVX2__
 #  endif
-#endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX2 */
+#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX2 */
 
 #include "kernel/filter/filter.h"
 #define KERNEL_ARCH cpu_avx2

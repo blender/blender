@@ -23,4 +23,4 @@
 
 PyObject *BPY_app_sdl_struct(void);
 
-#endif  /* __BPY_APP_SDL_H__ */
+#endif /* __BPY_APP_SDL_H__ */

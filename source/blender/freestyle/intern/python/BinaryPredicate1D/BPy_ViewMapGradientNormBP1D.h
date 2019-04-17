@@ -32,11 +32,11 @@ extern "C" {
 extern PyTypeObject ViewMapGradientNormBP1D_Type;
 
 #define BPy_ViewMapGradientNormBP1D_Check(v) \
-            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewMapGradientNormBP1D_Type))
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewMapGradientNormBP1D_Type))
 
 /*---------------------------Python BPy_ViewMapGradientNormBP1D structure definition----------*/
 typedef struct {
-	BPy_BinaryPredicate1D py_bp1D;
+  BPy_BinaryPredicate1D py_bp1D;
 } BPy_ViewMapGradientNormBP1D;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

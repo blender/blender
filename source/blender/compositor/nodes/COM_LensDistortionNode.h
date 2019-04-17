@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class LensDistortionNode : public Node {
-public:
-	LensDistortionNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  LensDistortionNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

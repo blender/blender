@@ -21,26 +21,25 @@
  * \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
 
 /* **************** Flip  ******************** */
 static bNodeSocketTemplate cmp_node_flip_in[] = {
-	{	SOCK_RGBA, 1, N_("Image"),		    1.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate cmp_node_flip_out[] = {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
 };
 
 void register_node_type_cmp_flip(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, 0);
-	node_type_socket_templates(&ntype, cmp_node_flip_in, cmp_node_flip_out);
+  cmp_node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, 0);
+  node_type_socket_templates(&ntype, cmp_node_flip_in, cmp_node_flip_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

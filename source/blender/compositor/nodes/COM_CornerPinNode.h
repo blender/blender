@@ -29,9 +29,9 @@ extern "C" {
  * \ingroup Node
  */
 class CornerPinNode : public Node {
-public:
-	CornerPinNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  CornerPinNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif /* __COM_CORNERPINNODE_H__ */

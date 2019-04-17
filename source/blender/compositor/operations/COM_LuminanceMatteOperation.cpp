@@ -25,52 +25,55 @@ extern "C" {
 
 LuminanceMatteOperation::LuminanceMatteOperation() : NodeOperation()
 {
-	addInputSocket(COM_DT_COLOR);
-	addOutputSocket(COM_DT_VALUE);
+  addInputSocket(COM_DT_COLOR);
+  addOutputSocket(COM_DT_VALUE);
 
-	this->m_inputImageProgram = NULL;
+  this->m_inputImageProgram = NULL;
 }
 
 void LuminanceMatteOperation::initExecution()
 {
-	this->m_inputImageProgram = this->getInputSocketReader(0);
+  this->m_inputImageProgram = this->getInputSocketReader(0);
 }
 
 void LuminanceMatteOperation::deinitExecution()
 {
-	this->m_inputImageProgram = NULL;
+  this->m_inputImageProgram = NULL;
 }
 
-void LuminanceMatteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void LuminanceMatteOperation::executePixelSampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-	float inColor[4];
-	this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
+  float inColor[4];
+  this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
 
-	const float high = this->m_settings->t1;
-	const float low = this->m_settings->t2;
-	const float luminance = IMB_colormanagement_get_luminance(inColor);
+  const float high = this->m_settings->t1;
+  const float low = this->m_settings->t2;
+  const float luminance = IMB_colormanagement_get_luminance(inColor);
 
-	float alpha;
+  float alpha;
 
-	/* one line thread-friend algorithm:
-	 * output[0] = min(inputValue[3], min(1.0f, max(0.0f, ((luminance - low) / (high - low))));
-	 */
+  /* one line thread-friend algorithm:
+   * output[0] = min(inputValue[3], min(1.0f, max(0.0f, ((luminance - low) / (high - low))));
+   */
 
-	/* test range */
-	if (luminance > high) {
-		alpha = 1.0f;
-	}
-	else if (luminance < low) {
-		alpha = 0.0f;
-	}
-	else { /*blend */
-		alpha = (luminance - low) / (high - low);
-	}
+  /* test range */
+  if (luminance > high) {
+    alpha = 1.0f;
+  }
+  else if (luminance < low) {
+    alpha = 0.0f;
+  }
+  else { /*blend */
+    alpha = (luminance - low) / (high - low);
+  }
 
-	/* store matte(alpha) value in [0] to go with
-	 * COM_SetAlphaOperation and the Value output
-	 */
+  /* store matte(alpha) value in [0] to go with
+   * COM_SetAlphaOperation and the Value output
+   */
 
-	/* don't make something that was more transparent less transparent */
-	output[0] = min_ff(alpha, inColor[3]);
+  /* don't make something that was more transparent less transparent */
+  output[0] = min_ff(alpha, inColor[3]);
 }

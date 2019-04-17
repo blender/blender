@@ -34,18 +34,23 @@
 struct ImBuf;
 struct MovieCache;
 
-typedef void (*MovieCacheGetKeyDataFP) (void *userkey, int *framenr, int *proxy, int *render_flags);
+typedef void (*MovieCacheGetKeyDataFP)(void *userkey, int *framenr, int *proxy, int *render_flags);
 
-typedef void  *(*MovieCacheGetPriorityDataFP) (void *userkey);
-typedef int    (*MovieCacheGetItemPriorityFP) (void *last_userkey, void *priority_data);
-typedef void   (*MovieCachePriorityDeleterFP) (void *priority_data);
+typedef void *(*MovieCacheGetPriorityDataFP)(void *userkey);
+typedef int (*MovieCacheGetItemPriorityFP)(void *last_userkey, void *priority_data);
+typedef void (*MovieCachePriorityDeleterFP)(void *priority_data);
 
 void IMB_moviecache_init(void);
 void IMB_moviecache_destruct(void);
 
-struct MovieCache *IMB_moviecache_create(const char *name, int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp);
-void IMB_moviecache_set_getdata_callback(struct MovieCache *cache, MovieCacheGetKeyDataFP getdatafp);
-void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGetPriorityDataFP getprioritydatafp,
+struct MovieCache *IMB_moviecache_create(const char *name,
+                                         int keysize,
+                                         GHashHashFP hashfp,
+                                         GHashCmpFP cmpfp);
+void IMB_moviecache_set_getdata_callback(struct MovieCache *cache,
+                                         MovieCacheGetKeyDataFP getdatafp);
+void IMB_moviecache_set_priority_callback(struct MovieCache *cache,
+                                          MovieCacheGetPriorityDataFP getprioritydatafp,
                                           MovieCacheGetItemPriorityFP getitempriorityfp,
                                           MovieCachePriorityDeleterFP prioritydeleterfp);
 
@@ -56,10 +61,13 @@ bool IMB_moviecache_has_frame(struct MovieCache *cache, void *userkey);
 void IMB_moviecache_free(struct MovieCache *cache);
 
 void IMB_moviecache_cleanup(struct MovieCache *cache,
-                            bool (cleanup_check_cb) (struct ImBuf *ibuf, void *userkey, void *userdata),
+                            bool(cleanup_check_cb)(struct ImBuf *ibuf,
+                                                   void *userkey,
+                                                   void *userdata),
                             void *userdata);
 
-void IMB_moviecache_get_cache_segments(struct MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r);
+void IMB_moviecache_get_cache_segments(
+    struct MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r);
 
 struct MovieCacheIter;
 struct MovieCacheIter *IMB_moviecacheIter_new(struct MovieCache *cache);

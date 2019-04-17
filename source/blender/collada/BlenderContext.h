@@ -29,24 +29,23 @@ extern "C" {
 #include "DEG_depsgraph_query.h"
 }
 
-class BlenderContext
-{
-private:
-	bContext *context;
-	Depsgraph *depsgraph;
-	Scene *scene;
-	ViewLayer *view_layer;
-	Main *main;
+class BlenderContext {
+ private:
+  bContext *context;
+  Depsgraph *depsgraph;
+  Scene *scene;
+  ViewLayer *view_layer;
+  Main *main;
 
-public:
-	BlenderContext(bContext *C);
-	bContext *get_context();
-	Depsgraph *get_depsgraph();
-	Scene *get_scene();
-	Scene *get_evaluated_scene();
-	Object *get_evaluated_object(Object *ob);
-	ViewLayer *get_view_layer();
-	Main *get_main();
+ public:
+  BlenderContext(bContext *C);
+  bContext *get_context();
+  Depsgraph *get_depsgraph();
+  Scene *get_scene();
+  Scene *get_evaluated_scene();
+  Object *get_evaluated_object(Object *ob);
+  ViewLayer *get_view_layer();
+  Main *get_main();
 };
 
 #endif

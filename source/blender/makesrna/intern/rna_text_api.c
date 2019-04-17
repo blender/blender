@@ -25,39 +25,40 @@
 
 #include "RNA_define.h"
 
-#include "rna_internal.h"  /* own include */
+#include "rna_internal.h" /* own include */
 
 #ifdef RNA_RUNTIME
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
 static void rna_Text_clear(Text *text)
 {
-	BKE_text_clear(text, NULL);
-	WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
+  BKE_text_clear(text, NULL);
+  WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
 static void rna_Text_write(Text *text, const char *str)
 {
-	BKE_text_write(text, NULL, str);
-	WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
+  BKE_text_write(text, NULL, str);
+  WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
 #else
 
 void RNA_api_text(StructRNA *srna)
 {
-	FunctionRNA *func;
-	PropertyRNA *parm;
+  FunctionRNA *func;
+  PropertyRNA *parm;
 
-	func = RNA_def_function(srna, "clear", "rna_Text_clear");
-	RNA_def_function_ui_description(func, "clear the text block");
+  func = RNA_def_function(srna, "clear", "rna_Text_clear");
+  RNA_def_function_ui_description(func, "clear the text block");
 
-	func = RNA_def_function(srna, "write", "rna_Text_write");
-	RNA_def_function_ui_description(func, "write text at the cursor location and advance to the end of the text block");
-	parm = RNA_def_string(func, "text", "Text", 0, "", "New text for this data-block");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  func = RNA_def_function(srna, "write", "rna_Text_write");
+  RNA_def_function_ui_description(
+      func, "write text at the cursor location and advance to the end of the text block");
+  parm = RNA_def_string(func, "text", "Text", 0, "", "New text for this data-block");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 #endif

@@ -29,34 +29,34 @@ class Scene;
 class Shader;
 
 class Background : public Node {
-public:
-	NODE_DECLARE
+ public:
+  NODE_DECLARE
 
-	float ao_factor;
-	float ao_distance;
+  float ao_factor;
+  float ao_distance;
 
-	bool use_shader;
-	bool use_ao;
+  bool use_shader;
+  bool use_ao;
 
-	uint visibility;
-	Shader *shader;
+  uint visibility;
+  Shader *shader;
 
-	bool transparent;
-	bool transparent_glass;
-	float transparent_roughness_threshold;
+  bool transparent;
+  bool transparent_glass;
+  float transparent_roughness_threshold;
 
-	bool need_update;
+  bool need_update;
 
-	Background();
-	~Background();
+  Background();
+  ~Background();
 
-	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
-	void device_free(Device *device, DeviceScene *dscene);
+  void device_update(Device *device, DeviceScene *dscene, Scene *scene);
+  void device_free(Device *device, DeviceScene *dscene);
 
-	bool modified(const Background& background);
-	void tag_update(Scene *scene);
+  bool modified(const Background &background);
+  void tag_update(Scene *scene);
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __BACKGROUND_H__ */
+#endif /* __BACKGROUND_H__ */

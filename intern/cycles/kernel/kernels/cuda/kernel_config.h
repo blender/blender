@@ -81,7 +81,6 @@
 #  define CUDA_KERNEL_MAX_REGISTERS 64
 #  define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 72
 
-
 /* unknown architecture */
 #else
 #  error "Unknown or unsupported CUDA architecture, can't determine launch bounds"
@@ -96,18 +95,19 @@
  * given the maximum number of registers per thread. */
 
 #define CUDA_LAUNCH_BOUNDS(threads_block_width, thread_num_registers) \
-	__launch_bounds__( \
-		threads_block_width*threads_block_width, \
-		CUDA_MULTIPRESSOR_MAX_REGISTERS/(threads_block_width*threads_block_width*thread_num_registers) \
-		)
+  __launch_bounds__(threads_block_width *threads_block_width, \
+                    CUDA_MULTIPRESSOR_MAX_REGISTERS / \
+                        (threads_block_width * threads_block_width * thread_num_registers))
 
 /* sanity checks */
 
-#if CUDA_THREADS_BLOCK_WIDTH*CUDA_THREADS_BLOCK_WIDTH > CUDA_BLOCK_MAX_THREADS
+#if CUDA_THREADS_BLOCK_WIDTH * CUDA_THREADS_BLOCK_WIDTH > CUDA_BLOCK_MAX_THREADS
 #  error "Maximum number of threads per block exceeded"
 #endif
 
-#if CUDA_MULTIPRESSOR_MAX_REGISTERS/(CUDA_THREADS_BLOCK_WIDTH*CUDA_THREADS_BLOCK_WIDTH*CUDA_KERNEL_MAX_REGISTERS) > CUDA_MULTIPROCESSOR_MAX_BLOCKS
+#if CUDA_MULTIPRESSOR_MAX_REGISTERS / \
+        (CUDA_THREADS_BLOCK_WIDTH * CUDA_THREADS_BLOCK_WIDTH * CUDA_KERNEL_MAX_REGISTERS) > \
+    CUDA_MULTIPROCESSOR_MAX_BLOCKS
 #  error "Maximum number of blocks per multiprocessor exceeded"
 #endif
 

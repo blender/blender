@@ -16,16 +16,14 @@
 
 #include "stdosl.h"
 
-shader node_value(
-	float value_value = 0.0,
-	vector vector_value = vector(0.0, 0.0, 0.0),
-	color color_value = 0.0,
-	output float Value = 0.0,
-	output vector Vector = vector(0.0, 0.0, 0.0),
-	output color Color = 0.0)
+shader node_value(float value_value = 0.0,
+                  vector vector_value = vector(0.0, 0.0, 0.0),
+                  color color_value = 0.0,
+                  output float Value = 0.0,
+                  output vector Vector = vector(0.0, 0.0, 0.0),
+                  output color Color = 0.0)
 {
-	Value = value_value;
-	Vector = vector_value;
-	Color = color_value;
+  Value = value_value;
+  Vector = vector_value;
+  Color = color_value;
 }
-

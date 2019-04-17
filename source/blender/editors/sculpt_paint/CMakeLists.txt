@@ -16,61 +16,61 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../uvedit
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../depsgraph
-	../../gpu
-	../../imbuf
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../uvedit
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../gpu
+  ../../imbuf
+  ../../makesdna
+  ../../makesrna
+  ../../render/extern/include
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	paint_cursor.c
-	paint_curve.c
-	paint_curve_undo.c
-	paint_hide.c
-	paint_image.c
-	paint_image_2d.c
-	paint_image_proj.c
-	paint_image_undo.c
-	paint_mask.c
-	paint_ops.c
-	paint_stroke.c
-	paint_utils.c
-	paint_vertex.c
-	paint_vertex_color_ops.c
-	paint_vertex_color_utils.c
-	paint_vertex_proj.c
-	paint_vertex_weight_ops.c
-	paint_vertex_weight_utils.c
-	sculpt.c
-	sculpt_undo.c
-	sculpt_uv.c
+  paint_cursor.c
+  paint_curve.c
+  paint_curve_undo.c
+  paint_hide.c
+  paint_image.c
+  paint_image_2d.c
+  paint_image_proj.c
+  paint_image_undo.c
+  paint_mask.c
+  paint_ops.c
+  paint_stroke.c
+  paint_utils.c
+  paint_vertex.c
+  paint_vertex_color_ops.c
+  paint_vertex_color_utils.c
+  paint_vertex_proj.c
+  paint_vertex_weight_ops.c
+  paint_vertex_weight_utils.c
+  sculpt.c
+  sculpt_undo.c
+  sculpt_uv.c
 
-	paint_intern.h
-	sculpt_intern.h
+  paint_intern.h
+  sculpt_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
+  bf_blenkernel
+  bf_blenlib
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

@@ -34,9 +34,9 @@ struct ModifierData;
 
 /* add hook menu */
 enum eObject_Hook_Add_Mode {
-	OBJECT_ADDHOOK_NEWOB = 1,
-	OBJECT_ADDHOOK_SELOB,
-	OBJECT_ADDHOOK_SELOB_BONE,
+  OBJECT_ADDHOOK_NEWOB = 1,
+  OBJECT_ADDHOOK_SELOB,
+  OBJECT_ADDHOOK_SELOB_BONE,
 };
 
 /* internal exports only */
@@ -141,7 +141,9 @@ bool edit_modifier_poll_generic(struct bContext *C, struct StructRNA *rna_type, 
 bool edit_modifier_poll(struct bContext *C);
 void edit_modifier_properties(struct wmOperatorType *ot);
 int edit_modifier_invoke_properties(struct bContext *C, struct wmOperator *op);
-struct ModifierData *edit_modifier_property_get(struct wmOperator *op, struct Object *ob, int type);
+struct ModifierData *edit_modifier_property_get(struct wmOperator *op,
+                                                struct Object *ob,
+                                                int type);
 
 void OBJECT_OT_modifier_add(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_remove(struct wmOperatorType *ot);

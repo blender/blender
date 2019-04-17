@@ -21,12 +21,11 @@
 
 #include <cstdio>
 
-ScopeTimer::ScopeTimer(const std::string &message)
-    : m_message(message)
-    , m_timer()
-{}
+ScopeTimer::ScopeTimer(const std::string &message) : m_message(message), m_timer()
+{
+}
 
 ScopeTimer::~ScopeTimer()
 {
-	std::printf("%s: %fms\n", m_message.c_str(), m_timer.delta());
+  std::printf("%s: %fms\n", m_message.c_str(), m_timer.delta());
 }

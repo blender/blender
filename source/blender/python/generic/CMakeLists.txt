@@ -16,42 +16,42 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	../../blenkernel
-	../../blenlib
-	../../gpu
-	../../makesdna
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  .
+  ../../blenkernel
+  ../../blenlib
+  ../../gpu
+  ../../makesdna
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
-	${PYTHON_INCLUDE_DIRS}
+  ${GLEW_INCLUDE_PATH}
+  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
-	bgl.c
-	blf_py_api.c
-	bpy_internal_import.c
-	bpy_threads.c
-	idprop_py_api.c
-	imbuf_py_api.c
-	py_capi_utils.c
+  bgl.c
+  blf_py_api.c
+  bpy_internal_import.c
+  bpy_threads.c
+  idprop_py_api.c
+  imbuf_py_api.c
+  py_capi_utils.c
 
-	bgl.h
-	blf_py_api.h
-	bpy_internal_import.h
-	idprop_py_api.h
-	imbuf_py_api.h
-	py_capi_utils.h
+  bgl.h
+  blf_py_api.h
+  bpy_internal_import.h
+  idprop_py_api.h
+  imbuf_py_api.h
+  py_capi_utils.h
 
-	# header-only
-	python_utildefines.h
+  # header-only
+  python_utildefines.h
 )
 
 set(LIB
-	${GLEW_LIBRARY}
+  ${GLEW_LIBRARY}
 )
 
 add_definitions(${GL_DEFINITIONS})

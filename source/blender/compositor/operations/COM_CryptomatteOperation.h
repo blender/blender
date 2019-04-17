@@ -20,19 +20,18 @@
 #define __COM_CRYPTOMATTEOPERATION_H__
 #include "COM_NodeOperation.h"
 
-
 class CryptomatteOperation : public NodeOperation {
-private:
-	std::vector<float> m_objectIndex;
-public:
-	std::vector<SocketReader *> inputs;
+ private:
+  std::vector<float> m_objectIndex;
 
-	CryptomatteOperation(size_t num_inputs = 6);
+ public:
+  std::vector<SocketReader *> inputs;
 
-	void initExecution();
-	void executePixel(float output[4], int x, int y, void *data);
+  CryptomatteOperation(size_t num_inputs = 6);
 
-	void addObjectIndex(float objectIndex);
+  void initExecution();
+  void executePixel(float output[4], int x, int y, void *data);
 
+  void addObjectIndex(float objectIndex);
 };
 #endif

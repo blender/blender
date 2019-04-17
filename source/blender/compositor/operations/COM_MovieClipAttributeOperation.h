@@ -22,40 +22,52 @@
 #include "DNA_movieclip_types.h"
 
 typedef enum MovieClipAttribute {
-	MCA_SCALE,
-	MCA_X,
-	MCA_Y,
-	MCA_ANGLE,
+  MCA_SCALE,
+  MCA_X,
+  MCA_Y,
+  MCA_ANGLE,
 } MovieClipAttribute;
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
 class MovieClipAttributeOperation : public NodeOperation {
-private:
-	MovieClip *m_clip;
-	float m_value;
-	int m_framenumber;
-	bool m_invert;
-	MovieClipAttribute m_attribute;
+ private:
+  MovieClip *m_clip;
+  float m_value;
+  int m_framenumber;
+  bool m_invert;
+  MovieClipAttribute m_attribute;
 
-public:
-	/**
-	 * Default constructor
-	 */
-	MovieClipAttributeOperation();
+ public:
+  /**
+   * Default constructor
+   */
+  MovieClipAttributeOperation();
 
-	void initExecution();
+  void initExecution();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
-	void setMovieClip(MovieClip *clip) { this->m_clip = clip; }
-	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
-	void setAttribute(MovieClipAttribute attribute) { this->m_attribute = attribute; }
-	void setInvert(bool invert) { this->m_invert = invert; }
+  void setMovieClip(MovieClip *clip)
+  {
+    this->m_clip = clip;
+  }
+  void setFramenumber(int framenumber)
+  {
+    this->m_framenumber = framenumber;
+  }
+  void setAttribute(MovieClipAttribute attribute)
+  {
+    this->m_attribute = attribute;
+  }
+  void setInvert(bool invert)
+  {
+    this->m_invert = invert;
+  }
 };
 #endif

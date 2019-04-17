@@ -27,9 +27,9 @@
  * \ingroup Node
  */
 class OutputFileNode : public Node {
-public:
-	OutputFileNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  OutputFileNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

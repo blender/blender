@@ -30,7 +30,7 @@
 #    define __KERNEL_SSSE3__
 #    define __KERNEL_SSE41__
 #  endif
-#endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE41 */
+#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE41 */
 
 #include "kernel/kernel.h"
 #define KERNEL_ARCH cpu_sse41

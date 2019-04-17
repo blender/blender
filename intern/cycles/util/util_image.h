@@ -15,20 +15,20 @@
  */
 
 #ifndef __UTIL_IMAGE_H__
-#define __UTIL_IMAGE_H__
+#  define __UTIL_IMAGE_H__
 
 /* OpenImageIO is used for all image file reading and writing. */
 
-#include <OpenImageIO/imageio.h>
+#  include <OpenImageIO/imageio.h>
 
-#include "util/util_vector.h"
+#  include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
 OIIO_NAMESPACE_USING
 
 template<typename T>
-void util_image_resize_pixels(const vector<T>& input_pixels,
+void util_image_resize_pixels(const vector<T> &input_pixels,
                               const size_t input_width,
                               const size_t input_height,
                               const size_t input_depth,
@@ -39,69 +39,59 @@ void util_image_resize_pixels(const vector<T>& input_pixels,
                               size_t *output_depth);
 
 /* Cast input pixel from unknown storage to float. */
-template<typename T>
-inline float util_image_cast_to_float(T value);
+template<typename T> inline float util_image_cast_to_float(T value);
 
-template<>
-inline float util_image_cast_to_float(float value)
+template<> inline float util_image_cast_to_float(float value)
 {
-	return value;
+  return value;
 }
-template<>
-inline float util_image_cast_to_float(uchar value)
+template<> inline float util_image_cast_to_float(uchar value)
 {
-	return (float)value / 255.0f;
+  return (float)value / 255.0f;
 }
-template<>
-inline float util_image_cast_to_float(uint16_t value)
+template<> inline float util_image_cast_to_float(uint16_t value)
 {
-	return (float)value / 65535.0f;
+  return (float)value / 65535.0f;
 }
-template<>
-inline float util_image_cast_to_float(half value)
+template<> inline float util_image_cast_to_float(half value)
 {
-	return half_to_float(value);
+  return half_to_float(value);
 }
 
 /* Cast float value to output pixel type. */
-template<typename T>
-inline T util_image_cast_from_float(float value);
+template<typename T> inline T util_image_cast_from_float(float value);
 
-template<>
-inline float util_image_cast_from_float(float value)
+template<> inline float util_image_cast_from_float(float value)
 {
-	return value;
+  return value;
 }
-template<>
-inline uchar util_image_cast_from_float(float value)
+template<> inline uchar util_image_cast_from_float(float value)
 {
-	if(value < 0.0f) {
-		return 0;
-	}
-	else if(value > (1.0f - 0.5f / 255.0f)) {
-		return 255;
-	}
-	return (uchar)((255.0f * value) + 0.5f);
+  if (value < 0.0f) {
+    return 0;
+  }
+  else if (value > (1.0f - 0.5f / 255.0f)) {
+    return 255;
+  }
+  return (uchar)((255.0f * value) + 0.5f);
 }
-template<>
-inline uint16_t util_image_cast_from_float(float value)
+template<> inline uint16_t util_image_cast_from_float(float value)
 {
-	if(value < 0.0f) {
-		return 0;
-	}
-	else if(value > (1.0f - 0.5f / 65535.0f)) {
-		return 65535;
-	}
-	return (uint16_t)((65535.0f * value) + 0.5f);
+  if (value < 0.0f) {
+    return 0;
+  }
+  else if (value > (1.0f - 0.5f / 65535.0f)) {
+    return 65535;
+  }
+  return (uint16_t)((65535.0f * value) + 0.5f);
 }
-template<>
-inline half util_image_cast_from_float(float value)
+template<> inline half util_image_cast_from_float(float value)
 {
-	return float_to_half(value);
+  return float_to_half(value);
 }
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_IMAGE_H__ */
+#endif /* __UTIL_IMAGE_H__ */
 
 #include "util/util_image_impl.h"

@@ -32,30 +32,28 @@ CCL_NAMESPACE_BEGIN
  * - Use own allocator which keeps track of used/peak memory.
  * - Have method to ensure capacity is re-set to 0.
  */
-template<typename value_type,
-         typename allocator_type = GuardedAllocator<value_type> >
-class vector : public std::vector<value_type, allocator_type>
-{
-public:
-	typedef std::vector<value_type, allocator_type> BaseClass;
+template<typename value_type, typename allocator_type = GuardedAllocator<value_type>>
+class vector : public std::vector<value_type, allocator_type> {
+ public:
+  typedef std::vector<value_type, allocator_type> BaseClass;
 
-	/* Inherit all constructors from base class. */
-	using BaseClass::vector;
+  /* Inherit all constructors from base class. */
+  using BaseClass::vector;
 
-	/* Try as hard as possible to use zero memory. */
-	void free_memory()
-	{
-		BaseClass::resize(0);
-		BaseClass::shrink_to_fit();
-	}
+  /* Try as hard as possible to use zero memory. */
+  void free_memory()
+  {
+    BaseClass::resize(0);
+    BaseClass::shrink_to_fit();
+  }
 
-	/* Some external API might demand working with std::vector. */
-	operator std::vector<value_type>()
-	{
-		return std::vector<value_type>(this->begin(), this->end());
-	}
+  /* Some external API might demand working with std::vector. */
+  operator std::vector<value_type>()
+  {
+    return std::vector<value_type>(this->begin(), this->end());
+  }
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_VECTOR_H__ */
+#endif /* __UTIL_VECTOR_H__ */

@@ -34,14 +34,15 @@ CCL_NAMESPACE_BEGIN
 
 /* Blackbody Node */
 
-ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *stack, uint temperature_offset, uint col_offset)
+ccl_device void svm_node_blackbody(
+    KernelGlobals *kg, ShaderData *sd, float *stack, uint temperature_offset, uint col_offset)
 {
-	/* Input */
-	float temperature = stack_load_float(stack, temperature_offset);
+  /* Input */
+  float temperature = stack_load_float(stack, temperature_offset);
 
-	float3 color_rgb = svm_math_blackbody_color(temperature);
+  float3 color_rgb = svm_math_blackbody_color(temperature);
 
-	stack_store_float3(stack, col_offset, color_rgb);
+  stack_store_float3(stack, col_offset, color_rgb);
 }
 
 CCL_NAMESPACE_END

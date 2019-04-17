@@ -24,9 +24,9 @@
 
 namespace Freestyle {
 
-int StrokeShader::shade(Stroke& ioStroke) const
+int StrokeShader::shade(Stroke &ioStroke) const
 {
-	return Director_BPy_StrokeShader_shade( const_cast<StrokeShader *>(this), ioStroke);
+  return Director_BPy_StrokeShader_shade(const_cast<StrokeShader *>(this), ioStroke);
 }
 
 } /* namespace Freestyle */

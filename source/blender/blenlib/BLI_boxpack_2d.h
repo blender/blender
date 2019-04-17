@@ -27,18 +27,21 @@
 /* Box Packer */
 
 typedef struct BoxPack {
-	float x;
-	float y;
-	float w;
-	float h;
+  float x;
+  float y;
+  float w;
+  float h;
 
-	/* Verts this box uses
-	 * (BL,TR,TL,BR) / 0,1,2,3 */
-	struct BoxVert *v[4];
+  /* Verts this box uses
+   * (BL,TR,TL,BR) / 0,1,2,3 */
+  struct BoxVert *v[4];
 
-	int index;
+  int index;
 } BoxPack;
 
-void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width, float *tot_height);
+void BLI_box_pack_2d(BoxPack *boxarray,
+                     const unsigned int len,
+                     float *tot_width,
+                     float *tot_height);
 
-#endif  /* __BLI_BOXPACK_2D_H__ */
+#endif /* __BLI_BOXPACK_2D_H__ */

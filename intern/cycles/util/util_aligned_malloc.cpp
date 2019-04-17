@@ -29,7 +29,7 @@
 #      undef __MSVCRT_VERSION__
 #    endif
 #    define __MSVCRT_VERSION__ 0x0700
-#  endif  /* FREE_WINDOWS */
+#  endif /* FREE_WINDOWS */
 #  include <malloc.h>
 #else
 /* Apple's malloc is 16-byte aligned, and does not have malloc.h, so include
@@ -43,39 +43,39 @@ CCL_NAMESPACE_BEGIN
 void *util_aligned_malloc(size_t size, int alignment)
 {
 #ifdef WITH_BLENDER_GUARDEDALLOC
-	return MEM_mallocN_aligned(size, alignment, "Cycles Aligned Alloc");
+  return MEM_mallocN_aligned(size, alignment, "Cycles Aligned Alloc");
 #elif defined(_WIN32)
-	return _aligned_malloc(size, alignment);
+  return _aligned_malloc(size, alignment);
 #elif defined(__APPLE__)
-	/* On Mac OS X, both the heap and the stack are guaranteed 16-byte aligned so
-	 * they work natively with SSE types with no further work.
-	 */
-	assert(alignment == 16);
-	return malloc(size);
+  /* On Mac OS X, both the heap and the stack are guaranteed 16-byte aligned so
+   * they work natively with SSE types with no further work.
+   */
+  assert(alignment == 16);
+  return malloc(size);
 #elif defined(__FreeBSD__) || defined(__NetBSD__)
-	void *result;
-	if(posix_memalign(&result, alignment, size)) {
-		/* Non-zero means allocation error
-		 * either no allocation or bad alignment value.
-		 */
-		return NULL;
-	}
-	return result;
-#else  /* This is for Linux. */
-	return memalign(alignment, size);
+  void *result;
+  if (posix_memalign(&result, alignment, size)) {
+    /* Non-zero means allocation error
+     * either no allocation or bad alignment value.
+     */
+    return NULL;
+  }
+  return result;
+#else /* This is for Linux. */
+  return memalign(alignment, size);
 #endif
 }
 
 void util_aligned_free(void *ptr)
 {
 #if defined(WITH_BLENDER_GUARDEDALLOC)
-	if(ptr != NULL) {
-		MEM_freeN(ptr);
-	}
+  if (ptr != NULL) {
+    MEM_freeN(ptr);
+  }
 #elif defined(_WIN32)
-	_aligned_free(ptr);
+  _aligned_free(ptr);
 #else
-	free(ptr);
+  free(ptr);
 #endif
 }
 

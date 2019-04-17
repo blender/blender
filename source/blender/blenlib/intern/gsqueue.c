@@ -37,14 +37,14 @@
 
 typedef struct _GSQueueElem GSQueueElem;
 struct _GSQueueElem {
-	GSQueueElem *next;
-	char data[0];
+  GSQueueElem *next;
+  char data[0];
 };
 
 struct _GSQueue {
-	GSQueueElem *head;
-	GSQueueElem *tail;
-	size_t elem_size;
+  GSQueueElem *head;
+  GSQueueElem *tail;
+  size_t elem_size;
 };
 
 /**
@@ -55,11 +55,11 @@ struct _GSQueue {
  */
 GSQueue *BLI_gsqueue_new(size_t elem_size)
 {
-	GSQueue *gq = MEM_mallocN(sizeof(*gq), "gqueue_new");
-	gq->head = gq->tail = NULL;
-	gq->elem_size = elem_size;
+  GSQueue *gq = MEM_mallocN(sizeof(*gq), "gqueue_new");
+  gq->head = gq->tail = NULL;
+  gq->elem_size = elem_size;
 
-	return gq;
+  return gq;
 }
 
 /**
@@ -67,7 +67,7 @@ GSQueue *BLI_gsqueue_new(size_t elem_size)
  */
 bool BLI_gsqueue_is_empty(GSQueue *gq)
 {
-	return (gq->head == NULL);
+  return (gq->head == NULL);
 }
 
 /**
@@ -75,14 +75,14 @@ bool BLI_gsqueue_is_empty(GSQueue *gq)
  */
 int BLI_gsqueue_len(GSQueue *gq)
 {
-	GSQueueElem *elem;
-	int size = 0;
+  GSQueueElem *elem;
+  int size = 0;
 
-	for (elem = gq->head; elem; elem = elem->next) {
-		size++;
-	}
+  for (elem = gq->head; elem; elem = elem->next) {
+    size++;
+  }
 
-	return size;
+  return size;
 }
 
 /**
@@ -94,7 +94,7 @@ int BLI_gsqueue_len(GSQueue *gq)
  */
 void BLI_gsqueue_peek(GSQueue *gq, void *r_item)
 {
-	memcpy(r_item, &gq->head->data, gq->elem_size);
+  memcpy(r_item, &gq->head->data, gq->elem_size);
 }
 
 /**
@@ -107,18 +107,18 @@ void BLI_gsqueue_peek(GSQueue *gq, void *r_item)
  */
 void BLI_gsqueue_pop(GSQueue *gq, void *r_item)
 {
-	GSQueueElem *elem = gq->head;
-	if (elem == gq->tail) {
-		gq->head = gq->tail = NULL;
-	}
-	else {
-		gq->head = gq->head->next;
-	}
+  GSQueueElem *elem = gq->head;
+  if (elem == gq->tail) {
+    gq->head = gq->tail = NULL;
+  }
+  else {
+    gq->head = gq->head->next;
+  }
 
-	if (r_item) {
-		memcpy(r_item, elem->data, gq->elem_size);
-	}
-	MEM_freeN(elem);
+  if (r_item) {
+    memcpy(r_item, elem->data, gq->elem_size);
+  }
+  MEM_freeN(elem);
 }
 
 /**
@@ -129,24 +129,24 @@ void BLI_gsqueue_pop(GSQueue *gq, void *r_item)
  */
 void BLI_gsqueue_push(GSQueue *gq, const void *item)
 {
-	GSQueueElem *elem;
+  GSQueueElem *elem;
 
-	/* compare: prevent events added double in row */
-	if (!BLI_gsqueue_is_empty(gq)) {
-		if (0 == memcmp(item, gq->head->data, gq->elem_size)) {
-			return;
-		}
-	}
-	elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
-	memcpy(elem->data, item, gq->elem_size);
-	elem->next = NULL;
+  /* compare: prevent events added double in row */
+  if (!BLI_gsqueue_is_empty(gq)) {
+    if (0 == memcmp(item, gq->head->data, gq->elem_size)) {
+      return;
+    }
+  }
+  elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
+  memcpy(elem->data, item, gq->elem_size);
+  elem->next = NULL;
 
-	if (BLI_gsqueue_is_empty(gq)) {
-		gq->tail = gq->head = elem;
-	}
-	else {
-		gq->tail = gq->tail->next = elem;
-	}
+  if (BLI_gsqueue_is_empty(gq)) {
+    gq->tail = gq->head = elem;
+  }
+  else {
+    gq->tail = gq->tail->next = elem;
+  }
 }
 
 /**
@@ -158,16 +158,16 @@ void BLI_gsqueue_push(GSQueue *gq, const void *item)
  */
 void BLI_gsqueue_push_back(GSQueue *gq, const void *item)
 {
-	GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
-	memcpy(elem->data, item, gq->elem_size);
-	elem->next = gq->head;
+  GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
+  memcpy(elem->data, item, gq->elem_size);
+  elem->next = gq->head;
 
-	if (BLI_gsqueue_is_empty(gq)) {
-		gq->head = gq->tail = elem;
-	}
-	else {
-		gq->head = elem;
-	}
+  if (BLI_gsqueue_is_empty(gq)) {
+    gq->head = gq->tail = elem;
+  }
+  else {
+    gq->head = elem;
+  }
 }
 
 /**
@@ -175,8 +175,8 @@ void BLI_gsqueue_push_back(GSQueue *gq, const void *item)
  */
 void BLI_gsqueue_free(GSQueue *gq)
 {
-	while (gq->head) {
-		BLI_gsqueue_pop(gq, NULL);
-	}
-	MEM_freeN(gq);
+  while (gq->head) {
+    BLI_gsqueue_pop(gq, NULL);
+  }
+  MEM_freeN(gq);
 }

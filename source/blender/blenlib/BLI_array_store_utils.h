@@ -24,23 +24,20 @@
 struct BArrayStore;
 
 struct BArrayStore_AtSize {
-	struct BArrayStore **stride_table;
-	int                  stride_table_len;
+  struct BArrayStore **stride_table;
+  int stride_table_len;
 };
 
-BArrayStore *BLI_array_store_at_size_ensure(
-        struct BArrayStore_AtSize *bs_stride,
-        const int stride, const int chunk_size);
+BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride,
+                                            const int stride,
+                                            const int chunk_size);
 
-BArrayStore *BLI_array_store_at_size_get(
-        struct BArrayStore_AtSize *bs_stride,
-        const int stride);
+BArrayStore *BLI_array_store_at_size_get(struct BArrayStore_AtSize *bs_stride, const int stride);
 
-void BLI_array_store_at_size_clear(
-        struct BArrayStore_AtSize *bs_stride);
+void BLI_array_store_at_size_clear(struct BArrayStore_AtSize *bs_stride);
 
-void BLI_array_store_at_size_calc_memory_usage(
-        struct BArrayStore_AtSize *bs_stride,
-        size_t *r_size_expanded, size_t *r_size_compacted);
+void BLI_array_store_at_size_calc_memory_usage(struct BArrayStore_AtSize *bs_stride,
+                                               size_t *r_size_expanded,
+                                               size_t *r_size_compacted);
 
-#endif  /* __BLI_ARRAY_STORE_UTILS_H__ */
+#endif /* __BLI_ARRAY_STORE_UTILS_H__ */

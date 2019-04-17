@@ -26,7 +26,7 @@
 OIIO_NAMESPACE_USING
 
 #ifdef _WIN32
-#  if(!defined(FREE_WINDOWS))
+#  if (!defined(FREE_WINDOWS))
 #    include <intrin.h>
 #  endif
 #  include "util_windows.h"
@@ -43,333 +43,332 @@ CCL_NAMESPACE_BEGIN
 
 bool system_cpu_ensure_initialized()
 {
-	static bool is_initialized = false;
-	static bool result = false;
-	if(is_initialized) {
-		return result;
-	}
-	is_initialized = true;
-	const NUMAAPI_Result numa_result = numaAPI_Initialize();
-	result = (numa_result == NUMAAPI_SUCCESS);
-	return result;
+  static bool is_initialized = false;
+  static bool result = false;
+  if (is_initialized) {
+    return result;
+  }
+  is_initialized = true;
+  const NUMAAPI_Result numa_result = numaAPI_Initialize();
+  result = (numa_result == NUMAAPI_SUCCESS);
+  return result;
 }
 
 /* Fallback solution, which doesn't use NUMA/CPU groups. */
 static int system_cpu_thread_count_fallback()
 {
 #ifdef _WIN32
-	SYSTEM_INFO info;
-	GetSystemInfo(&info);
-	return info.dwNumberOfProcessors;
+  SYSTEM_INFO info;
+  GetSystemInfo(&info);
+  return info.dwNumberOfProcessors;
 #elif defined(__APPLE__)
-	int count;
-	size_t len = sizeof(count);
-	int mib[2] = { CTL_HW, HW_NCPU };
-	sysctl(mib, 2, &count, &len, NULL, 0);
-	return count;
+  int count;
+  size_t len = sizeof(count);
+  int mib[2] = {CTL_HW, HW_NCPU};
+  sysctl(mib, 2, &count, &len, NULL, 0);
+  return count;
 #else
-	return sysconf(_SC_NPROCESSORS_ONLN);
+  return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 }
 
 int system_cpu_thread_count()
 {
-	const int num_nodes = system_cpu_num_numa_nodes();
-	int num_threads = 0;
-	for(int node = 0; node < num_nodes; ++node) {
-		if(!system_cpu_is_numa_node_available(node)) {
-			continue;
-		}
-		num_threads += system_cpu_num_numa_node_processors(node);
-	}
-	return num_threads;
+  const int num_nodes = system_cpu_num_numa_nodes();
+  int num_threads = 0;
+  for (int node = 0; node < num_nodes; ++node) {
+    if (!system_cpu_is_numa_node_available(node)) {
+      continue;
+    }
+    num_threads += system_cpu_num_numa_node_processors(node);
+  }
+  return num_threads;
 }
 
 int system_cpu_num_numa_nodes()
 {
-	if(!system_cpu_ensure_initialized()) {
-		/* Fallback to a single node with all the threads. */
-		return 1;
-	}
-	return numaAPI_GetNumNodes();
+  if (!system_cpu_ensure_initialized()) {
+    /* Fallback to a single node with all the threads. */
+    return 1;
+  }
+  return numaAPI_GetNumNodes();
 }
 
 bool system_cpu_is_numa_node_available(int node)
 {
-	if(!system_cpu_ensure_initialized()) {
-		return true;
-	}
-	return numaAPI_IsNodeAvailable(node);
+  if (!system_cpu_ensure_initialized()) {
+    return true;
+  }
+  return numaAPI_IsNodeAvailable(node);
 }
 
 int system_cpu_num_numa_node_processors(int node)
 {
-	if(!system_cpu_ensure_initialized()) {
-		return system_cpu_thread_count_fallback();
-	}
-	return numaAPI_GetNumNodeProcessors(node);
+  if (!system_cpu_ensure_initialized()) {
+    return system_cpu_thread_count_fallback();
+  }
+  return numaAPI_GetNumNodeProcessors(node);
 }
 
 bool system_cpu_run_thread_on_node(int node)
 {
-	if(!system_cpu_ensure_initialized()) {
-		return true;
-	}
-	return numaAPI_RunThreadOnNode(node);
+  if (!system_cpu_ensure_initialized()) {
+    return true;
+  }
+  return numaAPI_RunThreadOnNode(node);
 }
 
 int system_console_width()
 {
-	int columns = 0;
+  int columns = 0;
 
 #ifdef _WIN32
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	if(GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
-		columns = csbi.dwSize.X;
-	}
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+    columns = csbi.dwSize.X;
+  }
 #else
-	struct winsize w;
-	if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
-		columns = w.ws_col;
-	}
+  struct winsize w;
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+    columns = w.ws_col;
+  }
 #endif
 
-	return (columns > 0) ? columns : 80;
+  return (columns > 0) ? columns : 80;
 }
 
 int system_cpu_num_active_group_processors()
 {
-	if(!system_cpu_ensure_initialized()) {
-		return system_cpu_thread_count_fallback();
-	}
-	return numaAPI_GetNumCurrentNodesProcessors();
+  if (!system_cpu_ensure_initialized()) {
+    return system_cpu_thread_count_fallback();
+  }
+  return numaAPI_GetNumCurrentNodesProcessors();
 }
 
 #if !defined(_WIN32) || defined(FREE_WINDOWS)
 static void __cpuid(int data[4], int selector)
 {
-#if defined(__x86_64__)
-	asm("cpuid" : "=a" (data[0]), "=b" (data[1]), "=c" (data[2]), "=d" (data[3]) : "a"(selector));
-#elif defined(__i386__)
-	asm("pushl %%ebx    \n\t"
-	    "cpuid          \n\t"
-	    "movl %%ebx, %1 \n\t"
-	    "popl %%ebx     \n\t"
-	    : "=a" (data[0]), "=r" (data[1]), "=c" (data[2]), "=d" (data[3])
-	    : "a"(selector)
-	    : "ebx");
-#else
-	data[0] = data[1] = data[2] = data[3] = 0;
-#endif
+#  if defined(__x86_64__)
+  asm("cpuid" : "=a"(data[0]), "=b"(data[1]), "=c"(data[2]), "=d"(data[3]) : "a"(selector));
+#  elif defined(__i386__)
+  asm("pushl %%ebx    \n\t"
+      "cpuid          \n\t"
+      "movl %%ebx, %1 \n\t"
+      "popl %%ebx     \n\t"
+      : "=a"(data[0]), "=r"(data[1]), "=c"(data[2]), "=d"(data[3])
+      : "a"(selector)
+      : "ebx");
+#  else
+  data[0] = data[1] = data[2] = data[3] = 0;
+#  endif
 }
 #endif
 
 string system_cpu_brand_string()
 {
-	char buf[48] = {0};
-	int result[4] = {0};
+  char buf[48] = {0};
+  int result[4] = {0};
 
-	__cpuid(result, 0x80000000);
+  __cpuid(result, 0x80000000);
 
-	if(result[0] >= (int)0x80000004) {
-		__cpuid((int*)(buf+0), 0x80000002);
-		__cpuid((int*)(buf+16), 0x80000003);
-		__cpuid((int*)(buf+32), 0x80000004);
+  if (result[0] >= (int)0x80000004) {
+    __cpuid((int *)(buf + 0), 0x80000002);
+    __cpuid((int *)(buf + 16), 0x80000003);
+    __cpuid((int *)(buf + 32), 0x80000004);
 
-		string brand = buf;
+    string brand = buf;
 
-		/* make it a bit more presentable */
-		brand = string_remove_trademark(brand);
+    /* make it a bit more presentable */
+    brand = string_remove_trademark(brand);
 
-		return brand;
-	}
+    return brand;
+  }
 
-	return "Unknown CPU";
+  return "Unknown CPU";
 }
 
 int system_cpu_bits()
 {
-	return (sizeof(void*)*8);
+  return (sizeof(void *) * 8);
 }
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(i386) || defined(_M_IX86)
 
 struct CPUCapabilities {
-	bool x64;
-	bool mmx;
-	bool sse;
-	bool sse2;
-	bool sse3;
-	bool ssse3;
-	bool sse41;
-	bool sse42;
-	bool sse4a;
-	bool avx;
-	bool f16c;
-	bool avx2;
-	bool xop;
-	bool fma3;
-	bool fma4;
-	bool bmi1;
-	bool bmi2;
+  bool x64;
+  bool mmx;
+  bool sse;
+  bool sse2;
+  bool sse3;
+  bool ssse3;
+  bool sse41;
+  bool sse42;
+  bool sse4a;
+  bool avx;
+  bool f16c;
+  bool avx2;
+  bool xop;
+  bool fma3;
+  bool fma4;
+  bool bmi1;
+  bool bmi2;
 };
 
-static CPUCapabilities& system_cpu_capabilities()
+static CPUCapabilities &system_cpu_capabilities()
 {
-	static CPUCapabilities caps;
-	static bool caps_init = false;
+  static CPUCapabilities caps;
+  static bool caps_init = false;
 
-	if(!caps_init) {
-		int result[4], num;
+  if (!caps_init) {
+    int result[4], num;
 
-		memset(&caps, 0, sizeof(caps));
+    memset(&caps, 0, sizeof(caps));
 
-		__cpuid(result, 0);
-		num = result[0];
+    __cpuid(result, 0);
+    num = result[0];
 
-		if(num >= 1) {
-			__cpuid(result, 0x00000001);
-			caps.mmx = (result[3] & ((int)1 << 23)) != 0;
-			caps.sse = (result[3] & ((int)1 << 25)) != 0;
-			caps.sse2 = (result[3] & ((int)1 << 26)) != 0;
-			caps.sse3 = (result[2] & ((int)1 <<  0)) != 0;
+    if (num >= 1) {
+      __cpuid(result, 0x00000001);
+      caps.mmx = (result[3] & ((int)1 << 23)) != 0;
+      caps.sse = (result[3] & ((int)1 << 25)) != 0;
+      caps.sse2 = (result[3] & ((int)1 << 26)) != 0;
+      caps.sse3 = (result[2] & ((int)1 << 0)) != 0;
 
-			caps.ssse3 = (result[2] & ((int)1 <<  9)) != 0;
-			caps.sse41 = (result[2] & ((int)1 << 19)) != 0;
-			caps.sse42 = (result[2] & ((int)1 << 20)) != 0;
+      caps.ssse3 = (result[2] & ((int)1 << 9)) != 0;
+      caps.sse41 = (result[2] & ((int)1 << 19)) != 0;
+      caps.sse42 = (result[2] & ((int)1 << 20)) != 0;
 
-			caps.fma3 = (result[2] & ((int)1 << 12)) != 0;
-			caps.avx = false;
-			bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
-			bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
+      caps.fma3 = (result[2] & ((int)1 << 12)) != 0;
+      caps.avx = false;
+      bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
+      bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
 
-			if( os_uses_xsave_xrestore && cpu_avx_support) {
-				// Check if the OS will save the YMM registers
-				uint32_t xcr_feature_mask;
-#if defined(__GNUC__)
-				int edx; /* not used */
-				/* actual opcode for xgetbv */
-				__asm__ (".byte 0x0f, 0x01, 0xd0" : "=a" (xcr_feature_mask) , "=d" (edx) : "c" (0) );
-#elif defined(_MSC_VER) && defined(_XCR_XFEATURE_ENABLED_MASK)
-				xcr_feature_mask = (uint32_t)_xgetbv(_XCR_XFEATURE_ENABLED_MASK);  /* min VS2010 SP1 compiler is required */
-#else
-				xcr_feature_mask = 0;
-#endif
-				caps.avx = (xcr_feature_mask & 0x6) == 0x6;
-			}
+      if (os_uses_xsave_xrestore && cpu_avx_support) {
+        // Check if the OS will save the YMM registers
+        uint32_t xcr_feature_mask;
+#  if defined(__GNUC__)
+        int edx; /* not used */
+        /* actual opcode for xgetbv */
+        __asm__(".byte 0x0f, 0x01, 0xd0" : "=a"(xcr_feature_mask), "=d"(edx) : "c"(0));
+#  elif defined(_MSC_VER) && defined(_XCR_XFEATURE_ENABLED_MASK)
+        xcr_feature_mask = (uint32_t)_xgetbv(
+            _XCR_XFEATURE_ENABLED_MASK); /* min VS2010 SP1 compiler is required */
+#  else
+        xcr_feature_mask = 0;
+#  endif
+        caps.avx = (xcr_feature_mask & 0x6) == 0x6;
+      }
 
-			caps.f16c = (result[2] & ((int)1 << 29)) != 0;
+      caps.f16c = (result[2] & ((int)1 << 29)) != 0;
 
-			__cpuid(result, 0x00000007);
-			caps.bmi1 = (result[1] & ((int)1 << 3)) != 0;
-			caps.bmi2 = (result[1] & ((int)1 << 8)) != 0;
-			caps.avx2 = (result[1] & ((int)1 << 5)) != 0;
-		}
+      __cpuid(result, 0x00000007);
+      caps.bmi1 = (result[1] & ((int)1 << 3)) != 0;
+      caps.bmi2 = (result[1] & ((int)1 << 8)) != 0;
+      caps.avx2 = (result[1] & ((int)1 << 5)) != 0;
+    }
 
-		caps_init = true;
-	}
+    caps_init = true;
+  }
 
-	return caps;
+  return caps;
 }
 
 bool system_cpu_support_sse2()
 {
-	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2;
+  CPUCapabilities &caps = system_cpu_capabilities();
+  return caps.sse && caps.sse2;
 }
 
 bool system_cpu_support_sse3()
 {
-	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
+  CPUCapabilities &caps = system_cpu_capabilities();
+  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
 }
 
 bool system_cpu_support_sse41()
 {
-	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
+  CPUCapabilities &caps = system_cpu_capabilities();
+  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
 }
 
 bool system_cpu_support_avx()
 {
-	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 &&
-	       caps.sse41 && caps.avx;
+  CPUCapabilities &caps = system_cpu_capabilities();
+  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx;
 }
 
 bool system_cpu_support_avx2()
 {
-	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 &&
-	       caps.avx && caps.f16c && caps.avx2 && caps.fma3 && caps.bmi1 &&
-	       caps.bmi2;
+  CPUCapabilities &caps = system_cpu_capabilities();
+  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx && caps.f16c &&
+         caps.avx2 && caps.fma3 && caps.bmi1 && caps.bmi2;
 }
 #else
 
 bool system_cpu_support_sse2()
 {
-	return false;
+  return false;
 }
 
 bool system_cpu_support_sse3()
 {
-	return false;
+  return false;
 }
 
 bool system_cpu_support_sse41()
 {
-	return false;
+  return false;
 }
 
 bool system_cpu_support_avx()
 {
-	return false;
+  return false;
 }
 bool system_cpu_support_avx2()
 {
-	return false;
+  return false;
 }
 
 #endif
 
-bool system_call_self(const vector<string>& args)
+bool system_call_self(const vector<string> &args)
 {
-	/* Escape program and arguments in case they contain spaces. */
-	string cmd = "\"" + Sysutil::this_program_path() + "\"";
+  /* Escape program and arguments in case they contain spaces. */
+  string cmd = "\"" + Sysutil::this_program_path() + "\"";
 
-	for(int i = 0; i < args.size(); i++) {
-		cmd += " \"" + args[i] + "\"";
-	}
+  for (int i = 0; i < args.size(); i++) {
+    cmd += " \"" + args[i] + "\"";
+  }
 
 #ifdef _WIN32
-	/* Use cmd /S to avoid issues with spaces in arguments. */
-	cmd = "cmd /S /C \"" + cmd + " > nul \"";
+  /* Use cmd /S to avoid issues with spaces in arguments. */
+  cmd = "cmd /S /C \"" + cmd + " > nul \"";
 #else
-	/* Quiet output. */
-	cmd += " > /dev/null";
+  /* Quiet output. */
+  cmd += " > /dev/null";
 #endif
 
-	return (system(cmd.c_str()) == 0);
+  return (system(cmd.c_str()) == 0);
 }
 
 size_t system_physical_ram()
 {
 #ifdef _WIN32
-	MEMORYSTATUSEX ram;
-	ram.dwLength = sizeof (ram);
-	GlobalMemoryStatusEx(&ram);
-	return ram.ullTotalPhys * 1024;
+  MEMORYSTATUSEX ram;
+  ram.dwLength = sizeof(ram);
+  GlobalMemoryStatusEx(&ram);
+  return ram.ullTotalPhys * 1024;
 #elif defined(__APPLE__)
-	uint64_t ram = 0;
-	size_t len = sizeof(ram);
-	if(sysctlbyname("hw.memsize", &ram, &len, NULL, 0) == 0) {
-		return ram;
-	}
-	return 0;
+  uint64_t ram = 0;
+  size_t len = sizeof(ram);
+  if (sysctlbyname("hw.memsize", &ram, &len, NULL, 0) == 0) {
+    return ram;
+  }
+  return 0;
 #else
-	size_t ps = sysconf(_SC_PAGESIZE);
-	size_t pn = sysconf(_SC_PHYS_PAGES);
-	return ps * pn;
+  size_t ps = sysconf(_SC_PAGESIZE);
+  size_t pn = sysconf(_SC_PHYS_PAGES);
+  return ps * pn;
 #endif
 }
 

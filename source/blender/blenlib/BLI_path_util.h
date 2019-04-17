@@ -35,45 +35,52 @@ void BLI_setenv(const char *env, const char *val) ATTR_NONNULL(1);
 void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1);
 
-void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
+void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 bool BLI_make_existing_file(const char *name);
-void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
+void BLI_split_dirfile(
+    const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
 void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, const size_t filelen);
-void BLI_path_append(char *__restrict dst, const size_t maxlen,
-                     const char *__restrict file) ATTR_NONNULL();
-void BLI_join_dirfile(char *__restrict string, const size_t maxlen,
-                      const char *__restrict dir, const char *__restrict file) ATTR_NONNULL();
-size_t BLI_path_join(
-        char *__restrict dst, const size_t dst_len,
-        const char *path_first, ...) ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
+void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
+    ATTR_NONNULL();
+void BLI_join_dirfile(char *__restrict string,
+                      const size_t maxlen,
+                      const char *__restrict dir,
+                      const char *__restrict file) ATTR_NONNULL();
+size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path_first, ...)
+    ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-bool BLI_path_name_at_index(
-        const char *__restrict path, const int index,
-        int *__restrict r_offset, int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_name_at_index(const char *__restrict path,
+                            const int index,
+                            int *__restrict r_offset,
+                            int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 const char *BLI_last_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-int         BLI_add_slash(char *string) ATTR_NONNULL();
-void        BLI_del_slash(char *string) ATTR_NONNULL();
+int BLI_add_slash(char *string) ATTR_NONNULL();
+void BLI_del_slash(char *string) ATTR_NONNULL();
 const char *BLI_first_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-void        BLI_path_native_slash(char *path) ATTR_NONNULL();
+void BLI_path_native_slash(char *path) ATTR_NONNULL();
 
 #ifdef _WIN32
 bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen);
 #endif
 bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *name);
 
-bool BLI_path_extension_check(const char *str, const char *ext) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check(const char *str, const char *ext)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_path_extension_check_n(const char *str, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);
-bool BLI_path_extension_check_array(const char *str, const char **ext_array) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_array(const char *str, const char **ext_array)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
 bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
-void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+void BLI_stringenc(
+    char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 
 /* removes trailing slash */
 void BLI_cleanup_file(const char *relabase, char *path) ATTR_NONNULL(2);
@@ -88,7 +95,7 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
 /* go back one directory */
 bool BLI_parent_dir(char *path) ATTR_NONNULL();
 
-bool BLI_path_abs(char *path, const char *basepath)  ATTR_NONNULL();
+bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
 bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
 bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL();
 bool BLI_path_frame_get(char *path, int *r_frame, int *numdigits) ATTR_NONNULL();
@@ -107,7 +114,8 @@ void BLI_cleanup_unc_16(wchar_t *path_16);
 void BLI_cleanup_unc(char *path_16, int maxlen);
 #endif
 
-bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep) ATTR_NONNULL();
+bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
+    ATTR_NONNULL();
 
 /* path string comparisons: case-insensitive for Windows, case-sensitive otherwise */
 #if defined(WIN32)
@@ -121,20 +129,20 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR
-#  define FILE_MAXDIR         768
-#  define FILE_MAXFILE        256
-#  define FILE_MAX            1024
+#  define FILE_MAXDIR 768
+#  define FILE_MAXFILE 256
+#  define FILE_MAX 1024
 #endif
 
 #ifdef WIN32
-#  define SEP        '\\'
-#  define ALTSEP     '/'
-#  define SEP_STR    "\\"
+#  define SEP '\\'
+#  define ALTSEP '/'
+#  define SEP_STR "\\"
 #  define ALTSEP_STR "/"
 #else
-#  define SEP        '/'
-#  define ALTSEP     '\\'
-#  define SEP_STR    "/"
+#  define SEP '/'
+#  define ALTSEP '\\'
+#  define SEP_STR "/"
 #  define ALTSEP_STR "\\"
 #endif
 
@@ -145,10 +153,11 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 /* Avoid calling strcmp on one or two chars! */
 #define FILENAME_IS_PARENT(_n) (((_n)[0] == '.') && ((_n)[1] == '.') && ((_n)[2] == '\0'))
 #define FILENAME_IS_CURRENT(_n) (((_n)[0] == '.') && ((_n)[1] == '\0'))
-#define FILENAME_IS_CURRPAR(_n) (((_n)[0] == '.') && (((_n)[1] == '\0') || (((_n)[1] == '.') && ((_n)[2] == '\0'))))
+#define FILENAME_IS_CURRPAR(_n) \
+  (((_n)[0] == '.') && (((_n)[1] == '\0') || (((_n)[1] == '.') && ((_n)[2] == '\0'))))
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __BLI_PATH_UTIL_H__ */
+#endif /* __BLI_PATH_UTIL_H__ */

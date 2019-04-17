@@ -19,19 +19,19 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
+  .
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	intern/glew-mx.c
+  intern/glew-mx.c
 
-	glew-mx.h
-	intern/gl-deprecated.h
-	intern/symbol-binding.h
+  glew-mx.h
+  intern/gl-deprecated.h
+  intern/symbol-binding.h
 )
 
 set(LIB

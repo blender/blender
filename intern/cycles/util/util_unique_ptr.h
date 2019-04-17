@@ -25,4 +25,4 @@ using std::unique_ptr;
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_UNIQUE_PTR_H__ */
+#endif /* __UTIL_UNIQUE_PTR_H__ */

@@ -17,25 +17,22 @@
 #include "stdosl.h"
 #include "node_fresnel.h"
 
-shader node_glossy_bsdf(
-	color Color = 0.8,
-	string distribution = "GGX",
-	float Roughness = 0.2,
-	normal Normal = N,
-	output closure color BSDF = 0)
+shader node_glossy_bsdf(color Color = 0.8,
+                        string distribution = "GGX",
+                        float Roughness = 0.2,
+                        normal Normal = N,
+                        output closure color BSDF = 0)
 {
-	float roughness = Roughness * Roughness;
+  float roughness = Roughness * Roughness;
 
-	if (distribution == "sharp")
-		BSDF = Color * reflection(Normal);
-	else if (distribution == "beckmann")
-		BSDF = Color * microfacet_beckmann(Normal, roughness);
-	else if (distribution == "GGX")
-		BSDF = Color * microfacet_ggx(Normal, roughness);
-	else if (distribution == "Multiscatter GGX")
-		BSDF = Color * microfacet_multi_ggx(Normal, roughness, Color);
-	else
-		BSDF = Color * ashikhmin_shirley(Normal, vector(0, 0, 0), roughness, roughness);
-
+  if (distribution == "sharp")
+    BSDF = Color * reflection(Normal);
+  else if (distribution == "beckmann")
+    BSDF = Color * microfacet_beckmann(Normal, roughness);
+  else if (distribution == "GGX")
+    BSDF = Color * microfacet_ggx(Normal, roughness);
+  else if (distribution == "Multiscatter GGX")
+    BSDF = Color * microfacet_multi_ggx(Normal, roughness, Color);
+  else
+    BSDF = Color * ashikhmin_shirley(Normal, vector(0, 0, 0), roughness, roughness);
 }
-

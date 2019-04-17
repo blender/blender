@@ -31,139 +31,140 @@
 
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void BlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void BlurNode::convertToOperations(NodeConverter &converter,
+                                   const CompositorContext &context) const
 {
-	bNode *editorNode = this->getbNode();
-	NodeBlurData *data = (NodeBlurData *)editorNode->storage;
-	NodeInput *inputSizeSocket = this->getInputSocket(1);
-	bool connectedSizeSocket = inputSizeSocket->isLinked();
+  bNode *editorNode = this->getbNode();
+  NodeBlurData *data = (NodeBlurData *)editorNode->storage;
+  NodeInput *inputSizeSocket = this->getInputSocket(1);
+  bool connectedSizeSocket = inputSizeSocket->isLinked();
 
-	const float size = this->getInputSocket(1)->getEditorValueFloat();
-	const bool extend_bounds = (editorNode->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
+  const float size = this->getInputSocket(1)->getEditorValueFloat();
+  const bool extend_bounds = (editorNode->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
 
-	CompositorQuality quality = context.getQuality();
-	NodeOperation *input_operation = NULL, *output_operation = NULL;
+  CompositorQuality quality = context.getQuality();
+  NodeOperation *input_operation = NULL, *output_operation = NULL;
 
-	if (data->filtertype == R_FILTER_FAST_GAUSS) {
-		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
-		operationfgb->setData(data);
-		operationfgb->setExtendBounds(extend_bounds);
-		converter.addOperation(operationfgb);
+  if (data->filtertype == R_FILTER_FAST_GAUSS) {
+    FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
+    operationfgb->setData(data);
+    operationfgb->setExtendBounds(extend_bounds);
+    converter.addOperation(operationfgb);
 
-		converter.mapInputSocket(getInputSocket(1), operationfgb->getInputSocket(1));
+    converter.mapInputSocket(getInputSocket(1), operationfgb->getInputSocket(1));
 
-		input_operation = operationfgb;
-		output_operation = operationfgb;
-	}
-	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
-		MathAddOperation *clamp = new MathAddOperation();
-		SetValueOperation *zero = new SetValueOperation();
-		zero->setValue(0.0f);
-		clamp->setUseClamp(true);
+    input_operation = operationfgb;
+    output_operation = operationfgb;
+  }
+  else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
+    MathAddOperation *clamp = new MathAddOperation();
+    SetValueOperation *zero = new SetValueOperation();
+    zero->setValue(0.0f);
+    clamp->setUseClamp(true);
 
-		converter.addOperation(clamp);
-		converter.addOperation(zero);
-		converter.mapInputSocket(getInputSocket(1), clamp->getInputSocket(0));
-		converter.addLink(zero->getOutputSocket(), clamp->getInputSocket(1));
+    converter.addOperation(clamp);
+    converter.addOperation(zero);
+    converter.mapInputSocket(getInputSocket(1), clamp->getInputSocket(0));
+    converter.addLink(zero->getOutputSocket(), clamp->getInputSocket(1));
 
-		GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
-		operationx->setData(data);
-		operationx->setQuality(quality);
-		operationx->setSize(1.0f);
-		operationx->setFalloff(PROP_SMOOTH);
-		operationx->setSubtract(false);
-		operationx->setExtendBounds(extend_bounds);
+    GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
+    operationx->setData(data);
+    operationx->setQuality(quality);
+    operationx->setSize(1.0f);
+    operationx->setFalloff(PROP_SMOOTH);
+    operationx->setSubtract(false);
+    operationx->setExtendBounds(extend_bounds);
 
-		converter.addOperation(operationx);
-		converter.addLink(clamp->getOutputSocket(), operationx->getInputSocket(0));
+    converter.addOperation(operationx);
+    converter.addLink(clamp->getOutputSocket(), operationx->getInputSocket(0));
 
-		GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
-		operationy->setData(data);
-		operationy->setQuality(quality);
-		operationy->setSize(1.0f);
-		operationy->setFalloff(PROP_SMOOTH);
-		operationy->setSubtract(false);
-		operationy->setExtendBounds(extend_bounds);
+    GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
+    operationy->setData(data);
+    operationy->setQuality(quality);
+    operationy->setSize(1.0f);
+    operationy->setFalloff(PROP_SMOOTH);
+    operationy->setSubtract(false);
+    operationy->setExtendBounds(extend_bounds);
 
-		converter.addOperation(operationy);
-		converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
+    converter.addOperation(operationy);
+    converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
 
-		GaussianBlurReferenceOperation *operation = new GaussianBlurReferenceOperation();
-		operation->setData(data);
-		operation->setQuality(quality);
-		operation->setExtendBounds(extend_bounds);
+    GaussianBlurReferenceOperation *operation = new GaussianBlurReferenceOperation();
+    operation->setData(data);
+    operation->setQuality(quality);
+    operation->setExtendBounds(extend_bounds);
 
-		converter.addOperation(operation);
-		converter.addLink(operationy->getOutputSocket(), operation->getInputSocket(1));
+    converter.addOperation(operation);
+    converter.addLink(operationy->getOutputSocket(), operation->getInputSocket(1));
 
-		output_operation = operation;
-		input_operation = operation;
-	}
-	else if (!data->bokeh) {
-		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
-		operationx->setData(data);
-		operationx->setQuality(quality);
-		operationx->checkOpenCL();
-		operationx->setExtendBounds(extend_bounds);
+    output_operation = operation;
+    input_operation = operation;
+  }
+  else if (!data->bokeh) {
+    GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
+    operationx->setData(data);
+    operationx->setQuality(quality);
+    operationx->checkOpenCL();
+    operationx->setExtendBounds(extend_bounds);
 
-		converter.addOperation(operationx);
-		converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1));
+    converter.addOperation(operationx);
+    converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1));
 
-		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
-		operationy->setData(data);
-		operationy->setQuality(quality);
-		operationy->checkOpenCL();
-		operationy->setExtendBounds(extend_bounds);
+    GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
+    operationy->setData(data);
+    operationy->setQuality(quality);
+    operationy->checkOpenCL();
+    operationy->setExtendBounds(extend_bounds);
 
-		converter.addOperation(operationy);
-		converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1));
-		converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
+    converter.addOperation(operationy);
+    converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1));
+    converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
 
-		if (!connectedSizeSocket) {
-			operationx->setSize(size);
-			operationy->setSize(size);
-		}
+    if (!connectedSizeSocket) {
+      operationx->setSize(size);
+      operationy->setSize(size);
+    }
 
-		input_operation = operationx;
-		output_operation = operationy;
-	}
-	else {
-		GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
-		operation->setData(data);
-		operation->setQuality(quality);
-		operation->setExtendBounds(extend_bounds);
+    input_operation = operationx;
+    output_operation = operationy;
+  }
+  else {
+    GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
+    operation->setData(data);
+    operation->setQuality(quality);
+    operation->setExtendBounds(extend_bounds);
 
-		converter.addOperation(operation);
-		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+    converter.addOperation(operation);
+    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 
-		if (!connectedSizeSocket) {
-			operation->setSize(size);
-		}
+    if (!connectedSizeSocket) {
+      operation->setSize(size);
+    }
 
-		input_operation = operation;
-		output_operation = operation;
-	}
+    input_operation = operation;
+    output_operation = operation;
+  }
 
-	if (data->gamma) {
-		GammaCorrectOperation *correct = new GammaCorrectOperation();
-		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
-		converter.addOperation(correct);
-		converter.addOperation(inverse);
+  if (data->gamma) {
+    GammaCorrectOperation *correct = new GammaCorrectOperation();
+    GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
+    converter.addOperation(correct);
+    converter.addOperation(inverse);
 
-		converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
-		converter.addLink(correct->getOutputSocket(), input_operation->getInputSocket(0));
-		converter.addLink(output_operation->getOutputSocket(), inverse->getInputSocket(0));
-		converter.mapOutputSocket(getOutputSocket(), inverse->getOutputSocket());
+    converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
+    converter.addLink(correct->getOutputSocket(), input_operation->getInputSocket(0));
+    converter.addLink(output_operation->getOutputSocket(), inverse->getInputSocket(0));
+    converter.mapOutputSocket(getOutputSocket(), inverse->getOutputSocket());
 
-		converter.addPreview(inverse->getOutputSocket());
-	}
-	else {
-		converter.mapInputSocket(getInputSocket(0), input_operation->getInputSocket(0));
-		converter.mapOutputSocket(getOutputSocket(), output_operation->getOutputSocket());
+    converter.addPreview(inverse->getOutputSocket());
+  }
+  else {
+    converter.mapInputSocket(getInputSocket(0), input_operation->getInputSocket(0));
+    converter.mapOutputSocket(getOutputSocket(), output_operation->getOutputSocket());
 
-		converter.addPreview(output_operation->getOutputSocket());
-	}
+    converter.addPreview(output_operation->getOutputSocket());
+  }
 }

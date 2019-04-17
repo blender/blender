@@ -20,26 +20,24 @@
 #include "marching_cubes_table.h"
 
 /* simple wrapper for auto-generated marching cubes data */
-class Cubes
-{
-public:
-/// Get number of triangles
-int getNumTriangle(int mask)
-{
-	return marching_cubes_numtri[mask];
-}
+class Cubes {
+ public:
+  /// Get number of triangles
+  int getNumTriangle(int mask)
+  {
+    return marching_cubes_numtri[mask];
+  }
 
-/// Get a triangle
-void getTriangle(int mask, int index, int indices[3])
-{
-	for (int i = 0; i < 3; i++)
-		indices[i] = marching_cubes_tris[mask][index][i];
-}
+  /// Get a triangle
+  void getTriangle(int mask, int index, int indices[3])
+  {
+    for (int i = 0; i < 3; i++)
+      indices[i] = marching_cubes_tris[mask][index][i];
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Cubes")
+  MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Cubes")
 #endif
-
 };
 
-#endif  /* __CUBES_H__ */
+#endif /* __CUBES_H__ */

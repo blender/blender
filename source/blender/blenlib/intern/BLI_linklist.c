@@ -39,55 +39,55 @@
 
 int BLI_linklist_count(const LinkNode *list)
 {
-	int len;
+  int len;
 
-	for (len = 0; list; list = list->next) {
-		len++;
-	}
+  for (len = 0; list; list = list->next) {
+    len++;
+  }
 
-	return len;
+  return len;
 }
 
 int BLI_linklist_index(const LinkNode *list, void *ptr)
 {
-	int index;
+  int index;
 
-	for (index = 0; list; list = list->next, index++) {
-		if (list->link == ptr) {
-			return index;
-		}
-	}
+  for (index = 0; list; list = list->next, index++) {
+    if (list->link == ptr) {
+      return index;
+    }
+  }
 
-	return -1;
+  return -1;
 }
 
 LinkNode *BLI_linklist_find(LinkNode *list, int index)
 {
-	int i;
+  int i;
 
-	for (i = 0; list; list = list->next, i++) {
-		if (i == index) {
-			return list;
-		}
-	}
+  for (i = 0; list; list = list->next, i++) {
+    if (i == index) {
+      return list;
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 void BLI_linklist_reverse(LinkNode **listp)
 {
-	LinkNode *rhead = NULL, *cur = *listp;
+  LinkNode *rhead = NULL, *cur = *listp;
 
-	while (cur) {
-		LinkNode *next = cur->next;
+  while (cur) {
+    LinkNode *next = cur->next;
 
-		cur->next = rhead;
-		rhead = cur;
+    cur->next = rhead;
+    rhead = cur;
 
-		cur = next;
-	}
+    cur = next;
+  }
 
-	*listp = rhead;
+  *listp = rhead;
 }
 
 /**
@@ -96,69 +96,69 @@ void BLI_linklist_reverse(LinkNode **listp)
  */
 void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
 {
-	LinkNode *lnk, *lnk_psrc = NULL, *lnk_pdst = NULL;
-	int i;
+  LinkNode *lnk, *lnk_psrc = NULL, *lnk_pdst = NULL;
+  int i;
 
-	if (new_index == curr_index) {
-		return;
-	}
+  if (new_index == curr_index) {
+    return;
+  }
 
-	if (new_index < curr_index) {
-		for (lnk = *listp, i = 0; lnk; lnk = lnk->next, i++) {
-			if (i == new_index - 1) {
-				lnk_pdst = lnk;
-			}
-			else if (i == curr_index - 1) {
-				lnk_psrc = lnk;
-				break;
-			}
-		}
+  if (new_index < curr_index) {
+    for (lnk = *listp, i = 0; lnk; lnk = lnk->next, i++) {
+      if (i == new_index - 1) {
+        lnk_pdst = lnk;
+      }
+      else if (i == curr_index - 1) {
+        lnk_psrc = lnk;
+        break;
+      }
+    }
 
-		if (!(lnk_psrc && lnk_psrc->next && (!lnk_pdst || lnk_pdst->next))) {
-			/* Invalid indices, abort. */
-			return;
-		}
+    if (!(lnk_psrc && lnk_psrc->next && (!lnk_pdst || lnk_pdst->next))) {
+      /* Invalid indices, abort. */
+      return;
+    }
 
-		lnk = lnk_psrc->next;
-		lnk_psrc->next = lnk->next;
-		if (lnk_pdst) {
-			lnk->next = lnk_pdst->next;
-			lnk_pdst->next = lnk;
-		}
-		else {
-			/* destination is first element of the list... */
-			lnk->next = *listp;
-			*listp = lnk;
-		}
-	}
-	else {
-		for (lnk = *listp, i = 0; lnk; lnk = lnk->next, i++) {
-			if (i == new_index) {
-				lnk_pdst = lnk;
-				break;
-			}
-			else if (i == curr_index - 1) {
-				lnk_psrc = lnk;
-			}
-		}
+    lnk = lnk_psrc->next;
+    lnk_psrc->next = lnk->next;
+    if (lnk_pdst) {
+      lnk->next = lnk_pdst->next;
+      lnk_pdst->next = lnk;
+    }
+    else {
+      /* destination is first element of the list... */
+      lnk->next = *listp;
+      *listp = lnk;
+    }
+  }
+  else {
+    for (lnk = *listp, i = 0; lnk; lnk = lnk->next, i++) {
+      if (i == new_index) {
+        lnk_pdst = lnk;
+        break;
+      }
+      else if (i == curr_index - 1) {
+        lnk_psrc = lnk;
+      }
+    }
 
-		if (!(lnk_pdst && (!lnk_psrc || lnk_psrc->next))) {
-			/* Invalid indices, abort. */
-			return;
-		}
+    if (!(lnk_pdst && (!lnk_psrc || lnk_psrc->next))) {
+      /* Invalid indices, abort. */
+      return;
+    }
 
-		if (lnk_psrc) {
-			lnk = lnk_psrc->next;
-			lnk_psrc->next = lnk->next;
-		}
-		else {
-			/* source is first element of the list... */
-			lnk = *listp;
-			*listp = lnk->next;
-		}
-		lnk->next = lnk_pdst->next;
-		lnk_pdst->next = lnk;
-	}
+    if (lnk_psrc) {
+      lnk = lnk_psrc->next;
+      lnk_psrc->next = lnk->next;
+    }
+    else {
+      /* source is first element of the list... */
+      lnk = *listp;
+      *listp = lnk->next;
+    }
+    lnk->next = lnk_pdst->next;
+    lnk_pdst->next = lnk;
+  }
 }
 
 /**
@@ -166,27 +166,27 @@ void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
  */
 void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
 {
-	nlink->link = ptr;
-	nlink->next = *listp;
-	*listp = nlink;
+  nlink->link = ptr;
+  nlink->next = *listp;
+  *listp = nlink;
 }
 
 void BLI_linklist_prepend(LinkNode **listp, void *ptr)
 {
-	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
-	BLI_linklist_prepend_nlink(listp, ptr, nlink);
+  LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
+  BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
 void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma)
 {
-	LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
-	BLI_linklist_prepend_nlink(listp, ptr, nlink);
+  LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
+  BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
 void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool)
 {
-	LinkNode *nlink = BLI_mempool_alloc(mempool);
-	BLI_linklist_prepend_nlink(listp, ptr, nlink);
+  LinkNode *nlink = BLI_mempool_alloc(mempool);
+  BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
 /**
@@ -194,125 +194,125 @@ void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool
  */
 void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink)
 {
-	nlink->link = ptr;
-	nlink->next = NULL;
+  nlink->link = ptr;
+  nlink->next = NULL;
 
-	if (list_pair->list) {
-		BLI_assert((list_pair->last_node != NULL) && (list_pair->last_node->next == NULL));
-		list_pair->last_node->next = nlink;
-	}
-	else {
-		BLI_assert(list_pair->last_node == NULL);
-		list_pair->list = nlink;
-	}
+  if (list_pair->list) {
+    BLI_assert((list_pair->last_node != NULL) && (list_pair->last_node->next == NULL));
+    list_pair->last_node->next = nlink;
+  }
+  else {
+    BLI_assert(list_pair->last_node == NULL);
+    list_pair->list = nlink;
+  }
 
-	list_pair->last_node = nlink;
+  list_pair->last_node = nlink;
 }
 
 void BLI_linklist_append(LinkNodePair *list_pair, void *ptr)
 {
-	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
-	BLI_linklist_append_nlink(list_pair, ptr, nlink);
+  LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
+  BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
 void BLI_linklist_append_arena(LinkNodePair *list_pair, void *ptr, MemArena *ma)
 {
-	LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
-	BLI_linklist_append_nlink(list_pair, ptr, nlink);
+  LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
+  BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
 void BLI_linklist_append_pool(LinkNodePair *list_pair, void *ptr, BLI_mempool *mempool)
 {
-	LinkNode *nlink = BLI_mempool_alloc(mempool);
-	BLI_linklist_append_nlink(list_pair, ptr, nlink);
+  LinkNode *nlink = BLI_mempool_alloc(mempool);
+  BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
 void *BLI_linklist_pop(struct LinkNode **listp)
 {
-	/* intentionally no NULL check */
-	void *link = (*listp)->link;
-	void *next = (*listp)->next;
+  /* intentionally no NULL check */
+  void *link = (*listp)->link;
+  void *next = (*listp)->next;
 
-	MEM_freeN(*listp);
+  MEM_freeN(*listp);
 
-	*listp = next;
-	return link;
+  *listp = next;
+  return link;
 }
 
 void *BLI_linklist_pop_pool(struct LinkNode **listp, struct BLI_mempool *mempool)
 {
-	/* intentionally no NULL check */
-	void *link = (*listp)->link;
-	void *next = (*listp)->next;
+  /* intentionally no NULL check */
+  void *link = (*listp)->link;
+  void *next = (*listp)->next;
 
-	BLI_mempool_free(mempool, (*listp));
+  BLI_mempool_free(mempool, (*listp));
 
-	*listp = next;
-	return link;
+  *listp = next;
+  return link;
 }
 
 void BLI_linklist_insert_after(LinkNode **listp, void *ptr)
 {
-	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
-	LinkNode *node = *listp;
+  LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
+  LinkNode *node = *listp;
 
-	nlink->link = ptr;
+  nlink->link = ptr;
 
-	if (node) {
-		nlink->next = node->next;
-		node->next = nlink;
-	}
-	else {
-		nlink->next = NULL;
-		*listp = nlink;
-	}
+  if (node) {
+    nlink->next = node->next;
+    node->next = nlink;
+  }
+  else {
+    nlink->next = NULL;
+    *listp = nlink;
+  }
 }
 
 void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc)
 {
-	while (list) {
-		LinkNode *next = list->next;
+  while (list) {
+    LinkNode *next = list->next;
 
-		if (freefunc) {
-			freefunc(list->link);
-		}
-		MEM_freeN(list);
+    if (freefunc) {
+      freefunc(list->link);
+    }
+    MEM_freeN(list);
 
-		list = next;
-	}
+    list = next;
+  }
 }
 
 void BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_mempool *mempool)
 {
-	while (list) {
-		LinkNode *next = list->next;
+  while (list) {
+    LinkNode *next = list->next;
 
-		if (freefunc) {
-			freefunc(list->link);
-		}
-		BLI_mempool_free(mempool, list);
+    if (freefunc) {
+      freefunc(list->link);
+    }
+    BLI_mempool_free(mempool, list);
 
-		list = next;
-	}
+    list = next;
+  }
 }
 
 void BLI_linklist_freeN(LinkNode *list)
 {
-	while (list) {
-		LinkNode *next = list->next;
+  while (list) {
+    LinkNode *next = list->next;
 
-		MEM_freeN(list->link);
-		MEM_freeN(list);
+    MEM_freeN(list->link);
+    MEM_freeN(list);
 
-		list = next;
-	}
+    list = next;
+  }
 }
 
 void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata)
 {
-	for (; list; list = list->next) {
-		applyfunc(list->link, userdata);
-	}
+  for (; list; list = list->next) {
+    applyfunc(list->link, userdata);
+  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -335,19 +335,20 @@ void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdat
 #undef SORT_IMPL_LINKTYPE
 #undef SORT_IMPL_LINKTYPE_DATA
 
-
 LinkNode *BLI_linklist_sort(LinkNode *list, int (*cmp)(const void *, const void *))
 {
-	if (list && list->next) {
-		list = linklist_sort_fn(list, cmp);
-	}
-	return list;
+  if (list && list->next) {
+    list = linklist_sort_fn(list, cmp);
+  }
+  return list;
 }
 
-LinkNode *BLI_linklist_sort_r(LinkNode *list, int (*cmp)(void *, const void *, const void *), void *thunk)
+LinkNode *BLI_linklist_sort_r(LinkNode *list,
+                              int (*cmp)(void *, const void *, const void *),
+                              void *thunk)
 {
-	if (list && list->next) {
-		list = linklist_sort_fn_r(list, cmp, thunk);
-	}
-	return list;
+  if (list && list->next) {
+    list = linklist_sort_fn_r(list, cmp, thunk);
+  }
+  return list;
 }

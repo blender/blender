@@ -29,70 +29,68 @@
 #include "../system/FreestyleConfig.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
 using namespace Geometry;
 
-class BezierCurveSegment
-{
-private:
-	std::vector<Vec2d> _ControlPolygon;
-	std::vector<Vec2d> _Vertices;
+class BezierCurveSegment {
+ private:
+  std::vector<Vec2d> _ControlPolygon;
+  std::vector<Vec2d> _Vertices;
 
-public:
-	BezierCurveSegment();
-	virtual ~BezierCurveSegment();
+ public:
+  BezierCurveSegment();
+  virtual ~BezierCurveSegment();
 
-	void AddControlPoint(const Vec2d& iPoint);
-	void Build();
+  void AddControlPoint(const Vec2d &iPoint);
+  void Build();
 
-	inline int size() const
-	{
-		return _ControlPolygon.size();
-	}
+  inline int size() const
+  {
+    return _ControlPolygon.size();
+  }
 
-	inline std::vector<Vec2d>& vertices()
-	{
-		return _Vertices;
-	}
+  inline std::vector<Vec2d> &vertices()
+  {
+    return _Vertices;
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BezierCurveSegment")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BezierCurveSegment")
 #endif
 };
 
-class BezierCurve
-{
-private:
-	std::vector<Vec2d> _ControlPolygon;
-	std::vector<BezierCurveSegment*> _Segments;
-	BezierCurveSegment *_currentSegment;
+class BezierCurve {
+ private:
+  std::vector<Vec2d> _ControlPolygon;
+  std::vector<BezierCurveSegment *> _Segments;
+  BezierCurveSegment *_currentSegment;
 
-public:
-	BezierCurve();
-	BezierCurve(std::vector<Vec2d>& iPoints, double error=4.0);
-	virtual ~BezierCurve();
+ public:
+  BezierCurve();
+  BezierCurve(std::vector<Vec2d> &iPoints, double error = 4.0);
+  virtual ~BezierCurve();
 
-	void AddControlPoint(const Vec2d& iPoint);
+  void AddControlPoint(const Vec2d &iPoint);
 
-	std::vector<Vec2d>& controlPolygon()
-	{
-		return _ControlPolygon;
-	}
+  std::vector<Vec2d> &controlPolygon()
+  {
+    return _ControlPolygon;
+  }
 
-	std::vector<BezierCurveSegment*>& segments()
-	{
-		return _Segments;
-	}
+  std::vector<BezierCurveSegment *> &segments()
+  {
+    return _Segments;
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BezierCurve")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BezierCurve")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __BEZIER_H__
+#endif  // __BEZIER_H__

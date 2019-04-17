@@ -35,46 +35,46 @@ struct bContext;
 typedef struct AbcArchiveHandle AbcArchiveHandle;
 
 enum {
-	ABC_ARCHIVE_OGAWA = 0,
-	ABC_ARCHIVE_HDF5  = 1,
+  ABC_ARCHIVE_OGAWA = 0,
+  ABC_ARCHIVE_HDF5 = 1,
 };
 
 int ABC_get_version(void);
 
 struct AlembicExportParams {
-	double frame_start;
-	double frame_end;
+  double frame_start;
+  double frame_end;
 
-	unsigned int frame_samples_xform;
-	unsigned int frame_samples_shape;
+  unsigned int frame_samples_xform;
+  unsigned int frame_samples_shape;
 
-	double shutter_open;
-	double shutter_close;
+  double shutter_open;
+  double shutter_close;
 
-	bool selected_only;
-	bool uvs;
-	bool normals;
-	bool vcolors;
-	bool apply_subdiv;
-	bool curves_as_mesh;
-	bool flatten_hierarchy;
-	bool visible_layers_only;
-	bool renderable_only;
-	bool face_sets;
-	bool use_subdiv_schema;
-	bool packuv;
-	bool triangulate;
-	bool export_hair;
-	bool export_particles;
+  bool selected_only;
+  bool uvs;
+  bool normals;
+  bool vcolors;
+  bool apply_subdiv;
+  bool curves_as_mesh;
+  bool flatten_hierarchy;
+  bool visible_layers_only;
+  bool renderable_only;
+  bool face_sets;
+  bool use_subdiv_schema;
+  bool packuv;
+  bool triangulate;
+  bool export_hair;
+  bool export_particles;
 
-	unsigned int compression_type : 1;
+  unsigned int compression_type : 1;
 
-	/* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx
-	 * in DNA_modifier_types.h */
-	int quad_method;
-	int ngon_method;
+  /* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx
+   * in DNA_modifier_types.h */
+  int quad_method;
+  int ngon_method;
 
-	float global_scale;
+  float global_scale;
 };
 
 /* The ABC_export and ABC_import functions both take a as_background_job
@@ -87,12 +87,11 @@ struct AlembicExportParams {
  * true when the export was ok, and false if there were any errors.
  */
 
-bool ABC_export(
-        struct Scene *scene,
-        struct bContext *C,
-        const char *filepath,
-        const struct AlembicExportParams *params,
-        bool as_background_job);
+bool ABC_export(struct Scene *scene,
+                struct bContext *C,
+                const char *filepath,
+                const struct AlembicExportParams *params,
+                bool as_background_job);
 
 bool ABC_import(struct bContext *C,
                 const char *filepath,
@@ -108,10 +107,7 @@ AbcArchiveHandle *ABC_create_handle(const char *filename, struct ListBase *objec
 
 void ABC_free_handle(AbcArchiveHandle *handle);
 
-void ABC_get_transform(struct CacheReader *reader,
-                       float r_mat[4][4],
-                       float time,
-                       float scale);
+void ABC_get_transform(struct CacheReader *reader, float r_mat[4][4], float time, float scale);
 
 /* Either modifies current_mesh in-place or constructs a new mesh. */
 struct Mesh *ABC_read_mesh(struct CacheReader *reader,
@@ -133,4 +129,4 @@ struct CacheReader *CacheReader_open_alembic_object(struct AbcArchiveHandle *han
 }
 #endif
 
-#endif  /* __ABC_ALEMBIC_H__ */
+#endif /* __ABC_ALEMBIC_H__ */

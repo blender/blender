@@ -38,42 +38,48 @@
 #include "../generic/py_capi_utils.h"
 
 static bContext *__py_context = NULL;
-bContext   *BPy_GetContext(void) { return __py_context; }
-void        BPy_SetContext(bContext *C) { __py_context = C; }
+bContext *BPy_GetContext(void)
+{
+  return __py_context;
+}
+void BPy_SetContext(bContext *C)
+{
+  __py_context = C;
+}
 
 char *BPy_enum_as_string(const EnumPropertyItem *item)
 {
-	DynStr *dynstr = BLI_dynstr_new();
-	const EnumPropertyItem *e;
-	char *cstring;
+  DynStr *dynstr = BLI_dynstr_new();
+  const EnumPropertyItem *e;
+  char *cstring;
 
-	for (e = item; item->identifier; item++) {
-		if (item->identifier[0]) {
-			BLI_dynstr_appendf(dynstr, (e == item) ? "'%s'" : ", '%s'", item->identifier);
-		}
-	}
+  for (e = item; item->identifier; item++) {
+    if (item->identifier[0]) {
+      BLI_dynstr_appendf(dynstr, (e == item) ? "'%s'" : ", '%s'", item->identifier);
+    }
+  }
 
-	cstring = BLI_dynstr_get_cstring(dynstr);
-	BLI_dynstr_free(dynstr);
-	return cstring;
+  cstring = BLI_dynstr_get_cstring(dynstr);
+  BLI_dynstr_free(dynstr);
+  return cstring;
 }
 
 short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool clear)
 {
-	char *report_str;
+  char *report_str;
 
-	report_str = BKE_reports_string(reports, RPT_ERROR);
+  report_str = BKE_reports_string(reports, RPT_ERROR);
 
-	if (clear == true) {
-		BKE_reports_clear(reports);
-	}
+  if (clear == true) {
+    BKE_reports_clear(reports);
+  }
 
-	if (report_str) {
-		PyErr_SetString(exception, report_str);
-		MEM_freeN(report_str);
-	}
+  if (report_str) {
+    PyErr_SetString(exception, report_str);
+    MEM_freeN(report_str);
+  }
 
-	return (report_str == NULL) ? 0 : -1;
+  return (report_str == NULL) ? 0 : -1;
 }
 
 /**
@@ -81,80 +87,78 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool 
  */
 void BPy_reports_write_stdout(const ReportList *reports, const char *header)
 {
-	if (header) {
-		PySys_WriteStdout("%s\n", header);
-	}
+  if (header) {
+    PySys_WriteStdout("%s\n", header);
+  }
 
-	for (const Report *report = reports->list.first; report; report = report->next) {
-		PySys_WriteStdout("%s: %s\n", report->typestr, report->message);
-	}
+  for (const Report *report = reports->list.first; report; report = report->next) {
+    PySys_WriteStdout("%s: %s\n", report->typestr, report->message);
+  }
 }
 
 bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const bool use_location)
 {
-	PyObject *pystring;
+  PyObject *pystring;
 
-	if (!PyErr_Occurred()) {
-		return 1;
-	}
+  if (!PyErr_Occurred()) {
+    return 1;
+  }
 
-	/* less hassle if we allow NULL */
-	if (reports == NULL) {
-		PyErr_Print();
-		PyErr_Clear();
-		return 1;
-	}
+  /* less hassle if we allow NULL */
+  if (reports == NULL) {
+    PyErr_Print();
+    PyErr_Clear();
+    return 1;
+  }
 
-	if (use_full) {
-		pystring = PyC_ExceptionBuffer();
-	}
-	else {
-		pystring = PyC_ExceptionBuffer_Simple();
-	}
+  if (use_full) {
+    pystring = PyC_ExceptionBuffer();
+  }
+  else {
+    pystring = PyC_ExceptionBuffer_Simple();
+  }
 
-	if (pystring == NULL) {
-		BKE_report(reports, RPT_ERROR, "Unknown py-exception, could not convert");
-		return 0;
-	}
+  if (pystring == NULL) {
+    BKE_report(reports, RPT_ERROR, "Unknown py-exception, could not convert");
+    return 0;
+  }
 
-	if (use_location) {
-		const char *filename;
-		int lineno;
+  if (use_location) {
+    const char *filename;
+    int lineno;
 
-		PyObject *pystring_format;  /* workaround, see below */
-		const char *cstring;
+    PyObject *pystring_format; /* workaround, see below */
+    const char *cstring;
 
-		PyC_FileAndNum(&filename, &lineno);
-		if (filename == NULL) {
-			filename = "<unknown location>";
-		}
+    PyC_FileAndNum(&filename, &lineno);
+    if (filename == NULL) {
+      filename = "<unknown location>";
+    }
 
 #if 0 /* ARG!. workaround for a bug in blenders use of vsnprintf */
-		BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", _PyUnicode_AsString(pystring), filename, lineno);
+    BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", _PyUnicode_AsString(pystring), filename, lineno);
 #else
-		pystring_format = PyUnicode_FromFormat(
-		        TIP_("%s\nlocation: %s:%d\n"),
-		        _PyUnicode_AsString(pystring), filename, lineno);
+    pystring_format = PyUnicode_FromFormat(
+        TIP_("%s\nlocation: %s:%d\n"), _PyUnicode_AsString(pystring), filename, lineno);
 
-		cstring = _PyUnicode_AsString(pystring_format);
-		BKE_report(reports, RPT_ERROR, cstring);
+    cstring = _PyUnicode_AsString(pystring_format);
+    BKE_report(reports, RPT_ERROR, cstring);
 
-		/* not exactly needed. just for testing */
-		fprintf(stderr, TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
+    /* not exactly needed. just for testing */
+    fprintf(stderr, TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
 
-		Py_DECREF(pystring_format);  /* workaround */
+    Py_DECREF(pystring_format); /* workaround */
 #endif
-	}
-	else {
-		BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(pystring));
-	}
+  }
+  else {
+    BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(pystring));
+  }
 
-
-	Py_DECREF(pystring);
-	return 1;
+  Py_DECREF(pystring);
+  return 1;
 }
 
 bool BPy_errors_to_report(ReportList *reports)
 {
-	return BPy_errors_to_report_ex(reports, true, true);
+  return BPy_errors_to_report_ex(reports, true, true);
 }

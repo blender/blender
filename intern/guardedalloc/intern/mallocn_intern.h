@@ -32,15 +32,16 @@
 #endif
 
 #ifdef __GNUC__
-#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#  define UNUSED(x) UNUSED_##x __attribute__((__unused__))
 #else
-#  define UNUSED(x) UNUSED_ ## x
+#  define UNUSED(x) UNUSED_##x
 #endif
 
 #undef HAVE_MALLOC_STATS
-#define USE_MALLOC_USABLE_SIZE  /* internal, when we have malloc_usable_size() */
+#define USE_MALLOC_USABLE_SIZE /* internal, when we have malloc_usable_size() */
 
-#if defined(__linux__) || (defined(__FreeBSD_kernel__) && !defined(__FreeBSD__)) || defined(__GLIBC__)
+#if defined(__linux__) || (defined(__FreeBSD_kernel__) && !defined(__FreeBSD__)) || \
+    defined(__GLIBC__)
 #  include <malloc.h>
 #  define HAVE_MALLOC_STATS
 #elif defined(__FreeBSD__)
@@ -71,11 +72,11 @@ size_t malloc_usable_size(void *ptr);
 #define SIZET_ALIGN_4(len) ((len + 3) & ~(size_t)3)
 
 #ifdef __GNUC__
-#  define LIKELY(x)       __builtin_expect(!!(x), 1)
-#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#  define LIKELY(x) __builtin_expect(!!(x), 1)
+#  define UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else
-#  define LIKELY(x)       (x)
-#  define UNLIKELY(x)     (x)
+#  define LIKELY(x) (x)
+#  define UNLIKELY(x) (x)
 #endif
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
@@ -95,10 +96,11 @@ size_t malloc_usable_size(void *ptr);
 #  define MEM_INLINE static inline
 #endif
 
-#define IS_POW2(a) (((a) & ((a) - 1)) == 0)
+#define IS_POW2(a) (((a) & ((a)-1)) == 0)
 
 /* Extra padding which needs to be applied on MemHead to make it aligned. */
-#define MEMHEAD_ALIGN_PADDING(alignment) ((size_t)alignment - (sizeof(MemHeadAligned) % (size_t)alignment))
+#define MEMHEAD_ALIGN_PADDING(alignment) \
+  ((size_t)alignment - (sizeof(MemHeadAligned) % (size_t)alignment))
 
 /* Real pointer returned by the malloc or aligned_alloc. */
 #define MEMHEAD_REAL_PTR(memh) ((char *)memh - MEMHEAD_ALIGN_PADDING(memh->alignment))
@@ -112,14 +114,33 @@ void aligned_free(void *ptr);
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_lockfree_freeN(void *vmemh);
 void *MEM_lockfree_dupallocN(const void *vmemh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *UNUSED(str))  ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
-void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *UNUSED(str))  ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
-void *MEM_lockfree_callocN(size_t len, const char *UNUSED(str))  ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
-void *MEM_lockfree_calloc_arrayN(size_t len, size_t size, const char *UNUSED(str))  ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1,2) ATTR_NONNULL(3);
-void *MEM_lockfree_mallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
-void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1,2) ATTR_NONNULL(3);
-void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
-void *MEM_lockfree_mapallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_lockfree_reallocN_id(void *vmemh,
+                               size_t len,
+                               const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(2);
+void *MEM_lockfree_recallocN_id(void *vmemh,
+                                size_t len,
+                                const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(2);
+void *MEM_lockfree_callocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_lockfree_calloc_arrayN(size_t len,
+                                 size_t size,
+                                 const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
+void *MEM_lockfree_mallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_lockfree_malloc_arrayN(size_t len,
+                                 size_t size,
+                                 const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
+void *MEM_lockfree_mallocN_aligned(size_t len,
+                                   size_t alignment,
+                                   const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
+void *MEM_lockfree_mapallocN(size_t len,
+                             const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 void MEM_lockfree_printmemlist_pydict(void);
 void MEM_lockfree_printmemlist(void);
 void MEM_lockfree_callbackmemlist(void (*func)(void *));
@@ -141,14 +162,33 @@ const char *MEM_lockfree_name_ptr(void *vmemh);
 size_t MEM_guarded_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_guarded_freeN(void *vmemh);
 void *MEM_guarded_dupallocN(const void *vmemh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
-void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
-void *MEM_guarded_callocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
-void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1,2) ATTR_NONNULL(3);
-void *MEM_guarded_mallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
-void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1,2) ATTR_NONNULL(3);
-void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
-void *MEM_guarded_mapallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_guarded_reallocN_id(void *vmemh,
+                              size_t len,
+                              const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(2);
+void *MEM_guarded_recallocN_id(void *vmemh,
+                               size_t len,
+                               const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(2);
+void *MEM_guarded_callocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_guarded_calloc_arrayN(size_t len,
+                                size_t size,
+                                const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
+void *MEM_guarded_mallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_guarded_malloc_arrayN(size_t len,
+                                size_t size,
+                                const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
+void *MEM_guarded_mallocN_aligned(size_t len,
+                                  size_t alignment,
+                                  const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
+void *MEM_guarded_mapallocN(size_t len,
+                            const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 void MEM_guarded_printmemlist_pydict(void);
 void MEM_guarded_printmemlist(void);
 void MEM_guarded_callbackmemlist(void (*func)(void *));
@@ -166,4 +206,4 @@ size_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 const char *MEM_guarded_name_ptr(void *vmemh);
 #endif
 
-#endif  /* __MALLOCN_INTERN_H__ */
+#endif /* __MALLOCN_INTERN_H__ */

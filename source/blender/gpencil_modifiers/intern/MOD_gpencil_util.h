@@ -21,7 +21,6 @@
  * \ingroup modifiers
  */
 
-
 #ifndef __MOD_GPENCIL_UTIL_H__
 #define __MOD_GPENCIL_UTIL_H__
 
@@ -33,16 +32,24 @@ struct Object;
 struct bGPDlayer;
 struct bGPDstroke;
 
-bool is_stroke_affected_by_modifier(
-        struct Object *ob, char *mlayername, int mpassindex,
-        int gpl_passindex, int minpoints,
-        bGPDlayer *gpl, bGPDstroke *gps,
-        bool inv1, bool inv2, bool inv3);
+bool is_stroke_affected_by_modifier(struct Object *ob,
+                                    char *mlayername,
+                                    int mpassindex,
+                                    int gpl_passindex,
+                                    int minpoints,
+                                    bGPDlayer *gpl,
+                                    bGPDstroke *gps,
+                                    bool inv1,
+                                    bool inv2,
+                                    bool inv3);
 
 float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
 
-void gpencil_apply_modifier_material(
-        struct Main *bmain, struct Object *ob, struct Material *mat,
-        struct GHash *gh_color, struct bGPDstroke *gps, bool crt_material);
+void gpencil_apply_modifier_material(struct Main *bmain,
+                                     struct Object *ob,
+                                     struct Material *mat,
+                                     struct GHash *gh_color,
+                                     struct bGPDstroke *gps,
+                                     bool crt_material);
 
-#endif  /* __MOD_GPENCIL_UTIL_H__ */
+#endif /* __MOD_GPENCIL_UTIL_H__ */

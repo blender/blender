@@ -28,7 +28,6 @@
 
 extern struct bNodeTreeType *ntreeType_Shader;
 
-
 /* the type definitions array */
 /* ****************** types array for all shaders ****************** */
 

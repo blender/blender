@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class DifferenceMatteNode : public Node {
-public:
-	DifferenceMatteNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  DifferenceMatteNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_DifferenceMatteNODE_H */
+#endif /* COM_DifferenceMatteNODE_H */

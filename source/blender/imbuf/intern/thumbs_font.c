@@ -28,7 +28,6 @@
 
 #include "IMB_thumbs.h"
 
-
 /* XXX, bad level call */
 #include "../../blenfont/BLF_api.h"
 #include "../../blentranslation/BLT_translation.h"
@@ -44,51 +43,57 @@ static const char *thumb_str[] = {
 
 struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y)
 {
-	const int font_size = y / 4;
+  const int font_size = y / 4;
 
-	struct ImBuf *ibuf;
-	float font_color[4];
+  struct ImBuf *ibuf;
+  float font_color[4];
 
-	/* create a white image (theme color is used for drawing) */
-	font_color[0] = font_color[1] = font_color[2] = 1.0f;
+  /* create a white image (theme color is used for drawing) */
+  font_color[0] = font_color[1] = font_color[2] = 1.0f;
 
-	/* fill with zero alpha */
-	font_color[3] = 0.0f;
+  /* fill with zero alpha */
+  font_color[3] = 0.0f;
 
-	ibuf = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata);
-	IMB_rectfill(ibuf, font_color);
+  ibuf = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata);
+  IMB_rectfill(ibuf, font_color);
 
-	/* draw with full alpha */
-	font_color[3] = 1.0f;
+  /* draw with full alpha */
+  font_color[3] = 1.0f;
 
-	BLF_thumb_preview(
-	        filename, thumb_str, ARRAY_SIZE(thumb_str),
-	        font_color, font_size,
-	        (unsigned char *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels);
+  BLF_thumb_preview(filename,
+                    thumb_str,
+                    ARRAY_SIZE(thumb_str),
+                    font_color,
+                    font_size,
+                    (unsigned char *)ibuf->rect,
+                    ibuf->x,
+                    ibuf->y,
+                    ibuf->channels);
 
-	return ibuf;
+  return ibuf;
 }
 
 bool IMB_thumb_load_font_get_hash(char *r_hash)
 {
-	char buf[1024];
-	char *str = buf;
-	size_t len = 0;
+  char buf[1024];
+  char *str = buf;
+  size_t len = 0;
 
-	int draw_str_lines = ARRAY_SIZE(thumb_str);
-	int i;
+  int draw_str_lines = ARRAY_SIZE(thumb_str);
+  int i;
 
-	unsigned char digest[16];
+  unsigned char digest[16];
 
-	len += BLI_strncpy_rlen(str + len, THUMB_DEFAULT_HASH, sizeof(buf) - len);
+  len += BLI_strncpy_rlen(str + len, THUMB_DEFAULT_HASH, sizeof(buf) - len);
 
-	for (i = 0; (i < draw_str_lines) && (len < sizeof(buf)); i++) {
-		len += BLI_strncpy_rlen(str + len, BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, thumb_str[i]), sizeof(buf) - len);
-	}
+  for (i = 0; (i < draw_str_lines) && (len < sizeof(buf)); i++) {
+    len += BLI_strncpy_rlen(
+        str + len, BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, thumb_str[i]), sizeof(buf) - len);
+  }
 
-	BLI_hash_md5_buffer(str, len, digest);
-	r_hash[0] = '\0';
-	BLI_hash_md5_to_hexdigest(digest, r_hash);
+  BLI_hash_md5_buffer(str, len, digest);
+  r_hash[0] = '\0';
+  BLI_hash_md5_to_hexdigest(digest, r_hash);
 
-	return true;
+  return true;
 }

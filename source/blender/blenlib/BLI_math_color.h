@@ -34,23 +34,23 @@ extern "C" {
 #include "BLI_math_inline.h"
 
 /* primaries */
-#define BLI_XYZ_SMPTE        0
-#define BLI_XYZ_REC709_SRGB  1
-#define BLI_XYZ_CIE          2
+#define BLI_XYZ_SMPTE 0
+#define BLI_XYZ_REC709_SRGB 1
+#define BLI_XYZ_CIE 2
 
 /* built-in profiles */
-#define BLI_PR_NONE     0
-#define BLI_PR_SRGB     1
-#define BLI_PR_REC709   2
+#define BLI_PR_NONE 0
+#define BLI_PR_SRGB 1
+#define BLI_PR_REC709 2
 
 /* YCbCr */
-#define BLI_YCC_ITU_BT601   0
-#define BLI_YCC_ITU_BT709   1
-#define BLI_YCC_JFIF_0_255  2
+#define BLI_YCC_ITU_BT601 0
+#define BLI_YCC_ITU_BT709 1
+#define BLI_YCC_JFIF_0_255 2
 
 /* YUV */
-#define BLI_YUV_ITU_BT601   0
-#define BLI_YUV_ITU_BT709   1
+#define BLI_YUV_ITU_BT601 0
+#define BLI_YUV_ITU_BT709 1
 
 /******************* Conversion to RGB ********************/
 
@@ -131,28 +131,32 @@ MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
 MINLINE int compare_rgb_uchar(const unsigned char a[3], const unsigned char b[3], const int limit);
 
 MINLINE float dither_random_value(float s, float t);
-MINLINE void float_to_byte_dither_v3(unsigned char b[3], const float f[3], float dither, float s, float t);
-
+MINLINE void float_to_byte_dither_v3(
+    unsigned char b[3], const float f[3], float dither, float s, float t);
 
 #define rgba_char_args_set_fl(col, r, g, b, a) \
-	rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
+  rgba_char_args_set(col, (r)*255, (g)*255, (b)*255, (a)*255)
 
 #define rgba_float_args_set_ch(col, r, g, b, a) \
-	rgba_float_args_set(col, (r) / 255.0f, (g) / 255.0f, (b) / 255.0f, (a) / 255.0f)
+  rgba_float_args_set(col, (r) / 255.0f, (g) / 255.0f, (b) / 255.0f, (a) / 255.0f)
 
-MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a);
-MINLINE void rgba_float_args_set(float col[4], const float r, const float g, const float b, const float a);
-MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a);
+MINLINE void rgba_char_args_set(
+    char col[4], const char r, const char g, const char b, const char a);
+MINLINE void rgba_float_args_set(
+    float col[4], const float r, const float g, const float b, const float a);
+MINLINE void rgba_char_args_test_set(
+    char col[4], const char r, const char g, const char b, const char a);
 MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack);
 
 void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, float max);
 
 /********* lift/gamma/gain / ASC-CDL conversion ***********/
 
-void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
+void lift_gamma_gain_to_asc_cdl(
+    float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
 
 #if BLI_MATH_DO_INLINE
-#include "intern/math_color_inline.c"
+#  include "intern/math_color_inline.c"
 #endif
 
 #ifdef __cplusplus

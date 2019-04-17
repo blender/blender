@@ -25,15 +25,15 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
 struct uint4 {
-	uint x, y, z, w;
+  uint x, y, z, w;
 
-	__forceinline uint operator[](uint i) const;
-	__forceinline uint& operator[](uint i);
+  __forceinline uint operator[](uint i) const;
+  __forceinline uint &operator[](uint i);
 };
 
 ccl_device_inline uint4 make_uint4(uint x, uint y, uint z, uint w);
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_UINT4_H__ */
+#endif /* __UTIL_TYPES_UINT4_H__ */

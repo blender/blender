@@ -24,26 +24,26 @@
 struct KDTree_1d;
 
 enum {
-	SEL_TOGGLE		 = 0,
-	SEL_SELECT		 = 1,
-	SEL_DESELECT	 = 2,
-	SEL_INVERT		 = 3,
+  SEL_TOGGLE = 0,
+  SEL_SELECT = 1,
+  SEL_DESELECT = 2,
+  SEL_INVERT = 3,
 };
 
 /** See #WM_operator_properties_select_operation */
 typedef enum {
-	SEL_OP_ADD = 1,
-	SEL_OP_SUB,
-	SEL_OP_SET,
-	SEL_OP_AND,
-	SEL_OP_XOR,
+  SEL_OP_ADD = 1,
+  SEL_OP_SUB,
+  SEL_OP_SET,
+  SEL_OP_AND,
+  SEL_OP_XOR,
 } eSelectOp;
 
 /* Select Similar */
 enum {
-	SIM_CMP_EQ = 0,
-	SIM_CMP_GT,
-	SIM_CMP_LT,
+  SIM_CMP_EQ = 0,
+  SIM_CMP_GT,
+  SIM_CMP_LT,
 };
 
 #define SEL_OP_USE_OUTSIDE(sel_op) (ELEM(sel_op, SEL_OP_AND))
@@ -52,11 +52,16 @@ enum {
 
 /* Use when we've de-selected all first for 'SEL_OP_SET' */
 int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside);
-int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select, const bool is_inside);
+int ED_select_op_action_deselected(const eSelectOp sel_op,
+                                   const bool is_select,
+                                   const bool is_inside);
 
 int ED_select_similar_compare_float(const float delta, const float thresh, const int compare);
-bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree, const float length, const float thresh, const int compare);
+bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree,
+                                          const float length,
+                                          const float thresh,
+                                          const int compare);
 
 eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first);
 
-#endif  /* __ED_SELECT_UTILS_H__ */
+#endif /* __ED_SELECT_UTILS_H__ */

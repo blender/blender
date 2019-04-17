@@ -16,11 +16,9 @@
 
 #include "stdosl.h"
 
-shader node_absorption_volume(
-	color Color = color(0.8, 0.8, 0.8),
-	float Density = 1.0,
-	output closure color Volume = 0)
+shader node_absorption_volume(color Color = color(0.8, 0.8, 0.8),
+                              float Density = 1.0,
+                              output closure color Volume = 0)
 {
-	Volume = ((color(1.0, 1.0, 1.0) - Color) * max(Density, 0.0)) * absorption();
+  Volume = ((color(1.0, 1.0, 1.0) - Color) * max(Density, 0.0)) * absorption();
 }
-

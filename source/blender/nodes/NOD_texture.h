@@ -28,7 +28,6 @@
 
 extern struct bNodeTreeType *ntreeType_Texture;
 
-
 /* ****************** types array for all texture nodes ****************** */
 
 void register_node_tree_type_tex(void);

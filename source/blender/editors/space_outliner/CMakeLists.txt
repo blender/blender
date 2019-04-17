@@ -16,47 +16,47 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../depsgraph
-	../../imbuf
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../depsgraph
+  ../../imbuf
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	outliner_collections.c
-	outliner_dragdrop.c
-	outliner_draw.c
-	outliner_edit.c
-	outliner_ops.c
-	outliner_select.c
-	outliner_tools.c
-	outliner_tree.c
-	outliner_utils.c
-	space_outliner.c
+  outliner_collections.c
+  outliner_dragdrop.c
+  outliner_draw.c
+  outliner_edit.c
+  outliner_ops.c
+  outliner_select.c
+  outliner_tools.c
+  outliner_tree.c
+  outliner_utils.c
+  space_outliner.c
 
-	outliner_intern.h
+  outliner_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
-	bf_editor_undo
+  bf_blenkernel
+  bf_blenlib
+  bf_editor_undo
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

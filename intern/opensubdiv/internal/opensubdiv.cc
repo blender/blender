@@ -26,16 +26,19 @@
 #include "opensubdiv_device_context_cuda.h"
 #include "opensubdiv_gl_mesh_capi.h"
 
-void openSubdiv_init(void) {
+void openSubdiv_init(void)
+{
   // Ensure all OpenGL strings are cached.
   openSubdiv_getAvailableEvaluators();
 }
 
-void openSubdiv_cleanup(void) {
+void openSubdiv_cleanup(void)
+{
   openSubdiv_deinitGLMeshDrawingResources();
 }
 
-int openSubdiv_getAvailableEvaluators(void) {
+int openSubdiv_getAvailableEvaluators(void)
+{
   int flags = OPENSUBDIV_EVALUATOR_CPU;
 
 #ifdef OPENSUBDIV_HAS_OPENMP
@@ -69,15 +72,15 @@ int openSubdiv_getAvailableEvaluators(void) {
   return flags;
 }
 
-int openSubdiv_getVersionHex(void) {
+int openSubdiv_getVersionHex(void)
+{
 #if defined(OPENSUBDIV_VERSION_NUMBER)
   return OPENSUBDIV_VERSION_NUMBER;
 #elif defined(OPENSUBDIV_VERSION_MAJOR)
-  return OPENSUBDIV_VERSION_MAJOR * 10000 +
-         OPENSUBDIV_VERSION_MINOR * 100 +
+  return OPENSUBDIV_VERSION_MAJOR * 10000 + OPENSUBDIV_VERSION_MINOR * 100 +
          OPENSUBDIV_VERSION_PATCH;
 #elif defined(OPENSUBDIV_VERSION)
-  const char* version = STRINGIFY(OPENSUBDIV_VERSION);
+  const char *version = STRINGIFY(OPENSUBDIV_VERSION);
   if (version[0] == 'v') {
     version += 1;
   }

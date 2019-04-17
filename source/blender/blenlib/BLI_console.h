@@ -41,4 +41,4 @@ extern "C" {
 }
 #endif
 
-#endif  /* __BLI_CONSOLE_H__ */
+#endif /* __BLI_CONSOLE_H__ */

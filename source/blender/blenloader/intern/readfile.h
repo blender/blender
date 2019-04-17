@@ -28,7 +28,7 @@
 #include "zlib.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"  /* for ReportType */
+#include "DNA_windowmanager_types.h" /* for ReportType */
 
 struct Key;
 struct MemFile;
@@ -39,13 +39,13 @@ struct ReportList;
 struct View3D;
 
 enum eFileDataFlag {
-	FD_FLAGS_SWITCH_ENDIAN         = 1 << 0,
-	FD_FLAGS_FILE_POINTSIZE_IS_4   = 1 << 1,
-	FD_FLAGS_POINTSIZE_DIFFERS     = 1 << 2,
-	FD_FLAGS_FILE_OK               = 1 << 3,
-	FD_FLAGS_NOT_MY_BUFFER         = 1 << 4,
-	/* XXX Unused in practice (checked once but never set). */
-	FD_FLAGS_NOT_MY_LIBMAP         = 1 << 5,
+  FD_FLAGS_SWITCH_ENDIAN = 1 << 0,
+  FD_FLAGS_FILE_POINTSIZE_IS_4 = 1 << 1,
+  FD_FLAGS_POINTSIZE_DIFFERS = 1 << 2,
+  FD_FLAGS_FILE_OK = 1 << 3,
+  FD_FLAGS_NOT_MY_BUFFER = 1 << 4,
+  /* XXX Unused in practice (checked once but never set). */
+  FD_FLAGS_NOT_MY_LIBMAP = 1 << 5,
 };
 
 /* Disallow since it's 32bit on ms-windows. */
@@ -57,72 +57,71 @@ enum eFileDataFlag {
 typedef int64_t off64_t;
 #endif
 
-typedef int (FileDataReadFn)(struct FileData *filedata, void *buffer, unsigned int size);
-typedef off64_t (FileDataSeekFn)(struct FileData *filedata, off64_t offset, int whence);
+typedef int(FileDataReadFn)(struct FileData *filedata, void *buffer, unsigned int size);
+typedef off64_t(FileDataSeekFn)(struct FileData *filedata, off64_t offset, int whence);
 
 typedef struct FileData {
-	/** Linked list of BHeadN's. */
-	ListBase bhead_list;
-	enum eFileDataFlag flags;
-	bool is_eof;
-	int buffersize;
-	int64_t file_offset;
+  /** Linked list of BHeadN's. */
+  ListBase bhead_list;
+  enum eFileDataFlag flags;
+  bool is_eof;
+  int buffersize;
+  int64_t file_offset;
 
-	FileDataReadFn *read;
-	FileDataSeekFn *seek;
+  FileDataReadFn *read;
+  FileDataSeekFn *seek;
 
-	/** Regular file reading. */
-	int filedes;
+  /** Regular file reading. */
+  int filedes;
 
-	/** Variables needed for reading from memory / stream. */
-	const char *buffer;
-	/** Variables needed for reading from memfile (undo). */
-	struct MemFile *memfile;
+  /** Variables needed for reading from memory / stream. */
+  const char *buffer;
+  /** Variables needed for reading from memfile (undo). */
+  struct MemFile *memfile;
 
-	/** Variables needed for reading from file. */
-	gzFile gzfiledes;
-	/** Gzip stream for memory decompression. */
-	z_stream strm;
+  /** Variables needed for reading from file. */
+  gzFile gzfiledes;
+  /** Gzip stream for memory decompression. */
+  z_stream strm;
 
-	/** Now only in use for library appending. */
-	char relabase[FILE_MAX];
+  /** Now only in use for library appending. */
+  char relabase[FILE_MAX];
 
+  /** General reading variables. */
+  struct SDNA *filesdna;
+  const struct SDNA *memsdna;
+  /** Array of #eSDNA_StructCompare. */
+  const char *compflags;
 
-	/** General reading variables. */
-	struct SDNA *filesdna;
-	const struct SDNA *memsdna;
-	/** Array of #eSDNA_StructCompare. */
-	const char *compflags;
+  int fileversion;
+  /** Used to retrieve ID names from (bhead+1). */
+  int id_name_offs;
+  /** For do_versions patching. */
+  int globalf, fileflags;
 
-	int fileversion;
-	/** Used to retrieve ID names from (bhead+1). */
-	int id_name_offs;
-	/** For do_versions patching. */
-	int globalf, fileflags;
+  /** Optionally skip some data-blocks when they're not needed. */
+  eBLOReadSkip skip_flags;
 
-	/** Optionally skip some data-blocks when they're not needed. */
-	eBLOReadSkip skip_flags;
+  struct OldNewMap *datamap;
+  struct OldNewMap *globmap;
+  struct OldNewMap *libmap;
+  struct OldNewMap *imamap;
+  struct OldNewMap *movieclipmap;
+  struct OldNewMap *scenemap;
+  struct OldNewMap *soundmap;
+  struct OldNewMap *packedmap;
 
-	struct OldNewMap *datamap;
-	struct OldNewMap *globmap;
-	struct OldNewMap *libmap;
-	struct OldNewMap *imamap;
-	struct OldNewMap *movieclipmap;
-	struct OldNewMap *scenemap;
-	struct OldNewMap *soundmap;
-	struct OldNewMap *packedmap;
+  struct BHeadSort *bheadmap;
+  int tot_bheadmap;
 
-	struct BHeadSort *bheadmap;
-	int tot_bheadmap;
+  /** See: #USE_GHASH_BHEAD. */
+  struct GHash *bhead_idname_hash;
 
-	/** See: #USE_GHASH_BHEAD. */
-	struct GHash *bhead_idname_hash;
+  ListBase *mainlist;
+  /** Used for undo. */
+  ListBase *old_mainlist;
 
-	ListBase *mainlist;
-	/** Used for undo. */
-	ListBase *old_mainlist;
-
-	struct ReportList *reports;
+  struct ReportList *reports;
 } FileData;
 
 #define SIZEOFBLENDERHEADER 12
@@ -161,11 +160,15 @@ const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead);
 
 /* do versions stuff */
 
-void blo_reportf_wrap(struct ReportList *reports, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
+void blo_reportf_wrap(struct ReportList *reports, ReportType type, const char *format, ...)
+    ATTR_PRINTF_FORMAT(3, 4);
 
 void blo_do_versions_dna(struct SDNA *sdna, const int versionfile, const int subversionfile);
 
-void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm, const void *oldaddr, void *newaddr, int nr);
+void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm,
+                                      const void *oldaddr,
+                                      void *newaddr,
+                                      int nr);
 void *blo_do_versions_newlibadr(struct FileData *fd, const void *lib, const void *adr);
 void *blo_do_versions_newlibadr_us(struct FileData *fd, const void *lib, const void *adr);
 

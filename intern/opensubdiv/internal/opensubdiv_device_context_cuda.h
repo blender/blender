@@ -40,7 +40,7 @@ class CudaDeviceContext {
   bool Initialize();
 
   // Initialze cuda device from the ID3D11Device.
-  bool Initialize(ID3D11Device* device);
+  bool Initialize(ID3D11Device *device);
 
   // Returns true if the cuda device has already been initialized.
   bool IsInitialized() const;

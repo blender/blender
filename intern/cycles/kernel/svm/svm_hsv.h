@@ -19,43 +19,44 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_node_hsv(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_hsv(
+    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	uint in_color_offset, fac_offset, out_color_offset;
-	uint hue_offset, sat_offset, val_offset;
-	decode_node_uchar4(node.y, &in_color_offset, &fac_offset, &out_color_offset, NULL);
-	decode_node_uchar4(node.z, &hue_offset, &sat_offset, &val_offset, NULL);
+  uint in_color_offset, fac_offset, out_color_offset;
+  uint hue_offset, sat_offset, val_offset;
+  decode_node_uchar4(node.y, &in_color_offset, &fac_offset, &out_color_offset, NULL);
+  decode_node_uchar4(node.z, &hue_offset, &sat_offset, &val_offset, NULL);
 
-	float fac = stack_load_float(stack, fac_offset);
-	float3 in_color = stack_load_float3(stack, in_color_offset);
-	float3 color = in_color;
+  float fac = stack_load_float(stack, fac_offset);
+  float3 in_color = stack_load_float3(stack, in_color_offset);
+  float3 color = in_color;
 
-	float hue = stack_load_float(stack, hue_offset);
-	float sat = stack_load_float(stack, sat_offset);
-	float val = stack_load_float(stack, val_offset);
+  float hue = stack_load_float(stack, hue_offset);
+  float sat = stack_load_float(stack, sat_offset);
+  float val = stack_load_float(stack, val_offset);
 
-	color = rgb_to_hsv(color);
+  color = rgb_to_hsv(color);
 
-	/* remember: fmod doesn't work for negative numbers here */
-	color.x = fmodf(color.x + hue + 0.5f, 1.0f);
-	color.y = saturate(color.y * sat);
-	color.z *= val;
+  /* remember: fmod doesn't work for negative numbers here */
+  color.x = fmodf(color.x + hue + 0.5f, 1.0f);
+  color.y = saturate(color.y * sat);
+  color.z *= val;
 
-	color = hsv_to_rgb(color);
+  color = hsv_to_rgb(color);
 
-	color.x = fac*color.x + (1.0f - fac)*in_color.x;
-	color.y = fac*color.y + (1.0f - fac)*in_color.y;
-	color.z = fac*color.z + (1.0f - fac)*in_color.z;
+  color.x = fac * color.x + (1.0f - fac) * in_color.x;
+  color.y = fac * color.y + (1.0f - fac) * in_color.y;
+  color.z = fac * color.z + (1.0f - fac) * in_color.z;
 
-	/* Clamp color to prevent negative values caused by oversaturation. */
-	color.x = max(color.x, 0.0f);
-	color.y = max(color.y, 0.0f);
-	color.z = max(color.z, 0.0f);
+  /* Clamp color to prevent negative values caused by oversaturation. */
+  color.x = max(color.x, 0.0f);
+  color.y = max(color.y, 0.0f);
+  color.z = max(color.z, 0.0f);
 
-	if(stack_valid(out_color_offset))
-		stack_store_float3(stack, out_color_offset, color);
+  if (stack_valid(out_color_offset))
+    stack_store_float3(stack, out_color_offset, color);
 }
 
 CCL_NAMESPACE_END
 
-#endif  /* __SVM_HSV_H__ */
+#endif /* __SVM_HSV_H__ */

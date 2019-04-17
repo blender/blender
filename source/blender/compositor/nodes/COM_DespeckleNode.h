@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class DespeckleNode : public Node {
-public:
-	DespeckleNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  DespeckleNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

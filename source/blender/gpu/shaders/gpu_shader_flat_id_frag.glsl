@@ -4,5 +4,5 @@ out uint fragId;
 
 void main()
 {
-	fragId = finalId;
+  fragId = finalId;
 }

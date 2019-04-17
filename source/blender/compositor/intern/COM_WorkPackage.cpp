@@ -20,6 +20,6 @@
 
 WorkPackage::WorkPackage(ExecutionGroup *group, unsigned int chunkNumber)
 {
-	this->m_executionGroup = group;
-	this->m_chunkNumber = chunkNumber;
+  this->m_executionGroup = group;
+  this->m_chunkNumber = chunkNumber;
 }

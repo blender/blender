@@ -26,9 +26,11 @@
  * \ingroup Node
  */
 class ConvertAlphaNode : public Node {
-public:
-	ConvertAlphaNode(bNode *editorNode) : Node(editorNode) {}
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ConvertAlphaNode(bNode *editorNode) : Node(editorNode)
+  {
+  }
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

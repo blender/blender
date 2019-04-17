@@ -31,32 +31,36 @@ namespace Freestyle {
  *  i.e. The stroke will be the thickest in a main direction, the thinest in the direction perpendicular to this one,
  *  and an interpolation inbetween.
  */
-class CalligraphicShader : public StrokeShader
-{
-public:
-	/*! Builds the shader.
-	 *  \param iMinThickness:
-	 *    The minimum thickness in the direction perpandicular to the main direction.
-	 *  \param iMaxThickness:
-	 *    The maximum thickness in the main direction.
-	 *  \param iOrientation:
-	 *    The 2D vector giving the main direction.
-	 *  \param clamp:
-	 *    Tells ???
-	 */
-	CalligraphicShader(real iMinThickness, real iMaxThickness, const Vec2f &iOrientation, bool clamp);
+class CalligraphicShader : public StrokeShader {
+ public:
+  /*! Builds the shader.
+   *  \param iMinThickness:
+   *    The minimum thickness in the direction perpandicular to the main direction.
+   *  \param iMaxThickness:
+   *    The maximum thickness in the main direction.
+   *  \param iOrientation:
+   *    The 2D vector giving the main direction.
+   *  \param clamp:
+   *    Tells ???
+   */
+  CalligraphicShader(real iMinThickness,
+                     real iMaxThickness,
+                     const Vec2f &iOrientation,
+                     bool clamp);
 
-	/*! Destructor. */
-	virtual ~CalligraphicShader() {}
+  /*! Destructor. */
+  virtual ~CalligraphicShader()
+  {
+  }
 
-	/*! The shading method */
-	virtual int shade(Stroke &ioStroke) const;
+  /*! The shading method */
+  virtual int shade(Stroke &ioStroke) const;
 
-protected:
-	real _maxThickness;
-	real _minThickness;
-	Vec2f _orientation;
-	bool _clamp;
+ protected:
+  real _maxThickness;
+  real _minThickness;
+  Vec2f _orientation;
+  bool _clamp;
 };
 
 /*! [ Geometry Shader ].
@@ -64,35 +68,36 @@ protected:
  *  Moves the vertices to make the stroke more noisy.
  * \see \htmlonly <a href=noise/noise.html>noise/noise.html</a> \endhtmlonly
  */
-class SpatialNoiseShader : public StrokeShader
-{
-public:
-	/*! Builds the shader.
-	 *  \param iAmount:
-	 *    The amplitude of the noise.
-	 *  \param ixScale:
-	 *    The noise frequency
-	 *  \param nbOctave:
-	 *    The number of octaves
-	 *  \param smooth:
-	 *    If you want the noise to be smooth
-	 *  \param pureRandom:
-	 *    If you don't want any coherence
-	 */
-	SpatialNoiseShader(float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom);
+class SpatialNoiseShader : public StrokeShader {
+ public:
+  /*! Builds the shader.
+   *  \param iAmount:
+   *    The amplitude of the noise.
+   *  \param ixScale:
+   *    The noise frequency
+   *  \param nbOctave:
+   *    The number of octaves
+   *  \param smooth:
+   *    If you want the noise to be smooth
+   *  \param pureRandom:
+   *    If you don't want any coherence
+   */
+  SpatialNoiseShader(float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom);
 
-	/*! Destructor. */
-	virtual ~SpatialNoiseShader() {}
+  /*! Destructor. */
+  virtual ~SpatialNoiseShader()
+  {
+  }
 
-	/*! The shading method. */
-	virtual int shade(Stroke &ioStroke) const;
+  /*! The shading method. */
+  virtual int shade(Stroke &ioStroke) const;
 
-protected:
-	float _amount;
-	float _xScale;
-	int _nbOctave;
-	bool _smooth;
-	bool _pureRandom;
+ protected:
+  float _amount;
+  float _xScale;
+  int _nbOctave;
+  bool _smooth;
+  bool _pureRandom;
 };
 
 /*! [ Geometry Shader ].
@@ -102,116 +107,130 @@ protected:
  *  to prevent the diffusion accross corners.
  * \see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
  */
-class SmoothingShader : public StrokeShader
-{
-public:
-	/*! Builds the shader.
-	 *  \param iNbIteration:
-	 *    The number of iterations. (400)
-	 *  \param iFactorPoint:
-	 *    0
-	 *  \param ifactorCurvature:
-	 *    0
-	 *  \param iFactorCurvatureDifference:
-	 *    0.2
-	 *  \param iAnisoPoint:
-	 *    0
-	 *  \param iAnisNormal:
-	 *    0
-	 *  \param iAnisoCurvature:
-	 *    0
-	 *  \param icarricatureFactor:
-	 *    1
-	 */
-	SmoothingShader(int iNbIteration, real iFactorPoint, real ifactorCurvature, real iFactorCurvatureDifference,
-	                real iAnisoPoint, real iAnisoNormal, real iAnisoCurvature, real icarricatureFactor);
+class SmoothingShader : public StrokeShader {
+ public:
+  /*! Builds the shader.
+   *  \param iNbIteration:
+   *    The number of iterations. (400)
+   *  \param iFactorPoint:
+   *    0
+   *  \param ifactorCurvature:
+   *    0
+   *  \param iFactorCurvatureDifference:
+   *    0.2
+   *  \param iAnisoPoint:
+   *    0
+   *  \param iAnisNormal:
+   *    0
+   *  \param iAnisoCurvature:
+   *    0
+   *  \param icarricatureFactor:
+   *    1
+   */
+  SmoothingShader(int iNbIteration,
+                  real iFactorPoint,
+                  real ifactorCurvature,
+                  real iFactorCurvatureDifference,
+                  real iAnisoPoint,
+                  real iAnisoNormal,
+                  real iAnisoCurvature,
+                  real icarricatureFactor);
 
-	/*! Destructor. */
-	virtual ~SmoothingShader() {}
+  /*! Destructor. */
+  virtual ~SmoothingShader()
+  {
+  }
 
-	/*! The shading method. */
-	virtual int shade(Stroke &ioStroke) const;
+  /*! The shading method. */
+  virtual int shade(Stroke &ioStroke) const;
 
-protected:
-	int _nbIterations;
-	real _factorPoint;
-	real _factorCurvature;
-	real _factorCurvatureDifference;
-	real _anisoPoint;
-	real _anisoNormal;
-	real _anisoCurvature;
-	real _carricatureFactor;
+ protected:
+  int _nbIterations;
+  real _factorPoint;
+  real _factorCurvature;
+  real _factorCurvatureDifference;
+  real _anisoPoint;
+  real _anisoNormal;
+  real _anisoCurvature;
+  real _carricatureFactor;
 };
 
-class Smoother
-{
-public:
-	Smoother(Stroke &ioStroke);
+class Smoother {
+ public:
+  Smoother(Stroke &ioStroke);
 
-	virtual ~Smoother();
+  virtual ~Smoother();
 
-	void smooth(int nbIterations, real iFactorPoint, real ifactorCurvature, real iFactorCurvatureDifference,
-	            real iAnisoPoint, real iAnisoNormal, real iAnisoCurvature, real icarricatureFactor);
+  void smooth(int nbIterations,
+              real iFactorPoint,
+              real ifactorCurvature,
+              real iFactorCurvatureDifference,
+              real iAnisoPoint,
+              real iAnisoNormal,
+              real iAnisoCurvature,
+              real icarricatureFactor);
 
-	void computeCurvature();
+  void computeCurvature();
 
-protected:
-	real _factorPoint;
-	real _factorCurvature;
-	real _factorCurvatureDifference;
-	real _anisoPoint;
-	real _anisoNormal;
-	real _anisoCurvature;
-	real _carricatureFactor;
+ protected:
+  real _factorPoint;
+  real _factorCurvature;
+  real _factorCurvatureDifference;
+  real _anisoPoint;
+  real _anisoNormal;
+  real _anisoCurvature;
+  real _carricatureFactor;
 
-	void iteration();
-	void copyVertices ();
+  void iteration();
+  void copyVertices();
 
-	Stroke *_stroke;
-	int _nbVertices;
-	Vec2r *_vertex;
-	Vec2r *_normal;
-	real *_curvature;
-	bool *_isFixedVertex;
+  Stroke *_stroke;
+  int _nbVertices;
+  Vec2r *_vertex;
+  Vec2r *_normal;
+  real *_curvature;
+  bool *_isFixedVertex;
 
-	bool _isClosedCurve;
-	bool _safeTest;
+  bool _isClosedCurve;
+  bool _safeTest;
 };
 
-class Omitter : public Smoother
-{
-public:
-	Omitter(Stroke &ioStroke);
+class Omitter : public Smoother {
+ public:
+  Omitter(Stroke &ioStroke);
 
-	virtual ~Omitter() {}
+  virtual ~Omitter()
+  {
+  }
 
-	void omit(real sizeWindow, real thrVari, real thrFlat, real lFlat);
+  void omit(real sizeWindow, real thrVari, real thrFlat, real lFlat);
 
-protected:
-	real *_u;
+ protected:
+  real *_u;
 
-	real _sizeWindow;
-	real _thresholdVariation;
-	real _thresholdFlat;
-	real _lengthFlat;
+  real _sizeWindow;
+  real _thresholdVariation;
+  real _thresholdFlat;
+  real _lengthFlat;
 };
 
 /*! Omission shader */
-class OmissionShader : public StrokeShader
-{
-public:
-	OmissionShader(real sizeWindow, real thrVari, real thrFlat, real lFlat);
-	virtual ~OmissionShader() {}
+class OmissionShader : public StrokeShader {
+ public:
+  OmissionShader(real sizeWindow, real thrVari, real thrFlat, real lFlat);
+  virtual ~OmissionShader()
+  {
+  }
 
-	virtual int shade(Stroke &ioStroke) const;
+  virtual int shade(Stroke &ioStroke) const;
 
-protected:
-	real _sizeWindow;
-	real _thresholdVariation;
-	real _thresholdFlat;
-	real _lengthFlat;
+ protected:
+  real _sizeWindow;
+  real _thresholdVariation;
+  real _thresholdFlat;
+  real _lengthFlat;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
+#endif  // __FREESTYLE_ADVANCED_STROKE_SHADERS_H__

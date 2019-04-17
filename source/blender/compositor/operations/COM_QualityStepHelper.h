@@ -21,29 +21,37 @@
 #include "COM_defines.h"
 
 typedef enum QualityHelper {
-	COM_QH_INCREASE,
-	COM_QH_MULTIPLY,
+  COM_QH_INCREASE,
+  COM_QH_MULTIPLY,
 } QualityHelper;
 
-class QualityStepHelper  {
-private:
-	CompositorQuality m_quality;
-	int m_step;
-	int m_offsetadd;
+class QualityStepHelper {
+ private:
+  CompositorQuality m_quality;
+  int m_step;
+  int m_offsetadd;
 
-protected:
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution(QualityHelper helper);
+ protected:
+  /**
+   * Initialize the execution
+   */
+  void initExecution(QualityHelper helper);
 
-	inline int getStep() const { return this->m_step; }
-	inline int getOffsetAdd() const { return this->m_offsetadd; }
+  inline int getStep() const
+  {
+    return this->m_step;
+  }
+  inline int getOffsetAdd() const
+  {
+    return this->m_offsetadd;
+  }
 
-public:
-	QualityStepHelper();
+ public:
+  QualityStepHelper();
 
-
-	void setQuality(CompositorQuality quality) { this->m_quality = quality; }
+  void setQuality(CompositorQuality quality)
+  {
+    this->m_quality = quality;
+  }
 };
 #endif

@@ -21,17 +21,20 @@
 #include <cstddef>
 
 struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
-    OpenSubdiv_TopologyRefiner* /*topology_refiner*/,
-    eOpenSubdivEvaluator /*evaluator_type*/) {
+    OpenSubdiv_TopologyRefiner * /*topology_refiner*/, eOpenSubdivEvaluator /*evaluator_type*/)
+{
   return NULL;
 }
 
-void openSubdiv_deleteOsdGLMesh(OpenSubdiv_GLMesh* /*gl_mesh*/) {
+void openSubdiv_deleteOsdGLMesh(OpenSubdiv_GLMesh * /*gl_mesh*/)
+{
 }
 
-bool openSubdiv_initGLMeshDrawingResources(void) {
+bool openSubdiv_initGLMeshDrawingResources(void)
+{
   return false;
 }
 
-void openSubdiv_deinitGLMeshDrawingResources(void) {
+void openSubdiv_deinitGLMeshDrawingResources(void)
+{
 }

@@ -28,29 +28,30 @@ struct OpenSubdiv_TopologyRefiner;
 
 typedef struct OpenSubdiv_Evaluator {
   // Set coarse positions from a continuous array of coordinates.
-  void (*setCoarsePositions)(struct OpenSubdiv_Evaluator* evaluator,
-                             const float* positions,
+  void (*setCoarsePositions)(struct OpenSubdiv_Evaluator *evaluator,
+                             const float *positions,
                              const int start_vertex_index,
                              const int num_vertices);
   // Set varying data from a continuous array of data.
-  void (*setVaryingData)(struct OpenSubdiv_Evaluator* evaluator,
-                         const float* varying_data,
-                         const int start_vertex_index, const int num_vertices);
+  void (*setVaryingData)(struct OpenSubdiv_Evaluator *evaluator,
+                         const float *varying_data,
+                         const int start_vertex_index,
+                         const int num_vertices);
   // Set face varying data from a continuous array of data.
   //
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
-  void (*setFaceVaryingData)(struct OpenSubdiv_Evaluator* evaluator,
+  void (*setFaceVaryingData)(struct OpenSubdiv_Evaluator *evaluator,
                              const int face_varying_channel,
-                             const float* face_varying_data,
+                             const float *face_varying_data,
                              const int start_vertex_index,
                              const int num_vertices);
 
   // Set coarse vertex position from a continuous memory buffer where
   // first coordinate starts at offset of `start_offset` and there is `stride`
   // bytes between adjacent vertex coordinates.
-  void (*setCoarsePositionsFromBuffer)(struct OpenSubdiv_Evaluator* evaluator,
-                                       const void* buffer,
+  void (*setCoarsePositionsFromBuffer)(struct OpenSubdiv_Evaluator *evaluator,
+                                       const void *buffer,
                                        const int start_offset,
                                        const int stride,
                                        const int start_vertex_index,
@@ -58,8 +59,8 @@ typedef struct OpenSubdiv_Evaluator {
   // Set varying data from a continuous memory buffer where
   // first coordinate starts at offset of `start_offset` and there is `stride`
   // bytes between adjacent vertex coordinates.
-  void (*setVaryingDataFromBuffer)(struct OpenSubdiv_Evaluator* evaluator,
-                                   const void* buffer,
+  void (*setVaryingDataFromBuffer)(struct OpenSubdiv_Evaluator *evaluator,
+                                   const void *buffer,
                                    const int start_offset,
                                    const int stride,
                                    const int start_vertex_index,
@@ -70,48 +71,53 @@ typedef struct OpenSubdiv_Evaluator {
   //
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
-  void (*setFaceVaryingDataFromBuffer)(struct OpenSubdiv_Evaluator* evaluator,
+  void (*setFaceVaryingDataFromBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                                        const int face_varying_channel,
-                                       const void* buffer,
+                                       const void *buffer,
                                        const int start_offset,
                                        const int stride,
                                        const int start_vertex_index,
                                        const int num_vertices);
 
   // Refine after coarse positions update.
-  void (*refine)(struct OpenSubdiv_Evaluator* evaluator);
+  void (*refine)(struct OpenSubdiv_Evaluator *evaluator);
 
   // Evaluate given ptex face at given bilinear coordinate.
   // If derivatives are NULL, they will not be evaluated.
-  void (*evaluateLimit)(struct OpenSubdiv_Evaluator* evaluator,
+  void (*evaluateLimit)(struct OpenSubdiv_Evaluator *evaluator,
                         const int ptex_face_index,
-                        float face_u, float face_v,
-                        float P[3], float dPdu[3], float dPdv[3]);
+                        float face_u,
+                        float face_v,
+                        float P[3],
+                        float dPdu[3],
+                        float dPdv[3]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
-  void (*evaluateVarying)(struct OpenSubdiv_Evaluator* evaluator,
+  void (*evaluateVarying)(struct OpenSubdiv_Evaluator *evaluator,
                           const int ptex_face_index,
-                          float face_u, float face_v,
+                          float face_u,
+                          float face_v,
                           float varying[3]);
 
   // Evaluate face-varying data at a given bilinear coordinate of given
   // ptex face.
-  void (*evaluateFaceVarying)(struct OpenSubdiv_Evaluator* evaluator,
+  void (*evaluateFaceVarying)(struct OpenSubdiv_Evaluator *evaluator,
                               const int face_varying_channel,
                               const int ptex_face_index,
-                              float face_u, float face_v,
+                              float face_u,
+                              float face_v,
                               float face_varying[2]);
 
   // Internal storage for the use in this module only.
   //
   // This is where actual OpenSubdiv's evaluator is living.
-  struct OpenSubdiv_EvaluatorInternal* internal;
+  struct OpenSubdiv_EvaluatorInternal *internal;
 } OpenSubdiv_Evaluator;
 
-OpenSubdiv_Evaluator* openSubdiv_createEvaluatorFromTopologyRefiner(
-    struct OpenSubdiv_TopologyRefiner* topology_refiner);
+OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
+    struct OpenSubdiv_TopologyRefiner *topology_refiner);
 
-void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator* evaluator);
+void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator *evaluator);
 
 #ifdef __cplusplus
 }

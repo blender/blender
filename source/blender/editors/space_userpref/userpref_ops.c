@@ -45,30 +45,30 @@
 
 static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	UI_theme_init_default();
-	UI_style_init_default();
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+  UI_theme_init_default();
+  UI_style_init_default();
+  WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
 {
-	/* identifiers */
-	ot->name = "Reset to Default Theme";
-	ot->idname = "PREFERENCES_OT_reset_default_theme";
-	ot->description = "Reset to the default theme colors";
+  /* identifiers */
+  ot->name = "Reset to Default Theme";
+  ot->idname = "PREFERENCES_OT_reset_default_theme";
+  ot->description = "Reset to the default theme colors";
 
-	/* callbacks */
-	ot->exec = reset_default_theme_exec;
+  /* callbacks */
+  ot->exec = reset_default_theme_exec;
 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */
 
 void ED_operatortypes_userpref(void)
 {
-	WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
+  WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
 }

@@ -50,9 +50,9 @@ struct wmWindowManager;
 
 /* drawing flags: */
 enum {
-	DRAW_PICKING     = (1 << 0),
-	DRAW_CONSTCOLOR  = (1 << 1),
-	DRAW_SCENESET    = (1 << 2),
+  DRAW_PICKING = (1 << 0),
+  DRAW_CONSTCOLOR = (1 << 1),
+  DRAW_SCENESET = (1 << 2),
 };
 
 /* view3d_header.c */
@@ -101,18 +101,22 @@ void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
 void view3d_boxview_copy(struct ScrArea *sa, struct ARegion *ar);
 void view3d_boxview_sync(struct ScrArea *sa, struct ARegion *ar);
 
-void view3d_orbit_apply_dyn_ofs(
-        float r_ofs[3], const float ofs_old[3], const float viewquat_old[4],
-        const float viewquat_new[4], const float dyn_ofs[3]);
+void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
+                                const float ofs_old[3],
+                                const float viewquat_old[4],
+                                const float viewquat_new[4],
+                                const float dyn_ofs[3]);
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
 
-void view3d_ndof_fly(
-        const struct wmNDOFMotionData *ndof,
-        struct View3D *v3d, struct RegionView3D *rv3d,
-        const bool use_precision, const short protectflag,
-        bool *r_has_translate, bool *r_has_rotate);
+void view3d_ndof_fly(const struct wmNDOFMotionData *ndof,
+                     struct View3D *v3d,
+                     struct RegionView3D *rv3d,
+                     const bool use_precision,
+                     const short protectflag,
+                     bool *r_has_translate,
+                     bool *r_has_rotate);
 #endif /* WITH_INPUT_NDOF */
 
 /* view3d_fly.c */
@@ -123,10 +127,12 @@ void VIEW3D_OT_fly(struct wmOperatorType *ot);
 void VIEW3D_OT_walk(struct wmOperatorType *ot);
 
 /* drawobject.c */
-void draw_object_select_id(
-        struct Depsgraph *depsgraph, Scene *scene,
-        View3D *v3d, RegionView3D *rv3d, struct Object *ob,
-        short select_mode);
+void draw_object_select_id(struct Depsgraph *depsgraph,
+                           Scene *scene,
+                           View3D *v3d,
+                           RegionView3D *rv3d,
+                           struct Object *ob,
+                           short select_mode);
 
 void draw_object_depth(RegionView3D *rv3d, struct Object *ob);
 
@@ -136,19 +142,30 @@ int view3d_effective_drawtype(const struct View3D *v3d);
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
 void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
 
-void ED_view3d_draw_depth(
-        struct Depsgraph *depsgraph,
-        struct ARegion *ar, View3D *v3d, bool alphaoverride);
+void ED_view3d_draw_depth(struct Depsgraph *depsgraph,
+                          struct ARegion *ar,
+                          View3D *v3d,
+                          bool alphaoverride);
 
 /* view3d_draw_legacy.c */
-void ED_view3d_draw_depth_gpencil(struct Depsgraph *depsgraph, Scene *scene, struct ARegion *ar, View3D *v3d);
+void ED_view3d_draw_depth_gpencil(struct Depsgraph *depsgraph,
+                                  Scene *scene,
+                                  struct ARegion *ar,
+                                  View3D *v3d);
 
-void ED_view3d_draw_select_loop(
-        struct Depsgraph *depsgraph, ViewContext *vc, Scene *scene, struct ViewLayer *view_layer, View3D *v3d, struct ARegion *ar,
-        bool use_obedit_skip, bool use_nearest);
+void ED_view3d_draw_select_loop(struct Depsgraph *depsgraph,
+                                ViewContext *vc,
+                                Scene *scene,
+                                struct ViewLayer *view_layer,
+                                View3D *v3d,
+                                struct ARegion *ar,
+                                bool use_obedit_skip,
+                                bool use_nearest);
 
-void ED_view3d_draw_depth_loop(
-        struct Depsgraph *depsgraph, Scene *scene, struct ARegion *ar, View3D *v3d);
+void ED_view3d_draw_depth_loop(struct Depsgraph *depsgraph,
+                               Scene *scene,
+                               struct ARegion *ar,
+                               View3D *v3d);
 
 void view3d_update_depths_rect(struct ARegion *ar, struct ViewDepths *d, struct rcti *rect);
 float view3d_depth_near(struct ViewDepths *d);
@@ -168,37 +185,46 @@ void VIEW3D_OT_object_as_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_localview_remove_from(struct wmOperatorType *ot);
 
-bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const struct BoundBox *bb, float obmat[4][4]);
+bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d,
+                                const struct BoundBox *bb,
+                                float obmat[4][4]);
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 
 typedef struct V3D_SmoothParams {
-	struct Object *camera_old, *camera;
-	const float *ofs, *quat, *dist, *lens;
-	/* alternate rotation center (ofs = must be NULL) */
-	const float *dyn_ofs;
+  struct Object *camera_old, *camera;
+  const float *ofs, *quat, *dist, *lens;
+  /* alternate rotation center (ofs = must be NULL) */
+  const float *dyn_ofs;
 } V3D_SmoothParams;
 
-void ED_view3d_smooth_view_ex(
-        const struct Depsgraph *depsgraph,
-        struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa,
-        struct View3D *v3d, struct ARegion *ar, const int smooth_viewtx,
-        const V3D_SmoothParams *sview);
+void ED_view3d_smooth_view_ex(const struct Depsgraph *depsgraph,
+                              struct wmWindowManager *wm,
+                              struct wmWindow *win,
+                              struct ScrArea *sa,
+                              struct View3D *v3d,
+                              struct ARegion *ar,
+                              const int smooth_viewtx,
+                              const V3D_SmoothParams *sview);
 
-void ED_view3d_smooth_view(
-        struct bContext *C,
-        struct View3D *v3d, struct ARegion *ar, const int smooth_viewtx,
-        const V3D_SmoothParams *sview);
+void ED_view3d_smooth_view(struct bContext *C,
+                           struct View3D *v3d,
+                           struct ARegion *ar,
+                           const int smooth_viewtx,
+                           const V3D_SmoothParams *sview);
 
-void ED_view3d_smooth_view_force_finish(
-        struct bContext *C,
-        struct View3D *v3d, struct ARegion *ar);
+void ED_view3d_smooth_view_force_finish(struct bContext *C,
+                                        struct View3D *v3d,
+                                        struct ARegion *ar);
 
-void view3d_winmatrix_set(
-        struct Depsgraph *depsgraph,
-        struct ARegion *ar, const View3D *v3d, const rcti *rect);
-void view3d_viewmatrix_set(
-        struct Depsgraph *depsgraph, Scene *scene,
-        const View3D *v3d, RegionView3D *rv3d, const float rect_scale[2]);
+void view3d_winmatrix_set(struct Depsgraph *depsgraph,
+                          struct ARegion *ar,
+                          const View3D *v3d,
+                          const rcti *rect);
+void view3d_viewmatrix_set(struct Depsgraph *depsgraph,
+                           Scene *scene,
+                           const View3D *v3d,
+                           RegionView3D *rv3d,
+                           const float rect_scale[2]);
 
 void fly_modal_keymap(struct wmKeyConfig *keyconf);
 void walk_modal_keymap(struct wmKeyConfig *keyconf);
@@ -213,18 +239,18 @@ void VIEW3D_OT_object_mode_pie_or_toggle(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_camera_control.c */
-struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
-        struct Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d,
-        const bool use_parent_root);
-void ED_view3d_cameracontrol_update(
-        struct View3DCameraControl *vctrl,
-        const bool use_autokey,
-        struct bContext *C, const bool do_rotate, const bool do_translate);
-void ED_view3d_cameracontrol_release(
-        struct View3DCameraControl *vctrl,
-        const bool restore);
-struct Object *ED_view3d_cameracontrol_object_get(
-        struct View3DCameraControl *vctrl);
+struct View3DCameraControl *ED_view3d_cameracontrol_acquire(struct Depsgraph *depsgraph,
+                                                            Scene *scene,
+                                                            View3D *v3d,
+                                                            RegionView3D *rv3d,
+                                                            const bool use_parent_root);
+void ED_view3d_cameracontrol_update(struct View3DCameraControl *vctrl,
+                                    const bool use_autokey,
+                                    struct bContext *C,
+                                    const bool do_rotate,
+                                    const bool do_translate);
+void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, const bool restore);
+struct Object *ED_view3d_cameracontrol_object_get(struct View3DCameraControl *vctrl);
 
 /* view3d_toolbar.c */
 void VIEW3D_OT_toolshelf(struct wmOperatorType *ot);

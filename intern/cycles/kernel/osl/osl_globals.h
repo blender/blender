@@ -19,79 +19,79 @@
 
 #ifdef WITH_OSL
 
-#include <OSL/oslexec.h>
+#  include <OSL/oslexec.h>
 
-#include "util/util_map.h"
-#include "util/util_param.h"
-#include "util/util_thread.h"
-#include "util/util_vector.h"
+#  include "util/util_map.h"
+#  include "util/util_param.h"
+#  include "util/util_thread.h"
+#  include "util/util_vector.h"
 
-#ifndef WIN32
+#  ifndef WIN32
 using std::isfinite;
-#endif
+#  endif
 
 CCL_NAMESPACE_BEGIN
 
 class OSLRenderServices;
 
 struct OSLGlobals {
-	OSLGlobals()
-	{
-		ss = NULL;
-		ts = NULL;
-		services = NULL;
-		use = false;
-	}
+  OSLGlobals()
+  {
+    ss = NULL;
+    ts = NULL;
+    services = NULL;
+    use = false;
+  }
 
-	bool use;
+  bool use;
 
-	/* shading system */
-	OSL::ShadingSystem *ss;
-	OSL::TextureSystem *ts;
-	OSLRenderServices *services;
+  /* shading system */
+  OSL::ShadingSystem *ss;
+  OSL::TextureSystem *ts;
+  OSLRenderServices *services;
 
-	/* shader states */
-	vector<OSL::ShaderGroupRef> surface_state;
-	vector<OSL::ShaderGroupRef> volume_state;
-	vector<OSL::ShaderGroupRef> displacement_state;
-	vector<OSL::ShaderGroupRef> bump_state;
-	OSL::ShaderGroupRef background_state;
+  /* shader states */
+  vector<OSL::ShaderGroupRef> surface_state;
+  vector<OSL::ShaderGroupRef> volume_state;
+  vector<OSL::ShaderGroupRef> displacement_state;
+  vector<OSL::ShaderGroupRef> bump_state;
+  OSL::ShaderGroupRef background_state;
 
-	/* attributes */
-	struct Attribute {
-		TypeDesc type;
-		AttributeDescriptor desc;
-		ParamValue value;
-	};
+  /* attributes */
+  struct Attribute {
+    TypeDesc type;
+    AttributeDescriptor desc;
+    ParamValue value;
+  };
 
-	typedef unordered_map<ustring, Attribute, ustringHash> AttributeMap;
-	typedef unordered_map<ustring, int, ustringHash> ObjectNameMap;
+  typedef unordered_map<ustring, Attribute, ustringHash> AttributeMap;
+  typedef unordered_map<ustring, int, ustringHash> ObjectNameMap;
 
-	vector<AttributeMap> attribute_map;
-	ObjectNameMap object_name_map;
-	vector<ustring> object_names;
+  vector<AttributeMap> attribute_map;
+  ObjectNameMap object_name_map;
+  vector<ustring> object_names;
 };
 
 /* trace() call result */
 struct OSLTraceData {
-	Ray ray;
-	Intersection isect;
-	ShaderData sd;
-	bool setup;
-	bool init;
+  Ray ray;
+  Intersection isect;
+  ShaderData sd;
+  bool setup;
+  bool init;
 };
 
 /* thread key for thread specific data lookup */
 struct OSLThreadData {
-	OSL::ShaderGlobals globals;
-	OSL::PerThreadInfo *osl_thread_info;
-	OSLTraceData tracedata;
-	OSL::ShadingContext *context;
-	OIIO::TextureSystem::Perthread *oiio_thread_info;
+  OSL::ShaderGlobals globals;
+  OSL::PerThreadInfo *osl_thread_info;
+  OSLTraceData tracedata;
+  OSL::ShadingContext *context;
+  OIIO::TextureSystem::Perthread *oiio_thread_info;
 };
 
 CCL_NAMESPACE_END
 
 #endif
 
-#endif  /* __OSL_GLOBALS_H__ */
+#endif /* __OSL_GLOBALS_H__ */

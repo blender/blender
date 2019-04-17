@@ -31,19 +31,18 @@ extern "C" {
 
 extern PyTypeObject ConstantColorShader_Type;
 
-#define BPy_ConstantColorShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstantColorShader_Type))
+#define BPy_ConstantColorShader_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstantColorShader_Type))
 
 /*---------------------------Python BPy_ConstantColorShader structure definition----------*/
 typedef struct {
-	BPy_StrokeShader py_ss;
+  BPy_StrokeShader py_ss;
 } BPy_ConstantColorShader;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H__ */

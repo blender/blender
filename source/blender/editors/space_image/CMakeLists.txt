@@ -16,65 +16,65 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../depsgraph
-	../../imbuf
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../imbuf
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../render/extern/include
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	image_buttons.c
-	image_draw.c
-	image_edit.c
-	image_ops.c
-	space_image.c
+  image_buttons.c
+  image_draw.c
+  image_edit.c
+  image_ops.c
+  space_image.c
 
-	image_intern.h
+  image_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
-	bf_editor_uvedit
+  bf_blenkernel
+  bf_blenlib
+  bf_editor_uvedit
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_OPENIMAGEIO)
-	add_definitions(-DWITH_OPENIMAGEIO)
+  add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	add_definitions(-DWITH_OPENJPEG)
+  add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-	add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_OPENEXR)
 endif()
 
 if(WITH_IMAGE_TIFF)
-	add_definitions(-DWITH_TIFF)
+  add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_IMAGE_CINEON)
-	add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_CINEON)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

@@ -32,4 +32,4 @@ void util_aligned_free(void *ptr);
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_ALIGNED_MALLOC_H__ */
+#endif /* __UTIL_ALIGNED_MALLOC_H__ */

@@ -26,9 +26,11 @@
  * \ingroup Node
  */
 class AlphaOverNode : public Node {
-public:
-	AlphaOverNode(bNode *editorNode) : Node(editorNode) {}
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  AlphaOverNode(bNode *editorNode) : Node(editorNode)
+  {
+  }
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

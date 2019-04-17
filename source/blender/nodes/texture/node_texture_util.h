@@ -21,7 +21,6 @@
  * \ingroup nodes
  */
 
-
 #ifndef __NODE_TEXTURE_UTIL_H__
 #define __NODE_TEXTURE_UTIL_H__
 
@@ -66,54 +65,62 @@
 #include "RE_shader_ext.h"
 
 typedef struct TexCallData {
-	TexResult *target;
-	/* all float[3] */
-	float *co;
-	float *dxt, *dyt;
+  TexResult *target;
+  /* all float[3] */
+  float *co;
+  float *dxt, *dyt;
 
-	int osatex;
-	bool do_preview;
-	bool do_manage;
-	short thread;
-	short which_output;
-	int cfra;
+  int osatex;
+  bool do_preview;
+  bool do_manage;
+  short thread;
+  short which_output;
+  int cfra;
 
-	MTex *mtex;
+  MTex *mtex;
 } TexCallData;
 
 typedef struct TexParams {
-	float *co;
-	float *dxt, *dyt;
-	const float *previewco;
-	int cfra;
-	int osatex;
+  float *co;
+  float *dxt, *dyt;
+  const float *previewco;
+  int cfra;
+  int osatex;
 
-	/* optional. we don't really want these here, but image
-	 * textures need to do mapping & color correction */
-	MTex *mtex;
+  /* optional. we don't really want these here, but image
+   * textures need to do mapping & color correction */
+  MTex *mtex;
 } TexParams;
 
-typedef void(*TexFn) (float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
+typedef void (*TexFn)(float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
 
 typedef struct TexDelegate {
-	TexCallData *cdata;
-	TexFn fn;
-	bNode *node;
-	bNodePreview *preview;
-	bNodeStack *in[MAX_SOCKET];
-	int type;
+  TexCallData *cdata;
+  TexFn fn;
+  bNode *node;
+  bNodePreview *preview;
+  bNodeStack *in[MAX_SOCKET];
+  int type;
 } TexDelegate;
 
-
 bool tex_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
-void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void tex_node_type_base(
+    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 
 void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread);
 void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);
 float tex_input_value(bNodeStack *in, TexParams *params, short thread);
 
-void tex_output(bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *data);
-void tex_do_preview(bNodePreview *preview, const float coord[2], const float col[4], bool do_manage);
+void tex_output(bNode *node,
+                bNodeExecData *execdata,
+                bNodeStack **in,
+                bNodeStack *out,
+                TexFn texfn,
+                TexCallData *data);
+void tex_do_preview(bNodePreview *preview,
+                    const float coord[2],
+                    const float col[4],
+                    bool do_manage);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 

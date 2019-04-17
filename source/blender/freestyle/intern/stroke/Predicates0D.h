@@ -25,7 +25,7 @@
 #include "../view_map/Functions0D.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
@@ -41,39 +41,39 @@ namespace Freestyle {
  *  The UnaryPredicate0D is used by calling its () operator.
  *  Any inherited class must overload the () operator.
  */
-class UnaryPredicate0D
-{
-public:
-	bool result;
-	void *py_up0D;
+class UnaryPredicate0D {
+ public:
+  bool result;
+  void *py_up0D;
 
-	/*! Default constructor. */
-	UnaryPredicate0D()
-	{
-		py_up0D = 0;
-	}
+  /*! Default constructor. */
+  UnaryPredicate0D()
+  {
+    py_up0D = 0;
+  }
 
-	/*! Destructor. */
-	virtual ~UnaryPredicate0D() {}
+  /*! Destructor. */
+  virtual ~UnaryPredicate0D()
+  {
+  }
 
-	/*! Returns the string of the name of the UnaryPredicate0D. */
-	virtual string getName() const
-	{
-		return "UnaryPredicate0D";
-	}
+  /*! Returns the string of the name of the UnaryPredicate0D. */
+  virtual string getName() const
+  {
+    return "UnaryPredicate0D";
+  }
 
-	/*! The () operator. Must be overload by inherited classes.
-	 *  \param it:
-	 *    The Interface0DIterator pointing onto the Interface0D at which we wish to evaluate the predicate.
-	 *  \return true if the condition is satisfied, false otherwise.
-	 */
-	virtual int operator()(Interface0DIterator& it);
+  /*! The () operator. Must be overload by inherited classes.
+   *  \param it:
+   *    The Interface0DIterator pointing onto the Interface0D at which we wish to evaluate the predicate.
+   *  \return true if the condition is satisfied, false otherwise.
+   */
+  virtual int operator()(Interface0DIterator &it);
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate0D")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate0D")
 #endif
 };
-
 
 //
 // BinaryPredicate0D (base class for predicates in 0D)
@@ -85,42 +85,42 @@ public:
  *  It evaluates a relation between 2 Interface0D and returns true or false.
  *  It is used by calling the () operator.
  */
-class BinaryPredicate0D
-{
-public:
-	bool result;
-	void *py_bp0D;
+class BinaryPredicate0D {
+ public:
+  bool result;
+  void *py_bp0D;
 
-	/*! Default constructor. */
-	BinaryPredicate0D()
-	{
-		py_bp0D = 0;
-	}
+  /*! Default constructor. */
+  BinaryPredicate0D()
+  {
+    py_bp0D = 0;
+  }
 
-	/*! Destructor. */
-	virtual ~BinaryPredicate0D() {}
+  /*! Destructor. */
+  virtual ~BinaryPredicate0D()
+  {
+  }
 
-	/*! Returns the string of the name of the binary predicate. */
-	virtual string getName() const
-	{
-		return "BinaryPredicate0D";
-	}
+  /*! Returns the string of the name of the binary predicate. */
+  virtual string getName() const
+  {
+    return "BinaryPredicate0D";
+  }
 
-	/*! The () operator. Must be overload by inherited classes.
-	 *  It evaluates a relation between 2 Interface0D.
-	 *  \param inter1:
-	 *    The first Interface0D.
-	 *  \param inter2:
-	 *    The second Interface0D.
-	 *  \return true or false.
-	 */
-	virtual int operator()(Interface0D& inter1, Interface0D& inter2);
+  /*! The () operator. Must be overload by inherited classes.
+   *  It evaluates a relation between 2 Interface0D.
+   *  \param inter1:
+   *    The first Interface0D.
+   *  \param inter2:
+   *    The second Interface0D.
+   *  \return true or false.
+   */
+  virtual int operator()(Interface0D &inter1, Interface0D &inter2);
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate0D")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate0D")
 #endif
 };
-
 
 //
 // Predicates definitions
@@ -131,50 +131,52 @@ namespace Predicates0D {
 
 // TrueUP0D
 /*! Returns true any time */
-class TrueUP0D : public UnaryPredicate0D
-{
-public:
-	/*! Default constructor. */
-	TrueUP0D() {}
+class TrueUP0D : public UnaryPredicate0D {
+ public:
+  /*! Default constructor. */
+  TrueUP0D()
+  {
+  }
 
-	/*! Returns the string "TrueUP0D"*/
-	string getName() const
-	{
-		return "TrueUP0D";
-	}
+  /*! Returns the string "TrueUP0D"*/
+  string getName() const
+  {
+    return "TrueUP0D";
+  }
 
-	/*! The () operator. */
-	int operator()(Interface0DIterator&)
-	{
-		result = true;
-		return 0;
-	}
+  /*! The () operator. */
+  int operator()(Interface0DIterator &)
+  {
+    result = true;
+    return 0;
+  }
 };
 
 // FalseUP0D
 /*! Returns false any time */
-class FalseUP0D : public UnaryPredicate0D
-{
-public:
-	/*! Default constructor. */
-	FalseUP0D() {}
+class FalseUP0D : public UnaryPredicate0D {
+ public:
+  /*! Default constructor. */
+  FalseUP0D()
+  {
+  }
 
-	/*! Returns the string "FalseUP0D"*/
-	string getName() const
-	{
-		return "FalseUP0D";
-	}
+  /*! Returns the string "FalseUP0D"*/
+  string getName() const
+  {
+    return "FalseUP0D";
+  }
 
-	/*! The () operator. */
-	int operator()(Interface0DIterator&)
-	{
-		result = false;
-		return 0;
-	}
+  /*! The () operator. */
+  int operator()(Interface0DIterator &)
+  {
+    result = false;
+    return 0;
+  }
 };
 
-} // end of namespace Predicates0D
+}  // end of namespace Predicates0D
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_PREDICATES_0D_H__
+#endif  // __FREESTYLE_PREDICATES_0D_H__

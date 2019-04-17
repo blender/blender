@@ -17,25 +17,23 @@
 #include "stdosl.h"
 #include "node_ramp_util.h"
 
-shader node_vector_curves(
-	color ramp[] = {0.0},
-	float min_x = 0.0,
-	float max_x = 1.0,
+shader node_vector_curves(color ramp[] = {0.0},
+                          float min_x = 0.0,
+                          float max_x = 1.0,
 
-	vector VectorIn = vector(0.0, 0.0, 0.0),
-	float Fac = 0.0,
-	output vector VectorOut = vector(0.0, 0.0, 0.0))
+                          vector VectorIn = vector(0.0, 0.0, 0.0),
+                          float Fac = 0.0,
+                          output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-	vector c = (VectorIn - vector(min_x, min_x, min_x)) / (max_x - min_x);
+  vector c = (VectorIn - vector(min_x, min_x, min_x)) / (max_x - min_x);
 
-	color r = rgb_ramp_lookup(ramp, c[0], 1, 1);
-	color g = rgb_ramp_lookup(ramp, c[0], 1, 1);
-	color b = rgb_ramp_lookup(ramp, c[0], 1, 1);
+  color r = rgb_ramp_lookup(ramp, c[0], 1, 1);
+  color g = rgb_ramp_lookup(ramp, c[0], 1, 1);
+  color b = rgb_ramp_lookup(ramp, c[0], 1, 1);
 
-	VectorOut[0] = r[0];
-	VectorOut[1] = g[1];
-	VectorOut[2] = b[2];
+  VectorOut[0] = r[0];
+  VectorOut[1] = g[1];
+  VectorOut[2] = b[2];
 
-	VectorOut = mix(VectorIn, VectorOut, Fac);
+  VectorOut = mix(VectorIn, VectorOut, Fac);
 }
-

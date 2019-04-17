@@ -34,56 +34,54 @@ struct Collection;
 struct Object;
 
 typedef struct CollectionObject {
-	struct CollectionObject *next, *prev;
-	struct Object *ob;
+  struct CollectionObject *next, *prev;
+  struct Object *ob;
 } CollectionObject;
 
-
 typedef struct CollectionChild {
-	struct CollectionChild *next, *prev;
-	struct Collection *collection;
+  struct CollectionChild *next, *prev;
+  struct Collection *collection;
 } CollectionChild;
 
-
 typedef struct Collection {
-	ID id;
+  ID id;
 
-	/** CollectionObject. */
-	ListBase gobject;
-	/** CollectionChild. */
-	ListBase children;
+  /** CollectionObject. */
+  ListBase gobject;
+  /** CollectionChild. */
+  ListBase children;
 
-	struct PreviewImage *preview;
+  struct PreviewImage *preview;
 
-	unsigned int layer DNA_DEPRECATED;
-	float instance_offset[3];
+  unsigned int layer DNA_DEPRECATED;
+  float instance_offset[3];
 
-	short flag;
-	char _pad[6];
+  short flag;
+  char _pad[6];
 
-	/* Runtime. Cache of objects in this collection and all its
-	 * children. This is created on demand when e.g. some physics
-	 * simulation needs it, we don't want to have it for every
-	 * collections due to memory usage reasons. */
-	ListBase object_cache;
+  /* Runtime. Cache of objects in this collection and all its
+   * children. This is created on demand when e.g. some physics
+   * simulation needs it, we don't want to have it for every
+   * collections due to memory usage reasons. */
+  ListBase object_cache;
 
-	/* Runtime. List of collections that are a parent of this
-	 * datablock. */
-	ListBase parents;
+  /* Runtime. List of collections that are a parent of this
+   * datablock. */
+  ListBase parents;
 
-	/* Deprecated */
-	struct SceneCollection *collection DNA_DEPRECATED;
-	struct ViewLayer *view_layer DNA_DEPRECATED;
+  /* Deprecated */
+  struct SceneCollection *collection DNA_DEPRECATED;
+  struct ViewLayer *view_layer DNA_DEPRECATED;
 } Collection;
 
 /* Collection->flag */
 enum {
-	COLLECTION_RESTRICT_VIEW       = (1 << 0), /* Hidden in viewport. */
-	COLLECTION_RESTRICT_SELECT     = (1 << 1), /* Not selectable in viewport. */
-	COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* Not used anymore */
-	COLLECTION_RESTRICT_RENDER     = (1 << 3), /* Hidden in renders. */
-	COLLECTION_HAS_OBJECT_CACHE    = (1 << 4), /* Runtime: object_cache is populated. */
-	COLLECTION_IS_MASTER           = (1 << 5), /* Is master collection embedded in the scene. */
+  COLLECTION_RESTRICT_VIEW = (1 << 0),       /* Hidden in viewport. */
+  COLLECTION_RESTRICT_SELECT = (1 << 1),     /* Not selectable in viewport. */
+  COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* Not used anymore */
+  COLLECTION_RESTRICT_RENDER = (1 << 3),     /* Hidden in renders. */
+  COLLECTION_HAS_OBJECT_CACHE = (1 << 4),    /* Runtime: object_cache is populated. */
+  COLLECTION_IS_MASTER = (1 << 5),           /* Is master collection embedded in the scene. */
 };
 
-#endif  /* __DNA_COLLECTION_TYPES_H__ */
+#endif /* __DNA_COLLECTION_TYPES_H__ */

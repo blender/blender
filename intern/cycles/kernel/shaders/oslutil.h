@@ -39,57 +39,63 @@
 //
 float wireframe(string edge_type, float line_width, int raster)
 {
-   // ray differentials are so big in diffuse context that this function would always return "wire"
-   if (raytype("path:diffuse")) return 0.0;
+  // ray differentials are so big in diffuse context that this function would always return "wire"
+  if (raytype("path:diffuse"))
+    return 0.0;
 
-   int np = 0;
-   point p[64];
-   float pixelWidth = 1;
+  int np = 0;
+  point p[64];
+  float pixelWidth = 1;
 
-   if (edge_type == "triangles")
-   {
-      np = 3;
-      if (!getattribute("geom:trianglevertices", p))
-         return 0.0;
-   }
-   else if (edge_type == "polygons" || edge_type == "patches")
-   {
-      getattribute("geom:numpolyvertices", np);
-      if (np < 3 || !getattribute("geom:polyvertices", p))
-         return 0.0;
-   }
+  if (edge_type == "triangles") {
+    np = 3;
+    if (!getattribute("geom:trianglevertices", p))
+      return 0.0;
+  }
+  else if (edge_type == "polygons" || edge_type == "patches") {
+    getattribute("geom:numpolyvertices", np);
+    if (np < 3 || !getattribute("geom:polyvertices", p))
+      return 0.0;
+  }
 
-   if (raster)
-   {
-      // Project the derivatives of P to the viewing plane defined
-      // by I so we have a measure of how big is a pixel at this point
-      float pixelWidthX = length(Dx(P) - dot(Dx(P), I) * I);
-      float pixelWidthY = length(Dy(P) - dot(Dy(P), I) * I);
-      // Take the average of both axis' length
-      pixelWidth = (pixelWidthX + pixelWidthY) / 2;
-   }
+  if (raster) {
+    // Project the derivatives of P to the viewing plane defined
+    // by I so we have a measure of how big is a pixel at this point
+    float pixelWidthX = length(Dx(P) - dot(Dx(P), I) * I);
+    float pixelWidthY = length(Dy(P) - dot(Dy(P), I) * I);
+    // Take the average of both axis' length
+    pixelWidth = (pixelWidthX + pixelWidthY) / 2;
+  }
 
-   // Use half the width as the neighbor face will render the
-   // other half. And take the square for fast comparison
-   pixelWidth *= 0.5 * line_width;
-   pixelWidth *= pixelWidth;
-   for (int i = 0; i < np; i++)
-   {
-      int i2 = i ? i - 1 : np - 1;
-      vector dir = P - p[i];
-      vector edge = p[i] - p[i2];
-      vector crs = cross(edge, dir);
-      // At this point dot(crs, crs) / dot(edge, edge) is
-      // the square of area / length(edge) == square of the
-      // distance to the edge.
-      if (dot(crs, crs) < (dot(edge, edge) * pixelWidth))
-         return 1;
-   }
-   return 0;
+  // Use half the width as the neighbor face will render the
+  // other half. And take the square for fast comparison
+  pixelWidth *= 0.5 * line_width;
+  pixelWidth *= pixelWidth;
+  for (int i = 0; i < np; i++) {
+    int i2 = i ? i - 1 : np - 1;
+    vector dir = P - p[i];
+    vector edge = p[i] - p[i2];
+    vector crs = cross(edge, dir);
+    // At this point dot(crs, crs) / dot(edge, edge) is
+    // the square of area / length(edge) == square of the
+    // distance to the edge.
+    if (dot(crs, crs) < (dot(edge, edge) * pixelWidth))
+      return 1;
+  }
+  return 0;
 }
 
-float wireframe(string edge_type, float line_width) { return wireframe(edge_type, line_width, 1); }
-float wireframe(string edge_type) { return wireframe(edge_type, 1.0, 1); }
-float wireframe() { return wireframe("polygons", 1.0, 1); }
+float wireframe(string edge_type, float line_width)
+{
+  return wireframe(edge_type, line_width, 1);
+}
+float wireframe(string edge_type)
+{
+  return wireframe(edge_type, 1.0, 1);
+}
+float wireframe()
+{
+  return wireframe("polygons", 1.0, 1);
+}
 
-#endif  /* CCL_OSLUTIL_H */
+#endif /* CCL_OSLUTIL_H */

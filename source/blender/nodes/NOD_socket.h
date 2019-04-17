@@ -21,7 +21,6 @@
  * \ingroup nodes
  */
 
-
 #ifndef __NOD_SOCKET_H__
 #define __NOD_SOCKET_H__
 
@@ -36,7 +35,10 @@
 struct bNode;
 struct bNodeTree;
 
-struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp, int in_out);
+struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
+                                                  struct bNode *node,
+                                                  struct bNodeSocketTemplate *stemp,
+                                                  int in_out);
 
 void node_verify_socket_templates(struct bNodeTree *ntree, struct bNode *node);
 

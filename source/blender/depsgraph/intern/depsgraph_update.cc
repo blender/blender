@@ -34,25 +34,23 @@ static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = NULL;
 
 void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 {
-	if (deg_editor_update_id_cb != NULL) {
-		deg_editor_update_id_cb(update_ctx, id);
-	}
+  if (deg_editor_update_id_cb != NULL) {
+    deg_editor_update_id_cb(update_ctx, id);
+  }
 }
 
-void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
-                              bool updated)
+void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx, bool updated)
 {
-	if (deg_editor_update_scene_cb != NULL) {
-		deg_editor_update_scene_cb(update_ctx, updated);
-	}
+  if (deg_editor_update_scene_cb != NULL) {
+    deg_editor_update_scene_cb(update_ctx, updated);
+  }
 }
 
 }  // namespace DEG
 
 /* Set callbacks which are being called when depsgraph changes. */
-void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
-                               DEG_EditorUpdateSceneCb scene_func)
+void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func, DEG_EditorUpdateSceneCb scene_func)
 {
-	DEG::deg_editor_update_id_cb = id_func;
-	DEG::deg_editor_update_scene_cb = scene_func;
+  DEG::deg_editor_update_id_cb = id_func;
+  DEG::deg_editor_update_scene_cb = scene_func;
 }

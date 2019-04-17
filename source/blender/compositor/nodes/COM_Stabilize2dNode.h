@@ -27,9 +27,9 @@
  * \ingroup Node
  */
 class Stabilize2dNode : public Node {
-public:
-	Stabilize2dNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  Stabilize2dNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

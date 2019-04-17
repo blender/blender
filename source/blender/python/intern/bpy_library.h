@@ -24,4 +24,4 @@
 int BPY_library_load_module(PyObject *mod_par);
 int BPY_library_write_module(PyObject *mod_par);
 
-#endif  /* __BPY_LIBRARY_H__ */
+#endif /* __BPY_LIBRARY_H__ */

@@ -39,11 +39,11 @@ extern "C" {
 #endif
 
 typedef enum ePhysicsRelationType {
-	DEG_PHYSICS_EFFECTOR        = 0,
-	DEG_PHYSICS_COLLISION       = 1,
-	DEG_PHYSICS_SMOKE_COLLISION = 2,
-	DEG_PHYSICS_DYNAMIC_BRUSH   = 3,
-	DEG_PHYSICS_RELATIONS_NUM   = 4,
+  DEG_PHYSICS_EFFECTOR = 0,
+  DEG_PHYSICS_COLLISION = 1,
+  DEG_PHYSICS_SMOKE_COLLISION = 2,
+  DEG_PHYSICS_DYNAMIC_BRUSH = 3,
+  DEG_PHYSICS_RELATIONS_NUM = 4,
 } ePhysicsRelationType;
 
 /* Get collision/effector relations from collection or entire scene. These
@@ -55,10 +55,8 @@ struct ListBase *DEG_get_collision_relations(const struct Depsgraph *depsgraph,
                                              struct Collection *collection,
                                              unsigned int modifier_type);
 
-
 /* Build collision/effector relations for depsgraph. */
-typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj,
-                                          struct ModifierData *md);
+typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj, struct ModifierData *md);
 
 void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  struct Object *object,
@@ -77,4 +75,4 @@ void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
 } /* extern "C" */
 #endif
 
-#endif  /* __DEG_DEPSGRAPH_PHYSICS_H__ */
+#endif /* __DEG_DEPSGRAPH_PHYSICS_H__ */

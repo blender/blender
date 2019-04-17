@@ -26,23 +26,20 @@ struct ID;
 struct IDNameLib_Map;
 struct Main;
 
-struct IDNameLib_Map *BKE_main_idmap_create(
-        struct Main *bmain,
-        const bool create_valid_ids_set,
-        struct Main *old_bmain)
-        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void BKE_main_idmap_destroy(
-        struct IDNameLib_Map *id_typemap)
-        ATTR_NONNULL();
-struct Main *BKE_main_idmap_main_get(
-        struct IDNameLib_Map *id_typemap)
-        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-struct ID *BKE_main_idmap_lookup(
-        struct IDNameLib_Map *id_typemap,
-        short id_type, const char *name, const struct Library *lib)
-        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3);
-struct ID *BKE_main_idmap_lookup_id(
-        struct IDNameLib_Map *id_typemap, const struct ID *id)
-        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
+struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
+                                            const bool create_valid_ids_set,
+                                            struct Main *old_bmain) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+void BKE_main_idmap_destroy(struct IDNameLib_Map *id_typemap) ATTR_NONNULL();
+struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_typemap) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+struct ID *BKE_main_idmap_lookup(struct IDNameLib_Map *id_typemap,
+                                 short id_type,
+                                 const char *name,
+                                 const struct Library *lib) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 3);
+struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_typemap,
+                                    const struct ID *id) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2);
 
-#endif  /* __BKE_LIBRARY_IDMAP_H__ */
+#endif /* __BKE_LIBRARY_IDMAP_H__ */

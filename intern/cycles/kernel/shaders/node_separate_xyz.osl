@@ -16,13 +16,12 @@
 
 #include "stdosl.h"
 
-shader node_separate_xyz(
-	vector Vector = 0.8,
-	output float X = 0.0,
-	output float Y = 0.0,
-	output float Z = 0.0)
+shader node_separate_xyz(vector Vector = 0.8,
+                         output float X = 0.0,
+                         output float Y = 0.0,
+                         output float Z = 0.0)
 {
-	X = Vector[0];
-	Y = Vector[1];
-	Z = Vector[2];
+  X = Vector[0];
+  Y = Vector[1];
+  Z = Vector[2];
 }

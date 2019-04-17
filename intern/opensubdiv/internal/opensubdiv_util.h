@@ -46,9 +46,9 @@ using std::vector;
 #define STRINGIFY_APPEND(a, b) "" a #b
 #define STRINGIFY(x) STRINGIFY_APPEND("", x)
 
-void stringSplit(vector<string>* tokens,
-                 const string& str,
-                 const string& separators,
+void stringSplit(vector<string> *tokens,
+                 const string &str,
+                 const string &separators,
                  bool skip_empty);
 
 }  // namespace opensubdiv_capi

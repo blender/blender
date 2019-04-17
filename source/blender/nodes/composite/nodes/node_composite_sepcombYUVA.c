@@ -21,54 +21,46 @@
  * \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
-
 
 /* **************** SEPARATE YUVA ******************** */
 static bNodeSocketTemplate cmp_node_sepyuva_in[] = {
-	{  SOCK_RGBA, 1, N_("Image"),        1.0f, 1.0f, 1.0f, 1.0f},
-	{  -1, 0, ""   }
-};
-static bNodeSocketTemplate cmp_node_sepyuva_out[] = {
-	{  SOCK_FLOAT, 0, N_("Y")},
-	{  SOCK_FLOAT, 0, N_("U")},
-	{  SOCK_FLOAT, 0, N_("V")},
-	{  SOCK_FLOAT, 0, N_("A")},
-	{  -1, 0, ""   }
-};
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f}, {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_sepyuva_out[] = {{SOCK_FLOAT, 0, N_("Y")},
+                                                     {SOCK_FLOAT, 0, N_("U")},
+                                                     {SOCK_FLOAT, 0, N_("V")},
+                                                     {SOCK_FLOAT, 0, N_("A")},
+                                                     {-1, 0, ""}};
 
 void register_node_type_cmp_sepyuva(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTOR, 0);
-	node_type_socket_templates(&ntype, cmp_node_sepyuva_in, cmp_node_sepyuva_out);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_sepyuva_in, cmp_node_sepyuva_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }
-
-
 
 /* **************** COMBINE YUVA ******************** */
 static bNodeSocketTemplate cmp_node_combyuva_in[] = {
-	{	SOCK_FLOAT, 1, N_("Y"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_FLOAT, 1, N_("U"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_FLOAT, 1, N_("V"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_FLOAT, 1, N_("A"),			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	-1, 0, ""	},
+    {SOCK_FLOAT, 1, N_("Y"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("U"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("V"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate cmp_node_combyuva_out[] = {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
 };
 
 void register_node_type_cmp_combyuva(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTOR, 0);
-	node_type_socket_templates(&ntype, cmp_node_combyuva_in, cmp_node_combyuva_out);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_combyuva_in, cmp_node_combyuva_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

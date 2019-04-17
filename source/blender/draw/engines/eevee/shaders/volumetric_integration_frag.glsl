@@ -15,49 +15,49 @@ layout(location = 1) out vec4 finalTransmittance;
 
 void main()
 {
-	/* Start with full transmittance and no scattered light. */
-	finalScattering = vec4(0.0);
-	finalTransmittance = vec4(1.0);
+  /* Start with full transmittance and no scattered light. */
+  finalScattering = vec4(0.0);
+  finalTransmittance = vec4(1.0);
 
-	vec3 tex_size = vec3(textureSize(volumeScattering, 0).xyz);
+  vec3 tex_size = vec3(textureSize(volumeScattering, 0).xyz);
 
-	/* Compute view ray. */
-	vec2 uvs = gl_FragCoord.xy / tex_size.xy;
-	vec3 ndc_cell = volume_to_ndc(vec3(uvs, 1e-5));
-	vec3 view_cell = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
+  /* Compute view ray. */
+  vec2 uvs = gl_FragCoord.xy / tex_size.xy;
+  vec3 ndc_cell = volume_to_ndc(vec3(uvs, 1e-5));
+  vec3 view_cell = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
 
-	/* Ortho */
-	float prev_ray_len = view_cell.z;
-	float orig_ray_len = 1.0;
+  /* Ortho */
+  float prev_ray_len = view_cell.z;
+  float orig_ray_len = 1.0;
 
-	/* Persp */
-	if (ProjectionMatrix[3][3] == 0.0) {
-		prev_ray_len = length(view_cell);
-		orig_ray_len = prev_ray_len / view_cell.z;
-	}
+  /* Persp */
+  if (ProjectionMatrix[3][3] == 0.0) {
+    prev_ray_len = length(view_cell);
+    orig_ray_len = prev_ray_len / view_cell.z;
+  }
 
-	/* Without compute shader and arbitrary write we need to
-	 * accumulate from the beginning of the ray for each cell. */
-	float integration_end = float(slice);
-	for (int i = 0; i < slice; ++i) {
-		ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
+  /* Without compute shader and arbitrary write we need to
+   * accumulate from the beginning of the ray for each cell. */
+  float integration_end = float(slice);
+  for (int i = 0; i < slice; ++i) {
+    ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
 
-		vec4 Lscat = texelFetch(volumeScattering, volume_cell, 0);
-		vec4 s_extinction = texelFetch(volumeExtinction, volume_cell, 0);
+    vec4 Lscat = texelFetch(volumeScattering, volume_cell, 0);
+    vec4 s_extinction = texelFetch(volumeExtinction, volume_cell, 0);
 
-		float cell_depth = volume_z_to_view_z((float(i) + 1.0) / tex_size.z);
-		float ray_len = orig_ray_len * cell_depth;
+    float cell_depth = volume_z_to_view_z((float(i) + 1.0) / tex_size.z);
+    float ray_len = orig_ray_len * cell_depth;
 
-		/* Evaluate Scattering */
-		float s_len = abs(ray_len - prev_ray_len);
-		prev_ray_len = ray_len;
-		vec4 Tr = exp(-s_extinction * s_len);
+    /* Evaluate Scattering */
+    float s_len = abs(ray_len - prev_ray_len);
+    prev_ray_len = ray_len;
+    vec4 Tr = exp(-s_extinction * s_len);
 
-		/* integrate along the current step segment */
-		Lscat = (Lscat - Lscat * Tr) / s_extinction;
-		/* accumulate and also take into account the transmittance from previous steps */
-		finalScattering += finalTransmittance * Lscat;
+    /* integrate along the current step segment */
+    Lscat = (Lscat - Lscat * Tr) / s_extinction;
+    /* accumulate and also take into account the transmittance from previous steps */
+    finalScattering += finalTransmittance * Lscat;
 
-		finalTransmittance *= Tr;
-	}
+    finalTransmittance *= Tr;
+  }
 }

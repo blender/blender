@@ -27,30 +27,33 @@
  * \ingroup operation
  */
 class AntiAliasOperation : public NodeOperation {
-protected:
-	/**
-	 * \brief Cached reference to the reader
-	 */
-	SocketReader *m_valueReader;
-public:
-	AntiAliasOperation();
+ protected:
+  /**
+   * \brief Cached reference to the reader
+   */
+  SocketReader *m_valueReader;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
+ public:
+  AntiAliasOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixel(float output[4], int x, int y, void *data);
 
-	void *initializeTileData(rcti *rect);
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+  void *initializeTileData(rcti *rect);
+
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output);
 };
 #endif

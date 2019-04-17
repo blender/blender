@@ -28,21 +28,23 @@ struct DRWTextStore;
 struct DRWTextStore *DRW_text_cache_create(void);
 void DRW_text_cache_destroy(struct DRWTextStore *dt);
 
-void DRW_text_cache_add(
-        struct DRWTextStore *dt,
-        const float co[3],
-        const char *str, const int str_len,
-        short xoffs, short yoffs, short flag,
-        const uchar col[4]);
+void DRW_text_cache_add(struct DRWTextStore *dt,
+                        const float co[3],
+                        const char *str,
+                        const int str_len,
+                        short xoffs,
+                        short yoffs,
+                        short flag,
+                        const uchar col[4]);
 
 void DRW_text_cache_draw(struct DRWTextStore *dt, struct ARegion *ar);
 
 enum {
-	DRW_TEXT_CACHE_ASCII        = (1 << 0),
-	DRW_TEXT_CACHE_GLOBALSPACE  = (1 << 1),
-	DRW_TEXT_CACHE_LOCALCLIP    = (1 << 2),
-	/* reference the string by pointer */
-	DRW_TEXT_CACHE_STRING_PTR   = (1 << 3),
+  DRW_TEXT_CACHE_ASCII = (1 << 0),
+  DRW_TEXT_CACHE_GLOBALSPACE = (1 << 1),
+  DRW_TEXT_CACHE_LOCALCLIP = (1 << 2),
+  /* reference the string by pointer */
+  DRW_TEXT_CACHE_STRING_PTR = (1 << 3),
 };
 
 /* draw_manager.c */

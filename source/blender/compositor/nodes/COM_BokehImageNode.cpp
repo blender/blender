@@ -22,16 +22,17 @@
 
 BokehImageNode::BokehImageNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void BokehImageNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void BokehImageNode::convertToOperations(NodeConverter &converter,
+                                         const CompositorContext & /*context*/) const
 {
-	BokehImageOperation *operation = new BokehImageOperation();
-	operation->setData((NodeBokehImage *)this->getbNode()->storage);
+  BokehImageOperation *operation = new BokehImageOperation();
+  operation->setData((NodeBokehImage *)this->getbNode()->storage);
 
-	converter.addOperation(operation);
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.addOperation(operation);
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 
-	converter.addPreview(operation->getOutputSocket(0));
+  converter.addPreview(operation->getOutputSocket(0));
 }

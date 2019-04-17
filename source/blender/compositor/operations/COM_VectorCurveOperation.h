@@ -22,27 +22,28 @@
 #include "COM_CurveBaseOperation.h"
 
 class VectorCurveOperation : public CurveBaseOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputProgram;
-public:
-	VectorCurveOperation();
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputProgram;
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  VectorCurveOperation();
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
+
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 };
 #endif

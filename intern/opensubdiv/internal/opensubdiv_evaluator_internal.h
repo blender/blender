@@ -42,29 +42,30 @@ class CpuEvalOutput;
 class CpuEvalOutputAPI {
  public:
   // NOTE: API object becomes an owner of evaluator. Patch we are referencing.
-  CpuEvalOutputAPI(CpuEvalOutput* implementation,
-                   OpenSubdiv::Far::PatchMap* patch_map);
+  CpuEvalOutputAPI(CpuEvalOutput *implementation, OpenSubdiv::Far::PatchMap *patch_map);
   ~CpuEvalOutputAPI();
 
   // Set coarse positions from a continuous array of coordinates.
-  void setCoarsePositions(const float* positions,
+  void setCoarsePositions(const float *positions,
                           const int start_vertex_index,
                           const int num_vertices);
   // Set varying data from a continuous array of data.
-  void setVaryingData(const float* varying_data,
-                      const int start_vertex_index, const int num_vertices);
+  void setVaryingData(const float *varying_data,
+                      const int start_vertex_index,
+                      const int num_vertices);
   // Set face varying data from a continuous array of data.
   //
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
   void setFaceVaryingData(const int face_varying_channel,
-                          const float* varying_data,
-                          const int start_vertex_index, const int num_vertices);
+                          const float *varying_data,
+                          const int start_vertex_index,
+                          const int num_vertices);
 
   // Set coarse vertex position from a continuous memory buffer where
   // first coordinate starts at offset of `start_offset` and there is `stride`
   // bytes between adjacent vertex coordinates.
-  void setCoarsePositionsFromBuffer(const void* buffer,
+  void setCoarsePositionsFromBuffer(const void *buffer,
                                     const int start_offset,
                                     const int stride,
                                     const int start_vertex_index,
@@ -72,7 +73,7 @@ class CpuEvalOutputAPI {
   // Set varying data from a continuous memory buffer where
   // first coordinate starts at offset of `start_offset` and there is `stride`
   // bytes between adjacent vertex coordinates.
-  void setVaryingDataFromBuffer(const void* buffer,
+  void setVaryingDataFromBuffer(const void *buffer,
                                 const int start_offset,
                                 const int stride,
                                 const int start_vertex_index,
@@ -84,7 +85,7 @@ class CpuEvalOutputAPI {
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
   void setFaceVaryingDataFromBuffer(const int face_varying_channel,
-                                    const void* buffer,
+                                    const void *buffer,
                                     const int start_offset,
                                     const int stride,
                                     const int start_vertex_index,
@@ -96,24 +97,26 @@ class CpuEvalOutputAPI {
   // Evaluate given ptex face at given bilinear coordinate.
   // If derivatives are NULL, they will not be evaluated.
   void evaluateLimit(const int ptex_face_index,
-                     float face_u, float face_v,
-                     float P[3], float dPdu[3], float dPdv[3]);
+                     float face_u,
+                     float face_v,
+                     float P[3],
+                     float dPdu[3],
+                     float dPdv[3]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
-  void evaluateVarying(const int ptes_face_index,
-                       float face_u, float face_v,
-                       float varying[3]);
+  void evaluateVarying(const int ptes_face_index, float face_u, float face_v, float varying[3]);
 
   // Evaluate facee-varying data at a given bilinear coordinate of given
   // ptex face.
   void evaluateFaceVarying(const int face_varying_channel,
                            const int ptes_face_index,
-                           float face_u, float face_v,
+                           float face_u,
+                           float face_v,
                            float face_varying[2]);
 
  protected:
-  CpuEvalOutput* implementation_;
-  OpenSubdiv::Far::PatchMap* patch_map_;
+  CpuEvalOutput *implementation_;
+  OpenSubdiv::Far::PatchMap *patch_map_;
 };
 
 }  // namespace opensubdiv_capi
@@ -123,15 +126,14 @@ struct OpenSubdiv_EvaluatorInternal {
   OpenSubdiv_EvaluatorInternal();
   ~OpenSubdiv_EvaluatorInternal();
 
-  opensubdiv_capi::CpuEvalOutputAPI* eval_output;
-  const OpenSubdiv::Far::PatchMap* patch_map;
-  const OpenSubdiv::Far::PatchTable* patch_table;
+  opensubdiv_capi::CpuEvalOutputAPI *eval_output;
+  const OpenSubdiv::Far::PatchMap *patch_map;
+  const OpenSubdiv::Far::PatchTable *patch_table;
 };
 
-OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
-    struct OpenSubdiv_TopologyRefiner* topology_refiner);
+OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
+    struct OpenSubdiv_TopologyRefiner *topology_refiner);
 
-void openSubdiv_deleteEvaluatorInternal(
-    OpenSubdiv_EvaluatorInternal* evaluator);
+void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorInternal *evaluator);
 
 #endif  // OPENSUBDIV_EVALUATOR_INTERNAL_H_

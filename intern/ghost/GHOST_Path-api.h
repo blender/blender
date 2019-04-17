@@ -21,7 +21,6 @@
  * \ingroup GHOST
  */
 
-
 #ifndef __GHOST_PATH_API_H__
 #define __GHOST_PATH_API_H__
 
@@ -57,7 +56,6 @@ extern const GHOST_TUns8 *GHOST_getSystemDir(int version, const char *versionstr
  * \return Unsigned char string pointing to user dir (eg ~).
  */
 extern const GHOST_TUns8 *GHOST_getUserDir(int version, const char *versionstr);
-
 
 /**
  * Determine the dir in which the binary file is found.

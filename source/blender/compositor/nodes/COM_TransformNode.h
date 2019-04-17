@@ -27,9 +27,9 @@
  * \ingroup Node
  */
 class TransformNode : public Node {
-public:
-	TransformNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  TransformNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* __COM_TRANSFORMNODE_H__ */
+#endif /* __COM_TRANSFORMNODE_H__ */

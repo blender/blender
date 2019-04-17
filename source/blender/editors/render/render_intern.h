@@ -21,7 +21,6 @@
  * \ingroup edrend
  */
 
-
 #ifndef __RENDER_INTERN_H__
 #define __RENDER_INTERN_H__
 
@@ -74,7 +73,6 @@ void SCENE_OT_freestyle_modifier_move(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_modifier_copy(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_stroke_material_create(struct wmOperatorType *ot);
 #endif
-
 
 void TEXTURE_OT_slot_copy(struct wmOperatorType *ot);
 void TEXTURE_OT_slot_paste(struct wmOperatorType *ot);

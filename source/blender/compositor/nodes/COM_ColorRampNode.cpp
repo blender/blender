@@ -25,27 +25,28 @@
 
 ColorRampNode::ColorRampNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void ColorRampNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void ColorRampNode::convertToOperations(NodeConverter &converter,
+                                        const CompositorContext & /*context*/) const
 {
-	NodeInput *inputSocket = this->getInputSocket(0);
-	NodeOutput *outputSocket = this->getOutputSocket(0);
-	NodeOutput *outputSocketAlpha = this->getOutputSocket(1);
-	bNode *editorNode = this->getbNode();
+  NodeInput *inputSocket = this->getInputSocket(0);
+  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeOutput *outputSocketAlpha = this->getOutputSocket(1);
+  bNode *editorNode = this->getbNode();
 
-	ColorRampOperation *operation = new ColorRampOperation();
-	operation->setColorBand((ColorBand *)editorNode->storage);
-	converter.addOperation(operation);
+  ColorRampOperation *operation = new ColorRampOperation();
+  operation->setColorBand((ColorBand *)editorNode->storage);
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 
-	SeparateChannelOperation *operation2 = new SeparateChannelOperation();
-	operation2->setChannel(3);
-	converter.addOperation(operation2);
+  SeparateChannelOperation *operation2 = new SeparateChannelOperation();
+  operation2->setChannel(3);
+  converter.addOperation(operation2);
 
-	converter.addLink(operation->getOutputSocket(), operation2->getInputSocket(0));
-	converter.mapOutputSocket(outputSocketAlpha, operation2->getOutputSocket());
+  converter.addLink(operation->getOutputSocket(), operation2->getInputSocket(0));
+  converter.mapOutputSocket(outputSocketAlpha, operation2->getOutputSocket());
 }

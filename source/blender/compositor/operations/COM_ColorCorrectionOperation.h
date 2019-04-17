@@ -20,41 +20,52 @@
 #define __COM_COLORCORRECTIONOPERATION_H__
 #include "COM_NodeOperation.h"
 
-
 class ColorCorrectionOperation : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputImage;
-	SocketReader *m_inputMask;
-	NodeColorCorrection *m_data;
+ private:
+  /**
+   * Cached reference to the inputProgram
+   */
+  SocketReader *m_inputImage;
+  SocketReader *m_inputMask;
+  NodeColorCorrection *m_data;
 
-	bool m_redChannelEnabled;
-	bool m_greenChannelEnabled;
-	bool m_blueChannelEnabled;
+  bool m_redChannelEnabled;
+  bool m_greenChannelEnabled;
+  bool m_blueChannelEnabled;
 
-public:
-	ColorCorrectionOperation();
+ public:
+  ColorCorrectionOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
+  /**
+   * Initialize the execution
+   */
+  void initExecution();
 
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+  /**
+   * Deinitialize the execution
+   */
+  void deinitExecution();
 
-	void setData(NodeColorCorrection *data) { this->m_data = data; }
-	void setRedChannelEnabled(bool enabled) { this->m_redChannelEnabled = enabled; }
-	void setGreenChannelEnabled(bool enabled) { this->m_greenChannelEnabled = enabled; }
-	void setBlueChannelEnabled(bool enabled) { this->m_blueChannelEnabled = enabled; }
+  void setData(NodeColorCorrection *data)
+  {
+    this->m_data = data;
+  }
+  void setRedChannelEnabled(bool enabled)
+  {
+    this->m_redChannelEnabled = enabled;
+  }
+  void setGreenChannelEnabled(bool enabled)
+  {
+    this->m_greenChannelEnabled = enabled;
+  }
+  void setBlueChannelEnabled(bool enabled)
+  {
+    this->m_blueChannelEnabled = enabled;
+  }
 };
 #endif

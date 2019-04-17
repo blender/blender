@@ -19,15 +19,15 @@
 
 void CCL_init_logging(const char *argv0)
 {
-	ccl::util_logging_init(argv0);
+  ccl::util_logging_init(argv0);
 }
 
 void CCL_start_debug_logging()
 {
-	ccl::util_logging_start();
+  ccl::util_logging_start();
 }
 
 void CCL_logging_verbosity_set(int verbosity)
 {
-	ccl::util_logging_verbosity_set(verbosity);
+  ccl::util_logging_verbosity_set(verbosity);
 }

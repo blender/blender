@@ -24,83 +24,82 @@
 
 #include "workbench_private.h"
 
-
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
 {
-	WORKBENCH_StorageList *stl = vedata->stl;
-	WORKBENCH_PrivateData *wpd = stl->g_data;
-	WORKBENCH_PassList *psl = vedata->psl;
-	WORKBENCH_EffectInfo *effect_info = stl->effects;
-	const DRWContextState *draw_ctx = DRW_context_state_get();
+  WORKBENCH_StorageList *stl = vedata->stl;
+  WORKBENCH_PrivateData *wpd = stl->g_data;
+  WORKBENCH_PassList *psl = vedata->psl;
+  WORKBENCH_EffectInfo *effect_info = stl->effects;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	if (draw_ctx->evil_C != NULL) {
-		struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
-		wpd->is_playback = ED_screen_animation_playing(wm) != NULL;
-	}
-	else {
-		wpd->is_playback = false;
-	}
+  if (draw_ctx->evil_C != NULL) {
+    struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+    wpd->is_playback = ED_screen_animation_playing(wm) != NULL;
+  }
+  else {
+    wpd->is_playback = false;
+  }
 
-	if (TAA_ENABLED(wpd)) {
-		psl->effect_aa_pass = workbench_taa_create_pass(vedata, tx);
-	}
-	else if (FXAA_ENABLED(wpd)) {
-		psl->effect_aa_pass = workbench_fxaa_create_pass(tx);
-		effect_info->jitter_index = 0;
-	}
-	else {
-		psl->effect_aa_pass = NULL;
-	}
+  if (TAA_ENABLED(wpd)) {
+    psl->effect_aa_pass = workbench_taa_create_pass(vedata, tx);
+  }
+  else if (FXAA_ENABLED(wpd)) {
+    psl->effect_aa_pass = workbench_fxaa_create_pass(tx);
+    effect_info->jitter_index = 0;
+  }
+  else {
+    psl->effect_aa_pass = NULL;
+  }
 }
 
 static void workspace_aa_draw_transform(GPUTexture *tx, WORKBENCH_PrivateData *wpd)
 {
-	if (DRW_state_is_image_render()) {
-		/* Linear result for render. */
-		DRW_transform_none(tx);
-	}
-	else {
-		/* Display space result for viewport. */
-		DRW_transform_to_display(tx, wpd->use_color_render_settings, wpd->use_color_render_settings);
-	}
+  if (DRW_state_is_image_render()) {
+    /* Linear result for render. */
+    DRW_transform_none(tx);
+  }
+  else {
+    /* Display space result for viewport. */
+    DRW_transform_to_display(tx, wpd->use_color_render_settings, wpd->use_color_render_settings);
+  }
 }
 
 void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 {
-	WORKBENCH_StorageList *stl = vedata->stl;
-	WORKBENCH_PrivateData *wpd = stl->g_data;
-	WORKBENCH_FramebufferList *fbl = vedata->fbl;
-	WORKBENCH_PassList *psl = vedata->psl;
-	WORKBENCH_EffectInfo *effect_info = stl->effects;
+  WORKBENCH_StorageList *stl = vedata->stl;
+  WORKBENCH_PrivateData *wpd = stl->g_data;
+  WORKBENCH_FramebufferList *fbl = vedata->fbl;
+  WORKBENCH_PassList *psl = vedata->psl;
+  WORKBENCH_EffectInfo *effect_info = stl->effects;
 
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	if (FXAA_ENABLED(wpd)) {
-		GPU_framebuffer_bind(fbl->effect_fb);
-		workspace_aa_draw_transform(tx, wpd);
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		DRW_draw_pass(psl->effect_aa_pass);
-	}
-	else if (TAA_ENABLED(wpd)) {
-		/*
-		 * when drawing the first TAA frame, we transform directly to the
-		 * color_only_fb as the TAA shader is just performing a direct copy.
-		 * the workbench_taa_draw_screen_end will fill the history buffer
-		 * for the other iterations.
-		 */
-		if (effect_info->jitter_index == 1) {
-			GPU_framebuffer_bind(dfbl->color_only_fb);
-			workspace_aa_draw_transform(tx, wpd);
-		}
-		else {
-			GPU_framebuffer_bind(fbl->effect_fb);
-			workspace_aa_draw_transform(tx, wpd);
-			GPU_framebuffer_bind(dfbl->color_only_fb);
-			DRW_draw_pass(psl->effect_aa_pass);
-		}
-		workbench_taa_draw_scene_end(vedata);
-	}
-	else {
-		GPU_framebuffer_bind(dfbl->color_only_fb);
-		workspace_aa_draw_transform(tx, wpd);
-	}
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  if (FXAA_ENABLED(wpd)) {
+    GPU_framebuffer_bind(fbl->effect_fb);
+    workspace_aa_draw_transform(tx, wpd);
+    GPU_framebuffer_bind(dfbl->color_only_fb);
+    DRW_draw_pass(psl->effect_aa_pass);
+  }
+  else if (TAA_ENABLED(wpd)) {
+    /*
+     * when drawing the first TAA frame, we transform directly to the
+     * color_only_fb as the TAA shader is just performing a direct copy.
+     * the workbench_taa_draw_screen_end will fill the history buffer
+     * for the other iterations.
+     */
+    if (effect_info->jitter_index == 1) {
+      GPU_framebuffer_bind(dfbl->color_only_fb);
+      workspace_aa_draw_transform(tx, wpd);
+    }
+    else {
+      GPU_framebuffer_bind(fbl->effect_fb);
+      workspace_aa_draw_transform(tx, wpd);
+      GPU_framebuffer_bind(dfbl->color_only_fb);
+      DRW_draw_pass(psl->effect_aa_pass);
+    }
+    workbench_taa_draw_scene_end(vedata);
+  }
+  else {
+    GPU_framebuffer_bind(dfbl->color_only_fb);
+    workspace_aa_draw_transform(tx, wpd);
+  }
 }

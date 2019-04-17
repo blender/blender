@@ -26,38 +26,42 @@
 
 namespace Freestyle {
 
-class AverageAreaGridDensityProvider : public GridDensityProvider
-{
-	// Disallow copying and assignment
-	AverageAreaGridDensityProvider(const AverageAreaGridDensityProvider& other);
-	AverageAreaGridDensityProvider& operator=(const AverageAreaGridDensityProvider& other);
+class AverageAreaGridDensityProvider : public GridDensityProvider {
+  // Disallow copying and assignment
+  AverageAreaGridDensityProvider(const AverageAreaGridDensityProvider &other);
+  AverageAreaGridDensityProvider &operator=(const AverageAreaGridDensityProvider &other);
 
-public:
-	AverageAreaGridDensityProvider(OccluderSource& source, const real proscenium[4], real sizeFactor);
-	AverageAreaGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
-	                               const GridHelpers::Transform& transform, real sizeFactor);
-	AverageAreaGridDensityProvider(OccluderSource& source, real sizeFactor);
-	virtual ~AverageAreaGridDensityProvider();
+ public:
+  AverageAreaGridDensityProvider(OccluderSource &source,
+                                 const real proscenium[4],
+                                 real sizeFactor);
+  AverageAreaGridDensityProvider(OccluderSource &source,
+                                 const BBox<Vec3r> &bbox,
+                                 const GridHelpers::Transform &transform,
+                                 real sizeFactor);
+  AverageAreaGridDensityProvider(OccluderSource &source, real sizeFactor);
+  virtual ~AverageAreaGridDensityProvider();
 
-private:
-	void initialize (const real proscenium[4], real sizeFactor);
+ private:
+  void initialize(const real proscenium[4], real sizeFactor);
 };
 
-class AverageAreaGridDensityProviderFactory : public GridDensityProviderFactory
-{
-public:
-	AverageAreaGridDensityProviderFactory(real sizeFactor);
-	~AverageAreaGridDensityProviderFactory();
+class AverageAreaGridDensityProviderFactory : public GridDensityProviderFactory {
+ public:
+  AverageAreaGridDensityProviderFactory(real sizeFactor);
+  ~AverageAreaGridDensityProviderFactory();
 
-	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const real proscenium[4]);
-	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
-	                                                    const GridHelpers::Transform& transform);
-	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source);
+  AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
+                                                      const real proscenium[4]);
+  AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
+                                                      const BBox<Vec3r> &bbox,
+                                                      const GridHelpers::Transform &transform);
+  AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source);
 
-protected:
-	real sizeFactor;
+ protected:
+  real sizeFactor;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__
+#endif  // __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__

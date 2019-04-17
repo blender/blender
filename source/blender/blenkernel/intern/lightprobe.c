@@ -33,30 +33,30 @@
 
 void BKE_lightprobe_init(LightProbe *probe)
 {
-	BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(probe, id));
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(probe, id));
 
-	probe->grid_resolution_x = probe->grid_resolution_y = probe->grid_resolution_z = 4;
-	probe->distinf = 2.5f;
-	probe->distpar = 2.5f;
-	probe->falloff = 0.2f;
-	probe->clipsta = 0.8f;
-	probe->clipend = 40.0f;
-	probe->vis_bias = 1.0f;
-	probe->vis_blur = 0.2f;
-	probe->intensity = 1.0f;
+  probe->grid_resolution_x = probe->grid_resolution_y = probe->grid_resolution_z = 4;
+  probe->distinf = 2.5f;
+  probe->distpar = 2.5f;
+  probe->falloff = 0.2f;
+  probe->clipsta = 0.8f;
+  probe->clipend = 40.0f;
+  probe->vis_bias = 1.0f;
+  probe->vis_blur = 0.2f;
+  probe->intensity = 1.0f;
 
-	probe->flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE | LIGHTPROBE_FLAG_SHOW_DATA;
+  probe->flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE | LIGHTPROBE_FLAG_SHOW_DATA;
 }
 
 void *BKE_lightprobe_add(Main *bmain, const char *name)
 {
-	LightProbe *probe;
+  LightProbe *probe;
 
-	probe =  BKE_libblock_alloc(bmain, ID_LP, name, 0);
+  probe = BKE_libblock_alloc(bmain, ID_LP, name, 0);
 
-	BKE_lightprobe_init(probe);
+  BKE_lightprobe_init(probe);
 
-	return probe;
+  return probe;
 }
 
 /**
@@ -67,25 +67,27 @@ void *BKE_lightprobe_add(Main *bmain, const char *name)
  *
  * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_lightprobe_copy_data(
-        Main *UNUSED(bmain), LightProbe *UNUSED(probe_dst), const LightProbe *UNUSED(probe_src), const int UNUSED(flag))
+void BKE_lightprobe_copy_data(Main *UNUSED(bmain),
+                              LightProbe *UNUSED(probe_dst),
+                              const LightProbe *UNUSED(probe_src),
+                              const int UNUSED(flag))
 {
-	/* Nothing to do here. */
+  /* Nothing to do here. */
 }
 
 LightProbe *BKE_lightprobe_copy(Main *bmain, const LightProbe *probe)
 {
-	LightProbe *probe_copy;
-	BKE_id_copy(bmain, &probe->id, (ID **)&probe_copy);
-	return probe_copy;
+  LightProbe *probe_copy;
+  BKE_id_copy(bmain, &probe->id, (ID **)&probe_copy);
+  return probe_copy;
 }
 
 void BKE_lightprobe_make_local(Main *bmain, LightProbe *probe, const bool lib_local)
 {
-	BKE_id_make_local_generic(bmain, &probe->id, true, lib_local);
+  BKE_id_make_local_generic(bmain, &probe->id, true, lib_local);
 }
 
 void BKE_lightprobe_free(LightProbe *probe)
 {
-	BKE_animdata_free((ID *)probe, false);
+  BKE_animdata_free((ID *)probe, false);
 }

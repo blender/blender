@@ -30,11 +30,19 @@ struct UnitSettings;
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
-size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
-size_t bUnit_AsString2(char *str, int len_max, double value, int prec, int type, const struct UnitSettings *settings, bool pad);
+size_t bUnit_AsString(
+    char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
+size_t bUnit_AsString2(char *str,
+                       int len_max,
+                       double value,
+                       int prec,
+                       int type,
+                       const struct UnitSettings *settings,
+                       bool pad);
 
 /* replace units with values, used before python button evaluation */
-bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
+bool bUnit_ReplaceString(
+    char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
 
 /* return true if the string contains any valid unit for the given type */
 bool bUnit_ContainsUnit(const char *str, int type);
@@ -57,29 +65,29 @@ bool bUnit_IsValid(int system, int type);
 /* loop over scales, could add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 
-void        bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);
-int         bUnit_GetBaseUnit(const void *usys_pt);
-int         bUnit_GetBaseUnitOfType(int system, int type);
+void bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);
+int bUnit_GetBaseUnit(const void *usys_pt);
+int bUnit_GetBaseUnitOfType(int system, int type);
 const char *bUnit_GetName(const void *usys_pt, int index);
 const char *bUnit_GetNameDisplay(const void *usys_pt, int index);
 const char *bUnit_GetIdentifier(const void *usys_pt, int index);
-double      bUnit_GetScaler(const void *usys_pt, int index);
-bool        bUnit_IsSuppressed(const void *usys_pt, int index);
+double bUnit_GetScaler(const void *usys_pt, int index);
+bool bUnit_IsSuppressed(const void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
 enum {
-	B_UNIT_NONE             = 0,
-	B_UNIT_LENGTH           = 1,
-	B_UNIT_AREA             = 2,
-	B_UNIT_VOLUME           = 3,
-	B_UNIT_MASS             = 4,
-	B_UNIT_ROTATION         = 5,
-	B_UNIT_TIME             = 6,
-	B_UNIT_VELOCITY         = 7,
-	B_UNIT_ACCELERATION     = 8,
-	B_UNIT_CAMERA           = 9,
-	B_UNIT_POWER            = 10,
-	B_UNIT_TYPE_TOT         = 11,
+  B_UNIT_NONE = 0,
+  B_UNIT_LENGTH = 1,
+  B_UNIT_AREA = 2,
+  B_UNIT_VOLUME = 3,
+  B_UNIT_MASS = 4,
+  B_UNIT_ROTATION = 5,
+  B_UNIT_TIME = 6,
+  B_UNIT_VELOCITY = 7,
+  B_UNIT_ACCELERATION = 8,
+  B_UNIT_CAMERA = 9,
+  B_UNIT_POWER = 10,
+  B_UNIT_TYPE_TOT = 11,
 };
 
 #ifdef __cplusplus

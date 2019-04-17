@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class BokehBlurNode : public Node {
-public:
-	BokehBlurNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  BokehBlurNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

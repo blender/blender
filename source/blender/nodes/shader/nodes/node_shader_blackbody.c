@@ -21,39 +21,43 @@
 
 /* **************** Blackbody ******************** */
 static bNodeSocketTemplate sh_node_blackbody_in[] = {
-	{	SOCK_FLOAT, 1, N_("Temperature"),	1500.0f, 0.0f, 0.0f, 0.0f, 800.0f, 12000.0f},
-	{	-1, 0, ""	},
+    {SOCK_FLOAT, 1, N_("Temperature"), 1500.0f, 0.0f, 0.0f, 0.0f, 800.0f, 12000.0f},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_blackbody_out[] = {
-	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Color")},
+    {-1, 0, ""},
 };
 
-static int node_shader_gpu_blackbody(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_blackbody(GPUMaterial *mat,
+                                     bNode *node,
+                                     bNodeExecData *UNUSED(execdata),
+                                     GPUNodeStack *in,
+                                     GPUNodeStack *out)
 {
-	const int size = CM_TABLE + 1;
-	float *data = MEM_mallocN(sizeof(float) * size * 4, "blackbody texture");
+  const int size = CM_TABLE + 1;
+  float *data = MEM_mallocN(sizeof(float) * size * 4, "blackbody texture");
 
-	blackbody_temperature_to_rgb_table(data, size, 965.0f, 12000.0f);
+  blackbody_temperature_to_rgb_table(data, size, 965.0f, 12000.0f);
 
-	float layer;
-	GPUNodeLink *ramp_texture = GPU_color_band(mat, size, data, &layer);
+  float layer;
+  GPUNodeLink *ramp_texture = GPU_color_band(mat, size, data, &layer);
 
-	return GPU_stack_link(mat, node, "node_blackbody", in, out, ramp_texture, GPU_constant(&layer));
+  return GPU_stack_link(mat, node, "node_blackbody", in, out, ramp_texture, GPU_constant(&layer));
 }
 
 /* node type definition */
 void register_node_type_sh_blackbody(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_BLACKBODY, "Blackbody", NODE_CLASS_CONVERTOR, 0);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_socket_templates(&ntype, sh_node_blackbody_in, sh_node_blackbody_out);
-	node_type_init(&ntype, NULL);
-	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_blackbody);
+  sh_node_type_base(&ntype, SH_NODE_BLACKBODY, "Blackbody", NODE_CLASS_CONVERTOR, 0);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  node_type_socket_templates(&ntype, sh_node_blackbody_in, sh_node_blackbody_out);
+  node_type_init(&ntype, NULL);
+  node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_blackbody);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

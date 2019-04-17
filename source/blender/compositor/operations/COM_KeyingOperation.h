@@ -16,7 +16,6 @@
  * Copyright 2012, Blender Foundation.
  */
 
-
 #ifndef __COM_KEYINGOPERATION_H__
 #define __COM_KEYINGOPERATION_H__
 
@@ -30,21 +29,24 @@
  * Class with implementation of keying node
  */
 class KeyingOperation : public NodeOperation {
-protected:
-	SocketReader *m_pixelReader;
-	SocketReader *m_screenReader;
+ protected:
+  SocketReader *m_pixelReader;
+  SocketReader *m_screenReader;
 
-	float m_screenBalance;
+  float m_screenBalance;
 
-public:
-	KeyingOperation();
+ public:
+  KeyingOperation();
 
-	void initExecution();
-	void deinitExecution();
+  void initExecution();
+  void deinitExecution();
 
-	void setScreenBalance(float value) {this->m_screenBalance = value;}
+  void setScreenBalance(float value)
+  {
+    this->m_screenBalance = value;
+  }
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

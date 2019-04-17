@@ -22,7 +22,6 @@
  * \ingroup imbuf
  */
 
-
 #ifdef _WIN32
 #  include <io.h>
 #endif
@@ -41,9 +40,9 @@
 #include "IMB_anim.h"
 
 #ifdef WITH_FFMPEG
-#  include "BLI_string.h"  /* BLI_vsnprintf */
+#  include "BLI_string.h" /* BLI_vsnprintf */
 
-#  include "BKE_global.h"  /* G.debug */
+#  include "BKE_global.h" /* G.debug */
 
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
@@ -56,338 +55,327 @@
 #define UTIL_DEBUG 0
 
 const char *imb_ext_image[] = {
-	".png",
-	".tga",
-	".bmp",
-	".jpg", ".jpeg",
-	".sgi", ".rgb", ".rgba",
+    ".png", ".tga",  ".bmp", ".jpg", ".jpeg", ".sgi", ".rgb", ".rgba",
 #ifdef WITH_TIFF
-	".tif", ".tiff", ".tx",
+    ".tif", ".tiff", ".tx",
 #endif
 #ifdef WITH_OPENJPEG
-	".jp2",
-	".j2c",
+    ".jp2", ".j2c",
 #endif
 #ifdef WITH_HDR
-	".hdr",
+    ".hdr",
 #endif
 #ifdef WITH_DDS
-	".dds",
+    ".dds",
 #endif
 #ifdef WITH_CINEON
-	".dpx",
-	".cin",
+    ".dpx", ".cin",
 #endif
 #ifdef WITH_OPENEXR
-	".exr",
+    ".exr",
 #endif
 #ifdef WITH_OPENIMAGEIO
-	".psd", ".pdd", ".psb",
+    ".psd", ".pdd",  ".psb",
 #endif
-	NULL,
+    NULL,
 };
 
 const char *imb_ext_image_filepath_only[] = {
 #ifdef WITH_OPENIMAGEIO
-	".psd", ".pdd", ".psb",
+    ".psd",
+    ".pdd",
+    ".psb",
 #endif
-	NULL,
+    NULL,
 };
 
 const char *imb_ext_movie[] = {
-	".avi",
-	".flc",
-	".mov",
-	".movie",
-	".mp4",
-	".m4v",
-	".m2v",
-	".m2t",
-	".m2ts",
-	".mts",
-	".ts",
-	".mv",
-	".avs",
-	".wmv",
-	".ogv",
-	".ogg",
-	".r3d",
-	".dv",
-	".mpeg",
-	".mpg",
-	".mpg2",
-	".vob",
-	".mkv",
-	".flv",
-	".divx",
-	".xvid",
-	".mxf",
-	".webm",
-	NULL,
+    ".avi",  ".flc", ".mov", ".movie", ".mp4",  ".m4v",  ".m2v", ".m2t",  ".m2ts", ".mts",
+    ".ts",   ".mv",  ".avs", ".wmv",   ".ogv",  ".ogg",  ".r3d", ".dv",   ".mpeg", ".mpg",
+    ".mpg2", ".vob", ".mkv", ".flv",   ".divx", ".xvid", ".mxf", ".webm", NULL,
 };
 
 /* sort of wrong being here... */
 const char *imb_ext_audio[] = {
-	".wav",
-	".ogg",
-	".oga",
-	".mp3",
-	".mp2",
-	".ac3",
-	".aac",
-	".flac",
-	".wma",
-	".eac3",
-	".aif",
-	".aiff",
-	".m4a",
-	".mka",
-	NULL,
+    ".wav",
+    ".ogg",
+    ".oga",
+    ".mp3",
+    ".mp2",
+    ".ac3",
+    ".aac",
+    ".flac",
+    ".wma",
+    ".eac3",
+    ".aif",
+    ".aiff",
+    ".m4a",
+    ".mka",
+    NULL,
 };
 
 int IMB_ispic_type(const char *name)
 {
-	/* increased from 32 to 64 because of the bitmaps header size */
+  /* increased from 32 to 64 because of the bitmaps header size */
 #define HEADER_SIZE 64
 
-	unsigned char buf[HEADER_SIZE];
-	const ImFileType *type;
-	BLI_stat_t st;
-	int fp;
+  unsigned char buf[HEADER_SIZE];
+  const ImFileType *type;
+  BLI_stat_t st;
+  int fp;
 
-	BLI_assert(!BLI_path_is_rel(name));
+  BLI_assert(!BLI_path_is_rel(name));
 
-	if (UTIL_DEBUG) printf("%s: loading %s\n", __func__, name);
+  if (UTIL_DEBUG)
+    printf("%s: loading %s\n", __func__, name);
 
-	if (BLI_stat(name, &st) == -1)
-		return false;
-	if (((st.st_mode) & S_IFMT) != S_IFREG)
-		return false;
+  if (BLI_stat(name, &st) == -1)
+    return false;
+  if (((st.st_mode) & S_IFMT) != S_IFREG)
+    return false;
 
-	if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) == -1)
-		return false;
+  if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) == -1)
+    return false;
 
-	memset(buf, 0, sizeof(buf));
-	if (read(fp, buf, HEADER_SIZE) <= 0) {
-		close(fp);
-		return false;
-	}
+  memset(buf, 0, sizeof(buf));
+  if (read(fp, buf, HEADER_SIZE) <= 0) {
+    close(fp);
+    return false;
+  }
 
-	close(fp);
+  close(fp);
 
-	/* XXX move this exception */
-	if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0)
-		return IMB_FTYPE_JPG;
+  /* XXX move this exception */
+  if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0)
+    return IMB_FTYPE_JPG;
 
-	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-		if (type->is_a) {
-			if (type->is_a(buf)) {
-				return type->filetype;
-			}
-		}
-		else if (type->is_a_filepath) {
-			if (type->is_a_filepath(name)) {
-				return type->filetype;
-			}
-		}
-	}
+  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+    if (type->is_a) {
+      if (type->is_a(buf)) {
+        return type->filetype;
+      }
+    }
+    else if (type->is_a_filepath) {
+      if (type->is_a_filepath(name)) {
+        return type->filetype;
+      }
+    }
+  }
 
-	return 0;
+  return 0;
 
 #undef HEADER_SIZE
 }
 
 bool IMB_ispic(const char *name)
 {
-	return (IMB_ispic_type(name) != 0);
+  return (IMB_ispic_type(name) != 0);
 }
 
 static int isavi(const char *name)
 {
 #ifdef WITH_AVI
-	return AVI_is_avi(name);
+  return AVI_is_avi(name);
 #else
-	(void)name;
-	return false;
+  (void)name;
+  return false;
 #endif
 }
 
 #ifdef WITH_FFMPEG
 
 /* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
-#ifdef __GNUC__
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wmissing-format-attribute"
-#endif
+#  ifdef __GNUC__
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmissing-format-attribute"
+#  endif
 
 static char ffmpeg_last_error[1024];
 
 static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
 {
-	if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
-		size_t n;
-		va_list args_cpy;
+  if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
+    size_t n;
+    va_list args_cpy;
 
-		va_copy(args_cpy, arg);
-		n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, args_cpy);
-		va_end(args_cpy);
+    va_copy(args_cpy, arg);
+    n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, args_cpy);
+    va_end(args_cpy);
 
-		/* strip trailing \n */
-		ffmpeg_last_error[n - 1] = '\0';
-	}
+    /* strip trailing \n */
+    ffmpeg_last_error[n - 1] = '\0';
+  }
 
-	if (G.debug & G_DEBUG_FFMPEG) {
-		/* call default logger to print all message to console */
-		av_log_default_callback(ptr, level, format, arg);
-	}
+  if (G.debug & G_DEBUG_FFMPEG) {
+    /* call default logger to print all message to console */
+    av_log_default_callback(ptr, level, format, arg);
+  }
 }
 
-#ifdef __GNUC__
-#  pragma GCC diagnostic pop
-#endif
+#  ifdef __GNUC__
+#    pragma GCC diagnostic pop
+#  endif
 
 void IMB_ffmpeg_init(void)
 {
-	av_register_all();
-	avdevice_register_all();
+  av_register_all();
+  avdevice_register_all();
 
-	ffmpeg_last_error[0] = '\0';
+  ffmpeg_last_error[0] = '\0';
 
-	if (G.debug & G_DEBUG_FFMPEG)
-		av_log_set_level(AV_LOG_DEBUG);
+  if (G.debug & G_DEBUG_FFMPEG)
+    av_log_set_level(AV_LOG_DEBUG);
 
-	/* set own callback which could store last error to report to UI */
-	av_log_set_callback(ffmpeg_log_callback);
+  /* set own callback which could store last error to report to UI */
+  av_log_set_callback(ffmpeg_log_callback);
 }
 
 const char *IMB_ffmpeg_last_error(void)
 {
-	return ffmpeg_last_error;
+  return ffmpeg_last_error;
 }
 
 static int isffmpeg(const char *filename)
 {
-	AVFormatContext *pFormatCtx = NULL;
-	unsigned int i;
-	int videoStream;
-	AVCodec *pCodec;
-	AVCodecContext *pCodecCtx;
+  AVFormatContext *pFormatCtx = NULL;
+  unsigned int i;
+  int videoStream;
+  AVCodec *pCodec;
+  AVCodecContext *pCodecCtx;
 
-	if (BLI_path_extension_check_n(
-	        filename,
-	        ".swf", ".jpg", ".png", ".dds", ".tga", ".bmp", ".tif", ".exr", ".cin", ".wav", NULL))
-	{
-		return 0;
-	}
+  if (BLI_path_extension_check_n(filename,
+                                 ".swf",
+                                 ".jpg",
+                                 ".png",
+                                 ".dds",
+                                 ".tga",
+                                 ".bmp",
+                                 ".tif",
+                                 ".exr",
+                                 ".cin",
+                                 ".wav",
+                                 NULL)) {
+    return 0;
+  }
 
-	if (avformat_open_input(&pFormatCtx, filename, NULL, NULL) != 0) {
-		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
-		return 0;
-	}
+  if (avformat_open_input(&pFormatCtx, filename, NULL, NULL) != 0) {
+    if (UTIL_DEBUG)
+      fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
+    return 0;
+  }
 
-	if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
-		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: avformat_find_stream_info failed\n");
-		avformat_close_input(&pFormatCtx);
-		return 0;
-	}
+  if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
+    if (UTIL_DEBUG)
+      fprintf(stderr, "isffmpeg: avformat_find_stream_info failed\n");
+    avformat_close_input(&pFormatCtx);
+    return 0;
+  }
 
-	if (UTIL_DEBUG) av_dump_format(pFormatCtx, 0, filename, 0);
+  if (UTIL_DEBUG)
+    av_dump_format(pFormatCtx, 0, filename, 0);
 
+  /* Find the first video stream */
+  videoStream = -1;
+  for (i = 0; i < pFormatCtx->nb_streams; i++)
+    if (pFormatCtx->streams[i] && pFormatCtx->streams[i]->codec &&
+        (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)) {
+      videoStream = i;
+      break;
+    }
 
-	/* Find the first video stream */
-	videoStream = -1;
-	for (i = 0; i < pFormatCtx->nb_streams; i++)
-		if (pFormatCtx->streams[i] &&
-		    pFormatCtx->streams[i]->codec &&
-		    (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO))
-		{
-			videoStream = i;
-			break;
-		}
+  if (videoStream == -1) {
+    avformat_close_input(&pFormatCtx);
+    return 0;
+  }
 
-	if (videoStream == -1) {
-		avformat_close_input(&pFormatCtx);
-		return 0;
-	}
+  pCodecCtx = pFormatCtx->streams[videoStream]->codec;
 
-	pCodecCtx = pFormatCtx->streams[videoStream]->codec;
+  /* Find the decoder for the video stream */
+  pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
+  if (pCodec == NULL) {
+    avformat_close_input(&pFormatCtx);
+    return 0;
+  }
 
-	/* Find the decoder for the video stream */
-	pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
-	if (pCodec == NULL) {
-		avformat_close_input(&pFormatCtx);
-		return 0;
-	}
+  if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
+    avformat_close_input(&pFormatCtx);
+    return 0;
+  }
 
-	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
-		avformat_close_input(&pFormatCtx);
-		return 0;
-	}
+  avcodec_close(pCodecCtx);
+  avformat_close_input(&pFormatCtx);
 
-	avcodec_close(pCodecCtx);
-	avformat_close_input(&pFormatCtx);
-
-	return 1;
+  return 1;
 }
 #endif
 
 int imb_get_anim_type(const char *name)
 {
-	int type;
-	BLI_stat_t st;
+  int type;
+  BLI_stat_t st;
 
-	BLI_assert(!BLI_path_is_rel(name));
+  BLI_assert(!BLI_path_is_rel(name));
 
-	if (UTIL_DEBUG) printf("%s: %s\n", __func__, name);
+  if (UTIL_DEBUG)
+    printf("%s: %s\n", __func__, name);
 
 #ifndef _WIN32
-#   ifdef WITH_FFMPEG
-	/* stat test below fails on large files > 4GB */
-	if (isffmpeg(name)) return (ANIM_FFMPEG);
-#   endif
-	if (BLI_stat(name, &st) == -1) return(0);
-	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
+#  ifdef WITH_FFMPEG
+  /* stat test below fails on large files > 4GB */
+  if (isffmpeg(name))
+    return (ANIM_FFMPEG);
+#  endif
+  if (BLI_stat(name, &st) == -1)
+    return (0);
+  if (((st.st_mode) & S_IFMT) != S_IFREG)
+    return (0);
 
-	if (isavi(name)) return (ANIM_AVI);
+  if (isavi(name))
+    return (ANIM_AVI);
 
-	if (ismovie(name)) return (ANIM_MOVIE);
+  if (ismovie(name))
+    return (ANIM_MOVIE);
 #else
-	if (BLI_stat(name, &st) == -1) return(0);
-	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
+  if (BLI_stat(name, &st) == -1)
+    return (0);
+  if (((st.st_mode) & S_IFMT) != S_IFREG)
+    return (0);
 
-	if (ismovie(name)) return (ANIM_MOVIE);
-#   ifdef WITH_FFMPEG
-	if (isffmpeg(name)) return (ANIM_FFMPEG);
-#   endif
+  if (ismovie(name))
+    return (ANIM_MOVIE);
+#  ifdef WITH_FFMPEG
+  if (isffmpeg(name))
+    return (ANIM_FFMPEG);
+#  endif
 
-
-	if (isavi(name)) return (ANIM_AVI);
+  if (isavi(name))
+    return (ANIM_AVI);
 #endif
-	type = IMB_ispic(name);
-	if (type) {
-		return ANIM_SEQUENCE;
-	}
+  type = IMB_ispic(name);
+  if (type) {
+    return ANIM_SEQUENCE;
+  }
 
-	return ANIM_NONE;
+  return ANIM_NONE;
 }
 
 bool IMB_isanim(const char *filename)
 {
-	int type;
+  int type;
 
-	type = imb_get_anim_type(filename);
+  type = imb_get_anim_type(filename);
 
-	return (type && type != ANIM_SEQUENCE);
+  return (type && type != ANIM_SEQUENCE);
 }
 
 bool IMB_isfloat(ImBuf *ibuf)
 {
-	const ImFileType *type;
+  const ImFileType *type;
 
-	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-		if (type->ftype(type, ibuf)) {
-			return (type->flag & IM_FTYPE_FLOAT) != 0;
-		}
-	}
-	return false;
+  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+    if (type->ftype(type, ibuf)) {
+      return (type->flag & IM_FTYPE_FLOAT) != 0;
+    }
+  }
+  return false;
 }

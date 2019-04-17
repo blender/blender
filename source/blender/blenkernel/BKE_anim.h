@@ -44,39 +44,50 @@ struct bMotionPath *animviz_copy_motionpath(const struct bMotionPath *mpath_src)
 void animviz_free_motionpath_cache(struct bMotionPath *mpath);
 void animviz_free_motionpath(struct bMotionPath *mpath);
 
-struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan);
+struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports,
+                                               struct Scene *scene,
+                                               struct Object *ob,
+                                               struct bPoseChannel *pchan);
 
 /* ---------------------------------------------------- */
 /* Curve Paths */
 
 void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob, struct ListBase *nurbs);
-int where_on_path(struct Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius, float *weight);
+int where_on_path(struct Object *ob,
+                  float ctime,
+                  float vec[4],
+                  float dir[3],
+                  float quat[4],
+                  float *radius,
+                  float *weight);
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
 
-struct ListBase *object_duplilist(struct Depsgraph *depsgraph, struct Scene *sce, struct Object *ob);
+struct ListBase *object_duplilist(struct Depsgraph *depsgraph,
+                                  struct Scene *sce,
+                                  struct Object *ob);
 void free_object_duplilist(struct ListBase *lb);
 
 typedef struct DupliObject {
-	struct DupliObject *next, *prev;
-	struct Object *ob;
-	float mat[4][4];
-	float orco[3], uv[2];
+  struct DupliObject *next, *prev;
+  struct Object *ob;
+  float mat[4][4];
+  float orco[3], uv[2];
 
-	short type; /* from Object.transflag */
-	char no_draw;
+  short type; /* from Object.transflag */
+  char no_draw;
 
-	/* Persistent identifier for a dupli object, for inter-frame matching of
-	 * objects with motion blur, or inter-update matching for syncing. */
-	int persistent_id[16]; /* 2*MAX_DUPLI_RECUR */
+  /* Persistent identifier for a dupli object, for inter-frame matching of
+   * objects with motion blur, or inter-update matching for syncing. */
+  int persistent_id[16]; /* 2*MAX_DUPLI_RECUR */
 
-	/* Particle this dupli was generated from. */
-	struct ParticleSystem *particle_system;
+  /* Particle this dupli was generated from. */
+  struct ParticleSystem *particle_system;
 
-	/* Random ID for shading */
-	unsigned int random_id;
+  /* Random ID for shading */
+  unsigned int random_id;
 } DupliObject;
 
 #endif

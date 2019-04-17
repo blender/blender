@@ -28,10 +28,10 @@ struct wmKeyConfigPref;
 /** Actual data is stored in #wmKeyConfigPref. */
 #if defined(__RNA_TYPES_H__)
 typedef struct wmKeyConfigPrefType_Runtime {
-	char idname[64];
+  char idname[64];
 
-	/* RNA integration */
-	ExtensionRNA ext;
+  /* RNA integration */
+  ExtensionRNA ext;
 } wmKeyConfigPrefType_Runtime;
 
 #else
@@ -51,4 +51,4 @@ void BKE_keyconfig_pref_set_select_mouse(struct UserDef *userdef, int value, boo
 void BKE_keyconfig_pref_type_init(void);
 void BKE_keyconfig_pref_type_free(void);
 
-#endif  /* __BKE_KEYCONFIG_H__ */
+#endif /* __BKE_KEYCONFIG_H__ */

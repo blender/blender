@@ -22,9 +22,9 @@
 #include "COM_ConvolutionFilterOperation.h"
 
 class ConvolutionEdgeFilterOperation : public ConvolutionFilterOperation {
-public:
-	ConvolutionEdgeFilterOperation();
-	void executePixel(float output[4], int x, int y, void *data);
+ public:
+  ConvolutionEdgeFilterOperation();
+  void executePixel(float output[4], int x, int y, void *data);
 };
 
 #endif

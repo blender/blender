@@ -22,4 +22,4 @@
 #define KDTREE_PREFIX_ID BLI_kdtree_3d
 #define KDTree KDTree_3d
 #define KDTreeNearest KDTreeNearest_3d
-#  include "kdtree_impl.h"
+#include "kdtree_impl.h"

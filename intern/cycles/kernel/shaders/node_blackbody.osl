@@ -16,16 +16,13 @@
 
 #include "stdosl.h"
 
-shader node_blackbody(
-	float Temperature = 1200.0,
-	output color Color = 0.0)
+shader node_blackbody(float Temperature = 1200.0, output color Color = 0.0)
 {
-	color rgb = blackbody(Temperature);
-	
-	/* Scale by luminance */
-	float l = luminance(rgb);
-	if (l != 0.0)
-		rgb /= l;
-	Color = rgb;
-}
+  color rgb = blackbody(Temperature);
 
+  /* Scale by luminance */
+  float l = luminance(rgb);
+  if (l != 0.0)
+    rgb /= l;
+  Color = rgb;
+}

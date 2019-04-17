@@ -25,35 +25,36 @@
 #include "Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class PseudoNoise
-{
-public:
-	PseudoNoise();
+class PseudoNoise {
+ public:
+  PseudoNoise();
 
-	virtual ~PseudoNoise() {}
+  virtual ~PseudoNoise()
+  {
+  }
 
-	real smoothNoise(real x);
-	real linearNoise(real x);
+  real smoothNoise(real x);
+  real linearNoise(real x);
 
-	real turbulenceSmooth(real x, unsigned nbOctave = 8);
-	real turbulenceLinear(real x, unsigned nbOctave = 8);
+  real turbulenceSmooth(real x, unsigned nbOctave = 8);
+  real turbulenceLinear(real x, unsigned nbOctave = 8);
 
-	static void init(long seed);
+  static void init(long seed);
 
-protected:
-	static const unsigned NB_VALUE_NOISE = 512;
-	static real _values[NB_VALUE_NOISE];
+ protected:
+  static const unsigned NB_VALUE_NOISE = 512;
+  static real _values[NB_VALUE_NOISE];
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:PseudoNoise")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:PseudoNoise")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_PSEUDO_NOISE_H__
+#endif  // __FREESTYLE_PSEUDO_NOISE_H__

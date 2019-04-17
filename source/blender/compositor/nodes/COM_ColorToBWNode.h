@@ -26,8 +26,8 @@
  * \ingroup Node
  */
 class ColorToBWNode : public Node {
-public:
-	ColorToBWNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ColorToBWNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 #endif

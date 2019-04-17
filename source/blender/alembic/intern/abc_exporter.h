@@ -40,91 +40,92 @@ struct Scene;
 struct ViewLayer;
 
 struct ExportSettings {
-	ExportSettings();
+  ExportSettings();
 
-	Scene *scene;
-	ViewLayer *view_layer;  // Scene layer to export; all its objects will be exported, unless selected_only=true
-	Depsgraph *depsgraph;
-	SimpleLogger logger;
+  Scene *scene;
+  ViewLayer *
+      view_layer;  // Scene layer to export; all its objects will be exported, unless selected_only=true
+  Depsgraph *depsgraph;
+  SimpleLogger logger;
 
-	bool selected_only;
-	bool visible_layers_only;
-	bool renderable_only;
+  bool selected_only;
+  bool visible_layers_only;
+  bool renderable_only;
 
-	double frame_start, frame_end;
-	double frame_samples_xform;
-	double frame_samples_shape;
-	double shutter_open;
-	double shutter_close;
-	float global_scale;
+  double frame_start, frame_end;
+  double frame_samples_xform;
+  double frame_samples_shape;
+  double shutter_open;
+  double shutter_close;
+  float global_scale;
 
-	bool flatten_hierarchy;
+  bool flatten_hierarchy;
 
-	bool export_normals;
-	bool export_uvs;
-	bool export_vcols;
-	bool export_face_sets;
-	bool export_vweigths;
-	bool export_hair;
-	bool export_particles;
+  bool export_normals;
+  bool export_uvs;
+  bool export_vcols;
+  bool export_face_sets;
+  bool export_vweigths;
+  bool export_hair;
+  bool export_particles;
 
-	bool apply_subdiv;
-	bool curves_as_mesh;
-	bool use_subdiv_schema;
-	bool export_child_hairs;
-	bool export_ogawa;
-	bool pack_uv;
-	bool triangulate;
+  bool apply_subdiv;
+  bool curves_as_mesh;
+  bool use_subdiv_schema;
+  bool export_child_hairs;
+  bool export_ogawa;
+  bool pack_uv;
+  bool triangulate;
 
-	int quad_method;
-	int ngon_method;
+  int quad_method;
+  int ngon_method;
 
-	bool do_convert_axis;
-	float convert_matrix[3][3];
+  bool do_convert_axis;
+  float convert_matrix[3][3];
 };
 
 class AbcExporter {
-	Main *m_bmain;
-	ExportSettings &m_settings;
+  Main *m_bmain;
+  ExportSettings &m_settings;
 
-	const char *m_filename;
+  const char *m_filename;
 
-	unsigned int m_trans_sampling_index, m_shape_sampling_index;
+  unsigned int m_trans_sampling_index, m_shape_sampling_index;
 
-	ArchiveWriter *m_writer;
+  ArchiveWriter *m_writer;
 
-	/* mapping from name to transform writer */
-	typedef std::map<std::string, AbcTransformWriter *> m_xforms_type;
-	m_xforms_type m_xforms;
+  /* mapping from name to transform writer */
+  typedef std::map<std::string, AbcTransformWriter *> m_xforms_type;
+  m_xforms_type m_xforms;
 
-	std::vector<AbcObjectWriter *> m_shapes;
+  std::vector<AbcObjectWriter *> m_shapes;
 
-public:
-	AbcExporter(Main *bmain, const char *filename, ExportSettings &settings);
-	~AbcExporter();
+ public:
+  AbcExporter(Main *bmain, const char *filename, ExportSettings &settings);
+  ~AbcExporter();
 
-	void operator()(float &progress, bool &was_canceled);
+  void operator()(float &progress, bool &was_canceled);
 
-protected:
-	void getShutterSamples(unsigned int nr_of_samples,
-	                       bool time_relative,
-	                       std::vector<double> &samples);
-	void getFrameSet(unsigned int nr_of_samples, std::set<double> &frames);
+ protected:
+  void getShutterSamples(unsigned int nr_of_samples,
+                         bool time_relative,
+                         std::vector<double> &samples);
+  void getFrameSet(unsigned int nr_of_samples, std::set<double> &frames);
 
-private:
-	Alembic::Abc::TimeSamplingPtr createTimeSampling(double step);
+ private:
+  Alembic::Abc::TimeSamplingPtr createTimeSampling(double step);
 
-	void createTransformWritersHierarchy();
-	AbcTransformWriter *createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
-	void exploreTransform(Base *base, Object *object, Object *parent, Object *dupliObParent);
-	void exploreObject(Base *base, Object *object, Object *dupliObParent);
-	void createShapeWriters();
-	void createShapeWriter(Object *ob, Object *dupliObParent);
-	void createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform);
+  void createTransformWritersHierarchy();
+  AbcTransformWriter *createTransformWriter(Object *ob, Object *parent, Object *dupliObParent);
+  void exploreTransform(Base *base, Object *object, Object *parent, Object *dupliObParent);
+  void exploreObject(Base *base, Object *object, Object *dupliObParent);
+  void createShapeWriters();
+  void createShapeWriter(Object *ob, Object *dupliObParent);
+  void createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform);
 
-	AbcTransformWriter *getXForm(const std::string &name);
+  AbcTransformWriter *getXForm(const std::string &name);
 
-	void setCurrentFrame(Main *bmain, double t);
+  void setCurrentFrame(Main *bmain, double t);
 };
 
-#endif  /* __ABC_EXPORTER_H__ */
+#endif /* __ABC_EXPORTER_H__ */

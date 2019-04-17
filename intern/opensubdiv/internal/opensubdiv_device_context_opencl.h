@@ -26,7 +26,7 @@
 #define OPENSUBDIV_DEVICE_CONTEXT_OPENCL_H_
 
 #ifdef OPENSUBDIV_HAS_OPENCL
-#include <opensubdiv/osd/opencl.h>
+#  include <opensubdiv/osd/opencl.h>
 
 class CLDeviceContext {
  public:

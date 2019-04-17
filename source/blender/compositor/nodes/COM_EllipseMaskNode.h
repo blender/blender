@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class EllipseMaskNode : public Node {
-public:
-	EllipseMaskNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  EllipseMaskNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

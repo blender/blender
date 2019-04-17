@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ColorSpillNode : public Node {
-public:
-	ColorSpillNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ColorSpillNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_ColorSpillNODE_H */
+#endif /* COM_ColorSpillNODE_H */

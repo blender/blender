@@ -68,25 +68,24 @@
 #  define THUNK_PREPEND2(thunk, a, b) a, b
 #endif
 
-#define _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1 ## MACRO_ARG2
+#define _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _CONCAT(MACRO_ARG1, MACRO_ARG2) _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define _SORT_PREFIX(id) _CONCAT(SORT_IMPL_FUNC, _##id)
 
 /* local identifiers */
-#define SortInfo		_SORT_PREFIX(SortInfo)
-#define CompareFn		_SORT_PREFIX(CompareFn)
-#define init_sort_info	_SORT_PREFIX(init_sort_info)
-#define merge_lists		_SORT_PREFIX(merge_lists)
-#define sweep_up		_SORT_PREFIX(sweep_up)
-#define insert_list		_SORT_PREFIX(insert_list)
+#define SortInfo _SORT_PREFIX(SortInfo)
+#define CompareFn _SORT_PREFIX(CompareFn)
+#define init_sort_info _SORT_PREFIX(init_sort_info)
+#define merge_lists _SORT_PREFIX(merge_lists)
+#define sweep_up _SORT_PREFIX(sweep_up)
+#define insert_list _SORT_PREFIX(insert_list)
 
-typedef int (* CompareFn)(
+typedef int (*CompareFn)(
 #ifdef SORT_IMPL_USE_THUNK
-        void *thunk,
+    void *thunk,
 #endif
-        const void *,
-        const void *);
-
+    const void *,
+    const void *);
 
 /* -------------------------------------------------------------------- */
 /* MIT license from original source */
@@ -125,69 +124,67 @@ typedef int (* CompareFn)(
  * we can reduce the depth by 1.
  */
 #define FLOOR_LOG2(x) \
-	(((x) >= 2) + ((x) >= 4) + ((x) >= 8) + ((x) >= 16) + ((x) >= 32) + ((x) >= 64) + ((x) >= 128))
-#define MAX_RANKS \
-	((sizeof(size_t) * 8) - FLOOR_LOG2(sizeof(list_node)) - 1)
+  (((x) >= 2) + ((x) >= 4) + ((x) >= 8) + ((x) >= 16) + ((x) >= 32) + ((x) >= 64) + ((x) >= 128))
+#define MAX_RANKS ((sizeof(size_t) * 8) - FLOOR_LOG2(sizeof(list_node)) - 1)
 
 struct SortInfo {
-	unsigned int min_rank, n_ranks;
-	CompareFn func;
+  unsigned int min_rank, n_ranks;
+  CompareFn func;
 
 #ifdef SORT_IMPL_USE_THUNK
-	void *thunk;
+  void *thunk;
 #endif
 
-	/**
-	 * Invariant: `ranks[i] == NULL || length(ranks[i]) >= 2**(i+1)`.
-	 *
-	 * ~ 128 bytes on 32bit, ~ 512 bytes on 64bit */
-	list_node *ranks[MAX_RANKS];
+  /**
+   * Invariant: `ranks[i] == NULL || length(ranks[i]) >= 2**(i+1)`.
+   *
+   * ~ 128 bytes on 32bit, ~ 512 bytes on 64bit */
+  list_node *ranks[MAX_RANKS];
 };
 
-BLI_INLINE void init_sort_info(
-        struct SortInfo *si,
-        CompareFn func
+BLI_INLINE void init_sort_info(struct SortInfo *si,
+                               CompareFn func
 #ifdef SORT_IMPL_USE_THUNK
-        ,
-        void *thunk
+                               ,
+                               void *thunk
 #endif
-        )
+)
 {
-	si->min_rank = si->n_ranks = 0;
-	si->func = func;
-	/* we don't need to initialize si->ranks,
-	 * since we never lookup past si->n_ranks. */
+  si->min_rank = si->n_ranks = 0;
+  si->func = func;
+  /* we don't need to initialize si->ranks,
+   * since we never lookup past si->n_ranks. */
 
 #ifdef SORT_IMPL_USE_THUNK
-	si->thunk = thunk;
+  si->thunk = thunk;
 #endif
 }
 
-BLI_INLINE list_node *merge_lists(
-        list_node *first, list_node *second,
-        CompareFn func
+BLI_INLINE list_node *merge_lists(list_node *first,
+                                  list_node *second,
+                                  CompareFn func
 #ifdef SORT_IMPL_USE_THUNK
-        ,
-        void *thunk
+                                  ,
+                                  void *thunk
 #endif
-        )
+)
 {
-	/* merge the two lists */
-	list_node *list = NULL;
-	list_node **pos = &list;
-	while (first && second) {
-		if (func(THUNK_PREPEND2(thunk, SORT_ARG(first), SORT_ARG(second))) > 0) {
-			*pos = second;
-			second = second->next;
-		}
-		else {
-			*pos = first;
-			first = first->next;
-		}
-		pos = &((*pos)->next);
-	}
-	*pos = first ? first : second;
-	return list;
+  /* merge the two lists */
+  list_node *list = NULL;
+  list_node **pos = &list;
+  while (first && second) {
+    if (func(THUNK_PREPEND2(thunk, SORT_ARG(first), SORT_ARG(second))) > 0) {
+      *pos = second;
+      second = second->next;
+    }
+    else {
+      *pos = first;
+      first = first->next;
+    }
+    pos = &((*pos)->next);
+  }
+  *pos = first ? first : second;
+  return list;
 }
 
 /**
@@ -196,12 +193,12 @@ BLI_INLINE list_node *merge_lists(
  */
 BLI_INLINE list_node *sweep_up(struct SortInfo *si, list_node *list, unsigned int upto)
 {
-	unsigned int i;
-	for (i = si->min_rank; i < upto; i++) {
-		list = merge_lists(si->ranks[i], list, THUNK_APPEND1(si->func, si->thunk));
-		si->ranks[i] = NULL;
-	}
-	return list;
+  unsigned int i;
+  for (i = si->min_rank; i < upto; i++) {
+    list = merge_lists(si->ranks[i], list, THUNK_APPEND1(si->func, si->thunk));
+    si->ranks[i] = NULL;
+  }
+  return list;
 }
 
 /**
@@ -233,44 +230,41 @@ BLI_INLINE list_node *sweep_up(struct SortInfo *si, list_node *list, unsigned in
  * `2**(rank+1) <= length(list) < 2**(rank+2)`
  * (therefore: `length(list) >= 2`)
  */
-BLI_INLINE void insert_list(
-        struct SortInfo *si,
-        list_node *list,
-        unsigned int rank)
+BLI_INLINE void insert_list(struct SortInfo *si, list_node *list, unsigned int rank)
 {
-	unsigned int i;
+  unsigned int i;
 
-	if (rank > si->n_ranks) {
-		if (UNLIKELY(rank > MAX_RANKS)) {
-			// printf("Rank '%d' should not exceed " STRINGIFY(MAX_RANKS), rank);
-			rank = MAX_RANKS;
-		}
-		list = merge_lists(sweep_up(si, NULL, si->n_ranks), list, THUNK_APPEND1(si->func, si->thunk));
-		for (i = si->n_ranks; i < rank; ++i) {
-			si->ranks[i] = NULL;
-		}
-	}
-	else {
-		if (rank) {
-			list = merge_lists(sweep_up(si, NULL, rank), list, THUNK_APPEND1(si->func, si->thunk));
-		}
-		for (i = rank; i < si->n_ranks && si->ranks[i]; ++i) {
-			list = merge_lists(si->ranks[i], list, THUNK_APPEND1(si->func, si->thunk));
-			si->ranks[i] = NULL;
-		}
-	}
+  if (rank > si->n_ranks) {
+    if (UNLIKELY(rank > MAX_RANKS)) {
+      // printf("Rank '%d' should not exceed " STRINGIFY(MAX_RANKS), rank);
+      rank = MAX_RANKS;
+    }
+    list = merge_lists(sweep_up(si, NULL, si->n_ranks), list, THUNK_APPEND1(si->func, si->thunk));
+    for (i = si->n_ranks; i < rank; ++i) {
+      si->ranks[i] = NULL;
+    }
+  }
+  else {
+    if (rank) {
+      list = merge_lists(sweep_up(si, NULL, rank), list, THUNK_APPEND1(si->func, si->thunk));
+    }
+    for (i = rank; i < si->n_ranks && si->ranks[i]; ++i) {
+      list = merge_lists(si->ranks[i], list, THUNK_APPEND1(si->func, si->thunk));
+      si->ranks[i] = NULL;
+    }
+  }
 
-	/* Will _never_ happen: so we can just devolve into quadratic ;-) */
-	if (UNLIKELY(i == MAX_RANKS)) {
-		i--;
-	}
+  /* Will _never_ happen: so we can just devolve into quadratic ;-) */
+  if (UNLIKELY(i == MAX_RANKS)) {
+    i--;
+  }
 
-	if (i >= si->n_ranks) {
-		si->n_ranks = i + 1;
-	}
+  if (i >= si->n_ranks) {
+    si->n_ranks = i + 1;
+  }
 
-	si->min_rank = i;
-	si->ranks[i] = list;
+  si->min_rank = i;
+  si->ranks[i] = list;
 }
 
 #undef MAX_RANKS
@@ -279,43 +273,41 @@ BLI_INLINE void insert_list(
 /**
  * Main sort function.
  */
-BLI_INLINE list_node *list_sort_do(
-        list_node *list,
-        CompareFn func
+BLI_INLINE list_node *list_sort_do(list_node *list,
+                                   CompareFn func
 #ifdef SORT_IMPL_USE_THUNK
-        ,
-        void *thunk
+                                   ,
+                                   void *thunk
 #endif
-        )
+)
 {
-	struct SortInfo si;
+  struct SortInfo si;
 
-	init_sort_info(
-	        &si,
-	        func
+  init_sort_info(&si,
+                 func
 #ifdef SORT_IMPL_USE_THUNK
-	        ,
-	        thunk
+                 ,
+                 thunk
 #endif
-	        );
+  );
 
-	while (list && list->next) {
-		list_node *next = list->next;
-		list_node *tail = next->next;
+  while (list && list->next) {
+    list_node *next = list->next;
+    list_node *tail = next->next;
 
-		if (func(THUNK_PREPEND2(thunk, SORT_ARG(list), SORT_ARG(next))) > 0) {
-			next->next = list;
-			next = list;
-			list = list->next;
-		}
-		next->next = NULL;
+    if (func(THUNK_PREPEND2(thunk, SORT_ARG(list), SORT_ARG(next))) > 0) {
+      next->next = list;
+      next = list;
+      list = list->next;
+    }
+    next->next = NULL;
 
-		insert_list(&si, list, 0);
+    insert_list(&si, list, 0);
 
-		list = tail;
-	}
+    list = tail;
+  }
 
-	return sweep_up(&si, list, si.n_ranks);
+  return sweep_up(&si, list, si.n_ranks);
 }
 
 #undef _CONCAT_AUX

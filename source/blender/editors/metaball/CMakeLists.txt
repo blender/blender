@@ -16,16 +16,16 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../depsgraph
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../../../intern/clog
-	../../../../intern/guardedalloc
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../depsgraph
+  ../../makesdna
+  ../../makesrna
+  ../../render/extern/include
+  ../../windowmanager
+  ../../../../intern/clog
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -33,11 +33,11 @@ set(INC_SYS
 )
 
 set(SRC
-	editmball_undo.c
-	mball_edit.c
-	mball_ops.c
+  editmball_undo.c
+  mball_edit.c
+  mball_ops.c
 
-	mball_intern.h
+  mball_intern.h
 )
 
 set(LIB

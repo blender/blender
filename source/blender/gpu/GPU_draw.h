@@ -75,13 +75,25 @@ float GPU_get_anisotropic(void);
 /* Image updates and free
  * - these deal with images bound as opengl textures */
 
-void GPU_paint_update_image(struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
-void GPU_create_gl_tex(
-        unsigned int *bind, unsigned int *rect, float *frect, int rectw, int recth,
-        int textarget, bool mipmap, bool use_hight_bit_depth, struct Image *ima);
-void GPU_create_gl_tex_compressed(
-        unsigned int *bind, unsigned int *pix, int x, int y, int mipmap,
-        int textarget, struct Image *ima, struct ImBuf *ibuf);
+void GPU_paint_update_image(
+    struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
+void GPU_create_gl_tex(unsigned int *bind,
+                       unsigned int *rect,
+                       float *frect,
+                       int rectw,
+                       int recth,
+                       int textarget,
+                       bool mipmap,
+                       bool use_hight_bit_depth,
+                       struct Image *ima);
+void GPU_create_gl_tex_compressed(unsigned int *bind,
+                                  unsigned int *pix,
+                                  int x,
+                                  int y,
+                                  int mipmap,
+                                  int textarget,
+                                  struct Image *ima,
+                                  struct ImBuf *ibuf);
 bool GPU_upload_dxt_texture(struct ImBuf *ibuf);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(struct Main *bmain);
@@ -100,11 +112,11 @@ void GPU_free_unused_buffers(struct Main *bmain);
 
 /* utilities */
 typedef enum eGPUAttrMask {
-	GPU_DEPTH_BUFFER_BIT = (1 << 0),
-	GPU_ENABLE_BIT = (1 << 1),
-	GPU_SCISSOR_BIT = (1 << 2),
-	GPU_VIEWPORT_BIT = (1 << 3),
-	GPU_BLEND_BIT = (1 << 4),
+  GPU_DEPTH_BUFFER_BIT = (1 << 0),
+  GPU_ENABLE_BIT = (1 << 1),
+  GPU_SCISSOR_BIT = (1 << 2),
+  GPU_VIEWPORT_BIT = (1 << 3),
+  GPU_BLEND_BIT = (1 << 4),
 } eGPUAttrMask;
 
 void gpuPushAttr(eGPUAttrMask mask);

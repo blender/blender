@@ -17,15 +17,15 @@ out vec2 masking_uv_interp;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-	uv_interp = u;
+  uv_interp = u;
 
 #ifdef TEXTURE_PAINT_MASK
-	masking_uv_interp = mu;
+  masking_uv_interp = mu;
 #endif
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
 }

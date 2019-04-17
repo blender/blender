@@ -28,24 +28,23 @@
 #include "BKE_customdata.h"
 
 /* dl->type */
-#define DL_POLY                 0
-#define DL_SEGM                 1
-#define DL_SURF                 2
-#define DL_INDEX3               4
-#define DL_INDEX4               5
+#define DL_POLY 0
+#define DL_SEGM 1
+#define DL_SURF 2
+#define DL_INDEX3 4
+#define DL_INDEX4 5
 // #define DL_VERTCOL              6  // UNUSED
-#define DL_VERTS                7
+#define DL_VERTS 7
 
 /* dl->flag */
 enum {
-	/** U/V swapped here compared with #Nurb.flagu, #Nurb.flagv and #CU_NURB_CYCLIC */
-	DL_CYCL_U       = (1 << 0),
-	DL_CYCL_V       = (1 << 1),
+  /** U/V swapped here compared with #Nurb.flagu, #Nurb.flagv and #CU_NURB_CYCLIC */
+  DL_CYCL_U = (1 << 0),
+  DL_CYCL_V = (1 << 1),
 
-	DL_FRONT_CURVE  = (1 << 2),
-	DL_BACK_CURVE   = (1 << 3),
+  DL_FRONT_CURVE = (1 << 2),
+  DL_BACK_CURVE = (1 << 3),
 };
-
 
 /* prototypes */
 
@@ -59,16 +58,16 @@ struct Scene;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {
-	struct DispList *next, *prev;
-	short type, flag;
-	int parts, nr;
-	short col, rt;              /* rt used by initrenderNurbs */
-	float *verts, *nors;
-	int *index;
-	int charidx;
-	int totindex;               /* indexed array drawing surfaces */
+  struct DispList *next, *prev;
+  short type, flag;
+  int parts, nr;
+  short col, rt; /* rt used by initrenderNurbs */
+  float *verts, *nors;
+  int *index;
+  int charidx;
+  int totindex; /* indexed array drawing surfaces */
 
-	unsigned int *bevel_split;  /* BLI_bitmap */
+  unsigned int *bevel_split; /* BLI_bitmap */
 } DispList;
 
 void BKE_displist_copy(struct ListBase *lbn, struct ListBase *lb);
@@ -80,29 +79,47 @@ void BKE_displist_count(struct ListBase *lb, int *totvert, int *totface, int *to
 void BKE_displist_free(struct ListBase *lb);
 bool BKE_displist_has_faces(struct ListBase *lb);
 
-void BKE_displist_make_surf(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
-        struct Mesh **r_final, const bool for_render, const bool for_orco, const bool use_render_resolution);
-void BKE_displist_make_curveTypes(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
-        const bool for_render, const bool for_orco,
-        struct LinkNode *ob_cyclic_list);
-void BKE_displist_make_curveTypes_forRender(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
-        struct Mesh **r_final, const bool for_orco, const bool use_render_resolution,
-        struct LinkNode *ob_cyclic_list);
-void BKE_displist_make_curveTypes_forOrco(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
-        struct LinkNode *ob_cyclic_list);
-void BKE_displist_make_mball(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
-void BKE_displist_make_mball_forRender(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
+void BKE_displist_make_surf(struct Depsgraph *depsgraph,
+                            struct Scene *scene,
+                            struct Object *ob,
+                            struct ListBase *dispbase,
+                            struct Mesh **r_final,
+                            const bool for_render,
+                            const bool for_orco,
+                            const bool use_render_resolution);
+void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
+                                  struct Scene *scene,
+                                  struct Object *ob,
+                                  const bool for_render,
+                                  const bool for_orco,
+                                  struct LinkNode *ob_cyclic_list);
+void BKE_displist_make_curveTypes_forRender(struct Depsgraph *depsgraph,
+                                            struct Scene *scene,
+                                            struct Object *ob,
+                                            struct ListBase *dispbase,
+                                            struct Mesh **r_final,
+                                            const bool for_orco,
+                                            const bool use_render_resolution,
+                                            struct LinkNode *ob_cyclic_list);
+void BKE_displist_make_curveTypes_forOrco(struct Depsgraph *depsgraph,
+                                          struct Scene *scene,
+                                          struct Object *ob,
+                                          struct ListBase *dispbase,
+                                          struct LinkNode *ob_cyclic_list);
+void BKE_displist_make_mball(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
+void BKE_displist_make_mball_forRender(struct Depsgraph *depsgraph,
+                                       struct Scene *scene,
+                                       struct Object *ob,
+                                       struct ListBase *dispbase);
 
 bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
-void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, const float normal_proj[3], const bool flipnormal);
+void BKE_displist_fill(struct ListBase *dispbase,
+                       struct ListBase *to,
+                       const float normal_proj[3],
+                       const bool flipnormal);
 
-float BKE_displist_calc_taper(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *taperobj, int cur, int tot);
+float BKE_displist_calc_taper(
+    struct Depsgraph *depsgraph, struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
 void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
 

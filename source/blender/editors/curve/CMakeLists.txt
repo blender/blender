@@ -16,46 +16,46 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../depsgraph
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/clog
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
-	../../../../extern/curve_fit_nd
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../depsgraph
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/clog
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
+  ../../../../extern/curve_fit_nd
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	curve_ops.c
-	editcurve.c
-	editcurve_add.c
-	editcurve_paint.c
-	editcurve_select.c
-	editcurve_undo.c
-	editfont.c
-	editfont_undo.c
+  curve_ops.c
+  editcurve.c
+  editcurve_add.c
+  editcurve_paint.c
+  editcurve_select.c
+  editcurve_undo.c
+  editfont.c
+  editfont_undo.c
 
-	curve_intern.h
+  curve_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
-	extern_curve_fit_nd
+  bf_blenkernel
+  bf_blenlib
+  extern_curve_fit_nd
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

@@ -38,64 +38,62 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 }
 
-AbcMBallWriter::AbcMBallWriter(
-        Main *bmain,
-        Object *ob,
-        AbcTransformWriter *parent,
-        uint32_t time_sampling,
-        ExportSettings &settings)
-    : AbcGenericMeshWriter(ob, parent, time_sampling, settings)
-    , m_bmain(bmain)
+AbcMBallWriter::AbcMBallWriter(Main *bmain,
+                               Object *ob,
+                               AbcTransformWriter *parent,
+                               uint32_t time_sampling,
+                               ExportSettings &settings)
+    : AbcGenericMeshWriter(ob, parent, time_sampling, settings), m_bmain(bmain)
 {
-	m_is_animated = isAnimated();
+  m_is_animated = isAnimated();
 }
 
-
 AbcMBallWriter::~AbcMBallWriter()
-{}
+{
+}
 
 bool AbcMBallWriter::isAnimated() const
 {
-	return true;
+  return true;
 }
 
 Mesh *AbcMBallWriter::getEvaluatedMesh(Scene * /*scene_eval*/, Object *ob_eval, bool &r_needsfree)
 {
-	if (ob_eval->runtime.mesh_eval != NULL) {
-		/* Mesh_eval only exists when generative modifiers are in use. */
-		r_needsfree = false;
-		return ob_eval->runtime.mesh_eval;
-	}
-	r_needsfree = true;
+  if (ob_eval->runtime.mesh_eval != NULL) {
+    /* Mesh_eval only exists when generative modifiers are in use. */
+    r_needsfree = false;
+    return ob_eval->runtime.mesh_eval;
+  }
+  r_needsfree = true;
 
-	/* The approach below is copied from BKE_mesh_new_from_object() */
-	Mesh *tmpmesh = BKE_mesh_add(m_bmain, ((ID *)m_object->data)->name + 2);
-	BLI_assert(tmpmesh != NULL);
+  /* The approach below is copied from BKE_mesh_new_from_object() */
+  Mesh *tmpmesh = BKE_mesh_add(m_bmain, ((ID *)m_object->data)->name + 2);
+  BLI_assert(tmpmesh != NULL);
 
-	/* BKE_mesh_add gives us a user count we don't need */
-	id_us_min(&tmpmesh->id);
+  /* BKE_mesh_add gives us a user count we don't need */
+  id_us_min(&tmpmesh->id);
 
-	ListBase disp = {NULL, NULL};
-	/* TODO(sergey): This is gonna to work for until Depsgraph
-	 *               only contains for_render flag. As soon as CoW is
-	 *               implemented, this is to be rethinked.
-	 */
-	BKE_displist_make_mball_forRender(m_settings.depsgraph, m_settings.scene, m_object, &disp);
-	BKE_mesh_from_metaball(&disp, tmpmesh);
-	BKE_displist_free(&disp);
+  ListBase disp = {NULL, NULL};
+  /* TODO(sergey): This is gonna to work for until Depsgraph
+   *               only contains for_render flag. As soon as CoW is
+   *               implemented, this is to be rethinked.
+   */
+  BKE_displist_make_mball_forRender(m_settings.depsgraph, m_settings.scene, m_object, &disp);
+  BKE_mesh_from_metaball(&disp, tmpmesh);
+  BKE_displist_free(&disp);
 
-	BKE_mesh_texspace_copy_from_object(tmpmesh, m_object);
+  BKE_mesh_texspace_copy_from_object(tmpmesh, m_object);
 
-	return tmpmesh;
+  return tmpmesh;
 }
 
 void AbcMBallWriter::freeEvaluatedMesh(struct Mesh *mesh)
 {
-	BKE_id_free(m_bmain, mesh);
+  BKE_id_free(m_bmain, mesh);
 }
 
 bool AbcMBallWriter::isBasisBall(Scene *scene, Object *ob)
 {
-	Object *basis_ob = BKE_mball_basis_find(scene, ob);
-	return ob == basis_ob;
+  Object *basis_ob = BKE_mball_basis_find(scene, ob);
+  return ob == basis_ob;
 }

@@ -21,9 +21,7 @@
  * \ingroup edsnd
  */
 
-
 #ifndef __SOUND_INTERN_H__
 #define __SOUND_INTERN_H__
-
 
 #endif /* __SOUND_INTERN_H__ */

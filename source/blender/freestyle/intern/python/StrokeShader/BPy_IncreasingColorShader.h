@@ -31,19 +31,18 @@ extern "C" {
 
 extern PyTypeObject IncreasingColorShader_Type;
 
-#define BPy_IncreasingColorShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&IncreasingColorShader_Type))
+#define BPy_IncreasingColorShader_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&IncreasingColorShader_Type))
 
 /*---------------------------Python BPy_IncreasingColorShader structure definition----------*/
 typedef struct {
-	BPy_StrokeShader py_ss;
+  BPy_StrokeShader py_ss;
 } BPy_IncreasingColorShader;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_INCREASINGCOLORSHADER_H__ */

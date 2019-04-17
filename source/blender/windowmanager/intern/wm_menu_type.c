@@ -41,73 +41,73 @@ static GHash *menutypes_hash = NULL;
 
 MenuType *WM_menutype_find(const char *idname, bool quiet)
 {
-	MenuType *mt;
+  MenuType *mt;
 
-	if (idname[0]) {
-		mt = BLI_ghash_lookup(menutypes_hash, idname);
-		if (mt) {
-			return mt;
-		}
-	}
+  if (idname[0]) {
+    mt = BLI_ghash_lookup(menutypes_hash, idname);
+    if (mt) {
+      return mt;
+    }
+  }
 
-	if (!quiet) {
-		printf("search for unknown menutype %s\n", idname);
-	}
+  if (!quiet) {
+    printf("search for unknown menutype %s\n", idname);
+  }
 
-	return NULL;
+  return NULL;
 }
 
 bool WM_menutype_add(MenuType *mt)
 {
-	BLI_assert((mt->description == NULL) || (mt->description[0]));
-	BLI_ghash_insert(menutypes_hash, mt->idname, mt);
-	return true;
+  BLI_assert((mt->description == NULL) || (mt->description[0]));
+  BLI_ghash_insert(menutypes_hash, mt->idname, mt);
+  return true;
 }
 
 void WM_menutype_freelink(MenuType *mt)
 {
-	bool ok;
+  bool ok;
 
-	ok = BLI_ghash_remove(menutypes_hash, mt->idname, NULL, MEM_freeN);
+  ok = BLI_ghash_remove(menutypes_hash, mt->idname, NULL, MEM_freeN);
 
-	BLI_assert(ok);
-	(void)ok;
+  BLI_assert(ok);
+  (void)ok;
 }
 
 /* called on initialize WM_init() */
 void WM_menutype_init(void)
 {
-	/* reserve size is set based on blender default setup */
-	menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
+  /* reserve size is set based on blender default setup */
+  menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
 }
 
 void WM_menutype_free(void)
 {
-	GHashIterator gh_iter;
+  GHashIterator gh_iter;
 
-	GHASH_ITER (gh_iter, menutypes_hash) {
-		MenuType *mt = BLI_ghashIterator_getValue(&gh_iter);
-		if (mt->ext.free) {
-			mt->ext.free(mt->ext.data);
-		}
-	}
+  GHASH_ITER (gh_iter, menutypes_hash) {
+    MenuType *mt = BLI_ghashIterator_getValue(&gh_iter);
+    if (mt->ext.free) {
+      mt->ext.free(mt->ext.data);
+    }
+  }
 
-	BLI_ghash_free(menutypes_hash, NULL, MEM_freeN);
-	menutypes_hash = NULL;
+  BLI_ghash_free(menutypes_hash, NULL, MEM_freeN);
+  menutypes_hash = NULL;
 }
 
 bool WM_menutype_poll(bContext *C, MenuType *mt)
 {
-	/* If we're tagged, only use compatible. */
-	if (mt->owner_id[0] != '\0') {
-		const WorkSpace *workspace = CTX_wm_workspace(C);
-		if (BKE_workspace_owner_id_check(workspace, mt->owner_id) == false) {
-			return false;
-		}
-	}
+  /* If we're tagged, only use compatible. */
+  if (mt->owner_id[0] != '\0') {
+    const WorkSpace *workspace = CTX_wm_workspace(C);
+    if (BKE_workspace_owner_id_check(workspace, mt->owner_id) == false) {
+      return false;
+    }
+  }
 
-	if (mt->poll != NULL) {
-		return mt->poll(C, mt);
-	}
-	return true;
+  if (mt->poll != NULL) {
+    return mt->poll(C, mt);
+  }
+  return true;
 }

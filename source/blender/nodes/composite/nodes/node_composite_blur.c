@@ -22,35 +22,31 @@
  * \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
 
 /* **************** BLUR ******************** */
 static bNodeSocketTemplate cmp_node_blur_in[] = {
-	{   SOCK_RGBA, 1, N_("Image"),          1.0f, 1.0f, 1.0f, 1.0f},
-	{   SOCK_FLOAT, 1, N_("Size"),          1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-	{   -1, 0, ""   }
-};
-static bNodeSocketTemplate cmp_node_blur_out[] = {
-	{   SOCK_RGBA, 0, N_("Image")},
-	{   -1, 0, ""   }
-};
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_blur_out[] = {{SOCK_RGBA, 0, N_("Image")}, {-1, 0, ""}};
 
 static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeBlurData *data = MEM_callocN(sizeof(NodeBlurData), "node blur data");
-	data->filtertype = R_FILTER_GAUSS;
-	node->storage = data;
+  NodeBlurData *data = MEM_callocN(sizeof(NodeBlurData), "node blur data");
+  data->filtertype = R_FILTER_GAUSS;
+  node->storage = data;
 }
 
 void register_node_type_cmp_blur(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
-	node_type_socket_templates(&ntype, cmp_node_blur_in, cmp_node_blur_out);
-	node_type_init(&ntype, node_composit_init_blur);
-	node_type_storage(&ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+  cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
+  node_type_socket_templates(&ntype, cmp_node_blur_in, cmp_node_blur_out);
+  node_type_init(&ntype, node_composit_init_blur);
+  node_type_storage(
+      &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

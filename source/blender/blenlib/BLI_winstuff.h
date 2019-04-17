@@ -33,7 +33,7 @@
 
 #ifndef WIN32_SKIP_HKEY_PROTECTION
 #  undef HKEY
-#  define HKEY WIN32_HKEY  /* prevent competing definitions */
+#  define HKEY WIN32_HKEY /* prevent competing definitions */
 #  include <windows.h>
 #  undef HKEY
 #else
@@ -63,10 +63,10 @@ extern "C" {
 #define MAXPATHLEN MAX_PATH
 
 #ifndef S_ISREG
-#  define S_ISREG(x) (((x) & _S_IFREG) == _S_IFREG)
+#  define S_ISREG(x) (((x)&_S_IFREG) == _S_IFREG)
 #endif
 #ifndef S_ISDIR
-#  define S_ISDIR(x) (((x) & _S_IFDIR) == _S_IFDIR)
+#  define S_ISDIR(x) (((x)&_S_IFDIR) == _S_IFDIR)
 #endif
 
 /* defines for using ISO C++ conformant names */
@@ -75,11 +75,11 @@ extern "C" {
 #endif
 
 #if defined(_MSC_VER)
-#  define	R_OK	4
-#  define	W_OK	2
+#  define R_OK 4
+#  define W_OK 2
 // not accepted by access() on windows
-//#  define	X_OK	1
-#  define	F_OK	0
+//#  define X_OK    1
+#  define F_OK 0
 #endif
 
 typedef unsigned int mode_t;
@@ -91,7 +91,6 @@ typedef unsigned int mode_t;
 #define lseek(fd, offset, origin) _lseeki64(fd, offset, origin)
 #define tell(fd) _telli64(fd)
 
-
 #ifndef _SSIZE_T_
 #  define _SSIZE_T_
 /* python uses HAVE_SSIZE_T */
@@ -102,10 +101,10 @@ typedef long ssize_t;
 #endif
 
 struct dirent {
-	int d_ino;
-	int d_off;
-	unsigned short d_reclen;
-	char *d_name;
+  int d_ino;
+  int d_off;
+  unsigned short d_reclen;
+  char *d_name;
 };
 
 /* intentionally opaque to users */

@@ -29,7 +29,7 @@
  * This means no thread state must be passed along in the kernel itself.
  */
 
-#include "kernel/kernel_types.h"
+#  include "kernel/kernel_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -44,26 +44,31 @@ struct OSLGlobals;
 struct OSLShadingSystem;
 
 class OSLShader {
-public:
-	/* init */
-	static void register_closures(OSLShadingSystem *ss);
+ public:
+  /* init */
+  static void register_closures(OSLShadingSystem *ss);
 
-	/* per thread data */
-	static void thread_init(KernelGlobals *kg, KernelGlobals *kernel_globals, OSLGlobals *osl_globals);
-	static void thread_free(KernelGlobals *kg);
+  /* per thread data */
+  static void thread_init(KernelGlobals *kg,
+                          KernelGlobals *kernel_globals,
+                          OSLGlobals *osl_globals);
+  static void thread_free(KernelGlobals *kg);
 
-	/* eval */
-	static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-	static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-	static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-	static void eval_displacement(KernelGlobals *kg, ShaderData *sd, PathState *state);
+  /* eval */
+  static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
+  static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
+  static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
+  static void eval_displacement(KernelGlobals *kg, ShaderData *sd, PathState *state);
 
-	/* attributes */
-	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeDescriptor *desc);
+  /* attributes */
+  static int find_attribute(KernelGlobals *kg,
+                            const ShaderData *sd,
+                            uint id,
+                            AttributeDescriptor *desc);
 };
 
 CCL_NAMESPACE_END
 
 #endif
 
-#endif  /* __OSL_SHADER_H__ */
+#endif /* __OSL_SHADER_H__ */

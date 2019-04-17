@@ -22,58 +22,83 @@
 /* **************** MUSGRAVE ******************** */
 
 static bNodeSocketTemplate sh_node_tex_musgrave_in[] = {
-	{	SOCK_VECTOR, 1, N_("Vector"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	SOCK_FLOAT, 1, N_("Scale"),			5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, N_("Detail"),		2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
-	{	SOCK_FLOAT, 1, N_("Dimension"),		2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, N_("Lacunarity"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, N_("Offset"),		0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, N_("Gain"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	-1, 0, ""	},
+    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, 1, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+    {SOCK_FLOAT, 1, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
+    {SOCK_FLOAT, 1, N_("Dimension"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_FLOAT, 1, N_("Lacunarity"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_FLOAT, 1, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+    {SOCK_FLOAT, 1, N_("Gain"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_tex_musgrave_out[] = {
-	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-	{	SOCK_FLOAT, 0, N_("Fac"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR, SOCK_NO_INTERNAL_LINK},
-	{	-1, 0, ""	},
+    {SOCK_RGBA,
+     0,
+     N_("Color"),
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_NO_INTERNAL_LINK},
+    {SOCK_FLOAT,
+     0,
+     N_("Fac"),
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     PROP_FACTOR,
+     SOCK_NO_INTERNAL_LINK},
+    {-1, 0, ""},
 };
 
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeTexMusgrave *tex = MEM_callocN(sizeof(NodeTexMusgrave), "NodeTexMusgrave");
-	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	BKE_texture_colormapping_default(&tex->base.color_mapping);
-	tex->musgrave_type = SHD_MUSGRAVE_FBM;
+  NodeTexMusgrave *tex = MEM_callocN(sizeof(NodeTexMusgrave), "NodeTexMusgrave");
+  BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+  BKE_texture_colormapping_default(&tex->base.color_mapping);
+  tex->musgrave_type = SHD_MUSGRAVE_FBM;
 
-	node->storage = tex;
+  node->storage = tex;
 }
 
-static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
+                                        bNode *node,
+                                        bNodeExecData *UNUSED(execdata),
+                                        GPUNodeStack *in,
+                                        GPUNodeStack *out)
 {
-	if (!in[0].link) {
-		in[0].link = GPU_attribute(CD_ORCO, "");
-		GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), in[0].link, &in[0].link);
-	}
+  if (!in[0].link) {
+    in[0].link = GPU_attribute(CD_ORCO, "");
+    GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), in[0].link, &in[0].link);
+  }
 
-	node_shader_gpu_tex_mapping(mat, node, in, out);
+  node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
-	float type = tex->musgrave_type;
+  NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
+  float type = tex->musgrave_type;
 
-	return GPU_stack_link(mat, node, "node_tex_musgrave", in, out, GPU_constant(&type));
+  return GPU_stack_link(mat, node, "node_tex_musgrave", in, out, GPU_constant(&type));
 }
 
 /* node type definition */
 void register_node_type_sh_tex_musgrave(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_TEX_MUSGRAVE, "Musgrave Texture", NODE_CLASS_TEXTURE, 0);
-	node_type_socket_templates(&ntype, sh_node_tex_musgrave_in, sh_node_tex_musgrave_out);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, node_shader_init_tex_musgrave);
-	node_type_storage(&ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);
-	node_type_gpu(&ntype, node_shader_gpu_tex_musgrave);
+  sh_node_type_base(&ntype, SH_NODE_TEX_MUSGRAVE, "Musgrave Texture", NODE_CLASS_TEXTURE, 0);
+  node_type_socket_templates(&ntype, sh_node_tex_musgrave_in, sh_node_tex_musgrave_out);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  node_type_init(&ntype, node_shader_init_tex_musgrave);
+  node_type_storage(
+      &ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);
+  node_type_gpu(&ntype, node_shader_gpu_tex_musgrave);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

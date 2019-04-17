@@ -8,6 +8,6 @@ out vec3 normal;
 
 void main()
 {
-	normal = normalize(NormalMatrix * nor);
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  normal = normalize(NormalMatrix * nor);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 }

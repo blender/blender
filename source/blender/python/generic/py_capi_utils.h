@@ -24,10 +24,10 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines_variadic.h"
 
-void      PyC_ObSpit(const char *name, PyObject *var);
-void      PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
-void      PyC_LineSpit(void);
-void      PyC_StackSpit(void);
+void PyC_ObSpit(const char *name, PyObject *var);
+void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
+void PyC_LineSpit(void);
+void PyC_StackSpit(void);
 PyObject *PyC_ExceptionBuffer(void);
 PyObject *PyC_ExceptionBuffer_Simple(void);
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
@@ -36,40 +36,46 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings);
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
 PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *str);
 
-void      PyC_Err_PrintWithFunc(PyObject *py_func);
+void PyC_Err_PrintWithFunc(PyObject *py_func);
 
-void	PyC_FileAndNum(const char **filename, int *lineno);
-void	PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
-int             PyC_AsArray_FAST(
-        void *array, PyObject *value_fast, const Py_ssize_t length,
-        const PyTypeObject *type, const bool is_double, const char *error_prefix);
-int             PyC_AsArray(
-        void *array, PyObject *value, const Py_ssize_t length,
-        const PyTypeObject *type, const bool is_double, const char *error_prefix);
+void PyC_FileAndNum(const char **filename, int *lineno);
+void PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
+int PyC_AsArray_FAST(void *array,
+                     PyObject *value_fast,
+                     const Py_ssize_t length,
+                     const PyTypeObject *type,
+                     const bool is_double,
+                     const char *error_prefix);
+int PyC_AsArray(void *array,
+                PyObject *value,
+                const Py_ssize_t length,
+                const PyTypeObject *type,
+                const bool is_double,
+                const char *error_prefix);
 
-PyObject       *PyC_Tuple_PackArray_F32(const float *array, uint len);
-PyObject       *PyC_Tuple_PackArray_F64(const double *array, uint len);
-PyObject       *PyC_Tuple_PackArray_I32(const int *array, uint len);
-PyObject       *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
-PyObject       *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
+PyObject *PyC_Tuple_PackArray_F32(const float *array, uint len);
+PyObject *PyC_Tuple_PackArray_F64(const double *array, uint len);
+PyObject *PyC_Tuple_PackArray_I32(const int *array, uint len);
+PyObject *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
+PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
 
 #define PyC_Tuple_Pack_F32(...) \
-	PyC_Tuple_PackArray_F32(((const float []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  PyC_Tuple_PackArray_F32(((const float[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_F64(...) \
-	PyC_Tuple_PackArray_F64(((const double []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  PyC_Tuple_PackArray_F64(((const double[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_I32(...) \
-	PyC_Tuple_PackArray_I32(((const int []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  PyC_Tuple_PackArray_I32(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_I32FromBool(...) \
-	PyC_Tuple_PackArray_I32FromBool(((const int []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_Bool(...) \
-	PyC_Tuple_PackArray_Bool(((const bool []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 
-void            PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
-void            PyC_List_Fill(PyObject *list, PyObject *value);
+void PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
+void PyC_List_Fill(PyObject *list, PyObject *value);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
-PyObject   *PyC_UnicodeFromByte(const char *str);
-PyObject   *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
+PyObject *PyC_UnicodeFromByte(const char *str);
+PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
 const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
@@ -89,34 +95,49 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name);
 
 /* flag / set --- interchange */
 typedef struct PyC_FlagSet {
-	int value;
-	const char *identifier;
+  int value;
+  const char *identifier;
 } PyC_FlagSet;
 
-char     *PyC_FlagSet_AsString(PyC_FlagSet *item);
-int       PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value);
-int       PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int *r_value, const char *error_prefix);
-int       PyC_FlagSet_ToBitfield(PyC_FlagSet *items, PyObject *value, int *r_value, const char *error_prefix);
+char *PyC_FlagSet_AsString(PyC_FlagSet *item);
+int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value);
+int PyC_FlagSet_ValueFromID(PyC_FlagSet *item,
+                            const char *identifier,
+                            int *r_value,
+                            const char *error_prefix);
+int PyC_FlagSet_ToBitfield(PyC_FlagSet *items,
+                           PyObject *value,
+                           int *r_value,
+                           const char *error_prefix);
 PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 
-bool PyC_RunString_AsNumber(const char **imports, const char *expr, const char *filename, double *r_value);
-bool PyC_RunString_AsIntPtr(const char **imports, const char *expr, const char *filename, intptr_t *r_value);
-bool PyC_RunString_AsString(const char **imports, const char *expr, const char *filename, char **r_value);
+bool PyC_RunString_AsNumber(const char **imports,
+                            const char *expr,
+                            const char *filename,
+                            double *r_value);
+bool PyC_RunString_AsIntPtr(const char **imports,
+                            const char *expr,
+                            const char *filename,
+                            intptr_t *r_value);
+bool PyC_RunString_AsString(const char **imports,
+                            const char *expr,
+                            const char *filename,
+                            char **r_value);
 
 int PyC_ParseBool(PyObject *o, void *p);
 
 int PyC_CheckArgs_DeepCopy(PyObject *args);
 
 /* Integer parsing (with overflow checks), -1 on error. */
-int     PyC_Long_AsBool(PyObject *value);
-int8_t  PyC_Long_AsI8(PyObject *value);
+int PyC_Long_AsBool(PyObject *value);
+int8_t PyC_Long_AsI8(PyObject *value);
 int16_t PyC_Long_AsI16(PyObject *value);
 #if 0 /* inline */
 int32_t PyC_Long_AsI32(PyObject *value);
 int64_t PyC_Long_AsI64(PyObject *value);
 #endif
 
-uint8_t  PyC_Long_AsU8(PyObject *value);
+uint8_t PyC_Long_AsU8(PyObject *value);
 uint16_t PyC_Long_AsU16(PyObject *value);
 uint32_t PyC_Long_AsU32(PyObject *value);
 #if 0 /* inline */
@@ -124,9 +145,18 @@ uint64_t PyC_Long_AsU64(PyObject *value);
 #endif
 
 /* inline so type signatures match as expected */
-Py_LOCAL_INLINE(int32_t)  PyC_Long_AsI32(PyObject *value) { return (int32_t)_PyLong_AsInt(value); }
-Py_LOCAL_INLINE(int64_t)  PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLong_AsLongLong(value); }
-Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
+Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
+{
+  return (int32_t)_PyLong_AsInt(value);
+}
+Py_LOCAL_INLINE(int64_t) PyC_Long_AsI64(PyObject *value)
+{
+  return (int64_t)PyLong_AsLongLong(value);
+}
+Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value)
+{
+  return (uint64_t)PyLong_AsUnsignedLongLong(value);
+}
 
 /* utils for format string in `struct` module style syntax */
 char PyC_StructFmt_type_from_str(const char *typestr);
@@ -135,4 +165,4 @@ bool PyC_StructFmt_type_is_int_any(char format);
 bool PyC_StructFmt_type_is_byte(char format);
 bool PyC_StructFmt_type_is_bool(char format);
 
-#endif  /* __PY_CAPI_UTILS_H__ */
+#endif /* __PY_CAPI_UTILS_H__ */

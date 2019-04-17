@@ -27,53 +27,55 @@
 
 ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void ViewerNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ViewerNode::convertToOperations(NodeConverter &converter,
+                                     const CompositorContext &context) const
 {
-	bNode *editorNode = this->getbNode();
-	bool do_output = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) && (editorNode->flag & NODE_DO_OUTPUT);
-	bool ignore_alpha = (editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;
+  bNode *editorNode = this->getbNode();
+  bool do_output = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) &&
+                   (editorNode->flag & NODE_DO_OUTPUT);
+  bool ignore_alpha = (editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;
 
-	NodeInput *imageSocket = this->getInputSocket(0);
-	NodeInput *alphaSocket = this->getInputSocket(1);
-	NodeInput *depthSocket = this->getInputSocket(2);
-	Image *image = (Image *)this->getbNode()->id;
-	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
-	ViewerOperation *viewerOperation = new ViewerOperation();
-	viewerOperation->setbNodeTree(context.getbNodeTree());
-	viewerOperation->setImage(image);
-	viewerOperation->setImageUser(imageUser);
-	viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
-	viewerOperation->setCenterX(editorNode->custom3);
-	viewerOperation->setCenterY(editorNode->custom4);
-	/* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */
-	viewerOperation->setUseAlphaInput(ignore_alpha || alphaSocket->isLinked());
-	viewerOperation->setRenderData(context.getRenderData());
-	viewerOperation->setViewName(context.getViewName());
+  NodeInput *imageSocket = this->getInputSocket(0);
+  NodeInput *alphaSocket = this->getInputSocket(1);
+  NodeInput *depthSocket = this->getInputSocket(2);
+  Image *image = (Image *)this->getbNode()->id;
+  ImageUser *imageUser = (ImageUser *)this->getbNode()->storage;
+  ViewerOperation *viewerOperation = new ViewerOperation();
+  viewerOperation->setbNodeTree(context.getbNodeTree());
+  viewerOperation->setImage(image);
+  viewerOperation->setImageUser(imageUser);
+  viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
+  viewerOperation->setCenterX(editorNode->custom3);
+  viewerOperation->setCenterY(editorNode->custom4);
+  /* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */
+  viewerOperation->setUseAlphaInput(ignore_alpha || alphaSocket->isLinked());
+  viewerOperation->setRenderData(context.getRenderData());
+  viewerOperation->setViewName(context.getViewName());
 
-	viewerOperation->setViewSettings(context.getViewSettings());
-	viewerOperation->setDisplaySettings(context.getDisplaySettings());
+  viewerOperation->setViewSettings(context.getViewSettings());
+  viewerOperation->setDisplaySettings(context.getDisplaySettings());
 
-	viewerOperation->setResolutionInputSocketIndex(0);
-	if (!imageSocket->isLinked()) {
-		if (alphaSocket->isLinked()) {
-			viewerOperation->setResolutionInputSocketIndex(1);
-		}
-	}
+  viewerOperation->setResolutionInputSocketIndex(0);
+  if (!imageSocket->isLinked()) {
+    if (alphaSocket->isLinked()) {
+      viewerOperation->setResolutionInputSocketIndex(1);
+    }
+  }
 
-	converter.addOperation(viewerOperation);
-	converter.mapInputSocket(imageSocket, viewerOperation->getInputSocket(0));
-	/* only use alpha link if "use alpha" is enabled */
-	if (ignore_alpha)
-		converter.addInputValue(viewerOperation->getInputSocket(1), 1.0f);
-	else
-		converter.mapInputSocket(alphaSocket, viewerOperation->getInputSocket(1));
-	converter.mapInputSocket(depthSocket, viewerOperation->getInputSocket(2));
+  converter.addOperation(viewerOperation);
+  converter.mapInputSocket(imageSocket, viewerOperation->getInputSocket(0));
+  /* only use alpha link if "use alpha" is enabled */
+  if (ignore_alpha)
+    converter.addInputValue(viewerOperation->getInputSocket(1), 1.0f);
+  else
+    converter.mapInputSocket(alphaSocket, viewerOperation->getInputSocket(1));
+  converter.mapInputSocket(depthSocket, viewerOperation->getInputSocket(2));
 
-	converter.addNodeInputPreview(imageSocket);
+  converter.addNodeInputPreview(imageSocket);
 
-	if (do_output)
-		converter.registerViewer(viewerOperation);
+  if (do_output)
+    converter.registerViewer(viewerOperation);
 }

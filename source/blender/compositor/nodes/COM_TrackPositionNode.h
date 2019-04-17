@@ -24,8 +24,7 @@
  * \ingroup Node
  */
 class TrackPositionNode : public Node {
-public:
-	TrackPositionNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
-
+ public:
+  TrackPositionNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };

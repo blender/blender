@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ViewLevelsNode : public Node {
-public:
-	ViewLevelsNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ViewLevelsNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

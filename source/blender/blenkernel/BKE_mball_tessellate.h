@@ -24,10 +24,11 @@ struct Main;
 struct Object;
 struct Scene;
 
-void BKE_mball_polygonize(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, struct ListBase *dispbase);
+void BKE_mball_polygonize(struct Depsgraph *depsgraph,
+                          struct Scene *scene,
+                          struct Object *ob,
+                          struct ListBase *dispbase);
 
 void BKE_mball_cubeTable_free(void);
 
-#endif  /* __BKE_MBALL_TESSELLATE_H__ */
+#endif /* __BKE_MBALL_TESSELLATE_H__ */

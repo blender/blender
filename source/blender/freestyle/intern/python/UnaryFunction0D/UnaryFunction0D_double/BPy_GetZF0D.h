@@ -35,9 +35,8 @@ extern PyTypeObject GetZF0D_Type;
 
 /*---------------------------Python BPy_GetZF0D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction0DDouble py_uf0D_double;
+  BPy_UnaryFunction0DDouble py_uf0D_double;
 } BPy_GetZF0D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

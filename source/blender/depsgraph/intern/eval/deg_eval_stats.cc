@@ -37,24 +37,23 @@ namespace DEG {
 
 void deg_eval_stats_aggregate(Depsgraph *graph)
 {
-	/* Reset current evaluation stats for ID and component nodes.
-	 * Those are not filled in by the evaluation engine. */
-	for (Node *node : graph->id_nodes) {
-		IDNode *id_node = (IDNode *)node;
-		GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
-		{
-			comp_node->stats.reset_current();
-		}
-		GHASH_FOREACH_END();
-		id_node->stats.reset_current();
-	}
-	/* Now accumulate operation timings to components and IDs. */
-	for (OperationNode *op_node : graph->operations) {
-		ComponentNode *comp_node = op_node->owner;
-		IDNode *id_node = comp_node->owner;
-		id_node->stats.current_time += op_node->stats.current_time;
-		comp_node->stats.current_time += op_node->stats.current_time;
-	}
+  /* Reset current evaluation stats for ID and component nodes.
+   * Those are not filled in by the evaluation engine. */
+  for (Node *node : graph->id_nodes) {
+    IDNode *id_node = (IDNode *)node;
+    GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+      comp_node->stats.reset_current();
+    }
+    GHASH_FOREACH_END();
+    id_node->stats.reset_current();
+  }
+  /* Now accumulate operation timings to components and IDs. */
+  for (OperationNode *op_node : graph->operations) {
+    ComponentNode *comp_node = op_node->owner;
+    IDNode *id_node = comp_node->owner;
+    id_node->stats.current_time += op_node->stats.current_time;
+    comp_node->stats.current_time += op_node->stats.current_time;
+  }
 }
 
 }  // namespace DEG

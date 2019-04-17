@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class DoubleEdgeMaskNode : public Node {
-public:
-	DoubleEdgeMaskNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  DoubleEdgeMaskNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

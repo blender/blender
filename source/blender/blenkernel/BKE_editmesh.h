@@ -47,56 +47,57 @@ struct Scene;
  * the entire derivedmesh and modifier system works with this structure,
  * and not BMesh.  Mesh->edit_bmesh stores a pointer to this structure. */
 typedef struct BMEditMesh {
-	struct BMesh *bm;
+  struct BMesh *bm;
 
-	/*this is for undoing failed operations*/
-	struct BMEditMesh *emcopy;
-	int emcopyusers;
+  /*this is for undoing failed operations*/
+  struct BMEditMesh *emcopy;
+  int emcopyusers;
 
-	/* we store tessellations as triplets of three loops,
-	 * which each define a triangle.*/
-	struct BMLoop *(*looptris)[3];
-	int tottri;
+  /* we store tessellations as triplets of three loops,
+   * which each define a triangle.*/
+  struct BMLoop *(*looptris)[3];
+  int tottri;
 
-	struct Mesh *mesh_eval_final, *mesh_eval_cage;
+  struct Mesh *mesh_eval_final, *mesh_eval_cage;
 
-	/*derivedmesh stuff*/
-	CustomData_MeshMasks lastDataMask;
-	unsigned char (*derivedVertColor)[4];
-	int derivedVertColorLen;
-	unsigned char (*derivedFaceColor)[4];
-	int derivedFaceColorLen;
+  /*derivedmesh stuff*/
+  CustomData_MeshMasks lastDataMask;
+  unsigned char (*derivedVertColor)[4];
+  int derivedVertColorLen;
+  unsigned char (*derivedFaceColor)[4];
+  int derivedFaceColorLen;
 
-	/*selection mode*/
-	short selectmode;
-	short mat_nr;
+  /*selection mode*/
+  short selectmode;
+  short mat_nr;
 
-	/* Object this editmesh came from (if it came from one) */
-	struct Object *ob;
+  /* Object this editmesh came from (if it came from one) */
+  struct Object *ob;
 
-	/*temp variables for x-mirror editing*/
-	int mirror_cdlayer; /* -1 is invalid */
+  /*temp variables for x-mirror editing*/
+  int mirror_cdlayer; /* -1 is invalid */
 } BMEditMesh;
 
 /* editmesh.c */
-void        BKE_editmesh_tessface_calc(BMEditMesh *em);
+void BKE_editmesh_tessface_calc(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate);
 BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
-void        BKE_editmesh_free_derivedmesh(BMEditMesh *em);
-void        BKE_editmesh_free(BMEditMesh *em);
+void BKE_editmesh_free_derivedmesh(BMEditMesh *em);
+void BKE_editmesh_free(BMEditMesh *em);
 
-void        BKE_editmesh_color_free(BMEditMesh *em);
-void        BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
-float     (*BKE_editmesh_vertexCos_get_orco(BMEditMesh *em, int *r_numVerts))[3];
-void        BKE_editmesh_lnorspace_update(BMEditMesh *em);
+void BKE_editmesh_color_free(BMEditMesh *em);
+void BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
+float (*BKE_editmesh_vertexCos_get_orco(BMEditMesh *em, int *r_numVerts))[3];
+void BKE_editmesh_lnorspace_update(BMEditMesh *em);
 
 /* editderivedmesh.c */
 /* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */
-void BKE_editmesh_statvis_calc(
-        BMEditMesh *em, struct EditMeshData *emd, const struct MeshStatVis *statvis);
+void BKE_editmesh_statvis_calc(BMEditMesh *em,
+                               struct EditMeshData *emd,
+                               const struct MeshStatVis *statvis);
 
 float (*BKE_editmesh_vertexCos_get(
-           struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
+    struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
 
 #endif /* __BKE_EDITMESH_H__ */

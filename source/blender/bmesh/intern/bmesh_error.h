@@ -29,11 +29,11 @@ void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 
 /* gets the topmost error from the stack.
  * returns error code or 0 if no error.*/
-int  BMO_error_get(BMesh *bm, const char **msg, BMOperator **op);
+int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op);
 bool BMO_error_occurred(BMesh *bm);
 
 /* same as geterror, only pops the error off the stack as well */
-int  BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op);
+int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op);
 void BMO_error_clear(BMesh *bm);
 
 /* this is meant for handling errors, like self-intersection test failures.
@@ -48,24 +48,24 @@ void BMO_error_clear(BMesh *bm);
  */
 
 #define BM_ELEM_INDEX_VALIDATE(_bm, _msg_a, _msg_b) \
-	BM_mesh_elem_index_validate(_bm, __FILE__ ":" STRINGIFY(__LINE__), __func__, _msg_a, _msg_b)
+  BM_mesh_elem_index_validate(_bm, __FILE__ ":" STRINGIFY(__LINE__), __func__, _msg_a, _msg_b)
 
 /*------ error code defines -------*/
 
 /*error messages*/
 enum {
-	BMERR_SELF_INTERSECTING = 1,
-	BMERR_DISSOLVEDISK_FAILED,
-	BMERR_CONNECTVERT_FAILED,
-	BMERR_WALKER_FAILED,
-	BMERR_DISSOLVEFACES_FAILED,
-	BMERR_TESSELLATION,
-	BMERR_NONMANIFOLD,
-	BMERR_INVALID_SELECTION,
-	BMERR_MESH_ERROR,
-	BMERR_CONVEX_HULL_FAILED,
+  BMERR_SELF_INTERSECTING = 1,
+  BMERR_DISSOLVEDISK_FAILED,
+  BMERR_CONNECTVERT_FAILED,
+  BMERR_WALKER_FAILED,
+  BMERR_DISSOLVEFACES_FAILED,
+  BMERR_TESSELLATION,
+  BMERR_NONMANIFOLD,
+  BMERR_INVALID_SELECTION,
+  BMERR_MESH_ERROR,
+  BMERR_CONVEX_HULL_FAILED,
 
-	BMERR_TOTAL,
+  BMERR_TOTAL,
 };
 
 /* BMESH_ASSERT */
@@ -77,13 +77,15 @@ enum {
 
 /* this is meant to be higher level then BLI_assert(),
  * its enabled even when in Release mode*/
-#define BMESH_ASSERT(a)                                                       \
-	(void)((!(a)) ?  (                                                        \
-		(                                                                     \
-		fprintf(stderr,                                                       \
-		        "BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n",              \
-		        __FILE__, __func__, __LINE__, STRINGIFY(a)),                  \
-		_BMESH_DUMMY_ABORT(),                                                 \
-		NULL)) : NULL)
+#define BMESH_ASSERT(a) \
+  (void)((!(a)) ? ((fprintf(stderr, \
+                            "BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n", \
+                            __FILE__, \
+                            __func__, \
+                            __LINE__, \
+                            STRINGIFY(a)), \
+                    _BMESH_DUMMY_ABORT(), \
+                    NULL)) : \
+                  NULL)
 
 #endif /* __BMESH_ERROR_H__ */

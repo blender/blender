@@ -22,14 +22,15 @@
 
 NormalizeNode::NormalizeNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void NormalizeNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void NormalizeNode::convertToOperations(NodeConverter &converter,
+                                        const CompositorContext & /*context*/) const
 {
-	NormalizeOperation *operation = new NormalizeOperation();
-	converter.addOperation(operation);
+  NormalizeOperation *operation = new NormalizeOperation();
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

@@ -51,104 +51,103 @@ extern "C" {
 
 namespace Freestyle {
 
-class PythonInterpreter : public Interpreter
-{
-public:
-	PythonInterpreter()
-	{
-		_language = "Python";
-		_context = 0;
-		memset(&_freestyle_bmain, 0, sizeof(Main));
-	}
+class PythonInterpreter : public Interpreter {
+ public:
+  PythonInterpreter()
+  {
+    _language = "Python";
+    _context = 0;
+    memset(&_freestyle_bmain, 0, sizeof(Main));
+  }
 
-	void setContext(bContext *C)
-	{
-		_context = C;
-	}
+  void setContext(bContext *C)
+  {
+    _context = C;
+  }
 
-	int interpretFile(const string& filename)
-	{
-		ReportList *reports = CTX_wm_reports(_context);
-		BKE_reports_clear(reports);
-		char *fn = const_cast<char*>(filename.c_str());
+  int interpretFile(const string &filename)
+  {
+    ReportList *reports = CTX_wm_reports(_context);
+    BKE_reports_clear(reports);
+    char *fn = const_cast<char *>(filename.c_str());
 #if 0
-		bool ok = BPY_execute_filepath(_context, fn, reports);
+    bool ok = BPY_execute_filepath(_context, fn, reports);
 #else
-		bool ok;
-		Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->name);
-		if (text) {
-			ok = BPY_execute_text(_context, text, reports, false);
-			BKE_id_delete(&_freestyle_bmain, text);
-		}
-		else {
-			BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
-			ok = false;
-		}
+    bool ok;
+    Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->name);
+    if (text) {
+      ok = BPY_execute_text(_context, text, reports, false);
+      BKE_id_delete(&_freestyle_bmain, text);
+    }
+    else {
+      BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
+      ok = false;
+    }
 #endif
 
-		if (ok == false) {
-			cerr << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
-			cerr << "File: " << fn << endl;
-			cerr << "Errors: " << endl;
-			BKE_reports_print(reports, RPT_ERROR);
-			return 1;
-		}
+    if (ok == false) {
+      cerr << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
+      cerr << "File: " << fn << endl;
+      cerr << "Errors: " << endl;
+      BKE_reports_print(reports, RPT_ERROR);
+      return 1;
+    }
 
-		// cleaning up
-		BKE_reports_clear(reports);
+    // cleaning up
+    BKE_reports_clear(reports);
 
-		return 0;
-	}
+    return 0;
+  }
 
-	int interpretString(const string& str, const string& name)
-	{
-		ReportList *reports = CTX_wm_reports(_context);
+  int interpretString(const string &str, const string &name)
+  {
+    ReportList *reports = CTX_wm_reports(_context);
 
-		BKE_reports_clear(reports);
+    BKE_reports_clear(reports);
 
-		if (!BPY_execute_string(_context, NULL, str.c_str())) {
-			BPy_errors_to_report(reports);
-			cerr << "\nError executing Python script from PythonInterpreter::interpretString" << endl;
-			cerr << "Name: " << name << endl;
-			cerr << "Errors: " << endl;
-			BKE_reports_print(reports, RPT_ERROR);
-			return 1;
-		}
+    if (!BPY_execute_string(_context, NULL, str.c_str())) {
+      BPy_errors_to_report(reports);
+      cerr << "\nError executing Python script from PythonInterpreter::interpretString" << endl;
+      cerr << "Name: " << name << endl;
+      cerr << "Errors: " << endl;
+      BKE_reports_print(reports, RPT_ERROR);
+      return 1;
+    }
 
-		BKE_reports_clear(reports);
+    BKE_reports_clear(reports);
 
-		return 0;
-	}
+    return 0;
+  }
 
-	int interpretText(struct Text *text, const string& name)
-	{
-		ReportList *reports = CTX_wm_reports(_context);
+  int interpretText(struct Text *text, const string &name)
+  {
+    ReportList *reports = CTX_wm_reports(_context);
 
-		BKE_reports_clear(reports);
+    BKE_reports_clear(reports);
 
-		if (!BPY_execute_text(_context, text, reports, false)) {
-			cerr << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
-			cerr << "Name: " << name << endl;
-			cerr << "Errors: " << endl;
-			BKE_reports_print(reports, RPT_ERROR);
-			return 1;
-		}
+    if (!BPY_execute_text(_context, text, reports, false)) {
+      cerr << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
+      cerr << "Name: " << name << endl;
+      cerr << "Errors: " << endl;
+      BKE_reports_print(reports, RPT_ERROR);
+      return 1;
+    }
 
-		BKE_reports_clear(reports);
+    BKE_reports_clear(reports);
 
-		return 0;
-	}
+    return 0;
+  }
 
-	void reset()
-	{
-		// nothing to do
-	}
+  void reset()
+  {
+    // nothing to do
+  }
 
-private:
-	bContext *_context;
-	Main _freestyle_bmain;
+ private:
+  bContext *_context;
+  Main _freestyle_bmain;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_PYTHON_INTERPRETER_H__
+#endif  // __FREESTYLE_PYTHON_INTERPRETER_H__

@@ -16,85 +16,85 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blenloader
-	../../blentranslation
-	../../imbuf
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../../../intern/atomic
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../blentranslation
+  ../../imbuf
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../render/extern/include
+  ../../windowmanager
+  ../../../../intern/atomic
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	file_draw.c
-	file_ops.c
-	file_panels.c
-	file_utils.c
-	filelist.c
-	filesel.c
-	fsmenu.c
-	space_file.c
+  file_draw.c
+  file_ops.c
+  file_panels.c
+  file_utils.c
+  filelist.c
+  filesel.c
+  fsmenu.c
+  space_file.c
 
-	file_intern.h
-	filelist.h
-	fsmenu.h
+  file_intern.h
+  filelist.h
+  fsmenu.h
 )
 
 set(LIB
 )
 
 if(WITH_HEADLESS)
-	add_definitions(-DWITH_HEADLESS)
+  add_definitions(-DWITH_HEADLESS)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-	add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_OPENEXR)
 endif()
 
 if(WITH_OPENIMAGEIO)
-	add_definitions(-DWITH_OPENIMAGEIO)
+  add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_TIFF)
-	add_definitions(-DWITH_TIFF)
+  add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	add_definitions(-DWITH_OPENJPEG)
+  add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_DDS)
-	add_definitions(-DWITH_DDS)
+  add_definitions(-DWITH_DDS)
 endif()
 
 if(WITH_IMAGE_CINEON)
-	add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_CINEON)
 endif()
 
 if(WITH_IMAGE_HDR)
-	add_definitions(-DWITH_HDR)
+  add_definitions(-DWITH_HDR)
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})
 
 if(WITH_FREESTYLE)
-	add_definitions(-DWITH_FREESTYLE)
+  add_definitions(-DWITH_FREESTYLE)
 endif()
 
 blender_add_lib(bf_editor_space_file "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

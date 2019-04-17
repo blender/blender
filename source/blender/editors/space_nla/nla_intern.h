@@ -34,7 +34,10 @@
 
 ARegion *nla_has_buttons_region(ScrArea *sa);
 
-bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_ptr, PointerRNA *strip_ptr);
+bool nla_panel_context(const bContext *C,
+                       PointerRNA *adt_ptr,
+                       PointerRNA *nlt_ptr,
+                       PointerRNA *strip_ptr);
 
 void nla_buttons_register(ARegionType *art);
 void NLA_OT_properties(wmOperatorType *ot);
@@ -50,10 +53,10 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar);
 
 /* defines for left-right select tool */
 enum eNlaEdit_LeftRightSelect_Mode {
-	NLAEDIT_LRSEL_TEST  = -1,
-	NLAEDIT_LRSEL_NONE,
-	NLAEDIT_LRSEL_LEFT,
-	NLAEDIT_LRSEL_RIGHT,
+  NLAEDIT_LRSEL_TEST = -1,
+  NLAEDIT_LRSEL_NONE,
+  NLAEDIT_LRSEL_LEFT,
+  NLAEDIT_LRSEL_RIGHT,
 };
 
 /* --- */
@@ -68,10 +71,10 @@ void NLA_OT_click_select(wmOperatorType *ot);
 
 /* defines for snap strips */
 enum eNlaEdit_Snap_Mode {
-	NLAEDIT_SNAP_CFRA = 1,
-	NLAEDIT_SNAP_NEAREST_FRAME,
-	NLAEDIT_SNAP_NEAREST_SECOND,
-	NLAEDIT_SNAP_NEAREST_MARKER,
+  NLAEDIT_SNAP_CFRA = 1,
+  NLAEDIT_SNAP_NEAREST_FRAME,
+  NLAEDIT_SNAP_NEAREST_SECOND,
+  NLAEDIT_SNAP_NEAREST_MARKER,
 };
 
 /* --- */
@@ -118,7 +121,6 @@ void NLA_OT_snap(wmOperatorType *ot);
 void NLA_OT_fmodifier_add(wmOperatorType *ot);
 void NLA_OT_fmodifier_copy(wmOperatorType *ot);
 void NLA_OT_fmodifier_paste(wmOperatorType *ot);
-
 
 /* **************************************** */
 /* nla_channels.c */

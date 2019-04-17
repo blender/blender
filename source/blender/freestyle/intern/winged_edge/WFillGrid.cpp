@@ -26,33 +26,33 @@ namespace Freestyle {
 
 void WFillGrid::fillGrid()
 {
-	if (!_winged_edge || !_grid)
-		return;
+  if (!_winged_edge || !_grid)
+    return;
 
-	vector<WShape *> wshapes = _winged_edge->getWShapes();
-	vector<WVertex *> fvertices;
-	vector<Vec3r> vectors;
-	vector<WFace *> faces;
+  vector<WShape *> wshapes = _winged_edge->getWShapes();
+  vector<WVertex *> fvertices;
+  vector<Vec3r> vectors;
+  vector<WFace *> faces;
 
-	for (vector<WShape *>::const_iterator it = wshapes.begin(); it != wshapes.end(); ++it) {
-		faces = (*it)->GetFaceList();
+  for (vector<WShape *>::const_iterator it = wshapes.begin(); it != wshapes.end(); ++it) {
+    faces = (*it)->GetFaceList();
 
-		for (vector<WFace *>::const_iterator f = faces.begin(); f != faces.end(); ++f) {
-			(*f)->RetrieveVertexList(fvertices);
+    for (vector<WFace *>::const_iterator f = faces.begin(); f != faces.end(); ++f) {
+      (*f)->RetrieveVertexList(fvertices);
 
-			for (vector<WVertex*>::const_iterator wv = fvertices.begin(); wv != fvertices.end(); ++wv)
-				vectors.push_back(Vec3r((*wv)->GetVertex()));
+      for (vector<WVertex *>::const_iterator wv = fvertices.begin(); wv != fvertices.end(); ++wv)
+        vectors.push_back(Vec3r((*wv)->GetVertex()));
 
-			// occluder will be deleted by the grid
-			Polygon3r *occluder = new Polygon3r(vectors, (*f)->GetNormal());
-			occluder->setId(_polygon_id++);
-			occluder->userdata = (void *)(*f);
-			_grid->insertOccluder(occluder);
-			vectors.clear();
-			fvertices.clear();
-		}
-		faces.clear();
-	}
+      // occluder will be deleted by the grid
+      Polygon3r *occluder = new Polygon3r(vectors, (*f)->GetNormal());
+      occluder->setId(_polygon_id++);
+      occluder->userdata = (void *)(*f);
+      _grid->insertOccluder(occluder);
+      vectors.clear();
+      fvertices.clear();
+    }
+    faces.clear();
+  }
 }
 
 } /* namespace Freestyle */

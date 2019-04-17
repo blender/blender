@@ -7,6 +7,6 @@ uniform vec4 color;
 
 void main()
 {
-	fragColor.a = texture(image, texCoord_interp).a * color.a;
-	fragColor.rgb = color.rgb;
+  fragColor.a = texture(image, texCoord_interp).a * color.a;
+  fragColor.rgb = color.rgb;
 }

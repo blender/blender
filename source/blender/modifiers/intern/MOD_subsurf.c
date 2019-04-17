@@ -21,7 +21,6 @@
  * \ingroup modifiers
  */
 
-
 #include <stddef.h>
 
 #include "MEM_guardedalloc.h"
@@ -47,90 +46,86 @@
 #include "intern/CCGSubSurf.h"
 
 typedef struct SubsurfRuntimeData {
-	/* Cached subdivision surface descriptor, with topology and settings. */
-	struct Subdiv *subdiv;
+  /* Cached subdivision surface descriptor, with topology and settings. */
+  struct Subdiv *subdiv;
 } SubsurfRuntimeData;
 
 static void initData(ModifierData *md)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
-	smd->levels = 1;
-	smd->renderLevels = 2;
-	smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
-	smd->quality = 3;
-	smd->flags |= eSubsurfModifierFlag_UseCrease;
+  smd->levels = 1;
+  smd->renderLevels = 2;
+  smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+  smd->quality = 3;
+  smd->flags |= eSubsurfModifierFlag_UseCrease;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
-	const SubsurfModifierData *smd = (const SubsurfModifierData *) md;
+  const SubsurfModifierData *smd = (const SubsurfModifierData *) md;
 #endif
-	SubsurfModifierData *tsmd = (SubsurfModifierData *) target;
+  SubsurfModifierData *tsmd = (SubsurfModifierData *)target;
 
-	modifier_copyData_generic(md, target, flag);
+  modifier_copyData_generic(md, target, flag);
 
-	tsmd->emCache = tsmd->mCache = NULL;
+  tsmd->emCache = tsmd->mCache = NULL;
 }
 
 static void freeRuntimeData(void *runtime_data_v)
 {
-	if (runtime_data_v == NULL) {
-		return;
-	}
-	SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
-	if (runtime_data->subdiv != NULL) {
-		BKE_subdiv_free(runtime_data->subdiv);
-	}
-	MEM_freeN(runtime_data);
+  if (runtime_data_v == NULL) {
+    return;
+  }
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
+  if (runtime_data->subdiv != NULL) {
+    BKE_subdiv_free(runtime_data->subdiv);
+  }
+  MEM_freeN(runtime_data);
 }
 
 static void freeData(ModifierData *md)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
-	if (smd->mCache) {
-		ccgSubSurf_free(smd->mCache);
-		smd->mCache = NULL;
-	}
-	if (smd->emCache) {
-		ccgSubSurf_free(smd->emCache);
-		smd->emCache = NULL;
-	}
-	freeRuntimeData(smd->modifier.runtime);
+  if (smd->mCache) {
+    ccgSubSurf_free(smd->mCache);
+    smd->mCache = NULL;
+  }
+  if (smd->emCache) {
+    ccgSubSurf_free(smd->emCache);
+    smd->emCache = NULL;
+  }
+  freeRuntimeData(smd->modifier.runtime);
 }
 
 static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
-	int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
 
-	return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
+  return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
 }
 
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
                                           const ModifierEvalContext *ctx)
 {
-	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
-	const int requested_levels = (use_render_params) ? smd->renderLevels
-	                                                 : smd->levels;
-	return get_render_subsurf_level(&scene->r,
-	                                requested_levels,
-	                                use_render_params);
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+  const int requested_levels = (use_render_params) ? smd->renderLevels : smd->levels;
+  return get_render_subsurf_level(&scene->r, requested_levels, use_render_params);
 }
 
-static void subdiv_settings_init(SubdivSettings *settings,
-                                 const SubsurfModifierData *smd)
+static void subdiv_settings_init(SubdivSettings *settings, const SubsurfModifierData *smd)
 {
-	settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
-	settings->is_adaptive = true;
-	settings->level = settings->is_simple ? 1 : smd->quality;
-	settings->use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
-	settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
-	settings->fvar_linear_interpolation =
-	        BKE_subdiv_fvar_interpolation_from_uv_smooth(smd->uv_smooth);
+  settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
+  settings->is_adaptive = true;
+  settings->level = settings->is_simple ? 1 : smd->quality;
+  settings->use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
+  settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
+  settings->fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
+      smd->uv_smooth);
 }
 
 /* Main goal of this function is to give usable subdivision surface descriptor
@@ -139,12 +134,10 @@ static Subdiv *subdiv_descriptor_ensure(SubsurfModifierData *smd,
                                         const SubdivSettings *subdiv_settings,
                                         const Mesh *mesh)
 {
-	SubsurfRuntimeData *runtime_data =
-	        (SubsurfRuntimeData *)smd->modifier.runtime;
-	Subdiv *subdiv = BKE_subdiv_update_from_mesh(
-	        runtime_data->subdiv, subdiv_settings, mesh);
-	runtime_data->subdiv = subdiv;
-	return subdiv;
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  Subdiv *subdiv = BKE_subdiv_update_from_mesh(runtime_data->subdiv, subdiv_settings, mesh);
+  runtime_data->subdiv = subdiv;
+  return subdiv;
 }
 
 /* Subdivide into fully qualified mesh. */
@@ -153,10 +146,9 @@ static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
                                       const SubsurfModifierData *smd,
                                       const ModifierEvalContext *ctx)
 {
-	const int level = subdiv_levels_for_modifier_get(smd, ctx);
-	settings->resolution = (1 << level) + 1;
-	settings->use_optimal_display =
-	        (smd->flags & eSubsurfModifierFlag_ControlEdges);
+  const int level = subdiv_levels_for_modifier_get(smd, ctx);
+  settings->resolution = (1 << level) + 1;
+  settings->use_optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
 }
 
 static Mesh *subdiv_as_mesh(SubsurfModifierData *smd,
@@ -164,14 +156,14 @@ static Mesh *subdiv_as_mesh(SubsurfModifierData *smd,
                             Mesh *mesh,
                             Subdiv *subdiv)
 {
-	Mesh *result = mesh;
-	SubdivToMeshSettings mesh_settings;
-	subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
-	if (mesh_settings.resolution < 3) {
-		return result;
-	}
-	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
-	return result;
+  Mesh *result = mesh;
+  SubdivToMeshSettings mesh_settings;
+  subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
+  if (mesh_settings.resolution < 3) {
+    return result;
+  }
+  result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+  return result;
 }
 
 /* Subdivide into CCG. */
@@ -180,101 +172,96 @@ static void subdiv_ccg_settings_init(SubdivToCCGSettings *settings,
                                      const SubsurfModifierData *smd,
                                      const ModifierEvalContext *ctx)
 {
-	const int level = subdiv_levels_for_modifier_get(smd, ctx);
-	settings->resolution = (1 << level) + 1;
-	settings->need_normal = true;
-	settings->need_mask = false;
+  const int level = subdiv_levels_for_modifier_get(smd, ctx);
+  settings->resolution = (1 << level) + 1;
+  settings->need_normal = true;
+  settings->need_mask = false;
 }
 
 static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
-                            const ModifierEvalContext *ctx,
-                            Mesh *mesh,
-                            Subdiv *subdiv)
+                           const ModifierEvalContext *ctx,
+                           Mesh *mesh,
+                           Subdiv *subdiv)
 {
-	Mesh *result = mesh;
-	SubdivToCCGSettings ccg_settings;
-	subdiv_ccg_settings_init(&ccg_settings, smd, ctx);
-	if (ccg_settings.resolution < 3) {
-		return result;
-	}
-	result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
-	return result;
+  Mesh *result = mesh;
+  SubdivToCCGSettings ccg_settings;
+  subdiv_ccg_settings_init(&ccg_settings, smd, ctx);
+  if (ccg_settings.resolution < 3) {
+    return result;
+  }
+  result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
+  return result;
 }
 
 static SubsurfRuntimeData *subsurf_ensure_runtime(SubsurfModifierData *smd)
 {
-	SubsurfRuntimeData *runtime_data =
-	        (SubsurfRuntimeData *)smd->modifier.runtime;
-	if (runtime_data == NULL) {
-		runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
-		smd->modifier.runtime = runtime_data;
-	}
-	return runtime_data;
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  if (runtime_data == NULL) {
+    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+    smd->modifier.runtime = runtime_data;
+  }
+  return runtime_data;
 }
 
 /* Modifier itself. */
 
-static Mesh *applyModifier(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-	Mesh *result = mesh;
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
-	SubdivSettings subdiv_settings;
-	subdiv_settings_init(&subdiv_settings, smd);
-	if (subdiv_settings.level == 0) {
-		return result;
-	}
-	BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
-	SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
-	Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
-	if (subdiv == NULL) {
-		/* Happens on bad topology, but also on empty input mesh. */
-		return result;
-	}
-	/* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
-	 * maybe when it is a last modifier in the stack? */
-	if (true) {
-		result = subdiv_as_mesh(smd, ctx, mesh, subdiv);
-	}
-	else {
-		result = subdiv_as_ccg(smd, ctx, mesh, subdiv);
-	}
-	// BKE_subdiv_stats_print(&subdiv->stats);
-	if (subdiv != runtime_data->subdiv) {
-		BKE_subdiv_free(subdiv);
-	}
-	return result;
+  Mesh *result = mesh;
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubdivSettings subdiv_settings;
+  subdiv_settings_init(&subdiv_settings, smd);
+  if (subdiv_settings.level == 0) {
+    return result;
+  }
+  BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
+  SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
+  Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
+  if (subdiv == NULL) {
+    /* Happens on bad topology, but also on empty input mesh. */
+    return result;
+  }
+  /* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
+   * maybe when it is a last modifier in the stack? */
+  if (true) {
+    result = subdiv_as_mesh(smd, ctx, mesh, subdiv);
+  }
+  else {
+    result = subdiv_as_ccg(smd, ctx, mesh, subdiv);
+  }
+  // BKE_subdiv_stats_print(&subdiv->stats);
+  if (subdiv != runtime_data->subdiv) {
+    BKE_subdiv_free(subdiv);
+  }
+  return result;
 }
 
 ModifierTypeInfo modifierType_Subsurf = {
-	/* name */              "Subdivision",
-	/* structName */        "SubsurfModifierData",
-	/* structSize */        sizeof(SubsurfModifierData),
-	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-	                        eModifierTypeFlag_SupportsMapping |
-	                        eModifierTypeFlag_SupportsEditmode |
-	                        eModifierTypeFlag_EnableInEditmode |
-	                        eModifierTypeFlag_AcceptsCVs,
+    /* name */ "Subdivision",
+    /* structName */ "SubsurfModifierData",
+    /* structSize */ sizeof(SubsurfModifierData),
+    /* type */ eModifierTypeType_Constructive,
+    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
+        eModifierTypeFlag_AcceptsCVs,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
+    /* deformVerts */ NULL,
+    /* deformMatrices */ NULL,
+    /* deformVertsEM */ NULL,
+    /* deformMatricesEM */ NULL,
+    /* applyModifier */ applyModifier,
 
-	/* initData */          initData,
-	/* requiredDataMask */  NULL,
-	/* freeData */          freeData,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* freeRuntimeData */   freeRuntimeData,
+    /* initData */ initData,
+    /* requiredDataMask */ NULL,
+    /* freeData */ freeData,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* dependsOnNormals */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* freeRuntimeData */ freeRuntimeData,
 };

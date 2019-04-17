@@ -37,7 +37,7 @@
 #include "../system/Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
@@ -70,44 +70,44 @@ using namespace Geometry;
  *    - UnaryFunction0DViewShape
  *    - UnaryFunction0DVoid
  */
-template <class T>
-class UnaryFunction0D
-{
-public:
-	T result;
-	void *py_uf0D;
+template<class T> class UnaryFunction0D {
+ public:
+  T result;
+  void *py_uf0D;
 
-	/*! The type of the value returned by the functor. */
-	typedef T ReturnedValueType;
+  /*! The type of the value returned by the functor. */
+  typedef T ReturnedValueType;
 
-	/*! Default constructor. */
-	UnaryFunction0D()
-	{
-		py_uf0D = NULL;
-	}
+  /*! Default constructor. */
+  UnaryFunction0D()
+  {
+    py_uf0D = NULL;
+  }
 
-	/*! Destructor; */
-	virtual ~UnaryFunction0D() {}
+  /*! Destructor; */
+  virtual ~UnaryFunction0D()
+  {
+  }
 
-	/*! Returns the string "UnaryFunction0D" */
-	virtual string getName() const
-	{
-		return "UnaryFunction0D";
-	}
+  /*! Returns the string "UnaryFunction0D" */
+  virtual string getName() const
+  {
+    return "UnaryFunction0D";
+  }
 
-	/*! The operator ().
-	 *  \param iter:
-	 *    An Interface0DIterator pointing onto the point at which we wish to evaluate the function.
-	 *  \return the result of the function of type T.
-	 */
-	/* FIXME move the implementation to Functions0D.cpp */
-	virtual int operator()(Interface0DIterator& iter)
-	{
-		return Director_BPy_UnaryFunction0D___call__(this, py_uf0D, iter);
-	}
+  /*! The operator ().
+   *  \param iter:
+   *    An Interface0DIterator pointing onto the point at which we wish to evaluate the function.
+   *  \return the result of the function of type T.
+   */
+  /* FIXME move the implementation to Functions0D.cpp */
+  virtual int operator()(Interface0DIterator &iter)
+  {
+    return Director_BPy_UnaryFunction0D___call__(this, py_uf0D, iter);
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryFunction0D")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryFunction0D")
 #endif
 };
 
@@ -129,7 +129,7 @@ public:
 %template(UnaryFunction0DId)               UnaryFunction0D<Id>;
 %template(UnaryFunction0DViewShape)        UnaryFunction0D<ViewShape*>;
 %template(UnaryFunction0DVectorViewShape)  UnaryFunction0D<std::vector<ViewShape*> >;
-#endif // SWIG
+#endif  // SWIG
 
 //
 // Functions definitions
@@ -141,205 +141,194 @@ namespace Functions0D {
 
 // GetXF0D
 /*! Returns the X 3D coordinate of an Interface0D. */
-class GetXF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "GetXF0D" */
-	string getName() const
-	{
-		return "GetXF0D";
-	}
+class GetXF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "GetXF0D" */
+  string getName() const
+  {
+    return "GetXF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter->getX();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter->getX();
+    return 0;
+  }
 };
 
 // GetYF0D
 /*! Returns the Y 3D coordinate of an Interface0D. */
-class GetYF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "GetYF0D" */
-	string getName() const
-	{
-		return "GetYF0D";
-	}
+class GetYF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "GetYF0D" */
+  string getName() const
+  {
+    return "GetYF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter->getY();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter->getY();
+    return 0;
+  }
 };
 
 // GetZF0D
 /*! Returns the Z 3D coordinate of an Interface0D. */
-class GetZF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "GetZF0D" */
-	string getName() const
-	{
-		return "GetZF0D";
-	}
+class GetZF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "GetZF0D" */
+  string getName() const
+  {
+    return "GetZF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter->getZ();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter->getZ();
+    return 0;
+  }
 };
 
 // GetProjectedXF0D
 /*! Returns the X 3D projected coordinate of an Interface0D. */
-class GetProjectedXF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "GetProjectedXF0D" */
-	string getName() const
-	{
-		return "GetProjectedXF0D";
-	}
+class GetProjectedXF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "GetProjectedXF0D" */
+  string getName() const
+  {
+    return "GetProjectedXF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter->getProjectedX();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter->getProjectedX();
+    return 0;
+  }
 };
 
 // GetProjectedYF0D
 /*! Returns the Y projected 3D coordinate of an Interface0D. */
-class GetProjectedYF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "GetProjectedYF0D" */
-	string getName() const
-	{
-		return "GetProjectedYF0D";
-	}
+class GetProjectedYF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "GetProjectedYF0D" */
+  string getName() const
+  {
+    return "GetProjectedYF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter->getProjectedY();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter->getProjectedY();
+    return 0;
+  }
 };
 
 // GetProjectedZF0D
 /*! Returns the Z projected 3D coordinate of an Interface0D. */
-class GetProjectedZF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "GetProjectedZF0D" */
-	string getName() const
-	{
-		return "GetProjectedZF0D";
-	}
+class GetProjectedZF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "GetProjectedZF0D" */
+  string getName() const
+  {
+    return "GetProjectedZF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter->getProjectedZ();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter->getProjectedZ();
+    return 0;
+  }
 };
 
 // GetCurvilinearAbscissaF0D
 /*! Returns the curvilinear abscissa of an Interface0D in the context of its 1D element. */
-class GetCurvilinearAbscissaF0D : public UnaryFunction0D<float>
-{
-public:
-	/*! Returns the string "GetCurvilinearAbscissaF0D" */
-	string getName() const
-	{
-		return "GetCurvilinearAbscissaF0D";
-	}
+class GetCurvilinearAbscissaF0D : public UnaryFunction0D<float> {
+ public:
+  /*! Returns the string "GetCurvilinearAbscissaF0D" */
+  string getName() const
+  {
+    return "GetCurvilinearAbscissaF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter.t();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter.t();
+    return 0;
+  }
 };
 
 // GetParameterF0D
 /*! Returns the parameter of an Interface0D in the context of its 1D element. */
-class GetParameterF0D : public UnaryFunction0D<float>
-{
-public:
-	/*! Returns the string "GetCurvilinearAbscissaF0D" */
-	string getName() const
-	{
-		return "GetParameterF0D";
-	}
+class GetParameterF0D : public UnaryFunction0D<float> {
+ public:
+  /*! Returns the string "GetCurvilinearAbscissaF0D" */
+  string getName() const
+  {
+    return "GetParameterF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter)
-	{
-		result = iter.u();
-		return 0;
-	}
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter)
+  {
+    result = iter.u();
+    return 0;
+  }
 };
 
 // VertexOrientation2DF0D
 /*! Returns a Vec2r giving the 2D oriented tangent to the 1D element to which the Interface0DIterator& belongs to and
  *  evaluated at the Interface0D pointed by this Interface0DIterator&.
  */
-class VertexOrientation2DF0D : public UnaryFunction0D<Vec2f>
-{
-public:
-	/*! Returns the string "VertexOrientation2DF0D" */
-	string getName() const
-	{
-		return "VertexOrientation2DF0D";
-	}
+class VertexOrientation2DF0D : public UnaryFunction0D<Vec2f> {
+ public:
+  /*! Returns the string "VertexOrientation2DF0D" */
+  string getName() const
+  {
+    return "VertexOrientation2DF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // VertexOrientation3DF0D
 /*! Returns a Vec3r giving the 3D oriented tangent to the 1D element to which the Interface0DIterator& belongs to and
  *  evaluated at the Interface0D pointed by this Interface0DIterator&.
  */
-class VertexOrientation3DF0D : public UnaryFunction0D<Vec3f>
-{
-public:
-	/*! Returns the string "VertexOrientation3DF0D" */
-	string getName() const
-	{
-		return "VertexOrientation3DF0D";
-	}
+class VertexOrientation3DF0D : public UnaryFunction0D<Vec3f> {
+ public:
+  /*! Returns the string "VertexOrientation3DF0D" */
+  string getName() const
+  {
+    return "VertexOrientation3DF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // Curvature2DAngleF0D
 /*! Returns a real giving the 2D curvature (as an angle) of the 1D element to which the Interface0DIterator&
  *  belongs to and evaluated at the Interface0D pointed by this Interface0DIterator&.
  */
-class Curvature2DAngleF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "Curvature2DAngleF0D" */
-	string getName() const
-	{
-		return "Curvature2DAngleF0D";
-	}
+class Curvature2DAngleF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "Curvature2DAngleF0D" */
+  string getName() const
+  {
+    return "Curvature2DAngleF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // ZDiscontinuity
@@ -347,34 +336,32 @@ public:
  *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no object is occluded
  *  by the shape to which the Interface0D belongs to, 1 is returned.
  */
-class ZDiscontinuityF0D : public UnaryFunction0D<double>
-{
-public:
-	/*! Returns the string "ZDiscontinuityF0D" */
-	string getName() const
-	{
-		return "ZDiscontinuityF0D";
-	}
+class ZDiscontinuityF0D : public UnaryFunction0D<double> {
+ public:
+  /*! Returns the string "ZDiscontinuityF0D" */
+  string getName() const
+  {
+    return "ZDiscontinuityF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // Normal2DF0D
 /*! Returns a Vec2f giving the normalized 2D normal to the 1D element to which the Interface0DIterator& belongs to and
  *  evaluated at the Interface0D pointed by this Interface0DIterator&.
  */
-class Normal2DF0D : public UnaryFunction0D<Vec2f>
-{
-public:
-	/*! Returns the string "Normal2DF0D" */
-	string getName() const
-	{
-		return "Normal2DF0D";
-	}
+class Normal2DF0D : public UnaryFunction0D<Vec2f> {
+ public:
+  /*! Returns the string "Normal2DF0D" */
+  string getName() const
+  {
+    return "Normal2DF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // MaterialF0D
@@ -386,17 +373,16 @@ public:
  *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
  *  should implement its own getMaterial functor.
  */
-class MaterialF0D : public UnaryFunction0D<FrsMaterial>
-{
-public:
-	/*! Returns the string "MaterialF0D" */
-	string getName() const
-	{
-		return "MaterialF0D";
-	}
+class MaterialF0D : public UnaryFunction0D<FrsMaterial> {
+ public:
+  /*! Returns the string "MaterialF0D" */
+  string getName() const
+  {
+    return "MaterialF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // ShapeIdF0D
@@ -407,17 +393,16 @@ public:
  *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
  *  should implement its own getShapeIdF0D functor.
  */
-class ShapeIdF0D : public UnaryFunction0D<Id>
-{
-public:
-	/*! Returns the string "ShapeIdF0D" */
-	string getName() const
-	{
-		return "ShapeIdF0D";
-	}
+class ShapeIdF0D : public UnaryFunction0D<Id> {
+ public:
+  /*! Returns the string "ShapeIdF0D" */
+  string getName() const
+  {
+    return "ShapeIdF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // QiF0D
@@ -428,102 +413,96 @@ public:
  *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
  *  should implement its own getQIF0D functor.
  */
-class QuantitativeInvisibilityF0D : public UnaryFunction0D<unsigned int>
-{
-public:
-	/*! Returns the string "QuantitativeInvisibilityF0D" */
-	string getName() const
-	{
-		return "QuantitativeInvisibilityF0D";
-	}
+class QuantitativeInvisibilityF0D : public UnaryFunction0D<unsigned int> {
+ public:
+  /*! Returns the string "QuantitativeInvisibilityF0D" */
+  string getName() const
+  {
+    return "QuantitativeInvisibilityF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // CurveNatureF0D
 /*! Returns the Nature::EdgeNature of the 1D element the Interface0DIterator& belongs to. */
-class CurveNatureF0D : public UnaryFunction0D<Nature::EdgeNature>
-{
-public:
-	/*! Returns the string "QuantitativeInvisibilityF0D" */
-	string getName() const
-	{
-		return "CurveNatureF0D";
-	}
+class CurveNatureF0D : public UnaryFunction0D<Nature::EdgeNature> {
+ public:
+  /*! Returns the string "QuantitativeInvisibilityF0D" */
+  string getName() const
+  {
+    return "CurveNatureF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // GetShapeF0D
 /*! Returns the ViewShape* containing the Interface0D */
-class GetShapeF0D : public UnaryFunction0D< ViewShape*>
-{
-public:
-	/*! Returns the string "GetShapeF0D" */
-	string getName() const
-	{
-		return "GetShapeF0D";
-	}
+class GetShapeF0D : public UnaryFunction0D<ViewShape *> {
+ public:
+  /*! Returns the string "GetShapeF0D" */
+  string getName() const
+  {
+    return "GetShapeF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // GetOccludersF0D
 /*! Returns a vector containing the ViewShape* occluding the Interface0D */
-class GetOccludersF0D : public UnaryFunction0D< std::vector<ViewShape*> >
-{
-public:
-	/*! Returns the string "GetOccludersF0D" */
-	string getName() const
-	{
-		return "GetOccludersF0D";
-	}
+class GetOccludersF0D : public UnaryFunction0D<std::vector<ViewShape *>> {
+ public:
+  /*! Returns the string "GetOccludersF0D" */
+  string getName() const
+  {
+    return "GetOccludersF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
 
 // GetOccludeeF0D
 /*! Returns the ViewShape* "occluded" by the Interface0D */
-class GetOccludeeF0D: public UnaryFunction0D< ViewShape*>
-{
-public:
-	/*! Returns the string "GetOccludeeF0D" */
-	string getName() const
-	{
-		return "GetOccludeeF0D";
-	}
+class GetOccludeeF0D : public UnaryFunction0D<ViewShape *> {
+ public:
+  /*! Returns the string "GetOccludeeF0D" */
+  string getName() const
+  {
+    return "GetOccludeeF0D";
+  }
 
-	/*! the () operator. */
-	int operator()(Interface0DIterator& iter);
+  /*! the () operator. */
+  int operator()(Interface0DIterator &iter);
 };
-
 
 /////////////////////////// Internal ////////////////////////////
 
 // getFEdge
-FEdge *getFEdge(Interface0D& it1, Interface0D& it2);
+FEdge *getFEdge(Interface0D &it1, Interface0D &it2);
 
 // getFEdges
-void getFEdges(Interface0DIterator& it, FEdge *&fe1, FEdge *&fe2);
+void getFEdges(Interface0DIterator &it, FEdge *&fe1, FEdge *&fe2);
 
 // getViewEdges
-void getViewEdges(Interface0DIterator& it, ViewEdge *&ve1, ViewEdge *&ve2);
+void getViewEdges(Interface0DIterator &it, ViewEdge *&ve1, ViewEdge *&ve2);
 
 // getShapeF0D
-ViewShape *getShapeF0D(Interface0DIterator& it);
+ViewShape *getShapeF0D(Interface0DIterator &it);
 
 // getOccludersF0D
-void getOccludersF0D(Interface0DIterator& it, std::set<ViewShape*>& oOccluders);
+void getOccludersF0D(Interface0DIterator &it, std::set<ViewShape *> &oOccluders);
 
 // getOccludeeF0D
-ViewShape *getOccludeeF0D(Interface0DIterator& it);
+ViewShape *getOccludeeF0D(Interface0DIterator &it);
 
-} // end of namespace Functions0D
+}  // end of namespace Functions0D
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_FUNCTIONS_0D_H__
+#endif  // __FREESTYLE_FUNCTIONS_0D_H__

@@ -17,31 +17,30 @@
 // Author: Sergey Sharybin
 
 #ifndef OPENSUBDIV_CONVERTER_ORIENT_H_
-#define OPENSUBDIV_CONVERTER_ORIENT_H_
+#  define OPENSUBDIV_CONVERTER_ORIENT_H_
 
-#include <opensubdiv/far/types.h>
+#  include <opensubdiv/far/types.h>
 
 // Set of utility functions which are needed to bring topology to an orientation
 // (or, winding, if you wish) which OpenSubdiv expects.
 
 namespace opensubdiv_capi {
 
-inline void reverseFaceVertices(int* face_vertices, const int num_vertices);
+inline void reverseFaceVertices(int *face_vertices, const int num_vertices);
 
 // TODO(sergey): Document which value corresponds to which winding.
 inline int getLoopWinding(int vert0_of_face, int vert1_of_face);
 
-inline void reverseFaceLoops(
-    OpenSubdiv::Far::IndexArray* face_vertices,
-    OpenSubdiv::Far::IndexArray* face_edges);
+inline void reverseFaceLoops(OpenSubdiv::Far::IndexArray *face_vertices,
+                             OpenSubdiv::Far::IndexArray *face_edges);
 
 // Used for debugging, checks whether orientation happened correct.
 void checkOrientedVertexConnectivity(const int num_vertex_edges,
                                      const int num_vertex_faces,
-                                     const int* vertex_edges,
-                                     const int* vertex_faces,
-                                     const int* dst_vertex_edges,
-                                     const int* dst_vertex_faces);
+                                     const int *vertex_edges,
+                                     const int *vertex_faces,
+                                     const int *dst_vertex_edges,
+                                     const int *dst_vertex_faces);
 
 }  // namespace opensubdiv_capi
 

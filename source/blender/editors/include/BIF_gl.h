@@ -30,12 +30,14 @@
 
 /* hacking pointsize and linewidth */
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-#  define glPointSize(f)  glPointSize(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
-#  define glLineWidth(f)  glLineWidth(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
+#  define glPointSize(f) \
+    glPointSize(U.pixelsize *_Generic((f), double : (float)(f), default : (f)))
+#  define glLineWidth(f) \
+    glLineWidth(U.pixelsize *_Generic((f), double : (float)(f), default : (f)))
 #else
-#  define glPointSize(f)  glPointSize(U.pixelsize * (f))
-#  define glLineWidth(f)  glLineWidth(U.pixelsize * (f))
-#endif  /* C11 */
+#  define glPointSize(f) glPointSize(U.pixelsize *(f))
+#  define glLineWidth(f) glLineWidth(U.pixelsize *(f))
+#endif /* C11 */
 
 #define GLA_PIXEL_OFS 0.375f
 

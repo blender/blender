@@ -32,38 +32,36 @@ struct Main;
  *   For handling jobs (which may in turn cause other handlers to be called).
  */
 typedef enum {
-	BLI_CB_EVT_FRAME_CHANGE_PRE,
-	BLI_CB_EVT_FRAME_CHANGE_POST,
-	BLI_CB_EVT_RENDER_PRE,
-	BLI_CB_EVT_RENDER_POST,
-	BLI_CB_EVT_RENDER_WRITE,
-	BLI_CB_EVT_RENDER_STATS,
-	BLI_CB_EVT_RENDER_INIT,
-	BLI_CB_EVT_RENDER_COMPLETE,
-	BLI_CB_EVT_RENDER_CANCEL,
-	BLI_CB_EVT_LOAD_PRE,
-	BLI_CB_EVT_LOAD_POST,
-	BLI_CB_EVT_SAVE_PRE,
-	BLI_CB_EVT_SAVE_POST,
-	BLI_CB_EVT_UNDO_PRE,
-	BLI_CB_EVT_UNDO_POST,
-	BLI_CB_EVT_REDO_PRE,
-	BLI_CB_EVT_REDO_POST,
-	BLI_CB_EVT_DEPSGRAPH_UPDATE_PRE,
-	BLI_CB_EVT_DEPSGRAPH_UPDATE_POST,
-	BLI_CB_EVT_VERSION_UPDATE,
-	BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST,
-	BLI_CB_EVT_TOT,
+  BLI_CB_EVT_FRAME_CHANGE_PRE,
+  BLI_CB_EVT_FRAME_CHANGE_POST,
+  BLI_CB_EVT_RENDER_PRE,
+  BLI_CB_EVT_RENDER_POST,
+  BLI_CB_EVT_RENDER_WRITE,
+  BLI_CB_EVT_RENDER_STATS,
+  BLI_CB_EVT_RENDER_INIT,
+  BLI_CB_EVT_RENDER_COMPLETE,
+  BLI_CB_EVT_RENDER_CANCEL,
+  BLI_CB_EVT_LOAD_PRE,
+  BLI_CB_EVT_LOAD_POST,
+  BLI_CB_EVT_SAVE_PRE,
+  BLI_CB_EVT_SAVE_POST,
+  BLI_CB_EVT_UNDO_PRE,
+  BLI_CB_EVT_UNDO_POST,
+  BLI_CB_EVT_REDO_PRE,
+  BLI_CB_EVT_REDO_POST,
+  BLI_CB_EVT_DEPSGRAPH_UPDATE_PRE,
+  BLI_CB_EVT_DEPSGRAPH_UPDATE_POST,
+  BLI_CB_EVT_VERSION_UPDATE,
+  BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST,
+  BLI_CB_EVT_TOT,
 } eCbEvent;
 
-
 typedef struct bCallbackFuncStore {
-	struct bCallbackFuncStore *next, *prev;
-	void (*func)(struct Main *, struct ID *, void *arg);
-	void *arg;
-	short alloc;
+  struct bCallbackFuncStore *next, *prev;
+  void (*func)(struct Main *, struct ID *, void *arg);
+  void *arg;
+  short alloc;
 } bCallbackFuncStore;
-
 
 void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt);
 void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);

@@ -25,40 +25,41 @@
 #include <string>
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 using namespace std;
 
 namespace Freestyle {
 
-class Interpreter
-{
-public:
-	Interpreter()
-	{
-		_language = "Unknown";
-	}
+class Interpreter {
+ public:
+  Interpreter()
+  {
+    _language = "Unknown";
+  }
 
-	virtual ~Interpreter() {}
+  virtual ~Interpreter()
+  {
+  }
 
-	virtual int interpretFile(const string& filename) = 0;
+  virtual int interpretFile(const string &filename) = 0;
 
-	virtual string getLanguage() const
-	{
-		return _language;
-	}
+  virtual string getLanguage() const
+  {
+    return _language;
+  }
 
-	virtual void reset() = 0;
+  virtual void reset() = 0;
 
-protected:
-	string _language;
+ protected:
+  string _language;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interpreter")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interpreter")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_INTERPRETER_H__
+#endif  // __FREESTYLE_INTERPRETER_H__

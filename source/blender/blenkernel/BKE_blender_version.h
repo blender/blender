@@ -26,19 +26,19 @@
  *
  * \note Use #STRINGIFY() rather than defining with quotes.
  */
-#define BLENDER_VERSION         280
-#define BLENDER_SUBVERSION      57
+#define BLENDER_VERSION 280
+#define BLENDER_SUBVERSION 57
 /** Several breakages with 280, e.g. collections vs layers. */
-#define BLENDER_MINVERSION      280
-#define BLENDER_MINSUBVERSION   0
+#define BLENDER_MINVERSION 280
+#define BLENDER_MINSUBVERSION 0
 
 /** Used by packaging tools. */
 /** Can be left blank, otherwise a,b,c... etc with no quotes. */
 #define BLENDER_VERSION_CHAR
 /** alpha/beta/rc/release, docs use this. */
-#define BLENDER_VERSION_CYCLE   beta
+#define BLENDER_VERSION_CYCLE beta
 
 /** Defined in from blender.c */
 extern char versionstr[];
 
-#endif  /* __BKE_BLENDER_VERSION_H__ */
+#endif /* __BKE_BLENDER_VERSION_H__ */

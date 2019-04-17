@@ -17,32 +17,32 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	intern
+  .
+  intern
 )
 
 set(INC_SYS
-	${EIGEN3_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/manifold_table.cpp
-	intern/marching_cubes_table.cpp
-	intern/octree.cpp
-	intern/Projections.cpp
+  intern/manifold_table.cpp
+  intern/marching_cubes_table.cpp
+  intern/octree.cpp
+  intern/Projections.cpp
 
-	intern/cubes.h
-	intern/GeoCommon.h
-	intern/manifold_table.h
-	intern/marching_cubes_table.h
-	intern/MemoryAllocator.h
-	intern/ModelReader.h
-	intern/octree.h
-	intern/Projections.h
-	intern/Queue.h
+  intern/cubes.h
+  intern/GeoCommon.h
+  intern/manifold_table.h
+  intern/marching_cubes_table.h
+  intern/MemoryAllocator.h
+  intern/ModelReader.h
+  intern/octree.h
+  intern/Projections.h
+  intern/Queue.h
 
-	intern/dualcon_c_api.cpp
-	dualcon.h
+  intern/dualcon_c_api.cpp
+  dualcon.h
 )
 
 set(LIB

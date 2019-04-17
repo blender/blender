@@ -49,37 +49,40 @@ PyObject *bpy_intern_str_unregister;
 
 void bpy_intern_string_init(void)
 {
-	unsigned int i = 0;
+  unsigned int i = 0;
 
 #define BPY_INTERN_STR(var, str) \
-	{ var = bpy_intern_str_arr[i++] = PyUnicode_FromString(str); } (void)0
+  { \
+    var = bpy_intern_str_arr[i++] = PyUnicode_FromString(str); \
+  } \
+  (void)0
 
-	BPY_INTERN_STR(bpy_intern_str___annotations__, "__annotations__");
-	BPY_INTERN_STR(bpy_intern_str___doc__, "__doc__");
-	BPY_INTERN_STR(bpy_intern_str___main__, "__main__");
-	BPY_INTERN_STR(bpy_intern_str___module__, "__module__");
-	BPY_INTERN_STR(bpy_intern_str___name__, "__name__");
-	BPY_INTERN_STR(bpy_intern_str___slots__, "__slots__");
-	BPY_INTERN_STR(bpy_intern_str_attr, "attr");
-	BPY_INTERN_STR(bpy_intern_str_bl_property, "bl_property");
-	BPY_INTERN_STR(bpy_intern_str_bl_rna, "bl_rna");
-	BPY_INTERN_STR(bpy_intern_str_bl_target_properties, "bl_target_properties");
-	BPY_INTERN_STR(bpy_intern_str_bpy_types, "bpy.types");
-	BPY_INTERN_STR(bpy_intern_str_frame, "frame");
-	BPY_INTERN_STR(bpy_intern_str_properties, "properties");
-	BPY_INTERN_STR(bpy_intern_str_register, "register");
-	BPY_INTERN_STR(bpy_intern_str_self, "self");
-	BPY_INTERN_STR(bpy_intern_str_unregister, "unregister");
+  BPY_INTERN_STR(bpy_intern_str___annotations__, "__annotations__");
+  BPY_INTERN_STR(bpy_intern_str___doc__, "__doc__");
+  BPY_INTERN_STR(bpy_intern_str___main__, "__main__");
+  BPY_INTERN_STR(bpy_intern_str___module__, "__module__");
+  BPY_INTERN_STR(bpy_intern_str___name__, "__name__");
+  BPY_INTERN_STR(bpy_intern_str___slots__, "__slots__");
+  BPY_INTERN_STR(bpy_intern_str_attr, "attr");
+  BPY_INTERN_STR(bpy_intern_str_bl_property, "bl_property");
+  BPY_INTERN_STR(bpy_intern_str_bl_rna, "bl_rna");
+  BPY_INTERN_STR(bpy_intern_str_bl_target_properties, "bl_target_properties");
+  BPY_INTERN_STR(bpy_intern_str_bpy_types, "bpy.types");
+  BPY_INTERN_STR(bpy_intern_str_frame, "frame");
+  BPY_INTERN_STR(bpy_intern_str_properties, "properties");
+  BPY_INTERN_STR(bpy_intern_str_register, "register");
+  BPY_INTERN_STR(bpy_intern_str_self, "self");
+  BPY_INTERN_STR(bpy_intern_str_unregister, "unregister");
 
 #undef BPY_INTERN_STR
 
-	BLI_assert(i == ARRAY_SIZE(bpy_intern_str_arr));
+  BLI_assert(i == ARRAY_SIZE(bpy_intern_str_arr));
 }
 
 void bpy_intern_string_exit(void)
 {
-	unsigned int i = ARRAY_SIZE(bpy_intern_str_arr);
-	while (i--) {
-		Py_DECREF(bpy_intern_str_arr[i]);
-	}
+  unsigned int i = ARRAY_SIZE(bpy_intern_str_arr);
+  while (i--) {
+    Py_DECREF(bpy_intern_str_arr[i]);
+  }
 }

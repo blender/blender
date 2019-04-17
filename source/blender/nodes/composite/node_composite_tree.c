@@ -21,7 +21,6 @@
  * \ingroup nodes
  */
 
-
 #include <stdio.h>
 
 #include "DNA_color_types.h"
@@ -48,187 +47,196 @@
 #  include "COM_compositor.h"
 #endif
 
-static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
+static void composite_get_from_context(const bContext *C,
+                                       bNodeTreeType *UNUSED(treetype),
+                                       bNodeTree **r_ntree,
+                                       ID **r_id,
+                                       ID **r_from)
 {
-	Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_scene(C);
 
-	*r_from = NULL;
-	*r_id = &scene->id;
-	*r_ntree = scene->nodetree;
+  *r_from = NULL;
+  *r_id = &scene->id;
+  *r_ntree = scene->nodetree;
 }
 
 static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
 {
-	func(calldata, NODE_CLASS_INPUT, N_("Input"));
-	func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
-	func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
-	func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
-	func(calldata, NODE_CLASS_OP_FILTER, N_("Filter"));
-	func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
-	func(calldata, NODE_CLASS_MATTE, N_("Matte"));
-	func(calldata, NODE_CLASS_DISTORT, N_("Distort"));
-	func(calldata, NODE_CLASS_GROUP, N_("Group"));
-	func(calldata, NODE_CLASS_INTERFACE, N_("Interface"));
-	func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
+  func(calldata, NODE_CLASS_INPUT, N_("Input"));
+  func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
+  func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
+  func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
+  func(calldata, NODE_CLASS_OP_FILTER, N_("Filter"));
+  func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
+  func(calldata, NODE_CLASS_MATTE, N_("Matte"));
+  func(calldata, NODE_CLASS_DISTORT, N_("Distort"));
+  func(calldata, NODE_CLASS_GROUP, N_("Group"));
+  func(calldata, NODE_CLASS_INTERFACE, N_("Interface"));
+  func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
 static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	bNodeSocket *sock;
+  bNodeSocket *sock;
 
-	for (sock = node->outputs.first; sock; sock = sock->next) {
-		if (sock->cache) {
-			sock->cache = NULL;
-		}
-	}
+  for (sock = node->outputs.first; sock; sock = sock->next) {
+    if (sock->cache) {
+      sock->cache = NULL;
+    }
+  }
 }
 
 static void free_cache(bNodeTree *ntree)
 {
-	bNode *node;
-	for (node = ntree->nodes.first; node; node = node->next)
-		free_node_cache(ntree, node);
+  bNode *node;
+  for (node = ntree->nodes.first; node; node = node->next)
+    free_node_cache(ntree, node);
 }
 
 /* local tree then owns all compbufs */
 static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
 {
-	bNode *node;
-	bNodeSocket *sock;
+  bNode *node;
+  bNodeSocket *sock;
 
-	for (node = ntree->nodes.first; node; node = node->next) {
-		/* ensure new user input gets handled ok */
-		node->need_exec = 0;
-		node->new_node->original = node;
+  for (node = ntree->nodes.first; node; node = node->next) {
+    /* ensure new user input gets handled ok */
+    node->need_exec = 0;
+    node->new_node->original = node;
 
-		/* move over the compbufs */
-		/* right after ntreeCopyTree() oldsock pointers are valid */
+    /* move over the compbufs */
+    /* right after ntreeCopyTree() oldsock pointers are valid */
 
-		if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-			if (node->id) {
-				if (node->flag & NODE_DO_OUTPUT)
-					node->new_node->id = (ID *)node->id;
-				else
-					node->new_node->id = NULL;
-			}
-		}
+    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      if (node->id) {
+        if (node->flag & NODE_DO_OUTPUT)
+          node->new_node->id = (ID *)node->id;
+        else
+          node->new_node->id = NULL;
+      }
+    }
 
-		for (sock = node->outputs.first; sock; sock = sock->next) {
-			sock->new_sock->cache = sock->cache;
-			sock->cache = NULL;
-			sock->new_sock->new_sock = sock;
-		}
-	}
+    for (sock = node->outputs.first; sock; sock = sock->next) {
+      sock->new_sock->cache = sock->cache;
+      sock->cache = NULL;
+      sock->new_sock->new_sock = sock;
+    }
+  }
 }
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
-	BKE_node_preview_sync_tree(ntree, localtree);
+  BKE_node_preview_sync_tree(ntree, localtree);
 }
 
 static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 {
-	bNode *lnode;
-	bNodeSocket *lsock;
+  bNode *lnode;
+  bNodeSocket *lsock;
 
-	/* move over the compbufs and previews */
-	BKE_node_preview_merge_tree(ntree, localtree, true);
+  /* move over the compbufs and previews */
+  BKE_node_preview_merge_tree(ntree, localtree, true);
 
-	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
-		if (ntreeNodeExists(ntree, lnode->new_node)) {
-			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-				if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
-					/* image_merge does sanity check for pointers */
-					BKE_image_merge(bmain, (Image *)lnode->new_node->id, (Image *)lnode->id);
-				}
-			}
-			else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {
-				/* special case for distortion node: distortion context is allocating in exec function
-				 * and to achieve much better performance on further calls this context should be
-				 * copied back to original node */
-				if (lnode->storage) {
-					if (lnode->new_node->storage)
-						BKE_tracking_distortion_free(lnode->new_node->storage);
+  for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
+    if (ntreeNodeExists(ntree, lnode->new_node)) {
+      if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+        if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
+          /* image_merge does sanity check for pointers */
+          BKE_image_merge(bmain, (Image *)lnode->new_node->id, (Image *)lnode->id);
+        }
+      }
+      else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {
+        /* special case for distortion node: distortion context is allocating in exec function
+         * and to achieve much better performance on further calls this context should be
+         * copied back to original node */
+        if (lnode->storage) {
+          if (lnode->new_node->storage)
+            BKE_tracking_distortion_free(lnode->new_node->storage);
 
-					lnode->new_node->storage = BKE_tracking_distortion_copy(lnode->storage);
-				}
-			}
+          lnode->new_node->storage = BKE_tracking_distortion_copy(lnode->storage);
+        }
+      }
 
-			for (lsock = lnode->outputs.first; lsock; lsock = lsock->next) {
-				if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
-					lsock->new_sock->cache = lsock->cache;
-					lsock->cache = NULL;
-					lsock->new_sock = NULL;
-				}
-			}
-		}
-	}
+      for (lsock = lnode->outputs.first; lsock; lsock = lsock->next) {
+        if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
+          lsock->new_sock->cache = lsock->cache;
+          lsock->cache = NULL;
+          lsock->new_sock = NULL;
+        }
+      }
+    }
+  }
 }
 
 static void update(bNodeTree *ntree)
 {
-	ntreeSetOutput(ntree);
+  ntreeSetOutput(ntree);
 
-	ntree_update_reroute_nodes(ntree);
+  ntree_update_reroute_nodes(ntree);
 
-	if (ntree->update & NTREE_UPDATE_NODES) {
-		/* clean up preview cache, in case nodes have been removed */
-		BKE_node_preview_remove_unused(ntree);
-	}
+  if (ntree->update & NTREE_UPDATE_NODES) {
+    /* clean up preview cache, in case nodes have been removed */
+    BKE_node_preview_remove_unused(ntree);
+  }
 }
 
 static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode)
 {
-	/* Composite node will only show previews for input classes
-	 * by default, other will be hidden
-	 * but can be made visible with the show_preview option */
-	if (bnode->typeinfo->nclass != NODE_CLASS_INPUT) {
-		bnode->flag &= ~NODE_PREVIEW;
-	}
+  /* Composite node will only show previews for input classes
+   * by default, other will be hidden
+   * but can be made visible with the show_preview option */
+  if (bnode->typeinfo->nclass != NODE_CLASS_INPUT) {
+    bnode->flag &= ~NODE_PREVIEW;
+  }
 }
 
 bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp(void)
 {
-	bNodeTreeType *tt = ntreeType_Composite = MEM_callocN(sizeof(bNodeTreeType), "compositor node tree type");
+  bNodeTreeType *tt = ntreeType_Composite = MEM_callocN(sizeof(bNodeTreeType),
+                                                        "compositor node tree type");
 
-	tt->type = NTREE_COMPOSIT;
-	strcpy(tt->idname, "CompositorNodeTree");
-	strcpy(tt->ui_name, N_("Compositor"));
-	tt->ui_icon = 0;    /* defined in drawnode.c */
-	strcpy(tt->ui_description, N_("Compositing nodes"));
+  tt->type = NTREE_COMPOSIT;
+  strcpy(tt->idname, "CompositorNodeTree");
+  strcpy(tt->ui_name, N_("Compositor"));
+  tt->ui_icon = 0; /* defined in drawnode.c */
+  strcpy(tt->ui_description, N_("Compositing nodes"));
 
-	tt->free_cache = free_cache;
-	tt->free_node_cache = free_node_cache;
-	tt->foreach_nodeclass = foreach_nodeclass;
-	tt->localize = localize;
-	tt->local_sync = local_sync;
-	tt->local_merge = local_merge;
-	tt->update = update;
-	tt->get_from_context = composite_get_from_context;
-	tt->node_add_init = composite_node_add_init;
+  tt->free_cache = free_cache;
+  tt->free_node_cache = free_node_cache;
+  tt->foreach_nodeclass = foreach_nodeclass;
+  tt->localize = localize;
+  tt->local_sync = local_sync;
+  tt->local_merge = local_merge;
+  tt->update = update;
+  tt->get_from_context = composite_get_from_context;
+  tt->node_add_init = composite_node_add_init;
 
-	tt->ext.srna = &RNA_CompositorNodeTree;
+  tt->ext.srna = &RNA_CompositorNodeTree;
 
-	ntreeTypeAdd(tt);
+  ntreeTypeAdd(tt);
 }
 
-extern void *COM_linker_hack;  /* Quiet warning. */
+extern void *COM_linker_hack; /* Quiet warning. */
 void *COM_linker_hack = NULL;
 
-void ntreeCompositExecTree(Scene *scene, bNodeTree *ntree, RenderData *rd, int rendering, int do_preview,
+void ntreeCompositExecTree(Scene *scene,
+                           bNodeTree *ntree,
+                           RenderData *rd,
+                           int rendering,
+                           int do_preview,
                            const ColorManagedViewSettings *view_settings,
                            const ColorManagedDisplaySettings *display_settings,
                            const char *view_name)
 {
 #ifdef WITH_COMPOSITOR
-	COM_execute(rd, scene, ntree, rendering, view_settings, display_settings, view_name);
+  COM_execute(rd, scene, ntree, rendering, view_settings, display_settings, view_name);
 #else
-	UNUSED_VARS(scene, ntree, rd, rendering, view_settings, display_settings, view_name);
+  UNUSED_VARS(scene, ntree, rd, rendering, view_settings, display_settings, view_name);
 #endif
 
-	UNUSED_VARS(do_preview);
+  UNUSED_VARS(do_preview);
 }
 
 /* *********************************************** */
@@ -243,155 +251,158 @@ void ntreeCompositExecTree(Scene *scene, bNodeTree *ntree, RenderData *rd, int r
  */
 void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 {
-	bNode *node;
+  bNode *node;
 
-	if (ntree == NULL) return;
+  if (ntree == NULL)
+    return;
 
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_R_LAYERS)
-			node_cmp_rlayers_outputs(ntree, node);
-	}
-
+  for (node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == CMP_NODE_R_LAYERS)
+      node_cmp_rlayers_outputs(ntree, node);
+  }
 }
 
-void ntreeCompositRegisterPass(bNodeTree *ntree, Scene *scene, ViewLayer *view_layer, const char *name, int type)
+void ntreeCompositRegisterPass(
+    bNodeTree *ntree, Scene *scene, ViewLayer *view_layer, const char *name, int type)
 {
-	bNode *node;
+  bNode *node;
 
-	if (ntree == NULL) return;
+  if (ntree == NULL)
+    return;
 
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_R_LAYERS)
-			node_cmp_rlayers_register_pass(ntree, node, scene, view_layer, name, type);
-	}
-
+  for (node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == CMP_NODE_R_LAYERS)
+      node_cmp_rlayers_register_pass(ntree, node, scene, view_layer, name, type);
+  }
 }
 
 /* called from render pipeline, to tag render input and output */
 /* need to do all scenes, to prevent errors when you re-render 1 scene */
 void ntreeCompositTagRender(Scene *curscene)
 {
-	Scene *sce;
+  Scene *sce;
 
-	/* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,
-	 * not the ones in temp main generated for rendering?
-	 * This is still rather weak though, ideally render struct would store own main AND original G_MAIN... */
-	for (sce = G_MAIN->scenes.first; sce; sce = sce->id.next) {
-		if (sce->nodetree) {
-			bNode *node;
+  /* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,
+   * not the ones in temp main generated for rendering?
+   * This is still rather weak though, ideally render struct would store own main AND original G_MAIN... */
+  for (sce = G_MAIN->scenes.first; sce; sce = sce->id.next) {
+    if (sce->nodetree) {
+      bNode *node;
 
-			for (node = sce->nodetree->nodes.first; node; node = node->next) {
-				if (node->id == (ID *)curscene || node->type == CMP_NODE_COMPOSITE)
-					nodeUpdate(sce->nodetree, node);
-				else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
-					nodeUpdate(sce->nodetree, node);
-			}
-		}
-	}
+      for (node = sce->nodetree->nodes.first; node; node = node->next) {
+        if (node->id == (ID *)curscene || node->type == CMP_NODE_COMPOSITE)
+          nodeUpdate(sce->nodetree, node);
+        else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
+          nodeUpdate(sce->nodetree, node);
+      }
+    }
+  }
 }
 
 static int node_animation_properties(bNodeTree *ntree, bNode *node)
 {
-	bNodeSocket *sock;
-	const ListBase *lb;
-	Link *link;
-	PointerRNA ptr;
-	PropertyRNA *prop;
+  bNodeSocket *sock;
+  const ListBase *lb;
+  Link *link;
+  PointerRNA ptr;
+  PropertyRNA *prop;
 
-	/* check to see if any of the node's properties have fcurves */
-	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
-	lb = RNA_struct_type_properties(ptr.type);
+  /* check to see if any of the node's properties have fcurves */
+  RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
+  lb = RNA_struct_type_properties(ptr.type);
 
-	for (link = lb->first; link; link = link->next) {
-		prop = (PropertyRNA *)link;
+  for (link = lb->first; link; link = link->next) {
+    prop = (PropertyRNA *)link;
 
-		if (RNA_property_animated(&ptr, prop)) {
-			nodeUpdate(ntree, node);
-			return 1;
-		}
-	}
+    if (RNA_property_animated(&ptr, prop)) {
+      nodeUpdate(ntree, node);
+      return 1;
+    }
+  }
 
-	/* now check node sockets */
-	for (sock = node->inputs.first; sock; sock = sock->next) {
-		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
-		prop = RNA_struct_find_property(&ptr, "default_value");
+  /* now check node sockets */
+  for (sock = node->inputs.first; sock; sock = sock->next) {
+    RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
+    prop = RNA_struct_find_property(&ptr, "default_value");
 
-		if (RNA_property_animated(&ptr, prop)) {
-			nodeUpdate(ntree, node);
-			return 1;
-		}
-	}
+    if (RNA_property_animated(&ptr, prop)) {
+      nodeUpdate(ntree, node);
+      return 1;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
 /* tags nodes that have animation capabilities */
 int ntreeCompositTagAnimated(bNodeTree *ntree)
 {
-	bNode *node;
-	int tagged = 0;
+  bNode *node;
+  int tagged = 0;
 
-	if (ntree == NULL) return 0;
+  if (ntree == NULL)
+    return 0;
 
-	for (node = ntree->nodes.first; node; node = node->next) {
+  for (node = ntree->nodes.first; node; node = node->next) {
 
-		tagged = node_animation_properties(ntree, node);
+    tagged = node_animation_properties(ntree, node);
 
-		/* otherwise always tag these node types */
-		if (node->type == CMP_NODE_IMAGE) {
-			Image *ima = (Image *)node->id;
-			if (ima && BKE_image_is_animated(ima)) {
-				nodeUpdate(ntree, node);
-				tagged = 1;
-			}
-		}
-		else if (node->type == CMP_NODE_TIME) {
-			nodeUpdate(ntree, node);
-			tagged = 1;
-		}
-		/* here was tag render layer, but this is called after a render, so re-composites fail */
-		else if (node->type == NODE_GROUP) {
-			if (ntreeCompositTagAnimated((bNodeTree *)node->id)) {
-				nodeUpdate(ntree, node);
-			}
-		}
-		else if (ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
-			nodeUpdate(ntree, node);
-			tagged = 1;
-		}
-		else if (node->type == CMP_NODE_MASK) {
-			nodeUpdate(ntree, node);
-			tagged = 1;
-		}
-	}
+    /* otherwise always tag these node types */
+    if (node->type == CMP_NODE_IMAGE) {
+      Image *ima = (Image *)node->id;
+      if (ima && BKE_image_is_animated(ima)) {
+        nodeUpdate(ntree, node);
+        tagged = 1;
+      }
+    }
+    else if (node->type == CMP_NODE_TIME) {
+      nodeUpdate(ntree, node);
+      tagged = 1;
+    }
+    /* here was tag render layer, but this is called after a render, so re-composites fail */
+    else if (node->type == NODE_GROUP) {
+      if (ntreeCompositTagAnimated((bNodeTree *)node->id)) {
+        nodeUpdate(ntree, node);
+      }
+    }
+    else if (ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
+      nodeUpdate(ntree, node);
+      tagged = 1;
+    }
+    else if (node->type == CMP_NODE_MASK) {
+      nodeUpdate(ntree, node);
+      tagged = 1;
+    }
+  }
 
-	return tagged;
+  return tagged;
 }
-
 
 /* called from image window preview */
 void ntreeCompositTagGenerators(bNodeTree *ntree)
 {
-	bNode *node;
+  bNode *node;
 
-	if (ntree == NULL) return;
+  if (ntree == NULL)
+    return;
 
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
-			nodeUpdate(ntree, node);
-	}
+  for (node = ntree->nodes.first; node; node = node->next) {
+    if (ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
+      nodeUpdate(ntree, node);
+  }
 }
 
 /* XXX after render animation system gets a refresh, this call allows composite to end clean */
 void ntreeCompositClearTags(bNodeTree *ntree)
 {
-	bNode *node;
+  bNode *node;
 
-	if (ntree == NULL) return;
+  if (ntree == NULL)
+    return;
 
-	for (node = ntree->nodes.first; node; node = node->next) {
-		node->need_exec = 0;
-		if (node->type == NODE_GROUP)
-			ntreeCompositClearTags((bNodeTree *)node->id);
-	}
+  for (node = ntree->nodes.first; node; node = node->next) {
+    node->need_exec = 0;
+    if (node->type == NODE_GROUP)
+      ntreeCompositClearTags((bNodeTree *)node->id);
+  }
 }

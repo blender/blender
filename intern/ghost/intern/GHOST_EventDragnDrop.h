@@ -21,7 +21,6 @@
  * \ingroup GHOST
  */
 
-
 #ifndef __GHOST_EVENTDRAGNDROP_H__
 #define __GHOST_EVENTDRAGNDROP_H__
 
@@ -59,69 +58,66 @@ extern "C" {
  * <li>array of strings representing filenames (GHOST_TStringArray)
  * <li>bitmap ImBuf
  */
-class GHOST_EventDragnDrop : public GHOST_Event
-{
-public:
-	/**
-	 * Constructor.
-	 * \param time      The time this event was generated.
-	 * \param type      The type of this event.
-	 * \param dataType  The type of the drop candidate object
-	 * \param window    The window where the event occurred
-	 * \param x         The x-coordinate of the location the cursor was at at the time of the event.
-	 * \param y         The y-coordinate of the location the cursor was at at the time of the event.
-	 * \param data      The "content" dropped in the window
-	 */
-	GHOST_EventDragnDrop(GHOST_TUns64 time,
-	                     GHOST_TEventType type,
-	                     GHOST_TDragnDropTypes dataType,
-	                     GHOST_IWindow *window,
-	                     int x, int y, GHOST_TEventDataPtr data)
-		: GHOST_Event(time, type, window)
-	{
-		m_dragnDropEventData.x = x;
-		m_dragnDropEventData.y = y;
-		m_dragnDropEventData.dataType = dataType;
-		m_dragnDropEventData.data = data;
-		m_data = &m_dragnDropEventData;
-	}
+class GHOST_EventDragnDrop : public GHOST_Event {
+ public:
+  /**
+   * Constructor.
+   * \param time      The time this event was generated.
+   * \param type      The type of this event.
+   * \param dataType  The type of the drop candidate object
+   * \param window    The window where the event occurred
+   * \param x         The x-coordinate of the location the cursor was at at the time of the event.
+   * \param y         The y-coordinate of the location the cursor was at at the time of the event.
+   * \param data      The "content" dropped in the window
+   */
+  GHOST_EventDragnDrop(GHOST_TUns64 time,
+                       GHOST_TEventType type,
+                       GHOST_TDragnDropTypes dataType,
+                       GHOST_IWindow *window,
+                       int x,
+                       int y,
+                       GHOST_TEventDataPtr data)
+      : GHOST_Event(time, type, window)
+  {
+    m_dragnDropEventData.x = x;
+    m_dragnDropEventData.y = y;
+    m_dragnDropEventData.dataType = dataType;
+    m_dragnDropEventData.data = data;
+    m_data = &m_dragnDropEventData;
+  }
 
-	~GHOST_EventDragnDrop()
-	{
-		//Free the dropped object data
-		if (m_dragnDropEventData.data == NULL)
-			return;
+  ~GHOST_EventDragnDrop()
+  {
+    //Free the dropped object data
+    if (m_dragnDropEventData.data == NULL)
+      return;
 
-		switch (m_dragnDropEventData.dataType) {
-			case GHOST_kDragnDropTypeBitmap:
-				IMB_freeImBuf((ImBuf *)m_dragnDropEventData.data);
-				break;
-			case GHOST_kDragnDropTypeFilenames:
-			{
-				GHOST_TStringArray *strArray = (GHOST_TStringArray *)m_dragnDropEventData.data;
-				int i;
+    switch (m_dragnDropEventData.dataType) {
+      case GHOST_kDragnDropTypeBitmap:
+        IMB_freeImBuf((ImBuf *)m_dragnDropEventData.data);
+        break;
+      case GHOST_kDragnDropTypeFilenames: {
+        GHOST_TStringArray *strArray = (GHOST_TStringArray *)m_dragnDropEventData.data;
+        int i;
 
-				for (i = 0; i < strArray->count; i++)
-					free(strArray->strings[i]);
+        for (i = 0; i < strArray->count; i++)
+          free(strArray->strings[i]);
 
-				free(strArray->strings);
-				free(strArray);
-			}
-			break;
-			case GHOST_kDragnDropTypeString:
-				free(m_dragnDropEventData.data);
-				break;
+        free(strArray->strings);
+        free(strArray);
+      } break;
+      case GHOST_kDragnDropTypeString:
+        free(m_dragnDropEventData.data);
+        break;
 
-			default:
-				break;
-		}
-	}
+      default:
+        break;
+    }
+  }
 
-
-
-protected:
-	/** The x,y-coordinates of the cursor position. */
-	GHOST_TEventDragnDropData m_dragnDropEventData;
+ protected:
+  /** The x,y-coordinates of the cursor position. */
+  GHOST_TEventDragnDropData m_dragnDropEventData;
 };
 
-#endif // __GHOST_EVENTDRAGNDROP_H__
+#endif  // __GHOST_EVENTDRAGNDROP_H__

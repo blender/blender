@@ -21,178 +21,167 @@
 
 #include "COM_NodeOperation.h"
 
-
 class ConvertBaseOperation : public NodeOperation {
-protected:
-	SocketReader *m_inputOperation;
+ protected:
+  SocketReader *m_inputOperation;
 
-public:
-	ConvertBaseOperation();
+ public:
+  ConvertBaseOperation();
 
-	void initExecution();
-	void deinitExecution();
+  void initExecution();
+  void deinitExecution();
 };
-
 
 class ConvertValueToColorOperation : public ConvertBaseOperation {
-public:
-	ConvertValueToColorOperation();
+ public:
+  ConvertValueToColorOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertColorToValueOperation : public ConvertBaseOperation {
-public:
-	ConvertColorToValueOperation();
+ public:
+  ConvertColorToValueOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertColorToBWOperation : public ConvertBaseOperation {
-public:
-	ConvertColorToBWOperation();
+ public:
+  ConvertColorToBWOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertColorToVectorOperation : public ConvertBaseOperation {
-public:
-	ConvertColorToVectorOperation();
+ public:
+  ConvertColorToVectorOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertValueToVectorOperation : public ConvertBaseOperation {
-public:
-	ConvertValueToVectorOperation();
+ public:
+  ConvertValueToVectorOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertVectorToColorOperation : public ConvertBaseOperation {
-public:
-	ConvertVectorToColorOperation();
+ public:
+  ConvertVectorToColorOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertVectorToValueOperation : public ConvertBaseOperation {
-public:
-	ConvertVectorToValueOperation();
+ public:
+  ConvertVectorToValueOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertRGBToYCCOperation : public ConvertBaseOperation {
-private:
-	/** YCbCr mode (Jpeg, ITU601, ITU709) */
-	int m_mode;
-public:
-	ConvertRGBToYCCOperation();
+ private:
+  /** YCbCr mode (Jpeg, ITU601, ITU709) */
+  int m_mode;
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  ConvertRGBToYCCOperation();
 
-	/** Set the YCC mode */
-	void setMode(int mode);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+
+  /** Set the YCC mode */
+  void setMode(int mode);
 };
-
 
 class ConvertYCCToRGBOperation : public ConvertBaseOperation {
-private:
-	/** YCbCr mode (Jpeg, ITU601, ITU709) */
-	int m_mode;
-public:
-	ConvertYCCToRGBOperation();
+ private:
+  /** YCbCr mode (Jpeg, ITU601, ITU709) */
+  int m_mode;
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  ConvertYCCToRGBOperation();
 
-	/** Set the YCC mode */
-	void setMode(int mode);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+
+  /** Set the YCC mode */
+  void setMode(int mode);
 };
-
 
 class ConvertRGBToYUVOperation : public ConvertBaseOperation {
-public:
-	ConvertRGBToYUVOperation();
+ public:
+  ConvertRGBToYUVOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertYUVToRGBOperation : public ConvertBaseOperation {
-public:
-	ConvertYUVToRGBOperation();
+ public:
+  ConvertYUVToRGBOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertRGBToHSVOperation : public ConvertBaseOperation {
-public:
-	ConvertRGBToHSVOperation();
+ public:
+  ConvertRGBToHSVOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertHSVToRGBOperation : public ConvertBaseOperation {
-public:
-	ConvertHSVToRGBOperation();
+ public:
+  ConvertHSVToRGBOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertPremulToStraightOperation : public ConvertBaseOperation {
-public:
-	ConvertPremulToStraightOperation();
+ public:
+  ConvertPremulToStraightOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class ConvertStraightToPremulOperation : public ConvertBaseOperation {
-public:
-	ConvertStraightToPremulOperation();
+ public:
+  ConvertStraightToPremulOperation();
 
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
 
 class SeparateChannelOperation : public NodeOperation {
-private:
-	SocketReader *m_inputOperation;
-	int m_channel;
-public:
-	SeparateChannelOperation();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ private:
+  SocketReader *m_inputOperation;
+  int m_channel;
 
-	void initExecution();
-	void deinitExecution();
+ public:
+  SeparateChannelOperation();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
-	void setChannel(int channel) { this->m_channel = channel; }
+  void initExecution();
+  void deinitExecution();
+
+  void setChannel(int channel)
+  {
+    this->m_channel = channel;
+  }
 };
 
-
 class CombineChannelsOperation : public NodeOperation {
-private:
-	SocketReader *m_inputChannel1Operation;
-	SocketReader *m_inputChannel2Operation;
-	SocketReader *m_inputChannel3Operation;
-	SocketReader *m_inputChannel4Operation;
-public:
-	CombineChannelsOperation();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ private:
+  SocketReader *m_inputChannel1Operation;
+  SocketReader *m_inputChannel2Operation;
+  SocketReader *m_inputChannel3Operation;
+  SocketReader *m_inputChannel4Operation;
 
-	void initExecution();
-	void deinitExecution();
+ public:
+  CombineChannelsOperation();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+
+  void initExecution();
+  void deinitExecution();
 };
 
 #endif

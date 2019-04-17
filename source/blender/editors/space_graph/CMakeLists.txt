@@ -16,52 +16,52 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../depsgraph
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../depsgraph
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	graph_buttons.c
-	graph_draw.c
-	graph_edit.c
-	graph_ops.c
-	graph_select.c
-	graph_utils.c
-	space_graph.c
+  graph_buttons.c
+  graph_draw.c
+  graph_edit.c
+  graph_ops.c
+  graph_select.c
+  graph_utils.c
+  space_graph.c
 
-	graph_intern.h
+  graph_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
+  bf_blenkernel
+  bf_blenlib
 )
 
 if(WITH_AUDASPACE)
-	list(APPEND INC_SYS
-		${AUDASPACE_C_INCLUDE_DIRS}
-	)
-	list(APPEND LIB
-		bf_intern_audaspace
-	)
-	add_definitions(-DWITH_AUDASPACE)
+  list(APPEND INC_SYS
+    ${AUDASPACE_C_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    bf_intern_audaspace
+  )
+  add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

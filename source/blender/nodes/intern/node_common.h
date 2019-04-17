@@ -21,7 +21,6 @@
  * \ingroup nodes
  */
 
-
 #ifndef __NODE_COMMON_H__
 #define __NODE_COMMON_H__
 

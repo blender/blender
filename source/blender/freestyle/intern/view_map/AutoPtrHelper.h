@@ -27,28 +27,36 @@
 namespace Freestyle {
 
 #if __cplusplus > 199711L
-template<typename T>
-class AutoPtr : public std::unique_ptr<T> {
-public:
-	AutoPtr() : std::unique_ptr<T>() {}
-	AutoPtr(T *ptr) : std::unique_ptr<T>(ptr) {}
+template<typename T> class AutoPtr : public std::unique_ptr<T> {
+ public:
+  AutoPtr() : std::unique_ptr<T>()
+  {
+  }
+  AutoPtr(T *ptr) : std::unique_ptr<T>(ptr)
+  {
+  }
 
-	/* TODO(sergey): Is there more clear way to do this? */
-	template<typename X>
-	AutoPtr(AutoPtr<X>& other) : std::unique_ptr<T>(other.get()) {
-		other.release();
-	}
+  /* TODO(sergey): Is there more clear way to do this? */
+  template<typename X> AutoPtr(AutoPtr<X> &other) : std::unique_ptr<T>(other.get())
+  {
+    other.release();
+  }
 };
 #else
-template<typename T>
-class AutoPtr : public std::auto_ptr<T> {
-public:
-	AutoPtr() : std::auto_ptr<T>() {}
-	AutoPtr(T *ptr) : std::auto_ptr<T>(ptr) {}
-	AutoPtr(std::auto_ptr_ref<T> ref) : std::auto_ptr<T>(ref) {}
+template<typename T> class AutoPtr : public std::auto_ptr<T> {
+ public:
+  AutoPtr() : std::auto_ptr<T>()
+  {
+  }
+  AutoPtr(T *ptr) : std::auto_ptr<T>(ptr)
+  {
+  }
+  AutoPtr(std::auto_ptr_ref<T> ref) : std::auto_ptr<T>(ref)
+  {
+  }
 };
 #endif
 
-}  /* namespace Freestyle */
+} /* namespace Freestyle */
 
 #endif  // __FREESTYLE_AUTOPTR_HELPER_H__

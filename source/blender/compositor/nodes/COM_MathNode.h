@@ -26,9 +26,11 @@
  * \ingroup Node
  */
 class MathNode : public Node {
-public:
-	MathNode(bNode *editorNode) : Node(editorNode) {}
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  MathNode(bNode *editorNode) : Node(editorNode)
+  {
+  }
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

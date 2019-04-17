@@ -26,7 +26,6 @@
 int BLI_cpu_support_sse2(void);
 void BLI_system_backtrace(FILE *fp);
 
-
 /* Get CPU brand, result is to be MEM_freeN()-ed. */
 char *BLI_cpu_brand_string(void);
 
@@ -49,4 +48,4 @@ void BLI_hostname_get(char *buffer, size_t bufsize);
 #  define BLI_SYSTEM_PID_H <unistd.h>
 #endif
 
-#endif  /* __BLI_SYSTEM_H__ */
+#endif /* __BLI_SYSTEM_H__ */

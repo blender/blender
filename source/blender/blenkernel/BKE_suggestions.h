@@ -45,16 +45,16 @@ extern "C" {
 struct Text;
 
 typedef struct SuggItem {
-	struct SuggItem *prev, *next;
-	char type;
-	char name[0];
+  struct SuggItem *prev, *next;
+  char type;
+  char name[0];
 } SuggItem;
 
 typedef struct SuggList {
-	SuggItem *first, *last;
-	SuggItem *firstmatch, *lastmatch;
-	SuggItem *selected;
-	int top;
+  SuggItem *first, *last;
+  SuggItem *firstmatch, *lastmatch;
+  SuggItem *selected;
+  int top;
 } SuggList;
 
 /* Free all text tool memory */

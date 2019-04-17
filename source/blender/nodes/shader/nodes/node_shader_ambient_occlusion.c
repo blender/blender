@@ -22,44 +22,58 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_ambient_occlusion_in[] = {
-	{	SOCK_RGBA, 1, N_("Color"),		1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("Distance"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_VECTOR,
+     1,
+     N_("Normal"),
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     -1.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_HIDE_VALUE},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_ambient_occlusion_out[] = {
-	{	SOCK_RGBA, 0, N_("Color"),	1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("AO"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 0, N_("AO"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, 0, ""},
 };
 
-static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
+                                             bNode *node,
+                                             bNodeExecData *UNUSED(execdata),
+                                             GPUNodeStack *in,
+                                             GPUNodeStack *out)
 {
-	if (!in[2].link)
-		GPU_link(mat, "world_normals_get", &in[2].link);
+  if (!in[2].link)
+    GPU_link(mat, "world_normals_get", &in[2].link);
 
-	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
+  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
-	return GPU_stack_link(mat, node, "node_ambient_occlusion", in, out);
+  return GPU_stack_link(mat, node, "node_ambient_occlusion", in, out);
 }
 
 static void node_shader_init_ambient_occlusion(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom1 = 16; /* samples */
-	node->custom2 = 0;
+  node->custom1 = 16; /* samples */
+  node->custom2 = 0;
 }
 
 /* node type definition */
 void register_node_type_sh_ambient_occlusion(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT, 0);
-	node_type_socket_templates(&ntype, sh_node_ambient_occlusion_in, sh_node_ambient_occlusion_out);
-	node_type_init(&ntype, node_shader_init_ambient_occlusion);
-	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_ambient_occlusion);
+  sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT, 0);
+  node_type_socket_templates(&ntype, sh_node_ambient_occlusion_in, sh_node_ambient_occlusion_out);
+  node_type_init(&ntype, node_shader_init_ambient_occlusion);
+  node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_ambient_occlusion);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

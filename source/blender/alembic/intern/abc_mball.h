@@ -34,26 +34,25 @@ struct Object;
  * to the Alembic file. Only the basis balls are exported, as this
  * results in the entire shape as one mesh. */
 class AbcMBallWriter : public AbcGenericMeshWriter {
-	Main *m_bmain;
-public:
-	explicit AbcMBallWriter(
-	        Main *bmain,
-	        Object *ob,
-	        AbcTransformWriter *parent,
-	        uint32_t time_sampling,
-	        ExportSettings &settings);
+  Main *m_bmain;
 
-	~AbcMBallWriter();
+ public:
+  explicit AbcMBallWriter(Main *bmain,
+                          Object *ob,
+                          AbcTransformWriter *parent,
+                          uint32_t time_sampling,
+                          ExportSettings &settings);
 
-	static bool isBasisBall(Scene *scene, Object *ob);
+  ~AbcMBallWriter();
 
-protected:
-	Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) override;
-	void freeEvaluatedMesh(struct Mesh *mesh) override;
+  static bool isBasisBall(Scene *scene, Object *ob);
 
-private:
-	bool isAnimated() const override;
+ protected:
+  Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) override;
+  void freeEvaluatedMesh(struct Mesh *mesh) override;
+
+ private:
+  bool isAnimated() const override;
 };
 
-
-#endif  /* __ABC_MBALL_H__ */
+#endif /* __ABC_MBALL_H__ */

@@ -27,4 +27,4 @@ void BKE_editlattice_free(struct Object *ob);
 void BKE_editlattice_make(struct Object *obedit);
 void BKE_editlattice_load(struct Object *obedit);
 
-#endif  /* __BKE_EDITLATTICE_H__ */
+#endif /* __BKE_EDITLATTICE_H__ */

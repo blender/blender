@@ -33,32 +33,32 @@
 
 static void initData(ShaderFxData *fx)
 {
-	WaveShaderFxData *gpfx = (WaveShaderFxData *)fx;
-	gpfx->amplitude = 10.0f;
-	gpfx->period = 20.0f;
-	gpfx->phase = 0.0f;
-	gpfx->orientation = 1;
+  WaveShaderFxData *gpfx = (WaveShaderFxData *)fx;
+  gpfx->amplitude = 10.0f;
+  gpfx->period = 20.0f;
+  gpfx->phase = 0.0f;
+  gpfx->orientation = 1;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-	BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copyData_generic(md, target);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Wave = {
-	/* name */              "Wave Distorsion",
-	/* structName */        "WaveShaderFxData",
-	/* structSize */        sizeof(WaveShaderFxData),
-	/* type */              eShaderFxType_GpencilType,
-	/* flags */             eShaderFxTypeFlag_Single,
+    /* name */ "Wave Distorsion",
+    /* structName */ "WaveShaderFxData",
+    /* structSize */ sizeof(WaveShaderFxData),
+    /* type */ eShaderFxType_GpencilType,
+    /* flags */ eShaderFxTypeFlag_Single,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
 };

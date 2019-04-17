@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class NormalNode : public Node {
-public:
-	NormalNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  NormalNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_NormalNODE_H */
+#endif /* COM_NormalNODE_H */

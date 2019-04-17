@@ -16,7 +16,6 @@
  * Copyright 2011, Blender Foundation.
  */
 
-
 #ifndef __COM_MOVIECLIPOPERATION_H__
 #define __COM_MOVIECLIPOPERATION_H__
 
@@ -29,42 +28,54 @@
  * Base class for movie clip
  */
 class MovieClipBaseOperation : public NodeOperation {
-protected:
-	MovieClip *m_movieClip;
-	MovieClipUser *m_movieClipUser;
-	ImBuf *m_movieClipBuffer;
-	int m_movieClipheight;
-	int m_movieClipwidth;
-	int m_framenumber;
-	bool m_cacheFrame;
+ protected:
+  MovieClip *m_movieClip;
+  MovieClipUser *m_movieClipUser;
+  ImBuf *m_movieClipBuffer;
+  int m_movieClipheight;
+  int m_movieClipwidth;
+  int m_framenumber;
+  bool m_cacheFrame;
 
-	/**
-	 * Determine the output resolution. The resolution is retrieved from the Renderer
-	 */
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  /**
+   * Determine the output resolution. The resolution is retrieved from the Renderer
+   */
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
-public:
-	MovieClipBaseOperation();
+ public:
+  MovieClipBaseOperation();
 
-	void initExecution();
-	void deinitExecution();
-	void setMovieClip(MovieClip *image) { this->m_movieClip = image; }
-	void setMovieClipUser(MovieClipUser *imageuser) { this->m_movieClipUser = imageuser; }
-	void setCacheFrame(bool value) { this->m_cacheFrame = value; }
+  void initExecution();
+  void deinitExecution();
+  void setMovieClip(MovieClip *image)
+  {
+    this->m_movieClip = image;
+  }
+  void setMovieClipUser(MovieClipUser *imageuser)
+  {
+    this->m_movieClipUser = imageuser;
+  }
+  void setCacheFrame(bool value)
+  {
+    this->m_cacheFrame = value;
+  }
 
-	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void setFramenumber(int framenumber)
+  {
+    this->m_framenumber = framenumber;
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MovieClipOperation : public MovieClipBaseOperation {
-public:
-	MovieClipOperation();
+ public:
+  MovieClipOperation();
 };
 
 class MovieClipAlphaOperation : public MovieClipBaseOperation {
-public:
-	MovieClipAlphaOperation();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  MovieClipAlphaOperation();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

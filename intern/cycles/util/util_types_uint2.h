@@ -25,15 +25,15 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
 struct uint2 {
-	uint x, y;
+  uint x, y;
 
-	__forceinline uint operator[](uint i) const;
-	__forceinline uint& operator[](uint i);
+  __forceinline uint operator[](uint i) const;
+  __forceinline uint &operator[](uint i);
 };
 
 ccl_device_inline uint2 make_uint2(uint x, uint y);
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_UINT2_H__ */
+#endif /* __UTIL_TYPES_UINT2_H__ */

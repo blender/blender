@@ -26,56 +26,55 @@
 #include "StyleModule.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class Module
-{
-public:
-	static void setAlwaysRefresh(bool b = true)
-	{
-		getCurrentStyleModule()->setAlwaysRefresh(b);
-	}
+class Module {
+ public:
+  static void setAlwaysRefresh(bool b = true)
+  {
+    getCurrentStyleModule()->setAlwaysRefresh(b);
+  }
 
-	static void setCausal(bool b = true)
-	{
-		getCurrentStyleModule()->setCausal(b);
-	}
+  static void setCausal(bool b = true)
+  {
+    getCurrentStyleModule()->setCausal(b);
+  }
 
-	static void setDrawable(bool b = true)
-	{
-		getCurrentStyleModule()->setDrawable(b);
-	}
+  static void setDrawable(bool b = true)
+  {
+    getCurrentStyleModule()->setDrawable(b);
+  }
 
-	static bool getAlwaysRefresh()
-	{
-		return getCurrentStyleModule()->getAlwaysRefresh();
-	}
+  static bool getAlwaysRefresh()
+  {
+    return getCurrentStyleModule()->getAlwaysRefresh();
+  }
 
-	static bool getCausal()
-	{
-		return getCurrentStyleModule()->getCausal();
-	}
+  static bool getCausal()
+  {
+    return getCurrentStyleModule()->getCausal();
+  }
 
-	static bool getDrawable()
-	{
-		return getCurrentStyleModule()->getDrawable();
-	}
+  static bool getDrawable()
+  {
+    return getCurrentStyleModule()->getDrawable();
+  }
 
-private:
-	static StyleModule *getCurrentStyleModule()
-	{
-		Canvas *canvas = Canvas::getInstance();
-		return canvas->getCurrentStyleModule();
-	}
+ private:
+  static StyleModule *getCurrentStyleModule()
+  {
+    Canvas *canvas = Canvas::getInstance();
+    return canvas->getCurrentStyleModule();
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Module")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Module")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_MODULE_H__
+#endif  // __FREESTYLE_MODULE_H__

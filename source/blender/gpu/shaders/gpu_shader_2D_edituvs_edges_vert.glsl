@@ -14,18 +14,18 @@ flat out vec4 finalColor;
 
 /* TODO: Port drawing to draw manager and
  * remove constants duplications. */
-#define VERT_UV_SELECT  (1 << 3)
-#define EDGE_UV_SELECT  (1 << 5)
+#define VERT_UV_SELECT (1 << 3)
+#define EDGE_UV_SELECT (1 << 5)
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
 
 #ifdef SMOOTH_COLOR
-	bool is_select = (flag & VERT_UV_SELECT) != 0;
+  bool is_select = (flag & VERT_UV_SELECT) != 0;
 #else
-	bool is_select = (flag & EDGE_UV_SELECT) != 0;
+  bool is_select = (flag & EDGE_UV_SELECT) != 0;
 #endif
 
-	finalColor = (is_select) ? selectColor : edgeColor;
+  finalColor = (is_select) ? selectColor : edgeColor;
 }

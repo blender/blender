@@ -7,6 +7,6 @@ out vec4 finalColor;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	finalColor = color;
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  finalColor = color;
 }

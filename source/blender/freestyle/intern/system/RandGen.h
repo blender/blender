@@ -27,25 +27,24 @@
 #include "../system/Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class RandGen
-{
-public:
-	static real drand48();
-	static void srand48(long value);
+class RandGen {
+ public:
+  static real drand48();
+  static void srand48(long value);
 
-private:
-	static void next();
+ private:
+  static void next();
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RandGen")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RandGen")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_RAND_GEN_H__
+#endif  // __FREESTYLE_RAND_GEN_H__

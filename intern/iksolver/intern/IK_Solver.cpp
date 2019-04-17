@@ -21,7 +21,6 @@
  * \ingroup iksolver
  */
 
-
 #include "../extern/IK_solver.h"
 
 #include "IK_QJacobianSolver.h"
@@ -32,355 +31,387 @@
 using namespace std;
 
 class IK_QSolver {
-public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-	IK_QSolver() : root(NULL) {
-	}
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  IK_QSolver() : root(NULL)
+  {
+  }
 
-	IK_QJacobianSolver solver;
-	IK_QSegment *root;
-	std::list<IK_QTask *> tasks;
+  IK_QJacobianSolver solver;
+  IK_QSegment *root;
+  std::list<IK_QTask *> tasks;
 };
 
 // FIXME: locks still result in small "residual" changes to the locked axes...
 static IK_QSegment *CreateSegment(int flag, bool translate)
 {
-	int ndof = 0;
-	ndof += (flag & IK_XDOF) ? 1 : 0;
-	ndof += (flag & IK_YDOF) ? 1 : 0;
-	ndof += (flag & IK_ZDOF) ? 1 : 0;
+  int ndof = 0;
+  ndof += (flag & IK_XDOF) ? 1 : 0;
+  ndof += (flag & IK_YDOF) ? 1 : 0;
+  ndof += (flag & IK_ZDOF) ? 1 : 0;
 
-	IK_QSegment *seg;
+  IK_QSegment *seg;
 
-	if (ndof == 0)
-		return NULL;
-	else if (ndof == 1) {
-		int axis;
+  if (ndof == 0)
+    return NULL;
+  else if (ndof == 1) {
+    int axis;
 
-		if (flag & IK_XDOF) axis = 0;
-		else if (flag & IK_YDOF) axis = 1;
-		else axis = 2;
+    if (flag & IK_XDOF)
+      axis = 0;
+    else if (flag & IK_YDOF)
+      axis = 1;
+    else
+      axis = 2;
 
-		if (translate)
-			seg = new IK_QTranslateSegment(axis);
-		else
-			seg = new IK_QRevoluteSegment(axis);
-	}
-	else if (ndof == 2) {
-		int axis1, axis2;
+    if (translate)
+      seg = new IK_QTranslateSegment(axis);
+    else
+      seg = new IK_QRevoluteSegment(axis);
+  }
+  else if (ndof == 2) {
+    int axis1, axis2;
 
-		if (flag & IK_XDOF) {
-			axis1 = 0;
-			axis2 = (flag & IK_YDOF) ? 1 : 2;
-		}
-		else {
-			axis1 = 1;
-			axis2 = 2;
-		}
+    if (flag & IK_XDOF) {
+      axis1 = 0;
+      axis2 = (flag & IK_YDOF) ? 1 : 2;
+    }
+    else {
+      axis1 = 1;
+      axis2 = 2;
+    }
 
-		if (translate)
-			seg = new IK_QTranslateSegment(axis1, axis2);
-		else {
-			if (axis1 + axis2 == 2)
-				seg = new IK_QSwingSegment();
-			else
-				seg = new IK_QElbowSegment((axis1 == 0) ? 0 : 2);
-		}
-	}
-	else {
-		if (translate)
-			seg = new IK_QTranslateSegment();
-		else
-			seg = new IK_QSphericalSegment();
-	}
+    if (translate)
+      seg = new IK_QTranslateSegment(axis1, axis2);
+    else {
+      if (axis1 + axis2 == 2)
+        seg = new IK_QSwingSegment();
+      else
+        seg = new IK_QElbowSegment((axis1 == 0) ? 0 : 2);
+    }
+  }
+  else {
+    if (translate)
+      seg = new IK_QTranslateSegment();
+    else
+      seg = new IK_QSphericalSegment();
+  }
 
-	return seg;
+  return seg;
 }
 
 IK_Segment *IK_CreateSegment(int flag)
 {
-	IK_QSegment *rot = CreateSegment(flag, false);
-	IK_QSegment *trans = CreateSegment(flag >> 3, true);
+  IK_QSegment *rot = CreateSegment(flag, false);
+  IK_QSegment *trans = CreateSegment(flag >> 3, true);
 
-	IK_QSegment *seg;
+  IK_QSegment *seg;
 
-	if (rot == NULL && trans == NULL)
-		seg = new IK_QNullSegment();
-	else if (rot == NULL)
-		seg = trans;
-	else {
-		seg = rot;
+  if (rot == NULL && trans == NULL)
+    seg = new IK_QNullSegment();
+  else if (rot == NULL)
+    seg = trans;
+  else {
+    seg = rot;
 
-		// make it seem from the interface as if the rotation and translation
-		// segment are one
-		if (trans) {
-			seg->SetComposite(trans);
-			trans->SetParent(seg);
-		}
-	}
+    // make it seem from the interface as if the rotation and translation
+    // segment are one
+    if (trans) {
+      seg->SetComposite(trans);
+      trans->SetParent(seg);
+    }
+  }
 
-	return seg;
+  return seg;
 }
 
 void IK_FreeSegment(IK_Segment *seg)
 {
-	IK_QSegment *qseg = (IK_QSegment *)seg;
+  IK_QSegment *qseg = (IK_QSegment *)seg;
 
-	if (qseg->Composite())
-		delete qseg->Composite();
-	delete qseg;
+  if (qseg->Composite())
+    delete qseg->Composite();
+  delete qseg;
 }
 
 void IK_SetParent(IK_Segment *seg, IK_Segment *parent)
 {
-	IK_QSegment *qseg = (IK_QSegment *)seg;
-	IK_QSegment *qparent = (IK_QSegment *)parent;
+  IK_QSegment *qseg = (IK_QSegment *)seg;
+  IK_QSegment *qparent = (IK_QSegment *)parent;
 
-	if (qparent && qparent->Composite())
-		qseg->SetParent(qparent->Composite());
-	else
-		qseg->SetParent(qparent);
+  if (qparent && qparent->Composite())
+    qseg->SetParent(qparent->Composite());
+  else
+    qseg->SetParent(qparent);
 }
 
-void IK_SetTransform(IK_Segment *seg, float start[3], float rest[][3], float basis[][3], float length)
+void IK_SetTransform(
+    IK_Segment *seg, float start[3], float rest[][3], float basis[][3], float length)
 {
-	IK_QSegment *qseg = (IK_QSegment *)seg;
+  IK_QSegment *qseg = (IK_QSegment *)seg;
 
-	Vector3d mstart(start[0], start[1], start[2]);
-	// convert from blender column major
-	Matrix3d mbasis = CreateMatrix(basis[0][0], basis[1][0], basis[2][0],
-	                               basis[0][1], basis[1][1], basis[2][1],
-	                               basis[0][2], basis[1][2], basis[2][2]);
-	Matrix3d mrest = CreateMatrix(rest[0][0], rest[1][0], rest[2][0],
-	                              rest[0][1], rest[1][1], rest[2][1],
-	                              rest[0][2], rest[1][2], rest[2][2]);
-	double mlength(length);
+  Vector3d mstart(start[0], start[1], start[2]);
+  // convert from blender column major
+  Matrix3d mbasis = CreateMatrix(basis[0][0],
+                                 basis[1][0],
+                                 basis[2][0],
+                                 basis[0][1],
+                                 basis[1][1],
+                                 basis[2][1],
+                                 basis[0][2],
+                                 basis[1][2],
+                                 basis[2][2]);
+  Matrix3d mrest = CreateMatrix(rest[0][0],
+                                rest[1][0],
+                                rest[2][0],
+                                rest[0][1],
+                                rest[1][1],
+                                rest[2][1],
+                                rest[0][2],
+                                rest[1][2],
+                                rest[2][2]);
+  double mlength(length);
 
-	if (qseg->Composite()) {
-		Vector3d cstart(0, 0, 0);
-		Matrix3d cbasis;
-		cbasis.setIdentity();
-		
-		qseg->SetTransform(mstart, mrest, mbasis, 0.0);
-		qseg->Composite()->SetTransform(cstart, cbasis, cbasis, mlength);
-	}
-	else
-		qseg->SetTransform(mstart, mrest, mbasis, mlength);
+  if (qseg->Composite()) {
+    Vector3d cstart(0, 0, 0);
+    Matrix3d cbasis;
+    cbasis.setIdentity();
+
+    qseg->SetTransform(mstart, mrest, mbasis, 0.0);
+    qseg->Composite()->SetTransform(cstart, cbasis, cbasis, mlength);
+  }
+  else
+    qseg->SetTransform(mstart, mrest, mbasis, mlength);
 }
 
 void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
 {
-	IK_QSegment *qseg = (IK_QSegment *)seg;
+  IK_QSegment *qseg = (IK_QSegment *)seg;
 
-	if (axis >= IK_TRANS_X) {
-		if (!qseg->Translational()) {
-			if (qseg->Composite() && qseg->Composite()->Translational())
-				qseg = qseg->Composite();
-			else
-				return;
-		}
+  if (axis >= IK_TRANS_X) {
+    if (!qseg->Translational()) {
+      if (qseg->Composite() && qseg->Composite()->Translational())
+        qseg = qseg->Composite();
+      else
+        return;
+    }
 
-		if      (axis == IK_TRANS_X) axis = IK_X;
-		else if (axis == IK_TRANS_Y) axis = IK_Y;
-		else                         axis = IK_Z;
-	}
+    if (axis == IK_TRANS_X)
+      axis = IK_X;
+    else if (axis == IK_TRANS_Y)
+      axis = IK_Y;
+    else
+      axis = IK_Z;
+  }
 
-	qseg->SetLimit(axis, lmin, lmax);
+  qseg->SetLimit(axis, lmin, lmax);
 }
 
 void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 {
-	if (stiffness < 0.0f)
-		return;
-	
-	if (stiffness > (1.0 - IK_STRETCH_STIFF_EPS))
-		stiffness = (1.0 - IK_STRETCH_STIFF_EPS);
+  if (stiffness < 0.0f)
+    return;
 
-	IK_QSegment *qseg = (IK_QSegment *)seg;
-	double weight = 1.0f - stiffness;
+  if (stiffness > (1.0 - IK_STRETCH_STIFF_EPS))
+    stiffness = (1.0 - IK_STRETCH_STIFF_EPS);
 
-	if (axis >= IK_TRANS_X) {
-		if (!qseg->Translational()) {
-			if (qseg->Composite() && qseg->Composite()->Translational())
-				qseg = qseg->Composite();
-			else
-				return;
-		}
+  IK_QSegment *qseg = (IK_QSegment *)seg;
+  double weight = 1.0f - stiffness;
 
-		if (axis == IK_TRANS_X) axis = IK_X;
-		else if (axis == IK_TRANS_Y) axis = IK_Y;
-		else axis = IK_Z;
-	}
+  if (axis >= IK_TRANS_X) {
+    if (!qseg->Translational()) {
+      if (qseg->Composite() && qseg->Composite()->Translational())
+        qseg = qseg->Composite();
+      else
+        return;
+    }
 
-	qseg->SetWeight(axis, weight);
+    if (axis == IK_TRANS_X)
+      axis = IK_X;
+    else if (axis == IK_TRANS_Y)
+      axis = IK_Y;
+    else
+      axis = IK_Z;
+  }
+
+  qseg->SetWeight(axis, weight);
 }
 
 void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3])
 {
-	IK_QSegment *qseg = (IK_QSegment *)seg;
+  IK_QSegment *qseg = (IK_QSegment *)seg;
 
-	if (qseg->Translational() && qseg->Composite())
-		qseg = qseg->Composite();
+  if (qseg->Translational() && qseg->Composite())
+    qseg = qseg->Composite();
 
-	const Matrix3d& change = qseg->BasisChange();
+  const Matrix3d &change = qseg->BasisChange();
 
-	// convert to blender column major
-	basis_change[0][0] = (float)change(0, 0);
-	basis_change[1][0] = (float)change(0, 1);
-	basis_change[2][0] = (float)change(0, 2);
-	basis_change[0][1] = (float)change(1, 0);
-	basis_change[1][1] = (float)change(1, 1);
-	basis_change[2][1] = (float)change(1, 2);
-	basis_change[0][2] = (float)change(2, 0);
-	basis_change[1][2] = (float)change(2, 1);
-	basis_change[2][2] = (float)change(2, 2);
+  // convert to blender column major
+  basis_change[0][0] = (float)change(0, 0);
+  basis_change[1][0] = (float)change(0, 1);
+  basis_change[2][0] = (float)change(0, 2);
+  basis_change[0][1] = (float)change(1, 0);
+  basis_change[1][1] = (float)change(1, 1);
+  basis_change[2][1] = (float)change(1, 2);
+  basis_change[0][2] = (float)change(2, 0);
+  basis_change[1][2] = (float)change(2, 1);
+  basis_change[2][2] = (float)change(2, 2);
 }
 
 void IK_GetTranslationChange(IK_Segment *seg, float *translation_change)
 {
-	IK_QSegment *qseg = (IK_QSegment *)seg;
+  IK_QSegment *qseg = (IK_QSegment *)seg;
 
-	if (!qseg->Translational() && qseg->Composite())
-		qseg = qseg->Composite();
-	
-	const Vector3d& change = qseg->TranslationChange();
+  if (!qseg->Translational() && qseg->Composite())
+    qseg = qseg->Composite();
 
-	translation_change[0] = (float)change[0];
-	translation_change[1] = (float)change[1];
-	translation_change[2] = (float)change[2];
+  const Vector3d &change = qseg->TranslationChange();
+
+  translation_change[0] = (float)change[0];
+  translation_change[1] = (float)change[1];
+  translation_change[2] = (float)change[2];
 }
 
 IK_Solver *IK_CreateSolver(IK_Segment *root)
 {
-	if (root == NULL)
-		return NULL;
-	
-	IK_QSolver *solver = new IK_QSolver();
-	solver->root = (IK_QSegment *)root;
+  if (root == NULL)
+    return NULL;
 
-	return (IK_Solver *)solver;
+  IK_QSolver *solver = new IK_QSolver();
+  solver->root = (IK_QSegment *)root;
+
+  return (IK_Solver *)solver;
 }
 
 void IK_FreeSolver(IK_Solver *solver)
 {
-	if (solver == NULL)
-		return;
+  if (solver == NULL)
+    return;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
-	std::list<IK_QTask *>& tasks = qsolver->tasks;
-	std::list<IK_QTask *>::iterator task;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
+  std::list<IK_QTask *> &tasks = qsolver->tasks;
+  std::list<IK_QTask *>::iterator task;
 
-	for (task = tasks.begin(); task != tasks.end(); task++)
-		delete (*task);
-	
-	delete qsolver;
+  for (task = tasks.begin(); task != tasks.end(); task++)
+    delete (*task);
+
+  delete qsolver;
 }
 
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight)
 {
-	if (solver == NULL || tip == NULL)
-		return;
+  if (solver == NULL || tip == NULL)
+    return;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
-	IK_QSegment *qtip = (IK_QSegment *)tip;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
+  IK_QSegment *qtip = (IK_QSegment *)tip;
 
-	// in case of composite segment the second segment is the tip
-	if (qtip->Composite())
-		qtip = qtip->Composite();
+  // in case of composite segment the second segment is the tip
+  if (qtip->Composite())
+    qtip = qtip->Composite();
 
-	Vector3d pos(goal[0], goal[1], goal[2]);
+  Vector3d pos(goal[0], goal[1], goal[2]);
 
-	IK_QTask *ee = new IK_QPositionTask(true, qtip, pos);
-	ee->SetWeight(weight);
-	qsolver->tasks.push_back(ee);
+  IK_QTask *ee = new IK_QPositionTask(true, qtip, pos);
+  ee->SetWeight(weight);
+  qsolver->tasks.push_back(ee);
 }
 
 void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight)
 {
-	if (solver == NULL || tip == NULL)
-		return;
+  if (solver == NULL || tip == NULL)
+    return;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
-	IK_QSegment *qtip = (IK_QSegment *)tip;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
+  IK_QSegment *qtip = (IK_QSegment *)tip;
 
-	// in case of composite segment the second segment is the tip
-	if (qtip->Composite())
-		qtip = qtip->Composite();
+  // in case of composite segment the second segment is the tip
+  if (qtip->Composite())
+    qtip = qtip->Composite();
 
-	// convert from blender column major
-	Matrix3d rot = CreateMatrix(goal[0][0], goal[1][0], goal[2][0],
-	                            goal[0][1], goal[1][1], goal[2][1],
-	                            goal[0][2], goal[1][2], goal[2][2]);
+  // convert from blender column major
+  Matrix3d rot = CreateMatrix(goal[0][0],
+                              goal[1][0],
+                              goal[2][0],
+                              goal[0][1],
+                              goal[1][1],
+                              goal[2][1],
+                              goal[0][2],
+                              goal[1][2],
+                              goal[2][2]);
 
-	IK_QTask *orient = new IK_QOrientationTask(true, qtip, rot);
-	orient->SetWeight(weight);
-	qsolver->tasks.push_back(orient);
+  IK_QTask *orient = new IK_QOrientationTask(true, qtip, rot);
+  orient->SetWeight(weight);
+  qsolver->tasks.push_back(orient);
 }
 
-void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle)
+void IK_SolverSetPoleVectorConstraint(IK_Solver *solver,
+                                      IK_Segment *tip,
+                                      float goal[3],
+                                      float polegoal[3],
+                                      float poleangle,
+                                      int getangle)
 {
-	if (solver == NULL || tip == NULL)
-		return;
+  if (solver == NULL || tip == NULL)
+    return;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
-	IK_QSegment *qtip = (IK_QSegment *)tip;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
+  IK_QSegment *qtip = (IK_QSegment *)tip;
 
-	// in case of composite segment the second segment is the tip
-	if (qtip->Composite())
-		qtip = qtip->Composite();
+  // in case of composite segment the second segment is the tip
+  if (qtip->Composite())
+    qtip = qtip->Composite();
 
-	Vector3d qgoal(goal[0], goal[1], goal[2]);
-	Vector3d qpolegoal(polegoal[0], polegoal[1], polegoal[2]);
+  Vector3d qgoal(goal[0], goal[1], goal[2]);
+  Vector3d qpolegoal(polegoal[0], polegoal[1], polegoal[2]);
 
-	qsolver->solver.SetPoleVectorConstraint(
-	    qtip, qgoal, qpolegoal, poleangle, getangle);
+  qsolver->solver.SetPoleVectorConstraint(qtip, qgoal, qpolegoal, poleangle, getangle);
 }
 
 float IK_SolverGetPoleAngle(IK_Solver *solver)
 {
-	if (solver == NULL)
-		return 0.0f;
+  if (solver == NULL)
+    return 0.0f;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
 
-	return qsolver->solver.GetPoleAngle();
+  return qsolver->solver.GetPoleAngle();
 }
 
 #if 0
 static void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight)
 {
-	if (solver == NULL || root == NULL)
-		return;
+  if (solver == NULL || root == NULL)
+    return;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
-	IK_QSegment *qroot = (IK_QSegment *)root;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
+  IK_QSegment *qroot = (IK_QSegment *)root;
 
-	// convert from blender column major
-	Vector3d center(goal);
+  // convert from blender column major
+  Vector3d center(goal);
 
-	IK_QTask *com = new IK_QCenterOfMassTask(true, qroot, center);
-	com->SetWeight(weight);
-	qsolver->tasks.push_back(com);
+  IK_QTask *com = new IK_QCenterOfMassTask(true, qroot, center);
+  com->SetWeight(weight);
+  qsolver->tasks.push_back(com);
 }
 #endif
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 {
-	if (solver == NULL)
-		return 0;
+  if (solver == NULL)
+    return 0;
 
-	IK_QSolver *qsolver = (IK_QSolver *)solver;
+  IK_QSolver *qsolver = (IK_QSolver *)solver;
 
-	IK_QSegment *root = qsolver->root;
-	IK_QJacobianSolver& jacobian = qsolver->solver;
-	std::list<IK_QTask *>& tasks = qsolver->tasks;
-	double tol = tolerance;
+  IK_QSegment *root = qsolver->root;
+  IK_QJacobianSolver &jacobian = qsolver->solver;
+  std::list<IK_QTask *> &tasks = qsolver->tasks;
+  double tol = tolerance;
 
-	if (!jacobian.Setup(root, tasks))
-		return 0;
+  if (!jacobian.Setup(root, tasks))
+    return 0;
 
-	bool result = jacobian.Solve(root, tasks, tol, max_iterations);
+  bool result = jacobian.Solve(root, tasks, tol, max_iterations);
 
-	return ((result) ? 1 : 0);
+  return ((result) ? 1 : 0);
 }
-

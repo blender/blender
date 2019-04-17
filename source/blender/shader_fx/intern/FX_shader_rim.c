@@ -31,35 +31,35 @@
 
 static void initData(ShaderFxData *fx)
 {
-	RimShaderFxData *gpfx = (RimShaderFxData *)fx;
-	ARRAY_SET_ITEMS(gpfx->offset, 50, -100);
-	ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f);
-	ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f);
-	gpfx->mode = eShaderFxRimMode_Multiply;
+  RimShaderFxData *gpfx = (RimShaderFxData *)fx;
+  ARRAY_SET_ITEMS(gpfx->offset, 50, -100);
+  ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f);
+  ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f);
+  gpfx->mode = eShaderFxRimMode_Multiply;
 
-	ARRAY_SET_ITEMS(gpfx->blur, 0, 0);
-	gpfx->samples = 2;
+  ARRAY_SET_ITEMS(gpfx->blur, 0, 0);
+  gpfx->samples = 2;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-	BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copyData_generic(md, target);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Rim = {
-	/* name */              "Rim",
-	/* structName */        "RimShaderFxData",
-	/* structSize */        sizeof(RimShaderFxData),
-	/* type */              eShaderFxType_GpencilType,
-	/* flags */             0,
+    /* name */ "Rim",
+    /* structName */ "RimShaderFxData",
+    /* structSize */ sizeof(RimShaderFxData),
+    /* type */ eShaderFxType_GpencilType,
+    /* flags */ 0,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
 };

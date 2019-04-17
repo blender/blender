@@ -24,13 +24,21 @@ struct Object;
 struct ProjCameraInfo;
 
 /* create uv info from the camera, needs to be freed */
-struct ProjCameraInfo *BLI_uvproject_camera_info(struct Object *ob, float rotmat[4][4], float winx, float winy);
+struct ProjCameraInfo *BLI_uvproject_camera_info(struct Object *ob,
+                                                 float rotmat[4][4],
+                                                 float winx,
+                                                 float winy);
 
 /* apply uv from uvinfo (camera) */
 void BLI_uvproject_from_camera(float target[2], float source[3], struct ProjCameraInfo *uci);
 
 /* apply uv from perspective matrix */
-void BLI_uvproject_from_view(float target[2], float source[3], float persmat[4][4], float rotmat[4][4], float winx, float winy);
+void BLI_uvproject_from_view(float target[2],
+                             float source[3],
+                             float persmat[4][4],
+                             float rotmat[4][4],
+                             float winx,
+                             float winy);
 
 /* apply ortho uv's */
 void BLI_uvproject_from_view_ortho(float target[2], float source[3], float rotmat[4][4]);

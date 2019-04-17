@@ -35,9 +35,8 @@ extern PyTypeObject ShapeIdF0D_Type;
 
 /*---------------------------Python BPy_ShapeIdF0D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction0DId py_uf0D_id;
+  BPy_UnaryFunction0DId py_uf0D_id;
 } BPy_ShapeIdF0D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

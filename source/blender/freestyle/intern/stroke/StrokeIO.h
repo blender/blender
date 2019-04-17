@@ -30,12 +30,12 @@
 
 namespace Freestyle {
 
-ostream& operator<<(ostream& out, const StrokeAttribute& iStrokeAttribute);
+ostream &operator<<(ostream &out, const StrokeAttribute &iStrokeAttribute);
 
-ostream& operator<<(ostream& out, const StrokeVertex& iStrokeVertex);
+ostream &operator<<(ostream &out, const StrokeVertex &iStrokeVertex);
 
-ostream& operator<<(ostream& out, const Stroke& iStroke);
+ostream &operator<<(ostream &out, const Stroke &iStroke);
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_STROKE_IO_H__
+#endif  // __FREESTYLE_STROKE_IO_H__

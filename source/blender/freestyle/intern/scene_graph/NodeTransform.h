@@ -33,69 +33,70 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class NodeTransform : public NodeGroup
-{
-public:
-	inline NodeTransform() : NodeGroup()
-	{
-		_Matrix = Matrix44r::identity();
-		_Scaled = false;
-	}
+class NodeTransform : public NodeGroup {
+ public:
+  inline NodeTransform() : NodeGroup()
+  {
+    _Matrix = Matrix44r::identity();
+    _Scaled = false;
+  }
 
-	virtual ~NodeTransform() {}
+  virtual ~NodeTransform()
+  {
+  }
 
-	/*! multiplys the current matrix by the x, y, z translation matrix. */
-	void Translate(real x, real y, real z);
+  /*! multiplys the current matrix by the x, y, z translation matrix. */
+  void Translate(real x, real y, real z);
 
-	/*! multiplys the current matrix by a rotation matrix
-	 *    iAngle
-	 *      The rotation angle
-	 *    x, y, z
-	 *      The rotation axis
-	 */
-	void Rotate(real iAngle, real x, real y, real z);
+  /*! multiplys the current matrix by a rotation matrix
+   *    iAngle
+   *      The rotation angle
+   *    x, y, z
+   *      The rotation axis
+   */
+  void Rotate(real iAngle, real x, real y, real z);
 
-	/*! multiplys the current matrix by a scaling matrix.
-	 *    x, y, z
-	 *      The scaling coefficients with respect to the x,y,z axis
-	 */
-	void Scale(real x, real y, real z);
+  /*! multiplys the current matrix by a scaling matrix.
+   *    x, y, z
+   *      The scaling coefficients with respect to the x,y,z axis
+   */
+  void Scale(real x, real y, real z);
 
-	/*! Multiplys the current matrix by iMatrix */
-	void MultiplyMatrix(const Matrix44r &iMatrix);
+  /*! Multiplys the current matrix by iMatrix */
+  void MultiplyMatrix(const Matrix44r &iMatrix);
 
-	/*! Sets the current matrix to iMatrix */
-	void setMatrix(const Matrix44r &iMatrix);
+  /*! Sets the current matrix to iMatrix */
+  void setMatrix(const Matrix44r &iMatrix);
 
-	/*! Accept the corresponding visitor */
-	virtual void accept(SceneVisitor& v);
+  /*! Accept the corresponding visitor */
+  virtual void accept(SceneVisitor &v);
 
-	/*! Overloads the Node::AddBBox in order to take care about the transformation */
-	virtual void AddBBox(const BBox<Vec3r>& iBBox);
+  /*! Overloads the Node::AddBBox in order to take care about the transformation */
+  virtual void AddBBox(const BBox<Vec3r> &iBBox);
 
-	/*! Checks whether a matrix contains a scale factor or not.
-	 *  Returns true if yes.
-	 *    M
-	 *      The matrix to check
-	 */
-	bool isScaled(const Matrix44r &M);
+  /*! Checks whether a matrix contains a scale factor or not.
+   *  Returns true if yes.
+   *    M
+   *      The matrix to check
+   */
+  bool isScaled(const Matrix44r &M);
 
-	/*! accessors */
-	inline const Matrix44r& matrix() const
-	{
-		return _Matrix;
-	}
+  /*! accessors */
+  inline const Matrix44r &matrix() const
+  {
+    return _Matrix;
+  }
 
-	inline bool scaled() const
-	{
-		return _Scaled;
-	}
+  inline bool scaled() const
+  {
+    return _Scaled;
+  }
 
-private:
-	Matrix44r _Matrix;
-	bool _Scaled;
+ private:
+  Matrix44r _Matrix;
+  bool _Scaled;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_NODE_TRANSFORM_H__
+#endif  // __FREESTYLE_NODE_TRANSFORM_H__

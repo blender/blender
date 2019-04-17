@@ -16,51 +16,51 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blenloader
-	../../blentranslation
-	../../bmesh
-	../../depsgraph
-	../../gpu
-	../../imbuf
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../gpu
+  ../../imbuf
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	area.c
-	area_utils.c
-	glutil.c
-	screen_context.c
-	screen_draw.c
-	screen_edit.c
-	screen_geometry.c
-	screen_ops.c
-	screen_user_menu.c
-	screendump.c
-	workspace_edit.c
-	workspace_layout_edit.c
+  area.c
+  area_utils.c
+  glutil.c
+  screen_context.c
+  screen_draw.c
+  screen_edit.c
+  screen_geometry.c
+  screen_ops.c
+  screen_user_menu.c
+  screendump.c
+  workspace_edit.c
+  workspace_layout_edit.c
 
-	screen_intern.h
+  screen_intern.h
 )
 
 set(LIB
-	bf_editor_datafiles
-	bf_editor_space_sequencer
+  bf_editor_datafiles
+  bf_editor_space_sequencer
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

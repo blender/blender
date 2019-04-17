@@ -21,11 +21,10 @@
  * \ingroup blt
  */
 
-
 #ifndef __BLT_TRANSLATION_H__
 #define __BLT_TRANSLATION_H__
 
-#include "BLI_utildefines.h"  /* for bool type */
+#include "BLI_utildefines.h" /* for bool type */
 
 #define TEXT_DOMAIN_NAME "blender"
 
@@ -64,11 +63,11 @@ bool BLT_lang_is_ime_supported(void);
 #else
 /*#  define _(msgid) msgid */
 #  define IFACE_(msgid) msgid
-#  define TIP_(msgid)   msgid
-#  define DATA_(msgid)  msgid
+#  define TIP_(msgid) msgid
+#  define DATA_(msgid) msgid
 #  define CTX_IFACE_(context, msgid) msgid
-#  define CTX_TIP_(context, msgid)   msgid
-#  define CTX_DATA_(context, msgid)  msgid
+#  define CTX_TIP_(context, msgid) msgid
+#  define CTX_DATA_(context, msgid) msgid
 #endif
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...
@@ -108,100 +107,107 @@ bool BLT_lang_is_ime_supported(void);
 
 /* ID-types contexts. */
 /* WARNING! Keep it in sync with idtypes in blenkernel/intern/idcode.c */
-#define BLT_I18NCONTEXT_ID_ACTION               "Action"
-#define BLT_I18NCONTEXT_ID_ARMATURE             "Armature"
-#define BLT_I18NCONTEXT_ID_BRUSH                "Brush"
-#define BLT_I18NCONTEXT_ID_CAMERA               "Camera"
-#define BLT_I18NCONTEXT_ID_CACHEFILE            "CacheFile"
-#define BLT_I18NCONTEXT_ID_COLLECTION           "Collection"
-#define BLT_I18NCONTEXT_ID_CURVE                "Curve"
-#define BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE   "FreestyleLineStyle"
-#define BLT_I18NCONTEXT_ID_GPENCIL              "GPencil"
-#define BLT_I18NCONTEXT_ID_ID                   "ID"
-#define BLT_I18NCONTEXT_ID_IMAGE                "Image"
+#define BLT_I18NCONTEXT_ID_ACTION "Action"
+#define BLT_I18NCONTEXT_ID_ARMATURE "Armature"
+#define BLT_I18NCONTEXT_ID_BRUSH "Brush"
+#define BLT_I18NCONTEXT_ID_CAMERA "Camera"
+#define BLT_I18NCONTEXT_ID_CACHEFILE "CacheFile"
+#define BLT_I18NCONTEXT_ID_COLLECTION "Collection"
+#define BLT_I18NCONTEXT_ID_CURVE "Curve"
+#define BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE "FreestyleLineStyle"
+#define BLT_I18NCONTEXT_ID_GPENCIL "GPencil"
+#define BLT_I18NCONTEXT_ID_ID "ID"
+#define BLT_I18NCONTEXT_ID_IMAGE "Image"
 /*#define BLT_I18NCONTEXT_ID_IPO                  "Ipo"*/ /* Deprecated */
-#define BLT_I18NCONTEXT_ID_SHAPEKEY             "Key"
-#define BLT_I18NCONTEXT_ID_LIGHT                "Light"
-#define BLT_I18NCONTEXT_ID_LIBRARY              "Library"
-#define BLT_I18NCONTEXT_ID_LATTICE              "Lattice"
-#define BLT_I18NCONTEXT_ID_MATERIAL             "Material"
-#define BLT_I18NCONTEXT_ID_METABALL             "Metaball"
-#define BLT_I18NCONTEXT_ID_MESH                 "Mesh"
-#define BLT_I18NCONTEXT_ID_NODETREE             "NodeTree"
-#define BLT_I18NCONTEXT_ID_OBJECT               "Object"
-#define BLT_I18NCONTEXT_ID_PAINTCURVE           "PaintCurve"
-#define BLT_I18NCONTEXT_ID_PALETTE              "Palette"
-#define BLT_I18NCONTEXT_ID_PARTICLESETTINGS     "ParticleSettings"
-#define BLT_I18NCONTEXT_ID_LIGHTPROBE           "LightProbe"
-#define BLT_I18NCONTEXT_ID_SCENE                "Scene"
-#define BLT_I18NCONTEXT_ID_SCREEN               "Screen"
-#define BLT_I18NCONTEXT_ID_SEQUENCE             "Sequence"
-#define BLT_I18NCONTEXT_ID_SPEAKER              "Speaker"
-#define BLT_I18NCONTEXT_ID_SOUND                "Sound"
-#define BLT_I18NCONTEXT_ID_TEXTURE              "Texture"
-#define BLT_I18NCONTEXT_ID_TEXT                 "Text"
-#define BLT_I18NCONTEXT_ID_VFONT                "VFont"
-#define BLT_I18NCONTEXT_ID_WORLD                "World"
-#define BLT_I18NCONTEXT_ID_WORKSPACE            "WorkSpace"
-#define BLT_I18NCONTEXT_ID_WINDOWMANAGER        "WindowManager"
-#define BLT_I18NCONTEXT_ID_MOVIECLIP            "MovieClip"
-#define BLT_I18NCONTEXT_ID_MASK                 "Mask"
+#define BLT_I18NCONTEXT_ID_SHAPEKEY "Key"
+#define BLT_I18NCONTEXT_ID_LIGHT "Light"
+#define BLT_I18NCONTEXT_ID_LIBRARY "Library"
+#define BLT_I18NCONTEXT_ID_LATTICE "Lattice"
+#define BLT_I18NCONTEXT_ID_MATERIAL "Material"
+#define BLT_I18NCONTEXT_ID_METABALL "Metaball"
+#define BLT_I18NCONTEXT_ID_MESH "Mesh"
+#define BLT_I18NCONTEXT_ID_NODETREE "NodeTree"
+#define BLT_I18NCONTEXT_ID_OBJECT "Object"
+#define BLT_I18NCONTEXT_ID_PAINTCURVE "PaintCurve"
+#define BLT_I18NCONTEXT_ID_PALETTE "Palette"
+#define BLT_I18NCONTEXT_ID_PARTICLESETTINGS "ParticleSettings"
+#define BLT_I18NCONTEXT_ID_LIGHTPROBE "LightProbe"
+#define BLT_I18NCONTEXT_ID_SCENE "Scene"
+#define BLT_I18NCONTEXT_ID_SCREEN "Screen"
+#define BLT_I18NCONTEXT_ID_SEQUENCE "Sequence"
+#define BLT_I18NCONTEXT_ID_SPEAKER "Speaker"
+#define BLT_I18NCONTEXT_ID_SOUND "Sound"
+#define BLT_I18NCONTEXT_ID_TEXTURE "Texture"
+#define BLT_I18NCONTEXT_ID_TEXT "Text"
+#define BLT_I18NCONTEXT_ID_VFONT "VFont"
+#define BLT_I18NCONTEXT_ID_WORLD "World"
+#define BLT_I18NCONTEXT_ID_WORKSPACE "WorkSpace"
+#define BLT_I18NCONTEXT_ID_WINDOWMANAGER "WindowManager"
+#define BLT_I18NCONTEXT_ID_MOVIECLIP "MovieClip"
+#define BLT_I18NCONTEXT_ID_MASK "Mask"
 
 /* Helper for bpy.app.i18n object... */
 typedef struct {
-	const char *c_id;
-	const char *py_id;
-	const char *value;
+  const char *c_id;
+  const char *py_id;
+  const char *value;
 } BLT_i18n_contexts_descriptor;
 
-#define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) {#ctxt_id, py_id, ctxt_id}
+#define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) \
+  { \
+#    ctxt_id, py_id, ctxt_id \
+  }
 
-#define BLT_I18NCONTEXTS_DESC {                                                                                        \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_DEFAULT, "default_real"),                                                    \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_DEFAULT_BPYRNA, "default"),                                                  \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"),                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UI_EVENTS, "ui_events_keymaps"),                                             \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_PLURAL, "plural"),                                                           \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ACTION, "id_action"),                                                     \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ARMATURE, "id_armature"),                                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_BRUSH, "id_brush"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CAMERA, "id_camera"),                                                     \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CACHEFILE, "id_cachefile"),                                               \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_COLLECTION, "id_collection"),                                             \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CURVE, "id_curve"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE, "id_fs_linestyle"),                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_GPENCIL, "id_gpencil"),                                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ID, "id_id"),                                                             \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_IMAGE, "id_image"),                                                       \
-	/*BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_IPO, "id_ipo"),*/                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SHAPEKEY, "id_shapekey"),                                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIGHT, "id_light"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIBRARY, "id_library"),                                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LATTICE, "id_lattice"),                                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MASK, "id_mask"),                                                         \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MATERIAL, "id_material"),                                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_METABALL, "id_metaball"),                                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MESH, "id_mesh"),                                                         \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MOVIECLIP, "id_movieclip"),                                               \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_NODETREE, "id_nodetree"),                                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_OBJECT, "id_object"),                                                     \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PAINTCURVE, "id_paintcurve"),                                             \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PALETTE, "id_palette"),                                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PARTICLESETTINGS, "id_particlesettings"),                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIGHTPROBE, "id_lightprobe"),                                             \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCENE, "id_scene"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCREEN, "id_screen"),                                                     \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SEQUENCE, "id_sequence"),                                                 \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SPEAKER, "id_speaker"),                                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SOUND, "id_sound"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_TEXTURE, "id_texture"),                                                   \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_TEXT, "id_text"),                                                         \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_VFONT, "id_vfont"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORLD, "id_world"),                                                       \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORKSPACE, "id_workspace"),                                               \
-	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"),                                       \
-	{NULL, NULL, NULL}                                                                                                 \
-}
+#define BLT_I18NCONTEXTS_DESC \
+  { \
+    BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_DEFAULT, "default_real"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_DEFAULT_BPYRNA, "default"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UI_EVENTS, "ui_events_keymaps"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_PLURAL, "plural"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ACTION, "id_action"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ARMATURE, "id_armature"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_BRUSH, "id_brush"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CAMERA, "id_camera"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CACHEFILE, "id_cachefile"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_COLLECTION, "id_collection"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CURVE, "id_curve"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE, "id_fs_linestyle"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_GPENCIL, "id_gpencil"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ID, "id_id"), \
+        BLT_I18NCONTEXTS_ITEM( \
+            BLT_I18NCONTEXT_ID_IMAGE, \
+            "id_image"), /*BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_IPO, "id_ipo"),*/ \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SHAPEKEY, "id_shapekey"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIGHT, "id_light"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIBRARY, "id_library"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LATTICE, "id_lattice"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MASK, "id_mask"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MATERIAL, "id_material"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_METABALL, "id_metaball"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MESH, "id_mesh"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_MOVIECLIP, "id_movieclip"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_NODETREE, "id_nodetree"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_OBJECT, "id_object"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PAINTCURVE, "id_paintcurve"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PALETTE, "id_palette"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PARTICLESETTINGS, "id_particlesettings"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIGHTPROBE, "id_lightprobe"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCENE, "id_scene"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCREEN, "id_screen"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SEQUENCE, "id_sequence"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SPEAKER, "id_speaker"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SOUND, "id_sound"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_TEXTURE, "id_texture"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_TEXT, "id_text"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_VFONT, "id_vfont"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORLD, "id_world"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORKSPACE, "id_workspace"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"), \
+    { \
+      NULL, NULL, NULL \
+    } \
+  }
 
 #ifdef __cplusplus
 };

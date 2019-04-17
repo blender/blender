@@ -36,8 +36,8 @@ typedef int (*BLI_sort_cmp_t)(const void *a, const void *b, void *ctx);
 
 void BLI_qsort_r(void *a, size_t n, size_t es, BLI_sort_cmp_t cmp, void *thunk)
 #ifdef __GNUC__
-__attribute__((nonnull(1, 5)))
+    __attribute__((nonnull(1, 5)))
 #endif
-;
+    ;
 
-#endif  /* __BLI_SORT_H__ */
+#endif /* __BLI_SORT_H__ */

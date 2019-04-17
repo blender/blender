@@ -134,7 +134,7 @@
 #  define expf(x) native_exp(((float)(x)))
 #  define sqrtf(x) native_sqrt(((float)(x)))
 #  define logf(x) native_log(((float)(x)))
-#  define rcp(x)  native_recip(x)
+#  define rcp(x) native_recip(x)
 #else
 #  define sinf(x) sin(((float)(x)))
 #  define cosf(x) cos(((float)(x)))
@@ -142,12 +142,13 @@
 #  define expf(x) exp(((float)(x)))
 #  define sqrtf(x) sqrt(((float)(x)))
 #  define logf(x) log(((float)(x)))
-#  define rcp(x)  recip(x)
+#  define rcp(x) recip(x)
 #endif
 
 /* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_array(tex) ((const ccl_global tex##_t*)(kg->buffers[kg->tex.cl_buffer] + kg->tex.data))
+#define kernel_tex_array(tex) \
+  ((const ccl_global tex##_t *)(kg->buffers[kg->tex.cl_buffer] + kg->tex.data))
 #define kernel_tex_fetch(tex, index) kernel_tex_array(tex)[(index)]
 
 /* define NULL */
@@ -155,10 +156,10 @@
 
 /* enable extensions */
 #ifdef __KERNEL_CL_KHR_FP16__
-#pragma OPENCL EXTENSION cl_khr_fp16 : enable
+#  pragma OPENCL EXTENSION cl_khr_fp16 : enable
 #endif
 
 #include "util/util_half.h"
 #include "util/util_types.h"
 
-#endif  /* __KERNEL_COMPAT_OPENCL_H__ */
+#endif /* __KERNEL_COMPAT_OPENCL_H__ */

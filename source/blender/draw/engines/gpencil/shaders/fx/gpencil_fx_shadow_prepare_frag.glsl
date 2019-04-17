@@ -19,7 +19,7 @@ uniform float phase;
 uniform int orientation;
 
 uniform vec3 loc;
-uniform float pixsize;   /* rv3d->pixsize */
+uniform float pixsize; /* rv3d->pixsize */
 uniform float pixfactor;
 
 #define M_PI 3.1415926535897932384626433832795
@@ -37,61 +37,62 @@ out vec4 FragColor;
 /* project 3d point to 2d on screen space */
 vec2 toScreenSpace(vec4 vertex)
 {
-	/* need to calculate ndc because this is not done by vertex shader */
-	vec3 ndc = vec3(vertex).xyz / vertex.w;
+  /* need to calculate ndc because this is not done by vertex shader */
+  vec3 ndc = vec3(vertex).xyz / vertex.w;
 
-	vec2 sc;
-	sc.x = ((ndc.x + 1.0) / 2.0) * Viewport.x;
-	sc.y = ((ndc.y + 1.0) / 2.0) * Viewport.y;
+  vec2 sc;
+  sc.x = ((ndc.x + 1.0) / 2.0) * Viewport.x;
+  sc.y = ((ndc.y + 1.0) / 2.0) * Viewport.y;
 
-	return sc;
+  return sc;
 }
 
 void main()
 {
-	vec2 uv = vec2(gl_FragCoord.xy);
-	vec4 nloc = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0);
-	vec2 loc2d = toScreenSpace(nloc);
+  vec2 uv = vec2(gl_FragCoord.xy);
+  vec4 nloc = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0);
+  vec2 loc2d = toScreenSpace(nloc);
 
-	float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) : (noffset[0] / defaultpixsize);
-	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
+  float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) :
+                                               (noffset[0] / defaultpixsize);
+  float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) :
+                                               (noffset[1] / defaultpixsize);
 
+  /* move point to new coords system */
+  vec2 tpos = vec2(uv.x, uv.y) - loc2d;
 
-	/* move point to new coords system */
-	vec2 tpos = vec2(uv.x, uv.y) - loc2d;
+  /* rotation */
+  if (rotation != 0) {
+    vec2 rotpoint = vec2((tpos.x * cosv) - (tpos.y * sinv), (tpos.x * sinv) + (tpos.y * cosv));
+    tpos = rotpoint;
+  }
 
-	/* rotation */
-	if (rotation != 0) {
-		vec2 rotpoint = vec2((tpos.x * cosv) - (tpos.y * sinv), (tpos.x * sinv) + (tpos.y * cosv));
-		tpos = rotpoint;
-	}
+  /* apply offset */
+  tpos = vec2(tpos.x - dx, tpos.y - dy);
 
-	/* apply offset */
-	tpos = vec2(tpos.x - dx, tpos.y - dy);
+  /* apply scale */
+  tpos.x *= 1.0 / scale[0];
+  tpos.y *= 1.0 / scale[1];
 
-	/* apply scale */
-	tpos.x *= 1.0 / scale[0];
-	tpos.y *= 1.0 / scale[1];
+  /* back to original coords system */
+  vec2 texpos = tpos + loc2d;
 
-	/* back to original coords system */
-	vec2 texpos = tpos + loc2d;
+  /* wave */
+  if (orientation == HORIZONTAL) {
+    float pval = (uv.x * M_PI) / Viewport[0];
+    texpos.y += amplitude * sin((period * pval) + phase);
+  }
+  else if (orientation == VERTICAL) {
+    float pval = (uv.y * M_PI) / Viewport[1];
+    texpos.x += amplitude * sin((period * pval) + phase);
+  }
 
-	/* wave */
-	if (orientation == HORIZONTAL) {
-		float pval = (uv.x * M_PI) / Viewport[0];
-		texpos.y += amplitude * sin((period * pval) + phase);
-	}
-	else if (orientation == VERTICAL){
-		float pval = (uv.y * M_PI) / Viewport[1];
-		texpos.x += amplitude * sin((period * pval) + phase);
-	}
+  vec4 src_pixel = texelFetch(strokeColor, ivec2(texpos.x, texpos.y), 0);
+  /* is transparent */
+  if (src_pixel.a == 0.0f) {
+    discard;
+  }
 
-	vec4 src_pixel = texelFetch(strokeColor, ivec2(texpos.x, texpos.y), 0);
-	/* is transparent */
-	if (src_pixel.a == 0.0f) {
-		discard;
-	}
-
-	gl_FragDepth = texelFetch(strokeDepth, ivec2(texpos.x, texpos.y), 0).r;
-	FragColor = shadow_color;
+  gl_FragDepth = texelFetch(strokeDepth, ivec2(texpos.x, texpos.y), 0).r;
+  FragColor = shadow_color;
 }

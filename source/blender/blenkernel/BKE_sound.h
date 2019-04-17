@@ -34,8 +34,8 @@ struct Sequence;
 struct bSound;
 
 typedef struct SoundWaveform {
-	int length;
-	float *data;
+  int length;
+  float *data;
 } SoundWaveform;
 
 void BKE_sound_init_once(void);
@@ -52,7 +52,9 @@ void BKE_sound_exit(void);
 void BKE_sound_force_device(const char *device);
 
 struct bSound *BKE_sound_new_file(struct Main *main, const char *filepath);
-struct bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);
+struct bSound *BKE_sound_new_file_exists_ex(struct Main *bmain,
+                                            const char *filepath,
+                                            bool *r_exists);
 struct bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepath);
 
 // XXX unused currently
@@ -70,7 +72,10 @@ void BKE_sound_load(struct Main *main, struct bSound *sound);
 
 void BKE_sound_free(struct bSound *sound);
 
-void BKE_sound_copy_data(struct Main *bmain, struct bSound *sound_dst, const struct bSound *sound_src, const int flag);
+void BKE_sound_copy_data(struct Main *bmain,
+                         struct bSound *sound_dst,
+                         const struct bSound *sound_src,
+                         const int flag);
 
 void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const bool lib_local);
 
@@ -90,17 +95,20 @@ void BKE_sound_update_fps(struct Scene *scene);
 
 void BKE_sound_update_scene_listener(struct Scene *scene);
 
-void *BKE_sound_scene_add_scene_sound(struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip);
+void *BKE_sound_scene_add_scene_sound(
+    struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip);
 void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
 
-void *BKE_sound_add_scene_sound(struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip);
+void *BKE_sound_add_scene_sound(
+    struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip);
 void *BKE_sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
 
 void BKE_sound_remove_scene_sound(struct Scene *scene, void *handle);
 
 void BKE_sound_mute_scene_sound(void *handle, char mute);
 
-void BKE_sound_move_scene_sound(struct Scene *scene, void *handle, int startframe, int endframe, int frameskip);
+void BKE_sound_move_scene_sound(
+    struct Scene *scene, void *handle, int startframe, int endframe, int frameskip);
 void BKE_sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
 
 void BKE_sound_update_scene_sound(void *handle, struct bSound *sound);
@@ -139,4 +147,4 @@ float BKE_sound_get_length(struct bSound *sound);
 
 char **BKE_sound_get_device_names(void);
 
-#endif  /* __BKE_SOUND_H__ */
+#endif /* __BKE_SOUND_H__ */

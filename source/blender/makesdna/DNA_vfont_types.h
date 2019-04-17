@@ -33,32 +33,32 @@ struct PackedFile;
 struct VFontData;
 
 typedef struct VFont {
-	ID id;
+  ID id;
 
-	/** 1024 = FILE_MAX. */
-	char name[1024];
+  /** 1024 = FILE_MAX. */
+  char name[1024];
 
-	struct VFontData *data;
-	struct PackedFile *packedfile;
+  struct VFontData *data;
+  struct PackedFile *packedfile;
 
-	/* runtime only, holds memory for freetype to read from
-	 * TODO, replace this with blf_font_new() style loading */
-	struct PackedFile *temp_pf;
+  /* runtime only, holds memory for freetype to read from
+   * TODO, replace this with blf_font_new() style loading */
+  struct PackedFile *temp_pf;
 } VFont;
 
 /* *************** FONT ****************** */
-#define FO_EDIT			0
-#define FO_CURS			1
-#define FO_CURSUP		2
-#define FO_CURSDOWN		3
-#define FO_DUPLI		4
-#define FO_PAGEUP		8
-#define FO_PAGEDOWN		9
-#define FO_SELCHANGE	10
+#define FO_EDIT 0
+#define FO_CURS 1
+#define FO_CURSUP 2
+#define FO_CURSDOWN 3
+#define FO_DUPLI 4
+#define FO_PAGEUP 8
+#define FO_PAGEDOWN 9
+#define FO_SELCHANGE 10
 
 /* BKE_vfont_to_curve will move the cursor in these cases */
 #define FO_CURS_IS_MOTION(mode) (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN))
 
 #define FO_BUILTIN_NAME "<builtin>"
 
-#endif  /* __DNA_VFONT_TYPES_H__ */
+#endif /* __DNA_VFONT_TYPES_H__ */

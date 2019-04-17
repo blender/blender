@@ -37,12 +37,12 @@ extern "C" {
 
 extern PyTypeObject UnaryPredicate0D_Type;
 
-#define BPy_UnaryPredicate0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryPredicate0D_Type))
+#define BPy_UnaryPredicate0D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryPredicate0D_Type))
 
 /*---------------------------Python BPy_UnaryPredicate0D structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	UnaryPredicate0D *up0D;
+  PyObject_HEAD UnaryPredicate0D *up0D;
 } BPy_UnaryPredicate0D;
 
 /*---------------------------Python BPy_UnaryPredicate0D visible prototypes-----------*/

@@ -24,10 +24,10 @@
 #ifndef __DRAW_HAIR_PRIVATE_H__
 #define __DRAW_HAIR_PRIVATE_H__
 
-#define MAX_LAYER_NAME_CT   3 /* u0123456789, u, a0123456789 */
-#define MAX_LAYER_NAME_LEN  DECIMAL_DIGITS_BOUND(uint) + 2
-#define MAX_THICKRES        2 /* see eHairType */
-#define MAX_HAIR_SUBDIV     4 /* see hair_subdiv rna */
+#define MAX_LAYER_NAME_CT 3 /* u0123456789, u, a0123456789 */
+#define MAX_LAYER_NAME_LEN DECIMAL_DIGITS_BOUND(uint) + 2
+#define MAX_THICKRES 2    /* see eHairType */
+#define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
 
 struct ModifierData;
 struct Object;
@@ -35,56 +35,55 @@ struct ParticleHairCache;
 struct ParticleSystem;
 
 typedef struct ParticleHairFinalCache {
-	/* Output of the subdivision stage: vertex buff sized to subdiv level. */
-	GPUVertBuf *proc_buf;
-	GPUTexture *proc_tex;
+  /* Output of the subdivision stage: vertex buff sized to subdiv level. */
+  GPUVertBuf *proc_buf;
+  GPUTexture *proc_tex;
 
-	 /* Just contains a huge index buffer used to draw the final hair. */
-	GPUBatch *proc_hairs[MAX_THICKRES];
+  /* Just contains a huge index buffer used to draw the final hair. */
+  GPUBatch *proc_hairs[MAX_THICKRES];
 
-	int strands_res; /* points per hair, at least 2 */
+  int strands_res; /* points per hair, at least 2 */
 } ParticleHairFinalCache;
 
 typedef struct ParticleHairCache {
-	GPUVertBuf *pos;
-	GPUIndexBuf *indices;
-	GPUBatch *hairs;
+  GPUVertBuf *pos;
+  GPUIndexBuf *indices;
+  GPUBatch *hairs;
 
-	/* Hair Procedural display: Interpolation is done on the GPU. */
-	GPUVertBuf *proc_point_buf; /* Input control points */
-	GPUTexture *point_tex;
+  /* Hair Procedural display: Interpolation is done on the GPU. */
+  GPUVertBuf *proc_point_buf; /* Input control points */
+  GPUTexture *point_tex;
 
-	/** Infos of control points strands (segment count and base index) */
-	GPUVertBuf *proc_strand_buf;
-	GPUTexture *strand_tex;
+  /** Infos of control points strands (segment count and base index) */
+  GPUVertBuf *proc_strand_buf;
+  GPUTexture *strand_tex;
 
-	GPUVertBuf *proc_strand_seg_buf;
-	GPUTexture *strand_seg_tex;
+  GPUVertBuf *proc_strand_seg_buf;
+  GPUTexture *strand_seg_tex;
 
-	GPUVertBuf *proc_uv_buf[MAX_MTFACE];
-	GPUTexture *uv_tex[MAX_MTFACE];
-	char uv_layer_names[MAX_MTFACE][MAX_LAYER_NAME_CT][MAX_LAYER_NAME_LEN];
+  GPUVertBuf *proc_uv_buf[MAX_MTFACE];
+  GPUTexture *uv_tex[MAX_MTFACE];
+  char uv_layer_names[MAX_MTFACE][MAX_LAYER_NAME_CT][MAX_LAYER_NAME_LEN];
 
-	GPUVertBuf *proc_col_buf[MAX_MCOL];
-	GPUTexture *col_tex[MAX_MCOL];
-	char col_layer_names[MAX_MCOL][MAX_LAYER_NAME_CT][MAX_LAYER_NAME_LEN];
+  GPUVertBuf *proc_col_buf[MAX_MCOL];
+  GPUTexture *col_tex[MAX_MCOL];
+  char col_layer_names[MAX_MCOL][MAX_LAYER_NAME_CT][MAX_LAYER_NAME_LEN];
 
-	int num_uv_layers;
-	int num_col_layers;
+  int num_uv_layers;
+  int num_col_layers;
 
-	ParticleHairFinalCache final[MAX_HAIR_SUBDIV];
+  ParticleHairFinalCache final[MAX_HAIR_SUBDIV];
 
-	int strands_len;
-	int elems_len;
-	int point_len;
+  int strands_len;
+  int elems_len;
+  int point_len;
 } ParticleHairCache;
 
-bool particles_ensure_procedural_data(
-        struct Object *object,
-        struct ParticleSystem *psys,
-        struct ModifierData *md,
-        struct ParticleHairCache **r_hair_cache,
-        int subdiv,
-        int thickness_res);
+bool particles_ensure_procedural_data(struct Object *object,
+                                      struct ParticleSystem *psys,
+                                      struct ModifierData *md,
+                                      struct ParticleHairCache **r_hair_cache,
+                                      int subdiv,
+                                      int thickness_res);
 
 #endif /* __DRAW_HAIR_PRIVATE_H__ */

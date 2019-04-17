@@ -26,11 +26,11 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 
 struct ushort4 {
-	uint16_t x, y, z, w;
+  uint16_t x, y, z, w;
 };
 
 #endif
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_USHORT4_H__ */
+#endif /* __UTIL_TYPES_USHORT4_H__ */

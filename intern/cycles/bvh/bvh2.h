@@ -34,8 +34,8 @@ class LeafNode;
 class Object;
 class Progress;
 
-#define BVH_NODE_SIZE           4
-#define BVH_NODE_LEAF_SIZE      1
+#define BVH_NODE_SIZE 4
+#define BVH_NODE_LEAF_SIZE 1
 #define BVH_UNALIGNED_NODE_SIZE 7
 
 /* BVH2
@@ -43,48 +43,49 @@ class Progress;
  * Typical BVH with each node having two children.
  */
 class BVH2 : public BVH {
-protected:
-	/* constructor */
-	friend class BVH;
-	BVH2(const BVHParams& params, const vector<Object*>& objects);
+ protected:
+  /* constructor */
+  friend class BVH;
+  BVH2(const BVHParams &params, const vector<Object *> &objects);
 
-	/* Building process. */
-	virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
+  /* Building process. */
+  virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
 
-	/* pack */
-	void pack_nodes(const BVHNode *root) override;
+  /* pack */
+  void pack_nodes(const BVHNode *root) override;
 
-	void pack_leaf(const BVHStackEntry& e,
-	               const LeafNode *leaf);
-	void pack_inner(const BVHStackEntry& e,
-	                const BVHStackEntry& e0,
-	                const BVHStackEntry& e1);
+  void pack_leaf(const BVHStackEntry &e, const LeafNode *leaf);
+  void pack_inner(const BVHStackEntry &e, const BVHStackEntry &e0, const BVHStackEntry &e1);
 
-	void pack_aligned_inner(const BVHStackEntry& e,
-	                        const BVHStackEntry& e0,
-	                        const BVHStackEntry& e1);
-	void pack_aligned_node(int idx,
-	                       const BoundBox& b0,
-	                       const BoundBox& b1,
-	                       int c0, int c1,
-	                       uint visibility0, uint visibility1);
+  void pack_aligned_inner(const BVHStackEntry &e,
+                          const BVHStackEntry &e0,
+                          const BVHStackEntry &e1);
+  void pack_aligned_node(int idx,
+                         const BoundBox &b0,
+                         const BoundBox &b1,
+                         int c0,
+                         int c1,
+                         uint visibility0,
+                         uint visibility1);
 
-	void pack_unaligned_inner(const BVHStackEntry& e,
-	                          const BVHStackEntry& e0,
-	                          const BVHStackEntry& e1);
-	void pack_unaligned_node(int idx,
-	                         const Transform& aligned_space0,
-	                         const Transform& aligned_space1,
-	                         const BoundBox& b0,
-	                         const BoundBox& b1,
-	                         int c0, int c1,
-	                         uint visibility0, uint visibility1);
+  void pack_unaligned_inner(const BVHStackEntry &e,
+                            const BVHStackEntry &e0,
+                            const BVHStackEntry &e1);
+  void pack_unaligned_node(int idx,
+                           const Transform &aligned_space0,
+                           const Transform &aligned_space1,
+                           const BoundBox &b0,
+                           const BoundBox &b1,
+                           int c0,
+                           int c1,
+                           uint visibility0,
+                           uint visibility1);
 
-	/* refit */
-	void refit_nodes() override;
-	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
+  /* refit */
+  void refit_nodes() override;
+  void refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility);
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __BVH2_H__ */
+#endif /* __BVH2_H__ */

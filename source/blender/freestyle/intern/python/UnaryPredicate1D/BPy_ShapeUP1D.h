@@ -35,7 +35,7 @@ extern PyTypeObject ShapeUP1D_Type;
 
 /*---------------------------Python BPy_ShapeUP1D structure definition----------*/
 typedef struct {
-	BPy_UnaryPredicate1D py_up1D;
+  BPy_UnaryPredicate1D py_up1D;
 } BPy_ShapeUP1D;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

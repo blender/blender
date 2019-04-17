@@ -33,87 +33,88 @@ class RenderTile;
 class Tile;
 
 class DenoiseParams {
-public:
-	/* Pixel radius for neighbouring pixels to take into account. */
-	int radius;
-	/* Controls neighbor pixel weighting for the denoising filter. */
-	float strength;
-	/* Preserve more or less detail based on feature passes. */
-	float feature_strength;
-	/* When removing pixels that don't carry information, use a relative threshold instead of an absolute one. */
-	bool relative_pca;
-	/* How many frames before and after the current center frame are included. */
-	int neighbor_frames;
-	/* Clamp the input to the range of +-1e8. Should be enough for any legitimate data. */
-	bool clamp_input;
+ public:
+  /* Pixel radius for neighbouring pixels to take into account. */
+  int radius;
+  /* Controls neighbor pixel weighting for the denoising filter. */
+  float strength;
+  /* Preserve more or less detail based on feature passes. */
+  float feature_strength;
+  /* When removing pixels that don't carry information, use a relative threshold instead of an absolute one. */
+  bool relative_pca;
+  /* How many frames before and after the current center frame are included. */
+  int neighbor_frames;
+  /* Clamp the input to the range of +-1e8. Should be enough for any legitimate data. */
+  bool clamp_input;
 
-	DenoiseParams()
-	{
-		radius = 8;
-		strength = 0.5f;
-		feature_strength = 0.5f;
-		relative_pca = false;
-		neighbor_frames = 2;
-		clamp_input = true;
-	}
+  DenoiseParams()
+  {
+    radius = 8;
+    strength = 0.5f;
+    feature_strength = 0.5f;
+    relative_pca = false;
+    neighbor_frames = 2;
+    clamp_input = true;
+  }
 };
 
 class DeviceTask : public Task {
-public:
-	typedef enum { RENDER, FILM_CONVERT, SHADER } Type;
-	Type type;
+ public:
+  typedef enum { RENDER, FILM_CONVERT, SHADER } Type;
+  Type type;
 
-	int x, y, w, h;
-	device_ptr rgba_byte;
-	device_ptr rgba_half;
-	device_ptr buffer;
-	int sample;
-	int num_samples;
-	int offset, stride;
+  int x, y, w, h;
+  device_ptr rgba_byte;
+  device_ptr rgba_half;
+  device_ptr buffer;
+  int sample;
+  int num_samples;
+  int offset, stride;
 
-	device_ptr shader_input;
-	device_ptr shader_output;
-	int shader_eval_type;
-	int shader_filter;
-	int shader_x, shader_w;
+  device_ptr shader_input;
+  device_ptr shader_output;
+  int shader_eval_type;
+  int shader_filter;
+  int shader_x, shader_w;
 
-	int passes_size;
+  int passes_size;
 
-	explicit DeviceTask(Type type = RENDER);
+  explicit DeviceTask(Type type = RENDER);
 
-	int get_subtask_count(int num, int max_size = 0);
-	void split(list<DeviceTask>& tasks, int num, int max_size = 0);
+  int get_subtask_count(int num, int max_size = 0);
+  void split(list<DeviceTask> &tasks, int num, int max_size = 0);
 
-	void update_progress(RenderTile *rtile, int pixel_samples = -1);
+  void update_progress(RenderTile *rtile, int pixel_samples = -1);
 
-	function<bool(Device *device, RenderTile&)> acquire_tile;
-	function<void(long, int)> update_progress_sample;
-	function<void(RenderTile&)> update_tile_sample;
-	function<void(RenderTile&)> release_tile;
-	function<bool()> get_cancel;
-	function<void(RenderTile*, Device*)> map_neighbor_tiles;
-	function<void(RenderTile*, Device*)> unmap_neighbor_tiles;
+  function<bool(Device *device, RenderTile &)> acquire_tile;
+  function<void(long, int)> update_progress_sample;
+  function<void(RenderTile &)> update_tile_sample;
+  function<void(RenderTile &)> release_tile;
+  function<bool()> get_cancel;
+  function<void(RenderTile *, Device *)> map_neighbor_tiles;
+  function<void(RenderTile *, Device *)> unmap_neighbor_tiles;
 
-	DenoiseParams denoising;
-	bool denoising_from_render;
-	vector<int> denoising_frames;
+  DenoiseParams denoising;
+  bool denoising_from_render;
+  vector<int> denoising_frames;
 
-	bool denoising_do_filter;
-	bool denoising_write_passes;
+  bool denoising_do_filter;
+  bool denoising_write_passes;
 
-	int pass_stride;
-	int frame_stride;
-	int target_pass_stride;
-	int pass_denoising_data;
-	int pass_denoising_clean;
+  int pass_stride;
+  int frame_stride;
+  int target_pass_stride;
+  int pass_denoising_data;
+  int pass_denoising_clean;
 
-	bool need_finish_queue;
-	bool integrator_branched;
-	int2 requested_tile_size;
-protected:
-	double last_update_time;
+  bool need_finish_queue;
+  bool integrator_branched;
+  int2 requested_tile_size;
+
+ protected:
+  double last_update_time;
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __DEVICE_TASK_H__ */
+#endif /* __DEVICE_TASK_H__ */

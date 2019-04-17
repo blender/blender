@@ -32,11 +32,10 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_keyconfig.h"  /* own include */
+#include "BKE_keyconfig.h" /* own include */
 #include "BKE_idprop.h"
 
 #include "MEM_guardedalloc.h"
-
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Config Preference (UserDef) API
@@ -46,18 +45,18 @@
 
 wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idname)
 {
-	wmKeyConfigPref *kpt = BLI_findstring(
-	        &userdef->user_keyconfig_prefs, kc_idname, offsetof(wmKeyConfigPref, idname));
-	if (kpt == NULL) {
-		kpt = MEM_callocN(sizeof(*kpt), __func__);
-		STRNCPY(kpt->idname, kc_idname);
-		BLI_addtail(&userdef->user_keyconfig_prefs, kpt);
-	}
-	if (kpt->prop == NULL) {
-		IDPropertyTemplate val = {0};
-		kpt->prop = IDP_New(IDP_GROUP, &val, kc_idname); /* name is unimportant  */
-	}
-	return kpt;
+  wmKeyConfigPref *kpt = BLI_findstring(
+      &userdef->user_keyconfig_prefs, kc_idname, offsetof(wmKeyConfigPref, idname));
+  if (kpt == NULL) {
+    kpt = MEM_callocN(sizeof(*kpt), __func__);
+    STRNCPY(kpt->idname, kc_idname);
+    BLI_addtail(&userdef->user_keyconfig_prefs, kpt);
+  }
+  if (kpt->prop == NULL) {
+    IDPropertyTemplate val = {0};
+    kpt->prop = IDP_New(IDP_GROUP, &val, kc_idname); /* name is unimportant  */
+  }
+  return kpt;
 }
 
 /** \} */
@@ -70,64 +69,65 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
 
 static GHash *global_keyconfigpreftype_hash = NULL;
 
-
 wmKeyConfigPrefType_Runtime *BKE_keyconfig_pref_type_find(const char *idname, bool quiet)
 {
-	if (idname[0]) {
-		wmKeyConfigPrefType_Runtime *kpt_rt;
+  if (idname[0]) {
+    wmKeyConfigPrefType_Runtime *kpt_rt;
 
-		kpt_rt = BLI_ghash_lookup(global_keyconfigpreftype_hash, idname);
-		if (kpt_rt) {
-			return kpt_rt;
-		}
+    kpt_rt = BLI_ghash_lookup(global_keyconfigpreftype_hash, idname);
+    if (kpt_rt) {
+      return kpt_rt;
+    }
 
-		if (!quiet) {
-			printf("search for unknown keyconfig-pref '%s'\n", idname);
-		}
-	}
-	else {
-		if (!quiet) {
-			printf("search for empty keyconfig-pref\n");
-		}
-	}
+    if (!quiet) {
+      printf("search for unknown keyconfig-pref '%s'\n", idname);
+    }
+  }
+  else {
+    if (!quiet) {
+      printf("search for empty keyconfig-pref\n");
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 void BKE_keyconfig_pref_type_add(wmKeyConfigPrefType_Runtime *kpt_rt)
 {
-	BLI_ghash_insert(global_keyconfigpreftype_hash, kpt_rt->idname, kpt_rt);
+  BLI_ghash_insert(global_keyconfigpreftype_hash, kpt_rt->idname, kpt_rt);
 }
 
 void BKE_keyconfig_pref_type_remove(const wmKeyConfigPrefType_Runtime *kpt_rt)
 {
-	BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, NULL, MEM_freeN);
+  BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, NULL, MEM_freeN);
 }
 
 void BKE_keyconfig_pref_type_init(void)
 {
-	BLI_assert(global_keyconfigpreftype_hash == NULL);
-	global_keyconfigpreftype_hash = BLI_ghash_str_new(__func__);
+  BLI_assert(global_keyconfigpreftype_hash == NULL);
+  global_keyconfigpreftype_hash = BLI_ghash_str_new(__func__);
 }
 
 void BKE_keyconfig_pref_type_free(void)
 {
-	BLI_ghash_free(global_keyconfigpreftype_hash, NULL, MEM_freeN);
-	global_keyconfigpreftype_hash = NULL;
+  BLI_ghash_free(global_keyconfigpreftype_hash, NULL, MEM_freeN);
+  global_keyconfigpreftype_hash = NULL;
 }
 
 /* Set select mouse, for versioning code. */
 void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool override)
 {
-	wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
-	IDProperty *idprop = IDP_GetPropertyFromGroup(kpt->prop, "select_mouse");
-	if (!idprop) {
-		IDPropertyTemplate tmp = { .i = value, };
-		IDP_AddToGroup(kpt->prop, IDP_New(IDP_INT, &tmp, "select_mouse"));
-	}
-	else if (override) {
-		IDP_Int(idprop) = value;
-	}
+  wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
+  IDProperty *idprop = IDP_GetPropertyFromGroup(kpt->prop, "select_mouse");
+  if (!idprop) {
+    IDPropertyTemplate tmp = {
+        .i = value,
+    };
+    IDP_AddToGroup(kpt->prop, IDP_New(IDP_INT, &tmp, "select_mouse"));
+  }
+  else if (override) {
+    IDP_Int(idprop) = value;
+  }
 }
 
 /** \} */

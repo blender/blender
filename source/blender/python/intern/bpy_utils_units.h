@@ -23,4 +23,4 @@
 
 PyObject *BPY_utils_units(void);
 
-#endif  /* __BPY_UTILS_UNITS_H__ */
+#endif /* __BPY_UTILS_UNITS_H__ */

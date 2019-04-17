@@ -25,74 +25,75 @@
 #include "COM_SetSamplerOperation.h"
 
 extern "C" {
-#  include "DNA_movieclip_types.h"
-#  include "BKE_tracking.h"
+#include "DNA_movieclip_types.h"
+#include "BKE_tracking.h"
 }
 
 Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void Stabilize2dNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void Stabilize2dNode::convertToOperations(NodeConverter &converter,
+                                          const CompositorContext &context) const
 {
-	bNode *editorNode = this->getbNode();
-	NodeInput *imageInput = this->getInputSocket(0);
-	MovieClip *clip = (MovieClip *)editorNode->id;
-	bool invert = (editorNode->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;
+  bNode *editorNode = this->getbNode();
+  NodeInput *imageInput = this->getInputSocket(0);
+  MovieClip *clip = (MovieClip *)editorNode->id;
+  bool invert = (editorNode->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;
 
-	ScaleOperation *scaleOperation = new ScaleOperation();
-	scaleOperation->setSampler((PixelSampler)editorNode->custom1);
-	RotateOperation *rotateOperation = new RotateOperation();
-	rotateOperation->setDoDegree2RadConversion(false);
-	TranslateOperation *translateOperation = new TranslateOperation();
-	MovieClipAttributeOperation *scaleAttribute = new MovieClipAttributeOperation();
-	MovieClipAttributeOperation *angleAttribute = new MovieClipAttributeOperation();
-	MovieClipAttributeOperation *xAttribute = new MovieClipAttributeOperation();
-	MovieClipAttributeOperation *yAttribute = new MovieClipAttributeOperation();
-	SetSamplerOperation *psoperation = new SetSamplerOperation();
-	psoperation->setSampler((PixelSampler)editorNode->custom1);
+  ScaleOperation *scaleOperation = new ScaleOperation();
+  scaleOperation->setSampler((PixelSampler)editorNode->custom1);
+  RotateOperation *rotateOperation = new RotateOperation();
+  rotateOperation->setDoDegree2RadConversion(false);
+  TranslateOperation *translateOperation = new TranslateOperation();
+  MovieClipAttributeOperation *scaleAttribute = new MovieClipAttributeOperation();
+  MovieClipAttributeOperation *angleAttribute = new MovieClipAttributeOperation();
+  MovieClipAttributeOperation *xAttribute = new MovieClipAttributeOperation();
+  MovieClipAttributeOperation *yAttribute = new MovieClipAttributeOperation();
+  SetSamplerOperation *psoperation = new SetSamplerOperation();
+  psoperation->setSampler((PixelSampler)editorNode->custom1);
 
-	scaleAttribute->setAttribute(MCA_SCALE);
-	scaleAttribute->setFramenumber(context.getFramenumber());
-	scaleAttribute->setMovieClip(clip);
-	scaleAttribute->setInvert(invert);
+  scaleAttribute->setAttribute(MCA_SCALE);
+  scaleAttribute->setFramenumber(context.getFramenumber());
+  scaleAttribute->setMovieClip(clip);
+  scaleAttribute->setInvert(invert);
 
-	angleAttribute->setAttribute(MCA_ANGLE);
-	angleAttribute->setFramenumber(context.getFramenumber());
-	angleAttribute->setMovieClip(clip);
-	angleAttribute->setInvert(invert);
+  angleAttribute->setAttribute(MCA_ANGLE);
+  angleAttribute->setFramenumber(context.getFramenumber());
+  angleAttribute->setMovieClip(clip);
+  angleAttribute->setInvert(invert);
 
-	xAttribute->setAttribute(MCA_X);
-	xAttribute->setFramenumber(context.getFramenumber());
-	xAttribute->setMovieClip(clip);
-	xAttribute->setInvert(invert);
+  xAttribute->setAttribute(MCA_X);
+  xAttribute->setFramenumber(context.getFramenumber());
+  xAttribute->setMovieClip(clip);
+  xAttribute->setInvert(invert);
 
-	yAttribute->setAttribute(MCA_Y);
-	yAttribute->setFramenumber(context.getFramenumber());
-	yAttribute->setMovieClip(clip);
-	yAttribute->setInvert(invert);
+  yAttribute->setAttribute(MCA_Y);
+  yAttribute->setFramenumber(context.getFramenumber());
+  yAttribute->setMovieClip(clip);
+  yAttribute->setInvert(invert);
 
-	converter.addOperation(scaleAttribute);
-	converter.addOperation(angleAttribute);
-	converter.addOperation(xAttribute);
-	converter.addOperation(yAttribute);
-	converter.addOperation(scaleOperation);
-	converter.addOperation(translateOperation);
-	converter.addOperation(rotateOperation);
-	converter.addOperation(psoperation);
+  converter.addOperation(scaleAttribute);
+  converter.addOperation(angleAttribute);
+  converter.addOperation(xAttribute);
+  converter.addOperation(yAttribute);
+  converter.addOperation(scaleOperation);
+  converter.addOperation(translateOperation);
+  converter.addOperation(rotateOperation);
+  converter.addOperation(psoperation);
 
-	converter.mapInputSocket(imageInput, scaleOperation->getInputSocket(0));
-	converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
-	converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
+  converter.mapInputSocket(imageInput, scaleOperation->getInputSocket(0));
+  converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
+  converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
 
-	converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
-	converter.addLink(angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
+  converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
+  converter.addLink(angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
 
-	converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
-	converter.addLink(xAttribute->getOutputSocket(), translateOperation->getInputSocket(1));
-	converter.addLink(yAttribute->getOutputSocket(), translateOperation->getInputSocket(2));
+  converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
+  converter.addLink(xAttribute->getOutputSocket(), translateOperation->getInputSocket(1));
+  converter.addLink(yAttribute->getOutputSocket(), translateOperation->getInputSocket(2));
 
-	converter.addLink(translateOperation->getOutputSocket(), psoperation->getInputSocket(0));
-	converter.mapOutputSocket(getOutputSocket(), psoperation->getOutputSocket());
+  converter.addLink(translateOperation->getOutputSocket(), psoperation->getInputSocket(0));
+  converter.mapOutputSocket(getOutputSocket(), psoperation->getOutputSocket());
 }

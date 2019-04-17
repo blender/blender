@@ -71,222 +71,274 @@ struct GHashIterator;
 
 BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMHeader *ele_head)
 {
-	switch (ele_head->htype) {
-		case BM_VERT: return ((BMVert_OFlag *)ele_head)->oflags;
-		case BM_EDGE: return ((BMEdge_OFlag *)ele_head)->oflags;
-		default:      return ((BMFace_OFlag *)ele_head)->oflags;
-	}
+  switch (ele_head->htype) {
+    case BM_VERT:
+      return ((BMVert_OFlag *)ele_head)->oflags;
+    case BM_EDGE:
+      return ((BMEdge_OFlag *)ele_head)->oflags;
+    default:
+      return ((BMFace_OFlag *)ele_head)->oflags;
+  }
 }
 
 #define BMO_elem_flag_test(bm, ele, oflag) \
-	_bmo_elem_flag_test(bm, BMO_elem_flag_from_header(&(ele)->head), oflag)
+  _bmo_elem_flag_test(bm, BMO_elem_flag_from_header(&(ele)->head), oflag)
 #define BMO_elem_flag_test_bool(bm, ele, oflag) \
-	_bmo_elem_flag_test_bool(bm, BMO_elem_flag_from_header(&(ele)->head), oflag)
+  _bmo_elem_flag_test_bool(bm, BMO_elem_flag_from_header(&(ele)->head), oflag)
 #define BMO_elem_flag_enable(bm, ele, oflag) \
-	_bmo_elem_flag_enable(bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
+  _bmo_elem_flag_enable( \
+      bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 #define BMO_elem_flag_disable(bm, ele, oflag) \
-	_bmo_elem_flag_disable(bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
+  _bmo_elem_flag_disable( \
+      bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 #define BMO_elem_flag_set(bm, ele, oflag, val) \
-	_bmo_elem_flag_set(bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag, val)
+  _bmo_elem_flag_set(bm, \
+                     (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), \
+                     oflag, \
+                     val)
 #define BMO_elem_flag_toggle(bm, ele, oflag) \
-	_bmo_elem_flag_toggle(bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
+  _bmo_elem_flag_toggle( \
+      bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 
 /* take care not to instansiate args multiple times */
 #ifdef __GNUC___
-#define _BMO_CAST_V_CONST(e) ({ typeof(e) _e = e; \
-	(BM_CHECK_TYPE_VERT(_e), BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), (const BMVert_OFlag *)_e); })
-#define _BMO_CAST_E_CONST(e) ({ typeof(e) _e = e; \
-	(BM_CHECK_TYPE_EDGE(_e), BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), (const BMEdge_OFlag *)_e); })
-#define _BMO_CAST_F_CONST(e) ({ typeof(e) _e = e; \
-	(BM_CHECK_TYPE_FACE(_e), BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), (const BMFace_OFlag *)_e); })
-#define _BMO_CAST_V(e) ({ typeof(e) _e = e; \
-	(BM_CHECK_TYPE_VERT_NONCONST(_e), BLI_assert(((BMHeader *)_e)->htype == BM_VERT), (BMVert_OFlag *)_e); })
-#define _BMO_CAST_E(e) ({ typeof(e) _e = e; \
-	(BM_CHECK_TYPE_EDGE_NONCONST(_e), BLI_assert(((BMHeader *)_e)->htype == BM_EDGE), (BMEdge_OFlag *)_e); })
-#define _BMO_CAST_F(e) ({ typeof(e) _e = e; \
-	(BM_CHECK_TYPE_FACE_NONCONST(_e), BLI_assert(((BMHeader *)_e)->htype == BM_FACE), (BMFace_OFlag *)_e); })
+#  define _BMO_CAST_V_CONST(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_VERT(_e), \
+       BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
+       (const BMVert_OFlag *)_e); \
+    })
+#  define _BMO_CAST_E_CONST(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_EDGE(_e), \
+       BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
+       (const BMEdge_OFlag *)_e); \
+    })
+#  define _BMO_CAST_F_CONST(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_FACE(_e), \
+       BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
+       (const BMFace_OFlag *)_e); \
+    })
+#  define _BMO_CAST_V(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_VERT_NONCONST(_e), \
+       BLI_assert(((BMHeader *)_e)->htype == BM_VERT), \
+       (BMVert_OFlag *)_e); \
+    })
+#  define _BMO_CAST_E(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_EDGE_NONCONST(_e), \
+       BLI_assert(((BMHeader *)_e)->htype == BM_EDGE), \
+       (BMEdge_OFlag *)_e); \
+    })
+#  define _BMO_CAST_F(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_FACE_NONCONST(_e), \
+       BLI_assert(((BMHeader *)_e)->htype == BM_FACE), \
+       (BMFace_OFlag *)_e); \
+    })
 #else
-#define _BMO_CAST_V_CONST(e) (BM_CHECK_TYPE_VERT(e), (const BMVert_OFlag *)e)
-#define _BMO_CAST_E_CONST(e) (BM_CHECK_TYPE_EDGE(e), (const BMEdge_OFlag *)e)
-#define _BMO_CAST_F_CONST(e) (BM_CHECK_TYPE_FACE(e), (const BMFace_OFlag *)e)
-#define _BMO_CAST_V(e) (BM_CHECK_TYPE_VERT_NONCONST(e), (BMVert_OFlag *)e)
-#define _BMO_CAST_E(e) (BM_CHECK_TYPE_EDGE_NONCONST(e), (BMEdge_OFlag *)e)
-#define _BMO_CAST_F(e) (BM_CHECK_TYPE_FACE_NONCONST(e), (BMFace_OFlag *)e)
+#  define _BMO_CAST_V_CONST(e) (BM_CHECK_TYPE_VERT(e), (const BMVert_OFlag *)e)
+#  define _BMO_CAST_E_CONST(e) (BM_CHECK_TYPE_EDGE(e), (const BMEdge_OFlag *)e)
+#  define _BMO_CAST_F_CONST(e) (BM_CHECK_TYPE_FACE(e), (const BMFace_OFlag *)e)
+#  define _BMO_CAST_V(e) (BM_CHECK_TYPE_VERT_NONCONST(e), (BMVert_OFlag *)e)
+#  define _BMO_CAST_E(e) (BM_CHECK_TYPE_EDGE_NONCONST(e), (BMEdge_OFlag *)e)
+#  define _BMO_CAST_F(e) (BM_CHECK_TYPE_FACE_NONCONST(e), (BMFace_OFlag *)e)
 #endif
 
-#define BMO_vert_flag_test(     bm, e, oflag)      _bmo_elem_flag_test     (bm, _BMO_CAST_V_CONST(e)->oflags, oflag)
-#define BMO_vert_flag_test_bool(bm, e, oflag)      _bmo_elem_flag_test_bool(bm, _BMO_CAST_V_CONST(e)->oflags, oflag)
-#define BMO_vert_flag_enable(   bm, e, oflag)      _bmo_elem_flag_enable   (bm, _BMO_CAST_V(e)->oflags, oflag)
-#define BMO_vert_flag_disable(  bm, e, oflag)      _bmo_elem_flag_disable  (bm, _BMO_CAST_V(e)->oflags, oflag)
-#define BMO_vert_flag_set(      bm, e, oflag, val) _bmo_elem_flag_set      (bm, _BMO_CAST_V(e)->oflags, oflag, val)
-#define BMO_vert_flag_toggle(   bm, e, oflag)      _bmo_elem_flag_toggle   (bm, _BMO_CAST_V(e)->oflags, oflag)
+#define BMO_vert_flag_test(bm, e, oflag) \
+  _bmo_elem_flag_test(bm, _BMO_CAST_V_CONST(e)->oflags, oflag)
+#define BMO_vert_flag_test_bool(bm, e, oflag) \
+  _bmo_elem_flag_test_bool(bm, _BMO_CAST_V_CONST(e)->oflags, oflag)
+#define BMO_vert_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_V(e)->oflags, oflag)
+#define BMO_vert_flag_disable(bm, e, oflag) \
+  _bmo_elem_flag_disable(bm, _BMO_CAST_V(e)->oflags, oflag)
+#define BMO_vert_flag_set(bm, e, oflag, val) \
+  _bmo_elem_flag_set(bm, _BMO_CAST_V(e)->oflags, oflag, val)
+#define BMO_vert_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_V(e)->oflags, oflag)
 
-#define BMO_edge_flag_test(     bm, e, oflag)      _bmo_elem_flag_test     (bm, _BMO_CAST_E_CONST(e)->oflags, oflag)
-#define BMO_edge_flag_test_bool(bm, e, oflag)      _bmo_elem_flag_test_bool(bm, _BMO_CAST_E_CONST(e)->oflags, oflag)
-#define BMO_edge_flag_enable(   bm, e, oflag)      _bmo_elem_flag_enable   (bm, _BMO_CAST_E(e)->oflags, oflag)
-#define BMO_edge_flag_disable(  bm, e, oflag)      _bmo_elem_flag_disable  (bm, _BMO_CAST_E(e)->oflags, oflag)
-#define BMO_edge_flag_set(      bm, e, oflag, val) _bmo_elem_flag_set      (bm, _BMO_CAST_E(e)->oflags, oflag, val)
-#define BMO_edge_flag_toggle(   bm, e, oflag)      _bmo_elem_flag_toggle   (bm, _BMO_CAST_E(e)->oflags, oflag)
+#define BMO_edge_flag_test(bm, e, oflag) \
+  _bmo_elem_flag_test(bm, _BMO_CAST_E_CONST(e)->oflags, oflag)
+#define BMO_edge_flag_test_bool(bm, e, oflag) \
+  _bmo_elem_flag_test_bool(bm, _BMO_CAST_E_CONST(e)->oflags, oflag)
+#define BMO_edge_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_E(e)->oflags, oflag)
+#define BMO_edge_flag_disable(bm, e, oflag) \
+  _bmo_elem_flag_disable(bm, _BMO_CAST_E(e)->oflags, oflag)
+#define BMO_edge_flag_set(bm, e, oflag, val) \
+  _bmo_elem_flag_set(bm, _BMO_CAST_E(e)->oflags, oflag, val)
+#define BMO_edge_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_E(e)->oflags, oflag)
 
-#define BMO_face_flag_test(     bm, e, oflag)      _bmo_elem_flag_test     (bm, _BMO_CAST_F_CONST(e)->oflags, oflag)
-#define BMO_face_flag_test_bool(bm, e, oflag)      _bmo_elem_flag_test_bool(bm, _BMO_CAST_F_CONST(e)->oflags, oflag)
-#define BMO_face_flag_enable(   bm, e, oflag)      _bmo_elem_flag_enable   (bm, _BMO_CAST_F(e)->oflags, oflag)
-#define BMO_face_flag_disable(  bm, e, oflag)      _bmo_elem_flag_disable  (bm, _BMO_CAST_F(e)->oflags, oflag)
-#define BMO_face_flag_set(      bm, e, oflag, val) _bmo_elem_flag_set      (bm, _BMO_CAST_F(e)->oflags, oflag, val)
-#define BMO_face_flag_toggle(   bm, e, oflag)      _bmo_elem_flag_toggle   (bm, _BMO_CAST_F(e)->oflags, oflag)
+#define BMO_face_flag_test(bm, e, oflag) \
+  _bmo_elem_flag_test(bm, _BMO_CAST_F_CONST(e)->oflags, oflag)
+#define BMO_face_flag_test_bool(bm, e, oflag) \
+  _bmo_elem_flag_test_bool(bm, _BMO_CAST_F_CONST(e)->oflags, oflag)
+#define BMO_face_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_F(e)->oflags, oflag)
+#define BMO_face_flag_disable(bm, e, oflag) \
+  _bmo_elem_flag_disable(bm, _BMO_CAST_F(e)->oflags, oflag)
+#define BMO_face_flag_set(bm, e, oflag, val) \
+  _bmo_elem_flag_set(bm, _BMO_CAST_F(e)->oflags, oflag, val)
+#define BMO_face_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_F(e)->oflags, oflag)
 
-BLI_INLINE short _bmo_elem_flag_test(     BMesh *bm, const BMFlagLayer *oflags, const short oflag);
-BLI_INLINE bool  _bmo_elem_flag_test_bool(BMesh *bm, const BMFlagLayer *oflags, const short oflag);
-BLI_INLINE void  _bmo_elem_flag_enable(   BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BLI_INLINE void  _bmo_elem_flag_disable(  BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BLI_INLINE void  _bmo_elem_flag_set(      BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
-BLI_INLINE void  _bmo_elem_flag_toggle(   BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, const BMFlagLayer *oflags, const short oflag);
+BLI_INLINE bool _bmo_elem_flag_test_bool(BMesh *bm, const BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
+BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag);
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0 */
 typedef enum eBMOpSlotType {
-	/* BMO_OP_SLOT_SENTINEL = 0, */
-	BMO_OP_SLOT_BOOL = 1,
-	BMO_OP_SLOT_INT = 2,
-	BMO_OP_SLOT_FLT = 3,
+  /* BMO_OP_SLOT_SENTINEL = 0, */
+  BMO_OP_SLOT_BOOL = 1,
+  BMO_OP_SLOT_INT = 2,
+  BMO_OP_SLOT_FLT = 3,
 
-	/* normally store pointers to object, scene,
-	 * _never_ store arrays corresponding to mesh elements with this */
-	BMO_OP_SLOT_PTR = 4,  /* requres subtype BMO_OP_SLOT_SUBTYPE_PTR_xxx */
-	BMO_OP_SLOT_MAT = 5,
-	BMO_OP_SLOT_VEC = 8,
+  /* normally store pointers to object, scene,
+   * _never_ store arrays corresponding to mesh elements with this */
+  BMO_OP_SLOT_PTR = 4, /* requres subtype BMO_OP_SLOT_SUBTYPE_PTR_xxx */
+  BMO_OP_SLOT_MAT = 5,
+  BMO_OP_SLOT_VEC = 8,
 
-	/* after BMO_OP_SLOT_VEC, everything is dynamically allocated arrays.
-	 * We leave a space in the identifiers for future growth.
-	 *
-	 * it's very important this remain a power of two */
-	BMO_OP_SLOT_ELEMENT_BUF = 9, /* list of verts/edges/faces */
-	BMO_OP_SLOT_MAPPING = 10 /* simple hash map, requres subtype BMO_OP_SLOT_SUBTYPE_MAP_xxx */
+  /* after BMO_OP_SLOT_VEC, everything is dynamically allocated arrays.
+   * We leave a space in the identifiers for future growth.
+   *
+   * it's very important this remain a power of two */
+  BMO_OP_SLOT_ELEMENT_BUF = 9, /* list of verts/edges/faces */
+  BMO_OP_SLOT_MAPPING = 10     /* simple hash map, requres subtype BMO_OP_SLOT_SUBTYPE_MAP_xxx */
 } eBMOpSlotType;
 #define BMO_OP_SLOT_TOTAL_TYPES 11
 
 /* don't overlap values to avoid confusion */
 typedef enum eBMOpSlotSubType_Elem {
-	/* use as flags */
-	BMO_OP_SLOT_SUBTYPE_ELEM_VERT = BM_VERT,
-	BMO_OP_SLOT_SUBTYPE_ELEM_EDGE = BM_EDGE,
-	BMO_OP_SLOT_SUBTYPE_ELEM_FACE = BM_FACE,
-	BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE = (BM_FACE << 1),
+  /* use as flags */
+  BMO_OP_SLOT_SUBTYPE_ELEM_VERT = BM_VERT,
+  BMO_OP_SLOT_SUBTYPE_ELEM_EDGE = BM_EDGE,
+  BMO_OP_SLOT_SUBTYPE_ELEM_FACE = BM_FACE,
+  BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE = (BM_FACE << 1),
 } eBMOpSlotSubType_Elem;
 typedef enum eBMOpSlotSubType_Map {
-	BMO_OP_SLOT_SUBTYPE_MAP_EMPTY    = 64,  /* use as a set(), unused value */
-	BMO_OP_SLOT_SUBTYPE_MAP_ELEM     = 65,
-	BMO_OP_SLOT_SUBTYPE_MAP_FLT      = 66,
-	BMO_OP_SLOT_SUBTYPE_MAP_INT      = 67,
-	BMO_OP_SLOT_SUBTYPE_MAP_BOOL     = 68,
-	BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL = 69,  /* python can't convert these */
+  BMO_OP_SLOT_SUBTYPE_MAP_EMPTY = 64, /* use as a set(), unused value */
+  BMO_OP_SLOT_SUBTYPE_MAP_ELEM = 65,
+  BMO_OP_SLOT_SUBTYPE_MAP_FLT = 66,
+  BMO_OP_SLOT_SUBTYPE_MAP_INT = 67,
+  BMO_OP_SLOT_SUBTYPE_MAP_BOOL = 68,
+  BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL = 69, /* python can't convert these */
 } eBMOpSlotSubType_Map;
 typedef enum eBMOpSlotSubType_Ptr {
-	BMO_OP_SLOT_SUBTYPE_PTR_BMESH  = 100,
-	BMO_OP_SLOT_SUBTYPE_PTR_SCENE  = 101,
-	BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 102,
-	BMO_OP_SLOT_SUBTYPE_PTR_MESH   = 103,
+  BMO_OP_SLOT_SUBTYPE_PTR_BMESH = 100,
+  BMO_OP_SLOT_SUBTYPE_PTR_SCENE = 101,
+  BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 102,
+  BMO_OP_SLOT_SUBTYPE_PTR_MESH = 103,
 } eBMOpSlotSubType_Ptr;
 typedef enum eBMOpSlotSubType_Int {
-	BMO_OP_SLOT_SUBTYPE_INT_ENUM = 200,
-	BMO_OP_SLOT_SUBTYPE_INT_FLAG = 201,
+  BMO_OP_SLOT_SUBTYPE_INT_ENUM = 200,
+  BMO_OP_SLOT_SUBTYPE_INT_FLAG = 201,
 } eBMOpSlotSubType_Int;
 
 typedef union eBMOpSlotSubType_Union {
-	eBMOpSlotSubType_Elem elem;
-	eBMOpSlotSubType_Ptr ptr;
-	eBMOpSlotSubType_Map map;
-	eBMOpSlotSubType_Int intg;
+  eBMOpSlotSubType_Elem elem;
+  eBMOpSlotSubType_Ptr ptr;
+  eBMOpSlotSubType_Map map;
+  eBMOpSlotSubType_Int intg;
 } eBMOpSlotSubType_Union;
 
 typedef struct BMO_FlagSet {
-	int value;
-	const char *identifier;
+  int value;
+  const char *identifier;
 } BMO_FlagSet;
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
 
 typedef struct BMOpSlot {
-	const char *slot_name;  /* pointer to BMOpDefine.slot_args */
-	eBMOpSlotType          slot_type;
-	eBMOpSlotSubType_Union slot_subtype;
+  const char *slot_name; /* pointer to BMOpDefine.slot_args */
+  eBMOpSlotType slot_type;
+  eBMOpSlotSubType_Union slot_subtype;
 
-	int len;
-//	int flag;  /* UNUSED */
-//	int index; /* index within slot array */  /* UNUSED */
-	union {
-		int i;
-		float f;
-		void *p;
-		float vec[3];
-		void **buf;
-		GHash *ghash;
-		struct {
-			/** Don't clobber (i) when assigning flags, see #eBMOpSlotSubType_Int. */
-			int _i;
-			BMO_FlagSet *flags;
-		} enum_data;
-	} data;
+  int len;
+  //  int flag;  /* UNUSED */
+  //  int index; /* index within slot array */  /* UNUSED */
+  union {
+    int i;
+    float f;
+    void *p;
+    float vec[3];
+    void **buf;
+    GHash *ghash;
+    struct {
+      /** Don't clobber (i) when assigning flags, see #eBMOpSlotSubType_Int. */
+      int _i;
+      BMO_FlagSet *flags;
+    } enum_data;
+  } data;
 } BMOpSlot;
 
 /* mainly for use outside bmesh internal code */
-#define BMO_SLOT_AS_BOOL(slot)         ((slot)->data.i)
-#define BMO_SLOT_AS_INT(slot)          ((slot)->data.i)
-#define BMO_SLOT_AS_FLOAT(slot)        ((slot)->data.f)
-#define BMO_SLOT_AS_VECTOR(slot)       ((slot)->data.vec)
-#define BMO_SLOT_AS_MATRIX(slot )      ((float (*)[4])((slot)->data.p))
-#define BMO_SLOT_AS_BUFFER(slot )      ((slot)->data.buf)
-#define BMO_SLOT_AS_GHASH(slot )       ((slot)->data.ghash)
+#define BMO_SLOT_AS_BOOL(slot) ((slot)->data.i)
+#define BMO_SLOT_AS_INT(slot) ((slot)->data.i)
+#define BMO_SLOT_AS_FLOAT(slot) ((slot)->data.f)
+#define BMO_SLOT_AS_VECTOR(slot) ((slot)->data.vec)
+#define BMO_SLOT_AS_MATRIX(slot) ((float(*)[4])((slot)->data.p))
+#define BMO_SLOT_AS_BUFFER(slot) ((slot)->data.buf)
+#define BMO_SLOT_AS_GHASH(slot) ((slot)->data.ghash)
 
 #define BMO_ASSERT_SLOT_IN_OP(slot, op) \
-	BLI_assert(((slot >= (op)->slots_in)  && (slot < &(op)->slots_in[BMO_OP_MAX_SLOTS])) || \
-	           ((slot >= (op)->slots_out) && (slot < &(op)->slots_out[BMO_OP_MAX_SLOTS])))
+  BLI_assert(((slot >= (op)->slots_in) && (slot < &(op)->slots_in[BMO_OP_MAX_SLOTS])) || \
+             ((slot >= (op)->slots_out) && (slot < &(op)->slots_out[BMO_OP_MAX_SLOTS])))
 
 /* way more than probably needed, compiler complains if limit hit */
 #define BMO_OP_MAX_SLOTS 20
 
 /* BMOpDefine->type_flag */
 typedef enum {
-	BMO_OPTYPE_FLAG_NOP                 = 0,
-	BMO_OPTYPE_FLAG_UNTAN_MULTIRES      = (1 << 0),  /* switch from multires tangent space to absolute coordinates */
-	BMO_OPTYPE_FLAG_NORMALS_CALC        = (1 << 1),
-	BMO_OPTYPE_FLAG_SELECT_FLUSH        = (1 << 2),
-	BMO_OPTYPE_FLAG_SELECT_VALIDATE     = (1 << 3),
-	BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL = (1 << 4),
+  BMO_OPTYPE_FLAG_NOP = 0,
+  BMO_OPTYPE_FLAG_UNTAN_MULTIRES =
+      (1 << 0), /* switch from multires tangent space to absolute coordinates */
+  BMO_OPTYPE_FLAG_NORMALS_CALC = (1 << 1),
+  BMO_OPTYPE_FLAG_SELECT_FLUSH = (1 << 2),
+  BMO_OPTYPE_FLAG_SELECT_VALIDATE = (1 << 3),
+  BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL = (1 << 4),
 } BMOpTypeFlag;
 
 typedef struct BMOperator {
-	struct BMOpSlot slots_in[BMO_OP_MAX_SLOTS];
-	struct BMOpSlot slots_out[BMO_OP_MAX_SLOTS];
-	void (*exec)(BMesh *bm, struct BMOperator *op);
-	struct MemArena *arena;
-	int type;
-	BMOpTypeFlag type_flag;
-	int flag;  /* runtime options */
+  struct BMOpSlot slots_in[BMO_OP_MAX_SLOTS];
+  struct BMOpSlot slots_out[BMO_OP_MAX_SLOTS];
+  void (*exec)(BMesh *bm, struct BMOperator *op);
+  struct MemArena *arena;
+  int type;
+  BMOpTypeFlag type_flag;
+  int flag; /* runtime options */
 } BMOperator;
 
 enum {
-	BMO_FLAG_RESPECT_HIDE = 1,
+  BMO_FLAG_RESPECT_HIDE = 1,
 };
 
-#define BMO_FLAG_DEFAULTS  BMO_FLAG_RESPECT_HIDE
+#define BMO_FLAG_DEFAULTS BMO_FLAG_RESPECT_HIDE
 
-#define MAX_SLOTNAME	32
+#define MAX_SLOTNAME 32
 
 typedef struct BMOSlotType {
-	char name[MAX_SLOTNAME];
-	eBMOpSlotType          type;
-	eBMOpSlotSubType_Union subtype;
-	BMO_FlagSet            *enum_flags;
+  char name[MAX_SLOTNAME];
+  eBMOpSlotType type;
+  eBMOpSlotSubType_Union subtype;
+  BMO_FlagSet *enum_flags;
 } BMOSlotType;
 
 typedef struct BMOpDefine {
-	const char *opname;
-	BMOSlotType slot_types_in[BMO_OP_MAX_SLOTS];
-	BMOSlotType slot_types_out[BMO_OP_MAX_SLOTS];
-	void (*exec)(BMesh *bm, BMOperator *op);
-	BMOpTypeFlag type_flag;
+  const char *opname;
+  BMOSlotType slot_types_in[BMO_OP_MAX_SLOTS];
+  BMOSlotType slot_types_out[BMO_OP_MAX_SLOTS];
+  void (*exec)(BMesh *bm, BMOperator *op);
+  BMOpTypeFlag type_flag;
 } BMOpDefine;
 
 /*------------- Operator API --------------*/
@@ -337,177 +389,205 @@ BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identif
 
 /* copies the data of a slot from one operator to another.  src and dst are the
  * source/destination slot codes, respectively. */
-#define BMO_slot_copy(op_src, slots_src, slot_name_src,                       \
-                      op_dst, slots_dst, slot_name_dst)                       \
-	_bmo_slot_copy((op_src)->slots_src, slot_name_src,                        \
-	               (op_dst)->slots_dst, slot_name_dst,                        \
-	               (op_dst)->arena)
+#define BMO_slot_copy(op_src, slots_src, slot_name_src, op_dst, slots_dst, slot_name_dst) \
+  _bmo_slot_copy( \
+      (op_src)->slots_src, slot_name_src, (op_dst)->slots_dst, slot_name_dst, (op_dst)->arena)
 
-void _bmo_slot_copy(
-        BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
-        BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
-        struct MemArena *arena_dst);
+void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
+                    const char *slot_name_src,
+                    BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
+                    const char *slot_name_dst,
+                    struct MemArena *arena_dst);
 
 /* del "context" slot values, used for operator too */
 enum {
-	DEL_VERTS = 1,
-	DEL_EDGES,
-	DEL_ONLYFACES,
-	DEL_EDGESFACES,
-	DEL_FACES,
-	/* A version of 'DEL_FACES' that keeps edges on face boundaries,
-	 * allowing the surrounding edge-loop to be kept from removed face regions. */
-	DEL_FACES_KEEP_BOUNDARY,
-	DEL_ONLYTAGGED,
+  DEL_VERTS = 1,
+  DEL_EDGES,
+  DEL_ONLYFACES,
+  DEL_EDGESFACES,
+  DEL_FACES,
+  /* A version of 'DEL_FACES' that keeps edges on face boundaries,
+   * allowing the surrounding edge-loop to be kept from removed face regions. */
+  DEL_FACES_KEEP_BOUNDARY,
+  DEL_ONLYTAGGED,
 };
 
 typedef enum {
-	BMO_SYMMETRIZE_NEGATIVE_X,
-	BMO_SYMMETRIZE_NEGATIVE_Y,
-	BMO_SYMMETRIZE_NEGATIVE_Z,
+  BMO_SYMMETRIZE_NEGATIVE_X,
+  BMO_SYMMETRIZE_NEGATIVE_Y,
+  BMO_SYMMETRIZE_NEGATIVE_Z,
 
-	BMO_SYMMETRIZE_POSITIVE_X,
-	BMO_SYMMETRIZE_POSITIVE_Y,
-	BMO_SYMMETRIZE_POSITIVE_Z,
+  BMO_SYMMETRIZE_POSITIVE_X,
+  BMO_SYMMETRIZE_POSITIVE_Y,
+  BMO_SYMMETRIZE_POSITIVE_Z,
 } BMO_SymmDirection;
 
 typedef enum {
-	BMO_DELIM_NORMAL = 1 << 0,
-	BMO_DELIM_MATERIAL = 1 << 1,
-	BMO_DELIM_SEAM = 1 << 2,
-	BMO_DELIM_SHARP = 1 << 3,
-	BMO_DELIM_UV = 1 << 4,
+  BMO_DELIM_NORMAL = 1 << 0,
+  BMO_DELIM_MATERIAL = 1 << 1,
+  BMO_DELIM_SEAM = 1 << 2,
+  BMO_DELIM_SHARP = 1 << 3,
+  BMO_DELIM_UV = 1 << 4,
 } BMO_Delimit;
 
 void BMO_op_flag_enable(BMesh *bm, BMOperator *op, const int op_flag);
 void BMO_op_flag_disable(BMesh *bm, BMOperator *op, const int op_flag);
 
-void  BMO_slot_float_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const float f);
+void BMO_slot_float_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                        const char *slot_name,
+                        const float f);
 float BMO_slot_float_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
-void  BMO_slot_int_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const int i);
-int   BMO_slot_int_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
-void  BMO_slot_bool_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const bool i);
-bool  BMO_slot_bool_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
+void BMO_slot_int_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const int i);
+int BMO_slot_int_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
+void BMO_slot_bool_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const bool i);
+bool BMO_slot_bool_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, int *len);
-
 
 /* don't pass in arrays that are supposed to map to elements this way.
  *
  * so, e.g. passing in list of floats per element in another slot is bad.
  * passing in, e.g. pointer to an editmesh for the conversion operator is fine
  * though. */
-void  BMO_slot_ptr_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, void *p);
+void BMO_slot_ptr_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, void *p);
 void *BMO_slot_ptr_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
-void  BMO_slot_vec_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const float vec[3]);
-void  BMO_slot_vec_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_vec[3]);
+void BMO_slot_vec_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                      const char *slot_name,
+                      const float vec[3]);
+void BMO_slot_vec_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_vec[3]);
 
 /* only supports square mats */
 /* size must be 3 or 4; this api is meant only for transformation matrices.
  * note that internally the matrix is stored in 4x4 form, and it's safe to
  * call whichever BMO_Get_MatXXX function you want. */
-void BMO_slot_mat_set(BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],  const char *slot_name, const float *mat, int size);
-void BMO_slot_mat4_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_mat[4][4]);
-void BMO_slot_mat3_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_mat[3][3]);
+void BMO_slot_mat_set(BMOperator *op,
+                      BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                      const char *slot_name,
+                      const float *mat,
+                      int size);
+void BMO_slot_mat4_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                       const char *slot_name,
+                       float r_mat[4][4]);
+void BMO_slot_mat3_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                       const char *slot_name,
+                       float r_mat[3][3]);
 
 void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, const short oflag);
 
-void BMO_mesh_selected_remap(
-        BMesh *bm,
-        BMOpSlot *slot_vert_map,
-        BMOpSlot *slot_edge_map,
-        BMOpSlot *slot_face_map,
-        const bool check_select);
+void BMO_mesh_selected_remap(BMesh *bm,
+                             BMOpSlot *slot_vert_map,
+                             BMOpSlot *slot_edge_map,
+                             BMOpSlot *slot_face_map,
+                             const bool check_select);
 
 /* copies the values from another slot to the end of the output slot */
-#define BMO_slot_buffer_append(op_src, slots_src, slot_name_src,              \
-                               op_dst, slots_dst, slot_name_dst)              \
-	_bmo_slot_buffer_append((op_src)->slots_src, slot_name_src,               \
-	                        (op_dst)->slots_dst, slot_name_dst,               \
-	                        (op_dst)->arena)
-void _bmo_slot_buffer_append(
-        BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
-        BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
-        struct MemArena *arena_dst);
+#define BMO_slot_buffer_append( \
+    op_src, slots_src, slot_name_src, op_dst, slots_dst, slot_name_dst) \
+  _bmo_slot_buffer_append( \
+      (op_src)->slots_src, slot_name_src, (op_dst)->slots_dst, slot_name_dst, (op_dst)->arena)
+void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
+                             const char *slot_name_dst,
+                             BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
+                             const char *slot_name_src,
+                             struct MemArena *arena_dst);
 
 /* puts every element of type 'type' (which is a bitmask) with tool
  * flag 'flag', into a slot. */
-void BMO_slot_buffer_from_enabled_flag(
-        BMesh *bm, BMOperator *op,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const short oflag);
+void BMO_slot_buffer_from_enabled_flag(BMesh *bm,
+                                       BMOperator *op,
+                                       BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                       const char *slot_name,
+                                       const char htype,
+                                       const short oflag);
 
 /* puts every element of type 'type' (which is a bitmask) without tool
  * flag 'flag', into a slot. */
-void BMO_slot_buffer_from_disabled_flag(
-        BMesh *bm, BMOperator *op,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const short oflag);
+void BMO_slot_buffer_from_disabled_flag(BMesh *bm,
+                                        BMOperator *op,
+                                        BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                        const char *slot_name,
+                                        const char htype,
+                                        const short oflag);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
-void BMO_slot_buffer_flag_enable(
-        BMesh *bm,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const short oflag);
+void BMO_slot_buffer_flag_enable(BMesh *bm,
+                                 BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                 const char *slot_name,
+                                 const char htype,
+                                 const short oflag);
 /* clears tool-flag flag from all elements inside a slot array. */
-void BMO_slot_buffer_flag_disable(
-        BMesh *bm,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const short oflag);
+void BMO_slot_buffer_flag_disable(BMesh *bm,
+                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                  const char *slot_name,
+                                  const char htype,
+                                  const short oflag);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
-void BMO_slot_buffer_hflag_enable(
-        BMesh *bm,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const char hflag, const bool do_flush);
+void BMO_slot_buffer_hflag_enable(BMesh *bm,
+                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                  const char *slot_name,
+                                  const char htype,
+                                  const char hflag,
+                                  const bool do_flush);
 /* clears tool-flag flag from all elements inside a slot array. */
-void BMO_slot_buffer_hflag_disable(
-        BMesh *bm,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const char hflag, const bool do_flush);
+void BMO_slot_buffer_hflag_disable(BMesh *bm,
+                                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                   const char *slot_name,
+                                   const char htype,
+                                   const char hflag,
+                                   const bool do_flush);
 
 /* puts every element of type 'type' (which is a bitmask) with header
  * flag 'flag', into a slot.  note: ignores hidden elements
  * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
-void BMO_slot_buffer_from_enabled_hflag(
-        BMesh *bm, BMOperator *op,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const char hflag);
+void BMO_slot_buffer_from_enabled_hflag(BMesh *bm,
+                                        BMOperator *op,
+                                        BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                        const char *slot_name,
+                                        const char htype,
+                                        const char hflag);
 
 /* puts every element of type 'type' (which is a bitmask) without
  * header flag 'flag', into a slot.  note: ignores hidden elements
  * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
-void BMO_slot_buffer_from_disabled_hflag(
-        BMesh *bm, BMOperator *op,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-        const char htype, const char hflag);
+void BMO_slot_buffer_from_disabled_hflag(BMesh *bm,
+                                         BMOperator *op,
+                                         BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                                         const char *slot_name,
+                                         const char htype,
+                                         const char hflag);
 
-void  BMO_slot_buffer_from_array(BMOperator *op, BMOpSlot *slot, BMHeader **ele_buffer, int ele_buffer_len);
+void BMO_slot_buffer_from_array(BMOperator *op,
+                                BMOpSlot *slot,
+                                BMHeader **ele_buffer,
+                                int ele_buffer_len);
 
-void  BMO_slot_buffer_from_single(BMOperator *op, BMOpSlot *slot, BMHeader *ele);
+void BMO_slot_buffer_from_single(BMOperator *op, BMOpSlot *slot, BMHeader *ele);
 void *BMO_slot_buffer_get_single(BMOpSlot *slot);
-
 
 /* counts number of elements inside a slot array. */
 int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 
-void BMO_slot_map_insert(
-        BMOperator *op, BMOpSlot *slot,
-        const void *element, const void *data);
+void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot, const void *element, const void *data);
 
 /* flags all elements in a mapping.  note that the mapping must only have
  * bmesh elements in it.*/
-void BMO_slot_map_to_flag(
-        BMesh *bm, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-        const char *slot_name, const char hflag, const short oflag);
+void BMO_slot_map_to_flag(BMesh *bm,
+                          BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                          const char *slot_name,
+                          const char hflag,
+                          const short oflag);
 
-void *BMO_slot_buffer_alloc(
-        BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-        const char *slot_name, const int len);
+void *BMO_slot_buffer_alloc(BMOperator *op,
+                            BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                            const char *slot_name,
+                            const int len);
 
-void BMO_slot_buffer_from_all(
-        BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-        const char *slot_name, const char htype);
+void BMO_slot_buffer_from_all(BMesh *bm,
+                              BMOperator *op,
+                              BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                              const char *slot_name,
+                              const char htype);
 
 /**
  * This part of the API is used to iterate over element buffer or
@@ -547,37 +627,38 @@ void BMO_slot_buffer_from_all(
 /* contents of this structure are private,
  * don't directly access. */
 typedef struct BMOIter {
-	BMOpSlot *slot;
-	int cur; //for arrays
-	GHashIterator giter;
-	void **val;
-	char restrictmask; /* bitwise '&' with BMHeader.htype */
+  BMOpSlot *slot;
+  int cur;  //for arrays
+  GHashIterator giter;
+  void **val;
+  char restrictmask; /* bitwise '&' with BMHeader.htype */
 } BMOIter;
 
 void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 
-void *BMO_iter_new(
-        BMOIter *iter,
-        BMOpSlot slot_args[BMO_OP_MAX_SLOTS],  const char *slot_name,
-        const char restrictmask);
+void *BMO_iter_new(BMOIter *iter,
+                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                   const char *slot_name,
+                   const char restrictmask);
 void *BMO_iter_step(BMOIter *iter);
 
 void **BMO_iter_map_value_p(BMOIter *iter);
-void  *BMO_iter_map_value_ptr(BMOIter *iter);
+void *BMO_iter_map_value_ptr(BMOIter *iter);
 
 float BMO_iter_map_value_float(BMOIter *iter);
-int   BMO_iter_map_value_int(BMOIter *iter);
-bool  BMO_iter_map_value_bool(BMOIter *iter);
+int BMO_iter_map_value_int(BMOIter *iter);
+bool BMO_iter_map_value_bool(BMOIter *iter);
 
-#define BMO_ITER(ele, iter, slot_args, slot_name, restrict_flag)   \
-	for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_new(iter, slot_args, slot_name, restrict_flag); \
-	     ele; \
-	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter))
+#define BMO_ITER(ele, iter, slot_args, slot_name, restrict_flag) \
+  for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_new(iter, slot_args, slot_name, restrict_flag); \
+       ele; \
+       BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter))
 
-#define BMO_ITER_INDEX(ele, iter, slot_args, slot_name, restrict_flag, i_)   \
-	for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_new(iter, slot_args, slot_name, restrict_flag), i_ = 0; \
-	     ele; \
-	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter), i_++)
+#define BMO_ITER_INDEX(ele, iter, slot_args, slot_name, restrict_flag, i_) \
+  for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_new(iter, slot_args, slot_name, restrict_flag), \
+      i_ = 0; \
+       ele; \
+       BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter), i_++)
 
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 

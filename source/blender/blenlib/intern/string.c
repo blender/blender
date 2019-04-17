@@ -21,7 +21,6 @@
  * \ingroup bli
  */
 
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -52,11 +51,11 @@
  */
 char *BLI_strdupn(const char *str, const size_t len)
 {
-	char *n = MEM_mallocN(len + 1, "strdup");
-	memcpy(n, str, len);
-	n[len] = '\0';
+  char *n = MEM_mallocN(len + 1, "strdup");
+  memcpy(n, str, len);
+  n[len] = '\0';
 
-	return n;
+  return n;
 }
 
 /**
@@ -68,7 +67,7 @@ char *BLI_strdupn(const char *str, const size_t len)
  */
 char *BLI_strdup(const char *str)
 {
-	return BLI_strdupn(str, strlen(str));
+  return BLI_strdupn(str, strlen(str));
 }
 
 /**
@@ -79,18 +78,19 @@ char *BLI_strdup(const char *str)
  */
 char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 {
-	/* include the NULL terminator of str2 only */
-	const size_t str1_len = strlen(str1);
-	const size_t str2_len = strlen(str2) + 1;
-	char *str, *s;
+  /* include the NULL terminator of str2 only */
+  const size_t str1_len = strlen(str1);
+  const size_t str2_len = strlen(str2) + 1;
+  char *str, *s;
 
-	str = MEM_mallocN(str1_len + str2_len, "strdupcat");
-	s = str;
+  str = MEM_mallocN(str1_len + str2_len, "strdupcat");
+  s = str;
 
-	memcpy(s, str1, str1_len); s += str1_len;
-	memcpy(s, str2, str2_len);
+  memcpy(s, str1, str1_len);
+  s += str1_len;
+  memcpy(s, str2, str2_len);
 
-	return str;
+  return str;
 }
 
 /**
@@ -105,16 +105,16 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
  */
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
-	size_t srclen = BLI_strnlen(src, maxncpy - 1);
-	BLI_assert(maxncpy != 0);
+  size_t srclen = BLI_strnlen(src, maxncpy - 1);
+  BLI_assert(maxncpy != 0);
 
 #ifdef DEBUG_STRSIZE
-	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+  memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	memcpy(dst, src, srclen);
-	dst[srclen] = '\0';
-	return dst;
+  memcpy(dst, src, srclen);
+  dst[srclen] = '\0';
+  return dst;
 }
 
 /**
@@ -126,43 +126,46 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
  * \param maxncpy: Maximum number of characters to copy (generally the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy_ensure_pad(char *__restrict dst, const char *__restrict src, const char pad, size_t maxncpy)
+char *BLI_strncpy_ensure_pad(char *__restrict dst,
+                             const char *__restrict src,
+                             const char pad,
+                             size_t maxncpy)
 {
-	BLI_assert(maxncpy != 0);
+  BLI_assert(maxncpy != 0);
 
 #ifdef DEBUG_STRSIZE
-	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+  memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	if (src[0] == '\0') {
-		dst[0] = '\0';
-	}
-	else {
-		/* Add heading/trailing wildcards if needed. */
-		size_t idx = 0;
-		size_t srclen;
+  if (src[0] == '\0') {
+    dst[0] = '\0';
+  }
+  else {
+    /* Add heading/trailing wildcards if needed. */
+    size_t idx = 0;
+    size_t srclen;
 
-		if (src[idx] != pad) {
-			dst[idx++] = pad;
-			maxncpy--;
-		}
-		maxncpy--;  /* trailing '\0' */
+    if (src[idx] != pad) {
+      dst[idx++] = pad;
+      maxncpy--;
+    }
+    maxncpy--; /* trailing '\0' */
 
-		srclen = BLI_strnlen(src, maxncpy);
-		if ((src[srclen - 1] != pad) && (srclen == maxncpy)) {
-			srclen--;
-		}
+    srclen = BLI_strnlen(src, maxncpy);
+    if ((src[srclen - 1] != pad) && (srclen == maxncpy)) {
+      srclen--;
+    }
 
-		memcpy(&dst[idx], src, srclen);
-		idx += srclen;
+    memcpy(&dst[idx], src, srclen);
+    idx += srclen;
 
-		if (dst[idx - 1] != pad) {
-			dst[idx++] = pad;
-		}
-		dst[idx] = '\0';
-	}
+    if (dst[idx - 1] != pad) {
+      dst[idx++] = pad;
+    }
+    dst[idx] = '\0';
+  }
 
-	return dst;
+  return dst;
 }
 
 /**
@@ -180,70 +183,76 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst, const char *__restrict src, c
  */
 size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
-	size_t srclen = BLI_strnlen(src, maxncpy - 1);
-	BLI_assert(maxncpy != 0);
+  size_t srclen = BLI_strnlen(src, maxncpy - 1);
+  BLI_assert(maxncpy != 0);
 
 #ifdef DEBUG_STRSIZE
-	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+  memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	memcpy(dst, src, srclen);
-	dst[srclen] = '\0';
-	return srclen;
+  memcpy(dst, src, srclen);
+  dst[srclen] = '\0';
+  return srclen;
 }
 
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
 {
-	size_t srclen = strlen(src);
-	memcpy(dst, src, srclen + 1);
-	return srclen;
+  size_t srclen = strlen(src);
+  memcpy(dst, src, srclen + 1);
+  return srclen;
 }
 
 /**
  * Portable replacement for `vsnprintf`.
  */
-size_t BLI_vsnprintf(char *__restrict buffer, size_t maxncpy, const char *__restrict format, va_list arg)
+size_t BLI_vsnprintf(char *__restrict buffer,
+                     size_t maxncpy,
+                     const char *__restrict format,
+                     va_list arg)
 {
-	size_t n;
+  size_t n;
 
-	BLI_assert(buffer != NULL);
-	BLI_assert(maxncpy > 0);
-	BLI_assert(format != NULL);
+  BLI_assert(buffer != NULL);
+  BLI_assert(maxncpy > 0);
+  BLI_assert(format != NULL);
 
-	n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
+  n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
 
-	if (n != -1 && n < maxncpy) {
-		buffer[n] = '\0';
-	}
-	else {
-		buffer[maxncpy - 1] = '\0';
-	}
+  if (n != -1 && n < maxncpy) {
+    buffer[n] = '\0';
+  }
+  else {
+    buffer[maxncpy - 1] = '\0';
+  }
 
-	return n;
+  return n;
 }
 
 /**
  * A version of #BLI_vsnprintf that returns ``strlen(buffer)``
  */
-size_t BLI_vsnprintf_rlen(char *__restrict buffer, size_t maxncpy, const char *__restrict format, va_list arg)
+size_t BLI_vsnprintf_rlen(char *__restrict buffer,
+                          size_t maxncpy,
+                          const char *__restrict format,
+                          va_list arg)
 {
-	size_t n;
+  size_t n;
 
-	BLI_assert(buffer != NULL);
-	BLI_assert(maxncpy > 0);
-	BLI_assert(format != NULL);
+  BLI_assert(buffer != NULL);
+  BLI_assert(maxncpy > 0);
+  BLI_assert(format != NULL);
 
-	n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
+  n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
 
-	if (n != -1 && n < maxncpy) {
-		/* pass */
-	}
-	else {
-		n = maxncpy - 1;
-	}
-	buffer[n] = '\0';
+  if (n != -1 && n < maxncpy) {
+    /* pass */
+  }
+  else {
+    n = maxncpy - 1;
+  }
+  buffer[n] = '\0';
 
-	return n;
+  return n;
 }
 
 /**
@@ -251,18 +260,18 @@ size_t BLI_vsnprintf_rlen(char *__restrict buffer, size_t maxncpy, const char *_
  */
 size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 {
-	size_t n;
-	va_list arg;
+  size_t n;
+  va_list arg;
 
 #ifdef DEBUG_STRSIZE
-	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+  memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	va_start(arg, format);
-	n = BLI_vsnprintf(dst, maxncpy, format, arg);
-	va_end(arg);
+  va_start(arg, format);
+  n = BLI_vsnprintf(dst, maxncpy, format, arg);
+  va_end(arg);
 
-	return n;
+  return n;
 }
 
 /**
@@ -270,18 +279,18 @@ size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict
  */
 size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 {
-	size_t n;
-	va_list arg;
+  size_t n;
+  va_list arg;
 
 #ifdef DEBUG_STRSIZE
-	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+  memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	va_start(arg, format);
-	n = BLI_vsnprintf_rlen(dst, maxncpy, format, arg);
-	va_end(arg);
+  va_start(arg, format);
+  n = BLI_vsnprintf_rlen(dst, maxncpy, format, arg);
+  va_end(arg);
 
-	return n;
+  return n;
 }
 
 /**
@@ -290,22 +299,21 @@ size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__res
  */
 char *BLI_sprintfN(const char *__restrict format, ...)
 {
-	DynStr *ds;
-	va_list arg;
-	char *n;
+  DynStr *ds;
+  va_list arg;
+  char *n;
 
-	va_start(arg, format);
+  va_start(arg, format);
 
-	ds = BLI_dynstr_new();
-	BLI_dynstr_vappendf(ds, format, arg);
-	n = BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
+  ds = BLI_dynstr_new();
+  BLI_dynstr_vappendf(ds, format, arg);
+  n = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
 
-	va_end(arg);
+  va_end(arg);
 
-	return n;
+  return n;
 }
-
 
 /* match pythons string escaping, assume double quotes - (")
  * TODO: should be used to create RNA animation paths.
@@ -314,45 +322,45 @@ char *BLI_sprintfN(const char *__restrict format, ...)
  *    which is a useful reference. */
 size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
-	size_t len = 0;
+  size_t len = 0;
 
-	BLI_assert(maxncpy != 0);
+  BLI_assert(maxncpy != 0);
 
-	while (len < maxncpy) {
-		switch (*src) {
-			case '\0':
-				goto escape_finish;
-			case '\\':
-			case '"':
-				ATTR_FALLTHROUGH;
+  while (len < maxncpy) {
+    switch (*src) {
+      case '\0':
+        goto escape_finish;
+      case '\\':
+      case '"':
+        ATTR_FALLTHROUGH;
 
-			/* less common but should also be support */
-			case '\t':
-			case '\n':
-			case '\r':
-				if (len + 1 < maxncpy) {
-					*dst++ = '\\';
-					len++;
-				}
-				else {
-					/* not enough space to escape */
-					break;
-				}
-				ATTR_FALLTHROUGH;
-			default:
-				*dst = *src;
-				break;
-		}
-		dst++;
-		src++;
-		len++;
-	}
+      /* less common but should also be support */
+      case '\t':
+      case '\n':
+      case '\r':
+        if (len + 1 < maxncpy) {
+          *dst++ = '\\';
+          len++;
+        }
+        else {
+          /* not enough space to escape */
+          break;
+        }
+        ATTR_FALLTHROUGH;
+      default:
+        *dst = *src;
+        break;
+    }
+    dst++;
+    src++;
+    len++;
+  }
 
 escape_finish:
 
-	*dst = '\0';
+  *dst = '\0';
 
-	return len;
+  return len;
 }
 
 /**
@@ -369,32 +377,32 @@ escape_finish:
  */
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
-	const char *startMatch, *endMatch;
+  const char *startMatch, *endMatch;
 
-	/* get the starting point (i.e. where prefix starts, and add prefixLen+1
-	 * to it to get be after the first " */
-	startMatch = strstr(str, prefix);
-	if (startMatch) {
-		const size_t prefixLen = strlen(prefix);
-		startMatch += prefixLen + 1;
-		/* get the end point (i.e. where the next occurrence of " is after the starting point) */
+  /* get the starting point (i.e. where prefix starts, and add prefixLen+1
+   * to it to get be after the first " */
+  startMatch = strstr(str, prefix);
+  if (startMatch) {
+    const size_t prefixLen = strlen(prefix);
+    startMatch += prefixLen + 1;
+    /* get the end point (i.e. where the next occurrence of " is after the starting point) */
 
-		endMatch = startMatch;
-		while ((endMatch = strchr(endMatch, '"'))) {
-			if (LIKELY(*(endMatch - 1) != '\\')) {
-				break;
-			}
-			else {
-				endMatch++;
-			}
-		}
+    endMatch = startMatch;
+    while ((endMatch = strchr(endMatch, '"'))) {
+      if (LIKELY(*(endMatch - 1) != '\\')) {
+        break;
+      }
+      else {
+        endMatch++;
+      }
+    }
 
-		if (endMatch) {
-			/* return the slice indicated */
-			return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
-		}
-	}
-	return BLI_strdupn("", 0);
+    if (endMatch) {
+      /* return the slice indicated */
+      return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
+    }
+  }
+  return BLI_strdupn("", 0);
 }
 
 /**
@@ -410,63 +418,65 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
  * \param substr_new: The text in the string to find and replace
  * \retval Returns the duplicated string
  */
-char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new)
+char *BLI_str_replaceN(const char *__restrict str,
+                       const char *__restrict substr_old,
+                       const char *__restrict substr_new)
 {
-	DynStr *ds = NULL;
-	size_t len_old = strlen(substr_old);
-	const char *match;
+  DynStr *ds = NULL;
+  size_t len_old = strlen(substr_old);
+  const char *match;
 
-	BLI_assert(substr_old[0] != '\0');
+  BLI_assert(substr_old[0] != '\0');
 
-	/* while we can still find a match for the old substring that we're searching for,
-	 * keep dicing and replacing
-	 */
-	while ((match = strstr(str, substr_old))) {
-		/* the assembly buffer only gets created when we actually need to rebuild the string */
-		if (ds == NULL) {
-			ds = BLI_dynstr_new();
-		}
+  /* while we can still find a match for the old substring that we're searching for,
+   * keep dicing and replacing
+   */
+  while ((match = strstr(str, substr_old))) {
+    /* the assembly buffer only gets created when we actually need to rebuild the string */
+    if (ds == NULL) {
+      ds = BLI_dynstr_new();
+    }
 
-		/* if the match position does not match the current position in the string,
-		 * copy the text up to this position and advance the current position in the string
-		 */
-		if (str != match) {
-			/* add the segment of the string from str to match to the buffer,
-			 * then restore the value at match */
-			BLI_dynstr_nappend(ds, str, (match - str));
+    /* if the match position does not match the current position in the string,
+     * copy the text up to this position and advance the current position in the string
+     */
+    if (str != match) {
+      /* add the segment of the string from str to match to the buffer,
+       * then restore the value at match */
+      BLI_dynstr_nappend(ds, str, (match - str));
 
-			/* now our current position should be set on the start of the match */
-			str = match;
-		}
+      /* now our current position should be set on the start of the match */
+      str = match;
+    }
 
-		/* add the replacement text to the accumulation buffer */
-		BLI_dynstr_append(ds, substr_new);
+    /* add the replacement text to the accumulation buffer */
+    BLI_dynstr_append(ds, substr_new);
 
-		/* advance the current position of the string up to the end of the replaced segment */
-		str += len_old;
-	}
+    /* advance the current position of the string up to the end of the replaced segment */
+    str += len_old;
+  }
 
-	/* finish off and return a new string that has had all occurrences of */
-	if (ds) {
-		char *str_new;
+  /* finish off and return a new string that has had all occurrences of */
+  if (ds) {
+    char *str_new;
 
-		/* add what's left of the string to the assembly buffer
-		 * - we've been adjusting str to point at the end of the replaced segments
-		 */
-		BLI_dynstr_append(ds, str);
+    /* add what's left of the string to the assembly buffer
+     * - we've been adjusting str to point at the end of the replaced segments
+     */
+    BLI_dynstr_append(ds, str);
 
-		/* convert to new c-string (MEM_malloc'd), and free the buffer */
-		str_new = BLI_dynstr_get_cstring(ds);
-		BLI_dynstr_free(ds);
+    /* convert to new c-string (MEM_malloc'd), and free the buffer */
+    str_new = BLI_dynstr_get_cstring(ds);
+    BLI_dynstr_free(ds);
 
-		return str_new;
-	}
-	else {
-		/* just create a new copy of the entire string - we avoid going through the assembly buffer
-		 * for what should be a bit more efficiency...
-		 */
-		return BLI_strdup(str);
-	}
+    return str_new;
+  }
+  else {
+    /* just create a new copy of the entire string - we avoid going through the assembly buffer
+     * for what should be a bit more efficiency...
+     */
+    return BLI_strdup(str);
+  }
 }
 
 /**
@@ -478,12 +488,12 @@ char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr
  */
 void BLI_str_replace_char(char *str, char src, char dst)
 {
-	while (*str) {
-		if (*str == src) {
-			*str = dst;
-		}
-		str++;
-	}
+  while (*str) {
+    if (*str == src) {
+      *str = dst;
+    }
+    str++;
+  }
 }
 
 /**
@@ -493,7 +503,7 @@ void BLI_str_replace_char(char *str, char src, char dst)
  */
 int BLI_strcaseeq(const char *a, const char *b)
 {
-	return (BLI_strcasecmp(a, b) == 0);
+  return (BLI_strcasecmp(a, b) == 0);
 }
 
 /**
@@ -501,23 +511,23 @@ int BLI_strcaseeq(const char *a, const char *b)
  */
 char *BLI_strcasestr(const char *s, const char *find)
 {
-	register char c, sc;
-	register size_t len;
+  register char c, sc;
+  register size_t len;
 
-	if ((c = *find++) != 0) {
-		c = tolower(c);
-		len = strlen(find);
-		do {
-			do {
-				if ((sc = *s++) == 0) {
-					return (NULL);
-				}
-				sc = tolower(sc);
-			} while (sc != c);
-		} while (BLI_strncasecmp(s, find, len) != 0);
-		s--;
-	}
-	return ((char *) s);
+  if ((c = *find++) != 0) {
+    c = tolower(c);
+    len = strlen(find);
+    do {
+      do {
+        if ((sc = *s++) == 0) {
+          return (NULL);
+        }
+        sc = tolower(sc);
+      } while (sc != c);
+    } while (BLI_strncasecmp(s, find, len) != 0);
+    s--;
+  }
+  return ((char *)s);
 }
 
 /**
@@ -525,195 +535,195 @@ char *BLI_strcasestr(const char *s, const char *find)
  */
 char *BLI_strncasestr(const char *s, const char *find, size_t len)
 {
-	register char c, sc;
+  register char c, sc;
 
-	if ((c = *find++) != 0) {
-		c = tolower(c);
-		if (len > 1) {
-			do {
-				do {
-					if ((sc = *s++) == 0) {
-						return NULL;
-					}
-					sc = tolower(sc);
-				} while (sc != c);
-			} while (BLI_strncasecmp(s, find, len - 1) != 0);
-		}
-		else {
-			{
-				do {
-					if ((sc = *s++) == 0) {
-						return NULL;
-					}
-					sc = tolower(sc);
-				} while (sc != c);
-			}
-		}
-		s--;
-	}
-	return ((char *)s);
+  if ((c = *find++) != 0) {
+    c = tolower(c);
+    if (len > 1) {
+      do {
+        do {
+          if ((sc = *s++) == 0) {
+            return NULL;
+          }
+          sc = tolower(sc);
+        } while (sc != c);
+      } while (BLI_strncasecmp(s, find, len - 1) != 0);
+    }
+    else {
+      {
+        do {
+          if ((sc = *s++) == 0) {
+            return NULL;
+          }
+          sc = tolower(sc);
+        } while (sc != c);
+      }
+    }
+    s--;
+  }
+  return ((char *)s);
 }
 
 int BLI_strcasecmp(const char *s1, const char *s2)
 {
-	register int i;
-	register char c1, c2;
+  register int i;
+  register char c1, c2;
 
-	for (i = 0;; i++) {
-		c1 = tolower(s1[i]);
-		c2 = tolower(s2[i]);
+  for (i = 0;; i++) {
+    c1 = tolower(s1[i]);
+    c2 = tolower(s2[i]);
 
-		if (c1 < c2) {
-			return -1;
-		}
-		else if (c1 > c2) {
-			return 1;
-		}
-		else if (c1 == 0) {
-			break;
-		}
-	}
+    if (c1 < c2) {
+      return -1;
+    }
+    else if (c1 > c2) {
+      return 1;
+    }
+    else if (c1 == 0) {
+      break;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 {
-	register size_t i;
-	register char c1, c2;
+  register size_t i;
+  register char c1, c2;
 
-	for (i = 0; i < len; i++) {
-		c1 = tolower(s1[i]);
-		c2 = tolower(s2[i]);
+  for (i = 0; i < len; i++) {
+    c1 = tolower(s1[i]);
+    c2 = tolower(s2[i]);
 
-		if (c1 < c2) {
-			return -1;
-		}
-		else if (c1 > c2) {
-			return 1;
-		}
-		else if (c1 == 0) {
-			break;
-		}
-	}
+    if (c1 < c2) {
+      return -1;
+    }
+    else if (c1 > c2) {
+      return 1;
+    }
+    else if (c1 == 0) {
+      break;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
 /* compare number on the left size of the string */
 static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
 {
-	const char *p1 = s1, *p2 = s2;
-	int numdigit, numzero1, numzero2;
+  const char *p1 = s1, *p2 = s2;
+  int numdigit, numzero1, numzero2;
 
-	/* count and skip leading zeros */
-	for (numzero1 = 0; *p1 == '0'; numzero1++) {
-		p1++;
-	}
-	for (numzero2 = 0; *p2 == '0'; numzero2++) {
-		p2++;
-	}
+  /* count and skip leading zeros */
+  for (numzero1 = 0; *p1 == '0'; numzero1++) {
+    p1++;
+  }
+  for (numzero2 = 0; *p2 == '0'; numzero2++) {
+    p2++;
+  }
 
-	/* find number of consecutive digits */
-	for (numdigit = 0; ; numdigit++) {
-		if (isdigit(*(p1 + numdigit)) && isdigit(*(p2 + numdigit))) {
-			continue;
-		}
-		else if (isdigit(*(p1 + numdigit))) {
-			return 1; /* s2 is bigger */
-		}
-		else if (isdigit(*(p2 + numdigit))) {
-			return -1; /* s1 is bigger */
-		}
-		else {
-			break;
-		}
-	}
+  /* find number of consecutive digits */
+  for (numdigit = 0;; numdigit++) {
+    if (isdigit(*(p1 + numdigit)) && isdigit(*(p2 + numdigit))) {
+      continue;
+    }
+    else if (isdigit(*(p1 + numdigit))) {
+      return 1; /* s2 is bigger */
+    }
+    else if (isdigit(*(p2 + numdigit))) {
+      return -1; /* s1 is bigger */
+    }
+    else {
+      break;
+    }
+  }
 
-	/* same number of digits, compare size of number */
-	if (numdigit > 0) {
-		int compare = (int)strncmp(p1, p2, (size_t)numdigit);
+  /* same number of digits, compare size of number */
+  if (numdigit > 0) {
+    int compare = (int)strncmp(p1, p2, (size_t)numdigit);
 
-		if (compare != 0) {
-			return compare;
-		}
-	}
+    if (compare != 0) {
+      return compare;
+    }
+  }
 
-	/* use number of leading zeros as tie breaker if still equal */
-	if (*tiebreaker == 0) {
-		if (numzero1 > numzero2) {
-			*tiebreaker = 1;
-		}
-		else if (numzero1 < numzero2) {
-			*tiebreaker = -1;
-		}
-	}
+  /* use number of leading zeros as tie breaker if still equal */
+  if (*tiebreaker == 0) {
+    if (numzero1 > numzero2) {
+      *tiebreaker = 1;
+    }
+    else if (numzero1 < numzero2) {
+      *tiebreaker = -1;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
 /* natural string compare, keeping numbers in order */
 int BLI_natstrcmp(const char *s1, const char *s2)
 {
-	register int d1 = 0, d2 = 0;
-	register char c1, c2;
-	int tiebreaker = 0;
+  register int d1 = 0, d2 = 0;
+  register char c1, c2;
+  int tiebreaker = 0;
 
-	/* if both chars are numeric, to a left_number_strcmp().
-	 * then increase string deltas as long they are
-	 * numeric, else do a tolower and char compare */
+  /* if both chars are numeric, to a left_number_strcmp().
+   * then increase string deltas as long they are
+   * numeric, else do a tolower and char compare */
 
-	while (1) {
-		c1 = tolower(s1[d1]);
-		c2 = tolower(s2[d2]);
+  while (1) {
+    c1 = tolower(s1[d1]);
+    c2 = tolower(s2[d2]);
 
-		if (isdigit(c1) && isdigit(c2)) {
-			int numcompare = left_number_strcmp(s1 + d1, s2 + d2, &tiebreaker);
+    if (isdigit(c1) && isdigit(c2)) {
+      int numcompare = left_number_strcmp(s1 + d1, s2 + d2, &tiebreaker);
 
-			if (numcompare != 0) {
-				return numcompare;
-			}
+      if (numcompare != 0) {
+        return numcompare;
+      }
 
-			d1++;
-			while (isdigit(s1[d1])) {
-				d1++;
-			}
-			d2++;
-			while (isdigit(s2[d2])) {
-				d2++;
-			}
+      d1++;
+      while (isdigit(s1[d1])) {
+        d1++;
+      }
+      d2++;
+      while (isdigit(s2[d2])) {
+        d2++;
+      }
 
-			c1 = tolower(s1[d1]);
-			c2 = tolower(s2[d2]);
-		}
+      c1 = tolower(s1[d1]);
+      c2 = tolower(s2[d2]);
+    }
 
-		/* first check for '.' so "foo.bar" comes before "foo 1.bar" */
-		if (c1 == '.' && c2 != '.') {
-			return -1;
-		}
-		if (c1 != '.' && c2 == '.') {
-			return 1;
-		}
-		else if (c1 < c2) {
-			return -1;
-		}
-		else if (c1 > c2) {
-			return 1;
-		}
-		else if (c1 == 0) {
-			break;
-		}
-		d1++;
-		d2++;
-	}
+    /* first check for '.' so "foo.bar" comes before "foo 1.bar" */
+    if (c1 == '.' && c2 != '.') {
+      return -1;
+    }
+    if (c1 != '.' && c2 == '.') {
+      return 1;
+    }
+    else if (c1 < c2) {
+      return -1;
+    }
+    else if (c1 > c2) {
+      return 1;
+    }
+    else if (c1 == 0) {
+      break;
+    }
+    d1++;
+    d2++;
+  }
 
-	if (tiebreaker) {
-		return tiebreaker;
-	}
+  if (tiebreaker) {
+    return tiebreaker;
+  }
 
-	/* we might still have a different string because of lower/upper case, in
-	 * that case fall back to regular string comparison */
-	return strcmp(s1, s2);
+  /* we might still have a different string because of lower/upper case, in
+   * that case fall back to regular string comparison */
+  return strcmp(s1, s2);
 }
 
 /**
@@ -722,77 +732,77 @@ int BLI_natstrcmp(const char *s1, const char *s2)
  */
 int BLI_strcmp_ignore_pad(const char *str1, const char *str2, const char pad)
 {
-	size_t str1_len, str2_len;
+  size_t str1_len, str2_len;
 
-	while (*str1 == pad) {
-		str1++;
-	}
-	while (*str2 == pad) {
-		str2++;
-	}
+  while (*str1 == pad) {
+    str1++;
+  }
+  while (*str2 == pad) {
+    str2++;
+  }
 
-	str1_len = strlen(str1);
-	str2_len = strlen(str2);
+  str1_len = strlen(str1);
+  str2_len = strlen(str2);
 
-	while (str1_len && (str1[str1_len - 1] == pad)) {
-		str1_len--;
-	}
-	while (str2_len && (str2[str2_len - 1] == pad)) {
-		str2_len--;
-	}
+  while (str1_len && (str1[str1_len - 1] == pad)) {
+    str1_len--;
+  }
+  while (str2_len && (str2[str2_len - 1] == pad)) {
+    str2_len--;
+  }
 
-	if (str1_len == str2_len) {
-		return strncmp(str1, str2, str2_len);
-	}
-	else if (str1_len > str2_len) {
-		int ret = strncmp(str1, str2, str2_len);
-		if (ret == 0) {
-			ret = 1;
-		}
-		return ret;
-	}
-	else {
-		int ret = strncmp(str1, str2, str1_len);
-		if (ret == 0) {
-			ret = -1;
-		}
-		return ret;
-	}
+  if (str1_len == str2_len) {
+    return strncmp(str1, str2, str2_len);
+  }
+  else if (str1_len > str2_len) {
+    int ret = strncmp(str1, str2, str2_len);
+    if (ret == 0) {
+      ret = 1;
+    }
+    return ret;
+  }
+  else {
+    int ret = strncmp(str1, str2, str1_len);
+    if (ret == 0) {
+      ret = -1;
+    }
+    return ret;
+  }
 }
 
 /* determine the length of a fixed-size string */
 size_t BLI_strnlen(const char *s, const size_t maxlen)
 {
-	size_t len;
+  size_t len;
 
-	for (len = 0; len < maxlen; len++, s++) {
-		if (!*s) {
-			break;
-		}
-	}
-	return len;
+  for (len = 0; len < maxlen; len++, s++) {
+    if (!*s) {
+      break;
+    }
+  }
+  return len;
 }
 
 void BLI_str_tolower_ascii(char *str, const size_t len)
 {
-	size_t i;
+  size_t i;
 
-	for (i = 0; (i < len) && str[i]; i++) {
-		if (str[i] >= 'A' && str[i] <= 'Z') {
-			str[i] += 'a' - 'A';
-		}
-	}
+  for (i = 0; (i < len) && str[i]; i++) {
+    if (str[i] >= 'A' && str[i] <= 'Z') {
+      str[i] += 'a' - 'A';
+    }
+  }
 }
 
 void BLI_str_toupper_ascii(char *str, const size_t len)
 {
-	size_t i;
+  size_t i;
 
-	for (i = 0; (i < len) && str[i]; i++) {
-		if (str[i] >= 'a' && str[i] <= 'z') {
-			str[i] -= 'a' - 'A';
-		}
-	}
+  for (i = 0; (i < len) && str[i]; i++) {
+    if (str[i] >= 'a' && str[i] <= 'z') {
+      str[i] -= 'a' - 'A';
+    }
+  }
 }
 
 /**
@@ -800,14 +810,14 @@ void BLI_str_toupper_ascii(char *str, const size_t len)
  */
 void BLI_str_rstrip(char *str)
 {
-	for (int i = (int)strlen(str) - 1; i > 0; i--) {
-		if (isspace(str[i])) {
-			str[i] = '\0';
-		}
-		else {
-			break;
-		}
-	}
+  for (int i = (int)strlen(str) - 1; i > 0; i--) {
+    if (isspace(str[i])) {
+      str[i] = '\0';
+    }
+    else {
+      break;
+    }
+  }
 }
 
 /**
@@ -821,22 +831,22 @@ void BLI_str_rstrip(char *str)
  */
 int BLI_str_rstrip_float_zero(char *str, const char pad)
 {
-	char *p = strchr(str, '.');
-	int totstrip = 0;
-	if (p) {
-		char *end_p;
-		p++;  /* position at first decimal place */
-		end_p = p + (strlen(p) - 1);  /* position at last character */
-		if (end_p > p) {
-			while (end_p != p && *end_p == '0') {
-				*end_p = pad;
-				end_p--;
-				totstrip++;
-			}
-		}
-	}
+  char *p = strchr(str, '.');
+  int totstrip = 0;
+  if (p) {
+    char *end_p;
+    p++;                         /* position at first decimal place */
+    end_p = p + (strlen(p) - 1); /* position at last character */
+    if (end_p > p) {
+      while (end_p != p && *end_p == '0') {
+        *end_p = pad;
+        end_p--;
+        totstrip++;
+      }
+    }
+  }
 
-	return totstrip;
+  return totstrip;
 }
 
 /**
@@ -847,17 +857,19 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
  * \param str_array_len: The length of the array, or -1 for a NULL-terminated array.
  * \return The index of str in str_array or -1.
  */
-int BLI_str_index_in_array_n(const char *__restrict str, const char **__restrict str_array, const int str_array_len)
+int BLI_str_index_in_array_n(const char *__restrict str,
+                             const char **__restrict str_array,
+                             const int str_array_len)
 {
-	int index;
-	const char **str_iter = str_array;
+  int index;
+  const char **str_iter = str_array;
 
-	for (index = 0; index < str_array_len; str_iter++, index++) {
-		if (STREQ(str, *str_iter)) {
-			return index;
-		}
-	}
-	return -1;
+  for (index = 0; index < str_array_len; str_iter++, index++) {
+    if (STREQ(str, *str_iter)) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 /**
@@ -869,31 +881,31 @@ int BLI_str_index_in_array_n(const char *__restrict str, const char **__restrict
  */
 int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array)
 {
-	int index;
-	const char **str_iter = str_array;
+  int index;
+  const char **str_iter = str_array;
 
-	for (index = 0; *str_iter; str_iter++, index++) {
-		if (STREQ(str, *str_iter)) {
-			return index;
-		}
-	}
-	return -1;
+  for (index = 0; *str_iter; str_iter++, index++) {
+    if (STREQ(str, *str_iter)) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t slength)
 {
-	size_t elength = strlen(end);
+  size_t elength = strlen(end);
 
-	if (elength < slength) {
-		const char *iter = &str[slength - elength];
-		while (*iter) {
-			if (*iter++ != *end++) {
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
+  if (elength < slength) {
+    const char *iter = &str[slength - elength];
+    while (*iter) {
+      if (*iter++ != *end++) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -903,10 +915,10 @@ bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, s
  * \param end: The string we look for at the end.
  * \return If str ends with end.
  */
-bool BLI_str_endswith(const char *__restrict str, const char * __restrict end)
+bool BLI_str_endswith(const char *__restrict str, const char *__restrict end)
 {
-	const size_t slength = strlen(str);
-	return BLI_strn_endswith(str, end, slength);
+  const size_t slength = strlen(str);
+  return BLI_strn_endswith(str, end, slength);
 }
 
 /**
@@ -920,7 +932,7 @@ bool BLI_str_endswith(const char *__restrict str, const char * __restrict end)
  */
 size_t BLI_str_partition(const char *str, const char delim[], const char **sep, const char **suf)
 {
-	return BLI_str_partition_ex(str, NULL, delim, sep, suf, false);
+  return BLI_str_partition_ex(str, NULL, delim, sep, suf, false);
 }
 
 /**
@@ -934,7 +946,7 @@ size_t BLI_str_partition(const char *str, const char delim[], const char **sep, 
  */
 size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep, const char **suf)
 {
-	return BLI_str_partition_ex(str, NULL, delim, sep, suf, true);
+  return BLI_str_partition_ex(str, NULL, delim, sep, suf, true);
 }
 
 /**
@@ -948,74 +960,78 @@ size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep,
  * \param from_right: If %true, search from the right of \a str, else, search from its left.
  * \return The length of the prefix (i.e. *sep - str).
  */
-size_t BLI_str_partition_ex(
-        const char *str, const char *end, const char delim[], const char **sep, const char **suf, const bool from_right)
+size_t BLI_str_partition_ex(const char *str,
+                            const char *end,
+                            const char delim[],
+                            const char **sep,
+                            const char **suf,
+                            const bool from_right)
 {
-	const char *d;
-	char *(*func)(const char *str, int c) = from_right ? strrchr : strchr;
+  const char *d;
+  char *(*func)(const char *str, int c) = from_right ? strrchr : strchr;
 
-	BLI_assert(end == NULL || end > str);
+  BLI_assert(end == NULL || end > str);
 
-	*sep = *suf = NULL;
+  *sep = *suf = NULL;
 
-	for (d = delim; *d != '\0'; ++d) {
-		const char *tmp;
+  for (d = delim; *d != '\0'; ++d) {
+    const char *tmp;
 
-		if (end) {
-			if (from_right) {
-				for (tmp = end - 1; (tmp >= str) && (*tmp != *d); tmp--) {
-					/* pass */
-				}
-				if (tmp < str) {
-					tmp = NULL;
-				}
-			}
-			else {
-				tmp = func(str, *d);
-				if (tmp >= end) {
-					tmp = NULL;
-				}
-			}
-		}
-		else {
-			tmp = func(str, *d);
-		}
+    if (end) {
+      if (from_right) {
+        for (tmp = end - 1; (tmp >= str) && (*tmp != *d); tmp--) {
+          /* pass */
+        }
+        if (tmp < str) {
+          tmp = NULL;
+        }
+      }
+      else {
+        tmp = func(str, *d);
+        if (tmp >= end) {
+          tmp = NULL;
+        }
+      }
+    }
+    else {
+      tmp = func(str, *d);
+    }
 
-		if (tmp && (from_right ? (*sep < tmp) : (!*sep || *sep > tmp))) {
-			*sep = tmp;
-		}
-	}
+    if (tmp && (from_right ? (*sep < tmp) : (!*sep || *sep > tmp))) {
+      *sep = tmp;
+    }
+  }
 
-	if (*sep) {
-		*suf = *sep + 1;
-		return (size_t)(*sep - str);
-	}
+  if (*sep) {
+    *suf = *sep + 1;
+    return (size_t)(*sep - str);
+  }
 
-	return end ? (size_t)(end - str) : strlen(str);
+  return end ? (size_t)(end - str) : strlen(str);
 }
 
 static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
 {
-	char *p_src = src;
-	char *p_dst = dst;
+  char *p_src = src;
+  char *p_dst = dst;
 
-	const char separator = ',';
-	int commas;
+  const char separator = ',';
+  int commas;
 
-	if (*p_src == '-') {
-		*p_dst++ = *p_src++;
-		num_len--;
-	}
+  if (*p_src == '-') {
+    *p_dst++ = *p_src++;
+    num_len--;
+  }
 
-	for (commas = 2 - num_len % 3; *p_src; commas = (commas + 1) % 3) {
-		*p_dst++ = *p_src++;
-		if (commas == 1) {
-			*p_dst++ = separator;
-		}
-	}
-	*--p_dst = '\0';
+  for (commas = 2 - num_len % 3; *p_src; commas = (commas + 1) % 3) {
+    *p_dst++ = *p_src++;
+    if (commas == 1) {
+      *p_dst++ = separator;
+    }
+  }
+  *--p_dst = '\0';
 
-	return (size_t)(p_dst - dst);
+  return (size_t)(p_dst - dst);
 }
 
 /**
@@ -1028,10 +1044,10 @@ static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_
  */
 size_t BLI_str_format_int_grouped(char dst[16], int num)
 {
-	char src[16];
-	int num_len = sprintf(src, "%d", num);
+  char src[16];
+  int num_len = sprintf(src, "%d", num);
 
-	return BLI_str_format_int_grouped_ex(src, dst, num_len);
+  return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
 /**
@@ -1044,12 +1060,12 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
  */
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
 {
-	/* NOTE: Buffer to hold maximum unsigned int64, which is 1.8e+19. but
-	 * we also need space for commas and null-terminator. */
-	char src[27];
-	int num_len = sprintf(src, "%"PRIu64"", num);
+  /* NOTE: Buffer to hold maximum unsigned int64, which is 1.8e+19. but
+   * we also need space for commas and null-terminator. */
+  char src[27];
+  int num_len = sprintf(src, "%" PRIu64 "", num);
 
-	return BLI_str_format_int_grouped_ex(src, dst, num_len);
+  return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
 /**
@@ -1063,28 +1079,28 @@ size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
  */
 void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
 {
-	double bytes_converted = bytes;
-	int order = 0;
-	int decimals;
-	const int base = base_10 ? 1000 : 1024;
-	const char *units_base_10[] = {"B", "KB", "MB", "GB", "TB", "PB"};
-	const char *units_base_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
-	const int tot_units = ARRAY_SIZE(units_base_2);
+  double bytes_converted = bytes;
+  int order = 0;
+  int decimals;
+  const int base = base_10 ? 1000 : 1024;
+  const char *units_base_10[] = {"B", "KB", "MB", "GB", "TB", "PB"};
+  const char *units_base_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
+  const int tot_units = ARRAY_SIZE(units_base_2);
 
-	BLI_STATIC_ASSERT(ARRAY_SIZE(units_base_2) == ARRAY_SIZE(units_base_10), "array size mismatch");
+  BLI_STATIC_ASSERT(ARRAY_SIZE(units_base_2) == ARRAY_SIZE(units_base_10), "array size mismatch");
 
-	while ((ABS(bytes_converted) >= base) && ((order + 1) < tot_units)) {
-		bytes_converted /= base;
-		order++;
-	}
-	decimals = MAX2(order - 1, 0);
+  while ((ABS(bytes_converted) >= base) && ((order + 1) < tot_units)) {
+    bytes_converted /= base;
+    order++;
+  }
+  decimals = MAX2(order - 1, 0);
 
-	/* Format value first, stripping away floating zeroes. */
-	const size_t dst_len = 15;
-	size_t len = BLI_snprintf_rlen(dst, dst_len, "%.*f", decimals, bytes_converted);
-	len -= (size_t)BLI_str_rstrip_float_zero(dst, '\0');
-	dst[len++] = ' ';
-	BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
+  /* Format value first, stripping away floating zeroes. */
+  const size_t dst_len = 15;
+  size_t len = BLI_snprintf_rlen(dst, dst_len, "%.*f", decimals, bytes_converted);
+  len -= (size_t)BLI_str_rstrip_float_zero(dst, '\0');
+  dst[len++] = ' ';
+  BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
 }
 
 /**
@@ -1098,37 +1114,36 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
  * \return The number of words found in \a str
  */
 int BLI_string_find_split_words(
-        const char *str, const size_t len,
-        const char delim, int r_words[][2], int words_max)
+    const char *str, const size_t len, const char delim, int r_words[][2], int words_max)
 {
-	int n = 0, i;
-	bool charsearch = true;
+  int n = 0, i;
+  bool charsearch = true;
 
-	/* Skip leading spaces */
-	for (i = 0; (i < len) && (str[i] != '\0'); i++) {
-		if (str[i] != delim) {
-			break;
-		}
-	}
+  /* Skip leading spaces */
+  for (i = 0; (i < len) && (str[i] != '\0'); i++) {
+    if (str[i] != delim) {
+      break;
+    }
+  }
 
-	for (; (i < len) && (str[i] != '\0') && (n < words_max); i++) {
-		if ((str[i] != delim) && (charsearch == true)) {
-			r_words[n][0] = i;
-			charsearch = false;
-		}
-		else {
-			if ((str[i] == delim) && (charsearch == false)) {
-				r_words[n][1] = i - r_words[n][0];
-				n++;
-				charsearch = true;
-			}
-		}
-	}
+  for (; (i < len) && (str[i] != '\0') && (n < words_max); i++) {
+    if ((str[i] != delim) && (charsearch == true)) {
+      r_words[n][0] = i;
+      charsearch = false;
+    }
+    else {
+      if ((str[i] == delim) && (charsearch == false)) {
+        r_words[n][1] = i - r_words[n][0];
+        n++;
+        charsearch = true;
+      }
+    }
+  }
 
-	if (charsearch == false) {
-		r_words[n][1] = i - r_words[n][0];
-		n++;
-	}
+  if (charsearch == false) {
+    r_words[n][1] = i - r_words[n][0];
+    n++;
+  }
 
-	return n;
+  return n;
 }

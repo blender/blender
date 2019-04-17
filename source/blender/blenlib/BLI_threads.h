@@ -30,11 +30,11 @@ extern "C" {
 #include <pthread.h>
 
 #ifdef __APPLE__
-#include <libkern/OSAtomic.h>
+#  include <libkern/OSAtomic.h>
 #endif
 
 /* for tables, button in UI, etc */
-#define BLENDER_MAX_THREADS     1024
+#define BLENDER_MAX_THREADS 1024
 
 struct ListBase;
 struct TaskScheduler;
@@ -47,49 +47,48 @@ void BLI_threadapi_exit(void);
 
 struct TaskScheduler *BLI_task_scheduler_get(void);
 
-void    BLI_threadpool_init(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
-int     BLI_available_threads(struct ListBase *threadbase);
-int     BLI_threadpool_available_thread_index(struct ListBase *threadbase);
-void    BLI_threadpool_insert(struct ListBase *threadbase, void *callerdata);
-void    BLI_threadpool_remove(struct ListBase *threadbase, void *callerdata);
-void    BLI_threadpool_remove_index(struct ListBase *threadbase, int index);
-void    BLI_threadpool_clear(struct ListBase *threadbase);
-void    BLI_threadpool_end(struct ListBase *threadbase);
-int     BLI_thread_is_main(void);
-
+void BLI_threadpool_init(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
+int BLI_available_threads(struct ListBase *threadbase);
+int BLI_threadpool_available_thread_index(struct ListBase *threadbase);
+void BLI_threadpool_insert(struct ListBase *threadbase, void *callerdata);
+void BLI_threadpool_remove(struct ListBase *threadbase, void *callerdata);
+void BLI_threadpool_remove_index(struct ListBase *threadbase, int index);
+void BLI_threadpool_clear(struct ListBase *threadbase);
+void BLI_threadpool_end(struct ListBase *threadbase);
+int BLI_thread_is_main(void);
 
 void BLI_threaded_malloc_begin(void);
 void BLI_threaded_malloc_end(void);
 
 /* System Information */
 
-int     BLI_system_thread_count(void); /* gets the number of threads the system can make use of */
-void    BLI_system_num_threads_override_set(int num);
-int     BLI_system_num_threads_override_get(void);
+int BLI_system_thread_count(void); /* gets the number of threads the system can make use of */
+void BLI_system_num_threads_override_set(int num);
+int BLI_system_num_threads_override_get(void);
 
 /* Global Mutex Locks
  *
  * One custom lock available now. can be extended. */
 
-#define LOCK_IMAGE      0
+#define LOCK_IMAGE 0
 #define LOCK_DRAW_IMAGE 1
-#define LOCK_VIEWER     2
-#define LOCK_CUSTOM1    3
-#define LOCK_RCACHE     4
-#define LOCK_OPENGL     5
-#define LOCK_NODES      6
-#define LOCK_MOVIECLIP  7
+#define LOCK_VIEWER 2
+#define LOCK_CUSTOM1 3
+#define LOCK_RCACHE 4
+#define LOCK_OPENGL 5
+#define LOCK_NODES 6
+#define LOCK_MOVIECLIP 7
 #define LOCK_COLORMANAGE 8
-#define LOCK_FFTW       9
-#define LOCK_VIEW3D     10
+#define LOCK_FFTW 9
+#define LOCK_VIEW3D 10
 
-void    BLI_thread_lock(int type);
-void    BLI_thread_unlock(int type);
+void BLI_thread_lock(int type);
+void BLI_thread_unlock(int type);
 
 /* Mutex Lock */
 
 typedef pthread_mutex_t ThreadMutex;
-#define BLI_MUTEX_INITIALIZER   PTHREAD_MUTEX_INITIALIZER
+#define BLI_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
 void BLI_mutex_init(ThreadMutex *mutex);
 void BLI_mutex_end(ThreadMutex *mutex);
@@ -118,8 +117,8 @@ void BLI_spin_end(SpinLock *spin);
 
 /* Read/Write Mutex Lock */
 
-#define THREAD_LOCK_READ    1
-#define THREAD_LOCK_WRITE   2
+#define THREAD_LOCK_READ 1
+#define THREAD_LOCK_WRITE 2
 
 #define BLI_RWLOCK_INITIALIZER PTHREAD_RWLOCK_INITIALIZER
 
@@ -175,7 +174,6 @@ bool BLI_thread_queue_is_empty(ThreadQueue *queue);
 void BLI_thread_queue_wait_finish(ThreadQueue *queue);
 void BLI_thread_queue_nowait(ThreadQueue *queue);
 
-
 /* Thread local storage */
 
 #if defined(__APPLE__)
@@ -184,7 +182,7 @@ void BLI_thread_queue_nowait(ThreadQueue *queue);
 #  define BLI_thread_local_delete(name) pthread_key_delete(name)
 #  define BLI_thread_local_get(name) pthread_getspecific(name)
 #  define BLI_thread_local_set(name, value) pthread_setspecific(name, value)
-#else  /* defined(__APPLE__) */
+#else /* defined(__APPLE__) */
 #  ifdef _MSC_VER
 #    define ThreadLocal(type) __declspec(thread) type
 #  else
@@ -194,7 +192,7 @@ void BLI_thread_queue_nowait(ThreadQueue *queue);
 #  define BLI_thread_local_delete(name)
 #  define BLI_thread_local_get(name) name
 #  define BLI_thread_local_set(name, value) name = value
-#endif  /* defined(__APPLE__) */
+#endif /* defined(__APPLE__) */
 
 /* **** Special functions to help performance on crazy NUMA setups. **** */
 

@@ -27,4 +27,4 @@
 bool BLI_memory_is_zero(const void *arr, const size_t size);
 #endif
 
-#endif  /* __BLI_MEMORY_UTILS_H__ */
+#endif /* __BLI_MEMORY_UTILS_H__ */

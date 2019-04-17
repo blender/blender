@@ -60,115 +60,111 @@ namespace DEG {
 
 void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 {
-	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
-		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
+  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_VIEW :
+                                                                  COLLECTION_RESTRICT_RENDER;
 
-	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-		if (lc->collection->flag & restrict_flag) {
-			continue;
-		}
-		if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-			build_collection(lc, lc->collection);
-		}
-		build_layer_collections(&lc->layer_collections);
-	}
+  for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
+    if (lc->collection->flag & restrict_flag) {
+      continue;
+    }
+    if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+      build_collection(lc, lc->collection);
+    }
+    build_layer_collections(&lc->layer_collections);
+  }
 }
 
-void DepsgraphNodeBuilder::build_view_layer(
-        Scene *scene,
-        ViewLayer *view_layer,
-        eDepsNode_LinkedState_Type linked_state)
+void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
+                                            ViewLayer *view_layer,
+                                            eDepsNode_LinkedState_Type linked_state)
 {
-	/* NOTE: Pass view layer index of 0 since after scene CoW there is
-	 * only one view layer in there. */
-	view_layer_index_ = 0;
-	/* Scene ID block. */
-	IDNode *id_node = add_id_node(&scene->id);
-	id_node->linked_state = linked_state;
-	/* Time source. */
-	add_time_source();
-	/* Setup currently building context. */
-	scene_ = scene;
-	view_layer_ = view_layer;
-	/* Get pointer to a CoW version of scene ID. */
-	Scene *scene_cow = get_cow_datablock(scene);
-	/* Scene objects. */
-	int select_id = 1;
-	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
-	 * but object is expected to be an original one. Hence we go into some
-	 * tricks here iterating over the view layer. */
-	int base_index = 0;
-	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-		/* object itself */
-		if (need_pull_base_into_graph(base)) {
-			/* NOTE: We consider object visible even if it's currently
-			 * restricted by the base/restriction flags. Otherwise its drivers
-			 * will never be evaluated.
-			 *
-			 * TODO(sergey): Need to go more granular on visibility checks. */
-			build_object(base_index, base->object, linked_state, true);
-			++base_index;
-		}
-		base->object->select_id = select_id++;
-	}
-	build_layer_collections(&view_layer->layer_collections);
-	if (scene->camera != NULL) {
-		build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
-	}
-	/* Rigidbody. */
-	if (scene->rigidbody_world != NULL) {
-		build_rigidbody(scene);
-	}
-	/* Scene's animation and drivers. */
-	if (scene->adt != NULL) {
-		build_animdata(&scene->id);
-	}
-	/* World. */
-	if (scene->world != NULL) {
-		build_world(scene->world);
-	}
-	/* Compositor nodes */
-	if (scene->nodetree != NULL) {
-		build_compositor(scene);
-	}
-	/* Cache file. */
-	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
-		build_cachefile(cachefile);
-	}
-	/* Masks. */
-	LISTBASE_FOREACH (Mask *, mask, &bmain_->masks) {
-		build_mask(mask);
-	}
-	/* Movie clips. */
-	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclips) {
-		build_movieclip(clip);
-	}
-	/* Material override. */
-	if (view_layer->mat_override != NULL) {
-		build_material(view_layer->mat_override);
-	}
-	/* Freestyle collections. */
-	LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-		if (fls->group != NULL) {
-			build_collection(NULL, fls->group);
-		}
-	}
-	/* Collections. */
-	add_operation_node(&scene->id,
-	                   NodeType::LAYER_COLLECTIONS,
-	                   OperationCode::VIEW_LAYER_EVAL,
-	                   function_bind(BKE_layer_eval_view_layer_indexed,
-	                                 _1,
-	                                 scene_cow,
-	                                 view_layer_index_));
-	/* Parameters evaluation for scene relations mainly. */
-	add_operation_node(
-	        &scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
-	/* Build all set scenes. */
-	if (scene->set != NULL) {
-		ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
-		build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
-	}
+  /* NOTE: Pass view layer index of 0 since after scene CoW there is
+   * only one view layer in there. */
+  view_layer_index_ = 0;
+  /* Scene ID block. */
+  IDNode *id_node = add_id_node(&scene->id);
+  id_node->linked_state = linked_state;
+  /* Time source. */
+  add_time_source();
+  /* Setup currently building context. */
+  scene_ = scene;
+  view_layer_ = view_layer;
+  /* Get pointer to a CoW version of scene ID. */
+  Scene *scene_cow = get_cow_datablock(scene);
+  /* Scene objects. */
+  int select_id = 1;
+  /* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
+   * but object is expected to be an original one. Hence we go into some
+   * tricks here iterating over the view layer. */
+  int base_index = 0;
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    /* object itself */
+    if (need_pull_base_into_graph(base)) {
+      /* NOTE: We consider object visible even if it's currently
+       * restricted by the base/restriction flags. Otherwise its drivers
+       * will never be evaluated.
+       *
+       * TODO(sergey): Need to go more granular on visibility checks. */
+      build_object(base_index, base->object, linked_state, true);
+      ++base_index;
+    }
+    base->object->select_id = select_id++;
+  }
+  build_layer_collections(&view_layer->layer_collections);
+  if (scene->camera != NULL) {
+    build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
+  }
+  /* Rigidbody. */
+  if (scene->rigidbody_world != NULL) {
+    build_rigidbody(scene);
+  }
+  /* Scene's animation and drivers. */
+  if (scene->adt != NULL) {
+    build_animdata(&scene->id);
+  }
+  /* World. */
+  if (scene->world != NULL) {
+    build_world(scene->world);
+  }
+  /* Compositor nodes */
+  if (scene->nodetree != NULL) {
+    build_compositor(scene);
+  }
+  /* Cache file. */
+  LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
+    build_cachefile(cachefile);
+  }
+  /* Masks. */
+  LISTBASE_FOREACH (Mask *, mask, &bmain_->masks) {
+    build_mask(mask);
+  }
+  /* Movie clips. */
+  LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclips) {
+    build_movieclip(clip);
+  }
+  /* Material override. */
+  if (view_layer->mat_override != NULL) {
+    build_material(view_layer->mat_override);
+  }
+  /* Freestyle collections. */
+  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
+    if (fls->group != NULL) {
+      build_collection(NULL, fls->group);
+    }
+  }
+  /* Collections. */
+  add_operation_node(
+      &scene->id,
+      NodeType::LAYER_COLLECTIONS,
+      OperationCode::VIEW_LAYER_EVAL,
+      function_bind(BKE_layer_eval_view_layer_indexed, _1, scene_cow, view_layer_index_));
+  /* Parameters evaluation for scene relations mainly. */
+  add_operation_node(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
+  /* Build all set scenes. */
+  if (scene->set != NULL) {
+    ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
+    build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
+  }
 }
 
 }  // namespace DEG

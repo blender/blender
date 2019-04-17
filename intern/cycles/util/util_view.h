@@ -29,10 +29,15 @@ typedef void (*ViewDisplayFunc)();
 typedef void (*ViewKeyboardFunc)(unsigned char key);
 typedef void (*ViewMotionFunc)(int x, int y, int button);
 
-void view_main_loop(const char *title, int width, int height,
-	ViewInitFunc initf, ViewExitFunc exitf,
-	ViewResizeFunc resize, ViewDisplayFunc display,
-	ViewKeyboardFunc keyboard, ViewMotionFunc motion);
+void view_main_loop(const char *title,
+                    int width,
+                    int height,
+                    ViewInitFunc initf,
+                    ViewExitFunc exitf,
+                    ViewResizeFunc resize,
+                    ViewDisplayFunc display,
+                    ViewKeyboardFunc keyboard,
+                    ViewMotionFunc motion);
 
 void view_display_info(const char *info);
 void view_display_help();
@@ -40,4 +45,4 @@ void view_redraw();
 
 CCL_NAMESPACE_END
 
-#endif  /*__UTIL_VIEW_H__*/
+#endif /*__UTIL_VIEW_H__*/

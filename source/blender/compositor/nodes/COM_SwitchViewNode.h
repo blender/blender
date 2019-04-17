@@ -27,8 +27,8 @@
  * \ingroup Node
  */
 class SwitchViewNode : public Node {
-public:
-	SwitchViewNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  SwitchViewNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 #endif

@@ -20,25 +20,27 @@
 
 #include "COLLADASWLibraryAnimationClips.h"
 
+class AnimationClipExporter : COLLADASW::LibraryAnimationClips {
+ private:
+  Depsgraph *depsgraph;
+  Scene *scene;
+  COLLADASW::StreamWriter *sw;
+  const ExportSettings *export_settings;
+  std::vector<std::vector<std::string>> anim_meta;
 
-class AnimationClipExporter:COLLADASW::LibraryAnimationClips {
-private:
-	Depsgraph *depsgraph;
-	Scene *scene;
-	COLLADASW::StreamWriter *sw;
-	const ExportSettings *export_settings;
-	std::vector<std::vector<std::string>> anim_meta;
+ public:
+  AnimationClipExporter(Depsgraph *depsgraph,
+                        COLLADASW::StreamWriter *sw,
+                        const ExportSettings *export_settings,
+                        std::vector<std::vector<std::string>> anim_meta)
+      : COLLADASW::LibraryAnimationClips(sw),
+        depsgraph(depsgraph),
+        scene(nullptr),
+        sw(sw),
+        export_settings(export_settings),
+        anim_meta(anim_meta)
+  {
+  }
 
-public:
-
-	AnimationClipExporter(Depsgraph *depsgraph , COLLADASW::StreamWriter *sw, const ExportSettings *export_settings, std::vector<std::vector<std::string>> anim_meta) :
-		COLLADASW::LibraryAnimationClips(sw),
-		depsgraph(depsgraph),
-		scene(nullptr),
-		sw(sw),
-		export_settings(export_settings),
-		anim_meta(anim_meta)
-	{}
-
-	void exportAnimationClips(Scene *sce);
+  void exportAnimationClips(Scene *sce);
 };

@@ -27,23 +27,23 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline float noise_musgrave_fBm(float3 p, float H, float lacunarity, float octaves)
 {
-	float rmd;
-	float value = 0.0f;
-	float pwr = 1.0f;
-	float pwHL = powf(lacunarity, -H);
-	int i;
+  float rmd;
+  float value = 0.0f;
+  float pwr = 1.0f;
+  float pwHL = powf(lacunarity, -H);
+  int i;
 
-	for(i = 0; i < float_to_int(octaves); i++) {
-		value += snoise(p) * pwr;
-		pwr *= pwHL;
-		p *= lacunarity;
-	}
+  for (i = 0; i < float_to_int(octaves); i++) {
+    value += snoise(p) * pwr;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
 
-	rmd = octaves - floorf(octaves);
-	if(rmd != 0.0f)
-		value += rmd * snoise(p) * pwr;
+  rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f)
+    value += rmd * snoise(p) * pwr;
 
-	return value;
+  return value;
 }
 
 /* Musgrave Multifractal
@@ -53,25 +53,28 @@ ccl_device_noinline float noise_musgrave_fBm(float3 p, float H, float lacunarity
  * octaves: number of frequencies in the fBm
  */
 
-ccl_device_noinline float noise_musgrave_multi_fractal(float3 p, float H, float lacunarity, float octaves)
+ccl_device_noinline float noise_musgrave_multi_fractal(float3 p,
+                                                       float H,
+                                                       float lacunarity,
+                                                       float octaves)
 {
-	float rmd;
-	float value = 1.0f;
-	float pwr = 1.0f;
-	float pwHL = powf(lacunarity, -H);
-	int i;
+  float rmd;
+  float value = 1.0f;
+  float pwr = 1.0f;
+  float pwHL = powf(lacunarity, -H);
+  int i;
 
-	for(i = 0; i < float_to_int(octaves); i++) {
-		value *= (pwr * snoise(p) + 1.0f);
-		pwr *= pwHL;
-		p *= lacunarity;
-	}
+  for (i = 0; i < float_to_int(octaves); i++) {
+    value *= (pwr * snoise(p) + 1.0f);
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
 
-	rmd = octaves - floorf(octaves);
-	if(rmd != 0.0f)
-		value *= (rmd * pwr * snoise(p) + 1.0f); /* correct? */
+  rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f)
+    value *= (rmd * pwr * snoise(p) + 1.0f); /* correct? */
 
-	return value;
+  return value;
 }
 
 /* Musgrave Heterogeneous Terrain
@@ -82,31 +85,32 @@ ccl_device_noinline float noise_musgrave_multi_fractal(float3 p, float H, float 
  * offset: raises the terrain from `sea level'
  */
 
-ccl_device_noinline float noise_musgrave_hetero_terrain(float3 p, float H, float lacunarity, float octaves, float offset)
+ccl_device_noinline float noise_musgrave_hetero_terrain(
+    float3 p, float H, float lacunarity, float octaves, float offset)
 {
-	float value, increment, rmd;
-	float pwHL = powf(lacunarity, -H);
-	float pwr = pwHL;
-	int i;
+  float value, increment, rmd;
+  float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+  int i;
 
-	/* first unscaled octave of function; later octaves are scaled */
-	value = offset + snoise(p);
-	p *= lacunarity;
+  /* first unscaled octave of function; later octaves are scaled */
+  value = offset + snoise(p);
+  p *= lacunarity;
 
-	for(i = 1; i < float_to_int(octaves); i++) {
-		increment = (snoise(p) + offset) * pwr * value;
-		value += increment;
-		pwr *= pwHL;
-		p *= lacunarity;
-	}
+  for (i = 1; i < float_to_int(octaves); i++) {
+    increment = (snoise(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
 
-	rmd = octaves - floorf(octaves);
-	if(rmd != 0.0f) {
-		increment = (snoise(p) + offset) * pwr * value;
-		value += rmd * increment;
-	}
+  rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    increment = (snoise(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
 
-	return value;
+  return value;
 }
 
 /* Hybrid Additive/Multiplicative Multifractal Terrain
@@ -117,33 +121,34 @@ ccl_device_noinline float noise_musgrave_hetero_terrain(float3 p, float H, float
  * offset: raises the terrain from `sea level'
  */
 
-ccl_device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, float H, float lacunarity, float octaves, float offset, float gain)
+ccl_device_noinline float noise_musgrave_hybrid_multi_fractal(
+    float3 p, float H, float lacunarity, float octaves, float offset, float gain)
 {
-	float result, signal, weight, rmd;
-	float pwHL = powf(lacunarity, -H);
-	float pwr = pwHL;
-	int i;
+  float result, signal, weight, rmd;
+  float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+  int i;
 
-	result = snoise(p) + offset;
-	weight = gain * result;
-	p *= lacunarity;
+  result = snoise(p) + offset;
+  weight = gain * result;
+  p *= lacunarity;
 
-	for(i = 1; (weight > 0.001f) && (i < float_to_int(octaves)); i++) {
-		if(weight > 1.0f)
-			weight = 1.0f;
+  for (i = 1; (weight > 0.001f) && (i < float_to_int(octaves)); i++) {
+    if (weight > 1.0f)
+      weight = 1.0f;
 
-		signal = (snoise(p) + offset) * pwr;
-		pwr *= pwHL;
-		result += weight * signal;
-		weight *= gain * signal;
-		p *= lacunarity;
-	}
+    signal = (snoise(p) + offset) * pwr;
+    pwr *= pwHL;
+    result += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
 
-	rmd = octaves - floorf(octaves);
-	if(rmd != 0.0f)
-		result += rmd * ((snoise(p) + offset) * pwr);
+  rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f)
+    result += rmd * ((snoise(p) + offset) * pwr);
 
-	return result;
+  return result;
 }
 
 /* Ridged Multifractal Terrain
@@ -154,81 +159,93 @@ ccl_device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, float H,
  * offset: raises the terrain from `sea level'
  */
 
-ccl_device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, float H, float lacunarity, float octaves, float offset, float gain)
+ccl_device_noinline float noise_musgrave_ridged_multi_fractal(
+    float3 p, float H, float lacunarity, float octaves, float offset, float gain)
 {
-	float result, signal, weight;
-	float pwHL = powf(lacunarity, -H);
-	float pwr = pwHL;
-	int i;
+  float result, signal, weight;
+  float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+  int i;
 
-	signal = offset - fabsf(snoise(p));
-	signal *= signal;
-	result = signal;
-	weight = 1.0f;
+  signal = offset - fabsf(snoise(p));
+  signal *= signal;
+  result = signal;
+  weight = 1.0f;
 
-	for(i = 1; i < float_to_int(octaves); i++) {
-		p *= lacunarity;
-		weight = saturate(signal * gain);
-		signal = offset - fabsf(snoise(p));
-		signal *= signal;
-		signal *= weight;
-		result += signal * pwr;
-		pwr *= pwHL;
-	}
+  for (i = 1; i < float_to_int(octaves); i++) {
+    p *= lacunarity;
+    weight = saturate(signal * gain);
+    signal = offset - fabsf(snoise(p));
+    signal *= signal;
+    signal *= weight;
+    result += signal * pwr;
+    pwr *= pwHL;
+  }
 
-	return result;
+  return result;
 }
 
 /* Shader */
 
-ccl_device float svm_musgrave(NodeMusgraveType type, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float3 p)
+ccl_device float svm_musgrave(NodeMusgraveType type,
+                              float dimension,
+                              float lacunarity,
+                              float octaves,
+                              float offset,
+                              float intensity,
+                              float gain,
+                              float3 p)
 {
-	if(type == NODE_MUSGRAVE_MULTIFRACTAL)
-		return intensity*noise_musgrave_multi_fractal(p, dimension, lacunarity, octaves);
-	else if(type == NODE_MUSGRAVE_FBM)
-		return intensity*noise_musgrave_fBm(p, dimension, lacunarity, octaves);
-	else if(type == NODE_MUSGRAVE_HYBRID_MULTIFRACTAL)
-		return intensity*noise_musgrave_hybrid_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
-	else if(type == NODE_MUSGRAVE_RIDGED_MULTIFRACTAL)
-		return intensity*noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
-	else if(type == NODE_MUSGRAVE_HETERO_TERRAIN)
-		return intensity*noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, offset);
+  if (type == NODE_MUSGRAVE_MULTIFRACTAL)
+    return intensity * noise_musgrave_multi_fractal(p, dimension, lacunarity, octaves);
+  else if (type == NODE_MUSGRAVE_FBM)
+    return intensity * noise_musgrave_fBm(p, dimension, lacunarity, octaves);
+  else if (type == NODE_MUSGRAVE_HYBRID_MULTIFRACTAL)
+    return intensity *
+           noise_musgrave_hybrid_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
+  else if (type == NODE_MUSGRAVE_RIDGED_MULTIFRACTAL)
+    return intensity *
+           noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
+  else if (type == NODE_MUSGRAVE_HETERO_TERRAIN)
+    return intensity * noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, offset);
 
-	return 0.0f;
+  return 0.0f;
 }
 
-ccl_device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_tex_musgrave(
+    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	uint4 node2 = read_node(kg, offset);
-	uint4 node3 = read_node(kg, offset);
+  uint4 node2 = read_node(kg, offset);
+  uint4 node3 = read_node(kg, offset);
 
-	uint type, co_offset, color_offset, fac_offset;
-	uint dimension_offset, lacunarity_offset, detail_offset, offset_offset;
-	uint gain_offset, scale_offset;
+  uint type, co_offset, color_offset, fac_offset;
+  uint dimension_offset, lacunarity_offset, detail_offset, offset_offset;
+  uint gain_offset, scale_offset;
 
-	decode_node_uchar4(node.y, &type, &co_offset, &color_offset, &fac_offset);
-	decode_node_uchar4(node.z, &dimension_offset, &lacunarity_offset, &detail_offset, &offset_offset);
-	decode_node_uchar4(node.w, &gain_offset, &scale_offset, NULL, NULL);
+  decode_node_uchar4(node.y, &type, &co_offset, &color_offset, &fac_offset);
+  decode_node_uchar4(
+      node.z, &dimension_offset, &lacunarity_offset, &detail_offset, &offset_offset);
+  decode_node_uchar4(node.w, &gain_offset, &scale_offset, NULL, NULL);
 
-	float3 co = stack_load_float3(stack, co_offset);
-	float dimension = stack_load_float_default(stack, dimension_offset, node2.x);
-	float lacunarity = stack_load_float_default(stack, lacunarity_offset, node2.y);
-	float detail = stack_load_float_default(stack, detail_offset, node2.z);
-	float foffset = stack_load_float_default(stack, offset_offset, node2.w);
-	float gain = stack_load_float_default(stack, gain_offset, node3.x);
-	float scale = stack_load_float_default(stack, scale_offset, node3.y);
+  float3 co = stack_load_float3(stack, co_offset);
+  float dimension = stack_load_float_default(stack, dimension_offset, node2.x);
+  float lacunarity = stack_load_float_default(stack, lacunarity_offset, node2.y);
+  float detail = stack_load_float_default(stack, detail_offset, node2.z);
+  float foffset = stack_load_float_default(stack, offset_offset, node2.w);
+  float gain = stack_load_float_default(stack, gain_offset, node3.x);
+  float scale = stack_load_float_default(stack, scale_offset, node3.y);
 
-	dimension = fmaxf(dimension, 1e-5f);
-	detail = clamp(detail, 0.0f, 16.0f);
-	lacunarity = fmaxf(lacunarity, 1e-5f);
+  dimension = fmaxf(dimension, 1e-5f);
+  detail = clamp(detail, 0.0f, 16.0f);
+  lacunarity = fmaxf(lacunarity, 1e-5f);
 
-	float f = svm_musgrave((NodeMusgraveType)type,
-		dimension, lacunarity, detail, foffset, 1.0f, gain, co*scale);
+  float f = svm_musgrave(
+      (NodeMusgraveType)type, dimension, lacunarity, detail, foffset, 1.0f, gain, co * scale);
 
-	if(stack_valid(fac_offset))
-		stack_store_float(stack, fac_offset, f);
-	if(stack_valid(color_offset))
-		stack_store_float3(stack, color_offset, make_float3(f, f, f));
+  if (stack_valid(fac_offset))
+    stack_store_float(stack, fac_offset, f);
+  if (stack_valid(color_offset))
+    stack_store_float3(stack, color_offset, make_float3(f, f, f));
 }
 
 CCL_NAMESPACE_END

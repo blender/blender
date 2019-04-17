@@ -33,12 +33,13 @@ extern "C" {
 
 extern PyTypeObject StrokeVertex_Type;
 
-#define BPy_StrokeVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeVertex_Type))
+#define BPy_StrokeVertex_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeVertex_Type))
 
 /*---------------------------Python BPy_StrokeVertex structure definition----------*/
 typedef struct {
-	BPy_CurvePoint py_cp;
-	StrokeVertex *sv;
+  BPy_CurvePoint py_cp;
+  StrokeVertex *sv;
 } BPy_StrokeVertex;
 
 /*---------------------------Python BPy_StrokeVertex visible prototypes-----------*/

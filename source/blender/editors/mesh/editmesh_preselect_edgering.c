@@ -47,304 +47,309 @@
 
 static void edgering_vcos_get(BMVert *v[2][2], float r_cos[2][2][3], const float (*coords)[3])
 {
-	if (coords) {
-		int j, k;
-		for (j = 0; j < 2; j++) {
-			for (k = 0; k < 2; k++) {
-				copy_v3_v3(r_cos[j][k], coords[BM_elem_index_get(v[j][k])]);
-			}
-		}
-	}
-	else {
-		int j, k;
-		for (j = 0; j < 2; j++) {
-			for (k = 0; k < 2; k++) {
-				copy_v3_v3(r_cos[j][k], v[j][k]->co);
-			}
-		}
-	}
+  if (coords) {
+    int j, k;
+    for (j = 0; j < 2; j++) {
+      for (k = 0; k < 2; k++) {
+        copy_v3_v3(r_cos[j][k], coords[BM_elem_index_get(v[j][k])]);
+      }
+    }
+  }
+  else {
+    int j, k;
+    for (j = 0; j < 2; j++) {
+      for (k = 0; k < 2; k++) {
+        copy_v3_v3(r_cos[j][k], v[j][k]->co);
+      }
+    }
+  }
 }
 
 static void edgering_vcos_get_pair(BMVert *v[2], float r_cos[2][3], const float (*coords)[3])
 {
-	if (coords) {
-		int j;
-		for (j = 0; j < 2; j++) {
-			copy_v3_v3(r_cos[j], coords[BM_elem_index_get(v[j])]);
-		}
-	}
-	else {
-		int j;
-		for (j = 0; j < 2; j++) {
-			copy_v3_v3(r_cos[j], v[j]->co);
-		}
-	}
+  if (coords) {
+    int j;
+    for (j = 0; j < 2; j++) {
+      copy_v3_v3(r_cos[j], coords[BM_elem_index_get(v[j])]);
+    }
+  }
+  else {
+    int j;
+    for (j = 0; j < 2; j++) {
+      copy_v3_v3(r_cos[j], v[j]->co);
+    }
+  }
 }
-
 
 /**
  * Given two opposite edges in a face, finds the ordering of their vertices so
  * that cut preview lines won't cross each other.
  */
-static void edgering_find_order(
-        BMEdge *eed_last, BMEdge *eed,
-        BMVert *eve_last, BMVert *v[2][2])
+static void edgering_find_order(BMEdge *eed_last, BMEdge *eed, BMVert *eve_last, BMVert *v[2][2])
 {
-	BMLoop *l = eed->l;
+  BMLoop *l = eed->l;
 
-	/* find correct order for v[1] */
-	if (!(BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f))) {
-		BMIter liter;
-		BM_ITER_ELEM (l, &liter, l, BM_LOOPS_OF_LOOP) {
-			if (BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f))
-				break;
-		}
-	}
+  /* find correct order for v[1] */
+  if (!(BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f))) {
+    BMIter liter;
+    BM_ITER_ELEM (l, &liter, l, BM_LOOPS_OF_LOOP) {
+      if (BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f))
+        break;
+    }
+  }
 
-	/* this should never happen */
-	if (!l) {
-		v[0][0] = eed->v1;
-		v[0][1] = eed->v2;
-		v[1][0] = eed_last->v1;
-		v[1][1] = eed_last->v2;
-		return;
-	}
+  /* this should never happen */
+  if (!l) {
+    v[0][0] = eed->v1;
+    v[0][1] = eed->v2;
+    v[1][0] = eed_last->v1;
+    v[1][1] = eed_last->v2;
+    return;
+  }
 
-	BMLoop *l_other = BM_loop_other_edge_loop(l, eed->v1);
-	const bool rev = (l_other == l->prev);
-	while (l_other->v != eed_last->v1 && l_other->v != eed_last->v2) {
-		l_other = rev ? l_other->prev : l_other->next;
-	}
+  BMLoop *l_other = BM_loop_other_edge_loop(l, eed->v1);
+  const bool rev = (l_other == l->prev);
+  while (l_other->v != eed_last->v1 && l_other->v != eed_last->v2) {
+    l_other = rev ? l_other->prev : l_other->next;
+  }
 
-	if (l_other->v == eve_last) {
-		v[0][0] = eed->v1;
-		v[0][1] = eed->v2;
-	}
-	else {
-		v[0][0] = eed->v2;
-		v[0][1] = eed->v1;
-	}
+  if (l_other->v == eve_last) {
+    v[0][0] = eed->v1;
+    v[0][1] = eed->v2;
+  }
+  else {
+    v[0][0] = eed->v2;
+    v[0][1] = eed->v1;
+  }
 }
 
 struct EditMesh_PreSelEdgeRing {
-	float (*edges)[2][3];
-	int     edges_len;
+  float (*edges)[2][3];
+  int edges_len;
 
-	float (*verts)[3];
-	int     verts_len;
+  float (*verts)[3];
+  int verts_len;
 };
 
 struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create(void)
 {
-	struct EditMesh_PreSelEdgeRing *psel = MEM_callocN(sizeof(*psel), __func__);
-	return psel;
+  struct EditMesh_PreSelEdgeRing *psel = MEM_callocN(sizeof(*psel), __func__);
+  return psel;
 }
 
-void EDBM_preselect_edgering_destroy(
-        struct EditMesh_PreSelEdgeRing *psel)
+void EDBM_preselect_edgering_destroy(struct EditMesh_PreSelEdgeRing *psel)
 {
-	EDBM_preselect_edgering_clear(psel);
-	MEM_freeN(psel);
+  EDBM_preselect_edgering_clear(psel);
+  MEM_freeN(psel);
 }
 
-void EDBM_preselect_edgering_clear(
-        struct EditMesh_PreSelEdgeRing *psel)
+void EDBM_preselect_edgering_clear(struct EditMesh_PreSelEdgeRing *psel)
 {
-	MEM_SAFE_FREE(psel->edges);
-	psel->edges_len = 0;
+  MEM_SAFE_FREE(psel->edges);
+  psel->edges_len = 0;
 
-	MEM_SAFE_FREE(psel->verts);
-	psel->verts_len = 0;
+  MEM_SAFE_FREE(psel->verts);
+  psel->verts_len = 0;
 }
 
-void EDBM_preselect_edgering_draw(
-        struct EditMesh_PreSelEdgeRing *psel, const float matrix[4][4])
+void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const float matrix[4][4])
 {
-	if ((psel->edges_len == 0) && (psel->verts_len == 0)) {
-		return;
-	}
+  if ((psel->edges_len == 0) && (psel->verts_len == 0)) {
+    return;
+  }
 
-	GPU_depth_test(false);
+  GPU_depth_test(false);
 
-	GPU_matrix_push();
-	GPU_matrix_mul(matrix);
+  GPU_matrix_push();
+  GPU_matrix_mul(matrix);
 
-	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-	immUniformThemeColor3(TH_GIZMO_PRIMARY);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformThemeColor3(TH_GIZMO_PRIMARY);
 
-	if (psel->edges_len > 0) {
-		immBegin(GPU_PRIM_LINES, psel->edges_len * 2);
+  if (psel->edges_len > 0) {
+    immBegin(GPU_PRIM_LINES, psel->edges_len * 2);
 
-		for (int i = 0; i < psel->edges_len; i++) {
-			immVertex3fv(pos, psel->edges[i][0]);
-			immVertex3fv(pos, psel->edges[i][1]);
-		}
+    for (int i = 0; i < psel->edges_len; i++) {
+      immVertex3fv(pos, psel->edges[i][0]);
+      immVertex3fv(pos, psel->edges[i][1]);
+    }
 
-		immEnd();
-	}
+    immEnd();
+  }
 
-	if (psel->verts_len > 0) {
-		GPU_point_size(3.0f);
+  if (psel->verts_len > 0) {
+    GPU_point_size(3.0f);
 
-		immBegin(GPU_PRIM_POINTS, psel->verts_len);
+    immBegin(GPU_PRIM_POINTS, psel->verts_len);
 
-		for (int i = 0; i < psel->verts_len; i++) {
-			immVertex3fv(pos, psel->verts[i]);
-		}
+    for (int i = 0; i < psel->verts_len; i++) {
+      immVertex3fv(pos, psel->verts[i]);
+    }
 
-		immEnd();
-	}
+    immEnd();
+  }
 
-	immUnbindProgram();
+  immUnbindProgram();
 
-	GPU_matrix_pop();
+  GPU_matrix_pop();
 
-	/* Reset default */
-	GPU_depth_test(true);
+  /* Reset default */
+  GPU_depth_test(true);
 }
 
 static void view3d_preselect_mesh_edgering_update_verts_from_edge(
-        struct EditMesh_PreSelEdgeRing *psel,
-        BMesh *UNUSED(bm), BMEdge *eed_start, int previewlines, const float (*coords)[3])
+    struct EditMesh_PreSelEdgeRing *psel,
+    BMesh *UNUSED(bm),
+    BMEdge *eed_start,
+    int previewlines,
+    const float (*coords)[3])
 {
-	float v_cos[2][3];
-	float (*verts)[3];
-	int i, tot = 0;
+  float v_cos[2][3];
+  float(*verts)[3];
+  int i, tot = 0;
 
-	verts = MEM_mallocN(sizeof(*psel->verts) * previewlines, __func__);
+  verts = MEM_mallocN(sizeof(*psel->verts) * previewlines, __func__);
 
-	edgering_vcos_get_pair(&eed_start->v1, v_cos, coords);
+  edgering_vcos_get_pair(&eed_start->v1, v_cos, coords);
 
-	for (i = 1; i <= previewlines; i++) {
-		const float fac = (i / ((float)previewlines + 1));
-		interp_v3_v3v3(verts[tot], v_cos[0], v_cos[1], fac);
-		tot++;
-	}
+  for (i = 1; i <= previewlines; i++) {
+    const float fac = (i / ((float)previewlines + 1));
+    interp_v3_v3v3(verts[tot], v_cos[0], v_cos[1], fac);
+    tot++;
+  }
 
-	psel->verts = verts;
-	psel->verts_len = previewlines;
+  psel->verts = verts;
+  psel->verts_len = previewlines;
 }
 
 static void view3d_preselect_mesh_edgering_update_edges_from_edge(
-        struct EditMesh_PreSelEdgeRing *psel,
-        BMesh *bm, BMEdge *eed_start, int previewlines, const float (*coords)[3])
+    struct EditMesh_PreSelEdgeRing *psel,
+    BMesh *bm,
+    BMEdge *eed_start,
+    int previewlines,
+    const float (*coords)[3])
 {
-	BMWalker walker;
-	BMEdge *eed, *eed_last;
-	BMVert *v[2][2] = {{NULL}}, *eve_last;
-	float (*edges)[2][3] = NULL;
-	BLI_Stack *edge_stack;
+  BMWalker walker;
+  BMEdge *eed, *eed_last;
+  BMVert *v[2][2] = {{NULL}}, *eve_last;
+  float(*edges)[2][3] = NULL;
+  BLI_Stack *edge_stack;
 
-	int i, tot = 0;
+  int i, tot = 0;
 
-	BMW_init(&walker, bm, BMW_EDGERING,
-	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-	         BMW_FLAG_TEST_HIDDEN,
-	         BMW_NIL_LAY);
+  BMW_init(&walker,
+           bm,
+           BMW_EDGERING,
+           BMW_MASK_NOP,
+           BMW_MASK_NOP,
+           BMW_MASK_NOP,
+           BMW_FLAG_TEST_HIDDEN,
+           BMW_NIL_LAY);
 
+  edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
 
-	edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
+  eed_last = NULL;
+  for (eed = eed_last = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
+    BLI_stack_push(edge_stack, &eed);
+  }
+  BMW_end(&walker);
 
-	eed_last = NULL;
-	for (eed = eed_last = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
-		BLI_stack_push(edge_stack, &eed);
-	}
-	BMW_end(&walker);
+  eed_start = *(BMEdge **)BLI_stack_peek(edge_stack);
 
+  edges = MEM_mallocN((sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) *
+                          previewlines,
+                      __func__);
 
-	eed_start = *(BMEdge **)BLI_stack_peek(edge_stack);
+  eve_last = NULL;
+  eed_last = NULL;
 
-	edges = MEM_mallocN(
-	        (sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) * previewlines, __func__);
+  while (!BLI_stack_is_empty(edge_stack)) {
+    BLI_stack_pop(edge_stack, &eed);
 
-	eve_last = NULL;
-	eed_last = NULL;
+    if (eed_last) {
+      if (eve_last) {
+        v[1][0] = v[0][0];
+        v[1][1] = v[0][1];
+      }
+      else {
+        v[1][0] = eed_last->v1;
+        v[1][1] = eed_last->v2;
+        eve_last = eed_last->v1;
+      }
 
-	while (!BLI_stack_is_empty(edge_stack)) {
-		BLI_stack_pop(edge_stack, &eed);
+      edgering_find_order(eed_last, eed, eve_last, v);
+      eve_last = v[0][0];
 
-		if (eed_last) {
-			if (eve_last) {
-				v[1][0] = v[0][0];
-				v[1][1] = v[0][1];
-			}
-			else {
-				v[1][0] = eed_last->v1;
-				v[1][1] = eed_last->v2;
-				eve_last  = eed_last->v1;
-			}
+      for (i = 1; i <= previewlines; i++) {
+        const float fac = (i / ((float)previewlines + 1));
+        float v_cos[2][2][3];
 
-			edgering_find_order(eed_last, eed, eve_last, v);
-			eve_last = v[0][0];
+        edgering_vcos_get(v, v_cos, coords);
 
-			for (i = 1; i <= previewlines; i++) {
-				const float fac = (i / ((float)previewlines + 1));
-				float v_cos[2][2][3];
+        interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
+        interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
+        tot++;
+      }
+    }
+    eed_last = eed;
+  }
 
-				edgering_vcos_get(v, v_cos, coords);
-
-				interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
-				interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
-				tot++;
-			}
-		}
-		eed_last = eed;
-	}
-
-	if ((eed_last != eed_start) &&
+  if ((eed_last != eed_start) &&
 #ifdef BMW_EDGERING_NGON
-	    BM_edge_share_face_check(eed_last, eed_start)
+      BM_edge_share_face_check(eed_last, eed_start)
 #else
-	    BM_edge_share_quad_check(eed_last, eed_start)
+      BM_edge_share_quad_check(eed_last, eed_start)
 #endif
-	    )
-	{
-		v[1][0] = v[0][0];
-		v[1][1] = v[0][1];
+  ) {
+    v[1][0] = v[0][0];
+    v[1][1] = v[0][1];
 
-		edgering_find_order(eed_last, eed_start, eve_last, v);
+    edgering_find_order(eed_last, eed_start, eve_last, v);
 
-		for (i = 1; i <= previewlines; i++) {
-			const float fac = (i / ((float)previewlines + 1));
-			float v_cos[2][2][3];
+    for (i = 1; i <= previewlines; i++) {
+      const float fac = (i / ((float)previewlines + 1));
+      float v_cos[2][2][3];
 
-			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {
-				continue;
-			}
+      if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {
+        continue;
+      }
 
-			edgering_vcos_get(v, v_cos, coords);
+      edgering_vcos_get(v, v_cos, coords);
 
-			interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
-			interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
-			tot++;
-		}
-	}
+      interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
+      interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
+      tot++;
+    }
+  }
 
-	BLI_stack_free(edge_stack);
+  BLI_stack_free(edge_stack);
 
-	psel->edges = edges;
-	psel->edges_len = tot;
+  psel->edges = edges;
+  psel->edges_len = tot;
 }
 
-void EDBM_preselect_edgering_update_from_edge(
-        struct EditMesh_PreSelEdgeRing *psel,
-        BMesh *bm, BMEdge *eed_start, int previewlines, const float (*coords)[3])
+void EDBM_preselect_edgering_update_from_edge(struct EditMesh_PreSelEdgeRing *psel,
+                                              BMesh *bm,
+                                              BMEdge *eed_start,
+                                              int previewlines,
+                                              const float (*coords)[3])
 {
-	EDBM_preselect_edgering_clear(psel);
+  EDBM_preselect_edgering_clear(psel);
 
-	if (coords) {
-		BM_mesh_elem_index_ensure(bm, BM_VERT);
-	}
+  if (coords) {
+    BM_mesh_elem_index_ensure(bm, BM_VERT);
+  }
 
-	if (BM_edge_is_wire(eed_start)) {
-		view3d_preselect_mesh_edgering_update_verts_from_edge(psel, bm, eed_start, previewlines, coords);
-	}
-	else {
-		view3d_preselect_mesh_edgering_update_edges_from_edge(psel, bm, eed_start, previewlines, coords);
-	}
-
+  if (BM_edge_is_wire(eed_start)) {
+    view3d_preselect_mesh_edgering_update_verts_from_edge(
+        psel, bm, eed_start, previewlines, coords);
+  }
+  else {
+    view3d_preselect_mesh_edgering_update_edges_from_edge(
+        psel, bm, eed_start, previewlines, coords);
+  }
 }
 
 /** \} */

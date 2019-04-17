@@ -19,57 +19,57 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	intern
+  .
+  intern
 )
 
 set(INC_SYS
 )
 
 set(SRC
-	openvdb_capi.h
+  openvdb_capi.h
 )
 
 set(LIB
 )
 
 if(WITH_OPENVDB)
-	add_definitions(
-		-DWITH_OPENVDB
-		${OPENVDB_DEFINITIONS}
-	)
+  add_definitions(
+    -DWITH_OPENVDB
+    ${OPENVDB_DEFINITIONS}
+  )
 
-	if(WITH_OPENVDB_3_ABI_COMPATIBLE)
-		add_definitions(
-			-DOPENVDB_3_ABI_COMPATIBLE
-		)
-	endif()
+  if(WITH_OPENVDB_3_ABI_COMPATIBLE)
+    add_definitions(
+      -DOPENVDB_3_ABI_COMPATIBLE
+    )
+  endif()
 
-	list(APPEND INC_SYS
-		${BOOST_INCLUDE_DIR}
-		${TBB_INCLUDE_DIRS}
-		${OPENEXR_INCLUDE_DIRS}
-		${OPENVDB_INCLUDE_DIRS}
-	)
+  list(APPEND INC_SYS
+    ${BOOST_INCLUDE_DIR}
+    ${TBB_INCLUDE_DIRS}
+    ${OPENEXR_INCLUDE_DIRS}
+    ${OPENVDB_INCLUDE_DIRS}
+  )
 
-	list(APPEND SRC
-		intern/openvdb_dense_convert.cc
-		intern/openvdb_reader.cc
-		intern/openvdb_writer.cc
-		openvdb_capi.cc
-		openvdb_util.cc
+  list(APPEND SRC
+    intern/openvdb_dense_convert.cc
+    intern/openvdb_reader.cc
+    intern/openvdb_writer.cc
+    openvdb_capi.cc
+    openvdb_util.cc
 
-		intern/openvdb_dense_convert.h
-		intern/openvdb_reader.h
-		intern/openvdb_writer.h
-		openvdb_util.h
-	)
+    intern/openvdb_dense_convert.h
+    intern/openvdb_reader.h
+    intern/openvdb_writer.h
+    openvdb_util.h
+  )
 
-	if(WITH_OPENVDB_BLOSC)
-		add_definitions(
-			-DWITH_OPENVDB_BLOSC
-		)
-	endif()
+  if(WITH_OPENVDB_BLOSC)
+    add_definitions(
+      -DWITH_OPENVDB_BLOSC
+    )
+  endif()
 endif()
 
 blender_add_lib(bf_intern_openvdb "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

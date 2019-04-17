@@ -41,80 +41,87 @@
 
 static void initData(GpencilModifierData *md)
 {
-	SimplifyGpencilModifierData *gpmd = (SimplifyGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->step = 1;
-	gpmd->factor = 0.0f;
-	gpmd->layername[0] = '\0';
+  SimplifyGpencilModifierData *gpmd = (SimplifyGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  gpmd->step = 1;
+  gpmd->factor = 0.0f;
+  gpmd->layername[0] = '\0';
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *gpl,
+                         bGPDstroke *gps)
 {
-	SimplifyGpencilModifierData *mmd = (SimplifyGpencilModifierData *)md;
+  SimplifyGpencilModifierData *mmd = (SimplifyGpencilModifierData *)md;
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, mmd->layer_pass, 4, gpl, gps,
-	            mmd->flag & GP_SIMPLIFY_INVERT_LAYER, mmd->flag & GP_SIMPLIFY_INVERT_PASS,
-	            mmd->flag & GP_SIMPLIFY_INVERT_LAYERPASS))
-	{
-		return;
-	}
+  if (!is_stroke_affected_by_modifier(ob,
+                                      mmd->layername,
+                                      mmd->pass_index,
+                                      mmd->layer_pass,
+                                      4,
+                                      gpl,
+                                      gps,
+                                      mmd->flag & GP_SIMPLIFY_INVERT_LAYER,
+                                      mmd->flag & GP_SIMPLIFY_INVERT_PASS,
+                                      mmd->flag & GP_SIMPLIFY_INVERT_LAYERPASS)) {
+    return;
+  }
 
-	if (mmd->mode == GP_SIMPLIFY_FIXED) {
-		for (int i = 0; i < mmd->step; i++) {
-			BKE_gpencil_simplify_fixed(gps);
-		}
-	}
-	else {
-		/* simplify stroke using Ramer-Douglas-Peucker algorithm */
-		BKE_gpencil_simplify_stroke(gps, mmd->factor);
-	}
+  if (mmd->mode == GP_SIMPLIFY_FIXED) {
+    for (int i = 0; i < mmd->step; i++) {
+      BKE_gpencil_simplify_fixed(gps);
+    }
+  }
+  else {
+    /* simplify stroke using Ramer-Douglas-Peucker algorithm */
+    BKE_gpencil_simplify_stroke(gps, mmd->factor);
+  }
 }
 
-static void bakeModifier(
-        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(struct Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
 {
-	bGPdata *gpd = ob->data;
+  bGPdata *gpd = ob->data;
 
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md, depsgraph, ob, gpl, gps);
-			}
-		}
-	}
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        deformStroke(md, depsgraph, ob, gpl, gps);
+      }
+    }
+  }
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Simplify = {
-	/* name */              "Simplify",
-	/* structName */        "SimplifyGpencilModifierData",
-	/* structSize */        sizeof(SimplifyGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Simplify",
+    /* structName */ "SimplifyGpencilModifierData",
+    /* structSize */ sizeof(SimplifyGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

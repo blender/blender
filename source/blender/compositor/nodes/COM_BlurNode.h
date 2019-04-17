@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class BlurNode : public Node {
-public:
-	BlurNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  BlurNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

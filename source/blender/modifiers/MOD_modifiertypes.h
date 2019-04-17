@@ -85,4 +85,4 @@ extern ModifierTypeInfo modifierType_WeightedNormal;
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);
 
-#endif  /* __MOD_MODIFIERTYPES_H__ */
+#endif /* __MOD_MODIFIERTYPES_H__ */

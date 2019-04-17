@@ -25,57 +25,71 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
 
-SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput, bool use_conversion) :
-    Node(editorNode, false),
-    m_use_conversion(use_conversion)
+SocketProxyNode::SocketProxyNode(bNode *editorNode,
+                                 bNodeSocket *editorInput,
+                                 bNodeSocket *editorOutput,
+                                 bool use_conversion)
+    : Node(editorNode, false), m_use_conversion(use_conversion)
 {
-	DataType dt;
+  DataType dt;
 
-	dt = COM_DT_VALUE;
-	if (editorInput->type == SOCK_RGBA) dt = COM_DT_COLOR;
-	if (editorInput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-	this->addInputSocket(dt, editorInput);
+  dt = COM_DT_VALUE;
+  if (editorInput->type == SOCK_RGBA)
+    dt = COM_DT_COLOR;
+  if (editorInput->type == SOCK_VECTOR)
+    dt = COM_DT_VECTOR;
+  this->addInputSocket(dt, editorInput);
 
-	dt = COM_DT_VALUE;
-	if (editorOutput->type == SOCK_RGBA) dt = COM_DT_COLOR;
-	if (editorOutput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-	this->addOutputSocket(dt, editorOutput);
+  dt = COM_DT_VALUE;
+  if (editorOutput->type == SOCK_RGBA)
+    dt = COM_DT_COLOR;
+  if (editorOutput->type == SOCK_VECTOR)
+    dt = COM_DT_VECTOR;
+  this->addOutputSocket(dt, editorOutput);
 }
 
-void SocketProxyNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void SocketProxyNode::convertToOperations(NodeConverter &converter,
+                                          const CompositorContext & /*context*/) const
 {
-	NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0), m_use_conversion);
-	converter.mapOutputSocket(getOutputSocket(), proxy_output);
+  NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0), m_use_conversion);
+  converter.mapOutputSocket(getOutputSocket(), proxy_output);
 }
 
-
-SocketBufferNode::SocketBufferNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput) : Node(editorNode, false)
+SocketBufferNode::SocketBufferNode(bNode *editorNode,
+                                   bNodeSocket *editorInput,
+                                   bNodeSocket *editorOutput)
+    : Node(editorNode, false)
 {
-	DataType dt;
+  DataType dt;
 
-	dt = COM_DT_VALUE;
-	if (editorInput->type == SOCK_RGBA) dt = COM_DT_COLOR;
-	if (editorInput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-	this->addInputSocket(dt, editorInput);
+  dt = COM_DT_VALUE;
+  if (editorInput->type == SOCK_RGBA)
+    dt = COM_DT_COLOR;
+  if (editorInput->type == SOCK_VECTOR)
+    dt = COM_DT_VECTOR;
+  this->addInputSocket(dt, editorInput);
 
-	dt = COM_DT_VALUE;
-	if (editorOutput->type == SOCK_RGBA) dt = COM_DT_COLOR;
-	if (editorOutput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-	this->addOutputSocket(dt, editorOutput);
+  dt = COM_DT_VALUE;
+  if (editorOutput->type == SOCK_RGBA)
+    dt = COM_DT_COLOR;
+  if (editorOutput->type == SOCK_VECTOR)
+    dt = COM_DT_VECTOR;
+  this->addOutputSocket(dt, editorOutput);
 }
 
-void SocketBufferNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void SocketBufferNode::convertToOperations(NodeConverter &converter,
+                                           const CompositorContext & /*context*/) const
 {
-	NodeOutput *output = this->getOutputSocket(0);
-	NodeInput *input = this->getInputSocket(0);
+  NodeOutput *output = this->getOutputSocket(0);
+  NodeInput *input = this->getInputSocket(0);
 
-	DataType datatype = output->getDataType();
-	WriteBufferOperation *writeOperation = new WriteBufferOperation(datatype);
-	ReadBufferOperation *readOperation = new ReadBufferOperation(datatype);
-	readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
-	converter.addOperation(writeOperation);
-	converter.addOperation(readOperation);
+  DataType datatype = output->getDataType();
+  WriteBufferOperation *writeOperation = new WriteBufferOperation(datatype);
+  ReadBufferOperation *readOperation = new ReadBufferOperation(datatype);
+  readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
+  converter.addOperation(writeOperation);
+  converter.addOperation(readOperation);
 
-	converter.mapInputSocket(input, writeOperation->getInputSocket(0));
-	converter.mapOutputSocket(output, readOperation->getOutputSocket());
+  converter.mapInputSocket(input, writeOperation->getInputSocket(0));
+  converter.mapOutputSocket(output, readOperation->getOutputSocket());
 }

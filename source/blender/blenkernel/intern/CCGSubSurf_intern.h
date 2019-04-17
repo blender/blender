@@ -46,23 +46,23 @@ typedef unsigned char byte;
  */
 
 typedef struct _EHEntry {
-	struct _EHEntry *next;
-	void *key;
+  struct _EHEntry *next;
+  void *key;
 } EHEntry;
 
 typedef struct _EHash {
-	EHEntry **buckets;
-	int numEntries, curSize, curSizeIdx;
+  EHEntry **buckets;
+  int numEntries, curSize, curSizeIdx;
 
-	CCGAllocatorIFC allocatorIFC;
-	CCGAllocatorHDL allocator;
+  CCGAllocatorIFC allocatorIFC;
+  CCGAllocatorHDL allocator;
 } EHash;
 
 typedef void (*EHEntryFreeFP)(EHEntry *, void *);
 
-#define EHASH_alloc(eh, nb)     ((eh)->allocatorIFC.alloc((eh)->allocator, nb))
-#define EHASH_free(eh, ptr)     ((eh)->allocatorIFC.free((eh)->allocator, ptr))
-#define EHASH_hash(eh, item)    (((uintptr_t) (item)) % ((unsigned int) (eh)->curSize))
+#define EHASH_alloc(eh, nb) ((eh)->allocatorIFC.alloc((eh)->allocator, nb))
+#define EHASH_free(eh, ptr) ((eh)->allocatorIFC.free((eh)->allocator, ptr))
+#define EHASH_hash(eh, item) (((uintptr_t)(item)) % ((unsigned int)(eh)->curSize))
 
 /* Generic hash functions. */
 
@@ -97,183 +97,206 @@ struct DerivedMesh;
 /* ** Data structures, constants. enums ** */
 
 enum {
-	Vert_eEffected =    (1 << 0),
-	Vert_eChanged =     (1 << 1),
-	Vert_eSeam =        (1 << 2),
+  Vert_eEffected = (1 << 0),
+  Vert_eChanged = (1 << 1),
+  Vert_eSeam = (1 << 2),
 } /*VertFlags*/;
 
 enum {
-	Edge_eEffected =    (1 << 0),
+  Edge_eEffected = (1 << 0),
 } /*CCGEdgeFlags*/;
 
 enum {
-	Face_eEffected =    (1 << 0),
+  Face_eEffected = (1 << 0),
 } /*FaceFlags*/;
 
 struct CCGVert {
-	CCGVert *next;    /* EHData.next */
-	CCGVertHDL vHDL;  /* EHData.key */
+  CCGVert *next;   /* EHData.next */
+  CCGVertHDL vHDL; /* EHData.key */
 
-	short numEdges, numFaces, flags;
-	int osd_index;  /* Index of the vertex in the map, used by OSD. */
+  short numEdges, numFaces, flags;
+  int osd_index; /* Index of the vertex in the map, used by OSD. */
 
-	CCGEdge **edges;
-	CCGFace **faces;
-	/* byte *levelData; */
-	/* byte *userData; */
+  CCGEdge **edges;
+  CCGFace **faces;
+  /* byte *levelData; */
+  /* byte *userData; */
 };
 
 struct CCGEdge {
-	CCGEdge *next;   /* EHData.next */
-	CCGEdgeHDL eHDL; /* EHData.key */
+  CCGEdge *next;   /* EHData.next */
+  CCGEdgeHDL eHDL; /* EHData.key */
 
-	short numFaces, flags;
-	float crease;
+  short numFaces, flags;
+  float crease;
 
-	CCGVert *v0, *v1;
-	CCGFace **faces;
+  CCGVert *v0, *v1;
+  CCGFace **faces;
 
-	/* byte *levelData; */
-	/* byte *userData; */
+  /* byte *levelData; */
+  /* byte *userData; */
 };
 
 struct CCGFace {
-	CCGFace     *next;  /* EHData.next */
-	CCGFaceHDL fHDL;    /* EHData.key */
+  CCGFace *next;   /* EHData.next */
+  CCGFaceHDL fHDL; /* EHData.key */
 
-	short numVerts, flags;
-	int osd_index;
+  short numVerts, flags;
+  int osd_index;
 
-	/* CCGVert **verts; */
-	/* CCGEdge **edges; */
-	/* byte *centerData; */
-	/* byte **gridData; */
-	/* byte *userData; */
+  /* CCGVert **verts; */
+  /* CCGEdge **edges; */
+  /* byte *centerData; */
+  /* byte **gridData; */
+  /* byte *userData; */
 };
 
 typedef enum {
-	eSyncState_None = 0,
-	eSyncState_Vert,
-	eSyncState_Edge,
-	eSyncState_Face,
-	eSyncState_Partial,
+  eSyncState_None = 0,
+  eSyncState_Vert,
+  eSyncState_Edge,
+  eSyncState_Face,
+  eSyncState_Partial,
 #ifdef WITH_OPENSUBDIV
-	eSyncState_OpenSubdiv,
+  eSyncState_OpenSubdiv,
 #endif
 } SyncState;
 
 struct CCGSubSurf {
-	EHash *vMap;   /* map of CCGVertHDL -> Vert */
-	EHash *eMap;   /* map of CCGEdgeHDL -> Edge */
-	EHash *fMap;  /* map of CCGFaceHDL -> Face */
+  EHash *vMap; /* map of CCGVertHDL -> Vert */
+  EHash *eMap; /* map of CCGEdgeHDL -> Edge */
+  EHash *fMap; /* map of CCGFaceHDL -> Face */
 
-	CCGMeshIFC meshIFC;
+  CCGMeshIFC meshIFC;
 
-	CCGAllocatorIFC allocatorIFC;
-	CCGAllocatorHDL allocator;
+  CCGAllocatorIFC allocatorIFC;
+  CCGAllocatorHDL allocator;
 
-	int subdivLevels;
-	int numGrids;
-	int allowEdgeCreation;
-	float defaultCreaseValue;
-	void *defaultEdgeUserData;
+  int subdivLevels;
+  int numGrids;
+  int allowEdgeCreation;
+  float defaultCreaseValue;
+  void *defaultEdgeUserData;
 
-	void *q, *r;
+  void *q, *r;
 
-	/* Data for calc vert normals. */
-	int calcVertNormals;
-	int normalDataOffset;
+  /* Data for calc vert normals. */
+  int calcVertNormals;
+  int normalDataOffset;
 
-	/* Data for paint masks. */
-	int allocMask;
-	int maskDataOffset;
+  /* Data for paint masks. */
+  int allocMask;
+  int maskDataOffset;
 
-	/* Data for age'ing (to debug sync). */
-	int currentAge;
-	int useAgeCounts;
-	int vertUserAgeOffset;
-	int edgeUserAgeOffset;
-	int faceUserAgeOffset;
+  /* Data for age'ing (to debug sync). */
+  int currentAge;
+  int useAgeCounts;
+  int vertUserAgeOffset;
+  int edgeUserAgeOffset;
+  int faceUserAgeOffset;
 
-	/* Data used during syncing. */
-	SyncState syncState;
+  /* Data used during syncing. */
+  SyncState syncState;
 
-	EHash *oldVMap, *oldEMap, *oldFMap;
-	int lenTempArrays;
-	CCGVert **tempVerts;
-	CCGEdge **tempEdges;
+  EHash *oldVMap, *oldEMap, *oldFMap;
+  int lenTempArrays;
+  CCGVert **tempVerts;
+  CCGEdge **tempEdges;
 
 #ifdef WITH_OPENSUBDIV
-	/* Skip grids means no CCG geometry is created and subsurf is possible
-	 * to be completely done on GPU.
-	 */
-	bool skip_grids;
+  /* Skip grids means no CCG geometry is created and subsurf is possible
+   * to be completely done on GPU.
+   */
+  bool skip_grids;
 
-	/* ** GPU backend. ** */
+  /* ** GPU backend. ** */
 
-	/* Compute device used by GL mesh. */
-	short osd_compute;
-	/* Coarse (base mesh) vertex coordinates.
-	 *
-	 * Filled in from the modifier stack and passed to OpenSubdiv compute
-	 * on mesh display.
-	 */
-	float (*osd_coarse_coords)[3];
-	int osd_num_coarse_coords;
-	/* Denotes whether coarse positions in the GL mesh are invalid.
-	 * Used to avoid updating GL mesh coords on every redraw.
-	 */
-	bool osd_coarse_coords_invalid;
+  /* Compute device used by GL mesh. */
+  short osd_compute;
+  /* Coarse (base mesh) vertex coordinates.
+   *
+   * Filled in from the modifier stack and passed to OpenSubdiv compute
+   * on mesh display.
+   */
+  float (*osd_coarse_coords)[3];
+  int osd_num_coarse_coords;
+  /* Denotes whether coarse positions in the GL mesh are invalid.
+   * Used to avoid updating GL mesh coords on every redraw.
+   */
+  bool osd_coarse_coords_invalid;
 
-	/* GL mesh descriptor, used for refinement and draw. */
-	struct OpenSubdiv_GLMesh *osd_mesh;
-	/* Refiner which is used to create GL mesh.
-	 *
-	 * Refiner is created from the modifier stack and used later from the main
-	 * thread to construct GL mesh to avoid threaded access to GL.
-	 */
-	struct OpenSubdiv_TopologyRefiner *osd_topology_refiner;  /* Only used at synchronization stage. */
-	/* Denotes whether osd_mesh is invalid now due to topology changes and needs
-	 * to be reconstructed.
-	 *
-	 * Reconstruction happens from main thread due to OpenGL communication.
-	 */
-	bool osd_mesh_invalid;
-	/* Vertex array used for osd_mesh draw. */
-	unsigned int osd_vao;
+  /* GL mesh descriptor, used for refinement and draw. */
+  struct OpenSubdiv_GLMesh *osd_mesh;
+  /* Refiner which is used to create GL mesh.
+   *
+   * Refiner is created from the modifier stack and used later from the main
+   * thread to construct GL mesh to avoid threaded access to GL.
+   */
+  struct OpenSubdiv_TopologyRefiner
+      *osd_topology_refiner; /* Only used at synchronization stage. */
+  /* Denotes whether osd_mesh is invalid now due to topology changes and needs
+   * to be reconstructed.
+   *
+   * Reconstruction happens from main thread due to OpenGL communication.
+   */
+  bool osd_mesh_invalid;
+  /* Vertex array used for osd_mesh draw. */
+  unsigned int osd_vao;
 
-	/* ** CPU backend. ** */
+  /* ** CPU backend. ** */
 
-	/* Limit evaluator, used to evaluate CCG. */
-	struct OpenSubdiv_Evaluator *osd_evaluator;
-	/* Next PTex face index, used while CCG synchronization
-	 * to fill in PTex index of CCGFace.
-	 */
-	int osd_next_face_ptex_index;
+  /* Limit evaluator, used to evaluate CCG. */
+  struct OpenSubdiv_Evaluator *osd_evaluator;
+  /* Next PTex face index, used while CCG synchronization
+   * to fill in PTex index of CCGFace.
+   */
+  int osd_next_face_ptex_index;
 
-	bool osd_subdiv_uvs;
+  bool osd_subdiv_uvs;
 #endif
 };
 
 /* ** Utility macros ** */
 
-#define CCGSUBSURF_alloc(ss, nb)            ((ss)->allocatorIFC.alloc((ss)->allocator, nb))
-#define CCGSUBSURF_realloc(ss, ptr, nb, ob) ((ss)->allocatorIFC.realloc((ss)->allocator, ptr, nb, ob))
-#define CCGSUBSURF_free(ss, ptr)            ((ss)->allocatorIFC.free((ss)->allocator, ptr))
+#define CCGSUBSURF_alloc(ss, nb) ((ss)->allocatorIFC.alloc((ss)->allocator, nb))
+#define CCGSUBSURF_realloc(ss, ptr, nb, ob) \
+  ((ss)->allocatorIFC.realloc((ss)->allocator, ptr, nb, ob))
+#define CCGSUBSURF_free(ss, ptr) ((ss)->allocatorIFC.free((ss)->allocator, ptr))
 
-#define VERT_getCo(v, lvl)                  ccg_vert_getCo(v, lvl, vertDataSize)
-#define VERT_getNo(v, lvl)                  ccg_vert_getNo(v, lvl, vertDataSize, normalDataOffset)
-#define EDGE_getCo(e, lvl, x)               ccg_edge_getCo(e, lvl, x, vertDataSize)
-#define EDGE_getNo(e, lvl, x)               ccg_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
-#define FACE_getIFNo(f, lvl, S, x, y)       ccg_face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
+#define VERT_getCo(v, lvl) ccg_vert_getCo(v, lvl, vertDataSize)
+#define VERT_getNo(v, lvl) ccg_vert_getNo(v, lvl, vertDataSize, normalDataOffset)
+#define EDGE_getCo(e, lvl, x) ccg_edge_getCo(e, lvl, x, vertDataSize)
+#define EDGE_getNo(e, lvl, x) ccg_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
+#define FACE_getIFNo(f, lvl, S, x, y) \
+  ccg_face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
 //#define FACE_calcIFNo(f, lvl, S, x, y, no)  _face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
-#define FACE_getIENo(f, lvl, S, x)          ccg_face_getIENo(f, lvl, S, x, subdivLevels, vertDataSize, normalDataOffset)
-#define FACE_getIECo(f, lvl, S, x)          ccg_face_getIECo(f, lvl, S, x, subdivLevels, vertDataSize)
-#define FACE_getIFCo(f, lvl, S, x, y)       ccg_face_getIFCo(f, lvl, S, x, y, subdivLevels, vertDataSize)
+#define FACE_getIENo(f, lvl, S, x) \
+  ccg_face_getIENo(f, lvl, S, x, subdivLevels, vertDataSize, normalDataOffset)
+#define FACE_getIECo(f, lvl, S, x) ccg_face_getIECo(f, lvl, S, x, subdivLevels, vertDataSize)
+#define FACE_getIFCo(f, lvl, S, x, y) ccg_face_getIFCo(f, lvl, S, x, y, subdivLevels, vertDataSize)
 
-#define NormZero(av)     { float *_a = (float *) av; _a[0] = _a[1] = _a[2] = 0.0f; } (void)0
-#define NormCopy(av, bv) { float *_a = (float *) av, *_b = (float *) bv; _a[0]  = _b[0]; _a[1]  = _b[1]; _a[2]  = _b[2]; } (void)0
-#define NormAdd(av, bv)  { float *_a = (float *) av, *_b = (float *) bv; _a[0] += _b[0]; _a[1] += _b[1]; _a[2] += _b[2]; } (void)0
+#define NormZero(av) \
+  { \
+    float *_a = (float *)av; \
+    _a[0] = _a[1] = _a[2] = 0.0f; \
+  } \
+  (void)0
+#define NormCopy(av, bv) \
+  { \
+    float *_a = (float *)av, *_b = (float *)bv; \
+    _a[0] = _b[0]; \
+    _a[1] = _b[1]; \
+    _a[2] = _b[2]; \
+  } \
+  (void)0
+#define NormAdd(av, bv) \
+  { \
+    float *_a = (float *)av, *_b = (float *)bv; \
+    _a[0] += _b[0]; \
+    _a[1] += _b[1]; \
+    _a[2] += _b[2]; \
+  } \
+  (void)0
 
 /* ** General purpose functions  ** */
 
@@ -310,17 +333,13 @@ void ccgSubSurf__delete_pending(void);
 
 struct OpenSubdiv_Converter;
 
-void ccgSubSurf_converter_setup_from_derivedmesh(
-        CCGSubSurf *ss,
-        struct DerivedMesh *dm,
-        struct OpenSubdiv_Converter *converter);
+void ccgSubSurf_converter_setup_from_derivedmesh(CCGSubSurf *ss,
+                                                 struct DerivedMesh *dm,
+                                                 struct OpenSubdiv_Converter *converter);
 
-void ccgSubSurf_converter_setup_from_ccg(
-        CCGSubSurf *ss,
-        struct OpenSubdiv_Converter *converter);
+void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss, struct OpenSubdiv_Converter *converter);
 
-void ccgSubSurf_converter_free(
-        struct OpenSubdiv_Converter *converter);
+void ccgSubSurf_converter_free(struct OpenSubdiv_Converter *converter);
 
 /* * CCGSubSurf_util.c * */
 
@@ -330,4 +349,4 @@ void ccgSubSurf__dumpCoords(CCGSubSurf *ss);
 
 #include "CCGSubSurf_inline.h"
 
-#endif  /* __CCGSUBSURF_INTERN_H__ */
+#endif /* __CCGSUBSURF_INTERN_H__ */

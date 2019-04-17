@@ -43,10 +43,9 @@ extern PyTypeObject ViewShape_Type;
 
 /*---------------------------Python BPy_ViewShape structure definition----------*/
 typedef struct {
-	PyObject_HEAD
-	ViewShape *vs;
-	bool borrowed; /* true if *vs a borrowed object */
-	BPy_SShape *py_ss;
+  PyObject_HEAD ViewShape *vs;
+  bool borrowed; /* true if *vs a borrowed object */
+  BPy_SShape *py_ss;
 } BPy_ViewShape;
 
 /*---------------------------Python BPy_ViewShape visible prototypes-----------*/

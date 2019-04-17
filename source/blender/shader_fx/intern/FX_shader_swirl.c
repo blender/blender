@@ -41,55 +41,56 @@
 
 static void initData(ShaderFxData *md)
 {
-	SwirlShaderFxData *gpmd = (SwirlShaderFxData *)md;
-	gpmd->radius = 100;
-	gpmd->angle = M_PI_2;
+  SwirlShaderFxData *gpmd = (SwirlShaderFxData *)md;
+  gpmd->radius = 100;
+  gpmd->angle = M_PI_2;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-	BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copyData_generic(md, target);
 }
 
 static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
-	SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
-	if (fxd->object != NULL) {
-		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
-	}
-	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
+  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  if (fxd->object != NULL) {
+    DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
+  }
+  DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
 }
 
 static bool isDisabled(ShaderFxData *fx, int UNUSED(userRenderParams))
 {
-	SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
 
-	return !fxd->object;
+  return !fxd->object;
 }
 
-static void foreachObjectLink(
-	ShaderFxData *fx, Object *ob,
-	ShaderFxObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(ShaderFxData *fx,
+                              Object *ob,
+                              ShaderFxObjectWalkFunc walk,
+                              void *userData)
 {
-	SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
 
-	walk(userData, ob, &fxd->object, IDWALK_CB_NOP);
+  walk(userData, ob, &fxd->object, IDWALK_CB_NOP);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Swirl = {
-	/* name */              "Swirl",
-	/* structName */        "SwirlShaderFxData",
-	/* structSize */        sizeof(SwirlShaderFxData),
-	/* type */              eShaderFxType_GpencilType,
-	/* flags */             0,
+    /* name */ "Swirl",
+    /* structName */ "SwirlShaderFxData",
+    /* structSize */ sizeof(SwirlShaderFxData),
+    /* type */ eShaderFxType_GpencilType,
+    /* flags */ 0,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   updateDepsgraph,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ isDisabled,
+    /* updateDepsgraph */ updateDepsgraph,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ foreachObjectLink,
+    /* foreachIDLink */ NULL,
 };

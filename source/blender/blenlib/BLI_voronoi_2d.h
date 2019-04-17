@@ -27,44 +27,51 @@ struct ListBase;
  */
 
 typedef struct VoronoiSite {
-	float co[2];
-	float color[3];
+  float co[2];
+  float color[3];
 } VoronoiSite;
 
 typedef struct VoronoiEdge {
-	struct VoronoiEdge *next, *prev;
+  struct VoronoiEdge *next, *prev;
 
-	/* start and end points */
-	float start[2], end[2];
+  /* start and end points */
+  float start[2], end[2];
 
-	/* this fields are used during diagram computation only */
+  /* this fields are used during diagram computation only */
 
-	/* directional vector, from "start", points to "end", normal of |left, right| */
-	float direction[2];
+  /* directional vector, from "start", points to "end", normal of |left, right| */
+  float direction[2];
 
-	/* point on Voronoi place on the left side of edge */
-	float left[2];
-	/* point on Voronoi place on the right side of edge */
-	float right[2];
+  /* point on Voronoi place on the left side of edge */
+  float left[2];
+  /* point on Voronoi place on the right side of edge */
+  float right[2];
 
-	/* directional coeffitients satisfying equation y = f * x + g (edge lies on this line) */
-	float f, g;
+  /* directional coeffitients satisfying equation y = f * x + g (edge lies on this line) */
+  float f, g;
 
-	/* some edges consist of two parts,
-	 * so we add the pointer to another part to connect them at the end of an algorithm */
-	struct VoronoiEdge *neighbor;
+  /* some edges consist of two parts,
+   * so we add the pointer to another part to connect them at the end of an algorithm */
+  struct VoronoiEdge *neighbor;
 } VoronoiEdge;
 
 typedef struct VoronoiTriangulationPoint {
-	float co[2];
-	float color[3];
-	int power;
+  float co[2];
+  float color[3];
+  int power;
 } VoronoiTriangulationPoint;
 
-void BLI_voronoi_compute(const VoronoiSite *sites, int sites_total, int width, int height, struct ListBase *edges);
+void BLI_voronoi_compute(
+    const VoronoiSite *sites, int sites_total, int width, int height, struct ListBase *edges);
 
-void BLI_voronoi_triangulate(const VoronoiSite *sites, int sites_total, struct ListBase *edges, int width, int height,
-                             VoronoiTriangulationPoint **triangulated_points_r, int *triangulated_points_total_r,
-                             int (**triangles_r)[3], int *triangles_total_r);
+void BLI_voronoi_triangulate(const VoronoiSite *sites,
+                             int sites_total,
+                             struct ListBase *edges,
+                             int width,
+                             int height,
+                             VoronoiTriangulationPoint **triangulated_points_r,
+                             int *triangulated_points_total_r,
+                             int (**triangles_r)[3],
+                             int *triangles_total_r);
 
 #endif /* __BLI_VORONOI_2D_H__ */

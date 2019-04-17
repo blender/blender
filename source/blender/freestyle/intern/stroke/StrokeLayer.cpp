@@ -27,35 +27,41 @@ namespace Freestyle {
 
 StrokeLayer::~StrokeLayer()
 {
-	clear();
+  clear();
 }
 
 void StrokeLayer::ScaleThickness(float iFactor)
 {
-	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
-		(*s)->ScaleThickness(iFactor);
-	}
+  for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end();
+       s != send;
+       ++s) {
+    (*s)->ScaleThickness(iFactor);
+  }
 }
 
 void StrokeLayer::Render(const StrokeRenderer *iRenderer)
 {
-	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
-		(*s)->Render(iRenderer);
-	}
+  for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end();
+       s != send;
+       ++s) {
+    (*s)->Render(iRenderer);
+  }
 }
 
 void StrokeLayer::RenderBasic(const StrokeRenderer *iRenderer)
 {
-	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
-		(*s)->RenderBasic(iRenderer);
-	}
+  for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end();
+       s != send;
+       ++s) {
+    (*s)->RenderBasic(iRenderer);
+  }
 }
 
 void StrokeLayer::clear()
 {
-	for (stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s)
-		delete *s;
-	_strokes.clear();
+  for (stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s)
+    delete *s;
+  _strokes.clear();
 }
 
 } /* namespace Freestyle */

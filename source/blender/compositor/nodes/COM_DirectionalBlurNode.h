@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class DirectionalBlurNode : public Node {
-public:
-	DirectionalBlurNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  DirectionalBlurNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

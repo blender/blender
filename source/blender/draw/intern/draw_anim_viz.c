@@ -20,7 +20,6 @@
  * \ingroup draw
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -57,26 +56,26 @@
 
 /* XXX: How to show frame numbers, etc.?  Currently only doing the dots and lines */
 typedef struct MPATH_PassList {
-	struct DRWPass *lines;
-	struct DRWPass *points;
+  struct DRWPass *lines;
+  struct DRWPass *points;
 } MPATH_PassList;
 
 typedef struct MPATH_StorageList {
-	struct MPATH_PrivateData *g_data;
+  struct MPATH_PrivateData *g_data;
 } MPATH_StorageList;
 
 typedef struct MPATH_Data {
-	void *engine_type;
-	DRWViewportEmptyList *fbl;
-	DRWViewportEmptyList *txl;
-	MPATH_PassList *psl;
-	MPATH_StorageList *stl;
+  void *engine_type;
+  DRWViewportEmptyList *fbl;
+  DRWViewportEmptyList *txl;
+  MPATH_PassList *psl;
+  MPATH_StorageList *stl;
 } MPATH_Data;
 
 #if 0
 static struct {
-	GPUShader *mpath_line_sh;
-	GPUShader *mpath_points_sh;
+  GPUShader *mpath_line_sh;
+  GPUShader *mpath_points_sh;
 } e_data = {0};
 #endif
 
@@ -85,36 +84,37 @@ static struct {
 /* Just convert the CPU cache to GPU cache. */
 static GPUVertBuf *mpath_vbo_get(bMotionPath *mpath)
 {
-	if (!mpath->points_vbo) {
-		GPUVertFormat format = {0};
-		/* Match structure of bMotionPathVert. */
-		uint pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-		GPU_vertformat_attr_add(&format, "flag", GPU_COMP_I32, 1, GPU_FETCH_INT);
-		mpath->points_vbo = GPU_vertbuf_create_with_format(&format);
-		GPU_vertbuf_data_alloc(mpath->points_vbo, mpath->length);
+  if (!mpath->points_vbo) {
+    GPUVertFormat format = {0};
+    /* Match structure of bMotionPathVert. */
+    uint pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "flag", GPU_COMP_I32, 1, GPU_FETCH_INT);
+    mpath->points_vbo = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(mpath->points_vbo, mpath->length);
 
-		/* meh... a useless memcpy. */
-		GPUVertBufRaw raw_data;
-		GPU_vertbuf_attr_get_raw_data(mpath->points_vbo, pos, &raw_data);
-		memcpy(GPU_vertbuf_raw_step(&raw_data), mpath->points, sizeof(bMotionPathVert) * mpath->length);
-	}
-	return mpath->points_vbo;
+    /* meh... a useless memcpy. */
+    GPUVertBufRaw raw_data;
+    GPU_vertbuf_attr_get_raw_data(mpath->points_vbo, pos, &raw_data);
+    memcpy(
+        GPU_vertbuf_raw_step(&raw_data), mpath->points, sizeof(bMotionPathVert) * mpath->length);
+  }
+  return mpath->points_vbo;
 }
 
 static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
 {
-	if (!mpath->batch_line) {
-		mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), NULL);
-	}
-	return mpath->batch_line;
+  if (!mpath->batch_line) {
+    mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), NULL);
+  }
+  return mpath->batch_line;
 }
 
 static GPUBatch *mpath_batch_points_get(bMotionPath *mpath)
 {
-	if (!mpath->batch_points) {
-		mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), NULL);
-	}
-	return mpath->batch_points;
+  if (!mpath->batch_points) {
+    mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), NULL);
+  }
+  return mpath->batch_points;
 }
 
 /* *************************** Draw Engine Entrypoints ************************** */
@@ -131,185 +131,188 @@ static void MPATH_engine_free(void)
  * Assume that all Passes are NULL */
 static void MPATH_cache_init(void *vedata)
 {
-	MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
+  MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
 
-	{
-		DRWState state = DRW_STATE_WRITE_COLOR;
-		psl->lines = DRW_pass_create("Motionpath Line Pass", state);
-	}
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR;
+    psl->lines = DRW_pass_create("Motionpath Line Pass", state);
+  }
 
-	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_POINT;
-		psl->points = DRW_pass_create("Motionpath Point Pass", state);
-	}
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_POINT;
+    psl->points = DRW_pass_create("Motionpath Point Pass", state);
+  }
 }
 
-static void MPATH_get_frame_range_to_draw(
-        bAnimVizSettings *avs, bMotionPath *mpath, int current_frame,
-        int *r_start, int *r_end, int *r_step)
+static void MPATH_get_frame_range_to_draw(bAnimVizSettings *avs,
+                                          bMotionPath *mpath,
+                                          int current_frame,
+                                          int *r_start,
+                                          int *r_end,
+                                          int *r_step)
 {
-	int start, end;
+  int start, end;
 
-	if (avs->path_type == MOTIONPATH_TYPE_ACFRA) {
-		start = current_frame - avs->path_bc;
-		end = current_frame + avs->path_ac + 1;
-	}
-	else {
-		start = avs->path_sf;
-		end = avs->path_ef;
-	}
+  if (avs->path_type == MOTIONPATH_TYPE_ACFRA) {
+    start = current_frame - avs->path_bc;
+    end = current_frame + avs->path_ac + 1;
+  }
+  else {
+    start = avs->path_sf;
+    end = avs->path_ef;
+  }
 
-	if (start > end) {
-		SWAP(int, start, end);
-	}
+  if (start > end) {
+    SWAP(int, start, end);
+  }
 
-	CLAMP(start, mpath->start_frame, mpath->end_frame);
-	CLAMP(end, mpath->start_frame, mpath->end_frame);
+  CLAMP(start, mpath->start_frame, mpath->end_frame);
+  CLAMP(end, mpath->start_frame, mpath->end_frame);
 
-	*r_start = start;
-	*r_end = end;
-	*r_step = max_ii(avs->path_step, 1);
+  *r_start = start;
+  *r_end = end;
+  *r_step = max_ii(avs->path_step, 1);
 }
 
 static void MPATH_cache_motion_path(MPATH_PassList *psl,
-                                    Object *ob, bPoseChannel *pchan,
-                                    bAnimVizSettings *avs, bMotionPath *mpath)
+                                    Object *ob,
+                                    bPoseChannel *pchan,
+                                    bAnimVizSettings *avs,
+                                    bMotionPath *mpath)
 {
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	struct DRWTextStore *dt = DRW_text_cache_ensure();
-	int txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_ASCII;
-	int cfra = (int)DEG_get_ctime(draw_ctx->depsgraph);
-	bool sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
-	bool show_keyframes = (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) != 0;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  struct DRWTextStore *dt = DRW_text_cache_ensure();
+  int txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_ASCII;
+  int cfra = (int)DEG_get_ctime(draw_ctx->depsgraph);
+  bool sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
+  bool show_keyframes = (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) != 0;
 
-	int sfra, efra, stepsize;
-	MPATH_get_frame_range_to_draw(avs, mpath, cfra, &sfra, &efra, &stepsize);
+  int sfra, efra, stepsize;
+  MPATH_get_frame_range_to_draw(avs, mpath, cfra, &sfra, &efra, &stepsize);
 
-	int len = efra - sfra;
-	if (len == 0) {
-		return;
-	}
-	int start_index = sfra - mpath->start_frame;
+  int len = efra - sfra;
+  if (len == 0) {
+    return;
+  }
+  int start_index = sfra - mpath->start_frame;
 
-	bool use_custom_col = (mpath->flag & MOTIONPATH_FLAG_CUSTOM) != 0;
+  bool use_custom_col = (mpath->flag & MOTIONPATH_FLAG_CUSTOM) != 0;
 
-	/* draw curve-line of path */
-	/* Draw lines only if line drawing option is enabled */
-	if (mpath->flag & MOTIONPATH_FLAG_LINES) {
-		DRWShadingGroup *shgrp = DRW_shgroup_create(mpath_line_shader_get(), psl->lines);
-		DRW_shgroup_uniform_int_copy(shgrp, "frameCurrent", cfra);
-		DRW_shgroup_uniform_int_copy(shgrp, "frameStart", sfra);
-		DRW_shgroup_uniform_int_copy(shgrp, "frameEnd", efra);
-		DRW_shgroup_uniform_int_copy(shgrp, "cacheStart", mpath->start_frame);
-		DRW_shgroup_uniform_int_copy(shgrp, "lineThickness", mpath->line_thickness);
-		DRW_shgroup_uniform_bool_copy(shgrp, "selected", sel);
-		DRW_shgroup_uniform_bool_copy(shgrp, "useCustomColor", use_custom_col);
-		DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
-		if (use_custom_col) {
-			DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
-		}
-		/* Only draw the required range. */
-		DRW_shgroup_call_range_add(shgrp, mpath_batch_line_get(mpath), NULL, start_index, len);
-	}
+  /* draw curve-line of path */
+  /* Draw lines only if line drawing option is enabled */
+  if (mpath->flag & MOTIONPATH_FLAG_LINES) {
+    DRWShadingGroup *shgrp = DRW_shgroup_create(mpath_line_shader_get(), psl->lines);
+    DRW_shgroup_uniform_int_copy(shgrp, "frameCurrent", cfra);
+    DRW_shgroup_uniform_int_copy(shgrp, "frameStart", sfra);
+    DRW_shgroup_uniform_int_copy(shgrp, "frameEnd", efra);
+    DRW_shgroup_uniform_int_copy(shgrp, "cacheStart", mpath->start_frame);
+    DRW_shgroup_uniform_int_copy(shgrp, "lineThickness", mpath->line_thickness);
+    DRW_shgroup_uniform_bool_copy(shgrp, "selected", sel);
+    DRW_shgroup_uniform_bool_copy(shgrp, "useCustomColor", use_custom_col);
+    DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+    DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
+    if (use_custom_col) {
+      DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
+    }
+    /* Only draw the required range. */
+    DRW_shgroup_call_range_add(shgrp, mpath_batch_line_get(mpath), NULL, start_index, len);
+  }
 
-	/* Draw points. */
-	DRWShadingGroup *shgrp = DRW_shgroup_create(mpath_points_shader_get(), psl->points);
-	DRW_shgroup_uniform_int_copy(shgrp, "frameCurrent", cfra);
-	DRW_shgroup_uniform_int_copy(shgrp, "cacheStart", mpath->start_frame);
-	DRW_shgroup_uniform_int_copy(shgrp, "pointSize", max_ii(mpath->line_thickness - 1, 1));
-	DRW_shgroup_uniform_int_copy(shgrp, "stepSize", stepsize);
-	DRW_shgroup_uniform_bool_copy(shgrp, "showKeyFrames", show_keyframes);
-	DRW_shgroup_uniform_bool_copy(shgrp, "useCustomColor", use_custom_col);
-	DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
-	if (use_custom_col) {
-		DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
-	}
-	/* Only draw the required range. */
-	DRW_shgroup_call_range_add(shgrp, mpath_batch_points_get(mpath), NULL, start_index, len);
+  /* Draw points. */
+  DRWShadingGroup *shgrp = DRW_shgroup_create(mpath_points_shader_get(), psl->points);
+  DRW_shgroup_uniform_int_copy(shgrp, "frameCurrent", cfra);
+  DRW_shgroup_uniform_int_copy(shgrp, "cacheStart", mpath->start_frame);
+  DRW_shgroup_uniform_int_copy(shgrp, "pointSize", max_ii(mpath->line_thickness - 1, 1));
+  DRW_shgroup_uniform_int_copy(shgrp, "stepSize", stepsize);
+  DRW_shgroup_uniform_bool_copy(shgrp, "showKeyFrames", show_keyframes);
+  DRW_shgroup_uniform_bool_copy(shgrp, "useCustomColor", use_custom_col);
+  DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
+  if (use_custom_col) {
+    DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
+  }
+  /* Only draw the required range. */
+  DRW_shgroup_call_range_add(shgrp, mpath_batch_points_get(mpath), NULL, start_index, len);
 
-	/* Draw frame numbers at each framestep value */
-	bool show_kf_no = (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) != 0;
-	if ((avs->path_viewflag & (MOTIONPATH_VIEW_FNUMS)) || (show_kf_no && show_keyframes)) {
-		int i;
-		uchar col[4], col_kf[4];
-		UI_GetThemeColor3ubv(TH_TEXT_HI, col);
-		UI_GetThemeColor3ubv(TH_VERTEX_SELECT, col_kf);
-		col[3] = col_kf[3] = 255;
+  /* Draw frame numbers at each framestep value */
+  bool show_kf_no = (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) != 0;
+  if ((avs->path_viewflag & (MOTIONPATH_VIEW_FNUMS)) || (show_kf_no && show_keyframes)) {
+    int i;
+    uchar col[4], col_kf[4];
+    UI_GetThemeColor3ubv(TH_TEXT_HI, col);
+    UI_GetThemeColor3ubv(TH_VERTEX_SELECT, col_kf);
+    col[3] = col_kf[3] = 255;
 
-		bMotionPathVert *mpv;
-		bMotionPathVert *mpv_start = mpath->points + start_index;
-		for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
-			int frame = sfra + i;
-			char numstr[32];
-			size_t numstr_len;
-			bool is_keyframe = (mpv->flag & MOTIONPATH_VERT_KEY) != 0;
+    bMotionPathVert *mpv;
+    bMotionPathVert *mpv_start = mpath->points + start_index;
+    for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
+      int frame = sfra + i;
+      char numstr[32];
+      size_t numstr_len;
+      bool is_keyframe = (mpv->flag & MOTIONPATH_VERT_KEY) != 0;
 
-			if ((show_keyframes && show_kf_no && is_keyframe) ||
-			    ((avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) && (i == 0)))
-			{
-				numstr_len = sprintf(numstr, " %d", frame);
-				DRW_text_cache_add(dt, mpv->co, numstr, numstr_len, 0, 0, txt_flag, (is_keyframe) ? col_kf : col);
-			}
-			else if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
-				bMotionPathVert *mpvP = (mpv - stepsize);
-				bMotionPathVert *mpvN = (mpv + stepsize);
-				/* only draw framenum if several consecutive highlighted points don't occur on same point */
-				if ((equals_v3v3(mpv->co, mpvP->co) == 0) || (equals_v3v3(mpv->co, mpvN->co) == 0)) {
-					numstr_len = sprintf(numstr, " %d", frame);
-					DRW_text_cache_add(dt, mpv->co, numstr, numstr_len, 0, 0, txt_flag, col);
-				}
-			}
-		}
-	}
+      if ((show_keyframes && show_kf_no && is_keyframe) ||
+          ((avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) && (i == 0))) {
+        numstr_len = sprintf(numstr, " %d", frame);
+        DRW_text_cache_add(
+            dt, mpv->co, numstr, numstr_len, 0, 0, txt_flag, (is_keyframe) ? col_kf : col);
+      }
+      else if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
+        bMotionPathVert *mpvP = (mpv - stepsize);
+        bMotionPathVert *mpvN = (mpv + stepsize);
+        /* only draw framenum if several consecutive highlighted points don't occur on same point */
+        if ((equals_v3v3(mpv->co, mpvP->co) == 0) || (equals_v3v3(mpv->co, mpvN->co) == 0)) {
+          numstr_len = sprintf(numstr, " %d", frame);
+          DRW_text_cache_add(dt, mpv->co, numstr, numstr_len, 0, 0, txt_flag, col);
+        }
+      }
+    }
+  }
 }
 
 /* Add geometry to shading groups. Execute for each objects */
 static void MPATH_cache_populate(void *vedata, Object *ob)
 {
-	MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
-	const DRWContextState *draw_ctx = DRW_context_state_get();
+  MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	if (draw_ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) {
-		return;
-	}
+  if (draw_ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_MOTION_PATHS) {
+    return;
+  }
 
-	if (ob->type == OB_ARMATURE) {
-		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
-			for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-				if (pchan->mpath) {
-					MPATH_cache_motion_path(psl, ob, pchan, &ob->pose->avs, pchan->mpath);
-				}
-			}
-		}
-	}
-	else {
-		if (ob->mpath) {
-			MPATH_cache_motion_path(psl, ob, NULL, &ob->avs, ob->mpath);
-		}
-	}
+  if (ob->type == OB_ARMATURE) {
+    if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
+      for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+        if (pchan->mpath) {
+          MPATH_cache_motion_path(psl, ob, pchan, &ob->pose->avs, pchan->mpath);
+        }
+      }
+    }
+  }
+  else {
+    if (ob->mpath) {
+      MPATH_cache_motion_path(psl, ob, NULL, &ob->avs, ob->mpath);
+    }
+  }
 }
 
 /* Draw time! Control rendering pipeline from here */
 static void MPATH_draw_scene(void *vedata)
 {
-	MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  MPATH_PassList *psl = ((MPATH_Data *)vedata)->psl;
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	if (DRW_pass_is_empty(psl->lines) &&
-	    DRW_pass_is_empty(psl->points))
-	{
-		/* Nothing to draw. */
-		return;
-	}
+  if (DRW_pass_is_empty(psl->lines) && DRW_pass_is_empty(psl->points)) {
+    /* Nothing to draw. */
+    return;
+  }
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
+  MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-	DRW_draw_pass(psl->lines);
-	DRW_draw_pass(psl->points);
+  DRW_draw_pass(psl->lines);
+  DRW_draw_pass(psl->points);
 
-	MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl);
+  MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl);
 }
 
 /* *************************** Draw Engine Defines ****************************** */
@@ -317,16 +320,17 @@ static void MPATH_draw_scene(void *vedata)
 static const DrawEngineDataSize MPATH_data_size = DRW_VIEWPORT_DATA_SIZE(MPATH_Data);
 
 DrawEngineType draw_engine_motion_path_type = {
-	NULL, NULL,
-	N_("MotionPath"),
-	&MPATH_data_size,
-	&MPATH_engine_init,
-	&MPATH_engine_free,
-	&MPATH_cache_init,
-	&MPATH_cache_populate,
-	NULL,
-	NULL,
-	&MPATH_draw_scene,
-	NULL,
-	NULL,
+    NULL,
+    NULL,
+    N_("MotionPath"),
+    &MPATH_data_size,
+    &MPATH_engine_init,
+    &MPATH_engine_free,
+    &MPATH_cache_init,
+    &MPATH_cache_populate,
+    NULL,
+    NULL,
+    &MPATH_draw_scene,
+    NULL,
+    NULL,
 };

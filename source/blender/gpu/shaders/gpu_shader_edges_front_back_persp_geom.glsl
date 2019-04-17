@@ -30,31 +30,31 @@ flat out vec4 finalColor;
 
 void emitLine(vec4 color)
 {
-	gl_Position = ProjectionMatrix * MV_pos[0];
-	EmitVertex();
-	gl_Position = ProjectionMatrix * MV_pos[1];
-	finalColor = color;
-	EmitVertex();
-	EndPrimitive();
+  gl_Position = ProjectionMatrix * MV_pos[0];
+  EmitVertex();
+  gl_Position = ProjectionMatrix * MV_pos[1];
+  finalColor = color;
+  EmitVertex();
+  EndPrimitive();
 }
 
 void main()
 {
-	float finalEdgeClass = max(edgeClass[0], edgeClass[1]);
+  float finalEdgeClass = max(edgeClass[0], edgeClass[1]);
 
-	if (finalEdgeClass > 0.0f) {
-		// front-facing edge
-		if (drawFront)
-			emitLine(frontColor);
-	}
-	else if (finalEdgeClass < 0.0f) {
-		// back-facing edge
-		if (drawBack)
-			emitLine(backColor);
-	}
-	else {
-		// exactly one face is front-facing, silhouette edge
-		if (drawSilhouette)
-			emitLine(silhouetteColor);
-	}
+  if (finalEdgeClass > 0.0f) {
+    // front-facing edge
+    if (drawFront)
+      emitLine(frontColor);
+  }
+  else if (finalEdgeClass < 0.0f) {
+    // back-facing edge
+    if (drawBack)
+      emitLine(backColor);
+  }
+  else {
+    // exactly one face is front-facing, silhouette edge
+    if (drawSilhouette)
+      emitLine(silhouetteColor);
+  }
 }

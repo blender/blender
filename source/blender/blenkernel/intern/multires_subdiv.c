@@ -34,30 +34,25 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
-void BKE_multires_subdiv_settings_init(
-        SubdivSettings *settings,
-        const MultiresModifierData *mmd)
+void BKE_multires_subdiv_settings_init(SubdivSettings *settings, const MultiresModifierData *mmd)
 {
-	settings->is_simple = (mmd->simple != 0);
-	settings->is_adaptive = true;
-	settings->level = settings->is_simple ? 1 : mmd->quality;
-	settings->use_creases = (mmd->flags & eMultiresModifierFlag_UseCrease);
-	settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
-	settings->fvar_linear_interpolation =
-	        BKE_subdiv_fvar_interpolation_from_uv_smooth(mmd->uv_smooth);
+  settings->is_simple = (mmd->simple != 0);
+  settings->is_adaptive = true;
+  settings->level = settings->is_simple ? 1 : mmd->quality;
+  settings->use_creases = (mmd->flags & eMultiresModifierFlag_UseCrease);
+  settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
+  settings->fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
+      mmd->uv_smooth);
 }
 
-void BKE_multires_subdiv_mesh_settings_init(
-        SubdivToMeshSettings *mesh_settings,
-        const Scene *scene,
-        const Object *object,
-        const MultiresModifierData *mmd,
-        const bool use_render_params,
-        const bool ignore_simplify)
+void BKE_multires_subdiv_mesh_settings_init(SubdivToMeshSettings *mesh_settings,
+                                            const Scene *scene,
+                                            const Object *object,
+                                            const MultiresModifierData *mmd,
+                                            const bool use_render_params,
+                                            const bool ignore_simplify)
 {
-	const int level = multires_get_level(
-	        scene, object, mmd, use_render_params, ignore_simplify);
-	mesh_settings->resolution = (1 << level) + 1;
-	mesh_settings->use_optimal_display =
-	        (mmd->flags & eMultiresModifierFlag_ControlEdges);
+  const int level = multires_get_level(scene, object, mmd, use_render_params, ignore_simplify);
+  mesh_settings->resolution = (1 << level) + 1;
+  mesh_settings->use_optimal_display = (mmd->flags & eMultiresModifierFlag_ControlEdges);
 }

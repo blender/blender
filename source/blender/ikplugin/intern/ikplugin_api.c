@@ -40,98 +40,98 @@
 
 static IKPlugin ikplugin_tab[] = {
 #ifdef WITH_IK_SOLVER
-	/* Legacy IK solver */
-	{
-		iksolver_initialize_tree,
-		iksolver_execute_tree,
-		iksolver_release_tree,
-		iksolver_clear_data,
-		NULL,
-		NULL,
-		NULL,
-	},
+    /* Legacy IK solver */
+    {
+        iksolver_initialize_tree,
+        iksolver_execute_tree,
+        iksolver_release_tree,
+        iksolver_clear_data,
+        NULL,
+        NULL,
+        NULL,
+    },
 #endif
 
 #ifdef WITH_IK_ITASC
-	/* iTaSC IK solver */
-	{
-		itasc_initialize_tree,
-		itasc_execute_tree,
-		itasc_release_tree,
-		itasc_clear_data,
-		itasc_clear_cache,
-		itasc_update_param,
-		itasc_test_constraint,
-	},
+    /* iTaSC IK solver */
+    {
+        itasc_initialize_tree,
+        itasc_execute_tree,
+        itasc_release_tree,
+        itasc_clear_data,
+        itasc_clear_cache,
+        itasc_update_param,
+        itasc_test_constraint,
+    },
 #endif
 
-	{ NULL }
-};
+    {NULL}};
 
 static IKPlugin *get_plugin(bPose *pose)
 {
-	if (!pose || pose->iksolver < 0 || pose->iksolver >= ((sizeof(ikplugin_tab) / sizeof(IKPlugin)) - 1))
-		return NULL;
+  if (!pose || pose->iksolver < 0 ||
+      pose->iksolver >= ((sizeof(ikplugin_tab) / sizeof(IKPlugin)) - 1))
+    return NULL;
 
-	return &ikplugin_tab[pose->iksolver];
+  return &ikplugin_tab[pose->iksolver];
 }
 
-
 /*----------------------------------------*/
-/* Plugin API							  */
+/* Plugin API                             */
 
 void BIK_initialize_tree(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
-	IKPlugin *plugin = get_plugin(ob->pose);
+  IKPlugin *plugin = get_plugin(ob->pose);
 
-	if (plugin && plugin->initialize_tree_func)
-		plugin->initialize_tree_func(depsgraph, scene, ob, ctime);
+  if (plugin && plugin->initialize_tree_func)
+    plugin->initialize_tree_func(depsgraph, scene, ob, ctime);
 }
 
-void BIK_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
+void BIK_execute_tree(
+    struct Depsgraph *depsgraph, struct Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
 {
-	IKPlugin *plugin = get_plugin(ob->pose);
+  IKPlugin *plugin = get_plugin(ob->pose);
 
-	if (plugin && plugin->execute_tree_func)
-		plugin->execute_tree_func(depsgraph, scene, ob, pchan, ctime);
+  if (plugin && plugin->execute_tree_func)
+    plugin->execute_tree_func(depsgraph, scene, ob, pchan, ctime);
 }
 
 void BIK_release_tree(struct Scene *scene, Object *ob, float ctime)
 {
-	IKPlugin *plugin = get_plugin(ob->pose);
+  IKPlugin *plugin = get_plugin(ob->pose);
 
-	if (plugin && plugin->release_tree_func)
-		plugin->release_tree_func(scene, ob, ctime);
+  if (plugin && plugin->release_tree_func)
+    plugin->release_tree_func(scene, ob, ctime);
 }
 
 void BIK_clear_data(struct bPose *pose)
 {
-	IKPlugin *plugin = get_plugin(pose);
+  IKPlugin *plugin = get_plugin(pose);
 
-	if (plugin && plugin->remove_armature_func)
-		plugin->remove_armature_func(pose);
+  if (plugin && plugin->remove_armature_func)
+    plugin->remove_armature_func(pose);
 }
 
 void BIK_clear_cache(struct bPose *pose)
 {
-	IKPlugin *plugin = get_plugin(pose);
+  IKPlugin *plugin = get_plugin(pose);
 
-	if (plugin && plugin->clear_cache)
-		plugin->clear_cache(pose);
+  if (plugin && plugin->clear_cache)
+    plugin->clear_cache(pose);
 }
 
 void BIK_update_param(struct bPose *pose)
 {
-	IKPlugin *plugin = get_plugin(pose);
+  IKPlugin *plugin = get_plugin(pose);
 
-	if (plugin && plugin->update_param)
-		plugin->update_param(pose);
+  if (plugin && plugin->update_param)
+    plugin->update_param(pose);
 }
 
 void BIK_test_constraint(struct Object *ob, struct bConstraint *cons)
 {
-	IKPlugin *plugin = get_plugin(ob->pose);
+  IKPlugin *plugin = get_plugin(ob->pose);
 
-	if (plugin && plugin->test_constraint)
-		plugin->test_constraint(ob, cons);
+  if (plugin && plugin->test_constraint)
+    plugin->test_constraint(ob, cons);
 }

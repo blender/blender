@@ -34,39 +34,40 @@
 
 void register_node_type_cmp_group(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	/* NB: cannot use sh_node_type_base for node group, because it would map the node type
-	 * to the shared NODE_GROUP integer type id.
-	 */
-	node_type_base_custom(&ntype, "CompositorNodeGroup", "Group", NODE_CLASS_GROUP, NODE_CONST_OUTPUT);
-	ntype.type = NODE_GROUP;
-	ntype.poll = cmp_node_poll_default;
-	ntype.poll_instance = node_group_poll_instance;
-	ntype.insert_link = node_insert_link_default;
-	ntype.update_internal_links = node_update_internal_links_default;
-	ntype.ext.srna = RNA_struct_find("CompositorNodeGroup");
-	BLI_assert(ntype.ext.srna != NULL);
-	RNA_struct_blender_type_set(ntype.ext.srna, &ntype);
+  /* NB: cannot use sh_node_type_base for node group, because it would map the node type
+   * to the shared NODE_GROUP integer type id.
+   */
+  node_type_base_custom(
+      &ntype, "CompositorNodeGroup", "Group", NODE_CLASS_GROUP, NODE_CONST_OUTPUT);
+  ntype.type = NODE_GROUP;
+  ntype.poll = cmp_node_poll_default;
+  ntype.poll_instance = node_group_poll_instance;
+  ntype.insert_link = node_insert_link_default;
+  ntype.update_internal_links = node_update_internal_links_default;
+  ntype.ext.srna = RNA_struct_find("CompositorNodeGroup");
+  BLI_assert(ntype.ext.srna != NULL);
+  RNA_struct_blender_type_set(ntype.ext.srna, &ntype);
 
-	node_type_socket_templates(&ntype, NULL, NULL);
-	node_type_size(&ntype, 140, 60, 400);
-	node_type_label(&ntype, node_group_label);
-	node_type_update(&ntype, NULL, node_group_verify);
+  node_type_socket_templates(&ntype, NULL, NULL);
+  node_type_size(&ntype, 140, 60, 400);
+  node_type_label(&ntype, node_group_label);
+  node_type_update(&ntype, NULL, node_group_verify);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }
 
 void register_node_type_cmp_custom_group(bNodeType *ntype)
 {
-	/* These methods can be overriden but need a default implementation otherwise. */
-	if (ntype->poll == NULL) {
-		ntype->poll = cmp_node_poll_default;
-	}
-	if (ntype->insert_link == NULL) {
-		ntype->insert_link = node_insert_link_default;
-	}
-	if (ntype->update_internal_links == NULL) {
-		ntype->update_internal_links = node_update_internal_links_default;
-	}
+  /* These methods can be overriden but need a default implementation otherwise. */
+  if (ntype->poll == NULL) {
+    ntype->poll = cmp_node_poll_default;
+  }
+  if (ntype->insert_link == NULL) {
+    ntype->insert_link = node_insert_link_default;
+  }
+  if (ntype->update_internal_links == NULL) {
+    ntype->update_internal_links = node_update_internal_links_default;
+  }
 }

@@ -79,5 +79,4 @@
  * (ton)
  */
 
-
 /* This file has intentionally no definitions or implementation. */

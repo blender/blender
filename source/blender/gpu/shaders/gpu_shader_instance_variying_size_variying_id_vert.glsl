@@ -18,6 +18,6 @@ flat out uint finalId;
 
 void main()
 {
-	gl_Position = ViewProjectionMatrix * InstanceModelMatrix * vec4(pos * size, 1.0);
-	finalId = uint(baseId + callId);
+  gl_Position = ViewProjectionMatrix * InstanceModelMatrix * vec4(pos * size, 1.0);
+  finalId = uint(baseId + callId);
 }

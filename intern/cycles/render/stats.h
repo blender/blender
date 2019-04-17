@@ -33,12 +33,12 @@ CCL_NAMESPACE_BEGIN
  * avoiding duplicating code for things like sorting.
  */
 class NamedSizeEntry {
-public:
-	NamedSizeEntry();
-	NamedSizeEntry(const string& name, size_t size);
+ public:
+  NamedSizeEntry();
+  NamedSizeEntry(const string &name, size_t size);
 
-	string name;
-	size_t size;
+  string name;
+  size_t size;
 };
 
 /* Container of named size entries. Used, for example, to store per-mesh memory
@@ -46,115 +46,115 @@ public:
  * container.
  */
 class NamedSizeStats {
-public:
-	NamedSizeStats();
+ public:
+  NamedSizeStats();
 
-	/* Add entry to the statistics. */
-	void add_entry(const NamedSizeEntry& entry);
+  /* Add entry to the statistics. */
+  void add_entry(const NamedSizeEntry &entry);
 
-	/* Generate full human-readable report. */
-	string full_report(int indent_level = 0);
+  /* Generate full human-readable report. */
+  string full_report(int indent_level = 0);
 
-	/* Total size of all entries. */
-	size_t total_size;
+  /* Total size of all entries. */
+  size_t total_size;
 
-	/* NOTE: Is fine to read directly, but for adding use add_entry(), which
-	 * makes sure all accumulating  values are properly updated.
-	 */
-	vector<NamedSizeEntry> entries;
+  /* NOTE: Is fine to read directly, but for adding use add_entry(), which
+   * makes sure all accumulating  values are properly updated.
+   */
+  vector<NamedSizeEntry> entries;
 };
 
 class NamedNestedSampleStats {
-public:
-	NamedNestedSampleStats();
-	NamedNestedSampleStats(const string& name, uint64_t samples);
+ public:
+  NamedNestedSampleStats();
+  NamedNestedSampleStats(const string &name, uint64_t samples);
 
-	NamedNestedSampleStats& add_entry(const string& name, uint64_t samples);
+  NamedNestedSampleStats &add_entry(const string &name, uint64_t samples);
 
-	/* Updates sum_samples recursively. */
-	void update_sum();
+  /* Updates sum_samples recursively. */
+  void update_sum();
 
-	string full_report(int indent_level = 0, uint64_t total_samples = 0);
+  string full_report(int indent_level = 0, uint64_t total_samples = 0);
 
-	string name;
+  string name;
 
-	/* self_samples contains only the samples that this specific event got,
-	 * while sum_samples also includes the samples of all sub-entries. */
-	uint64_t self_samples, sum_samples;
+  /* self_samples contains only the samples that this specific event got,
+   * while sum_samples also includes the samples of all sub-entries. */
+  uint64_t self_samples, sum_samples;
 
-	vector<NamedNestedSampleStats> entries;
+  vector<NamedNestedSampleStats> entries;
 };
 
 /* Named entry containing both a time-sample count for objects of a type and a
  * total count of processed items.
  * This allows to estimate the time spent per item. */
 class NamedSampleCountPair {
-public:
-	NamedSampleCountPair(const ustring& name, uint64_t samples, uint64_t hits);
+ public:
+  NamedSampleCountPair(const ustring &name, uint64_t samples, uint64_t hits);
 
-	ustring name;
-	uint64_t samples;
-	uint64_t hits;
+  ustring name;
+  uint64_t samples;
+  uint64_t hits;
 };
 
 /* Contains statistics about pairs of samples and counts as described above. */
 class NamedSampleCountStats {
-public:
-	NamedSampleCountStats();
+ public:
+  NamedSampleCountStats();
 
-	string full_report(int indent_level = 0);
-	void add(const ustring& name, uint64_t samples, uint64_t hits);
+  string full_report(int indent_level = 0);
+  void add(const ustring &name, uint64_t samples, uint64_t hits);
 
-	typedef unordered_map<ustring, NamedSampleCountPair, ustringHash> entry_map;
-	entry_map entries;
+  typedef unordered_map<ustring, NamedSampleCountPair, ustringHash> entry_map;
+  entry_map entries;
 };
 
 /* Statistics about mesh in the render database. */
 class MeshStats {
-public:
-	MeshStats();
+ public:
+  MeshStats();
 
-	/* Generate full human-readable report. */
-	string full_report(int indent_level = 0);
+  /* Generate full human-readable report. */
+  string full_report(int indent_level = 0);
 
-	/* Input geometry statistics, this is what is coming as an input to render
-	 * from. say, Blender. This does not include runtime or engine specific
-	 * memory like BVH.
-	 */
-	NamedSizeStats geometry;
+  /* Input geometry statistics, this is what is coming as an input to render
+   * from. say, Blender. This does not include runtime or engine specific
+   * memory like BVH.
+   */
+  NamedSizeStats geometry;
 };
 
 /* Statistics about images held in memory. */
 class ImageStats {
-public:
-	ImageStats();
+ public:
+  ImageStats();
 
-	/* Generate full human-readable report. */
-	string full_report(int indent_level = 0);
+  /* Generate full human-readable report. */
+  string full_report(int indent_level = 0);
 
-	NamedSizeStats textures;
+  NamedSizeStats textures;
 };
 
 /* Render process statistics. */
 class RenderStats {
-public:
-	RenderStats();
+ public:
+  RenderStats();
 
-	/* Return full report as string. */
-	string full_report();
+  /* Return full report as string. */
+  string full_report();
 
-	/* Collect kernel sampling information from Stats. */
-	void collect_profiling(Scene *scene, Profiler& prof);
+  /* Collect kernel sampling information from Stats. */
+  void collect_profiling(Scene *scene, Profiler &prof);
 
-	bool has_profiling;
+  bool has_profiling;
 
-	MeshStats mesh;
-	ImageStats image;
-	NamedNestedSampleStats kernel;
-	NamedSampleCountStats shaders;
-	NamedSampleCountStats objects;
+  MeshStats mesh;
+  ImageStats image;
+  NamedNestedSampleStats kernel;
+  NamedSampleCountStats shaders;
+  NamedSampleCountStats objects;
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __RENDER_STATS_H__ */
+#endif /* __RENDER_STATS_H__ */

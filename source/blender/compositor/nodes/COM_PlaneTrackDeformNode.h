@@ -19,8 +19,8 @@
 #include "COM_Node.h"
 
 extern "C" {
-#  include "DNA_movieclip_types.h"
-#  include "DNA_node_types.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_node_types.h"
 }
 
 /**
@@ -28,7 +28,7 @@ extern "C" {
  * \ingroup Node
  */
 class PlaneTrackDeformNode : public Node {
-public:
-	PlaneTrackDeformNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  PlaneTrackDeformNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };

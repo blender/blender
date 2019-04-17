@@ -26,7 +26,7 @@
 #include <vector>
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 using namespace std;
@@ -60,43 +60,44 @@ class Stroke;
  *      v != vend;
  *      ++v)
  *  {
- *  	StrokeAttribute& att = v->attribute();
- *  	// perform any attribute modification here...
+ *      StrokeAttribute& att = v->attribute();
+ *      // perform any attribute modification here...
  *  }
  * \endcode
  */
-class StrokeShader
-{
-public:
-	void *py_ss;
+class StrokeShader {
+ public:
+  void *py_ss;
 
-	/*! Default constructor. */
-	StrokeShader()
-	{
-		py_ss = 0;
-	}
+  /*! Default constructor. */
+  StrokeShader()
+  {
+    py_ss = 0;
+  }
 
-	/*! Destructor. */
-	virtual ~StrokeShader() {}
+  /*! Destructor. */
+  virtual ~StrokeShader()
+  {
+  }
 
-	/*! Returns the string corresponding to the shader's name. */
-	virtual string getName() const
-	{
-		return "StrokeShader";
-	}
+  /*! Returns the string corresponding to the shader's name. */
+  virtual string getName() const
+  {
+    return "StrokeShader";
+  }
 
-	/*! The shading method. This method must be overloaded by inherited classes.
-	 *  \param ioStroke:
-	 *    The stroke we wish to shade. this Stroke is modified by the Shader (which typically
-	 *    modifies the Stroke's attribute's values such as Color, Thickness, Geometry...)
-	 */
-	virtual int shade(Stroke& ioStroke) const;
+  /*! The shading method. This method must be overloaded by inherited classes.
+   *  \param ioStroke:
+   *    The stroke we wish to shade. this Stroke is modified by the Shader (which typically
+   *    modifies the Stroke's attribute's values such as Color, Thickness, Geometry...)
+   */
+  virtual int shade(Stroke &ioStroke) const;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeShader")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeShader")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_STROKE_SHADERS_H__
+#endif  // __FREESTYLE_STROKE_SHADERS_H__

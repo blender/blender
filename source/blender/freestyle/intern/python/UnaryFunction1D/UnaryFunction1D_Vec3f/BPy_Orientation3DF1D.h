@@ -31,13 +31,13 @@ extern "C" {
 
 extern PyTypeObject Orientation3DF1D_Type;
 
-#define BPy_Orientation3DF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Orientation3DF1D_Type))
+#define BPy_Orientation3DF1D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&Orientation3DF1D_Type))
 
 /*---------------------------Python BPy_Orientation3DF1D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction1DVec3f py_uf1D_vec3f;
+  BPy_UnaryFunction1DVec3f py_uf1D_vec3f;
 } BPy_Orientation3DF1D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

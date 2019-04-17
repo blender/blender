@@ -16,55 +16,55 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../gpu
-	../../ikplugin
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../depsgraph
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../bmesh
+  ../../gpu
+  ../../ikplugin
+  ../../makesdna
+  ../../makesrna
+  ../../render/extern/include
+  ../../windowmanager
+  ../../depsgraph
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	transform.c
-	transform_constraints.c
-	transform_conversions.c
-	transform_generics.c
-	transform_gizmo_2d.c
-	transform_gizmo_3d.c
-	transform_gizmo_extrude_3d.c
-	transform_input.c
-	transform_ops.c
-	transform_orientations.c
-	transform_snap.c
-	transform_snap_object.c
+  transform.c
+  transform_constraints.c
+  transform_conversions.c
+  transform_generics.c
+  transform_gizmo_2d.c
+  transform_gizmo_3d.c
+  transform_gizmo_extrude_3d.c
+  transform_input.c
+  transform_ops.c
+  transform_orientations.c
+  transform_snap.c
+  transform_snap_object.c
 
-	transform.h
+  transform.h
 )
 
 set(LIB
-	bf_blenfont
-	bf_blenkernel
-	bf_blenlib
-	bf_bmesh
-	bf_editor_mask
-	bf_gpu
+  bf_blenfont
+  bf_blenkernel
+  bf_blenlib
+  bf_bmesh
+  bf_editor_mask
+  bf_gpu
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

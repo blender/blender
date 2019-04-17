@@ -24,47 +24,60 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_coord_out[] = {
-	{	SOCK_VECTOR, 0, N_("Generated"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, N_("Normal"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, N_("UV"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, N_("Object"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, N_("Camera"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, N_("Window"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, N_("Reflection"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_VECTOR, 0, N_("Generated"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 0, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 0, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 0, N_("Object"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 0, N_("Camera"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 0, N_("Window"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, 0, N_("Reflection"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, 0, ""},
 };
 
-static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_coord(GPUMaterial *mat,
+                                     bNode *node,
+                                     bNodeExecData *UNUSED(execdata),
+                                     GPUNodeStack *in,
+                                     GPUNodeStack *out)
 {
-	Object *ob = (Object *)node->id;
+  Object *ob = (Object *)node->id;
 
-	if (ob != NULL) {
-		invert_m4_m4(ob->imat, ob->obmat);
-	}
+  if (ob != NULL) {
+    invert_m4_m4(ob->imat, ob->obmat);
+  }
 
-	GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) : GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
+  GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) :
+                                          GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 
-	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
-	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
+  GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
+  GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
 
-	GPU_link(mat, "generated_from_orco", orco, &orco);
+  GPU_link(mat, "generated_from_orco", orco, &orco);
 
-	return GPU_stack_link(mat, node, "node_tex_coord", in, out,
-	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
-	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), inv_obmat,
-	                      GPU_builtin(GPU_CAMERA_TEXCO_FACTORS), orco, mtface);
+  return GPU_stack_link(mat,
+                        node,
+                        "node_tex_coord",
+                        in,
+                        out,
+                        GPU_builtin(GPU_VIEW_POSITION),
+                        GPU_builtin(GPU_VIEW_NORMAL),
+                        GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
+                        inv_obmat,
+                        GPU_builtin(GPU_CAMERA_TEXCO_FACTORS),
+                        orco,
+                        mtface);
 }
 
 /* node type definition */
 void register_node_type_sh_tex_coord(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT, 0);
-	node_type_socket_templates(&ntype, NULL, sh_node_tex_coord_out);
-	node_type_init(&ntype, NULL);
-	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_tex_coord);
+  sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT, 0);
+  node_type_socket_templates(&ntype, NULL, sh_node_tex_coord_out);
+  node_type_init(&ntype, NULL);
+  node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_tex_coord);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

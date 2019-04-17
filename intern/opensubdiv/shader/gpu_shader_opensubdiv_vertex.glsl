@@ -18,9 +18,9 @@
  */
 
 struct VertexData {
-	vec4 position;
-	vec3 normal;
-	vec2 uv;
+  vec4 position;
+  vec3 normal;
+  vec2 uv;
 };
 
 in vec3 normal;
@@ -29,12 +29,14 @@ in vec4 position;
 uniform mat4 modelViewMatrix;
 uniform mat3 normalMatrix;
 
-out block {
-	VertexData v;
-} outpt;
+out block
+{
+  VertexData v;
+}
+outpt;
 
 void main()
 {
-	outpt.v.position = modelViewMatrix * position;
-	outpt.v.normal = normalize(normalMatrix * normal);
+  outpt.v.position = modelViewMatrix * position;
+  outpt.v.normal = normalize(normalMatrix * normal);
 }

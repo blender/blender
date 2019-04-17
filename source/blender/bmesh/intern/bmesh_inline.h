@@ -24,66 +24,74 @@
 #define __BMESH_INLINE_H__
 
 /* stuff for dealing with header flags */
-#define BM_elem_flag_test(     ele, hflag)      _bm_elem_flag_test     (&(ele)->head, hflag)
-#define BM_elem_flag_test_bool(ele, hflag)      _bm_elem_flag_test_bool(&(ele)->head, hflag)
-#define BM_elem_flag_enable(   ele, hflag)      _bm_elem_flag_enable   (&(ele)->head, hflag)
-#define BM_elem_flag_disable(  ele, hflag)      _bm_elem_flag_disable  (&(ele)->head, hflag)
-#define BM_elem_flag_set(      ele, hflag, val) _bm_elem_flag_set      (&(ele)->head, hflag, val)
-#define BM_elem_flag_toggle(   ele, hflag)      _bm_elem_flag_toggle   (&(ele)->head, hflag)
-#define BM_elem_flag_merge(    ele_a, ele_b)    _bm_elem_flag_merge    (&(ele_a)->head, &(ele_b)->head)
-#define BM_elem_flag_merge_ex( ele_a, ele_b, hflag_and)_bm_elem_flag_merge_ex (&(ele_a)->head, &(ele_b)->head, hflag_and)
-#define BM_elem_flag_merge_into(ele, ele_a, ele_b)_bm_elem_flag_merge_into (&(ele)->head, &(ele_a)->head, &(ele_b)->head)
+#define BM_elem_flag_test(ele, hflag) _bm_elem_flag_test(&(ele)->head, hflag)
+#define BM_elem_flag_test_bool(ele, hflag) _bm_elem_flag_test_bool(&(ele)->head, hflag)
+#define BM_elem_flag_enable(ele, hflag) _bm_elem_flag_enable(&(ele)->head, hflag)
+#define BM_elem_flag_disable(ele, hflag) _bm_elem_flag_disable(&(ele)->head, hflag)
+#define BM_elem_flag_set(ele, hflag, val) _bm_elem_flag_set(&(ele)->head, hflag, val)
+#define BM_elem_flag_toggle(ele, hflag) _bm_elem_flag_toggle(&(ele)->head, hflag)
+#define BM_elem_flag_merge(ele_a, ele_b) _bm_elem_flag_merge(&(ele_a)->head, &(ele_b)->head)
+#define BM_elem_flag_merge_ex(ele_a, ele_b, hflag_and) \
+  _bm_elem_flag_merge_ex(&(ele_a)->head, &(ele_b)->head, hflag_and)
+#define BM_elem_flag_merge_into(ele, ele_a, ele_b) \
+  _bm_elem_flag_merge_into(&(ele)->head, &(ele_a)->head, &(ele_b)->head)
 
 ATTR_WARN_UNUSED_RESULT
 BLI_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag)
 {
-	return head->hflag & hflag;
+  return head->hflag & hflag;
 }
 
 ATTR_WARN_UNUSED_RESULT
 BLI_INLINE bool _bm_elem_flag_test_bool(const BMHeader *head, const char hflag)
 {
-	return (head->hflag & hflag) != 0;
+  return (head->hflag & hflag) != 0;
 }
 
 BLI_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag)
 {
-	head->hflag |= hflag;
+  head->hflag |= hflag;
 }
 
 BLI_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag)
 {
-	head->hflag &= (char)~hflag;
+  head->hflag &= (char)~hflag;
 }
 
 BLI_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val)
 {
-	if (val)  { _bm_elem_flag_enable(head,  hflag); }
-	else      { _bm_elem_flag_disable(head, hflag); }
+  if (val) {
+    _bm_elem_flag_enable(head, hflag);
+  }
+  else {
+    _bm_elem_flag_disable(head, hflag);
+  }
 }
 
 BLI_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag)
 {
-	head->hflag ^= hflag;
+  head->hflag ^= hflag;
 }
 
 BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
 {
-	head_a->hflag = head_b->hflag = head_a->hflag | head_b->hflag;
+  head_a->hflag = head_b->hflag = head_a->hflag | head_b->hflag;
 }
 
 BLI_INLINE void _bm_elem_flag_merge_ex(BMHeader *head_a, BMHeader *head_b, const char hflag_and)
 {
-	if (((head_a->hflag & head_b->hflag) & hflag_and) == 0) {
-		head_a->hflag &= ~hflag_and;
-		head_b->hflag &= ~hflag_and;
-	}
-	_bm_elem_flag_merge(head_a, head_b);
+  if (((head_a->hflag & head_b->hflag) & hflag_and) == 0) {
+    head_a->hflag &= ~hflag_and;
+    head_b->hflag &= ~hflag_and;
+  }
+  _bm_elem_flag_merge(head_a, head_b);
 }
 
-BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head, const BMHeader *head_a, const BMHeader *head_b)
+BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head,
+                                         const BMHeader *head_a,
+                                         const BMHeader *head_b)
 {
-	head->hflag = head_a->hflag | head_b->hflag;
+  head->hflag = head_a->hflag | head_b->hflag;
 }
 
 /**
@@ -114,18 +122,18 @@ BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head, const BMHeader *head_a,
  *
  * - campbell */
 
-#define BM_elem_index_get(ele)           _bm_elem_index_get(&(ele)->head)
-#define BM_elem_index_set(ele, index)    _bm_elem_index_set(&(ele)->head, index)
+#define BM_elem_index_get(ele) _bm_elem_index_get(&(ele)->head)
+#define BM_elem_index_set(ele, index) _bm_elem_index_set(&(ele)->head, index)
 
 BLI_INLINE void _bm_elem_index_set(BMHeader *head, const int index)
 {
-	head->index = index;
+  head->index = index;
 }
 
 ATTR_WARN_UNUSED_RESULT
 BLI_INLINE int _bm_elem_index_get(const BMHeader *head)
 {
-	return head->index;
+  return head->index;
 }
 
 #endif /* __BMESH_INLINE_H__ */

@@ -19,8 +19,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	..
+  .
+  ..
 )
 
 set(INC_SYS
@@ -28,14 +28,14 @@ set(INC_SYS
 )
 
 set(SRC
-	intern/MEM_CacheLimiterC-Api.cpp
-	intern/MEM_RefCountedC-Api.cpp
+  intern/MEM_CacheLimiterC-Api.cpp
+  intern/MEM_RefCountedC-Api.cpp
 
-	MEM_Allocator.h
-	MEM_CacheLimiter.h
-	MEM_CacheLimiterC-Api.h
-	MEM_RefCounted.h
-	MEM_RefCountedC-Api.h
+  MEM_Allocator.h
+  MEM_CacheLimiter.h
+  MEM_CacheLimiterC-Api.h
+  MEM_RefCounted.h
+  MEM_RefCountedC-Api.h
 )
 
 set(LIB

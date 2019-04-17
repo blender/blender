@@ -27,7 +27,7 @@
 #include "../system/Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 using namespace std;
@@ -37,38 +37,62 @@ namespace Freestyle {
 namespace Config {
 
 class Path {
-protected:
-	static Path *_pInstance;
-	string _ProjectDir;
-	string _ModelsPath;
-	string _PatternsPath;
-	string _BrushesPath;
-	string _PythonPath;
-	string _EnvMapDir;
-	string _MapsDir;
-	string _HomeDir;
+ protected:
+  static Path *_pInstance;
+  string _ProjectDir;
+  string _ModelsPath;
+  string _PatternsPath;
+  string _BrushesPath;
+  string _PythonPath;
+  string _EnvMapDir;
+  string _MapsDir;
+  string _HomeDir;
 
-public:
-	Path();
-	virtual ~Path();
-	static Path *getInstance();
+ public:
+  Path();
+  virtual ~Path();
+  static Path *getInstance();
 
-	void setRootDir(const string& iRootDir);
-	void setHomeDir(const string& iHomeDir);
+  void setRootDir(const string &iRootDir);
+  void setHomeDir(const string &iHomeDir);
 
-	const string& getProjectDir() const {return _ProjectDir;}
-	const string& getModelsPath() const {return _ModelsPath;}
-	const string& getPatternsPath() const {return _PatternsPath;}
-	const string& getBrushesPath() const {return _BrushesPath;}
-	const string& getPythonPath() const {return _PythonPath;}
-	const string& getEnvMapDir() const {return _EnvMapDir;}
-	const string& getMapsDir() const {return _MapsDir;}
-	const string& getHomeDir() const {return _HomeDir;}
+  const string &getProjectDir() const
+  {
+    return _ProjectDir;
+  }
+  const string &getModelsPath() const
+  {
+    return _ModelsPath;
+  }
+  const string &getPatternsPath() const
+  {
+    return _PatternsPath;
+  }
+  const string &getBrushesPath() const
+  {
+    return _BrushesPath;
+  }
+  const string &getPythonPath() const
+  {
+    return _PythonPath;
+  }
+  const string &getEnvMapDir() const
+  {
+    return _EnvMapDir;
+  }
+  const string &getMapsDir() const
+  {
+    return _MapsDir;
+  }
+  const string &getHomeDir() const
+  {
+    return _HomeDir;
+  }
 
-	static string getEnvVar(const string& iEnvVarName);
+  static string getEnvVar(const string &iEnvVarName);
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Config:Path")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Config:Path")
 #endif
 };
 
@@ -100,8 +124,8 @@ static const string OPTIONS_QGLVIEWER_FILE("qglviewer.xml");
 static const real DEFAULT_SPHERE_RADIUS = 1.0;
 static const real DEFAULT_DKR_EPSILON = 0.0;
 
-} // End of namepace Config
+}  // namespace Config
 
 } /* namespace Freestyle */
 
-#endif // __APP_CONFIG_H__
+#endif  // __APP_CONFIG_H__

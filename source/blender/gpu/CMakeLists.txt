@@ -23,113 +23,113 @@
 # bf_gpu is allowed to have opengl regardless of this option.
 
 if(NOT WITH_OPENGL)
-	add_definitions(-DWITH_OPENGL)
+  add_definitions(-DWITH_OPENGL)
 endif()
 
 set(INC
-	.
-	../blenkernel
-	../blenlib
-	../bmesh
-	../imbuf
-	../makesdna
-	../makesrna
-	../draw
+  .
+  ../blenkernel
+  ../blenlib
+  ../bmesh
+  ../imbuf
+  ../makesdna
+  ../makesrna
+  ../draw
 
-	../editors/include
+  ../editors/include
 
-	# For node muting stuff...
-	../nodes
-	../nodes/intern
+  # For node muting stuff...
+  ../nodes
+  ../nodes/intern
 
-	../../../intern/glew-mx
-	../../../intern/guardedalloc
-	../../../intern/smoke/extern
+  ../../../intern/glew-mx
+  ../../../intern/guardedalloc
+  ../../../intern/smoke/extern
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	intern/gpu_attr_binding.c
-	intern/gpu_batch.c
-	intern/gpu_batch_presets.c
-	intern/gpu_batch_utils.c
-	intern/gpu_buffers.c
-	intern/gpu_codegen.c
-	intern/gpu_context.cpp
-	intern/gpu_debug.c
-	intern/gpu_draw.c
-	intern/gpu_element.c
-	intern/gpu_extensions.c
-	intern/gpu_framebuffer.c
-	intern/gpu_immediate.c
-	intern/gpu_immediate_util.c
-	intern/gpu_init_exit.c
-	intern/gpu_material.c
-	intern/gpu_matrix.c
-	intern/gpu_primitive.c
-	intern/gpu_select.c
-	intern/gpu_select_pick.c
-	intern/gpu_select_sample_query.c
-	intern/gpu_shader.c
-	intern/gpu_shader_interface.c
-	intern/gpu_state.c
-	intern/gpu_texture.c
-	intern/gpu_uniformbuffer.c
-	intern/gpu_vertex_buffer.c
-	intern/gpu_vertex_format.c
-	intern/gpu_viewport.c
+  intern/gpu_attr_binding.c
+  intern/gpu_batch.c
+  intern/gpu_batch_presets.c
+  intern/gpu_batch_utils.c
+  intern/gpu_buffers.c
+  intern/gpu_codegen.c
+  intern/gpu_context.cpp
+  intern/gpu_debug.c
+  intern/gpu_draw.c
+  intern/gpu_element.c
+  intern/gpu_extensions.c
+  intern/gpu_framebuffer.c
+  intern/gpu_immediate.c
+  intern/gpu_immediate_util.c
+  intern/gpu_init_exit.c
+  intern/gpu_material.c
+  intern/gpu_matrix.c
+  intern/gpu_primitive.c
+  intern/gpu_select.c
+  intern/gpu_select_pick.c
+  intern/gpu_select_sample_query.c
+  intern/gpu_shader.c
+  intern/gpu_shader_interface.c
+  intern/gpu_state.c
+  intern/gpu_texture.c
+  intern/gpu_uniformbuffer.c
+  intern/gpu_vertex_buffer.c
+  intern/gpu_vertex_format.c
+  intern/gpu_viewport.c
 
-	GPU_attr_binding.h
-	GPU_batch.h
-	GPU_batch_presets.h
-	GPU_batch_utils.h
-	GPU_buffers.h
-	GPU_common.h
-	GPU_context.h
-	GPU_debug.h
-	GPU_draw.h
-	GPU_element.h
-	GPU_extensions.h
-	GPU_framebuffer.h
-	GPU_glew.h
-	GPU_immediate.h
-	GPU_immediate_util.h
-	GPU_init_exit.h
-	GPU_legacy_stubs.h
-	GPU_material.h
-	GPU_matrix.h
-	GPU_primitive.h
-	GPU_select.h
-	GPU_shader.h
-	GPU_shader_interface.h
-	GPU_state.h
-	GPU_texture.h
-	GPU_uniformbuffer.h
-	GPU_vertex_buffer.h
-	GPU_vertex_format.h
-	GPU_viewport.h
+  GPU_attr_binding.h
+  GPU_batch.h
+  GPU_batch_presets.h
+  GPU_batch_utils.h
+  GPU_buffers.h
+  GPU_common.h
+  GPU_context.h
+  GPU_debug.h
+  GPU_draw.h
+  GPU_element.h
+  GPU_extensions.h
+  GPU_framebuffer.h
+  GPU_glew.h
+  GPU_immediate.h
+  GPU_immediate_util.h
+  GPU_init_exit.h
+  GPU_legacy_stubs.h
+  GPU_material.h
+  GPU_matrix.h
+  GPU_primitive.h
+  GPU_select.h
+  GPU_shader.h
+  GPU_shader_interface.h
+  GPU_state.h
+  GPU_texture.h
+  GPU_uniformbuffer.h
+  GPU_vertex_buffer.h
+  GPU_vertex_format.h
+  GPU_viewport.h
 
-	intern/gpu_attr_binding_private.h
-	intern/gpu_batch_private.h
-	intern/gpu_codegen.h
-	intern/gpu_context_private.h
-	intern/gpu_primitive_private.h
-	intern/gpu_private.h
-	intern/gpu_select_private.h
-	intern/gpu_shader_private.h
-	intern/gpu_vertex_format_private.h
+  intern/gpu_attr_binding_private.h
+  intern/gpu_batch_private.h
+  intern/gpu_codegen.h
+  intern/gpu_context_private.h
+  intern/gpu_primitive_private.h
+  intern/gpu_private.h
+  intern/gpu_select_private.h
+  intern/gpu_shader_private.h
+  intern/gpu_vertex_format_private.h
 )
 
 set(LIB
 )
 
 if(NOT WITH_SYSTEM_GLEW)
-	list(APPEND LIB
-		${BLENDER_GLEW_LIBRARIES}
-	)
+  list(APPEND LIB
+    ${BLENDER_GLEW_LIBRARIES}
+  )
 endif()
 
 data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)
@@ -255,13 +255,13 @@ data_to_c_simple(shaders/gpu_shader_cfg_world_clip_lib.glsl SRC)
 
 
 if(WITH_MOD_SMOKE)
-	add_definitions(-DWITH_SMOKE)
+  add_definitions(-DWITH_SMOKE)
 endif()
 
 add_definitions(${GL_DEFINITIONS})
 
 if(WITH_IMAGE_DDS)
-	add_definitions(-DWITH_DDS)
+  add_definitions(-DWITH_DDS)
 endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

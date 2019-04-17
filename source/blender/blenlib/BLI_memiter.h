@@ -22,8 +22,7 @@
  */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "BLI_sys_types.h"
@@ -40,11 +39,16 @@ typedef struct BLI_memiter BLI_memiter;
 
 /* warning, ATTR_MALLOC flag on BLI_memiter_alloc causes crash, see: D2756 */
 BLI_memiter *BLI_memiter_create(unsigned int chunk_size) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-void        *BLI_memiter_alloc(BLI_memiter *mi, unsigned int size) ATTR_RETURNS_NONNULL ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void         BLI_memiter_alloc_from(BLI_memiter *mi, uint elem_size, const void *data_from) ATTR_NONNULL(1, 3);
-void        *BLI_memiter_calloc(BLI_memiter *mi, unsigned int size) ATTR_RETURNS_NONNULL ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void         BLI_memiter_destroy(BLI_memiter *mi) ATTR_NONNULL(1);
-void         BLI_memiter_clear(BLI_memiter *mi) ATTR_NONNULL(1);
+void *BLI_memiter_alloc(BLI_memiter *mi,
+                        unsigned int size) ATTR_RETURNS_NONNULL ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+void BLI_memiter_alloc_from(BLI_memiter *mi, uint elem_size, const void *data_from)
+    ATTR_NONNULL(1, 3);
+void *BLI_memiter_calloc(BLI_memiter *mi,
+                         unsigned int size) ATTR_RETURNS_NONNULL ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+void BLI_memiter_destroy(BLI_memiter *mi) ATTR_NONNULL(1);
+void BLI_memiter_clear(BLI_memiter *mi) ATTR_NONNULL(1);
 unsigned int BLI_memiter_count(const BLI_memiter *mi) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* utils */
@@ -53,17 +57,18 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, unsigned int *r_size);
 
 /* private structure */
 typedef struct BLI_memiter_handle {
-	struct BLI_memiter_elem *elem;
-	uint elem_left;
+  struct BLI_memiter_elem *elem;
+  uint elem_left;
 } BLI_memiter_handle;
 
-void  BLI_memiter_iter_init(BLI_memiter *mi, BLI_memiter_handle *iter) ATTR_NONNULL();
-bool  BLI_memiter_iter_done(const BLI_memiter_handle *iter) ATTR_NONNULL();
+void BLI_memiter_iter_init(BLI_memiter *mi, BLI_memiter_handle *iter) ATTR_NONNULL();
+bool BLI_memiter_iter_done(const BLI_memiter_handle *iter) ATTR_NONNULL();
 void *BLI_memiter_iter_step(BLI_memiter_handle *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __BLI_MEMITER_H__ */
+#endif /* __BLI_MEMITER_H__ */

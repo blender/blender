@@ -46,4 +46,4 @@ bool GPU_uniformbuffer_is_dirty(GPUUniformBuffer *ubo);
 
 #define GPU_UBO_BLOCK_NAME "nodeTree"
 
-#endif  /* __GPU_UNIFORMBUFFER_H__ */
+#endif /* __GPU_UNIFORMBUFFER_H__ */

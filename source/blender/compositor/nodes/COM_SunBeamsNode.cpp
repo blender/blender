@@ -20,19 +20,20 @@
 
 SunBeamsNode::SunBeamsNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void SunBeamsNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void SunBeamsNode::convertToOperations(NodeConverter &converter,
+                                       const CompositorContext & /*context*/) const
 {
-	NodeInput *inputSocket = this->getInputSocket(0);
-	NodeOutput *outputSocket = this->getOutputSocket(0);
-	NodeSunBeams *data = (NodeSunBeams *)getbNode()->storage;
+  NodeInput *inputSocket = this->getInputSocket(0);
+  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeSunBeams *data = (NodeSunBeams *)getbNode()->storage;
 
-	SunBeamsOperation *operation = new SunBeamsOperation();
-	operation->setData(*data);
-	converter.addOperation(operation);
+  SunBeamsOperation *operation = new SunBeamsOperation();
+  operation->setData(*data);
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

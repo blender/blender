@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef  __KERNEL_SPLIT_H__
-#define  __KERNEL_SPLIT_H__
+#ifndef __KERNEL_SPLIT_H__
+#define __KERNEL_SPLIT_H__
 
 #include "kernel/kernel_math.h"
 #include "kernel/kernel_types.h"
@@ -57,47 +57,48 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_split_path_end(KernelGlobals *kg, int ray_index)
 {
-	ccl_global char *ray_state = kernel_split_state.ray_state;
+  ccl_global char *ray_state = kernel_split_state.ray_state;
 
 #ifdef __BRANCHED_PATH__
 #  ifdef __SUBSURFACE__
-	ccl_addr_space SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
+  ccl_addr_space SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
 
-	if(ss_indirect->num_rays) {
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-	}
-	else
-#  endif  /* __SUBSURFACE__ */
-	if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT_SHARED)) {
-		int orig_ray = kernel_split_state.branched_state[ray_index].original_ray;
+  if (ss_indirect->num_rays) {
+    ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+  }
+  else
+#  endif /* __SUBSURFACE__ */
+      if (IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT_SHARED)) {
+    int orig_ray = kernel_split_state.branched_state[ray_index].original_ray;
 
-		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-		PathRadiance *orig_ray_L = &kernel_split_state.path_radiance[orig_ray];
+    PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+    PathRadiance *orig_ray_L = &kernel_split_state.path_radiance[orig_ray];
 
-		path_radiance_sum_indirect(L);
-		path_radiance_accum_sample(orig_ray_L, L);
+    path_radiance_sum_indirect(L);
+    path_radiance_accum_sample(orig_ray_L, L);
 
-		atomic_fetch_and_dec_uint32((ccl_global uint*)&kernel_split_state.branched_state[orig_ray].shared_sample_count);
+    atomic_fetch_and_dec_uint32(
+        (ccl_global uint *)&kernel_split_state.branched_state[orig_ray].shared_sample_count);
 
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_INACTIVE);
-	}
-	else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_LIGHT_INDIRECT)) {
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_LIGHT_INDIRECT_NEXT_ITER);
-	}
-	else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_VOLUME_INDIRECT)) {
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_VOLUME_INDIRECT_NEXT_ITER);
-	}
-	else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_SUBSURFACE_INDIRECT)) {
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_SUBSURFACE_INDIRECT_NEXT_ITER);
-	}
-	else {
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-	}
+    ASSIGN_RAY_STATE(ray_state, ray_index, RAY_INACTIVE);
+  }
+  else if (IS_FLAG(ray_state, ray_index, RAY_BRANCHED_LIGHT_INDIRECT)) {
+    ASSIGN_RAY_STATE(ray_state, ray_index, RAY_LIGHT_INDIRECT_NEXT_ITER);
+  }
+  else if (IS_FLAG(ray_state, ray_index, RAY_BRANCHED_VOLUME_INDIRECT)) {
+    ASSIGN_RAY_STATE(ray_state, ray_index, RAY_VOLUME_INDIRECT_NEXT_ITER);
+  }
+  else if (IS_FLAG(ray_state, ray_index, RAY_BRANCHED_SUBSURFACE_INDIRECT)) {
+    ASSIGN_RAY_STATE(ray_state, ray_index, RAY_SUBSURFACE_INDIRECT_NEXT_ITER);
+  }
+  else {
+    ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+  }
 #else
-	ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+  ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 #endif
 }
 
 CCL_NAMESPACE_END
 
-#endif  /* __KERNEL_SPLIT_H__ */
+#endif /* __KERNEL_SPLIT_H__ */

@@ -45,141 +45,136 @@ extern "C" {
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-
 }
 
 // only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
-class MeshImporterBase
-{
-public:
-	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid) = 0;
-	virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId& mesh_uid) = 0;
-	virtual std::string *get_geometry_name(const std::string &mesh_name) = 0;
+class MeshImporterBase {
+ public:
+  virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid) = 0;
+  virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId &mesh_uid) = 0;
+  virtual std::string *get_geometry_name(const std::string &mesh_name) = 0;
 };
 
-class UVDataWrapper
-{
-	COLLADAFW::MeshVertexData *mVData;
-public:
-	UVDataWrapper(COLLADAFW::MeshVertexData& vdata);
+class UVDataWrapper {
+  COLLADAFW::MeshVertexData *mVData;
+
+ public:
+  UVDataWrapper(COLLADAFW::MeshVertexData &vdata);
 
 #ifdef COLLADA_DEBUG
-	void print();
+  void print();
 #endif
 
-	void getUV(int uv_index, float *uv);
+  void getUV(int uv_index, float *uv);
 };
 
-class VCOLDataWrapper
-{
-	COLLADAFW::MeshVertexData *mVData;
-public:
-	VCOLDataWrapper(COLLADAFW::MeshVertexData& vdata);
-	void get_vcol(int v_index, MLoopCol *mloopcol);
+class VCOLDataWrapper {
+  COLLADAFW::MeshVertexData *mVData;
+
+ public:
+  VCOLDataWrapper(COLLADAFW::MeshVertexData &vdata);
+  void get_vcol(int v_index, MLoopCol *mloopcol);
 };
 
-class MeshImporter : public MeshImporterBase
-{
-private:
+class MeshImporter : public MeshImporterBase {
+ private:
+  UnitConverter *unitconverter;
 
-	UnitConverter *unitconverter;
+  Main *m_bmain;
+  Scene *scene;
+  ViewLayer *view_layer;
 
-	Main *m_bmain;
-	Scene *scene;
-	ViewLayer *view_layer;
+  ArmatureImporter *armature_importer;
 
-	ArmatureImporter *armature_importer;
+  std::map<std::string, std::string> mesh_geom_map;        // needed for correct shape key naming
+  std::map<COLLADAFW::UniqueId, Mesh *> uid_mesh_map;      // geometry unique id-to-mesh map
+  std::map<COLLADAFW::UniqueId, Object *> uid_object_map;  // geom uid-to-object
+  std::vector<Object *> imported_objects;                  // list of imported objects
 
-	std::map<std::string, std::string> mesh_geom_map; // needed for correct shape key naming
-	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
-	std::map<COLLADAFW::UniqueId, Object*> uid_object_map; // geom uid-to-object
-	std::vector<Object*> imported_objects; // list of imported objects
+  // this structure is used to assign material indices to polygons
+  // it holds a portion of Mesh faces and corresponds to a DAE primitive list (<triangles>, <polylist>, etc.)
+  struct Primitive {
+    MPoly *mpoly;
+    unsigned int totpoly;
+  };
+  typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
+  std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap>
+      geom_uid_mat_mapping_map;  // crazy name!
+  std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>
+      materials_mapped_to_geom;  //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
 
-	// this structure is used to assign material indices to polygons
-	// it holds a portion of Mesh faces and corresponds to a DAE primitive list (<triangles>, <polylist>, etc.)
-	struct Primitive {
-		MPoly *mpoly;
-		unsigned int totpoly;
-	};
-	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
-	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
-	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom; //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
+  bool set_poly_indices(
+      MPoly *mpoly, MLoop *mloop, int loop_index, unsigned int *indices, int loop_count);
 
-	bool set_poly_indices(
-	        MPoly *mpoly,
-	        MLoop *mloop,
-	        int loop_index,
-	        unsigned int *indices,
-	        int loop_count);
+  void set_face_uv(MLoopUV *mloopuv,
+                   UVDataWrapper &uvs,
+                   int loop_index,
+                   COLLADAFW::IndexList &index_list,
+                   int count);
 
-	void set_face_uv(
-	        MLoopUV *mloopuv,
-	        UVDataWrapper &uvs,
-	        int loop_index,
-	        COLLADAFW::IndexList& index_list,
-	        int count);
-
-	void set_vcol(
-	        MLoopCol *mloopcol,
-	        VCOLDataWrapper &vob,
-	        int loop_index,
-	        COLLADAFW::IndexList& index_list,
-	        int count);
+  void set_vcol(MLoopCol *mloopcol,
+                VCOLDataWrapper &vob,
+                int loop_index,
+                COLLADAFW::IndexList &index_list,
+                int count);
 
 #ifdef COLLADA_DEBUG
-	void print_index_list(COLLADAFW::IndexList& index_list);
+  void print_index_list(COLLADAFW::IndexList &index_list);
 #endif
 
-	bool is_nice_mesh(COLLADAFW::Mesh *mesh);
+  bool is_nice_mesh(COLLADAFW::Mesh *mesh);
 
-	void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
+  void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
 
-	bool primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp);
-	bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
+  bool primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp);
+  bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
 
-	static void mesh_add_edges(Mesh *mesh, int len);
+  static void mesh_add_edges(Mesh *mesh, int len);
 
-	unsigned int get_loose_edge_count(COLLADAFW::Mesh *mesh);
+  unsigned int get_loose_edge_count(COLLADAFW::Mesh *mesh);
 
-	CustomData create_edge_custom_data(EdgeHash *eh);
+  CustomData create_edge_custom_data(EdgeHash *eh);
 
-	void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me);
+  void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me);
 
-	// TODO: import uv set names
-	void read_polys(COLLADAFW::Mesh *mesh, Mesh *me);
-	void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
-	unsigned int get_vertex_count(COLLADAFW::Polygons *mp, int index);
+  // TODO: import uv set names
+  void read_polys(COLLADAFW::Mesh *mesh, Mesh *me);
+  void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
+  unsigned int get_vertex_count(COLLADAFW::Polygons *mp, int index);
 
-	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride);
+  void get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i, int stride);
 
-	bool is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count);
+  bool is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &nor, int count);
 
-	std::vector<Object *> get_all_users_of(Mesh *reference_mesh);
+  std::vector<Object *> get_all_users_of(Mesh *reference_mesh);
 
-public:
+ public:
+  MeshImporter(UnitConverter *unitconv,
+               ArmatureImporter *arm,
+               Main *bmain,
+               Scene *sce,
+               ViewLayer *view_layer);
 
-	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Main *bmain, Scene *sce, ViewLayer *view_layer);
+  virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid);
 
-	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
+  virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid);
 
-	virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
+  void optimize_material_assignements();
 
-	void optimize_material_assignements();
+  void assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
+                               std::map<COLLADAFW::UniqueId, Material *> &uid_material_map,
+                               Object *ob,
+                               const COLLADAFW::UniqueId *geom_uid,
+                               short mat_index);
 
-	void assign_material_to_geom(
-	        COLLADAFW::MaterialBinding cmaterial,
-	        std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
-	        Object *ob, const COLLADAFW::UniqueId *geom_uid,
-	        short mat_index);
+  Object *create_mesh_object(COLLADAFW::Node *node,
+                             COLLADAFW::InstanceGeometry *geom,
+                             bool isController,
+                             std::map<COLLADAFW::UniqueId, Material *> &uid_material_map);
 
-
-	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
-	                           bool isController,
-	                           std::map<COLLADAFW::UniqueId, Material*>& uid_material_map);
-
-	// create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
-	bool write_geometry(const COLLADAFW::Geometry* geom);
-	std::string *get_geometry_name(const std::string &mesh_name);
+  // create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
+  bool write_geometry(const COLLADAFW::Geometry *geom);
+  std::string *get_geometry_name(const std::string &mesh_name);
 };
 
 #endif

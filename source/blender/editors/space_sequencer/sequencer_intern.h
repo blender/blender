@@ -45,10 +45,16 @@ struct wmOperator;
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
-
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void sequencer_draw_preview(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, bool draw_overlay, bool draw_backdrop);
+void sequencer_draw_preview(const struct bContext *C,
+                            struct Scene *scene,
+                            struct ARegion *ar,
+                            struct SpaceSeq *sseq,
+                            int cfra,
+                            int offset,
+                            bool draw_overlay,
+                            bool draw_backdrop);
 void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned char col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
@@ -56,16 +62,34 @@ void sequencer_special_update_set(Sequence *seq);
 /* UNUSED */
 // void seq_reset_imageofs(struct SpaceSeq *sseq);
 
-struct ImBuf *sequencer_ibuf_get(struct Main *bmain, struct Depsgraph *depsgraph, struct Scene *scene, struct SpaceSeq *sseq, int cfra, int frame_ofs, const char *viewname);
+struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
+                                 struct Depsgraph *depsgraph,
+                                 struct Scene *scene,
+                                 struct SpaceSeq *sseq,
+                                 int cfra,
+                                 int frame_ofs,
+                                 const char *viewname);
 
 /* sequencer_edit.c */
 struct View2D;
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
 void boundbox_seq(struct Scene *scene, struct rctf *rect);
-struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *hand, const int mval[2]);
-struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence *test, int lr, int sel);
+struct Sequence *find_nearest_seq(struct Scene *scene,
+                                  struct View2D *v2d,
+                                  int *hand,
+                                  const int mval[2]);
+struct Sequence *find_neighboring_sequence(struct Scene *scene,
+                                           struct Sequence *test,
+                                           int lr,
+                                           int sel);
 void recurs_sel_seq(struct Sequence *seqm);
-int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, const char **error_str);
+int seq_effect_find_selected(struct Scene *scene,
+                             struct Sequence *activeseq,
+                             int type,
+                             struct Sequence **selseq1,
+                             struct Sequence **selseq2,
+                             struct Sequence **selseq3,
+                             const char **error_str);
 
 /* operator helpers */
 bool sequencer_edit_poll(struct bContext *C);
@@ -155,23 +179,23 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
 enum {
-	SEQ_CUT_SOFT,
-	SEQ_CUT_HARD,
+  SEQ_CUT_SOFT,
+  SEQ_CUT_HARD,
 };
 enum {
-	SEQ_SELECTED,
-	SEQ_UNSELECTED,
+  SEQ_SELECTED,
+  SEQ_UNSELECTED,
 };
 
 enum {
-	SEQ_SELECT_LR_NONE = 0,
-	SEQ_SELECT_LR_MOUSE,
-	SEQ_SELECT_LR_LEFT,
-	SEQ_SELECT_LR_RIGHT,
+  SEQ_SELECT_LR_NONE = 0,
+  SEQ_SELECT_LR_MOUSE,
+  SEQ_SELECT_LR_LEFT,
+  SEQ_SELECT_LR_RIGHT,
 };
 
 /* defines used internally */
-#define SCE_MARKERS 0 // XXX - dummy
+#define SCE_MARKERS 0  // XXX - dummy
 
 /* sequencer_ops.c */
 void sequencer_operatortypes(void);
@@ -201,7 +225,11 @@ void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
 
 /* sequencer_add */
-int sequencer_image_seq_get_minmax_frame(struct wmOperator *op, int sfra, int *r_minframe, int *r_numdigits);
-void sequencer_image_seq_reserve_frames(struct wmOperator *op, struct StripElem *se, int len, int minframe, int numdigits);
+int sequencer_image_seq_get_minmax_frame(struct wmOperator *op,
+                                         int sfra,
+                                         int *r_minframe,
+                                         int *r_numdigits);
+void sequencer_image_seq_reserve_frames(
+    struct wmOperator *op, struct StripElem *se, int len, int minframe, int numdigits);
 
 #endif /* __SEQUENCER_INTERN_H__ */

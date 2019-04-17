@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 #ifndef __UTIL_MURMURHASH_H__
 #define __UTIL_MURMURHASH_H__
 
@@ -27,4 +26,4 @@ float util_hash_to_float(uint32_t hash);
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_MURMURHASH_H__ */
+#endif /* __UTIL_MURMURHASH_H__ */

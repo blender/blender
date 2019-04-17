@@ -16,77 +16,77 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../uvedit
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../depsgraph
-	../../bmesh
-	../../gpu
-	../../imbuf
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../../../intern/clog
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../uvedit
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../depsgraph
+  ../../bmesh
+  ../../gpu
+  ../../imbuf
+  ../../makesdna
+  ../../makesrna
+  ../../render/extern/include
+  ../../windowmanager
+  ../../../../intern/clog
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	editface.c
-	editmesh_add.c
-	editmesh_add_gizmo.c
-	editmesh_bevel.c
-	editmesh_bisect.c
-	editmesh_extrude.c
-	editmesh_extrude_screw.c
-	editmesh_extrude_spin.c
-	editmesh_extrude_spin_gizmo.c
-	editmesh_inset.c
-	editmesh_intersect.c
-	editmesh_knife.c
-	editmesh_knife_project.c
-	editmesh_loopcut.c
-	editmesh_path.c
-	editmesh_polybuild.c
-	editmesh_preselect_edgering.c
-	editmesh_preselect_elem.c
-	editmesh_rip.c
-	editmesh_rip_edge.c
-	editmesh_select.c
-	editmesh_select_similar.c
-	editmesh_tools.c
-	editmesh_undo.c
-	editmesh_utils.c
-	mesh_data.c
-	mesh_mirror.c
-	mesh_ops.c
-	meshtools.c
+  editface.c
+  editmesh_add.c
+  editmesh_add_gizmo.c
+  editmesh_bevel.c
+  editmesh_bisect.c
+  editmesh_extrude.c
+  editmesh_extrude_screw.c
+  editmesh_extrude_spin.c
+  editmesh_extrude_spin_gizmo.c
+  editmesh_inset.c
+  editmesh_intersect.c
+  editmesh_knife.c
+  editmesh_knife_project.c
+  editmesh_loopcut.c
+  editmesh_path.c
+  editmesh_polybuild.c
+  editmesh_preselect_edgering.c
+  editmesh_preselect_elem.c
+  editmesh_rip.c
+  editmesh_rip_edge.c
+  editmesh_select.c
+  editmesh_select_similar.c
+  editmesh_tools.c
+  editmesh_undo.c
+  editmesh_utils.c
+  mesh_data.c
+  mesh_mirror.c
+  mesh_ops.c
+  meshtools.c
 
-	mesh_intern.h
+  mesh_intern.h
 )
 
 set(LIB
-	bf_blenkernel
-	bf_blenlib
+  bf_blenkernel
+  bf_blenlib
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_FREESTYLE)
-	add_definitions(-DWITH_FREESTYLE)
+  add_definitions(-DWITH_FREESTYLE)
 endif()
 
 if(WITH_BULLET)
-	add_definitions(-DWITH_BULLET)
+  add_definitions(-DWITH_BULLET)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

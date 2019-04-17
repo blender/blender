@@ -26,15 +26,15 @@
 #ifndef __AVI_ENDIAN_H__
 #define __AVI_ENDIAN_H__
 
-#define AVI_RAW      0
-#define AVI_CHUNK    1
-#define AVI_LIST     2
-#define AVI_MAINH    3
-#define AVI_STREAMH  4
-#define AVI_BITMAPH  5
-#define AVI_INDEXE   6
-#define AVI_MJPEGU   7
+#define AVI_RAW 0
+#define AVI_CHUNK 1
+#define AVI_LIST 2
+#define AVI_MAINH 3
+#define AVI_STREAMH 4
+#define AVI_BITMAPH 5
+#define AVI_INDEXE 6
+#define AVI_MJPEGU 7
 
 void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int type);
 
-#endif  /* __AVI_ENDIAN_H__ */
+#endif /* __AVI_ENDIAN_H__ */

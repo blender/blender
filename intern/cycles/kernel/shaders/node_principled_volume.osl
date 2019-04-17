@@ -16,80 +16,78 @@
 
 #include "stdosl.h"
 
-shader node_principled_volume(
-	color Color = color(0.5, 0.5, 0.5),
-	float Density = 1.0,
-	float Anisotropy = 0.0,
-	color AbsorptionColor = color(0.0, 0.0, 0.0),
-	float EmissionStrength = 0.0,
-	color EmissionColor = color(1.0, 1.0, 1.0),
-	float BlackbodyIntensity = 0.0,
-	color BlackbodyTint = color(1.0, 1.0, 1.0),
-	float Temperature = 1500.0,
-	string DensityAttribute = "geom:density",
-	string ColorAttribute = "geom:color",
-	string TemperatureAttribute = "geom:temperature",
-	output closure color Volume = 0)
+shader node_principled_volume(color Color = color(0.5, 0.5, 0.5),
+                              float Density = 1.0,
+                              float Anisotropy = 0.0,
+                              color AbsorptionColor = color(0.0, 0.0, 0.0),
+                              float EmissionStrength = 0.0,
+                              color EmissionColor = color(1.0, 1.0, 1.0),
+                              float BlackbodyIntensity = 0.0,
+                              color BlackbodyTint = color(1.0, 1.0, 1.0),
+                              float Temperature = 1500.0,
+                              string DensityAttribute = "geom:density",
+                              string ColorAttribute = "geom:color",
+                              string TemperatureAttribute = "geom:temperature",
+                              output closure color Volume = 0)
 {
-	/* Compute density. */
-	float primitive_density = 1.0;
-	float density = max(Density, 0.0);
+  /* Compute density. */
+  float primitive_density = 1.0;
+  float density = max(Density, 0.0);
 
-	if(density > 1e-5) {
-		if(getattribute(DensityAttribute, primitive_density)) {
-			density = max(density * primitive_density, 0.0);
-		}
-	}
+  if (density > 1e-5) {
+    if (getattribute(DensityAttribute, primitive_density)) {
+      density = max(density * primitive_density, 0.0);
+    }
+  }
 
-	if(density > 1e-5) {
-		/* Compute scattering color. */
-		color scatter_color = Color;
-		color primitive_color;
-		if(getattribute(ColorAttribute, primitive_color)) {
-			scatter_color *= primitive_color;
-		}
+  if (density > 1e-5) {
+    /* Compute scattering color. */
+    color scatter_color = Color;
+    color primitive_color;
+    if (getattribute(ColorAttribute, primitive_color)) {
+      scatter_color *= primitive_color;
+    }
 
-		/* Add scattering and absorption closures. */
-		color scatter_coeff = scatter_color;
-		color absorption_color = sqrt(max(AbsorptionColor, 0.0));
-		color absorption_coeff = max(1.0 - scatter_color, 0.0) * max(1.0 - absorption_color, 0.0);
-		Volume = scatter_coeff * density * henyey_greenstein(Anisotropy) +
-		         absorption_coeff * density * absorption();
-	}
+    /* Add scattering and absorption closures. */
+    color scatter_coeff = scatter_color;
+    color absorption_color = sqrt(max(AbsorptionColor, 0.0));
+    color absorption_coeff = max(1.0 - scatter_color, 0.0) * max(1.0 - absorption_color, 0.0);
+    Volume = scatter_coeff * density * henyey_greenstein(Anisotropy) +
+             absorption_coeff * density * absorption();
+  }
 
-	/* Compute emission. */
-	float emission_strength = max(EmissionStrength, 0.0);
-	float blackbody_intensity = BlackbodyIntensity;
+  /* Compute emission. */
+  float emission_strength = max(EmissionStrength, 0.0);
+  float blackbody_intensity = BlackbodyIntensity;
 
-	if(emission_strength > 1e-5) {
-		Volume += emission_strength * EmissionColor * emission();
-	}
+  if (emission_strength > 1e-5) {
+    Volume += emission_strength * EmissionColor * emission();
+  }
 
-	if(blackbody_intensity > 1e-3) {
-		float T = Temperature;
+  if (blackbody_intensity > 1e-3) {
+    float T = Temperature;
 
-		/* Add temperature from attribute if available. */
-		float temperature;
-		if(getattribute(TemperatureAttribute, temperature)) {
-			T *= max(temperature, 0.0);
-		}
+    /* Add temperature from attribute if available. */
+    float temperature;
+    if (getattribute(TemperatureAttribute, temperature)) {
+      T *= max(temperature, 0.0);
+    }
 
-		T = max(T, 0.0);
+    T = max(T, 0.0);
 
-		/* Stefan-Boltzman law. */
-		float T4 = (T * T) * (T * T);
-		float sigma = 5.670373e-8 * 1e-6 / M_PI;
-		float intensity = sigma * mix(1.0, T4, blackbody_intensity);
+    /* Stefan-Boltzman law. */
+    float T4 = (T * T) * (T * T);
+    float sigma = 5.670373e-8 * 1e-6 / M_PI;
+    float intensity = sigma * mix(1.0, T4, blackbody_intensity);
 
-		if(intensity > 1e-5) {
-			color bb = blackbody(T);
-			float l = luminance(bb);
+    if (intensity > 1e-5) {
+      color bb = blackbody(T);
+      float l = luminance(bb);
 
-			if(l != 0.0) {
-				bb *= BlackbodyTint * intensity / l;
-				Volume += bb * emission();
-			}
-		}
-	}
+      if (l != 0.0) {
+        bb *= BlackbodyTint * intensity / l;
+        Volume += bb * emission();
+      }
+    }
+  }
 }
-

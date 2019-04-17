@@ -56,40 +56,38 @@
 #include <algorithm>
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-template <typename C, typename T>
-class PointerSequence : public C
-{
-	PointerSequence (PointerSequence& other);
-	PointerSequence& operator=(PointerSequence& other);
+template<typename C, typename T> class PointerSequence : public C {
+  PointerSequence(PointerSequence &other);
+  PointerSequence &operator=(PointerSequence &other);
 
-	static void destroyer(T t)
-	{
-		delete t;
-	}
+  static void destroyer(T t)
+  {
+    delete t;
+  }
 
-public:
-	PointerSequence () {};
+ public:
+  PointerSequence(){};
 
-	~PointerSequence ()
-	{
-		destroy();
-	}
+  ~PointerSequence()
+  {
+    destroy();
+  }
 
-	void destroy ()
-	{
-		for_each(this->begin(), this->end(), destroyer);
-	}
+  void destroy()
+  {
+    for_each(this->begin(), this->end(), destroyer);
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:PointerSequence")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:PointerSequence")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_POINTER_SEQUENCE_H__
+#endif  // __FREESTYLE_POINTER_SEQUENCE_H__

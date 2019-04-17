@@ -45,7 +45,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-
 /* == Parameterization constants == */
 
 /* When measuring the scale changes relative to the rotation pivot point, it
@@ -65,8 +64,6 @@ static float SCALE_ERROR_LIMIT_BIAS = 0.01f;
  */
 static float EPSILON_WEIGHT = 0.005f;
 
-
-
 /* == private working data == */
 
 /* Per track baseline for stabilization, defined at reference frame.
@@ -79,89 +76,77 @@ static float EPSILON_WEIGHT = 0.005f;
  * via `StabContext::private_track_data`
  */
 typedef struct TrackStabilizationBase {
-	float stabilization_offset_base[2];
+  float stabilization_offset_base[2];
 
-	/* measured relative to translated pivot */
-	float stabilization_rotation_base[2][2];
+  /* measured relative to translated pivot */
+  float stabilization_rotation_base[2][2];
 
-	/* measured relative to translated pivot */
-	float stabilization_scale_base;
+  /* measured relative to translated pivot */
+  float stabilization_scale_base;
 
-	bool is_init_for_stabilization;
-	FCurve *track_weight_curve;
+  bool is_init_for_stabilization;
+  FCurve *track_weight_curve;
 } TrackStabilizationBase;
 
 /* Tracks are reordered for initialization, starting as close as possible to
  * anchor_frame
  */
 typedef struct TrackInitOrder {
-	int sort_value;
-	int reference_frame;
-	MovieTrackingTrack *data;
+  int sort_value;
+  int reference_frame;
+  MovieTrackingTrack *data;
 } TrackInitOrder;
 
 /* Per frame private working data, for accessing possibly animated values. */
 typedef struct StabContext {
-	MovieClip *clip;
-	MovieTracking *tracking;
-	MovieTrackingStabilization *stab;
-	GHash *private_track_data;
-	FCurve *locinf;
-	FCurve *rotinf;
-	FCurve *scaleinf;
-	FCurve *target_pos[2];
-	FCurve *target_rot;
-	FCurve *target_scale;
-	bool use_animation;
+  MovieClip *clip;
+  MovieTracking *tracking;
+  MovieTrackingStabilization *stab;
+  GHash *private_track_data;
+  FCurve *locinf;
+  FCurve *rotinf;
+  FCurve *scaleinf;
+  FCurve *target_pos[2];
+  FCurve *target_rot;
+  FCurve *target_scale;
+  bool use_animation;
 } StabContext;
 
-
-static TrackStabilizationBase *access_stabilization_baseline_data(
-        StabContext *ctx,
-        MovieTrackingTrack *track)
+static TrackStabilizationBase *access_stabilization_baseline_data(StabContext *ctx,
+                                                                  MovieTrackingTrack *track)
 {
-	return BLI_ghash_lookup(ctx->private_track_data, track);
+  return BLI_ghash_lookup(ctx->private_track_data, track);
 }
 
-static void attach_stabilization_baseline_data(
-        StabContext *ctx,
-        MovieTrackingTrack *track,
-        TrackStabilizationBase *private_data)
+static void attach_stabilization_baseline_data(StabContext *ctx,
+                                               MovieTrackingTrack *track,
+                                               TrackStabilizationBase *private_data)
 {
-	BLI_ghash_insert(ctx->private_track_data, track, private_data);
+  BLI_ghash_insert(ctx->private_track_data, track, private_data);
 }
 
 static void discard_stabilization_baseline_data(void *val)
 {
-	if (val != NULL) {
-		MEM_freeN(val);
-	}
+  if (val != NULL) {
+    MEM_freeN(val);
+  }
 }
-
 
 /* == access animated values for given frame == */
 
-static FCurve *retrieve_stab_animation(MovieClip *clip,
-                                       const char *data_path,
-                                       int idx)
+static FCurve *retrieve_stab_animation(MovieClip *clip, const char *data_path, int idx)
 {
-	return id_data_find_fcurve(&clip->id,
-	                           &clip->tracking.stabilization,
-	                           &RNA_MovieTrackingStabilization,
-	                           data_path,
-	                           idx,
-	                           NULL);
+  return id_data_find_fcurve(&clip->id,
+                             &clip->tracking.stabilization,
+                             &RNA_MovieTrackingStabilization,
+                             data_path,
+                             idx,
+                             NULL);
 }
 
-static FCurve *retrieve_track_weight_animation(MovieClip *clip,
-                                               MovieTrackingTrack *track)
+static FCurve *retrieve_track_weight_animation(MovieClip *clip, MovieTrackingTrack *track)
 {
-	return id_data_find_fcurve(&clip->id,
-	                           track,
-	                           &RNA_MovieTrackingTrack,
-	                           "weight_stab",
-	                           0,
-	                           NULL);
+  return id_data_find_fcurve(&clip->id, track, &RNA_MovieTrackingTrack, "weight_stab", 0, NULL);
 }
 
 static float fetch_from_fcurve(FCurve *animationCurve,
@@ -169,101 +154,81 @@ static float fetch_from_fcurve(FCurve *animationCurve,
                                StabContext *ctx,
                                float default_value)
 {
-	if (ctx && ctx->use_animation && animationCurve) {
-		int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(ctx->clip,
-		                                                            framenr);
-		return evaluate_fcurve(animationCurve, scene_framenr);
-	}
-	return default_value;
+  if (ctx && ctx->use_animation && animationCurve) {
+    int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(ctx->clip, framenr);
+    return evaluate_fcurve(animationCurve, scene_framenr);
+  }
+  return default_value;
 }
-
 
 static float get_animated_locinf(StabContext *ctx, int framenr)
 {
-	return fetch_from_fcurve(ctx->locinf, framenr, ctx, ctx->stab->locinf);
+  return fetch_from_fcurve(ctx->locinf, framenr, ctx, ctx->stab->locinf);
 }
 
 static float get_animated_rotinf(StabContext *ctx, int framenr)
 {
-	return fetch_from_fcurve(ctx->rotinf, framenr, ctx, ctx->stab->rotinf);
+  return fetch_from_fcurve(ctx->rotinf, framenr, ctx, ctx->stab->rotinf);
 }
 
 static float get_animated_scaleinf(StabContext *ctx, int framenr)
 {
-	return fetch_from_fcurve(ctx->scaleinf, framenr, ctx, ctx->stab->scaleinf);
+  return fetch_from_fcurve(ctx->scaleinf, framenr, ctx, ctx->stab->scaleinf);
 }
 
-static void get_animated_target_pos(StabContext *ctx,
-                                    int framenr,
-                                    float target_pos[2])
+static void get_animated_target_pos(StabContext *ctx, int framenr, float target_pos[2])
 {
-	target_pos[0] = fetch_from_fcurve(ctx->target_pos[0],
-	                                  framenr,
-	                                  ctx,
-	                                  ctx->stab->target_pos[0]);
-	target_pos[1] = fetch_from_fcurve(ctx->target_pos[1],
-	                                  framenr,
-	                                  ctx,
-	                                  ctx->stab->target_pos[1]);
+  target_pos[0] = fetch_from_fcurve(ctx->target_pos[0], framenr, ctx, ctx->stab->target_pos[0]);
+  target_pos[1] = fetch_from_fcurve(ctx->target_pos[1], framenr, ctx, ctx->stab->target_pos[1]);
 }
 
 static float get_animated_target_rot(StabContext *ctx, int framenr)
 {
-	return fetch_from_fcurve(ctx->target_rot,
-	                         framenr,
-	                         ctx,
-	                         ctx->stab->target_rot);
+  return fetch_from_fcurve(ctx->target_rot, framenr, ctx, ctx->stab->target_rot);
 }
 
 static float get_animated_target_scale(StabContext *ctx, int framenr)
 {
-	return fetch_from_fcurve(ctx->target_scale, framenr, ctx, ctx->stab->scale);
+  return fetch_from_fcurve(ctx->target_scale, framenr, ctx, ctx->stab->scale);
 }
 
-static float get_animated_weight(StabContext *ctx,
-                                 MovieTrackingTrack *track,
-                                 int framenr)
+static float get_animated_weight(StabContext *ctx, MovieTrackingTrack *track, int framenr)
 {
-	TrackStabilizationBase *working_data =
-	        access_stabilization_baseline_data(ctx, track);
-	if (working_data && working_data->track_weight_curve) {
-		int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(ctx->clip,
-		                                                            framenr);
-		return evaluate_fcurve(working_data->track_weight_curve, scene_framenr);
-	}
-	/* Use weight at global 'current frame' as fallback default. */
-	return track->weight_stab;
+  TrackStabilizationBase *working_data = access_stabilization_baseline_data(ctx, track);
+  if (working_data && working_data->track_weight_curve) {
+    int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(ctx->clip, framenr);
+    return evaluate_fcurve(working_data->track_weight_curve, scene_framenr);
+  }
+  /* Use weight at global 'current frame' as fallback default. */
+  return track->weight_stab;
 }
 
 static void use_values_from_fcurves(StabContext *ctx, bool toggle)
 {
-	if (ctx != NULL) {
-		ctx->use_animation = toggle;
-	}
+  if (ctx != NULL) {
+    ctx->use_animation = toggle;
+  }
 }
-
 
 /* Prepare per call private working area.
  * Used for access to possibly animated values: retrieve available F-curves.
  */
 static StabContext *initialize_stabilization_working_context(MovieClip *clip)
 {
-	StabContext *ctx = MEM_callocN(sizeof(StabContext),
-	                               "2D stabilization animation runtime data");
-	ctx->clip = clip;
-	ctx->tracking = &clip->tracking;
-	ctx->stab = &clip->tracking.stabilization;
-	ctx->private_track_data = BLI_ghash_ptr_new(
-	         "2D stabilization per track private working data");
-	ctx->locinf        = retrieve_stab_animation(clip, "influence_location", 0);
-	ctx->rotinf        = retrieve_stab_animation(clip, "influence_rotation", 0);
-	ctx->scaleinf      = retrieve_stab_animation(clip, "influence_scale", 0);
-	ctx->target_pos[0] = retrieve_stab_animation(clip, "target_pos", 0);
-	ctx->target_pos[1] = retrieve_stab_animation(clip, "target_pos", 1);
-	ctx->target_rot    = retrieve_stab_animation(clip, "target_rot", 0);
-	ctx->target_scale  = retrieve_stab_animation(clip, "target_zoom", 0);
-	ctx->use_animation = true;
-	return ctx;
+  StabContext *ctx = MEM_callocN(sizeof(StabContext), "2D stabilization animation runtime data");
+  ctx->clip = clip;
+  ctx->tracking = &clip->tracking;
+  ctx->stab = &clip->tracking.stabilization;
+  ctx->private_track_data = BLI_ghash_ptr_new("2D stabilization per track private working data");
+  ctx->locinf = retrieve_stab_animation(clip, "influence_location", 0);
+  ctx->rotinf = retrieve_stab_animation(clip, "influence_rotation", 0);
+  ctx->scaleinf = retrieve_stab_animation(clip, "influence_scale", 0);
+  ctx->target_pos[0] = retrieve_stab_animation(clip, "target_pos", 0);
+  ctx->target_pos[1] = retrieve_stab_animation(clip, "target_pos", 1);
+  ctx->target_rot = retrieve_stab_animation(clip, "target_rot", 0);
+  ctx->target_scale = retrieve_stab_animation(clip, "target_zoom", 0);
+  ctx->use_animation = true;
+  return ctx;
 }
 
 /**
@@ -276,94 +241,78 @@ static StabContext *initialize_stabilization_working_context(MovieClip *clip)
  */
 static void discard_stabilization_working_context(StabContext *ctx)
 {
-	if (ctx != NULL) {
-		BLI_ghash_free(ctx->private_track_data,
-		               NULL,
-		               discard_stabilization_baseline_data);
-		MEM_freeN(ctx);
-	}
+  if (ctx != NULL) {
+    BLI_ghash_free(ctx->private_track_data, NULL, discard_stabilization_baseline_data);
+    MEM_freeN(ctx);
+  }
 }
 
-static bool is_init_for_stabilization(StabContext *ctx,
-                                      MovieTrackingTrack *track)
+static bool is_init_for_stabilization(StabContext *ctx, MovieTrackingTrack *track)
 {
-	TrackStabilizationBase *working_data =
-	        access_stabilization_baseline_data(ctx, track);
-	return (working_data != NULL && working_data->is_init_for_stabilization);
+  TrackStabilizationBase *working_data = access_stabilization_baseline_data(ctx, track);
+  return (working_data != NULL && working_data->is_init_for_stabilization);
 }
 
-static bool is_usable_for_stabilization(StabContext *ctx,
-                                        MovieTrackingTrack *track)
+static bool is_usable_for_stabilization(StabContext *ctx, MovieTrackingTrack *track)
 {
-	return (track->flag & TRACK_USE_2D_STAB) &&
-	       is_init_for_stabilization(ctx, track);
+  return (track->flag & TRACK_USE_2D_STAB) && is_init_for_stabilization(ctx, track);
 }
 
 static bool is_effectively_disabled(StabContext *ctx,
                                     MovieTrackingTrack *track,
                                     MovieTrackingMarker *marker)
 {
-	return (marker->flag & MARKER_DISABLED) ||
-	       (EPSILON_WEIGHT > get_animated_weight(ctx, track, marker->framenr));
+  return (marker->flag & MARKER_DISABLED) ||
+         (EPSILON_WEIGHT > get_animated_weight(ctx, track, marker->framenr));
 }
 
-
-static int search_closest_marker_index(MovieTrackingTrack *track,
-                                       int ref_frame)
+static int search_closest_marker_index(MovieTrackingTrack *track, int ref_frame)
 {
-	MovieTrackingMarker *markers = track->markers;
-	int end = track->markersnr;
-	int i = track->last_marker;
+  MovieTrackingMarker *markers = track->markers;
+  int end = track->markersnr;
+  int i = track->last_marker;
 
-	i = MAX2(0, i);
-	i = MIN2(i, end - 1);
-	for ( ; i < end - 1 && markers[i].framenr <= ref_frame; ++i);
-	for ( ; 0 < i && markers[i].framenr > ref_frame; --i);
+  i = MAX2(0, i);
+  i = MIN2(i, end - 1);
+  for (; i < end - 1 && markers[i].framenr <= ref_frame; ++i)
+    ;
+  for (; 0 < i && markers[i].framenr > ref_frame; --i)
+    ;
 
-	track->last_marker = i;
-	return i;
+  track->last_marker = i;
+  return i;
 }
 
-static void retrieve_next_higher_usable_frame(StabContext *ctx,
-                                              MovieTrackingTrack *track,
-                                              int i,
-                                              int ref_frame,
-                                              int *next_higher)
+static void retrieve_next_higher_usable_frame(
+    StabContext *ctx, MovieTrackingTrack *track, int i, int ref_frame, int *next_higher)
 {
-	MovieTrackingMarker *markers = track->markers;
-	int end = track->markersnr;
-	BLI_assert(0 <= i && i < end);
+  MovieTrackingMarker *markers = track->markers;
+  int end = track->markersnr;
+  BLI_assert(0 <= i && i < end);
 
-	while (i < end &&
-	       (markers[i].framenr < ref_frame ||
-	        is_effectively_disabled(ctx, track, &markers[i])))
-	{
-		++i;
-	}
-	if (i < end && markers[i].framenr < *next_higher) {
-		BLI_assert(markers[i].framenr >= ref_frame);
-		*next_higher = markers[i].framenr;
-	}
+  while (i < end &&
+         (markers[i].framenr < ref_frame || is_effectively_disabled(ctx, track, &markers[i]))) {
+    ++i;
+  }
+  if (i < end && markers[i].framenr < *next_higher) {
+    BLI_assert(markers[i].framenr >= ref_frame);
+    *next_higher = markers[i].framenr;
+  }
 }
 
-static void retrieve_next_lower_usable_frame(StabContext *ctx,
-                                             MovieTrackingTrack *track,
-                                             int i,
-                                             int ref_frame,
-                                             int *next_lower)
+static void retrieve_next_lower_usable_frame(
+    StabContext *ctx, MovieTrackingTrack *track, int i, int ref_frame, int *next_lower)
 {
-	MovieTrackingMarker *markers = track->markers;
-	BLI_assert(0 <= i && i < track->markersnr);
-	while (i >= 0 &&
-	       (markers[i].framenr > ref_frame ||
-	        is_effectively_disabled(ctx, track, &markers[i])))
-	{
-		--i;
-	}
-	if (0 <= i && markers[i].framenr > *next_lower) {
-		BLI_assert(markers[i].framenr <= ref_frame);
-		*next_lower = markers[i].framenr;
-	}
+  MovieTrackingMarker *markers = track->markers;
+  BLI_assert(0 <= i && i < track->markersnr);
+  while (i >= 0 &&
+         (markers[i].framenr > ref_frame || is_effectively_disabled(ctx, track, &markers[i]))) {
+    --i;
+  }
+  if (0 <= i && markers[i].framenr > *next_lower) {
+    BLI_assert(markers[i].framenr <= ref_frame);
+    *next_lower = markers[i].framenr;
+  }
 }
 
 /* Find closest frames with usable stabilization data.
@@ -381,70 +330,56 @@ static void find_next_working_frames(StabContext *ctx,
                                      int *next_lower,
                                      int *next_higher)
 {
-	for (MovieTrackingTrack *track = ctx->tracking->tracks.first;
-	     track != NULL;
-	     track = track->next)
-	{
-		if (is_usable_for_stabilization(ctx, track)) {
-			int startpoint = search_closest_marker_index(track, framenr);
-			retrieve_next_higher_usable_frame(ctx,
-			                                  track,
-			                                  startpoint,
-			                                  framenr,
-			                                  next_higher);
-			retrieve_next_lower_usable_frame(ctx,
-			                                 track,
-			                                 startpoint,
-			                                 framenr,
-			                                 next_lower);
-		}
-	}
+  for (MovieTrackingTrack *track = ctx->tracking->tracks.first; track != NULL;
+       track = track->next) {
+    if (is_usable_for_stabilization(ctx, track)) {
+      int startpoint = search_closest_marker_index(track, framenr);
+      retrieve_next_higher_usable_frame(ctx, track, startpoint, framenr, next_higher);
+      retrieve_next_lower_usable_frame(ctx, track, startpoint, framenr, next_lower);
+    }
+  }
 }
-
 
 /* Find active (enabled) marker closest to the reference frame. */
 static MovieTrackingMarker *get_closest_marker(StabContext *ctx,
                                                MovieTrackingTrack *track,
                                                int ref_frame)
 {
-	int next_lower = MINAFRAME;
-	int next_higher = MAXFRAME;
-	int i = search_closest_marker_index(track, ref_frame);
-	retrieve_next_higher_usable_frame(ctx, track, i, ref_frame, &next_higher);
-	retrieve_next_lower_usable_frame(ctx, track, i, ref_frame, &next_lower);
+  int next_lower = MINAFRAME;
+  int next_higher = MAXFRAME;
+  int i = search_closest_marker_index(track, ref_frame);
+  retrieve_next_higher_usable_frame(ctx, track, i, ref_frame, &next_higher);
+  retrieve_next_lower_usable_frame(ctx, track, i, ref_frame, &next_lower);
 
-	if ((next_higher - ref_frame) < (ref_frame - next_lower)) {
-		return BKE_tracking_marker_get_exact(track, next_higher);
-	}
-	else {
-		return BKE_tracking_marker_get_exact(track, next_lower);
-	}
+  if ((next_higher - ref_frame) < (ref_frame - next_lower)) {
+    return BKE_tracking_marker_get_exact(track, next_higher);
+  }
+  else {
+    return BKE_tracking_marker_get_exact(track, next_lower);
+  }
 }
-
 
 /* Retrieve tracking data, if available and applicable for this frame.
  * The returned weight value signals the validity; data recorded for this
  * tracking marker on the exact requested frame is output with the full weight
  * of this track, while gaps in the data sequence cause the weight to go to zero.
  */
-static MovieTrackingMarker *get_tracking_data_point(
-        StabContext *ctx,
-        MovieTrackingTrack *track,
-        int framenr,
-        float *r_weight)
+static MovieTrackingMarker *get_tracking_data_point(StabContext *ctx,
+                                                    MovieTrackingTrack *track,
+                                                    int framenr,
+                                                    float *r_weight)
 {
-	MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
-	if (marker != NULL && !(marker->flag & MARKER_DISABLED)) {
-		*r_weight = get_animated_weight(ctx, track, framenr);
-		return marker;
-	}
-	else {
-		/* No marker at this frame (=gap) or marker disabled. */
-		*r_weight = 0.0f;
-		return NULL;
-	}
+  MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+  if (marker != NULL && !(marker->flag & MARKER_DISABLED)) {
+    *r_weight = get_animated_weight(ctx, track, framenr);
+    return marker;
+  }
+  else {
+    /* No marker at this frame (=gap) or marker disabled. */
+    *r_weight = 0.0f;
+    return NULL;
+  }
 }
-
 
 /* Define the reference point for rotation/scale measurement and compensation.
  * The stabilizator works by assuming the image was distorted by a affine linear
@@ -463,10 +398,9 @@ static MovieTrackingMarker *get_tracking_data_point(
  */
 static void setup_pivot(const float ref_pos[2], float r_pivot[2])
 {
-	zero_v2(r_pivot);  /* TODO: add an animated offset position here. */
-	add_v2_v2(r_pivot, ref_pos);
+  zero_v2(r_pivot); /* TODO: add an animated offset position here. */
+  add_v2_v2(r_pivot, ref_pos);
 }
-
 
 /* Calculate the contribution of a single track at the time position (frame) of
  * the given marker. Each track has a local reference frame, which is as close
@@ -488,9 +422,7 @@ static void translation_contribution(TrackStabilizationBase *track_ref,
                                      MovieTrackingMarker *marker,
                                      float result_offset[2])
 {
-	add_v2_v2v2(result_offset,
-	            track_ref->stabilization_offset_base,
-	            marker->pos);
+  add_v2_v2v2(result_offset, track_ref->stabilization_offset_base, marker->pos);
 }
 
 /* Similar to the ::translation_contribution(), the rotation contribution is
@@ -537,27 +469,26 @@ static float rotation_contribution(TrackStabilizationBase *track_ref,
                                    float *result_angle,
                                    float *result_scale)
 {
-	float len, quality;
-	float pos[2];
-	sub_v2_v2v2(pos, marker->pos, pivot);
+  float len, quality;
+  float pos[2];
+  sub_v2_v2v2(pos, marker->pos, pivot);
 
-	pos[0] *= aspect;
-	mul_m2v2(track_ref->stabilization_rotation_base, pos);
+  pos[0] *= aspect;
+  mul_m2v2(track_ref->stabilization_rotation_base, pos);
 
-	*result_angle = atan2f(pos[1],pos[0]);
+  *result_angle = atan2f(pos[1], pos[0]);
 
-	len = len_v2(pos);
+  len = len_v2(pos);
 
-	/* prevent points very close to the pivot point from poisoning the result */
-	quality = 1 - expf(-len*len / SCALE_ERROR_LIMIT_BIAS*SCALE_ERROR_LIMIT_BIAS);
-	len += SCALE_ERROR_LIMIT_BIAS;
+  /* prevent points very close to the pivot point from poisoning the result */
+  quality = 1 - expf(-len * len / SCALE_ERROR_LIMIT_BIAS * SCALE_ERROR_LIMIT_BIAS);
+  len += SCALE_ERROR_LIMIT_BIAS;
 
-	*result_scale = len * track_ref->stabilization_scale_base;
-	BLI_assert(0.0 < *result_scale);
+  *result_scale = len * track_ref->stabilization_scale_base;
+  BLI_assert(0.0 < *result_scale);
 
-	return quality;
+  return quality;
 }
-
 
 /* Workaround to allow for rotation around an arbitrary pivot point.
  * Currently, the public API functions do not support this flexibility.
@@ -568,27 +499,27 @@ static float rotation_contribution(TrackStabilizationBase *track_ref,
  * translation compensation, which is also a lateral shift (offset).
  * The offset to apply is intended_pivot - rotated_pivot
  */
-static void compensate_rotation_center(const int size, float aspect,
+static void compensate_rotation_center(const int size,
+                                       float aspect,
                                        const float angle,
                                        const float scale,
                                        const float pivot[2],
                                        float result_translation[2])
 {
-	const float origin[2]  = {0.5f*aspect*size, 0.5f*size};
-	float intended_pivot[2], rotated_pivot[2];
-	float rotation_mat[2][2];
+  const float origin[2] = {0.5f * aspect * size, 0.5f * size};
+  float intended_pivot[2], rotated_pivot[2];
+  float rotation_mat[2][2];
 
-	copy_v2_v2(intended_pivot, pivot);
-	copy_v2_v2(rotated_pivot, pivot);
-	angle_to_mat2(rotation_mat, +angle);
-	sub_v2_v2(rotated_pivot, origin);
-	mul_m2v2(rotation_mat, rotated_pivot);
-	mul_v2_fl(rotated_pivot, scale);
-	add_v2_v2(rotated_pivot, origin);
-	add_v2_v2(result_translation, intended_pivot);
-	sub_v2_v2(result_translation, rotated_pivot);
+  copy_v2_v2(intended_pivot, pivot);
+  copy_v2_v2(rotated_pivot, pivot);
+  angle_to_mat2(rotation_mat, +angle);
+  sub_v2_v2(rotated_pivot, origin);
+  mul_m2v2(rotation_mat, rotated_pivot);
+  mul_v2_fl(rotated_pivot, scale);
+  add_v2_v2(rotated_pivot, origin);
+  add_v2_v2(result_translation, intended_pivot);
+  sub_v2_v2(result_translation, rotated_pivot);
 }
-
 
 /* Weighted average of the per track cumulated contributions at given frame.
  * Returns truth if all desired calculations could be done and all averages are
@@ -610,111 +541,100 @@ static bool average_track_contributions(StabContext *ctx,
                                         float *r_angle,
                                         float *r_scale_step)
 {
-	bool ok;
-	float weight_sum;
-	MovieTrackingTrack *track;
-	MovieTracking *tracking = ctx->tracking;
-	MovieTrackingStabilization *stab = &tracking->stabilization;
-	float ref_pos[2];
-	BLI_assert(stab->flag & TRACKING_2D_STABILIZATION);
+  bool ok;
+  float weight_sum;
+  MovieTrackingTrack *track;
+  MovieTracking *tracking = ctx->tracking;
+  MovieTrackingStabilization *stab = &tracking->stabilization;
+  float ref_pos[2];
+  BLI_assert(stab->flag & TRACKING_2D_STABILIZATION);
 
-	zero_v2(r_translation);
-	*r_scale_step = 0.0f;  /* logarithm */
-	*r_angle = 0.0f;
+  zero_v2(r_translation);
+  *r_scale_step = 0.0f; /* logarithm */
+  *r_angle = 0.0f;
 
-	zero_v2(ref_pos);
+  zero_v2(ref_pos);
 
-	ok = false;
-	weight_sum = 0.0f;
-	for (track = tracking->tracks.first; track; track = track->next) {
-		if (!is_init_for_stabilization(ctx, track)) {
-			continue;
-		}
-		if (track->flag & TRACK_USE_2D_STAB) {
-			float weight = 0.0f;
-			MovieTrackingMarker *marker = get_tracking_data_point(ctx,
-			                                                      track,
-			                                                      framenr,
-			                                                      &weight);
-			if (marker) {
-				TrackStabilizationBase *stabilization_base =
-				       access_stabilization_baseline_data(ctx, track);
-				BLI_assert(stabilization_base != NULL);
-				float offset[2];
-				weight_sum += weight;
-				translation_contribution(stabilization_base, marker, offset);
-				r_translation[0] += weight * offset[0];
-				r_translation[1] += weight * offset[1];
-				ref_pos[0] += weight * marker->pos[0];
-				ref_pos[1] += weight * marker->pos[1];
-				ok |= (weight_sum > EPSILON_WEIGHT);
-			}
-		}
-	}
-	if (!ok) {
-		return false;
-	}
+  ok = false;
+  weight_sum = 0.0f;
+  for (track = tracking->tracks.first; track; track = track->next) {
+    if (!is_init_for_stabilization(ctx, track)) {
+      continue;
+    }
+    if (track->flag & TRACK_USE_2D_STAB) {
+      float weight = 0.0f;
+      MovieTrackingMarker *marker = get_tracking_data_point(ctx, track, framenr, &weight);
+      if (marker) {
+        TrackStabilizationBase *stabilization_base = access_stabilization_baseline_data(ctx,
+                                                                                        track);
+        BLI_assert(stabilization_base != NULL);
+        float offset[2];
+        weight_sum += weight;
+        translation_contribution(stabilization_base, marker, offset);
+        r_translation[0] += weight * offset[0];
+        r_translation[1] += weight * offset[1];
+        ref_pos[0] += weight * marker->pos[0];
+        ref_pos[1] += weight * marker->pos[1];
+        ok |= (weight_sum > EPSILON_WEIGHT);
+      }
+    }
+  }
+  if (!ok) {
+    return false;
+  }
 
-	ref_pos[0] /= weight_sum;
-	ref_pos[1] /= weight_sum;
-	r_translation[0] /= weight_sum;
-	r_translation[1] /= weight_sum;
-	setup_pivot(ref_pos, r_pivot);
+  ref_pos[0] /= weight_sum;
+  ref_pos[1] /= weight_sum;
+  r_translation[0] /= weight_sum;
+  r_translation[1] /= weight_sum;
+  setup_pivot(ref_pos, r_pivot);
 
-	if (!(stab->flag & TRACKING_STABILIZE_ROTATION)) {
-		return ok;
-	}
+  if (!(stab->flag & TRACKING_STABILIZE_ROTATION)) {
+    return ok;
+  }
 
-	ok = false;
-	weight_sum = 0.0f;
-	for (track = tracking->tracks.first; track; track = track->next) {
-		if (!is_init_for_stabilization(ctx, track)) {
-			continue;
-		}
-		if (track->flag & TRACK_USE_2D_STAB_ROT) {
-			float weight = 0.0f;
-			MovieTrackingMarker *marker = get_tracking_data_point(ctx,
-			                                                      track,
-			                                                      framenr,
-			                                                      &weight);
-			if (marker) {
-				TrackStabilizationBase *stabilization_base =
-				        access_stabilization_baseline_data(ctx, track);
-				BLI_assert(stabilization_base != NULL);
-				float rotation, scale, quality;
-				quality = rotation_contribution(stabilization_base,
-				                                marker,
-				                                aspect,
-				                                r_pivot,
-				                                &rotation,
-				                                &scale);
-				weight *= quality;
-				weight_sum += weight;
-				*r_angle += rotation * weight;
-				if (stab->flag & TRACKING_STABILIZE_SCALE) {
-					*r_scale_step += logf(scale) * weight;
-				}
-				else {
-					*r_scale_step = 0;
-				}
-				ok |= (weight_sum > EPSILON_WEIGHT);
-			}
-		}
-	}
-	if (ok) {
-		*r_scale_step /= weight_sum;
-		*r_angle /= weight_sum;
-	}
-	else {
-		/* We reach this point because translation could be calculated,
-		 * but rotation/scale found no data to work on.
-		 */
-		*r_scale_step = 0.0f;
-		*r_angle = 0.0f;
-	}
-	return true;
+  ok = false;
+  weight_sum = 0.0f;
+  for (track = tracking->tracks.first; track; track = track->next) {
+    if (!is_init_for_stabilization(ctx, track)) {
+      continue;
+    }
+    if (track->flag & TRACK_USE_2D_STAB_ROT) {
+      float weight = 0.0f;
+      MovieTrackingMarker *marker = get_tracking_data_point(ctx, track, framenr, &weight);
+      if (marker) {
+        TrackStabilizationBase *stabilization_base = access_stabilization_baseline_data(ctx,
+                                                                                        track);
+        BLI_assert(stabilization_base != NULL);
+        float rotation, scale, quality;
+        quality = rotation_contribution(
+            stabilization_base, marker, aspect, r_pivot, &rotation, &scale);
+        weight *= quality;
+        weight_sum += weight;
+        *r_angle += rotation * weight;
+        if (stab->flag & TRACKING_STABILIZE_SCALE) {
+          *r_scale_step += logf(scale) * weight;
+        }
+        else {
+          *r_scale_step = 0;
+        }
+        ok |= (weight_sum > EPSILON_WEIGHT);
+      }
+    }
+  }
+  if (ok) {
+    *r_scale_step /= weight_sum;
+    *r_angle /= weight_sum;
+  }
+  else {
+    /* We reach this point because translation could be calculated,
+     * but rotation/scale found no data to work on.
+     */
+    *r_scale_step = 0.0f;
+    *r_angle = 0.0f;
+  }
+  return true;
 }
-
 
 /* Calculate weight center of location tracks for given frame.
  * This function performs similar calculations as average_track_contributions(),
@@ -725,67 +645,56 @@ static bool average_track_contributions(StabContext *ctx,
  */
 static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_pos[2])
 {
-	bool ok = false;
-	float weight_sum;
-	MovieTrackingTrack *track;
-	MovieTracking *tracking = ctx->tracking;
+  bool ok = false;
+  float weight_sum;
+  MovieTrackingTrack *track;
+  MovieTracking *tracking = ctx->tracking;
 
-	zero_v2(r_ref_pos);
-	weight_sum = 0.0f;
-	for (track = tracking->tracks.first; track; track = track->next) {
-		if (track->flag & TRACK_USE_2D_STAB) {
-			float weight = 0.0f;
-			MovieTrackingMarker *marker =
-				get_tracking_data_point(ctx, track, framenr, &weight);
-			if (marker) {
-				weight_sum += weight;
-				r_ref_pos[0] += weight * marker->pos[0];
-				r_ref_pos[1] += weight * marker->pos[1];
-				ok |= (weight_sum > EPSILON_WEIGHT);
-			}
-		}
-	}
-	if (ok) {
-		r_ref_pos[0] /= weight_sum;
-		r_ref_pos[1] /= weight_sum;
-	}
-	else {
-		/* No usable tracking data on any track on this frame.
-		 * Use data from neighbouring frames to extrapolate...
-		 */
-		int next_lower = MINAFRAME;
-		int next_higher = MAXFRAME;
-		use_values_from_fcurves(ctx, true);
-		for (track = tracking->tracks.first; track; track = track->next) {
-			/* Note: we deliberately do not care if this track
-			 *       is already initialized for stabilisation */
-			if (track->flag & TRACK_USE_2D_STAB) {
-				int startpoint = search_closest_marker_index(track, framenr);
-				retrieve_next_higher_usable_frame(ctx,
-				                                  track,
-				                                  startpoint,
-				                                  framenr,
-				                                  &next_higher);
-				retrieve_next_lower_usable_frame(ctx,
-				                                 track,
-				                                 startpoint,
-				                                 framenr,
-				                                 &next_lower);
-			}
-		}
-		if (next_lower >= MINFRAME) {
-			/* use next usable frame to the left.
-			 * Also default to this frame when we're in a gap */
-			average_marker_positions(ctx, next_lower, r_ref_pos);
-
-		}
-		else if (next_higher < MAXFRAME) {
-			average_marker_positions(ctx, next_higher, r_ref_pos);
-		}
-		use_values_from_fcurves(ctx, false);
-	}
+  zero_v2(r_ref_pos);
+  weight_sum = 0.0f;
+  for (track = tracking->tracks.first; track; track = track->next) {
+    if (track->flag & TRACK_USE_2D_STAB) {
+      float weight = 0.0f;
+      MovieTrackingMarker *marker = get_tracking_data_point(ctx, track, framenr, &weight);
+      if (marker) {
+        weight_sum += weight;
+        r_ref_pos[0] += weight * marker->pos[0];
+        r_ref_pos[1] += weight * marker->pos[1];
+        ok |= (weight_sum > EPSILON_WEIGHT);
+      }
+    }
+  }
+  if (ok) {
+    r_ref_pos[0] /= weight_sum;
+    r_ref_pos[1] /= weight_sum;
+  }
+  else {
+    /* No usable tracking data on any track on this frame.
+     * Use data from neighbouring frames to extrapolate...
+     */
+    int next_lower = MINAFRAME;
+    int next_higher = MAXFRAME;
+    use_values_from_fcurves(ctx, true);
+    for (track = tracking->tracks.first; track; track = track->next) {
+      /* Note: we deliberately do not care if this track
+       *       is already initialized for stabilisation */
+      if (track->flag & TRACK_USE_2D_STAB) {
+        int startpoint = search_closest_marker_index(track, framenr);
+        retrieve_next_higher_usable_frame(ctx, track, startpoint, framenr, &next_higher);
+        retrieve_next_lower_usable_frame(ctx, track, startpoint, framenr, &next_lower);
+      }
+    }
+    if (next_lower >= MINFRAME) {
+      /* use next usable frame to the left.
+       * Also default to this frame when we're in a gap */
+      average_marker_positions(ctx, next_lower, r_ref_pos);
+    }
+    else if (next_higher < MAXFRAME) {
+      average_marker_positions(ctx, next_higher, r_ref_pos);
+    }
+    use_values_from_fcurves(ctx, false);
+  }
 }
-
 
 /* Linear interpolation of data retrieved at two measurement points.
  * This function is used to fill gaps in the middle of the covered area,
@@ -807,36 +716,37 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
                                                      float *r_angle,
                                                      float *r_scale_step)
 {
-	float t, s;
-	float trans_a[2], trans_b[2];
-	float angle_a, angle_b;
-	float scale_a, scale_b;
-	float pivot_a[2], pivot_b[2];
-	bool success = false;
+  float t, s;
+  float trans_a[2], trans_b[2];
+  float angle_a, angle_b;
+  float scale_a, scale_b;
+  float pivot_a[2], pivot_b[2];
+  bool success = false;
 
-	BLI_assert(frame_a <= frame_b);
-	BLI_assert(frame_a <= framenr);
-	BLI_assert(framenr <= frame_b);
+  BLI_assert(frame_a <= frame_b);
+  BLI_assert(frame_a <= framenr);
+  BLI_assert(framenr <= frame_b);
 
-	t = ((float)framenr - frame_a) / (frame_b - frame_a);
-	s = 1.0f - t;
+  t = ((float)framenr - frame_a) / (frame_b - frame_a);
+  s = 1.0f - t;
 
-	success = average_track_contributions(ctx, frame_a, aspect, trans_a, pivot_a, &angle_a, &scale_a);
-	if (!success) {
-		return false;
-	}
-	success = average_track_contributions(ctx, frame_b, aspect, trans_b, pivot_b, &angle_b, &scale_b);
-	if (!success) {
-		return false;
-	}
+  success = average_track_contributions(
+      ctx, frame_a, aspect, trans_a, pivot_a, &angle_a, &scale_a);
+  if (!success) {
+    return false;
+  }
+  success = average_track_contributions(
+      ctx, frame_b, aspect, trans_b, pivot_b, &angle_b, &scale_b);
+  if (!success) {
+    return false;
+  }
 
-	interp_v2_v2v2(r_translation, trans_a, trans_b, t);
-	interp_v2_v2v2(r_pivot, pivot_a, pivot_b, t);
-	*r_scale_step = s * scale_a + t * scale_b;
-	*r_angle = s * angle_a + t * angle_b;
-	return true;
+  interp_v2_v2v2(r_translation, trans_a, trans_b, t);
+  interp_v2_v2v2(r_pivot, pivot_a, pivot_b, t);
+  *r_scale_step = s * scale_a + t * scale_b;
+  *r_angle = s * angle_a + t * angle_b;
+  return true;
 }
-
 
 /* Reorder tracks starting with those providing a tracking data frame
  * closest to the global anchor_frame. Tracks with a gap at anchor_frame or
@@ -853,32 +763,28 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
  *       Initialization includes disabled tracks, since they might be enabled
  *       through automation later.
  */
-static int establish_track_initialization_order(StabContext *ctx,
-                                                TrackInitOrder *order)
+static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder *order)
 {
-	size_t tracknr = 0;
-	MovieTrackingTrack *track;
-	MovieTracking *tracking = ctx->tracking;
-	int anchor_frame = tracking->stabilization.anchor_frame;
+  size_t tracknr = 0;
+  MovieTrackingTrack *track;
+  MovieTracking *tracking = ctx->tracking;
+  int anchor_frame = tracking->stabilization.anchor_frame;
 
-	for (track = tracking->tracks.first; track != NULL; track = track->next) {
-		MovieTrackingMarker *marker;
-		order[tracknr].data = track;
-		marker = get_closest_marker(ctx, track, anchor_frame);
-		if (marker != NULL &&
-			(track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT)))
-		{
-			order[tracknr].sort_value = abs(marker->framenr - anchor_frame);
-			order[tracknr].reference_frame = marker->framenr;
-			++tracknr;
-		}
-	}
-	if (tracknr) {
-		qsort(order, tracknr, sizeof(TrackInitOrder), BLI_sortutil_cmp_int);
-	}
-	return tracknr;
+  for (track = tracking->tracks.first; track != NULL; track = track->next) {
+    MovieTrackingMarker *marker;
+    order[tracknr].data = track;
+    marker = get_closest_marker(ctx, track, anchor_frame);
+    if (marker != NULL && (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT))) {
+      order[tracknr].sort_value = abs(marker->framenr - anchor_frame);
+      order[tracknr].reference_frame = marker->framenr;
+      ++tracknr;
+    }
+  }
+  if (tracknr) {
+    qsort(order, tracknr, sizeof(TrackInitOrder), BLI_sortutil_cmp_int);
+  }
+  return tracknr;
 }
-
 
 /* Setup the constant part of this track's contribution to the determined frame
  * movement. Tracks usually don't provide tracking data for every frame. Thus,
@@ -941,115 +847,106 @@ static void initialize_track_for_stabilization(StabContext *ctx,
                                                const float average_angle,
                                                const float average_scale_step)
 {
-	float pos[2], angle, len;
-	TrackStabilizationBase *local_data =
-	        access_stabilization_baseline_data(ctx, track);
-	MovieTrackingMarker *marker =
-	        BKE_tracking_marker_get_exact(track, reference_frame);
-	/* Logic for initialization order ensures there *is* a marker on that
-	 * very frame.
-	 */
-	BLI_assert(marker != NULL);
-	BLI_assert(local_data != NULL);
+  float pos[2], angle, len;
+  TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
+  MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, reference_frame);
+  /* Logic for initialization order ensures there *is* a marker on that
+   * very frame.
+   */
+  BLI_assert(marker != NULL);
+  BLI_assert(local_data != NULL);
 
-	/* Per track baseline value for translation. */
-	sub_v2_v2v2(local_data->stabilization_offset_base,
-	            average_translation,
-	            marker->pos);
+  /* Per track baseline value for translation. */
+  sub_v2_v2v2(local_data->stabilization_offset_base, average_translation, marker->pos);
 
-	/* Per track baseline value for rotation. */
-	sub_v2_v2v2(pos, marker->pos, pivot);
+  /* Per track baseline value for rotation. */
+  sub_v2_v2v2(pos, marker->pos, pivot);
 
-	pos[0] *= aspect;
-	angle = average_angle - atan2f(pos[1],pos[0]);
-	angle_to_mat2(local_data->stabilization_rotation_base, angle);
+  pos[0] *= aspect;
+  angle = average_angle - atan2f(pos[1], pos[0]);
+  angle_to_mat2(local_data->stabilization_rotation_base, angle);
 
-	/* Per track baseline value for zoom. */
-	len = len_v2(pos) + SCALE_ERROR_LIMIT_BIAS;
-	local_data->stabilization_scale_base = expf(average_scale_step) / len;
+  /* Per track baseline value for zoom. */
+  len = len_v2(pos) + SCALE_ERROR_LIMIT_BIAS;
+  local_data->stabilization_scale_base = expf(average_scale_step) / len;
 
-	local_data->is_init_for_stabilization = true;
+  local_data->is_init_for_stabilization = true;
 }
-
 
 static void initialize_all_tracks(StabContext *ctx, float aspect)
 {
-	size_t i, track_len = 0;
-	MovieClip *clip = ctx->clip;
-	MovieTracking *tracking = ctx->tracking;
-	MovieTrackingTrack *track;
-	TrackInitOrder *order;
+  size_t i, track_len = 0;
+  MovieClip *clip = ctx->clip;
+  MovieTracking *tracking = ctx->tracking;
+  MovieTrackingTrack *track;
+  TrackInitOrder *order;
 
-	/* Attempt to start initialization at anchor_frame.
-	 * By definition, offset contribution is zero there.
-	 */
-	int reference_frame = tracking->stabilization.anchor_frame;
-	float average_angle = 0, average_scale_step = 0;
-	float average_translation[2], average_pos[2], pivot[2];
-	zero_v2(average_translation);
-	zero_v2(pivot);
+  /* Attempt to start initialization at anchor_frame.
+   * By definition, offset contribution is zero there.
+   */
+  int reference_frame = tracking->stabilization.anchor_frame;
+  float average_angle = 0, average_scale_step = 0;
+  float average_translation[2], average_pos[2], pivot[2];
+  zero_v2(average_translation);
+  zero_v2(pivot);
 
-	/* Initialize private working data. */
-	for (track = tracking->tracks.first; track != NULL; track = track->next) {
-		TrackStabilizationBase *local_data =
-		        access_stabilization_baseline_data(ctx, track);
-		if (!local_data) {
-			local_data = MEM_callocN(sizeof(TrackStabilizationBase),
-			                         "2D stabilization per track baseline data");
-			attach_stabilization_baseline_data(ctx, track, local_data);
-		}
-		BLI_assert(local_data != NULL);
-		local_data->track_weight_curve = retrieve_track_weight_animation(clip,
-		                                                                 track);
-		local_data->is_init_for_stabilization = false;
+  /* Initialize private working data. */
+  for (track = tracking->tracks.first; track != NULL; track = track->next) {
+    TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
+    if (!local_data) {
+      local_data = MEM_callocN(sizeof(TrackStabilizationBase),
+                               "2D stabilization per track baseline data");
+      attach_stabilization_baseline_data(ctx, track, local_data);
+    }
+    BLI_assert(local_data != NULL);
+    local_data->track_weight_curve = retrieve_track_weight_animation(clip, track);
+    local_data->is_init_for_stabilization = false;
 
-		++track_len;
-	}
-	if (!track_len) {
-		return;
-	}
+    ++track_len;
+  }
+  if (!track_len) {
+    return;
+  }
 
-	order = MEM_mallocN(track_len * sizeof(TrackInitOrder),
-	                    "stabilization track order");
-	if (!order) {
-		return;
-	}
+  order = MEM_mallocN(track_len * sizeof(TrackInitOrder), "stabilization track order");
+  if (!order) {
+    return;
+  }
 
-	track_len = establish_track_initialization_order(ctx, order);
-	if (track_len == 0) {
-		goto cleanup;
-	}
+  track_len = establish_track_initialization_order(ctx, order);
+  if (track_len == 0) {
+    goto cleanup;
+  }
 
-	/* starting point for pivot, before having initialized any track */
-	average_marker_positions(ctx, reference_frame, average_pos);
-	setup_pivot(average_pos, pivot);
+  /* starting point for pivot, before having initialized any track */
+  average_marker_positions(ctx, reference_frame, average_pos);
+  setup_pivot(average_pos, pivot);
 
-	for (i = 0; i < track_len; ++i) {
-		track = order[i].data;
-		if (reference_frame != order[i].reference_frame) {
-			reference_frame = order[i].reference_frame;
-			average_track_contributions(ctx,
-			                            reference_frame,
-			                            aspect,
-			                            average_translation,
-			                            pivot,
-			                            &average_angle,
-			                            &average_scale_step);
-		}
-		initialize_track_for_stabilization(ctx,
-		                                   track,
-		                                   reference_frame,
-		                                   aspect,
-		                                   average_translation,
-		                                   pivot,
-		                                   average_angle,
-		                                   average_scale_step);
-	}
+  for (i = 0; i < track_len; ++i) {
+    track = order[i].data;
+    if (reference_frame != order[i].reference_frame) {
+      reference_frame = order[i].reference_frame;
+      average_track_contributions(ctx,
+                                  reference_frame,
+                                  aspect,
+                                  average_translation,
+                                  pivot,
+                                  &average_angle,
+                                  &average_scale_step);
+    }
+    initialize_track_for_stabilization(ctx,
+                                       track,
+                                       reference_frame,
+                                       aspect,
+                                       average_translation,
+                                       pivot,
+                                       average_angle,
+                                       average_scale_step);
+  }
 
 cleanup:
-	MEM_freeN(order);
+  MEM_freeN(order);
 }
-
 
 /* Retrieve the measurement of frame movement by averaging contributions of
  * active tracks.
@@ -1071,68 +968,53 @@ static bool stabilization_determine_offset_for_frame(StabContext *ctx,
                                                      float *r_angle,
                                                      float *r_scale_step)
 {
-	bool success = false;
+  bool success = false;
 
-	/* Early output if stabilization is disabled. */
-	if ((ctx->stab->flag & TRACKING_2D_STABILIZATION) == 0) {
-		zero_v2(r_translation);
-		*r_scale_step = 0.0f;
-		*r_angle = 0.0f;
-		return false;
-	}
+  /* Early output if stabilization is disabled. */
+  if ((ctx->stab->flag & TRACKING_2D_STABILIZATION) == 0) {
+    zero_v2(r_translation);
+    *r_scale_step = 0.0f;
+    *r_angle = 0.0f;
+    return false;
+  }
 
-	success = average_track_contributions(ctx,
-	                                      framenr,
-	                                      aspect,
-	                                      r_translation,
-	                                      r_pivot,
-	                                      r_angle,
-	                                      r_scale_step);
-	if (!success) {
-		/* Try to hold extrapolated settings beyond the definition range
-		 * and to interpolate in gaps without any usable tracking data
-		 * to prevent sudden jump to image zero position.
-		 */
-		int next_lower = MINAFRAME;
-		int next_higher = MAXFRAME;
-		use_values_from_fcurves(ctx, true);
-		find_next_working_frames(ctx, framenr, &next_lower, &next_higher);
-		if (next_lower >= MINFRAME && next_higher < MAXFRAME) {
-			success = interpolate_averaged_track_contributions(ctx,
-			                                                   framenr,
-			                                                   next_lower,
-			                                                   next_higher,
-			                                                   aspect,
-			                                                   r_translation,
-			                                                   r_pivot,
-			                                                   r_angle,
-			                                                   r_scale_step);
-		}
-		else if (next_higher < MAXFRAME) {
-			/* Before start of stabilized range: extrapolate start point
-			 * settings.
-			 */
-			success = average_track_contributions(ctx,
-			                                      next_higher,
-			                                      aspect,
-			                                      r_translation,
-			                                      r_pivot,
-			                                      r_angle,
-			                                      r_scale_step);
-		}
-		else if (next_lower >= MINFRAME) {
-			/* After end of stabilized range: extrapolate end point settings. */
-			success = average_track_contributions(ctx,
-			                                      next_lower,
-			                                      aspect,
-			                                      r_translation,
-			                                      r_pivot,
-			                                      r_angle,
-			                                      r_scale_step);
-		}
-		use_values_from_fcurves(ctx, false);
-	}
-	return success;
+  success = average_track_contributions(
+      ctx, framenr, aspect, r_translation, r_pivot, r_angle, r_scale_step);
+  if (!success) {
+    /* Try to hold extrapolated settings beyond the definition range
+     * and to interpolate in gaps without any usable tracking data
+     * to prevent sudden jump to image zero position.
+     */
+    int next_lower = MINAFRAME;
+    int next_higher = MAXFRAME;
+    use_values_from_fcurves(ctx, true);
+    find_next_working_frames(ctx, framenr, &next_lower, &next_higher);
+    if (next_lower >= MINFRAME && next_higher < MAXFRAME) {
+      success = interpolate_averaged_track_contributions(ctx,
+                                                         framenr,
+                                                         next_lower,
+                                                         next_higher,
+                                                         aspect,
+                                                         r_translation,
+                                                         r_pivot,
+                                                         r_angle,
+                                                         r_scale_step);
+    }
+    else if (next_higher < MAXFRAME) {
+      /* Before start of stabilized range: extrapolate start point
+       * settings.
+       */
+      success = average_track_contributions(
+          ctx, next_higher, aspect, r_translation, r_pivot, r_angle, r_scale_step);
+    }
+    else if (next_lower >= MINFRAME) {
+      /* After end of stabilized range: extrapolate end point settings. */
+      success = average_track_contributions(
+          ctx, next_lower, aspect, r_translation, r_pivot, r_angle, r_scale_step);
+    }
+    use_values_from_fcurves(ctx, false);
+  }
+  return success;
 }
 
 /* Calculate stabilization data (translation, scale and rotation) from given raw
@@ -1157,48 +1039,48 @@ static void stabilization_calculate_data(StabContext *ctx,
                                          float *r_scale,
                                          float *r_angle)
 {
-	float target_pos[2], target_scale;
-	float scaleinf = get_animated_scaleinf(ctx, framenr);
+  float target_pos[2], target_scale;
+  float scaleinf = get_animated_scaleinf(ctx, framenr);
 
-	if (ctx->stab->flag & TRACKING_STABILIZE_SCALE) {
-		*r_scale = expf(scale_step * scaleinf);  /* Averaged in log scale */
-	}
-	else {
-		*r_scale = 1.0f;
-	}
+  if (ctx->stab->flag & TRACKING_STABILIZE_SCALE) {
+    *r_scale = expf(scale_step * scaleinf); /* Averaged in log scale */
+  }
+  else {
+    *r_scale = 1.0f;
+  }
 
-	mul_v2_fl(r_translation, get_animated_locinf(ctx, framenr));
-	*r_angle *= get_animated_rotinf(ctx, framenr);
+  mul_v2_fl(r_translation, get_animated_locinf(ctx, framenr));
+  *r_angle *= get_animated_rotinf(ctx, framenr);
 
-	/* Compensate for a target frame position.
-	 * This allows to follow tracking / panning shots in a semi manual fashion,
-	 * when animating the settings for the target frame position.
-	 */
-	get_animated_target_pos(ctx, framenr, target_pos);
-	sub_v2_v2(r_translation, target_pos);
-	*r_angle -= get_animated_target_rot(ctx, framenr);
-	target_scale = get_animated_target_scale(ctx, framenr);
-	if (target_scale != 0.0f) {
-		*r_scale /= target_scale;
-		/* target_scale is an expected/intended reference zoom value */
-	}
+  /* Compensate for a target frame position.
+   * This allows to follow tracking / panning shots in a semi manual fashion,
+   * when animating the settings for the target frame position.
+   */
+  get_animated_target_pos(ctx, framenr, target_pos);
+  sub_v2_v2(r_translation, target_pos);
+  *r_angle -= get_animated_target_rot(ctx, framenr);
+  target_scale = get_animated_target_scale(ctx, framenr);
+  if (target_scale != 0.0f) {
+    *r_scale /= target_scale;
+    /* target_scale is an expected/intended reference zoom value */
+  }
 
-	/* Convert from relative to absolute coordinates, square pixels. */
-	r_translation[0] *= (float)size * aspect;
-	r_translation[1] *= (float)size;
-	r_pivot[0] *= (float)size * aspect;
-	r_pivot[1] *= (float)size;
+  /* Convert from relative to absolute coordinates, square pixels. */
+  r_translation[0] *= (float)size * aspect;
+  r_translation[1] *= (float)size;
+  r_pivot[0] *= (float)size * aspect;
+  r_pivot[1] *= (float)size;
 
-	/* Output measured data, or inverse of the measured values for
-	 * compensation?
-	 */
-	if (do_compensate) {
-		mul_v2_fl(r_translation, -1.0f);
-		*r_angle *= -1.0f;
-		if (*r_scale != 0.0f) {
-			*r_scale = 1.0f / *r_scale;
-		}
-	}
+  /* Output measured data, or inverse of the measured values for
+   * compensation?
+   */
+  if (do_compensate) {
+    mul_v2_fl(r_translation, -1.0f);
+    *r_angle *= -1.0f;
+    if (*r_scale != 0.0f) {
+      *r_scale = 1.0f / *r_scale;
+    }
+  }
 }
 
 static void stabilization_data_to_mat4(float pixel_aspect,
@@ -1208,33 +1090,37 @@ static void stabilization_data_to_mat4(float pixel_aspect,
                                        float angle,
                                        float r_mat[4][4])
 {
-	float translation_mat[4][4], rotation_mat[4][4], scale_mat[4][4],
-	      pivot_mat[4][4], inv_pivot_mat[4][4],
-	      aspect_mat[4][4], inv_aspect_mat[4][4];
-	float scale_vector[3] = {scale, scale, 1.0f};
+  float translation_mat[4][4], rotation_mat[4][4], scale_mat[4][4], pivot_mat[4][4],
+      inv_pivot_mat[4][4], aspect_mat[4][4], inv_aspect_mat[4][4];
+  float scale_vector[3] = {scale, scale, 1.0f};
 
-	unit_m4(translation_mat);
-	unit_m4(rotation_mat);
-	unit_m4(scale_mat);
-	unit_m4(aspect_mat);
-	unit_m4(pivot_mat);
-	unit_m4(inv_pivot_mat);
+  unit_m4(translation_mat);
+  unit_m4(rotation_mat);
+  unit_m4(scale_mat);
+  unit_m4(aspect_mat);
+  unit_m4(pivot_mat);
+  unit_m4(inv_pivot_mat);
 
-	/* aspect ratio correction matrix */
-	aspect_mat[0][0] /= pixel_aspect;
-	invert_m4_m4(inv_aspect_mat, aspect_mat);
+  /* aspect ratio correction matrix */
+  aspect_mat[0][0] /= pixel_aspect;
+  invert_m4_m4(inv_aspect_mat, aspect_mat);
 
-	add_v2_v2(pivot_mat[3],     pivot);
-	sub_v2_v2(inv_pivot_mat[3], pivot);
+  add_v2_v2(pivot_mat[3], pivot);
+  sub_v2_v2(inv_pivot_mat[3], pivot);
 
-	size_to_mat4(scale_mat, scale_vector);       /* scale matrix */
-	add_v2_v2(translation_mat[3], translation);  /* translation matrix */
-	rotate_m4(rotation_mat, 'Z', angle);         /* rotation matrix */
+  size_to_mat4(scale_mat, scale_vector);      /* scale matrix */
+  add_v2_v2(translation_mat[3], translation); /* translation matrix */
+  rotate_m4(rotation_mat, 'Z', angle);        /* rotation matrix */
 
-	/* Compose transformation matrix. */
-	mul_m4_series(r_mat, aspect_mat, translation_mat,
-	                     pivot_mat, scale_mat, rotation_mat, inv_pivot_mat,
-	                     inv_aspect_mat);
+  /* Compose transformation matrix. */
+  mul_m4_series(r_mat,
+                aspect_mat,
+                translation_mat,
+                pivot_mat,
+                scale_mat,
+                rotation_mat,
+                inv_pivot_mat,
+                inv_aspect_mat);
 }
 
 /* Calculate scale factor necessary to eliminate black image areas
@@ -1245,144 +1131,120 @@ static void stabilization_data_to_mat4(float pixel_aspect,
  *
  * NOTE: all tracks need to be initialized before calling this function.
  */
-static float calculate_autoscale_factor(StabContext *ctx,
-                                        int size,
-                                        float aspect)
+static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect)
 {
-	MovieTrackingStabilization *stab = ctx->stab;
-	float pixel_aspect = ctx->tracking->camera.pixel_aspect;
-	int height = size, width = aspect*size;
+  MovieTrackingStabilization *stab = ctx->stab;
+  float pixel_aspect = ctx->tracking->camera.pixel_aspect;
+  int height = size, width = aspect * size;
 
-	int sfra = INT_MAX, efra = INT_MIN, cfra;
-	float scale = 1.0f, scale_step = 0.0f;
-	MovieTrackingTrack *track;
+  int sfra = INT_MAX, efra = INT_MIN, cfra;
+  float scale = 1.0f, scale_step = 0.0f;
+  MovieTrackingTrack *track;
 
-	/* Calculate maximal frame range of tracks where stabilization is active. */
-	for (track = ctx->tracking->tracks.first; track; track = track->next) {
-		if ((track->flag & TRACK_USE_2D_STAB) ||
-			((stab->flag & TRACKING_STABILIZE_ROTATION) &&
-			 (track->flag & TRACK_USE_2D_STAB_ROT)))
-		{
-			int first_frame = track->markers[0].framenr;
-			int last_frame  = track->markers[track->markersnr - 1].framenr;
-			sfra = min_ii(sfra, first_frame);
-			efra = max_ii(efra, last_frame);
-		}
-	}
+  /* Calculate maximal frame range of tracks where stabilization is active. */
+  for (track = ctx->tracking->tracks.first; track; track = track->next) {
+    if ((track->flag & TRACK_USE_2D_STAB) ||
+        ((stab->flag & TRACKING_STABILIZE_ROTATION) && (track->flag & TRACK_USE_2D_STAB_ROT))) {
+      int first_frame = track->markers[0].framenr;
+      int last_frame = track->markers[track->markersnr - 1].framenr;
+      sfra = min_ii(sfra, first_frame);
+      efra = max_ii(efra, last_frame);
+    }
+  }
 
-	use_values_from_fcurves(ctx, true);
-	for (cfra = sfra; cfra <= efra; cfra++) {
-		float translation[2], pivot[2], angle, tmp_scale;
-		float mat[4][4];
-		const float points[4][2] = {{0.0f, 0.0f},
-		                            {0.0f, height},
-		                            {width, height},
-		                            {width, 0.0f}};
-		const bool do_compensate = true;
-		/* Calculate stabilization parameters for the current frame. */
-		stabilization_determine_offset_for_frame(ctx,
-		                                         cfra,
-		                                         aspect,
-		                                         translation,
-		                                         pivot,
-		                                         &angle,
-		                                         &scale_step);
-		stabilization_calculate_data(ctx,
-		                             cfra,
-		                             size,
-		                             aspect,
-		                             do_compensate,
-		                             scale_step,
-		                             translation,
-		                             pivot,
-		                             &tmp_scale,
-		                             &angle);
-		/* Compose transformation matrix. */
-		/* NOTE: Here we operate in NON-COMPENSATED coordinates, meaning we have
-		 * to construct transformation matrix using proper pivot point.
-		 * Compensation for that will happen later on.
-		 */
-		stabilization_data_to_mat4(pixel_aspect,
-		                           pivot,
-		                           translation,
-		                           tmp_scale,
-		                           angle,
-		                           mat);
-		/* Investigate the transformed border lines for this frame;
-		 * find out, where it cuts the original frame.
-		 */
-		for (int edge_index = 0; edge_index < 4; edge_index++) {
-			/* Calculate coordinates of stabilized frame edge points.
-			 * Use matrix multiplication here so we operate in homogeneous
-			 * coordinates.
-			 */
-			float stable_edge_p1[3], stable_edge_p2[3];
-			copy_v2_v2(stable_edge_p1, points[edge_index]);
-			copy_v2_v2(stable_edge_p2, points[(edge_index + 1) % 4]);
-			stable_edge_p1[2] = stable_edge_p2[2] = 0.0f;
-			mul_m4_v3(mat, stable_edge_p1);
-			mul_m4_v3(mat, stable_edge_p2);
-			/* Now we iterate over all original frame corners (we call them
-			 * 'point' here) to see if there's black area between stabilized
-			 * frame edge and original point.
-			 */
-			for (int point_index = 0; point_index < 4; point_index++) {
-				const float point[3] = {points[point_index][0],
-				                        points[point_index][1],
-				                        0.0f};
-				/* Calculate vector which goes from first edge point to
-				 * second one.
-				 */
-				float stable_edge_vec[3];
-				sub_v3_v3v3(stable_edge_vec, stable_edge_p2, stable_edge_p1);
-				/* Calculate vector which connects current frame point to
-				 * first edge point.
-				 */
-				float point_to_edge_start_vec[3];
-				sub_v3_v3v3(point_to_edge_start_vec, point, stable_edge_p1);
-				/* Use this two vectors to check whether frame point is inside
-				 * of the stabilized frame or not.
-				 * If the point is inside, there is no black area happening
-				 * and no scaling required for it.
-				 */
-				if (cross_v2v2(stable_edge_vec, point_to_edge_start_vec) >= 0.0f) {
-					/* We are scaling around motion-compensated pivot point. */
-					float scale_pivot[2];
-					add_v2_v2v2(scale_pivot, pivot, translation);
-					/* Calculate line which goes via `point` and parallel to
-					 * the stabilized frame edge. This line is coming via
-					 * `point` and `point2` at the end.
-					 */
-					float point2[2];
-					add_v2_v2v2(point2, point, stable_edge_vec);
-					/* Calculate actual distance between pivot point and
-					 * the stabilized frame edge. Then calculate distance
-					 * between pivot point and line which goes via actual
-					 * corner and is parallel to the edge.
-					 *
-					 * Dividing one by another will give us required scale
-					 * factor to get rid of black areas.
-					 */
-					float real_dist = dist_to_line_v2(scale_pivot,
-					                                  stable_edge_p1,
-					                                  stable_edge_p2);
-					float required_dist = dist_to_line_v2(scale_pivot,
-					                                      point,
-					                                      point2);
-					const float S = required_dist / real_dist;
-					scale = max_ff(scale, S);
-				}
-			}
-		}
-	}
-	if (stab->maxscale > 0.0f) {
-		scale = min_ff(scale, stab->maxscale);
-	}
-	use_values_from_fcurves(ctx, false);
+  use_values_from_fcurves(ctx, true);
+  for (cfra = sfra; cfra <= efra; cfra++) {
+    float translation[2], pivot[2], angle, tmp_scale;
+    float mat[4][4];
+    const float points[4][2] = {{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
+    const bool do_compensate = true;
+    /* Calculate stabilization parameters for the current frame. */
+    stabilization_determine_offset_for_frame(
+        ctx, cfra, aspect, translation, pivot, &angle, &scale_step);
+    stabilization_calculate_data(ctx,
+                                 cfra,
+                                 size,
+                                 aspect,
+                                 do_compensate,
+                                 scale_step,
+                                 translation,
+                                 pivot,
+                                 &tmp_scale,
+                                 &angle);
+    /* Compose transformation matrix. */
+    /* NOTE: Here we operate in NON-COMPENSATED coordinates, meaning we have
+     * to construct transformation matrix using proper pivot point.
+     * Compensation for that will happen later on.
+     */
+    stabilization_data_to_mat4(pixel_aspect, pivot, translation, tmp_scale, angle, mat);
+    /* Investigate the transformed border lines for this frame;
+     * find out, where it cuts the original frame.
+     */
+    for (int edge_index = 0; edge_index < 4; edge_index++) {
+      /* Calculate coordinates of stabilized frame edge points.
+       * Use matrix multiplication here so we operate in homogeneous
+       * coordinates.
+       */
+      float stable_edge_p1[3], stable_edge_p2[3];
+      copy_v2_v2(stable_edge_p1, points[edge_index]);
+      copy_v2_v2(stable_edge_p2, points[(edge_index + 1) % 4]);
+      stable_edge_p1[2] = stable_edge_p2[2] = 0.0f;
+      mul_m4_v3(mat, stable_edge_p1);
+      mul_m4_v3(mat, stable_edge_p2);
+      /* Now we iterate over all original frame corners (we call them
+       * 'point' here) to see if there's black area between stabilized
+       * frame edge and original point.
+       */
+      for (int point_index = 0; point_index < 4; point_index++) {
+        const float point[3] = {points[point_index][0], points[point_index][1], 0.0f};
+        /* Calculate vector which goes from first edge point to
+         * second one.
+         */
+        float stable_edge_vec[3];
+        sub_v3_v3v3(stable_edge_vec, stable_edge_p2, stable_edge_p1);
+        /* Calculate vector which connects current frame point to
+         * first edge point.
+         */
+        float point_to_edge_start_vec[3];
+        sub_v3_v3v3(point_to_edge_start_vec, point, stable_edge_p1);
+        /* Use this two vectors to check whether frame point is inside
+         * of the stabilized frame or not.
+         * If the point is inside, there is no black area happening
+         * and no scaling required for it.
+         */
+        if (cross_v2v2(stable_edge_vec, point_to_edge_start_vec) >= 0.0f) {
+          /* We are scaling around motion-compensated pivot point. */
+          float scale_pivot[2];
+          add_v2_v2v2(scale_pivot, pivot, translation);
+          /* Calculate line which goes via `point` and parallel to
+           * the stabilized frame edge. This line is coming via
+           * `point` and `point2` at the end.
+           */
+          float point2[2];
+          add_v2_v2v2(point2, point, stable_edge_vec);
+          /* Calculate actual distance between pivot point and
+           * the stabilized frame edge. Then calculate distance
+           * between pivot point and line which goes via actual
+           * corner and is parallel to the edge.
+           *
+           * Dividing one by another will give us required scale
+           * factor to get rid of black areas.
+           */
+          float real_dist = dist_to_line_v2(scale_pivot, stable_edge_p1, stable_edge_p2);
+          float required_dist = dist_to_line_v2(scale_pivot, point, point2);
+          const float S = required_dist / real_dist;
+          scale = max_ff(scale, S);
+        }
+      }
+    }
+  }
+  if (stab->maxscale > 0.0f) {
+    scale = min_ff(scale, stab->maxscale);
+  }
+  use_values_from_fcurves(ctx, false);
 
-	return scale;
+  return scale;
 }
-
 
 /* Prepare working data and determine reference point for each track.
  *
@@ -1394,18 +1256,17 @@ static float calculate_autoscale_factor(StabContext *ctx,
  */
 static StabContext *init_stabilizer(MovieClip *clip, int size, float aspect)
 {
-	StabContext *ctx = initialize_stabilization_working_context(clip);
-	BLI_assert(ctx != NULL);
-	initialize_all_tracks(ctx, aspect);
-	if (ctx->stab->flag & TRACKING_AUTOSCALE) {
-		ctx->stab->scale = 1.0;
-		ctx->stab->scale = calculate_autoscale_factor(ctx, size, aspect);
-	}
-	/* By default, just use values for the global current frame. */
-	use_values_from_fcurves(ctx, false);
-	return ctx;
+  StabContext *ctx = initialize_stabilization_working_context(clip);
+  BLI_assert(ctx != NULL);
+  initialize_all_tracks(ctx, aspect);
+  if (ctx->stab->flag & TRACKING_AUTOSCALE) {
+    ctx->stab->scale = 1.0;
+    ctx->stab->scale = calculate_autoscale_factor(ctx, size, aspect);
+  }
+  /* By default, just use values for the global current frame. */
+  use_values_from_fcurves(ctx, false);
+  return ctx;
 }
-
 
 /* === public interface functions === */
 
@@ -1435,85 +1296,62 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
                                          float *scale,
                                          float *angle)
 {
-	StabContext *ctx = NULL;
-	MovieTracking *tracking = &clip->tracking;
-	bool enabled = (tracking->stabilization.flag & TRACKING_2D_STABILIZATION);
-	/* Might become a parameter of a stabilization compositor node. */
-	bool do_compensate = true;
-	float scale_step = 0.0f;
-	float pixel_aspect = tracking->camera.pixel_aspect;
-	float aspect = (float)width * pixel_aspect / height;
-	int size = height;
-	float pivot[2];
+  StabContext *ctx = NULL;
+  MovieTracking *tracking = &clip->tracking;
+  bool enabled = (tracking->stabilization.flag & TRACKING_2D_STABILIZATION);
+  /* Might become a parameter of a stabilization compositor node. */
+  bool do_compensate = true;
+  float scale_step = 0.0f;
+  float pixel_aspect = tracking->camera.pixel_aspect;
+  float aspect = (float)width * pixel_aspect / height;
+  int size = height;
+  float pivot[2];
 
-	if (enabled) {
-		ctx = init_stabilizer(clip, size, aspect);
-	}
+  if (enabled) {
+    ctx = init_stabilizer(clip, size, aspect);
+  }
 
-	if (enabled &&
-		stabilization_determine_offset_for_frame(ctx,
-		                                         framenr,
-		                                         aspect,
-		                                         translation,
-		                                         pivot,
-		                                         angle,
-		                                         &scale_step))
-	{
-		stabilization_calculate_data(ctx,
-		                             framenr,
-		                             size,
-		                             aspect,
-		                             do_compensate,
-		                             scale_step,
-		                             translation,
-		                             pivot,
-		                             scale,
-		                             angle);
-		compensate_rotation_center(size,
-		                           aspect,
-		                           *angle,
-		                           *scale,
-		                           pivot,
-		                           translation);
-	}
-	else {
-		zero_v2(translation);
-		*scale = 1.0f;
-		*angle = 0.0f;
-	}
-	discard_stabilization_working_context(ctx);
+  if (enabled && stabilization_determine_offset_for_frame(
+                     ctx, framenr, aspect, translation, pivot, angle, &scale_step)) {
+    stabilization_calculate_data(
+        ctx, framenr, size, aspect, do_compensate, scale_step, translation, pivot, scale, angle);
+    compensate_rotation_center(size, aspect, *angle, *scale, pivot, translation);
+  }
+  else {
+    zero_v2(translation);
+    *scale = 1.0f;
+    *angle = 0.0f;
+  }
+  discard_stabilization_working_context(ctx);
 }
-
 
 typedef void (*interpolation_func)(struct ImBuf *, struct ImBuf *, float, float, int, int);
 
 typedef struct TrackingStabilizeFrameInterpolationData {
-	ImBuf *ibuf;
-	ImBuf *tmpibuf;
-	float (*mat)[4];
+  ImBuf *ibuf;
+  ImBuf *tmpibuf;
+  float (*mat)[4];
 
-	interpolation_func interpolation;
+  interpolation_func interpolation;
 } TrackingStabilizeFrameInterpolationData;
 
 static void tracking_stabilize_frame_interpolation_cb(
-        void *__restrict userdata,
-        const int j,
-        const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int j, const ParallelRangeTLS *__restrict UNUSED(tls))
 {
-	TrackingStabilizeFrameInterpolationData *data = userdata;
-	ImBuf *ibuf = data->ibuf;
-	ImBuf *tmpibuf = data->tmpibuf;
-	float (*mat)[4] = data->mat;
+  TrackingStabilizeFrameInterpolationData *data = userdata;
+  ImBuf *ibuf = data->ibuf;
+  ImBuf *tmpibuf = data->tmpibuf;
+  float(*mat)[4] = data->mat;
 
-	interpolation_func interpolation = data->interpolation;
+  interpolation_func interpolation = data->interpolation;
 
-	for (int i = 0; i < tmpibuf->x; i++) {
-		float vec[3] = {i, j, 0.0f};
+  for (int i = 0; i < tmpibuf->x; i++) {
+    float vec[3] = {i, j, 0.0f};
 
-		mul_v3_m4v3(vec, mat, vec);
+    mul_v3_m4v3(vec, mat, vec);
 
-		interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
-	}
+    interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
+  }
 }
 
 /* Stabilize given image buffer using stabilization data for a specified
@@ -1522,100 +1360,96 @@ static void tracking_stabilize_frame_interpolation_cb(
  * NOTE: frame number should be in clip space, not scene space.
  */
 /* TODO(sergey): Use r_ prefix for output parameters here. */
-ImBuf *BKE_tracking_stabilize_frame(MovieClip *clip,
-                                    int framenr,
-                                    ImBuf *ibuf,
-                                    float translation[2],
-                                    float *scale,
-                                    float *angle)
+ImBuf *BKE_tracking_stabilize_frame(
+    MovieClip *clip, int framenr, ImBuf *ibuf, float translation[2], float *scale, float *angle)
 {
-	float tloc[2], tscale, tangle;
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingStabilization *stab = &tracking->stabilization;
-	ImBuf *tmpibuf;
-	int width = ibuf->x, height = ibuf->y;
-	float pixel_aspect = tracking->camera.pixel_aspect;
-	float mat[4][4];
-	int filter = tracking->stabilization.filter;
-	interpolation_func interpolation = NULL;
-	int ibuf_flags;
+  float tloc[2], tscale, tangle;
+  MovieTracking *tracking = &clip->tracking;
+  MovieTrackingStabilization *stab = &tracking->stabilization;
+  ImBuf *tmpibuf;
+  int width = ibuf->x, height = ibuf->y;
+  float pixel_aspect = tracking->camera.pixel_aspect;
+  float mat[4][4];
+  int filter = tracking->stabilization.filter;
+  interpolation_func interpolation = NULL;
+  int ibuf_flags;
 
-	if (translation)
-		copy_v2_v2(tloc, translation);
+  if (translation)
+    copy_v2_v2(tloc, translation);
 
-	if (scale)
-		tscale = *scale;
+  if (scale)
+    tscale = *scale;
 
-	/* Perform early output if no stabilization is used. */
-	if ((stab->flag & TRACKING_2D_STABILIZATION) == 0) {
-		if (translation)
-			zero_v2(translation);
+  /* Perform early output if no stabilization is used. */
+  if ((stab->flag & TRACKING_2D_STABILIZATION) == 0) {
+    if (translation)
+      zero_v2(translation);
 
-		if (scale)
-			*scale = 1.0f;
+    if (scale)
+      *scale = 1.0f;
 
-		if (angle)
-			*angle = 0.0f;
+    if (angle)
+      *angle = 0.0f;
 
-		return ibuf;
-	}
+    return ibuf;
+  }
 
-	/* Allocate frame for stabilization result. */
-	ibuf_flags = 0;
-	if (ibuf->rect)
-		ibuf_flags |= IB_rect;
-	if (ibuf->rect_float)
-		ibuf_flags |= IB_rectfloat;
+  /* Allocate frame for stabilization result. */
+  ibuf_flags = 0;
+  if (ibuf->rect)
+    ibuf_flags |= IB_rect;
+  if (ibuf->rect_float)
+    ibuf_flags |= IB_rectfloat;
 
-	tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);
+  tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);
 
-	/* Calculate stabilization matrix. */
-	BKE_tracking_stabilization_data_get(clip, framenr, width, height, tloc, &tscale, &tangle);
-	BKE_tracking_stabilization_data_to_mat4(ibuf->x, ibuf->y, pixel_aspect, tloc, tscale, tangle, mat);
+  /* Calculate stabilization matrix. */
+  BKE_tracking_stabilization_data_get(clip, framenr, width, height, tloc, &tscale, &tangle);
+  BKE_tracking_stabilization_data_to_mat4(
+      ibuf->x, ibuf->y, pixel_aspect, tloc, tscale, tangle, mat);
 
-	/* The following code visits each nominal target grid position
-	 * and picks interpolated data "backwards" from source.
-	 * thus we need the inverse of the transformation to apply. */
-	invert_m4(mat);
+  /* The following code visits each nominal target grid position
+   * and picks interpolated data "backwards" from source.
+   * thus we need the inverse of the transformation to apply. */
+  invert_m4(mat);
 
-	if (filter == TRACKING_FILTER_NEAREST)
-		interpolation = nearest_interpolation;
-	else if (filter == TRACKING_FILTER_BILINEAR)
-		interpolation = bilinear_interpolation;
-	else if (filter == TRACKING_FILTER_BICUBIC)
-		interpolation = bicubic_interpolation;
-	else
-		/* fallback to default interpolation method */
-		interpolation = nearest_interpolation;
+  if (filter == TRACKING_FILTER_NEAREST)
+    interpolation = nearest_interpolation;
+  else if (filter == TRACKING_FILTER_BILINEAR)
+    interpolation = bilinear_interpolation;
+  else if (filter == TRACKING_FILTER_BICUBIC)
+    interpolation = bicubic_interpolation;
+  else
+    /* fallback to default interpolation method */
+    interpolation = nearest_interpolation;
 
-	TrackingStabilizeFrameInterpolationData data = {
-		.ibuf = ibuf, .tmpibuf = tmpibuf, .mat = mat,
-		.interpolation = interpolation,
-	};
+  TrackingStabilizeFrameInterpolationData data = {
+      .ibuf = ibuf,
+      .tmpibuf = tmpibuf,
+      .mat = mat,
+      .interpolation = interpolation,
+  };
 
-	ParallelRangeSettings settings;
-	BLI_parallel_range_settings_defaults(&settings);
-	settings.use_threading = (tmpibuf->y > 128);
-	BLI_task_parallel_range(0, tmpibuf->y,
-	                        &data,
-	                        tracking_stabilize_frame_interpolation_cb,
-	                        &settings);
+  ParallelRangeSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = (tmpibuf->y > 128);
+  BLI_task_parallel_range(
+      0, tmpibuf->y, &data, tracking_stabilize_frame_interpolation_cb, &settings);
 
-	if (tmpibuf->rect_float)
-		tmpibuf->userflags |= IB_RECT_INVALID;
+  if (tmpibuf->rect_float)
+    tmpibuf->userflags |= IB_RECT_INVALID;
 
-	if (translation)
-		copy_v2_v2(translation, tloc);
+  if (translation)
+    copy_v2_v2(translation, tloc);
 
-	if (scale)
-		*scale = tscale;
+  if (scale)
+    *scale = tscale;
 
-	if (angle)
-		*angle = tangle;
+  if (angle)
+    *angle = tangle;
 
-	return tmpibuf;
+  return tmpibuf;
 }
-
 
 /* Build a 4x4 transformation matrix based on the given 2D stabilization data.
  * mat is a 4x4 matrix in homogeneous coordinates, adapted to the
@@ -1635,25 +1469,20 @@ void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
                                              float angle,
                                              float r_mat[4][4])
 {
-	/* Since we cannot receive the real pivot point coordinates (API limitation),
-	 * we perform the rotation/scale around the center of frame.
-	 * Then we correct by an additional shift, which was calculated in
-	 * compensate_rotation_center() and "sneaked in" as additional offset
-	 * in the translation parameter. This works, since translation needs to be
-	 * applied after rotation/scale anyway. Thus effectively the image gets
-	 * rotated around the desired pivot point
-	 */
-	/* TODO(sergey) pivot shouldn't be calculated here, rather received
-	 * as a parameter.
-	 */
-	float pivot[2];
-	pivot[0] = 0.5f * pixel_aspect * buffer_width;
-	pivot[1] = 0.5f * buffer_height;
-	/* Compose transformation matrix. */
-	stabilization_data_to_mat4(pixel_aspect,
-	                           pivot,
-	                           translation,
-	                           scale,
-	                           angle,
-	                           r_mat);
+  /* Since we cannot receive the real pivot point coordinates (API limitation),
+   * we perform the rotation/scale around the center of frame.
+   * Then we correct by an additional shift, which was calculated in
+   * compensate_rotation_center() and "sneaked in" as additional offset
+   * in the translation parameter. This works, since translation needs to be
+   * applied after rotation/scale anyway. Thus effectively the image gets
+   * rotated around the desired pivot point
+   */
+  /* TODO(sergey) pivot shouldn't be calculated here, rather received
+   * as a parameter.
+   */
+  float pivot[2];
+  pivot[0] = 0.5f * pixel_aspect * buffer_width;
+  pivot[1] = 0.5f * buffer_height;
+  /* Compose transformation matrix. */
+  stabilization_data_to_mat4(pixel_aspect, pivot, translation, scale, angle, r_mat);
 }

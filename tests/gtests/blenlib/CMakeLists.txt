@@ -19,12 +19,12 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	..
-	../../../source/blender/blenlib
-	../../../source/blender/makesdna
-	../../../intern/guardedalloc
-	../../../intern/atomic
+  .
+  ..
+  ../../../source/blender/blenlib
+  ../../../source/blender/makesdna
+  ../../../intern/guardedalloc
+  ../../../intern/atomic
 )
 
 include_directories(${INC})
@@ -33,9 +33,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
 if(WIN32)
-	set(BLI_path_util_extra_libs "bf_blenlib;bf_intern_utfconv;extern_wcwidth;${ZLIB_LIBRARIES}")
+  set(BLI_path_util_extra_libs "bf_blenlib;bf_intern_utfconv;extern_wcwidth;${ZLIB_LIBRARIES}")
 else()
-	set(BLI_path_util_extra_libs "bf_blenlib;extern_wcwidth;${ZLIB_LIBRARIES}")
+  set(BLI_path_util_extra_libs "bf_blenlib;extern_wcwidth;${ZLIB_LIBRARIES}")
 endif()
 
 BLENDER_TEST(BLI_array_store "bf_blenlib")

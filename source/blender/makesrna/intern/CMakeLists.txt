@@ -19,112 +19,112 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(CMAKE_COMPILER_IS_GNUCC)
-	# add here so we fail early.
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=implicit-function-declaration")
+  # add here so we fail early.
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=implicit-function-declaration")
 endif()
 
 # files rna_access.c rna_define.c makesrna.c intentionally excluded.
 set(DEFSRC
-	rna_ID.c
-	rna_action.c
-	rna_animation.c
-	rna_animviz.c
-	rna_armature.c
-	rna_boid.c
-	rna_brush.c
-	rna_cachefile.c
-	rna_camera.c
-	rna_cloth.c
-	rna_collection.c
-	rna_color.c
-	rna_constraint.c
-	rna_context.c
-	rna_curve.c
-	rna_depsgraph.c
-	rna_dynamicpaint.c
-	rna_fcurve.c
-	rna_fluidsim.c
-	rna_gpencil.c
-	rna_gpencil_modifier.c
-	rna_image.c
-	rna_key.c
-	rna_lattice.c
-	rna_layer.c
-	rna_light.c
-	rna_lightprobe.c
-	rna_linestyle.c
-	rna_main.c
-	rna_mask.c
-	rna_material.c
-	rna_mesh.c
-	rna_meta.c
-	rna_modifier.c
-	rna_movieclip.c
-	rna_nla.c
-	rna_nodetree.c
-	rna_object.c
-	rna_object_force.c
-	rna_packedfile.c
-	rna_palette.c
-	rna_particle.c
-	rna_pose.c
-	rna_render.c
-	rna_rigidbody.c
-	rna_rna.c
-	rna_scene.c
-	rna_screen.c
-	rna_sculpt_paint.c
-	rna_sequencer.c
-	rna_shader_fx.c
-	rna_smoke.c
-	rna_sound.c
-	rna_space.c
-	rna_speaker.c
-	rna_test.c
-	rna_text.c
-	rna_texture.c
-	rna_timeline.c
-	rna_tracking.c
-	rna_ui.c
-	rna_userdef.c
-	rna_vfont.c
-	rna_wm.c
-	rna_wm_gizmo.c
-	rna_workspace.c
-	rna_world.c
+  rna_ID.c
+  rna_action.c
+  rna_animation.c
+  rna_animviz.c
+  rna_armature.c
+  rna_boid.c
+  rna_brush.c
+  rna_cachefile.c
+  rna_camera.c
+  rna_cloth.c
+  rna_collection.c
+  rna_color.c
+  rna_constraint.c
+  rna_context.c
+  rna_curve.c
+  rna_depsgraph.c
+  rna_dynamicpaint.c
+  rna_fcurve.c
+  rna_fluidsim.c
+  rna_gpencil.c
+  rna_gpencil_modifier.c
+  rna_image.c
+  rna_key.c
+  rna_lattice.c
+  rna_layer.c
+  rna_light.c
+  rna_lightprobe.c
+  rna_linestyle.c
+  rna_main.c
+  rna_mask.c
+  rna_material.c
+  rna_mesh.c
+  rna_meta.c
+  rna_modifier.c
+  rna_movieclip.c
+  rna_nla.c
+  rna_nodetree.c
+  rna_object.c
+  rna_object_force.c
+  rna_packedfile.c
+  rna_palette.c
+  rna_particle.c
+  rna_pose.c
+  rna_render.c
+  rna_rigidbody.c
+  rna_rna.c
+  rna_scene.c
+  rna_screen.c
+  rna_sculpt_paint.c
+  rna_sequencer.c
+  rna_shader_fx.c
+  rna_smoke.c
+  rna_sound.c
+  rna_space.c
+  rna_speaker.c
+  rna_test.c
+  rna_text.c
+  rna_texture.c
+  rna_timeline.c
+  rna_tracking.c
+  rna_ui.c
+  rna_userdef.c
+  rna_vfont.c
+  rna_wm.c
+  rna_wm_gizmo.c
+  rna_workspace.c
+  rna_world.c
 )
 
 set(APISRC
-	rna_action_api.c
-	rna_animation_api.c
-	rna_armature_api.c
-	rna_camera_api.c
-	rna_curve_api.c
-	rna_fcurve_api.c
-	rna_image_api.c
-	rna_lattice_api.c
-	rna_main_api.c
-	rna_material_api.c
-	rna_mesh_api.c
-	rna_meta_api.c
-	rna_object_api.c
-	rna_pose_api.c
-	rna_scene_api.c
-	rna_sequencer_api.c
-	rna_sound_api.c
-	rna_space_api.c
-	rna_text_api.c
-	rna_texture_api.c
-	rna_ui_api.c
-	rna_vfont_api.c
-	rna_wm_api.c
-	rna_wm_gizmo_api.c
-	rna_workspace_api.c
+  rna_action_api.c
+  rna_animation_api.c
+  rna_armature_api.c
+  rna_camera_api.c
+  rna_curve_api.c
+  rna_fcurve_api.c
+  rna_image_api.c
+  rna_lattice_api.c
+  rna_main_api.c
+  rna_material_api.c
+  rna_mesh_api.c
+  rna_meta_api.c
+  rna_object_api.c
+  rna_pose_api.c
+  rna_scene_api.c
+  rna_sequencer_api.c
+  rna_sound_api.c
+  rna_space_api.c
+  rna_text_api.c
+  rna_texture_api.c
+  rna_ui_api.c
+  rna_vfont_api.c
+  rna_wm_api.c
+  rna_wm_gizmo_api.c
+  rna_workspace_api.c
 )
 
 string(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 list(APPEND GENSRC
-	"${CMAKE_CURRENT_BINARY_DIR}/rna_prototypes_gen.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/rna_prototypes_gen.h"
 )
 set_source_files_properties(${GENSRC} PROPERTIES GENERATED TRUE)
 
@@ -134,36 +134,36 @@ set_source_files_properties(${GENSRC} PROPERTIES GENERATED TRUE)
 # less strict flags for generated source
 set(GENSRC_CFLAGS)
 if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
-	set(GENSRC_CFLAGS "-Wno-missing-prototypes")
+  set(GENSRC_CFLAGS "-Wno-missing-prototypes")
 endif()
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-	set(GENSRC_CFLAGS "${GENSRC_CFLAGS} -Wno-missing-variable-declarations")
+  set(GENSRC_CFLAGS "${GENSRC_CFLAGS} -Wno-missing-variable-declarations")
 endif()
 
 if(GENSRC_CFLAGS)
-	set_source_files_properties(${GENSRC} PROPERTIES COMPILE_FLAGS "${GENSRC_CFLAGS}")
+  set_source_files_properties(${GENSRC} PROPERTIES COMPILE_FLAGS "${GENSRC_CFLAGS}")
 endif()
 unset(GENSRC_CFLAGS)
 
 
 set(SRC_RNA_INC
-	../RNA_access.h
-	../RNA_define.h
-	../RNA_documentation.h
-	../RNA_enum_types.h
-	../RNA_types.h
+  ../RNA_access.h
+  ../RNA_define.h
+  ../RNA_documentation.h
+  ../RNA_enum_types.h
+  ../RNA_types.h
 )
 
 set(SRC
-	makesrna.c
-	rna_define.c
-	${DEFSRC}
-	${APISRC}
-	../../../../intern/clog/clog.c
-	../../../../intern/guardedalloc/intern/mallocn.c
-	../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
-	../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
-	../../../../intern/guardedalloc/intern/mmap_win.c
+  makesrna.c
+  rna_define.c
+  ${DEFSRC}
+  ${APISRC}
+  ../../../../intern/clog/clog.c
+  ../../../../intern/guardedalloc/intern/mallocn.c
+  ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
+  ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
+  ../../../../intern/guardedalloc/intern/mmap_win.c
 )
 
 set(INC
@@ -175,174 +175,174 @@ set(INC_SYS
 )
 
 if(WITH_CYCLES)
-	add_definitions(-DWITH_CYCLES)
+  add_definitions(-DWITH_CYCLES)
 endif()
 
 if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
-	list(APPEND INC
-		../../python
-	)
+  add_definitions(-DWITH_PYTHON)
+  list(APPEND INC
+    ../../python
+  )
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-	add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_OPENEXR)
 endif()
 
 if(WITH_OPENIMAGEIO)
-	add_definitions(-DWITH_OPENIMAGEIO)
+  add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_TIFF)
-	add_definitions(-DWITH_TIFF)
+  add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	add_definitions(-DWITH_OPENJPEG)
+  add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_DDS)
-	add_definitions(-DWITH_DDS)
+  add_definitions(-DWITH_DDS)
 endif()
 
 if(WITH_IMAGE_CINEON)
-	add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_CINEON)
 endif()
 
 if(WITH_IMAGE_HDR)
-	add_definitions(-DWITH_HDR)
+  add_definitions(-DWITH_HDR)
 endif()
 
 if(WITH_AUDASPACE)
-	add_definitions(-DWITH_AUDASPACE)
+  add_definitions(-DWITH_AUDASPACE)
 
-	list(APPEND INC_SYS
-		${AUDASPACE_C_INCLUDE_DIRS}
-	)
+  list(APPEND INC_SYS
+    ${AUDASPACE_C_INCLUDE_DIRS}
+  )
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC
-		../../../../intern/ffmpeg
-	)
-	list(APPEND INC_SYS
-		${FFMPEG_INCLUDE_DIRS}
-	)
-	add_definitions(-DWITH_FFMPEG)
+  list(APPEND INC
+    ../../../../intern/ffmpeg
+  )
+  list(APPEND INC_SYS
+    ${FFMPEG_INCLUDE_DIRS}
+  )
+  add_definitions(-DWITH_FFMPEG)
 endif()
 
 if(WITH_MOD_FLUID)
-	add_definitions(-DWITH_MOD_FLUID)
+  add_definitions(-DWITH_MOD_FLUID)
 endif()
 
 if(WITH_FFTW3)
-	add_definitions(-DWITH_FFTW3)
+  add_definitions(-DWITH_FFTW3)
 endif()
 
 if(WITH_MOD_SMOKE)
-	add_definitions(-DWITH_SMOKE)
+  add_definitions(-DWITH_SMOKE)
 endif()
 
 if(WITH_MOD_OCEANSIM)
-	add_definitions(-DWITH_OCEANSIM)
+  add_definitions(-DWITH_OCEANSIM)
 endif()
 
 if(WITH_SDL)
-	if(WITH_SDL_DYNLOAD)
-		add_definitions(-DWITH_SDL_DYNLOAD)
-		list(APPEND INC
-			../../../../extern/sdlew/include
-		)
-	endif()
-	add_definitions(-DWITH_SDL)
+  if(WITH_SDL_DYNLOAD)
+    add_definitions(-DWITH_SDL_DYNLOAD)
+    list(APPEND INC
+      ../../../../extern/sdlew/include
+    )
+  endif()
+  add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_OPENAL)
-	add_definitions(-DWITH_OPENAL)
+  add_definitions(-DWITH_OPENAL)
 endif()
 
 if(WITH_JACK)
-	add_definitions(-DWITH_JACK)
+  add_definitions(-DWITH_JACK)
 endif()
 
 if(WITH_OPENCOLLADA)
-	add_definitions(-DWITH_COLLADA)
+  add_definitions(-DWITH_COLLADA)
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_ALEMBIC)
-	list(APPEND INC
-		../../alembic
-	)
-	add_definitions(-DWITH_ALEMBIC)
+  list(APPEND INC
+    ../../alembic
+  )
+  add_definitions(-DWITH_ALEMBIC)
 endif()
 
 if(WITH_BULLET)
-	list(APPEND INC
-		../../../../intern/rigidbody
-	)
-	add_definitions(-DWITH_BULLET)
+  list(APPEND INC
+    ../../../../intern/rigidbody
+  )
+  add_definitions(-DWITH_BULLET)
 endif()
 
 if(WITH_FREESTYLE)
-	list(APPEND INC
-		../../freestyle
-	)
-	add_definitions(-DWITH_FREESTYLE)
+  list(APPEND INC
+    ../../freestyle
+  )
+  add_definitions(-DWITH_FREESTYLE)
 endif()
 
 if(WITH_OPENSUBDIV)
-	list(APPEND INC
-		../../../../intern/opensubdiv
-	)
-	add_definitions(-DWITH_OPENSUBDIV)
+  list(APPEND INC
+    ../../../../intern/opensubdiv
+  )
+  add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
 if(WITH_OPENVDB)
-	add_definitions(-DWITH_OPENVDB)
+  add_definitions(-DWITH_OPENVDB)
 
-	if(WITH_OPENVDB_BLOSC)
-		add_definitions(-DWITH_OPENVDB_BLOSC)
-	endif()
+  if(WITH_OPENVDB_BLOSC)
+    add_definitions(-DWITH_OPENVDB_BLOSC)
+  endif()
 endif()
 
 if(WITH_INPUT_NDOF)
-	add_definitions(-DWITH_INPUT_NDOF)
+  add_definitions(-DWITH_INPUT_NDOF)
 endif()
 
 # Build makesrna executable
 blender_include_dirs(
-	.
-	..
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../bmesh
-	../../blentranslation
-	../../depsgraph
-	../../draw
-	../../gpu
-	../../imbuf
-	../../ikplugin
-	../../makesdna
-	../../nodes/
-	../../physics
-	../../windowmanager
-	../../editors/include
-	../../render/extern/include
-	../../../../intern/cycles/blender
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
-	../../../../intern/atomic
-	../../../../intern/memutil
-	../../../../intern/smoke/extern
+  .
+  ..
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
+  ../../bmesh
+  ../../blentranslation
+  ../../depsgraph
+  ../../draw
+  ../../gpu
+  ../../imbuf
+  ../../ikplugin
+  ../../makesdna
+  ../../nodes/
+  ../../physics
+  ../../windowmanager
+  ../../editors/include
+  ../../render/extern/include
+  ../../../../intern/cycles/blender
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
+  ../../../../intern/atomic
+  ../../../../intern/memutil
+  ../../../../intern/smoke/extern
 )
 
 blender_include_dirs_sys(
-	"${GLEW_INCLUDE_PATH}"
+  "${GLEW_INCLUDE_PATH}"
 )
 
 add_cc_flags_custom_test(makesrna)
@@ -356,41 +356,41 @@ target_link_libraries(makesrna bf_dna_blenlib)
 # Output rna_*_gen.c
 # note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes
 add_custom_command(
-	OUTPUT ${GENSRC}
-	COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/
-	DEPENDS makesrna
+  OUTPUT ${GENSRC}
+  COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/
+  DEPENDS makesrna
 )
 
 # Build bf_rna
 set(SRC
-	rna_access.c
-	${GENSRC}
+  rna_access.c
+  ${GENSRC}
 
-	${SRC_RNA_INC}
-	rna_internal.h
-	rna_internal_types.h
-	rna_mesh_utils.h
+  ${SRC_RNA_INC}
+  rna_internal.h
+  rna_internal_types.h
+  rna_mesh_utils.h
 )
 
 set(LIB
-	bf_dna
-	bf_editor_armature
-	bf_editor_curve
-	bf_editor_gizmo_library
-	bf_editor_gpencil
-	bf_editor_mesh
-	bf_editor_object
-	bf_editor_physics
-	bf_editor_render
-	bf_editor_scene
-	bf_editor_sculpt_paint
-	bf_editor_space_clip
-	bf_editor_space_file
-	bf_editor_space_image
-	bf_editor_space_info
-	bf_editor_space_node
-	bf_editor_space_view3d
-	bf_editor_transform
+  bf_dna
+  bf_editor_armature
+  bf_editor_curve
+  bf_editor_gizmo_library
+  bf_editor_gpencil
+  bf_editor_mesh
+  bf_editor_object
+  bf_editor_physics
+  bf_editor_render
+  bf_editor_scene
+  bf_editor_sculpt_paint
+  bf_editor_space_clip
+  bf_editor_space_file
+  bf_editor_space_image
+  bf_editor_space_info
+  bf_editor_space_node
+  bf_editor_space_view3d
+  bf_editor_transform
 )
 
 add_definitions(${GL_DEFINITIONS})

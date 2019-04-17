@@ -20,54 +20,55 @@
 
 FlipOperation::FlipOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
-	this->addOutputSocket(COM_DT_COLOR);
-	this->setResolutionInputSocketIndex(0);
-	this->m_inputOperation = NULL;
-	this->m_flipX = true;
-	this->m_flipY = false;
+  this->addInputSocket(COM_DT_COLOR);
+  this->addOutputSocket(COM_DT_COLOR);
+  this->setResolutionInputSocketIndex(0);
+  this->m_inputOperation = NULL;
+  this->m_flipX = true;
+  this->m_flipY = false;
 }
 void FlipOperation::initExecution()
 {
-	this->m_inputOperation = this->getInputSocketReader(0);
+  this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void FlipOperation::deinitExecution()
 {
-	this->m_inputOperation = NULL;
+  this->m_inputOperation = NULL;
 }
-
 
 void FlipOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	float nx = this->m_flipX ? ((int)this->getWidth() - 1) - x : x;
-	float ny = this->m_flipY ? ((int)this->getHeight() - 1) - y : y;
+  float nx = this->m_flipX ? ((int)this->getWidth() - 1) - x : x;
+  float ny = this->m_flipY ? ((int)this->getHeight() - 1) - y : y;
 
-	this->m_inputOperation->readSampled(output, nx, ny, sampler);
+  this->m_inputOperation->readSampled(output, nx, ny, sampler);
 }
 
-bool FlipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool FlipOperation::determineDependingAreaOfInterest(rcti *input,
+                                                     ReadBufferOperation *readOperation,
+                                                     rcti *output)
 {
-	rcti newInput;
+  rcti newInput;
 
-	if (this->m_flipX) {
-		const int w = (int)this->getWidth() - 1;
-		newInput.xmax = (w - input->xmin) + 1;
-		newInput.xmin = (w - input->xmax) - 1;
-	}
-	else {
-		newInput.xmin = input->xmin;
-		newInput.xmax = input->xmax;
-	}
-	if (this->m_flipY) {
-		const int h = (int)this->getHeight() - 1;
-		newInput.ymax = (h - input->ymin) + 1;
-		newInput.ymin = (h - input->ymax) - 1;
-	}
-	else {
-		newInput.ymin = input->ymin;
-		newInput.ymax = input->ymax;
-	}
+  if (this->m_flipX) {
+    const int w = (int)this->getWidth() - 1;
+    newInput.xmax = (w - input->xmin) + 1;
+    newInput.xmin = (w - input->xmax) - 1;
+  }
+  else {
+    newInput.xmin = input->xmin;
+    newInput.xmax = input->xmax;
+  }
+  if (this->m_flipY) {
+    const int h = (int)this->getHeight() - 1;
+    newInput.ymax = (h - input->ymin) + 1;
+    newInput.ymin = (h - input->ymax) - 1;
+  }
+  else {
+    newInput.ymin = input->ymin;
+    newInput.ymax = input->ymax;
+  }
 
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

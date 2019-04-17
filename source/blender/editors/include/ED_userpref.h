@@ -23,4 +23,4 @@
 
 void ED_operatortypes_userpref(void);
 
-#endif  /* __ED_USERPREF_H__ */
+#endif /* __ED_USERPREF_H__ */

@@ -22,46 +22,70 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_bsdf_anisotropic_in[] = {
-	{	SOCK_RGBA, 1, N_("Color"),			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("Roughness"),	    0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_FLOAT, 1, N_("Anisotropy"),	0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("Rotation"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_VECTOR, 1, N_("Normal"),		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	SOCK_VECTOR, 1, N_("Tangent"),		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Roughness"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_FLOAT, 1, N_("Anisotropy"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_VECTOR,
+     1,
+     N_("Normal"),
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     -1.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_HIDE_VALUE},
+    {SOCK_VECTOR,
+     1,
+     N_("Tangent"),
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     -1.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_HIDE_VALUE},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_bsdf_anisotropic_out[] = {
-	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	},
+    {SOCK_SHADER, 0, N_("BSDF")},
+    {-1, 0, ""},
 };
 
 static void node_shader_init_anisotropic(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->custom1 = SHD_GLOSSY_GGX;
+  node->custom1 = SHD_GLOSSY_GGX;
 }
 
-static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat,
+                                            bNode *node,
+                                            bNodeExecData *UNUSED(execdata),
+                                            GPUNodeStack *in,
+                                            GPUNodeStack *out)
 {
-	if (!in[4].link)
-		GPU_link(mat, "world_normals_get", &in[4].link);
+  if (!in[4].link)
+    GPU_link(mat, "world_normals_get", &in[4].link);
 
-	GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
+  GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
 
-	return GPU_stack_link(mat, node, "node_bsdf_anisotropic", in, out);
+  return GPU_stack_link(mat, node, "node_bsdf_anisotropic", in, out);
 }
 
 /* node type definition */
 void register_node_type_sh_bsdf_anisotropic(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_BSDF_ANISOTROPIC, "Anisotropic BSDF", NODE_CLASS_SHADER, 0);
-	node_type_socket_templates(&ntype, sh_node_bsdf_anisotropic_in, sh_node_bsdf_anisotropic_out);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, node_shader_init_anisotropic);
-	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_bsdf_anisotropic);
+  sh_node_type_base(&ntype, SH_NODE_BSDF_ANISOTROPIC, "Anisotropic BSDF", NODE_CLASS_SHADER, 0);
+  node_type_socket_templates(&ntype, sh_node_bsdf_anisotropic_in, sh_node_bsdf_anisotropic_out);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  node_type_init(&ntype, node_shader_init_anisotropic);
+  node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_bsdf_anisotropic);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

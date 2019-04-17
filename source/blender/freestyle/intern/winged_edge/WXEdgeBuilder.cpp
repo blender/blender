@@ -25,29 +25,29 @@
 
 namespace Freestyle {
 
-void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
+void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
 {
-	if (_pRenderMonitor && _pRenderMonitor->testBreak())
-		return;
-	WXShape *shape = new WXShape;
-	if (!buildWShape(*shape, ifs)) {
-		delete shape;
-		return;
-	}
-	shape->setId(ifs.getId().getFirst());
-	shape->setName(ifs.getName());
-	shape->setLibraryPath(ifs.getLibraryPath());
-	//ifs.setId(shape->GetId());
+  if (_pRenderMonitor && _pRenderMonitor->testBreak())
+    return;
+  WXShape *shape = new WXShape;
+  if (!buildWShape(*shape, ifs)) {
+    delete shape;
+    return;
+  }
+  shape->setId(ifs.getId().getFirst());
+  shape->setName(ifs.getName());
+  shape->setLibraryPath(ifs.getLibraryPath());
+  //ifs.setId(shape->GetId());
 }
 
-void WXEdgeBuilder::buildWVertices(WShape& shape, const float *vertices, unsigned vsize)
+void WXEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, unsigned vsize)
 {
-	WXVertex *vertex;
-	for (unsigned int i = 0; i < vsize; i += 3) {
-		vertex = new WXVertex(Vec3f(vertices[i], vertices[i + 1], vertices[i + 2]));
-		vertex->setId(i / 3);
-		shape.AddVertex(vertex);
-	}
+  WXVertex *vertex;
+  for (unsigned int i = 0; i < vsize; i += 3) {
+    vertex = new WXVertex(Vec3f(vertices[i], vertices[i + 1], vertices[i + 2]));
+    vertex->setId(i / 3);
+    shape.AddVertex(vertex);
+  }
 }
 
 } /* namespace Freestyle */

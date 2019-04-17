@@ -37,38 +37,38 @@ struct wmWindowManager;
 #define MAX_FILE_COLUMN 4
 
 typedef enum FileListColumns {
-	COLUMN_NAME = 0,
-	COLUMN_DATE,
-	COLUMN_TIME,
-	COLUMN_SIZE,
+  COLUMN_NAME = 0,
+  COLUMN_DATE,
+  COLUMN_TIME,
+  COLUMN_SIZE,
 } FileListColumns;
 
 typedef struct FileLayout {
-	/* view settings - XXX - move into own struct */
-	int prv_w;
-	int prv_h;
-	int tile_w;
-	int tile_h;
-	int tile_border_x;
-	int tile_border_y;
-	int prv_border_x;
-	int prv_border_y;
-	int rows;
-	int columns;
-	int width;
-	int height;
-	int flag;
-	int dirty;
-	int textheight;
-	float column_widths[MAX_FILE_COLUMN];
+  /* view settings - XXX - move into own struct */
+  int prv_w;
+  int prv_h;
+  int tile_w;
+  int tile_h;
+  int tile_border_x;
+  int tile_border_y;
+  int prv_border_x;
+  int prv_border_y;
+  int rows;
+  int columns;
+  int width;
+  int height;
+  int flag;
+  int dirty;
+  int textheight;
+  float column_widths[MAX_FILE_COLUMN];
 
-	/* When we change display size, we may have to update static strings like size of files... */
-	short curr_size;
+  /* When we change display size, we may have to update static strings like size of files... */
+  short curr_size;
 } FileLayout;
 
 typedef struct FileSelection {
-	int first;
-	int last;
+  int first;
+  int last;
 } FileSelection;
 
 struct rcti;
@@ -79,9 +79,7 @@ short ED_fileselect_set_params(struct SpaceFile *sfile);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
-
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
-
 
 FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
@@ -108,29 +106,29 @@ void ED_file_change_dir(struct bContext *C);
 
 /* FSMenuEntry's without paths indicate separators */
 typedef struct FSMenuEntry {
-	struct FSMenuEntry *next;
+  struct FSMenuEntry *next;
 
-	char *path;
-	char name[256];  /* FILE_MAXFILE */
-	short save;
-	short valid;
-	short pad[2];
+  char *path;
+  char name[256]; /* FILE_MAXFILE */
+  short save;
+  short valid;
+  short pad[2];
 } FSMenuEntry;
 
 typedef enum FSMenuCategory {
-	FS_CATEGORY_SYSTEM,
-	FS_CATEGORY_SYSTEM_BOOKMARKS,
-	FS_CATEGORY_BOOKMARKS,
-	FS_CATEGORY_RECENT,
+  FS_CATEGORY_SYSTEM,
+  FS_CATEGORY_SYSTEM_BOOKMARKS,
+  FS_CATEGORY_BOOKMARKS,
+  FS_CATEGORY_RECENT,
 } FSMenuCategory;
 
 typedef enum FSMenuInsert {
-	FS_INSERT_SORTED = (1 << 0),
-	FS_INSERT_SAVE   = (1 << 1),
-	/** moves the item to the front of the list when its not already there */
-	FS_INSERT_FIRST  = (1 << 2),
-	/** just append to preseve delivered order */
-	FS_INSERT_LAST   = (1 << 3),
+  FS_INSERT_SORTED = (1 << 0),
+  FS_INSERT_SAVE = (1 << 1),
+  /** moves the item to the front of the list when its not already there */
+  FS_INSERT_FIRST = (1 << 2),
+  /** just append to preseve delivered order */
+  FS_INSERT_LAST = (1 << 3),
 } FSMenuInsert;
 
 struct FSMenu;
@@ -138,7 +136,9 @@ struct FSMenuEntry;
 
 struct FSMenu *ED_fsmenu_get(void);
 struct FSMenuEntry *ED_fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory category);
-void ED_fsmenu_set_category(struct FSMenu *fsmenu, FSMenuCategory category, struct FSMenuEntry *fsm_head);
+void ED_fsmenu_set_category(struct FSMenu *fsmenu,
+                            FSMenuCategory category,
+                            struct FSMenuEntry *fsm_head);
 
 int ED_fsmenu_get_nentries(struct FSMenu *fsmenu, FSMenuCategory category);
 

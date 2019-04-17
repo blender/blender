@@ -22,12 +22,12 @@
 # Build msgfmt executable
 
 blender_include_dirs(
-	../../../../intern/guardedalloc
-	../../blenlib
+  ../../../../intern/guardedalloc
+  ../../blenlib
 )
 
 set(SRC
-	msgfmt.c
+  msgfmt.c
 )
 
 add_cc_flags_custom_test(msgfmt)
@@ -38,7 +38,7 @@ target_link_libraries(msgfmt bf_blenlib)
 target_link_libraries(msgfmt bf_intern_guardedalloc)
 
 if(WIN32)
-	target_link_libraries(msgfmt bf_intern_utfconv)
+  target_link_libraries(msgfmt bf_intern_utfconv)
 endif()
 
 target_link_libraries(msgfmt ${ZLIB_LIBRARIES})

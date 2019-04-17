@@ -57,138 +57,162 @@ typedef struct GPUTexture GPUTexture;
  * are part of the OpenGL 3.3 core
  * specification. */
 typedef enum eGPUTextureFormat {
-	/* Formats texture & renderbuffer */
-	GPU_RGBA8UI,
-	GPU_RGBA8I,
-	GPU_RGBA8,
-	GPU_RGBA32UI,
-	GPU_RGBA32I,
-	GPU_RGBA32F,
-	GPU_RGBA16UI,
-	GPU_RGBA16I,
-	GPU_RGBA16F,
-	GPU_RGBA16,
-	GPU_RG8UI,
-	GPU_RG8I,
-	GPU_RG8,
-	GPU_RG32UI,
-	GPU_RG32I,
-	GPU_RG32F,
-	GPU_RG16UI,
-	GPU_RG16I,
-	GPU_RG16F,
-	GPU_RG16,
-	GPU_R8UI,
-	GPU_R8I,
-	GPU_R8,
-	GPU_R32UI,
-	GPU_R32I,
-	GPU_R32F,
-	GPU_R16UI,
-	GPU_R16I,
-	GPU_R16F,
-	GPU_R16, /* Max texture buffer format. */
+  /* Formats texture & renderbuffer */
+  GPU_RGBA8UI,
+  GPU_RGBA8I,
+  GPU_RGBA8,
+  GPU_RGBA32UI,
+  GPU_RGBA32I,
+  GPU_RGBA32F,
+  GPU_RGBA16UI,
+  GPU_RGBA16I,
+  GPU_RGBA16F,
+  GPU_RGBA16,
+  GPU_RG8UI,
+  GPU_RG8I,
+  GPU_RG8,
+  GPU_RG32UI,
+  GPU_RG32I,
+  GPU_RG32F,
+  GPU_RG16UI,
+  GPU_RG16I,
+  GPU_RG16F,
+  GPU_RG16,
+  GPU_R8UI,
+  GPU_R8I,
+  GPU_R8,
+  GPU_R32UI,
+  GPU_R32I,
+  GPU_R32F,
+  GPU_R16UI,
+  GPU_R16I,
+  GPU_R16F,
+  GPU_R16, /* Max texture buffer format. */
 
-	/* Special formats texture & renderbuffer */
+/* Special formats texture & renderbuffer */
 #if 0
-	GPU_RGB10_A2,
-	GPU_RGB10_A2UI,
+  GPU_RGB10_A2,
+  GPU_RGB10_A2UI,
 #endif
-	GPU_R11F_G11F_B10F,
-	GPU_DEPTH32F_STENCIL8,
-	GPU_DEPTH24_STENCIL8,
+  GPU_R11F_G11F_B10F,
+  GPU_DEPTH32F_STENCIL8,
+  GPU_DEPTH24_STENCIL8,
 
-	/* Texture only format */
-	GPU_RGB16F,
+  /* Texture only format */
+  GPU_RGB16F,
 #if 0
-	GPU_RGBA16_SNORM,
-	GPU_RGBA8_SNORM,
-	GPU_RGB32F,
-	GPU_RGB32I,
-	GPU_RGB32UI,
-	GPU_RGB16_SNORM,
-	GPU_RGB16I,
-	GPU_RGB16UI,
-	GPU_RGB16,
-	GPU_RGB8_SNORM,
-	GPU_RGB8,
-	GPU_RGB8I,
-	GPU_RGB8UI,
-	GPU_RG16_SNORM,
-	GPU_RG8_SNORM,
-	GPU_R16_SNORM,
-	GPU_R8_SNORM,
-#endif
-
-	/* Special formats texture only */
-#if 0
-	GPU_SRGB8_A8,
-	GPU_SRGB8,
-	GPU_RGB9_E5,
-	GPU_COMPRESSED_RG_RGTC2,
-	GPU_COMPRESSED_SIGNED_RG_RGTC2,
-	GPU_COMPRESSED_RED_RGTC1,
-	GPU_COMPRESSED_SIGNED_RED_RGTC1,
+  GPU_RGBA16_SNORM,
+  GPU_RGBA8_SNORM,
+  GPU_RGB32F,
+  GPU_RGB32I,
+  GPU_RGB32UI,
+  GPU_RGB16_SNORM,
+  GPU_RGB16I,
+  GPU_RGB16UI,
+  GPU_RGB16,
+  GPU_RGB8_SNORM,
+  GPU_RGB8,
+  GPU_RGB8I,
+  GPU_RGB8UI,
+  GPU_RG16_SNORM,
+  GPU_RG8_SNORM,
+  GPU_R16_SNORM,
+  GPU_R8_SNORM,
 #endif
 
-	/* Depth Formats */
-	GPU_DEPTH_COMPONENT32F,
-	GPU_DEPTH_COMPONENT24,
-	GPU_DEPTH_COMPONENT16,
+/* Special formats texture only */
+#if 0
+  GPU_SRGB8_A8,
+  GPU_SRGB8,
+  GPU_RGB9_E5,
+  GPU_COMPRESSED_RG_RGTC2,
+  GPU_COMPRESSED_SIGNED_RG_RGTC2,
+  GPU_COMPRESSED_RED_RGTC1,
+  GPU_COMPRESSED_SIGNED_RED_RGTC1,
+#endif
+
+  /* Depth Formats */
+  GPU_DEPTH_COMPONENT32F,
+  GPU_DEPTH_COMPONENT24,
+  GPU_DEPTH_COMPONENT16,
 } eGPUTextureFormat;
 
 typedef enum eGPUDataFormat {
-	GPU_DATA_FLOAT,
-	GPU_DATA_INT,
-	GPU_DATA_UNSIGNED_INT,
-	GPU_DATA_UNSIGNED_BYTE,
-	GPU_DATA_UNSIGNED_INT_24_8,
-	GPU_DATA_10_11_11_REV,
+  GPU_DATA_FLOAT,
+  GPU_DATA_INT,
+  GPU_DATA_UNSIGNED_INT,
+  GPU_DATA_UNSIGNED_BYTE,
+  GPU_DATA_UNSIGNED_INT_24_8,
+  GPU_DATA_10_11_11_REV,
 } eGPUDataFormat;
 
 unsigned int GPU_texture_memory_usage_get(void);
 
 /* TODO make it static function again. (create function with eGPUDataFormat exposed) */
-GPUTexture *GPU_texture_create_nD(
-        int w, int h, int d, int n, const void *pixels,
-        eGPUTextureFormat tex_format, eGPUDataFormat gpu_data_format, int samples,
-        const bool can_rescale, char err_out[256]);
+GPUTexture *GPU_texture_create_nD(int w,
+                                  int h,
+                                  int d,
+                                  int n,
+                                  const void *pixels,
+                                  eGPUTextureFormat tex_format,
+                                  eGPUDataFormat gpu_data_format,
+                                  int samples,
+                                  const bool can_rescale,
+                                  char err_out[256]);
 
-GPUTexture *GPU_texture_create_1d(
-        int w, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_1d(int w,
+                                  eGPUTextureFormat data_type,
+                                  const float *pixels,
+                                  char err_out[256]);
 GPUTexture *GPU_texture_create_1d_array(
-        int w, int h, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int h, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2d(
-        int w, int h, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_2d_multisample(
-        int w, int h, eGPUTextureFormat data_type, const float *pixels, int samples, char err_out[256]);
+    int w, int h, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2d_multisample(int w,
+                                              int h,
+                                              eGPUTextureFormat data_type,
+                                              const float *pixels,
+                                              int samples,
+                                              char err_out[256]);
 GPUTexture *GPU_texture_create_2d_array(
-        int w, int h, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int h, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_3d(
-        int w, int h, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_cube(
-        int w, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_from_vertbuf(
-        struct GPUVertBuf *vert);
-GPUTexture *GPU_texture_create_buffer(
-        eGPUTextureFormat data_type, const uint buffer);
+    int w, int h, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_cube(int w,
+                                    eGPUTextureFormat data_type,
+                                    const float *pixels,
+                                    char err_out[256]);
+GPUTexture *GPU_texture_create_from_vertbuf(struct GPUVertBuf *vert);
+GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat data_type, const uint buffer);
 
 GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode);
-GPUTexture *GPU_texture_from_blender(
-        struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data);
+GPUTexture *GPU_texture_from_blender(struct Image *ima,
+                                     struct ImageUser *iuser,
+                                     int textarget,
+                                     bool is_data);
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
 
-void GPU_texture_add_mipmap(GPUTexture *tex, eGPUDataFormat gpu_data_format, int miplvl, const void *pixels);
+void GPU_texture_add_mipmap(GPUTexture *tex,
+                            eGPUDataFormat gpu_data_format,
+                            int miplvl,
+                            const void *pixels);
 
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *pixels);
-void GPU_texture_update_sub(
-        GPUTexture *tex, eGPUDataFormat gpu_data_format, const void *pixels,
-        int offset_x, int offset_y, int offset_z, int width, int height, int depth);
+void GPU_texture_update_sub(GPUTexture *tex,
+                            eGPUDataFormat gpu_data_format,
+                            const void *pixels,
+                            int offset_x,
+                            int offset_y,
+                            int offset_z,
+                            int width,
+                            int height,
+                            int depth);
 
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int miplvl);
-void GPU_texture_read_rect(
-        GPUTexture *tex, eGPUDataFormat gpu_data_format,
-        const struct rcti *rect, void *r_buf);
+void GPU_texture_read_rect(GPUTexture *tex,
+                           eGPUDataFormat gpu_data_format,
+                           const struct rcti *rect,
+                           void *r_buf);
 
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);
@@ -206,7 +230,9 @@ void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat);
-void GPU_texture_filters(GPUTexture *tex, eGPUFilterFunction min_filter, eGPUFilterFunction mag_filter);
+void GPU_texture_filters(GPUTexture *tex,
+                         eGPUFilterFunction min_filter,
+                         eGPUFilterFunction mag_filter);
 
 void GPU_texture_attach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);
 int GPU_texture_detach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb);
@@ -229,4 +255,4 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 }
 #endif
 
-#endif  /* __GPU_TEXTURE_H__ */
+#endif /* __GPU_TEXTURE_H__ */

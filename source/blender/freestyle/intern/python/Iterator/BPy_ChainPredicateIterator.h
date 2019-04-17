@@ -34,14 +34,14 @@ extern "C" {
 extern PyTypeObject ChainPredicateIterator_Type;
 
 #define BPy_ChainPredicateIterator_Check(v) \
-            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainPredicateIterator_Type))
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainPredicateIterator_Type))
 
 /*---------------------------Python BPy_ChainPredicateIterator structure definition----------*/
 typedef struct {
-	BPy_ChainingIterator py_c_it;
-	ChainPredicateIterator *cp_it;
-	PyObject *upred;
-	PyObject *bpred;
+  BPy_ChainingIterator py_c_it;
+  ChainPredicateIterator *cp_it;
+  PyObject *upred;
+  PyObject *bpred;
 } BPy_ChainPredicateIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

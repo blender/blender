@@ -47,9 +47,12 @@ const char *BLT_lang_get(void);
  * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
  * NOTE: Always available, even in non-WITH_INTERNATIONAL builds.
  */
-void BLT_lang_locale_explode(
-        const char *locale, char **language, char **country, char **variant,
-        char **language_country, char **language_variant);
+void BLT_lang_locale_explode(const char *locale,
+                             char **language,
+                             char **country,
+                             char **variant,
+                             char **language_country,
+                             char **language_variant);
 
 /* Get EnumPropertyItem's for translations menu. */
 struct EnumPropertyItem *BLT_lang_RNA_enum_properties(void);

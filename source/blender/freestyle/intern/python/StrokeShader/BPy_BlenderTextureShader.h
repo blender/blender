@@ -27,26 +27,24 @@
 extern "C" {
 #endif
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #include <Python.h>
 
 extern PyTypeObject BlenderTextureShader_Type;
 
-#define BPy_BlenderTextureShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BlenderTextureShader_Type))
+#define BPy_BlenderTextureShader_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&BlenderTextureShader_Type))
 
 /*---------------------------Python BPy_BlenderTextureShader structure definition-----------*/
 typedef struct {
-	BPy_StrokeShader py_ss;
+  BPy_StrokeShader py_ss;
 } BPy_BlenderTextureShader;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __FREESTYLE_PYTHON_BLENDERTEXTURESHADER_H__ */

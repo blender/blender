@@ -25,20 +25,20 @@ namespace Freestyle {
 
 void HashGrid::clear()
 {
-	if (!_cells.empty()) {
-		for (GridHashTable::iterator it = _cells.begin(); it != _cells.end(); it++) {
-			Cell *cell = (*it).second;
-			delete cell;
-		}
-		_cells.clear();
-	}
+  if (!_cells.empty()) {
+    for (GridHashTable::iterator it = _cells.begin(); it != _cells.end(); it++) {
+      Cell *cell = (*it).second;
+      delete cell;
+    }
+    _cells.clear();
+  }
 
-	Grid::clear();
+  Grid::clear();
 }
 
-void HashGrid::configure(const Vec3r& orig, const Vec3r& size, unsigned nb)
+void HashGrid::configure(const Vec3r &orig, const Vec3r &size, unsigned nb)
 {
-	Grid::configure(orig, size, nb);
+  Grid::configure(orig, size, nb);
 }
 
 } /* namespace Freestyle */

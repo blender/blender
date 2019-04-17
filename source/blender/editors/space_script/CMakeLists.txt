@@ -16,37 +16,37 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	script_edit.c
-	script_ops.c
-	space_script.c
+  script_edit.c
+  script_ops.c
+  space_script.c
 
-	script_intern.h
+  script_intern.h
 )
 
 set(LIB
 )
 
 if(WITH_PYTHON)
-	list(APPEND INC
-		../../python
-	)
-	add_definitions(-DWITH_PYTHON)
+  list(APPEND INC
+    ../../python
+  )
+  add_definitions(-DWITH_PYTHON)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

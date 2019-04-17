@@ -24,17 +24,15 @@
 
 namespace Freestyle {
 
-namespace Cast
+namespace Cast {
+template<class T, class U> U *cast(T *in)
 {
-	template <class T, class U>
-	U *cast(T *in)
-	{
-		if (!in)
-			return NULL;
-		return dynamic_cast<U*>(in);
-	}
-} // end of namespace Cast
+  if (!in)
+    return NULL;
+  return dynamic_cast<U *>(in);
+}
+}  // end of namespace Cast
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_CAST_H__
+#endif  // __FREESTYLE_CAST_H__

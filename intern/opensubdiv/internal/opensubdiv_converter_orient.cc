@@ -24,10 +24,11 @@ namespace opensubdiv_capi {
 
 void checkOrientedVertexConnectivity(const int num_vertex_edges,
                                      const int num_vertex_faces,
-                                     const int* vertex_edges,
-                                     const int* vertex_faces,
-                                     const int* dst_vertex_edges,
-                                     const int* dst_vertex_faces) {
+                                     const int *vertex_edges,
+                                     const int *vertex_faces,
+                                     const int *dst_vertex_edges,
+                                     const int *dst_vertex_faces)
+{
 #ifndef NDEBUG
   for (int i = 0; i < num_vertex_faces; ++i) {
     bool found = false;
@@ -54,12 +55,12 @@ void checkOrientedVertexConnectivity(const int num_vertex_edges,
     }
   }
 #else
-  (void) num_vertex_edges;
-  (void) num_vertex_faces;
-  (void) vertex_edges;
-  (void) vertex_faces;
-  (void) dst_vertex_edges;
-  (void) dst_vertex_faces;
+  (void)num_vertex_edges;
+  (void)num_vertex_faces;
+  (void)vertex_edges;
+  (void)vertex_faces;
+  (void)dst_vertex_edges;
+  (void)dst_vertex_faces;
 #endif
 }
 

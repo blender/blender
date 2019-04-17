@@ -25,37 +25,40 @@
 #include <time.h>
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class Chronometer
-{
-public:
-	inline Chronometer() {}
-	inline ~Chronometer() {}
+class Chronometer {
+ public:
+  inline Chronometer()
+  {
+  }
+  inline ~Chronometer()
+  {
+  }
 
-	inline clock_t start()
-	{
-		_start = clock();
-		return _start;
-	}
+  inline clock_t start()
+  {
+    _start = clock();
+    return _start;
+  }
 
-	inline double stop()
-	{
-		clock_t stop = clock();
-		return (double)(stop - _start) / CLOCKS_PER_SEC;
-	}
+  inline double stop()
+  {
+    clock_t stop = clock();
+    return (double)(stop - _start) / CLOCKS_PER_SEC;
+  }
 
-private:
-	clock_t _start;
+ private:
+  clock_t _start;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Chronometer")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Chronometer")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_TIME_UTILS_H__
+#endif  // __FREESTYLE_TIME_UTILS_H__

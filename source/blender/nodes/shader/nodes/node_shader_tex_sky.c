@@ -22,51 +22,65 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_sky_in[] = {
-	{	SOCK_VECTOR, 1, N_("Vector"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	},
+    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_tex_sky_out[] = {
-	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-	{	-1, 0, ""	},
+    {SOCK_RGBA,
+     0,
+     N_("Color"),
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_NO_INTERNAL_LINK},
+    {-1, 0, ""},
 };
 
 static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeTexSky *tex = MEM_callocN(sizeof(NodeTexSky), "NodeTexSky");
-	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	BKE_texture_colormapping_default(&tex->base.color_mapping);
-	tex->sun_direction[0] = 0.0f;
-	tex->sun_direction[1] = 0.0f;
-	tex->sun_direction[2] = 1.0f;
-	tex->turbidity = 2.2f;
-	tex->ground_albedo = 0.3f;
-	tex->sky_model = SHD_SKY_NEW;
+  NodeTexSky *tex = MEM_callocN(sizeof(NodeTexSky), "NodeTexSky");
+  BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+  BKE_texture_colormapping_default(&tex->base.color_mapping);
+  tex->sun_direction[0] = 0.0f;
+  tex->sun_direction[1] = 0.0f;
+  tex->sun_direction[2] = 1.0f;
+  tex->turbidity = 2.2f;
+  tex->ground_albedo = 0.3f;
+  tex->sky_model = SHD_SKY_NEW;
 
-	node->storage = tex;
+  node->storage = tex;
 }
 
-static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_sky(GPUMaterial *mat,
+                                   bNode *node,
+                                   bNodeExecData *UNUSED(execdata),
+                                   GPUNodeStack *in,
+                                   GPUNodeStack *out)
 {
-	if (!in[0].link)
-		in[0].link = GPU_attribute(CD_ORCO, "");
+  if (!in[0].link)
+    in[0].link = GPU_attribute(CD_ORCO, "");
 
-	node_shader_gpu_tex_mapping(mat, node, in, out);
+  node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	return GPU_stack_link(mat, node, "node_tex_sky", in, out);
+  return GPU_stack_link(mat, node, "node_tex_sky", in, out);
 }
 
 /* node type definition */
 void register_node_type_sh_tex_sky(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_TEX_SKY, "Sky Texture", NODE_CLASS_TEXTURE, 0);
-	node_type_socket_templates(&ntype, sh_node_tex_sky_in, sh_node_tex_sky_out);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, node_shader_init_tex_sky);
-	node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
-	node_type_gpu(&ntype, node_shader_gpu_tex_sky);
+  sh_node_type_base(&ntype, SH_NODE_TEX_SKY, "Sky Texture", NODE_CLASS_TEXTURE, 0);
+  node_type_socket_templates(&ntype, sh_node_tex_sky_in, sh_node_tex_sky_out);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  node_type_init(&ntype, node_shader_init_tex_sky);
+  node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
+  node_type_gpu(&ntype, node_shader_gpu_tex_sky);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

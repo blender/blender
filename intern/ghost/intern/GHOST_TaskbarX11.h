@@ -20,19 +20,19 @@
 #ifndef __GHOST_TASKBARX11_H__
 #define __GHOST_TASKBARX11_H__
 
-class GHOST_TaskBarX11
-{
-public:
-	static bool init();
-	static void free();
+class GHOST_TaskBarX11 {
+ public:
+  static bool init();
+  static void free();
 
-	GHOST_TaskBarX11(const char *name);
+  GHOST_TaskBarX11(const char *name);
 
-	bool is_valid();
-	void set_progress(double progress);
-	void set_progress_enabled(bool enabled);
-private:
-	void *handle;
+  bool is_valid();
+  void set_progress(double progress);
+  void set_progress_enabled(bool enabled);
+
+ private:
+  void *handle;
 };
 
 #endif /*__GHOST_TASKBARX11_H__*/

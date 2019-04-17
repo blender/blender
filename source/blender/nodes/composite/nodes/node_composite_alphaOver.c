@@ -25,29 +25,30 @@
 
 /* **************** ALPHAOVER ******************** */
 static bNodeSocketTemplate cmp_node_alphaover_in[] = {
-	{	SOCK_FLOAT, 1, N_("Fac"),			1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate cmp_node_alphaover_out[] = {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
 };
 
 static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
+  node->storage = MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
 void register_node_type_cmp_alphaover(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR, 0);
-	node_type_socket_templates(&ntype, cmp_node_alphaover_in, cmp_node_alphaover_out);
-	node_type_init(&ntype, node_alphaover_init);
-	node_type_storage(&ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
+  cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_alphaover_in, cmp_node_alphaover_out);
+  node_type_init(&ntype, node_alphaover_init);
+  node_type_storage(
+      &ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

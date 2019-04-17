@@ -25,4 +25,4 @@
 #include "intern/matrix.h"
 #include "intern/svd.h"
 
-#endif  /* __EIGEN_C_API_H__ */
+#endif /* __EIGEN_C_API_H__ */

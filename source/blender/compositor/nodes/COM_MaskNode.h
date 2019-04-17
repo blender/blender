@@ -27,10 +27,9 @@
  * \ingroup Node
  */
 class MaskNode : public Node {
-public:
-	MaskNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
-
+ public:
+  MaskNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* __COM_MASKNODE_H__ */
+#endif /* __COM_MASKNODE_H__ */

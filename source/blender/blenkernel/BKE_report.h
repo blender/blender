@@ -42,7 +42,8 @@ void BKE_reports_init(ReportList *reports, int flag);
 void BKE_reports_clear(ReportList *reports);
 
 void BKE_report(ReportList *reports, ReportType type, const char *message);
-void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
+void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
+    ATTR_PRINTF_FORMAT(3, 4);
 
 void BKE_reports_prepend(ReportList *reports, const char *prepend);
 void BKE_reports_prependf(ReportList *reports, const char *prepend, ...) ATTR_PRINTF_FORMAT(2, 3);

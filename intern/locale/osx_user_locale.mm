@@ -4,19 +4,19 @@
 
 #include <cstdlib>
 
-static char* user_locale = NULL;
+static char *user_locale = NULL;
 
 // get current locale
-const char* osx_user_locale()
+const char *osx_user_locale()
 {
-	::free(user_locale);
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
-	NSLocale * myNSLocale = (NSLocale *) myCFLocale;
-	[myNSLocale autorelease];
-	NSString *nsIdentifier = [myNSLocale localeIdentifier];
-	user_locale = ::strdup([nsIdentifier UTF8String]);
-	[pool drain];
+  ::free(user_locale);
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
+  NSLocale *myNSLocale = (NSLocale *)myCFLocale;
+  [myNSLocale autorelease];
+  NSString *nsIdentifier = [myNSLocale localeIdentifier];
+  user_locale = ::strdup([nsIdentifier UTF8String]);
+  [pool drain];
 
-	return user_locale;
+  return user_locale;
 }

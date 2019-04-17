@@ -24,51 +24,52 @@
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
 
-class BaseObject
-{
-public:
-	inline BaseObject()
-	{
-		_ref_counter = 0;
-	}
+class BaseObject {
+ public:
+  inline BaseObject()
+  {
+    _ref_counter = 0;
+  }
 
-	virtual ~BaseObject() {}
+  virtual ~BaseObject()
+  {
+  }
 
-	/*! At least makes a release on this.
-	 *  The BaseObject::destroy method must be explicitly called at the end of any overloaded destroy
-	 */
-	virtual int destroy()
-	{
-		return release();
-	}
+  /*! At least makes a release on this.
+   *  The BaseObject::destroy method must be explicitly called at the end of any overloaded destroy
+   */
+  virtual int destroy()
+  {
+    return release();
+  }
 
-	/*! Increments the reference counter */
-	inline int addRef()
-	{
-		return ++_ref_counter;
-	}
+  /*! Increments the reference counter */
+  inline int addRef()
+  {
+    return ++_ref_counter;
+  }
 
-	/*! Decrements the reference counter */
-	inline int release()
-	{
-		if (_ref_counter)
-			_ref_counter--;
-		return _ref_counter;
-	}
+  /*! Decrements the reference counter */
+  inline int release()
+  {
+    if (_ref_counter)
+      _ref_counter--;
+    return _ref_counter;
+  }
 
-private:
-	unsigned _ref_counter;
+ private:
+  unsigned _ref_counter;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BaseObject")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BaseObject")
 #endif
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_BASE_OBJECT_H__
+#endif  // __FREESTYLE_BASE_OBJECT_H__

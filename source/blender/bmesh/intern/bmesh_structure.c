@@ -34,17 +34,17 @@
 
 void bmesh_disk_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 {
-	if (e->v1 == v_src) {
-		e->v1 = v_dst;
-		e->v1_disk_link.next = e->v1_disk_link.prev = NULL;
-	}
-	else if (e->v2 == v_src) {
-		e->v2 = v_dst;
-		e->v2_disk_link.next = e->v2_disk_link.prev = NULL;
-	}
-	else {
-		BLI_assert(0);
-	}
+  if (e->v1 == v_src) {
+    e->v1 = v_dst;
+    e->v1_disk_link.next = e->v1_disk_link.prev = NULL;
+  }
+  else if (e->v2 == v_src) {
+    e->v2 = v_dst;
+    e->v2_disk_link.next = e->v2_disk_link.prev = NULL;
+  }
+  else {
+    BLI_assert(0);
+  }
 }
 
 /**
@@ -54,34 +54,34 @@ void bmesh_disk_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
  */
 void bmesh_edge_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 {
-	/* swap out loops */
-	if (e->l) {
-		BMLoop *l_iter, *l_first;
-		l_iter = l_first = e->l;
-		do {
-			if (l_iter->v == v_src) {
-				l_iter->v = v_dst;
-			}
-			else if (l_iter->next->v == v_src) {
-				l_iter->next->v = v_dst;
-			}
-			else {
-				BLI_assert(l_iter->prev->v != v_src);
-			}
-		} while ((l_iter = l_iter->radial_next) != l_first);
-	}
+  /* swap out loops */
+  if (e->l) {
+    BMLoop *l_iter, *l_first;
+    l_iter = l_first = e->l;
+    do {
+      if (l_iter->v == v_src) {
+        l_iter->v = v_dst;
+      }
+      else if (l_iter->next->v == v_src) {
+        l_iter->next->v = v_dst;
+      }
+      else {
+        BLI_assert(l_iter->prev->v != v_src);
+      }
+    } while ((l_iter = l_iter->radial_next) != l_first);
+  }
 
-	/* swap out edges */
-	bmesh_disk_vert_replace(e, v_dst, v_src);
+  /* swap out edges */
+  bmesh_disk_vert_replace(e, v_dst, v_src);
 }
 
 void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 {
-	BLI_assert(e->v1 == v_src || e->v2 == v_src);
-	bmesh_disk_edge_remove(e, v_src);		/* remove e from tv's disk cycle */
-	bmesh_disk_vert_swap(e, v_dst, v_src);	/* swap out tv for v_new in e */
-	bmesh_disk_edge_append(e, v_dst);		/* add e to v_dst's disk cycle */
-	BLI_assert(e->v1 != e->v2);
+  BLI_assert(e->v1 == v_src || e->v2 == v_src);
+  bmesh_disk_edge_remove(e, v_src);      /* remove e from tv's disk cycle */
+  bmesh_disk_vert_swap(e, v_dst, v_src); /* swap out tv for v_new in e */
+  bmesh_disk_edge_append(e, v_dst);      /* add e to v_dst's disk cycle */
+  BLI_assert(e->v1 != e->v2);
 }
 
 /**
@@ -155,116 +155,116 @@ void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 
 void bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 {
-	if (!v->e) {
-		BMDiskLink *dl1 = bmesh_disk_edge_link_from_vert(e, v);
+  if (!v->e) {
+    BMDiskLink *dl1 = bmesh_disk_edge_link_from_vert(e, v);
 
-		v->e = e;
-		dl1->next = dl1->prev = e;
-	}
-	else {
-		BMDiskLink *dl1, *dl2, *dl3;
+    v->e = e;
+    dl1->next = dl1->prev = e;
+  }
+  else {
+    BMDiskLink *dl1, *dl2, *dl3;
 
-		dl1 = bmesh_disk_edge_link_from_vert(e, v);
-		dl2 = bmesh_disk_edge_link_from_vert(v->e, v);
-		dl3 = dl2->prev ? bmesh_disk_edge_link_from_vert(dl2->prev, v) : NULL;
+    dl1 = bmesh_disk_edge_link_from_vert(e, v);
+    dl2 = bmesh_disk_edge_link_from_vert(v->e, v);
+    dl3 = dl2->prev ? bmesh_disk_edge_link_from_vert(dl2->prev, v) : NULL;
 
-		dl1->next = v->e;
-		dl1->prev = dl2->prev;
+    dl1->next = v->e;
+    dl1->prev = dl2->prev;
 
-		dl2->prev = e;
-		if (dl3) {
-			dl3->next = e;
-		}
-	}
+    dl2->prev = e;
+    if (dl3) {
+      dl3->next = e;
+    }
+  }
 }
 
 void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 {
-	BMDiskLink *dl1, *dl2;
+  BMDiskLink *dl1, *dl2;
 
-	dl1 = bmesh_disk_edge_link_from_vert(e, v);
-	if (dl1->prev) {
-		dl2 = bmesh_disk_edge_link_from_vert(dl1->prev, v);
-		dl2->next = dl1->next;
-	}
+  dl1 = bmesh_disk_edge_link_from_vert(e, v);
+  if (dl1->prev) {
+    dl2 = bmesh_disk_edge_link_from_vert(dl1->prev, v);
+    dl2->next = dl1->next;
+  }
 
-	if (dl1->next) {
-		dl2 = bmesh_disk_edge_link_from_vert(dl1->next, v);
-		dl2->prev = dl1->prev;
-	}
+  if (dl1->next) {
+    dl2 = bmesh_disk_edge_link_from_vert(dl1->next, v);
+    dl2->prev = dl1->prev;
+  }
 
-	if (v->e == e) {
-		v->e = (e != dl1->next) ? dl1->next : NULL;
-	}
+  if (v->e == e) {
+    v->e = (e != dl1->next) ? dl1->next : NULL;
+  }
 
-	dl1->next = dl1->prev = NULL;
+  dl1->next = dl1->prev = NULL;
 }
 
 BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 {
-	BMEdge *e_iter, *e_first;
+  BMEdge *e_iter, *e_first;
 
-	if (v1->e) {
-		e_first = e_iter = v1->e;
+  if (v1->e) {
+    e_first = e_iter = v1->e;
 
-		do {
-			if (BM_verts_in_edge(v1, v2, e_iter)) {
-				return e_iter;
-			}
-		} while ((e_iter = bmesh_disk_edge_next(e_iter, v1)) != e_first);
-	}
+    do {
+      if (BM_verts_in_edge(v1, v2, e_iter)) {
+        return e_iter;
+      }
+    } while ((e_iter = bmesh_disk_edge_next(e_iter, v1)) != e_first);
+  }
 
-	return NULL;
+  return NULL;
 }
 
 int bmesh_disk_count(const BMVert *v)
 {
-	int count = 0;
-	if (v->e) {
-		BMEdge *e_first, *e_iter;
-		e_iter = e_first = v->e;
-		do {
-			count++;
-		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-	}
-	return count;
+  int count = 0;
+  if (v->e) {
+    BMEdge *e_first, *e_iter;
+    e_iter = e_first = v->e;
+    do {
+      count++;
+    } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+  }
+  return count;
 }
 
 int bmesh_disk_count_at_most(const BMVert *v, const int count_max)
 {
-	int count = 0;
-	if (v->e) {
-		BMEdge *e_first, *e_iter;
-		e_iter = e_first = v->e;
-		do {
-			count++;
-			if (count == count_max) {
-				break;
-			}
-		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-	}
-	return count;
+  int count = 0;
+  if (v->e) {
+    BMEdge *e_first, *e_iter;
+    e_iter = e_first = v->e;
+    do {
+      count++;
+      if (count == count_max) {
+        break;
+      }
+    } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+  }
+  return count;
 }
 
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 {
-	BMEdge *e_iter;
+  BMEdge *e_iter;
 
-	if (!BM_vert_in_edge(e, v)) {
-		return false;
-	}
-	if (len == 0 || bmesh_disk_count_at_most(v, len + 1) != len) {
-		return false;
-	}
+  if (!BM_vert_in_edge(e, v)) {
+    return false;
+  }
+  if (len == 0 || bmesh_disk_count_at_most(v, len + 1) != len) {
+    return false;
+  }
 
-	e_iter = e;
-	do {
-		if (len != 1 && bmesh_disk_edge_prev(e_iter, v) == e_iter) {
-			return false;
-		}
-	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
+  e_iter = e;
+  do {
+    if (len != 1 && bmesh_disk_edge_prev(e_iter, v) == e_iter) {
+      return false;
+    }
+  } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
 
-	return true;
+  return true;
 }
 
 /**
@@ -277,41 +277,41 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
  */
 int bmesh_disk_facevert_count(const BMVert *v)
 {
-	/* is there an edge on this vert at all */
-	int count = 0;
-	if (v->e) {
-		BMEdge *e_first, *e_iter;
+  /* is there an edge on this vert at all */
+  int count = 0;
+  if (v->e) {
+    BMEdge *e_first, *e_iter;
 
-		/* first, loop around edge */
-		e_first = e_iter = v->e;
-		do {
-			if (e_iter->l) {
-				count += bmesh_radial_facevert_count(e_iter->l, v);
-			}
-		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-	}
-	return count;
+    /* first, loop around edge */
+    e_first = e_iter = v->e;
+    do {
+      if (e_iter->l) {
+        count += bmesh_radial_facevert_count(e_iter->l, v);
+      }
+    } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+  }
+  return count;
 }
 
 int bmesh_disk_facevert_count_at_most(const BMVert *v, const int count_max)
 {
-	/* is there an edge on this vert at all */
-	int count = 0;
-	if (v->e) {
-		BMEdge *e_first, *e_iter;
+  /* is there an edge on this vert at all */
+  int count = 0;
+  if (v->e) {
+    BMEdge *e_first, *e_iter;
 
-		/* first, loop around edge */
-		e_first = e_iter = v->e;
-		do {
-			if (e_iter->l) {
-				count += bmesh_radial_facevert_count_at_most(e_iter->l, v, count_max - count);
-				if (count == count_max) {
-					break;
-				}
-			}
-		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-	}
-	return count;
+    /* first, loop around edge */
+    e_first = e_iter = v->e;
+    do {
+      if (e_iter->l) {
+        count += bmesh_radial_facevert_count_at_most(e_iter->l, v, count_max - count);
+        if (count == count_max) {
+          break;
+        }
+      }
+    } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+  }
+  return count;
 }
 
 /**
@@ -324,13 +324,13 @@ int bmesh_disk_facevert_count_at_most(const BMVert *v, const int count_max)
  */
 BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v)
 {
-	const BMEdge *e_iter = e;
-	do {
-		if (e_iter->l != NULL) {
-			return (BMEdge *)((e_iter->l->v == v) ? e_iter : e_iter->l->next->e);
-		}
-	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
-	return NULL;
+  const BMEdge *e_iter = e;
+  do {
+    if (e_iter->l != NULL) {
+      return (BMEdge *)((e_iter->l->v == v) ? e_iter : e_iter->l->next->e);
+    }
+  } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
+  return NULL;
 }
 
 /**
@@ -340,13 +340,13 @@ BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v)
  */
 BMLoop *bmesh_disk_faceloop_find_first(const BMEdge *e, const BMVert *v)
 {
-	const BMEdge *e_iter = e;
-	do {
-		if (e_iter->l != NULL) {
-			return (e_iter->l->v == v) ? e_iter->l : e_iter->l->next;
-		}
-	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
-	return NULL;
+  const BMEdge *e_iter = e;
+  do {
+    if (e_iter->l != NULL) {
+      return (e_iter->l->v == v) ? e_iter->l : e_iter->l->next;
+    }
+  } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
+  return NULL;
 }
 
 /**
@@ -354,91 +354,91 @@ BMLoop *bmesh_disk_faceloop_find_first(const BMEdge *e, const BMVert *v)
  */
 BMLoop *bmesh_disk_faceloop_find_first_visible(const BMEdge *e, const BMVert *v)
 {
-	const BMEdge *e_iter = e;
-	do {
-		if (!BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN)) {
-			if (e_iter->l != NULL) {
-				BMLoop *l_iter, *l_first;
-				l_iter = l_first = e_iter->l;
-				do {
-					if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
-						return (l_iter->v == v) ? l_iter : l_iter->next;
-					}
-				} while ((l_iter = l_iter->radial_next) != l_first);
-			}
-		}
-	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
-	return NULL;
+  const BMEdge *e_iter = e;
+  do {
+    if (!BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN)) {
+      if (e_iter->l != NULL) {
+        BMLoop *l_iter, *l_first;
+        l_iter = l_first = e_iter->l;
+        do {
+          if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
+            return (l_iter->v == v) ? l_iter : l_iter->next;
+          }
+        } while ((l_iter = l_iter->radial_next) != l_first);
+      }
+    }
+  } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
+  return NULL;
 }
 
 BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v)
 {
-	BMEdge *e_find;
-	e_find = bmesh_disk_edge_next(e, v);
-	do {
-		if (e_find->l && bmesh_radial_facevert_check(e_find->l, v)) {
-			return e_find;
-		}
-	} while ((e_find = bmesh_disk_edge_next(e_find, v)) != e);
-	return (BMEdge *)e;
+  BMEdge *e_find;
+  e_find = bmesh_disk_edge_next(e, v);
+  do {
+    if (e_find->l && bmesh_radial_facevert_check(e_find->l, v)) {
+      return e_find;
+    }
+  } while ((e_find = bmesh_disk_edge_next(e_find, v)) != e);
+  return (BMEdge *)e;
 }
 
 /*****radial cycle functions, e.g. loops surrounding edges**** */
 bool bmesh_radial_validate(int radlen, BMLoop *l)
 {
-	BMLoop *l_iter = l;
-	int i = 0;
+  BMLoop *l_iter = l;
+  int i = 0;
 
-	if (bmesh_radial_length(l) != radlen) {
-		return false;
-	}
+  if (bmesh_radial_length(l) != radlen) {
+    return false;
+  }
 
-	do {
-		if (UNLIKELY(!l_iter)) {
-			BMESH_ASSERT(0);
-			return false;
-		}
+  do {
+    if (UNLIKELY(!l_iter)) {
+      BMESH_ASSERT(0);
+      return false;
+    }
 
-		if (l_iter->e != l->e) {
-			return false;
-		}
-		if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2) {
-			return false;
-		}
+    if (l_iter->e != l->e) {
+      return false;
+    }
+    if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2) {
+      return false;
+    }
 
-		if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
-			BMESH_ASSERT(0);
-			return false;
-		}
+    if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
+      BMESH_ASSERT(0);
+      return false;
+    }
 
-		i++;
-	} while ((l_iter = l_iter->radial_next) != l);
+    i++;
+  } while ((l_iter = l_iter->radial_next) != l);
 
-	return true;
+  return true;
 }
 
 void bmesh_radial_loop_append(BMEdge *e, BMLoop *l)
 {
-	if (e->l == NULL) {
-		e->l = l;
-		l->radial_next = l->radial_prev = l;
-	}
-	else {
-		l->radial_prev = e->l;
-		l->radial_next = e->l->radial_next;
+  if (e->l == NULL) {
+    e->l = l;
+    l->radial_next = l->radial_prev = l;
+  }
+  else {
+    l->radial_prev = e->l;
+    l->radial_next = e->l->radial_next;
 
-		e->l->radial_next->radial_prev = l;
-		e->l->radial_next = l;
+    e->l->radial_next->radial_prev = l;
+    e->l->radial_next = l;
 
-		e->l = l;
-	}
+    e->l = l;
+  }
 
-	if (UNLIKELY(l->e && l->e != e)) {
-		/* l is already in a radial cycle for a different edge */
-		BMESH_ASSERT(0);
-	}
+  if (UNLIKELY(l->e && l->e != e)) {
+    /* l is already in a radial cycle for a different edge */
+    BMESH_ASSERT(0);
+  }
 
-	l->e = e;
+  l->e = e;
 }
 
 /**
@@ -451,32 +451,32 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l)
  */
 void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l)
 {
-	/* if e is non-NULL, l must be in the radial cycle of e */
-	if (UNLIKELY(e != l->e)) {
-		BMESH_ASSERT(0);
-	}
+  /* if e is non-NULL, l must be in the radial cycle of e */
+  if (UNLIKELY(e != l->e)) {
+    BMESH_ASSERT(0);
+  }
 
-	if (l->radial_next != l) {
-		if (l == e->l) {
-			e->l = l->radial_next;
-		}
+  if (l->radial_next != l) {
+    if (l == e->l) {
+      e->l = l->radial_next;
+    }
 
-		l->radial_next->radial_prev = l->radial_prev;
-		l->radial_prev->radial_next = l->radial_next;
-	}
-	else {
-		if (l == e->l) {
-			e->l = NULL;
-		}
-		else {
-			BMESH_ASSERT(0);
-		}
-	}
+    l->radial_next->radial_prev = l->radial_prev;
+    l->radial_prev->radial_next = l->radial_next;
+  }
+  else {
+    if (l == e->l) {
+      e->l = NULL;
+    }
+    else {
+      BMESH_ASSERT(0);
+    }
+  }
 
-	/* l is no longer in a radial cycle; empty the links
-	 * to the cycle and the link back to an edge */
-	l->radial_next = l->radial_prev = NULL;
-	l->e = NULL;
+  /* l is no longer in a radial cycle; empty the links
+   * to the cycle and the link back to an edge */
+  l->radial_next = l->radial_prev = NULL;
+  l->e = NULL;
 }
 
 /**
@@ -485,15 +485,15 @@ void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l)
  */
 void bmesh_radial_loop_unlink(BMLoop *l)
 {
-	if (l->radial_next != l) {
-		l->radial_next->radial_prev = l->radial_prev;
-		l->radial_prev->radial_next = l->radial_next;
-	}
+  if (l->radial_next != l) {
+    l->radial_next->radial_prev = l->radial_prev;
+    l->radial_prev->radial_next = l->radial_next;
+  }
 
-	/* l is no longer in a radial cycle; empty the links
-	 * to the cycle and the link back to an edge */
-	l->radial_next = l->radial_prev = NULL;
-	l->e = NULL;
+  /* l is no longer in a radial cycle; empty the links
+   * to the cycle and the link back to an edge */
+  l->radial_next = l->radial_prev = NULL;
+  l->e = NULL;
 }
 
 /**
@@ -504,52 +504,52 @@ void bmesh_radial_loop_unlink(BMLoop *l)
  */
 BMLoop *bmesh_radial_faceloop_find_first(const BMLoop *l, const BMVert *v)
 {
-	const BMLoop *l_iter;
-	l_iter = l;
-	do {
-		if (l_iter->v == v) {
-			return (BMLoop *)l_iter;
-		}
-	} while ((l_iter = l_iter->radial_next) != l);
-	return NULL;
+  const BMLoop *l_iter;
+  l_iter = l;
+  do {
+    if (l_iter->v == v) {
+      return (BMLoop *)l_iter;
+    }
+  } while ((l_iter = l_iter->radial_next) != l);
+  return NULL;
 }
 
 BMLoop *bmesh_radial_faceloop_find_next(const BMLoop *l, const BMVert *v)
 {
-	BMLoop *l_iter;
-	l_iter = l->radial_next;
-	do {
-		if (l_iter->v == v) {
-			return l_iter;
-		}
-	} while ((l_iter = l_iter->radial_next) != l);
-	return (BMLoop *)l;
+  BMLoop *l_iter;
+  l_iter = l->radial_next;
+  do {
+    if (l_iter->v == v) {
+      return l_iter;
+    }
+  } while ((l_iter = l_iter->radial_next) != l);
+  return (BMLoop *)l;
 }
 
 int bmesh_radial_length(const BMLoop *l)
 {
-	const BMLoop *l_iter = l;
-	int i = 0;
+  const BMLoop *l_iter = l;
+  int i = 0;
 
-	if (!l) {
-		return 0;
-	}
+  if (!l) {
+    return 0;
+  }
 
-	do {
-		if (UNLIKELY(!l_iter)) {
-			/* radial cycle is broken (not a circulat loop) */
-			BMESH_ASSERT(0);
-			return 0;
-		}
+  do {
+    if (UNLIKELY(!l_iter)) {
+      /* radial cycle is broken (not a circulat loop) */
+      BMESH_ASSERT(0);
+      return 0;
+    }
 
-		i++;
-		if (UNLIKELY(i >= BM_LOOP_RADIAL_MAX)) {
-			BMESH_ASSERT(0);
-			return -1;
-		}
-	} while ((l_iter = l_iter->radial_next) != l);
+    i++;
+    if (UNLIKELY(i >= BM_LOOP_RADIAL_MAX)) {
+      BMESH_ASSERT(0);
+      return -1;
+    }
+  } while ((l_iter = l_iter->radial_next) != l);
 
-	return i;
+  return i;
 }
 
 /**
@@ -560,33 +560,33 @@ int bmesh_radial_length(const BMLoop *l)
  */
 int bmesh_radial_facevert_count(const BMLoop *l, const BMVert *v)
 {
-	const BMLoop *l_iter;
-	int count = 0;
-	l_iter = l;
-	do {
-		if (l_iter->v == v) {
-			count++;
-		}
-	} while ((l_iter = l_iter->radial_next) != l);
+  const BMLoop *l_iter;
+  int count = 0;
+  l_iter = l;
+  do {
+    if (l_iter->v == v) {
+      count++;
+    }
+  } while ((l_iter = l_iter->radial_next) != l);
 
-	return count;
+  return count;
 }
 
 int bmesh_radial_facevert_count_at_most(const BMLoop *l, const BMVert *v, const int count_max)
 {
-	const BMLoop *l_iter;
-	int count = 0;
-	l_iter = l;
-	do {
-		if (l_iter->v == v) {
-			count++;
-			if (count == count_max) {
-				break;
-			}
-		}
-	} while ((l_iter = l_iter->radial_next) != l);
+  const BMLoop *l_iter;
+  int count = 0;
+  l_iter = l;
+  do {
+    if (l_iter->v == v) {
+      count++;
+      if (count == count_max) {
+        break;
+      }
+    }
+  } while ((l_iter = l_iter->radial_next) != l);
 
-	return count;
+  return count;
 }
 
 /**
@@ -596,51 +596,49 @@ int bmesh_radial_facevert_count_at_most(const BMLoop *l, const BMVert *v, const 
  */
 bool bmesh_radial_facevert_check(const BMLoop *l, const BMVert *v)
 {
-	const BMLoop *l_iter;
-	l_iter = l;
-	do {
-		if (l_iter->v == v) {
-			return true;
-		}
-	} while ((l_iter = l_iter->radial_next) != l);
+  const BMLoop *l_iter;
+  l_iter = l;
+  do {
+    if (l_iter->v == v) {
+      return true;
+    }
+  } while ((l_iter = l_iter->radial_next) != l);
 
-	return false;
+  return false;
 }
 
 /*****loop cycle functions, e.g. loops surrounding a face**** */
 bool bmesh_loop_validate(BMFace *f)
 {
-	int i;
-	int len = f->len;
-	BMLoop *l_iter, *l_first;
+  int i;
+  int len = f->len;
+  BMLoop *l_iter, *l_first;
 
-	l_first = BM_FACE_FIRST_LOOP(f);
+  l_first = BM_FACE_FIRST_LOOP(f);
 
-	if (l_first == NULL) {
-		return false;
-	}
+  if (l_first == NULL) {
+    return false;
+  }
 
-	/* Validate that the face loop cycle is the length specified by f->len */
-	for (i = 1, l_iter = l_first->next; i < len; i++, l_iter = l_iter->next) {
-		if ((l_iter->f != f) ||
-		    (l_iter == l_first))
-		{
-			return false;
-		}
-	}
-	if (l_iter != l_first) {
-		return false;
-	}
+  /* Validate that the face loop cycle is the length specified by f->len */
+  for (i = 1, l_iter = l_first->next; i < len; i++, l_iter = l_iter->next) {
+    if ((l_iter->f != f) || (l_iter == l_first)) {
+      return false;
+    }
+  }
+  if (l_iter != l_first) {
+    return false;
+  }
 
-	/* Validate the loop->prev links also form a cycle of length f->len */
-	for (i = 1, l_iter = l_first->prev; i < len; i++, l_iter = l_iter->prev) {
-		if (l_iter == l_first) {
-			return false;
-		}
-	}
-	if (l_iter != l_first) {
-		return false;
-	}
+  /* Validate the loop->prev links also form a cycle of length f->len */
+  for (i = 1, l_iter = l_first->prev; i < len; i++, l_iter = l_iter->prev) {
+    if (l_iter == l_first) {
+      return false;
+    }
+  }
+  if (l_iter != l_first) {
+    return false;
+  }
 
-	return true;
+  return true;
 }

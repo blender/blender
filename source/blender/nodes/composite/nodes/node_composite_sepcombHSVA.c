@@ -21,53 +21,50 @@
  * \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
-
 
 /* **************** SEPARATE HSVA ******************** */
 static bNodeSocketTemplate cmp_node_sephsva_in[] = {
-	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate cmp_node_sephsva_out[] = {
-	{	SOCK_FLOAT, 0, N_("H")},
-	{	SOCK_FLOAT, 0, N_("S")},
-	{	SOCK_FLOAT, 0, N_("V")},
-	{	SOCK_FLOAT, 0, N_("A")},
-	{	-1, 0, ""	},
+    {SOCK_FLOAT, 0, N_("H")},
+    {SOCK_FLOAT, 0, N_("S")},
+    {SOCK_FLOAT, 0, N_("V")},
+    {SOCK_FLOAT, 0, N_("A")},
+    {-1, 0, ""},
 };
 
 void register_node_type_cmp_sephsva(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
-	node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }
-
 
 /* **************** COMBINE HSVA ******************** */
 static bNodeSocketTemplate cmp_node_combhsva_in[] = {
-	{	SOCK_FLOAT, 1, N_("H"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_FLOAT, 1, N_("S"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_FLOAT, 1, N_("V"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_FLOAT, 1, N_("A"),			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	-1, 0, ""	},
+    {SOCK_FLOAT, 1, N_("H"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("S"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("V"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate cmp_node_combhsva_out[] = {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
 };
 
 void register_node_type_cmp_combhsva(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, 0);
-	node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

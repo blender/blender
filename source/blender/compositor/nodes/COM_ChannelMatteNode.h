@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class ChannelMatteNode : public Node {
-public:
-	ChannelMatteNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  ChannelMatteNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* COM_ChannelMatteNODE_H */
+#endif /* COM_ChannelMatteNODE_H */

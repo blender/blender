@@ -26,25 +26,25 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 uchar uchar3::operator[](int i) const
 {
-	util_assert(i >= 0);
-	util_assert(i < 3);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 3);
+  return *(&x + i);
 }
 
-uchar& uchar3::operator[](int i)
+uchar &uchar3::operator[](int i)
 {
-	util_assert(i >= 0);
-	util_assert(i < 3);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 3);
+  return *(&x + i);
 }
 
 ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z)
 {
-	uchar3 a = {x, y, z};
-	return a;
+  uchar3 a = {x, y, z};
+  return a;
 }
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_UCHAR3_IMPL_H__ */
+#endif /* __UTIL_TYPES_UCHAR3_IMPL_H__ */

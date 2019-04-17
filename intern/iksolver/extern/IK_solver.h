@@ -22,7 +22,6 @@
  * \ingroup iksolver
  */
 
-
 /**
  * \page IK - Blender inverse kinematics module.
  *
@@ -97,28 +96,29 @@ extern "C" {
 typedef void IK_Segment;
 
 enum IK_SegmentFlag {
-	IK_XDOF = 1,
-	IK_YDOF = 2,
-	IK_ZDOF = 4,
-	IK_TRANS_XDOF = 8,
-	IK_TRANS_YDOF = 16,
-	IK_TRANS_ZDOF = 32
+  IK_XDOF = 1,
+  IK_YDOF = 2,
+  IK_ZDOF = 4,
+  IK_TRANS_XDOF = 8,
+  IK_TRANS_YDOF = 16,
+  IK_TRANS_ZDOF = 32
 };
 
 typedef enum IK_SegmentAxis {
-	IK_X = 0,
-	IK_Y = 1,
-	IK_Z = 2,
-	IK_TRANS_X = 3,
-	IK_TRANS_Y = 4,
-	IK_TRANS_Z = 5
+  IK_X = 0,
+  IK_Y = 1,
+  IK_Z = 2,
+  IK_TRANS_X = 3,
+  IK_TRANS_Y = 4,
+  IK_TRANS_Z = 5
 } IK_SegmentAxis;
 
 extern IK_Segment *IK_CreateSegment(int flag);
 extern void IK_FreeSegment(IK_Segment *seg);
 
 extern void IK_SetParent(IK_Segment *seg, IK_Segment *parent);
-extern void IK_SetTransform(IK_Segment *seg, float start[3], float rest_basis[][3], float basis[][3], float length);
+extern void IK_SetTransform(
+    IK_Segment *seg, float start[3], float rest_basis[][3], float basis[][3], float length);
 extern void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax);
 extern void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness);
 
@@ -144,8 +144,16 @@ IK_Solver *IK_CreateSolver(IK_Segment *root);
 void IK_FreeSolver(IK_Solver *solver);
 
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight);
-void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight);
-void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle);
+void IK_SolverAddGoalOrientation(IK_Solver *solver,
+                                 IK_Segment *tip,
+                                 float goal[][3],
+                                 float weight);
+void IK_SolverSetPoleVectorConstraint(IK_Solver *solver,
+                                      IK_Segment *tip,
+                                      float goal[3],
+                                      float polegoal[3],
+                                      float poleangle,
+                                      int getangle);
 float IK_SolverGetPoleAngle(IK_Solver *solver);
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
@@ -158,4 +166,4 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
 }
 #endif
 
-#endif // __IK_SOLVER_H__
+#endif  // __IK_SOLVER_H__

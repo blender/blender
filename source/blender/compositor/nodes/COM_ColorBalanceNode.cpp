@@ -25,48 +25,49 @@
 
 ColorBalanceNode::ColorBalanceNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void ColorBalanceNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void ColorBalanceNode::convertToOperations(NodeConverter &converter,
+                                           const CompositorContext & /*context*/) const
 {
-	bNode *node = this->getbNode();
-	NodeColorBalance *n = (NodeColorBalance *)node->storage;
+  bNode *node = this->getbNode();
+  NodeColorBalance *n = (NodeColorBalance *)node->storage;
 
-	NodeInput *inputSocket = this->getInputSocket(0);
-	NodeInput *inputImageSocket = this->getInputSocket(1);
-	NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *inputSocket = this->getInputSocket(0);
+  NodeInput *inputImageSocket = this->getInputSocket(1);
+  NodeOutput *outputSocket = this->getOutputSocket(0);
 
-	NodeOperation *operation;
-	if (node->custom1 == 0) {
-		ColorBalanceLGGOperation *operationLGG = new ColorBalanceLGGOperation();
+  NodeOperation *operation;
+  if (node->custom1 == 0) {
+    ColorBalanceLGGOperation *operationLGG = new ColorBalanceLGGOperation();
 
-		float lift_lgg[3], gamma_inv[3];
-		for (int c = 0; c < 3; c++) {
-			lift_lgg[c] = 2.0f - n->lift[c];
-			gamma_inv[c] = (n->gamma[c] != 0.0f) ? 1.0f / n->gamma[c] : 1000000.0f;
-		}
+    float lift_lgg[3], gamma_inv[3];
+    for (int c = 0; c < 3; c++) {
+      lift_lgg[c] = 2.0f - n->lift[c];
+      gamma_inv[c] = (n->gamma[c] != 0.0f) ? 1.0f / n->gamma[c] : 1000000.0f;
+    }
 
-		operationLGG->setGain(n->gain);
-		operationLGG->setLift(lift_lgg);
-		operationLGG->setGammaInv(gamma_inv);
-		operation = operationLGG;
-	}
-	else {
-		ColorBalanceASCCDLOperation *operationCDL = new ColorBalanceASCCDLOperation();
+    operationLGG->setGain(n->gain);
+    operationLGG->setLift(lift_lgg);
+    operationLGG->setGammaInv(gamma_inv);
+    operation = operationLGG;
+  }
+  else {
+    ColorBalanceASCCDLOperation *operationCDL = new ColorBalanceASCCDLOperation();
 
-		float offset[3];
-		copy_v3_fl(offset, n->offset_basis);
-		add_v3_v3(offset, n->offset);
+    float offset[3];
+    copy_v3_fl(offset, n->offset_basis);
+    add_v3_v3(offset, n->offset);
 
-		operationCDL->setOffset(offset);
-		operationCDL->setPower(n->power);
-		operationCDL->setSlope(n->slope);
-		operation = operationCDL;
-	}
-	converter.addOperation(operation);
+    operationCDL->setOffset(offset);
+    operationCDL->setPower(n->power);
+    operationCDL->setSlope(n->slope);
+    operation = operationCDL;
+  }
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-	converter.mapInputSocket(inputImageSocket, operation->getInputSocket(1));
-	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+  converter.mapInputSocket(inputImageSocket, operation->getInputSocket(1));
+  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

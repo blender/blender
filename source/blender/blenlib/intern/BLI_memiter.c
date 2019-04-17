@@ -69,66 +69,65 @@ typedef intptr_t offset_t;
 // #define USE_TERMINATE_PARANOID
 
 /* Currently totalloc isnt used. */
- // #define USE_TOTALLOC
+// #define USE_TOTALLOC
 
 /* pad must be power of two */
-#define PADUP(num, pad) (((num) + ((pad) - 1)) & ~((pad) - 1))
+#define PADUP(num, pad) (((num) + ((pad)-1)) & ~((pad)-1))
 
 typedef struct BLI_memiter_elem {
-	offset_t size;
-	data_t data[0];
+  offset_t size;
+  data_t data[0];
 } BLI_memiter_elem;
 
 typedef struct BLI_memiter_chunk {
-	struct BLI_memiter_chunk *next;
-	/**
-	 * internal format is:
-	 * ``[next_pointer, size:data, size:data, ..., negative_offset]``
-	 *
-	 * Where negative offset rewinds to the start.
-	 */
-	data_t data[0];
+  struct BLI_memiter_chunk *next;
+  /**
+   * internal format is:
+   * ``[next_pointer, size:data, size:data, ..., negative_offset]``
+   *
+   * Where negative offset rewinds to the start.
+   */
+  data_t data[0];
 } BLI_memiter_chunk;
 
 typedef struct BLI_memiter {
-	/* A pointer to 'head' is needed so we can iterate in the order allocated. */
-	struct BLI_memiter_chunk *head, *tail;
-	data_t *data_curr;
-	data_t *data_last;
-	/* Used unless a large element is requested.
-	 * (which should be very rare!). */
-	uint chunk_size_in_bytes_min;
-	uint count;
+  /* A pointer to 'head' is needed so we can iterate in the order allocated. */
+  struct BLI_memiter_chunk *head, *tail;
+  data_t *data_curr;
+  data_t *data_last;
+  /* Used unless a large element is requested.
+   * (which should be very rare!). */
+  uint chunk_size_in_bytes_min;
+  uint count;
 #ifdef USE_TOTALLOC
-	uint totalloc;
+  uint totalloc;
 #endif
 } BLI_memiter;
 
-
 BLI_INLINE uint data_offset_from_size(uint size)
 {
-	return (PADUP(size, (uint)sizeof(data_t))) / (uint)sizeof(data_t);
+  return (PADUP(size, (uint)sizeof(data_t))) / (uint)sizeof(data_t);
 }
 
 static void memiter_set_rewind_offset(BLI_memiter *mi)
 {
-	BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
+  BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
 
-	ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem));
+  ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem));
 
-	elem->size = (offset_t)(((data_t *)mi->tail) - mi->data_curr);
-	BLI_assert(elem->size < 0);
+  elem->size = (offset_t)(((data_t *)mi->tail) - mi->data_curr);
+  BLI_assert(elem->size < 0);
 }
 
 static void memiter_init(BLI_memiter *mi)
 {
-	mi->head = NULL;
-	mi->tail = NULL;
-	mi->data_curr = NULL;
-	mi->data_last = NULL;
-	mi->count = 0;
+  mi->head = NULL;
+  mi->tail = NULL;
+  mi->data_curr = NULL;
+  mi->data_last = NULL;
+  mi->count = 0;
 #ifdef USE_TOTALLOC
-	mi->totalloc = 0;
+  mi->totalloc = 0;
 #endif
 }
 
@@ -147,125 +146,122 @@ static void memiter_init(BLI_memiter *mi)
  */
 BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 {
-	BLI_memiter *mi = MEM_mallocN(sizeof(BLI_memiter), "BLI_memiter");
-	memiter_init(mi);
+  BLI_memiter *mi = MEM_mallocN(sizeof(BLI_memiter), "BLI_memiter");
+  memiter_init(mi);
 
-	/* Small values are used for tests to check for correctness,
-	 * but otherwise not that useful. */
-	const uint slop_space = (sizeof(BLI_memiter_chunk) + MEM_SIZE_OVERHEAD);
-	if (chunk_size_min >= 1024) {
-		/* As long as the input is a power of 2, this will give efficient sizes. */
-		chunk_size_min -= slop_space;
-	}
+  /* Small values are used for tests to check for correctness,
+   * but otherwise not that useful. */
+  const uint slop_space = (sizeof(BLI_memiter_chunk) + MEM_SIZE_OVERHEAD);
+  if (chunk_size_min >= 1024) {
+    /* As long as the input is a power of 2, this will give efficient sizes. */
+    chunk_size_min -= slop_space;
+  }
 
-	mi->chunk_size_in_bytes_min = chunk_size_min;
-	return mi;
+  mi->chunk_size_in_bytes_min = chunk_size_min;
+  return mi;
 }
 
 void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 {
-	const uint data_offset = data_offset_from_size(elem_size);
-	data_t *data_curr_next = mi->data_curr + (1 + data_offset);
+  const uint data_offset = data_offset_from_size(elem_size);
+  data_t *data_curr_next = mi->data_curr + (1 + data_offset);
 
-	if (UNLIKELY(mi->data_curr == NULL) || (data_curr_next > mi->data_last)) {
+  if (UNLIKELY(mi->data_curr == NULL) || (data_curr_next > mi->data_last)) {
 
 #ifndef USE_TERMINATE_PARANOID
-		if (mi->data_curr != NULL) {
-			memiter_set_rewind_offset(mi);
-		}
+    if (mi->data_curr != NULL) {
+      memiter_set_rewind_offset(mi);
+    }
 #endif
 
-		uint chunk_size_in_bytes = mi->chunk_size_in_bytes_min;
-		if (UNLIKELY(chunk_size_in_bytes < elem_size + (uint)sizeof(data_t[2]))) {
-			chunk_size_in_bytes = elem_size + (uint)sizeof(data_t[2]);
-		}
-		uint chunk_size = data_offset_from_size(chunk_size_in_bytes);
-		BLI_memiter_chunk *chunk = MEM_mallocN(
-		        sizeof(BLI_memiter_chunk) +
-		        (chunk_size * sizeof(data_t)),
-		        "BLI_memiter_chunk");
+    uint chunk_size_in_bytes = mi->chunk_size_in_bytes_min;
+    if (UNLIKELY(chunk_size_in_bytes < elem_size + (uint)sizeof(data_t[2]))) {
+      chunk_size_in_bytes = elem_size + (uint)sizeof(data_t[2]);
+    }
+    uint chunk_size = data_offset_from_size(chunk_size_in_bytes);
+    BLI_memiter_chunk *chunk = MEM_mallocN(
+        sizeof(BLI_memiter_chunk) + (chunk_size * sizeof(data_t)), "BLI_memiter_chunk");
 
-		if (mi->head == NULL) {
-			BLI_assert(mi->tail == NULL);
-			mi->head = chunk;
-		}
-		else {
-			mi->tail->next = chunk;
-		}
-		mi->tail = chunk;
-		chunk->next = NULL;
+    if (mi->head == NULL) {
+      BLI_assert(mi->tail == NULL);
+      mi->head = chunk;
+    }
+    else {
+      mi->tail->next = chunk;
+    }
+    mi->tail = chunk;
+    chunk->next = NULL;
 
-		mi->data_curr = chunk->data;
-		mi->data_last = chunk->data + (chunk_size - 1);
-		data_curr_next = mi->data_curr + (1 + data_offset);
+    mi->data_curr = chunk->data;
+    mi->data_last = chunk->data + (chunk_size - 1);
+    data_curr_next = mi->data_curr + (1 + data_offset);
 
-		ASAN_POISON_MEMORY_REGION(chunk->data, chunk_size * sizeof(data_t));
-	}
+    ASAN_POISON_MEMORY_REGION(chunk->data, chunk_size * sizeof(data_t));
+  }
 
-	BLI_assert(data_curr_next <= mi->data_last);
+  BLI_assert(data_curr_next <= mi->data_last);
 
-	BLI_memiter_elem *elem      = (BLI_memiter_elem *)mi->data_curr;
+  BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
 
-	ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem) + elem_size);
+  ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem) + elem_size);
 
-	elem->size = (offset_t)elem_size;
-	mi->data_curr = data_curr_next;
+  elem->size = (offset_t)elem_size;
+  mi->data_curr = data_curr_next;
 
 #ifdef USE_TERMINATE_PARANOID
-	memiter_set_rewind_offset(mi);
+  memiter_set_rewind_offset(mi);
 #endif
 
-	mi->count += 1;
+  mi->count += 1;
 
 #ifdef USE_TOTALLOC
-	mi->totalloc += elem_size;
+  mi->totalloc += elem_size;
 #endif
 
-	return elem->data;
+  return elem->data;
 }
 
 void *BLI_memiter_calloc(BLI_memiter *mi, uint elem_size)
 {
-	void *data = BLI_memiter_alloc(mi, elem_size);
-	memset(data, 0, elem_size);
-	return data;
+  void *data = BLI_memiter_alloc(mi, elem_size);
+  memset(data, 0, elem_size);
+  return data;
 }
 
 void BLI_memiter_alloc_from(BLI_memiter *mi, uint elem_size, const void *data_from)
 {
-	void *data = BLI_memiter_alloc(mi, elem_size);
-	memcpy(data, data_from, elem_size);
+  void *data = BLI_memiter_alloc(mi, elem_size);
+  memcpy(data, data_from, elem_size);
 }
 
 static void memiter_free_data(BLI_memiter *mi)
 {
-	BLI_memiter_chunk *chunk = mi->head;
-	while (chunk) {
-		BLI_memiter_chunk *chunk_next = chunk->next;
-		MEM_freeN(chunk);
-		chunk = chunk_next;
-	}
+  BLI_memiter_chunk *chunk = mi->head;
+  while (chunk) {
+    BLI_memiter_chunk *chunk_next = chunk->next;
+    MEM_freeN(chunk);
+    chunk = chunk_next;
+  }
 }
 
 void BLI_memiter_destroy(BLI_memiter *mi)
 {
-	memiter_free_data(mi);
-	MEM_freeN(mi);
+  memiter_free_data(mi);
+  MEM_freeN(mi);
 }
 
 void BLI_memiter_clear(BLI_memiter *mi)
 {
-	memiter_free_data(mi);
-	memiter_init(mi);
+  memiter_free_data(mi);
+  memiter_init(mi);
 }
 
 uint BLI_memiter_count(const BLI_memiter *mi)
 {
-	return mi->count;
+  return mi->count;
 }
 
 /** \} */
-
 
 /* -------------------------------------------------------------------- */
 /** \name Helper API's
@@ -274,31 +270,30 @@ uint BLI_memiter_count(const BLI_memiter *mi)
 /* Support direct lookup for first. */
 void *BLI_memiter_elem_first(BLI_memiter *mi)
 {
-	if (mi->head != NULL) {
-		BLI_memiter_chunk *chunk = mi->head;
-		BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
-		return elem->data;
-	}
-	else {
-		return NULL;
-	}
+  if (mi->head != NULL) {
+    BLI_memiter_chunk *chunk = mi->head;
+    BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
+    return elem->data;
+  }
+  else {
+    return NULL;
+  }
 }
 
 void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
 {
-	if (mi->head != NULL) {
-		BLI_memiter_chunk *chunk = mi->head;
-		BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
-		*r_size = (uint)elem->size;
-		return elem->data;
-	}
-	else {
-		return NULL;
-	}
+  if (mi->head != NULL) {
+    BLI_memiter_chunk *chunk = mi->head;
+    BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
+    *r_size = (uint)elem->size;
+    return elem->data;
+  }
+  else {
+    return NULL;
+  }
 }
 
 /** \} */
-
 
 /* -------------------------------------------------------------------- */
 /** \name Iterator API's
@@ -313,59 +308,59 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
 
 void BLI_memiter_iter_init(BLI_memiter *mi, BLI_memiter_handle *iter)
 {
-	iter->elem = mi->head ? (BLI_memiter_elem *)mi->head->data : NULL;
-	iter->elem_left = mi->count;
+  iter->elem = mi->head ? (BLI_memiter_elem *)mi->head->data : NULL;
+  iter->elem_left = mi->count;
 }
 
 bool BLI_memiter_iter_done(const BLI_memiter_handle *iter)
 {
-	return iter->elem_left != 0;
+  return iter->elem_left != 0;
 }
 
 BLI_INLINE void memiter_chunk_step(BLI_memiter_handle *iter)
 {
-	BLI_assert(iter->elem->size < 0);
-	BLI_memiter_chunk *chunk = (BLI_memiter_chunk *)(((data_t *)iter->elem) + iter->elem->size);
-	chunk = chunk->next;
-	iter->elem = chunk ? (BLI_memiter_elem *)chunk->data : NULL;
-	BLI_assert(iter->elem == NULL || iter->elem->size >= 0);
+  BLI_assert(iter->elem->size < 0);
+  BLI_memiter_chunk *chunk = (BLI_memiter_chunk *)(((data_t *)iter->elem) + iter->elem->size);
+  chunk = chunk->next;
+  iter->elem = chunk ? (BLI_memiter_elem *)chunk->data : NULL;
+  BLI_assert(iter->elem == NULL || iter->elem->size >= 0);
 }
 
 void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size)
 {
-	if (iter->elem_left != 0) {
-		iter->elem_left -= 1;
-		if (UNLIKELY(iter->elem->size < 0)) {
-			memiter_chunk_step(iter);
-		}
-		BLI_assert(iter->elem->size >= 0);
-		uint size = (uint)iter->elem->size;
-		*r_size = size;  /* <-- only difference */
-		data_t *data = iter->elem->data;
-		iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
-		return (void *)data;
-	}
-	else {
-		return NULL;
-	}
+  if (iter->elem_left != 0) {
+    iter->elem_left -= 1;
+    if (UNLIKELY(iter->elem->size < 0)) {
+      memiter_chunk_step(iter);
+    }
+    BLI_assert(iter->elem->size >= 0);
+    uint size = (uint)iter->elem->size;
+    *r_size = size; /* <-- only difference */
+    data_t *data = iter->elem->data;
+    iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
+    return (void *)data;
+  }
+  else {
+    return NULL;
+  }
 }
 
 void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
 {
-	if (iter->elem_left != 0) {
-		iter->elem_left -= 1;
-		if (UNLIKELY(iter->elem->size < 0)) {
-			memiter_chunk_step(iter);
-		}
-		BLI_assert(iter->elem->size >= 0);
-		uint size = (uint)iter->elem->size;
-		data_t *data = iter->elem->data;
-		iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
-		return (void *)data;
-	}
-	else {
-		return NULL;
-	}
+  if (iter->elem_left != 0) {
+    iter->elem_left -= 1;
+    if (UNLIKELY(iter->elem->size < 0)) {
+      memiter_chunk_step(iter);
+    }
+    BLI_assert(iter->elem->size >= 0);
+    uint size = (uint)iter->elem->size;
+    data_t *data = iter->elem->data;
+    iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
+    return (void *)data;
+  }
+  else {
+    return NULL;
+  }
 }
 
 /** \} */

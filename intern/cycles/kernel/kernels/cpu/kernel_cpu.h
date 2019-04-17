@@ -16,25 +16,24 @@
 
 /* Templated common declaration part of all CPU kernels. */
 
-void KERNEL_FUNCTION_FULL_NAME(path_trace)(KernelGlobals *kg,
-                                           float *buffer,
-                                           int sample,
-                                           int x, int y,
-                                           int offset,
-                                           int stride);
+void KERNEL_FUNCTION_FULL_NAME(path_trace)(
+    KernelGlobals *kg, float *buffer, int sample, int x, int y, int offset, int stride);
 
 void KERNEL_FUNCTION_FULL_NAME(convert_to_byte)(KernelGlobals *kg,
                                                 uchar4 *rgba,
                                                 float *buffer,
                                                 float sample_scale,
-                                                int x, int y,
-                                                int offset, int stride);
+                                                int x,
+                                                int y,
+                                                int offset,
+                                                int stride);
 
 void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
                                                       uchar4 *rgba,
                                                       float *buffer,
                                                       float sample_scale,
-                                                      int x, int y,
+                                                      int x,
+                                                      int y,
                                                       int offset,
                                                       int stride);
 
@@ -49,24 +48,28 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 
 /* Split kernels */
 
-void KERNEL_FUNCTION_FULL_NAME(data_init)(
-        KernelGlobals *kg,
-        ccl_constant KernelData *data,
-        ccl_global void *split_data_buffer,
-        int num_elements,
-        ccl_global char *ray_state,
-        int start_sample,
-        int end_sample,
-        int sx, int sy, int sw, int sh, int offset, int stride,
-        ccl_global int *Queue_index,
-        int queuesize,
-        ccl_global char *use_queues_flag,
-        ccl_global unsigned int *work_pool_wgs,
-        unsigned int num_samples,
-        ccl_global float *buffer);
+void KERNEL_FUNCTION_FULL_NAME(data_init)(KernelGlobals *kg,
+                                          ccl_constant KernelData *data,
+                                          ccl_global void *split_data_buffer,
+                                          int num_elements,
+                                          ccl_global char *ray_state,
+                                          int start_sample,
+                                          int end_sample,
+                                          int sx,
+                                          int sy,
+                                          int sw,
+                                          int sh,
+                                          int offset,
+                                          int stride,
+                                          ccl_global int *Queue_index,
+                                          int queuesize,
+                                          ccl_global char *use_queues_flag,
+                                          ccl_global unsigned int *work_pool_wgs,
+                                          unsigned int num_samples,
+                                          ccl_global float *buffer);
 
 #define DECLARE_SPLIT_KERNEL_FUNCTION(name) \
-	void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals *kg, KernelData *data);
+  void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals * kg, KernelData * data);
 
 DECLARE_SPLIT_KERNEL_FUNCTION(path_init)
 DECLARE_SPLIT_KERNEL_FUNCTION(scene_intersect)

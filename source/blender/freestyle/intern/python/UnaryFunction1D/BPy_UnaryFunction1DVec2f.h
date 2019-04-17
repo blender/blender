@@ -34,17 +34,17 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DVec2f_Type;
 
-#define BPy_UnaryFunction1DVec2f_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVec2f_Type))
+#define BPy_UnaryFunction1DVec2f_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVec2f_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DVec2f structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction1D py_uf1D;
-	UnaryFunction1D<Vec2f> *uf1D_vec2f;
+  BPy_UnaryFunction1D py_uf1D;
+  UnaryFunction1D<Vec2f> *uf1D_vec2f;
 } BPy_UnaryFunction1DVec2f;
 
 /*---------------------------Python BPy_UnaryFunction1DVec2f visible prototypes-----------*/
 int UnaryFunction1DVec2f_Init(PyObject *module);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

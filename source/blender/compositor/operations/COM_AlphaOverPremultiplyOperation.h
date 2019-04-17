@@ -20,22 +20,20 @@
 #define __COM_ALPHAOVERPREMULTIPLYOPERATION_H__
 #include "COM_MixOperation.h"
 
-
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
 class AlphaOverPremultiplyOperation : public MixBaseOperation {
-public:
-	/**
-	 * Default constructor
-	 */
-	AlphaOverPremultiplyOperation();
+ public:
+  /**
+   * Default constructor
+   */
+  AlphaOverPremultiplyOperation();
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-
+  /**
+   * the inner loop of this program
+   */
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 #endif

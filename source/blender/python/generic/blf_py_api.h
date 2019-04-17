@@ -23,4 +23,4 @@
 
 PyObject *BPyInit_blf(void);
 
-#endif  /* __BLF_PY_API_H__ */
+#endif /* __BLF_PY_API_H__ */

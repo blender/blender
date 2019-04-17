@@ -34,7 +34,6 @@ extern "C" {
 #define RAD2DEG(_rad) ((_rad) * (180.0 / M_PI))
 #define DEG2RAD(_deg) ((_deg) * (M_PI / 180.0))
 
-
 #define RAD2DEGF(_rad) ((_rad) * (float)(180.0 / M_PI))
 #define DEG2RADF(_deg) ((_deg) * (float)(M_PI / 180.0))
 
@@ -83,10 +82,13 @@ void mat3_normalized_to_quat(float q[4], const float mat[3][3]);
 void mat4_normalized_to_quat(float q[4], const float mat[4][4]);
 void mat3_to_quat(float q[4], const float mat[3][3]);
 void mat4_to_quat(float q[4], const float mat[4][4]);
-void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const float v3[3],
+void tri_to_quat_ex(float quat[4],
+                    const float v1[3],
+                    const float v2[3],
+                    const float v3[3],
                     const float no_orig[3]);
 float tri_to_quat(float q[4], const float a[3], const float b[3], const float c[3]);
-void  vec_to_quat(float q[4], const float vec[3], short axis, const short upflag);
+void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag);
 /* note: v1 and v2 must be normalized */
 void rotation_between_vecs_to_mat3(float m[3][3], const float v1[3], const float v2[3]);
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3]);
@@ -116,8 +118,10 @@ void print_qt(const char *str, const float q[4]);
 void axis_angle_normalized_to_quat(float r[4], const float axis[3], const float angle);
 void axis_angle_to_quat(float r[4], const float axis[3], const float angle);
 void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle);
-void axis_angle_normalized_to_mat3_ex(float mat[3][3], const float axis[3],
-                                      const float angle_sin, const float angle_cos);
+void axis_angle_normalized_to_mat3_ex(float mat[3][3],
+                                      const float axis[3],
+                                      const float angle_sin,
+                                      const float angle_cos);
 void axis_angle_normalized_to_mat3(float R[3][3], const float axis[3], const float angle);
 void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle);
 
@@ -127,7 +131,7 @@ void mat3_to_axis_angle(float axis[3], float *angle, const float M[3][3]);
 void mat4_to_axis_angle(float axis[3], float *angle, const float M[4][4]);
 void quat_to_axis_angle(float axis[3], float *angle, const float q[4]);
 
-void      angle_to_mat2(float R[2][2], const float angle);
+void angle_to_mat2(float R[2][2], const float angle);
 void axis_angle_to_mat3_single(float R[3][3], const char axis, const float angle);
 void axis_angle_to_mat4_single(float R[4][4], const char axis, const float angle);
 
@@ -163,14 +167,14 @@ void rotate_eul(float eul[3], const char axis, const float angle);
  * order matters - types are saved to file. */
 
 typedef enum eEulerRotationOrders {
-	EULER_ORDER_DEFAULT = 1, /* blender classic = XYZ */
-	EULER_ORDER_XYZ = 1,
-	EULER_ORDER_XZY,
-	EULER_ORDER_YXZ,
-	EULER_ORDER_YZX,
-	EULER_ORDER_ZXY,
-	EULER_ORDER_ZYX,
-	/* there are 6 more entries with dulpicate entries included */
+  EULER_ORDER_DEFAULT = 1, /* blender classic = XYZ */
+  EULER_ORDER_XYZ = 1,
+  EULER_ORDER_XZY,
+  EULER_ORDER_YXZ,
+  EULER_ORDER_YZX,
+  EULER_ORDER_ZXY,
+  EULER_ORDER_ZYX,
+  /* there are 6 more entries with dulpicate entries included */
 } eEulerRotationOrders;
 
 void eulO_to_quat(float quat[4], const float eul[3], const short order);
@@ -186,22 +190,37 @@ void mat4_to_eulO(float eul[3], const short order, const float mat[4][4]);
 void quat_to_eulO(float eul[3], const short order, const float quat[4]);
 void axis_angle_to_eulO(float eul[3], const short order, const float axis[3], const float angle);
 
-void mat3_normalized_to_compatible_eulO(float eul[3], const float old[3], const short order, const float mat[3][3]);
-void mat4_normalized_to_compatible_eulO(float eul[3], const float old[3], const short order, const float mat[4][4]);
-void mat3_to_compatible_eulO(float eul[3], const float old[3], const short order, const float mat[3][3]);
-void mat4_to_compatible_eulO(float eul[3], const float old[3], const short order, const float mat[4][4]);
-void quat_to_compatible_eulO(float eul[3], const float old[3], const short order, const float quat[4]);
+void mat3_normalized_to_compatible_eulO(float eul[3],
+                                        const float old[3],
+                                        const short order,
+                                        const float mat[3][3]);
+void mat4_normalized_to_compatible_eulO(float eul[3],
+                                        const float old[3],
+                                        const short order,
+                                        const float mat[4][4]);
+void mat3_to_compatible_eulO(float eul[3],
+                             const float old[3],
+                             const short order,
+                             const float mat[3][3]);
+void mat4_to_compatible_eulO(float eul[3],
+                             const float old[3],
+                             const short order,
+                             const float mat[4][4]);
+void quat_to_compatible_eulO(float eul[3],
+                             const float old[3],
+                             const short order,
+                             const float quat[4]);
 
 void rotate_eulO(float eul[3], const short order, char axis, float angle);
 
 /******************************* Dual Quaternions ****************************/
 
 typedef struct DualQuat {
-	float quat[4];
-	float trans[4];
+  float quat[4];
+  float trans[4];
 
-	float scale[4][4];
-	float scale_weight;
+  float scale[4][4];
+  float scale_weight;
 } DualQuat;
 
 void copy_dq_dq(DualQuat *r, const DualQuat *dq);
@@ -224,11 +243,8 @@ float angle_wrap_deg(float angle);
 float angle_compat_rad(float angle, float angle_compat);
 
 bool mat3_from_axis_conversion(
-        int src_forward, int src_up, int dst_forward, int dst_up,
-        float r_mat[3][3]);
-bool mat3_from_axis_conversion_single(
-        int src_axis, int dst_axis,
-        float r_mat[3][3]);
+    int src_forward, int src_up, int dst_forward, int dst_up, float r_mat[3][3]);
+bool mat3_from_axis_conversion_single(int src_axis, int dst_axis, float r_mat[3][3]);
 
 #ifdef __cplusplus
 }

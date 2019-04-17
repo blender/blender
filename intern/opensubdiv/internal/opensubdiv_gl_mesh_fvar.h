@@ -37,10 +37,10 @@ class GLMeshFVarData {
   ~GLMeshFVarData();
 
   void release();
-  void create(const OpenSubdiv::Far::TopologyRefiner* refiner,
-              const OpenSubdiv::Far::PatchTable* patch_table,
+  void create(const OpenSubdiv::Far::TopologyRefiner *refiner,
+              const OpenSubdiv::Far::PatchTable *patch_table,
               int fvar_width,
-              const float* fvar_src_data);
+              const float *fvar_src_data);
 
   unsigned int texture_buffer;
   unsigned int offset_buffer;
@@ -48,9 +48,9 @@ class GLMeshFVarData {
   int fvar_width;
 };
 
-void interpolateFVarData(const OpenSubdiv::Far::TopologyRefiner& refiner,
-                         const vector<float>& uvs,
-                         vector<float>* fvar_data);
+void interpolateFVarData(const OpenSubdiv::Far::TopologyRefiner &refiner,
+                         const vector<float> &uvs,
+                         vector<float> *fvar_data);
 
 }  // namespace opensubdiv_capi
 

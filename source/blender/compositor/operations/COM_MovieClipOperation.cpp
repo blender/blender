@@ -21,106 +21,113 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 extern "C" {
-#  include "BKE_movieclip.h"
-#  include "IMB_imbuf.h"
+#include "BKE_movieclip.h"
+#include "IMB_imbuf.h"
 }
 #include "BKE_image.h"
 
 MovieClipBaseOperation::MovieClipBaseOperation() : NodeOperation()
 {
-	this->m_movieClip = NULL;
-	this->m_movieClipBuffer = NULL;
-	this->m_movieClipUser = NULL;
-	this->m_movieClipwidth = 0;
-	this->m_movieClipheight = 0;
-	this->m_framenumber = 0;
+  this->m_movieClip = NULL;
+  this->m_movieClipBuffer = NULL;
+  this->m_movieClipUser = NULL;
+  this->m_movieClipwidth = 0;
+  this->m_movieClipheight = 0;
+  this->m_framenumber = 0;
 }
-
 
 void MovieClipBaseOperation::initExecution()
 {
-	if (this->m_movieClip) {
-		BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
-		ImBuf *ibuf;
+  if (this->m_movieClip) {
+    BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
+    ImBuf *ibuf;
 
-		if (this->m_cacheFrame)
-			ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
-		else
-			ibuf = BKE_movieclip_get_ibuf_flag(this->m_movieClip, this->m_movieClipUser, this->m_movieClip->flag, MOVIECLIP_CACHE_SKIP);
+    if (this->m_cacheFrame)
+      ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
+    else
+      ibuf = BKE_movieclip_get_ibuf_flag(
+          this->m_movieClip, this->m_movieClipUser, this->m_movieClip->flag, MOVIECLIP_CACHE_SKIP);
 
-		if (ibuf) {
-			this->m_movieClipBuffer = ibuf;
-			if (ibuf->rect_float == NULL || ibuf->userflags & IB_RECT_INVALID) {
-				IMB_float_from_rect(ibuf);
-				ibuf->userflags &= ~IB_RECT_INVALID;
-			}
-		}
-	}
+    if (ibuf) {
+      this->m_movieClipBuffer = ibuf;
+      if (ibuf->rect_float == NULL || ibuf->userflags & IB_RECT_INVALID) {
+        IMB_float_from_rect(ibuf);
+        ibuf->userflags &= ~IB_RECT_INVALID;
+      }
+    }
+  }
 }
 
 void MovieClipBaseOperation::deinitExecution()
 {
-	if (this->m_movieClipBuffer) {
-		IMB_freeImBuf(this->m_movieClipBuffer);
+  if (this->m_movieClipBuffer) {
+    IMB_freeImBuf(this->m_movieClipBuffer);
 
-		this->m_movieClipBuffer = NULL;
-	}
+    this->m_movieClipBuffer = NULL;
+  }
 }
 
-void MovieClipBaseOperation::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
+void MovieClipBaseOperation::determineResolution(unsigned int resolution[2],
+                                                 unsigned int /*preferredResolution*/[2])
 {
-	resolution[0] = 0;
-	resolution[1] = 0;
+  resolution[0] = 0;
+  resolution[1] = 0;
 
-	if (this->m_movieClip) {
-		int width, height;
+  if (this->m_movieClip) {
+    int width, height;
 
-		BKE_movieclip_get_size(this->m_movieClip, this->m_movieClipUser, &width, &height);
+    BKE_movieclip_get_size(this->m_movieClip, this->m_movieClipUser, &width, &height);
 
-		resolution[0] = width;
-		resolution[1] = height;
-	}
+    resolution[0] = width;
+    resolution[1] = height;
+  }
 }
 
-void MovieClipBaseOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MovieClipBaseOperation::executePixelSampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-	ImBuf *ibuf = this->m_movieClipBuffer;
+  ImBuf *ibuf = this->m_movieClipBuffer;
 
-	if (ibuf == NULL) {
-		zero_v4(output);
-	}
-	else if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
-		/* Happens for multilayer exr, i.e. */
-		zero_v4(output);
-	}
-	else {
-		switch (sampler) {
-			case COM_PS_NEAREST:
-				nearest_interpolation_color(ibuf, NULL, output, x, y);
-				break;
-			case COM_PS_BILINEAR:
-				bilinear_interpolation_color(ibuf, NULL, output, x, y);
-				break;
-			case COM_PS_BICUBIC:
-				bicubic_interpolation_color(ibuf, NULL, output, x, y);
-				break;
-		}
-	}
+  if (ibuf == NULL) {
+    zero_v4(output);
+  }
+  else if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+    /* Happens for multilayer exr, i.e. */
+    zero_v4(output);
+  }
+  else {
+    switch (sampler) {
+      case COM_PS_NEAREST:
+        nearest_interpolation_color(ibuf, NULL, output, x, y);
+        break;
+      case COM_PS_BILINEAR:
+        bilinear_interpolation_color(ibuf, NULL, output, x, y);
+        break;
+      case COM_PS_BICUBIC:
+        bicubic_interpolation_color(ibuf, NULL, output, x, y);
+        break;
+    }
+  }
 }
 
 MovieClipOperation::MovieClipOperation() : MovieClipBaseOperation()
 {
-	this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(COM_DT_COLOR);
 }
 
 MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
 {
-	this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(COM_DT_VALUE);
 }
 
-void MovieClipAlphaOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MovieClipAlphaOperation::executePixelSampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-	float result[4];
-	MovieClipBaseOperation::executePixelSampled(result, x, y, sampler);
-	output[0] = result[3];
+  float result[4];
+  MovieClipBaseOperation::executePixelSampled(result, x, y, sampler);
+  output[0] = result[3];
 }

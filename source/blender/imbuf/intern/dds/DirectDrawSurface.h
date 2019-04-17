@@ -18,7 +18,6 @@
  * \ingroup imbdds
  */
 
-
 /*
  * This file is based on a similar file from the NVIDIA texture tools
  * (http://nvidia-texture-tools.googlecode.com/)
@@ -58,136 +57,132 @@
 #include <Image.h>
 
 struct DDSPixelFormat {
-	uint size;
-	uint flags;
-	uint fourcc;
-	uint bitcount;
-	uint rmask;
-	uint gmask;
-	uint bmask;
-	uint amask;
+  uint size;
+  uint flags;
+  uint fourcc;
+  uint bitcount;
+  uint rmask;
+  uint gmask;
+  uint bmask;
+  uint amask;
 };
 
 struct DDSCaps {
-	uint caps1;
-	uint caps2;
-	uint caps3;
-	uint caps4;
+  uint caps1;
+  uint caps2;
+  uint caps3;
+  uint caps4;
 };
 
 /// DDS file header for DX10.
 struct DDSHeader10 {
-	uint dxgiFormat;
-	uint resourceDimension;
-	uint miscFlag;
-	uint arraySize;
-	uint reserved;
+  uint dxgiFormat;
+  uint resourceDimension;
+  uint miscFlag;
+  uint arraySize;
+  uint reserved;
 };
 
 /// DDS file header.
 struct DDSHeader {
-	uint fourcc;
-	uint size;
-	uint flags;
-	uint height;
-	uint width;
-	uint pitch;
-	uint depth;
-	uint mipmapcount;
-	uint reserved[11];
-	DDSPixelFormat pf;
-	DDSCaps caps;
-	uint notused;
-	DDSHeader10 header10;
+  uint fourcc;
+  uint size;
+  uint flags;
+  uint height;
+  uint width;
+  uint pitch;
+  uint depth;
+  uint mipmapcount;
+  uint reserved[11];
+  DDSPixelFormat pf;
+  DDSCaps caps;
+  uint notused;
+  DDSHeader10 header10;
 
+  // Helper methods.
+  DDSHeader();
 
-	// Helper methods.
-	DDSHeader();
+  void setWidth(uint w);
+  void setHeight(uint h);
+  void setDepth(uint d);
+  void setMipmapCount(uint count);
+  void setTexture2D();
+  void setTexture3D();
+  void setTextureCube();
+  void setLinearSize(uint size);
+  void setPitch(uint pitch);
+  void setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
+  void setFormatCode(uint code);
+  void setSwizzleCode(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
+  void setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask);
+  void setDX10Format(uint format);
+  void setNormalFlag(bool b);
+  void setSrgbFlag(bool b);
+  void setHasAlphaFlag(bool b);
+  void setUserVersion(int version);
 
-	void setWidth(uint w);
-	void setHeight(uint h);
-	void setDepth(uint d);
-	void setMipmapCount(uint count);
-	void setTexture2D();
-	void setTexture3D();
-	void setTextureCube();
-	void setLinearSize(uint size);
-	void setPitch(uint pitch);
-	void setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
-	void setFormatCode(uint code);
-	void setSwizzleCode(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
-	void setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask);
-	void setDX10Format(uint format);
-	void setNormalFlag(bool b);
-	void setSrgbFlag(bool b);
-	void setHasAlphaFlag(bool b);
-	void setUserVersion(int version);
+  /*void swapBytes();*/
 
-	/*void swapBytes();*/
-
-	bool hasDX10Header() const;
-	uint signature() const;
-	uint toolVersion() const;
-	uint userVersion() const;
-	bool isNormalMap() const;
-	bool isSrgb() const;
-	bool hasAlpha() const;
-	uint d3d9Format() const;
+  bool hasDX10Header() const;
+  uint signature() const;
+  uint toolVersion() const;
+  uint userVersion() const;
+  bool isNormalMap() const;
+  bool isSrgb() const;
+  bool hasAlpha() const;
+  uint d3d9Format() const;
 };
 
 /// DirectDraw Surface. (DDS)
-class DirectDrawSurface
-{
-public:
-	DirectDrawSurface(unsigned char *mem, uint size);
-	~DirectDrawSurface();
+class DirectDrawSurface {
+ public:
+  DirectDrawSurface(unsigned char *mem, uint size);
+  ~DirectDrawSurface();
 
-	bool isValid() const;
-	bool isSupported() const;
+  bool isValid() const;
+  bool isSupported() const;
 
-	bool hasAlpha() const;
+  bool hasAlpha() const;
 
-	uint mipmapCount() const;
-	uint fourCC() const;
-	uint width() const;
-	uint height() const;
-	uint depth() const;
-	bool isTexture1D() const;
-	bool isTexture2D() const;
-	bool isTexture3D() const;
-	bool isTextureCube() const;
+  uint mipmapCount() const;
+  uint fourCC() const;
+  uint width() const;
+  uint height() const;
+  uint depth() const;
+  bool isTexture1D() const;
+  bool isTexture2D() const;
+  bool isTexture3D() const;
+  bool isTextureCube() const;
 
-	void setNormalFlag(bool b);
-	void setHasAlphaFlag(bool b);
-	void setUserVersion(int version);
+  void setNormalFlag(bool b);
+  void setHasAlphaFlag(bool b);
+  void setUserVersion(int version);
 
-	void mipmap(Image *img, uint f, uint m);
-	void *readData(uint &size);
-	//	void mipmap(FloatImage *img, uint f, uint m);
+  void mipmap(Image *img, uint f, uint m);
+  void *readData(uint &size);
+  //  void mipmap(FloatImage *img, uint f, uint m);
 
-	void printInfo() const;
+  void printInfo() const;
 
-private:
+ private:
+  uint blockSize() const;
+  uint faceSize() const;
+  uint mipmapSize(uint m) const;
 
-	uint blockSize() const;
-	uint faceSize() const;
-	uint mipmapSize(uint m) const;
+  uint offset(uint f, uint m);
 
-	uint offset(uint f, uint m);
+  void readLinearImage(Image *img);
+  void readBlockImage(Image *img);
+  void readBlock(ColorBlock *rgba);
 
-	void readLinearImage(Image * img);
-	void readBlockImage(Image * img);
-	void readBlock(ColorBlock * rgba);
-
-
-private:
-	Stream stream; // memory where DDS file resides
-	DDSHeader header;
+ private:
+  Stream stream;  // memory where DDS file resides
+  DDSHeader header;
 };
 
-void mem_read(Stream & mem, DDSPixelFormat & pf);
-void mem_read(Stream & mem, DDSCaps & caps);
-void mem_read(Stream & mem, DDSHeader & header);
-void mem_read(Stream & mem, DDSHeader10 & header);
+void mem_read(Stream &mem, DDSPixelFormat &pf);
+void mem_read(Stream &mem, DDSCaps &caps);
+void mem_read(Stream &mem, DDSHeader &header);
+void mem_read(Stream &mem, DDSHeader10 &header);
 
-#endif  /* __DIRECTDRAWSURFACE_H__ */
+#endif /* __DIRECTDRAWSURFACE_H__ */

@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class InpaintNode : public Node {
-public:
-	InpaintNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  InpaintNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

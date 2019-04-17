@@ -16,23 +16,21 @@
 
 #include "stdosl.h"
 
-shader node_refraction_bsdf(
-	color Color = 0.8,
-	string distribution = "sharp",
-	float Roughness = 0.2,
-	float IOR = 1.45,
-	normal Normal = N,
-	output closure color BSDF = 0)
+shader node_refraction_bsdf(color Color = 0.8,
+                            string distribution = "sharp",
+                            float Roughness = 0.2,
+                            float IOR = 1.45,
+                            normal Normal = N,
+                            output closure color BSDF = 0)
 {
-	float f = max(IOR, 1e-5);
-	float eta = backfacing() ? 1.0 / f : f;
-	float roughness = Roughness * Roughness;
+  float f = max(IOR, 1e-5);
+  float eta = backfacing() ? 1.0 / f : f;
+  float roughness = Roughness * Roughness;
 
-	if (distribution == "sharp")
-		BSDF = Color * refraction(Normal, eta);
-	else if (distribution == "beckmann")
-		BSDF = Color * microfacet_beckmann_refraction(Normal, roughness, eta);
-	else if (distribution == "GGX")
-		BSDF = Color * microfacet_ggx_refraction(Normal, roughness, eta);
+  if (distribution == "sharp")
+    BSDF = Color * refraction(Normal, eta);
+  else if (distribution == "beckmann")
+    BSDF = Color * microfacet_beckmann_refraction(Normal, roughness, eta);
+  else if (distribution == "GGX")
+    BSDF = Color * microfacet_ggx_refraction(Normal, roughness, eta);
 }
-

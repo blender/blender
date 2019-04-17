@@ -1,4 +1,5 @@
 
-void main() {
-	/* Do nothing */
+void main()
+{
+  /* Do nothing */
 }

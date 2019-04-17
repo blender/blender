@@ -43,125 +43,133 @@
 
 static void initData(GpencilModifierData *md)
 {
-	ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->thickness = 2;
-	gpmd->layername[0] = '\0';
-	gpmd->vgname[0] = '\0';
-	gpmd->curve_thickness = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-	if (gpmd->curve_thickness) {
-		curvemapping_initialize(gpmd->curve_thickness);
-	}
+  ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  gpmd->thickness = 2;
+  gpmd->layername[0] = '\0';
+  gpmd->vgname[0] = '\0';
+  gpmd->curve_thickness = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  if (gpmd->curve_thickness) {
+    curvemapping_initialize(gpmd->curve_thickness);
+  }
 }
 
 static void freeData(GpencilModifierData *md)
 {
-	ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
+  ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 
-	if (gpmd->curve_thickness) {
-		curvemapping_free(gpmd->curve_thickness);
-	}
+  if (gpmd->curve_thickness) {
+    curvemapping_free(gpmd->curve_thickness);
+  }
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	ThickGpencilModifierData *gmd = (ThickGpencilModifierData *)md;
-	ThickGpencilModifierData *tgmd = (ThickGpencilModifierData *)target;
+  ThickGpencilModifierData *gmd = (ThickGpencilModifierData *)md;
+  ThickGpencilModifierData *tgmd = (ThickGpencilModifierData *)target;
 
-	if (tgmd->curve_thickness != NULL) {
-		curvemapping_free(tgmd->curve_thickness);
-		tgmd->curve_thickness = NULL;
-	}
+  if (tgmd->curve_thickness != NULL) {
+    curvemapping_free(tgmd->curve_thickness);
+    tgmd->curve_thickness = NULL;
+  }
 
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 
-	tgmd->curve_thickness = curvemapping_copy(gmd->curve_thickness);
+  tgmd->curve_thickness = curvemapping_copy(gmd->curve_thickness);
 }
 
 /* change stroke thickness */
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *gpl,
+                         bGPDstroke *gps)
 {
-	ThickGpencilModifierData *mmd = (ThickGpencilModifierData *)md;
-	const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  ThickGpencilModifierData *mmd = (ThickGpencilModifierData *)md;
+  const int def_nr = defgroup_name_index(ob, mmd->vgname);
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-	            mmd->flag & GP_THICK_INVERT_LAYER, mmd->flag & GP_THICK_INVERT_PASS,
-	            mmd->flag & GP_THICK_INVERT_LAYERPASS))
-	{
-		return;
-	}
+  if (!is_stroke_affected_by_modifier(ob,
+                                      mmd->layername,
+                                      mmd->pass_index,
+                                      mmd->layer_pass,
+                                      1,
+                                      gpl,
+                                      gps,
+                                      mmd->flag & GP_THICK_INVERT_LAYER,
+                                      mmd->flag & GP_THICK_INVERT_PASS,
+                                      mmd->flag & GP_THICK_INVERT_LAYERPASS)) {
+    return;
+  }
 
-	/* if normalize, set stroke thickness */
-	if (mmd->flag & GP_THICK_NORMALIZE) {
-		gps->thickness = mmd->thickness;
-	}
+  /* if normalize, set stroke thickness */
+  if (mmd->flag & GP_THICK_NORMALIZE) {
+    gps->thickness = mmd->thickness;
+  }
 
-	for (int i = 0; i < gps->totpoints; i++) {
-		bGPDspoint *pt = &gps->points[i];
-		MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
-		float curvef = 1.0f;
-		/* verify vertex group */
-		const float weight = get_modifier_point_weight(dvert, (mmd->flag & GP_THICK_INVERT_VGROUP) != 0, def_nr);
-		if (weight < 0.0f) {
-			continue;
-		}
+  for (int i = 0; i < gps->totpoints; i++) {
+    bGPDspoint *pt = &gps->points[i];
+    MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
+    float curvef = 1.0f;
+    /* verify vertex group */
+    const float weight = get_modifier_point_weight(
+        dvert, (mmd->flag & GP_THICK_INVERT_VGROUP) != 0, def_nr);
+    if (weight < 0.0f) {
+      continue;
+    }
 
-		if (mmd->flag & GP_THICK_NORMALIZE) {
-			pt->pressure = 1.0f;
-		}
-		else {
-			if ((mmd->flag & GP_THICK_CUSTOM_CURVE) && (mmd->curve_thickness)) {
-				/* normalize value to evaluate curve */
-				float value = (float)i / (gps->totpoints - 1);
-				curvef = curvemapping_evaluateF(mmd->curve_thickness, 0, value);
-			}
+    if (mmd->flag & GP_THICK_NORMALIZE) {
+      pt->pressure = 1.0f;
+    }
+    else {
+      if ((mmd->flag & GP_THICK_CUSTOM_CURVE) && (mmd->curve_thickness)) {
+        /* normalize value to evaluate curve */
+        float value = (float)i / (gps->totpoints - 1);
+        curvef = curvemapping_evaluateF(mmd->curve_thickness, 0, value);
+      }
 
-			pt->pressure += mmd->thickness * weight * curvef;
-			CLAMP_MIN(pt->pressure, 0.1f);
-		}
-	}
+      pt->pressure += mmd->thickness * weight * curvef;
+      CLAMP_MIN(pt->pressure, 0.1f);
+    }
+  }
 }
 
-static void bakeModifier(
-        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(struct Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
 {
-	bGPdata *gpd = ob->data;
+  bGPdata *gpd = ob->data;
 
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md, depsgraph, ob, gpl, gps);
-			}
-		}
-	}
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        deformStroke(md, depsgraph, ob, gpl, gps);
+      }
+    }
+  }
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
-	/* name */              "Thickness",
-	/* structName */        "ThickGpencilModifierData",
-	/* structSize */        sizeof(ThickGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Thickness",
+    /* structName */ "ThickGpencilModifierData",
+    /* structSize */ sizeof(ThickGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          freeData,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* initData */ initData,
+    /* freeData */ freeData,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

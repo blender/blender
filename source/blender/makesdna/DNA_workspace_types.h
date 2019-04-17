@@ -31,50 +31,48 @@
 #
 #
 typedef struct bToolRef_Runtime {
-	int cursor;
+  int cursor;
 
-	/** One of these 3 must be defined. */
-	char keymap[64];
-	char gizmo_group[64];
-	char data_block[64];
+  /** One of these 3 must be defined. */
+  char keymap[64];
+  char gizmo_group[64];
+  char data_block[64];
 
-	/** Use to infer primary operator to use when setting accelerator keys. */
-	char op[64];
+  /** Use to infer primary operator to use when setting accelerator keys. */
+  char op[64];
 
-	/** Index when a tool is a member of a group. */
-	int index;
+  /** Index when a tool is a member of a group. */
+  int index;
 } bToolRef_Runtime;
-
 
 /* Stored per mode. */
 typedef struct bToolRef {
-	struct bToolRef *next, *prev;
-	char idname[64];
+  struct bToolRef *next, *prev;
+  char idname[64];
 
-	/** Use to avoid initializing the same tool multiple times. */
-	short tag;
+  /** Use to avoid initializing the same tool multiple times. */
+  short tag;
 
-	/** #bToolKey (spacetype, mode), used in 'WM_api.h' */
-	short space_type;
-	/**
-	 * Value depends ont the 'space_type', object mode for 3D view, image editor has own mode too.
-	 * RNA needs to handle using item function.
-	 */
-	int mode;
+  /** #bToolKey (spacetype, mode), used in 'WM_api.h' */
+  short space_type;
+  /**
+   * Value depends ont the 'space_type', object mode for 3D view, image editor has own mode too.
+   * RNA needs to handle using item function.
+   */
+  int mode;
 
-	/**
-	 * Use for tool options, each group's name must match a tool name:
-	 *
-	 *    {"Tool Name": {"SOME_OT_operator": {...}, ..}, ..}
-	 *
-	 * This is done since different tools may call the same operators with their own options.
-	 */
-	IDProperty *properties;
+  /**
+   * Use for tool options, each group's name must match a tool name:
+   *
+   *    {"Tool Name": {"SOME_OT_operator": {...}, ..}, ..}
+   *
+   * This is done since different tools may call the same operators with their own options.
+   */
+  IDProperty *properties;
 
-	/** Variables needed to operate the tool. */
-	bToolRef_Runtime *runtime;
+  /** Variables needed to operate the tool. */
+  bToolRef_Runtime *runtime;
 } bToolRef;
-
 
 /**
  * \brief Wrapper for bScreen.
@@ -84,59 +82,59 @@ typedef struct bToolRef {
  * So we use this struct to wrap a bScreen pointer with another pair of next/prev pointers.
  */
 typedef struct WorkSpaceLayout {
-	struct WorkSpaceLayout *next, *prev;
+  struct WorkSpaceLayout *next, *prev;
 
-	struct bScreen *screen;
-	/* The name of this layout, we override the RNA name of the screen with this
-	 * (but not ID name itself) */
-	/** MAX_NAME. */
-	char name[64];
+  struct bScreen *screen;
+  /* The name of this layout, we override the RNA name of the screen with this
+   * (but not ID name itself) */
+  /** MAX_NAME. */
+  char name[64];
 } WorkSpaceLayout;
 
 /** Optional tags, which features to use, aligned with #bAddon names by convention. */
 typedef struct wmOwnerID {
-	struct wmOwnerID *next, *prev;
-	/** MAX_NAME. */
-	char name[64];
+  struct wmOwnerID *next, *prev;
+  /** MAX_NAME. */
+  char name[64];
 } wmOwnerID;
 
 typedef struct WorkSpace {
-	ID id;
+  ID id;
 
-	/** WorkSpaceLayout. */
-	ListBase layouts;
-	/* Store for each hook (so for each window) which layout has
-	 * been activated the last time this workspace was visible. */
-	/** WorkSpaceDataRelation. */
-	ListBase hook_layout_relations;
+  /** WorkSpaceLayout. */
+  ListBase layouts;
+  /* Store for each hook (so for each window) which layout has
+   * been activated the last time this workspace was visible. */
+  /** WorkSpaceDataRelation. */
+  ListBase hook_layout_relations;
 
-	/* Feature tagging (use for addons) */
-	/** #wmOwnerID. */
-	ListBase owner_ids;
+  /* Feature tagging (use for addons) */
+  /** #wmOwnerID. */
+  ListBase owner_ids;
 
-	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
+  /* should be: '#ifdef USE_WORKSPACE_TOOL'. */
 
-	/** List of #bToolRef */
-	ListBase tools;
+  /** List of #bToolRef */
+  ListBase tools;
 
-	/**
-	 * BAD DESIGN WARNING:
-	 * This is a workaround for the topbar not knowing which tools spec. */
-	char tools_space_type;
-	/** Type is different for each space-type. */
-	char tools_mode;
-	char _pad[2];
+  /**
+   * BAD DESIGN WARNING:
+   * This is a workaround for the topbar not knowing which tools spec. */
+  char tools_space_type;
+  /** Type is different for each space-type. */
+  char tools_mode;
+  char _pad[2];
 
-	int object_mode;
+  int object_mode;
 
-	/** Enum eWorkSpaceFlags. */
-	int flags;
+  /** Enum eWorkSpaceFlags. */
+  int flags;
 
-	/* Number for workspace tab reordering in the UI. */
-	int order;
+  /* Number for workspace tab reordering in the UI. */
+  int order;
 
-	/* Info text from modal operators (runtime). */
-	char *status_text;
+  /* Info text from modal operators (runtime). */
+  char *status_text;
 } WorkSpace;
 
 /**
@@ -163,13 +161,13 @@ typedef struct WorkSpace {
  * the WorkSpaceDataRelation with the workspace-hook of the window set as parent.
  */
 typedef struct WorkSpaceDataRelation {
-	struct WorkSpaceDataRelation *next, *prev;
+  struct WorkSpaceDataRelation *next, *prev;
 
-	/* the data used to identify the relation
-	 * (e.g. to find screen-layout (= value) from/for a hook) */
-	void *parent;
-	/* The value for this parent-data/workspace relation */
-	void *value;
+  /* the data used to identify the relation
+   * (e.g. to find screen-layout (= value) from/for a hook) */
+  void *parent;
+  /* The value for this parent-data/workspace relation */
+  void *value;
 } WorkSpaceDataRelation;
 
 /**
@@ -177,17 +175,17 @@ typedef struct WorkSpaceDataRelation {
  * It allows us to keep workspace and window data completely separate.
  */
 typedef struct WorkSpaceInstanceHook {
-	WorkSpace *active;
-	struct WorkSpaceLayout *act_layout;
+  WorkSpace *active;
+  struct WorkSpaceLayout *act_layout;
 
-	/* Needed because we can't change workspaces/layouts in running handler loop,
-	 * it would break context. */
-	WorkSpace *temp_workspace_store;
-	struct WorkSpaceLayout *temp_layout_store;
+  /* Needed because we can't change workspaces/layouts in running handler loop,
+   * it would break context. */
+  WorkSpace *temp_workspace_store;
+  struct WorkSpaceLayout *temp_layout_store;
 } WorkSpaceInstanceHook;
 
 typedef enum eWorkSpaceFlags {
-	WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
+  WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
 } eWorkSpaceFlags;
 
 #endif /* __DNA_WORKSPACE_TYPES_H__ */

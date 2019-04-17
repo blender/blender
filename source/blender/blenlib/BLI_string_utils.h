@@ -43,32 +43,45 @@ void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, cons
 void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len);
 
 /* Join strings, return newly allocated string. */
-char *BLI_string_join_arrayN(
-        const char *strings[], uint strings_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-char *BLI_string_join_array_by_sep_charN(
-        char sep, const char *strings[], uint strings_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-char *BLI_string_join_array_by_sep_char_with_tableN(
-        char sep, char *table[], const char *strings[], uint strings_len) ATTR_NONNULL();
+char *BLI_string_join_arrayN(const char *strings[], uint strings_len) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+char *BLI_string_join_array_by_sep_charN(char sep,
+                                         const char *strings[],
+                                         uint strings_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
+                                                    char *table[],
+                                                    const char *strings[],
+                                                    uint strings_len) ATTR_NONNULL();
 /* Take multiple arguments, pass as (array, length). */
 #define BLI_string_joinN(...) \
-	BLI_string_join_arrayN( \
-	((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  BLI_string_join_arrayN(((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define BLI_string_join_by_sep_charN(sep, ...) \
-	BLI_string_join_array_by_sep_charN( \
-	sep, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  BLI_string_join_array_by_sep_charN( \
+      sep, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define BLI_string_join_by_sep_char_with_tableN(sep, table, ...) \
-	BLI_string_join_array_by_sep_char_with_tableN( \
-	sep, table, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+  BLI_string_join_array_by_sep_char_with_tableN( \
+      sep, table, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 
-void BLI_string_flip_side_name(char *r_name, const char *from_name, const bool strip_number, const size_t name_len);
+void BLI_string_flip_side_name(char *r_name,
+                               const char *from_name,
+                               const bool strip_number,
+                               const size_t name_len);
 
-bool BLI_uniquename_cb(
-        UniquenameCheckCallback unique_check, void *arg, const char *defname, char delim, char *name, size_t name_len);
-bool BLI_uniquename(
-        struct ListBase *list, void *vlink, const char *defname, char delim, int name_offs, size_t len);
+bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
+                       void *arg,
+                       const char *defname,
+                       char delim,
+                       char *name,
+                       size_t name_len);
+bool BLI_uniquename(struct ListBase *list,
+                    void *vlink,
+                    const char *defname,
+                    char delim,
+                    int name_offs,
+                    size_t len);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __BLI_STRING_UTILS_H__ */
+#endif /* __BLI_STRING_UTILS_H__ */

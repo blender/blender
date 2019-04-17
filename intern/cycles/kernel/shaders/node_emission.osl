@@ -16,11 +16,7 @@
 
 #include "stdosl.h"
 
-shader node_emission(
-	color Color = 0.8,
-	float Strength = 1.0,
-	output closure color Emission = 0)
+shader node_emission(color Color = 0.8, float Strength = 1.0, output closure color Emission = 0)
 {
-	Emission = (Strength * Color) * emission();
+  Emission = (Strength * Color) * emission();
 }
-

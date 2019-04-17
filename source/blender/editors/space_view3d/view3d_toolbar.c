@@ -37,31 +37,31 @@
 
 #include "ED_screen.h"
 
-#include "view3d_intern.h"  /* own include */
+#include "view3d_intern.h" /* own include */
 
 /* ********** operator to open/close toolshelf region */
 
 static int view3d_toolshelf_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar = view3d_has_tools_region(sa);
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = view3d_has_tools_region(sa);
 
-	if (ar) {
-		ED_region_toggle_hidden(C, ar);
-	}
+  if (ar) {
+    ED_region_toggle_hidden(C, ar);
+  }
 
-	return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 {
-	ot->name = "Toggle Toolbar";
-	ot->description = "Toggles tool shelf display";
-	ot->idname = "VIEW3D_OT_toolshelf";
+  ot->name = "Toggle Toolbar";
+  ot->description = "Toggles tool shelf display";
+  ot->idname = "VIEW3D_OT_toolshelf";
 
-	ot->exec = view3d_toolshelf_toggle_exec;
-	ot->poll = ED_operator_view3d_active;
+  ot->exec = view3d_toolshelf_toggle_exec;
+  ot->poll = ED_operator_view3d_active;
 
-	/* flags */
-	ot->flag = 0;
+  /* flags */
+  ot->flag = 0;
 }

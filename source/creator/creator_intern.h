@@ -32,35 +32,33 @@ struct bContext;
 void main_args_setup(struct bContext *C, struct bArgs *ba);
 void main_args_setup_post(struct bContext *C, struct bArgs *ba);
 
-
 /* creator_signals.c */
 void main_signal_setup(void);
 void main_signal_setup_background(void);
 void main_signal_setup_fpe(void);
 
-#endif  /* WITH_PYTHON_MODULE */
-
+#endif /* WITH_PYTHON_MODULE */
 
 /* Shared data for argument handlers to store state in */
 struct ApplicationState {
-	struct {
-		bool use_crash_handler;
-		bool use_abort_handler;
-	} signal;
+  struct {
+    bool use_crash_handler;
+    bool use_abort_handler;
+  } signal;
 
-	/* we may want to set different exit codes for other kinds of errors */
-	struct {
-		unsigned char python;
-	} exit_code_on_error;
+  /* we may want to set different exit codes for other kinds of errors */
+  struct {
+    unsigned char python;
+  } exit_code_on_error;
 };
-extern struct ApplicationState app_state;  /* creator.c */
+extern struct ApplicationState app_state; /* creator.c */
 
 /* for the callbacks: */
 #ifndef WITH_PYTHON_MODULE
-#define BLEND_VERSION_FMT         "Blender %d.%02d (sub %d)"
-#define BLEND_VERSION_ARG         BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION
+#  define BLEND_VERSION_FMT "Blender %d.%02d (sub %d)"
+#  define BLEND_VERSION_ARG BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION
 /* pass directly to printf */
-#define BLEND_VERSION_STRING_FMT  BLEND_VERSION_FMT "\n", BLEND_VERSION_ARG
+#  define BLEND_VERSION_STRING_FMT BLEND_VERSION_FMT "\n", BLEND_VERSION_ARG
 #endif
 
 #ifdef WITH_BUILDINFO_HEADER
@@ -69,7 +67,7 @@ extern struct ApplicationState app_state;  /* creator.c */
 
 /* from buildinfo.c */
 #ifdef BUILD_DATE
- extern char build_date[];
+extern char build_date[];
 extern char build_time[];
 extern char build_hash[];
 extern unsigned long build_commit_timestamp;
@@ -87,4 +85,4 @@ extern char build_linkflags[];
 extern char build_system[];
 #endif
 
-#endif  /* __CREATOR_INTERN_H__ */
+#endif /* __CREATOR_INTERN_H__ */

@@ -37,11 +37,19 @@ bool PE_hair_poll(struct bContext *C);
 bool PE_poll_view3d(struct bContext *C);
 
 /* rigidbody_object.c */
-bool ED_rigidbody_object_add(struct Main *bmain, struct Scene *scene, struct Object *ob, int type, struct ReportList *reports);
+bool ED_rigidbody_object_add(struct Main *bmain,
+                             struct Scene *scene,
+                             struct Object *ob,
+                             int type,
+                             struct ReportList *reports);
 void ED_rigidbody_object_remove(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* rigidbody_constraint.c */
-bool ED_rigidbody_constraint_add(struct Main *bmain, struct Scene *scene, struct Object *ob, int type, struct ReportList *reports);
+bool ED_rigidbody_constraint_add(struct Main *bmain,
+                                 struct Scene *scene,
+                                 struct Object *ob,
+                                 int type,
+                                 struct ReportList *reports);
 void ED_rigidbody_constraint_remove(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* operators */

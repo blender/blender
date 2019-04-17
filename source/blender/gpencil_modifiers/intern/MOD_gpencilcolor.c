@@ -47,114 +47,117 @@
 
 static void initData(GpencilModifierData *md)
 {
-	ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	ARRAY_SET_ITEMS(gpmd->hsv, 1.0f, 1.0f, 1.0f);
-	gpmd->layername[0] = '\0';
-	gpmd->flag |= GP_COLOR_CREATE_COLORS;
-	gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
+  ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
+  gpmd->pass_index = 0;
+  ARRAY_SET_ITEMS(gpmd->hsv, 1.0f, 1.0f, 1.0f);
+  gpmd->layername[0] = '\0';
+  gpmd->flag |= GP_COLOR_CREATE_COLORS;
+  gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-	BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
 /* color correction strokes */
-static void deformStroke(
-        GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-        Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static void deformStroke(GpencilModifierData *md,
+                         Depsgraph *UNUSED(depsgraph),
+                         Object *ob,
+                         bGPDlayer *gpl,
+                         bGPDstroke *gps)
 {
 
-	ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
-	float hsv[3], factor[3];
+  ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
+  float hsv[3], factor[3];
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-	            mmd->flag & GP_COLOR_INVERT_LAYER, mmd->flag & GP_COLOR_INVERT_PASS,
-	            mmd->flag & GP_COLOR_INVERT_LAYERPASS))
-	{
-		return;
-	}
+  if (!is_stroke_affected_by_modifier(ob,
+                                      mmd->layername,
+                                      mmd->pass_index,
+                                      mmd->layer_pass,
+                                      1,
+                                      gpl,
+                                      gps,
+                                      mmd->flag & GP_COLOR_INVERT_LAYER,
+                                      mmd->flag & GP_COLOR_INVERT_PASS,
+                                      mmd->flag & GP_COLOR_INVERT_LAYERPASS)) {
+    return;
+  }
 
-	copy_v3_v3(factor, mmd->hsv);
-	add_v3_fl(factor, -1.0f);
+  copy_v3_v3(factor, mmd->hsv);
+  add_v3_fl(factor, -1.0f);
 
-	if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
-		rgb_to_hsv_v(gps->runtime.tmp_stroke_rgba, hsv);
-		add_v3_v3(hsv, factor);
-		CLAMP3(hsv, 0.0f, 1.0f);
-		hsv_to_rgb_v(hsv, gps->runtime.tmp_stroke_rgba);
-	}
+  if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
+    rgb_to_hsv_v(gps->runtime.tmp_stroke_rgba, hsv);
+    add_v3_v3(hsv, factor);
+    CLAMP3(hsv, 0.0f, 1.0f);
+    hsv_to_rgb_v(hsv, gps->runtime.tmp_stroke_rgba);
+  }
 
-	if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
-		rgb_to_hsv_v(gps->runtime.tmp_fill_rgba, hsv);
-		add_v3_v3(hsv, factor);
-		CLAMP3(hsv, 0.0f, 1.0f);
-		hsv_to_rgb_v(hsv, gps->runtime.tmp_fill_rgba);
-	}
+  if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
+    rgb_to_hsv_v(gps->runtime.tmp_fill_rgba, hsv);
+    add_v3_v3(hsv, factor);
+    CLAMP3(hsv, 0.0f, 1.0f);
+    hsv_to_rgb_v(hsv, gps->runtime.tmp_fill_rgba);
+  }
 }
 
-static void bakeModifier(
-        Main *bmain, Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
 {
-	ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
-	bGPdata *gpd = ob->data;
+  ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
+  bGPdata *gpd = ob->data;
 
-	GHash *gh_color = BLI_ghash_str_new("GP_Color modifier");
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+  GHash *gh_color = BLI_ghash_str_new("GP_Color modifier");
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
-				Material *mat = give_current_material(ob, gps->mat_nr + 1);
-				if (mat == NULL)
-					continue;
-				MaterialGPencilStyle *gp_style = mat->gp_style;
-				/* skip stroke if it doesn't have color info */
-				if (ELEM(NULL, gp_style))
-					continue;
+        Material *mat = give_current_material(ob, gps->mat_nr + 1);
+        if (mat == NULL)
+          continue;
+        MaterialGPencilStyle *gp_style = mat->gp_style;
+        /* skip stroke if it doesn't have color info */
+        if (ELEM(NULL, gp_style))
+          continue;
 
-				copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
-				copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
+        copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
+        copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
 
-				deformStroke(md, depsgraph, ob, gpl, gps);
+        deformStroke(md, depsgraph, ob, gpl, gps);
 
-				gpencil_apply_modifier_material(
-				        bmain, ob, mat, gh_color, gps,
-				        (bool)(mmd->flag & GP_COLOR_CREATE_COLORS));
-			}
-		}
-	}
-	/* free hash buffers */
-	if (gh_color) {
-		BLI_ghash_free(gh_color, NULL, NULL);
-		gh_color = NULL;
-	}
+        gpencil_apply_modifier_material(
+            bmain, ob, mat, gh_color, gps, (bool)(mmd->flag & GP_COLOR_CREATE_COLORS));
+      }
+    }
+  }
+  /* free hash buffers */
+  if (gh_color) {
+    BLI_ghash_free(gh_color, NULL, NULL);
+    gh_color = NULL;
+  }
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Color = {
-	/* name */              "Hue/Saturation",
-	/* structName */        "ColorGpencilModifierData",
-	/* structSize */        sizeof(ColorGpencilModifierData),
-	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+    /* name */ "Hue/Saturation",
+    /* structName */ "ColorGpencilModifierData",
+    /* structSize */ sizeof(ColorGpencilModifierData),
+    /* type */ eGpencilModifierTypeType_Gpencil,
+    /* flags */ eGpencilModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+    /* copyData */ copyData,
 
-	/* deformStroke */      deformStroke,
-	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+    /* deformStroke */ deformStroke,
+    /* generateStrokes */ NULL,
+    /* bakeModifier */ bakeModifier,
+    /* remapTime */ NULL,
 
-	/* initData */          initData,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
-	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
-	/* getDuplicationFactor */ NULL,
+    /* initData */ initData,
+    /* freeData */ NULL,
+    /* isDisabled */ NULL,
+    /* updateDepsgraph */ NULL,
+    /* dependsOnTime */ NULL,
+    /* foreachObjectLink */ NULL,
+    /* foreachIDLink */ NULL,
+    /* foreachTexLink */ NULL,
+    /* getDuplicationFactor */ NULL,
 };

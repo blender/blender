@@ -35,30 +35,30 @@ typedef struct OpenSubdiv_GLMesh {
   // Subdivision/topology part.
 
   // Returns the GL index buffer containing the patch control vertices.
-  unsigned int (*getPatchIndexBuffer)(struct OpenSubdiv_GLMesh* gl_mesh);
+  unsigned int (*getPatchIndexBuffer)(struct OpenSubdiv_GLMesh *gl_mesh);
 
   // Bind GL buffer which contains vertices (VBO).
   // TODO(sergey): Is this a coarse vertices?
-  void (*bindVertexBuffer)(struct OpenSubdiv_GLMesh* gl_mesh);
+  void (*bindVertexBuffer)(struct OpenSubdiv_GLMesh *gl_mesh);
 
   // Set coarse positions from a continuous array of coordinates.
-  void (*setCoarsePositions)(struct OpenSubdiv_GLMesh* gl_mesh,
-                             const float* positions,
+  void (*setCoarsePositions)(struct OpenSubdiv_GLMesh *gl_mesh,
+                             const float *positions,
                              const int start_vertex,
                              const int num_vertices);
   // TODO(sergey): setCoarsePositionsFromBuffer().
 
   // Refine after coarse positions update.
-  void (*refine)(struct OpenSubdiv_GLMesh* gl_mesh);
+  void (*refine)(struct OpenSubdiv_GLMesh *gl_mesh);
 
   // Synchronize after coarse positions update and refine.
-  void (*synchronize)(struct OpenSubdiv_GLMesh* gl_mesh);
+  void (*synchronize)(struct OpenSubdiv_GLMesh *gl_mesh);
 
   //////////////////////////////////////////////////////////////////////////////
   // Drawing part.
 
   // Prepare mesh for display.
-  void (*prepareDraw)(struct OpenSubdiv_GLMesh* gl_mesh,
+  void (*prepareDraw)(struct OpenSubdiv_GLMesh *gl_mesh,
                       const bool use_osd_glsl,
                       const int active_uv_index);
 
@@ -67,17 +67,17 @@ typedef struct OpenSubdiv_GLMesh {
   // If fill_quads is false, then patches are drawn in wireframe.
   void (*drawPatches)(struct OpenSubdiv_GLMesh *gl_mesh,
                       const bool fill_quads,
-                      const int start_patch, const int num_patches);
+                      const int start_patch,
+                      const int num_patches);
 
   // Internal storage for the use in this module only.
   //
   // Tease: This contains an actual OpenSubdiv's Mesh object.
-  struct OpenSubdiv_GLMeshInternal* internal;
+  struct OpenSubdiv_GLMeshInternal *internal;
 } OpenSubdiv_GLMesh;
 
-OpenSubdiv_GLMesh* openSubdiv_createOsdGLMeshFromTopologyRefiner(
-    struct OpenSubdiv_TopologyRefiner* topology_refiner,
-    eOpenSubdivEvaluator evaluator_type);
+OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
+    struct OpenSubdiv_TopologyRefiner *topology_refiner, eOpenSubdivEvaluator evaluator_type);
 
 void openSubdiv_deleteOsdGLMesh(OpenSubdiv_GLMesh *gl_mesh);
 

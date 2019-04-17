@@ -18,7 +18,6 @@
  * \ingroup memutil
  */
 
-
 #ifndef __MEM_CACHELIMITERC_API_H__
 #define __MEM_CACHELIMITERC_API_H__
 
@@ -33,16 +32,16 @@ typedef struct MEM_CacheLimiter_s MEM_CacheLimiterC;
 typedef struct MEM_CacheLimiterHandle_s MEM_CacheLimiterHandleC;
 
 /* function used to remove data from memory */
-typedef void (*MEM_CacheLimiter_Destruct_Func)(void*);
+typedef void (*MEM_CacheLimiter_Destruct_Func)(void *);
 
 /* function used to measure stored data element size */
-typedef size_t (*MEM_CacheLimiter_DataSize_Func) (void*);
+typedef size_t (*MEM_CacheLimiter_DataSize_Func)(void *);
 
 /* function used to measure priority of item when freeing memory */
-typedef int (*MEM_CacheLimiter_ItemPriority_Func) (void*, int);
+typedef int (*MEM_CacheLimiter_ItemPriority_Func)(void *, int);
 
 /* function to check whether item could be destroyed */
-typedef bool (*MEM_CacheLimiter_ItemDestroyable_Func) (void*);
+typedef bool (*MEM_CacheLimiter_ItemDestroyable_Func)(void *);
 
 #ifndef __MEM_CACHELIMITER_H__
 void MEM_CacheLimiter_set_maximum(size_t m);
@@ -60,7 +59,7 @@ bool MEM_CacheLimiter_is_disabled(void);
  */
 
 MEM_CacheLimiterC *new_MEM_CacheLimiter(MEM_CacheLimiter_Destruct_Func data_destructor,
-                                         MEM_CacheLimiter_DataSize_Func data_size);
+                                        MEM_CacheLimiter_DataSize_Func data_size);
 
 /**
  * Delete MEM_CacheLimiter
@@ -97,7 +96,6 @@ void MEM_CacheLimiter_enforce_limits(MEM_CacheLimiterC *This);
  */
 
 void MEM_CacheLimiter_unmanage(MEM_CacheLimiterHandleC *handle);
-
 
 /**
  * Raise priority of object (put it at the tail of the deletion chain)
@@ -144,8 +142,8 @@ void *MEM_CacheLimiter_get(MEM_CacheLimiterHandleC *handle);
 void MEM_CacheLimiter_ItemPriority_Func_set(MEM_CacheLimiterC *This,
                                             MEM_CacheLimiter_ItemPriority_Func item_priority_func);
 
-void MEM_CacheLimiter_ItemDestroyable_Func_set(MEM_CacheLimiterC *This,
-                                               MEM_CacheLimiter_ItemDestroyable_Func item_destroyable_func);
+void MEM_CacheLimiter_ItemDestroyable_Func_set(
+    MEM_CacheLimiterC *This, MEM_CacheLimiter_ItemDestroyable_Func item_destroyable_func);
 
 size_t MEM_CacheLimiter_get_memory_in_use(MEM_CacheLimiterC *This);
 
@@ -153,5 +151,4 @@ size_t MEM_CacheLimiter_get_memory_in_use(MEM_CacheLimiterC *This);
 }
 #endif
 
-
-#endif // __MEM_CACHELIMITERC_API_H__
+#endif  // __MEM_CACHELIMITERC_API_H__

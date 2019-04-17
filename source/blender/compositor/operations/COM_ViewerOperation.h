@@ -24,55 +24,108 @@
 #include "BKE_global.h"
 
 class ViewerOperation : public NodeOperation {
-private:
-	float *m_outputBuffer;
-	float *m_depthBuffer;
-	Image *m_image;
-	ImageUser *m_imageUser;
-	bool m_active;
-	float m_centerX;
-	float m_centerY;
-	OrderOfChunks m_chunkOrder;
-	bool m_doDepthBuffer;
-	ImBuf *m_ibuf;
-	bool m_useAlphaInput;
-	const RenderData *m_rd;
-	const char *m_viewName;
+ private:
+  float *m_outputBuffer;
+  float *m_depthBuffer;
+  Image *m_image;
+  ImageUser *m_imageUser;
+  bool m_active;
+  float m_centerX;
+  float m_centerY;
+  OrderOfChunks m_chunkOrder;
+  bool m_doDepthBuffer;
+  ImBuf *m_ibuf;
+  bool m_useAlphaInput;
+  const RenderData *m_rd;
+  const char *m_viewName;
 
-	const ColorManagedViewSettings *m_viewSettings;
-	const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *m_viewSettings;
+  const ColorManagedDisplaySettings *m_displaySettings;
 
-	SocketReader *m_imageInput;
-	SocketReader *m_alphaInput;
-	SocketReader *m_depthInput;
+  SocketReader *m_imageInput;
+  SocketReader *m_alphaInput;
+  SocketReader *m_depthInput;
 
-public:
-	ViewerOperation();
-	void initExecution();
-	void deinitExecution();
-	void executeRegion(rcti *rect, unsigned int tileNumber);
-	bool isOutputOperation(bool /*rendering*/) const { if (G.background) return false; return isActiveViewerOutput(); }
-	void setImage(Image *image) { this->m_image = image; }
-	void setImageUser(ImageUser *imageUser) { this->m_imageUser = imageUser; }
-	bool isActiveViewerOutput() const { return this->m_active; }
-	void setActive(bool active) { this->m_active = active; }
-	void setCenterX(float centerX) { this->m_centerX = centerX;}
-	void setCenterY(float centerY) { this->m_centerY = centerY;}
-	void setChunkOrder(OrderOfChunks tileOrder) { this->m_chunkOrder = tileOrder; }
-	float getCenterX() const { return this->m_centerX; }
-	float getCenterY() const { return this->m_centerY; }
-	OrderOfChunks getChunkOrder() const { return this->m_chunkOrder; }
-	CompositorPriority getRenderPriority() const;
-	bool isViewerOperation() const { return true; }
-	void setUseAlphaInput(bool value) { this->m_useAlphaInput = value; }
-	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
-	void setViewName(const char *viewName) { this->m_viewName = viewName; }
+ public:
+  ViewerOperation();
+  void initExecution();
+  void deinitExecution();
+  void executeRegion(rcti *rect, unsigned int tileNumber);
+  bool isOutputOperation(bool /*rendering*/) const
+  {
+    if (G.background)
+      return false;
+    return isActiveViewerOutput();
+  }
+  void setImage(Image *image)
+  {
+    this->m_image = image;
+  }
+  void setImageUser(ImageUser *imageUser)
+  {
+    this->m_imageUser = imageUser;
+  }
+  bool isActiveViewerOutput() const
+  {
+    return this->m_active;
+  }
+  void setActive(bool active)
+  {
+    this->m_active = active;
+  }
+  void setCenterX(float centerX)
+  {
+    this->m_centerX = centerX;
+  }
+  void setCenterY(float centerY)
+  {
+    this->m_centerY = centerY;
+  }
+  void setChunkOrder(OrderOfChunks tileOrder)
+  {
+    this->m_chunkOrder = tileOrder;
+  }
+  float getCenterX() const
+  {
+    return this->m_centerX;
+  }
+  float getCenterY() const
+  {
+    return this->m_centerY;
+  }
+  OrderOfChunks getChunkOrder() const
+  {
+    return this->m_chunkOrder;
+  }
+  CompositorPriority getRenderPriority() const;
+  bool isViewerOperation() const
+  {
+    return true;
+  }
+  void setUseAlphaInput(bool value)
+  {
+    this->m_useAlphaInput = value;
+  }
+  void setRenderData(const RenderData *rd)
+  {
+    this->m_rd = rd;
+  }
+  void setViewName(const char *viewName)
+  {
+    this->m_viewName = viewName;
+  }
 
-	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
-	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }
+  void setViewSettings(const ColorManagedViewSettings *viewSettings)
+  {
+    this->m_viewSettings = viewSettings;
+  }
+  void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
+  {
+    this->m_displaySettings = displaySettings;
+  }
 
-private:
-	void updateImage(rcti *rect);
-	void initImage();
+ private:
+  void updateImage(rcti *rect);
+  void initImage();
 };
 #endif

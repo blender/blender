@@ -23,9 +23,9 @@
 
 namespace Freestyle {
 
-void NodeViewLayer::accept(SceneVisitor& v)
+void NodeViewLayer::accept(SceneVisitor &v)
 {
-	v.visitNodeViewLayer(*this);
+  v.visitNodeViewLayer(*this);
 }
 
 } /* namespace Freestyle */

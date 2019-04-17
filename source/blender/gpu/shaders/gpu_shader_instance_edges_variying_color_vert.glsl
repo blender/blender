@@ -14,7 +14,7 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 
 in vec3 pos;
-in vec3 N1, N2; // normals of faces this edge joins (object coords)
+in vec3 N1, N2;  // normals of faces this edge joins (object coords)
 
 /* Instance attrs */
 in vec3 color;
@@ -28,41 +28,41 @@ out vec3 fCol;
 
 bool front(mat3 NormalMatrix, vec3 N, vec3 eye)
 {
-	return dot(NormalMatrix * N, eye) > 0.0;
+  return dot(NormalMatrix * N, eye) > 0.0;
 }
 
 void main()
 {
-	vec3 eye;
+  vec3 eye;
 
-	mat4 ModelViewMatrix = ViewMatrix * InstanceModelMatrix;
+  mat4 ModelViewMatrix = ViewMatrix * InstanceModelMatrix;
 
-	vec4 pos_4d = vec4(pos, 1.0);
-	MV_pos = ModelViewMatrix * pos_4d;
+  vec4 pos_4d = vec4(pos, 1.0);
+  MV_pos = ModelViewMatrix * pos_4d;
 
-	mat3 NormalMatrix = transpose(inverse(mat3(ModelViewMatrix)));
+  mat3 NormalMatrix = transpose(inverse(mat3(ModelViewMatrix)));
 
-	/* if persp */
-	if (ProjectionMatrix[3][3] == 0.0) {
-		eye = normalize(-MV_pos.xyz);
-	}
-	else {
-		eye = vec3(0.0, 0.0, 1.0);
-	}
+  /* if persp */
+  if (ProjectionMatrix[3][3] == 0.0) {
+    eye = normalize(-MV_pos.xyz);
+  }
+  else {
+    eye = vec3(0.0, 0.0, 1.0);
+  }
 
-	bool face_1_front = front(NormalMatrix, N1, eye);
-	bool face_2_front = front(NormalMatrix, N2, eye);
+  bool face_1_front = front(NormalMatrix, N1, eye);
+  bool face_2_front = front(NormalMatrix, N2, eye);
 
-	if (face_1_front && face_2_front)
-		edgeClass = 1.0; // front-facing edge
-	else if (face_1_front || face_2_front)
-		edgeClass = 0.0; // exactly one face is front-facing, silhouette edge
-	else
-		edgeClass = -1.0; // back-facing edge
+  if (face_1_front && face_2_front)
+    edgeClass = 1.0;  // front-facing edge
+  else if (face_1_front || face_2_front)
+    edgeClass = 0.0;  // exactly one face is front-facing, silhouette edge
+  else
+    edgeClass = -1.0;  // back-facing edge
 
-	fCol = color;
+  fCol = color;
 
 #ifdef USE_WORLD_CLIP_PLANES
-	world_clip_planes_calc_clip_distance((InstanceModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance((InstanceModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
 }

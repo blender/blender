@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class CropNode : public Node {
-public:
-	CropNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  CropNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

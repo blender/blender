@@ -21,44 +21,43 @@
 
 float checker(point ip)
 {
-	point p;
-	p[0] = (ip[0] + 0.000001) * 0.999999;
-	p[1] = (ip[1] + 0.000001) * 0.999999;
-	p[2] = (ip[2] + 0.000001) * 0.999999;
-	
-	int xi = (int)fabs(floor(p[0]));
-	int yi = (int)fabs(floor(p[1]));
-	int zi = (int)fabs(floor(p[2]));
+  point p;
+  p[0] = (ip[0] + 0.000001) * 0.999999;
+  p[1] = (ip[1] + 0.000001) * 0.999999;
+  p[2] = (ip[2] + 0.000001) * 0.999999;
 
-	if ((xi % 2 == yi % 2) == (zi % 2)) {
-		return 1.0;
-	}
-	else {
-		return 0.0;
-	}
+  int xi = (int)fabs(floor(p[0]));
+  int yi = (int)fabs(floor(p[1]));
+  int zi = (int)fabs(floor(p[2]));
+
+  if ((xi % 2 == yi % 2) == (zi % 2)) {
+    return 1.0;
+  }
+  else {
+    return 0.0;
+  }
 }
 
 shader node_checker_texture(
-	int use_mapping = 0,
-	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	float Scale = 5.0,
-	point Vector = P,
-	color Color1 = 0.8,
-	color Color2 = 0.2,
-	output float Fac = 0.0,
-	output color Color = 0.0)
+    int use_mapping = 0,
+    matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    float Scale = 5.0,
+    point Vector = P,
+    color Color1 = 0.8,
+    color Color2 = 0.2,
+    output float Fac = 0.0,
+    output color Color = 0.0)
 {
-	point p = Vector;
+  point p = Vector;
 
-	if (use_mapping)
-		p = transform(mapping, p);
+  if (use_mapping)
+    p = transform(mapping, p);
 
-	Fac = checker(p * Scale);
-	if (Fac == 1.0) {
-		Color = Color1;
-	}
-	else {
-		Color = Color2;
-	}
+  Fac = checker(p * Scale);
+  if (Fac == 1.0) {
+    Color = Color1;
+  }
+  else {
+    Color = Color2;
+  }
 }
-

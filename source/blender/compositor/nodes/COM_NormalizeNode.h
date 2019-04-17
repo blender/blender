@@ -26,9 +26,9 @@
  * \ingroup Node
  */
 class NormalizeNode : public Node {
-public:
-	NormalizeNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  NormalizeNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

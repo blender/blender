@@ -28,98 +28,96 @@
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
-#ifdef __KERNEL_SSE__
+#  ifdef __KERNEL_SSE__
 __forceinline int4::int4()
 {
 }
 
-__forceinline int4::int4(const int4& a)
-        : m128(a.m128)
+__forceinline int4::int4(const int4 &a) : m128(a.m128)
 {
 }
 
-__forceinline int4::int4(const __m128i& a)
-        : m128(a)
+__forceinline int4::int4(const __m128i &a) : m128(a)
 {
 }
 
-__forceinline int4::operator const __m128i&() const
+__forceinline int4::operator const __m128i &() const
 {
-	return m128;
+  return m128;
 }
 
-__forceinline int4::operator __m128i&()
+__forceinline int4::operator __m128i &()
 {
-	return m128;
+  return m128;
 }
 
-__forceinline int4& int4::operator=(const int4& a)
+__forceinline int4 &int4::operator=(const int4 &a)
 {
-	m128 = a.m128;
-	return *this;
+  m128 = a.m128;
+  return *this;
 }
-#endif  /* __KERNEL_SSE__ */
+#  endif /* __KERNEL_SSE__ */
 
 __forceinline int int4::operator[](int i) const
 {
-	util_assert(i >= 0);
-	util_assert(i < 4);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 4);
+  return *(&x + i);
 }
 
-__forceinline int& int4::operator[](int i)
+__forceinline int &int4::operator[](int i)
 {
-	util_assert(i >= 0);
-	util_assert(i < 4);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 4);
+  return *(&x + i);
 }
 
 ccl_device_inline int4 make_int4(int i)
 {
-#ifdef __KERNEL_SSE__
-	int4 a(_mm_set1_epi32(i));
-#else
-	int4 a = {i, i, i, i};
-#endif
-	return a;
+#  ifdef __KERNEL_SSE__
+  int4 a(_mm_set1_epi32(i));
+#  else
+  int4 a = {i, i, i, i};
+#  endif
+  return a;
 }
 
 ccl_device_inline int4 make_int4(int x, int y, int z, int w)
 {
-#ifdef __KERNEL_SSE__
-	int4 a(_mm_set_epi32(w, z, y, x));
-#else
-	int4 a = {x, y, z, w};
-#endif
-	return a;
+#  ifdef __KERNEL_SSE__
+  int4 a(_mm_set_epi32(w, z, y, x));
+#  else
+  int4 a = {x, y, z, w};
+#  endif
+  return a;
 }
 
-ccl_device_inline int4 make_int4(const float3& f)
+ccl_device_inline int4 make_int4(const float3 &f)
 {
-#ifdef __KERNEL_SSE__
-	int4 a(_mm_cvtps_epi32(f.m128));
-#else
-	int4 a = {(int)f.x, (int)f.y, (int)f.z, (int)f.w};
-#endif
-	return a;
+#  ifdef __KERNEL_SSE__
+  int4 a(_mm_cvtps_epi32(f.m128));
+#  else
+  int4 a = {(int)f.x, (int)f.y, (int)f.z, (int)f.w};
+#  endif
+  return a;
 }
 
-ccl_device_inline int4 make_int4(const float4& f)
+ccl_device_inline int4 make_int4(const float4 &f)
 {
-#ifdef __KERNEL_SSE__
-	int4 a(_mm_cvtps_epi32(f.m128));
-#else
-	int4 a = {(int)f.x, (int)f.y, (int)f.z, (int)f.w};
-#endif
-	return a;
+#  ifdef __KERNEL_SSE__
+  int4 a(_mm_cvtps_epi32(f.m128));
+#  else
+  int4 a = {(int)f.x, (int)f.y, (int)f.z, (int)f.w};
+#  endif
+  return a;
 }
 
-ccl_device_inline void print_int4(const char *label, const int4& a)
+ccl_device_inline void print_int4(const char *label, const int4 &a)
 {
-	printf("%s: %d %d %d %d\n", label, a.x, a.y, a.z, a.w);
+  printf("%s: %d %d %d %d\n", label, a.x, a.y, a.z, a.w);
 }
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_INT4_IMPL_H__ */
+#endif /* __UTIL_TYPES_INT4_IMPL_H__ */

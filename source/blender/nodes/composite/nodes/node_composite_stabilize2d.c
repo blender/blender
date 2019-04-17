@@ -28,33 +28,33 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_stabilize2d_in[] = {
-	{	SOCK_RGBA, 1, N_("Image"),			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate cmp_node_stabilize2d_out[] = {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
 };
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-	bNode *node = ptr->data;
-	Scene *scene = CTX_data_scene(C);
+  bNode *node = ptr->data;
+  Scene *scene = CTX_data_scene(C);
 
-	node->id = (ID *)scene->clip;
+  node->id = (ID *)scene->clip;
 
-	/* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
-	node->custom1 = 1;
+  /* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
+  node->custom1 = 1;
 }
 
 void register_node_type_cmp_stabilize2d(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT, 0);
-	node_type_socket_templates(&ntype, cmp_node_stabilize2d_in, cmp_node_stabilize2d_out);
-	ntype.initfunc_api = init;
+  cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT, 0);
+  node_type_socket_templates(&ntype, cmp_node_stabilize2d_in, cmp_node_stabilize2d_out);
+  ntype.initfunc_api = init;
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

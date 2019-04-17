@@ -21,7 +21,6 @@
  * \ingroup eduv
  */
 
-
 #ifndef __UVEDIT_INTERN_H__
 #define __UVEDIT_INTERN_H__
 
@@ -35,50 +34,72 @@ struct SpaceImage;
 struct wmOperatorType;
 
 /* geometric utilities */
-void  uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
-void  uv_poly_center(struct BMFace *f, float r_cent[2], const int cd_loop_uv_offset);
+void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
+void uv_poly_center(struct BMFace *f, float r_cent[2], const int cd_loop_uv_offset);
 
 /* find nearest */
 
 typedef struct UvNearestHit {
-	/** Only for `*_multi(..)` versions of functions. */
-	struct Object *ob;
-	/** Always set if we have a hit. */
-	struct BMFace *efa;
-	struct BMLoop *l;
-	struct MLoopUV *luv, *luv_next;
-	/** Index of loop within face. */
-	int lindex;
-	/** Needs to be set before calling nearest functions. */
-	float dist_sq;
+  /** Only for `*_multi(..)` versions of functions. */
+  struct Object *ob;
+  /** Always set if we have a hit. */
+  struct BMFace *efa;
+  struct BMLoop *l;
+  struct MLoopUV *luv, *luv_next;
+  /** Index of loop within face. */
+  int lindex;
+  /** Needs to be set before calling nearest functions. */
+  float dist_sq;
 } UvNearestHit;
 
-#define UV_NEAREST_HIT_INIT { .dist_sq = FLT_MAX, }
+#define UV_NEAREST_HIT_INIT \
+  { \
+    .dist_sq = FLT_MAX, \
+  }
 
-bool uv_find_nearest_vert(
-        struct Scene *scene, struct Image *ima, struct Object *obedit,
-        const float co[2], const float penalty_dist, struct UvNearestHit *hit_final);
-bool uv_find_nearest_vert_multi(
-        struct Scene *scene, struct Image *ima, struct Object **objects, const uint objects_len,
-        const float co[2], const float penalty_dist, struct UvNearestHit *hit_final);
+bool uv_find_nearest_vert(struct Scene *scene,
+                          struct Image *ima,
+                          struct Object *obedit,
+                          const float co[2],
+                          const float penalty_dist,
+                          struct UvNearestHit *hit_final);
+bool uv_find_nearest_vert_multi(struct Scene *scene,
+                                struct Image *ima,
+                                struct Object **objects,
+                                const uint objects_len,
+                                const float co[2],
+                                const float penalty_dist,
+                                struct UvNearestHit *hit_final);
 
-bool uv_find_nearest_edge(
-        struct Scene *scene, struct Image *ima, struct Object *obedit,
-        const float co[2], struct UvNearestHit *hit_final);
-bool uv_find_nearest_edge_multi(
-        struct Scene *scene, struct Image *ima, struct Object **objects, const uint objects_len,
-        const float co[2], struct UvNearestHit *hit_final);
+bool uv_find_nearest_edge(struct Scene *scene,
+                          struct Image *ima,
+                          struct Object *obedit,
+                          const float co[2],
+                          struct UvNearestHit *hit_final);
+bool uv_find_nearest_edge_multi(struct Scene *scene,
+                                struct Image *ima,
+                                struct Object **objects,
+                                const uint objects_len,
+                                const float co[2],
+                                struct UvNearestHit *hit_final);
 
-bool uv_find_nearest_face(
-        struct Scene *scene, struct Image *ima, struct Object *obedit,
-        const float co[2], struct UvNearestHit *hit_final);
-bool uv_find_nearest_face_multi(
-        struct Scene *scene, struct Image *ima, struct Object **objects, const uint objects_len,
-        const float co[2], struct UvNearestHit *hit_final);
+bool uv_find_nearest_face(struct Scene *scene,
+                          struct Image *ima,
+                          struct Object *obedit,
+                          const float co[2],
+                          struct UvNearestHit *hit_final);
+bool uv_find_nearest_face_multi(struct Scene *scene,
+                                struct Image *ima,
+                                struct Object **objects,
+                                const uint objects_len,
+                                const float co[2],
+                                struct UvNearestHit *hit_final);
 
 /* utility tool functions */
 
-void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit);
+void uvedit_live_unwrap_update(struct SpaceImage *sima,
+                               struct Scene *scene,
+                               struct Object *obedit);
 
 /* operators */
 

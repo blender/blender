@@ -15,18 +15,18 @@
  */
 
 #ifndef __UTIL_STATIC_ASSERT_H__
-#define __UTIL_STATIC_ASSERT_H__
+#  define __UTIL_STATIC_ASSERT_H__
 
 CCL_NAMESPACE_BEGIN
 
 /* TODO(sergey): In theory CUDA might work with own static assert
  * implementation since it's just pure C++.
  */
-#ifdef __KERNEL_GPU__
-#  ifndef static_assert
-#    define static_assert(statement, message)
-#  endif
-#endif  /* __KERNEL_GPU__ */
+#  ifdef __KERNEL_GPU__
+#    ifndef static_assert
+#      define static_assert(statement, message)
+#    endif
+#  endif /* __KERNEL_GPU__ */
 
 /* TODO(sergey): For until C++11 is a bare minimum for us,
  * we do a bit of a trickery to show meaningful message so
@@ -43,8 +43,8 @@ CCL_NAMESPACE_BEGIN
  * name to the error message,
  */
 #  define static_assert_align(st, align) \
-  static_assert((sizeof(st) % (align) == 0), "Structure must be strictly aligned")  // NOLINT
+    static_assert((sizeof(st) % (align) == 0), "Structure must be strictly aligned")  // NOLINT
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_STATIC_ASSERT_H__ */
+#endif /* __UTIL_STATIC_ASSERT_H__ */

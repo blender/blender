@@ -26,25 +26,25 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 int int2::operator[](int i) const
 {
-	util_assert(i >= 0);
-	util_assert(i < 2);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 2);
+  return *(&x + i);
 }
 
-int& int2::operator[](int i)
+int &int2::operator[](int i)
 {
-	util_assert(i >= 0);
-	util_assert(i < 2);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 2);
+  return *(&x + i);
 }
 
 ccl_device_inline int2 make_int2(int x, int y)
 {
-	int2 a = {x, y};
-	return a;
+  int2 a = {x, y};
+  return a;
 }
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_INT2_IMPL_H__ */
+#endif /* __UTIL_TYPES_INT2_IMPL_H__ */

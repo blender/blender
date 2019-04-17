@@ -23,18 +23,19 @@
 
 BilateralBlurNode::BilateralBlurNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void BilateralBlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void BilateralBlurNode::convertToOperations(NodeConverter &converter,
+                                            const CompositorContext &context) const
 {
-	NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->getbNode()->storage;
-	BilateralBlurOperation *operation = new BilateralBlurOperation();
-	operation->setQuality(context.getQuality());
-	operation->setData(data);
+  NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->getbNode()->storage;
+  BilateralBlurOperation *operation = new BilateralBlurOperation();
+  operation->setQuality(context.getQuality());
+  operation->setData(data);
 
-	converter.addOperation(operation);
-	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.addOperation(operation);
+  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

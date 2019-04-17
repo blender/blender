@@ -32,48 +32,47 @@ class Mesh;
 class Patch;
 
 struct SubdParams {
-	Mesh *mesh;
-	bool ptex;
+  Mesh *mesh;
+  bool ptex;
 
-	int test_steps;
-	int split_threshold;
-	float dicing_rate;
-	int max_level;
-	Camera *camera;
-	Transform objecttoworld;
+  int test_steps;
+  int split_threshold;
+  float dicing_rate;
+  int max_level;
+  Camera *camera;
+  Transform objecttoworld;
 
-	SubdParams(Mesh *mesh_, bool ptex_ = false)
-	{
-		mesh = mesh_;
-		ptex = ptex_;
+  SubdParams(Mesh *mesh_, bool ptex_ = false)
+  {
+    mesh = mesh_;
+    ptex = ptex_;
 
-		test_steps = 3;
-		split_threshold = 1;
-		dicing_rate = 1.0f;
-		max_level = 12;
-		camera = NULL;
-	}
-
+    test_steps = 3;
+    split_threshold = 1;
+    dicing_rate = 1.0f;
+    max_level = 12;
+    camera = NULL;
+  }
 };
 
 /* EdgeDice Base */
 
 class EdgeDice {
-public:
-	SubdParams params;
-	float3 *mesh_P;
-	float3 *mesh_N;
-	size_t vert_offset;
-	size_t tri_offset;
+ public:
+  SubdParams params;
+  float3 *mesh_P;
+  float3 *mesh_N;
+  size_t vert_offset;
+  size_t tri_offset;
 
-	explicit EdgeDice(const SubdParams& params);
+  explicit EdgeDice(const SubdParams &params);
 
-	void reserve(int num_verts);
+  void reserve(int num_verts);
 
-	int add_vert(Patch *patch, float2 uv);
-	void add_triangle(Patch *patch, int v0, int v1, int v2);
+  int add_vert(Patch *patch, float2 uv);
+  void add_triangle(Patch *patch, int v0, int v1, int v2);
 
-	void stitch_triangles(Patch *patch, vector<int>& outer, vector<int>& inner);
+  void stitch_triangles(Patch *patch, vector<int> &outer, vector<int> &inner);
 };
 
 /* Quad EdgeDice
@@ -90,48 +89,58 @@ public:
  */
 
 class QuadDice : public EdgeDice {
-public:
-	struct SubPatch {
-		Patch *patch;
+ public:
+  struct SubPatch {
+    Patch *patch;
 
-		float2 P00;
-		float2 P10;
-		float2 P01;
-		float2 P11;
-	};
+    float2 P00;
+    float2 P10;
+    float2 P01;
+    float2 P11;
+  };
 
-	struct EdgeFactors {
-		int tu0;
-		int tu1;
-		int tv0;
-		int tv1;
-	};
+  struct EdgeFactors {
+    int tu0;
+    int tu1;
+    int tv0;
+    int tv1;
+  };
 
-	explicit QuadDice(const SubdParams& params);
+  explicit QuadDice(const SubdParams &params);
 
-	void reserve(EdgeFactors& ef, int Mu, int Mv);
-	float3 eval_projected(SubPatch& sub, float u, float v);
+  void reserve(EdgeFactors &ef, int Mu, int Mv);
+  float3 eval_projected(SubPatch &sub, float u, float v);
 
-	float2 map_uv(SubPatch& sub, float u, float v);
-	int add_vert(SubPatch& sub, float u, float v);
+  float2 map_uv(SubPatch &sub, float u, float v);
+  int add_vert(SubPatch &sub, float u, float v);
 
-	void add_corners(SubPatch& sub);
-	void add_grid(SubPatch& sub, int Mu, int Mv, int offset);
+  void add_corners(SubPatch &sub);
+  void add_grid(SubPatch &sub, int Mu, int Mv, int offset);
 
-	void add_side_u(SubPatch& sub,
-		vector<int>& outer, vector<int>& inner,
-		int Mu, int Mv, int tu, int side, int offset);
+  void add_side_u(SubPatch &sub,
+                  vector<int> &outer,
+                  vector<int> &inner,
+                  int Mu,
+                  int Mv,
+                  int tu,
+                  int side,
+                  int offset);
 
-	void add_side_v(SubPatch& sub,
-		vector<int>& outer, vector<int>& inner,
-		int Mu, int Mv, int tv, int side, int offset);
+  void add_side_v(SubPatch &sub,
+                  vector<int> &outer,
+                  vector<int> &inner,
+                  int Mu,
+                  int Mv,
+                  int tv,
+                  int side,
+                  int offset);
 
-	float quad_area(const float3& a, const float3& b, const float3& c, const float3& d);
-	float scale_factor(SubPatch& sub, EdgeFactors& ef, int Mu, int Mv);
+  float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
+  float scale_factor(SubPatch &sub, EdgeFactors &ef, int Mu, int Mv);
 
-	void dice(SubPatch& sub, EdgeFactors& ef);
+  void dice(SubPatch &sub, EdgeFactors &ef);
 };
 
 CCL_NAMESPACE_END
 
-#endif  /* __SUBD_DICE_H__ */
+#endif /* __SUBD_DICE_H__ */

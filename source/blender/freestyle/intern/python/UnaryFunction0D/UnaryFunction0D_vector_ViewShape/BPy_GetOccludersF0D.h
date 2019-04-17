@@ -31,13 +31,13 @@ extern "C" {
 
 extern PyTypeObject GetOccludersF0D_Type;
 
-#define BPy_GetOccludersF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetOccludersF0D_Type))
+#define BPy_GetOccludersF0D_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetOccludersF0D_Type))
 
 /*---------------------------Python BPy_GetOccludersF0D structure definition----------*/
 typedef struct {
-	BPy_UnaryFunction0DVectorViewShape py_uf0D_vectorviewshape;
+  BPy_UnaryFunction0DVectorViewShape py_uf0D_vectorviewshape;
 } BPy_GetOccludersF0D;
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

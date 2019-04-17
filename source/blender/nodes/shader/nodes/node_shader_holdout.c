@@ -22,24 +22,23 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_holdout_in[] = {
-	{	-1, 0, ""	},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate sh_node_holdout_out[] = {
-	{	SOCK_SHADER, 0, N_("Holdout")},
-	{	-1, 0, ""	},
+    {SOCK_SHADER, 0, N_("Holdout")},
+    {-1, 0, ""},
 };
-
 
 /* node type definition */
 void register_node_type_sh_holdout(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER, 0);
-	node_type_socket_templates(&ntype, sh_node_holdout_in, sh_node_holdout_out);
-	node_type_init(&ntype, NULL);
-	node_type_storage(&ntype, "", NULL, NULL);
+  sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER, 0);
+  node_type_socket_templates(&ntype, sh_node_holdout_in, sh_node_holdout_out);
+  node_type_init(&ntype, NULL);
+  node_type_storage(&ntype, "", NULL, NULL);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

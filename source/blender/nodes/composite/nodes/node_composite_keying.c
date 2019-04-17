@@ -32,46 +32,47 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_keying_in[] = {
-	{	SOCK_RGBA,  1, "Image",	        0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA,  1, "Key Color",     1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Garbage Matte", 0.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Core Matte",    0.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 1, "Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_FLOAT, 1, "Garbage Matte", 0.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_FLOAT, 1, "Core Matte", 0.0f, 1.0f, 1.0f, 1.0f},
+    {-1, 0, ""},
 };
 
 static bNodeSocketTemplate cmp_node_keying_out[] = {
-	{	SOCK_RGBA,  0, "Image"},
-	{	SOCK_FLOAT, 0, "Matte"},
-	{	SOCK_FLOAT, 0, "Edges"},
-	{	-1, 0, ""	},
+    {SOCK_RGBA, 0, "Image"},
+    {SOCK_FLOAT, 0, "Matte"},
+    {SOCK_FLOAT, 0, "Edges"},
+    {-1, 0, ""},
 };
 
 static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	NodeKeyingData *data;
+  NodeKeyingData *data;
 
-	data = MEM_callocN(sizeof(NodeKeyingData), "node keying data");
+  data = MEM_callocN(sizeof(NodeKeyingData), "node keying data");
 
-	data->screen_balance = 0.5f;
-	data->despill_balance = 0.5f;
-	data->despill_factor = 1.0f;
-	data->edge_kernel_radius = 3;
-	data->edge_kernel_tolerance = 0.1f;
-	data->clip_white = 1.0f;
-	data->clip_black = 0.0f;
-	data->clip_white = 1.0f;
+  data->screen_balance = 0.5f;
+  data->despill_balance = 0.5f;
+  data->despill_factor = 1.0f;
+  data->edge_kernel_radius = 3;
+  data->edge_kernel_tolerance = 0.1f;
+  data->clip_white = 1.0f;
+  data->clip_black = 0.0f;
+  data->clip_white = 1.0f;
 
-	node->storage = data;
+  node->storage = data;
 }
 
 void register_node_type_cmp_keying(void)
 {
-	static bNodeType ntype;
+  static bNodeType ntype;
 
-	cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE, 0);
-	node_type_socket_templates(&ntype, cmp_node_keying_in, cmp_node_keying_out);
-	node_type_init(&ntype, node_composit_init_keying);
-	node_type_storage(&ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
+  cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE, 0);
+  node_type_socket_templates(&ntype, cmp_node_keying_in, cmp_node_keying_out);
+  node_type_init(&ntype, node_composit_init_keying);
+  node_type_storage(
+      &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
 
-	nodeRegisterType(&ntype);
+  nodeRegisterType(&ntype);
 }

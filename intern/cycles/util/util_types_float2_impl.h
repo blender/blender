@@ -30,30 +30,30 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 __forceinline float float2::operator[](int i) const
 {
-	util_assert(i >= 0);
-	util_assert(i < 2);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 2);
+  return *(&x + i);
 }
 
-__forceinline float& float2::operator[](int i)
+__forceinline float &float2::operator[](int i)
 {
-	util_assert(i >= 0);
-	util_assert(i < 2);
-	return *(&x + i);
+  util_assert(i >= 0);
+  util_assert(i < 2);
+  return *(&x + i);
 }
 
 ccl_device_inline float2 make_float2(float x, float y)
 {
-	float2 a = {x, y};
-	return a;
+  float2 a = {x, y};
+  return a;
 }
 
-ccl_device_inline void print_float2(const char *label, const float2& a)
+ccl_device_inline void print_float2(const char *label, const float2 &a)
 {
-	printf("%s: %.8f %.8f\n", label, (double)a.x, (double)a.y);
+  printf("%s: %.8f %.8f\n", label, (double)a.x, (double)a.y);
 }
-#endif  /* __KERNEL_GPU__ */
+#endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_TYPES_FLOAT2_IMPL_H__ */
+#endif /* __UTIL_TYPES_FLOAT2_IMPL_H__ */

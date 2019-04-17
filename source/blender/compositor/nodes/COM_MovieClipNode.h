@@ -27,9 +27,9 @@
  * \ingroup Node
  */
 class MovieClipNode : public Node {
-public:
-	MovieClipNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  MovieClipNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
-#endif  /* __COM_MOVIECLIPNODE_H__ */
+#endif /* __COM_MOVIECLIPNODE_H__ */

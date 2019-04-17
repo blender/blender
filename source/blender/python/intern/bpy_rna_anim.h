@@ -31,4 +31,4 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args);
 PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args);
 
-#endif  /* __BPY_RNA_ANIM_H__ */
+#endif /* __BPY_RNA_ANIM_H__ */

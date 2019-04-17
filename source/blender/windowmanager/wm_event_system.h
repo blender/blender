@@ -25,10 +25,10 @@
 #define __WM_EVENT_SYSTEM_H__
 
 /* return value of handler-operator call */
-#define WM_HANDLER_CONTINUE  0
-#define WM_HANDLER_BREAK     1
-#define WM_HANDLER_HANDLED   2
-#define WM_HANDLER_MODAL     4 /* MODAL|BREAK means unhandled */
+#define WM_HANDLER_CONTINUE 0
+#define WM_HANDLER_BREAK 1
+#define WM_HANDLER_HANDLED 2
+#define WM_HANDLER_MODAL 4 /* MODAL|BREAK means unhandled */
 
 struct ARegion;
 struct ScrArea;
@@ -37,119 +37,120 @@ struct ScrArea;
 
 /** Custom types for handlers, for signaling, freeing */
 enum eWM_EventHandlerType {
-	WM_HANDLER_TYPE_GIZMO = 1,
-	WM_HANDLER_TYPE_UI,
-	WM_HANDLER_TYPE_OP,
-	WM_HANDLER_TYPE_DROPBOX,
-	WM_HANDLER_TYPE_KEYMAP,
+  WM_HANDLER_TYPE_GIZMO = 1,
+  WM_HANDLER_TYPE_UI,
+  WM_HANDLER_TYPE_OP,
+  WM_HANDLER_TYPE_DROPBOX,
+  WM_HANDLER_TYPE_KEYMAP,
 };
 
 typedef struct wmEventHandler {
-	struct wmEventHandler *next, *prev;
+  struct wmEventHandler *next, *prev;
 
-	enum eWM_EventHandlerType type;
-	char flag;                          /* WM_HANDLER_BLOCKING, ... */
+  enum eWM_EventHandlerType type;
+  char flag; /* WM_HANDLER_BLOCKING, ... */
 
-	/** Optional local and windowspace bb. */
-	const rcti *bblocal, *bbwin;
+  /** Optional local and windowspace bb. */
+  const rcti *bblocal, *bbwin;
 } wmEventHandler;
 
 /** Run after the keymap item runs. */
 struct wmEventHandler_KeymapPost {
-	void (*post_fn)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);
-	void  *user_data;
+  void (*post_fn)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);
+  void *user_data;
 };
 
 /** Support for a getter function that looks up the keymap each access. */
 struct wmEventHandler_KeymapDynamic {
-	wmEventHandler_KeymapDynamicFn *keymap_fn;
-	void *user_data;
+  wmEventHandler_KeymapDynamicFn *keymap_fn;
+  void *user_data;
 };
 
 /** #WM_HANDLER_TYPE_KEYMAP */
 typedef struct wmEventHandler_Keymap {
-	wmEventHandler head;
+  wmEventHandler head;
 
-	/** Pointer to builtin/custom keymaps (never NULL). */
-	wmKeyMap *keymap;
+  /** Pointer to builtin/custom keymaps (never NULL). */
+  wmKeyMap *keymap;
 
-	struct wmEventHandler_KeymapPost post;
-	struct wmEventHandler_KeymapDynamic dynamic;
+  struct wmEventHandler_KeymapPost post;
+  struct wmEventHandler_KeymapDynamic dynamic;
 
-	struct bToolRef *keymap_tool;
+  struct bToolRef *keymap_tool;
 } wmEventHandler_Keymap;
 
 /** #WM_HANDLER_TYPE_GIZMO */
 typedef struct wmEventHandler_Gizmo {
-	wmEventHandler head;
+  wmEventHandler head;
 
-	/** Gizmo handler (never NULL). */
-	struct wmGizmoMap *gizmo_map;
+  /** Gizmo handler (never NULL). */
+  struct wmGizmoMap *gizmo_map;
 } wmEventHandler_Gizmo;
 
 /** #WM_HANDLER_TYPE_UI */
 typedef struct wmEventHandler_UI {
-	wmEventHandler head;
+  wmEventHandler head;
 
-	wmUIHandlerFunc handle_fn;          /* callback receiving events */
-	wmUIHandlerRemoveFunc remove_fn;    /* callback when handler is removed */
-	void *user_data;                  /* user data pointer */
+  wmUIHandlerFunc handle_fn;       /* callback receiving events */
+  wmUIHandlerRemoveFunc remove_fn; /* callback when handler is removed */
+  void *user_data;                 /* user data pointer */
 
-	/** Store context for this handler for derived/modal handlers. */
-	struct {
-		struct ScrArea *area;
-		struct ARegion *region;
-		struct ARegion *menu;
-	} context;
+  /** Store context for this handler for derived/modal handlers. */
+  struct {
+    struct ScrArea *area;
+    struct ARegion *region;
+    struct ARegion *menu;
+  } context;
 } wmEventHandler_UI;
 
 /** #WM_HANDLER_TYPE_OP */
 typedef struct wmEventHandler_Op {
-	wmEventHandler head;
+  wmEventHandler head;
 
-	/** Operator can be NULL. */
-	wmOperator *op;
+  /** Operator can be NULL. */
+  wmOperator *op;
 
-	/** Hack, special case for file-select. */
-	bool is_fileselect;
+  /** Hack, special case for file-select. */
+  bool is_fileselect;
 
-	/** Store context for this handler for derived/modal handlers. */
-	struct {
-		struct ScrArea *area;
-		struct ARegion *region;
-		short           region_type;
-	} context;
+  /** Store context for this handler for derived/modal handlers. */
+  struct {
+    struct ScrArea *area;
+    struct ARegion *region;
+    short region_type;
+  } context;
 } wmEventHandler_Op;
 
 /** #WM_HANDLER_TYPE_DROPBOX */
 typedef struct wmEventHandler_Dropbox {
-	wmEventHandler head;
+  wmEventHandler head;
 
-	/** Never NULL. */
-	ListBase *dropboxes;
+  /** Never NULL. */
+  ListBase *dropboxes;
 } wmEventHandler_Dropbox;
 
 /* wm_event_system.c */
-void        wm_event_free_all       (wmWindow *win);
-void        wm_event_free           (wmEvent *event);
-void        wm_event_free_handler   (wmEventHandler *handler);
+void wm_event_free_all(wmWindow *win);
+void wm_event_free(wmEvent *event);
+void wm_event_free_handler(wmEventHandler *handler);
 
-            /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
-void        wm_event_do_handlers    (bContext *C);
+/* goes over entire hierarchy:  events -> window -> screen -> area -> region */
+void wm_event_do_handlers(bContext *C);
 
-void        wm_event_add_ghostevent (wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata);
+void wm_event_add_ghostevent(
+    wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata);
 
-void        wm_event_do_depsgraph(bContext *C);
-void        wm_event_do_refresh_wm_and_depsgraph(bContext *C);
-void        wm_event_do_notifiers(bContext *C);
+void wm_event_do_depsgraph(bContext *C);
+void wm_event_do_refresh_wm_and_depsgraph(bContext *C);
+void wm_event_do_notifiers(bContext *C);
 
-float       wm_pressure_curve(float raw_pressure);
+float wm_pressure_curve(float raw_pressure);
 
 /* wm_keymap.c */
 
 /* wm_dropbox.c */
-void        wm_dropbox_free(void);
-void        wm_drags_check_ops(bContext *C, const wmEvent *event);
-void        wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
+void wm_dropbox_free(void);
+void wm_drags_check_ops(bContext *C, const wmEvent *event);
+void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
 
 #endif /* __WM_EVENT_SYSTEM_H__ */

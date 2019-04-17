@@ -16,7 +16,6 @@
  * Copyright 2011, Blender Foundation.
  */
 
-
 #ifndef __COM_RENDERLAYERSPROG_H__
 #define __COM_RENDERLAYERSPROG_H__
 
@@ -25,8 +24,8 @@
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 extern "C" {
-#  include "RE_pipeline.h"
-#  include "MEM_guardedalloc.h"
+#include "RE_pipeline.h"
+#include "MEM_guardedalloc.h"
 }
 
 /**
@@ -35,91 +34,122 @@ extern "C" {
  * \todo: rename to operation.
  */
 class RenderLayersProg : public NodeOperation {
-protected:
-	/**
-	 * Reference to the scene object.
-	 */
-	Scene *m_scene;
+ protected:
+  /**
+   * Reference to the scene object.
+   */
+  Scene *m_scene;
 
-	/**
-	 * layerId of the layer where this operation needs to get its data from
-	 */
-	short m_layerId;
+  /**
+   * layerId of the layer where this operation needs to get its data from
+   */
+  short m_layerId;
 
-	/**
-	 * viewName of the view to use (unless another view is specified by the node
-	 */
-	const char *m_viewName;
+  /**
+   * viewName of the view to use (unless another view is specified by the node
+   */
+  const char *m_viewName;
 
-	/**
-	 * cached instance to the float buffer inside the layer
-	 */
-	float *m_inputBuffer;
+  /**
+   * cached instance to the float buffer inside the layer
+   */
+  float *m_inputBuffer;
 
-	/**
-	 * renderpass where this operation needs to get its data from
-	 */
-	std::string m_passName;
+  /**
+   * renderpass where this operation needs to get its data from
+   */
+  std::string m_passName;
 
-	int m_elementsize;
+  int m_elementsize;
 
-	/**
-	 * \brief render data used for active rendering
-	 */
-	const RenderData *m_rd;
+  /**
+   * \brief render data used for active rendering
+   */
+  const RenderData *m_rd;
 
-	/**
-	 * Determine the output resolution. The resolution is retrieved from the Renderer
-	 */
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  /**
+   * Determine the output resolution. The resolution is retrieved from the Renderer
+   */
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
-	/**
-	 * retrieve the reference to the float buffer of the renderer.
-	 */
-	inline float *getInputBuffer() { return this->m_inputBuffer; }
+  /**
+   * retrieve the reference to the float buffer of the renderer.
+   */
+  inline float *getInputBuffer()
+  {
+    return this->m_inputBuffer;
+  }
 
-	void doInterpolation(float output[4], float x, float y, PixelSampler sampler);
-public:
-	/**
-	 * Constructor
-	 */
-	RenderLayersProg(const char *passName, DataType type, int elementsize);
-	/**
-	 * setter for the scene field. Will be called from
-	 * \see RenderLayerNode to set the actual scene where
-	 * the data will be retrieved from.
-	 */
-	void setScene(Scene *scene) { this->m_scene = scene; }
-	Scene *getScene() { return this->m_scene; }
-	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
-	void setLayerId(short layerId) { this->m_layerId = layerId; }
-	short getLayerId() { return this->m_layerId; }
-	void setViewName(const char *viewName) { this->m_viewName = viewName; }
-	const char *getViewName() { return this->m_viewName; }
-	void initExecution();
-	void deinitExecution();
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void doInterpolation(float output[4], float x, float y, PixelSampler sampler);
+
+ public:
+  /**
+   * Constructor
+   */
+  RenderLayersProg(const char *passName, DataType type, int elementsize);
+  /**
+   * setter for the scene field. Will be called from
+   * \see RenderLayerNode to set the actual scene where
+   * the data will be retrieved from.
+   */
+  void setScene(Scene *scene)
+  {
+    this->m_scene = scene;
+  }
+  Scene *getScene()
+  {
+    return this->m_scene;
+  }
+  void setRenderData(const RenderData *rd)
+  {
+    this->m_rd = rd;
+  }
+  void setLayerId(short layerId)
+  {
+    this->m_layerId = layerId;
+  }
+  short getLayerId()
+  {
+    return this->m_layerId;
+  }
+  void setViewName(const char *viewName)
+  {
+    this->m_viewName = viewName;
+  }
+  const char *getViewName()
+  {
+    return this->m_viewName;
+  }
+  void initExecution();
+  void deinitExecution();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersAOOperation : public RenderLayersProg {
-public:
-	RenderLayersAOOperation(const char *passName, DataType type, int elementsize)
-	 : RenderLayersProg(passName, type, elementsize) {}
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  RenderLayersAOOperation(const char *passName, DataType type, int elementsize)
+      : RenderLayersProg(passName, type, elementsize)
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersAlphaProg : public RenderLayersProg {
-public:
-	RenderLayersAlphaProg(const char *passName, DataType type, int elementsize)
-	 : RenderLayersProg(passName, type, elementsize) {}
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  RenderLayersAlphaProg(const char *passName, DataType type, int elementsize)
+      : RenderLayersProg(passName, type, elementsize)
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersDepthProg : public RenderLayersProg {
-public:
-	RenderLayersDepthProg(const char *passName, DataType type, int elementsize)
-	 : RenderLayersProg(passName, type, elementsize) {}
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+ public:
+  RenderLayersDepthProg(const char *passName, DataType type, int elementsize)
+      : RenderLayersProg(passName, type, elementsize)
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

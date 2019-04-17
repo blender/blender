@@ -41,7 +41,7 @@ extern PyTypeObject Nature_Type;
 
 /*---------------------------Python BPy_Nature structure definition----------*/
 typedef struct {
-	PyLongObject i;
+  PyLongObject i;
 } BPy_Nature;
 
 /*---------------------------Python BPy_Nature visible prototypes-----------*/

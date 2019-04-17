@@ -16,12 +16,7 @@
 
 #include "stdosl.h"
 
-shader node_combine_xyz(
-	float X = 0.0,
-	float Y = 0.0,
-	float Z = 0.0,
-	output vector Vector = 0.8)
+shader node_combine_xyz(float X = 0.0, float Y = 0.0, float Z = 0.0, output vector Vector = 0.8)
 {
-	Vector = vector(X, Y, Z);
+  Vector = vector(X, Y, Z);
 }
-

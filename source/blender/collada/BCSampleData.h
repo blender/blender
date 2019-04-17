@@ -24,8 +24,7 @@
 #include <map>
 #include <algorithm>
 
-extern "C"
-{
+extern "C" {
 #include "BKE_object.h"
 #include "BLI_math_rotation.h"
 #include "DNA_object_types.h"
@@ -39,54 +38,52 @@ typedef float(Matrix)[4][4];
 
 class BCMatrix {
 
-private:
-	mutable float matrix[4][4];
-	mutable float size[3];
-	mutable float rot[3];
-	mutable float loc[3];
-	mutable float q[4];
+ private:
+  mutable float matrix[4][4];
+  mutable float size[3];
+  mutable float rot[3];
+  mutable float loc[3];
+  mutable float q[4];
 
-	void unit();
-	void copy(Matrix &r, Matrix &a);
-	void set_transform(Object *ob);
-	void set_transform(Matrix &mat);
+  void unit();
+  void copy(Matrix &r, Matrix &a);
+  void set_transform(Object *ob);
+  void set_transform(Matrix &mat);
 
-public:
+ public:
+  float (&location() const)[3];
+  float (&rotation() const)[3];
+  float (&scale() const)[3];
+  float (&quat() const)[4];
 
-	float(&location() const)[3];
-	float(&rotation() const)[3];
-	float(&scale() const)[3];
-	float(&quat() const)[4];
+  BCMatrix(Matrix &mat);
+  BCMatrix(Object *ob);
 
-	BCMatrix(Matrix &mat);
-	BCMatrix(Object *ob);
+  void get_matrix(double (&mat)[4][4],
+                  const bool transposed = false,
+                  const int precision = -1) const;
 
-	void get_matrix(double(&mat)[4][4], const bool transposed = false, const int precision = -1) const;
-
-	const bool in_range(const BCMatrix &other, float distance) const;
-	static void sanitize(Matrix &matrix, int precision);
-	static void transpose(Matrix &matrix);
-
+  const bool in_range(const BCMatrix &other, float distance) const;
+  static void sanitize(Matrix &matrix, int precision);
+  static void transpose(Matrix &matrix);
 };
 
 typedef std::map<Bone *, BCMatrix *> BCBoneMatrixMap;
 
-class BCSample{
-private:
+class BCSample {
+ private:
+  BCMatrix obmat;
+  BCBoneMatrixMap bonemats; /* For Armature animation */
 
-	BCMatrix obmat;
-	BCBoneMatrixMap bonemats; /* For Armature animation */
+ public:
+  BCSample(Object *ob);
+  ~BCSample();
 
-public:
-	BCSample(Object *ob);
-	~BCSample();
+  void add_bone_matrix(Bone *bone, Matrix &mat);
 
-	void add_bone_matrix(Bone *bone, Matrix &mat);
-
-	const bool get_value(std::string channel_target, const int array_index, float *val) const;
-	const BCMatrix &get_matrix() const;
-	const BCMatrix *get_matrix(Bone *bone) const; // returns NULL if bone is not animated
-
+  const bool get_value(std::string channel_target, const int array_index, float *val) const;
+  const BCMatrix &get_matrix() const;
+  const BCMatrix *get_matrix(Bone *bone) const;  // returns NULL if bone is not animated
 };
 
 typedef std::map<Object *, BCSample *> BCSampleMap;

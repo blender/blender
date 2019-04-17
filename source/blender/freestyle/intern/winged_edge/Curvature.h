@@ -42,7 +42,7 @@
 #include "../system/Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 namespace Freestyle {
@@ -51,75 +51,75 @@ using namespace Geometry;
 
 class WVertex;
 
-class CurvatureInfo
-{
-public:
-	CurvatureInfo()
-	{
-		K1 = 0.0;
-		K2 = 0.0;
-		e1 = Vec3r(0.0, 0.0, 0.0);
-		e2 = Vec3r(0.0, 0.0, 0.0);
-		Kr = 0.0;
-		dKr = 0.0;
-		er = Vec3r(0.0, 0.0, 0.0);
-	}
+class CurvatureInfo {
+ public:
+  CurvatureInfo()
+  {
+    K1 = 0.0;
+    K2 = 0.0;
+    e1 = Vec3r(0.0, 0.0, 0.0);
+    e2 = Vec3r(0.0, 0.0, 0.0);
+    Kr = 0.0;
+    dKr = 0.0;
+    er = Vec3r(0.0, 0.0, 0.0);
+  }
 
-	CurvatureInfo(const CurvatureInfo& iBrother)
-	{
-		K1 = iBrother.K1;
-		K2 = iBrother.K2;
-		e1 = iBrother.e1;
-		e2 = iBrother.e2;
-		Kr = iBrother.Kr;
-		dKr = iBrother.dKr;
-		er = iBrother.er;
-	}
+  CurvatureInfo(const CurvatureInfo &iBrother)
+  {
+    K1 = iBrother.K1;
+    K2 = iBrother.K2;
+    e1 = iBrother.e1;
+    e2 = iBrother.e2;
+    Kr = iBrother.Kr;
+    dKr = iBrother.dKr;
+    er = iBrother.er;
+  }
 
-	CurvatureInfo(const CurvatureInfo& ca, const CurvatureInfo& cb, real t)
-	{
-		K1 = ca.K1 + t * (cb.K1 - ca.K1);
-		K2 = ca.K2 + t * (cb.K2 - ca.K2);
-		e1 = ca.e1 + t * (cb.e1 - ca.e1);
-		e2 = ca.e2 + t * (cb.e2 - ca.e2);
-		Kr = ca.Kr + t * (cb.Kr - ca.Kr);
-		dKr = ca.dKr + t * (cb.dKr - ca.dKr);
-		er = ca.er + t * (cb.er - ca.er);
-	}
+  CurvatureInfo(const CurvatureInfo &ca, const CurvatureInfo &cb, real t)
+  {
+    K1 = ca.K1 + t * (cb.K1 - ca.K1);
+    K2 = ca.K2 + t * (cb.K2 - ca.K2);
+    e1 = ca.e1 + t * (cb.e1 - ca.e1);
+    e2 = ca.e2 + t * (cb.e2 - ca.e2);
+    Kr = ca.Kr + t * (cb.Kr - ca.Kr);
+    dKr = ca.dKr + t * (cb.dKr - ca.dKr);
+    er = ca.er + t * (cb.er - ca.er);
+  }
 
-	real K1;  // maximum curvature
-	real K2;  // minimum curvature
-	Vec3r e1; // maximum curvature direction
-	Vec3r e2; // minimum curvature direction
-	real Kr;  // radial curvature
-	real dKr; // radial curvature
-	Vec3r er; // radial curvature direction
+  real K1;   // maximum curvature
+  real K2;   // minimum curvature
+  Vec3r e1;  // maximum curvature direction
+  Vec3r e2;  // minimum curvature direction
+  real Kr;   // radial curvature
+  real dKr;  // radial curvature
+  Vec3r er;  // radial curvature direction
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:CurvatureInfo")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:CurvatureInfo")
 #endif
 };
 
-class Face_Curvature_Info
-{
-public:
-	Face_Curvature_Info() {}
+class Face_Curvature_Info {
+ public:
+  Face_Curvature_Info()
+  {
+  }
 
-	~Face_Curvature_Info()
-	{
-		for (vector<CurvatureInfo*>::iterator ci = vec_curvature_info.begin(), ciend = vec_curvature_info.end();
-		     ci != ciend;
-		     ++ci)
-		{
-			delete (*ci);
-		}
-		vec_curvature_info.clear();
-	}
+  ~Face_Curvature_Info()
+  {
+    for (vector<CurvatureInfo *>::iterator ci = vec_curvature_info.begin(),
+                                           ciend = vec_curvature_info.end();
+         ci != ciend;
+         ++ci) {
+      delete (*ci);
+    }
+    vec_curvature_info.clear();
+  }
 
-	vector<CurvatureInfo *> vec_curvature_info;
+  vector<CurvatureInfo *> vec_curvature_info;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Face_Curvature_Info")
+  MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Face_Curvature_Info")
 #endif
 };
 
@@ -133,13 +133,13 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 
 namespace OGF {
 
-class NormalCycle ;
+class NormalCycle;
 
-void compute_curvature_tensor( WVertex *start, double radius, NormalCycle& nc);
+void compute_curvature_tensor(WVertex *start, double radius, NormalCycle &nc);
 
-void compute_curvature_tensor_one_ring(WVertex *start, NormalCycle& nc);
+void compute_curvature_tensor_one_ring(WVertex *start, NormalCycle &nc);
 
-}  // OGF namespace
+}  // namespace OGF
 
 } /* namespace Freestyle */
 

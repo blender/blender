@@ -26,8 +26,8 @@
  * \ingroup Node
  */
 class DisplaceNode : public Node {
-public:
-	DisplaceNode(bNode *editorNode);
-	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+ public:
+  DisplaceNode(bNode *editorNode);
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 #endif

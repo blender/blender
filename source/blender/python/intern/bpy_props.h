@@ -18,7 +18,6 @@
  * \ingroup pythonintern
  */
 
-
 #ifndef __BPY_PROPS_H__
 #define __BPY_PROPS_H__
 

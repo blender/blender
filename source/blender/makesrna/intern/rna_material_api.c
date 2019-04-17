@@ -30,7 +30,7 @@
 
 #include "DNA_material_types.h"
 
-#include "rna_internal.h"  /* own include */
+#include "rna_internal.h" /* own include */
 
 #ifdef RNA_RUNTIME
 
@@ -38,8 +38,8 @@
 
 void RNA_api_material(StructRNA *UNUSED(srna))
 {
-	/* FunctionRNA *func; */
-	/* PropertyRNA *parm; */
+  /* FunctionRNA *func; */
+  /* PropertyRNA *parm; */
 }
 
 #endif

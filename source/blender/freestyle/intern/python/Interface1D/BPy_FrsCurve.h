@@ -37,8 +37,8 @@ extern PyTypeObject FrsCurve_Type;
 
 /*---------------------------Python BPy_FrsCurve structure definition----------*/
 typedef struct {
-	BPy_Interface1D py_if1D;
-	Curve *c;
+  BPy_Interface1D py_if1D;
+  Curve *c;
 } BPy_FrsCurve;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

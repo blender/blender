@@ -21,41 +21,40 @@
 
 float noise(point ip, float distortion, float detail, output color Color)
 {
-	point r;
-	point p = ip;
-	int hard = 0;
+  point r;
+  point p = ip;
+  int hard = 0;
 
-	if (distortion != 0.0) {
-		r[0] = safe_noise(p + point(13.5), "unsigned") * distortion;
-		r[1] = safe_noise(p, "unsigned") * distortion;
-		r[2] = safe_noise(p - point(13.5), "unsigned") * distortion;
-		
-		p += r;
-	}
+  if (distortion != 0.0) {
+    r[0] = safe_noise(p + point(13.5), "unsigned") * distortion;
+    r[1] = safe_noise(p, "unsigned") * distortion;
+    r[2] = safe_noise(p - point(13.5), "unsigned") * distortion;
 
-	float fac = noise_turbulence(p, detail, hard);
-	
-	Color = color(fac, noise_turbulence(point(p[1], p[0], p[2]), detail, hard),
-		noise_turbulence(point(p[1], p[2], p[0]), detail, hard));
+    p += r;
+  }
 
-	return fac;
+  float fac = noise_turbulence(p, detail, hard);
+
+  Color = color(fac,
+                noise_turbulence(point(p[1], p[0], p[2]), detail, hard),
+                noise_turbulence(point(p[1], p[2], p[0]), detail, hard));
+
+  return fac;
 }
 
-shader node_noise_texture(
-	int use_mapping = 0,
-	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	float Distortion = 0.0,
-	float Scale = 5.0,
-	float Detail = 2.0,
-	point Vector = P,
-	output float Fac = 0.0,
-	output color Color = 0.0)
+shader node_noise_texture(int use_mapping = 0,
+                          matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                          float Distortion = 0.0,
+                          float Scale = 5.0,
+                          float Detail = 2.0,
+                          point Vector = P,
+                          output float Fac = 0.0,
+                          output color Color = 0.0)
 {
-	point p = Vector;
+  point p = Vector;
 
-	if (use_mapping)
-		p = transform(mapping, p);
+  if (use_mapping)
+    p = transform(mapping, p);
 
-	Fac = noise(p * Scale, Distortion, Detail, Color);
+  Fac = noise(p * Scale, Distortion, Detail, Color);
 }
-

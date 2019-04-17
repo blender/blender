@@ -30,22 +30,23 @@
 
 namespace Freestyle {
 
-class HeuristicGridDensityProviderFactory : public GridDensityProviderFactory
-{
-public:
-	HeuristicGridDensityProviderFactory(real sizeFactor, unsigned numFaces);
-	~HeuristicGridDensityProviderFactory();
+class HeuristicGridDensityProviderFactory : public GridDensityProviderFactory {
+ public:
+  HeuristicGridDensityProviderFactory(real sizeFactor, unsigned numFaces);
+  ~HeuristicGridDensityProviderFactory();
 
-	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const real proscenium[4]);
-	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
-	                                                    const GridHelpers::Transform& transform);
-	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source);
+  AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
+                                                      const real proscenium[4]);
+  AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
+                                                      const BBox<Vec3r> &bbox,
+                                                      const GridHelpers::Transform &transform);
+  AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source);
 
-protected:
-	real sizeFactor;
-	unsigned numFaces;
+ protected:
+  real sizeFactor;
+  unsigned numFaces;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_HEURISTIC_GRID_DENSITY_PROVIDER_FACTORY_H__
+#endif  // __FREESTYLE_HEURISTIC_GRID_DENSITY_PROVIDER_FACTORY_H__

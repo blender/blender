@@ -32,4 +32,4 @@ static constexpr TypeDesc TypeFloat2(TypeDesc::FLOAT, TypeDesc::VEC2);
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_PARAM_H__ */
+#endif /* __UTIL_PARAM_H__ */

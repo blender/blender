@@ -117,435 +117,430 @@ extern "C" {
 
 bool Converter::is_fast_node(bNode *b_node)
 {
-	return !(b_node->type == CMP_NODE_BLUR ||
-	         b_node->type == CMP_NODE_VECBLUR ||
-	         b_node->type == CMP_NODE_BILATERALBLUR ||
-	         b_node->type == CMP_NODE_DEFOCUS ||
-	         b_node->type == CMP_NODE_BOKEHBLUR ||
-	         b_node->type == CMP_NODE_GLARE ||
-	         b_node->type == CMP_NODE_DBLUR ||
-	         b_node->type == CMP_NODE_MOVIEDISTORTION ||
-	         b_node->type == CMP_NODE_LENSDIST ||
-	         b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
-	         b_node->type == CMP_NODE_DILATEERODE);
+  return !(b_node->type == CMP_NODE_BLUR || b_node->type == CMP_NODE_VECBLUR ||
+           b_node->type == CMP_NODE_BILATERALBLUR || b_node->type == CMP_NODE_DEFOCUS ||
+           b_node->type == CMP_NODE_BOKEHBLUR || b_node->type == CMP_NODE_GLARE ||
+           b_node->type == CMP_NODE_DBLUR || b_node->type == CMP_NODE_MOVIEDISTORTION ||
+           b_node->type == CMP_NODE_LENSDIST || b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
+           b_node->type == CMP_NODE_DILATEERODE);
 }
 
 Node *Converter::convert(bNode *b_node)
 {
-	Node *node = NULL;
+  Node *node = NULL;
 
-	/* ignore undefined nodes with missing or invalid node data */
-	if (!nodeIsRegistered(b_node))
-		return NULL;
+  /* ignore undefined nodes with missing or invalid node data */
+  if (!nodeIsRegistered(b_node))
+    return NULL;
 
-	switch (b_node->type) {
-		case CMP_NODE_COMPOSITE:
-			node = new CompositorNode(b_node);
-			break;
-		case CMP_NODE_R_LAYERS:
-			node = new RenderLayersNode(b_node);
-			break;
-		case CMP_NODE_TEXTURE:
-			node = new TextureNode(b_node);
-			break;
-		case CMP_NODE_RGBTOBW:
-			node = new ColorToBWNode(b_node);
-			break;
-		case CMP_NODE_MIX_RGB:
-			node = new MixNode(b_node);
-			break;
-		case CMP_NODE_TRANSLATE:
-			node = new TranslateNode(b_node);
-			break;
-		case CMP_NODE_SCALE:
-			node = new ScaleNode(b_node);
-			break;
-		case CMP_NODE_ROTATE:
-			node = new RotateNode(b_node);
-			break;
-		case CMP_NODE_FLIP:
-			node = new FlipNode(b_node);
-			break;
-		case CMP_NODE_FILTER:
-			node = new FilterNode(b_node);
-			break;
-		case CMP_NODE_ID_MASK:
-			node = new IDMaskNode(b_node);
-			break;
-		case CMP_NODE_BRIGHTCONTRAST:
-			node = new BrightnessNode(b_node);
-			break;
-		case CMP_NODE_SEPRGBA:
-			node = new SeparateRGBANode(b_node);
-			break;
-		case CMP_NODE_COMBRGBA:
-			node = new CombineRGBANode(b_node);
-			break;
-		case CMP_NODE_SEPHSVA:
-			node = new SeparateHSVANode(b_node);
-			break;
-		case CMP_NODE_COMBHSVA:
-			node = new CombineHSVANode(b_node);
-			break;
-		case CMP_NODE_SEPYUVA:
-			node = new SeparateYUVANode(b_node);
-			break;
-		case CMP_NODE_COMBYUVA:
-			node = new CombineYUVANode(b_node);
-			break;
-		case CMP_NODE_SEPYCCA:
-			node = new SeparateYCCANode(b_node);
-			break;
-		case CMP_NODE_COMBYCCA:
-			node = new CombineYCCANode(b_node);
-			break;
-		case CMP_NODE_ALPHAOVER:
-			node = new AlphaOverNode(b_node);
-			break;
-		case CMP_NODE_COLORBALANCE:
-			node = new ColorBalanceNode(b_node);
-			break;
-		case CMP_NODE_VIEWER:
-			node = new ViewerNode(b_node);
-			break;
-		case CMP_NODE_SPLITVIEWER:
-			node = new SplitViewerNode(b_node);
-			break;
-		case CMP_NODE_INVERT:
-			node = new InvertNode(b_node);
-			break;
-		case NODE_GROUP:
-		case NODE_GROUP_INPUT:
-		case NODE_GROUP_OUTPUT:
-			/* handled in NodeCompiler */
-			break;
-		case CMP_NODE_NORMAL:
-			node = new NormalNode(b_node);
-			break;
-		case CMP_NODE_NORMALIZE:
-			node = new NormalizeNode(b_node);
-			break;
-		case CMP_NODE_IMAGE:
-			node = new ImageNode(b_node);
-			break;
-		case CMP_NODE_SETALPHA:
-			node = new SetAlphaNode(b_node);
-			break;
-		case CMP_NODE_PREMULKEY:
-			node = new ConvertAlphaNode(b_node);
-			break;
-		case CMP_NODE_MATH:
-			node = new MathNode(b_node);
-			break;
-		case CMP_NODE_HUE_SAT:
-			node = new HueSaturationValueNode(b_node);
-			break;
-		case CMP_NODE_COLORCORRECTION:
-			node = new ColorCorrectionNode(b_node);
-			break;
-		case CMP_NODE_MASK_BOX:
-			node = new BoxMaskNode(b_node);
-			break;
-		case CMP_NODE_MASK_ELLIPSE:
-			node = new EllipseMaskNode(b_node);
-			break;
-		case CMP_NODE_GAMMA:
-			node = new GammaNode(b_node);
-			break;
-		case CMP_NODE_CURVE_RGB:
-			node = new ColorCurveNode(b_node);
-			break;
-		case CMP_NODE_CURVE_VEC:
-			node = new VectorCurveNode(b_node);
-			break;
-		case CMP_NODE_HUECORRECT:
-			node = new HueSaturationValueCorrectNode(b_node);
-			break;
-		case CMP_NODE_MAP_UV:
-			node = new MapUVNode(b_node);
-			break;
-		case CMP_NODE_DISPLACE:
-			node = new DisplaceNode(b_node);
-			break;
-		case CMP_NODE_VALTORGB:
-			node = new ColorRampNode(b_node);
-			break;
-		case CMP_NODE_DIFF_MATTE:
-			node = new DifferenceMatteNode(b_node);
-			break;
-		case CMP_NODE_LUMA_MATTE:
-			node = new LuminanceMatteNode(b_node);
-			break;
-		case CMP_NODE_DIST_MATTE:
-			node = new DistanceMatteNode(b_node);
-			break;
-		case CMP_NODE_CHROMA_MATTE:
-			node = new ChromaMatteNode(b_node);
-			break;
-		case CMP_NODE_COLOR_MATTE:
-			node = new ColorMatteNode(b_node);
-			break;
-		case CMP_NODE_CHANNEL_MATTE:
-			node = new ChannelMatteNode(b_node);
-			break;
-		case CMP_NODE_BLUR:
-			node = new BlurNode(b_node);
-			break;
-		case CMP_NODE_BOKEHIMAGE:
-			node = new BokehImageNode(b_node);
-			break;
-		case CMP_NODE_BOKEHBLUR:
-			node = new BokehBlurNode(b_node);
-			break;
-		case CMP_NODE_DILATEERODE:
-			node = new DilateErodeNode(b_node);
-			break;
-		case CMP_NODE_INPAINT:
-			node = new InpaintNode(b_node);
-			break;
-		case CMP_NODE_DESPECKLE:
-			node = new DespeckleNode(b_node);
-			break;
-		case CMP_NODE_LENSDIST:
-			node = new LensDistortionNode(b_node);
-			break;
-		case CMP_NODE_RGB:
-			node = new ColorNode(b_node);
-			break;
-		case CMP_NODE_VALUE:
-			node = new ValueNode(b_node);
-			break;
-		case CMP_NODE_TIME:
-			node = new TimeNode(b_node);
-			break;
-		case CMP_NODE_DBLUR:
-			node = new DirectionalBlurNode(b_node);
-			break;
-		case CMP_NODE_ZCOMBINE:
-			node = new ZCombineNode(b_node);
-			break;
-		case CMP_NODE_TONEMAP:
-			node = new TonemapNode(b_node);
-			break;
-		case CMP_NODE_SWITCH:
-			node = new SwitchNode(b_node);
-			break;
-		case CMP_NODE_SWITCH_VIEW:
-			node = new SwitchViewNode(b_node);
-			break;
-		case CMP_NODE_GLARE:
-			node = new GlareNode(b_node);
-			break;
-		case CMP_NODE_MOVIECLIP:
-			node = new MovieClipNode(b_node);
-			break;
-		case CMP_NODE_COLOR_SPILL:
-			node = new ColorSpillNode(b_node);
-			break;
-		case CMP_NODE_OUTPUT_FILE:
-			node = new OutputFileNode(b_node);
-			break;
-		case CMP_NODE_MAP_VALUE:
-			node = new MapValueNode(b_node);
-			break;
-		case CMP_NODE_MAP_RANGE:
-			node = new MapRangeNode(b_node);
-			break;
-		case CMP_NODE_TRANSFORM:
-			node = new TransformNode(b_node);
-			break;
-		case CMP_NODE_STABILIZE2D:
-			node = new Stabilize2dNode(b_node);
-			break;
-		case CMP_NODE_BILATERALBLUR:
-			node = new BilateralBlurNode(b_node);
-			break;
-		case CMP_NODE_VECBLUR:
-			node = new VectorBlurNode(b_node);
-			break;
-		case CMP_NODE_MOVIEDISTORTION:
-			node = new MovieDistortionNode(b_node);
-			break;
-		case CMP_NODE_VIEW_LEVELS:
-			node = new ViewLevelsNode(b_node);
-			break;
-		case CMP_NODE_DEFOCUS:
-			node = new DefocusNode(b_node);
-			break;
-		case CMP_NODE_DOUBLEEDGEMASK:
-			node = new DoubleEdgeMaskNode(b_node);
-			break;
-		case CMP_NODE_CROP:
-			node = new CropNode(b_node);
-			break;
-		case CMP_NODE_MASK:
-			node = new MaskNode(b_node);
-			break;
-		case CMP_NODE_KEYINGSCREEN:
-			node = new KeyingScreenNode(b_node);
-			break;
-		case CMP_NODE_KEYING:
-			node = new KeyingNode(b_node);
-			break;
-		case CMP_NODE_TRACKPOS:
-			node = new TrackPositionNode(b_node);
-			break;
-		/* not implemented yet */
-		case CMP_NODE_PIXELATE:
-			node = new PixelateNode(b_node);
-			break;
-		case CMP_NODE_PLANETRACKDEFORM:
-			node = new PlaneTrackDeformNode(b_node);
-			break;
-		case CMP_NODE_CORNERPIN:
-			node = new CornerPinNode(b_node);
-			break;
-		case CMP_NODE_SUNBEAMS:
-			node = new SunBeamsNode(b_node);
-			break;
-		case CMP_NODE_CRYPTOMATTE:
-			node = new CryptomatteNode(b_node);
-			break;
-	}
-	return node;
+  switch (b_node->type) {
+    case CMP_NODE_COMPOSITE:
+      node = new CompositorNode(b_node);
+      break;
+    case CMP_NODE_R_LAYERS:
+      node = new RenderLayersNode(b_node);
+      break;
+    case CMP_NODE_TEXTURE:
+      node = new TextureNode(b_node);
+      break;
+    case CMP_NODE_RGBTOBW:
+      node = new ColorToBWNode(b_node);
+      break;
+    case CMP_NODE_MIX_RGB:
+      node = new MixNode(b_node);
+      break;
+    case CMP_NODE_TRANSLATE:
+      node = new TranslateNode(b_node);
+      break;
+    case CMP_NODE_SCALE:
+      node = new ScaleNode(b_node);
+      break;
+    case CMP_NODE_ROTATE:
+      node = new RotateNode(b_node);
+      break;
+    case CMP_NODE_FLIP:
+      node = new FlipNode(b_node);
+      break;
+    case CMP_NODE_FILTER:
+      node = new FilterNode(b_node);
+      break;
+    case CMP_NODE_ID_MASK:
+      node = new IDMaskNode(b_node);
+      break;
+    case CMP_NODE_BRIGHTCONTRAST:
+      node = new BrightnessNode(b_node);
+      break;
+    case CMP_NODE_SEPRGBA:
+      node = new SeparateRGBANode(b_node);
+      break;
+    case CMP_NODE_COMBRGBA:
+      node = new CombineRGBANode(b_node);
+      break;
+    case CMP_NODE_SEPHSVA:
+      node = new SeparateHSVANode(b_node);
+      break;
+    case CMP_NODE_COMBHSVA:
+      node = new CombineHSVANode(b_node);
+      break;
+    case CMP_NODE_SEPYUVA:
+      node = new SeparateYUVANode(b_node);
+      break;
+    case CMP_NODE_COMBYUVA:
+      node = new CombineYUVANode(b_node);
+      break;
+    case CMP_NODE_SEPYCCA:
+      node = new SeparateYCCANode(b_node);
+      break;
+    case CMP_NODE_COMBYCCA:
+      node = new CombineYCCANode(b_node);
+      break;
+    case CMP_NODE_ALPHAOVER:
+      node = new AlphaOverNode(b_node);
+      break;
+    case CMP_NODE_COLORBALANCE:
+      node = new ColorBalanceNode(b_node);
+      break;
+    case CMP_NODE_VIEWER:
+      node = new ViewerNode(b_node);
+      break;
+    case CMP_NODE_SPLITVIEWER:
+      node = new SplitViewerNode(b_node);
+      break;
+    case CMP_NODE_INVERT:
+      node = new InvertNode(b_node);
+      break;
+    case NODE_GROUP:
+    case NODE_GROUP_INPUT:
+    case NODE_GROUP_OUTPUT:
+      /* handled in NodeCompiler */
+      break;
+    case CMP_NODE_NORMAL:
+      node = new NormalNode(b_node);
+      break;
+    case CMP_NODE_NORMALIZE:
+      node = new NormalizeNode(b_node);
+      break;
+    case CMP_NODE_IMAGE:
+      node = new ImageNode(b_node);
+      break;
+    case CMP_NODE_SETALPHA:
+      node = new SetAlphaNode(b_node);
+      break;
+    case CMP_NODE_PREMULKEY:
+      node = new ConvertAlphaNode(b_node);
+      break;
+    case CMP_NODE_MATH:
+      node = new MathNode(b_node);
+      break;
+    case CMP_NODE_HUE_SAT:
+      node = new HueSaturationValueNode(b_node);
+      break;
+    case CMP_NODE_COLORCORRECTION:
+      node = new ColorCorrectionNode(b_node);
+      break;
+    case CMP_NODE_MASK_BOX:
+      node = new BoxMaskNode(b_node);
+      break;
+    case CMP_NODE_MASK_ELLIPSE:
+      node = new EllipseMaskNode(b_node);
+      break;
+    case CMP_NODE_GAMMA:
+      node = new GammaNode(b_node);
+      break;
+    case CMP_NODE_CURVE_RGB:
+      node = new ColorCurveNode(b_node);
+      break;
+    case CMP_NODE_CURVE_VEC:
+      node = new VectorCurveNode(b_node);
+      break;
+    case CMP_NODE_HUECORRECT:
+      node = new HueSaturationValueCorrectNode(b_node);
+      break;
+    case CMP_NODE_MAP_UV:
+      node = new MapUVNode(b_node);
+      break;
+    case CMP_NODE_DISPLACE:
+      node = new DisplaceNode(b_node);
+      break;
+    case CMP_NODE_VALTORGB:
+      node = new ColorRampNode(b_node);
+      break;
+    case CMP_NODE_DIFF_MATTE:
+      node = new DifferenceMatteNode(b_node);
+      break;
+    case CMP_NODE_LUMA_MATTE:
+      node = new LuminanceMatteNode(b_node);
+      break;
+    case CMP_NODE_DIST_MATTE:
+      node = new DistanceMatteNode(b_node);
+      break;
+    case CMP_NODE_CHROMA_MATTE:
+      node = new ChromaMatteNode(b_node);
+      break;
+    case CMP_NODE_COLOR_MATTE:
+      node = new ColorMatteNode(b_node);
+      break;
+    case CMP_NODE_CHANNEL_MATTE:
+      node = new ChannelMatteNode(b_node);
+      break;
+    case CMP_NODE_BLUR:
+      node = new BlurNode(b_node);
+      break;
+    case CMP_NODE_BOKEHIMAGE:
+      node = new BokehImageNode(b_node);
+      break;
+    case CMP_NODE_BOKEHBLUR:
+      node = new BokehBlurNode(b_node);
+      break;
+    case CMP_NODE_DILATEERODE:
+      node = new DilateErodeNode(b_node);
+      break;
+    case CMP_NODE_INPAINT:
+      node = new InpaintNode(b_node);
+      break;
+    case CMP_NODE_DESPECKLE:
+      node = new DespeckleNode(b_node);
+      break;
+    case CMP_NODE_LENSDIST:
+      node = new LensDistortionNode(b_node);
+      break;
+    case CMP_NODE_RGB:
+      node = new ColorNode(b_node);
+      break;
+    case CMP_NODE_VALUE:
+      node = new ValueNode(b_node);
+      break;
+    case CMP_NODE_TIME:
+      node = new TimeNode(b_node);
+      break;
+    case CMP_NODE_DBLUR:
+      node = new DirectionalBlurNode(b_node);
+      break;
+    case CMP_NODE_ZCOMBINE:
+      node = new ZCombineNode(b_node);
+      break;
+    case CMP_NODE_TONEMAP:
+      node = new TonemapNode(b_node);
+      break;
+    case CMP_NODE_SWITCH:
+      node = new SwitchNode(b_node);
+      break;
+    case CMP_NODE_SWITCH_VIEW:
+      node = new SwitchViewNode(b_node);
+      break;
+    case CMP_NODE_GLARE:
+      node = new GlareNode(b_node);
+      break;
+    case CMP_NODE_MOVIECLIP:
+      node = new MovieClipNode(b_node);
+      break;
+    case CMP_NODE_COLOR_SPILL:
+      node = new ColorSpillNode(b_node);
+      break;
+    case CMP_NODE_OUTPUT_FILE:
+      node = new OutputFileNode(b_node);
+      break;
+    case CMP_NODE_MAP_VALUE:
+      node = new MapValueNode(b_node);
+      break;
+    case CMP_NODE_MAP_RANGE:
+      node = new MapRangeNode(b_node);
+      break;
+    case CMP_NODE_TRANSFORM:
+      node = new TransformNode(b_node);
+      break;
+    case CMP_NODE_STABILIZE2D:
+      node = new Stabilize2dNode(b_node);
+      break;
+    case CMP_NODE_BILATERALBLUR:
+      node = new BilateralBlurNode(b_node);
+      break;
+    case CMP_NODE_VECBLUR:
+      node = new VectorBlurNode(b_node);
+      break;
+    case CMP_NODE_MOVIEDISTORTION:
+      node = new MovieDistortionNode(b_node);
+      break;
+    case CMP_NODE_VIEW_LEVELS:
+      node = new ViewLevelsNode(b_node);
+      break;
+    case CMP_NODE_DEFOCUS:
+      node = new DefocusNode(b_node);
+      break;
+    case CMP_NODE_DOUBLEEDGEMASK:
+      node = new DoubleEdgeMaskNode(b_node);
+      break;
+    case CMP_NODE_CROP:
+      node = new CropNode(b_node);
+      break;
+    case CMP_NODE_MASK:
+      node = new MaskNode(b_node);
+      break;
+    case CMP_NODE_KEYINGSCREEN:
+      node = new KeyingScreenNode(b_node);
+      break;
+    case CMP_NODE_KEYING:
+      node = new KeyingNode(b_node);
+      break;
+    case CMP_NODE_TRACKPOS:
+      node = new TrackPositionNode(b_node);
+      break;
+    /* not implemented yet */
+    case CMP_NODE_PIXELATE:
+      node = new PixelateNode(b_node);
+      break;
+    case CMP_NODE_PLANETRACKDEFORM:
+      node = new PlaneTrackDeformNode(b_node);
+      break;
+    case CMP_NODE_CORNERPIN:
+      node = new CornerPinNode(b_node);
+      break;
+    case CMP_NODE_SUNBEAMS:
+      node = new SunBeamsNode(b_node);
+      break;
+    case CMP_NODE_CRYPTOMATTE:
+      node = new CryptomatteNode(b_node);
+      break;
+  }
+  return node;
 }
 
 NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperationInput *to)
 {
-	DataType fromDatatype = from->getDataType();
-	DataType toDatatype = to->getDataType();
+  DataType fromDatatype = from->getDataType();
+  DataType toDatatype = to->getDataType();
 
-	if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
-		return new ConvertValueToColorOperation();
-	}
-	else if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
-		return new ConvertValueToVectorOperation();
-	}
-	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
-		return new ConvertColorToValueOperation();
-	}
-	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
-		return new ConvertColorToVectorOperation();
-	}
-	else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_VALUE) {
-		return new ConvertVectorToValueOperation();
-	}
-	else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
-		return new ConvertVectorToColorOperation();
-	}
+  if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
+    return new ConvertValueToColorOperation();
+  }
+  else if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
+    return new ConvertValueToVectorOperation();
+  }
+  else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
+    return new ConvertColorToValueOperation();
+  }
+  else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
+    return new ConvertColorToVectorOperation();
+  }
+  else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_VALUE) {
+    return new ConvertVectorToValueOperation();
+  }
+  else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
+    return new ConvertVectorToColorOperation();
+  }
 
-	return NULL;
+  return NULL;
 }
 
-void Converter::convertResolution(NodeOperationBuilder &builder, NodeOperationOutput *fromSocket, NodeOperationInput *toSocket)
+void Converter::convertResolution(NodeOperationBuilder &builder,
+                                  NodeOperationOutput *fromSocket,
+                                  NodeOperationInput *toSocket)
 {
-	InputResizeMode mode = toSocket->getResizeMode();
+  InputResizeMode mode = toSocket->getResizeMode();
 
-	NodeOperation *toOperation = &toSocket->getOperation();
-	const float toWidth = toOperation->getWidth();
-	const float toHeight = toOperation->getHeight();
-	NodeOperation *fromOperation = &fromSocket->getOperation();
-	const float fromWidth = fromOperation->getWidth();
-	const float fromHeight = fromOperation->getHeight();
-	bool doCenter = false;
-	bool doScale = false;
-	float addX = (toWidth - fromWidth) / 2.0f;
-	float addY = (toHeight - fromHeight) / 2.0f;
-	float scaleX = 0;
-	float scaleY = 0;
+  NodeOperation *toOperation = &toSocket->getOperation();
+  const float toWidth = toOperation->getWidth();
+  const float toHeight = toOperation->getHeight();
+  NodeOperation *fromOperation = &fromSocket->getOperation();
+  const float fromWidth = fromOperation->getWidth();
+  const float fromHeight = fromOperation->getHeight();
+  bool doCenter = false;
+  bool doScale = false;
+  float addX = (toWidth - fromWidth) / 2.0f;
+  float addY = (toHeight - fromHeight) / 2.0f;
+  float scaleX = 0;
+  float scaleY = 0;
 
-	switch (mode) {
-		case COM_SC_NO_RESIZE:
-			break;
-		case COM_SC_CENTER:
-			doCenter = true;
-			break;
-		case COM_SC_FIT_WIDTH:
-			doCenter = true;
-			doScale = true;
-			scaleX = scaleY = toWidth / fromWidth;
-			break;
-		case COM_SC_FIT_HEIGHT:
-			doCenter = true;
-			doScale = true;
-			scaleX = scaleY = toHeight / fromHeight;
-			break;
-		case COM_SC_FIT:
-			doCenter = true;
-			doScale = true;
-			scaleX = toWidth / fromWidth;
-			scaleY = toHeight / fromHeight;
-			if (scaleX < scaleY) {
-				scaleX = scaleY;
-			}
-			else {
-				scaleY = scaleX;
-			}
-			break;
-		case COM_SC_STRETCH:
-			doCenter = true;
-			doScale = true;
-			scaleX = toWidth / fromWidth;
-			scaleY = toHeight / fromHeight;
-			break;
+  switch (mode) {
+    case COM_SC_NO_RESIZE:
+      break;
+    case COM_SC_CENTER:
+      doCenter = true;
+      break;
+    case COM_SC_FIT_WIDTH:
+      doCenter = true;
+      doScale = true;
+      scaleX = scaleY = toWidth / fromWidth;
+      break;
+    case COM_SC_FIT_HEIGHT:
+      doCenter = true;
+      doScale = true;
+      scaleX = scaleY = toHeight / fromHeight;
+      break;
+    case COM_SC_FIT:
+      doCenter = true;
+      doScale = true;
+      scaleX = toWidth / fromWidth;
+      scaleY = toHeight / fromHeight;
+      if (scaleX < scaleY) {
+        scaleX = scaleY;
+      }
+      else {
+        scaleY = scaleX;
+      }
+      break;
+    case COM_SC_STRETCH:
+      doCenter = true;
+      doScale = true;
+      scaleX = toWidth / fromWidth;
+      scaleY = toHeight / fromHeight;
+      break;
+  }
 
-	}
+  if (doCenter) {
+    NodeOperation *first = NULL;
+    ScaleOperation *scaleOperation = NULL;
+    if (doScale) {
+      scaleOperation = new ScaleOperation();
+      scaleOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
+      scaleOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
+      first = scaleOperation;
+      SetValueOperation *sxop = new SetValueOperation();
+      sxop->setValue(scaleX);
+      builder.addLink(sxop->getOutputSocket(), scaleOperation->getInputSocket(1));
+      SetValueOperation *syop = new SetValueOperation();
+      syop->setValue(scaleY);
+      builder.addLink(syop->getOutputSocket(), scaleOperation->getInputSocket(2));
+      builder.addOperation(sxop);
+      builder.addOperation(syop);
 
-	if (doCenter) {
-		NodeOperation *first = NULL;
-		ScaleOperation *scaleOperation = NULL;
-		if (doScale) {
-			scaleOperation = new ScaleOperation();
-			scaleOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
-			scaleOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
-			first = scaleOperation;
-			SetValueOperation *sxop = new SetValueOperation();
-			sxop->setValue(scaleX);
-			builder.addLink(sxop->getOutputSocket(), scaleOperation->getInputSocket(1));
-			SetValueOperation *syop = new SetValueOperation();
-			syop->setValue(scaleY);
-			builder.addLink(syop->getOutputSocket(), scaleOperation->getInputSocket(2));
-			builder.addOperation(sxop);
-			builder.addOperation(syop);
+      unsigned int resolution[2] = {fromOperation->getWidth(), fromOperation->getHeight()};
+      scaleOperation->setResolution(resolution);
+      sxop->setResolution(resolution);
+      syop->setResolution(resolution);
+      builder.addOperation(scaleOperation);
+    }
 
-			unsigned int resolution[2] = {fromOperation->getWidth(),
-			                              fromOperation->getHeight()};
-			scaleOperation->setResolution(resolution);
-			sxop->setResolution(resolution);
-			syop->setResolution(resolution);
-			builder.addOperation(scaleOperation);
-		}
+    TranslateOperation *translateOperation = new TranslateOperation();
+    translateOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
+    translateOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
+    if (!first)
+      first = translateOperation;
+    SetValueOperation *xop = new SetValueOperation();
+    xop->setValue(addX);
+    builder.addLink(xop->getOutputSocket(), translateOperation->getInputSocket(1));
+    SetValueOperation *yop = new SetValueOperation();
+    yop->setValue(addY);
+    builder.addLink(yop->getOutputSocket(), translateOperation->getInputSocket(2));
+    builder.addOperation(xop);
+    builder.addOperation(yop);
 
-		TranslateOperation *translateOperation = new TranslateOperation();
-		translateOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
-		translateOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
-		if (!first) first = translateOperation;
-		SetValueOperation *xop = new SetValueOperation();
-		xop->setValue(addX);
-		builder.addLink(xop->getOutputSocket(), translateOperation->getInputSocket(1));
-		SetValueOperation *yop = new SetValueOperation();
-		yop->setValue(addY);
-		builder.addLink(yop->getOutputSocket(), translateOperation->getInputSocket(2));
-		builder.addOperation(xop);
-		builder.addOperation(yop);
+    unsigned int resolution[2] = {toOperation->getWidth(), toOperation->getHeight()};
+    translateOperation->setResolution(resolution);
+    xop->setResolution(resolution);
+    yop->setResolution(resolution);
+    builder.addOperation(translateOperation);
 
-		unsigned int resolution[2] = {toOperation->getWidth(),
-		                              toOperation->getHeight()};
-		translateOperation->setResolution(resolution);
-		xop->setResolution(resolution);
-		yop->setResolution(resolution);
-		builder.addOperation(translateOperation);
+    if (doScale) {
+      translateOperation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
+      builder.addLink(scaleOperation->getOutputSocket(), translateOperation->getInputSocket(0));
+    }
 
-		if (doScale) {
-			translateOperation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
-			builder.addLink(scaleOperation->getOutputSocket(), translateOperation->getInputSocket(0));
-		}
-
-		/* remove previous link and replace */
-		builder.removeInputLink(toSocket);
-		first->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
-		toSocket->setResizeMode(COM_SC_NO_RESIZE);
-		builder.addLink(fromSocket, first->getInputSocket(0));
-		builder.addLink(translateOperation->getOutputSocket(), toSocket);
-	}
+    /* remove previous link and replace */
+    builder.removeInputLink(toSocket);
+    first->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
+    toSocket->setResizeMode(COM_SC_NO_RESIZE);
+    builder.addLink(fromSocket, first->getInputSocket(0));
+    builder.addLink(translateOperation->getOutputSocket(), toSocket);
+  }
 }

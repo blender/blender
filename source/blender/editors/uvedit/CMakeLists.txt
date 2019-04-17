@@ -16,42 +16,42 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../depsgraph
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/eigen
-	../../../../intern/glew-mx
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../gpu
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/eigen
+  ../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+  ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	uvedit_buttons.c
-	uvedit_draw.c
-	uvedit_ops.c
-	uvedit_parametrizer.c
-	uvedit_smart_stitch.c
-	uvedit_unwrap_ops.c
+  uvedit_buttons.c
+  uvedit_draw.c
+  uvedit_ops.c
+  uvedit_parametrizer.c
+  uvedit_smart_stitch.c
+  uvedit_unwrap_ops.c
 
-	uvedit_intern.h
-	uvedit_parametrizer.h
+  uvedit_intern.h
+  uvedit_parametrizer.h
 )
 
 set(LIB
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

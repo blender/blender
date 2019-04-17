@@ -19,24 +19,23 @@
 
 /* IES Light */
 
-shader node_ies_light(
-	int use_mapping = 0,
-	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	int slot = 0,
-	float Strength = 1.0,
-	point Vector = I,
-	output float Fac = 0.0)
+shader node_ies_light(int use_mapping = 0,
+                      matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                      int slot = 0,
+                      float Strength = 1.0,
+                      point Vector = I,
+                      output float Fac = 0.0)
 {
-	point p = Vector;
+  point p = Vector;
 
-	if (use_mapping) {
-		p = transform(mapping, p);
-	}
+  if (use_mapping) {
+    p = transform(mapping, p);
+  }
 
-	p = normalize(p);
+  p = normalize(p);
 
-	float v_angle = acos(-p[2]);
-	float h_angle = atan2(p[0], p[1]) + M_PI;
+  float v_angle = acos(-p[2]);
+  float h_angle = atan2(p[0], p[1]) + M_PI;
 
-	Fac = Strength * texture(format("@l%d", slot), h_angle, v_angle);
+  Fac = Strength * texture(format("@l%d", slot), h_angle, v_angle);
 }

@@ -23,4 +23,4 @@
 
 PyObject *BPY_app_ocio_struct(void);
 
-#endif  /* __BPY_APP_OCIO_H__ */
+#endif /* __BPY_APP_OCIO_H__ */

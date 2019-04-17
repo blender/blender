@@ -22,95 +22,98 @@
 
 EllipseMaskOperation::EllipseMaskOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_VALUE);
-	this->addInputSocket(COM_DT_VALUE);
-	this->addOutputSocket(COM_DT_VALUE);
-	this->m_inputMask = NULL;
-	this->m_inputValue = NULL;
-	this->m_cosine = 0.0f;
-	this->m_sine = 0.0f;
+  this->addInputSocket(COM_DT_VALUE);
+  this->addInputSocket(COM_DT_VALUE);
+  this->addOutputSocket(COM_DT_VALUE);
+  this->m_inputMask = NULL;
+  this->m_inputValue = NULL;
+  this->m_cosine = 0.0f;
+  this->m_sine = 0.0f;
 }
 void EllipseMaskOperation::initExecution()
 {
-	this->m_inputMask = this->getInputSocketReader(0);
-	this->m_inputValue = this->getInputSocketReader(1);
-	const double rad = (double)this->m_data->rotation;
-	this->m_cosine = cos(rad);
-	this->m_sine = sin(rad);
-	this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
+  this->m_inputMask = this->getInputSocketReader(0);
+  this->m_inputValue = this->getInputSocketReader(1);
+  const double rad = (double)this->m_data->rotation;
+  this->m_cosine = cos(rad);
+  this->m_sine = sin(rad);
+  this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
 }
 
-void EllipseMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void EllipseMaskOperation::executePixelSampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-	float inputMask[4];
-	float inputValue[4];
+  float inputMask[4];
+  float inputValue[4];
 
-	float rx = x / this->getWidth();
-	float ry = y / this->getHeight();
+  float rx = x / this->getWidth();
+  float ry = y / this->getHeight();
 
-	const float dy = (ry - this->m_data->y) / this->m_aspectRatio;
-	const float dx = rx - this->m_data->x;
-	rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
-	ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
+  const float dy = (ry - this->m_data->y) / this->m_aspectRatio;
+  const float dx = rx - this->m_data->x;
+  rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
+  ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
 
-	this->m_inputMask->readSampled(inputMask, x, y, sampler);
-	this->m_inputValue->readSampled(inputValue, x, y, sampler);
+  this->m_inputMask->readSampled(inputMask, x, y, sampler);
+  this->m_inputValue->readSampled(inputValue, x, y, sampler);
 
-	const float halfHeight = (this->m_data->height) / 2.0f;
-	const float halfWidth = this->m_data->width / 2.0f;
-	float sx = rx - this->m_data->x;
-	sx *= sx;
-	const float tx = halfWidth * halfWidth;
-	float sy = ry - this->m_data->y;
-	sy *= sy;
-	const float ty = halfHeight * halfHeight;
+  const float halfHeight = (this->m_data->height) / 2.0f;
+  const float halfWidth = this->m_data->width / 2.0f;
+  float sx = rx - this->m_data->x;
+  sx *= sx;
+  const float tx = halfWidth * halfWidth;
+  float sy = ry - this->m_data->y;
+  sy *= sy;
+  const float ty = halfHeight * halfHeight;
 
-	bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
+  bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
 
-	switch (this->m_maskType) {
-		case CMP_NODE_MASKTYPE_ADD:
-			if (inside) {
-				output[0] = max(inputMask[0], inputValue[0]);
-			}
-			else {
-				output[0] = inputMask[0];
-			}
-			break;
-		case CMP_NODE_MASKTYPE_SUBTRACT:
-			if (inside) {
-				output[0] = inputMask[0] - inputValue[0];
-				CLAMP(output[0], 0, 1);
-			}
-			else {
-				output[0] = inputMask[0];
-			}
-			break;
-		case CMP_NODE_MASKTYPE_MULTIPLY:
-			if (inside) {
-				output[0] = inputMask[0] * inputValue[0];
-			}
-			else {
-				output[0] = 0;
-			}
-			break;
-		case CMP_NODE_MASKTYPE_NOT:
-			if (inside) {
-				if (inputMask[0] > 0.0f) {
-					output[0] = 0;
-				}
-				else {
-					output[0] = inputValue[0];
-				}
-			}
-			else {
-				output[0] = inputMask[0];
-			}
-			break;
-	}
+  switch (this->m_maskType) {
+    case CMP_NODE_MASKTYPE_ADD:
+      if (inside) {
+        output[0] = max(inputMask[0], inputValue[0]);
+      }
+      else {
+        output[0] = inputMask[0];
+      }
+      break;
+    case CMP_NODE_MASKTYPE_SUBTRACT:
+      if (inside) {
+        output[0] = inputMask[0] - inputValue[0];
+        CLAMP(output[0], 0, 1);
+      }
+      else {
+        output[0] = inputMask[0];
+      }
+      break;
+    case CMP_NODE_MASKTYPE_MULTIPLY:
+      if (inside) {
+        output[0] = inputMask[0] * inputValue[0];
+      }
+      else {
+        output[0] = 0;
+      }
+      break;
+    case CMP_NODE_MASKTYPE_NOT:
+      if (inside) {
+        if (inputMask[0] > 0.0f) {
+          output[0] = 0;
+        }
+        else {
+          output[0] = inputValue[0];
+        }
+      }
+      else {
+        output[0] = inputMask[0];
+      }
+      break;
+  }
 }
 
 void EllipseMaskOperation::deinitExecution()
 {
-	this->m_inputMask = NULL;
-	this->m_inputValue = NULL;
+  this->m_inputMask = NULL;
+  this->m_inputValue = NULL;
 }

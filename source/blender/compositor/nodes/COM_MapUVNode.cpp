@@ -22,19 +22,20 @@
 
 MapUVNode::MapUVNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+  /* pass */
 }
 
-void MapUVNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
+void MapUVNode::convertToOperations(NodeConverter &converter,
+                                    const CompositorContext & /*context*/) const
 {
-	bNode *node = this->getbNode();
+  bNode *node = this->getbNode();
 
-	MapUVOperation *operation = new MapUVOperation();
-	operation->setAlpha((float)node->custom1);
-	operation->setResolutionInputSocketIndex(1);
-	converter.addOperation(operation);
+  MapUVOperation *operation = new MapUVOperation();
+  operation->setAlpha((float)node->custom1);
+  operation->setResolutionInputSocketIndex(1);
+  converter.addOperation(operation);
 
-	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

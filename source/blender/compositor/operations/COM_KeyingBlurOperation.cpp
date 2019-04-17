@@ -25,70 +25,71 @@
 
 KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_VALUE);
-	this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(COM_DT_VALUE);
+  this->addOutputSocket(COM_DT_VALUE);
 
-	this->m_size = 0;
-	this->m_axis = BLUR_AXIS_X;
+  this->m_size = 0;
+  this->m_axis = BLUR_AXIS_X;
 
-	this->setComplex(true);
+  this->setComplex(true);
 }
 
 void *KeyingBlurOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = getInputOperation(0)->initializeTileData(rect);
+  void *buffer = getInputOperation(0)->initializeTileData(rect);
 
-	return buffer;
+  return buffer;
 }
 
 void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-	const int bufferWidth = inputBuffer->getWidth();
-	float *buffer = inputBuffer->getBuffer();
-	int count = 0;
-	float average = 0.0f;
+  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
+  const int bufferWidth = inputBuffer->getWidth();
+  float *buffer = inputBuffer->getBuffer();
+  int count = 0;
+  float average = 0.0f;
 
-	if (this->m_axis == 0) {
-		const int start = max(0, x - this->m_size + 1),
-		          end = min(bufferWidth, x + this->m_size);
-		for (int cx = start; cx < end; ++cx) {
-			int bufferIndex = (y * bufferWidth + cx);
-			average += buffer[bufferIndex];
-			count++;
-		}
-	}
-	else {
-		const int start = max(0, y - this->m_size + 1),
-		          end = min(inputBuffer->getHeight(), y + this->m_size);
-		for (int cy = start; cy < end; ++cy) {
-			int bufferIndex = (cy * bufferWidth + x);
-			average += buffer[bufferIndex];
-			count++;
-		}
-	}
+  if (this->m_axis == 0) {
+    const int start = max(0, x - this->m_size + 1), end = min(bufferWidth, x + this->m_size);
+    for (int cx = start; cx < end; ++cx) {
+      int bufferIndex = (y * bufferWidth + cx);
+      average += buffer[bufferIndex];
+      count++;
+    }
+  }
+  else {
+    const int start = max(0, y - this->m_size + 1),
+              end = min(inputBuffer->getHeight(), y + this->m_size);
+    for (int cy = start; cy < end; ++cy) {
+      int bufferIndex = (cy * bufferWidth + x);
+      average += buffer[bufferIndex];
+      count++;
+    }
+  }
 
-	average /= (float) count;
+  average /= (float)count;
 
-	output[0] = average;
+  output[0] = average;
 }
 
-bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input,
+                                                           ReadBufferOperation *readOperation,
+                                                           rcti *output)
 {
-	rcti newInput;
+  rcti newInput;
 
-	if (this->m_axis == BLUR_AXIS_X) {
-		newInput.xmin = input->xmin - this->m_size;
-		newInput.ymin = input->ymin;
-		newInput.xmax = input->xmax + this->m_size;
-		newInput.ymax = input->ymax;
-	}
-	else {
-		newInput.xmin = input->xmin;
-		newInput.ymin = input->ymin - this->m_size;
-		newInput.xmax = input->xmax;
-		newInput.ymax = input->ymax + this->m_size;
-	}
+  if (this->m_axis == BLUR_AXIS_X) {
+    newInput.xmin = input->xmin - this->m_size;
+    newInput.ymin = input->ymin;
+    newInput.xmax = input->xmax + this->m_size;
+    newInput.ymax = input->ymax;
+  }
+  else {
+    newInput.xmin = input->xmin;
+    newInput.ymin = input->ymin - this->m_size;
+    newInput.xmax = input->xmax;
+    newInput.ymax = input->ymax + this->m_size;
+  }
 
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

@@ -21,61 +21,61 @@
 
 ColorMatteOperation::ColorMatteOperation() : NodeOperation()
 {
-	addInputSocket(COM_DT_COLOR);
-	addInputSocket(COM_DT_COLOR);
-	addOutputSocket(COM_DT_VALUE);
+  addInputSocket(COM_DT_COLOR);
+  addInputSocket(COM_DT_COLOR);
+  addOutputSocket(COM_DT_VALUE);
 
-	this->m_inputImageProgram = NULL;
-	this->m_inputKeyProgram = NULL;
+  this->m_inputImageProgram = NULL;
+  this->m_inputKeyProgram = NULL;
 }
 
 void ColorMatteOperation::initExecution()
 {
-	this->m_inputImageProgram = this->getInputSocketReader(0);
-	this->m_inputKeyProgram = this->getInputSocketReader(1);
+  this->m_inputImageProgram = this->getInputSocketReader(0);
+  this->m_inputKeyProgram = this->getInputSocketReader(1);
 }
 
 void ColorMatteOperation::deinitExecution()
 {
-	this->m_inputImageProgram = NULL;
-	this->m_inputKeyProgram = NULL;
+  this->m_inputImageProgram = NULL;
+  this->m_inputKeyProgram = NULL;
 }
 
-void ColorMatteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void ColorMatteOperation::executePixelSampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-	float inColor[4];
-	float inKey[4];
+  float inColor[4];
+  float inKey[4];
 
-	const float hue = this->m_settings->t1;
-	const float sat = this->m_settings->t2;
-	const float val = this->m_settings->t3;
+  const float hue = this->m_settings->t1;
+  const float sat = this->m_settings->t2;
+  const float val = this->m_settings->t3;
 
-	float h_wrap;
+  float h_wrap;
 
-	this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
-	this->m_inputKeyProgram->readSampled(inKey, x, y, sampler);
+  this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
+  this->m_inputKeyProgram->readSampled(inKey, x, y, sampler);
 
+  /* store matte(alpha) value in [0] to go with
+   * COM_SetAlphaOperation and the Value output
+   */
 
-	/* store matte(alpha) value in [0] to go with
-	 * COM_SetAlphaOperation and the Value output
-	 */
+  if (
+      /* do hue last because it needs to wrap, and does some more checks  */
 
-	if (
-	    /* do hue last because it needs to wrap, and does some more checks  */
+      /* sat */ (fabsf(inColor[1] - inKey[1]) < sat) &&
+      /* val */ (fabsf(inColor[2] - inKey[2]) < val) &&
 
-	    /* sat */ (fabsf(inColor[1] - inKey[1]) < sat) &&
-	    /* val */ (fabsf(inColor[2] - inKey[2]) < val) &&
+      /* multiply by 2 because it wraps on both sides of the hue,
+       * otherwise 0.5 would key all hue's */
 
-	    /* multiply by 2 because it wraps on both sides of the hue,
-	     * otherwise 0.5 would key all hue's */
+      /* hue */ ((h_wrap = 2.0f * fabsf(inColor[0] - inKey[0])) < hue || (2.0f - h_wrap) < hue)) {
+    output[0] = 0.0f; /* make transparent */
+  }
 
-	    /* hue */ ((h_wrap = 2.0f * fabsf(inColor[0] - inKey[0])) < hue || (2.0f - h_wrap) < hue)
-	    )
-	{
-		output[0] = 0.0f; /* make transparent */
-	}
-
-	else { /*pixel is outside key color */
-		output[0] = inColor[3]; /* make pixel just as transparent as it was before */
-	}
+  else {                    /*pixel is outside key color */
+    output[0] = inColor[3]; /* make pixel just as transparent as it was before */
+  }
 }

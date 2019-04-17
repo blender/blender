@@ -21,7 +21,6 @@
  * \ingroup blf
  */
 
-
 #ifndef __BLF_API_H__
 #define __BLF_API_H__
 
@@ -39,7 +38,7 @@ int BLF_init(void);
 void BLF_exit(void);
 void BLF_default_dpi(int dpi);
 void BLF_default_set(int fontid);
-int BLF_default(void); /* get default font ID so we can pass it to other functions */
+int BLF_default(void);      /* get default font ID so we can pass it to other functions */
 void BLF_batch_reset(void); /* call when changing opengl context. */
 
 void BLF_cache_clear(void);
@@ -99,30 +98,40 @@ void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t l
 int BLF_set_default(void);
 
 /* Draw the string using the current font. */
-void BLF_draw_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_NONNULL(2);
+void BLF_draw_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
+    ATTR_NONNULL(2);
 void BLF_draw(int fontid, const char *str, size_t len) ATTR_NONNULL(2);
-void BLF_draw_ascii_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_NONNULL(2);
+void BLF_draw_ascii_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
+    ATTR_NONNULL(2);
 void BLF_draw_ascii(int fontid, const char *str, size_t len) ATTR_NONNULL(2);
 int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth) ATTR_NONNULL(2);
 
 /* Get the string byte offset that fits within a given width */
-size_t BLF_width_to_strlen(int fontid, const char *str, size_t len, float width, float *r_width) ATTR_NONNULL(2);
+size_t BLF_width_to_strlen(int fontid, const char *str, size_t len, float width, float *r_width)
+    ATTR_NONNULL(2);
 /* Same as BLF_width_to_strlen but search from the string end */
-size_t BLF_width_to_rstrlen(int fontid, const char *str, size_t len, float width, float *r_width) ATTR_NONNULL(2);
+size_t BLF_width_to_rstrlen(int fontid, const char *str, size_t len, float width, float *r_width)
+    ATTR_NONNULL(2);
 
 /* This function return the bounding box of the string
  * and are not multiplied by the aspect.
  */
-void BLF_boundbox_ex(int fontid, const char *str, size_t len, struct rctf *box, struct ResultBLF *r_info) ATTR_NONNULL(2);
+void BLF_boundbox_ex(int fontid,
+                     const char *str,
+                     size_t len,
+                     struct rctf *box,
+                     struct ResultBLF *r_info) ATTR_NONNULL(2);
 void BLF_boundbox(int fontid, const char *str, size_t len, struct rctf *box) ATTR_NONNULL();
 
 /* The next both function return the width and height
  * of the string, using the current font and both value
  * are multiplied by the aspect of the font.
  */
-float BLF_width_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
+float BLF_width_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
+    ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 float BLF_width(int fontid, const char *str, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float BLF_height_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
+float BLF_height_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
+    ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 float BLF_height(int fontid, const char *str, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* Return dimensions of the font without any sample text. */
@@ -134,7 +143,8 @@ float BLF_ascender(int fontid) ATTR_WARN_UNUSED_RESULT;
 /* The following function return the width and height of the string, but
  * just in one call, so avoid extra freetype2 stuff.
  */
-void BLF_width_and_height(int fontid, const char *str, size_t len, float *r_width, float *r_height) ATTR_NONNULL();
+void BLF_width_and_height(int fontid, const char *str, size_t len, float *r_width, float *r_height)
+    ATTR_NONNULL();
 
 /* For fixed width fonts only, returns the width of a
  * character.
@@ -177,7 +187,13 @@ void BLF_shadow_offset(int fontid, int x, int y);
  *
  *     BLF_buffer(NULL, NULL, NULL, 0, 0, false, NULL);
  */
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, struct ColorManagedDisplay *display);
+void BLF_buffer(int fontid,
+                float *fbuf,
+                unsigned char *cbuf,
+                int w,
+                int h,
+                int nch,
+                struct ColorManagedDisplay *display);
 
 /* Set the color to be used for text. */
 void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
@@ -185,7 +201,8 @@ void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
 /* Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
  * it's not necessary set both buffer, NULL is valid here.
  */
-void BLF_draw_buffer_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_NONNULL(2);
+void BLF_draw_buffer_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
+    ATTR_NONNULL(2);
 void BLF_draw_buffer(int fontid, const char *str, size_t len) ATTR_NONNULL(2);
 
 /* Add a path to the font dir paths. */
@@ -201,33 +218,38 @@ char **BLF_dir_get(int *ndir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
 
 /* blf_thumbs.c */
-void BLF_thumb_preview(
-        const char *filename, const char **draw_str, const unsigned char draw_str_lines,
-        const float font_color[4], const int font_size,
-        unsigned char *buf, int w, int h, int channels) ATTR_NONNULL();
+void BLF_thumb_preview(const char *filename,
+                       const char **draw_str,
+                       const unsigned char draw_str_lines,
+                       const float font_color[4],
+                       const int font_size,
+                       unsigned char *buf,
+                       int w,
+                       int h,
+                       int channels) ATTR_NONNULL();
 
 /* blf_font_i18.c */
 unsigned char *BLF_get_unifont(int *unifont_size);
-void           BLF_free_unifont(void);
+void BLF_free_unifont(void);
 unsigned char *BLF_get_unifont_mono(int *unifont_size);
-void           BLF_free_unifont_mono(void);
+void BLF_free_unifont_mono(void);
 
 #ifdef DEBUG
 void BLF_state_print(int fontid);
 #endif
 
 /* font->flags. */
-#define BLF_ROTATION         (1 << 0)
-#define BLF_CLIPPING         (1 << 1)
-#define BLF_SHADOW           (1 << 2)
-#define BLF_KERNING_DEFAULT  (1 << 3)
-#define BLF_MATRIX           (1 << 4)
-#define BLF_ASPECT           (1 << 5)
-#define BLF_WORD_WRAP        (1 << 6)
-#define BLF_MONOCHROME       (1 << 7)  /* no-AA */
-#define BLF_HINTING_NONE     (1 << 8)
-#define BLF_HINTING_SLIGHT   (1 << 9)
-#define BLF_HINTING_FULL     (1 << 10)
+#define BLF_ROTATION (1 << 0)
+#define BLF_CLIPPING (1 << 1)
+#define BLF_SHADOW (1 << 2)
+#define BLF_KERNING_DEFAULT (1 << 3)
+#define BLF_MATRIX (1 << 4)
+#define BLF_ASPECT (1 << 5)
+#define BLF_WORD_WRAP (1 << 6)
+#define BLF_MONOCHROME (1 << 7) /* no-AA */
+#define BLF_HINTING_NONE (1 << 8)
+#define BLF_HINTING_SLIGHT (1 << 9)
+#define BLF_HINTING_FULL (1 << 10)
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 
@@ -239,14 +261,14 @@ extern int blf_mono_font_render; /* don't mess drawing with render threads. */
  * Result of drawing/evaluating the string
  */
 struct ResultBLF {
-	/**
-	 * Number of lines drawn when #BLF_WORD_WRAP is enabled (both wrapped and `\n` newline).
-	 */
-	int lines;
-	/**
-	 * The 'cursor' position on completion (ignoring character boundbox).
-	 */
-	int width;
+  /**
+   * Number of lines drawn when #BLF_WORD_WRAP is enabled (both wrapped and `\n` newline).
+   */
+  int lines;
+  /**
+   * The 'cursor' position on completion (ignoring character boundbox).
+   */
+  int width;
 };
 
 #endif /* __BLF_API_H__ */
