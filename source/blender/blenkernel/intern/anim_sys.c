@@ -2965,7 +2965,6 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
                                          NlaEvalStrip *nes,
                                          NlaEvalSnapshot *snapshot)
 {
-  FModifierStackStorage *storage;
   ListBase tmp_modifiers = {NULL, NULL};
   NlaStrip *strip = nes->strip;
   FCurve *fcu;
@@ -2986,8 +2985,12 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
   nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);
 
   /* evaluate strip's modifiers which modify time to evaluate the base curves at */
-  storage = evaluate_fmodifiers_storage_new(&tmp_modifiers);
-  evaltime = evaluate_time_fmodifiers(storage, &tmp_modifiers, NULL, 0.0f, strip->strip_time);
+  FModifiersStackStorage storage;
+  storage.modifier_count = BLI_listbase_count(&tmp_modifiers);
+  storage.size_per_modifier = evaluate_fmodifiers_storage_size_per_modifier(&tmp_modifiers);
+  storage.buffer = alloca(storage.modifier_count * storage.size_per_modifier);
+
+  evaltime = evaluate_time_fmodifiers(&storage, &tmp_modifiers, NULL, 0.0f, strip->strip_time);
 
   NlaBlendData blend = {
       .snapshot = snapshot,
@@ -3013,7 +3016,7 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
     /* apply strip's F-Curve Modifiers on this value
      * NOTE: we apply the strip's original evaluation time not the modified one (as per standard F-Curve eval)
      */
-    evaluate_value_fmodifiers(storage, &tmp_modifiers, fcu, &value, strip->strip_time);
+    evaluate_value_fmodifiers(&storage, &tmp_modifiers, fcu, &value, strip->strip_time);
 
     /* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
      * stored in this channel if it has been used already
@@ -3024,9 +3027,6 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
   }
 
   nlaeval_blend_flush(&blend);
-
-  /* free temporary storage */
-  evaluate_fmodifiers_storage_free(storage);
 
   /* unlink this strip's modifiers from the parent's modifiers again */
   nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);

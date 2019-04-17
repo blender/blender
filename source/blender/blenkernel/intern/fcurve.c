@@ -2851,12 +2851,15 @@ static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
  */
 static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
 {
-  FModifierStackStorage *storage;
   float devaltime;
 
   /* evaluate modifiers which modify time to evaluate the base curve at */
-  storage = evaluate_fmodifiers_storage_new(&fcu->modifiers);
-  devaltime = evaluate_time_fmodifiers(storage, &fcu->modifiers, fcu, cvalue, evaltime);
+  FModifiersStackStorage storage;
+  storage.modifier_count = BLI_listbase_count(&fcu->modifiers);
+  storage.size_per_modifier = evaluate_fmodifiers_storage_size_per_modifier(&fcu->modifiers);
+  storage.buffer = alloca(storage.modifier_count * storage.size_per_modifier);
+
+  devaltime = evaluate_time_fmodifiers(&storage, &fcu->modifiers, fcu, cvalue, evaltime);
 
   /* evaluate curve-data
    * - 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying
@@ -2868,9 +2871,7 @@ static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
     cvalue = fcurve_eval_samples(fcu, fcu->fpt, devaltime);
 
   /* evaluate modifiers */
-  evaluate_value_fmodifiers(storage, &fcu->modifiers, fcu, &cvalue, devaltime);
-
-  evaluate_fmodifiers_storage_free(storage);
+  evaluate_value_fmodifiers(&storage, &fcu->modifiers, fcu, &cvalue, devaltime);
 
   /* if curve can only have integral values, perform truncation (i.e. drop the decimal part)
    * here so that the curve can be sampled correctly

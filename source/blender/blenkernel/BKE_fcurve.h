@@ -115,8 +115,6 @@ float evaluate_driver(struct PathResolvedRNA *anim_rna,
 
 /* ************** F-Curve Modifiers *************** */
 
-typedef struct GHash FModifierStackStorage;
-
 /* F-Curve Modifier Type-Info (fmi):
  *  This struct provides function pointers for runtime, so that functions can be
  *  written more generally (with fewer/no special exceptions for various modifiers).
@@ -136,6 +134,7 @@ typedef struct FModifierTypeInfo {
   short requires;      /* eFMI_Requirement_Flags */
   char name[64];       /* name of modifier in interface */
   char structName[64]; /* name of struct for SDNA */
+  uint storage_size;   /* size of buffer that can be reused between time and value evaluation */
 
   /* data management function pointers - special handling */
   /* free any data that is allocated separately (optional) */
@@ -149,27 +148,11 @@ typedef struct FModifierTypeInfo {
 
   /* evaluation */
   /* evaluate time that the modifier requires the F-Curve to be evaluated at */
-  float (*evaluate_modifier_time)(struct FCurve *fcu,
-                                  struct FModifier *fcm,
-                                  float cvalue,
-                                  float evaltime);
+  float (*evaluate_modifier_time)(
+      struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime, void *storage);
   /* evaluate the modifier for the given time and 'accumulated' value */
-  void (*evaluate_modifier)(struct FCurve *fcu,
-                            struct FModifier *fcm,
-                            float *cvalue,
-                            float evaltime);
-
-  /* Same as above but for modifiers which requires storage */
-  float (*evaluate_modifier_time_storage)(FModifierStackStorage *storage,
-                                          struct FCurve *fcu,
-                                          struct FModifier *fcm,
-                                          float cvalue,
-                                          float evaltime);
-  void (*evaluate_modifier_storage)(FModifierStackStorage *storage,
-                                    struct FCurve *fcu,
-                                    struct FModifier *fcm,
-                                    float *cvalue,
-                                    float evaltime);
+  void (*evaluate_modifier)(
+      struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime, void *storage);
 } FModifierTypeInfo;
 
 /* Values which describe the behavior of a FModifier Type */
@@ -194,9 +177,6 @@ typedef enum eFMI_Requirement_Flags {
   FMI_REQUIRES_NOTHING = (1 << 1),
   /* refer to modifier instance */
   FMI_REQUIRES_RUNTIME_CHECK = (1 << 2),
-
-  /* Requires to store data shared between time and valua evaluation */
-  FMI_REQUIRES_STORAGE = (1 << 3),
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */
@@ -216,14 +196,19 @@ void set_active_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 
 bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype);
 
-FModifierStackStorage *evaluate_fmodifiers_storage_new(ListBase *modifiers);
-void evaluate_fmodifiers_storage_free(FModifierStackStorage *storage);
-float evaluate_time_fmodifiers(FModifierStackStorage *storage,
+typedef struct FModifiersStackStorage {
+  uint modifier_count;
+  uint size_per_modifier;
+  void *buffer;
+} FModifiersStackStorage;
+
+uint evaluate_fmodifiers_storage_size_per_modifier(ListBase *modifiers);
+float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
                                ListBase *modifiers,
                                struct FCurve *fcu,
                                float cvalue,
                                float evaltime);
-void evaluate_value_fmodifiers(FModifierStackStorage *storage,
+void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
                                ListBase *modifiers,
                                struct FCurve *fcu,
                                float *cvalue,
