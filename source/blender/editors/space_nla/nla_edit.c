@@ -2125,11 +2125,8 @@ void NLA_OT_clear_scale(wmOperatorType *ot)
 static const EnumPropertyItem prop_nlaedit_snap_types[] = {
     {NLAEDIT_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
     {NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""},  // XXX as single entry?
-    {NLAEDIT_SNAP_NEAREST_SECOND,
-     "NEAREST_SECOND",
-     0,
-     "Nearest Second",
-     ""},  // XXX as single entry?
+    // XXX as single entry?
+    {NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""},
     {NLAEDIT_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
     {0, NULL, 0, NULL, NULL},
 };

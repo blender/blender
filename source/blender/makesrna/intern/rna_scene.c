@@ -2686,11 +2686,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
        ICON_PIVOT_CURSOR,
        "3D Cursor",
        "Draw stroke at 3D cursor location"},
-      {0,
-       "VIEW",
-       ICON_RESTRICT_VIEW_ON,
-       "View",
-       "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
+      /* Weird, GP_PROJECT_VIEWALIGN is inverted. */
+      {0, "VIEW", ICON_RESTRICT_VIEW_ON, "View", "Stick stroke to the view "},
       {GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW,
        "SURFACE",
        ICON_FACESEL,

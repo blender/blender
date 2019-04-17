@@ -752,10 +752,10 @@ const std::string AnimationExporter::get_collada_name(std::string channel_target
       {"spot_size", "falloff_angle"},
       {"fall_off_exponent", "falloff_exponent"},
       {"spot_blend", "falloff_exponent"},
-      {"blender/blender_dist",
-       "blender/blender_dist"},  // special blender profile (todo: make this more elegant)
-      {"distance",
-       "blender/blender_dist"},  // special blender profile (todo: make this more elegant)
+      /* Special blender profile (todo: make this more elegant). */
+      {"blender/blender_dist", "blender/blender_dist"},
+      /* Special blender profile (todo: make this more elegant). */
+      {"distance", "blender/blender_dist"},
 
       /* Cameras */
       {"lens", "xfov"},

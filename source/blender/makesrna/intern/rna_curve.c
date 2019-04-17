@@ -1781,7 +1781,8 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
       {KEY_LINEAR, "LINEAR", 0, "Linear", ""},
       {KEY_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
       {KEY_BSPLINE, "BSPLINE", 0, "BSpline", ""},
-      {KEY_CU_EASE, "EASE", 0, "Ease", ""}, /* todo, define somewhere, not one of BEZT_IPO_* */
+      /* TODO: define somewhere, not one of BEZT_IPO_*. */
+      {KEY_CU_EASE, "EASE", 0, "Ease", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

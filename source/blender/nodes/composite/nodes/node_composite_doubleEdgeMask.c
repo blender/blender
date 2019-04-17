@@ -24,31 +24,18 @@
 /* **************** Double Edge Mask ******************** */
 
 static bNodeSocketTemplate cmp_node_doubleedgemask_in[] = {
-    {SOCK_FLOAT,
-     1,
-     "Inner Mask",
-     0.8f,
-     0.8f,
-     0.8f,
-     1.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE},  // inner mask socket definition
-    {SOCK_FLOAT,
-     1,
-     "Outer Mask",
-     0.8f,
-     0.8f,
-     0.8f,
-     1.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE},  // outer mask socket definition
-    {-1, 0, ""},  // input socket array terminator
+    /* Inner mask socket definition. */
+    {SOCK_FLOAT, 1, "Inner Mask", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    /* Outer mask socket definition. */
+    {SOCK_FLOAT, 1, "Outer Mask", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    /* Input socket array terminator. */
+    {-1, 0, ""},
 };
 static bNodeSocketTemplate cmp_node_doubleedgemask_out[] = {
-    {SOCK_FLOAT, 0, "Mask"},  // output socket definition
-    {-1, 0, ""},              // output socket array terminator
+    /* Output socket definition. */
+    {SOCK_FLOAT, 0, "Mask"},
+    /* Output socket array terminator. */
+    {-1, 0, ""},
 };
 
 void register_node_type_cmp_doubleedgemask(void)

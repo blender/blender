@@ -37,11 +37,8 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
     {CTX_MODE_EDIT_CURVE, "EDIT_CURVE", 0, "Curve Edit", ""},
     {CTX_MODE_EDIT_SURFACE, "EDIT_SURFACE", 0, "Surface Edit", ""},
     {CTX_MODE_EDIT_TEXT, "EDIT_TEXT", 0, "Edit Edit", ""},
-    {CTX_MODE_EDIT_ARMATURE,
-     "EDIT_ARMATURE",
-     0,
-     "Armature Edit",
-     ""}, /* PARSKEL reuse will give issues */
+    /* PARSKEL reuse will give issues */
+    {CTX_MODE_EDIT_ARMATURE, "EDIT_ARMATURE", 0, "Armature Edit", ""},
     {CTX_MODE_EDIT_METABALL, "EDIT_METABALL", 0, "Metaball Edit", ""},
     {CTX_MODE_EDIT_LATTICE, "EDIT_LATTICE", 0, "Lattice Edit", ""},
     {CTX_MODE_POSE, "POSE", 0, "Pose ", ""},

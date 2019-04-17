@@ -153,11 +153,8 @@ const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
 static const EnumPropertyItem parent_type_items[] = {
     {PAROBJECT, "OBJECT", 0, "Object", "The object is parented to an object"},
     {PARSKEL, "ARMATURE", 0, "Armature", ""},
-    {PARSKEL,
-     "LATTICE",
-     0,
-     "Lattice",
-     "The object is parented to a lattice"}, /* PARSKEL reuse will give issues */
+    /* PARSKEL reuse will give issues. */
+    {PARSKEL, "LATTICE", 0, "Lattice", "The object is parented to a lattice"},
     {PARVERT1, "VERTEX", 0, "Vertex", "The object is parented to a vertex"},
     {PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
     {PARBONE, "BONE", 0, "Bone", "The object is parented to a bone"},
@@ -193,11 +190,8 @@ const EnumPropertyItem rna_enum_metaelem_type_items[] = {
     {MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
     {MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
     {MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
-    {MB_ELIPSOID,
-     "ELLIPSOID",
-     ICON_META_ELLIPSOID,
-     "Ellipsoid",
-     ""}, /* NOTE: typo at original definition! */
+    /* NOTE: typo at original definition! */
+    {MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""},
     {MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
     {0, NULL, 0, NULL, NULL},
 };
@@ -714,9 +708,8 @@ void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result
   Object *ob = (Object *)ptr->id.data;
   bDeformGroup *dg = defgroup_find_name(ob, value);
   if (dg) {
-    BLI_strncpy(result,
-                value,
-                maxlen); /* no need for BLI_strncpy_utf8, since this matches an existing group */
+    /* No need for BLI_strncpy_utf8, since this matches an existing group. */
+    BLI_strncpy(result, value, maxlen);
     return;
   }
 
@@ -798,9 +791,8 @@ void rna_object_fmap_name_set(PointerRNA *ptr, const char *value, char *result, 
   Object *ob = (Object *)ptr->id.data;
   bFaceMap *fmap = BKE_object_facemap_find_name(ob, value);
   if (fmap) {
-    BLI_strncpy(result,
-                value,
-                maxlen); /* no need for BLI_strncpy_utf8, since this matches an existing group */
+    /* No need for BLI_strncpy_utf8, since this matches an existing group. */
+    BLI_strncpy(result, value, maxlen);
     return;
   }
 

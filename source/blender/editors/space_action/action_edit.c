@@ -680,7 +680,8 @@ void ACTION_OT_paste(wmOperatorType *ot)
 static const EnumPropertyItem prop_actkeys_insertkey_types[] = {
     {1, "ALL", 0, "All Channels", ""},
     {2, "SEL", 0, "Only Selected Channels", ""},
-    {3, "GROUP", 0, "In Active Group", ""}, /* XXX not in all cases */
+    /* XXX not in all cases. */
+    {3, "GROUP", 0, "In Active Group", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
