@@ -12,8 +12,6 @@
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
-uniform float edgeScale;
-
 flat in vec4 finalColorOuter_f;
 in vec4 finalColor_f;
 noperspective in float edgeCoord_f;
@@ -22,8 +20,8 @@ out vec4 FragColor;
 
 void main()
 {
-  float dist = abs(edgeCoord_f) - max(sizeEdge * edgeScale - 0.5, 0.0);
-  float dist_outer = dist - max(sizeEdge * edgeScale, 1.0);
+  float dist = abs(edgeCoord_f) - max(sizeEdge - 0.5, 0.0);
+  float dist_outer = dist - max(sizeEdge, 1.0);
 #ifdef USE_SMOOTH_WIRE
   float mix_w = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist);
   float mix_w_outer = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist_outer);
@@ -33,4 +31,5 @@ void main()
 #endif
   FragColor = mix(finalColorOuter_f, finalColor_f, 1.0 - mix_w * finalColorOuter_f.a);
   FragColor.a *= 1.0 - (finalColorOuter_f.a > 0.0 ? mix_w_outer : mix_w);
+  FragColor.a *= (selectEdges) ? 1.0 : 0.4;
 }

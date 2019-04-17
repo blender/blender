@@ -4,7 +4,6 @@ layout(triangle_strip, max_vertices = 4) out;
 
 uniform vec2 viewportSize;
 uniform vec2 viewportSizeInv;
-uniform float edgeScale;
 
 in vec4 finalColor[2];
 in vec4 finalColorOuter[2];
@@ -57,9 +56,9 @@ void main()
   line = abs(line) * viewportSize;
 
   finalColorOuter_f = finalColorOuter[0];
-  float half_size = sizeEdge * edgeScale;
+  float half_size = sizeEdge;
   /* Enlarge edge for flag display. */
-  half_size += (finalColorOuter_f.a > 0.0) ? max(sizeEdge * edgeScale, 1.0) : 0.0;
+  half_size += (finalColorOuter_f.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
 
 #ifdef USE_SMOOTH_WIRE
   /* Add 1 px for AA */

@@ -336,8 +336,8 @@ static DRWPass *edit_mesh_create_overlay_pass(float *face_alpha,
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_float(grp, "faceAlphaMod", face_alpha, 1);
   DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
-  DRW_shgroup_uniform_bool_copy(grp, "doEdges", do_edges);
   DRW_shgroup_uniform_float_copy(grp, "ofs", 0.0f);
+  DRW_shgroup_uniform_bool_copy(grp, "selectFaces", select_face);
   if (rv3d->rflag & RV3D_CLIPPING) {
     DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
   }
@@ -354,7 +354,8 @@ static DRWPass *edit_mesh_create_overlay_pass(float *face_alpha,
   DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
   DRW_shgroup_uniform_bool_copy(grp, "doEdges", do_edges);
   DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs);
-  DRW_shgroup_uniform_float_copy(grp, "edgeScale", show_wide_edge ? 1.75f : 1.0f);
+  DRW_shgroup_uniform_bool_copy(grp, "selectEdges", select_edge);
+
   DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE);
   /* To match blender loop structure. */
   DRW_shgroup_state_enable(grp, DRW_STATE_FIRST_VERTEX_CONVENTION);
@@ -421,9 +422,6 @@ static void EDIT_MESH_cache_init(void *vedata)
         stl->g_data->data_mask[0] &= ~(VFLAG_FACE_SELECTED & VFLAG_FACE_FREESTYLE);
         stl->g_data->do_faces = false;
         stl->g_data->do_zbufclip = false;
-      }
-      if ((tsettings->selectmode & SCE_SELECT_FACE) == 0) {
-        stl->g_data->data_mask[0] &= ~VFLAG_FACE_ACTIVE;
       }
       if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_SEAMS) == 0) {
         stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SEAM;
@@ -552,6 +550,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
     /* however we loose the front faces value (because we need the depth of occluded wires and
      * faces are alpha blended ) so we recover them in a new pass. */
+    bool select_face = (tsettings->selectmode & SCE_SELECT_FACE) != 0;
     psl->facefill_occlude = DRW_pass_create(
         "Front Face Color", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
     stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(sh_data->overlay_facefill,
