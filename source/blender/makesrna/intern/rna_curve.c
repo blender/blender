@@ -1315,7 +1315,7 @@ static void rna_def_charinfo(BlenderRNA *brna)
   * /
 #  endif
 
-      prop = RNA_def_property(srna, "use_small_caps", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_small_caps", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_SMALLCAPS);
   RNA_def_property_ui_text(prop, "Small Caps", "");
   RNA_def_property_ui_icon(prop, ICON_SMALL_CAPS, 0);

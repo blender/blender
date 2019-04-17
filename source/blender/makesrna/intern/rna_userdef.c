@@ -5128,7 +5128,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   prop = RNA_def_boolean(srna, "use_ndof", true, "", "");
 #  else
   prop = RNA_def_boolean(srna, "use_ndof", false, "", "");
-#  endif            /* WITH_INPUT_NDOF */
+#  endif /* WITH_INPUT_NDOF */
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 

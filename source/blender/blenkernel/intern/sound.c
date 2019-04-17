@@ -394,23 +394,23 @@ void BKE_sound_load(struct Main *bmain, bSound *sound)
     switch (sound->type) {
       case SOUND_TYPE_FILE:
 #  endif
-      {
-        char fullpath[FILE_MAX];
+    {
+      char fullpath[FILE_MAX];
 
-        /* load sound */
-        PackedFile *pf = sound->packedfile;
+      /* load sound */
+      PackedFile *pf = sound->packedfile;
 
-        /* don't modify soundact->sound->name, only change a copy */
-        BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
-        BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
+      /* don't modify soundact->sound->name, only change a copy */
+      BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
+      BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 
-        /* but we need a packed file then */
-        if (pf)
-          sound->handle = AUD_Sound_bufferFile((unsigned char *)pf->data, pf->size);
-        /* or else load it from disk */
-        else
-          sound->handle = AUD_Sound_file(fullpath);
-      }
+      /* but we need a packed file then */
+      if (pf)
+        sound->handle = AUD_Sound_bufferFile((unsigned char *)pf->data, pf->size);
+      /* or else load it from disk */
+      else
+        sound->handle = AUD_Sound_file(fullpath);
+    }
 /* XXX unused currently */
 #  if 0
       break;
@@ -425,23 +425,23 @@ void BKE_sound_load(struct Main *bmain, bSound *sound)
       break;
   }
 #  endif
-  if (sound->flags & SOUND_FLAGS_MONO) {
-    void *handle = AUD_Sound_rechannel(sound->handle, AUD_CHANNELS_MONO);
-    AUD_Sound_free(sound->handle);
-    sound->handle = handle;
+    if (sound->flags & SOUND_FLAGS_MONO) {
+      void *handle = AUD_Sound_rechannel(sound->handle, AUD_CHANNELS_MONO);
+      AUD_Sound_free(sound->handle);
+      sound->handle = handle;
+    }
+
+    if (sound->flags & SOUND_FLAGS_CACHING) {
+      sound->cache = AUD_Sound_cache(sound->handle);
+    }
+
+    if (sound->cache)
+      sound->playback_handle = sound->cache;
+    else
+      sound->playback_handle = sound->handle;
+
+    BKE_sound_update_sequencer(bmain, sound);
   }
-
-  if (sound->flags & SOUND_FLAGS_CACHING) {
-    sound->cache = AUD_Sound_cache(sound->handle);
-  }
-
-  if (sound->cache)
-    sound->playback_handle = sound->cache;
-  else
-    sound->playback_handle = sound->handle;
-
-  BKE_sound_update_sequencer(bmain, sound);
-}
 }
 
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
