@@ -4630,12 +4630,14 @@ static void draw_setting_widget(bAnimContext *ac,
           UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
           break;
       }
-    }
-  }
 
-  if ((ale->fcurve_owner_id != NULL && ID_IS_LINKED(ale->fcurve_owner_id)) ||
-      (ale->id != NULL && ID_IS_LINKED(ale->id))) {
-    UI_but_flag_enable(but, UI_BUT_DISABLED);
+      if ((ale->fcurve_owner_id != NULL && ID_IS_LINKED(ale->fcurve_owner_id)) ||
+          (ale->id != NULL && ID_IS_LINKED(ale->id))) {
+        if (setting != ACHANNEL_SETTING_EXPAND) {
+          UI_but_flag_enable(but, UI_BUT_DISABLED);
+        }
+      }
+    }
   }
 }
 

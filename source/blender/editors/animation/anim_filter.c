@@ -1344,7 +1344,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
       /* filter selection of channel specially here again,
        * since may be open and not subject to previous test */
       if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp))) {
-        ANIMCHANNEL_NEW_CHANNEL(agrp, ANIMTYPE_GROUP, owner_id, NULL);
+        ANIMCHANNEL_NEW_CHANNEL(agrp, ANIMTYPE_GROUP, owner_id, &act->id);
       }
     }
 

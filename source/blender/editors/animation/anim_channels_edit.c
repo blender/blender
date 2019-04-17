@@ -2586,6 +2586,13 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
     return false;
   }
 
+  /* don't allow renaming linked channels */
+  if ((ale->fcurve_owner_id != NULL && ID_IS_LINKED(ale->fcurve_owner_id)) ||
+      (ale->id != NULL && ID_IS_LINKED(ale->id))) {
+    ANIM_animdata_freelist(&anim_data);
+    return false;
+  }
+
   /* check that channel can be renamed */
   acf = ANIM_channel_get_typeinfo(ale);
   if (acf && acf->name_prop) {
