@@ -383,18 +383,10 @@ function(setup_liblinks
     ${FREETYPE_LIBRARY}
   )
 
-  # since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-  if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
-    target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
-    if(WIN32 AND NOT UNIX)
-      file_list_suffix(PYTHON_LIBRARIES_DEBUG "${PYTHON_LIBRARIES}" "_d")
-      target_link_libraries_debug(${target} "${PYTHON_LIBRARIES_DEBUG}")
-      target_link_libraries_optimized(${target} "${PYTHON_LIBRARIES}")
-      unset(PYTHON_LIBRARIES_DEBUG)
-    else()
-      target_link_libraries(${target} ${PYTHON_LIBRARIES})
-    endif()
+  if(WITH_PYTHON)
+    target_link_libraries(${target} ${PYTHON_LINKFLAGS})
+    target_link_libraries(${target} ${PYTHON_LIBRARIES})
   endif()
 
   if(WITH_LZO AND WITH_SYSTEM_LZO)
