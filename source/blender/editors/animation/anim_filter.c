@@ -2597,7 +2597,7 @@ static size_t animdata_filter_ds_obanim(
   /* determine the type of expander channels to use */
   /* this is the best way to do this for now... */
   ANIMDATA_FILTER_CASES(
-      ob,
+      ob, /* Some useless long comment to prevent wrapping by old clang-format versions... */
       {/* AnimData - no channel, but consider data */},
       {/* NLA - no channel, but consider data */},
       { /* Drivers */
@@ -2769,7 +2769,7 @@ static size_t animdata_filter_ds_scene(
   /* determine the type of expander channels to use */
   // this is the best way to do this for now...
   ANIMDATA_FILTER_CASES(
-      sce,
+      sce, /* Some useless long comment to prevent wrapping by old clang-format versions... */
       {/* AnimData - no channel, but consider data */},
       {/* NLA - no channel, but consider data */},
       { /* Drivers */
