@@ -1046,15 +1046,15 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     f = BM_face_create_verts(bm, varr, j, es->l->f, BM_CREATE_NOP, true);
     BMO_face_flag_enable(bm, f, ELE_NEW);
 
-    /* copy for loop data, otherwise UV's and vcols are no good.
+    /* Copy for loop data, otherwise UV's and vcols are no good.
      * tiny speedup here we could be more clever and copy from known adjacent data
      * also - we could attempt to interpolate the loop data, this would be much slower but more useful too */
-#if 0
-    /* don't use this because face boundaries have no adjacent loops and won't be filled in.
-     * instead copy from the opposite side with the code below */
-    BM_face_copy_shared(bm, f, NULL, NULL);
-#else
-    {
+    if (0) {
+      /* Don't use this because face boundaries have no adjacent loops and won't be filled in.
+       * instead copy from the opposite side with the code below */
+      BM_face_copy_shared(bm, f, NULL, NULL);
+    }
+    else {
       /* 2 inner loops on the edge between the new face and the original */
       BMLoop *l_a;
       BMLoop *l_b;
@@ -1108,7 +1108,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
         CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
 
-#  ifdef USE_LOOP_CUSTOMDATA_MERGE
+#ifdef USE_LOOP_CUSTOMDATA_MERGE
         if (has_math_ldata) {
           BMEdge *e_connect;
 
@@ -1135,7 +1135,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
                                      BM_edge_other_loop(e_connect, l_b->next));
           }
         }
-#  endif /* USE_LOOP_CUSTOMDATA_MERGE */
+#endif /* USE_LOOP_CUSTOMDATA_MERGE */
       }
       else {
         BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
@@ -1143,82 +1143,81 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
       }
     }
   }
-#endif
 
-    if (use_interpolate) {
-      for (i = 0; i < iface_array_len; i++) {
-        if (iface_array[i]) {
-          bm_interp_face_free(iface_array[i], bm);
-        }
+  if (use_interpolate) {
+    for (i = 0; i < iface_array_len; i++) {
+      if (iface_array[i]) {
+        bm_interp_face_free(iface_array[i], bm);
       }
-
-      BLI_memarena_free(interp_arena);
-      MEM_freeN(iface_array);
     }
 
-    /* we could flag new edges/verts too, is it useful? */
-    BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_NEW);
+    BLI_memarena_free(interp_arena);
+    MEM_freeN(iface_array);
+  }
 
-    /* cheap feature to add depth to the inset */
-    if (depth != 0.0f) {
-      float(*varr_co)[3];
-      BMOIter oiter;
+  /* we could flag new edges/verts too, is it useful? */
+  BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_NEW);
 
-      /* we need to re-calculate tagged normals, but for this purpose we can copy tagged verts from the
+  /* cheap feature to add depth to the inset */
+  if (depth != 0.0f) {
+    float(*varr_co)[3];
+    BMOIter oiter;
+
+    /* we need to re-calculate tagged normals, but for this purpose we can copy tagged verts from the
      * faces they inset from,  */
-      for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
-        zero_v3(es->e_new->v1->no);
-        zero_v3(es->e_new->v2->no);
+    for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+      zero_v3(es->e_new->v1->no);
+      zero_v3(es->e_new->v2->no);
+    }
+    for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+      const float *no = es->l->f->no;
+      add_v3_v3(es->e_new->v1->no, no);
+      add_v3_v3(es->e_new->v2->no, no);
+    }
+    for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+      /* annoying, avoid normalizing twice */
+      if (len_squared_v3(es->e_new->v1->no) != 1.0f) {
+        normalize_v3(es->e_new->v1->no);
       }
-      for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
-        const float *no = es->l->f->no;
-        add_v3_v3(es->e_new->v1->no, no);
-        add_v3_v3(es->e_new->v2->no, no);
+      if (len_squared_v3(es->e_new->v2->no) != 1.0f) {
+        normalize_v3(es->e_new->v2->no);
       }
-      for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
-        /* annoying, avoid normalizing twice */
-        if (len_squared_v3(es->e_new->v1->no) != 1.0f) {
-          normalize_v3(es->e_new->v1->no);
-        }
-        if (len_squared_v3(es->e_new->v2->no) != 1.0f) {
-          normalize_v3(es->e_new->v2->no);
-        }
-      }
-      /* done correcting edge verts normals */
+    }
+    /* done correcting edge verts normals */
 
-      /* untag verts */
-      BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+    /* untag verts */
+    BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
-      /* tag face verts */
-      BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
-        BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
-          BM_elem_flag_enable(v, BM_ELEM_TAG);
-        }
+    /* tag face verts */
+    BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
+      BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
+        BM_elem_flag_enable(v, BM_ELEM_TAG);
       }
+    }
 
-      /* do in 2 passes so moving the verts doesn't feed back into face angle checks
+    /* do in 2 passes so moving the verts doesn't feed back into face angle checks
      * which BM_vert_calc_shell_factor uses. */
 
-      /* over allocate */
-      varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
+    /* over allocate */
+    varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
 
-      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-        if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-          const float fac = (depth *
-                             (use_relative_offset ? bm_edge_info_average_length(v, edge_info) :
-                                                    1.0f) *
-                             (use_even_boundary ? BM_vert_calc_shell_factor(v) : 1.0f));
-          madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
-        }
+    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+        const float fac = (depth *
+                           (use_relative_offset ? bm_edge_info_average_length(v, edge_info) :
+                                                  1.0f) *
+                           (use_even_boundary ? BM_vert_calc_shell_factor(v) : 1.0f));
+        madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
       }
-
-      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-        if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-          copy_v3_v3(v->co, varr_co[i]);
-        }
-      }
-      MEM_freeN(varr_co);
     }
 
-    MEM_freeN(edge_info);
+    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+        copy_v3_v3(v->co, varr_co[i]);
+      }
+    }
+    MEM_freeN(varr_co);
   }
+
+  MEM_freeN(edge_info);
+}
