@@ -3742,9 +3742,10 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
       emy = 0; /* need to reset height again for next column */
       col++;
 
-      /*  (<     remaining width     > - <      space between remaining columns      >) / <remamining columns > */
-      w = ((litem->w - (x - litem->x)) - (flow->totcol - col - 1) * style->columnspace) /
-          (flow->totcol - col);
+      const int remaining_width = litem->w - (x - litem->x);
+      const int remaining_width_between_columns = (flow->totcol - col - 1) * style->columnspace;
+      const int remaining_columns = flow->totcol - col;
+      w = (remaining_width - remaining_width_between_columns) / remaining_columns;
     }
   }
 
