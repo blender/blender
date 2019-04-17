@@ -98,14 +98,14 @@ def make_lib():
 
     # make unique named copy of the cube
     ob = bpy.data.objects["Cube"].copy()
-    bpy.context.scene.objects.link(ob)
+    bpy.context.collection.objects.link(ob)
 
     bpy.data.objects["Cube.001"].name = "Unique_Cube"
 
     # duplicating of Cube
     for i in range(0, ob_cp_count):
         ob = bpy.data.objects["Cube"].copy()
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
 
     # nodes
     bpy.data.scenes["Scene"].use_nodes = True
@@ -147,7 +147,7 @@ def check_lib_linking():
 def check_linked_scene_copying():
     # full copy of the scene with datablock props
     bpy.ops.wm.open_mainfile(filepath=test_path)
-    bpy.data.screens['Default'].scene = bpy.data.scenes["Scene_lib"]
+    bpy.context.window.scene = bpy.data.scenes["Scene_lib"]
     bpy.ops.scene.new(type='FULL_COPY')
 
     # check save/open
@@ -155,7 +155,7 @@ def check_linked_scene_copying():
     bpy.ops.wm.open_mainfile(filepath=test_path)
 
     intern_sce = get_scene(None, "Scene_lib")
-    extern_sce = get_scene("Lib", "Scene_lib")
+    extern_sce = get_scene("lib.blend", "Scene_lib")
 
     # check node's props
     # we made full copy from linked scene, so pointers must equal each other
@@ -167,7 +167,7 @@ def check_linked_scene_copying():
 def check_scene_copying():
     # full copy of the scene with datablock props
     bpy.ops.wm.open_mainfile(filepath=lib_path)
-    bpy.data.screens['Default'].scene = bpy.data.scenes["Scene_lib"]
+    bpy.context.window.scene = bpy.data.scenes["Scene_lib"]
     bpy.ops.scene.new(type='FULL_COPY')
 
     path = test_path + "_"
