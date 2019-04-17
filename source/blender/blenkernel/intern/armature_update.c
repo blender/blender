@@ -806,6 +806,7 @@ static void pose_eval_cleanup_common(Object *object)
   bPose *pose = object->pose;
   BLI_assert(pose != NULL);
   BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
+  UNUSED_VARS_NDEBUG(pose);
 }
 
 void BKE_pose_eval_done(struct Depsgraph *depsgraph, Object *object)
