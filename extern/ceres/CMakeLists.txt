@@ -257,13 +257,8 @@ set(SRC
 )
 
 set(LIB
+  extern_glog
 )
-
-if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
-  list(APPEND LIB
-    extern_glog
-  )
-endif()
 
 if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
   list(APPEND SRC
