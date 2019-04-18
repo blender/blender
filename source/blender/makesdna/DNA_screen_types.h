@@ -625,6 +625,9 @@ enum {
   /** Size has been clamped (floating regions only). */
   RGN_FLAG_SIZE_CLAMP_X = (1 << 5),
   RGN_FLAG_SIZE_CLAMP_Y = (1 << 6),
+  /** When the user sets the region is hidden,
+   * needed for floating regions that may be hidden for other reasons. */
+  RGN_FLAG_HIDDEN_BY_USER = (1 << 7),
 };
 
 /** #ARegion.do_draw */

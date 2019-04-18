@@ -286,6 +286,13 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
   }
 
   ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HUD);
+
+  if (ar && (ar->flag & RGN_FLAG_HIDDEN_BY_USER)) {
+    /* The region is intentionally hidden by the user, don't show it. */
+    hud_region_hide(ar);
+    return;
+  }
+
   bool init = false;
   bool was_hidden = ar == NULL || ar->visible == false;
   if (!last_redo_poll(C)) {

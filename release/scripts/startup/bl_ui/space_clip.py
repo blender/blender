@@ -1233,6 +1233,7 @@ class CLIP_MT_view(Menu):
         if sc.view == 'CLIP':
             layout.prop(sc, "show_region_ui")
             layout.prop(sc, "show_region_toolbar")
+            layout.prop(sc, "show_region_hud")
 
             layout.separator()
 

@@ -596,6 +596,15 @@ static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
         ED_region_visibility_change_update(C, sa, ar);
       }
     }
+    else if (region_flag == RGN_FLAG_HIDDEN_BY_USER) {
+      if (!(ar->flag & RGN_FLAG_HIDDEN_BY_USER) != !(ar->flag & RGN_FLAG_HIDDEN)) {
+        ED_region_toggle_hidden(C, ar);
+
+        if ((ar->flag & RGN_FLAG_HIDDEN_BY_USER) == 0) {
+          ED_area_type_hud_ensure(C, sa);
+        }
+      }
+    }
   }
 }
 
@@ -631,6 +640,20 @@ static void rna_Space_show_region_ui_set(PointerRNA *ptr, bool value)
 static void rna_Space_show_region_ui_update(bContext *C, PointerRNA *ptr)
 {
   rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_UI, RGN_FLAG_HIDDEN);
+}
+
+/* Redo (HUD) Region */
+static bool rna_Space_show_region_hud_get(PointerRNA *ptr)
+{
+  return !rna_Space_bool_from_region_flag_get_by_type(ptr, RGN_TYPE_HUD, RGN_FLAG_HIDDEN_BY_USER);
+}
+static void rna_Space_show_region_hud_set(PointerRNA *ptr, bool value)
+{
+  rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_HUD, RGN_FLAG_HIDDEN_BY_USER, !value);
+}
+static void rna_Space_show_region_hud_update(bContext *C, PointerRNA *ptr)
+{
+  rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_HUD, RGN_FLAG_HIDDEN_BY_USER);
 }
 
 /** \} */
@@ -2417,6 +2440,10 @@ static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int regio
     region_type_mask &= ~(1 << RGN_TYPE_UI);
     DEF_SHOW_REGION_PROPERTY(show_region_ui, "Sidebar", "");
   }
+  if (region_type_mask & (1 << RGN_TYPE_HUD)) {
+    region_type_mask &= ~(1 << RGN_TYPE_HUD);
+    DEF_SHOW_REGION_PROPERTY(show_region_hud, "Adjust Last Operation", "");
+  }
   BLI_assert(region_type_mask == 0);
 }
 
@@ -3499,7 +3526,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "View3D");
   RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI));
+  rna_def_space_generic_show_region_toggles(
+      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
 
   prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -4005,7 +4033,8 @@ static void rna_def_space_image(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceImage");
   RNA_def_struct_ui_text(srna, "Space Image Editor", "Image and UV editor space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI));
+  rna_def_space_generic_show_region_toggles(
+      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
 
   /* image */
   prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -5807,7 +5836,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceClip");
   RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_UI));
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
 
   /* movieclip */
   prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
