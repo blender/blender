@@ -4387,6 +4387,7 @@ class VIEW3D_PT_collections(Panel):
     bl_region_type = 'UI'
     bl_category = "View"
     bl_label = "Collections Visibility"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def _draw_collection(self, layout, view_layer, collection, index):
         need_separator = index
