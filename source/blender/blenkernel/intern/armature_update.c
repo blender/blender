@@ -618,8 +618,6 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph, Scene *UNUSED(scene), Objec
   }
 
   BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
-
-  BKE_armature_cached_bbone_deformation_free_data(object);
 }
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -714,6 +712,9 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph, struct Object *object, int 
   if (pchan->bone) {
     invert_m4_m4(imat, pchan->bone->arm_mat);
     mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
+    if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
+      mat4_to_dquat(&pchan->runtime.deform_dual_quat, pchan->bone->arm_mat, pchan->chan_mat);
+    }
   }
   if (DEG_is_active(depsgraph) && armature->edbo == NULL) {
     bPoseChannel *pchan_orig = pchan->orig_pchan;
@@ -798,7 +799,6 @@ static void pose_eval_done_common(struct Depsgraph *depsgraph, Object *object)
   bPose *pose = object->pose;
   UNUSED_VARS_NDEBUG(pose);
   BLI_assert(pose != NULL);
-  BKE_armature_cached_bbone_deformation_update(object);
   BKE_object_eval_boundbox(depsgraph, object);
 }
 static void pose_eval_cleanup_common(Object *object)
@@ -838,8 +838,6 @@ void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
   BLI_assert(object->pose->chan_array != NULL || BLI_listbase_is_empty(&object->pose->chanbase));
-
-  BKE_armature_cached_bbone_deformation_free_data(object);
 }
 
 void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph, Object *object)
@@ -877,5 +875,6 @@ void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph, Object *object, 
   BLI_assert(pchan != NULL);
   BLI_assert(pchan_from != NULL);
   BKE_pose_copyesult_pchan_result(pchan, pchan_from);
+  copy_dq_dq(&pchan->runtime.deform_dual_quat, &pchan_from->runtime.deform_dual_quat);
   BKE_pchan_bbone_segments_cache_copy(pchan, pchan_from);
 }

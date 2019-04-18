@@ -31,6 +31,7 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_view2d_types.h"
+#include "DNA_vec_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
 
 struct Collection;
@@ -183,8 +184,11 @@ struct DualQuat;
 struct Mat4;
 
 typedef struct bPoseChannel_Runtime {
+  /* Cached dual quaternion for deformation. */
+  struct DualQuat deform_dual_quat;
+
+  /* B-Bone shape data: copy of the segment count for validation. */
   int bbone_segments;
-  char _pad[4];
 
   /* Rest and posed matrices for segments. */
   struct Mat4 *bbone_rest_mats;

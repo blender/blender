@@ -118,11 +118,6 @@ typedef struct LodLevel {
   int obhysteresis;
 } LodLevel;
 
-/* Forward declaration for cache bbone deformation information.
- *
- * TODO(sergey): Consider moving it to more appropriate place. */
-struct ObjectBBoneDeform;
-
 struct CustomData_MeshMasks;
 
 /* Not saved in file! */
@@ -166,10 +161,6 @@ typedef struct Object_Runtime {
 
   /** Runtime grease pencil drawing data */
   struct GpencilBatchCache *gpencil_cache;
-
-  struct ObjectBBoneDeform *cached_bbone_deformation;
-
-  void *_pad1;
 } Object_Runtime;
 
 typedef struct Object {

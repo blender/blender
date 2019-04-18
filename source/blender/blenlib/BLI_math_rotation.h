@@ -27,6 +27,8 @@
  * \ingroup bli
  */
 
+#include "DNA_vec_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -214,14 +216,6 @@ void quat_to_compatible_eulO(float eul[3],
 void rotate_eulO(float eul[3], const short order, char axis, float angle);
 
 /******************************* Dual Quaternions ****************************/
-
-typedef struct DualQuat {
-  float quat[4];
-  float trans[4];
-
-  float scale[4][4];
-  float scale_weight;
-} DualQuat;
 
 void copy_dq_dq(DualQuat *r, const DualQuat *dq);
 void normalize_dq(DualQuat *dq, float totw);

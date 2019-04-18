@@ -24,6 +24,7 @@ set(INC
   ../guardedalloc
   ../../source/blender/blenlib
   ../../source/blender/gpu
+  ../../source/blender/makesdna
 )
 
 set(INC_SYS
