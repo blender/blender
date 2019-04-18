@@ -5502,7 +5502,7 @@ static void direct_link_pose(FileData *fd, bPose *pose)
     CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
     pchan->draw_data = NULL;
-    memset(&pchan->runtime, 0, sizeof(pchan->runtime));
+    BKE_pose_channel_runtime_reset(&pchan->runtime);
   }
   pose->ikdata = NULL;
   if (pose->ikparam != NULL) {

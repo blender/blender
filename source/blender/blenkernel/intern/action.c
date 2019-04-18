@@ -793,15 +793,25 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
   /* Cached data, for new draw manager rendering code. */
   MEM_SAFE_FREE(pchan->draw_data);
 
-  /* Cached B-Bone shape data. */
-  BKE_pose_channel_free_bbone_cache(pchan);
+  /* Cached B-Bone shape and other data. */
+  BKE_pose_channel_runtime_free(&pchan->runtime);
+}
+
+/** Clears the runtime cache of a pose channel without free. */
+void BKE_pose_channel_runtime_reset(bPoseChannel_Runtime *runtime)
+{
+  memset(runtime, 0, sizeof(*runtime));
+}
+
+/** Deallocates runtime cache of a pose channel */
+void BKE_pose_channel_runtime_free(bPoseChannel_Runtime *runtime)
+{
+  BKE_pose_channel_free_bbone_cache(runtime);
 }
 
 /** Deallocates runtime cache of a pose channel's B-Bone shape. */
-void BKE_pose_channel_free_bbone_cache(bPoseChannel *pchan)
+void BKE_pose_channel_free_bbone_cache(bPoseChannel_Runtime *runtime)
 {
-  bPoseChannel_Runtime *runtime = &pchan->runtime;
-
   runtime->bbone_segments = 0;
   MEM_SAFE_FREE(runtime->bbone_rest_mats);
   MEM_SAFE_FREE(runtime->bbone_pose_mats);

@@ -613,7 +613,7 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph, Scene *UNUSED(scene), Objec
 
     /* Free B-Bone shape data cache if it's not a B-Bone. */
     if (pchan->bone == NULL || pchan->bone->segments <= 1) {
-      BKE_pose_channel_free_bbone_cache(pchan);
+      BKE_pose_channel_free_bbone_cache(&pchan->runtime);
     }
   }
 
@@ -723,7 +723,7 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph, struct Object *object, int 
     copy_m4_m4(pchan_orig->constinv, pchan->constinv);
     BKE_pose_where_is_bone_tail(pchan_orig);
     if (pchan->bone == NULL || pchan->bone->segments <= 1) {
-      BKE_pose_channel_free_bbone_cache(pchan_orig);
+      BKE_pose_channel_free_bbone_cache(&pchan_orig->runtime);
     }
   }
 }

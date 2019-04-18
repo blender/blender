@@ -35,6 +35,7 @@ struct bActionGroup;
 struct bItasc;
 struct bPose;
 struct bPoseChannel;
+struct bPoseChannel_Runtime;
 
 /* Kernel prototypes */
 #ifdef __cplusplus
@@ -132,7 +133,10 @@ void action_groups_clear_tempflags(struct bAction *act);
 void BKE_pose_channel_free(struct bPoseChannel *pchan);
 void BKE_pose_channel_free_ex(struct bPoseChannel *pchan, bool do_id_user);
 
-void BKE_pose_channel_free_bbone_cache(struct bPoseChannel *pchan);
+void BKE_pose_channel_runtime_reset(struct bPoseChannel_Runtime *runtime);
+void BKE_pose_channel_runtime_free(struct bPoseChannel_Runtime *runtime);
+
+void BKE_pose_channel_free_bbone_cache(struct bPoseChannel_Runtime *runtime);
 
 void BKE_pose_channels_free(struct bPose *pose);
 void BKE_pose_channels_free_ex(struct bPose *pose, bool do_id_user);

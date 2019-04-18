@@ -948,9 +948,7 @@ static void allocate_bbone_cache(bPoseChannel *pchan, int segments)
   bPoseChannel_Runtime *runtime = &pchan->runtime;
 
   if (runtime->bbone_segments != segments) {
-    if (runtime->bbone_segments != 0) {
-      BKE_pose_channel_free_bbone_cache(pchan);
-    }
+    BKE_pose_channel_free_bbone_cache(runtime);
 
     runtime->bbone_segments = segments;
     runtime->bbone_rest_mats = MEM_malloc_arrayN(
@@ -1020,7 +1018,7 @@ void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pcha
   int segments = runtime_from->bbone_segments;
 
   if (segments <= 1) {
-    BKE_pose_channel_free_bbone_cache(pchan);
+    BKE_pose_channel_free_bbone_cache(&pchan->runtime);
   }
   else {
     allocate_bbone_cache(pchan, segments);
