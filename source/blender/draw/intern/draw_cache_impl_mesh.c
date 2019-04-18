@@ -4198,16 +4198,16 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me,
 
   BLI_assert(gpumat_array_len == cache->mat_len);
 
-  bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_used, cd_needed);
-  if (!cd_overlap) {
-    mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
+  mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
 
+  if (!mesh_cd_layers_type_overlap(cache->cd_used, cd_needed)) {
     mesh_cd_extract_auto_layers_names_and_srgb(me,
                                                cache->cd_needed,
                                                &cache->auto_layer_names,
                                                &cache->auto_layer_is_srgb,
                                                &cache->auto_layer_len);
   }
+
   if (auto_layer_names) {
     *auto_layer_names = cache->auto_layer_names;
     *auto_layer_is_srgb = cache->auto_layer_is_srgb;
@@ -4733,6 +4733,18 @@ void DRW_mesh_batch_cache_create_requested(
     drw_mesh_weight_state_clear(&wstate);
   }
 
+  /* Optimization : Only create orco layer if mesh is deformed. */
+  if (cache->cd_needed.orco != 0) {
+    CustomData *cd_vdata = (me->edit_mesh) ? &me->edit_mesh->bm->vdata : &me->vdata;
+    if (CustomData_get_layer(cd_vdata, CD_ORCO) != NULL && ob->modifiers.first != NULL) {
+      /* Orco layer is needed. */
+    }
+    else if (cache->cd_needed.tan_orco == 0) {
+      /* Skip orco calculation if not needed by tangent generation. */
+      cache->cd_needed.orco = 0;
+    }
+  }
+
   /* Verify that all surface batches have needed attribute layers. */
   /* TODO(fclem): We could be a bit smarter here and only do it per material. */
   bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_used, cache->cd_needed);
@@ -4929,15 +4941,7 @@ void DRW_mesh_batch_cache_create_requested(
         DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_vcol);
       }
       if (cache->cd_used.orco != 0) {
-        /* OPTI : Only do that if there is modifiers that modify orcos. */
-        CustomData *cd_vdata = (me->edit_mesh) ? &me->edit_mesh->bm->vdata : &me->vdata;
-        if (CustomData_get_layer(cd_vdata, CD_ORCO) != NULL && ob->modifiers.first != NULL) {
-          DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_orco);
-        }
-        else if (cache->cd_used.tan_orco == 0) {
-          /* Skip orco calculation if not needed by tangent generation. */
-          cache->cd_used.orco = 0;
-        }
+        DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_orco);
       }
     }
   }
