@@ -624,7 +624,6 @@ if(WITH_ALEMBIC)
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
     --
     --testdir "${TEST_SRC_DIR}/alembic"
-    --with-legacy-depsgraph=${WITH_LEGACY_DEPSGRAPH}
   )
 endif()
 

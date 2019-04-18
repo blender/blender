@@ -165,9 +165,6 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.data.cache_files[fname].filepath = relpath.replace('1.abc', '2.abc')
         bpy.context.scene.update()
 
-        if args.with_legacy_depsgraph:
-            bpy.context.scene.frame_set(10)
-
         cube = bpy.context.depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, math.pi / 2, places=5)
@@ -254,8 +251,6 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--testdir', required=True, type=pathlib.Path)
-    parser.add_argument('--with-legacy-depsgraph', default=False,
-                        type=lambda v: v in {'ON', 'YES', 'TRUE'})
     args, remaining = parser.parse_known_args(argv)
 
     unittest.main(argv=remaining)
