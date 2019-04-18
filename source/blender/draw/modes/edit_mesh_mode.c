@@ -300,8 +300,6 @@ static DRWPass *edit_mesh_create_overlay_pass(float *face_alpha,
   const bool select_vert = (tsettings->selectmode & SCE_SELECT_VERTEX) != 0;
   const bool select_face = (tsettings->selectmode & SCE_SELECT_FACE) != 0;
   const bool select_edge = (tsettings->selectmode & SCE_SELECT_EDGE) != 0;
-  const bool show_wide_edge = select_edge &&
-                              !(draw_ctx->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT);
 
   float winmat[4][4];
   float viewdist = rv3d->dist;
@@ -550,7 +548,6 @@ static void EDIT_MESH_cache_init(void *vedata)
 
     /* however we loose the front faces value (because we need the depth of occluded wires and
      * faces are alpha blended ) so we recover them in a new pass. */
-    bool select_face = (tsettings->selectmode & SCE_SELECT_FACE) != 0;
     psl->facefill_occlude = DRW_pass_create(
         "Front Face Color", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
     stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(sh_data->overlay_facefill,
