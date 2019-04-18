@@ -484,141 +484,142 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
    * Once we fully switch to Mesh evaluation of modifiers, we can expect to get that flag from the COW copy.
    * But for now, it is lost in the DM intermediate step, so we need to directly check orig object's data. */
 #if 0
-  if (!(mesh->flag & ME_AUTOSMOOTH)) {
+  if (!(mesh->flag & ME_AUTOSMOOTH))
 #else
-  if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
+  if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH))
 #endif
-  modifier_setError((ModifierData *)enmd, "Enable 'Auto Smooth' option in mesh settings");
-  return mesh;
-}
+  {
+    modifier_setError((ModifierData *)enmd, "Enable 'Auto Smooth' option in mesh settings");
+    return mesh;
+  }
 
-Mesh *result;
-if (mesh->medge == ((Mesh *)ob->data)->medge) {
-  /* We need to duplicate data here, otherwise setting custom normals (which may also affect sharp edges) could
+  Mesh *result;
+  if (mesh->medge == ((Mesh *)ob->data)->medge) {
+    /* We need to duplicate data here, otherwise setting custom normals (which may also affect sharp edges) could
      * modify org mesh, see T43671. */
-  BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
-}
-else {
-  result = mesh;
-}
+    BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
+  }
+  else {
+    result = mesh;
+  }
 
-const int num_verts = result->totvert;
-const int num_edges = result->totedge;
-const int num_loops = result->totloop;
-const int num_polys = result->totpoly;
-MVert *mvert = result->mvert;
-MEdge *medge = result->medge;
-MLoop *mloop = result->mloop;
-MPoly *mpoly = result->mpoly;
+  const int num_verts = result->totvert;
+  const int num_edges = result->totedge;
+  const int num_loops = result->totloop;
+  const int num_polys = result->totpoly;
+  MVert *mvert = result->mvert;
+  MEdge *medge = result->medge;
+  MLoop *mloop = result->mloop;
+  MPoly *mpoly = result->mpoly;
 
-int defgrp_index;
-MDeformVert *dvert;
+  int defgrp_index;
+  MDeformVert *dvert;
 
-float (*loopnors)[3] = NULL;
-short (*clnors)[2] = NULL;
+  float(*loopnors)[3] = NULL;
+  short(*clnors)[2] = NULL;
 
-float (*polynors)[3];
+  float(*polynors)[3];
 
-CustomData *ldata = &result->ldata;
-if (CustomData_has_layer(ldata, CD_NORMAL)) {
-  loopnors = CustomData_get_layer(ldata, CD_NORMAL);
-}
-else {
-  loopnors = CustomData_add_layer(ldata, CD_NORMAL, CD_CALLOC, NULL, num_loops);
-}
+  CustomData *ldata = &result->ldata;
+  if (CustomData_has_layer(ldata, CD_NORMAL)) {
+    loopnors = CustomData_get_layer(ldata, CD_NORMAL);
+  }
+  else {
+    loopnors = CustomData_add_layer(ldata, CD_NORMAL, CD_CALLOC, NULL, num_loops);
+  }
 
-/* Compute poly (always needed) and vert normals. */
-CustomData *pdata = &result->pdata;
-polynors = CustomData_get_layer(pdata, CD_NORMAL);
-if (!polynors) {
-  polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, num_polys);
-}
-BKE_mesh_calc_normals_poly(mvert,
-                           NULL,
-                           num_verts,
-                           mloop,
-                           mpoly,
-                           num_loops,
-                           num_polys,
-                           polynors,
-                           (result->runtime.cd_dirty_vert & CD_MASK_NORMAL) ? false : true);
+  /* Compute poly (always needed) and vert normals. */
+  CustomData *pdata = &result->pdata;
+  polynors = CustomData_get_layer(pdata, CD_NORMAL);
+  if (!polynors) {
+    polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, num_polys);
+  }
+  BKE_mesh_calc_normals_poly(mvert,
+                             NULL,
+                             num_verts,
+                             mloop,
+                             mpoly,
+                             num_loops,
+                             num_polys,
+                             polynors,
+                             (result->runtime.cd_dirty_vert & CD_MASK_NORMAL) ? false : true);
 
-result->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
+  result->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 
-if (use_current_clnors) {
-  clnors = CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, num_loops);
+  if (use_current_clnors) {
+    clnors = CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, num_loops);
 
-  BKE_mesh_normals_loop_split(mvert,
-                              num_verts,
-                              medge,
-                              num_edges,
-                              mloop,
-                              loopnors,
-                              num_loops,
-                              mpoly,
-                              (const float(*)[3])polynors,
-                              num_polys,
-                              true,
-                              result->smoothresh,
-                              NULL,
-                              clnors,
-                              NULL);
-}
+    BKE_mesh_normals_loop_split(mvert,
+                                num_verts,
+                                medge,
+                                num_edges,
+                                mloop,
+                                loopnors,
+                                num_loops,
+                                mpoly,
+                                (const float(*)[3])polynors,
+                                num_polys,
+                                true,
+                                result->smoothresh,
+                                NULL,
+                                clnors,
+                                NULL);
+  }
 
-if (!clnors) {
-  clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, num_loops);
-}
+  if (!clnors) {
+    clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, num_loops);
+  }
 
-MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
+  MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
 
-if (enmd->mode == MOD_NORMALEDIT_MODE_RADIAL) {
-  normalEditModifier_do_radial(enmd,
-                               ctx,
-                               ob,
-                               result,
-                               clnors,
-                               loopnors,
-                               polynors,
-                               enmd->mix_mode,
-                               enmd->mix_factor,
-                               enmd->mix_limit,
-                               dvert,
-                               defgrp_index,
-                               use_invert_vgroup,
-                               mvert,
-                               num_verts,
-                               medge,
-                               num_edges,
-                               mloop,
-                               num_loops,
-                               mpoly,
-                               num_polys);
-}
-else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
-  normalEditModifier_do_directional(enmd,
-                                    ctx,
-                                    ob,
-                                    result,
-                                    clnors,
-                                    loopnors,
-                                    polynors,
-                                    enmd->mix_mode,
-                                    enmd->mix_factor,
-                                    enmd->mix_limit,
-                                    dvert,
-                                    defgrp_index,
-                                    use_invert_vgroup,
-                                    mvert,
-                                    num_verts,
-                                    medge,
-                                    num_edges,
-                                    mloop,
-                                    num_loops,
-                                    mpoly,
-                                    num_polys);
-}
+  if (enmd->mode == MOD_NORMALEDIT_MODE_RADIAL) {
+    normalEditModifier_do_radial(enmd,
+                                 ctx,
+                                 ob,
+                                 result,
+                                 clnors,
+                                 loopnors,
+                                 polynors,
+                                 enmd->mix_mode,
+                                 enmd->mix_factor,
+                                 enmd->mix_limit,
+                                 dvert,
+                                 defgrp_index,
+                                 use_invert_vgroup,
+                                 mvert,
+                                 num_verts,
+                                 medge,
+                                 num_edges,
+                                 mloop,
+                                 num_loops,
+                                 mpoly,
+                                 num_polys);
+  }
+  else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
+    normalEditModifier_do_directional(enmd,
+                                      ctx,
+                                      ob,
+                                      result,
+                                      clnors,
+                                      loopnors,
+                                      polynors,
+                                      enmd->mix_mode,
+                                      enmd->mix_factor,
+                                      enmd->mix_limit,
+                                      dvert,
+                                      defgrp_index,
+                                      use_invert_vgroup,
+                                      mvert,
+                                      num_verts,
+                                      medge,
+                                      num_edges,
+                                      mloop,
+                                      num_loops,
+                                      mpoly,
+                                      num_polys);
+  }
 
-return result;
+  return result;
 }
 
 static void initData(ModifierData *md)
