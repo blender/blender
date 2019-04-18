@@ -150,6 +150,12 @@ if 'cmake' in builder:
         if os.path.exists('CMakeCache.txt'):
             print("Removing CMake cache")
             os.remove('CMakeCache.txt')
+        # Remove buildinfo files to force buildbot to re-generate them.
+        for buildinfo in ('buildinfo.h', 'buildinfo.h.txt', ):
+            full_path = os.path.join('source', 'creator', buildinfo)
+            if os.path.exists(full_path):
+                print("Removing {}" . format(buildinfo))
+                os.remove(full_path)
         retcode = subprocess.call(target_chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
         if retcode != 0:
             print('Configuration FAILED!')
