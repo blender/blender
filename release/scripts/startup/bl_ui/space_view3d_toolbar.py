@@ -1732,9 +1732,10 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
             ob = context.object
             if ob:
                 ma = ob.active_material
-                    
-            if brush.gpencil_settings.material:
+            elif brush.gpencil_settings.material:
                 ma = brush.gpencil_settings.material
+            else:
+                ma = None
 
             col.separator()
             subcol = col.column(align=True)
