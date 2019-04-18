@@ -344,7 +344,7 @@ typedef struct ScrArea {
    * runtime variable, updated by executing operators.
    */
   short region_active_win;
-  char temp, _pad;
+  char _pad[2];
 
   /** Callbacks for this space type. */
   struct SpaceType *type;
