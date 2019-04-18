@@ -723,47 +723,35 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
   }
 }
 
+/**
+ * Draw a single enum button, a utility for #ui_item_enum_expand_exec
+ */
 static void ui_item_enum_expand_elem_exec(uiLayout *layout,
                                           uiBlock *block,
                                           PointerRNA *ptr,
                                           PropertyRNA *prop,
                                           const char *uiname,
-                                          int h,
-                                          int but_type,
-                                          bool icon_only,
+                                          const int h,
+                                          const eButType but_type,
+                                          const bool icon_only,
                                           const EnumPropertyItem *item,
-                                          bool is_first)
+                                          const bool is_first)
 {
-  uiBut *but;
-  const char *name;
-  int itemw, icon, value;
+  const char *name = (!uiname || uiname[0]) ? item->name : "";
+  const int icon = item->icon;
+  const int value = item->value;
+  const int itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, 0);
 
-  name = (!uiname || uiname[0]) ? item->name : "";
-  icon = item->icon;
-  value = item->value;
-  itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, 0);
+  uiBut *but;
 
   if (icon && name[0] && !icon_only) {
     but = uiDefIconTextButR_prop(
         block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
   }
   else if (icon) {
-    but = uiDefIconButR_prop(block,
-                             but_type,
-                             0,
-                             icon,
-                             0,
-                             0,
-                             (is_first) ? itemw : ceilf(itemw - U.pixelsize),
-                             h,
-                             ptr,
-                             prop,
-                             -1,
-                             0,
-                             value,
-                             -1,
-                             -1,
-                             NULL);
+    const int w = (is_first) ? itemw : ceilf(itemw - U.pixelsize);
+    but = uiDefIconButR_prop(
+        block, but_type, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
   }
   else {
     but = uiDefButR_prop(
@@ -781,7 +769,7 @@ static void ui_item_enum_expand_elem_exec(uiLayout *layout,
   }
 
   /* Allow quick, inaccurate swipe motions to switch tabs
-        * (no need to keep cursor over them). */
+   * (no need to keep cursor over them). */
   if (but_type == UI_BTYPE_TAB) {
     but->flag |= UI_BUT_DRAG_LOCK;
   }
@@ -792,9 +780,9 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
                                      const char *uiname,
-                                     int h,
-                                     int but_type,
-                                     bool icon_only)
+                                     const int h,
+                                     const eButType but_type,
+                                     const bool icon_only)
 {
   /* XXX: The way this function currently handles uiname parameter
    * is insane and inconsistent with general UI API:
@@ -884,8 +872,8 @@ static void ui_item_enum_expand(uiLayout *layout,
                                 PointerRNA *ptr,
                                 PropertyRNA *prop,
                                 const char *uiname,
-                                int h,
-                                bool icon_only)
+                                const int h,
+                                const bool icon_only)
 {
   ui_item_enum_expand_exec(layout, block, ptr, prop, uiname, h, UI_BTYPE_ROW, icon_only);
 }
@@ -895,8 +883,8 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
                                      const char *uiname,
-                                     int h,
-                                     bool icon_only)
+                                     const int h,
+                                     const bool icon_only)
 {
   uiBut *last = block->buttons.last;
 
