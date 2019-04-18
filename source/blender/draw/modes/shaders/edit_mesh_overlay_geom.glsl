@@ -20,9 +20,6 @@ void do_vertex(const int i, vec4 pos, float coord, vec2 offset)
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   gl_Position.xy += offset * 2.0 * pos.w;
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[i].gl_ClipDistance);
-#endif
   EmitVertex();
 }
 
@@ -70,8 +67,15 @@ void main()
   bool horizontal = line.x > line.y;
   edge_ofs = (horizontal) ? edge_ofs.zyz : edge_ofs.xzz;
 
+#ifdef USE_WORLD_CLIP_PLANES
+  world_clip_planes_set_clip_distance(gl_in[0].gl_ClipDistance);
+#endif
   do_vertex(0, pos0, half_size, edge_ofs.xy);
   do_vertex(0, pos0, -half_size, -edge_ofs.xy);
+
+#ifdef USE_WORLD_CLIP_PLANES
+  world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
+#endif
   do_vertex(1, pos1, half_size, edge_ofs.xy);
   do_vertex(1, pos1, -half_size, -edge_ofs.xy);
 
