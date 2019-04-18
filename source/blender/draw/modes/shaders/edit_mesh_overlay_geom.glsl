@@ -20,6 +20,11 @@ void do_vertex(const int i, vec4 pos, float coord, vec2 offset)
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   gl_Position.xy += offset * 2.0 * pos.w;
+  /* Correct but fails due to an AMD compiler bug, see: T62792.
+   * Do inline instead. */
+#if 0
+  world_clip_planes_set_clip_distance(gl_in[i].gl_ClipDistance);
+#endif
   EmitVertex();
 }
 
