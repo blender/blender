@@ -55,6 +55,8 @@ extern char datatoc_edit_mesh_overlay_geom_glsl[];
 extern char datatoc_edit_mesh_overlay_mix_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_frag_glsl[];
+extern char datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl[];
+extern char datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl[];
 extern char datatoc_edit_normals_vert_glsl[];
 extern char datatoc_edit_normals_geom_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
@@ -75,6 +77,7 @@ typedef struct EDIT_MESH_PassList {
   struct DRWPass *edit_face_occluded;
   struct DRWPass *mix_occlude;
   struct DRWPass *facefill_occlude;
+  struct DRWPass *mesh_analysis_pass;
   struct DRWPass *normals;
 } EDIT_MESH_PassList;
 
@@ -115,6 +118,10 @@ typedef struct EDIT_MESH_Shaders {
   GPUShader *normals_loop;
   GPUShader *normals;
   GPUShader *depth;
+
+  /* Mesh analysis shader */
+  GPUShader *mesh_analysis_face;
+  GPUShader *mesh_analysis_vertex;
 } EDIT_MESH_Shaders;
 
 /* *********** STATIC *********** */
@@ -149,6 +156,7 @@ typedef struct EDIT_MESH_PrivateData {
   DRWShadingGroup *facedot_shgrp_in_front;
 
   DRWShadingGroup *facefill_occluded_shgrp;
+  DRWShadingGroup *mesh_analysis_shgrp;
 
   int data_mask[4];
   int ghost_ob;
@@ -276,6 +284,22 @@ static void EDIT_MESH_engine_init(void *vedata)
         .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
         .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
+    });
+
+    /* Mesh Analysis */
+    sh_data->mesh_analysis_face = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define FACE_COLOR\n", NULL},
+    });
+    sh_data->mesh_analysis_vertex = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define VERTEX_COLOR\n", NULL},
     });
 
     sh_data->depth = DRW_shader_create_3d_depth_only(draw_ctx->sh_cfg);
@@ -509,6 +533,18 @@ static void EDIT_MESH_cache_init(void *vedata)
     }
   }
 
+  {
+    /* Mesh Analysis Pass */
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND;
+    psl->mesh_analysis_pass = DRW_pass_create("Mesh Analysis", state);
+    const bool is_vertex_color = scene->toolsettings->statvis.type == SCE_STATVIS_SHARP;
+    stl->g_data->mesh_analysis_shgrp = DRW_shgroup_create(
+        is_vertex_color ? sh_data->mesh_analysis_vertex : sh_data->mesh_analysis_face,
+        psl->mesh_analysis_pass);
+    if (rv3d->rflag & RV3D_CLIPPING) {
+      DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->mesh_analysis_shgrp, rv3d);
+    }
+  }
   /* For in front option */
   psl->edit_face_overlay_in_front = edit_mesh_create_overlay_pass(
       &face_mod,
@@ -628,6 +664,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
       bool do_occlude_wire = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
       bool do_show_weight = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
+      bool do_show_mesh_analysis = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_STATVIS) != 0;
       bool fnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
       bool vnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_VERT_NORMALS) != 0;
       bool lnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_LOOP_NORMALS) != 0;
@@ -654,6 +691,19 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       if (do_show_weight) {
         geom = DRW_cache_mesh_surface_weights_get(ob);
         DRW_shgroup_call_add(g_data->fweights_shgrp, geom, ob->obmat);
+      }
+
+      if (do_show_mesh_analysis) {
+        Mesh *me = (Mesh *)ob->data;
+        BMEditMesh *embm = me->edit_mesh;
+        const bool is_original = embm->mesh_eval_final && \
+                                 (embm->mesh_eval_final->runtime.is_original == true);
+        if (is_original) {
+          geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
+          if (geom) {
+            DRW_shgroup_call_add(g_data->mesh_analysis_shgrp, geom, ob->obmat);
+          }
+        }
       }
 
       if (do_occlude_wire || do_in_front) {
@@ -731,6 +781,7 @@ static void EDIT_MESH_draw_scene(void *vedata)
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   DRW_draw_pass(psl->weight_faces);
+  DRW_draw_pass(psl->mesh_analysis_pass);
 
   DRW_draw_pass(psl->depth_hidden_wire);
 

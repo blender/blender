@@ -3283,6 +3283,12 @@ GPUBatch *DRW_cache_mesh_face_wireframe_get(Object *ob)
   return DRW_mesh_batch_cache_get_wireframes_face(ob->data);
 }
 
+GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_MESH);
+  return DRW_mesh_batch_cache_get_edit_mesh_analysis(ob->data);
+}
+
 void DRW_cache_mesh_sculpt_coords_ensure(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);

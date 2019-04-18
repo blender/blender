@@ -157,6 +157,7 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edituv_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(struct Mesh *me);
 /* For Image UV editor. */
 struct GPUBatch *DRW_mesh_batch_cache_get_uv_edges(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(struct Mesh *me);
 
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 
