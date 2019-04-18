@@ -6225,7 +6225,7 @@ static int count_proportional_objects(TransInfo *t)
         (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL))) {
     /* Mark all parents. */
     for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-      if (BASE_SELECTED_EDITABLE(v3d, base)) {
+      if (BASE_SELECTED_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
         Object *parent = base->object->parent;
         /* flag all parents */
         while (parent != NULL) {
@@ -6238,7 +6238,8 @@ static int count_proportional_objects(TransInfo *t)
     for (Base *base = view_layer->object_bases.first; base; base = base->next) {
       /* all base not already selected or marked that is editable */
       if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-          (base->flag & BASE_SELECTED) == 0 && (BASE_EDITABLE(v3d, base))) {
+          (base->flag & BASE_SELECTED) == 0 &&
+          (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base))) {
         mark_children(base->object);
       }
     }
@@ -6247,10 +6248,11 @@ static int count_proportional_objects(TransInfo *t)
   for (Base *base = view_layer->object_bases.first; base; base = base->next) {
     Object *ob = base->object;
     /* If base is not selected, not a parent of selection or not a child of
-     * selection and it is editable.
+     * selection and it is editable and selectable.
      */
     if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-        (base->flag & BASE_SELECTED) == 0 && (BASE_EDITABLE(v3d, base))) {
+        (base->flag & BASE_SELECTED) == 0 &&
+        (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base))) {
       flush_trans_object_base_deps_flag(depsgraph, ob);
       total += 1;
     }
@@ -7316,9 +7318,10 @@ static void createTransObject(bContext *C, TransInfo *t)
       Object *ob = base->object;
 
       /* if base is not selected, not a parent of selection
-       * or not a child of selection and it is editable */
+       * or not a child of selection and it is editable and selectable */
       if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-          (base->flag & BASE_SELECTED) == 0 && BASE_EDITABLE(v3d, base)) {
+          (base->flag & BASE_SELECTED) == 0 && BASE_EDITABLE(v3d, base) &&
+          BASE_SELECTABLE(v3d, base)) {
         td->protectflag = ob->protectflag;
         td->ext = tx;
         td->ext->rotOrder = ob->rotmode;
