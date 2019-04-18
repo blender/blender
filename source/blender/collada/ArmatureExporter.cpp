@@ -261,11 +261,13 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
     bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 
     if (bone->parent) {
-      // get bone-space matrix from parent pose
-      /*bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
+      /* Get bone-space matrix from parent pose. */
+#if 0
+      bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
       float invpar[4][4];
       invert_m4_m4(invpar, parchan->pose_mat);
-      mul_m4_m4m4(mat, invpar, pchan->pose_mat);*/
+      mul_m4_m4m4(mat, invpar, pchan->pose_mat);
+#endif
       float invpar[4][4];
       bc_create_restpose_mat(
           this->export_settings, bone->parent, parent_rest_mat, bone->parent->arm_mat, true);

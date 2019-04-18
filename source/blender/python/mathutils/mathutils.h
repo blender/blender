@@ -52,16 +52,17 @@ enum {
 #define BASE_MATH_FLAG_DEFAULT 0
 
 #define BASE_MATH_MEMBERS(_data) \
-  PyObject_VAR_HEAD float \
-      *_data; /* array of data (alias), wrapped status depends on wrapped status */ \
-  PyObject * \
-      cb_user; /* if this vector references another object, otherwise NULL,                     \
-                               * *Note* this owns its reference */ \
-  unsigned char cb_type; /* which user funcs do we adhere to, RNA, etc */ \
-  unsigned char \
-      cb_subtype; /* subtype: location, rotation...                                                \
-                               * to avoid defining many new functions for every attribute of the same type */ \
-  unsigned char flag /* wrapped data type? */
+  /** Array of data (alias), wrapped status depends on wrapped status. */ \
+  PyObject_VAR_HEAD float *_data; \
+  /** If this vector references another object, otherwise NULL, *Note* this owns its reference */ \
+  PyObject *cb_user; \
+  /** Which user funcs do we adhere to, RNA, etc */ \
+  unsigned char cb_type; \
+  /** Subtype: location, rotation... \
+   * to avoid defining many new functions for every attribute of the same type */ \
+  unsigned char cb_subtype; \
+  /** Wrapped data type. */ \
+  unsigned char flag
 
 typedef struct {
   BASE_MATH_MEMBERS(data);

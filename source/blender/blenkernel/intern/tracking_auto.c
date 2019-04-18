@@ -45,8 +45,7 @@ typedef struct AutoTrackOptions {
   int clip_index;            /** Index of the clip this track belogs to. */
   int track_index;           /* Index of the track in AutoTrack tracks structure. */
   MovieTrackingTrack *track; /* Pointer to an original track/ */
-  libmv_TrackRegionOptions track_region_options; /* Options for the region
-                                                     tracker. */
+  libmv_TrackRegionOptions track_region_options; /* Options for the region tracker. */
   bool use_keyframe_match;                       /* Keyframe pattern matching. */
 
   /* TODO(sergey): A bit awkward to keep it in here, only used to

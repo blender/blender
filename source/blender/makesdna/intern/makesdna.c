@@ -61,9 +61,8 @@
 /* Included the path relative from /source/blender/ here, so we can move     */
 /* headers around with more freedom.                                         */
 static const char *includefiles[] = {
-
     /* if you add files here, please add them at the end
-   * of makesdna.c (this file) as well */
+     * of makesdna.c (this file) as well */
     "DNA_listBase.h",
     "DNA_vec_types.h",
     "DNA_ID.h",

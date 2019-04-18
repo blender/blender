@@ -566,11 +566,11 @@ MVert *mvert = result->mvert;
 MLoop *mloop = result->mloop;
 
 /* Right now:
-   * If weight = 50 then all faces are given equal weight.
-   * If weight > 50 then more weight given to faces with larger vals (face area / corner angle).
-   * If weight < 50 then more weight given to faces with lesser vals. However current calculation
-   * does not converge to min/max.
-   */
+ * If weight = 50 then all faces are given equal weight.
+ * If weight > 50 then more weight given to faces with larger vals (face area / corner angle).
+ * If weight < 50 then more weight given to faces with lesser vals. However current calculation
+ * does not converge to min/max.
+ */
 float weight = ((float)wnmd->weight) / 50.0f;
 if (wnmd->weight == 100) {
   weight = (float)SHRT_MAX;

@@ -81,12 +81,11 @@ void SceneExporter::exportHierarchy()
 void SceneExporter::writeNodeList(std::vector<Object *> &child_objects, Object *parent)
 {
   /* TODO: Handle the case where a parent is not exported
-     Actually i am not even sure if this can be done at all
-     in a good way.
-     I really prefer to enforce the export of hidden
-     elements in an object hierarchy. When the children of
-     the hidden elements are exported as well.
-   */
+   * Actually i am not even sure if this can be done at all
+   * in a good way.
+   * I really prefer to enforce the export of hidden
+   * elements in an object hierarchy. When the children of
+   * the hidden elements are exported as well. */
   for (int i = 0; i < child_objects.size(); ++i) {
     Object *child = child_objects[i];
     if (bc_is_marked(child)) {

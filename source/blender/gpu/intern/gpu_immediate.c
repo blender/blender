@@ -711,9 +711,9 @@ void immVertex2iv(uint attr_id, const int data[2])
 #  endif
 #else
 /* NOTE: It is possible to have uniform fully optimized out from the shader.
-   *       In this case we can't assert failure or allow NULL-pointer dereference.
-   * TODO(sergey): How can we detect existing-but-optimized-out uniform but still
-   *               catch typos in uniform names passed to immUniform*() functions? */
+ *       In this case we can't assert failure or allow NULL-pointer dereference.
+ * TODO(sergey): How can we detect existing-but-optimized-out uniform but still
+ *               catch typos in uniform names passed to immUniform*() functions? */
 #  define GET_UNIFORM \
     const GPUShaderInput *uniform = GPU_shaderinterface_uniform_ensure(imm.shader_interface, \
                                                                        name); \

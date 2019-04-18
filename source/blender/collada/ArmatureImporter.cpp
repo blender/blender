@@ -613,10 +613,8 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   // bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on default row
 
   // create bones
-  /*
-     TODO:
-     check if bones have already been created for a given joint
-   */
+  /* TODO:
+   * check if bones have already been created for a given joint */
 
   std::vector<COLLADAFW::Node *>::iterator ri;
   for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
@@ -686,9 +684,11 @@ void ArmatureImporter::set_pose(Object *ob_arm,
     mul_m4_m4m4(pchan->pose_mat, invObmat, mat);
   }
 
-  //float angle = 0.0f;
-  ///*mat4_to_axis_angle(ax, &angle, mat);
-  //pchan->bone->roll = angle;*/
+#if 0
+  float angle = 0.0f;
+  mat4_to_axis_angle(ax, &angle, mat);
+  pchan->bone->roll = angle;
+#endif
 
   COLLADAFW::NodePointerArray &children = root_node->getChildNodes();
   for (unsigned int i = 0; i < children.getCount(); i++) {

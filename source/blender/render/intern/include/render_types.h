@@ -82,9 +82,10 @@ struct Render {
    * to not conflict with writes, so no lock used for that */
   ThreadRWMutex resultmutex;
 
-  /* window size, display rect, viewplane */
-  int winx, winy; /* buffer width and height with percentage applied
-               * without border & crop. convert to long before multiplying together to avoid overflow. */
+  /** Window size, display rect, viewplane.
+   * \note Buffer width and height with percentage applied
+   * without border & crop. convert to long before multiplying together to avoid overflow. */
+  int winx, winy;
   rcti disprect;  /* part within winx winy */
   rctf viewplane; /* mapped on winx winy */
 

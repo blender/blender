@@ -320,8 +320,8 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
 #endif
       /* group that curve belongs to is not editable */
       ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-      /* do not show handles if there is only 1 keyframe,
-           * otherwise they all clump together in an ugly ball */
+      /* Do not show handles if there is only 1 keyframe,
+       * otherwise they all clump together in an ugly ball. */
       (fcu->totvert <= 1)) {
     return false;
   }

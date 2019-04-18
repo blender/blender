@@ -567,8 +567,8 @@ void draw_keyframe_shape(float x,
       size *= 0.85f;
       break;
 
-    case BEZT_KEYTYPE_MOVEHOLD: /* slightly smaller than normal keyframes
-                                  * (but by less than for breakdowns) */
+    case BEZT_KEYTYPE_MOVEHOLD: /* Slightly smaller than normal keyframes
+                                 * (but by less than for breakdowns). */
       size *= 0.925f;
       break;
 

@@ -157,16 +157,17 @@ void DRW_edit_mesh_mode_text_measure_stats(ARegion *ar,
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
       BMLoop *l_a, *l_b;
       if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
-        /* draw selected edges, or edges next to selected verts while dragging */
+        /* Draw selected edges, or edges next to selected verts while dragging. */
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
-            (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ||
-                           /* special case, this is useful to show when verts connected to
-               * this edge via a face are being transformed */
-                           BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)))) {
+            (do_moving &&
+             (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+              BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ||
+              /* Special case, this is useful to show when verts connected to this edge
+               * via a face are being transformed. */
+              BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
+              BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT) ||
+              BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
+              BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)))) {
           float v1_clip[3], v2_clip[3];
 
           copy_v3_v3(v1, eed->v1->co);

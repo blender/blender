@@ -721,9 +721,11 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 
   // D3DX functions do not like this:
   this->pf.fourcc = 0;  //findD3D9Format(bitcount, rmask, gmask, bmask, amask);
-  /*if (this->pf.fourcc) {
+#if 0
+  if (this->pf.fourcc) {
     this->pf.flags |= DDPF_FOURCC;
-  }*/
+  }
+#endif
 
   if (!(bitcount > 0 && bitcount <= 32)) {
     printf("DDS: bad bit count, pixel format not set\n");

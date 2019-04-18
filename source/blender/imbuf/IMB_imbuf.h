@@ -272,18 +272,20 @@ void IMB_rectblend_threaded(struct ImBuf *dbuf,
  */
 
 typedef enum IMB_Timecode_Type {
-  IMB_TC_NONE = 0, /* don't use timecode files at all */
-
-  IMB_TC_RECORD_RUN = 1, /* use images in the order as they are recorded
-                          * (currently, this is the only one implemented
-                          * and is a sane default) */
-
-  IMB_TC_FREE_RUN = 2,                       /* use global timestamp written by recording
-                          * device (prosumer camcorders e.g. can do that) */
-  IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4, /* interpolate a global timestamp using the
-                                              * record date and time written by recording
-                                              * device (*every* consumer camcorder can do
-                                              * that :) )*/
+  /** Don't use timecode files at all. */
+  IMB_TC_NONE = 0,
+  /** use images in the order as they are recorded
+   * (currently, this is the only one implemented
+   * and is a sane default) */
+  IMB_TC_RECORD_RUN = 1,
+  /** Use global timestamp written by recording
+   * device (prosumer camcorders e.g. can do that). */
+  IMB_TC_FREE_RUN = 2,
+  /** Interpolate a global timestamp using the
+   * record date and time written by recording
+   * device (*every* consumer camcorder can do
+   * that :) )*/
+  IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4,
   IMB_TC_RECORD_RUN_NO_GAPS = 8,
   IMB_TC_MAX_SLOT = 4,
 } IMB_Timecode_Type;

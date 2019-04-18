@@ -262,10 +262,9 @@ FCurve *BCAnimationCurve::get_edit_fcurve()
     fcurve = create_fcurve(index, path.c_str());
 
     /* Caution here:
-    Replacing the pointer here is OK only because the original value
-    of FCurve was a const pointer into Blender territory. We do not
-    touch that! We use the local copy to prepare data for export.
-    */
+     * Replacing the pointer here is OK only because the original value
+     * of FCurve was a const pointer into Blender territory. We do not
+     * touch that! We use the local copy to prepare data for export. */
 
     curve_is_local_copy = true;
   }

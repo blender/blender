@@ -266,11 +266,12 @@ class StrokeRep {
   {
     _material = mat;
   }
-  /*
+#if 0
   inline void setMTex(int idx, MTex *mtex_ptr)
   {
     _mtex[idx] = mtex_ptr;
-  }*/
+  }
+#endif
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeRep")

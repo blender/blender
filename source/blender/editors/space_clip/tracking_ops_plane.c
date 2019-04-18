@@ -293,19 +293,19 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
       data->corner[1] = data->previous_corner[1] + dy;
 
       /*
-                                     prev_edge
-          (Corner 3, current) <-----------------------   (Corner 2, previous)
-                  |                                              ^
-                  |                                              |
-                  |                                              |
-                  |                                              |
-        next_edge |                                              | next_diag_edge
-                  |                                              |
-                  |                                              |
-                  |                                              |
-                  v                                              |
-           (Corner 0, next)   ----------------------->   (Corner 1, diagonal)
-                                    prev_diag_edge
+       *                              prev_edge
+       *   (Corner 3, current) <-----------------------   (Corner 2, previous)
+       *           |                                              ^
+       *           |                                              |
+       *           |                                              |
+       *           |                                              |
+       * next_edge |                                              | next_diag_edge
+       *           |                                              |
+       *           |                                              |
+       *           |                                              |
+       *           v                                              |
+       *    (Corner 0, next)   ----------------------->   (Corner 1, diagonal)
+       *                             prev_diag_edge
        */
 
       next_corner_index = (data->corner_index + 1) % 4;

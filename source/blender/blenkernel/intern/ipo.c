@@ -852,10 +852,10 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
       return "settings.billboard_tilt";
 
       /* PartDeflect needs to be sorted out properly in rna_object_force;
-     * If anyone else works on this, but is unfamiliar, these particular
-     * settings reference the particles of the system themselves
-     * being used as forces -- it will use the same rna structure
-     * as the similar object forces */
+       * If anyone else works on this, but is unfamiliar, these particular
+       * settings reference the particles of the system themselves
+       * being used as forces -- it will use the same rna structure
+       * as the similar object forces */
 #if 0
     case PART_PD_FSTR:
       if (part->pd)

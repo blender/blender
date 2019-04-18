@@ -190,8 +190,7 @@ static void gpsculpt_compute_lock_axis(tGP_BrushEditData *gso,
       break;
     }
     case GP_LOCKAXIS_CURSOR: {
-      /* compute a plane with cursor normal and position of the point
-         before do the sculpt */
+      /* Compute a plane with cursor normal and position of the point before do the sculpt. */
       const float scale[3] = {1.0f, 1.0f, 1.0f};
       float plane_normal[3] = {0.0f, 0.0f, 1.0f};
       float plane[4];

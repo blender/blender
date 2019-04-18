@@ -73,8 +73,8 @@ typedef struct SelfColDetectData {
 } SelfColDetectData;
 
 /***********************************
-Collision modifier code start
-***********************************/
+ * Collision modifier code start
+ ***********************************/
 
 /* step is limited from 0 (frame start position) to 1 (frame end position) */
 void collision_move_object(CollisionModifierData *collmd, float step, float prevstep)
@@ -178,9 +178,9 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree,
   BLI_bvhtree_update_tree(bvhtree);
 }
 
-/***********************************
-Collision modifier code end
-***********************************/
+/* ***************************
+ * Collision modifier code end
+ * *************************** */
 
 BLI_INLINE int next_ind(int i)
 {

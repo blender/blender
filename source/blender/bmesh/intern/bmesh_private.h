@@ -31,8 +31,8 @@
 /* returns positive nonzero on error */
 
 #ifdef NDEBUG
-/* no error checking for release,
-    * it can take most of the CPU time when running some tools */
+/* No error checking for release,
+ * it can take most of the CPU time when running some tools. */
 #  define BM_CHECK_ELEMENT(el) (void)(el)
 #else
 int bmesh_elem_check(void *element, const char htype);

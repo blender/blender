@@ -5904,19 +5904,28 @@ void MESH_OT_split(wmOperatorType *ot)
  * \{ */
 
 enum {
-  SRT_VIEW_ZAXIS = 1,  /* Use view Z (deep) axis. */
-  SRT_VIEW_XAXIS,      /* Use view X (left to right) axis. */
-  SRT_CURSOR_DISTANCE, /* Use distance from element to 3D cursor. */
-  SRT_MATERIAL,        /* Face only: use mat number. */
-  SRT_SELECTED,        /* Move selected elements in first, without modifying
-                        * relative order of selected and unselected elements. */
-  SRT_RANDOMIZE,       /* Randomize selected elements. */
-  SRT_REVERSE,         /* Reverse current order of selected elements. */
+  /** Use view Z (deep) axis. */
+  SRT_VIEW_ZAXIS = 1,
+  /** Use view X (left to right) axis. */
+  SRT_VIEW_XAXIS,
+  /** Use distance from element to 3D cursor. */
+  SRT_CURSOR_DISTANCE,
+  /** Face only: use mat number. */
+  SRT_MATERIAL,
+  /** Move selected elements in first, without modifying
+   * relative order of selected and unselected elements. */
+  SRT_SELECTED,
+  /** Randomize selected elements. */
+  SRT_RANDOMIZE,
+  /** Reverse current order of selected elements. */
+  SRT_REVERSE,
 };
 
 typedef struct BMElemSort {
-  float srt;   /* Sort factor */
-  int org_idx; /* Original index of this element _in its mempool_ */
+  /** Sort factor */
+  float srt;
+  /** Original index of this element _in its mempool_ */
+  int org_idx;
 } BMElemSort;
 
 static int bmelemsort_comp(const void *v1, const void *v2)

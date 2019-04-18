@@ -797,7 +797,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (i = 0; i < 3; i++) {
           if ((ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
               (ob->scale[i] == 0.0f))   /* cant scale the dsize to give a non zero result,
-                                          * so fallback to 1.0f */
+                                         * so fallback to 1.0f */
           {
             ob->dscale[i] = 1.0f;
           }

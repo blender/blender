@@ -116,7 +116,7 @@ static struct {
     /* Regular range */
     {0.02f, 0.1f},
     /* Use a different range because we flip the dot product,
-   * also the view aligned planes are harder to see so hiding early is preferred. */
+     * also the view aligned planes are harder to see so hiding early is preferred. */
     {0.175f, 0.25f},
 };
 

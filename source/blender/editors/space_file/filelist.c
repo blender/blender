@@ -2639,7 +2639,7 @@ static void filelist_readjob_do(const bool do_lib,
       /* Only thing we change in direntry here, so we need to free it first. */
       MEM_freeN(entry->relpath);
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
-                                              * added by BLI_path_rel to rel_subdir */
+                                             * added by BLI_path_rel to rel_subdir. */
       entry->name = BLI_strdup(fileentry_uiname(root, entry->relpath, entry->typeflag, dir));
 
       /* Here we decide whether current filedirentry is to be listed too, or not. */

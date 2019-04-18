@@ -599,8 +599,8 @@ static void graph_listener(wmWindow *UNUSED(win),
       break;
     case NC_SCENE:
       switch (wmn->data) {
-        case ND_OB_ACTIVE: /* selection changed, so force refresh to flush
-                             * (needs flag set to do syncing)  */
+        case ND_OB_ACTIVE: /* Selection changed, so force refresh to flush
+                            * (needs flag set to do syncing). */
         case ND_OB_SELECT:
           sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(sa);
@@ -613,8 +613,8 @@ static void graph_listener(wmWindow *UNUSED(win),
       break;
     case NC_OBJECT:
       switch (wmn->data) {
-        case ND_BONE_SELECT: /* selection changed, so force refresh to flush
-                                 * (needs flag set to do syncing) */
+        case ND_BONE_SELECT: /* Selection changed, so force refresh to flush
+                              * (needs flag set to do syncing). */
         case ND_BONE_ACTIVE:
           sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(sa);

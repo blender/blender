@@ -184,11 +184,9 @@ void AnimationExporter::export_curve_animation_set(Object *ob,
   for (it = curves->begin(); it != curves->end(); ++it) {
     BCAnimationCurve &curve = *it->second;
     if (curve.get_channel_target() == "rotation_quaternion") {
-      /*
-         Can not export Quaternion animation in Collada as far as i know)
-         Maybe automatically convert to euler rotation?
-         Discard for now.
-      */
+      /* Can not export Quaternion animation in Collada as far as i know)
+       * Maybe automatically convert to euler rotation?
+       * Discard for now. */
       continue;
     }
 
@@ -622,9 +620,9 @@ std::string AnimationExporter::collada_source_from_values(
   return source_id;
 }
 
-/*
- * Create a collada matrix source for a set of samples
-*/
+/**
+ * Create a collada matrix source for a set of samples.
+ */
 std::string AnimationExporter::collada_source_from_values(BCMatrixSampleMap &samples,
                                                           const std::string &anim_id)
 {
@@ -802,8 +800,7 @@ std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
 
 #ifdef WITH_MORPH_ANIMATION
 /* TODO: This function needs to be implemented similar to the material animation export
-So we have to update BCSample for this to work.
-*/
+ * So we have to update BCSample for this to work. */
 void AnimationExporter::export_morph_animation(Object *ob, BCAnimationSampler &sampler)
 {
   FCurve *fcu;

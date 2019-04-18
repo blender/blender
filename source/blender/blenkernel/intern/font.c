@@ -669,7 +669,7 @@ enum {
  * And in some cases it is even the same value as FT_Face->bbox.yMax/yMin (font top and bottom respectively).
  *
  * The em_height here is relative to FT_Face->bbox.
-*/
+ */
 #define ASCENT(vfd) ((vfd)->ascender * (vfd)->em_height)
 #define DESCENT(vfd) ((vfd)->em_height - ASCENT(vfd))
 

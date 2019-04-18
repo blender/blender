@@ -3667,7 +3667,7 @@ static bAnimChannelType ACF_NLAACTION = {
     ACHANNEL_ROLE_CHANNEL, /* role */
 
     acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too,
-                                   * since it needs special hacks) */
+                                     * since it needs special hacks). */
     acf_nlaaction_backdrop,         /* backdrop */
     acf_generic_indention_flexible, /* indent level */
     acf_generic_group_offset,

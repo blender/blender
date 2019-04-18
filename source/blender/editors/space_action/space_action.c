@@ -607,8 +607,8 @@ static void action_listener(wmWindow *UNUSED(win),
       break;
     case NC_OBJECT:
       switch (wmn->data) {
-        case ND_BONE_SELECT: /* selection changed, so force refresh to flush
-                                 * (needs flag set to do syncing) */
+        case ND_BONE_SELECT: /* Selection changed, so force refresh to flush
+                              * (needs flag set to do syncing). */
         case ND_BONE_ACTIVE:
           saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(sa);

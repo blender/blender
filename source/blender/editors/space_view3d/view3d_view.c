@@ -1230,7 +1230,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
 
   if (local_view_bit == 0) {
     /* TODO(dfelinto): We can kick one of the other 3D views out of local view
-       specially if it is not being used.  */
+     * specially if it is not being used.  */
     BKE_report(reports, RPT_ERROR, "No more than 16 local views");
     ok = false;
   }

@@ -61,14 +61,18 @@ extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
  * memory space for totelem elements. mask must be an array of length
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
-/* add/copy/merge allocation types */
+/** Add/copy/merge allocation types. */
 typedef enum eCDAllocType {
-  CD_ASSIGN = 0,    /* use the data pointer */
-  CD_CALLOC = 1,    /* allocate blank memory */
-  CD_DEFAULT = 2,   /* allocate and set to default */
-  CD_REFERENCE = 3, /* use data pointers, set layer flag NOFREE */
-  CD_DUPLICATE = 4, /* do a full copy of all layers, only allowed if source
-                      * has same number of elements */
+  /** Use the data pointer. */
+  CD_ASSIGN = 0,
+  /** Allocate blank memory. */
+  CD_CALLOC = 1,
+  /** Allocate and set to default. */
+  CD_DEFAULT = 2,
+  /** Use data pointers, set layer flag NOFREE. */
+  CD_REFERENCE = 3,
+  /** Do a full copy of all layers, only allowed if source has same number of elements. */
+  CD_DUPLICATE = 4,
 } eCDAllocType;
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))

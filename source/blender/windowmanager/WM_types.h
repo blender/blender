@@ -457,8 +457,8 @@ typedef struct wmEvent {
   int x, y;         /* mouse pointer position, screen coord */
   int mval[2];      /* region mouse position, name convention pre 2.5 :) */
   char utf8_buf[6]; /* from, ghost if utf8 is enabled for the platform,
-             * BLI_str_utf8_size() must _always_ be valid, check
-             * when assigning s we don't need to check on every access after */
+                     * BLI_str_utf8_size() must _always_ be valid, check
+                     * when assigning s we don't need to check on every access after */
   char ascii;       /* from ghost, fallback if utf8 isn't set */
   char pad;
 

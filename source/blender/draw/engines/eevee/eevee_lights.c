@@ -952,7 +952,7 @@ static void frustum_min_bounding_sphere(const float corners[8][3],
       }
 
       /* TODO try to reduce the radius further by moving the center.
-   * Remember we need a __stable__ solution! */
+       * Remember we need a __stable__ solution! */
 
       /* Try to reduce float imprecision leading to shimmering. */
       *r_radius = (float)round_to_digits(sqrtf(*r_radius), 3);

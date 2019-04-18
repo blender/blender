@@ -1277,8 +1277,8 @@ static int ui_drag_toggle_but_pushed_state(bContext *C, uiBut *but)
     }
     else {
       /* Assume icon identifies a unique state, for buttons that
-      * work though functions callbacks and don't have an boolean
-      * value that indicates the state. */
+       * work though functions callbacks and don't have an boolean
+       * value that indicates the state. */
       return but->icon + but->iconadd;
     }
   }

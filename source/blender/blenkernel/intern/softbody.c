@@ -644,8 +644,8 @@ static void add_2nd_order_roller(Object *ob, float UNUSED(stiffness), int *count
     v0 = (sb->totpoint - a);
     for (b = bp->nofsprings; b > 0; b--) {
       bs = sb->bspring + bp->springs[b - 1];
-      /*nasty thing here that springs have two ends
-      so here we have to make sure we examine the other */
+      /* Nasty thing here that springs have two ends
+       * so here we have to make sure we examine the other */
       if (v0 == bs->v1) {
         bpo = sb->bpoint + bs->v2;
         notthis = bs->v2;
@@ -3289,11 +3289,13 @@ static void softbody_step(
     /* special case of 2nd order Runge-Kutta type AKA Heun */
     int mid_flags = 0;
     float err = 0;
-    float forcetimemax = 1.0f;  /* set defaults guess we shall do one frame */
-    float forcetimemin = 0.01f; /* set defaults guess 1/100 is tight enough */
-    float timedone = 0.0;       /* how far did we get without violating error condition */
-                                /* loops = counter for emergency brake
-                          * we don't want to lock up the system if physics fail */
+    /* Set defaults guess we shall do one frame */
+    float forcetimemax = 1.0f;
+    /* Set defaults guess 1/100 is tight enough */
+    float forcetimemin = 0.01f;
+    /* How far did we get without violating error condition. */
+    float timedone = 0.0;
+    /* Loops = counter for emergency brake we don't want to lock up the system if physics fail. */
     int loops = 0;
 
     SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */

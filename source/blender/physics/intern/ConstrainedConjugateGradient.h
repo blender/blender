@@ -27,14 +27,14 @@ namespace Eigen {
 namespace internal {
 
 /** \internal Low-level conjugate gradient algorithm
-  * \param mat: The matrix A
-  * \param rhs: The right hand side vector b
-  * \param x: On input and initial solution, on output the computed solution.
-  * \param precond: A preconditioner being able to efficiently solve for an
-  *                approximation of Ax=b (regardless of b)
-  * \param iters: On input the max number of iteration, on output the number of performed iterations.
-  * \param tol_error: On input the tolerance error, on output an estimation of the relative error.
-  */
+ * \param mat: The matrix A
+ * \param rhs: The right hand side vector b
+ * \param x: On input and initial solution, on output the computed solution.
+ * \param precond: A preconditioner being able to efficiently solve for an
+ *                approximation of Ax=b (regardless of b)
+ * \param iters: On input the max number of iteration, on output the number of performed iterations.
+ * \param tol_error: On input the tolerance error, on output an estimation of the relative error.
+ */
 template<typename MatrixType,
          typename Rhs,
          typename Dest,
@@ -155,53 +155,53 @@ struct traits<
 }  // namespace internal
 
 /** \ingroup IterativeLinearSolvers_Module
-  * \brief A conjugate gradient solver for sparse self-adjoint problems with additional constraints
-  *
-  * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
-  * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
-  *
-  * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
-  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-  *               or Upper. Default is Lower.
-  * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
-  *
-  * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
-  * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
-  * and NumTraits<Scalar>::epsilon() for the tolerance.
-  *
-  * This class can be used as the direct solver classes. Here is a typical usage example:
-  * \code
-  * int n = 10000;
-  * VectorXd x(n), b(n);
-  * SparseMatrix<double> A(n,n);
-  * // fill A and b
-  * ConjugateGradient<SparseMatrix<double> > cg;
-  * cg.compute(A);
-  * x = cg.solve(b);
-  * std::cout << "#iterations:     " << cg.iterations() << std::endl;
-  * std::cout << "estimated error: " << cg.error()      << std::endl;
-  * // update b, and solve again
-  * x = cg.solve(b);
-  * \endcode
-  *
-  * By default the iterations start with x=0 as an initial guess of the solution.
-  * One can control the start using the solveWithGuess() method. Here is a step by
-  * step execution example starting with a random guess and printing the evolution
-  * of the estimated error:
-  * * \code
-  * x = VectorXd::Random(n);
-  * cg.setMaxIterations(1);
-  * int i = 0;
-  * do {
-  *   x = cg.solveWithGuess(b,x);
-  *   std::cout << i << " : " << cg.error() << std::endl;
-  *   ++i;
-  * } while (cg.info()!=Success && i<100);
-  * \endcode
-  * Note that such a step by step execution is slightly slower.
-  *
-  * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
-  */
+ * \brief A conjugate gradient solver for sparse self-adjoint problems with additional constraints
+ *
+ * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
+ * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
+ *
+ * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
+ * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
+ *               or Upper. Default is Lower.
+ * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
+ *
+ * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
+ * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
+ * and NumTraits<Scalar>::epsilon() for the tolerance.
+ *
+ * This class can be used as the direct solver classes. Here is a typical usage example:
+ * \code
+ * int n = 10000;
+ * VectorXd x(n), b(n);
+ * SparseMatrix<double> A(n,n);
+ * // fill A and b
+ * ConjugateGradient<SparseMatrix<double> > cg;
+ * cg.compute(A);
+ * x = cg.solve(b);
+ * std::cout << "#iterations:     " << cg.iterations() << std::endl;
+ * std::cout << "estimated error: " << cg.error()      << std::endl;
+ * // update b, and solve again
+ * x = cg.solve(b);
+ * \endcode
+ *
+ * By default the iterations start with x=0 as an initial guess of the solution.
+ * One can control the start using the solveWithGuess() method. Here is a step by
+ * step execution example starting with a random guess and printing the evolution
+ * of the estimated error:
+ * * \code
+ * x = VectorXd::Random(n);
+ * cg.setMaxIterations(1);
+ * int i = 0;
+ * do {
+ *   x = cg.solveWithGuess(b,x);
+ *   std::cout << i << " : " << cg.error() << std::endl;
+ *   ++i;
+ * } while (cg.info()!=Success && i<100);
+ * \endcode
+ * Note that such a step by step execution is slightly slower.
+ *
+ * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
+ */
 template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
 class ConstrainedConjugateGradient
     : public IterativeSolverBase<
@@ -230,15 +230,15 @@ class ConstrainedConjugateGradient
   }
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
-    *
-    * This constructor is a shortcut for the default constructor followed
-    * by a call to compute().
-    *
-    * \warning this class stores a reference to the matrix A as well as some
-    * precomputed values that depend on it. Therefore, if \a A is changed
-    * this class becomes invalid. Call compute() to update it with the new
-    * matrix A, or modify a copy of A.
-    */
+   *
+   * This constructor is a shortcut for the default constructor followed
+   * by a call to compute().
+   *
+   * \warning this class stores a reference to the matrix A as well as some
+   * precomputed values that depend on it. Therefore, if \a A is changed
+   * this class becomes invalid. Call compute() to update it with the new
+   * matrix A, or modify a copy of A.
+   */
   ConstrainedConjugateGradient(const MatrixType &A) : Base(A)
   {
   }
@@ -257,10 +257,10 @@ class ConstrainedConjugateGradient
   }
 
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
-    * \a x0 as an initial solution.
-    *
-    * \sa compute()
-    */
+   * \a x0 as an initial solution.
+   *
+   * \sa compute()
+   */
   template<typename Rhs, typename Guess>
   inline const internal::solve_retval_with_guess<ConstrainedConjugateGradient, Rhs, Guess>
   solveWithGuess(const MatrixBase<Rhs> &b, const Guess &x0) const

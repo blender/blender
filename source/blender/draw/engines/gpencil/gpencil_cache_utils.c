@@ -78,8 +78,8 @@ tGPencilObjectCache *gpencil_object_cache_add(tGPencilObjectCache *cache_array,
   tGPencilObjectCache *p = NULL;
 
   /* By default a cache is created with one block with a predefined number of free slots,
-  if the size is not enough, the cache is reallocated adding a new block of free slots.
-  This is done in order to keep cache small */
+   * if the size is not enough, the cache is reallocated adding a new block of free slots.
+   * This is done in order to keep cache small. */
   if (*gp_cache_used + 1 > *gp_cache_size) {
     if ((*gp_cache_size == 0) || (cache_array == NULL)) {
       p = MEM_callocN(sizeof(struct tGPencilObjectCache) * GP_CACHE_BLOCK_SIZE,
@@ -187,8 +187,8 @@ GpencilBatchGroup *gpencil_group_cache_add(GpencilBatchGroup *cache_array,
   GpencilBatchGroup *p = NULL;
 
   /* By default a cache is created with one block with a predefined number of free slots,
-  if the size is not enough, the cache is reallocated adding a new block of free slots.
-  This is done in order to keep cache small */
+   * if the size is not enough, the cache is reallocated adding a new block of free slots.
+   * This is done in order to keep cache small. */
   if (*grp_used + 1 > *grp_size) {
     if ((*grp_size == 0) || (cache_array == NULL)) {
       p = MEM_callocN(sizeof(struct GpencilBatchGroup) * GPENCIL_GROUPS_BLOCK_SIZE,

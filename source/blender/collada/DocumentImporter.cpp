@@ -985,11 +985,14 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
   std::string la_id, la_name;
 
   ExtraTags *et = getExtraTags(light->getUniqueId());
-  /*TagsMap::iterator etit;
+#if 0
+  TagsMap::iterator etit;
   ExtraTags *et = 0;
   etit = uid_tags_map.find(light->getUniqueId().toAscii());
-  if (etit != uid_tags_map.end())
-    et = etit->second;*/
+  if (etit != uid_tags_map.end()) {
+    et = etit->second;
+  }
+#endif
 
   la_id = light->getOriginalId();
   la_name = light->getName();

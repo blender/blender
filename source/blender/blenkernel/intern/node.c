@@ -2188,10 +2188,10 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
     BLI_snprintf(sock->identifier, MAX_NAME, "Output_%d", own_index);
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
     /* XXX forward compatibility:
-   * own_index is deprecated, but needs to be set here.
-   * Node sockets generally use the identifier string instead now,
-   * but reconstructing own_index in writefile.c would require parsing the identifier string.
-   */
+     * own_index is deprecated, but needs to be set here.
+     * Node sockets generally use the identifier string instead now,
+     * but reconstructing own_index in writefile.c would require parsing the identifier string.
+     */
 
 #  if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406)) || defined(__clang__)
 #    pragma GCC diagnostic push

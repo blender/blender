@@ -2294,7 +2294,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
         y,
         p->radius,
         /* XXX Dashed shader gives bad results with sets of small segments currently,
-             *     temp hack around the issue. :( */
+         *     temp hack around the issue. :( */
         max_ii(8, p->radius / 2)); /* was fixed 40 */
 
     immUnbindProgram();

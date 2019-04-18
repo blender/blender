@@ -195,8 +195,7 @@ std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool al
     for (id = (ID *)bmain->actions.first; id; id = (ID *)(id->next)) {
       bAction *act = (bAction *)id;
       /* XXX This currently creates too many actions.
-         TODO Need to check if the action is compatible to the given object
-      */
+       * TODO Need to check if the action is compatible to the given object. */
       actions.push_back(act);
     }
   }
@@ -228,10 +227,8 @@ void bc_update_scene(BlenderContext &blender_context, float ctime)
   Scene *scene = blender_context.get_scene();
   Depsgraph *depsgraph = blender_context.get_depsgraph();
 
-  /*
-   * See remark in physics_fluid.c lines 395...)
-   * BKE_scene_update_for_newframe(ev_context, bmain, scene, scene->lay);
-  */
+  /* See remark in physics_fluid.c lines 395...) */
+  // BKE_scene_update_for_newframe(ev_context, bmain, scene, scene->lay);
   BKE_scene_frame_set(scene, ctime);
   ED_update_for_newframe(bmain, depsgraph);
 }
@@ -341,7 +338,7 @@ bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer
 
   if (!to_export) {
     /* Mark this object as to_export even if it is not in the
-    export list, but it contains children to export */
+     * export list, but it contains children to export. */
 
     std::vector<Object *> children;
     bc_get_children(children, ob, view_layer);

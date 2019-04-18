@@ -18,7 +18,7 @@
 
 /** \file
  * \ingroup draw
-  */
+ */
 #include "BLI_rect.h"
 
 #include "DRW_render.h"
@@ -36,9 +36,9 @@
 #include "gpencil_engine.h"
 
 /* Get pixel size for render
-   * This function uses the same calculation used for viewport, because if use
-   * camera pixelsize, the result is not correct.
-   */
+ * This function uses the same calculation used for viewport, because if use
+ * camera pixelsize, the result is not correct.
+ */
 static float get_render_pixelsize(float persmat[4][4], int winx, int winy)
 {
   float v1[3], v2[3];

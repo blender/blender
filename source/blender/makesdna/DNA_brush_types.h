@@ -462,7 +462,7 @@ typedef enum eBrushSculptTool {
         SCULPT_TOOL_LAYER, \
 \
         /* These brushes could handle dynamic topology, \
-   * but user feedback indicates it's better not to */ \
+         * but user feedback indicates it's better not to */ \
         SCULPT_TOOL_SMOOTH, \
         SCULPT_TOOL_MASK) == 0)
 

@@ -1899,9 +1899,9 @@ bool isect_ray_tri_watertight_v3(const float ray_origin[3],
     const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
     const float sign_t = xor_fl(t, sign_det);
     if ((sign_t < 0.0f)
-    /* differ from Cycles, don't read r_lambda's original value
-         * otherwise we won't match any of the other intersect functions here...
-         * which would be confusing */
+    /* Differ from Cycles, don't read r_lambda's original value
+     * otherwise we won't match any of the other intersect functions here...
+     * which would be confusing. */
 #if 0
         || (sign_T > *r_lambda * xor_signmask(det, sign_mask))
 #endif

@@ -39,7 +39,7 @@
 /* Need to include windows.h so _WIN32_IE is defined. */
 #  include <windows.h>
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
-    * because 'near' is disabled through BLI_windstuff. */
+ * because 'near' is disabled through BLI_windstuff. */
 #  include <shlobj.h>
 #  include "BLI_winstuff.h"
 #endif

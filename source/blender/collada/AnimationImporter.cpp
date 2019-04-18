@@ -395,12 +395,11 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
         // make eul relative to bone rest pose
         float rot[3][3], rel[3][3], quat[4];
 
-        /*eul_to_mat3(rot, eul);
-
-           mul_m3_m3m3(rel, irest, rot);
-
-           mat3_to_quat(quat, rel);
-         */
+#  if 0
+        eul_to_mat3(rot, eul);
+        mul_m3_m3m3(rel, irest, rot);
+        mat3_to_quat(quat, rel);
+#  endif
 
         eul_to_quat(quat, eul);
 

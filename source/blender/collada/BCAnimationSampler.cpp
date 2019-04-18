@@ -271,12 +271,11 @@ void BCAnimationSampler::find_depending_animated(std::set<Object *> &animated_ob
 void BCAnimationSampler::get_animated_from_export_set(std::set<Object *> &animated_objects,
                                                       LinkNode &export_set)
 {
-  /*
-  Check if this object is animated. That is: Check if it has its own action, or
-
-  - Check if it has constraints to other objects
-  - at least one of the other objects is animated as well
-  */
+  /* Check if this object is animated. That is: Check if it has its own action, or:
+   *
+   * - Check if it has constraints to other objects.
+   * - at least one of the other objects is animated as well.
+   */
 
   animated_objects.clear();
   std::set<Object *> static_objects;
@@ -320,18 +319,17 @@ bool BCAnimationSampler::get_object_samples(BCMatrixSampleMap &samples, Object *
 }
 
 #if 0
-/*
-   Add sampled values to FCurve
-   If no FCurve exists, create a temporary FCurve;
-   Note: The temporary FCurve will later be removed when the
-   BCAnimationSampler is removed (by its destructor)
-
-   curve: The curve to whioch the data is added
-   matrices: The set of matrix values from where the data is taken
-   animation_type BC_ANIMATION_EXPORT_SAMPLES: Use all matrix data
-   animation_type BC_ANIMATION_EXPORT_KEYS: Only take data from matrices for keyframes
-*/
-
+/**
+ * Add sampled values to FCurve
+ * If no FCurve exists, create a temporary FCurve;
+ * Note: The temporary FCurve will later be removed when the
+ * BCAnimationSampler is removed (by its destructor)
+ *
+ * curve: The curve to whioch the data is added
+ * matrices: The set of matrix values from where the data is taken
+ * animation_type BC_ANIMATION_EXPORT_SAMPLES: Use all matrix data
+ * animation_type BC_ANIMATION_EXPORT_KEYS: Only take data from matrices for keyframes
+ */
 void BCAnimationSampler::add_value_set(BCAnimationCurve &curve,
                                        BCFrameSampleMap &samples,
                                        BC_export_animation_type animation_type)

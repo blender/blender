@@ -4118,7 +4118,7 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
   const bool is_active = (state & UI_SELECT);
 
   /* Draw shaded outline - Disabled for now,
- * seems incorrect and also looks nicer without it imho ;) */
+   * seems incorrect and also looks nicer without it imho ;) */
   //#define USE_TAB_SHADED_HIGHLIGHT
 
   uiWidgetBase wtb;

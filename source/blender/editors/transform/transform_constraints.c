@@ -1186,10 +1186,10 @@ int getConstraintSpaceDimension(TransInfo *t)
 
   return n;
   /*
- * Someone willing to do it cryptically could do the following instead:
- *
- * return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
- *
- * Based on the assumptions that the axis flags are one after the other and start at 1
- */
+   * Someone willing to do it cryptically could do the following instead:
+   *
+   * return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+   *
+   * Based on the assumptions that the axis flags are one after the other and start at 1
+   */
 }

@@ -129,10 +129,8 @@ void BCMatrix::unit()
   unit_m4(matrix);
 }
 
-/*
-We need double here because the OpenCollada API needs it.
-precision = -1 indicates to not limit the precision
-*/
+/* We need double here because the OpenCollada API needs it.
+ * precision = -1 indicates to not limit the precision. */
 void BCMatrix::get_matrix(double (&mat)[4][4], const bool transposed, const int precision) const
 {
   for (int i = 0; i < 4; i++)

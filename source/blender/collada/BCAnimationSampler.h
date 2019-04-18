@@ -68,11 +68,9 @@ typedef std::map<Object *, BCAnimation *> BCAnimationObjectMap;
 
 class BCSampleFrame {
 
-  /*
-  Each frame on the timeline that needs to be sampled will have
-  one BCSampleFrame where we collect sample information about all objects
-  that need to be sampled for that frame.
-  */
+  /* Each frame on the timeline that needs to be sampled will have
+   * one BCSampleFrame where we collect sample information about all objects
+   * that need to be sampled for that frame. */
 
  private:
   BCSampleMap sampleMap;

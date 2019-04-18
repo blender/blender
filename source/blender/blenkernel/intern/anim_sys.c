@@ -3777,10 +3777,10 @@ void BKE_animsys_evaluate_all_animation(Main *main,
     printf("Evaluate all animation - %f\n", ctime);
 
     /* macros for less typing
-   * - only evaluate animation data for id if it has users (and not just fake ones)
-   * - whether animdata exists is checked for by the evaluation function, though taking
-   *   this outside of the function may make things slightly faster?
-   */
+     * - only evaluate animation data for id if it has users (and not just fake ones)
+     * - whether animdata exists is checked for by the evaluation function, though taking
+     *   this outside of the function may make things slightly faster?
+     */
 #define EVAL_ANIM_IDS(first, aflag) \
   for (id = first; id; id = id->next) { \
     if (ID_REAL_USERS(id) > 0) { \
@@ -3791,11 +3791,11 @@ void BKE_animsys_evaluate_all_animation(Main *main,
   (void)0
 
     /* another macro for the "embedded" nodetree cases
-   * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
-   *   (i.e. scene/material/texture->nodetree) which we need a special exception
-   *   for, otherwise they'd get skipped
-   * - ntp = "node tree parent" = datablock where node tree stuff resides
-   */
+     * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
+     *   (i.e. scene/material/texture->nodetree) which we need a special exception
+     *   for, otherwise they'd get skipped
+     * - ntp = "node tree parent" = datablock where node tree stuff resides
+     */
 #define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
   for (id = first; id; id = id->next) { \
     if (ID_REAL_USERS(id) > 0) { \
@@ -3906,9 +3906,9 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
 {
   float ctime = DEG_get_ctime(depsgraph);
   AnimData *adt = BKE_animdata_from_id(id);
-  Scene *scene = NULL; /* XXX: this is only needed for flushing RNA updates,
-                        * which should get handled as part of the dependency graph instead...
-                        */
+  /* XXX: this is only needed for flushing RNA updates,
+   * which should get handled as part of the dependency graph instead. */
+  Scene *scene = NULL;
   DEG_debug_print_eval_time(depsgraph, __func__, id->name, id, ctime);
   BKE_animsys_evaluate_animdata(depsgraph, scene, id, adt, ctime, ADT_RECALC_ANIM);
 }

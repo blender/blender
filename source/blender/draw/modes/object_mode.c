@@ -3115,11 +3115,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
                             ((DRW_object_is_renderable(ob) && (ob->dt > OB_WIRE)) ||
                              (ob->dt == OB_WIRE)));
   const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
-  const bool hide_object_extra = ((v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) != 0 &&
-                                  /* Show if this is the camera we're looking through
-           * since it's useful for moving the camera. */
-                                  (((rv3d->persp == RV3D_CAMOB) &&
-                                    ((ID *)v3d->camera == ob->id.orig_id)) == 0));
+  const bool hide_object_extra =
+      ((v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) != 0 &&
+       /* Show if this is the camera we're looking through since it's useful for selecting. */
+       (((rv3d->persp == RV3D_CAMOB) && ((ID *)v3d->camera == ob->id.orig_id)) == 0));
 
   if (do_outlines) {
     if (!BKE_object_is_in_editmode(ob) &&

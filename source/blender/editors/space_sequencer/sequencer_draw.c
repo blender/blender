@@ -1186,7 +1186,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {
   /* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,
-  * for now just disable drawing since the strip frame will likely be offset */
+   * for now just disable drawing since the strip frame will likely be offset */
 
   // if (sc->mode == SC_MODE_MASKEDIT)
   if (0 && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {

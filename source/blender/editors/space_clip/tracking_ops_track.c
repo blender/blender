@@ -55,7 +55,7 @@ typedef struct TrackMarkersJob {
   int backwards;                    /* Backwards tracking flag */
   MovieClip *clip;                  /* Clip which is tracking */
   float delay;                      /* Delay in milliseconds to allow
-                               * tracking at fixed FPS */
+                                     * tracking at fixed FPS */
 
   struct Main *main;
   struct Scene *scene;

@@ -74,8 +74,7 @@ void deg_free_copy_on_write_datablock(struct ID *id_cow);
 void deg_evaluate_copy_on_write(struct ::Depsgraph *depsgraph, const struct IDNode *id_node);
 
 /* Check that given ID is properly expanded and does not have any shallow
- * copies inside.
-  */
+ * copies inside. */
 bool deg_validate_copy_on_write_datablock(ID *id_cow);
 
 /* Tag given ID block as being copy-on-wtritten. */

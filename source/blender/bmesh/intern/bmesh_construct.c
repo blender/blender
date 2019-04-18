@@ -436,12 +436,12 @@ void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
     far_cross_dist = normalize_v3(far_cross_vec);
 
     /* more of a weight then a distance */
-    far_cross_dist = (/* first we want to have a value close to zero mapped to 1 */
-                      1.0f - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
-
-                                 /* second  we multiply by the distance
-                       * so points close to the center are not preferred */
-                                 far_cross_dist);
+    far_cross_dist = (
+        /* First we want to have a value close to zero mapped to 1. */
+        1.0f - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
+                   /* Second  we multiply by the distance
+                    * so points close to the center are not preferred. */
+                   far_cross_dist);
 
     if (far_cross_dist > far_cross_best || far_cross == NULL) {
       far_cross = vert_arr[i]->co;

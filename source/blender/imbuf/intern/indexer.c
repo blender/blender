@@ -305,8 +305,8 @@ void IMB_indexer_close(struct anim_index *idx)
 int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
 {
   switch (pr_size) {
-    case IMB_PROXY_NONE: /* if we got here, something is broken anyways,
-                          * so sane defaults... */
+    case IMB_PROXY_NONE:
+      /* if we got here, something is broken anyways, so sane defaults... */
       return 0;
     case IMB_PROXY_25:
       return 0;
@@ -981,8 +981,8 @@ static AviMovie *alloc_proxy_output_avi(
   AviFormat format;
   double framerate;
   AviMovie *avi;
-  short frs_sec = 25; /* it doesn't really matter for proxies,
-                            * but sane defaults help anyways...*/
+  /* it doesn't really matter for proxies, but sane defaults help anyways...*/
+  short frs_sec = 25;
   float frs_sec_base = 1.0;
 
   IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base, false);

@@ -7072,7 +7072,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     pyrna_subtype_set_rna(newclass, srna);
     Py_INCREF(newclass);
   } /* create a new class instance with the C api
-       * mainly for the purposing of matching the C/rna type hierarchy */
+     * mainly for the purposing of matching the C/rna type hierarchy */
   else {
     /* subclass equivalents
      * - class myClass(myBase):

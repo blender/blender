@@ -1038,7 +1038,7 @@ void BM_mesh_loop_normals_update(BMesh *bm,
 
   if (use_split_normals) {
     /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
-           * When using custom loop normals, disable the angle feature! */
+     * When using custom loop normals, disable the angle feature! */
     bm_mesh_edges_sharp_tag(bm, NULL, NULL, has_clnors ? (float)M_PI : split_angle, r_lnos);
 
     /* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */

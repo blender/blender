@@ -1683,8 +1683,8 @@ bool BPH_mass_spring_force_spring_linear(Implicit_Data *data,
   spring_length(data, i, j, extent, dir, &length, vel);
 
   /* This code computes not only the force, but also its derivative.
-     Zero derivative effectively disables the spring for the implicit solver.
-     Thus length > restlen makes cloth unconstrained at the start of simulation. */
+   * Zero derivative effectively disables the spring for the implicit solver.
+   * Thus length > restlen makes cloth unconstrained at the start of simulation. */
   if ((length >= restlen && length > 0) || resist_compress) {
     float stretch_force;
 

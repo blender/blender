@@ -1644,7 +1644,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
       y,
       radius,
       /* XXX Dashed shader gives bad results with sets of small segments currently,
-           *     temp hack around the issue. :( */
+       *     temp hack around the issue. :( */
       max_ii(8, radius / 2)); /* was fixed 40 */
 
   immUnbindProgram();

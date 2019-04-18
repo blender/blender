@@ -31,17 +31,14 @@ extern "C" {
 
 extern
     /** Return an indication of time, expressed as
- * seconds since some fixed point. Successive calls
- * are guaranteed to generate values greater than or
- * equal to the last call.
- */
+     * seconds since some fixed point. Successive calls
+     * are guaranteed to generate values greater than or
+     * equal to the last call. */
     double
     PIL_check_seconds_timer(void);
 
 extern
-    /**
- * int version of #PIL_check_seconds_timer
- */
+    /** `int` version of #PIL_check_seconds_timer. */
     long int
     PIL_check_seconds_timer_i(void);
 

@@ -212,9 +212,9 @@ typedef struct Material {
                                        /* for dopesheet */
 #define MA_DS_EXPAND (1 << 1)
 /* for dopesheet (texture stack expander)
-     * NOTE: this must have the same value as other texture stacks,
-     * otherwise anim-editors will not read correctly
-     */
+ * NOTE: this must have the same value as other texture stacks,
+ * otherwise anim-editors will not read correctly
+ */
 #define MA_DS_SHOW_TEXS (1 << 2)
 
 /* ramps */

@@ -713,7 +713,7 @@ static float cloth_shrink_factor(ClothModifierData *clmd, ClothVertex *verts, in
   float k2 = base + delta * verts[i2].shrink_factor;
 
   /* Use geometrical mean to average two factors since it behaves better
-     for diagonals when a rectangle transforms into a trapezoid. */
+   * for diagonals when a rectangle transforms into a trapezoid. */
   return sqrtf(k1 * k2);
 }
 

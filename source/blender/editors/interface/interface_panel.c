@@ -704,7 +704,7 @@ void ui_draw_aligned_panel(uiStyle *style,
   const bool show_drag =
       (!is_subpanel &&
        /* FIXME(campbell): currently no background means floating panel which can't be dragged.
-           * This may be changed in future. */
+        * This may be changed in future. */
        show_background);
 
   if (panel->paneltab) {

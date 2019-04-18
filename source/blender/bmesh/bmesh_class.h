@@ -58,23 +58,32 @@ struct BLI_mempool;
  * 4: some elements for internal record keeping.
  */
 typedef struct BMHeader {
-  void *data; /* customdata layers */
-  int index;  /* notes:
-              * - Use BM_elem_index_get/set macros for index
-              * - Uninitialized to -1 so we can easily tell its not set.
-              * - Used for edge/vert/face/loop, check BMesh.elem_index_dirty for valid index values,
-              *   this is abused by various tools which set it dirty.
-              * - For loops this is used for sorting during tessellation. */
+  /** Customdata layers. */
+  void *data;
 
-  char htype; /* element geometric type (verts/edges/loops/faces) */
-  char hflag; /* this would be a CD layer, see below */
+  /**
+   * \note
+   * - Use BM_elem_index_get/set macros for index
+   * - Uninitialized to -1 so we can easily tell its not set.
+   * - Used for edge/vert/face/loop, check BMesh.elem_index_dirty for valid index values,
+   *   this is abused by various tools which set it dirty.
+   * - For loops this is used for sorting during tessellation.
+   */
+  int index;
 
-  /* internal use only!
-   * note,.we are very picky about not bloating this struct
+  /** Element geometric type (verts/edges/loops/faces). */
+  char htype;
+  /** This would be a CD layer, see below. */
+  char hflag;
+
+  /**
+   * Internal use only!
+   * \note We are very picky about not bloating this struct
    * but in this case its padded up to 16 bytes anyway,
-   * so adding a flag here gives no increase in size */
+   * so adding a flag here gives no increase in size.
+   */
   char api_flag;
-  //  char _pad;
+  // char _pad;
 } BMHeader;
 
 BLI_STATIC_ASSERT((sizeof(BMHeader) <= 16), "BMHeader size has grown!");

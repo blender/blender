@@ -268,7 +268,7 @@ void ED_gpencil_update_color_uv(struct Main *bmain, struct Material *mat);
  * 1 - Hit in point A
  * 2 - Hit in point B
  * 3 - Hit in point A and B
-*/
+ */
 int ED_gpencil_select_stroke_segment(struct bGPDlayer *gpl,
                                      struct bGPDstroke *gps,
                                      struct bGPDspoint *pt,

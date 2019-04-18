@@ -466,7 +466,7 @@ static void eevee_init_util_texture(void)
   texels_layer += 64 * 64;
 
   /* Copy bsdf_split_sum_ggx into 2nd layer red and green channels.
-     Copy ltc_mag_ggx into 2nd layer blue and alpha channel. */
+   * Copy ltc_mag_ggx into 2nd layer blue and alpha channel. */
   for (int i = 0; i < 64 * 64; i++) {
     texels_layer[i][0] = bsdf_split_sum_ggx[i * 2 + 0];
     texels_layer[i][1] = bsdf_split_sum_ggx[i * 2 + 1];

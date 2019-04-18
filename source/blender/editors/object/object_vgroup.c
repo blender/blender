@@ -965,7 +965,7 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 void ED_vgroup_select_by_name(Object *ob, const char *name)
 {
   /* note: ob->actdef==0 signals on painting to create a new one,
-     * if a bone in posemode is selected */
+   * if a bone in posemode is selected */
   ob->actdef = defgroup_name_index(ob, name) + 1;
 }
 

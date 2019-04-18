@@ -877,9 +877,12 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
     float tc[4];
     const float hn = n * 0.5f;
     const float u = fx + hn * du, v = fy + hn * dv;
-    /*const float wt = expf(n*n*D);
-    * can use ewa table here too */
+    /* Can use ewa table here too. */
+#if 0
+    const float wt = expf(n * n * D);
+#else
     const float wt = EWA_WTS[(int)(n * n * D)];
+#endif
     /*const int out =*/ibuf_get_color_clip_bilerp(
         tc, ibuf, ibuf->x * u, ibuf->y * v, AFD->intpol, AFD->extflag);
     /* TXF alpha: clip |= out;

@@ -1094,7 +1094,7 @@ void IMB_exrtile_write_channels(
     for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
 
       /* eventually we can make the parts' channels to include
-         only the current view TODO */
+       * only the current view TODO */
       if (strcmp(viewname, echan->m->view.c_str()) != 0)
         continue;
 

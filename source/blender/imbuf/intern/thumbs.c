@@ -60,7 +60,7 @@
 #    define _WIN32_IE 0x0400
 #  endif
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
-    * because 'near' is disabled through BLI_windstuff */
+ * because 'near' is disabled through BLI_windstuff */
 #  include <shlobj.h>
 #  include <direct.h> /* chdir */
 #  include "BLI_winstuff.h"
