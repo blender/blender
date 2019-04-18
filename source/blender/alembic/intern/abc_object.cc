@@ -273,7 +273,15 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 {
   /* Check that we have an empty object (locator, bone head/tail...).  */
   if (IXform::matches(m_iobject.getMetaData())) {
-    return IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
+    try {
+      return IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
+    }
+    catch (Alembic::Util::Exception &ex) {
+      printf("Alembic: error reading object transform for '%s': %s\n",
+             m_iobject.getFullName().c_str(),
+             ex.what());
+      return IXform();
+    }
   }
 
   /* Check that we have an object with actual data, in which case the
@@ -282,7 +290,15 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 
   /* The archive's top object can be recognised by not having a parent. */
   if (abc_parent.getParent() && IXform::matches(abc_parent.getMetaData())) {
-    return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
+    try {
+      return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
+    }
+    catch (Alembic::Util::Exception &ex) {
+      printf("Alembic: error reading object transform for '%s': %s\n",
+             abc_parent.getFullName().c_str(),
+             ex.what());
+      return IXform();
+    }
   }
 
   /* This can happen in certain cases. For example, MeshLab exports
