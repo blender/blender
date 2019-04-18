@@ -33,7 +33,6 @@
 /* python, will come back */
 //void BPY_script_exec(void) {}
 //void BPY_python_start(void) {}
-//void BPY_text_free_code(void) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con,
                            struct bConstraintOb *cob,
                            struct ListBase *targets)

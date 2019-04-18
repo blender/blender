@@ -523,6 +523,15 @@ class Text(bpy_types.ID):
         self.clear()
         self.write(string)
 
+    def as_module(self):
+        from os.path import splitext
+        from types import ModuleType
+        mod = ModuleType(splitext(self.name)[0])
+        # TODO: We could use Text.compiled (C struct member)
+        # if this is called often it will be much faster.
+        exec(self.as_string(), mod.__dict__)
+        return mod
+
 
 class Sound(bpy_types.ID):
     __slots__ = ()

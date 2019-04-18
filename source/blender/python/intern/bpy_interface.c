@@ -63,7 +63,6 @@
 
 #include "BPY_extern.h"
 
-#include "../generic/bpy_internal_import.h" /* our own imports */
 #include "../generic/py_capi_utils.h"
 
 /* inittab initialization functions */
@@ -105,7 +104,6 @@ void BPY_context_update(bContext *C)
   }
 
   BPy_SetContext(C);
-  bpy_import_main_set(CTX_data_main(C));
   BPY_modules_update(C); /* can give really bad results if this isn't here */
 }
 
@@ -150,7 +148,6 @@ void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
      * cant set NULL because of this. but this is very flakey still. */
 #if 0
     BPy_SetContext(NULL);
-    bpy_import_main_set(NULL);
 #endif
 
 #ifdef TIME_PY_RUN
@@ -329,8 +326,6 @@ void BPY_python_start(int argc, const char **argv)
   /* bpy.* and lets us import it */
   BPy_init_modules();
 
-  bpy_import_init(PyEval_GetBuiltins());
-
   pyrna_alloc_types();
 
 #ifndef WITH_PYTHON_MODULE
@@ -427,6 +422,12 @@ typedef struct {
 } PyModuleObject;
 #endif
 
+/* returns a dummy filename for a textblock so we can tell what file a text block comes from */
+static void bpy_text_filename_get(char *fn, const Main *bmain, size_t fn_len, const Text *text)
+{
+  BLI_snprintf(fn, fn_len, "%s%c%s", ID_BLEND_PATH(bmain, &text->id), SEP, text->id.name + 2);
+}
+
 static bool python_script_exec(
     bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)
 {
@@ -447,7 +448,7 @@ static bool python_script_exec(
 
   if (text) {
     char fn_dummy[FILE_MAXDIR];
-    bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
+    bpy_text_filename_get(fn_dummy, bmain_old, sizeof(fn_dummy), text);
 
     if (text->compiled == NULL) { /* if it wasn't already compiled, do it now */
       char *buf;
@@ -696,8 +697,6 @@ bool BPY_execute_string_ex(bContext *C, const char *imports[], const char *expr,
   PyObject *main_mod = NULL;
   PyObject *py_dict, *retval;
   bool ok = true;
-  Main *
-      bmain_back; /* XXX, quick fix for release (Copy Settings crash), needs further investigation */
 
   if (expr[0] == '\0') {
     return ok;
@@ -709,9 +708,6 @@ bool BPY_execute_string_ex(bContext *C, const char *imports[], const char *expr,
 
   py_dict = PyC_DefaultNameSpace("<blender string>");
 
-  bmain_back = bpy_import_main_get();
-  bpy_import_main_set(CTX_data_main(C));
-
   if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
     Py_DECREF(py_dict);
     retval = NULL;
@@ -719,8 +715,6 @@ bool BPY_execute_string_ex(bContext *C, const char *imports[], const char *expr,
   else {
     retval = PyRun_String(expr, use_eval ? Py_eval_input : Py_file_input, py_dict, py_dict);
   }
-
-  bpy_import_main_set(bmain_back);
 
   if (retval == NULL) {
     ok = false;
@@ -774,17 +768,9 @@ void BPY_modules_load_user(bContext *C)
         }
       }
       else {
-        PyObject *module = bpy_text_import(text);
+        BPY_execute_text(C, text, NULL, false);
 
-        if (module == NULL) {
-          PyErr_Print();
-          PyErr_Clear();
-        }
-        else {
-          Py_DECREF(module);
-        }
-
-        /* check if the script loaded a new file */
+        /* Check if the script loaded a new file. */
         if (bmain != CTX_data_main(C)) {
           break;
         }
