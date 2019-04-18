@@ -47,10 +47,10 @@ FIND_PATH(EMBREE_INCLUDE_DIR
 
 
 SET(_embree_FIND_COMPONENTS
+  embree3
   embree_avx
   embree_avx2
   embree_sse42
-  embree3
   lexers
   math
   simd
