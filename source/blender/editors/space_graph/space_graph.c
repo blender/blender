@@ -60,34 +60,6 @@
 
 #include "graph_intern.h"  // own include
 
-/* ******************** manage regions ********************* */
-
-ARegion *graph_has_buttons_region(ScrArea *sa)
-{
-  ARegion *ar, *arnew;
-
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-  if (ar)
-    return ar;
-
-  /* add subdiv level; after main */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-
-  /* is error! */
-  if (ar == NULL)
-    return NULL;
-
-  arnew = MEM_callocN(sizeof(ARegion), "buttons for graph");
-
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-  arnew->regiontype = RGN_TYPE_UI;
-  arnew->alignment = RGN_ALIGN_RIGHT;
-
-  arnew->flag = RGN_FLAG_HIDDEN;
-
-  return arnew;
-}
-
 /* ******************** default callbacks for ipo space ***************** */
 
 static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)

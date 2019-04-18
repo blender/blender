@@ -53,34 +53,6 @@
 #include "nla_intern.h" /* own include */
 #include "GPU_framebuffer.h"
 
-/* ******************** manage regions ********************* */
-
-ARegion *nla_has_buttons_region(ScrArea *sa)
-{
-  ARegion *ar, *arnew;
-
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-  if (ar)
-    return ar;
-
-  /* add subdiv level; after main */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-
-  /* is error! */
-  if (ar == NULL)
-    return NULL;
-
-  arnew = MEM_callocN(sizeof(ARegion), "buttons for nla");
-
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-  arnew->regiontype = RGN_TYPE_UI;
-  arnew->alignment = RGN_ALIGN_RIGHT;
-
-  arnew->flag = RGN_FLAG_HIDDEN;
-
-  return arnew;
-}
-
 /* ******************** default callbacks for nla space ***************** */
 
 static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)

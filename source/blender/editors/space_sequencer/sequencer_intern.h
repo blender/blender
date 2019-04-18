@@ -42,9 +42,6 @@ struct bContext;
 struct rctf;
 struct wmOperator;
 
-/* space_sequencer.c */
-struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
-
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
 void sequencer_draw_preview(const struct bContext *C,

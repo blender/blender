@@ -40,8 +40,6 @@ struct wmOperatorType;
 /* **************************************** */
 /* space_action.c / action_buttons.c */
 
-struct ARegion *action_has_buttons_region(struct ScrArea *sa);
-
 void action_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */

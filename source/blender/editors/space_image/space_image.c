@@ -115,66 +115,6 @@ static void image_user_refresh_scene(const bContext *C, SpaceImage *sima)
   ED_space_image_auto_set(C, sima);
 }
 
-/* ******************** manage regions ********************* */
-
-ARegion *image_has_buttons_region(ScrArea *sa)
-{
-  ARegion *ar, *arnew;
-
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-  if (ar) {
-    return ar;
-  }
-
-  /* add subdiv level; after header */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
-
-  /* is error! */
-  if (ar == NULL) {
-    return NULL;
-  }
-
-  arnew = MEM_callocN(sizeof(ARegion), "buttons for image");
-
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-  arnew->regiontype = RGN_TYPE_UI;
-  arnew->alignment = RGN_ALIGN_RIGHT;
-
-  arnew->flag = RGN_FLAG_HIDDEN;
-
-  return arnew;
-}
-
-ARegion *image_has_tools_region(ScrArea *sa)
-{
-  ARegion *ar, *arnew;
-
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-  if (ar) {
-    return ar;
-  }
-
-  /* add subdiv level; after buttons */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-
-  /* is error! */
-  if (ar == NULL) {
-    return NULL;
-  }
-
-  arnew = MEM_callocN(sizeof(ARegion), "scopes for image");
-
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-  arnew->regiontype = RGN_TYPE_TOOLS;
-  arnew->alignment = RGN_ALIGN_LEFT;
-
-  arnew->flag = RGN_FLAG_HIDDEN;
-
-  image_scopes_tag_refresh(sa);
-
-  return arnew;
-}
-
 /* ******************** default callbacks for image space ***************** */
 
 static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))

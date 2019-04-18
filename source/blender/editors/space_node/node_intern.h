@@ -54,8 +54,6 @@ typedef struct bNodeLinkDrag {
 } bNodeLinkDrag;
 
 /* space_node.c */
-ARegion *node_has_buttons_region(ScrArea *sa);
-ARegion *node_has_tools_region(ScrArea *sa);
 
 /* transform between View2Ds in the tree path */
 void snode_group_offset(struct SpaceNode *snode, float *x, float *y);

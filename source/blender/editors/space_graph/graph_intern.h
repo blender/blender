@@ -36,10 +36,6 @@ struct bContext;
 /* internal exports only */
 
 /* ***************************************** */
-/* space_graph.c */
-struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
-
-/* ***************************************** */
 /* graph_draw.c */
 void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *ar);
 
