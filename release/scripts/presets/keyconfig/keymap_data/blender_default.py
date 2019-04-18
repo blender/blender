@@ -529,7 +529,8 @@ def km_screen_editing(params):
 
     if params.legacy:
         items.extend([
-            ("screen.header", {"type": 'F9', "value": 'PRESS', "alt": True}, None),
+            ("wm.context_toggle", {"type": 'F9', "value": 'PRESS', "alt": True},
+             {"properties": [("data_path", 'space_data.show_region_header')]})
         ])
 
     return keymap
