@@ -580,6 +580,35 @@ static void do_versions_fix_annotations(bGPdata *gpd)
   }
 }
 
+static void do_versions_remove_region(ListBase *regionbase, int regiontype)
+{
+  ARegion *ar, *ar_next;
+  for (ar = regionbase->first; ar; ar = ar_next) {
+    ar_next = ar->next;
+    if (ar->regiontype == regiontype) {
+      BLI_freelinkN(regionbase, ar);
+    }
+  }
+}
+
+static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
+{
+  for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
+    if (ar->regiontype == regiontype) {
+      return ar;
+    }
+  }
+  BLI_assert(!"Did not find expected region in versioning");
+  return NULL;
+}
+
+static ARegion *do_versions_add_region(int regiontype, const char *name)
+{
+  ARegion *ar = MEM_callocN(sizeof(ARegion), name);
+  ar->regiontype = regiontype;
+  return ar;
+}
+
 void do_versions_after_linking_280(Main *bmain)
 {
   bool use_collection_compat_28 = true;
@@ -3013,31 +3042,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_TEXT) {
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-            ARegion *ar = MEM_callocN(sizeof(ARegion), "footer for text");
 
             /* Remove multiple footers that were added by mistake. */
-            ARegion *ar_footer, *ar_next;
-            for (ar_footer = regionbase->first; ar_footer; ar_footer = ar_next) {
-              ar_next = ar_footer->next;
-              if (ar_footer->regiontype == RGN_TYPE_FOOTER) {
-                BLI_freelinkN(regionbase, ar_footer);
-              }
-            }
+            do_versions_remove_region(regionbase, RGN_TYPE_HEADER);
 
             /* Add footer. */
-            ARegion *ar_header = NULL;
-
-            for (ar_header = regionbase->first; ar_header; ar_header = ar_header->next) {
-              if (ar_header->regiontype == RGN_TYPE_HEADER) {
-                break;
-              }
-            }
-            BLI_assert(ar_header);
-
-            BLI_insertlinkafter(regionbase, ar_header, ar);
-
-            ar->regiontype = RGN_TYPE_FOOTER;
+            ARegion *ar = do_versions_add_region(RGN_TYPE_FOOTER, "footer for text");
             ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+
+            ARegion *ar_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
+            BLI_insertlinkafter(regionbase, ar_header, ar);
           }
         }
       }
