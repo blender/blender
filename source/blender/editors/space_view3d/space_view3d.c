@@ -293,6 +293,13 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
   v3d->vertex_opacity = 1.0f;
   v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
 
+  /* tool header */
+  ar = MEM_callocN(sizeof(ARegion), "tool header for view3d");
+
+  BLI_addtail(&v3d->regionbase, ar);
+  ar->regiontype = RGN_TYPE_TOOL_HEADER;
+  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for view3d");
 
@@ -1120,6 +1127,34 @@ static void view3d_header_region_listener(wmWindow *UNUSED(win),
       }
       break;
   }
+
+  /* From topbar, which ones are needed? split per header? */
+  /* Disable for now, re-enable if neede, or remove - campbell. */
+#if 0
+  /* context changes */
+  switch (wmn->category) {
+    case NC_WM:
+      if (wmn->data == ND_HISTORY) {
+        ED_region_tag_redraw(ar);
+      }
+      break;
+    case NC_SCENE:
+      if (wmn->data == ND_MODE) {
+        ED_region_tag_redraw(ar);
+      }
+      break;
+    case NC_SPACE:
+      if (wmn->data == ND_SPACE_VIEW3D) {
+        ED_region_tag_redraw(ar);
+      }
+      break;
+    case NC_GPENCIL:
+      if (wmn->data == ND_DATA) {
+        ED_region_tag_redraw(ar);
+      }
+      break;
+  }
+#endif
 }
 
 static void view3d_header_region_message_subscribe(const struct bContext *UNUSED(C),
@@ -1489,6 +1524,17 @@ void ED_spacetype_view3d(void)
   art->draw = view3d_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
+  /* regions: tool header */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype view3d tool header region");
+  art->regionid = RGN_TYPE_TOOL_HEADER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
+  art->listener = view3d_header_region_listener;
+  art->init = view3d_header_region_init;
+  art->draw = view3d_header_region_draw;
+  art->message_subscribe = view3d_header_region_message_subscribe;
+  BLI_addhead(&st->regiontypes, art);
+
   /* regions: header */
   art = MEM_callocN(sizeof(ARegionType), "spacetype view3d header region");
   art->regionid = RGN_TYPE_HEADER;
@@ -1497,7 +1543,7 @@ void ED_spacetype_view3d(void)
   art->listener = view3d_header_region_listener;
   art->init = view3d_header_region_init;
   art->draw = view3d_header_region_draw;
-  art->message_subscribe = view3d_header_region_message_subscribe;
+  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_header;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: hud */

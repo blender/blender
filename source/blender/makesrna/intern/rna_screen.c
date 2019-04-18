@@ -43,6 +43,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
     {RGN_TYPE_NAV_BAR, "NAVIGATION_BAR", 0, "Navigation Bar", ""},
     {RGN_TYPE_EXECUTE, "EXECUTE", 0, "Execute Buttons", ""},
     {RGN_TYPE_FOOTER, "FOOTER", 0, "Footer", ""},
+    {RGN_TYPE_TOOL_HEADER, "TOOL_HEADER", 0, "Tool Header", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -549,11 +550,6 @@ static void rna_def_screen(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", NULL);
   RNA_def_property_ui_text(prop, "Maximize", "An area is maximized, filling this screen");
-
-  prop = RNA_def_property(srna, "show_topbar", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SCREEN_COLLAPSE_TOPBAR);
-  RNA_def_property_ui_text(prop, "Show Top Bar", "Show top bar with tool settings");
-  RNA_def_property_update(prop, 0, "rna_Screen_bar_update");
 
   prop = RNA_def_property(srna, "show_statusbar", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SCREEN_COLLAPSE_STATUSBAR);

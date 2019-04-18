@@ -127,11 +127,8 @@ static void template_add_button_search_menu(const bContext *C,
 
   if (use_previews) {
     ARegion *region = CTX_wm_region(C);
-    ScrArea *area = CTX_wm_area(C);
-    /* XXX ugly top-bar exception */
-    const bool use_big_size = (
-        /* silly check, could be more generic */
-        (region->regiontype != RGN_TYPE_HEADER) && (area->spacetype != SPACE_TOPBAR));
+    /* Ugly tool header exception. */
+    const bool use_big_size = (region->regiontype != RGN_TYPE_TOOL_HEADER);
     /* Ugly exception for screens here,
      * drawing their preview in icon size looks ugly/useless */
     const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));

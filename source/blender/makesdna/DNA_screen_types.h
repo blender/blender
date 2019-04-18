@@ -471,7 +471,7 @@ enum {
 
 /** #bScreen.flag */
 enum {
-  SCREEN_COLLAPSE_TOPBAR = 1,
+  SCREEN_DEPRECATED = 1,
   SCREEN_COLLAPSE_STATUSBAR = 2,
 };
 
@@ -589,6 +589,7 @@ enum {
   /* A place for buttons to trigger execution of something that was set up in other regions. */
   RGN_TYPE_EXECUTE = 10,
   RGN_TYPE_FOOTER = 11,
+  RGN_TYPE_TOOL_HEADER = 12,
 };
 /* use for function args */
 #define RGN_TYPE_ANY -1

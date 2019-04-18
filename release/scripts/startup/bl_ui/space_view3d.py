@@ -34,11 +34,14 @@ from .properties_grease_pencil_common import (
 from bpy.app.translations import contexts as i18n_contexts
 
 
-class VIEW3D_HT_header(Header):
+class VIEW3D_HT_tool_header(Header):
     bl_space_type = 'VIEW_3D'
+    bl_region_type = "TOOL_HEADER"
 
     def draw(self, context):
         layout = self.layout
+
+        layout.row(align=True).template_header()
 
         view = context.space_data
         shading = view.shading
@@ -47,85 +50,13 @@ class VIEW3D_HT_header(Header):
         overlay = view.overlay
         tool_settings = context.tool_settings
 
-        row = layout.row(align=True)
-        row.template_header()
-
         object_mode = 'OBJECT' if obj is None else obj.mode
         has_pose_mode = (
             (object_mode == 'POSE') or
             (object_mode == 'WEIGHT_PAINT' and context.pose_object is not None)
         )
 
-        # Note: This is actually deadly in case enum_items have to be dynamically generated
-        #       (because internal RNA array iterator will free everything immediately...).
-        # XXX This is an RNA internal issue, not sure how to fix it.
-        # Note: Tried to add an accessor to get translated UI strings instead of manual call
-        #       to pgettext_iface below, but this fails because translated enumitems
-        #       are always dynamically allocated.
-        act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode]
-        act_mode_i18n_context = bpy.types.Object.bl_rna.properties["mode"].translation_context
-
-        row.separator()
-
-        sub = row.row()
-        sub.ui_units_x = 5.5
-        sub.operator_menu_enum("object.mode_set", "mode",
-                               text=bpy.app.translations.pgettext_iface(act_mode_item.name, act_mode_i18n_context),
-                               icon=act_mode_item.icon)
-        del act_mode_item
-
-        layout.template_header_3D_mode()
-
-        # Contains buttons like Mode, Pivot, Layer, Mesh Select Mode...
-        if obj:
-            # Particle edit
-            if object_mode == 'PARTICLE_EDIT':
-                row = layout.row()
-                row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
-
-        # Grease Pencil
-        if obj and obj.type == 'GPENCIL' and context.gpencil_data:
-            gpd = context.gpencil_data
-
-            if gpd.is_stroke_paint_mode:
-                row = layout.row()
-                sub = row.row(align=True)
-                sub.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='MOD_OPACITY')
-                sub.separator(factor=0.4)
-                sub.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
-                sub.separator(factor=0.4)
-                sub.prop(tool_settings, "use_gpencil_draw_additive", text="", icon='FREEZE')
-
-            if gpd.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "gpencil_selectmode", text="", expand=True)
-
-            if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode or gpd.is_stroke_weight_mode:
-                row = layout.row(align=True)
-
-                if gpd.is_stroke_sculpt_mode:
-                    row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
-                    row.separator()
-
-                row.prop(gpd, "use_multiedit", text="", icon='GP_MULTIFRAME_EDITING')
-
-                sub = row.row(align=True)
-                sub.active = gpd.use_multiedit
-                sub.popover(
-                    panel="VIEW3D_PT_gpencil_multi_frame",
-                    text="Multiframe",
-                )
-
-            if gpd.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
-
-                row.popover(
-                    panel="VIEW3D_PT_tools_grease_pencil_interpolate",
-                    text="Interpolate",
-                )
-
-        VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
+        self.draw_tool_settings(context)
 
         layout.separator_spacer()
 
@@ -254,6 +185,428 @@ class VIEW3D_HT_header(Header):
                     panel="VIEW3D_PT_gpencil_guide",
                     text="Guides",
                 )
+
+        layout.separator_spacer()
+
+        self.draw_mode_settings(context)
+
+    def draw_tool_settings(self, context):
+        layout = self.layout
+
+        # Active Tool
+        # -----------
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
+        tool_mode = context.mode if tool is None else tool.mode
+
+        # Object Mode Options
+        # -------------------
+
+        # Example of how tool_settings can be accessed as pop-overs.
+
+        # TODO(campbell): editing options should be after active tool options
+        # (obviously separated for from the users POV)
+        draw_fn = getattr(_draw_tool_settings_context_mode, tool_mode, None)
+        if draw_fn is not None:
+            draw_fn(context, layout, tool)
+
+        # Note: general mode options should be added to 'draw_mode_settings'.
+        if tool_mode == 'SCULPT':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+        elif tool_mode == 'PAINT_VERTEX':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+        elif tool_mode == 'PAINT_WEIGHT':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+        elif tool_mode == 'PAINT_TEXTURE':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+        elif tool_mode == 'EDIT_ARMATURE':
+            pass
+        elif tool_mode == 'EDIT_CURVE':
+            pass
+        elif tool_mode == 'EDIT_MESH':
+            pass
+        elif tool_mode == 'POSE':
+            pass
+        elif tool_mode == 'PARTICLE':
+            # Disable, only shows "Brush" panel, which is already in the top-bar.
+            # if tool.has_datablock:
+            #     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            pass
+        elif tool_mode == 'PAINT_GPENCIL':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
+        elif tool_mode == 'SCULPT_GPENCIL':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_sculpt", category="")
+        elif tool_mode == 'WEIGHT_GPENCIL':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
+
+    def draw_mode_settings(self, context):
+        layout = self.layout
+
+        # Active Tool
+        # -----------
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        tool = ToolSelectPanelHelper.tool_active_from_context(context)
+        tool_mode = context.mode if tool is None else tool.mode
+
+        if tool_mode == 'SCULPT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".sculpt_mode", category="")
+        elif tool_mode == 'PAINT_VERTEX':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".vertexpaint", category="")
+        elif tool_mode == 'PAINT_WEIGHT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".weightpaint", category="")
+        elif tool_mode == 'PAINT_TEXTURE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint", category="")
+        elif tool_mode == 'EDIT_TEXT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".text_edit", category="")
+        elif tool_mode == 'EDIT_ARMATURE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".armature_edit", category="")
+        elif tool_mode == 'EDIT_METABALL':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mball_edit", category="")
+        elif tool_mode == 'EDIT_LATTICE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".lattice_edit", category="")
+        elif tool_mode == 'EDIT_CURVE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".curve_edit", category="")
+        elif tool_mode == 'EDIT_MESH':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mesh_edit", category="")
+        elif tool_mode == 'POSE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".posemode", category="")
+        elif tool_mode == 'PARTICLE':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
+        elif tool_mode == 'OBJECT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
+        elif tool_mode in {'PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
+            # Grease pencil layer.
+            gpl = context.active_gpencil_layer
+            if gpl and gpl.info is not None:
+                text = gpl.info
+                maxw = 25
+                if len(text) > maxw:
+                    text = text[:maxw - 5] + '..' + text[-3:]
+            else:
+                text = ""
+
+            layout.label(text="Layer:")
+            sub = layout.row()
+            sub.ui_units_x = 8
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_layers",
+                text=text,
+            )
+
+
+class _draw_tool_settings_context_mode:
+    @staticmethod
+    def SCULPT(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+
+        paint = context.tool_settings.sculpt
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import (
+            brush_basic_sculpt_settings,
+        )
+        brush_basic_sculpt_settings(layout, context, brush, compact=True)
+
+    @staticmethod
+    def PAINT_TEXTURE(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+
+        paint = context.tool_settings.image_paint
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import (
+            UnifiedPaintPanel,
+            brush_basic_texpaint_settings,
+        )
+        capabilities = brush.image_paint_capabilities
+        if capabilities.has_color:
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+        brush_basic_texpaint_settings(layout, context, brush, compact=True)
+
+    @staticmethod
+    def PAINT_VERTEX(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+
+        paint = context.tool_settings.vertex_paint
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import (
+            UnifiedPaintPanel,
+            brush_basic_vpaint_settings,
+        )
+        capabilities = brush.vertex_paint_capabilities
+        if capabilities.has_color:
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+        brush_basic_vpaint_settings(layout, context, brush, compact=True)
+
+    @staticmethod
+    def PAINT_WEIGHT(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+
+        paint = context.tool_settings.weight_paint
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+        brush = paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import brush_basic_wpaint_settings
+        brush_basic_wpaint_settings(layout, context, brush, compact=True)
+
+    @staticmethod
+    def PAINT_GPENCIL(context, layout, tool):
+        if tool is None:
+            return
+
+        # is_paint = True
+        # FIXME: tools must use their own UI drawing!
+        if tool.idname in {"builtin.line", "builtin.box", "builtin.circle", "builtin.arc", "builtin.curve"}:
+            # is_paint = False
+            pass
+        elif tool.idname == "Cutter":
+            row = layout.row(align=True)
+            row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
+            return
+        elif not tool.has_datablock:
+            return
+
+        paint = context.tool_settings.gpencil_paint
+        brush = paint.brush
+        if brush is None:
+            return
+
+        gp_settings = brush.gpencil_settings
+
+        def draw_color_selector():
+            ma = gp_settings.material
+            row = layout.row(align=True)
+            if not gp_settings.use_material_pin:
+                ma = context.object.active_material
+            icon_id = 0
+            if ma:
+                icon_id = ma.id_data.preview.icon_id
+                txt_ma = ma.name
+                maxw = 25
+                if len(txt_ma) > maxw:
+                    txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
+            else:
+                txt_ma = ""
+
+            row.label(text="Material:")
+            sub = row.row()
+            sub.ui_units_x = 8
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_materials",
+                text=txt_ma,
+                icon_value=icon_id,
+            )
+
+            row.prop(gp_settings, "use_material_pin", text="")
+
+        row = layout.row(align=True)
+        tool_settings = context.scene.tool_settings
+        settings = tool_settings.gpencil_paint
+        row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
+
+        if context.object and brush.gpencil_tool in {'FILL', 'DRAW'}:
+            draw_color_selector()
+
+        from .properties_paint_common import (
+            brush_basic_gpencil_paint_settings,
+        )
+        brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
+
+        # FIXME: tools must use their own UI drawing!
+        if tool.idname in {"builtin.arc", "builtin.curve", "builtin.line", "builtin.box", "builtin.circle"}:
+            settings = context.tool_settings.gpencil_sculpt
+            row = layout.row(align=True)
+            row.prop(settings, "use_thickness_curve", text="", icon='CURVE_DATA')
+            sub = row.row(align=True)
+            sub.active = settings.use_thickness_curve
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_primitive",
+                text="Thickness Profile",
+            )
+
+        if brush.gpencil_tool == 'FILL':
+            settings = context.tool_settings.gpencil_sculpt
+            row = layout.row(align=True)
+            sub = row.row(align=True)
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_fill",
+                text="Fill Options",
+            )
+
+    @staticmethod
+    def SCULPT_GPENCIL(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_sculpt
+        brush = settings.brush
+
+        from .properties_paint_common import (
+            brush_basic_gpencil_sculpt_settings,
+        )
+        brush_basic_gpencil_sculpt_settings(layout, context, brush, compact=True)
+
+    @staticmethod
+    def WEIGHT_GPENCIL(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_sculpt
+        brush = settings.brush
+
+        from .properties_paint_common import (
+            brush_basic_gpencil_weight_settings,
+        )
+        brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
+
+    @staticmethod
+    def PARTICLE(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+
+        # See: 'VIEW3D_PT_tools_brush', basically a duplicate
+        settings = context.tool_settings.particle_edit
+        brush = settings.brush
+        tool = settings.tool
+        if tool != 'NONE':
+            layout.prop(brush, "size", slider=True)
+            if tool == 'ADD':
+                layout.prop(brush, "count")
+
+                layout.prop(settings, "use_default_interpolate")
+                layout.prop(brush, "steps", slider=True)
+                layout.prop(settings, "default_key_count", slider=True)
+            else:
+                layout.prop(brush, "strength", slider=True)
+
+                if tool == 'LENGTH':
+                    layout.row().prop(brush, "length_mode", expand=True)
+                elif tool == 'PUFF':
+                    layout.row().prop(brush, "puff_mode", expand=True)
+                    layout.prop(brush, "use_puff_volume")
+                elif tool == 'COMB':
+                    row = layout.row()
+                    row.active = settings.is_editable
+                    row.prop(settings, "use_emitter_deflect", text="Deflect Emitter")
+                    sub = row.row(align=True)
+                    sub.active = settings.use_emitter_deflect
+                    sub.prop(settings, "emitter_distance", text="Distance")
+
+
+class VIEW3D_HT_header(Header):
+    bl_space_type = 'VIEW_3D'
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        view = context.space_data
+        shading = view.shading
+        # mode_string = context.mode
+        obj = context.active_object
+
+        if not view.show_region_tool_header:
+            layout.row(align=True).template_header()
+
+        row = layout.row(align=True)
+        object_mode = 'OBJECT' if obj is None else obj.mode
+
+        # Note: This is actually deadly in case enum_items have to be dynamically generated
+        #       (because internal RNA array iterator will free everything immediately...).
+        # XXX This is an RNA internal issue, not sure how to fix it.
+        # Note: Tried to add an accessor to get translated UI strings instead of manual call
+        #       to pgettext_iface below, but this fails because translated enumitems
+        #       are always dynamically allocated.
+        act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode]
+        act_mode_i18n_context = bpy.types.Object.bl_rna.properties["mode"].translation_context
+
+        sub = row.row(align=True)
+        sub.ui_units_x = 5.5
+        sub.operator_menu_enum(
+            "object.mode_set", "mode",
+            text=bpy.app.translations.pgettext_iface(act_mode_item.name, act_mode_i18n_context),
+            icon=act_mode_item.icon,
+        )
+        del act_mode_item
+
+        layout.template_header_3D_mode()
+
+        # Contains buttons like Mode, Pivot, Layer, Mesh Select Mode...
+        if obj:
+            # Particle edit
+            if object_mode == 'PARTICLE_EDIT':
+                row = layout.row()
+                row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
+
+        # Grease Pencil
+        if obj and obj.type == 'GPENCIL' and context.gpencil_data:
+            gpd = context.gpencil_data
+
+            if gpd.is_stroke_paint_mode:
+                row = layout.row()
+                sub = row.row(align=True)
+                sub.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='MOD_OPACITY')
+                sub.separator(factor=0.4)
+                sub.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
+                sub.separator(factor=0.4)
+                sub.prop(tool_settings, "use_gpencil_draw_additive", text="", icon='FREEZE')
+
+            if gpd.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(tool_settings, "gpencil_selectmode", text="", expand=True)
+
+            if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode or gpd.is_stroke_weight_mode:
+                row = layout.row(align=True)
+
+                if gpd.is_stroke_sculpt_mode:
+                    row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
+                    row.separator()
+
+                row.prop(gpd, "use_multiedit", text="", icon='GP_MULTIFRAME_EDITING')
+
+                sub = row.row(align=True)
+                sub.active = gpd.use_multiedit
+                sub.popover(
+                    panel="VIEW3D_PT_gpencil_multi_frame",
+                    text="Multiframe",
+                )
+
+            if gpd.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
+
+                row.popover(
+                    panel="VIEW3D_PT_tools_grease_pencil_interpolate",
+                    text="Interpolate",
+                )
+
+        overlay = view.overlay
+
+        VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.separator_spacer()
 
@@ -5910,6 +6263,7 @@ class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
 
 classes = (
     VIEW3D_HT_header,
+    VIEW3D_HT_tool_header,
     VIEW3D_MT_editor_menus,
     VIEW3D_MT_transform,
     VIEW3D_MT_transform_base,

@@ -622,10 +622,42 @@ static bool rna_Space_show_region_header_get(PointerRNA *ptr)
 static void rna_Space_show_region_header_set(PointerRNA *ptr, bool value)
 {
   rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_HEADER, RGN_FLAG_HIDDEN, !value);
+
+  /* Special case, never show the tool properties when the header is invisible. */
+  bool value_for_tool_header = value;
+  if (value == true) {
+    ScrArea *sa = rna_area_from_space(ptr);
+    ARegion *ar_tool_header = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER);
+    if (ar_tool_header != NULL) {
+      value = !(ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER);
+    }
+  }
+  rna_Space_bool_from_region_flag_set_by_type(
+      ptr, RGN_TYPE_TOOL_HEADER, RGN_FLAG_HIDDEN, !value_for_tool_header);
 }
 static void rna_Space_show_region_header_update(bContext *C, PointerRNA *ptr)
 {
   rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_HEADER, RGN_FLAG_HIDDEN);
+}
+
+/* Tool Header Region.
+ *
+ * This depends on the 'RGN_TYPE_TOOL_HEADER'
+ */
+static bool rna_Space_show_region_tool_header_get(PointerRNA *ptr)
+{
+  return !rna_Space_bool_from_region_flag_get_by_type(
+      ptr, RGN_TYPE_TOOL_HEADER, RGN_FLAG_HIDDEN_BY_USER);
+}
+static void rna_Space_show_region_tool_header_set(PointerRNA *ptr, bool value)
+{
+  rna_Space_bool_from_region_flag_set_by_type(
+      ptr, RGN_TYPE_TOOL_HEADER, RGN_FLAG_HIDDEN_BY_USER, !value);
+  rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_TOOL_HEADER, RGN_FLAG_HIDDEN, !value);
+}
+static void rna_Space_show_region_tool_header_update(bContext *C, PointerRNA *ptr)
+{
+  rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_TOOL_HEADER, RGN_FLAG_HIDDEN);
 }
 
 /* Tools Region. */
@@ -2422,6 +2454,10 @@ static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int regio
     } \
     ((void)0)
 
+  if (region_type_mask & (1 << RGN_TYPE_TOOL_HEADER)) {
+    region_type_mask &= ~(1 << RGN_TYPE_TOOL_HEADER);
+    DEF_SHOW_REGION_PROPERTY(show_region_tool_header, "Tool Header", "");
+  }
   if (region_type_mask & (1 << RGN_TYPE_HEADER)) {
     region_type_mask &= ~(1 << RGN_TYPE_HEADER);
     DEF_SHOW_REGION_PROPERTY(show_region_header, "Header", "");
@@ -3546,8 +3582,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "View3D");
   RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
 
-  rna_def_space_generic_show_region_toggles(
-      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
+  rna_def_space_generic_show_region_toggles(srna,
+                                            ((1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_TOOLS) |
+                                             (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD)));
 
   prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -4054,7 +4091,7 @@ static void rna_def_space_image(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Space Image Editor", "Image and UV editor space data");
 
   rna_def_space_generic_show_region_toggles(
-      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
+      srna, (1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
 
   /* image */
   prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);

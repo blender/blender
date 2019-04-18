@@ -591,15 +591,23 @@ static void do_versions_remove_region(ListBase *regionbase, int regiontype)
   }
 }
 
-static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
+static ARegion *do_versions_find_region_or_null(ListBase *regionbase, int regiontype)
 {
   for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
     if (ar->regiontype == regiontype) {
       return ar;
     }
   }
-  BLI_assert(!"Did not find expected region in versioning");
   return NULL;
+}
+
+static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
+{
+  ARegion *ar = do_versions_find_region_or_null(regionbase, regiontype);
+  if (ar == NULL) {
+    BLI_assert(!"Did not find expected region in versioning");
+  }
+  return ar;
 }
 
 static ARegion *do_versions_add_region(int regiontype, const char *name)
@@ -3124,6 +3132,27 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
             v3d->gridflag |= V3D_SHOW_ORTHO_GRID;
+          }
+        }
+      }
+    }
+  }
+
+  /* Keep un-versioned until we're finished adding space types. */
+  {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          /* All spaces that use tools must be eventually added. */
+          if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_IMAGE) &&
+              (do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER) == NULL)) {
+            /* Add tool header. */
+            ARegion *ar = do_versions_add_region(RGN_TYPE_TOOL_HEADER, "tool header");
+            ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
+            ARegion *ar_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
+            BLI_insertlinkbefore(regionbase, ar_header, ar);
           }
         }
       }

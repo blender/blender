@@ -1324,7 +1324,7 @@ static void area_move_set_limits(
       int size_max = ED_area_global_max_size_y(area) - 1;
 
       size_min = max_ii(size_min, 0);
-      BLI_assert(size_min < size_max);
+      BLI_assert(size_min <= size_max);
 
       /* logic here is only tested for lower edge :) */
       /* left edge */
@@ -2338,12 +2338,12 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
       }
       else if (scalear->alignment == RGN_ALIGN_TOP &&
                (ar->alignment == RGN_ALIGN_BOTTOM ||
-                ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_FOOTER))) {
+                ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
         dist -= ar->winy;
       }
       else if (scalear->alignment == RGN_ALIGN_BOTTOM &&
                (ar->alignment == RGN_ALIGN_TOP ||
-                ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_FOOTER))) {
+                ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
         dist -= ar->winy;
       }
     }
@@ -2430,6 +2430,18 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 
   region_toggle_hidden(C, rmd->ar, 0);
   region_scale_validate_size(rmd);
+
+  if ((rmd->ar->flag & RGN_FLAG_HIDDEN) == 0) {
+    if (rmd->ar->regiontype == RGN_TYPE_HEADER) {
+      ARegion *ar_tool_header = BKE_area_find_region_type(rmd->sa, RGN_TYPE_TOOL_HEADER);
+      if (ar_tool_header != NULL) {
+        if ((ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER) == 0 &&
+            (ar_tool_header->flag & RGN_FLAG_HIDDEN) != 0) {
+          region_toggle_hidden(C, ar_tool_header, 0);
+        }
+      }
+    }
+  }
 }
 
 static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -3794,11 +3806,16 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
   ARegion *ar = CTX_wm_region(C);
   const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") :
                                                                 IFACE_("Flip to Top");
-
-  if (!ELEM(sa->spacetype, SPACE_TOPBAR)) {
+  {
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, sa->spacedata.first, &ptr);
     uiItemR(layout, &ptr, "show_region_header", 0, IFACE_("Show Header"), ICON_NONE);
+    if (BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER)) {
+      ARegion *ar_header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+      uiLayoutSetActive(layout, (ar_header->flag & RGN_FLAG_HIDDEN) == 0);
+      uiItemR(layout, &ptr, "show_region_tool_header", 0, IFACE_("Show Tool Settings"), ICON_NONE);
+      uiLayoutSetActive(layout, true);
+    }
   }
 
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
@@ -4058,7 +4075,7 @@ static int match_region_with_redraws(int spacetype,
     if (redraws & TIME_ALL_BUTS_WIN)
       return 1;
   }
-  else if (regiontype == RGN_TYPE_HEADER) {
+  else if (ELEM(regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
     if (spacetype == SPACE_ACTION)
       return 1;
   }

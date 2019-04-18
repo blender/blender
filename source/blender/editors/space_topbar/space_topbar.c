@@ -71,10 +71,6 @@ static SpaceLink *topbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
   ar->alignment = RGN_ALIGN_RIGHT | RGN_SPLIT_PREV;
 
   /* main regions */
-  ar = MEM_callocN(sizeof(ARegion), "right aligned main region for topbar");
-  BLI_addtail(&stopbar->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
-  ar->alignment = RGN_ALIGN_RIGHT;
   ar = MEM_callocN(sizeof(ARegion), "main region of topbar");
   BLI_addtail(&stopbar->regionbase, ar);
   ar->regiontype = RGN_TYPE_WINDOW;

@@ -134,6 +134,13 @@ static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sce
   scopes_new(&simage->scopes);
   simage->sample_line_hist.height = 100;
 
+  /* tool header */
+  ar = MEM_callocN(sizeof(ARegion), "tool header for image");
+
+  BLI_addtail(&simage->regionbase, ar);
+  ar->regiontype = RGN_TYPE_TOOL_HEADER;
+  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for image");
 
@@ -1031,6 +1038,17 @@ void ED_spacetype_image(void)
   art->snap_size = ED_region_generic_tools_region_snap_size;
   art->init = image_tools_region_init;
   art->draw = image_tools_region_draw;
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: tool header */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype image tool header region");
+  art->regionid = RGN_TYPE_TOOL_HEADER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
+  art->listener = image_header_region_listener;
+  art->init = image_header_region_init;
+  art->draw = image_header_region_draw;
+  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_header;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */

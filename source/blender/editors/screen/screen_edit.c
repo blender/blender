@@ -428,6 +428,10 @@ static void screen_refresh_headersizes(void)
     if (art)
       art->prefsizey = ED_area_headersize();
 
+    art = BKE_regiontype_from_id(st, RGN_TYPE_TOOL_HEADER);
+    if (art)
+      art->prefsizey = ED_area_headersize();
+
     art = BKE_regiontype_from_id(st, RGN_TYPE_FOOTER);
     if (art)
       art->prefsizey = ED_area_headersize();
@@ -679,7 +683,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 
         if (do_draw) {
           for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
-            if (ar->regiontype == RGN_TYPE_HEADER) {
+            if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
               ED_region_tag_redraw_no_rebuild(ar);
             }
           }
@@ -813,16 +817,14 @@ static int screen_global_header_size(void)
 
 static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)
 {
-  const short size_min = screen_global_header_size();
-  const short size_max = 2.25 * screen_global_header_size();
-  const short size = (screen->flag & SCREEN_COLLAPSE_TOPBAR) ? size_min : size_max;
+  const short size = screen_global_header_size();
   rcti rect;
 
   BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
-  rect.ymin = rect.ymax - size_max;
+  rect.ymin = rect.ymax - size;
 
   screen_global_area_refresh(
-      win, screen, SPACE_TOPBAR, GLOBAL_AREA_ALIGN_TOP, &rect, size, size_min, size_max);
+      win, screen, SPACE_TOPBAR, GLOBAL_AREA_ALIGN_TOP, &rect, size, size, size);
 }
 
 static void screen_global_statusbar_area_refresh(wmWindow *win, bScreen *screen)
@@ -845,14 +847,11 @@ void ED_screen_global_areas_sync(wmWindow *win)
    * global areas should just become part of the screen instead. */
   bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
-  screen->flag &= ~(SCREEN_COLLAPSE_STATUSBAR | SCREEN_COLLAPSE_TOPBAR);
+  screen->flag &= ~SCREEN_COLLAPSE_STATUSBAR;
 
   for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
     if (area->global->cur_fixed_height == area->global->size_min) {
-      if (area->spacetype == SPACE_TOPBAR) {
-        screen->flag |= SCREEN_COLLAPSE_TOPBAR;
-      }
-      else if (area->spacetype == SPACE_STATUSBAR) {
+      if (area->spacetype == SPACE_STATUSBAR) {
         screen->flag |= SCREEN_COLLAPSE_STATUSBAR;
       }
     }
@@ -1278,6 +1277,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
         if (ELEM(ar->regiontype,
                  RGN_TYPE_UI,
                  RGN_TYPE_HEADER,
+                 RGN_TYPE_TOOL_HEADER,
                  RGN_TYPE_FOOTER,
                  RGN_TYPE_TOOLS,
                  RGN_TYPE_NAV_BAR,

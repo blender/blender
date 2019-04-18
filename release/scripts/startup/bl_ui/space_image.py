@@ -506,6 +506,128 @@ class IMAGE_MT_uvs_snap_pie(Menu):
         pie.operator("uv.snap_selected", text="Selected to Adjacent Unselected", icon='RESTRICT_SELECT_OFF').target = 'ADJACENT_UNSELECTED'
 
 
+class IMAGE_HT_tool_header(Header):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = "TOOL_HEADER"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.row(align=True).template_header()
+
+        self.draw_tool_settings(context)
+
+        sima = context.space_data
+        show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
+
+        layout.separator_spacer()
+
+        if show_uvedit or show_maskedit:
+            layout.prop(sima, "pivot_point", icon_only=True)
+
+        if show_uvedit:
+            tool_settings = context.tool_settings
+
+            # Snap.
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap", text="")
+            row.prop(tool_settings, "snap_uv_element", icon_only=True)
+            if tool_settings.snap_uv_element != 'INCREMENT':
+                row.prop(tool_settings, "snap_target", text="")
+
+            # Proportional Editing
+            row = layout.row(align=True)
+            row.prop(tool_settings, "proportional_edit", icon_only=True)
+            # if tool_settings.proportional_edit != 'DISABLED':
+            sub = row.row(align=True)
+            sub.active = tool_settings.proportional_edit != 'DISABLED'
+            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+        layout.separator_spacer()
+
+        self.draw_mode_settings(context)
+
+    def draw_tool_settings(self, context):
+        layout = self.layout
+
+        # Active Tool
+        # -----------
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
+        tool_mode = context.mode if tool is None else tool.mode
+
+        # Object Mode Options
+        # -------------------
+
+        # Example of how tool_settings can be accessed as pop-overs.
+
+        # TODO(campbell): editing options should be after active tool options
+        # (obviously separated for from the users POV)
+        draw_fn = getattr(_draw_tool_settings_context_mode, tool_mode, None)
+        if draw_fn is not None:
+            draw_fn(context, layout, tool)
+
+        if tool_mode == 'PAINT':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common_2d", category="")
+        elif context.uv_sculpt_object is not None:
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
+
+    def draw_mode_settings(self, context):
+        layout = self.layout
+
+        # Active Tool
+        # -----------
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        tool = ToolSelectPanelHelper.tool_active_from_context(context)
+        tool_mode = context.mode if tool is None else tool.mode
+
+        if tool_mode == 'PAINT':
+            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint_2d", category="")
+
+
+class _draw_tool_settings_context_mode:
+    @staticmethod
+    def VIEW(context, layout, tool):
+        tool_settings = context.tool_settings
+        if tool_settings.use_uv_sculpt:
+            if context.mode == 'EDIT_MESH':
+                uv_sculpt = tool_settings.uv_sculpt
+                brush = uv_sculpt.brush
+                if brush:
+                    from .properties_paint_common import UnifiedPaintPanel
+
+                    row = layout.row(align=True)
+                    UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
+                    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+
+                    row = layout.row(align=True)
+                    UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True)
+                    UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+
+    @staticmethod
+    def PAINT(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return
+
+        paint = context.tool_settings.image_paint
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import (
+            UnifiedPaintPanel,
+            brush_basic_texpaint_settings,
+        )
+        capabilities = brush.image_paint_capabilities
+        if capabilities.has_color:
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+        brush_basic_texpaint_settings(layout, context, brush, compact=True)
+
+
 class IMAGE_HT_header(Header):
     bl_space_type = 'IMAGE_EDITOR'
 
@@ -521,8 +643,8 @@ class IMAGE_HT_header(Header):
         show_uvedit = sima.show_uvedit
         show_maskedit = sima.show_maskedit
 
-        row = layout.row(align=True)
-        row.template_header()
+        if not sima.show_region_tool_header:
+            layout.row(align=True).template_header()
 
         if sima.mode != 'UV':
             layout.prop(sima, "ui_mode", text="")
@@ -559,25 +681,6 @@ class IMAGE_HT_header(Header):
 
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
-
-        if show_uvedit or show_maskedit:
-            layout.prop(sima, "pivot_point", icon_only=True)
-
-        if show_uvedit:
-            # Snap.
-            row = layout.row(align=True)
-            row.prop(tool_settings, "use_snap", text="")
-            row.prop(tool_settings, "snap_uv_element", icon_only=True)
-            if tool_settings.snap_uv_element != 'INCREMENT':
-                row.prop(tool_settings, "snap_target", text="")
-
-            # Proportional Editing
-            row = layout.row(align=True)
-            row.prop(tool_settings, "proportional_edit", icon_only=True)
-            # if tool_settings.proportional_edit != 'DISABLED':
-            sub = row.row(align=True)
-            sub.active = tool_settings.proportional_edit != 'DISABLED'
-            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         row = layout.row()
         row.popover(
@@ -1494,6 +1597,7 @@ classes = (
     IMAGE_MT_uvs_context_menu,
     IMAGE_MT_pivot_pie,
     IMAGE_MT_uvs_snap_pie,
+    IMAGE_HT_tool_header,
     IMAGE_HT_header,
     MASK_MT_editor_menus,
     IMAGE_PT_mask,

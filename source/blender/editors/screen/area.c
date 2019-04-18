@@ -421,17 +421,18 @@ static void region_draw_status_text(ScrArea *sa, ARegion *ar)
   BLF_draw(fontid, ar->headerstr, BLF_DRAW_STR_DUMMY_MAX);
 }
 
-/* Follow wmMsgNotifyFn spec */
-void ED_region_do_msg_notify_tag_redraw(bContext *UNUSED(C),
-                                        wmMsgSubscribeKey *UNUSED(msg_key),
-                                        wmMsgSubscribeValue *msg_val)
+void ED_region_do_msg_notify_tag_redraw(
+    /* Follow wmMsgNotifyFn spec */
+    bContext *UNUSED(C),
+    wmMsgSubscribeKey *UNUSED(msg_key),
+    wmMsgSubscribeValue *msg_val)
 {
   ARegion *ar = msg_val->owner;
   ED_region_tag_redraw(ar);
 
   /* This avoids _many_ situations where header/properties control display settings.
    * the common case is space properties in the header */
-  if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_UI)) {
+  if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_UI)) {
     while (ar && ar->prev) {
       ar = ar->prev;
     }
@@ -442,13 +443,46 @@ void ED_region_do_msg_notify_tag_redraw(bContext *UNUSED(C),
     }
   }
 }
-/* Follow wmMsgNotifyFn spec */
-void ED_area_do_msg_notify_tag_refresh(bContext *UNUSED(C),
-                                       wmMsgSubscribeKey *UNUSED(msg_key),
-                                       wmMsgSubscribeValue *msg_val)
+/**
+ * Use #ED_region_do_msg_notify_tag_redraw where possible, this draws too much typically.
+ */
+void ED_area_do_msg_notify_tag_redraw(
+    /* Follow wmMsgNotifyFn spec */
+    bContext *UNUSED(C),
+    wmMsgSubscribeKey *UNUSED(msg_key),
+    wmMsgSubscribeValue *msg_val)
+{
+  ScrArea *sa = msg_val->owner;
+  ED_area_tag_redraw(sa);
+}
+void ED_area_do_msg_notify_tag_refresh(
+    /* Follow wmMsgNotifyFn spec */
+    bContext *UNUSED(C),
+    wmMsgSubscribeKey *UNUSED(msg_key),
+    wmMsgSubscribeValue *msg_val)
 {
   ScrArea *sa = msg_val->user_data;
   ED_area_tag_refresh(sa);
+}
+
+void ED_area_do_mgs_subscribe_for_tool_header(
+    /* Follow ARegionType.message_subscribe */
+    const struct bContext *UNUSED(C),
+    struct WorkSpace *workspace,
+    struct Scene *UNUSED(scene),
+    struct bScreen *UNUSED(screen),
+    struct ScrArea *sa,
+    struct ARegion *UNUSED(ar),
+    struct wmMsgBus *mbus)
+{
+  /* TODO(campbell): investigate why ED_region_do_msg_notify_tag_redraw doesn't work here. */
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+      .owner = sa,
+      .user_data = sa,
+      .notify = ED_area_do_msg_notify_tag_redraw,
+  };
+  WM_msg_subscribe_rna_prop(
+      mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
 /**
@@ -931,7 +965,7 @@ static bool region_azone_edge_poll(const ARegion *ar, const bool is_fullscreen)
   if (is_hidden && is_fullscreen) {
     return false;
   }
-  if (!is_hidden && ar->regiontype == RGN_TYPE_HEADER) {
+  if (!is_hidden && ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
     return false;
   }
 
@@ -1010,6 +1044,12 @@ static void region_azones_scrollbars_initialize(ScrArea *sa, ARegion *ar)
 static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *ar, const int alignment)
 {
   const bool is_fullscreen = screen->state == SCREENFULL;
+
+  /* Only display tab or icons when the header region is hidden
+   * (not the tool header - they overlap). */
+  if (ar->regiontype == RGN_TYPE_TOOL_HEADER) {
+    return;
+  }
 
   /* edge code (t b l r) is along which area edge azone will be drawn */
   if (alignment == RGN_ALIGN_TOP)
@@ -1181,6 +1221,9 @@ static void region_rect_recursive(
     prefsizey = UI_DPI_FAC * ar->type->prefsizey;
   }
   else if (ar->regiontype == RGN_TYPE_HEADER) {
+    prefsizey = ED_area_headersize();
+  }
+  else if (ar->regiontype == RGN_TYPE_TOOL_HEADER) {
     prefsizey = ED_area_headersize();
   }
   else if (ar->regiontype == RGN_TYPE_FOOTER) {
@@ -1937,7 +1980,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
       /* Spaces with footer. */
       if (st->spaceid == SPACE_TEXT) {
         for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-          if (ar->regiontype == RGN_TYPE_HEADER) {
+          if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             ar->alignment = header_alignment;
           }
           if (ar->regiontype == RGN_TYPE_FOOTER) {
@@ -1950,7 +1993,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
       }
       else {
         for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-          if (ar->regiontype == RGN_TYPE_HEADER) {
+          if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             ar->alignment = header_alignment;
             break;
           }
@@ -2035,6 +2078,7 @@ static ThemeColorID region_background_color_id(const bContext *C, const ARegion 
 
   switch (region->regiontype) {
     case RGN_TYPE_HEADER:
+    case RGN_TYPE_TOOL_HEADER:
       if (ED_screen_area_active(C) || ED_area_is_global(area)) {
         return TH_HEADER;
       }

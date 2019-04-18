@@ -868,7 +868,7 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
   int alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
     for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar->regiontype == RGN_TYPE_HEADER) {
+      if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
         if (ELEM(sa->spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
           ar->alignment = RGN_ALIGN_TOP;
           continue;

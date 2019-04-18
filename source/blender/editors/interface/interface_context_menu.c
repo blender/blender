@@ -1064,7 +1064,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     if (!ar) {
       /* skip */
     }
-    else if (ar->regiontype == RGN_TYPE_HEADER) {
+    else if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
       uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
     }
     else if (ar->regiontype == RGN_TYPE_NAV_BAR) {
