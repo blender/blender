@@ -71,6 +71,40 @@ static void gpencil_set_stroke_point(GPUVertBuf *vbo,
   GPU_vertbuf_attr_set(vbo, pos_id, idx, &pt->x);
 }
 
+/* Helper to add buffer_stroke point to vbo */
+static void gpencil_set_buffer_stroke_point(GPUVertBuf *vbo,
+                                            const bGPDspoint *pt,
+                                            int idx,
+                                            uint pos_id,
+                                            uint color_id,
+                                            uint thickness_id,
+                                            uint uvdata_id,
+                                            uint prev_pos_id,
+                                            float ref_pt[3],
+                                            short thickness,
+                                            const float ink[4])
+{
+
+  float alpha = ink[3] * pt->strength;
+  CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
+  float col[4];
+  ARRAY_SET_ITEMS(col, ink[0], ink[1], ink[2], alpha);
+
+  GPU_vertbuf_attr_set(vbo, color_id, idx, col);
+
+  /* transfer both values using the same shader variable */
+  float uvdata[2] = {pt->uv_fac, pt->uv_rot};
+  GPU_vertbuf_attr_set(vbo, uvdata_id, idx, uvdata);
+
+  /* the thickness of the stroke must be affected by zoom, so a pixel scale is calculated */
+  float thick = max_ff(pt->pressure * thickness, 1.0f);
+  GPU_vertbuf_attr_set(vbo, thickness_id, idx, &thick);
+
+  GPU_vertbuf_attr_set(vbo, pos_id, idx, &pt->x);
+  /* reference point to follow drawing path */
+  GPU_vertbuf_attr_set(vbo, prev_pos_id, idx, ref_pt);
+}
+
 /* Helper to add a new fill point and texture coordinates to vertex buffer */
 static void gpencil_set_fill_point(GPUVertBuf *vbo,
                                    int idx,
@@ -433,12 +467,13 @@ GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
   int totpoints = gpd->runtime.sbuffer_size;
 
   static GPUVertFormat format = {0};
-  static uint pos_id, color_id, thickness_id, uvdata_id;
+  static uint pos_id, color_id, thickness_id, uvdata_id, prev_pos_id;
   if (format.attr_len == 0) {
     pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     color_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     thickness_id = GPU_vertformat_attr_add(&format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     uvdata_id = GPU_vertformat_attr_add(&format, "uvdata", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    prev_pos_id = GPU_vertformat_attr_add(&format, "prev_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   }
 
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
@@ -458,9 +493,43 @@ GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
     ED_gpencil_tpoint_to_point(ar, origin, tpt, &pt);
     ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
 
+    /* use previous point to determine stroke direction (drawing path) */
+    bGPDspoint pt2;
+    float ref_pt[3];
+
+    if (i == 0) {
+      if (totpoints > 1) {
+        /* extrapolate a point before first point */
+        tGPspoint *tpt2 = &points[1];
+        ED_gpencil_tpoint_to_point(ar, origin, tpt2, &pt2);
+        ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt2);
+
+        interp_v3_v3v3(ref_pt, &pt2.x, &pt.x, 1.5f);
+      }
+      else {
+        copy_v3_v3(ref_pt, &pt.x);
+      }
+    }
+    else {
+      tGPspoint *tpt2 = &points[i - 1];
+      ED_gpencil_tpoint_to_point(ar, origin, tpt2, &pt2);
+      ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt2);
+
+      copy_v3_v3(ref_pt, &pt2.x);
+    }
+
     /* set point */
-    gpencil_set_stroke_point(
-        vbo, &pt, idx, pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+    gpencil_set_buffer_stroke_point(vbo,
+                                    &pt,
+                                    idx,
+                                    pos_id,
+                                    color_id,
+                                    thickness_id,
+                                    uvdata_id,
+                                    prev_pos_id,
+                                    ref_pt,
+                                    thickness,
+                                    gpd->runtime.scolor);
     idx++;
   }
 
