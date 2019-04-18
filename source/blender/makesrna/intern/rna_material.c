@@ -475,6 +475,13 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Mix", "Mix Adjustment Factor");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
+  /* Stroke Mix factor */
+  prop = RNA_def_property(srna, "mix_stroke_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "mix_stroke_factor");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop, "Mix", "Mix Stroke Color");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
   /* Scale factor for uv coordinates */
   prop = RNA_def_property(srna, "pattern_scale", PROP_FLOAT, PROP_COORDS);
   RNA_def_property_float_sdna(prop, NULL, "gradient_scale");
@@ -569,9 +576,14 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Clamp", "Do not repeat texture and clamp to one instance only");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
-  prop = RNA_def_property(srna, "texture_mix", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STYLE_COLOR_TEX_MIX);
-  RNA_def_property_ui_text(prop, "Mix Texture", "Mix texture image with filling colors");
+  prop = RNA_def_property(srna, "use_fill_texture_mix", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STYLE_FILL_TEX_MIX);
+  RNA_def_property_ui_text(prop, "Mix Texture", "Mix texture image with filling color");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
+  prop = RNA_def_property(srna, "use_stroke_texture_mix", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STYLE_STROKE_TEX_MIX);
+  RNA_def_property_ui_text(prop, "Mix Texture", "Mix texture image with stroke color");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   prop = RNA_def_property(srna, "flip", PROP_BOOLEAN, PROP_NONE);

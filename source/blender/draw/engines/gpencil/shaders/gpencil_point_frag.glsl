@@ -5,6 +5,9 @@ uniform sampler2D myTexture;
 uniform float gradient_f;
 uniform vec2 gradient_s;
 
+uniform vec4 colormix;
+uniform float mix_stroke_factor;
+
 in vec4 mColor;
 in vec2 mTexCoord;
 out vec4 fragColor;
@@ -47,7 +50,15 @@ void main()
   }
   /* texture */
   if (color_type == GPENCIL_COLOR_TEXTURE) {
-    fragColor = texture2D(myTexture, mTexCoord);
+    vec4 text_color = texture2D(myTexture, mTexCoord);
+    if (mix_stroke_factor > 0.0) {
+      fragColor.rgb = mix(text_color.rgb, colormix.rgb, mix_stroke_factor);
+      fragColor.a = text_color.a;
+    }
+    else {
+      fragColor = text_color;
+    }
+
     /* mult both alpha factor to use strength factor with texture */
     fragColor.a = min(fragColor.a * mColor.a, fragColor.a);
   }

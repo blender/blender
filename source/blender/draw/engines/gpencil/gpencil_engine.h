@@ -134,6 +134,8 @@ typedef struct GPENCIL_shgroup {
   float gradient_f;
   float gradient_s[2];
 
+  float mix_stroke_factor;
+
   /* color of the wireframe */
   float wire_color[4];
   /* shading type and mode */
@@ -181,6 +183,8 @@ typedef struct GPENCIL_Storage {
   float gradient_f;
   float gradient_s[2];
   int use_follow_path;
+
+  float mix_stroke_factor;
 
   /* Render Matrices and data */
   float persmat[4][4], persinv[4][4];

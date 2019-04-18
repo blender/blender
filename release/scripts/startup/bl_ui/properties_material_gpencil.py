@@ -146,8 +146,14 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
                     col.prop(gpcolor, "pixel_size", text="UV Factor")
 
                 col.prop(gpcolor, "use_stroke_pattern", text="Use As Pattern")
+                if gpcolor.use_stroke_pattern is False:
+                    col.prop(gpcolor, "use_stroke_texture_mix", text="Mix Color")
+                    if gpcolor.use_stroke_texture_mix is True:
+                        col.prop(gpcolor, "mix_stroke_factor", text="Factor")
 
-            if gpcolor.stroke_style == 'SOLID' or gpcolor.use_stroke_pattern is True:
+            if gpcolor.stroke_style == 'SOLID' or \
+                gpcolor.use_stroke_pattern is True or \
+                gpcolor.use_stroke_texture_mix is True:
                 col.prop(gpcolor, "color", text="Color")
 
             if gpcolor.mode in {'DOTS', 'BOX'}:
@@ -203,7 +209,7 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
                 col.prop(gpcolor, "pattern_gridsize", text="Box Size")
 
         # Texture
-        if gpcolor.fill_style == 'TEXTURE' or (gpcolor.texture_mix is True and gpcolor.fill_style == 'SOLID'):
+        if gpcolor.fill_style == 'TEXTURE' or (gpcolor.use_fill_texture_mix is True and gpcolor.fill_style == 'SOLID'):
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
             if gpcolor.fill_style == 'TEXTURE':
@@ -218,9 +224,9 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.prop(gpcolor, "texture_clamp", text="Clip Image")
 
             if gpcolor.use_fill_pattern is False:
-                col.prop(gpcolor, "texture_mix", text="Mix With Color")
+                col.prop(gpcolor, "use_fill_texture_mix", text="Mix With Color")
 
-                if gpcolor.texture_mix is True:
+                if gpcolor.use_fill_texture_mix is True:
                     col.prop(gpcolor, "fill_color", text="Mix Color")
                     col.prop(gpcolor, "mix_factor", text="Mix Factor", slider=True)
 
