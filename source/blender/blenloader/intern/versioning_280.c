@@ -3044,7 +3044,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 
             /* Remove multiple footers that were added by mistake. */
-            do_versions_remove_region(regionbase, RGN_TYPE_HEADER);
+            do_versions_remove_region(regionbase, RGN_TYPE_FOOTER);
 
             /* Add footer. */
             ARegion *ar = do_versions_add_region(RGN_TYPE_FOOTER, "footer for text");
