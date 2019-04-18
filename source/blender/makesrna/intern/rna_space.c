@@ -614,6 +614,20 @@ static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
 /** \name Region Flag Access (Typed Callbacks)
  * \{ */
 
+/* Header Region. */
+static bool rna_Space_show_region_header_get(PointerRNA *ptr)
+{
+  return !rna_Space_bool_from_region_flag_get_by_type(ptr, RGN_TYPE_HEADER, RGN_FLAG_HIDDEN);
+}
+static void rna_Space_show_region_header_set(PointerRNA *ptr, bool value)
+{
+  rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_HEADER, RGN_FLAG_HIDDEN, !value);
+}
+static void rna_Space_show_region_header_update(bContext *C, PointerRNA *ptr)
+{
+  rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_HEADER, RGN_FLAG_HIDDEN);
+}
+
 /* Tools Region. */
 static bool rna_Space_show_region_toolbar_get(PointerRNA *ptr)
 {
@@ -2392,6 +2406,41 @@ static const EnumPropertyItem dt_uv_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int region_type_mask)
+{
+  PropertyRNA *prop;
+
+#  define DEF_SHOW_REGION_PROPERTY(identifier, label, description) \
+    { \
+      prop = RNA_def_property(srna, STRINGIFY(identifier), PROP_BOOLEAN, PROP_NONE); \
+      RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE); \
+      RNA_def_property_boolean_funcs(prop, \
+                                     STRINGIFY(rna_Space_##identifier##_get), \
+                                     STRINGIFY(rna_Space_##identifier##_set)); \
+      RNA_def_property_ui_text(prop, label, description); \
+      RNA_def_property_update(prop, 0, STRINGIFY(rna_Space_##identifier##_update)); \
+    } \
+    ((void)0)
+
+  if (region_type_mask & (1 << RGN_TYPE_HEADER)) {
+    region_type_mask &= ~(1 << RGN_TYPE_HEADER);
+    DEF_SHOW_REGION_PROPERTY(show_region_header, "Header", "");
+  }
+  if (region_type_mask & (1 << RGN_TYPE_TOOLS)) {
+    region_type_mask &= ~(1 << RGN_TYPE_TOOLS);
+    DEF_SHOW_REGION_PROPERTY(show_region_toolbar, "Toolbar", "");
+  }
+  if (region_type_mask & (1 << RGN_TYPE_UI)) {
+    region_type_mask &= ~(1 << RGN_TYPE_UI);
+    DEF_SHOW_REGION_PROPERTY(show_region_ui, "Sidebar", "");
+  }
+  if (region_type_mask & (1 << RGN_TYPE_HUD)) {
+    region_type_mask &= ~(1 << RGN_TYPE_HUD);
+    DEF_SHOW_REGION_PROPERTY(show_region_hud, "Adjust Last Operation", "");
+  }
+  BLI_assert(region_type_mask == 0);
+}
+
 static void rna_def_space(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -2414,37 +2463,8 @@ static void rna_def_space(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_Space_view2d_sync_get", "rna_Space_view2d_sync_set");
   RNA_def_property_ui_text(prop, "Lock Time to Other Windows", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Space_view2d_sync_update");
-}
 
-static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int region_type_mask)
-{
-  PropertyRNA *prop;
-
-#  define DEF_SHOW_REGION_PROPERTY(identifier, label, description) \
-    { \
-      prop = RNA_def_property(srna, STRINGIFY(identifier), PROP_BOOLEAN, PROP_NONE); \
-      RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE); \
-      RNA_def_property_boolean_funcs(prop, \
-                                     STRINGIFY(rna_Space_##identifier##_get), \
-                                     STRINGIFY(rna_Space_##identifier##_set)); \
-      RNA_def_property_ui_text(prop, label, description); \
-      RNA_def_property_update(prop, 0, STRINGIFY(rna_Space_##identifier##_update)); \
-    } \
-    ((void)0)
-
-  if (region_type_mask & (1 << RGN_TYPE_TOOLS)) {
-    region_type_mask &= ~(1 << RGN_TYPE_TOOLS);
-    DEF_SHOW_REGION_PROPERTY(show_region_toolbar, "Toolbar", "");
-  }
-  if (region_type_mask & (1 << RGN_TYPE_UI)) {
-    region_type_mask &= ~(1 << RGN_TYPE_UI);
-    DEF_SHOW_REGION_PROPERTY(show_region_ui, "Sidebar", "");
-  }
-  if (region_type_mask & (1 << RGN_TYPE_HUD)) {
-    region_type_mask &= ~(1 << RGN_TYPE_HUD);
-    DEF_SHOW_REGION_PROPERTY(show_region_hud, "Adjust Last Operation", "");
-  }
-  BLI_assert(region_type_mask == 0);
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_HEADER));
 }
 
 /* for all spaces that use a mask */
