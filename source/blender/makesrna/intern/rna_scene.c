@@ -1143,14 +1143,16 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
     const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
     if ((imf->depth & depth_ok) == 0) {
       /* set first available depth */
-      char depth_ls[] = {R_IMF_CHAN_DEPTH_32,
-                         R_IMF_CHAN_DEPTH_24,
-                         R_IMF_CHAN_DEPTH_16,
-                         R_IMF_CHAN_DEPTH_12,
-                         R_IMF_CHAN_DEPTH_10,
-                         R_IMF_CHAN_DEPTH_8,
-                         R_IMF_CHAN_DEPTH_1,
-                         0};
+      char depth_ls[] = {
+          R_IMF_CHAN_DEPTH_32,
+          R_IMF_CHAN_DEPTH_24,
+          R_IMF_CHAN_DEPTH_16,
+          R_IMF_CHAN_DEPTH_12,
+          R_IMF_CHAN_DEPTH_10,
+          R_IMF_CHAN_DEPTH_8,
+          R_IMF_CHAN_DEPTH_1,
+          0,
+      };
       int i;
 
       for (i = 0; depth_ls[i]; i++) {

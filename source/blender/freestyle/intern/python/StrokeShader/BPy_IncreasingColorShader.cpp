@@ -70,15 +70,17 @@ static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self,
                                           PyObject *args,
                                           PyObject *kwds)
 {
-  static const char *kwlist[] = {"red_min",
-                                 "green_min",
-                                 "blue_min",
-                                 "alpha_min",
-                                 "red_max",
-                                 "green_max",
-                                 "blue_max",
-                                 "alpha_max",
-                                 NULL};
+  static const char *kwlist[] = {
+      "red_min",
+      "green_min",
+      "blue_min",
+      "alpha_min",
+      "red_max",
+      "green_max",
+      "blue_max",
+      "alpha_max",
+      NULL,
+  };
   float f1, f2, f3, f4, f5, f6, f7, f8;
 
   if (!PyArg_ParseTupleAndKeywords(

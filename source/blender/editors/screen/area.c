@@ -776,26 +776,28 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
     return;
   }
 
-  float coords[4][4] = {/* Bottom-left. */
-                        {sa->totrct.xmin - U.pixelsize,
-                         sa->totrct.ymin - U.pixelsize,
-                         sa->totrct.xmin + AZONESPOTW,
-                         sa->totrct.ymin + AZONESPOTH},
-                        /* Bottom-right. */
-                        {sa->totrct.xmax - AZONESPOTW,
-                         sa->totrct.ymin - U.pixelsize,
-                         sa->totrct.xmax + U.pixelsize,
-                         sa->totrct.ymin + AZONESPOTH},
-                        /* Top-left. */
-                        {sa->totrct.xmin - U.pixelsize,
-                         sa->totrct.ymax - AZONESPOTH,
-                         sa->totrct.xmin + AZONESPOTW,
-                         sa->totrct.ymax + U.pixelsize},
-                        /* Top-right. */
-                        {sa->totrct.xmax - AZONESPOTW,
-                         sa->totrct.ymax - AZONESPOTH,
-                         sa->totrct.xmax + U.pixelsize,
-                         sa->totrct.ymax + U.pixelsize}};
+  float coords[4][4] = {
+      /* Bottom-left. */
+      {sa->totrct.xmin - U.pixelsize,
+       sa->totrct.ymin - U.pixelsize,
+       sa->totrct.xmin + AZONESPOTW,
+       sa->totrct.ymin + AZONESPOTH},
+      /* Bottom-right. */
+      {sa->totrct.xmax - AZONESPOTW,
+       sa->totrct.ymin - U.pixelsize,
+       sa->totrct.xmax + U.pixelsize,
+       sa->totrct.ymin + AZONESPOTH},
+      /* Top-left. */
+      {sa->totrct.xmin - U.pixelsize,
+       sa->totrct.ymax - AZONESPOTH,
+       sa->totrct.xmin + AZONESPOTW,
+       sa->totrct.ymax + U.pixelsize},
+      /* Top-right. */
+      {sa->totrct.xmax - AZONESPOTW,
+       sa->totrct.ymax - AZONESPOTH,
+       sa->totrct.xmax + U.pixelsize,
+       sa->totrct.ymax + U.pixelsize},
+  };
 
   for (int i = 0; i < 4; i++) {
     /* can't click on bottom corners on OS X, already used for resizing */

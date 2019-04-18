@@ -482,8 +482,9 @@ GPUBatch *DRW_cache_empty_cube_get(void)
         {1.0f, 1.0f, 1.0f},
     };
 
-    const GLubyte indices[24] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5,
-                                 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6};
+    const GLubyte indices[24] = {
+        0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6,
+    };
 
     /* Position Only 3D format */
     static GPUVertFormat format = {0};
@@ -659,17 +660,20 @@ GPUBatch *DRW_cache_gpencil_axes_get(void)
     float v2[3] = {0.0f, 0.0f, 0.0f};
 
     /* cube data */
-    const GLfloat verts[8][3] = {{-0.25f, -0.25f, -0.25f},
-                                 {-0.25f, -0.25f, 0.25f},
-                                 {-0.25f, 0.25f, -0.25f},
-                                 {-0.25f, 0.25f, 0.25f},
-                                 {0.25f, -0.25f, -0.25f},
-                                 {0.25f, -0.25f, 0.25f},
-                                 {0.25f, 0.25f, -0.25f},
-                                 {0.25f, 0.25f, 0.25f}};
+    const GLfloat verts[8][3] = {
+        {-0.25f, -0.25f, -0.25f},
+        {-0.25f, -0.25f, 0.25f},
+        {-0.25f, 0.25f, -0.25f},
+        {-0.25f, 0.25f, 0.25f},
+        {0.25f, -0.25f, -0.25f},
+        {0.25f, -0.25f, 0.25f},
+        {0.25f, 0.25f, -0.25f},
+        {0.25f, 0.25f, 0.25f},
+    };
 
-    const GLubyte indices[24] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5,
-                                 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6};
+    const GLubyte indices[24] = {
+        0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6,
+    };
 
     /* Position Only 3D format */
     static GPUVertFormat format = {0};
@@ -1746,11 +1750,13 @@ GPUBatch *DRW_cache_light_spot_volume_get(void)
 GPUBatch *DRW_cache_light_spot_square_get(void)
 {
   if (!SHC.drw_light_spot_square) {
-    float p[5][3] = {{0.0f, 0.0f, 0.0f},
-                     {1.0f, 1.0f, -1.0f},
-                     {1.0f, -1.0f, -1.0f},
-                     {-1.0f, -1.0f, -1.0f},
-                     {-1.0f, 1.0f, -1.0f}};
+    float p[5][3] = {
+        {0.0f, 0.0f, 0.0f},
+        {1.0f, 1.0f, -1.0f},
+        {1.0f, -1.0f, -1.0f},
+        {-1.0f, -1.0f, -1.0f},
+        {-1.0f, 1.0f, -1.0f},
+    };
 
     uint v_idx = 0;
 
@@ -1783,11 +1789,13 @@ GPUBatch *DRW_cache_light_spot_square_get(void)
 GPUBatch *DRW_cache_light_spot_square_volume_get(void)
 {
   if (!SHC.drw_light_spot_square_volume) {
-    float p[5][3] = {{0.0f, 0.0f, 0.0f},
-                     {1.0f, 1.0f, -1.0f},
-                     {1.0f, -1.0f, -1.0f},
-                     {-1.0f, -1.0f, -1.0f},
-                     {-1.0f, 1.0f, -1.0f}};
+    float p[5][3] = {
+        {0.0f, 0.0f, 0.0f},
+        {1.0f, 1.0f, -1.0f},
+        {1.0f, -1.0f, -1.0f},
+        {-1.0f, -1.0f, -1.0f},
+        {-1.0f, 1.0f, -1.0f},
+    };
 
     uint v_idx = 0;
 

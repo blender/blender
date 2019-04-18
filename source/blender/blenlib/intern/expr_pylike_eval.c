@@ -356,27 +356,29 @@ typedef struct BuiltinOpDef {
   void *funcptr;
 } BuiltinOpDef;
 
-static BuiltinOpDef builtin_ops[] = {{"radians", OPCODE_FUNC1, op_radians},
-                                     {"degrees", OPCODE_FUNC1, op_degrees},
-                                     {"abs", OPCODE_FUNC1, fabs},
-                                     {"fabs", OPCODE_FUNC1, fabs},
-                                     {"floor", OPCODE_FUNC1, floor},
-                                     {"ceil", OPCODE_FUNC1, ceil},
-                                     {"trunc", OPCODE_FUNC1, trunc},
-                                     {"int", OPCODE_FUNC1, trunc},
-                                     {"sin", OPCODE_FUNC1, sin},
-                                     {"cos", OPCODE_FUNC1, cos},
-                                     {"tan", OPCODE_FUNC1, tan},
-                                     {"asin", OPCODE_FUNC1, asin},
-                                     {"acos", OPCODE_FUNC1, acos},
-                                     {"atan", OPCODE_FUNC1, atan},
-                                     {"atan2", OPCODE_FUNC2, atan2},
-                                     {"exp", OPCODE_FUNC1, exp},
-                                     {"log", OPCODE_FUNC1, log},
-                                     {"sqrt", OPCODE_FUNC1, sqrt},
-                                     {"pow", OPCODE_FUNC2, pow},
-                                     {"fmod", OPCODE_FUNC2, fmod},
-                                     {NULL, OPCODE_CONST, NULL}};
+static BuiltinOpDef builtin_ops[] = {
+    {"radians", OPCODE_FUNC1, op_radians},
+    {"degrees", OPCODE_FUNC1, op_degrees},
+    {"abs", OPCODE_FUNC1, fabs},
+    {"fabs", OPCODE_FUNC1, fabs},
+    {"floor", OPCODE_FUNC1, floor},
+    {"ceil", OPCODE_FUNC1, ceil},
+    {"trunc", OPCODE_FUNC1, trunc},
+    {"int", OPCODE_FUNC1, trunc},
+    {"sin", OPCODE_FUNC1, sin},
+    {"cos", OPCODE_FUNC1, cos},
+    {"tan", OPCODE_FUNC1, tan},
+    {"asin", OPCODE_FUNC1, asin},
+    {"acos", OPCODE_FUNC1, acos},
+    {"atan", OPCODE_FUNC1, atan},
+    {"atan2", OPCODE_FUNC2, atan2},
+    {"exp", OPCODE_FUNC1, exp},
+    {"log", OPCODE_FUNC1, log},
+    {"sqrt", OPCODE_FUNC1, sqrt},
+    {"pow", OPCODE_FUNC2, pow},
+    {"fmod", OPCODE_FUNC2, fmod},
+    {NULL, OPCODE_CONST, NULL},
+};
 
 /** \} */
 
@@ -413,12 +415,14 @@ typedef struct KeywordTokenDef {
   short token;
 } KeywordTokenDef;
 
-static KeywordTokenDef keyword_list[] = {{"and", TOKEN_AND},
-                                         {"or", TOKEN_OR},
-                                         {"not", TOKEN_NOT},
-                                         {"if", TOKEN_IF},
-                                         {"else", TOKEN_ELSE},
-                                         {NULL, TOKEN_ID}};
+static KeywordTokenDef keyword_list[] = {
+    {"and", TOKEN_AND},
+    {"or", TOKEN_OR},
+    {"not", TOKEN_NOT},
+    {"if", TOKEN_IF},
+    {"else", TOKEN_ELSE},
+    {NULL, TOKEN_ID},
+};
 
 typedef struct ExprParseState {
   int param_names_len;

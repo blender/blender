@@ -1375,14 +1375,16 @@ static bool ui_but_event_property_operator_string(const bContext *C,
  *
  * --Matt 07/2006
  */
-const char ui_radial_dir_order[8] = {UI_RADIAL_W,
-                                     UI_RADIAL_E,
-                                     UI_RADIAL_S,
-                                     UI_RADIAL_N,
-                                     UI_RADIAL_NW,
-                                     UI_RADIAL_NE,
-                                     UI_RADIAL_SW,
-                                     UI_RADIAL_SE};
+const char ui_radial_dir_order[8] = {
+    UI_RADIAL_W,
+    UI_RADIAL_E,
+    UI_RADIAL_S,
+    UI_RADIAL_N,
+    UI_RADIAL_NW,
+    UI_RADIAL_NE,
+    UI_RADIAL_SW,
+    UI_RADIAL_SE,
+};
 
 const char ui_radial_dir_to_numpad[8] = {8, 9, 6, 3, 2, 1, 4, 7};
 const short ui_radial_dir_to_angle[8] = {90, 45, 0, 315, 270, 225, 180, 135};

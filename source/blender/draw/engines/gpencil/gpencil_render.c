@@ -138,10 +138,12 @@ static void GPENCIL_render_update_viewvecs(float invproj[4][4],
 {
   /* view vectors for the corners of the view frustum.
    * Can be used to recreate the world space position easily */
-  float view_vecs[4][4] = {{-1.0f, -1.0f, -1.0f, 1.0f},
-                           {1.0f, -1.0f, -1.0f, 1.0f},
-                           {-1.0f, 1.0f, -1.0f, 1.0f},
-                           {-1.0f, -1.0f, 1.0f, 1.0f}};
+  float view_vecs[4][4] = {
+      {-1.0f, -1.0f, -1.0f, 1.0f},
+      {1.0f, -1.0f, -1.0f, 1.0f},
+      {-1.0f, 1.0f, -1.0f, 1.0f},
+      {-1.0f, -1.0f, 1.0f, 1.0f},
+  };
 
   /* convert the view vectors to view space */
   const bool is_persp = (winmat[3][3] == 0.0f);

@@ -1777,7 +1777,10 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
         const int index = smoke_get_index(
             x - data->min[0], data->res[0], y - data->min[1], data->res[1], z - data->min[2]);
         const float ray_start[3] = {
-            lx + 0.5f * data->hr, ly + 0.5f * data->hr, lz + 0.5f * data->hr};
+            lx + 0.5f * data->hr,
+            ly + 0.5f * data->hr,
+            lz + 0.5f * data->hr,
+        };
 
         sample_mesh(data->sfs,
                     data->mvert,

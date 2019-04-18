@@ -1084,10 +1084,14 @@ float *BKE_tracking_track_get_mask(int frame_width,
                                    MovieTrackingMarker *marker)
 {
   /* Convert normalized space marker's search area to pixel-space region. */
-  const float region_min[2] = {marker->search_min[0] * frame_width,
-                               marker->search_min[1] * frame_height};
-  const float region_max[2] = {marker->search_max[0] * frame_width,
-                               marker->search_max[1] * frame_height};
+  const float region_min[2] = {
+      marker->search_min[0] * frame_width,
+      marker->search_min[1] * frame_height,
+  };
+  const float region_max[2] = {
+      marker->search_max[0] * frame_width,
+      marker->search_max[1] * frame_height,
+  };
   return tracking_track_get_mask_for_region(
       frame_width, frame_height, region_min, region_max, track);
 }

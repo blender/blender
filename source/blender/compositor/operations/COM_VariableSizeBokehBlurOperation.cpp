@@ -151,10 +151,12 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
             if (size > this->m_threshold) {
               float dx = nx - x;
               if (size > fabsf(dx) && size > fabsf(dy)) {
-                float uv[2] = {(float)(COM_BLUR_BOKEH_PIXELS / 2) +
-                                   (dx / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1),
-                               (float)(COM_BLUR_BOKEH_PIXELS / 2) +
-                                   (dy / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1)};
+                float uv[2] = {
+                    (float)(COM_BLUR_BOKEH_PIXELS / 2) +
+                        (dx / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1),
+                    (float)(COM_BLUR_BOKEH_PIXELS / 2) +
+                        (dy / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1),
+                };
                 inputBokehBuffer->read(bokeh, uv[0], uv[1]);
                 madd_v4_v4v4(color_accum, bokeh, &inputProgramFloatBuffer[offsetColorNxNy]);
                 add_v4_v4(multiplier_accum, bokeh);

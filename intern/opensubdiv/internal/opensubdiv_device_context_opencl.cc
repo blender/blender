@@ -155,26 +155,30 @@ bool CLDeviceContext::Initialize()
   cl_platform_id cp_platform = findPlatform();
 
 #  if defined(_WIN32)
-  cl_context_properties props[] = {CL_GL_CONTEXT_KHR,
-                                   (cl_context_properties)wglGetCurrentContext(),
-                                   CL_WGL_HDC_KHR,
-                                   (cl_context_properties)wglGetCurrentDC(),
-                                   CL_CONTEXT_PLATFORM,
-                                   (cl_context_properties)cp_platform,
-                                   0};
+  cl_context_properties props[] = {
+      CL_GL_CONTEXT_KHR,
+      (cl_context_properties)wglGetCurrentContext(),
+      CL_WGL_HDC_KHR,
+      (cl_context_properties)wglGetCurrentDC(),
+      CL_CONTEXT_PLATFORM,
+      (cl_context_properties)cp_platform,
+      0,
+  };
 #  elif defined(__APPLE__)
   CGLContextObj kCGLContext = CGLGetCurrentContext();
   CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
   cl_context_properties props[] = {
       CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0};
 #  else
-  cl_context_properties props[] = {CL_GL_CONTEXT_KHR,
-                                   (cl_context_properties)glXGetCurrentContext(),
-                                   CL_GLX_DISPLAY_KHR,
-                                   (cl_context_properties)glXGetCurrentDisplay(),
-                                   CL_CONTEXT_PLATFORM,
-                                   (cl_context_properties)cp_platform,
-                                   0};
+  cl_context_properties props[] = {
+      CL_GL_CONTEXT_KHR,
+      (cl_context_properties)glXGetCurrentContext(),
+      CL_GLX_DISPLAY_KHR,
+      (cl_context_properties)glXGetCurrentDisplay(),
+      CL_CONTEXT_PLATFORM,
+      (cl_context_properties)cp_platform,
+      0,
+  };
 #  endif
 
 #  if defined(__APPLE__)

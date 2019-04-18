@@ -26,11 +26,13 @@
 /* **************** SEPARATE YUVA ******************** */
 static bNodeSocketTemplate cmp_node_sepyuva_in[] = {
     {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f}, {-1, 0, ""}};
-static bNodeSocketTemplate cmp_node_sepyuva_out[] = {{SOCK_FLOAT, 0, N_("Y")},
-                                                     {SOCK_FLOAT, 0, N_("U")},
-                                                     {SOCK_FLOAT, 0, N_("V")},
-                                                     {SOCK_FLOAT, 0, N_("A")},
-                                                     {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_sepyuva_out[] = {
+    {SOCK_FLOAT, 0, N_("Y")},
+    {SOCK_FLOAT, 0, N_("U")},
+    {SOCK_FLOAT, 0, N_("V")},
+    {SOCK_FLOAT, 0, N_("A")},
+    {-1, 0, ""},
+};
 
 void register_node_type_cmp_sepyuva(void)
 {

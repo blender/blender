@@ -134,8 +134,10 @@ void MaskOperation::executePixelSampled(float output[4],
                                         float y,
                                         PixelSampler /*sampler*/)
 {
-  const float xy[2] = {(x * this->m_maskWidthInv) + this->m_mask_px_ofs[0],
-                       (y * this->m_maskHeightInv) + this->m_mask_px_ofs[1]};
+  const float xy[2] = {
+      (x * this->m_maskWidthInv) + this->m_mask_px_ofs[0],
+      (y * this->m_maskHeightInv) + this->m_mask_px_ofs[1],
+  };
 
   if (this->m_rasterMaskHandleTot == 1) {
     if (this->m_rasterMaskHandles[0]) {

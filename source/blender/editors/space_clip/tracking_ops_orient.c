@@ -399,10 +399,12 @@ static int set_plane_exec(bContext *C, wmOperator *op)
   int tot = 0;
   float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3] = {0.0f, 0.0f, 0.0f};
   int plane = RNA_enum_get(op->ptr, "plane");
-  float rot[4][4] = {{0.0f, 0.0f, -1.0f, 0.0f},
-                     {0.0f, 1.0f, 0.0f, 0.0f},
-                     {1.0f, 0.0f, 0.0f, 0.0f},
-                     {0.0f, 0.0f, 0.0f, 1.0f}}; /* 90 degrees Y-axis rotation matrix */
+  float rot[4][4] = {
+      {0.0f, 0.0f, -1.0f, 0.0f},
+      {0.0f, 1.0f, 0.0f, 0.0f},
+      {1.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 1.0f},
+  }; /* 90 degrees Y-axis rotation matrix */
 
   if (count_selected_bundles(C) != 3) {
     BKE_report(op->reports, RPT_ERROR, "Three tracks with bundles are needed to orient the floor");

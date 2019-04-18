@@ -3343,14 +3343,16 @@ static const EnumPropertyItem preview_id_type_items[] = {
 static int previews_clear_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  ListBase *lb[] = {&bmain->objects,
-                    &bmain->collections,
-                    &bmain->materials,
-                    &bmain->worlds,
-                    &bmain->lights,
-                    &bmain->textures,
-                    &bmain->images,
-                    NULL};
+  ListBase *lb[] = {
+      &bmain->objects,
+      &bmain->collections,
+      &bmain->materials,
+      &bmain->worlds,
+      &bmain->lights,
+      &bmain->textures,
+      &bmain->images,
+      NULL,
+  };
   int i;
 
   const int id_filters = RNA_enum_get(op->ptr, "id_type");

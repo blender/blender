@@ -71,15 +71,17 @@ static char SmoothingShader___doc__[] =
 
 static int SmoothingShader___init__(BPy_SmoothingShader *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"num_iterations",
-                                 "factor_point",
-                                 "factor_curvature",
-                                 "factor_curvature_difference",
-                                 "aniso_point",
-                                 "aniso_normal",
-                                 "aniso_curvature",
-                                 "carricature_factor",
-                                 NULL};
+  static const char *kwlist[] = {
+      "num_iterations",
+      "factor_point",
+      "factor_curvature",
+      "factor_curvature_difference",
+      "aniso_point",
+      "aniso_normal",
+      "aniso_curvature",
+      "carricature_factor",
+      NULL,
+  };
   int i1 = 100;
   double d2 = 0.1, d3 = 0.0, d4 = 0.2, d5 = 0.0, d6 = 0.0, d7 = 0.0, d8 = 1.0;
 

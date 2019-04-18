@@ -190,8 +190,10 @@ void OpenCLDevice::COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel ker
 void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer)
 {
   cl_int error;
-  const size_t size[] = {(size_t)outputMemoryBuffer->getWidth(),
-                         (size_t)outputMemoryBuffer->getHeight()};
+  const size_t size[] = {
+      (size_t)outputMemoryBuffer->getWidth(),
+      (size_t)outputMemoryBuffer->getHeight(),
+  };
 
   error = clEnqueueNDRangeKernel(this->m_queue, kernel, 2, NULL, size, 0, 0, 0, NULL);
   if (error != CL_SUCCESS) {

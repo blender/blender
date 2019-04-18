@@ -125,10 +125,12 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
    */
   lockMutex();
   if (!m_corners_ready) {
-    SocketReader *readers[4] = {getInputSocketReader(0),
-                                getInputSocketReader(1),
-                                getInputSocketReader(2),
-                                getInputSocketReader(3)};
+    SocketReader *readers[4] = {
+        getInputSocketReader(0),
+        getInputSocketReader(1),
+        getInputSocketReader(2),
+        getInputSocketReader(3),
+    };
     float corners[4][2];
     readCornersFromSockets(rect, readers, corners);
     calculateCorners(corners, true, 0);
@@ -183,10 +185,12 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
   lockMutex();
   if (!m_corners_ready) {
     /* corner sockets start at index 1 */
-    SocketReader *readers[4] = {getInputSocketReader(1),
-                                getInputSocketReader(2),
-                                getInputSocketReader(3),
-                                getInputSocketReader(4)};
+    SocketReader *readers[4] = {
+        getInputSocketReader(1),
+        getInputSocketReader(2),
+        getInputSocketReader(3),
+        getInputSocketReader(4),
+    };
     float corners[4][2];
     readCornersFromSockets(rect, readers, corners);
     calculateCorners(corners, true, 0);

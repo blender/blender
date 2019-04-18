@@ -927,10 +927,14 @@ static libmv_CacheKey accessor_get_mask_for_track_callback(libmv_FrameAccessorUs
   BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
   /* Actual mask sampling. */
   MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, frame);
-  const float region_min[2] = {region->min[0] - marker->pos[0] * frame_width,
-                               region->min[1] - marker->pos[1] * frame_height};
-  const float region_max[2] = {region->max[0] - marker->pos[0] * frame_width,
-                               region->max[1] - marker->pos[1] * frame_height};
+  const float region_min[2] = {
+      region->min[0] - marker->pos[0] * frame_width,
+      region->min[1] - marker->pos[1] * frame_height,
+  };
+  const float region_max[2] = {
+      region->max[0] - marker->pos[0] * frame_width,
+      region->max[1] - marker->pos[1] * frame_height,
+  };
   *r_destination = tracking_track_get_mask_for_region(
       frame_width, frame_height, region_min, region_max, track);
   *r_width = region->max[0] - region->min[0];

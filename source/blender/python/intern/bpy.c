@@ -274,19 +274,35 @@ static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
 }
 
 static PyMethodDef meth_bpy_script_paths = {
-    "script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
-static PyMethodDef meth_bpy_blend_paths = {"blend_paths",
-                                           (PyCFunction)bpy_blend_paths,
-                                           METH_VARARGS | METH_KEYWORDS,
-                                           bpy_blend_paths_doc};
+    "script_paths",
+    (PyCFunction)bpy_script_paths,
+    METH_NOARGS,
+    bpy_script_paths_doc,
+};
+static PyMethodDef meth_bpy_blend_paths = {
+    "blend_paths",
+    (PyCFunction)bpy_blend_paths,
+    METH_VARARGS | METH_KEYWORDS,
+    bpy_blend_paths_doc,
+};
 static PyMethodDef meth_bpy_user_resource = {
-    "user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS | METH_KEYWORDS, NULL};
-static PyMethodDef meth_bpy_resource_path = {"resource_path",
-                                             (PyCFunction)bpy_resource_path,
-                                             METH_VARARGS | METH_KEYWORDS,
-                                             bpy_resource_path_doc};
+    "user_resource",
+    (PyCFunction)bpy_user_resource,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL,
+};
+static PyMethodDef meth_bpy_resource_path = {
+    "resource_path",
+    (PyCFunction)bpy_resource_path,
+    METH_VARARGS | METH_KEYWORDS,
+    bpy_resource_path_doc,
+};
 static PyMethodDef meth_bpy_escape_identifier = {
-    "escape_identifier", (PyCFunction)bpy_escape_identifier, METH_O, bpy_escape_identifier_doc};
+    "escape_identifier",
+    (PyCFunction)bpy_escape_identifier,
+    METH_O,
+    bpy_escape_identifier_doc,
+};
 
 static PyObject *bpy_import_test(const char *modname)
 {

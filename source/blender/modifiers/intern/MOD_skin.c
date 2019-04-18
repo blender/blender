@@ -952,10 +952,12 @@ static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert 
 
 static void connect_frames(SkinOutput *so, BMVert *frame1[4], BMVert *frame2[4])
 {
-  BMVert *q[4][4] = {{frame2[0], frame2[1], frame1[1], frame1[0]},
-                     {frame2[1], frame2[2], frame1[2], frame1[1]},
-                     {frame2[2], frame2[3], frame1[3], frame1[2]},
-                     {frame2[3], frame2[0], frame1[0], frame1[3]}};
+  BMVert *q[4][4] = {
+      {frame2[0], frame2[1], frame1[1], frame1[0]},
+      {frame2[1], frame2[2], frame1[2], frame1[1]},
+      {frame2[2], frame2[3], frame1[3], frame1[2]},
+      {frame2[3], frame2[0], frame1[0], frame1[3]},
+  };
   int i;
   bool swap;
 

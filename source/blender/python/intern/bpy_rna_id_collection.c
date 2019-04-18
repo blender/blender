@@ -378,10 +378,12 @@ int BPY_rna_id_collection_module(PyObject *mod_par)
 
   PyModule_AddObject(mod_par, "_rna_id_collection_user_map", PyCFunction_New(&user_map, NULL));
 
-  static PyMethodDef batch_remove = {"batch_remove",
-                                     (PyCFunction)bpy_batch_remove,
-                                     METH_VARARGS | METH_KEYWORDS,
-                                     bpy_batch_remove_doc};
+  static PyMethodDef batch_remove = {
+      "batch_remove",
+      (PyCFunction)bpy_batch_remove,
+      METH_VARARGS | METH_KEYWORDS,
+      bpy_batch_remove_doc,
+  };
 
   PyModule_AddObject(
       mod_par, "_rna_id_collection_batch_remove", PyCFunction_New(&batch_remove, NULL));

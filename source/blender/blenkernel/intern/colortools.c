@@ -1456,8 +1456,7 @@ void scopes_update(Scopes *scopes,
   unsigned int nl, na, nr, ng, nb;
   double divl, diva, divr, divg, divb;
   const unsigned char *display_buffer = NULL;
-  unsigned int bin_lum[256] = {0}, bin_r[256] = {0}, bin_g[256] = {0}, bin_b[256] = {0},
-               bin_a[256] = {0};
+  uint bin_lum[256] = {0}, bin_r[256] = {0}, bin_g[256] = {0}, bin_b[256] = {0}, bin_a[256] = {0};
   int ycc_mode = -1;
   void *cache_handle = NULL;
   struct ColormanageProcessor *cm_processor = NULL;

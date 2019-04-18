@@ -26,11 +26,13 @@
 /* **************** SEPARATE YCCA ******************** */
 static bNodeSocketTemplate cmp_node_sepycca_in[] = {
     {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f}, {-1, 0, ""}};
-static bNodeSocketTemplate cmp_node_sepycca_out[] = {{SOCK_FLOAT, 0, N_("Y")},
-                                                     {SOCK_FLOAT, 0, N_("Cb")},
-                                                     {SOCK_FLOAT, 0, N_("Cr")},
-                                                     {SOCK_FLOAT, 0, N_("A")},
-                                                     {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_sepycca_out[] = {
+    {SOCK_FLOAT, 0, N_("Y")},
+    {SOCK_FLOAT, 0, N_("Cb")},
+    {SOCK_FLOAT, 0, N_("Cr")},
+    {SOCK_FLOAT, 0, N_("A")},
+    {-1, 0, ""},
+};
 
 static void node_composit_init_mode_sepycca(bNodeTree *UNUSED(ntree), bNode *node)
 {

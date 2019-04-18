@@ -438,18 +438,20 @@ TEST(polyfill2d, UnorderedColinear)
 /* Plus shape */
 TEST(polyfill2d, PlusShape)
 {
-  const float poly[][2] = {{1, 0},
-                           {2, 0},
-                           {2, 1},
-                           {3, 1},
-                           {3, 2},
-                           {2, 2},
-                           {2, 3},
-                           {1, 3},
-                           {1, 2},
-                           {0, 2},
-                           {0, 1},
-                           {1, 1}};
+  const float poly[][2] = {
+      {1, 0},
+      {2, 0},
+      {2, 1},
+      {3, 1},
+      {3, 2},
+      {2, 2},
+      {2, 3},
+      {1, 3},
+      {1, 2},
+      {0, 2},
+      {0, 1},
+      {1, 1},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
@@ -471,43 +473,47 @@ TEST(polyfill2d, UShape)
 /* Spiral */
 TEST(polyfill2d, Spiral)
 {
-  const float poly[][2] = {{1, 0},
-                           {4, 0},
-                           {5, 1},
-                           {5, 4},
-                           {4, 5},
-                           {1, 5},
-                           {0, 4},
-                           {0, 3},
-                           {1, 2},
-                           {2, 2},
-                           {3, 3},
-                           {1, 3},
-                           {1, 4},
-                           {4, 4},
-                           {4, 1},
-                           {0, 1}};
+  const float poly[][2] = {
+      {1, 0},
+      {4, 0},
+      {5, 1},
+      {5, 4},
+      {4, 5},
+      {1, 5},
+      {0, 4},
+      {0, 3},
+      {1, 2},
+      {2, 2},
+      {3, 3},
+      {1, 3},
+      {1, 4},
+      {4, 4},
+      {4, 1},
+      {0, 1},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
 /* Test case from http:# www.flipcode.com/archives/Efficient_Polygon_Triangulation.shtml */
 TEST(polyfill2d, TestFlipCode)
 {
-  const float poly[][2] = {{0, 6},
-                           {0, 0},
-                           {3, 0},
-                           {4, 1},
-                           {6, 1},
-                           {8, 0},
-                           {12, 0},
-                           {13, 2},
-                           {8, 2},
-                           {8, 4},
-                           {11, 4},
-                           {11, 6},
-                           {6, 6},
-                           {4, 3},
-                           {2, 6}};
+  const float poly[][2] = {
+      {0, 6},
+      {0, 0},
+      {3, 0},
+      {4, 1},
+      {6, 1},
+      {8, 0},
+      {12, 0},
+      {13, 2},
+      {8, 2},
+      {8, 4},
+      {11, 4},
+      {11, 6},
+      {6, 6},
+      {4, 3},
+      {2, 6},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
@@ -521,78 +527,87 @@ TEST(polyfill2d, SelfIntersect)
 /* Self-touching */
 TEST(polyfill2d, SelfTouch)
 {
-  const float poly[][2] = {{0, 0},
-                           {4, 0},
-                           {4, 4},
-                           {2, 4},
-                           {2, 3},
-                           {3, 3},
-                           {3, 1},
-                           {1, 1},
-                           {1, 3},
-                           {2, 3},
-                           {2, 4},
-                           {0, 4}};
+  const float poly[][2] = {
+      {0, 0},
+      {4, 0},
+      {4, 4},
+      {2, 4},
+      {2, 3},
+      {3, 3},
+      {3, 1},
+      {1, 1},
+      {1, 3},
+      {2, 3},
+      {2, 4},
+      {0, 4},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
 /* Self-overlapping */
 TEST(polyfill2d, SelfOverlap)
 {
-  const float poly[][2] = {{0, 0},
-                           {4, 0},
-                           {4, 4},
-                           {1, 4},
-                           {1, 3},
-                           {3, 3},
-                           {3, 1},
-                           {1, 1},
-                           {1, 3},
-                           {3, 3},
-                           {3, 4},
-                           {0, 4}};
+  const float poly[][2] = {
+      {0, 0},
+      {4, 0},
+      {4, 4},
+      {1, 4},
+      {1, 3},
+      {3, 3},
+      {3, 1},
+      {1, 1},
+      {1, 3},
+      {3, 3},
+      {3, 4},
+      {0, 4},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, true);
 }
 
 /* Test case from http:# www.davdata.nl/math/polygons.html */
 TEST(polyfill2d, TestDavData)
 {
-  const float poly[][2] = {{190, 480}, {140, 180}, {310, 100}, {330, 390}, {290, 390},
-                           {280, 260}, {220, 260}, {220, 430}, {370, 430}, {350, 30},
-                           {50, 30},   {160, 560}, {730, 510}, {710, 20},  {410, 30},
-                           {470, 440}, {640, 410}, {630, 140}, {590, 140}, {580, 360},
-                           {510, 370}, {510, 60},  {650, 70},  {660, 450}, {190, 480}};
+  const float poly[][2] = {
+      {190, 480}, {140, 180}, {310, 100}, {330, 390}, {290, 390}, {280, 260}, {220, 260},
+      {220, 430}, {370, 430}, {350, 30},  {50, 30},   {160, 560}, {730, 510}, {710, 20},
+      {410, 30},  {470, 440}, {640, 410}, {630, 140}, {590, 140}, {580, 360}, {510, 370},
+      {510, 60},  {650, 70},  {660, 450}, {190, 480},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
 /* Issue 815, http:# code.google.com/p/libgdx/issues/detail?id=815 */
 TEST(polyfill2d, Issue815)
 {
-  const float poly[][2] = {{-2.0f, 0.0f},
-                           {-2.0f, 0.5f},
-                           {0.0f, 1.0f},
-                           {0.5f, 2.875f},
-                           {1.0f, 0.5f},
-                           {1.5f, 1.0f},
-                           {2.0f, 1.0f},
-                           {2.0f, 0.0f}};
+  const float poly[][2] = {
+      {-2.0f, 0.0f},
+      {-2.0f, 0.5f},
+      {0.0f, 1.0f},
+      {0.5f, 2.875f},
+      {1.0f, 0.5f},
+      {1.5f, 1.0f},
+      {2.0f, 1.0f},
+      {2.0f, 0.0f},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
 /* Issue 207, comment #1, http:# code.google.com/p/libgdx/issues/detail?id=207#c1 */
 TEST(polyfill2d, Issue207_1)
 {
-  const float poly[][2] = {{72.42465f, 197.07095f},
-                           {78.485535f, 189.92776f},
-                           {86.12059f, 180.92929f},
-                           {99.68253f, 164.94557f},
-                           {105.24325f, 165.79604f},
-                           {107.21862f, 166.09814f},
-                           {112.41958f, 162.78253f},
-                           {113.73238f, 161.94562f},
-                           {123.29477f, 167.93805f},
-                           {126.70667f, 170.07617f},
-                           {73.22717f, 199.51062f}};
+  const float poly[][2] = {
+      {72.42465f, 197.07095f},
+      {78.485535f, 189.92776f},
+      {86.12059f, 180.92929f},
+      {99.68253f, 164.94557f},
+      {105.24325f, 165.79604f},
+      {107.21862f, 166.09814f},
+      {112.41958f, 162.78253f},
+      {113.73238f, 161.94562f},
+      {123.29477f, 167.93805f},
+      {126.70667f, 170.07617f},
+      {73.22717f, 199.51062f},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, true);
 }
 
@@ -619,10 +634,12 @@ TEST(polyfill2d, Issue207_11)
 /* Issue 1407, http:# code.google.com/p/libgdx/issues/detail?id=1407 */
 TEST(polyfill2d, Issue1407)
 {
-  const float poly[][2] = {{3.914329f, 1.9008259f},
-                           {4.414321f, 1.903619f},
-                           {4.8973203f, 1.9063174f},
-                           {5.4979978f, 1.9096732f}};
+  const float poly[][2] = {
+      {3.914329f, 1.9008259f},
+      {4.414321f, 1.903619f},
+      {4.8973203f, 1.9063174f},
+      {5.4979978f, 1.9096732f},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
@@ -630,21 +647,24 @@ TEST(polyfill2d, Issue1407)
 /* with an additional point to show what is happening. */
 TEST(polyfill2d, Issue1407_pt)
 {
-  const float poly[][2] = {{3.914329f, 1.9008259f},
-                           {4.414321f, 1.903619f},
-                           {4.8973203f, 1.9063174f},
-                           {5.4979978f, 1.9096732f},
-                           {4, 4}};
+  const float poly[][2] = {
+      {3.914329f, 1.9008259f},
+      {4.414321f, 1.903619f},
+      {4.8973203f, 1.9063174f},
+      {5.4979978f, 1.9096732f},
+      {4, 4},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
 /* Simplified from Blender bug T40777 */
 TEST(polyfill2d, IssueT40777_colinear)
 {
-  const float poly[][2] = {{0.7, 0.37}, {0.7, 0},  {0.76, 0},    {0.76, 0.4},  {0.83, 0.4},
-                           {0.83, 0},   {0.88, 0}, {0.88, 0.4},  {0.94, 0.4},  {0.94, 0},
-                           {1, 0},      {1, 0.4},  {0.03, 0.62}, {0.03, 0.89}, {0.59, 0.89},
-                           {0.03, 1},   {0, 1},    {0, 0},       {0.03, 0},    {0.03, 0.37}};
+  const float poly[][2] = {
+      {0.7, 0.37},  {0.7, 0},    {0.76, 0}, {0.76, 0.4}, {0.83, 0.4}, {0.83, 0},    {0.88, 0},
+      {0.88, 0.4},  {0.94, 0.4}, {0.94, 0}, {1, 0},      {1, 0.4},    {0.03, 0.62}, {0.03, 0.89},
+      {0.59, 0.89}, {0.03, 1},   {0, 1},    {0, 0},      {0.03, 0},   {0.03, 0.37},
+  };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 

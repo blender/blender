@@ -1854,8 +1854,10 @@ static void camera_view3d_stereoscopy_display_extra(OBJECT_ShadingGroupList *sgl
     static float one = 1.0f;
     float plane_mat[4][4], scale_mat[4][4];
     float scale_factor[3] = {1.0f, 1.0f, 1.0f};
-    float color_plane[2][4] = {{0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha},
-                               {0.0f, 0.0f, 0.0f, 1.0f}};
+    float color_plane[2][4] = {
+        {0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha},
+        {0.0f, 0.0f, 0.0f, 1.0f},
+    };
 
     const float height = convergence_plane[1][1] - convergence_plane[0][1];
     const float width = convergence_plane[2][0] - convergence_plane[0][0];
@@ -1878,9 +1880,11 @@ static void camera_view3d_stereoscopy_display_extra(OBJECT_ShadingGroupList *sgl
   /* Draw convergence volume. */
   if (is_stereo3d_volume && !is_select) {
     static float one = 1.0f;
-    float color_volume[3][4] = {{0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha},
-                                {1.0f, 0.0f, 0.0f, v3d->stereo3d_volume_alpha},
-                                {0.0f, 0.0f, 0.0f, 1.0f}};
+    float color_volume[3][4] = {
+        {0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha},
+        {1.0f, 0.0f, 0.0f, v3d->stereo3d_volume_alpha},
+        {0.0f, 0.0f, 0.0f, 1.0f},
+    };
 
     for (int eye = 0; eye < 2; eye++) {
       float winmat[4][4], viewinv[4][4], viewmat[4][4], persmat[4][4], persinv[4][4];

@@ -69,10 +69,12 @@
 
 #include "physics_intern.h"
 
-static float I[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
-                        {0.0f, 1.0f, 0.0f, 0.0f},
-                        {0.0f, 0.0f, 1.0f, 0.0f},
-                        {0.0f, 0.0f, 0.0f, 1.0f}};
+static float I[4][4] = {
+    {1.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 1.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 1.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 1.0f},
+};
 
 /********************** particle system slot operators *********************/
 

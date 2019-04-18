@@ -682,8 +682,10 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 
   /* add vertices if needed */
   {
-    struct BMEdgeLoopStore *estore_pairs[2][2] = {{estore_a, estore_b},
-                                                  {estore_rail_a, estore_rail_b}};
+    struct BMEdgeLoopStore *estore_pairs[2][2] = {
+        {estore_a, estore_b},
+        {estore_rail_a, estore_rail_b},
+    };
     int i;
 
     for (i = 0; i < 2; i++) {

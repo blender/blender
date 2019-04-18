@@ -103,9 +103,11 @@ static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
     int i;
 
     if (!t->skip) {
-      BMEdge *edges[3] = {BM_edge_create(bm, t->v[0], t->v[1], NULL, BM_CREATE_NO_DOUBLE),
-                          BM_edge_create(bm, t->v[1], t->v[2], NULL, BM_CREATE_NO_DOUBLE),
-                          BM_edge_create(bm, t->v[2], t->v[0], NULL, BM_CREATE_NO_DOUBLE)};
+      BMEdge *edges[3] = {
+          BM_edge_create(bm, t->v[0], t->v[1], NULL, BM_CREATE_NO_DOUBLE),
+          BM_edge_create(bm, t->v[1], t->v[2], NULL, BM_CREATE_NO_DOUBLE),
+          BM_edge_create(bm, t->v[2], t->v[0], NULL, BM_CREATE_NO_DOUBLE),
+      };
       BMFace *f, *example = NULL;
 
       f = BM_face_exists(t->v, 3);

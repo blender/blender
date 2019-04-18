@@ -29,8 +29,10 @@ static bNodeSocketTemplate cmp_node_bilateralblur_in[] = {
     {SOCK_RGBA, 1, N_("Determinator"), 1.0f, 1.0f, 1.0f, 1.0f},
     {-1, 0, ""}};
 
-static bNodeSocketTemplate cmp_node_bilateralblur_out[] = {{SOCK_RGBA, 0, N_("Image")},
-                                                           {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_bilateralblur_out[] = {
+    {SOCK_RGBA, 0, N_("Image")},
+    {-1, 0, ""},
+};
 
 static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
