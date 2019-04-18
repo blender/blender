@@ -1405,27 +1405,3 @@ void graph_buttons_register(ARegionType *art)
   pt->draw = graph_panel_view;
   BLI_addtail(&art->paneltypes, pt);
 }
-
-static int graph_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = graph_has_buttons_region(sa);
-
-  if (ar)
-    ED_region_toggle_hidden(C, ar);
-
-  return OPERATOR_FINISHED;
-}
-
-void GRAPH_OT_properties(wmOperatorType *ot)
-{
-  ot->name = "Toggle Sidebar";
-  ot->idname = "GRAPH_OT_properties";
-  ot->description = "Toggle the properties region visibility";
-
-  ot->exec = graph_properties_toggle_exec;
-  ot->poll = ED_operator_graphedit_active;
-
-  /* flags */
-  ot->flag = 0;
-}

@@ -323,7 +323,8 @@ class DOPESHEET_MT_view(Menu):
 
         st = context.space_data
 
-        layout.operator("action.properties", icon='MENU_PANEL')
+        layout.prop(st, "show_region_ui")
+
         layout.separator()
 
         layout.prop(st.dopesheet, "use_multi_word_filter", text="Multi-word Match Search")

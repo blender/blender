@@ -199,9 +199,7 @@ void view3d_operatortypes(void)
   WM_operatortype_append(VIEW3D_OT_copybuffer);
   WM_operatortype_append(VIEW3D_OT_pastebuffer);
 
-  WM_operatortype_append(VIEW3D_OT_properties);
   WM_operatortype_append(VIEW3D_OT_object_mode_pie_or_toggle);
-  WM_operatortype_append(VIEW3D_OT_toolshelf);
 
   WM_operatortype_append(VIEW3D_OT_snap_selected_to_grid);
   WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);

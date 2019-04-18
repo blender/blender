@@ -164,7 +164,6 @@ void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 /* ***************************************** */
 /* graph_buttons.c */
 
-void GRAPH_OT_properties(struct wmOperatorType *ot);
 void graph_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */

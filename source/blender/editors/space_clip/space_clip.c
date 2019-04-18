@@ -434,10 +434,6 @@ static void clip_operatortypes(void)
   WM_operatortype_append(CLIP_OT_set_scene_frames);
   WM_operatortype_append(CLIP_OT_cursor_set);
 
-  /* ** clip_toolbar.c ** */
-  WM_operatortype_append(CLIP_OT_tools);
-  WM_operatortype_append(CLIP_OT_properties);
-
   /* ** tracking_ops.c ** */
 
   /* navigation */

@@ -43,7 +43,6 @@ struct wmOperatorType;
 struct ARegion *action_has_buttons_region(struct ScrArea *sa);
 
 void action_buttons_register(struct ARegionType *art);
-void ACTION_OT_properties(struct wmOperatorType *ot);
 
 /* ***************************************** */
 /* action_draw.c */

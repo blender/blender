@@ -95,11 +95,9 @@ void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry);
 
 /* node_buttons.c */
 void node_buttons_register(struct ARegionType *art);
-void NODE_OT_properties(struct wmOperatorType *ot);
 
 /* node_toolbar.c */
 void node_toolbar_register(struct ARegionType *art);
-void NODE_OT_toolbar(struct wmOperatorType *ot);
 
 /* node_ops.c */
 void node_operatortypes(void);

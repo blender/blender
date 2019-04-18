@@ -175,7 +175,7 @@ class SEQUENCER_MT_view(Menu):
             # mode, else the lookup for the shortcut will fail in
             # wm_keymap_item_find_props() (see #32595).
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
-        layout.operator("sequencer.properties", icon='MENU_PANEL')
+        layout.prop(st, "show_region_ui")
         layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.separator()

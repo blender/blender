@@ -1628,31 +1628,6 @@ void view3d_buttons_register(ARegionType *art)
   WM_menutype_add(mt);
 }
 
-static int view3d_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = view3d_has_buttons_region(sa);
-
-  if (ar) {
-    ED_region_toggle_hidden(C, ar);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_properties(wmOperatorType *ot)
-{
-  ot->name = "Toggle Sidebar";
-  ot->description = "Toggle the properties region visibility";
-  ot->idname = "VIEW3D_OT_properties";
-
-  ot->exec = view3d_properties_toggle_exec;
-  ot->poll = ED_operator_view3d_active;
-
-  /* flags */
-  ot->flag = 0;
-}
-
 static int view3d_object_mode_menu(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);

@@ -188,7 +188,9 @@ class TEXT_MT_view(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("text.properties", icon='MENU_PANEL')
+        st = context.space_data
+
+        layout.prop(st, "show_region_ui")
 
         layout.separator()
 

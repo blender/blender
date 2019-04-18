@@ -89,9 +89,6 @@ extern const char *screen_context_dir[]; /* doc access */
 /* screendump.c */
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);
 
-/* screen_ops.c */
-void region_blend_start(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
-
 /* workspace_layout_edit.c */
 bool workspace_layout_set_poll(const struct WorkSpaceLayout *layout);
 

@@ -153,6 +153,21 @@ def op_tool_cycle(tool, kmi_args):
 # ------------------------------------------------------------------------------
 # Keymap Templates
 
+def _template_space_region_type_toggle(*, toolbar_key=None, sidebar_key=None):
+    items = []
+    if toolbar_key is not None:
+        items.append(
+            ("wm.context_toggle", toolbar_key,
+             {"properties": [("data_path", 'space_data.show_region_toolbar')]})
+        )
+    if sidebar_key is not None:
+        items.append(
+            ("wm.context_toggle", sidebar_key,
+             {"properties": [("data_path", 'space_data.show_region_ui')]}),
+        )
+    return items
+
+
 def _template_items_select_actions(params, operator):
     if not params.use_select_all_toggle:
         return [
@@ -900,8 +915,10 @@ def km_view3d_generic(_params):
     )
 
     items.extend([
-        ("view3d.properties", {"type": 'N', "value": 'PRESS'}, None),
-        ("view3d.toolshelf", {"type": 'T', "value": 'PRESS'}, None),
+        *_template_space_region_type_toggle(
+            toolbar_key={"type": 'T', "value": 'PRESS'},
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        )
     ])
 
     return keymap
@@ -1328,7 +1345,9 @@ def km_graph_editor_generic(_params):
     )
 
     items.extend([
-        ("graph.properties", {"type": 'N', "value": 'PRESS'}, None),
+        *_template_space_region_type_toggle(
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
         ("graph.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
         ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("graph.hide", {"type": 'H', "value": 'PRESS'},
@@ -1464,14 +1483,16 @@ def km_image_generic(_params):
     )
 
     items.extend([
+        *_template_space_region_type_toggle(
+            toolbar_key={"type": 'T', "value": 'PRESS'},
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
         ("image.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
         ("image.open", {"type": 'O', "value": 'PRESS', "alt": True}, None),
         ("image.reload", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("image.read_viewlayers", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
         ("image.save", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         ("image.save_as", {"type": 'S', "value": 'PRESS', "shift": True}, None),
-        ("image.properties", {"type": 'N', "value": 'PRESS'}, None),
-        ("image.toolshelf", {"type": 'T', "value": 'PRESS'}, None),
         ("image.cycle_render_slot", {"type": 'J', "value": 'PRESS'}, None),
         ("image.cycle_render_slot", {"type": 'J', "value": 'PRESS', "alt": True},
          {"properties": [("reverse", True)]}),
@@ -1558,8 +1579,10 @@ def km_node_generic(_params):
     )
 
     items.extend([
-        ("node.properties", {"type": 'N', "value": 'PRESS'}, None),
-        ("node.toolbar", {"type": 'T', "value": 'PRESS'}, None),
+        *_template_space_region_type_toggle(
+            toolbar_key={"type": 'T', "value": 'PRESS'},
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
     ])
 
     return keymap
@@ -1864,9 +1887,10 @@ def km_dopesheet_generic(_params):
     )
 
     items.extend([
-        ("action.properties", {"type": 'N', "value": 'PRESS'}, None),
-        ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]})
+        *_template_space_region_type_toggle(
+            toolbar_key={"type": 'T', "value": 'PRESS'},
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
     ])
 
     return keymap
@@ -1985,7 +2009,9 @@ def km_nla_generic(_params):
     )
 
     items.extend([
-        ("nla.properties", {"type": 'N', "value": 'PRESS'}, None),
+        *_template_space_region_type_toggle(
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
         ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS'}, None),
         ("nla.tweakmode_exit", {"type": 'TAB', "value": 'PRESS'}, None),
         ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS', "shift": True},
@@ -2098,11 +2124,13 @@ def km_text_generic(params):
     )
 
     items.extend([
+        *_template_space_region_type_toggle(
+            sidebar_key={"type": 'T', "value": 'PRESS', "ctrl": True},
+        ),
         ("text.start_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("text.jump", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         ("text.find", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("text.replace", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
-        ("text.properties", {"type": 'T', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     if params.apple:
@@ -2297,7 +2325,9 @@ def km_sequencercommon(_params):
     )
 
     items.extend([
-        ("sequencer.properties", {"type": 'N', "value": 'PRESS'}, None),
+        *_template_space_region_type_toggle(
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'scene.sequence_editor.show_overlay')]}),
         ("sequencer.view_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
@@ -2521,9 +2551,11 @@ def km_clip(_params):
     )
 
     items.extend([
+        *_template_space_region_type_toggle(
+            toolbar_key={"type": 'T', "value": 'PRESS'},
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
         ("clip.open", {"type": 'O', "value": 'PRESS', "alt": True}, None),
-        ("clip.tools", {"type": 'T', "value": 'PRESS'}, None),
-        ("clip.properties", {"type": 'N', "value": 'PRESS'}, None),
         ("clip.track_markers", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True},
          {"properties": [("backwards", True), ("sequence", False)]}),
         ("clip.track_markers", {"type": 'RIGHT_ARROW', "value": 'PRESS', "alt": True},

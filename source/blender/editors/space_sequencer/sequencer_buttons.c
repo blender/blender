@@ -119,30 +119,3 @@ void sequencer_buttons_register(ARegionType *art)
   pt->flag |= PNL_DEFAULT_CLOSED;
   BLI_addtail(&art->paneltypes, pt);
 }
-
-/* **************** operator to open/close properties view ************* */
-
-static int sequencer_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = sequencer_has_buttons_region(sa);
-
-  if (ar) {
-    ED_region_toggle_hidden(C, ar);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_properties(wmOperatorType *ot)
-{
-  ot->name = "Properties";
-  ot->idname = "SEQUENCER_OT_properties";
-  ot->description = "Toggle the properties region visibility";
-
-  ot->exec = sequencer_properties_toggle_exec;
-  ot->poll = ED_operator_sequencer_active;
-
-  /* flags */
-  ot->flag = 0;
-}

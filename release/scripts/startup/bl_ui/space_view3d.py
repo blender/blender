@@ -580,8 +580,8 @@ class VIEW3D_MT_view(Menu):
         layout = self.layout
         view = context.space_data
 
-        layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-        layout.operator("view3d.properties", icon='MENU_PANEL')
+        layout.prop(view, "show_region_toolbar")
+        layout.prop(view, "show_region_ui")
 
         layout.separator()
 

@@ -100,7 +100,14 @@ void ED_region_header_draw(const struct bContext *C, struct ARegion *ar);
 
 void ED_region_cursor_set(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar);
 void ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
-void ED_region_visibility_change_update(struct bContext *C, struct ARegion *ar);
+void ED_region_visibility_change_update(struct bContext *C,
+                                        struct ScrArea *sa,
+                                        struct ARegion *ar);
+/* screen_ops.c */
+void ED_region_visibility_change_update_animated(struct bContext *C,
+                                                 struct ScrArea *sa,
+                                                 struct ARegion *ar);
+
 void ED_region_info_draw(struct ARegion *ar,
                          const char *text,
                          float fill_color[4],

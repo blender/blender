@@ -145,8 +145,6 @@ void TEXT_OT_selection_set(struct wmOperatorType *ot);
 void TEXT_OT_cursor_set(struct wmOperatorType *ot);
 void TEXT_OT_line_number(struct wmOperatorType *ot);
 
-void TEXT_OT_properties(struct wmOperatorType *ot);
-
 /* find = find indicated text */
 void TEXT_OT_find(struct wmOperatorType *ot);
 void TEXT_OT_find_set_selected(struct wmOperatorType *ot);

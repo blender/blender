@@ -1735,10 +1735,8 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
 }
 
 /* for use after changing visibility of regions */
-void ED_region_visibility_change_update(bContext *C, ARegion *ar)
+void ED_region_visibility_change_update(bContext *C, ScrArea *sa, ARegion *ar)
 {
-  ScrArea *sa = CTX_wm_area(C);
-
   if (ar->flag & RGN_FLAG_HIDDEN)
     WM_event_remove_handlers(C, &ar->handlers);
 
@@ -1755,10 +1753,10 @@ void region_toggle_hidden(bContext *C, ARegion *ar, const bool do_fade)
 
   if (do_fade && ar->overlap) {
     /* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
-    region_blend_start(C, sa, ar);
+    ED_region_visibility_change_update_animated(C, sa, ar);
   }
   else {
-    ED_region_visibility_change_update(C, ar);
+    ED_region_visibility_change_update(C, sa, ar);
   }
 }
 

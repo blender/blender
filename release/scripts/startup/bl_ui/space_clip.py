@@ -1231,8 +1231,9 @@ class CLIP_MT_view(Menu):
         sc = context.space_data
 
         if sc.view == 'CLIP':
-            layout.operator("clip.properties", icon='MENU_PANEL')
-            layout.operator("clip.tools", icon='MENU_PANEL')
+            layout.prop(sc, "show_region_ui")
+            layout.prop(sc, "show_region_toolbar")
+
             layout.separator()
 
             layout.operator("clip.view_selected")

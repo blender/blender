@@ -219,8 +219,6 @@ static void text_operatortypes(void)
   WM_operatortype_append(TEXT_OT_line_break);
   WM_operatortype_append(TEXT_OT_insert);
 
-  WM_operatortype_append(TEXT_OT_properties);
-
   WM_operatortype_append(TEXT_OT_find);
   WM_operatortype_append(TEXT_OT_find_set_selected);
   WM_operatortype_append(TEXT_OT_replace);

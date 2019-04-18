@@ -291,9 +291,6 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_sample_line);
   WM_operatortype_append(IMAGE_OT_curves_point_set);
 
-  WM_operatortype_append(IMAGE_OT_properties);
-  WM_operatortype_append(IMAGE_OT_toolshelf);
-
   WM_operatortype_append(IMAGE_OT_change_frame);
 
   WM_operatortype_append(IMAGE_OT_read_viewlayers);

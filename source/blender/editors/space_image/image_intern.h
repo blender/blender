@@ -91,7 +91,5 @@ void IMAGE_OT_clear_render_border(struct wmOperatorType *ot);
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
-void IMAGE_OT_properties(struct wmOperatorType *ot);
-void IMAGE_OT_toolshelf(struct wmOperatorType *ot);
 
 #endif /* __IMAGE_INTERN_H__ */

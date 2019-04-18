@@ -226,35 +226,3 @@ void node_buttons_register(ARegionType *art)
   pt->poll = node_tree_interface_poll;
   BLI_addtail(&art->paneltypes, pt);
 }
-
-static int node_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = node_has_buttons_region(sa);
-
-  if (ar) {
-    ED_region_toggle_hidden(C, ar);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-/* non-standard poll operator which doesn't care if there are any nodes */
-static bool node_properties_poll(bContext *C)
-{
-  ScrArea *sa = CTX_wm_area(C);
-  return (sa && (sa->spacetype == SPACE_NODE));
-}
-
-void NODE_OT_properties(wmOperatorType *ot)
-{
-  ot->name = "Toggle Sidebar";
-  ot->description = "Toggle the properties region visibility";
-  ot->idname = "NODE_OT_properties";
-
-  ot->exec = node_properties_toggle_exec;
-  ot->poll = node_properties_poll;
-
-  /* flags */
-  ot->flag = 0;
-}

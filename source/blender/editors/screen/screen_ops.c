@@ -4785,7 +4785,7 @@ static void region_blend_end(bContext *C, ARegion *ar, const bool is_running)
   ar->regiontimer = NULL;
 }
 /* assumes that *ar itself is not a splitted version from previous region */
-void region_blend_start(bContext *C, ScrArea *sa, ARegion *ar)
+void ED_region_visibility_change_update_animated(bContext *C, ScrArea *sa, ARegion *ar)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);

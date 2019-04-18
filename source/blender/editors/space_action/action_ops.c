@@ -43,9 +43,6 @@
 
 void action_operatortypes(void)
 {
-  /* view */
-  WM_operatortype_append(ACTION_OT_properties);
-
   /* keyframes */
   /* selection */
   WM_operatortype_append(ACTION_OT_clickselect);

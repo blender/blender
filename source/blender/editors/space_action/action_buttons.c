@@ -92,27 +92,3 @@ void action_buttons_register(ARegionType *UNUSED(art))
   BLI_addtail(&art->paneltypes, pt);
 #endif
 }
-
-static int action_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = action_has_buttons_region(sa);
-
-  if (ar)
-    ED_region_toggle_hidden(C, ar);
-
-  return OPERATOR_FINISHED;
-}
-
-void ACTION_OT_properties(wmOperatorType *ot)
-{
-  ot->name = "Toggle Sidebar";
-  ot->idname = "ACTION_OT_properties";
-  ot->description = "Toggle the properties region visibility";
-
-  ot->exec = action_properties_toggle_exec;
-  ot->poll = ED_operator_action_active;
-
-  /* flags */
-  ot->flag = 0;
-}

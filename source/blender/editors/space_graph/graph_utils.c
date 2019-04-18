@@ -66,7 +66,7 @@ void ED_drivers_editor_init(bContext *C, ScrArea *sa)
     ar_props->flag &= ~RGN_FLAG_HIDDEN;
     /* XXX: Adjust width of this too? */
 
-    ED_region_visibility_change_update(C, ar_props);
+    ED_region_visibility_change_update(C, sa, ar_props);
   }
   else {
     printf("%s: Couldn't find properties region for Drivers Editor - %p\n", __func__, sa);

@@ -588,8 +588,10 @@ def km_view3d_generic(_params):
     )
 
     items.extend([
-        ("view3d.toolshelf", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
-        ("view3d.properties", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
+        ("wm.context_toggle", {"type": 'LEFT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_toolbar')]}),
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
     ])
 
     return keymap
@@ -1277,7 +1279,8 @@ def km_dopesheet_generic(params):
     )
 
     items.extend([
-        ("action.properties", {"type": 'N', "value": 'PRESS'}, None),
+        ("wm.context_toggle", {"type": 'N', "value": 'PRESS'},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]})
     ])
@@ -1482,7 +1485,8 @@ def km_text_generic(params):
         ("text.jump", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         ("text.find", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("text.replace", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
-        ("text.properties", {"type": 'I', "value": 'PRESS', "ctrl": True}, None),
+        ("wm.context_toggle", {"type": 'I', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
     ])
 
     return keymap
@@ -1638,7 +1642,8 @@ def km_sequencercommon(_params):
     )
 
     items.extend([
-        ("sequencer.properties", {"type": 'N', "value": 'PRESS'}, None),
+        ("wm.context_toggle", {"type": 'N', "value": 'PRESS'},
+         {"properties": [("data_path", 'space_data.show_region_ui')]}),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'scene.sequence_editor.show_overlay')]}),
         #("sequencer.view_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),

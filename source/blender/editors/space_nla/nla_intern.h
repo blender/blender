@@ -40,7 +40,6 @@ bool nla_panel_context(const bContext *C,
                        PointerRNA *strip_ptr);
 
 void nla_buttons_register(ARegionType *art);
-void NLA_OT_properties(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_draw.c */

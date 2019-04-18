@@ -562,27 +562,3 @@ void nla_buttons_register(ARegionType *art)
   pt->poll = nla_strip_eval_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 }
-
-static int nla_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = nla_has_buttons_region(sa);
-
-  if (ar)
-    ED_region_toggle_hidden(C, ar);
-
-  return OPERATOR_FINISHED;
-}
-
-void NLA_OT_properties(wmOperatorType *ot)
-{
-  ot->name = "Toggle Sidebar";
-  ot->idname = "NLA_OT_properties";
-  ot->description = "Toggle the properties region visibility";
-
-  ot->exec = nla_properties_toggle_exec;
-  ot->poll = ED_operator_nla_active;
-
-  /* flags */
-  ot->flag = 0;
-}

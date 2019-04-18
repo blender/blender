@@ -100,9 +100,6 @@ bool nlaedit_is_tweakmode_on(bAnimContext *ac)
 
 void nla_operatortypes(void)
 {
-  /* view */
-  WM_operatortype_append(NLA_OT_properties);
-
   /* channels */
   WM_operatortype_append(NLA_OT_channels_click);
 

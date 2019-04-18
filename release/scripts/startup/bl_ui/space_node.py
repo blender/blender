@@ -213,8 +213,8 @@ class NODE_MT_view(Menu):
 
         snode = context.space_data
 
-        layout.operator("node.properties", icon='MENU_PANEL')
-        layout.operator("node.toolbar", icon='MENU_PANEL')
+        layout.prop(snode, "show_region_toolbar")
+        layout.prop(snode, "show_region_ui")
 
         layout.separator()
 
