@@ -130,10 +130,17 @@
 #  define GLclampfP_def(number) Buffer *bgl_buffer##number
 #endif
 
+typedef struct BufferOrOffset {
+  Buffer *buffer;
+  void *offset;
+} BufferOrOffset;
+
 #define GLvoidP_str "O&"
-#define GLvoidP_var(number) ((bgl_buffer##number) ? (bgl_buffer##number)->buf.asvoid : NULL)
-#define GLvoidP_ref(number) BGL_BufferOrNoneConverter, &bgl_buffer##number
-#define GLvoidP_def(number) Buffer *bgl_buffer##number
+#define GLvoidP_var(number) \
+  ((bgl_buffer##number.buffer) ? (bgl_buffer##number.buffer)->buf.asvoid : \
+                                 (bgl_buffer##number.offset))
+#define GLvoidP_ref(number) BGL_BufferOrOffsetConverter, &bgl_buffer##number
+#define GLvoidP_def(number) BufferOrOffset bgl_buffer##number
 
 #define GLsizeiP_str "O!"
 #define GLsizeiP_var(number) (bgl_buffer##number)->buf.asvoid
@@ -688,15 +695,29 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
   return buffer;
 }
 
-/* Custom converter function so we can support a buffer or NULL. */
-static int BGL_BufferOrNoneConverter(PyObject *object, Buffer **buffer)
+/* Custom converter function so we can support a buffer, an integer or NULL.
+ * Many OpenGL API functions can accept both an actual pointer or an offset
+ * into a buffer that is already bound. */
+static int BGL_BufferOrOffsetConverter(PyObject *object, BufferOrOffset *buffer)
 {
   if (object == Py_None) {
-    *buffer = NULL;
+    buffer->buffer = NULL;
+    buffer->offset = NULL;
+    return 1;
+  }
+  else if (PyNumber_Check(object)) {
+    Py_ssize_t offset = PyNumber_AsSsize_t(object, PyExc_IndexError);
+    if (offset == -1 && PyErr_Occurred()) {
+      return 0;
+    }
+
+    buffer->buffer = NULL;
+    buffer->offset = (void *)offset;
     return 1;
   }
   else if (PyObject_TypeCheck(object, &BGL_bufferType)) {
-    *buffer = (Buffer *)object;
+    buffer->buffer = (Buffer *)object;
+    buffer->offset = NULL;
     return 1;
   }
   else {
