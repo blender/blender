@@ -77,6 +77,9 @@ if(WITH_CYCLES_NETWORK)
   add_definitions(-DWITH_NETWORK)
 endif()
 if(WITH_CYCLES_DEVICE_OPENCL)
+  list(APPEND LIB
+    extern_clew
+  )
   add_definitions(-DWITH_OPENCL)
 endif()
 if(WITH_CYCLES_DEVICE_CUDA)
