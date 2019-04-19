@@ -685,6 +685,13 @@ class USERPREF_PT_system_memory(PreferencePanel, Panel):
         flow.prop(system, "texture_time_out", text="Texture Time Out")
         flow.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
 
+        layout.separator()
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(system, "vbo_time_out", text="Vbo Time Out")
+        flow.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
+
 
 class USERPREF_MT_interface_theme_presets(Menu):
     bl_label = "Presets"

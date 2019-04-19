@@ -4766,6 +4766,23 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       "Texture Collection Rate",
       "Number of seconds between each run of the GL texture garbage collector");
 
+  prop = RNA_def_property(srna, "vbo_time_out", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "vbotimeout");
+  RNA_def_property_range(prop, 0, 3600);
+  RNA_def_property_ui_text(
+      prop,
+      "VBO Time Out",
+      "Time since last access of a GL Vertex buffer object in seconds after which it is freed "
+      "(set to 0 to keep vbo allocated)");
+
+  prop = RNA_def_property(srna, "vbo_collection_rate", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "vbocollectrate");
+  RNA_def_property_range(prop, 1, 3600);
+  RNA_def_property_ui_text(
+      prop,
+      "VBO Collection Rate",
+      "Number of seconds between each run of the GL Vertex buffer object garbage collector");
+
   /* Select */
 
   prop = RNA_def_property(srna, "use_select_pick_depth", PROP_BOOLEAN, PROP_NONE);

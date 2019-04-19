@@ -2004,6 +2004,8 @@ typedef struct MeshBatchCache {
 
   DRW_MeshCDMask cd_used, cd_needed, cd_used_over_time;
 
+  int lastmatch;
+
   /* XXX, only keep for as long as sculpt mode uses shaded drawing. */
   bool is_sculpt_points_tag;
 
@@ -4727,16 +4729,21 @@ static void mesh_create_uvedit_buffers(MeshRenderData *rdata,
 /* Thread safety need to be assured by caller. Don't call this during drawing.
  * Note: For now this only free the shading batches / vbo if any cd layers is
  * not needed anymore. */
-void DRW_mesh_batch_cache_free_old(Mesh *me, int UNUSED(ctime))
+void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime)
 {
   MeshBatchCache *cache = me->runtime.batch_cache;
 
   if (cache == NULL)
     return;
 
-  if (mesh_cd_layers_type_equal(cache->cd_used_over_time, cache->cd_used) == false) {
+  if (mesh_cd_layers_type_equal(cache->cd_used_over_time, cache->cd_used)) {
+    cache->lastmatch = ctime;
+  }
+
+  if (ctime - cache->lastmatch > U.vbotimeout) {
     mesh_batch_cache_discard_shaded_tri(cache);
   }
+
   mesh_cd_layers_type_clear(&cache->cd_used_over_time);
 }
 

@@ -967,10 +967,8 @@ static void drw_drawdata_unlink_dupli(ID *id)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Rendering (DRW_engines)
+/** \name Garbage Collection
  * \{ */
-
-#define DRW_BATCH_COLLECTION_RATE 60 /* in sec */
 
 void DRW_cache_free_old_batches(Main *bmain)
 {
@@ -979,7 +977,7 @@ void DRW_cache_free_old_batches(Main *bmain)
   static int lasttime = 0;
   int ctime = (int)PIL_check_seconds_timer();
 
-  if (ctime % DRW_BATCH_COLLECTION_RATE || ctime == lasttime)
+  if (U.vbotimeout == 0 || (ctime - lasttime) < U.vbocollectrate || ctime == lasttime)
     return;
 
   lasttime = ctime;
@@ -2496,10 +2494,7 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 /**
  * Clears the Depth Buffer and draws only the specified object.
  */
-void DRW_draw_depth_object(ARegion *ar,
-                           View3D *v3d,
-                           GPUViewport *viewport,
-                           Object *object)
+void DRW_draw_depth_object(ARegion *ar, View3D *v3d, GPUViewport *viewport, Object *object)
 {
   RegionView3D *rv3d = ar->regiondata;
 

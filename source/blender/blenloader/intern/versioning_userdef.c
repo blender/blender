@@ -496,6 +496,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
    */
   {
     /* (keep this block even if it becomes empty). */
+    if (userdef->vbotimeout == 0) {
+      userdef->vbocollectrate = 60;
+      userdef->vbotimeout = 120;
+    }
   }
 
   if (userdef->pixelsize == 0.0f)
