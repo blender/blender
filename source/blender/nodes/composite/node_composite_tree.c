@@ -299,20 +299,6 @@ void ntreeCompositTagRender(Scene *curscene)
   }
 }
 
-/* called from image window preview */
-void ntreeCompositTagGenerators(bNodeTree *ntree)
-{
-  bNode *node;
-
-  if (ntree == NULL)
-    return;
-
-  for (node = ntree->nodes.first; node; node = node->next) {
-    if (ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
-      nodeUpdate(ntree, node);
-  }
-}
-
 /* XXX after render animation system gets a refresh, this call allows composite to end clean */
 void ntreeCompositClearTags(bNodeTree *ntree)
 {

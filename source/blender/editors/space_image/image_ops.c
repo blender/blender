@@ -356,15 +356,6 @@ static int image_view_pan_exec(bContext *C, wmOperator *op)
 
   ED_region_tag_redraw(CTX_wm_region(C));
 
-  /* XXX notifier? */
-#if 0
-  if (image_preview_active(curarea, NULL, NULL)) {
-    /* recalculates new preview rect */
-    scrarea_do_windraw(curarea);
-    image_preview_event(2);
-  }
-#endif
-
   return OPERATOR_FINISHED;
 }
 
@@ -520,15 +511,6 @@ static int image_view_zoom_exec(bContext *C, wmOperator *op)
   sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"), NULL);
 
   ED_region_tag_redraw(ar);
-
-  /* XXX notifier? */
-#if 0
-  if (image_preview_active(curarea, NULL, NULL)) {
-    /* recalculates new preview rect */
-    scrarea_do_windraw(curarea);
-    image_preview_event(2);
-  }
-#endif
 
   return OPERATOR_FINISHED;
 }
@@ -1005,15 +987,6 @@ static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
   /* ensure pixel exact locations for draw */
   sima->xof = (int)sima->xof;
   sima->yof = (int)sima->yof;
-
-  /* XXX notifier? */
-#if 0
-  if (image_preview_active(curarea, NULL, NULL)) {
-    /* recalculates new preview rect */
-    scrarea_do_windraw(curarea);
-    image_preview_event(2);
-  }
-#endif
 
   ED_region_tag_redraw(ar);
 
