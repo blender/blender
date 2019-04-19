@@ -131,9 +131,6 @@ bool ED_region_snap_size_apply(struct ARegion *ar, int snap_flag);
 void ED_region_do_msg_notify_tag_redraw(struct bContext *C,
                                         struct wmMsgSubscribeKey *msg_key,
                                         struct wmMsgSubscribeValue *msg_val);
-void ED_area_do_msg_notify_tag_redraw(struct bContext *C,
-                                      struct wmMsgSubscribeKey *msg_key,
-                                      struct wmMsgSubscribeValue *msg_val);
 void ED_area_do_msg_notify_tag_refresh(struct bContext *C,
                                        struct wmMsgSubscribeKey *msg_key,
                                        struct wmMsgSubscribeValue *msg_val);
