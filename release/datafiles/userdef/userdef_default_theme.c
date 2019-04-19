@@ -303,7 +303,7 @@ const bTheme U_theme_default = {
 		},
 		.grid = RGBA(0xa7a7a733),
 		.wire = RGBA(0x000000ff),
-		.wire_edit = RGBA(0x111111ff),
+		.wire_edit = RGBA(0x000000ff),
 		.select = RGBA(0xed5700ff),
 		.lamp = RGBA(0x00000028),
 		.speaker = RGBA(0x000000ff),
