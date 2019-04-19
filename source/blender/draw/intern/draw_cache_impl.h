@@ -61,6 +61,11 @@ void DRW_particle_batch_cache_free(struct ParticleSystem *psys);
 void DRW_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
+/* Garbage collection */
+void DRW_batch_cache_free_old(struct Object *ob, int ctime);
+
+void DRW_mesh_batch_cache_free_old(struct Mesh *me, int ctime);
+
 /* Curve */
 void DRW_curve_batch_cache_create_requested(struct Object *ob);
 

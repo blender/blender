@@ -1450,6 +1450,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 
   view3d_draw_view(C, ar);
 
+  DRW_cache_free_old_batches(bmain);
   GPU_free_images_old(bmain);
   GPU_pass_cache_garbage_collect();
 

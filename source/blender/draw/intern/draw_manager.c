@@ -35,6 +35,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -404,7 +405,7 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool
         builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST;
         break;
       default:
-        BLI_assert("Mulisample count unsupported by blit shader.");
+        BLI_assert(!"Mulisample count unsupported by blit shader.");
         builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST;
         break;
     }
@@ -424,7 +425,7 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool
         builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16;
         break;
       default:
-        BLI_assert("Mulisample count unsupported by blit shader.");
+        BLI_assert(!"Mulisample count unsupported by blit shader.");
         builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2;
         break;
     }
@@ -960,6 +961,43 @@ static void drw_drawdata_unlink_dupli(ID *id)
     }
 
     BLI_listbase_clear((ListBase *)drawdata);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rendering (DRW_engines)
+ * \{ */
+
+#define DRW_BATCH_COLLECTION_RATE 60 /* in sec */
+
+void DRW_cache_free_old_batches(Main *bmain)
+{
+  Scene *scene;
+  ViewLayer *view_layer;
+  static int lasttime = 0;
+  int ctime = (int)PIL_check_seconds_timer();
+
+  if (ctime % DRW_BATCH_COLLECTION_RATE || ctime == lasttime)
+    return;
+
+  lasttime = ctime;
+
+  for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+      Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
+
+      /* TODO(fclem): This is not optimal since it iter over all dupli instances.
+       * In this case only the source object should be tagged. */
+      int iter_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+                       DEG_ITER_OBJECT_FLAG_VISIBLE | DEG_ITER_OBJECT_FLAG_DUPLI;
+
+      DEG_OBJECT_ITER_BEGIN (depsgraph, ob, iter_flags) {
+        DRW_batch_cache_free_old(ob, ctime);
+      }
+      DEG_OBJECT_ITER_END;
+    }
   }
 }
 

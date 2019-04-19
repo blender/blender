@@ -4031,4 +4031,25 @@ void drw_batch_cache_generate_requested(Object *ob)
   }
 }
 
+void DRW_batch_cache_free_old(Object *ob, int ctime)
+{
+  struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+
+  switch (ob->type) {
+    case OB_MESH:
+      DRW_mesh_batch_cache_free_old((Mesh *)ob->data, ctime);
+      break;
+    case OB_CURVE:
+    case OB_FONT:
+    case OB_SURF:
+      if (mesh_eval) {
+        DRW_mesh_batch_cache_free_old(mesh_eval, ctime);
+      }
+      break;
+    /* TODO all cases */
+    default:
+      break;
+  }
+}
+
 /** \} */

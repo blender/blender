@@ -152,6 +152,9 @@ void DRW_opengl_context_destroy(void);
 void DRW_opengl_context_enable(void);
 void DRW_opengl_context_disable(void);
 
+/* For garbage collection */
+void DRW_cache_free_old_batches(struct Main *bmain);
+
 /* Never use this. Only for closing blender. */
 void DRW_opengl_context_enable_ex(bool restore);
 void DRW_opengl_context_disable_ex(bool restore);

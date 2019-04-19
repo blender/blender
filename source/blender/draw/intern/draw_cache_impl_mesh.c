@@ -364,6 +364,11 @@ BLI_INLINE bool mesh_cd_layers_type_overlap(DRW_MeshCDMask a, DRW_MeshCDMask b)
   return (*((uint32_t *)&a) & *((uint32_t *)&b)) == *((uint32_t *)&b);
 }
 
+BLI_INLINE bool mesh_cd_layers_type_equal(DRW_MeshCDMask a, DRW_MeshCDMask b)
+{
+  return *((uint32_t *)&a) == *((uint32_t *)&b);
+}
+
 BLI_INLINE void mesh_cd_layers_type_merge(DRW_MeshCDMask *a, DRW_MeshCDMask b)
 {
   atomic_fetch_and_or_uint32((uint32_t *)a, *(uint32_t *)&b);
@@ -1997,7 +2002,7 @@ typedef struct MeshBatchCache {
 
   struct DRW_MeshWeightState weight_state;
 
-  DRW_MeshCDMask cd_used, cd_needed;
+  DRW_MeshCDMask cd_used, cd_needed, cd_used_over_time;
 
   /* XXX, only keep for as long as sculpt mode uses shaded drawing. */
   bool is_sculpt_points_tag;
@@ -2120,6 +2125,8 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 
   MEM_SAFE_FREE(cache->auto_layer_names);
   MEM_SAFE_FREE(cache->auto_layer_is_srgb);
+
+  mesh_cd_layers_type_clear(&cache->cd_used);
 
   cache->mat_len = 0;
 }
@@ -4717,6 +4724,22 @@ static void mesh_create_uvedit_buffers(MeshRenderData *rdata,
 /** \name Grouped batch generation
  * \{ */
 
+/* Thread safety need to be assured by caller. Don't call this during drawing.
+ * Note: For now this only free the shading batches / vbo if any cd layers is
+ * not needed anymore. */
+void DRW_mesh_batch_cache_free_old(Mesh *me, int UNUSED(ctime))
+{
+  MeshBatchCache *cache = me->runtime.batch_cache;
+
+  if (cache == NULL)
+    return;
+
+  if (mesh_cd_layers_type_equal(cache->cd_used_over_time, cache->cd_used) == false) {
+    mesh_batch_cache_discard_shaded_tri(cache);
+  }
+  mesh_cd_layers_type_clear(&cache->cd_used_over_time);
+}
+
 /* Can be called for any surface type. Mesh *me is the final mesh. */
 void DRW_mesh_batch_cache_create_requested(
     Object *ob, Mesh *me, const ToolSettings *ts, const bool is_paint_mode, const bool use_hide)
@@ -4769,6 +4792,7 @@ void DRW_mesh_batch_cache_create_requested(
 
     mesh_cd_layers_type_merge(&cache->cd_used, cache->cd_needed);
   }
+  mesh_cd_layers_type_merge(&cache->cd_used_over_time, cache->cd_needed);
   mesh_cd_layers_type_clear(&cache->cd_needed);
 
   /* Discard UV batches if sync_selection changes */
