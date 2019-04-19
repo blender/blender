@@ -134,8 +134,6 @@ void draw_object_select_id(struct Depsgraph *depsgraph,
                            struct Object *ob,
                            short select_mode);
 
-void draw_object_depth(RegionView3D *rv3d, struct Object *ob);
-
 int view3d_effective_drawtype(const struct View3D *v3d);
 
 /* view3d_draw.c */

@@ -524,8 +524,6 @@ void ED_view3d_viewcontext_init(struct bContext *C, struct ViewContext *vc);
 void ED_view3d_viewcontext_init_object(struct ViewContext *vc, struct Object *obact);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_region_operator_needs_opengl(struct wmWindow *win, struct ARegion *ar);
-void view3d_opengl_read_pixels(
-    struct ARegion *ar, int x, int y, int w, int h, int format, int type, void *data);
 
 /* XXX should move to BLI_math */
 bool edge_inside_circle(const float cent[2],

@@ -348,51 +348,6 @@ void draw_object_select_id(Depsgraph *depsgraph,
   GPU_matrix_set(rv3d->viewmat);
 }
 
-void draw_object_depth(RegionView3D *rv3d, Object *ob)
-{
-  GPU_matrix_mul(ob->obmat);
-  GPU_depth_test(true);
-
-  const float(*world_clip_planes)[4] = NULL;
-  if (rv3d->rflag & RV3D_CLIPPING) {
-    ED_view3d_clipping_local(rv3d, ob->obmat);
-    world_clip_planes = rv3d->clip_local;
-  }
-
-  switch (ob->type) {
-    case OB_MESH: {
-      GPUBatch *batch;
-
-      Mesh *me = ob->data;
-
-      if (ob->mode & OB_MODE_EDIT) {
-        batch = DRW_mesh_batch_cache_get_edit_triangles(me);
-      }
-      else {
-        batch = DRW_mesh_batch_cache_get_surface(me);
-      }
-
-      DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
-
-      DRW_opengl_context_enable();
-      const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED :
-                                                          GPU_SHADER_CFG_DEFAULT;
-      GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_DEPTH_ONLY, sh_cfg);
-      if (world_clip_planes != NULL) {
-        bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
-      }
-
-      GPU_batch_draw(batch);
-      DRW_opengl_context_disable();
-    } break;
-    case OB_CURVE:
-    case OB_SURF:
-      break;
-  }
-
-  GPU_matrix_set(rv3d->viewmat);
-}
-
 void ED_draw_object_facemap(Depsgraph *depsgraph,
                             Object *ob,
                             const float col[4],
