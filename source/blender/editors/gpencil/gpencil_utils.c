@@ -1259,6 +1259,7 @@ void ED_gpencil_parent_location(const Depsgraph *depsgraph,
   else {
     if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
       mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
+      add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
       return;
     }
     else if (gpl->partype == PARBONE) {
@@ -1267,10 +1268,12 @@ void ED_gpencil_parent_location(const Depsgraph *depsgraph,
         float tmp_mat[4][4];
         mul_m4_m4m4(tmp_mat, obparent_eval->obmat, pchan->pose_mat);
         mul_m4_m4m4(diff_mat, tmp_mat, gpl->inverse);
+        add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
       }
       else {
         /* if bone not found use object (armature) */
         mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
+        add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
       }
       return;
     }
@@ -1287,12 +1290,15 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
   int i;
   float diff_mat[4][4];
   float cur_mat[4][4];
+  float gpl_loc[3];
+  zero_v3(gpl_loc);
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     if (gpl->parent != NULL) {
       /* calculate new matrix */
       if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
         invert_m4_m4(cur_mat, gpl->parent->obmat);
+        copy_v3_v3(gpl_loc, obact->obmat[3]);
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(gpl->parent->pose, gpl->parsubstr);
@@ -1300,6 +1306,7 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
           float tmp_mat[4][4];
           mul_m4_m4m4(tmp_mat, gpl->parent->obmat, pchan->pose_mat);
           invert_m4_m4(cur_mat, tmp_mat);
+          copy_v3_v3(gpl_loc, obact->obmat[3]);
         }
       }
 
@@ -1307,6 +1314,9 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
       if (!equals_m4m4(gpl->inverse, cur_mat)) {
         /* first apply current transformation to all strokes */
         ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);
+        /* undo local object */
+        sub_v3_v3(diff_mat[3], gpl_loc);
+
         for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
           for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
             for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
