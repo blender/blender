@@ -29,7 +29,8 @@ void main()
   float mix_w = step(0.5, dist);
   float mix_w_outer = step(0.5, dist_outer);
 #endif
+  /* Line color & alpha. */
   FragColor = mix(finalColorOuter_f, finalColor_f, 1.0 - mix_w * finalColorOuter_f.a);
+  /* Line edges shape. */
   FragColor.a *= 1.0 - (finalColorOuter_f.a > 0.0 ? mix_w_outer : mix_w);
-  FragColor.a *= (selectEdges) ? 1.0 : 0.4;
 }

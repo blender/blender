@@ -82,8 +82,7 @@ void main()
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 
-  finalColor = mix(colorEditMeshMiddle, finalColor, facing);
-  finalColor.a = 1.0;
+  finalColor.rgb = mix(colorEditMeshMiddle.rgb, finalColor.rgb, facing);
 
 #endif
 
