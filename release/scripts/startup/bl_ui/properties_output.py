@@ -61,7 +61,7 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
     _frame_rate_args_prev = None
     _preset_class = None
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         RENDER_PT_presets.draw_panel_header(self.layout)
 
     @staticmethod
@@ -332,7 +332,7 @@ class RENDER_PT_encoding(RenderOutputButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         RENDER_PT_ffmpeg_presets.draw_panel_header(self.layout)
 
     @classmethod
@@ -443,7 +443,7 @@ class RENDER_PT_encoding_audio(RenderOutputButtonsPanel, Panel):
 
 
 class RENDER_UL_renderviews(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, index):
         view = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if view.name in {"left", "right"}:

@@ -734,7 +734,7 @@ class ShowHideMenu:
     bl_label = "Show/Hide"
     _operator_name = ""
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("%s.reveal" % self._operator_name)
@@ -849,7 +849,7 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
 class VIEW3D_MT_mirror(Menu):
     bl_label = "Mirror"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("transform.mirror", text="Interactive Mirror")
@@ -871,7 +871,7 @@ class VIEW3D_MT_mirror(Menu):
 class VIEW3D_MT_snap(Menu):
     bl_label = "Snap"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
@@ -890,7 +890,7 @@ class VIEW3D_MT_snap(Menu):
 class VIEW3D_MT_uv_map(Menu):
     bl_label = "UV Mapping"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("uv.unwrap")
@@ -978,7 +978,7 @@ class VIEW3D_MT_view(Menu):
 class VIEW3D_MT_view_local(Menu):
     bl_label = "Local View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("view3d.localview", text="Toggle Local View")
@@ -988,7 +988,7 @@ class VIEW3D_MT_view_local(Menu):
 class VIEW3D_MT_view_cameras(Menu):
     bl_label = "Cameras"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("view3d.object_as_camera")
@@ -998,7 +998,7 @@ class VIEW3D_MT_view_cameras(Menu):
 class VIEW3D_MT_view_viewpoint(Menu):
     bl_label = "Viewpoint"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("view3d.view_camera", text="Camera")
@@ -1022,7 +1022,7 @@ class VIEW3D_MT_view_viewpoint(Menu):
 class VIEW3D_MT_view_navigation(Menu):
     bl_label = "Navigation"
 
-    def draw(self, context):
+    def draw(self, _context):
         from math import pi
         layout = self.layout
 
@@ -1056,7 +1056,7 @@ class VIEW3D_MT_view_navigation(Menu):
 class VIEW3D_MT_view_align(Menu):
     bl_label = "Align View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("VIEW3D_MT_view_align_selected")
@@ -1080,7 +1080,7 @@ class VIEW3D_MT_view_align(Menu):
 class VIEW3D_MT_view_align_selected(Menu):
     bl_label = "Align View to Active"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         props = layout.operator("view3d.view_axis", text="Top")
@@ -1115,7 +1115,7 @@ class VIEW3D_MT_view_align_selected(Menu):
 class VIEW3D_MT_view_regions(Menu):
     bl_label = "View Regions"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("view3d.clip_border", text="Clipping Region...")
         layout.operator("view3d.render_border", text="Render Region...")
@@ -1130,7 +1130,7 @@ class VIEW3D_MT_view_regions(Menu):
 class VIEW3D_MT_select_object_more_less(Menu):
     bl_label = "Select More/Less"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout = self.layout
@@ -1162,7 +1162,7 @@ class VIEW3D_MT_select_object_more_less(Menu):
 class VIEW3D_MT_select_object(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.select_all", text="All").action = 'SELECT'
@@ -1195,7 +1195,7 @@ class VIEW3D_MT_select_object(Menu):
 class VIEW3D_MT_select_pose_more_less(Menu):
     bl_label = "Select More/Less"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout = self.layout
@@ -1222,7 +1222,7 @@ class VIEW3D_MT_select_pose_more_less(Menu):
 class VIEW3D_MT_select_pose(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.select_all", text="All").action = 'SELECT'
@@ -1256,7 +1256,7 @@ class VIEW3D_MT_select_pose(Menu):
 class VIEW3D_MT_select_particle(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("particle.select_all", text="All").action = 'SELECT'
@@ -1290,7 +1290,7 @@ class VIEW3D_MT_select_particle(Menu):
 class VIEW3D_MT_edit_mesh_select_similar(Menu):
     bl_label = "Select Similar"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_enum("mesh.select_similar", "type")
@@ -1320,7 +1320,7 @@ class VIEW3D_MT_edit_mesh_select_by_trait(Menu):
 class VIEW3D_MT_edit_mesh_select_more_less(Menu):
     bl_label = "Select More/Less"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.select_more", text="More")
@@ -1335,7 +1335,7 @@ class VIEW3D_MT_edit_mesh_select_more_less(Menu):
 class VIEW3D_MT_edit_mesh_select_linked(Menu):
     bl_label = "Select Linked"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.select_linked", text="Linked")
@@ -1346,7 +1346,7 @@ class VIEW3D_MT_edit_mesh_select_linked(Menu):
 class VIEW3D_MT_edit_mesh_select_loops(Menu):
     bl_label = "Select Loops"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.loop_multi_select", text="Edge Loops").ring = False
@@ -1361,7 +1361,7 @@ class VIEW3D_MT_edit_mesh_select_loops(Menu):
 class VIEW3D_MT_select_edit_mesh(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         # primitive
@@ -1415,7 +1415,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 class VIEW3D_MT_select_edit_curve(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("curve.select_all", text="All").action = 'SELECT'
@@ -1450,7 +1450,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
 class VIEW3D_MT_select_edit_surface(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("curve.select_all", text="All").action = 'SELECT'
@@ -1482,7 +1482,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
 class VIEW3D_MT_edit_text_context_menu(Menu):
     bl_label = "Text Context Menu"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout = self.layout
@@ -1507,7 +1507,7 @@ class VIEW3D_MT_select_edit_text(Menu):
     # select menu for 3d-text doesn't make sense
     bl_label = "Edit"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("font.text_cut", text="Cut")
@@ -1528,7 +1528,7 @@ class VIEW3D_MT_select_edit_text(Menu):
 class VIEW3D_MT_select_edit_metaball(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mball.select_all", text="All").action = 'SELECT'
@@ -1552,7 +1552,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
 class VIEW3D_MT_edit_lattice_context_menu(Menu):
     bl_label = "Lattice Context Menu"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout = self.layout
@@ -1569,7 +1569,7 @@ class VIEW3D_MT_edit_lattice_context_menu(Menu):
 class VIEW3D_MT_select_edit_lattice(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("lattice.select_all", text="All").action = 'SELECT'
@@ -1599,7 +1599,7 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 class VIEW3D_MT_select_edit_armature(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("armature.select_all", text="All").action = 'SELECT'
@@ -1647,7 +1647,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 class VIEW3D_MT_select_gpencil(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("gpencil.select_all", text="All").action = 'SELECT'
@@ -1679,7 +1679,7 @@ class VIEW3D_MT_select_gpencil(Menu):
 class VIEW3D_MT_select_paint_mask(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("paint.face_select_all", text="All").action = 'SELECT'
@@ -1699,7 +1699,7 @@ class VIEW3D_MT_select_paint_mask(Menu):
 class VIEW3D_MT_select_paint_mask_vertex(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("paint.vert_select_all", text="All").action = 'SELECT'
@@ -1754,7 +1754,7 @@ class VIEW3D_MT_mesh_add(Menu):
     bl_idname = "VIEW3D_MT_mesh_add"
     bl_label = "Mesh"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1778,7 +1778,7 @@ class VIEW3D_MT_curve_add(Menu):
     bl_idname = "VIEW3D_MT_curve_add"
     bl_label = "Curve"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1797,7 +1797,7 @@ class VIEW3D_MT_surface_add(Menu):
     bl_idname = "VIEW3D_MT_surface_add"
     bl_label = "Surface"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1814,7 +1814,7 @@ class VIEW3D_MT_surface_add(Menu):
 class VIEW3D_MT_edit_metaball_context_menu(Menu):
     bl_label = "Metaball Context Menu"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1839,7 +1839,7 @@ class VIEW3D_MT_metaball_add(Menu):
     bl_idname = "VIEW3D_MT_metaball_add"
     bl_label = "Metaball"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1866,7 +1866,7 @@ class TOPBAR_MT_edit_armature_add(Menu):
     bl_idname = "TOPBAR_MT_edit_armature_add"
     bl_label = "Armature"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'EXEC_REGION_WIN'
@@ -1877,7 +1877,7 @@ class VIEW3D_MT_armature_add(Menu):
     bl_idname = "VIEW3D_MT_armature_add"
     bl_label = "Armature"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'EXEC_REGION_WIN'
@@ -1888,7 +1888,7 @@ class VIEW3D_MT_light_add(Menu):
     bl_idname = "VIEW3D_MT_light_add"
     bl_label = "Light"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1899,7 +1899,7 @@ class VIEW3D_MT_lightprobe_add(Menu):
     bl_idname = "VIEW3D_MT_lightprobe_add"
     bl_label = "Light Probe"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1910,7 +1910,7 @@ class VIEW3D_MT_camera_add(Menu):
     bl_idname = "VIEW3D_MT_camera_add"
     bl_label = "Camera"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
@@ -1998,7 +1998,7 @@ class VIEW3D_MT_add(Menu):
 class VIEW3D_MT_image_add(Menu):
     bl_label = "Add Image"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("object.load_reference_image", text="Reference", icon='IMAGE_REFERENCE')
         layout.operator("object.load_background_image", text="Background", icon='IMAGE_BACKGROUND')
@@ -2007,7 +2007,7 @@ class VIEW3D_MT_image_add(Menu):
 class VIEW3D_MT_object_relations(Menu):
     bl_label = "Relations"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.proxy_make", text="Make Proxy...")
@@ -2095,7 +2095,7 @@ class VIEW3D_MT_object(Menu):
 class VIEW3D_MT_object_animation(Menu):
     bl_label = "Animation"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
@@ -2111,7 +2111,7 @@ class VIEW3D_MT_object_animation(Menu):
 class VIEW3D_MT_object_rigid_body(Menu):
     bl_label = "Rigid Body"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("rigidbody.objects_add", text="Add Active").type = 'ACTIVE'
@@ -2137,7 +2137,7 @@ class VIEW3D_MT_object_rigid_body(Menu):
 class VIEW3D_MT_object_clear(Menu):
     bl_label = "Clear"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.location_clear", text="Location").clear_delta = False
@@ -2371,7 +2371,7 @@ class VIEW3D_MT_object_shading(Menu):
     # XXX, this menu is a place to store shading operator in object mode
     bl_label = "Shading"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("object.shade_smooth", text="Smooth")
         layout.operator("object.shade_flat", text="Flat")
@@ -2380,7 +2380,7 @@ class VIEW3D_MT_object_shading(Menu):
 class VIEW3D_MT_object_apply(Menu):
     bl_label = "Apply"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         props = layout.operator("object.transform_apply", text="Location", text_ctxt=i18n_contexts.default)
@@ -2441,7 +2441,7 @@ class VIEW3D_MT_object_apply(Menu):
 class VIEW3D_MT_object_parent(Menu):
     bl_label = "Parent"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_enum("object.parent_set", "type")
@@ -2454,7 +2454,7 @@ class VIEW3D_MT_object_parent(Menu):
 class VIEW3D_MT_object_track(Menu):
     bl_label = "Track"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_enum("object.track_set", "type")
@@ -2467,7 +2467,7 @@ class VIEW3D_MT_object_track(Menu):
 class VIEW3D_MT_object_collection(Menu):
     bl_label = "Collection"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.move_to_collection")
@@ -2489,7 +2489,7 @@ class VIEW3D_MT_object_collection(Menu):
 class VIEW3D_MT_object_constraints(Menu):
     bl_label = "Constraints"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.constraint_add_with_targets")
@@ -2503,7 +2503,7 @@ class VIEW3D_MT_object_constraints(Menu):
 class VIEW3D_MT_object_quick_effects(Menu):
     bl_label = "Quick Effects"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.quick_fur")
@@ -2515,7 +2515,7 @@ class VIEW3D_MT_object_quick_effects(Menu):
 class VIEW3D_MT_object_showhide(Menu):
     bl_label = "Show/Hide"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.hide_view_clear")
@@ -2529,7 +2529,7 @@ class VIEW3D_MT_object_showhide(Menu):
 class VIEW3D_MT_make_single_user(Menu):
     bl_label = "Make Single User"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         props = layout.operator("object.make_single_user", text="Object")
@@ -2556,7 +2556,7 @@ class VIEW3D_MT_make_single_user(Menu):
 class VIEW3D_MT_make_links(Menu):
     bl_label = "Make Links"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         operator_context_default = layout.operator_context
 
@@ -2652,7 +2652,7 @@ class VIEW3D_MT_brush_paint_modes(Menu):
 class VIEW3D_MT_paint_vertex(Menu):
     bl_label = "Paint"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("paint.vertex_color_set")
@@ -2761,7 +2761,7 @@ class VIEW3D_MT_paint_weight(Menu):
 
             layout.operator("paint.weight_set")
 
-    def draw(self, context):
+    def draw(self, _context):
         self.draw_generic(self.layout, is_editmode=False)
 
 
@@ -2801,7 +2801,7 @@ class VIEW3D_MT_sculpt(Menu):
 class VIEW3D_MT_hide_mask(Menu):
     bl_label = "Hide/Mask"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         props = layout.operator("paint.hide_show", text="Show All")
@@ -2930,7 +2930,7 @@ class VIEW3D_MT_particle_showhide(ShowHideMenu, Menu):
 class VIEW3D_MT_pose(Menu):
     bl_label = "Pose"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("VIEW3D_MT_transform_armature")
@@ -2993,7 +2993,7 @@ class VIEW3D_MT_pose(Menu):
 class VIEW3D_MT_pose_transform(Menu):
     bl_label = "Clear Transform"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.transforms_clear", text="All")
@@ -3012,7 +3012,7 @@ class VIEW3D_MT_pose_transform(Menu):
 class VIEW3D_MT_pose_slide(Menu):
     bl_label = "In-Betweens"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.push")
@@ -3023,7 +3023,7 @@ class VIEW3D_MT_pose_slide(Menu):
 class VIEW3D_MT_pose_propagate(Menu):
     bl_label = "Propagate"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.propagate").mode = 'WHILE_HELD'
@@ -3045,7 +3045,7 @@ class VIEW3D_MT_pose_propagate(Menu):
 class VIEW3D_MT_pose_library(Menu):
     bl_label = "Pose Library"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("poselib.browse_interactive", text="Browse Poses...")
@@ -3060,7 +3060,7 @@ class VIEW3D_MT_pose_library(Menu):
 class VIEW3D_MT_pose_motion(Menu):
     bl_label = "Motion Paths"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.paths_calculate", text="Calculate")
@@ -3092,7 +3092,7 @@ class VIEW3D_MT_pose_group(Menu):
 class VIEW3D_MT_pose_ik(Menu):
     bl_label = "Inverse Kinematics"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.ik_add")
@@ -3102,7 +3102,7 @@ class VIEW3D_MT_pose_ik(Menu):
 class VIEW3D_MT_pose_constraints(Menu):
     bl_label = "Constraints"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.constraint_add_with_targets", text="Add (With Targets)...")
@@ -3117,7 +3117,7 @@ class VIEW3D_MT_pose_showhide(ShowHideMenu, Menu):
 class VIEW3D_MT_pose_apply(Menu):
     bl_label = "Apply"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("pose.armature_apply")
@@ -3132,7 +3132,7 @@ class VIEW3D_MT_pose_apply(Menu):
 class VIEW3D_MT_pose_context_menu(Menu):
     bl_label = "Pose Context Menu"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -3228,7 +3228,7 @@ class VIEW3D_MT_bone_options_disable(Menu, BoneOptions):
 class VIEW3D_MT_edit_mesh(Menu):
     bl_label = "Mesh"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         with_bullet = bpy.app.build_options.bullet
@@ -3468,7 +3468,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 class VIEW3D_MT_edit_mesh_select_mode(Menu):
     bl_label = "Mesh Select Mode"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -3521,7 +3521,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 class VIEW3D_MT_edit_mesh_vertices(Menu):
     bl_label = "Vertex"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -3605,7 +3605,7 @@ class VIEW3D_MT_edit_mesh_edges_data(Menu):
 class VIEW3D_MT_edit_mesh_edges(Menu):
     bl_label = "Edge"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         with_freestyle = bpy.app.build_options.freestyle
@@ -3662,7 +3662,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 class VIEW3D_MT_edit_mesh_faces_data(Menu):
     bl_label = "Face Data"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         with_freestyle = bpy.app.build_options.freestyle
@@ -3688,7 +3688,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
     bl_label = "Face"
     bl_idname = "VIEW3D_MT_edit_mesh_faces"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -3735,7 +3735,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 class VIEW3D_MT_edit_mesh_normals(Menu):
     bl_label = "Normals"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.normals_make_consistent", text="Recalculate Outside").inside = False
@@ -3774,7 +3774,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 class VIEW3D_MT_edit_mesh_shading(Menu):
     bl_label = "Shading"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.faces_shade_smooth", text="Smooth Faces")
@@ -3797,14 +3797,14 @@ class VIEW3D_MT_edit_mesh_shading(Menu):
 class VIEW3D_MT_edit_mesh_weights(Menu):
     bl_label = "Weights"
 
-    def draw(self, context):
+    def draw(self, _context):
         VIEW3D_MT_paint_weight.draw_generic(self.layout, is_editmode=True)
 
 
 class VIEW3D_MT_edit_mesh_clean(Menu):
     bl_label = "Clean Up"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.delete_loose")
@@ -3827,7 +3827,7 @@ class VIEW3D_MT_edit_mesh_clean(Menu):
 class VIEW3D_MT_edit_mesh_delete(Menu):
     bl_label = "Delete"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_enum("mesh.delete", "type")
@@ -3855,7 +3855,7 @@ class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):
 class VIEW3D_MT_edit_gpencil_delete(Menu):
     bl_label = "Delete"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_enum("gpencil.delete", "type")
@@ -3871,7 +3871,7 @@ class VIEW3D_MT_edit_gpencil_delete(Menu):
 # draw_curve is used by VIEW3D_MT_edit_curve and VIEW3D_MT_edit_surface
 
 
-def draw_curve(self, context):
+def draw_curve(self, _context):
     layout = self.layout
 
     layout.menu("VIEW3D_MT_transform")
@@ -3949,7 +3949,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
 class VIEW3D_MT_edit_curve_segments(Menu):
     bl_label = "Segments"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("curve.subdivide")
@@ -3959,7 +3959,7 @@ class VIEW3D_MT_edit_curve_segments(Menu):
 class VIEW3D_MT_edit_curve_clean(Menu):
     bl_label = "Clean Up"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("curve.decimate")
@@ -3968,7 +3968,7 @@ class VIEW3D_MT_edit_curve_clean(Menu):
 class VIEW3D_MT_edit_curve_context_menu(Menu):
     bl_label = "Curve Context Menu"
 
-    def draw(self, context):
+    def draw(self, _context):
         # TODO(campbell): match mesh vertex menu.
 
         layout = self.layout
@@ -4023,7 +4023,7 @@ class VIEW3D_MT_edit_curve_context_menu(Menu):
 class VIEW3D_MT_edit_curve_delete(Menu):
     bl_label = "Delete"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_enum("curve.delete", "type")
@@ -4046,7 +4046,7 @@ class VIEW3D_MT_edit_surface(Menu):
 class VIEW3D_MT_edit_font(Menu):
     bl_label = "Font"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
@@ -4065,7 +4065,7 @@ class VIEW3D_MT_edit_font(Menu):
 class VIEW3D_MT_edit_text_chars(Menu):
     bl_label = "Special Characters"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("font.text_insert", text="Copyright").text = "\u00A9"
@@ -4105,7 +4105,7 @@ class VIEW3D_MT_edit_text_chars(Menu):
 class VIEW3D_MT_edit_meta(Menu):
     bl_label = "Metaball"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("VIEW3D_MT_transform")
@@ -4127,7 +4127,7 @@ class VIEW3D_MT_edit_meta(Menu):
 class VIEW3D_MT_edit_meta_showhide(Menu):
     bl_label = "Show/Hide"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mball.reveal_metaelems")
@@ -4138,7 +4138,7 @@ class VIEW3D_MT_edit_meta_showhide(Menu):
 class VIEW3D_MT_edit_lattice(Menu):
     bl_label = "Lattice"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.separator()
@@ -4260,7 +4260,7 @@ class VIEW3D_MT_armature_context_menu(Menu):
 class VIEW3D_MT_edit_armature_names(Menu):
     bl_label = "Names"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'EXEC_REGION_WIN'
@@ -4273,7 +4273,7 @@ class VIEW3D_MT_edit_armature_names(Menu):
 class VIEW3D_MT_edit_armature_parent(Menu):
     bl_label = "Parent"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("armature.parent_set", text="Make")
@@ -4283,7 +4283,7 @@ class VIEW3D_MT_edit_armature_parent(Menu):
 class VIEW3D_MT_edit_armature_roll(Menu):
     bl_label = "Bone Roll"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_menu_enum("armature.calculate_roll", "type")
@@ -4297,7 +4297,7 @@ class VIEW3D_MT_edit_armature_roll(Menu):
 class VIEW3D_MT_edit_armature_delete(Menu):
     bl_label = "Delete"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
 
@@ -4312,7 +4312,7 @@ class VIEW3D_MT_edit_armature_delete(Menu):
 class VIEW3D_MT_gpencil_autoweights(Menu):
     bl_label = "Generate Weights"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("gpencil.generate_weights", text="With Empty Groups").mode = 'NAME'
         layout.operator("gpencil.generate_weights", text="With Automatic Weights").mode = 'AUTO'
@@ -4321,7 +4321,7 @@ class VIEW3D_MT_gpencil_autoweights(Menu):
 class VIEW3D_MT_gpencil_simplify(Menu):
     bl_label = "Simplify"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("gpencil.stroke_simplify_fixed", text="Fixed")
         layout.operator("gpencil.stroke_simplify", text="Adaptive")
@@ -4330,7 +4330,7 @@ class VIEW3D_MT_gpencil_simplify(Menu):
 class VIEW3D_MT_paint_gpencil(Menu):
     bl_label = "Strokes"
 
-    def draw(self, context):
+    def draw(self, _context):
 
         layout = self.layout
 
@@ -4381,7 +4381,7 @@ class VIEW3D_MT_gpencil_copy_layer(Menu):
 class VIEW3D_MT_edit_gpencil(Menu):
     bl_label = "Strokes"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("VIEW3D_MT_edit_gpencil_transform")
@@ -4439,7 +4439,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
 class VIEW3D_MT_weight_gpencil(Menu):
     bl_label = "Weights"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("gpencil.vertex_group_normalize_all", text="Normalize All")
@@ -4461,7 +4461,7 @@ class VIEW3D_MT_gpencil_animation(Menu):
         ob = context.active_object
         return ob and ob.type == 'GPENCIL' and ob.mode != 'OBJECT'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("gpencil.blank_frame_add")
@@ -4475,7 +4475,7 @@ class VIEW3D_MT_gpencil_animation(Menu):
 class VIEW3D_MT_edit_gpencil_transform(Menu):
     bl_label = "Transform"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("transform.translate")
@@ -4497,7 +4497,7 @@ class VIEW3D_MT_edit_gpencil_transform(Menu):
 class VIEW3D_MT_edit_gpencil_interpolate(Menu):
     bl_label = "Interpolate"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("gpencil.interpolate", text="Interpolate")
@@ -4507,7 +4507,7 @@ class VIEW3D_MT_edit_gpencil_interpolate(Menu):
 class VIEW3D_MT_object_mode_pie(Menu):
     bl_label = "Mode"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()
@@ -4518,7 +4518,7 @@ class VIEW3D_MT_view_pie(Menu):
     bl_label = "View"
     bl_idname = "VIEW3D_MT_view_pie"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()
@@ -4609,7 +4609,7 @@ class VIEW3D_MT_orientations_pie(Menu):
 class VIEW3D_MT_snap_pie(Menu):
     bl_label = "Snap"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         pie = layout.menu_pie()
 
@@ -4870,7 +4870,7 @@ class VIEW3D_PT_shading(Panel):
         else:
             return context.scene.display.shading
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.label(text="Viewport Shading")
 
@@ -5086,7 +5086,7 @@ class VIEW3D_PT_shading_options_shadow(Panel):
     bl_region_type = 'HEADER'
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return True
 
     def draw(self, context):
@@ -5106,7 +5106,7 @@ class VIEW3D_PT_shading_options_ssao(Panel):
     bl_region_type = 'HEADER'
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return True
 
     def draw(self, context):
@@ -5167,7 +5167,7 @@ class VIEW3D_PT_overlay(Panel):
     bl_label = "Overlays"
     bl_ui_units_x = 13
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.label(text="Viewport Overlays")
 

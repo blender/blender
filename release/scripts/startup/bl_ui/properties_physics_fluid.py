@@ -367,7 +367,7 @@ class PHYSICS_PT_domain_viscosity(PhysicButtonsPanel, Panel):
 
         return (context.engine in cls.COMPAT_ENGINES)
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         FLUID_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):

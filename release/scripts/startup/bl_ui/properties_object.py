@@ -165,7 +165,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
 class COLLECTION_MT_context_menu(Menu):
     bl_label = "Collection Specials"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("object.collection_unlink", icon='X')

@@ -180,7 +180,7 @@ class NODE_MT_editor_menus(Menu):
     bl_idname = "NODE_MT_editor_menus"
     bl_label = ""
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.menu("NODE_MT_view")
         layout.menu("NODE_MT_select")
@@ -247,7 +247,7 @@ class NODE_MT_view(Menu):
 class NODE_MT_select(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("node.select_box").tweak = False
@@ -273,7 +273,7 @@ class NODE_MT_select(Menu):
 class NODE_MT_node(Menu):
     bl_label = "Node"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("transform.translate")
@@ -368,7 +368,7 @@ class NODE_PT_node_color_presets(PresetPanel, Panel):
 class NODE_MT_node_color_context_menu(Menu):
     bl_label = "Node Color Specials"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("node.node_copy_color", icon='COPY_ID')
@@ -460,7 +460,7 @@ class NODE_PT_active_node_color(Panel):
         node = context.active_node
         self.layout.prop(node, "use_custom_color", text="")
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         NODE_PT_node_color_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
@@ -612,7 +612,7 @@ class NODE_PT_quality(bpy.types.Panel):
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
         socket = item
         color = socket.draw_color(context)
 
@@ -660,7 +660,7 @@ class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
     # toolbar, but which may not necessarily be open
 
 
-def node_draw_tree_view(layout, context):
+def node_draw_tree_view(_layout, _context):
     pass
 
 

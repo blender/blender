@@ -90,7 +90,7 @@ class ViewLayerFreestyleEditorButtonsPanel(ViewLayerFreestyleButtonsPanel):
 
 
 class VIEWLAYER_UL_linesets(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, index):
         lineset = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(lineset, "name", text="", emboss=False, icon_value=icon)
@@ -103,7 +103,7 @@ class VIEWLAYER_UL_linesets(UIList):
 class RENDER_MT_lineset_context_menu(Menu):
     bl_label = "Lineset Specials"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("scene.freestyle_lineset_copy", icon='COPYDOWN')
         layout.operator("scene.freestyle_lineset_paste", icon='PASTEDOWN')
@@ -289,7 +289,7 @@ class VIEWLAYER_PT_freestyle_linestyle(ViewLayerFreestyleEditorButtonsPanel, Pan
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
         sub.operator("scene.freestyle_modifier_remove", icon='X', text="")
 
-    def draw_modifier_box_error(self, box, modifier, message):
+    def draw_modifier_box_error(self, box, _modifier, message):
         row = box.row()
         row.label(text=message, icon='ERROR')
 
@@ -514,7 +514,7 @@ class VIEWLAYER_PT_freestyle_linestyle(ViewLayerFreestyleEditorButtonsPanel, Pan
                     message = "Enable Face Smoothness to use this modifier"
                     self.draw_modifier_box_error(col.box(), modifier, message)
 
-    def draw_geometry_modifier(self, context, modifier):
+    def draw_geometry_modifier(self, _context, modifier):
         layout = self.layout
 
         col = layout.column(align=True)

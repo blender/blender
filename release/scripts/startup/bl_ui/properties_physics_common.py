@@ -35,7 +35,7 @@ class PhysicButtonsPanel:
         return (context.object) and context.engine in cls.COMPAT_ENGINES
 
 
-def physics_add(self, layout, md, name, type, typeicon, toggles):
+def physics_add(layout, md, name, type, _typeicon, toggles):
     row = layout.row(align=True)
     if md:
         row.context_pointer_set("modifier", md)
@@ -57,7 +57,7 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
         ).type = type
 
 
-def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
+def physics_add_special(layout, data, name, addop, removeop, _typeicon):
     row = layout.row(align=True)
     if data:
         row.operator(removeop, text=name, text_ctxt=i18n_contexts.default, icon='X')
@@ -89,23 +89,21 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
             col.operator("object.forcefield_toggle", text="Force Field", icon='X')
 
         if obj.type == 'MESH':
-            physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
-            physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
-            physics_add(
-                self, col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True
-            )
+            physics_add(col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
+            physics_add(col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
+            physics_add(col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True)
 
         col = flow.column()
 
         if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE', 'FONT'}:
-            physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
+            physics_add(col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
 
         if obj.type == 'MESH':
-            physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
-            physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
+            physics_add(col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
+            physics_add(col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
 
             physics_add_special(
-                self, col, obj.rigid_body, "Rigid Body",
+                col, obj.rigid_body, "Rigid Body",
                 "rigidbody.object_add",
                 "rigidbody.object_remove",
                 'MESH_ICOSPHERE'
@@ -113,7 +111,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
 
         # all types of objects can have rigid body constraint.
         physics_add_special(
-            self, col, obj.rigid_body_constraint, "Rigid Body Constraint",
+            col, obj.rigid_body_constraint, "Rigid Body Constraint",
             "rigidbody.constraint_add",
             "rigidbody.constraint_remove",
             'CONSTRAINT'
@@ -122,7 +120,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
 
 # cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc.
 
-def point_cache_ui(self, context, cache, enabled, cachetype):
+def point_cache_ui(self, cache, enabled, cachetype):
     layout = self.layout
     layout.use_property_split = True
 
@@ -243,7 +241,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
 
 
-def effector_weights_ui(self, context, weights, weight_type):
+def effector_weights_ui(self, weights, weight_type):
     layout = self.layout
     layout.use_property_split = True
 
@@ -280,7 +278,7 @@ def effector_weights_ui(self, context, weights, weight_type):
     col.prop(weights, "boid", slider=True)
 
 
-def basic_force_field_settings_ui(self, context, field):
+def basic_force_field_settings_ui(self, field):
     layout = self.layout
     layout.use_property_split = True
 
@@ -333,7 +331,7 @@ def basic_force_field_settings_ui(self, context, field):
     col.prop(field, "use_absorption")
 
 
-def basic_force_field_falloff_ui(self, context, field):
+def basic_force_field_falloff_ui(self, field):
     layout = self.layout
 
     if not field or field.type == 'NONE':

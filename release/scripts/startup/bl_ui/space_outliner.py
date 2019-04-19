@@ -100,7 +100,7 @@ class OUTLINER_MT_editor_menus(Menu):
 class OUTLINER_MT_context(Menu):
     bl_label = "Outliner"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("OUTLINER_MT_context_view")
@@ -113,7 +113,7 @@ class OUTLINER_MT_context(Menu):
 class OUTLINER_MT_context_view(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("outliner.show_active")
@@ -128,7 +128,7 @@ class OUTLINER_MT_context_view(Menu):
 class OUTLINER_MT_edit_datablocks(Menu):
     bl_label = "Edit"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("outliner.keyingset_add_selected")
@@ -160,7 +160,7 @@ class OUTLINER_MT_collection_view_layer(Menu):
 class OUTLINER_MT_collection_visibility(Menu):
     bl_label = "Visibility"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("outliner.collection_isolate", text="Isolate")

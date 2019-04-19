@@ -120,7 +120,7 @@ class IMAGE_MT_view(Menu):
 class IMAGE_MT_view_zoom(Menu):
     bl_label = "Fractional Zoom"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
@@ -139,7 +139,7 @@ class IMAGE_MT_view_zoom(Menu):
 class IMAGE_MT_select(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("uv.select_all", text="All").action = 'SELECT'
@@ -238,7 +238,7 @@ class IMAGE_MT_image(Menu):
 class IMAGE_MT_image_invert(Menu):
     bl_label = "Invert"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         props = layout.operator("image.invert", text="Invert Image Colors", icon='IMAGE_RGB')
@@ -257,7 +257,7 @@ class IMAGE_MT_image_invert(Menu):
 class IMAGE_MT_uvs_showhide(Menu):
     bl_label = "Show/Hide Faces"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("uv.reveal")
@@ -282,7 +282,7 @@ class IMAGE_MT_uvs_proportional(Menu):
 class IMAGE_MT_uvs_transform(Menu):
     bl_label = "Transform"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("transform.translate")
@@ -297,7 +297,7 @@ class IMAGE_MT_uvs_transform(Menu):
 class IMAGE_MT_uvs_snap(Menu):
     bl_label = "Snap"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'EXEC_REGION_WIN'
@@ -316,7 +316,7 @@ class IMAGE_MT_uvs_snap(Menu):
 class IMAGE_MT_uvs_mirror(Menu):
     bl_label = "Mirror"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mesh.faces_mirror_uv")
@@ -332,7 +332,7 @@ class IMAGE_MT_uvs_mirror(Menu):
 class IMAGE_MT_uvs_weldalign(Menu):
     bl_label = "Weld/Align"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("uv.weld")  # W, 1.
@@ -492,7 +492,7 @@ class IMAGE_MT_pivot_pie(Menu):
 class IMAGE_MT_uvs_snap_pie(Menu):
     bl_label = "Snap"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         pie = layout.menu_pie()
 
@@ -589,7 +589,7 @@ class IMAGE_HT_tool_header(Header):
 
 class _draw_tool_settings_context_mode:
     @staticmethod
-    def VIEW(context, layout, tool):
+    def VIEW(context, layout, _tool):
         tool_settings = context.tool_settings
         if tool_settings.use_uv_sculpt:
             if context.mode == 'EDIT_MESH':
@@ -897,7 +897,7 @@ class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
 
 
 class IMAGE_UL_render_slots(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         slot = item
         layout.prop(slot, "name", text="", emboss=False)
 

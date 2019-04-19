@@ -131,7 +131,7 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
             col.prop(field, "use_smoke_density")
         else:
             del flow
-            basic_force_field_settings_ui(self, context, field)
+            basic_force_field_settings_ui(self, field)
 
 
 class PHYSICS_PT_field_settings_kink(PhysicButtonsPanel, Panel):
@@ -212,7 +212,7 @@ class PHYSICS_PT_field_falloff(PhysicButtonsPanel, Panel):
 
         layout.prop(field, "falloff_type", text="Shape")
 
-        basic_force_field_falloff_ui(self, context, field)
+        basic_force_field_falloff_ui(self, field)
 
 
 class PHYSICS_PT_field_falloff_angular(PhysicButtonsPanel, Panel):

@@ -85,7 +85,7 @@ class TIME_MT_editor_menus(Menu):
     bl_idname = "TIME_MT_editor_menus"
     bl_label = ""
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         horizontal = (layout.direction == 'VERTICAL')
         if horizontal:

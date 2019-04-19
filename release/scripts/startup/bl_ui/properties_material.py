@@ -26,7 +26,7 @@ from bpy_extras.node_utils import find_node_input
 class MATERIAL_MT_context_menu(Menu):
     bl_label = "Material Specials"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("material.copy", icon='COPYDOWN')
@@ -36,7 +36,7 @@ class MATERIAL_MT_context_menu(Menu):
 
 class MATERIAL_UL_matslots(UIList):
 
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.MaterialSlot)
         # ob = data
         slot = item
@@ -145,7 +145,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             row.template_ID(space, "pin_id")
 
 
-def panel_node_draw(layout, ntree, output_type, input_name):
+def panel_node_draw(layout, ntree, _output_type, input_name):
     node = ntree.get_output_node('EEVEE')
 
     if node:

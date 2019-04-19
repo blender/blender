@@ -184,7 +184,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         CAMERA_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
@@ -450,7 +450,7 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
 
         self.layout.prop(cam, "show_safe_areas", text="")
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         SAFE_AREAS_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):

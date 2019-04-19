@@ -25,8 +25,8 @@ from bpy.types import Menu, UIList
 
 
 class MASK_UL_layers(UIList):
-    def draw_item(self, context, layout, data, item, icon,
-                  active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon,
+                  _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.MaskLayer)
         mask = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -246,7 +246,7 @@ class MASK_PT_transforms:
         space_data = context.space_data
         return space_data.mask and space_data.mode == 'MASK'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         col = layout.column(align=True)
@@ -260,7 +260,7 @@ class MASK_PT_transforms:
 class MASK_MT_add(Menu):
     bl_label = "Add"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
@@ -270,7 +270,7 @@ class MASK_MT_add(Menu):
 class MASK_MT_mask(Menu):
     bl_label = "Mask"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mask.delete")
@@ -299,7 +299,7 @@ class MASK_MT_mask(Menu):
 class MASK_MT_visibility(Menu):
     bl_label = "Show/Hide"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mask.hide_view_clear")
@@ -310,7 +310,7 @@ class MASK_MT_visibility(Menu):
 class MASK_MT_transform(Menu):
     bl_label = "Transform"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("transform.translate")
@@ -322,7 +322,7 @@ class MASK_MT_transform(Menu):
 class MASK_MT_animation(Menu):
     bl_label = "Animation"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mask.shape_key_clear")
@@ -334,7 +334,7 @@ class MASK_MT_animation(Menu):
 class MASK_MT_select(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("mask.select_all", text="All").action = 'SELECT'

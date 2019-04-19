@@ -120,7 +120,7 @@ def register():
     )
     from bpy.types import WindowManager
 
-    def addon_filter_items(self, context):
+    def addon_filter_items(_self, _context):
         import addon_utils
 
         items = [

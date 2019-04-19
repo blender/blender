@@ -540,7 +540,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
             col.separator()
 
         cache = domain.point_cache
-        point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
+        point_cache_ui(self, cache, (cache.is_baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
@@ -558,7 +558,7 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         domain = context.smoke.domain_settings
-        effector_weights_ui(self, context, domain.effector_weights, 'SMOKE')
+        effector_weights_ui(self, domain.effector_weights, 'SMOKE')
 
 
 class PHYSICS_PT_smoke_viewport_display(PhysicButtonsPanel, Panel):

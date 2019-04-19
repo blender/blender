@@ -30,7 +30,7 @@ from .properties_grease_pencil_common import (
 class GPENCIL_MT_color_context_menu(Menu):
     bl_label = "Layer"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("gpencil.color_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
@@ -46,7 +46,7 @@ class GPENCIL_MT_color_context_menu(Menu):
 
 
 class GPENCIL_UL_matslots(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         slot = item
         ma = slot.material
         if (ma is not None) and (ma.grease_pencil is not None):
@@ -104,10 +104,10 @@ class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, Panel):
 class MATERIAL_PT_gpencil_surface(GPMaterialButtonsPanel, Panel):
     bl_label = "Surface"
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         MATERIAL_PT_gpencil_material_presets.draw_panel_header(self.layout)
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.use_property_split = True
 

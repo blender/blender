@@ -152,7 +152,7 @@ class SEQUENCER_MT_editor_menus(Menu):
 class SEQUENCER_MT_view_toggle(Menu):
     bl_label = "View Type"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.view_toggle").type = 'SEQUENCER'
@@ -238,7 +238,7 @@ class SEQUENCER_MT_view(Menu):
 class SEQUENCER_MT_select(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.select_all", text="All").action = 'SELECT'
@@ -310,7 +310,7 @@ class SEQUENCER_MT_change(Menu):
 class SEQUENCER_MT_frame(Menu):
     bl_label = "Frame"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("anim.previewrange_clear")
@@ -400,7 +400,7 @@ class SEQUENCER_MT_add(Menu):
 class SEQUENCER_MT_add_empty(Menu):
     bl_label = "Empty"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.label(text="No Items Available")
@@ -461,7 +461,7 @@ class SEQUENCER_MT_add_effect(Menu):
 class SEQUENCER_MT_strip_transform(Menu):
     bl_label = "Transform"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("transform.transform", text="Move").mode = 'TRANSLATION'
@@ -502,7 +502,7 @@ class SEQUENCER_MT_strip_input(Menu):
 class SEQUENCER_MT_strip_lock_mute(Menu):
     bl_label = "Lock/Mute"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.lock", icon='LOCKED')

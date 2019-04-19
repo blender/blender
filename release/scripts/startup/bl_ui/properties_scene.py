@@ -33,7 +33,7 @@ from .properties_physics_common import (
 
 
 class SCENE_UL_keying_set_paths(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.KeyingSetPath)
         kspath = item
         icon = layout.enum_item_icon(kspath, "id_type", kspath.id_type)
@@ -408,7 +408,7 @@ class SCENE_PT_rigid_body_cache(RigidBodySubPanel, Panel):
         scene = context.scene
         rbw = scene.rigidbody_world
 
-        point_cache_ui(self, context, rbw.point_cache, rbw.point_cache.is_baked is False and rbw.enabled, 'RIGID_BODY')
+        point_cache_ui(self, rbw.point_cache, rbw.point_cache.is_baked is False and rbw.enabled, 'RIGID_BODY')
 
 
 class SCENE_PT_rigid_body_field_weights(RigidBodySubPanel, Panel):
@@ -420,7 +420,7 @@ class SCENE_PT_rigid_body_field_weights(RigidBodySubPanel, Panel):
         scene = context.scene
         rbw = scene.rigidbody_world
 
-        effector_weights_ui(self, context, rbw.effector_weights, 'RIGID_BODY')
+        effector_weights_ui(self, rbw.effector_weights, 'RIGID_BODY')
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

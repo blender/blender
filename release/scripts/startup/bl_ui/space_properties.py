@@ -23,7 +23,7 @@ from bpy.types import Header, Panel
 class PROPERTIES_HT_header(Header):
     bl_space_type = 'PROPERTIES'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         row = layout.row()

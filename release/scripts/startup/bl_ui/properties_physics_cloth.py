@@ -55,7 +55,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
     bl_label = "Cloth"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
-    def draw_header_preset(self, context):
+    def draw_header_preset(self, _context):
         CLOTH_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
@@ -169,7 +169,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         md = context.cloth
-        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
+        point_cache_ui(self, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
 class PHYSICS_PT_cloth_shape(PhysicButtonsPanel, Panel):
@@ -373,7 +373,7 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         cloth = context.cloth.settings
-        effector_weights_ui(self, context, cloth.effector_weights, 'CLOTH')
+        effector_weights_ui(self, cloth.effector_weights, 'CLOTH')
 
 
 classes = (

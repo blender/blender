@@ -39,7 +39,7 @@ class TEXTURE_MT_context_menu(Menu):
     bl_label = "Texture Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("texture.slot_copy", icon='COPYDOWN')
@@ -48,7 +48,7 @@ class TEXTURE_MT_context_menu(Menu):
 
 class TEXTURE_UL_texslots(UIList):
 
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         slot = item
         tex = slot.texture if slot else None
 
@@ -357,7 +357,7 @@ class TEXTURE_PT_image(TextureTypePanel, Panel):
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
-    def draw(self, context):
+    def draw(self, _context):
         # TODO: maybe expose the template_ID from the template image here.
         layout = self.layout
         del layout
