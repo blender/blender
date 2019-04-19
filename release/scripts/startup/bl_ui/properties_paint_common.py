@@ -136,7 +136,7 @@ def brush_texpaint_common(panel, context, layout, brush, _settings, projpaint=Fa
         brush_basic_texpaint_settings(col, context, brush)
 
 
-def brush_texpaint_common_clone(_panel, context, layout, _brush, settings, _projpaint=False):
+def brush_texpaint_common_clone(_panel, context, layout, _brush, settings, projpaint=False):
     ob = context.active_object
     col = layout.column()
 
@@ -164,7 +164,7 @@ def brush_texpaint_common_clone(_panel, context, layout, _brush, settings, _proj
         col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
 
 
-def brush_texpaint_common_color(_panel, context, layout, brush, _settings, _projpaint=False):
+def brush_texpaint_common_color(_panel, context, layout, brush, _settings, projpaint=False):
     UnifiedPaintPanel.prop_unified_color_picker(layout, context, brush, "color", value_slider=True)
 
     row = layout.row(align=True)
@@ -174,7 +174,7 @@ def brush_texpaint_common_color(_panel, context, layout, brush, _settings, _proj
     row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False)
 
 
-def brush_texpaint_common_gradient(_panel, context, layout, brush, _settings, _projpaint=False):
+def brush_texpaint_common_gradient(_panel, context, layout, brush, _settings, projpaint=False):
     layout.template_color_ramp(brush, "gradient", expand=True)
 
     layout.use_property_split = True
@@ -369,7 +369,7 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
         layout.row().prop(brush, "direction", expand=True, **({"text": ""} if compact else {}))
 
 
-def brush_basic_gpencil_paint_settings(layout, _context, brush, *, _compact=True):
+def brush_basic_gpencil_paint_settings(layout, _context, brush, *, compact=True):
     gp_settings = brush.gpencil_settings
 
     # Brush details
@@ -443,7 +443,7 @@ def brush_basic_gpencil_sculpt_settings(layout, context, brush, *, compact=False
         layout.use_property_split = use_property_split_prev
 
 
-def brush_basic_gpencil_weight_settings(layout, _context, brush, *, _compact=False):
+def brush_basic_gpencil_weight_settings(layout, _context, brush, *, compact=False):
     layout.prop(brush, "size", slider=True)
 
     row = layout.row(align=True)
