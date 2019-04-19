@@ -165,8 +165,6 @@ def brush_texpaint_common_clone(_panel, context, layout, _brush, settings, _proj
 
 
 def brush_texpaint_common_color(_panel, context, layout, brush, _settings, _projpaint=False):
-    capabilities = brush.image_paint_capabilities
-
     UnifiedPaintPanel.prop_unified_color_picker(layout, context, brush, "color", value_slider=True)
 
     row = layout.row(align=True)
@@ -344,7 +342,6 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
 def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     tool_settings = context.tool_settings
     capabilities = brush.sculpt_capabilities
-    settings = tool_settings.gpencil_sculpt
 
     row = layout.row(align=True)
 

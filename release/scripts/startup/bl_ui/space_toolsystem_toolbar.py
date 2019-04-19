@@ -32,7 +32,6 @@ from .space_toolsystem_common import (
     ToolDef,
 )
 
-from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import pgettext_tip as tip_
 
 

@@ -44,10 +44,8 @@ class VIEW3D_HT_tool_header(Header):
         layout.row(align=True).template_header()
 
         view = context.space_data
-        shading = view.shading
         # mode_string = context.mode
         obj = context.active_object
-        overlay = view.overlay
         tool_settings = context.tool_settings
 
         object_mode = 'OBJECT' if obj is None else obj.mode
@@ -5130,7 +5128,6 @@ class VIEW3D_PT_gizmo_display(Panel):
 
         scene = context.scene
         view = context.space_data
-        overlay = view.overlay
 
         col = layout.column()
         col.label(text="Viewport Gizmos")
