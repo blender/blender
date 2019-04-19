@@ -975,7 +975,7 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
         settings = context.tool_settings.image_paint
         brush = settings.brush
 
-        layout.active = brush.use_gradient == False
+        layout.active = not brush.use_gradient
 
         brush_texpaint_common_color(self, context, layout, brush, settings, True)
 

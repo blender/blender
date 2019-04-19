@@ -43,7 +43,6 @@ class VIEW3D_HT_tool_header(Header):
 
         layout.row(align=True).template_header()
 
-        view = context.space_data
         # mode_string = context.mode
         obj = context.active_object
         tool_settings = context.tool_settings

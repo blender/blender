@@ -309,7 +309,7 @@ class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
             col = layout.column()
             col.prop(ob, "instance_collection", text="Collection")
 
-        if ob.instance_type != 'NONE' or len(ob.particle_systems):
+        if ob.instance_type != 'NONE' or ob.particle_systems:
             col = flow.column(align=True)
             col.prop(ob, "show_instancer_for_viewport")
             col.prop(ob, "show_instancer_for_render")

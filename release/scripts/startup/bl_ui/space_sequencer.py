@@ -658,7 +658,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         row.label(text=iface_("Final Length: %s") % bpy.utils.smpte_from_frame(strip.frame_final_duration),
                   translate=False)
         row = col.row(align=True)
-        row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_duration)
+        row.active = strip.frame_start <= frame_current <= strip.frame_start + strip.frame_duration
         row.label(text=iface_("Playhead: %d") % (frame_current - strip.frame_start), translate=False)
 
         col.label(text=iface_("Frame Offset %d:%d") % (strip.frame_offset_start, strip.frame_offset_end),

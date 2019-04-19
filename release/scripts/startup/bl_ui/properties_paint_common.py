@@ -365,7 +365,7 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
         UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
 
     # direction
-    if capabilities.has_direction == False:
+    if not capabilities.has_direction:
         layout.row().prop(brush, "direction", expand=True, **({"text": ""} if compact else {}))
 
 

@@ -404,7 +404,7 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        layout.active = brush.use_gradient == False
+        layout.active = not brush.use_gradient
 
         brush_texpaint_common_color(self, context, layout, brush, settings, True)
 

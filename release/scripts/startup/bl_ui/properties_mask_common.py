@@ -199,8 +199,8 @@ class MASK_PT_point:
             tracks_list = "tracks" if parent.type == 'POINT_TRACK' else "plane_tracks"
 
             if parent.parent in tracking.objects:
-                object = tracking.objects[parent.parent]
-                col.prop_search(parent, "sub_parent", object,
+                ob = tracking.objects[parent.parent]
+                col.prop_search(parent, "sub_parent", ob,
                                 tracks_list, icon='ANIM_DATA', text="Track")
             else:
                 col.prop_search(parent, "sub_parent", tracking,

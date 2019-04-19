@@ -488,7 +488,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):
         if psys.settings.is_fluid:
             return False
         phystype = psys.settings.physics_type
-        if phystype == 'NO' or phystype == 'KEYED':
+        if phystype in {'NO', 'KEYED'}:
             return False
         return (
             psys.settings.type in {'EMITTER', 'REACTOR'} or (
@@ -691,10 +691,7 @@ class PARTICLE_PT_physics_fluid_advanced(ParticleButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         part = particle_get_settings(context)
-        if part.physics_type == 'FLUID':
-            return True
-        else:
-            return False
+        return part.physics_type == 'FLUID'
 
     def draw(self, context):
         layout = self.layout
@@ -740,10 +737,7 @@ class PARTICLE_PT_physics_fluid_springs(ParticleButtonsPanel, Panel):
     def poll(cls, context):
         part = particle_get_settings(context)
         fluid = part.fluid
-        if part.physics_type == 'FLUID' and fluid.solver == 'DDR':
-            return True
-        else:
-            return False
+        return part.physics_type == 'FLUID' and fluid.solver == 'DDR'
 
     def draw(self, context):
         layout = self.layout
@@ -767,10 +761,7 @@ class PARTICLE_PT_physics_fluid_springs_viscoelastic(ParticleButtonsPanel, Panel
     def poll(cls, context):
         part = particle_get_settings(context)
         fluid = part.fluid
-        if part.physics_type == 'FLUID' and fluid.solver == 'DDR':
-            return True
-        else:
-            return False
+        return part.physics_type == 'FLUID' and fluid.solver == 'DDR'
 
     def draw_header(self, context):
         part = particle_get_settings(context)
@@ -806,10 +797,7 @@ class PARTICLE_PT_physics_fluid_springs_advanced(ParticleButtonsPanel, Panel):
     def poll(cls, context):
         part = particle_get_settings(context)
         fluid = part.fluid
-        if part.physics_type == 'FLUID' and fluid.solver == 'DDR':
-            return True
-        else:
-            return False
+        return part.physics_type == 'FLUID' and fluid.solver == 'DDR'
 
     def draw(self, context):
         layout = self.layout
