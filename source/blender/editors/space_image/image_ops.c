@@ -3269,7 +3269,6 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
   // XXX scene->nodetree->test_break = NULL;
 
   BKE_image_all_free_anim_ibufs(scene->r.cfra);
-  ntreeCompositTagAnimated(scene->nodetree);
   ntreeCompositExecTree(scene->nodetree,
                         &scene->r,
                         0,

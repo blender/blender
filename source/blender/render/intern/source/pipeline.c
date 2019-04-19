@@ -1445,7 +1445,6 @@ static void do_render_composite(Render *re)
 
     if (ntree) {
       ntreeCompositTagRender(re->scene);
-      ntreeCompositTagAnimated(ntree);
     }
 
     if (ntree && re->scene->use_nodes && re->r.scemode & R_DOCOMP) {

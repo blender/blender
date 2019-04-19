@@ -1144,7 +1144,6 @@ void ntreeCompositExecTree(struct Scene *scene,
                            const struct ColorManagedDisplaySettings *display_settings,
                            const char *view_name);
 void ntreeCompositTagRender(struct Scene *sce);
-int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
 void ntreeCompositRegisterPass(struct bNodeTree *ntree,

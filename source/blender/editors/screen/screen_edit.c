@@ -1447,10 +1447,6 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 
   /* this function applies the changes too */
   BKE_scene_graph_update_for_newframe(depsgraph, bmain);
-
-  /* composite */
-  if (scene->use_nodes && scene->nodetree)
-    ntreeCompositTagAnimated(scene->nodetree);
 }
 
 /*
