@@ -30,6 +30,7 @@ class TIME_HT_editor_buttons(Header):
     def draw(self, context):
         pass
 
+    @staticmethod
     def draw_header(context, layout):
         scene = context.scene
         tool_settings = context.tool_settings

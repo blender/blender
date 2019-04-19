@@ -33,6 +33,7 @@ class PhysicButtonsPanel:
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
+    @staticmethod
     def poll_smoke(context):
         ob = context.object
         if not ((ob and ob.type == 'MESH') and (context.smoke)):
@@ -41,6 +42,7 @@ class PhysicButtonsPanel:
         md = context.smoke
         return md and (context.smoke.smoke_type != 'NONE') and (bpy.app.build_options.mod_smoke)
 
+    @staticmethod
     def poll_smoke_domain(context):
         if not PhysicButtonsPanel.poll_smoke(context):
             return False

@@ -38,6 +38,7 @@ class PhysicButtonsPanel:
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
+    @staticmethod
     def poll_fluid(context):
         ob = context.object
         if not ((ob and ob.type == 'MESH') and (context.fluid)):
@@ -45,6 +46,7 @@ class PhysicButtonsPanel:
 
         return (bpy.app.build_options.mod_fluid)
 
+    @staticmethod
     def poll_fluid_settings(context):
         if not (PhysicButtonsPanel.poll_fluid(context)):
             return False
@@ -52,6 +54,7 @@ class PhysicButtonsPanel:
         md = context.fluid
         return md and md.settings and (md.settings.type != 'NONE')
 
+    @staticmethod
     def poll_fluid_domain(context):
         if not PhysicButtonsPanel.poll_fluid(context):
             return False

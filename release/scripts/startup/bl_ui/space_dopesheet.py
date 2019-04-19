@@ -236,6 +236,7 @@ class DOPESHEET_HT_editor_buttons(Header):
     def draw(self, context):
         pass
 
+    @staticmethod
     def draw_header(context, layout):
         st = context.space_data
         tool_settings = context.tool_settings

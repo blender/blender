@@ -32,10 +32,12 @@ class PhysicButtonsPanel:
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
+    @staticmethod
     def poll_force_field(context):
         ob = context.object
         return (ob and (ob.field) and (ob.field.type != 'NONE'))
 
+    @staticmethod
     def poll_collision(context):
         ob = context.object
         return (ob and ob.type == 'MESH') and (context.collision)

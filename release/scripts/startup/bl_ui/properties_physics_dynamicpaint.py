@@ -62,10 +62,12 @@ class PhysicButtonsPanel:
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
+    @staticmethod
     def poll_dyn_paint(context):
         ob = context.object
         return (ob and ob.type == 'MESH') and context.dynamic_paint
 
+    @staticmethod
     def poll_dyn_canvas(context):
         if not PhysicButtonsPanel.poll_dyn_paint(context):
             return False
@@ -73,6 +75,7 @@ class PhysicButtonsPanel:
         md = context.dynamic_paint
         return (md and md.ui_type == 'CANVAS' and md.canvas_settings and md.canvas_settings.canvas_surfaces.active)
 
+    @staticmethod
     def poll_dyn_canvas_paint(context):
         if not PhysicButtonsPanel.poll_dyn_canvas(context):
             return False
@@ -80,6 +83,7 @@ class PhysicButtonsPanel:
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return (surface.surface_type == 'PAINT')
 
+    @staticmethod
     def poll_dyn_canvas_brush(context):
         if not PhysicButtonsPanel.poll_dyn_paint(context):
             return False
@@ -87,6 +91,7 @@ class PhysicButtonsPanel:
         md = context.dynamic_paint
         return (md and md.ui_type == 'BRUSH' and md.brush_settings)
 
+    @staticmethod
     def poll_dyn_output(context):
         if not PhysicButtonsPanel.poll_dyn_canvas(context):
             return False
@@ -94,6 +99,7 @@ class PhysicButtonsPanel:
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return (not (surface.surface_format == 'VERTEX' and (surface.surface_type in {'DISPLACE', 'WAVE'})))
 
+    @staticmethod
     def poll_dyn_output_maps(context):
         if not PhysicButtonsPanel.poll_dyn_output(context):
             return False

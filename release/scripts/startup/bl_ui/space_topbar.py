@@ -260,6 +260,7 @@ class TOPBAR_MT_file_new(Menu):
 
         return sorted(app_templates)
 
+    @staticmethod
     def draw_ex(layout, _context, *, use_splash=False, use_more=False):
         layout.operator_context = 'EXEC_DEFAULT'
 
@@ -639,7 +640,6 @@ class TOPBAR_PT_gpencil_fill(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Advanced"
 
-    @staticmethod
     def draw(self, context):
         paint = context.tool_settings.gpencil_paint
         brush = paint.brush

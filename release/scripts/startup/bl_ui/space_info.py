@@ -28,7 +28,6 @@ class INFO_HT_header(Header):
         layout.template_header()
 
         # Empty for now until info editor gets turned into log editor
-        pass
 
 
 # Not really info, just add to re-usable location.
