@@ -1470,10 +1470,7 @@ static void outliner_make_object_parent_hierarchy(ListBase *lb)
         BLI_remlink(lb, te);
         tep = (TreeElement *)ob->parent->id.newid;
         BLI_addtail(&tep->subtree, te);
-        // set correct parent pointers
-        for (te = tep->subtree.first; te; te = te->next) {
-          te->parent = tep;
-        }
+        te->parent = tep;
       }
     }
     te = ten;
