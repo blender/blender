@@ -5082,10 +5082,6 @@ class VIEW3D_PT_shading_options_shadow(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
 
-    @classmethod
-    def poll(cls, _context):
-        return True
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -5101,10 +5097,6 @@ class VIEW3D_PT_shading_options_ssao(Panel):
     bl_label = "SSAO Settings"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-
-    @classmethod
-    def poll(cls, _context):
-        return True
 
     def draw(self, context):
         layout = self.layout

@@ -663,10 +663,6 @@ class TOPBAR_PT_name(Panel):
     bl_label = "Rename Active Item"
     bl_ui_units_x = 14
 
-    @classmethod
-    def poll(cls, _context):
-        return True
-
     def draw(self, context):
         layout = self.layout
 

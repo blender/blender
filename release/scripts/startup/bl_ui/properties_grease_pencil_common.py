@@ -84,10 +84,6 @@ class AnnotationDrawingToolsPanel:
     bl_category = "Annotation"
     bl_region_type = 'TOOLS'
 
-    @classmethod
-    def poll(cls, _context):
-        return True
-
     def draw(self, context):
         layout = self.layout
 
