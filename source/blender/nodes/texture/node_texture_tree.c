@@ -175,28 +175,6 @@ void register_node_tree_type_tex(void)
   ntreeTypeAdd(tt);
 }
 
-int ntreeTexTagAnimated(bNodeTree *ntree)
-{
-  bNode *node;
-
-  if (ntree == NULL)
-    return 0;
-
-  for (node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == TEX_NODE_CURVE_TIME) {
-      nodeUpdate(ntree, node);
-      return 1;
-    }
-    else if (node->type == NODE_GROUP) {
-      if (ntreeTexTagAnimated((bNodeTree *)node->id)) {
-        return 1;
-      }
-    }
-  }
-
-  return 0;
-}
-
 bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
                                               bNodeTree *ntree,
                                               bNodeInstanceKey parent_key)

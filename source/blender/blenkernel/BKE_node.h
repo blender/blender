@@ -1220,7 +1220,6 @@ struct TexResult;
 #define TEX_NODE_PROC_MAX 600
 
 /* API */
-int ntreeTexTagAnimated(struct bNodeTree *ntree);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 
 struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
