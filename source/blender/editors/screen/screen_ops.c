@@ -3810,12 +3810,21 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, sa->spacedata.first, &ptr);
     uiItemR(layout, &ptr, "show_region_header", 0, IFACE_("Show Header"), ICON_NONE);
+
+    ARegion *ar_header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+    uiLayout *col = uiLayoutColumn(layout, 0);
+    uiLayoutSetActive(col, (ar_header->flag & RGN_FLAG_HIDDEN) == 0);
+
     if (BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER)) {
-      ARegion *ar_header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
-      uiLayoutSetActive(layout, (ar_header->flag & RGN_FLAG_HIDDEN) == 0);
-      uiItemR(layout, &ptr, "show_region_tool_header", 0, IFACE_("Show Tool Settings"), ICON_NONE);
-      uiLayoutSetActive(layout, true);
+      uiItemR(col, &ptr, "show_region_tool_header", 0, IFACE_("Show Tool Settings"), ICON_NONE);
     }
+
+    uiItemO(col,
+            IFACE_("Show Menus"),
+            (sa->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT,
+            "SCREEN_OT_header_toggle_menus");
+
+    uiItemS(layout);
   }
 
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
@@ -3824,11 +3833,6 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
   if (!ELEM(sa->spacetype, SPACE_TOPBAR)) {
     uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
   }
-
-  uiItemO(layout,
-          IFACE_("Collapse Menus"),
-          (sa->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
-          "SCREEN_OT_header_toggle_menus");
 
   /* File browser should be fullscreen all the time, top-bar should
    * never be. But other regions can be maximized/restored. */
