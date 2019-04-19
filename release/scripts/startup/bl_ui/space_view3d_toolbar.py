@@ -476,7 +476,7 @@ class VIEW3D_PT_tools_brush_clone(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        settings = self.paint_settings(context)
+        settings = cls.paint_settings(context)
         brush = settings.brush
 
         return brush.image_tool == 'CLONE'
