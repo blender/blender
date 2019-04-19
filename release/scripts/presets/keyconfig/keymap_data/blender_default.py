@@ -472,7 +472,11 @@ def km_screen(params):
         ("render.play_rendered_anim", {"type": 'F11', "value": 'PRESS', "ctrl": True}, None),
     ])
 
-    if params.legacy:
+    if not params.legacy:
+        items.extend([
+            ("screen.redo_last", {"type": 'F9', "value": 'PRESS'}, None),
+        ])
+    else:
         # Old keymap
         items.extend([
             ("ed.undo_history", {"type": 'Z', "value": 'PRESS', "ctrl": True, "alt": True}, None),
