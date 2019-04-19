@@ -64,7 +64,7 @@ class RenderButtonsPanel():
     bl_context = "render"
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return context.engine == 'CYCLES'
 
 

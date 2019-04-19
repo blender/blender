@@ -187,7 +187,7 @@ class AddObjectHelper:
     )
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return context.scene.library is None
 
 

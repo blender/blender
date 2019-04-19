@@ -185,7 +185,7 @@ class CYCLES_RENDER_PT_sampling_sub_samples(CyclesButtonsPanel, Panel):
     bl_parent_id = "CYCLES_RENDER_PT_sampling"
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         scene = context.scene
         cscene = scene.cycles
         return cscene.progressive != 'PATH' and use_branched_path(context)
@@ -256,7 +256,7 @@ class CYCLES_RENDER_PT_sampling_total(CyclesButtonsPanel, Panel):
     bl_parent_id = "CYCLES_RENDER_PT_sampling"
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         scene = context.scene
         cscene = scene.cycles
 
@@ -312,7 +312,7 @@ class CYCLES_RENDER_PT_subdivision(CyclesButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return (context.scene.render.engine == 'CYCLES') and (context.scene.cycles.feature_set == 'EXPERIMENTAL')
 
     def draw(self, context):

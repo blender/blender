@@ -313,7 +313,7 @@ class RENDER_PT_output_views(RenderOutputButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         rd = context.scene.render
         return rd.use_multiview
 

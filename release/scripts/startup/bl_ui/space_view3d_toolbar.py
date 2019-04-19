@@ -389,8 +389,8 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     bl_label = "Color Picker"
 
     @classmethod
-    def poll(self, context):
-        settings = self.paint_settings(context)
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         brush = settings.brush
         if context.image_paint_object:
             capabilities = brush.image_paint_capabilities
@@ -417,8 +417,8 @@ class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
-        settings = self.paint_settings(context)
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         brush = settings.brush
         if context.image_paint_object:
             capabilities = brush.image_paint_capabilities
@@ -444,8 +444,8 @@ class VIEW3D_PT_tools_brush_gradient(Panel, View3DPaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
-        settings = self.paint_settings(context)
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         brush = settings.brush
         capabilities = brush.image_paint_capabilities
 
@@ -475,7 +475,7 @@ class VIEW3D_PT_tools_brush_clone(Panel, View3DPaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         settings = self.paint_settings(context)
         brush = settings.brush
 

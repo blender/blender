@@ -963,7 +963,7 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
     bl_label = "Color Picker"
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
         capabilities = brush.image_paint_capabilities
@@ -987,7 +987,7 @@ class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
         capabilities = brush.image_paint_capabilities
@@ -1010,7 +1010,7 @@ class IMAGE_PT_paint_gradient(Panel, ImagePaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
         capabilities = brush.image_paint_capabilities
@@ -1041,7 +1041,7 @@ class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
 
@@ -1068,7 +1068,7 @@ class IMAGE_PT_paint_options(Panel, ImagePaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
         capabilities = brush.image_paint_capabilities
