@@ -2864,8 +2864,10 @@ RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, con
 RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const char *viewname)
 {
 #define CHECK_PASS(NAME) \
-  if (passtype == SCE_PASS_##NAME) \
-    return RE_pass_find_by_name(rl, RE_PASSNAME_##NAME, viewname);
+  if (passtype == SCE_PASS_##NAME) { \
+    return RE_pass_find_by_name(rl, RE_PASSNAME_##NAME, viewname); \
+  } \
+  ((void)0)
 
   CHECK_PASS(COMBINED);
   CHECK_PASS(Z);

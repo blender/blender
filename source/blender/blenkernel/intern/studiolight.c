@@ -129,12 +129,13 @@ static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
 static void studiolight_free(struct StudioLight *sl)
 {
 #define STUDIOLIGHT_DELETE_ICON(s) \
-  { \
+  do { \
     if (s != 0) { \
       BKE_icon_delete(s); \
       s = 0; \
     } \
-  }
+  } while (0)
+
   if (sl->free_function) {
     sl->free_function(sl, sl->free_function_data);
   }

@@ -335,7 +335,7 @@ void DepsgraphNodeBuilder::begin_build()
     entry_tag.name = op_node->name;
     entry_tag.name_tag = op_node->name_tag;
     saved_entry_tags_.push_back(entry_tag);
-  };
+  }
   GSET_FOREACH_END();
 
   /* Make sure graph has no nodes left from previous state. */

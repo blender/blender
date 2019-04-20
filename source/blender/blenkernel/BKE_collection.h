@@ -180,7 +180,8 @@ typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
 #define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END \
   } \
   } \
-  }
+  } \
+  ((void)0)
 
 #define FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(_collection, _object) \
   for (Base *_base = (Base *)BKE_collection_object_cache_get(_collection).first; _base; \

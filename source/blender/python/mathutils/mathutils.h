@@ -32,8 +32,8 @@ extern char BaseMathObject_is_frozen_doc[];
 extern char BaseMathObject_owner_doc[];
 
 #define BASE_MATH_NEW(struct_name, root_type, base_type) \
-  (struct_name *)((base_type ? (base_type)->tp_alloc(base_type, 0) : \
-                               _PyObject_GC_New(&(root_type))));
+  ((struct_name *)((base_type ? (base_type)->tp_alloc(base_type, 0) : \
+                                _PyObject_GC_New(&(root_type)))))
 
 /** BaseMathObject.flag */
 enum {

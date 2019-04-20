@@ -31,7 +31,8 @@
       texres->tin = 0.0f; \
     else if (texres->tin > 1.0f) \
       texres->tin = 1.0f; \
-  }
+  } \
+  ((void)0)
 
 #define BRICONTRGB \
   texres->tr = tex->rfac * ((texres->tr - 0.5f) * tex->contrast + tex->bright - 0.5f); \
@@ -58,7 +59,8 @@
       if (texres->tb < 0.0f) \
         texres->tb = 0.0f; \
     } \
-  }
+  } \
+  ((void)0)
 
 struct ImBuf;
 struct Image;

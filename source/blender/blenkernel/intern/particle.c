@@ -3143,7 +3143,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph,
   iter_data.use_weight = use_weight;
 
   if (use_weight) {
-    ; /* use weight painting colors now... */
+    /* use weight painting colors now... */
   }
   else {
     iter_data.sel_col[0] = (float)edit->sel_col[0] / 255.0f;

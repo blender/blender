@@ -395,7 +395,7 @@ typedef struct ProjPaintState {
    * helps as an extra validation step for seam detection. */
   char *faceWindingFlags;
   /** expanded UVs for faces to use as seams. */
-  LoopSeamData(*loopSeamData);
+  LoopSeamData *loopSeamData;
   /** Only needed for when seam_bleed_px is enabled, use to find UV seams. */
   LinkNode **vertFaces;
   /** Seams per vert, to find adjacent seams. */

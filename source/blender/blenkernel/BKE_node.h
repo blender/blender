@@ -491,7 +491,8 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype);
 #define NODE_SOCKET_TYPES_END \
   } \
   BLI_ghashIterator_free(__node_socket_type_iter__); \
-  }
+  } \
+  ((void)0)
 
 struct bNodeSocket *nodeFindSocket(struct bNode *node, int in_out, const char *identifier);
 struct bNodeSocket *nodeAddSocket(struct bNodeTree *ntree,

@@ -465,7 +465,7 @@ static int add_name(const char *str)
     }
     else if (str[j] == ')') {
       DEBUG_PRINTF(3, "offsetting for brace\n");
-      ; /* don't get extra offset */
+      /* don't get extra offset */
     }
     else {
       printf("Error during tokening function pointer argument list\n");

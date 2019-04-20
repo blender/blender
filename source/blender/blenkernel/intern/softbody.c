@@ -3515,7 +3515,7 @@ void sbObjectStep(struct Depsgraph *depsgraph,
     return;
   }
   else if (cache_result == PTCACHE_READ_OLD) {
-    ; /* do nothing */
+    /* pass */
   }
   else if (/*ob->id.lib || */ (
       cache->flag &

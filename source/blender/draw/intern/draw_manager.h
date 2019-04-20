@@ -56,7 +56,9 @@
 
 #  define PROFILE_TIMER_FALLOFF 0.04
 
-#  define PROFILE_START(time_start) double time_start = PIL_check_seconds_timer();
+#  define PROFILE_START(time_start) \
+    double time_start = PIL_check_seconds_timer(); \
+    ((void)0)
 
 #  define PROFILE_END_ACCUM(time_accum, time_start) \
     { \

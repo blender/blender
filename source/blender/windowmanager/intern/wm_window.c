@@ -364,6 +364,7 @@ static void wm_block_confirm_quit_cancel(bContext *C, void *arg_block, void *UNU
 }
 
 /** Discard the file changes and quit */
+ATTR_NORETURN
 static void wm_block_confirm_quit_discard(bContext *C, void *arg_block, void *UNUSED(arg))
 {
   wmWindow *win = CTX_wm_window(C);
