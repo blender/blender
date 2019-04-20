@@ -2541,6 +2541,9 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
     return *p_path_nec;
   }
 
+  /* Cache NULL result for now. */
+  *p_path_nec = NULL;
+
   /* Resolve the property and look it up in the key hash. */
   NlaEvalChannelKey key;
 
@@ -2553,8 +2556,11 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
                 path);
     }
 
-    /* Cache NULL result. */
-    *p_path_nec = NULL;
+    return NULL;
+  }
+
+  /* Check that the property can be animated. */
+  if (ptr->id.data != NULL && !RNA_property_animateable(&key.ptr, key.prop)) {
     return NULL;
   }
 
