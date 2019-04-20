@@ -740,6 +740,7 @@ classes = (
     TOPBAR_PT_gpencil_layers,
     TOPBAR_PT_gpencil_primitive,
     TOPBAR_PT_gpencil_fill,
+    TOPBAR_PT_name,
 )
 
 if __name__ == "__main__":  # only for live edit.
