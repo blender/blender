@@ -15,8 +15,12 @@ extern "C" {
 }
 
 /* Using http://corpora.uni-leipzig.de/downloads/eng_wikipedia_2010_1M-text.tar.gz
- * (1 million of words, about 122MB of text) from http://corpora.informatik.uni-leipzig.de/download.html */
-//#define TEXT_CORPUS_PATH "/path/to/Téléchargements/eng_wikipedia_2010_1M-text/eng_wikipedia_2010_1M-sentences.txt"
+ * (1 million of words, about 122MB of text) from
+ * http://corpora.informatik.uni-leipzig.de/download.html */
+#if 0
+#  define TEXT_CORPUS_PATH \
+    "/path/to/Téléchargements/eng_wikipedia_2010_1M-text/eng_wikipedia_2010_1M-sentences.txt"
+#endif
 
 /* Resizing the hash has a huge cost over global filling operation! */
 //#define GHASH_RESERVE
@@ -459,7 +463,8 @@ TEST(ghash, Int4Murmur2a20000000)
 }
 #endif
 
-/* MultiSmall: create and manipulate a lot of very small ghashes (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
+/* MultiSmall: create and manipulate a lot of very small ghashes
+ * (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
 
 static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned int nbr)
 {

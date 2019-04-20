@@ -33,8 +33,8 @@ extern "C" {
   } \
   void(0)
 
-/* Note: for pure-ghash testing, nature of the keys and data have absolutely no importance! So here we just use mere
- *       random integers stored in pointers. */
+/* Note: for pure-ghash testing, nature of the keys and data have absolutely no importance! So here
+ * we just use mere random integers stored in pointers. */
 
 static void init_keys(unsigned int keys[TESTCASE_SIZE], const int seed)
 {
@@ -58,7 +58,8 @@ static void init_keys(unsigned int keys[TESTCASE_SIZE], const int seed)
   BLI_rng_free(rng);
 }
 
-/* Here we simply insert and then lookup all keys, ensuring we do get back the expected stored 'data'. */
+/* Here we simply insert and then lookup all keys, ensuring we do get back the expected stored
+ * 'data'. */
 TEST(ghash, InsertLookup)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
@@ -81,7 +82,8 @@ TEST(ghash, InsertLookup)
   BLI_ghash_free(ghash, NULL, NULL);
 }
 
-/* Here we simply insert and then remove all keys, ensuring we do get an empty, unshrinked ghash. */
+/* Here we simply insert and then remove all keys, ensuring we do get an empty, unshrinked ghash.
+ */
 TEST(ghash, InsertRemove)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);

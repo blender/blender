@@ -633,8 +633,8 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   BLI_argsPrintArgDoc(ba, "--");
 
-  //printf("\n");
-  //printf("Experimental Features:\n");
+  // printf("\n");
+  // printf("Experimental Features:\n");
 
   /* Other options _must_ be last (anything not handled will show here) */
   printf("\n");
@@ -1944,7 +1944,7 @@ void main_args_setup(bContext *C, bArgs *ba)
 #  define CB(a) a##_doc, a
 #  define CB_EX(a, b) a##_doc_##b, a
 
-  //BLI_argsAdd(ba, pass, short_arg, long_arg, doc, cb, C);
+  // BLI_argsAdd(ba, pass, short_arg, long_arg, doc, cb, C);
 
   /* end argument processing after -- */
   BLI_argsAdd(ba, -1, "--", NULL, CB(arg_handle_arguments_end), NULL);

@@ -320,7 +320,8 @@ TEST(string, StrPartitionExUtf8)
   {
     const char *str = "ma\xc3\xb1te-r\xe2\x98\xafial";
 
-    /* "ma\xc3\xb1te-r\xe2\x98\xafial" over "ma\xc3\xb1te" -> "ma", '\xc3\xb1', "te-r\xe2\x98\xafial", 2 */
+    /* "ma\xc3\xb1te-r\xe2\x98\xafial" over
+     * "ma\xc3\xb1te" -> "ma", '\xc3\xb1', "te-r\xe2\x98\xafial", 2 */
     pre_ln = BLI_str_partition_ex_utf8(str, str + 6, delim, &sep, &suf, true);
     EXPECT_EQ(pre_ln, 2);
     EXPECT_EQ(&str[2], sep);

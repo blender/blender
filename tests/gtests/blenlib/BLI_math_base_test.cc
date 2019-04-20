@@ -4,7 +4,8 @@
 
 #include "BLI_math.h"
 
-/* In tests below, when we are using -1.0f as max_diff value, we actually turn the function into a pure-ULP one. */
+/* In tests below, when we are using -1.0f as max_diff value, we actually turn the function into a
+ * pure-ULP one. */
 
 /* Put this here, since we cannot use BLI_assert() in inline math files it seems... */
 TEST(math_base, CompareFFRelativeValid)
@@ -73,8 +74,9 @@ TEST(math_base, CompareFFRelativeZero)
 
   /* Note: in theory, this should return false, since 0.0f  and -0.0f have 0x80000000 diff,
    *       but overflow in subtraction seems to break something here
-   *       (abs(*(int *)&fn0 - *(int *)&f0) == 0x80000000 == fn0), probably because int32 cannot hold this abs value.
-     *       this is yet another illustration of why one shall never use (near-)zero floats in pure-ULP comparison. */
+   *       (abs(*(int *)&fn0 - *(int *)&f0) == 0x80000000 == fn0), probably because int32 cannot
+   * hold this abs value. this is yet another illustration of why one shall never use (near-)zero
+   * floats in pure-ULP comparison. */
   //  EXPECT_FALSE(compare_ff_relative(fn0, f0, -1.0f, 1024));
   //  EXPECT_FALSE(compare_ff_relative(f0, fn0, -1.0f, 1024));
 

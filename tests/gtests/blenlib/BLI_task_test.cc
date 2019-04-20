@@ -66,7 +66,8 @@ TEST(task, MempoolIter)
 
   BLI_task_parallel_mempool(mempool, &num_items, task_mempool_iter_func, true);
 
-  /* Those checks should ensure us all items of the mempool were processed once, and only once - as expected. */
+  /* Those checks should ensure us all items of the mempool were processed once, and only once - as
+   * expected. */
   EXPECT_EQ(num_items, 0);
   for (i = 0; i < NUM_ITEMS; i++) {
     if (data[i] != NULL) {
