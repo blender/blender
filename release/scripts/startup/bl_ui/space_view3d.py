@@ -5572,8 +5572,14 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
 
+        view = context.space_data
+        overlay = view.overlay
+
         layout.prop(sculpt, "show_diffuse_color")
         layout.prop(sculpt, "show_mask")
+        row = layout.row()
+        row.active = sculpt.show_mask
+        row.prop(overlay, "sculpt_mode_mask_opacity", text="Opacity")
 
 
 class VIEW3D_PT_overlay_pose(Panel):

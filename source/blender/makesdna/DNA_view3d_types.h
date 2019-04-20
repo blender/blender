@@ -200,12 +200,12 @@ typedef struct View3DOverlay {
 
   /** Weight paint mode settings. */
   int wpaint_flag;
-  char _pad2[4];
 
   /** Alpha for texture, weight, vertex paint overlay. */
   float texture_paint_mode_opacity;
   float vertex_paint_mode_opacity;
   float weight_paint_mode_opacity;
+  float sculpt_mode_mask_opacity;
 
   /** Armature edit/pose mode settings. */
   int _pad3;

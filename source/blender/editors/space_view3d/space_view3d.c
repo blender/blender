@@ -262,6 +262,10 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
   v3d->overlay.texture_paint_mode_opacity = 1.0f;
   v3d->overlay.weight_paint_mode_opacity = 1.0f;
   v3d->overlay.vertex_paint_mode_opacity = 1.0f;
+  /* Intentionally different to vertex/paint mode,
+   * we typically want to see shading too. */
+  v3d->overlay.sculpt_mode_mask_opacity = 0.75f;
+
   v3d->overlay.edit_flag = V3D_OVERLAY_EDIT_FACES | V3D_OVERLAY_EDIT_SEAMS |
                            V3D_OVERLAY_EDIT_SHARP | V3D_OVERLAY_EDIT_FREESTYLE_EDGE |
                            V3D_OVERLAY_EDIT_FREESTYLE_FACE | V3D_OVERLAY_EDIT_EDGES |
