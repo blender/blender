@@ -2934,20 +2934,24 @@ static void createTransEditVerts(TransInfo *t)
           }
 
           /* CrazySpace */
-          if (defmats || (quats && BM_elem_flag_test(eve, BM_ELEM_TAG))) {
+          const bool use_quats = quats && BM_elem_flag_test(eve, BM_ELEM_TAG);
+          if (use_quats || defmats) {
             float mat[3][3], qmat[3][3], imat[3][3];
 
-            /* use both or either quat and defmat correction */
-            if (quats && BM_elem_flag_test(eve, BM_ELEM_TAG)) {
+            /* Use both or either quat and defmat correction. */
+            if (use_quats) {
               quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
 
-              if (defmats)
+              if (defmats) {
                 mul_m3_series(mat, defmats[a], qmat, mtx);
-              else
+              }
+              else {
                 mul_m3_m3m3(mat, mtx, qmat);
+              }
             }
-            else
+            else {
               mul_m3_m3m3(mat, mtx, defmats[a]);
+            }
 
             invert_m3_m3(imat, mat);
 
