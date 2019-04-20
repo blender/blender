@@ -4595,6 +4595,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
        0,
        "GLSL",
        "Use GLSL shaders for display transform and draw image with 2D texture"},
+      {0, NULL, 0, NULL, NULL},
   };
 
   srna = RNA_def_struct(brna, "PreferencesSystem", NULL);
