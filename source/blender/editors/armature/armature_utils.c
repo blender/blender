@@ -502,8 +502,10 @@ static EditBone *make_boneList_rec(ListBase *edbo,
     eBone->curveOutY = curBone->curveOutY;
     eBone->ease1 = curBone->ease1;
     eBone->ease2 = curBone->ease2;
-    eBone->scaleIn = curBone->scaleIn;
-    eBone->scaleOut = curBone->scaleOut;
+    eBone->scale_in_x = curBone->scale_in_x;
+    eBone->scale_in_y = curBone->scale_in_y;
+    eBone->scale_out_x = curBone->scale_out_x;
+    eBone->scale_out_y = curBone->scale_out_y;
 
     eBone->bbone_prev_type = curBone->bbone_prev_type;
     eBone->bbone_next_type = curBone->bbone_next_type;
@@ -712,8 +714,10 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->curveOutY = eBone->curveOutY;
     newBone->ease1 = eBone->ease1;
     newBone->ease2 = eBone->ease2;
-    newBone->scaleIn = eBone->scaleIn;
-    newBone->scaleOut = eBone->scaleOut;
+    newBone->scale_in_x = eBone->scale_in_x;
+    newBone->scale_in_y = eBone->scale_in_y;
+    newBone->scale_out_x = eBone->scale_out_x;
+    newBone->scale_out_y = eBone->scale_out_y;
 
     newBone->bbone_prev_type = eBone->bbone_prev_type;
     newBone->bbone_next_type = eBone->bbone_next_type;

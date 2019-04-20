@@ -320,7 +320,8 @@ typedef struct bPoseChannel {
   float curveInX, curveInY;
   float curveOutX, curveOutY;
   float ease1, ease2;
-  float scaleIn, scaleOut;
+  float scale_in_x, scale_in_y;
+  float scale_out_x, scale_out_y;
 
   /** B-Bone custom handles; set on read file or rebuild pose based on pchan->bone data. */
   struct bPoseChannel *bbone_prev;

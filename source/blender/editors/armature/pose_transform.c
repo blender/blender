@@ -170,15 +170,18 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
       curbone->roll2 += pchan_eval->roll2;
       curbone->ease1 += pchan_eval->ease1;
       curbone->ease2 += pchan_eval->ease2;
-      curbone->scaleIn += pchan_eval->scaleIn;
-      curbone->scaleOut += pchan_eval->scaleOut;
+      curbone->scale_in_x *= pchan_eval->scale_in_x;
+      curbone->scale_in_y *= pchan_eval->scale_in_y;
+      curbone->scale_out_x *= pchan_eval->scale_out_x;
+      curbone->scale_out_y *= pchan_eval->scale_out_y;
 
       /* reset pose values */
       pchan->curveInX = pchan->curveOutX = 0.0f;
       pchan->curveInY = pchan->curveOutY = 0.0f;
       pchan->roll1 = pchan->roll2 = 0.0f;
       pchan->ease1 = pchan->ease2 = 0.0f;
-      pchan->scaleIn = pchan->scaleOut = 1.0f;
+      pchan->scale_in_x = pchan->scale_in_y = 1.0f;
+      pchan->scale_out_x = pchan->scale_out_y = 1.0f;
     }
 
     /* clear transform values for pchan */
@@ -406,8 +409,10 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     pchan->roll2 = chan->roll2;
     pchan->ease1 = chan->ease1;
     pchan->ease2 = chan->ease2;
-    pchan->scaleIn = chan->scaleIn;
-    pchan->scaleOut = chan->scaleOut;
+    pchan->scale_in_x = chan->scale_in_x;
+    pchan->scale_in_y = chan->scale_in_y;
+    pchan->scale_out_x = chan->scale_out_x;
+    pchan->scale_out_y = chan->scale_out_y;
 
     /* paste flipped pose? */
     if (flip) {
@@ -654,8 +659,8 @@ static void pchan_clear_scale(bPoseChannel *pchan)
 
   pchan->ease1 = 0.0f;
   pchan->ease2 = 0.0f;
-  pchan->scaleIn = 1.0f;
-  pchan->scaleOut = 1.0f;
+  pchan->scale_in_x = pchan->scale_in_y = 1.0f;
+  pchan->scale_out_x = pchan->scale_out_y = 1.0f;
 }
 
 /* clear location of pose-channel */

@@ -165,7 +165,8 @@ typedef struct tPChanFCurveLink {
   float curveInX, curveInY;
   float curveOutX, curveOutY;
   float ease1, ease2;
-  float scaleIn, scaleOut;
+  float scale_in_x, scale_in_y;
+  float scale_out_x, scale_out_y;
 
   /** copy of custom properties at start of operator (to be restored before each modal step) */
   struct IDProperty *oldprops;

@@ -30,6 +30,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -56,11 +57,13 @@
 #include "DNA_text_types.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_colortools.h"
 #include "BKE_customdata.h"
+#include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil.h"
 #include "BKE_idprop.h"
@@ -619,6 +622,74 @@ static ARegion *do_versions_add_region(int regiontype, const char *name)
   ARegion *ar = MEM_callocN(sizeof(ARegion), name);
   ar->regiontype = regiontype;
   return ar;
+}
+
+static void do_version_bones_split_bbone_scale(ListBase *lb)
+{
+  for (Bone *bone = lb->first; bone; bone = bone->next) {
+    bone->scale_in_y = bone->scale_in_x;
+    bone->scale_out_y = bone->scale_out_x;
+
+    do_version_bones_split_bbone_scale(&bone->childbase);
+  }
+}
+
+static bool replace_bbone_scale_rnapath(char **p_old_path)
+{
+  char *old_path = *p_old_path;
+
+  if (old_path == NULL) {
+    return false;
+  }
+
+  if (BLI_str_endswith(old_path, "bbone_scalein") ||
+      BLI_str_endswith(old_path, "bbone_scaleout")) {
+    *p_old_path = BLI_strdupcat(old_path, "x");
+
+    MEM_freeN(old_path);
+    return true;
+  }
+
+  return false;
+}
+
+static void do_version_bbone_scale_fcurve_fix(ListBase *curves, FCurve *fcu)
+{
+  /* Update driver variable paths. */
+  if (fcu->driver) {
+    LISTBASE_FOREACH (DriverVar *, dvar, &fcu->driver->variables) {
+      DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
+        replace_bbone_scale_rnapath(&dtar->rna_path);
+      }
+      DRIVER_TARGETS_LOOPER_END;
+    }
+  }
+
+  /* Update F-Curve's path. */
+  if (replace_bbone_scale_rnapath(&fcu->rna_path)) {
+    /* If matched, duplicate the curve and tweak name. */
+    FCurve *second = copy_fcurve(fcu);
+
+    second->rna_path[strlen(second->rna_path) - 1] = 'y';
+
+    BLI_insertlinkafter(curves, fcu, second);
+
+    /* Add to the curve group. */
+    second->grp = fcu->grp;
+
+    if (fcu->grp != NULL && fcu->grp->channels.last == fcu) {
+      fcu->grp->channels.last = second;
+    }
+  }
+}
+
+static void do_version_bbone_scale_animdata_cb(ID *UNUSED(id),
+                                               AnimData *adt,
+                                               void *UNUSED(wrapper_data))
+{
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &adt->drivers) {
+    do_version_bbone_scale_fcurve_fix(&adt->drivers, fcu);
+  }
 }
 
 void do_versions_after_linking_280(Main *bmain)
@@ -3201,6 +3272,32 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
         }
       }
+    }
+
+    /* Split bbone_scalein/bbone_scaleout into x and y fields. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "scale_out_y")) {
+      /* Update armature data and pose channels. */
+      LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+        do_version_bones_split_bbone_scale(&arm->bonebase);
+      }
+
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        if (ob->pose) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+            pchan->scale_in_y = pchan->scale_in_x;
+            pchan->scale_out_y = pchan->scale_out_x;
+          }
+        }
+      }
+
+      /* Update action curves and drivers. */
+      LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
+        LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &act->curves) {
+          do_version_bbone_scale_fcurve_fix(&act->curves, fcu);
+        }
+      }
+
+      BKE_animdata_main_cb(bmain, do_version_bbone_scale_animdata_cb, NULL);
     }
 
     /* Versioning code until next subversion bump goes here. */

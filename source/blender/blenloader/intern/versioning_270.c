@@ -256,8 +256,8 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
 static void do_version_bones_super_bbone(ListBase *lb)
 {
   for (Bone *bone = lb->first; bone; bone = bone->next) {
-    bone->scaleIn = 1.0f;
-    bone->scaleOut = 1.0f;
+    bone->scale_in_x = bone->scale_in_y = 1.0f;
+    bone->scale_out_x = bone->scale_out_y = 1.0f;
 
     do_version_bones_super_bbone(&bone->childbase);
   }
@@ -1338,8 +1338,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (ob->pose) {
           for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
             /* see do_version_bones_super_bbone()... */
-            pchan->scaleIn = 1.0f;
-            pchan->scaleOut = 1.0f;
+            pchan->scale_in_x = pchan->scale_in_y = 1.0f;
+            pchan->scale_out_x = pchan->scale_out_y = 1.0f;
 
             /* also make sure some legacy (unused for over a decade) flags are unset,
              * so that we can reuse them for stuff that matters now...

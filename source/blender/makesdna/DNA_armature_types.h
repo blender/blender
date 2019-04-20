@@ -81,7 +81,8 @@ typedef struct Bone {
   float curveOutX, curveOutY;
   /** Length of bezier handles. */
   float ease1, ease2;
-  float scaleIn, scaleOut;
+  float scale_in_x, scale_in_y;
+  float scale_out_x, scale_out_y;
 
   /**  patch for upward compat, UNUSED!. */
   float size[3];

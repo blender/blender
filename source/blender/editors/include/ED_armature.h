@@ -85,7 +85,8 @@ typedef struct EditBone {
   float curveOutX, curveOutY;
   float curveInX, curveInY;
   float ease1, ease2;
-  float scaleIn, scaleOut;
+  float scale_in_x, scale_in_y;
+  float scale_out_x, scale_out_y;
 
   /** for envelope scaling */
   float oldlength;

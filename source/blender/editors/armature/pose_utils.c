@@ -121,8 +121,10 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
     pfl->curveOutY = pchan->curveOutY;
     pfl->ease1 = pchan->ease1;
     pfl->ease2 = pchan->ease2;
-    pfl->scaleIn = pchan->scaleIn;
-    pfl->scaleOut = pchan->scaleOut;
+    pfl->scale_in_x = pchan->scale_in_x;
+    pfl->scale_in_y = pchan->scale_in_y;
+    pfl->scale_out_x = pchan->scale_out_x;
+    pfl->scale_out_y = pchan->scale_out_y;
 
     /* make copy of custom properties */
     if (pchan->prop && (transFlags & ACT_TRANS_PROP)) {
@@ -265,8 +267,10 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
     pchan->curveOutY = pfl->curveOutY;
     pchan->ease1 = pfl->ease1;
     pchan->ease2 = pfl->ease2;
-    pchan->scaleIn = pfl->scaleIn;
-    pchan->scaleOut = pfl->scaleOut;
+    pchan->scale_in_x = pfl->scale_in_x;
+    pchan->scale_in_y = pfl->scale_in_y;
+    pchan->scale_out_x = pfl->scale_out_x;
+    pchan->scale_out_y = pfl->scale_out_y;
 
     /* just overwrite values of properties from the stored copies (there should be some) */
     if (pfl->oldprops) {

@@ -207,7 +207,7 @@ typedef struct BBoneSplineParameters {
   /* Control values. */
   float ease1, ease2;
   float roll1, roll2;
-  float scaleIn, scaleOut;
+  float scale_in_x, scale_in_y, scale_out_x, scale_out_y;
   float curveInX, curveInY, curveOutX, curveOutY;
 } BBoneSplineParameters;
 

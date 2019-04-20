@@ -160,8 +160,12 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         col.prop(bone, "use_endroll_as_inroll")
 
         col = topcol.column(align=True)
-        col.prop(bbone, "bbone_scalein", text="Scale In")
-        col.prop(bbone, "bbone_scaleout", text="Out")
+        col.prop(bbone, "bbone_scaleinx", text="Scale In X")
+        col.prop(bbone, "bbone_scaleiny", text="In Y")
+
+        col = topcol.column(align=True)
+        col.prop(bbone, "bbone_scaleoutx", text="Scale Out X")
+        col.prop(bbone, "bbone_scaleouty", text="Out Y")
 
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_easein", text="Ease In")

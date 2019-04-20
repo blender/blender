@@ -1110,8 +1110,11 @@ static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_S
     param.roll1 += prev->roll2;
   }
 
-  param.scaleIn = ebone->scaleIn;
-  param.scaleOut = ebone->scaleOut;
+  param.scale_in_x = ebone->scale_in_x;
+  param.scale_in_y = ebone->scale_in_y;
+
+  param.scale_out_x = ebone->scale_out_x;
+  param.scale_out_y = ebone->scale_out_y;
 
   param.curveInX = ebone->curveInX;
   param.curveInY = ebone->curveInY;
