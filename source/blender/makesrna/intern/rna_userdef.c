@@ -4580,6 +4580,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem image_draw_methods[] = {
+      {IMAGE_DRAW_METHOD_AUTO,
+       "AUTO",
+       0,
+       "Automatic",
+       "Automatically choose method based on GPU and image"},
       {IMAGE_DRAW_METHOD_2DTEXTURE,
        "2DTEXTURE",
        0,
@@ -4590,12 +4595,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
        0,
        "GLSL",
        "Use GLSL shaders for display transform and draw image with 2D texture"},
-      {IMAGE_DRAW_METHOD_DRAWPIXELS,
-       "DRAWPIXELS",
-       0,
-       "DrawPixels",
-       "Use CPU for display transform and draw image using DrawPixels"},
-      {0, NULL, 0, NULL, NULL},
   };
 
   srna = RNA_def_struct(brna, "PreferencesSystem", NULL);

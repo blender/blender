@@ -62,6 +62,8 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
+#include "BIF_glutil.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -1226,7 +1228,7 @@ static void *sequencer_OCIO_transform_ibuf(
   void *cache_handle = NULL;
   bool force_fallback = false;
   *glsl_used = false;
-  force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
+  force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
   force_fallback |= (ibuf->dither != 0.0f);
 
   if (force_fallback) {

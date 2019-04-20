@@ -167,6 +167,8 @@ void ED_draw_imbuf_ctx_clipping(const struct bContext *C,
                                 float zoom_x,
                                 float zoom_y);
 
+int ED_draw_imbuf_method(struct ImBuf *ibuf);
+
 /* OpenGL drawing utility functions. Do not use these in new code, these
  * are intended to be moved or removed in the future. */
 

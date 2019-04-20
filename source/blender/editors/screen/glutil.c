@@ -557,7 +557,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
   force_fallback |= ibuf->channels == 1;
 
   /* If user decided not to use GLSL, fallback to glaDrawPixelsAuto */
-  force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
+  force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
 
   /* Try to draw buffer using GLSL display transform */
   if (force_fallback == false) {
@@ -729,6 +729,22 @@ void ED_draw_imbuf_ctx(
     const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter, float zoom_x, float zoom_y)
 {
   ED_draw_imbuf_ctx_clipping(C, ibuf, x, y, zoomfilter, 0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
+}
+
+int ED_draw_imbuf_method(ImBuf *ibuf)
+{
+  if (U.image_draw_method == IMAGE_DRAW_METHOD_AUTO) {
+    /* Use faster GLSL when CPU to GPU transfer is unlikely to be a bottleneck,
+     * otherwise do color management on CPU side. */
+    const size_t threshold = 2048 * 2048 * 4 * sizeof(float);
+    const size_t data_size = (ibuf->rect_float) ? sizeof(float) : sizeof(uchar);
+    const size_t size = ibuf->x * ibuf->y * ibuf->channels * data_size;
+
+    return (size > threshold) ? IMAGE_DRAW_METHOD_2DTEXTURE : IMAGE_DRAW_METHOD_GLSL;
+  }
+  else {
+    return U.image_draw_method;
+  }
 }
 
 /* don't move to GPU_immediate_util.h because this uses user-prefs

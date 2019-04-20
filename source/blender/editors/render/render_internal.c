@@ -72,6 +72,8 @@
 #include "ED_undo.h"
 #include "ED_view3d.h"
 
+#include "BIF_glutil.h"
+
 #include "RE_pipeline.h"
 #include "RE_engine.h"
 
@@ -607,7 +609,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
      * operate with.
      */
     if (rr->do_exr_tile || !rj->supports_glsl_draw || ibuf->channels == 1 ||
-        U.image_draw_method != IMAGE_DRAW_METHOD_GLSL) {
+        ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
       image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect, viewname);
     }
 

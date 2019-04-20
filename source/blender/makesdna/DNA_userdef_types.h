@@ -1103,10 +1103,9 @@ typedef enum eMultiSample_Type {
 
 /** #UserDef.image_draw_method */
 typedef enum eImageDrawMethod {
-  /* IMAGE_DRAW_METHOD_AUTO = 0, */ /* Currently unused */
+  IMAGE_DRAW_METHOD_AUTO = 0,
   IMAGE_DRAW_METHOD_GLSL = 1,
   IMAGE_DRAW_METHOD_2DTEXTURE = 2,
-  IMAGE_DRAW_METHOD_DRAWPIXELS = 3,
 } eImageDrawMethod;
 
 /** #UserDef.virtual_pixel */
