@@ -1183,8 +1183,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
     lpair_arr = BLI_array_alloca(lpair_arr, BLI_gset_len(eloop_pairs_gs));
 
     /* first cache pairs */
-    GSET_ITER_INDEX(gs_iter, eloop_pairs_gs, i)
-    {
+    GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
       GHashPair *eloop_pair = BLI_gsetIterator_getKey(&gs_iter);
       struct BMEdgeLoopStore *el_store_a = (void *)eloop_pair->first;
       struct BMEdgeLoopStore *el_store_b = (void *)eloop_pair->second;
@@ -1201,8 +1200,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
       BLI_assert(bm_verts_tag_count(bm) == 0);
     }
 
-    GSET_ITER_INDEX(gs_iter, eloop_pairs_gs, i)
-    {
+    GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
       GHashPair *eloop_pair = BLI_gsetIterator_getKey(&gs_iter);
       struct BMEdgeLoopStore *el_store_a = (void *)eloop_pair->first;
       struct BMEdgeLoopStore *el_store_b = (void *)eloop_pair->second;

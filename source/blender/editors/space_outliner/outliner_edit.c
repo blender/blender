@@ -2101,8 +2101,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 
   /* Tag all IDs having zero users. */
   ID *id;
-  FOREACH_MAIN_ID_BEGIN(bmain, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     outliner_orphans_purge_tag(id, num_tagged);
   }
   FOREACH_MAIN_ID_END;
@@ -2149,8 +2148,7 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   if ((num_tagged[INDEX_ID_NULL] = RNA_int_get(op->ptr, "num_deleted")) == 0) {
     /* Tag all IDs having zero users. */
     ID *id;
-    FOREACH_MAIN_ID_BEGIN(bmain, id)
-    {
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
       outliner_orphans_purge_tag(id, num_tagged);
     }
     FOREACH_MAIN_ID_END;

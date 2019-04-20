@@ -1231,12 +1231,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(_start, _count) \
     _start += _count; \
-    }
+    } \
+    ((void)0)
 
 #else
 #  define GPU_SELECT_LOAD_IF_PICKSEL(select_id)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(call)
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count) ((void)0)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
     _start = 0; \
     _count = _shgroup->instance_count;
@@ -1260,11 +1261,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
         if (shgroup->instance_count > 0) {
           uint count, start;
           draw_geometry_prepare(shgroup, NULL);
-          GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
-          {
+          GPU_SELECT_LOAD_IF_PICKSEL_LIST (shgroup, start, count) {
             draw_geometry_execute_ex(shgroup, shgroup->instance_geom, start, count, true);
           }
-          GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
+          GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count);
         }
       }
     }
@@ -1273,11 +1273,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       if (shgroup->instance_count > 0) {
         uint count, start;
         draw_geometry_prepare(shgroup, NULL);
-        GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
-        {
+        GPU_SELECT_LOAD_IF_PICKSEL_LIST (shgroup, start, count) {
           draw_geometry_execute_ex(shgroup, shgroup->batch_geom, start, count, false);
         }
-        GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
+        GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count);
       }
     }
   }

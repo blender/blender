@@ -289,8 +289,7 @@ void applyProject(TransInfo *t)
     float tvec[3];
     int i;
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
       for (i = 0; i < tc->data_len; i++, td++) {
         float iloc[3], loc[3], no[3];
@@ -391,8 +390,7 @@ void applyGridAbsolute(TransInfo *t)
   if (grid_size == 0.0f)
     return;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td;
 
     for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
@@ -1124,8 +1122,7 @@ static void TargetSnapMedian(TransInfo *t)
     t->tsnap.snapTarget[1] = 0;
     t->tsnap.snapTarget[2] = 0;
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
       int i;
       float v[3];
@@ -1161,8 +1158,7 @@ static void TargetSnapClosest(TransInfo *t)
     /* Object mode */
     if (t->flag & T_OBJECT) {
       int i;
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td = tc->data;
         for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
           struct BoundBox *bb = BKE_object_boundbox_get(td->ob);
@@ -1207,8 +1203,7 @@ static void TargetSnapClosest(TransInfo *t)
       }
     }
     else {
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td = tc->data;
         int i;
         for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {

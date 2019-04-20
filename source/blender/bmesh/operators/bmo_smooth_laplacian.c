@@ -205,8 +205,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   BM_ITER_MESH (f, &fiter, sys->bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 
-      BM_ITER_ELEM_INDEX(vn, &vi, f, BM_VERTS_OF_FACE, i)
-      {
+      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, i) {
         vf[i] = vn;
       }
       has_4_vert = (i == 4) ? 1 : 0;
@@ -305,8 +304,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 
   BM_ITER_MESH (f, &fiter, sys->bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-      BM_ITER_ELEM_INDEX(vn, &vi, f, BM_VERTS_OF_FACE, i)
-      {
+      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, i) {
         vf[i] = vn;
       }
       has_4_vert = (i == 4) ? 1 : 0;

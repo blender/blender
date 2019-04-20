@@ -251,8 +251,7 @@ static void construct_param_handle_face_add(
 
   /* let parametrizer split the ngon, it can make better decisions
    * about which split is best for unwrapping than scanfill */
-  BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
     vkeys[i] = (ParamKey)BM_elem_index_get(l->v);
@@ -1992,8 +1991,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa)
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
     luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
     uvs[i] = luv->uv;
   }

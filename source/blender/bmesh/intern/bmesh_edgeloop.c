@@ -750,8 +750,7 @@ void BM_edgeloop_expand(
     LinkData *node_curr = el_store->verts.first;
 
     int iter_prev = 0;
-    BLI_FOREACH_SPARSE_RANGE(el_store->len, (el_store_len - el_store->len), iter)
-    {
+    BLI_FOREACH_SPARSE_RANGE (el_store->len, (el_store_len - el_store->len), iter) {
       while (iter_prev < iter) {
         node_curr = node_curr->next;
         iter_prev += 1;

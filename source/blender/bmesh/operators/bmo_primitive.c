@@ -819,8 +819,7 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
       continue;
     }
 
-    BM_ITER_ELEM_INDEX(l, &liter, f, BM_LOOPS_OF_FACE, loop_index)
-    {
+    BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
       MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
       switch (loop_index) {
@@ -1022,8 +1021,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
      * so it's best to set the UVs right after the face is created. */
     if (calc_uvs) {
       int loop_index;
-      BM_ITER_ELEM_INDEX(l, &liter, f, BM_LOOPS_OF_FACE, loop_index)
-      {
+      BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
         MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
         luv->uv[0] = icouvs[uvi][0];
         luv->uv[1] = icouvs[uvi][1];
@@ -1077,8 +1075,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
   /* If face has 3 vertices, it's a polar face, in which case we need to
    * compute a nearby to determine its latitude. */
   float avgx = 0.0f, avgy = 0.0f;
-  BM_ITER_ELEM_INDEX(l, &iter, f, BM_LOOPS_OF_FACE, loop_index)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, loop_index) {
     if (f->len == 3) {
       avgx += l->v->co[0];
       avgy += l->v->co[1];
@@ -1087,8 +1084,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
   avgx /= 3.0f;
   avgy /= 3.0f;
 
-  BM_ITER_ELEM_INDEX(l, &iter, f, BM_LOOPS_OF_FACE, loop_index)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, loop_index) {
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
     float x = l->v->co[0];
     float y = l->v->co[1];
@@ -1164,8 +1160,7 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
     if (!BMO_face_flag_test(bm, f, oflag)) {
       continue;
     }
-    BM_ITER_ELEM_INDEX(l, &iter2, f, BM_LOOPS_OF_FACE, loop_index)
-    {
+    BM_ITER_ELEM_INDEX (l, &iter2, f, BM_LOOPS_OF_FACE, loop_index) {
       MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       if (luv->uv[0] < minx) {
         minx = luv->uv[0];
@@ -1177,8 +1172,7 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
     if (!BMO_face_flag_test(bm, f, oflag)) {
       continue;
     }
-    BM_ITER_ELEM_INDEX(l, &iter2, f, BM_LOOPS_OF_FACE, loop_index)
-    {
+    BM_ITER_ELEM_INDEX (l, &iter2, f, BM_LOOPS_OF_FACE, loop_index) {
       MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       luv->uv[0] -= minx;
     }
@@ -1582,8 +1576,7 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
 
     if (f->len == 4 && radius_top && radius_bottom) {
       /* side face - so unwrap it in a rectangle */
-      BM_ITER_ELEM_INDEX(l, &liter, f, BM_LOOPS_OF_FACE, loop_index)
-      {
+      BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
         MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
         switch (loop_index) {
@@ -1720,8 +1713,7 @@ void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag)
       continue;
     }
 
-    BM_ITER_ELEM_INDEX(l, &liter, f, BM_LOOPS_OF_FACE, loop_index)
-    {
+    BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
       MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
       luv->uv[0] = x;

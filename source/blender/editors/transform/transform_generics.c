@@ -126,8 +126,7 @@ void getViewVector(const TransInfo *t, const float coord[3], float vec[3])
 
 static void clipMirrorModifier(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Object *ob = tc->obedit;
     ModifierData *md = ob->modifiers.first;
     float tolerance[3] = {0.0f, 0.0f, 0.0f};
@@ -221,8 +220,7 @@ static void clipMirrorModifier(TransInfo *t)
 /* assumes obedit set to mesh object */
 static void editbmesh_apply_to_mirror(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->mirror.axis_flag) {
       TransData *td = tc->data;
       BMVert *eve;
@@ -702,8 +700,7 @@ static void recalcData_image(TransInfo *t)
     if (sima->flag & SI_LIVE_UNWRAP)
       ED_uvedit_live_unwrap_re_solve();
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       if (tc->data_len) {
         DEG_id_tag_update(tc->obedit->data, 0);
       }
@@ -770,8 +767,7 @@ static void recalcData_objects(TransInfo *t)
         applyProject(t);
       }
 
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         Curve *cu = tc->obedit->data;
         ListBase *nurbs = BKE_curve_editNurbs_get(cu);
         Nurb *nu = nurbs->first;
@@ -801,8 +797,7 @@ static void recalcData_objects(TransInfo *t)
         applyProject(t);
       }
 
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         Lattice *la = tc->obedit->data;
         DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
         if (la->editlatt->latt->flag & LT_OUTSIDE) {
@@ -828,8 +823,7 @@ static void recalcData_objects(TransInfo *t)
         projectVertSlideData(t, false);
       }
 
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
         BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
         EDBM_mesh_normals_update(em);
@@ -842,8 +836,7 @@ static void recalcData_objects(TransInfo *t)
         applyProject(t);
       }
 
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         bArmature *arm = tc->obedit->data;
         ListBase *edbo = arm->edbo;
         EditBone *ebo, *ebo_parent;
@@ -938,8 +931,7 @@ static void recalcData_objects(TransInfo *t)
       if (t->state != TRANS_CANCEL) {
         applyProject(t);
       }
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         if (tc->data_len) {
           DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
         }
@@ -949,8 +941,7 @@ static void recalcData_objects(TransInfo *t)
   else if (t->flag & T_POSE) {
     GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
       bArmature *arm = ob->data;
 
@@ -1008,8 +999,7 @@ static void recalcData_objects(TransInfo *t)
       applyProject(t);
     }
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
 
       for (int i = 0; i < tc->data_len; i++, td++) {
@@ -1726,8 +1716,7 @@ static void freeTransCustomDataContainer(TransInfo *t,
 void freeTransCustomDataForMode(TransInfo *t)
 {
   freeTransCustomData(t, NULL, &t->custom.mode);
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     freeTransCustomData(t, tc, &tc->custom.mode);
   }
 }
@@ -1750,15 +1739,13 @@ void postTrans(bContext *C, TransInfo *t)
 
   /* Free all custom-data */
   freeTransCustomDataContainer(t, NULL, &t->custom);
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     freeTransCustomDataContainer(t, tc, &tc->custom);
   }
 
   /* postTrans can be called when nothing is selected, so data is NULL already */
   if (t->data_len_all != 0) {
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* free data malloced per trans-data */
       if (ELEM(t->obedit_type, OB_CURVE, OB_SURF) || (t->spacetype == SPACE_GRAPH)) {
         TransData *td = tc->data;
@@ -1864,8 +1851,7 @@ static void restoreElement(TransData *td)
 
 void restoreTransObjects(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     TransData *td;
     TransData2D *td2d;
@@ -1901,8 +1887,7 @@ void calculateCenterLocal(TransInfo *t, const float center_global[3])
 {
   /* setting constraint center */
   /* note, init functions may over-ride t->center */
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->use_local_mat) {
       mul_v3_m4v3(tc->center_local, tc->imat, center_global);
     }
@@ -1994,8 +1979,7 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
   float partial[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     for (int i = 0; i < tc->data_len; i++) {
       if (tc->data[i].flag & TD_SELECTED) {
         if (!(tc->data[i].flag & TD_NOCENTER)) {
@@ -2023,8 +2007,7 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
   float max[3], min[3];
   bool changed = false;
   INIT_MINMAX(min, max);
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     for (int i = 0; i < tc->data_len; i++) {
       if (tc->data[i].flag & TD_SELECTED) {
         if (!(tc->data[i].flag & TD_NOCENTER)) {
@@ -2213,8 +2196,7 @@ void calculatePropRatio(TransInfo *t)
 
   if (t->flag & T_PROP_EDIT) {
     const char *pet_id = NULL;
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
       for (i = 0; i < tc->data_len; i++, td++) {
         if (td->flag & TD_SELECTED) {
@@ -2325,8 +2307,7 @@ void calculatePropRatio(TransInfo *t)
     }
   }
   else {
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
       for (i = 0; i < tc->data_len; i++, td++) {
         td->factor = 1.0;

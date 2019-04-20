@@ -464,10 +464,8 @@ void BKE_blendfile_read_make_empty(bContext *C)
   ListBase *lb;
   ID *id;
 
-  FOREACH_MAIN_LISTBASE_BEGIN(bmain, lb)
-  {
-    FOREACH_MAIN_LISTBASE_ID_BEGIN(lb, id)
-    {
+  FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
       if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM, ID_WS)) {
         break;
       }

@@ -139,8 +139,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
 
   /* now add all selected objects to the collection(s) */
-  FOREACH_COLLECTION_BEGIN(bmain, scene, Collection *, collection)
-  {
+  FOREACH_COLLECTION_BEGIN (bmain, scene, Collection *, collection) {
     if (single_collection && collection != single_collection)
       continue;
     if (!BKE_collection_has_object(collection, ob))
@@ -220,8 +219,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 
   /* Linking to same collection requires its own loop so we can avoid
    * looking up the active objects collections each time. */
-  FOREACH_COLLECTION_BEGIN(bmain, scene, Collection *, collection)
-  {
+  FOREACH_COLLECTION_BEGIN (bmain, scene, Collection *, collection) {
     if (single_collection && collection != single_collection)
       continue;
 
@@ -319,8 +317,7 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
   if (ob == NULL)
     return OPERATOR_CANCELLED;
 
-  FOREACH_COLLECTION_BEGIN(bmain, scene, Collection *, collection)
-  {
+  FOREACH_COLLECTION_BEGIN (bmain, scene, Collection *, collection) {
     if (single_collection && collection != single_collection)
       continue;
     if (!BKE_collection_has_object(collection, ob))

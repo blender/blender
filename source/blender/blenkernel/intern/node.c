@@ -1389,8 +1389,7 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain),
 
     ntree_dst->previews = BKE_node_instance_hash_new("node previews");
 
-    NODE_INSTANCE_HASH_ITER(iter, ntree_src->previews)
-    {
+    NODE_INSTANCE_HASH_ITER (iter, ntree_src->previews) {
       bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
       bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
       BKE_node_instance_hash_insert(ntree_dst->previews, key, BKE_node_preview_copy(preview));
@@ -1592,8 +1591,7 @@ void BKE_node_preview_clear_tree(bNodeTree *ntree)
   if (!ntree || !ntree->previews)
     return;
 
-  NODE_INSTANCE_HASH_ITER(iter, ntree->previews)
-  {
+  NODE_INSTANCE_HASH_ITER (iter, ntree->previews) {
     bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
     BKE_node_preview_clear(preview);
   }
@@ -1621,8 +1619,7 @@ void BKE_node_preview_sync_tree(bNodeTree *to_ntree, bNodeTree *from_ntree)
   if (!from_previews || !to_previews)
     return;
 
-  NODE_INSTANCE_HASH_ITER(iter, from_previews)
-  {
+  NODE_INSTANCE_HASH_ITER (iter, from_previews) {
     bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
     bNodePreview *from = BKE_node_instance_hash_iterator_get_value(&iter);
     bNodePreview *to = BKE_node_instance_hash_lookup(to_previews, key);
@@ -1650,8 +1647,7 @@ void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, boo
     bNodeInstanceHashIterator iter;
 
     if (from_ntree->previews) {
-      NODE_INSTANCE_HASH_ITER(iter, from_ntree->previews)
-      {
+      NODE_INSTANCE_HASH_ITER (iter, from_ntree->previews) {
         bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
         bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
 
@@ -2901,8 +2897,7 @@ void BKE_node_instance_hash_clear_tags(bNodeInstanceHash *hash)
 {
   bNodeInstanceHashIterator iter;
 
-  NODE_INSTANCE_HASH_ITER(iter, hash)
-  {
+  NODE_INSTANCE_HASH_ITER (iter, hash) {
     bNodeInstanceHashEntry *value = BKE_node_instance_hash_iterator_get_value(&iter);
 
     value->tag = 0;
@@ -2940,8 +2935,7 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
   int num_untagged, i;
 
   num_untagged = 0;
-  NODE_INSTANCE_HASH_ITER(iter, hash)
-  {
+  NODE_INSTANCE_HASH_ITER (iter, hash) {
     bNodeInstanceHashEntry *value = BKE_node_instance_hash_iterator_get_value(&iter);
 
     if (!value->tag)

@@ -4429,8 +4429,7 @@ BLI_INLINE void edit_uv_preprocess_stretch_angle(float (*auv)[2],
   BMLoop *l;
   BMIter liter;
   int i;
-  BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
     MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
 
@@ -4529,8 +4528,7 @@ static void uvedit_fill_buffer_data(MeshRenderData *rdata,
         }
       }
 
-      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-      {
+      BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
         MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
         if (vbo_area) {
           GPU_vertbuf_attr_set(vbo_area, uv_attr_id.area, vidx, &area_stretch);

@@ -874,8 +874,7 @@ static void drawObjectConstraint(TransInfo *t)
   int i;
   float tmp_axismtx[3][3];
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
       float co[3];

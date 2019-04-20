@@ -503,15 +503,13 @@ static void bm_face_reverse_uvs(BMFace *f, const int cd_loop_uv_offset)
 
   float(*uvs)[2] = BLI_array_alloca(uvs, f->len);
 
-  BM_ITER_ELEM_INDEX(l, &iter, f, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
     copy_v2_v2(uvs[i], luv->uv);
   }
 
   /* now that we have the uvs in the array, reverse! */
-  BM_ITER_ELEM_INDEX(l, &iter, f, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     /* current loop uv is the previous loop uv */
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
     copy_v2_v2(luv->uv, uvs[(f->len - i - 1)]);
@@ -607,15 +605,13 @@ static void bm_face_reverse_colors(BMFace *f, const int cd_loop_color_offset)
 
   MLoopCol *cols = BLI_array_alloca(cols, f->len);
 
-  BM_ITER_ELEM_INDEX(l, &iter, f, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
     cols[i] = *lcol;
   }
 
   /* now that we have the uvs in the array, reverse! */
-  BM_ITER_ELEM_INDEX(l, &iter, f, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     /* current loop uv is the previous loop color */
     MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
     *lcol = cols[(f->len - i - 1)];

@@ -183,8 +183,7 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
   BMLoop *l;
   int i;
 
-  BM_ITER_ELEM_INDEX(l, &liter, f, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, i) {
     fuv[i] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset))->uv;
   }
 

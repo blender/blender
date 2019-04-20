@@ -260,8 +260,7 @@ void BKE_main_relations_create(Main *bmain)
       sizeof(MainIDRelationsEntry), 128, 128, BLI_MEMPOOL_NOP);
 
   ID *id;
-  FOREACH_MAIN_ID_BEGIN(bmain, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     BKE_library_foreach_ID_link(
         NULL, id, main_relations_create_idlink_cb, bmain->relations, IDWALK_READONLY);
   }
@@ -295,8 +294,7 @@ GSet *BKE_main_gset_create(Main *bmain, GSet *gset)
   }
 
   ID *id;
-  FOREACH_MAIN_ID_BEGIN(bmain, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     BLI_gset_add(gset, id);
   }
   FOREACH_MAIN_ID_END;

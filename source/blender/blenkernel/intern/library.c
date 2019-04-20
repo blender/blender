@@ -1723,8 +1723,7 @@ void BKE_main_id_clear_newpoins(Main *bmain)
 {
   ID *id;
 
-  FOREACH_MAIN_ID_BEGIN(bmain, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     id->newid = NULL;
     id->tag &= ~LIB_TAG_NEW;
   }

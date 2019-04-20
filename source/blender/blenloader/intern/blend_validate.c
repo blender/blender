@@ -168,10 +168,8 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
 
   BKE_main_lock(bmain);
 
-  FOREACH_MAIN_LISTBASE_BEGIN(bmain, lb)
-  {
-    FOREACH_MAIN_LISTBASE_ID_BEGIN(lb, id)
-    {
+  FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
       if (!BKE_key_idtype_support(GS(id->name))) {
         break;
       }

@@ -148,8 +148,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
 
   prev_ob = NULL;
   ob_pose_armature = NULL;
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     if (ob != prev_ob) {
       prev_ob = ob;
       ob_pose_armature = poseAnim_object_get(ob);
@@ -169,8 +168,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
   if (BLI_listbase_is_empty(pfLinks)) {
     prev_ob = NULL;
     ob_pose_armature = NULL;
-    CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
-    {
+    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
       if (ob != prev_ob) {
         prev_ob = ob;
         ob_pose_armature = poseAnim_object_get(ob);

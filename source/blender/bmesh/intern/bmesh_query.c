@@ -1841,8 +1841,7 @@ float BM_vert_calc_median_tagged_edge_length(const BMVert *v)
   int tot;
   float length = 0.0f;
 
-  BM_ITER_ELEM_INDEX(e, &iter, (BMVert *)v, BM_EDGES_OF_VERT, tot)
-  {
+  BM_ITER_ELEM_INDEX (e, &iter, (BMVert *)v, BM_EDGES_OF_VERT, tot) {
     const BMVert *v_other = BM_edge_other_vert(e, v);
     if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
       length += BM_edge_calc_length(e);

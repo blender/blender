@@ -941,8 +941,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else if (channels_in_float == 3) {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 3)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 3) {
               r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[1]));
               b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[2]));
@@ -951,8 +950,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 1)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 1) {
               r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = b[i] = r[i];
               a[i] = 255;
@@ -971,8 +969,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else if (channels_in_float == 3) {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 3)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 3) {
               r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[1]));
               b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[2]));
@@ -980,8 +977,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 1)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 1) {
               r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = b[i] = r[i];
             }
@@ -1003,8 +999,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else if (channels_in_float == 3) {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 3)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 3) {
               r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[1]));
               b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[2]));
@@ -1013,8 +1008,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 1)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 1) {
               r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = b[i] = r[i];
               a[i] = 4095;
@@ -1033,8 +1027,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else if (channels_in_float == 3) {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 3)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 3) {
               r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[1]));
               b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[2]));
@@ -1042,8 +1035,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 1)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 1) {
               r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = b[i] = r[i];
             }
@@ -1065,8 +1057,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else if (channels_in_float == 3) {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 3)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 3) {
               r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[1]));
               b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[2]));
@@ -1075,8 +1066,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 1)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 1) {
               r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = b[i] = r[i];
               a[i] = 65535;
@@ -1095,8 +1085,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else if (channels_in_float == 3) {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 3)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 3) {
               r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[1]));
               b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[2]));
@@ -1104,8 +1093,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
             PIXEL_LOOPER_END;
           }
           else {
-            PIXEL_LOOPER_BEGIN_CHANNELS(rect_float, 1)
-            {
+            PIXEL_LOOPER_BEGIN_CHANNELS (rect_float, 1) {
               r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[0]));
               g[i] = b[i] = r[i];
             }

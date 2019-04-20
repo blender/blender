@@ -456,8 +456,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
       /* check if either edge verts are aligned,
        * if so - tag and push all faces that use it into the stack */
       uint j;
-      BM_ITER_ELEM_INDEX(v, &iter, e, BM_VERTS_OF_EDGE, j)
-      {
+      BM_ITER_ELEM_INDEX (v, &iter, e, BM_VERTS_OF_EDGE, j) {
         if (side[j] == 0) {
           if (vert_is_center_test(v) == 0) {
             BMIter itersub;

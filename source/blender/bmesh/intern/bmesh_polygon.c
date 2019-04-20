@@ -1432,8 +1432,7 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
     else if (efa->len == 3) {
 #  if 0
       int j;
-      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, j)
-      {
+      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, j) {
         looptris[i][j] = l;
       }
       i += 1;
@@ -1451,8 +1450,7 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
       BMLoop *ltmp[4];
       int j;
       BLI_array_grow_items(looptris, 2);
-      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, j)
-      {
+      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, j) {
         ltmp[j] = l;
       }
 

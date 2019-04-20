@@ -225,10 +225,8 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 
   data_cb.types_bitmap = key_types_bitmap;
 
-  FOREACH_MAIN_LISTBASE_BEGIN(bmain, lb)
-  {
-    FOREACH_MAIN_LISTBASE_ID_BEGIN(lb, id)
-    {
+  FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
       /* We cannot skip here in case we have some filter on key types... */
       if (key_types_bitmap == NULL && val_types_bitmap != NULL) {
         if (!id_check_type(id, val_types_bitmap)) {

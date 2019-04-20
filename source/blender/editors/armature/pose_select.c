@@ -444,8 +444,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
   Object *ob_prev = NULL;
 
   /*  Set the flags */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
     bArmature *arm = ob->data;
     pose_do_bone_select(pchan, action);
 
@@ -741,8 +740,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
   group_flags = NULL;
   ob_index = -1;
   ob_prev = NULL;
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, visible_pose_bones, Object, *ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object, *ob) {
     if (ob != ob_prev) {
       ob_index++;
       group_flags = group_flags_array + (ob_index * groups_len);
@@ -768,8 +766,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
     ob_index = -1;
     ob_prev = NULL;
     /* only if group matches (and is not selected or current bone) */
-    CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
-    {
+    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
       if (ob != ob_prev) {
         ob_index++;
         group_flags = group_flags_array + (ob_index * groups_len);
@@ -824,8 +821,7 @@ static bool pose_select_same_layer(bContext *C, bool extend)
   layers = NULL;
   ob_prev = NULL;
   ob_index = -1;
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
     if (ob != ob_prev) {
       layers = &layers_array[++ob_index];
       ob_prev = ob;
@@ -856,8 +852,7 @@ static bool pose_select_same_layer(bContext *C, bool extend)
   /* Select bones that are on same layers as layers flag. */
   ob_prev = NULL;
   ob_index = -1;
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
     if (ob != ob_prev) {
       layers = &layers_array[++ob_index];
       ob_prev = ob;

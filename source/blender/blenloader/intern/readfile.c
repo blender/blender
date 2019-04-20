@@ -344,8 +344,7 @@ typedef struct OldNewMap {
 
 static void oldnewmap_insert_index_in_map(OldNewMap *onm, const void *ptr, int index)
 {
-  ITER_SLOTS(onm, ptr, slot, stored_index)
-  {
+  ITER_SLOTS (onm, ptr, slot, stored_index) {
     if (stored_index == -1) {
       onm->map[slot] = index;
       break;
@@ -355,8 +354,7 @@ static void oldnewmap_insert_index_in_map(OldNewMap *onm, const void *ptr, int i
 
 static void oldnewmap_insert_or_replace(OldNewMap *onm, OldNew entry)
 {
-  ITER_SLOTS(onm, entry.oldp, slot, index)
-  {
+  ITER_SLOTS (onm, entry.oldp, slot, index) {
     if (index == -1) {
       onm->entries[onm->nentries] = entry;
       onm->map[slot] = onm->nentries;
@@ -372,8 +370,7 @@ static void oldnewmap_insert_or_replace(OldNewMap *onm, OldNew entry)
 
 static OldNew *oldnewmap_lookup_entry(const OldNewMap *onm, const void *addr)
 {
-  ITER_SLOTS(onm, addr, slot, index)
-  {
+  ITER_SLOTS (onm, addr, slot, index) {
     if (index >= 0) {
       OldNew *entry = &onm->entries[index];
       if (entry->oldp == addr) {
@@ -1511,8 +1508,7 @@ void blo_filedata_free(FileData *fd)
     BLI_freelistN(&fd->bhead_list);
 #else
     /* Sanity check we're not keeping memory we don't need. */
-    LISTBASE_FOREACH_MUTABLE(BHeadN *, new_bhead, &fd->bhead_list)
-    {
+    LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->bhead_list) {
       if (fd->seek != NULL && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
         BLI_assert(new_bhead->has_data == 0);
       }
@@ -1889,8 +1885,7 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
   for (; sce; sce = sce->id.next) {
     if (sce->nodetree && sce->nodetree->previews) {
       bNodeInstanceHashIterator iter;
-      NODE_INSTANCE_HASH_ITER(iter, sce->nodetree->previews)
-      {
+      NODE_INSTANCE_HASH_ITER (iter, sce->nodetree->previews) {
         bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
         oldnewmap_insert(fd->imamap, preview, preview, 0);
       }
@@ -1936,8 +1931,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
       bNodeInstanceHashIterator iter;
 
       /* reconstruct the preview hash, only using remaining pointers */
-      NODE_INSTANCE_HASH_ITER(iter, sce->nodetree->previews)
-      {
+      NODE_INSTANCE_HASH_ITER (iter, sce->nodetree->previews) {
         bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
         if (preview) {
           bNodePreview *new_preview = newimaadr(fd, preview);
@@ -3724,8 +3718,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
     bNodeInstanceHash *new_previews = BKE_node_instance_hash_new("node previews");
     bNodeInstanceHashIterator iter;
 
-    NODE_INSTANCE_HASH_ITER(iter, ntree->previews)
-    {
+    NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
       bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
       if (preview) {
         bNodePreview *new_preview = newimaadr(fd, preview);

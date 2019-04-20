@@ -1042,8 +1042,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
     BLI_array_grow_items(verts, face->len);
 
     totesel = 0;
-    BM_ITER_ELEM_INDEX(l_new, &liter, face, BM_LOOPS_OF_FACE, i)
-    {
+    BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, i) {
       edges[i] = l_new->e;
       verts[i] = l_new->v;
 
@@ -1181,8 +1180,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
       /* for case of two edges, connecting them shouldn't be too hard */
       BLI_array_grow_items(loops, face->len);
-      BM_ITER_ELEM_INDEX(l, &liter, face, BM_LOOPS_OF_FACE, a)
-      {
+      BM_ITER_ELEM_INDEX (l, &liter, face, BM_LOOPS_OF_FACE, a) {
         loops[a] = l;
       }
 
@@ -1283,8 +1281,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
     }
 
     a = 0;
-    BM_ITER_ELEM_INDEX(l_new, &liter, face, BM_LOOPS_OF_FACE, j)
-    {
+    BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, j) {
       if (l_new->v == fd->start) {
         a = j + 1;
         break;
@@ -1293,8 +1290,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
     BLI_array_grow_items(verts, face->len);
 
-    BM_ITER_ELEM_INDEX(l_new, &liter, face, BM_LOOPS_OF_FACE, j)
-    {
+    BM_ITER_ELEM_INDEX (l_new, &liter, face, BM_LOOPS_OF_FACE, j) {
       b = (j - a + face->len) % face->len;
       verts[b] = l_new->v;
     }

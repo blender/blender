@@ -1248,8 +1248,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
         int face_preview_pos = preview_position[index].data_position;
         if (face_preview_pos != STITCH_NO_PREVIEW) {
           preview->uvs_per_polygon[preview_position[index].polycount_position] = efa->len;
-          BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-          {
+          BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
             luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
             copy_v2_v2(preview->preview_polys + face_preview_pos + i * 2, luv->uv);
           }
@@ -1260,8 +1259,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
           BMLoop *fl = BM_FACE_FIRST_LOOP(efa);
           MLoopUV *fuv = CustomData_bmesh_get(&bm->ldata, fl->head.data, CD_MLOOPUV);
 
-          BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-          {
+          BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
             if (i < numoftris) {
               /* using next since the first uv is already accounted for */
               BMLoop *lnext = l->next;
@@ -2143,8 +2141,7 @@ static StitchState *stitch_init(bContext *C,
                                            "uv_stitch_selection_stack");
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i)
-        {
+        BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
           if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
             UvElement *element = BM_uv_element_get(state->element_map, efa, l);
             if (element) {

@@ -358,8 +358,7 @@ static int bpy_slot_from_py(BMesh *bm,
           BMO_slot_buffer_alloc(bmop, bmop->slots_in, slot_name, tot);
 
           i = 0;
-          BM_ITER_BPY_BM_SEQ(ele, &iter, ((BPy_BMElemSeq *)value))
-          {
+          BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
             slot->data.buf[i] = ele;
             i++;
           }

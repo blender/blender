@@ -448,8 +448,7 @@ static void libblock_remap_data(
      * objects actually using given old_id... sounds rather unlikely currently, though, so this will do for now. */
     ID *id_curr;
 
-    FOREACH_MAIN_ID_BEGIN(bmain, id_curr)
-    {
+    FOREACH_MAIN_ID_BEGIN (bmain, id_curr) {
       if (BKE_library_id_can_use_idtype(id_curr, GS(old_id->name))) {
         /* Note that we cannot skip indirect usages of old_id here (if requested), we still need to check it for
          * the user count handling...

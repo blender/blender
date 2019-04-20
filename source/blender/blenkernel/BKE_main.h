@@ -170,9 +170,8 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 #define FOREACH_MAIN_ID_BEGIN(_bmain, _id) \
   { \
     ListBase *_lb; \
-    FOREACH_MAIN_LISTBASE_BEGIN(_bmain, _lb) \
-    { \
-      FOREACH_MAIN_LISTBASE_ID_BEGIN(_lb, _id)
+    FOREACH_MAIN_LISTBASE_BEGIN (_bmain, _lb) { \
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (_lb, _id)
 
 #define FOREACH_MAIN_ID_END \
   FOREACH_MAIN_LISTBASE_ID_END; \

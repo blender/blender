@@ -749,8 +749,7 @@ bool BM_face_validate(BMFace *face, FILE *err)
   }
 
   BLI_array_grow_items(verts, face->len);
-  BM_ITER_ELEM_INDEX(l, &iter, face, BM_LOOPS_OF_FACE, i)
-  {
+  BM_ITER_ELEM_INDEX (l, &iter, face, BM_LOOPS_OF_FACE, i) {
     verts[i] = l->v;
     if (l->e->v1 == l->e->v2) {
       fprintf(err, "Found bmesh edge with identical verts!\n");

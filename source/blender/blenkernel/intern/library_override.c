@@ -207,8 +207,7 @@ bool BKE_override_static_create_from_tag(Main *bmain)
   ID *reference_id;
   bool ret = true;
 
-  FOREACH_MAIN_ID_BEGIN(bmain, reference_id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, reference_id) {
     if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL) {
       if ((reference_id->newid = override_static_create_from(bmain, reference_id)) == NULL) {
         ret = false;
@@ -217,8 +216,7 @@ bool BKE_override_static_create_from_tag(Main *bmain)
   }
   FOREACH_MAIN_ID_END;
 
-  FOREACH_MAIN_ID_BEGIN(bmain, reference_id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, reference_id) {
     if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL &&
         reference_id->newid != NULL) {
       ID *local_id = reference_id->newid;
@@ -620,8 +618,7 @@ void BKE_main_override_static_operations_create(Main *bmain, const bool force_au
 {
   ID *id;
 
-  FOREACH_MAIN_ID_BEGIN(bmain, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (force_auto ||
         (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH))) {
       BKE_override_static_operations_create(bmain, id, force_auto);
@@ -705,8 +702,7 @@ void BKE_main_override_static_update(Main *bmain)
 {
   ID *id;
 
-  FOREACH_MAIN_ID_BEGIN(bmain, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->override_static != NULL && id->lib == NULL) {
       BKE_override_static_update(bmain, id);
     }
@@ -804,8 +800,7 @@ void BKE_override_static_operations_store_finalize(OverrideStaticStorage *overri
    * without increasing usercount of used data-blocks... */
   ID *id;
 
-  FOREACH_MAIN_ID_BEGIN(override_storage, id)
-  {
+  FOREACH_MAIN_ID_BEGIN (override_storage, id) {
     BKE_id_free_ex(override_storage, id, LIB_ID_FREE_NO_UI_USER, true);
   }
   FOREACH_MAIN_ID_END;

@@ -688,8 +688,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 
   /* loop over all bones, and only consider if visible */
   bArmature *arm = NULL;
-  CTX_DATA_BEGIN_WITH_ID(C, EditBone *, ebone, visible_bones, bArmature *, arm_iter)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, visible_bones, bArmature *, arm_iter) {
     bool check = false;
     if (!(ebone->flag & BONE_CONNECTED) && (ebone->flag & BONE_ROOTSEL)) {
       fill_add_joint(ebone, 0, &points);

@@ -187,8 +187,7 @@ static void sort_trans_data_dist_container(const TransInfo *t, TransDataContaine
 }
 void sort_trans_data_dist(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     sort_trans_data_dist_container(t, tc);
   }
 }
@@ -222,8 +221,7 @@ static void sort_trans_data_container(TransDataContainer *tc)
 }
 static void sort_trans_data(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     sort_trans_data_container(tc);
   }
 }
@@ -248,8 +246,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     }
   }
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *tob = tc->data;
     for (a = 0; a < tc->data_len; a++, tob++) {
 
@@ -453,8 +450,7 @@ static void createTransCursor_view3d(TransInfo *t)
 
 static void createTransEdge(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
     TransData *td = NULL;
@@ -947,8 +943,7 @@ void transform_autoik_update(TransInfo *t, short mode)
   /* apply to all pose-channels */
   bool changed = false;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     /* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
     if (ELEM(NULL, tc->poseobj, tc->poseobj->pose)) {
@@ -1193,8 +1188,7 @@ static void createTransPose(TransInfo *t)
   bool has_translate_rotate_buf[2] = {false, false};
   bool *has_translate_rotate = (t->mode == TFM_TRANSLATION) ? has_translate_rotate_buf : NULL;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Object *ob = tc->poseobj;
 
     bArmature *arm;
@@ -1240,8 +1234,7 @@ static void createTransPose(TransInfo *t)
     }
   }
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len == 0) {
       continue;
     }
@@ -1331,8 +1324,7 @@ static void createTransArmatureVerts(TransInfo *t)
 {
   t->data_len_all = 0;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     EditBone *ebo, *eboflip;
     bArmature *arm = tc->obedit->data;
     ListBase *edbo = arm->edbo;
@@ -1385,8 +1377,7 @@ static void createTransArmatureVerts(TransInfo *t)
   transform_around_single_fallback(t);
   t->data_len_all = -1;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (!tc->data_len) {
       continue;
     }
@@ -1579,8 +1570,7 @@ static void createTransArmatureVerts(TransInfo *t)
 
 static void createTransMBallVerts(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     MetaBall *mb = (MetaBall *)tc->obedit->data;
     MetaElem *ml;
     TransData *td;
@@ -1766,8 +1756,7 @@ static void createTransCurveVerts(TransInfo *t)
 
   t->data_len_all = 0;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Curve *cu = tc->obedit->data;
     BLI_assert(cu->editnurb != NULL);
     BezTriple *bezt;
@@ -1830,8 +1819,7 @@ static void createTransCurveVerts(TransInfo *t)
   transform_around_single_fallback(t);
   t->data_len_all = -1;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len == 0) {
       continue;
     }
@@ -2087,8 +2075,7 @@ static void createTransCurveVerts(TransInfo *t)
 
 static void createTransLatticeVerts(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     Lattice *latt = ((Lattice *)tc->obedit->data)->editlatt->latt;
     TransData *td = NULL;
@@ -2155,8 +2142,7 @@ static void createTransLatticeVerts(TransInfo *t)
 /* ******************* particle edit **************** */
 static void createTransParticleVerts(bContext *C, TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     TransData *td = NULL;
     TransDataExtension *tx;
@@ -2284,8 +2270,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 void flushTransParticles(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
     Object *ob = OBACT(view_layer);
@@ -2739,8 +2724,7 @@ static void VertsToTransData(TransInfo *t,
 
 static void createTransEditVerts(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *tob = NULL;
     TransDataExtension *tx = NULL;
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
@@ -3011,8 +2995,7 @@ void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     int a;
     TransData *td;
     TransData2D *td2d;
@@ -3260,8 +3243,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
   const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
   const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     TransData *td = NULL;
     TransData2D *td2d = NULL;
@@ -3426,8 +3408,7 @@ void flushTransUVs(TransInfo *t)
   const bool use_pixel_snap = ((sima->pixel_snap_mode != SI_PIXEL_SNAP_DISABLED) &&
                                (t->state != TRANS_CANCEL));
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData2D *td;
     int a;
     float aspect_inv[2], size[2];
@@ -3478,8 +3459,7 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
   max[0] = t->aspect[0];
   max[1] = t->aspect[1];
 
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     TransData *td;
     int a;
@@ -3525,8 +3505,7 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
 
 void clipUVData(TransInfo *t)
 {
-  FOREACH_TRANS_DATA_CONTAINER(t, tc)
-  {
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (int a = 0; a < tc->data_len; a++, td++) {
       if (td->flag & TD_NOACTION)
@@ -6687,8 +6666,7 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
   /* so automerge supports mirror */
   if ((t->scene->toolsettings->automerge) && ((t->flag & T_EDIT) && t->obedit_type == OB_MESH)) {
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
       BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
       BMesh *bm = em->bm;
@@ -6760,8 +6738,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
            * really slow -joeedh */
           projectEdgeSlideData(t, true);
 
-          FOREACH_TRANS_DATA_CONTAINER(t, tc)
-          {
+          FOREACH_TRANS_DATA_CONTAINER (t, tc) {
             EdgeSlideData *sld = tc->custom.mode.data;
 
             /* Free temporary faces to avoid auto-merging and deleting
@@ -6772,8 +6749,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
         else if (t->mode == TFM_VERT_SLIDE) {
           /* as above */
           projectVertSlideData(t, true);
-          FOREACH_TRANS_DATA_CONTAINER(t, tc)
-          {
+          FOREACH_TRANS_DATA_CONTAINER (t, tc) {
             VertSlideData *sld = tc->custom.mode.data;
             freeVertSlideTempFaces(sld);
           }
@@ -7073,8 +7049,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
   }
   else if (t->flag & T_EDIT) {
     if (t->obedit_type == OB_MESH) {
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
         /* table needs to be created for each edit command, since vertices can move etc */
         ED_mesh_mirror_spatial_table(tc->obedit, em, NULL, NULL, 'e');
@@ -7087,8 +7062,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     /* Handle the exception where for TFM_BONESIZE in edit mode we pretend to be
      * in pose mode (to use bone orientation matrix),
      * in that case we don't do operations like autokeyframing. */
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       ob = tc->poseobj;
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
@@ -7096,8 +7070,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
   else if (t->flag & T_POSE) {
     GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
       bArmature *arm;
       bPoseChannel *pchan;
@@ -9008,8 +8981,7 @@ void createTransData(bContext *C, TransInfo *t)
   else if (t->options & CTX_EDGE) {
     /* Multi object editing. */
     initTransDataContainers_FromObjectData(t, ob, NULL, 0);
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       tc->data_ext = NULL;
     }
     t->flag |= T_EDIT;
@@ -9164,8 +9136,7 @@ void createTransData(bContext *C, TransInfo *t)
     /* Multi object editing. */
     initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 
-    FOREACH_TRANS_DATA_CONTAINER(t, tc)
-    {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       tc->data_ext = NULL;
     }
     if (t->obedit_type == OB_MESH) {
@@ -9216,8 +9187,7 @@ void createTransData(bContext *C, TransInfo *t)
       t->flag |= T_POSE;
       t->obedit_type = -1;
 
-      FOREACH_TRANS_DATA_CONTAINER(t, tc)
-      {
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         tc->poseobj = tc->obedit;
         tc->obedit = NULL;
       }

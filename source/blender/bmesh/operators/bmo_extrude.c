@@ -740,8 +740,7 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
       /* array for receiving angles from angle_poly_v3 */
       float **verts = BLI_buffer_reinit_data(&verts_buf, float *, f->len);
 
-      BM_ITER_ELEM_INDEX(l, &loopIter, f, BM_LOOPS_OF_FACE, i)
-      {
+      BM_ITER_ELEM_INDEX (l, &loopIter, f, BM_LOOPS_OF_FACE, i) {
         verts[i] = l->v->co;
       }
 

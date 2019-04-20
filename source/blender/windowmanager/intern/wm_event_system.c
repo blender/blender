@@ -640,8 +640,7 @@ static void wm_handler_ui_cancel(bContext *C)
     return;
   }
 
-  LISTBASE_FOREACH_MUTABLE(wmEventHandler *, handler_base, &ar->handlers)
-  {
+  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &ar->handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_UI) {
       wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
       BLI_assert(handler->handle_fn != NULL);
@@ -3380,8 +3379,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
   /* only allow 1 file selector open per window */
-  LISTBASE_FOREACH_MUTABLE(wmEventHandler *, handler_base, &win->modalhandlers)
-  {
+  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &win->modalhandlers) {
     if (handler_base->type == WM_HANDLER_TYPE_OP) {
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
       if (handler->is_fileselect == false) {
@@ -3700,8 +3698,7 @@ void WM_event_free_ui_handler_all(bContext *C,
                                   wmUIHandlerFunc handle_fn,
                                   wmUIHandlerRemoveFunc remove_fn)
 {
-  LISTBASE_FOREACH_MUTABLE(wmEventHandler *, handler_base, handlers)
-  {
+  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_UI) {
       wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
       if ((handler->handle_fn == handle_fn) && (handler->remove_fn == remove_fn)) {
@@ -3738,8 +3735,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
 /* XXX solution works, still better check the real cause (ton) */
 void WM_event_remove_area_handler(ListBase *handlers, void *area)
 {
-  LISTBASE_FOREACH_MUTABLE(wmEventHandler *, handler_base, handlers)
-  {
+  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_UI) {
       wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
       if (handler->context.area == area) {

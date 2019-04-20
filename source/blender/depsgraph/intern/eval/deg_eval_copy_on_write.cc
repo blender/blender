@@ -368,8 +368,7 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
 void view_layer_remove_disabled_bases(const Depsgraph *depsgraph, ViewLayer *view_layer)
 {
   ListBase enabled_bases = {NULL, NULL};
-  LISTBASE_FOREACH_MUTABLE(Base *, base, &view_layer->object_bases)
-  {
+  LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
     /* TODO(sergey): Would be cool to optimize this somehow, or make it so
      * builder tags bases.
      *

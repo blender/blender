@@ -601,8 +601,7 @@ static int pose_autoside_names_exec(bContext *C, wmOperator *op)
   Object *ob_prev = NULL;
 
   /* loop through selected bones, auto-naming them */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     bArmature *arm = ob->data;
     BLI_strncpy(newname, pchan->name, sizeof(newname));
     if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis])) {
@@ -659,8 +658,7 @@ static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
   Object *prev_ob = NULL;
 
   /* set rotation mode of selected bones  */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     pchan->rotmode = mode;
 
     if (prev_ob != ob) {
@@ -887,8 +885,7 @@ static int pose_bone_layers_exec(bContext *C, wmOperator *op)
   Object *prev_ob = NULL;
 
   /* set layers of pchans based on the values set in the operator props */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     /* get pointer for pchan, and write flags this way */
     RNA_pointer_create((ID *)ob->data, &RNA_Bone, pchan->bone, &ptr);
     RNA_boolean_set_array(&ptr, "layers", layers);
@@ -964,8 +961,7 @@ static int armature_bone_layers_exec(bContext *C, wmOperator *op)
   RNA_boolean_get_array(op->ptr, "layers", layers);
 
   /* set layers of pchans based on the values set in the operator props */
-  CTX_DATA_BEGIN_WITH_ID(C, EditBone *, ebone, selected_editable_bones, bArmature *, arm)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm) {
     /* get pointer for pchan, and write flags this way */
     RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
     RNA_boolean_set_array(&ptr, "layers", layers);

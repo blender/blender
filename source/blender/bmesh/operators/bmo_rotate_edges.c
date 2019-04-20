@@ -116,8 +116,7 @@ static void bm_rotate_edges_shared(
     BMOIter siter;
     BMEdge *e;
     uint i;
-    BMO_ITER_INDEX(e, &siter, op->slots_in, "edges", BM_EDGE, i)
-    {
+    BMO_ITER_INDEX (e, &siter, op->slots_in, "edges", BM_EDGE, i) {
       BM_elem_index_set(e, BM_edge_is_manifold(e) ? i : -1); /* set_dirty! */
       eheap_table[i] = NULL;
     }
@@ -138,8 +137,7 @@ static void bm_rotate_edges_shared(
       BMOIter siter;
       BMEdge *e;
       uint i;
-      BMO_ITER_INDEX(e, &siter, op->slots_in, "edges", BM_EDGE, i)
-      {
+      BMO_ITER_INDEX (e, &siter, op->slots_in, "edges", BM_EDGE, i) {
         BLI_assert(eheap_table[i] == NULL);
 
         bool ok = (BM_elem_index_get(e) != -1) && BM_edge_rotate_check(e);

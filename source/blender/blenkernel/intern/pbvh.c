@@ -1287,8 +1287,7 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *
 
   GSetIterator gs_iter;
   int i;
-  GSET_ITER_INDEX(gs_iter, face_set, i)
-  {
+  GSET_ITER_INDEX (gs_iter, face_set, i) {
     faces[i] = BLI_gsetIterator_getKey(&gs_iter);
   }
 

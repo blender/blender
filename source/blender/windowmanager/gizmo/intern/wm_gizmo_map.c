@@ -810,8 +810,7 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
 
   wm_gizmomap_select_array_ensure_len_alloc(gzmap, BLI_ghash_len(hash));
 
-  GHASH_ITER_INDEX(gh_iter, hash, i)
-  {
+  GHASH_ITER_INDEX (gh_iter, hash, i) {
     wmGizmo *gz_iter = BLI_ghashIterator_getValue(&gh_iter);
     WM_gizmo_select_set(gzmap, gz_iter, true);
   }

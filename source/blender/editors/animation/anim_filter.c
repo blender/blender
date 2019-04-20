@@ -1310,8 +1310,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
   }
 
   /* add grouped F-Curves */
-  BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_AGRP(ac, agrp))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_AGRP(ac, agrp)) {
     /* special filter so that we can get just the F-Curves within the active group */
     if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
       /* for the Graph Editor, curves may be set to not be visible in the view to lessen
@@ -1510,8 +1509,7 @@ static size_t animfilter_nla_controls(
 
   /* add control curves from each NLA strip... */
   /* NOTE: ANIMTYPE_FCURVES are created here, to avoid duplicating the code needed */
-  BEGIN_ANIMFILTER_SUBCHANNELS(((adt->flag & ADT_NLA_SKEYS_COLLAPSED) == 0))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (((adt->flag & ADT_NLA_SKEYS_COLLAPSED) == 0)) {
     NlaTrack *nlt;
     NlaStrip *strip;
 
@@ -1697,8 +1695,7 @@ static size_t animdata_filter_gpencil_data(ListBase *anim_data,
     size_t tmp_items = 0;
 
     /* add gpencil animation channels */
-    BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_GPD(gpd))
-    {
+    BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_GPD(gpd)) {
       tmp_items += animdata_filter_gpencil_layers_data(&tmp_data, ads, gpd, filter_mode);
     }
     END_ANIMFILTER_SUBCHANNELS;
@@ -1817,8 +1814,7 @@ static size_t animdata_filter_ds_gpencil(
   size_t items = 0;
 
   /* add relevant animation channels for Grease Pencil */
-  BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_GPD(gpd))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_GPD(gpd)) {
     /* add animation channels */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, &gpd->id, filter_mode);
 
@@ -1858,8 +1854,7 @@ static size_t animdata_filter_ds_cachefile(
   size_t items = 0;
 
   /* add relevant animation channels for Cache File */
-  BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_CACHEFILE_OBJD(cache_file))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_CACHEFILE_OBJD(cache_file)) {
     /* add animation channels */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, &cache_file->id, filter_mode);
   }
@@ -1931,8 +1926,7 @@ static size_t animdata_filter_mask(Main *bmain,
       continue;
 
     /* add mask animation channels */
-    BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_MASK(mask))
-    {
+    BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
       tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
     }
     END_ANIMFILTER_SUBCHANNELS;
@@ -1969,8 +1963,7 @@ static size_t animdata_filter_ds_nodetree_group(bAnimContext *ac,
   size_t items = 0;
 
   /* add nodetree animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_NTREE_DATA(ntree))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_NTREE_DATA(ntree)) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ntree, filter_mode);
   }
@@ -2061,8 +2054,7 @@ static size_t animdata_filter_ds_linestyle(
       linestyle->id.tag &= ~LIB_TAG_DOIT;
 
       /* add scene-level animation channels */
-      BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_LS_SCED(linestyle))
-      {
+      BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_LS_SCED(linestyle)) {
         /* animation data filtering */
         tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)linestyle, filter_mode);
       }
@@ -2102,8 +2094,7 @@ static size_t animdata_filter_ds_texture(bAnimContext *ac,
   size_t items = 0;
 
   /* add texture's animation data to temp collection */
-  BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_TEX_DATA(tex))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_TEX_DATA(tex)) {
     /* texture animdata */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)tex, filter_mode);
 
@@ -2191,8 +2182,7 @@ static size_t animdata_filter_ds_material(
   size_t items = 0;
 
   /* add material's animation data to temp collection */
-  BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_MAT_OBJD(ma))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_MAT_OBJD(ma)) {
     /* material's animation data */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ma, filter_mode);
 
@@ -2370,8 +2360,7 @@ static size_t animdata_filter_ds_particles(
       continue;
 
     /* add particle-system's animation data to temp collection */
-    BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_PART_OBJD(psys->part))
-    {
+    BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_PART_OBJD(psys->part)) {
       /* particle system's animation data */
       tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)psys->part, filter_mode);
 
@@ -2505,8 +2494,7 @@ static size_t animdata_filter_ds_obdata(
   }
 
   /* add object data animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(expanded)
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (expanded) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)iat, filter_mode);
 
@@ -2556,8 +2544,7 @@ static size_t animdata_filter_ds_keyanim(
   size_t items = 0;
 
   /* add shapekey-level animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_SKE_OBJD(key))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_SKE_OBJD(key)) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)key, filter_mode);
   }
@@ -2613,8 +2600,7 @@ static size_t animdata_filter_ds_obanim(
       });
 
   /* add object-level animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(expanded)
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (expanded) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ob, filter_mode);
   }
@@ -2650,8 +2636,7 @@ static size_t animdata_filter_dopesheet_ob(
   size_t items = 0;
 
   /* filter data contained under object first */
-  BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_OBJC(ob))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_OBJC(ob)) {
     Key *key = BKE_key_from_object(ob);
 
     /* object-level animation */
@@ -2723,8 +2708,7 @@ static size_t animdata_filter_ds_world(
   size_t items = 0;
 
   /* add world animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_WOR_SCED(wo))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_WOR_SCED(wo)) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)wo, filter_mode);
 
@@ -2785,8 +2769,7 @@ static size_t animdata_filter_ds_scene(
       });
 
   /* add scene-level animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(expanded)
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (expanded) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)sce, filter_mode);
   }
@@ -2820,8 +2803,7 @@ static size_t animdata_filter_dopesheet_scene(
   size_t items = 0;
 
   /* filter data contained under object first */
-  BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_SCEC(sce))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_SCEC(sce)) {
     bNodeTree *ntree = sce->nodetree;
     bGPdata *gpd = sce->gpd;
     World *wo = sce->world;
@@ -2883,8 +2865,7 @@ static size_t animdata_filter_ds_movieclip(
   size_t tmp_items = 0;
   size_t items = 0;
   /* add world animation channels */
-  BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_MCLIP(clip))
-  {
+  BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MCLIP(clip)) {
     /* animation data filtering */
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)clip, filter_mode);
   }

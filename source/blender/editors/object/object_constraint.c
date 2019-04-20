@@ -1479,8 +1479,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
   Object *prev_ob = NULL;
 
   /* free constraints for all selected bones */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     BKE_constraints_free(&pchan->constraints);
     pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
 
@@ -1561,8 +1560,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
   Object *prev_ob = NULL;
 
   /* copy all constraints from active posebone to all selected posebones */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, chan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, ob) {
     /* if we're not handling the object we're copying from, copy all constraints over */
     if (pchan != chan) {
       BKE_constraints_copy(&chan->constraints, &pchan->constraints, true);
@@ -2129,8 +2127,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
   Object *prev_ob = NULL;
 
   /* only remove IK Constraints */
-  CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
-  {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     bConstraint *con, *next;
 
     /* TODO: should we be checking if these constraints were local before we try and remove them? */

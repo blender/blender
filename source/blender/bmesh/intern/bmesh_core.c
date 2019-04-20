@@ -69,7 +69,7 @@ BMVert *BM_vert_create(BMesh *bm,
   v->head.data = NULL;
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
-  DEBUG_MEMCHECK_INDEX_INVALIDATE(v)
+  DEBUG_MEMCHECK_INDEX_INVALIDATE(v);
 #else
   BM_elem_index_set(v, -1); /* set_ok_invalid */
 #endif
@@ -162,7 +162,7 @@ BMEdge *BM_edge_create(
   e->head.data = NULL;
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
-  DEBUG_MEMCHECK_INDEX_INVALIDATE(e)
+  DEBUG_MEMCHECK_INDEX_INVALIDATE(e);
 #else
   BM_elem_index_set(e, -1); /* set_ok_invalid */
 #endif
@@ -237,7 +237,7 @@ static BMLoop *bm_loop_create(BMesh *bm,
   l->head.data = NULL;
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
-  DEBUG_MEMCHECK_INDEX_INVALIDATE(l)
+  DEBUG_MEMCHECK_INDEX_INVALIDATE(l);
 #else
   BM_elem_index_set(l, -1); /* set_ok_invalid */
 #endif
@@ -373,7 +373,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
   /* --- assign all members --- */
   f->head.data = NULL;
 #ifdef USE_DEBUG_INDEX_MEMCHECK
-  DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
+  DEBUG_MEMCHECK_INDEX_INVALIDATE(f);
 #else
   BM_elem_index_set(f, -1); /* set_ok_invalid */
 #endif
