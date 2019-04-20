@@ -271,9 +271,9 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
         }
         else if (ac->datatype == ANIMCONT_GPENCIL) {
           unsigned char *color;
+          unsigned char gpl_col[4];
           if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
-            unsigned char gpl_col[4];
             rgb_float_to_uchar(gpl_col, gpl->color);
             gpl_col[3] = col1[3];
 
