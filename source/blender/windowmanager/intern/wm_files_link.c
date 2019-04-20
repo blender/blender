@@ -152,7 +152,9 @@ typedef struct WMLinkAppendData {
   LinkNodePair items;
   int num_libraries;
   int num_items;
-  int flag; /* Combines eFileSel_Params_Flag from DNA_space_types.h and BLO_LibLinkFlags from BLO_readfile.h */
+  /** Combines #eFileSel_Params_Flag from DNA_space_types.h and
+   * BLO_LibLinkFlags from BLO_readfile.h */
+  int flag;
 
   /* Internal 'private' data */
   MemArena *memarena;
@@ -511,10 +513,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   /* TODO(sergey): Use proper flag for tagging here. */
 
   /* TODO (dalai): Temporary solution!
-   * Ideally we only need to tag the new objects themselves, not the scene. This way we'll avoid flush of
-   * collection properties to all objects and limit update to the particular object only.
-   * But afraid first we need to change collection evaluation in DEG according to depsgraph manifesto.
-   */
+   * Ideally we only need to tag the new objects themselves, not the scene.
+   * This way we'll avoid flush of collection properties
+   * to all objects and limit update to the particular object only.
+   * But afraid first we need to change collection evaluation in DEG
+   * according to depsgraph manifesto. */
   DEG_id_tag_update(&scene->id, 0);
 
   /* recreate dependency graph to include new objects */
@@ -662,7 +665,8 @@ static void lib_relocate_do(Main *bmain,
     const short idcode = id ? GS(id->name) : 0;
 
     if (!id || !BKE_idcode_is_linkable(idcode)) {
-      /* No need to reload non-linkable datatypes, those will get relinked with their 'users ID'. */
+      /* No need to reload non-linkable datatypes,
+       * those will get relinked with their 'users ID'. */
       continue;
     }
 
@@ -719,7 +723,8 @@ static void lib_relocate_do(Main *bmain,
 
     BLI_assert(old_id);
     if (do_reload) {
-      /* Since we asked for placeholders in case of missing IDs, we expect to always get a valid one. */
+      /* Since we asked for placeholders in case of missing IDs,
+       * we expect to always get a valid one. */
       BLI_assert(new_id);
     }
     if (new_id) {
@@ -747,9 +752,10 @@ static void lib_relocate_do(Main *bmain,
     }
 
     if (old_id->us > 0 && new_id && old_id->lib == new_id->lib) {
-      /* Note that this *should* not happen - but better be safe than sorry in this area, at least until we are
-       * 100% sure this cannot ever happen.
-       * Also, we can safely assume names were unique so far, so just replacing '.' by '~' should work,
+      /* Note that this *should* not happen - but better be safe than sorry in this area,
+       * at least until we are 100% sure this cannot ever happen.
+       * Also, we can safely assume names were unique so far,
+       * so just replacing '.' by '~' should work,
        * but this does not totally rules out the possibility of name collision. */
       size_t len = strlen(old_id->name);
       size_t dot_pos;
@@ -800,8 +806,8 @@ static void lib_relocate_do(Main *bmain,
     }
   }
 
-  /* Some datablocks can get reloaded/replaced 'silently' because they are not linkable (shape keys e.g.),
-   * so we need another loop here to clear old ones if possible. */
+  /* Some datablocks can get reloaded/replaced 'silently' because they are not linkable
+   * (shape keys e.g.), so we need another loop here to clear old ones if possible. */
   lba_idx = set_listbasepointers(bmain, lbarray);
   while (lba_idx--) {
     ID *id, *id_next;

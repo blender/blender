@@ -20,7 +20,8 @@
 /** \file
  * \ingroup wm
  *
- * User level access for blend file read/write, file-history and userprefs (including relevant operators).
+ * User level access for blend file read/write, file-history and user-preferences
+ * (including relevant operators).
  */
 
 /* placed up here because of crappy
@@ -169,11 +170,13 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
   /* reset active window */
   CTX_wm_window_set(C, active_win);
 
-  /* XXX Hack! We have to clear context menu here, because removing all modalhandlers above frees the active menu
-   *     (at least, in the 'startup splash' case), causing use-after-free error in later handling of the button
-   *     callbacks in UI code (see ui_apply_but_funcs_after()).
-   *     Tried solving this by always NULL-ing context's menu when setting wm/win/etc., but it broke popups refreshing
-   *     (see T47632), so for now just handling this specific case here. */
+  /* XXX Hack! We have to clear context menu here, because removing all modalhandlers
+   * above frees the active menu (at least, in the 'startup splash' case),
+   * causing use-after-free error in later handling of the button callbacks in UI code
+   * (see ui_apply_but_funcs_after()).
+   * Tried solving this by always NULL-ing context's menu when setting wm/win/etc.,
+   * but it broke popups refreshing (see T47632),
+   * so for now just handling this specific case here. */
   CTX_wm_menu_set(C, NULL);
 
   ED_editors_exit(G_MAIN, true);
@@ -737,12 +740,18 @@ static bool wm_app_template_has_userpref(const char *app_template)
  * Called on startup, (context entirely filled with NULLs)
  * or called for 'New File' both startup.blend and userpref.blend are checked.
  *
- * \param use_factory_settings: Ignore on-disk startup file, use bundled ``datatoc_startup_blend`` instead.
+ * \param use_factory_settings:
+ * Ignore on-disk startup file, use bundled ``datatoc_startup_blend`` instead.
  * Used for "Restore Factory Settings".
+ *
  * \param use_userdef: Load factory settings as well as startup file.
  * Disabled for "File New" we don't want to reload preferences.
- * \param filepath_startup_override: Optional path pointing to an alternative blend file (may be NULL).
- * \param app_template_override: Template to use instead of the template defined in user-preferences.
+ *
+ * \param filepath_startup_override:
+ * Optional path pointing to an alternative blend file (may be NULL).
+ *
+ * \param app_template_override:
+ * Template to use instead of the template defined in user-preferences.
  * When not-null, this is written into the user preferences.
  */
 void wm_homefile_read(bContext *C,
@@ -762,9 +771,11 @@ void wm_homefile_read(bContext *C,
   char filepath_startup[FILE_MAX];
   char filepath_userdef[FILE_MAX];
 
-  /* When 'app_template' is set: '{BLENDER_USER_CONFIG}/{app_template}' */
+  /* When 'app_template' is set:
+   * '{BLENDER_USER_CONFIG}/{app_template}' */
   char app_template_system[FILE_MAX];
-  /* When 'app_template' is set: '{BLENDER_SYSTEM_SCRIPTS}/startup/bl_app_templates_system/{app_template}' */
+  /* When 'app_template' is set:
+   * '{BLENDER_SYSTEM_SCRIPTS}/startup/bl_app_templates_system/{app_template}' */
   char app_template_config[FILE_MAX];
 
   /* Indicates whether user preferences were really load from memory.
@@ -779,7 +790,8 @@ void wm_homefile_read(bContext *C,
   bool read_userdef_from_memory = false;
   eBLOReadSkip skip_flags = use_userdef ? 0 : BLO_READ_SKIP_USERDEF;
 
-  /* True if we load startup.blend from memory or use app-template startup.blend which the user hasn't saved. */
+  /* True if we load startup.blend from memory
+   * or use app-template startup.blend which the user hasn't saved. */
   bool is_factory_startup = true;
 
   /* options exclude eachother */
@@ -998,8 +1010,9 @@ void wm_homefile_read(bContext *C,
     BLI_strncpy(U.app_template, app_template_override, sizeof(U.app_template));
   }
 
-  /* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
-   * can remove this eventually, only in a 2.53 and older, now its not written */
+  /* Prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake.
+   * Screws up autosaves otherwise can remove this eventually,
+   * only in a 2.53 and older, now its not written. */
   G.fileflags &= ~G_FILE_RELATIVE_REMAP;
 
   bmain = CTX_data_main(C);
@@ -1014,8 +1027,8 @@ void wm_homefile_read(bContext *C,
   wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
 
   if (use_factory_settings) {
-    /*  Clear keymaps because the current default keymap may have been initialized from user preferences,
-     *  which have been reset. */
+    /*  Clear keymaps because the current default keymap may have been initialized
+     *  from user preferences, which have been reset. */
     for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
       if (wm->defaultconf) {
         wm->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
@@ -1322,12 +1335,14 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
     }
   }
 
-  /* Call pre-save callbacks befores writing preview, that way you can generate custom file thumbnail... */
+  /* Call pre-save callbacks befores writing preview,
+   * that way you can generate custom file thumbnail. */
   BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_PRE);
 
   /* blend file thumbnail */
-  /* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-  /* Main now can store a .blend thumbnail, useful for background mode or thumbnail customization. */
+  /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */
+  /* Main now can store a '.blend' thumbnail, useful for background mode
+   * or thumbnail customization. */
   main_thumb = thumb = bmain->blen_thumb;
   if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
     ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
@@ -2409,8 +2424,9 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
   save_set_compress(op);
   save_set_filepath(C, op);
 
-  /* if we're saving for the first time and prefer relative paths - any existing paths will be absolute,
-   * enable the option to remap paths to avoid confusion [#37240] */
+  /* if we're saving for the first time and prefer relative paths -
+   * any existing paths will be absolute,
+   * enable the option to remap paths to avoid confusion T37240. */
   if ((G.relbase_valid == false) && (U.flag & USER_RELPATHS)) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
     if (!RNA_property_is_set(op->ptr, prop)) {

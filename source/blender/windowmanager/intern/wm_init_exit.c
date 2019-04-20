@@ -237,7 +237,8 @@ void WM_init(bContext *C, int argc, const char **argv)
   BLF_init();
 
   BLT_lang_init();
-  /* Must call first before doing any .blend file reading, since versionning code may create new IDs... See T57066. */
+  /* Must call first before doing any '.blend' file reading,
+   * since versionning code may create new IDs... See T57066. */
   BLT_lang_set(NULL);
 
   /* Init icons before reading .blend files for preview icons, which can
@@ -408,7 +409,8 @@ static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
 }
 
 /**
- * Cause a delayed #WM_exit() call to avoid leaking memory when trying to exit from within operators.
+ * Cause a delayed #WM_exit()
+ * call to avoid leaking memory when trying to exit from within operators.
  */
 void wm_exit_schedule_delayed(const bContext *C)
 {
@@ -417,7 +419,8 @@ void wm_exit_schedule_delayed(const bContext *C)
 
   wmWindow *win = CTX_wm_window(C);
 
-  /* Use modal UI handler for now. Could add separate WM handlers or so, but probably not worth it. */
+  /* Use modal UI handler for now.
+   * Could add separate WM handlers or so, but probably not worth it. */
   WM_event_add_ui_handler(C, &win->modalhandlers, wm_exit_handler, NULL, NULL, 0);
   WM_event_add_mousemove(C); /* ensure handler actually gets called */
 }
@@ -530,7 +533,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
   ED_gpencil_anim_copybuf_free();
   ED_gpencil_strokes_copybuf_free();
 
-  /* free gizmo-maps after freeing blender, so no deleted data get accessed during cleaning up of areas */
+  /* free gizmo-maps after freeing blender,
+   * so no deleted data get accessed during cleaning up of areas. */
   wm_gizmomaptypes_free();
   wm_gizmogrouptype_free();
   wm_gizmotype_free();
@@ -562,9 +566,9 @@ void WM_exit_ext(bContext *C, const bool do_python)
     /* before BKE_blender_free so py's gc happens while library still exists */
     /* needed at least for a rare sigsegv that can happen in pydrivers */
 
-    /* Update for blender 2.5, move after BKE_blender_free because blender now holds references to PyObject's
-     * so decref'ing them after python ends causes bad problems every time
-     * the pyDriver bug can be fixed if it happens again we can deal with it then */
+    /* Update for blender 2.5, move after BKE_blender_free because Blender now holds references to
+     * PyObject's so decref'ing them after python ends causes bad problems every time
+     * the py-driver bug can be fixed if it happens again we can deal with it then. */
     BPY_python_end();
   }
 #else
@@ -588,8 +592,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
   BLI_threadapi_exit();
 
-  /* No need to call this early, rather do it late so that other pieces of Blender using sound may exit cleanly,
-   * see also T50676. */
+  /* No need to call this early, rather do it late so that other
+   * pieces of Blender using sound may exit cleanly, see also T50676. */
   BKE_sound_exit();
 
   CLG_exit();
@@ -610,7 +614,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 /**
  * \brief Main exit function to close Blender ordinarily.
- * \note Use #wm_exit_schedule_delayed() to close Blender from an operator. Might leak memory otherwise.
+ * \note Use #wm_exit_schedule_delayed() to close Blender from an operator.
+ * Might leak memory otherwise.
  */
 void WM_exit(bContext *C)
 {

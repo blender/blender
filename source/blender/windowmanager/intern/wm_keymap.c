@@ -104,7 +104,8 @@ static void wm_keymap_item_properties_set(wmKeyMapItem *kmi)
 }
 
 /**
- * Similar to #wm_keymap_item_properties_set but checks for the wmOperatorType having changed, see [#38042]
+ * Similar to #wm_keymap_item_properties_set
+ * but checks for the #wmOperatorType having changed, see T38042.
  */
 static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
 {
@@ -665,16 +666,21 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
       /* We seek only for exact copy here! See T42137. */
       kmi_add = wm_keymap_find_item_equals(km, kmdi->add_item);
 
-      /* If kmi_add is same as kmi_remove (can happen in some cases, typically when we got kmi_remove
-       * from wm_keymap_find_item_equals_result()), no need to add or remove anything, see T45579. */
-      /* Note: This typically happens when we apply user-defined keymap diff to a base one that was exported
-       *       with that customized keymap already. In that case:
-       *         - wm_keymap_find_item_equals(km, kmdi->remove_item) finds nothing (because actual shortcut of
-       *           current base does not match kmdi->remove_item any more).
-       *         - wm_keymap_find_item_equals_result(km, kmdi->remove_item) finds the current kmi from
-       *           base keymap (because it does exactly the same thing).
-       *         - wm_keymap_find_item_equals(km, kmdi->add_item) finds the same kmi, since base keymap was
-       *           exported with that user-defined shortcut already!
+      /** If kmi_add is same as kmi_remove (can happen in some cases,
+       * typically when we got kmi_remove from #wm_keymap_find_item_equals_result()),
+       * no need to add or remove anything, see T45579. */
+
+      /**
+       * \note This typically happens when we apply user-defined keymap diff to a base one that
+       * was exported with that customized keymap already. In that case:
+       *
+       * - wm_keymap_find_item_equals(km, kmdi->remove_item) finds nothing
+       *   (because actual shortcut of current base does not match kmdi->remove_item any more).
+       * - wm_keymap_find_item_equals_result(km, kmdi->remove_item) finds the current kmi from
+       *   base keymap (because it does exactly the same thing).
+       * - wm_keymap_find_item_equals(km, kmdi->add_item) finds the same kmi,
+       *   since base keymap was exported with that user-defined shortcut already!
+       *
        *       Maybe we should rather keep user-defined keymaps specific to a given base one? */
       if (kmi_add != NULL && kmi_add == kmi_remove) {
         kmi_remove = NULL;
@@ -890,7 +896,8 @@ wmKeyMap *WM_keymap_find_all_spaceid_or_empty(const bContext *C,
 
 /* ****************** modal keymaps ************ */
 
-/* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
+/* Modal key-maps get linked to a running operator,
+ * and filter the keys before sending to modal() callback. */
 
 wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf,
                              const char *idname,
@@ -1051,7 +1058,8 @@ const char *WM_key_event_string(const short type, const bool compact)
   }
   it = &rna_enum_event_type_items[i];
 
-  /* We first try enum items' description (abused as shortname here), and fall back to usual name if empty. */
+  /* We first try enum items' description (abused as shortname here),
+   * and fall back to usual name if empty. */
   if (compact && it->description[0]) {
     /* XXX No context for enum descriptions... In practice shall not be an issue though. */
     return IFACE_(it->description);
@@ -1121,7 +1129,8 @@ int WM_keymap_item_raw_to_string(const short shift,
     p += BLI_strcpy_rlen(p, WM_key_event_string(type, compact));
   }
 
-  /* We assume size of buf is enough to always store any possible shortcut, but let's add a debug check about it! */
+  /* We assume size of buf is enough to always store any possible shortcut,
+   * but let's add a debug check about it! */
   BLI_assert(p - buf < sizeof(buf));
 
   /* We need utf8 here, otherwise we may 'cut' some unicode chars like arrows... */
@@ -1409,10 +1418,10 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
 {
   wmKeyMapItem *found;
 
-  /* XXX Hack! Macro operators in menu entry have their whole props defined, which is not the case for
-   *     relevant keymap entries. Could be good to check and harmonize this, but for now always
-   *     compare non-strict in this case.
-   */
+  /* XXX Hack! Macro operators in menu entry have their whole props defined,
+   * which is not the case for relevant keymap entries.
+   * Could be good to check and harmonize this,
+   * but for now always compare non-strict in this case. */
   wmOperatorType *ot = WM_operatortype_find(opname, true);
   if (ot) {
     is_strict = is_strict && ((ot->flag & OPTYPE_MACRO) == 0);
@@ -1438,7 +1447,8 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
       RNA_pointer_create(NULL, ot->srna, properties_temp, &opptr);
 
       if (RNA_property_is_set(&opptr, ot->prop)) {
-        /* for operator that has enum menu, unset it so its value does not affect comparison result */
+        /* For operator that has enum menu,
+         * unset it so its value does not affect comparison result. */
         RNA_property_unset(&opptr, ot->prop);
 
         found = wm_keymap_item_find_props(
@@ -1538,7 +1548,8 @@ static bool kmi_filter_is_visible_type_mask(const wmKeyMap *km,
 }
 
 /**
- * \param include_mask, exclude_mask: Event types to include/exclude when looking up keys (#eEventType_Mask).
+ * \param include_mask, exclude_mask:
+ * Event types to include/exclude when looking up keys (#eEventType_Mask).
  */
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,

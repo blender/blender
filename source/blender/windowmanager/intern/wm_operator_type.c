@@ -236,9 +236,11 @@ void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
 }
 
 /**
- * Tags all operator-properties of \ot defined since the first #WM_operatortype_props_advanced_begin
- * call, or the last #WM_operatortype_props_advanced_end call, with #OP_PROP_TAG_ADVANCED.
- * Note that this is called for all operators during registration (see #wm_operatortype_append__end).
+ * Tags all operator-properties of \a ot defined since the first
+ * #WM_operatortype_props_advanced_begin call,
+ * or the last #WM_operatortype_props_advanced_end call, with #OP_PROP_TAG_ADVANCED.
+ *
+ * \note This is called for all operators during registration (see #wm_operatortype_append__end).
  * So it does not need to be explicitly called in operator-type definition.
  */
 void WM_operatortype_props_advanced_end(wmOperatorType *ot)

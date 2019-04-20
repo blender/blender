@@ -159,8 +159,9 @@ static void wm_msg_rna_update_by_id(struct wmMsgBus *mbus, ID *id_src, ID *id_ds
         wm_msg_rna_gset_key_free(key);
       }
       else {
-        /* note that it's not impossible this key exists, however it is very unlikely
-         * since a subscriber would need to register in the middle of an undo for eg. so assert for now. */
+        /* Note that it's not impossible this key exists, however it is very unlikely
+         * since a subscriber would need to register in the middle of an undo for eg.
+         * so assert for now. */
         BLI_assert(!BLI_gset_haskey(gs, key));
         BLI_gset_add(gs, key);
       }

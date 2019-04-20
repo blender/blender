@@ -267,7 +267,8 @@ void WM_gesture_box_cancel(bContext *C, wmOperator *op)
 /** \name Circle Gesture
  *
  * Currently only used for selection or modal paint stuff,
- * calls ``exec`` while hold mouse, exits on release (with no difference between cancel and confirm).
+ * calls #wmOperator.exec while hold mouse, exits on release
+ * (with no difference between cancel and confirm).
  *
  * \{ */
 
@@ -286,7 +287,8 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   gesture->wait_for_input = wait_for_input;
 
-  /* Starting with the mode starts immediately, like having 'wait_for_input' disabled (some tools use this). */
+  /* Starting with the mode starts immediately,
+   * like having 'wait_for_input' disabled (some tools use this). */
   if (gesture->wait_for_input == false) {
     gesture->is_active = true;
     gesture_circle_apply(C, op);
@@ -314,8 +316,9 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
   RNA_int_set(op->ptr, "y", rect->ymin);
   RNA_int_set(op->ptr, "radius", rect->xmax);
 
-  /* When 'wait_for_input' is false, use properties to get the selection state.
-   * typically tool settings. This is done so executing as a mode can select & de-select, see: T58594. */
+  /* When 'wait_for_input' is false,
+   * use properties to get the selection state (typically tool settings).
+   * This is done so executing as a mode can select & de-select, see: T58594. */
   if (gesture->wait_for_input) {
     gesture_modal_state_to_operator(op, gesture->modal_state);
   }
@@ -476,7 +479,8 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
         wmEvent tevent;
 
         wm_event_init_from_window(window, &tevent);
-        /* We want to get coord from start of drag, not from point where it becomes a tweak event, see T40549 */
+        /* We want to get coord from start of drag,
+         * not from point where it becomes a tweak event, see T40549. */
         tevent.x = rect->xmin + gesture->winrct.xmin;
         tevent.y = rect->ymin + gesture->winrct.ymin;
         if (gesture->event_type == LEFTMOUSE) {

@@ -255,7 +255,8 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 
   immUnbindProgram();
 
-  // wm_gesture_draw_line(gt); // draws a diagonal line in the lined box to test wm_gesture_draw_line
+  /* draws a diagonal line in the lined box to test wm_gesture_draw_line */
+  // wm_gesture_draw_line(gt);
 }
 
 static void wm_gesture_draw_circle(wmGesture *gt)

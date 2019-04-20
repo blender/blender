@@ -462,7 +462,8 @@ bool wm_gizmo_select_and_highlight(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz)
 /**
  * Special function to run from setup so gizmos start out interactive.
  *
- * We could do this when linking them, but this complicates things since the window update code needs to run first.
+ * We could do this when linking them,
+ * but this complicates things since the window update code needs to run first.
  */
 void WM_gizmo_modal_set_from_setup(struct wmGizmoMap *gzmap,
                                    struct bContext *C,

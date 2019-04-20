@@ -71,27 +71,28 @@
 struct wmJob {
   struct wmJob *next, *prev;
 
-  /* job originating from, keep track of this when deleting windows */
+  /** Job originating from, keep track of this when deleting windows */
   wmWindow *win;
 
-  /* should store entire own context, for start, update, free */
+  /** Should store entire own context, for start, update, free */
   void *customdata;
-  /* to prevent cpu overhead, use this one which only gets called when job really starts, not in thread */
+  /** To prevent cpu overhead,
+   * use this one which only gets called when job really starts, not in thread */
   void (*initjob)(void *);
-  /* this runs inside thread, and does full job */
+  /** This runs inside thread, and does full job */
   void (*startjob)(void *, short *stop, short *do_update, float *progress);
-  /* update gets called if thread defines so, and max once per timerstep */
-  /* it runs outside thread, blocking blender, no drawing! */
+  /** Update gets called if thread defines so, and max once per timerstep
+   * it runs outside thread, blocking blender, no drawing! */
   void (*update)(void *);
-  /* free entire customdata, doesn't run in thread */
+  /** Free entire customdata, doesn't run in thread */
   void (*free)(void *);
-  /* gets called when job is stopped, not in thread */
+  /** Gets called when job is stopped, not in thread */
   void (*endjob)(void *);
 
-  /* running jobs each have own timer */
+  /** Running jobs each have own timer */
   double timestep;
   wmTimer *wt;
-  /* the notifier event timers should send */
+  /** The notifier event timers should send */
   unsigned int note, endnote;
 
   /* internal */
@@ -100,19 +101,19 @@ struct wmJob {
   short suspended, running, ready, do_update, stop, job_type;
   float progress;
 
-  /* for display in header, identification */
+  /** For display in header, identification */
   char name[128];
 
-  /* once running, we store this separately */
+  /** Once running, we store this separately */
   void *run_customdata;
   void (*run_free)(void *);
 
-  /* we use BLI_threads api, but per job only 1 thread runs */
+  /** We use BLI_threads api, but per job only 1 thread runs */
   ListBase threads;
 
   double start_time;
 
-  /* ticket mutex for main thread locking while some job accesses
+  /** Ticket mutex for main thread locking while some job accesses
    * data that the main thread might modify at the same time */
   TicketMutex *main_thread_mutex;
 };

@@ -308,7 +308,8 @@ enum {
   /* NOTE: these values are saved in keymap files, do not change them but just add new ones */
 
   /* Tweak events:
-   * Sent as additional event with the mouse coordinates from where the initial click was placed. */
+   * Sent as additional event with the mouse coordinates
+   * from where the initial click was placed. */
 
   /* tweak events for L M R mousebuttons */
   EVT_TWEAK_L = 0x5002,

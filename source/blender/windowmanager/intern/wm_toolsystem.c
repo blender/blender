@@ -246,7 +246,8 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
     }
     else if ((tref->space_type == SPACE_IMAGE) && (tref->mode == SI_MODE_UV)) {
       /* Note that switching uv-sculpt boolean is a hack at the moment.
-       * It would be best to make this either an operator or a higher level mode (like mesh-object sculpt mode). */
+       * It would be best to make this either an operator or a higher level mode
+       * (like mesh-object sculpt mode). */
       const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
       const int i = RNA_enum_from_identifier(items, tref_rt->data_block);
       if (i != -1) {
@@ -602,7 +603,8 @@ bool WM_toolsystem_key_from_context(ViewLayer *view_layer, ScrArea *sa, bToolKey
 /**
  * Use to update the active tool (shown in the top bar) in the least disruptive way.
  *
- * This is a little involved since there may be multiple valid active tools depending on the mode and space type.
+ * This is a little involved since there may be multiple valid active tools
+ * depending on the mode and space type.
  *
  * Used when undoing since the active mode may have changed.
  */
