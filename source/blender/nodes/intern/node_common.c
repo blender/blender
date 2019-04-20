@@ -179,18 +179,16 @@ static void group_verify_socket_list(
 }
 
 /* make sure all group node in ntree, which use ngroup, are sync'd */
-void node_group_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *id)
+void node_group_update(struct bNodeTree *ntree, struct bNode *node)
 {
   /* check inputs and outputs, and remove or insert them */
-  if (id == node->id) {
-    if (id == NULL) {
-      nodeRemoveAllSockets(ntree, node);
-    }
-    else {
-      bNodeTree *ngroup = (bNodeTree *)node->id;
-      group_verify_socket_list(ntree, node, &ngroup->inputs, &node->inputs, SOCK_IN);
-      group_verify_socket_list(ntree, node, &ngroup->outputs, &node->outputs, SOCK_OUT);
-    }
+  if (node->id == NULL) {
+    nodeRemoveAllSockets(ntree, node);
+  }
+  else {
+    bNodeTree *ngroup = (bNodeTree *)node->id;
+    group_verify_socket_list(ntree, node, &ngroup->inputs, &node->inputs, SOCK_IN);
+    group_verify_socket_list(ntree, node, &ngroup->outputs, &node->outputs, SOCK_OUT);
   }
 }
 
@@ -408,7 +406,7 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree)
 
 static void node_group_input_init(bNodeTree *ntree, bNode *node)
 {
-  node_group_input_verify(ntree, node, (ID *)ntree);
+  node_group_input_update(ntree, node);
 }
 
 bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
@@ -422,19 +420,7 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
   return NULL;
 }
 
-void node_group_input_verify(bNodeTree *ntree, bNode *node, ID *id)
-{
-  /* check inputs and outputs, and remove or insert them */
-  if (id == (ID *)ntree) {
-    /* value_in_out inverted for interface nodes to get correct socket value_property */
-    group_verify_socket_list(ntree, node, &ntree->inputs, &node->outputs, SOCK_OUT);
-
-    /* add virtual extension socket */
-    nodeAddSocket(ntree, node, SOCK_OUT, "NodeSocketVirtual", "__extend__", "");
-  }
-}
-
-static void node_group_input_update(bNodeTree *ntree, bNode *node)
+void node_group_input_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *extsock = node->outputs.last;
   bNodeLink *link, *linknext, *exposelink;
@@ -480,7 +466,7 @@ static void node_group_input_update(bNodeTree *ntree, bNode *node)
 
     gsock = ntreeAddSocketInterfaceFromSocket(ntree, exposelink->tonode, exposelink->tosock);
 
-    node_group_input_verify(ntree, node, (ID *)ntree);
+    node_group_input_update(ntree, node);
     newsock = node_group_input_find_socket(node, gsock->identifier);
 
     /* redirect links from the extension socket */
@@ -490,6 +476,15 @@ static void node_group_input_update(bNodeTree *ntree, bNode *node)
   }
 
   BLI_freelistN(&tmplinks);
+
+  /* check inputs and outputs, and remove or insert them */
+  {
+    /* value_in_out inverted for interface nodes to get correct socket value_property */
+    group_verify_socket_list(ntree, node, &ntree->inputs, &node->outputs, SOCK_OUT);
+
+    /* add virtual extension socket */
+    nodeAddSocket(ntree, node, SOCK_OUT, "NodeSocketVirtual", "__extend__", "");
+  }
 }
 
 void register_node_type_group_input(void)
@@ -500,7 +495,7 @@ void register_node_type_group_input(void)
   node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE, 0);
   node_type_size(ntype, 140, 80, 400);
   node_type_init(ntype, node_group_input_init);
-  node_type_update(ntype, node_group_input_update, node_group_input_verify);
+  node_type_update(ntype, node_group_input_update);
 
   ntype->needs_free = 1;
   nodeRegisterType(ntype);
@@ -508,7 +503,7 @@ void register_node_type_group_input(void)
 
 static void node_group_output_init(bNodeTree *ntree, bNode *node)
 {
-  node_group_output_verify(ntree, node, (ID *)ntree);
+  node_group_output_update(ntree, node);
 }
 
 bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
@@ -522,19 +517,7 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
   return NULL;
 }
 
-void node_group_output_verify(bNodeTree *ntree, bNode *node, ID *id)
-{
-  /* check inputs and outputs, and remove or insert them */
-  if (id == (ID *)ntree) {
-    /* value_in_out inverted for interface nodes to get correct socket value_property */
-    group_verify_socket_list(ntree, node, &ntree->outputs, &node->inputs, SOCK_IN);
-
-    /* add virtual extension socket */
-    nodeAddSocket(ntree, node, SOCK_IN, "NodeSocketVirtual", "__extend__", "");
-  }
-}
-
-static void node_group_output_update(bNodeTree *ntree, bNode *node)
+void node_group_output_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *extsock = node->inputs.last;
   bNodeLink *link, *linknext, *exposelink;
@@ -581,7 +564,7 @@ static void node_group_output_update(bNodeTree *ntree, bNode *node)
     /* XXX what if connecting virtual to virtual socket?? */
     gsock = ntreeAddSocketInterfaceFromSocket(ntree, exposelink->fromnode, exposelink->fromsock);
 
-    node_group_output_verify(ntree, node, (ID *)ntree);
+    node_group_output_update(ntree, node);
     newsock = node_group_output_find_socket(node, gsock->identifier);
 
     /* redirect links to the extension socket */
@@ -591,6 +574,15 @@ static void node_group_output_update(bNodeTree *ntree, bNode *node)
   }
 
   BLI_freelistN(&tmplinks);
+
+  /* check inputs and outputs, and remove or insert them */
+  {
+    /* value_in_out inverted for interface nodes to get correct socket value_property */
+    group_verify_socket_list(ntree, node, &ntree->outputs, &node->inputs, SOCK_IN);
+
+    /* add virtual extension socket */
+    nodeAddSocket(ntree, node, SOCK_IN, "NodeSocketVirtual", "__extend__", "");
+  }
 }
 
 void register_node_type_group_output(void)
@@ -601,7 +593,7 @@ void register_node_type_group_output(void)
   node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE, 0);
   node_type_size(ntype, 140, 80, 400);
   node_type_init(ntype, node_group_output_init);
-  node_type_update(ntype, node_group_output_update, node_group_output_verify);
+  node_type_update(ntype, node_group_output_update);
 
   ntype->needs_free = 1;
   nodeRegisterType(ntype);

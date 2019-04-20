@@ -218,7 +218,7 @@ typedef struct bNodeType {
   /// Called when the node is updated in the editor.
   void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node);
   /// Check and update if internal ID data has changed.
-  void (*verifyfunc)(struct bNodeTree *ntree, struct bNode *node, struct ID *id);
+  void (*group_update_func)(struct bNodeTree *ntree, struct bNode *node);
 
   /// Initialize a new node instance of this type after creation.
   void (*initfunc)(struct bNodeTree *ntree, struct bNode *node);
@@ -395,10 +395,8 @@ struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool ntreeHasType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
-/* XXX Currently each tree update call does call to ntreeVerifyNodes too.
- * Some day this should be replaced by a decent depsgraph automatism!
- */
-void ntreeVerifyNodes(struct Main *main, struct ID *id);
+void ntreeUpdateAllNew(struct Main *main);
+void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
 void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
 
@@ -736,10 +734,10 @@ void node_type_label(
     struct bNodeType *ntype,
     void (*labelfunc)(struct bNodeTree *ntree, struct bNode *, char *label, int maxlen));
 void node_type_update(struct bNodeType *ntype,
-                      void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node),
-                      void (*verifyfunc)(struct bNodeTree *ntree,
-                                         struct bNode *node,
-                                         struct ID *id));
+                      void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node));
+void node_type_group_update(struct bNodeType *ntype,
+                            void (*group_update_func)(struct bNodeTree *ntree,
+                                                      struct bNode *node));
 
 void node_type_exec(struct bNodeType *ntype,
                     NodeInitExecFunction initexecfunc,

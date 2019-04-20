@@ -122,7 +122,7 @@ void register_node_type_sh_tex_voronoi(void)
   node_type_storage(
       &ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_tex_voronoi);
-  node_type_update(&ntype, node_shader_update_tex_voronoi, NULL);
+  node_type_update(&ntype, node_shader_update_tex_voronoi);
 
   nodeRegisterType(&ntype);
 }

@@ -235,8 +235,8 @@ static bNode *ntree_shader_relink_output_from_group(bNodeTree *ntree,
   }
 
   /* Need to update tree so all node instances nodes gets proper sockets. */
-  node_group_verify(ntree, group_node, &group_ntree->id);
-  node_group_output_verify(group_ntree, group_output_node, &group_ntree->id);
+  node_group_update(ntree, group_node);
+  node_group_output_update(group_ntree, group_output_node);
   ntreeUpdateTree(G.main, group_ntree);
 
   /* Remove other shader output nodes so that only the new one can be selected as active. */
@@ -576,9 +576,9 @@ static void ntree_shader_link_builtin_group_normal(bNodeTree *ntree,
       group_ntree, SOCK_IN, "NodeSocketVector", "Normal");
   /* Need to update tree so all node instances nodes gets proper sockets. */
   bNode *group_input_node = ntreeFindType(group_ntree, NODE_GROUP_INPUT);
-  node_group_verify(ntree, group_node, &group_ntree->id);
+  node_group_update(ntree, group_node);
   if (group_input_node) {
-    node_group_input_verify(group_ntree, group_input_node, &group_ntree->id);
+    node_group_input_update(group_ntree, group_input_node);
   }
   ntreeUpdateTree(G.main, group_ntree);
   /* Assumes sockets are always added at the end. */

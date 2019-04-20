@@ -107,7 +107,7 @@ void register_node_type_sh_subsurface_scattering(void)
   node_type_init(&ntype, node_shader_init_subsurface_scattering);
   node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_subsurface_scattering);
-  node_type_update(&ntype, node_shader_update_subsurface_scattering, NULL);
+  node_type_update(&ntype, node_shader_update_subsurface_scattering);
 
   nodeRegisterType(&ntype);
 }

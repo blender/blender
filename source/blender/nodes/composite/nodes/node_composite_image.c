@@ -446,7 +446,7 @@ void register_node_type_cmp_image(void)
   cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW);
   node_type_init(&ntype, node_composit_init_image);
   node_type_storage(&ntype, "ImageUser", node_composit_free_image, node_composit_copy_image);
-  node_type_update(&ntype, cmp_node_image_update, NULL);
+  node_type_update(&ntype, cmp_node_image_update);
   node_type_label(&ntype, node_image_label);
 
   nodeRegisterType(&ntype);
@@ -580,7 +580,7 @@ void register_node_type_cmp_rlayers(void)
   ntype.initfunc_api = node_composit_init_rlayers;
   ntype.poll = node_composit_poll_rlayers;
   node_type_storage(&ntype, NULL, node_composit_free_rlayers, node_composit_copy_rlayers);
-  node_type_update(&ntype, cmp_node_rlayers_update, NULL);
+  node_type_update(&ntype, cmp_node_rlayers_update);
   node_type_init(&ntype, node_cmp_rlayers_outputs);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

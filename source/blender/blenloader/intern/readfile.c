@@ -3454,26 +3454,6 @@ static void lib_link_nodetree(FileData *fd, Main *main)
   }
 }
 
-/* Verify group nodes have sockets matching their node groups. All data has
- * to be read and versioned at this point, since this accesses data across
- * files. */
-static void lib_verify_nodetree(Main *main)
-{
-  /* verify all group user nodes */
-  for (bNodeTree *ntree = main->nodetrees.first; ntree; ntree = ntree->id.next) {
-    ntreeVerifyNodes(main, &ntree->id);
-  }
-
-  /* make update calls where necessary */
-  {
-    FOREACH_NODETREE_BEGIN (main, ntree, id) {
-      /* make an update call for the tree */
-      ntreeUpdateTree(main, ntree);
-    }
-    FOREACH_NODETREE_END;
-  }
-}
-
 static void direct_link_node_socket(FileData *fd, bNodeSocket *sock)
 {
   sock->prop = newdataadr(fd, sock->prop);
@@ -9734,12 +9714,12 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       do_versions_after_linking(mainvar);
     }
     blo_join_main(&mainlist);
+
+    /* After all data has been read and versioned, uses LIB_TAG_NEW. */
+    ntreeUpdateAllNew(bfd->main);
   }
 
   BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
-
-  /* After all data has been read and versioned. */
-  lib_verify_nodetree(bfd->main);
 
   /* Now that all our data-blocks are loaded, we can re-generate overrides from their references. */
   if (fd->memfile == NULL) {
@@ -11508,9 +11488,11 @@ static void library_link_end(Main *mainl,
   mainvar = (*fd)->mainlist->first;
   MEM_freeN((*fd)->mainlist);
 
+  /* After all data has been read and versioned, uses LIB_TAG_NEW. */
+  ntreeUpdateAllNew(mainvar);
+
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
-  lib_verify_nodetree(mainvar);
   fix_relpaths_library(BKE_main_blendfile_path(mainvar),
                        mainvar); /* make all relative paths, relative to the open blend file */
 

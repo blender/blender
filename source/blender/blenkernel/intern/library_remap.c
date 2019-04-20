@@ -387,15 +387,8 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
 
 static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new_id)
 {
-  /* Verify all nodetree user nodes. */
-  ntreeVerifyNodes(bmain, new_id);
-
-  /* Update node trees as necessary. */
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    /* make an update call for the tree */
-    ntreeUpdateTree(bmain, ntree);
-  }
-  FOREACH_NODETREE_END;
+  /* Update all group nodes using a node group. */
+  ntreeUpdateAllUsers(bmain, new_id);
 }
 
 /**

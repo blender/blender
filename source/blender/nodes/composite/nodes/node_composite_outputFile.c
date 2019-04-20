@@ -281,7 +281,7 @@ void register_node_type_cmp_output_file(void)
   node_type_socket_templates(&ntype, NULL, NULL);
   ntype.initfunc_api = init_output_file;
   node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
-  node_type_update(&ntype, update_output_file, NULL);
+  node_type_update(&ntype, update_output_file);
 
   nodeRegisterType(&ntype);
 }

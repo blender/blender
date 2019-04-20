@@ -2597,7 +2597,7 @@ static StructRNA *rna_NodeCustomGroup_register(Main *bmain,
     return NULL;
 
   /* this updates the group node instance from the tree's interface */
-  nt->verifyfunc = node_group_verify;
+  nt->group_update_func = node_group_update;
 
   nodeRegisterType(nt);
 
@@ -2621,7 +2621,7 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
   if (!nt)
     return NULL;
 
-  nt->verifyfunc = node_group_verify;
+  nt->group_update_func = node_group_update;
   nt->type = NODE_CUSTOM_GROUP;
 
   register_node_type_sh_custom_group(nt);
@@ -2646,7 +2646,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
   if (!nt)
     return NULL;
 
-  nt->verifyfunc = node_group_verify;
+  nt->group_update_func = node_group_update;
   nt->type = NODE_CUSTOM_GROUP;
 
   register_node_type_cmp_custom_group(nt);

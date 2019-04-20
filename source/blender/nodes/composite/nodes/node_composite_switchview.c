@@ -148,7 +148,7 @@ void register_node_type_cmp_switch_view(void)
 
   ntype.initfunc_api = init_switch_view;
 
-  node_type_update(&ntype, cmp_node_switch_view_update, NULL);
+  node_type_update(&ntype, cmp_node_switch_view_update);
 
   nodeRegisterType(&ntype);
 }

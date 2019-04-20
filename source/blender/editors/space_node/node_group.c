@@ -823,8 +823,8 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
       /* update the group node and interface node sockets,
        * so the new interface socket can be linked.
        */
-      node_group_verify(ntree, gnode, (ID *)ngroup);
-      node_group_input_verify(ngroup, input_node, (ID *)ngroup);
+      node_group_update(ntree, gnode);
+      node_group_input_update(ngroup, input_node);
 
       /* create new internal link */
       input_sock = node_group_input_find_socket(input_node, iosock->identifier);
@@ -857,8 +857,8 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
         /* update the group node and interface node sockets,
          * so the new interface socket can be linked.
          */
-        node_group_verify(ntree, gnode, (ID *)ngroup);
-        node_group_output_verify(ngroup, output_node, (ID *)ngroup);
+        node_group_update(ntree, gnode);
+        node_group_output_update(ngroup, output_node);
 
         /* create new internal link */
         output_sock = node_group_output_find_socket(output_node, iosock->identifier);
@@ -898,7 +898,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 
           iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
 
-          node_group_input_verify(ngroup, input_node, (ID *)ngroup);
+          node_group_input_update(ngroup, input_node);
 
           /* create new internal link */
           input_sock = node_group_input_find_socket(input_node, iosock->identifier);
@@ -919,7 +919,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 
           iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
 
-          node_group_output_verify(ngroup, output_node, (ID *)ngroup);
+          node_group_output_update(ngroup, output_node);
 
           /* create new internal link */
           output_sock = node_group_output_find_socket(output_node, iosock->identifier);

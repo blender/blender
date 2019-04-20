@@ -56,7 +56,7 @@ void register_node_type_cmp_scale(void)
 
   cmp_node_type_base(&ntype, CMP_NODE_SCALE, "Scale", NODE_CLASS_DISTORT, 0);
   node_type_socket_templates(&ntype, cmp_node_scale_in, cmp_node_scale_out);
-  node_type_update(&ntype, node_composite_update_scale, NULL);
+  node_type_update(&ntype, node_composite_update_scale);
 
   nodeRegisterType(&ntype);
 }

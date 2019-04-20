@@ -217,7 +217,7 @@ void register_node_type_sh_bsdf_principled(void)
   node_type_init(&ntype, node_shader_init_principled);
   node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_bsdf_principled);
-  node_type_update(&ntype, node_shader_update_principled, NULL);
+  node_type_update(&ntype, node_shader_update_principled);
 
   nodeRegisterType(&ntype);
 }

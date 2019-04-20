@@ -3206,15 +3206,43 @@ static void ntree_validate_links(bNodeTree *ntree)
   }
 }
 
-void ntreeVerifyNodes(struct Main *main, struct ID *id)
+void ntreeUpdateAllNew(Main *main)
 {
+  /* Update all new node trees on file read or append, to add/remove sockets
+   * in groups nodes if the group changed, and handle any update flags that
+   * might have been set in file reading or versioning. */
   FOREACH_NODETREE_BEGIN (main, ntree, owner_id) {
-    bNode *node;
-
-    for (node = ntree->nodes.first; node; node = node->next) {
-      if (node->typeinfo->verifyfunc) {
-        node->typeinfo->verifyfunc(ntree, node, id);
+    if (owner_id->tag & LIB_TAG_NEW) {
+      for (bNode *node = ntree->nodes.first; node; node = node->next) {
+        if (node->typeinfo->group_update_func) {
+          node->typeinfo->group_update_func(ntree, node);
+        }
       }
+
+      ntreeUpdateTree(NULL, ntree);
+    }
+  }
+  FOREACH_NODETREE_END;
+}
+
+void ntreeUpdateAllUsers(Main *main, ID *ngroup)
+{
+  /* Update all users of ngroup, to add/remove sockets as needed. */
+  FOREACH_NODETREE_BEGIN (main, ntree, owner_id) {
+    bool need_update = false;
+
+    for (bNode *node = ntree->nodes.first; node; node = node->next) {
+      if (node->id == ngroup) {
+        if (node->typeinfo->group_update_func) {
+          node->typeinfo->group_update_func(ntree, node);
+        }
+
+        need_update = true;
+      }
+    }
+
+    if (need_update) {
+      ntreeUpdateTree(NULL, ntree);
     }
   }
   FOREACH_NODETREE_END;
@@ -3264,7 +3292,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
 
   /* XXX hack, should be done by depsgraph!! */
   if (bmain) {
-    ntreeVerifyNodes(bmain, &ntree->id);
+    ntreeUpdateAllUsers(bmain, &ntree->id);
   }
 
   if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {
@@ -3581,13 +3609,15 @@ void node_type_label(
 }
 
 void node_type_update(struct bNodeType *ntype,
-                      void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node),
-                      void (*verifyfunc)(struct bNodeTree *ntree,
-                                         struct bNode *node,
-                                         struct ID *id))
+                      void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node))
 {
   ntype->updatefunc = updatefunc;
-  ntype->verifyfunc = verifyfunc;
+}
+
+void node_type_group_update(struct bNodeType *ntype,
+                            void (*group_update_func)(struct bNodeTree *ntree, struct bNode *node))
+{
+  ntype->group_update_func = group_update_func;
 }
 
 void node_type_exec(struct bNodeType *ntype,

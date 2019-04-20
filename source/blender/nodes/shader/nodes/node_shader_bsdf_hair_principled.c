@@ -129,7 +129,7 @@ void register_node_type_sh_bsdf_hair_principled(void)
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, node_shader_init_hair_principled);
   node_type_storage(&ntype, "", NULL, NULL);
-  node_type_update(&ntype, node_shader_update_hair_principled, NULL);
+  node_type_update(&ntype, node_shader_update_hair_principled);
 
   nodeRegisterType(&ntype);
 }
