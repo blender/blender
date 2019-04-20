@@ -58,37 +58,6 @@ void set_inverted_drawing(int enable)
   GL_TOGGLE(GL_DITHER, !enable);
 }
 
-float glaGetOneFloat(int param)
-{
-  GLfloat v;
-  glGetFloatv(param, &v);
-  return v;
-}
-
-int glaGetOneInt(int param)
-{
-  GLint v;
-  glGetIntegerv(param, &v);
-  return v;
-}
-
-void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y)
-{
-  GLubyte dummy = 0;
-
-  /* As long as known good coordinates are correct
-   * this is guaranteed to generate an ok raster
-   * position (ignoring potential (real) overflow
-   * issues).
-   */
-  glRasterPos2f(known_good_x, known_good_y);
-
-  /* Now shift the raster position to where we wanted
-   * it in the first place using the glBitmap trick.
-   */
-  glBitmap(0, 0, 0, 0, x - known_good_x, y - known_good_y, &dummy);
-}
-
 static int get_cached_work_texture(int *r_w, int *r_h)
 {
   static GLint texid = -1;
@@ -564,18 +533,18 @@ void bglPolygonOffset(float viewdist, float dist)
 /* **** Color management helper functions for GLSL display/transform ***** */
 
 /* Draw given image buffer on a screen using GLSL for display transform */
-void glaDrawImBuf_glsl_clipping(ImBuf *ibuf,
-                                float x,
-                                float y,
-                                int zoomfilter,
-                                ColorManagedViewSettings *view_settings,
-                                ColorManagedDisplaySettings *display_settings,
-                                float clip_min_x,
-                                float clip_min_y,
-                                float clip_max_x,
-                                float clip_max_y,
-                                float zoom_x,
-                                float zoom_y)
+void ED_draw_imbuf_clipping(ImBuf *ibuf,
+                            float x,
+                            float y,
+                            int zoomfilter,
+                            ColorManagedViewSettings *view_settings,
+                            ColorManagedDisplaySettings *display_settings,
+                            float clip_min_x,
+                            float clip_min_y,
+                            float clip_max_x,
+                            float clip_max_y,
+                            float zoom_x,
+                            float zoom_y)
 {
   bool force_fallback = false;
   bool need_fallback = true;
@@ -702,65 +671,64 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf,
   }
 }
 
-void glaDrawImBuf_glsl(ImBuf *ibuf,
-                       float x,
-                       float y,
-                       int zoomfilter,
-                       ColorManagedViewSettings *view_settings,
-                       ColorManagedDisplaySettings *display_settings,
-                       float zoom_x,
-                       float zoom_y)
+void ED_draw_imbuf(ImBuf *ibuf,
+                   float x,
+                   float y,
+                   int zoomfilter,
+                   ColorManagedViewSettings *view_settings,
+                   ColorManagedDisplaySettings *display_settings,
+                   float zoom_x,
+                   float zoom_y)
 {
-  glaDrawImBuf_glsl_clipping(ibuf,
-                             x,
-                             y,
-                             zoomfilter,
-                             view_settings,
-                             display_settings,
-                             0.0f,
-                             0.0f,
-                             0.0f,
-                             0.0f,
-                             zoom_x,
-                             zoom_y);
+  ED_draw_imbuf_clipping(ibuf,
+                         x,
+                         y,
+                         zoomfilter,
+                         view_settings,
+                         display_settings,
+                         0.0f,
+                         0.0f,
+                         0.0f,
+                         0.0f,
+                         zoom_x,
+                         zoom_y);
 }
 
-void glaDrawImBuf_glsl_ctx_clipping(const bContext *C,
-                                    ImBuf *ibuf,
-                                    float x,
-                                    float y,
-                                    int zoomfilter,
-                                    float clip_min_x,
-                                    float clip_min_y,
-                                    float clip_max_x,
-                                    float clip_max_y,
-                                    float zoom_x,
-                                    float zoom_y)
+void ED_draw_imbuf_ctx_clipping(const bContext *C,
+                                ImBuf *ibuf,
+                                float x,
+                                float y,
+                                int zoomfilter,
+                                float clip_min_x,
+                                float clip_min_y,
+                                float clip_max_x,
+                                float clip_max_y,
+                                float zoom_x,
+                                float zoom_y)
 {
   ColorManagedViewSettings *view_settings;
   ColorManagedDisplaySettings *display_settings;
 
   IMB_colormanagement_display_settings_from_ctx(C, &view_settings, &display_settings);
 
-  glaDrawImBuf_glsl_clipping(ibuf,
-                             x,
-                             y,
-                             zoomfilter,
-                             view_settings,
-                             display_settings,
-                             clip_min_x,
-                             clip_min_y,
-                             clip_max_x,
-                             clip_max_y,
-                             zoom_x,
-                             zoom_y);
+  ED_draw_imbuf_clipping(ibuf,
+                         x,
+                         y,
+                         zoomfilter,
+                         view_settings,
+                         display_settings,
+                         clip_min_x,
+                         clip_min_y,
+                         clip_max_x,
+                         clip_max_y,
+                         zoom_x,
+                         zoom_y);
 }
 
-void glaDrawImBuf_glsl_ctx(
+void ED_draw_imbuf_ctx(
     const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter, float zoom_x, float zoom_y)
 {
-  glaDrawImBuf_glsl_ctx_clipping(
-      C, ibuf, x, y, zoomfilter, 0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
+  ED_draw_imbuf_ctx_clipping(C, ibuf, x, y, zoomfilter, 0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
 }
 
 /* don't move to GPU_immediate_util.h because this uses user-prefs

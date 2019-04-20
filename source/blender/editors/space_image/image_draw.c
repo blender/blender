@@ -575,7 +575,7 @@ static void draw_image_buffer(const bContext *C,
     /* If RGBA display with color management */
     if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
 
-      glaDrawImBuf_glsl_ctx_clipping(
+      ED_draw_imbuf_ctx_clipping(
           C, ibuf, x, y, GL_NEAREST, 0, 0, clip_max_x, clip_max_y, zoomx, zoomy);
     }
     else {

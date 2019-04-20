@@ -3789,7 +3789,7 @@ bool IMB_colormanagement_support_glsl_draw(const ColorManagedViewSettings *UNUSE
  * When there's no need to apply transform on 2D textures, use
  * IMB_colormanagement_finish_glsl_draw().
  *
- * This is low-level function, use glaDrawImBuf_glsl_ctx if you
+ * This is low-level function, use ED_draw_imbuf_ctx if you
  * only need to display given image buffer
  */
 bool IMB_colormanagement_setup_glsl_draw_from_space(
