@@ -4079,8 +4079,9 @@ static void rna_def_space_image(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceImage");
   RNA_def_struct_ui_text(srna, "Space Image Editor", "Image and UV editor space data");
 
-  rna_def_space_generic_show_region_toggles(
-      srna, (1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
+  rna_def_space_generic_show_region_toggles(srna,
+                                            ((1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_TOOLS) |
+                                             (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD)));
 
   /* image */
   prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);

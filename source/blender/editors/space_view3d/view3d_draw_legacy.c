@@ -260,12 +260,11 @@ void ED_view3d_backbuf_depth_validate(ViewContext *vc)
 {
   if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
     ARegion *ar = vc->ar;
-    RegionView3D *rv3d = ar->regiondata;
     Object *obact_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
 
     if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
       GPUViewport *viewport = WM_draw_region_get_viewport(ar, 0);
-      DRW_draw_depth_object(vc->ar, vc->v3d, viewport, obact_eval);
+      DRW_draw_depth_object(vc->ar, viewport, obact_eval);
     }
 
     vc->v3d->flag &= ~V3D_INVALID_BACKBUF;

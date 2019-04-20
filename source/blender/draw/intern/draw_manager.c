@@ -2494,7 +2494,7 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 /**
  * Clears the Depth Buffer and draws only the specified object.
  */
-void DRW_draw_depth_object(ARegion *ar, View3D *v3d, GPUViewport *viewport, Object *object)
+void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
 {
   RegionView3D *rv3d = ar->regiondata;
 
