@@ -1839,6 +1839,11 @@ static void rna_View3DCursor_rotation_axis_angle_set(PointerRNA *ptr, const floa
   copy_v3_v3(cursor->rotation_axis, &value[1]);
 }
 
+static char *rna_View3DCursor_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("cursor");
+}
+
 static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[], int frame)
 {
   TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
@@ -2530,6 +2535,7 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "View3DCursor", NULL);
   RNA_def_struct_sdna(srna, "View3DCursor");
+  RNA_def_struct_path_func(srna, "rna_View3DCursor_path");
   RNA_def_struct_ui_text(srna, "3D Cursor", "");
 
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ_LENGTH);
