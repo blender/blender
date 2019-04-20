@@ -36,9 +36,9 @@ class TEXT_HT_header(Header):
         TEXT_MT_editor_menus.draw_collapsible(context, layout)
 
         if text and text.is_modified:
-            sub = row.row(align=True)
-            sub.alert = True
-            sub.operator("text.resolve_conflict", text="", icon='HELP')
+            row = layout.row(align=True)
+            row.alert = True
+            row.operator("text.resolve_conflict", text="", icon='HELP')
 
         layout.separator_spacer()
 
