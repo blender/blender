@@ -154,7 +154,6 @@
 
 #include "DEG_depsgraph.h"
 
-#include "NOD_common.h"
 #include "NOD_socket.h"
 
 #include "BLO_blend_defs.h"
@@ -3400,34 +3399,45 @@ static void lib_link_workspace_instance_hook(FileData *fd, WorkSpaceInstanceHook
 /* Single node tree (also used for material/scene trees), ntree is not NULL */
 static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 {
-  bNode *node;
-  bNodeSocket *sock;
-
   IDP_LibLinkProperty(ntree->id.properties, fd);
   lib_link_animdata(fd, &ntree->id, ntree->adt);
 
   ntree->gpd = newlibadr_us(fd, id->lib, ntree->gpd);
 
-  for (node = ntree->nodes.first; node; node = node->next) {
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
     /* Link ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this.*/
     IDP_LibLinkProperty(node->prop, fd);
 
     node->id = newlibadr_us(fd, id->lib, node->id);
 
-    for (sock = node->inputs.first; sock; sock = sock->next) {
+    for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
       IDP_LibLinkProperty(sock->prop, fd);
     }
-    for (sock = node->outputs.first; sock; sock = sock->next) {
+    for (bNodeSocket *sock = node->outputs.first; sock; sock = sock->next) {
       IDP_LibLinkProperty(sock->prop, fd);
     }
   }
 
-  for (sock = ntree->inputs.first; sock; sock = sock->next) {
+  for (bNodeSocket *sock = ntree->inputs.first; sock; sock = sock->next) {
     IDP_LibLinkProperty(sock->prop, fd);
   }
-  for (sock = ntree->outputs.first; sock; sock = sock->next) {
+  for (bNodeSocket *sock = ntree->outputs.first; sock; sock = sock->next) {
     IDP_LibLinkProperty(sock->prop, fd);
+  }
+
+  /* Set node->typeinfo pointers. This is done in lib linking, after the
+   * first versioning that can change types still without functions that
+   * update the typeinfo pointers. Versioning after lib linking needs
+   * these top be valid. */
+  ntreeSetTypes(NULL, ntree);
+
+  /* For nodes with static socket layout, add/remove sockets as needed
+   * to match the static layout. */
+  if (fd->memfile == NULL) {
+    for (bNode *node = ntree->nodes.first; node; node = node->next) {
+      node_verify_socket_templates(ntree, node);
+    }
   }
 }
 
@@ -3444,214 +3454,11 @@ static void lib_link_nodetree(FileData *fd, Main *main)
   }
 }
 
-/* updates group node socket identifier so that
- * external links to/from the group node are preserved.
- */
-static void lib_node_do_versions_group_indices(bNode *gnode)
+/* Verify group nodes have sockets matching their node groups. All data has
+ * to be read and versioned at this point, since this accesses data across
+ * files. */
+static void lib_verify_nodetree(Main *main)
 {
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
-  bNodeSocket *sock;
-  bNodeLink *link;
-
-  for (sock = gnode->outputs.first; sock; sock = sock->next) {
-    int old_index = sock->to_index;
-
-    for (link = ngroup->links.first; link; link = link->next) {
-      if (link->tonode == NULL && link->fromsock->own_index == old_index) {
-        strcpy(sock->identifier, link->fromsock->identifier);
-        /* deprecated */
-        sock->own_index = link->fromsock->own_index;
-        sock->to_index = 0;
-        sock->groupsock = NULL;
-      }
-    }
-  }
-  for (sock = gnode->inputs.first; sock; sock = sock->next) {
-    int old_index = sock->to_index;
-
-    for (link = ngroup->links.first; link; link = link->next) {
-      if (link->fromnode == NULL && link->tosock->own_index == old_index) {
-        strcpy(sock->identifier, link->tosock->identifier);
-        /* deprecated */
-        sock->own_index = link->tosock->own_index;
-        sock->to_index = 0;
-        sock->groupsock = NULL;
-      }
-    }
-  }
-}
-
-/* verify types for nodes and groups, all data has to be read */
-/* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
- * typedefs */
-static void lib_verify_nodetree(Main *main, int UNUSED(open))
-{
-  /* this crashes blender on undo/redo */
-#if 0
-  if (open == 1) {
-    reinit_nodesystem();
-  }
-#endif
-
-  /* set node->typeinfo pointers */
-  FOREACH_NODETREE_BEGIN (main, ntree, id) {
-    ntreeSetTypes(NULL, ntree);
-  }
-  FOREACH_NODETREE_END;
-
-  /* verify static socket templates */
-  FOREACH_NODETREE_BEGIN (main, ntree, id) {
-    bNode *node;
-    for (node = ntree->nodes.first; node; node = node->next) {
-      node_verify_socket_templates(ntree, node);
-    }
-  }
-  FOREACH_NODETREE_END;
-
-  {
-    bool has_old_groups = false;
-    /* XXX this should actually be part of do_versions, but since we need
-     * finished library linking, it is not possible there. Instead in do_versions
-     * we have set the NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2 flag, so at this point we can do the
-     * actual group node updates.
-     */
-    for (bNodeTree *ntree = main->nodetrees.first; ntree; ntree = ntree->id.next) {
-      if (ntree->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2) {
-        has_old_groups = 1;
-      }
-    }
-
-    if (has_old_groups) {
-      FOREACH_NODETREE_BEGIN (main, ntree, id) {
-        /* updates external links for all group nodes in a tree */
-        bNode *node;
-        for (node = ntree->nodes.first; node; node = node->next) {
-          if (node->type == NODE_GROUP) {
-            bNodeTree *ngroup = (bNodeTree *)node->id;
-            if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2)) {
-              lib_node_do_versions_group_indices(node);
-            }
-          }
-        }
-      }
-      FOREACH_NODETREE_END;
-    }
-
-    for (bNodeTree *ntree = main->nodetrees.first; ntree; ntree = ntree->id.next) {
-      ntree->flag &= ~NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2;
-    }
-  }
-
-  {
-    /* Convert the previously used ntree->inputs/ntree->outputs lists to interface nodes.
-     * Pre 2.56.2 node trees automatically have all unlinked sockets exposed already
-     * (see NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2).
-     *
-     * XXX this should actually be part of do_versions,
-     * but needs valid typeinfo pointers to create interface nodes.
-     *
-     * Note: theoretically only needed in node groups (main->nodetree),
-     * but due to a temporary bug such links could have been added in all trees,
-     * so have to clean up all of them ...
-     */
-
-    FOREACH_NODETREE_BEGIN (main, ntree, id) {
-      if (ntree->flag & NTREE_DO_VERSIONS_CUSTOMNODES_GROUP) {
-        bNode *input_node = NULL, *output_node = NULL;
-        int num_inputs = 0, num_outputs = 0;
-        bNodeLink *link, *next_link;
-        /* Only create new interface nodes for actual older files.
-         * New file versions already have input/output nodes with duplicate links,
-         * in that case just remove the invalid links.
-         */
-        const bool create_io_nodes = (ntree->flag &
-                                      NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE) != 0;
-
-        float input_locx = 1000000.0f, input_locy = 0.0f;
-        float output_locx = -1000000.0f, output_locy = 0.0f;
-        /* rough guess, not nice but we don't have access to UI constants here ... */
-        static const float offsetx = 42 + 3 * 20 + 20;
-        /*static const float offsety = 0.0f;*/
-
-        if (create_io_nodes) {
-          if (ntree->inputs.first) {
-            input_node = nodeAddStaticNode(NULL, ntree, NODE_GROUP_INPUT);
-          }
-
-          if (ntree->outputs.first) {
-            output_node = nodeAddStaticNode(NULL, ntree, NODE_GROUP_OUTPUT);
-          }
-        }
-
-        /* Redirect links from/to the node tree interface to input/output node.
-         * If the fromnode/tonode pointers are NULL, this means a link from/to
-         * the ntree interface sockets, which need to be redirected to new interface nodes.
-         */
-        for (link = ntree->links.first; link; link = next_link) {
-          bool free_link = false;
-          next_link = link->next;
-
-          if (link->fromnode == NULL) {
-            if (input_node) {
-              link->fromnode = input_node;
-              link->fromsock = node_group_input_find_socket(input_node,
-                                                            link->fromsock->identifier);
-              ++num_inputs;
-
-              if (link->tonode) {
-                if (input_locx > link->tonode->locx - offsetx) {
-                  input_locx = link->tonode->locx - offsetx;
-                }
-                input_locy += link->tonode->locy;
-              }
-            }
-            else {
-              free_link = true;
-            }
-          }
-
-          if (link->tonode == NULL) {
-            if (output_node) {
-              link->tonode = output_node;
-              link->tosock = node_group_output_find_socket(output_node, link->tosock->identifier);
-              ++num_outputs;
-
-              if (link->fromnode) {
-                if (output_locx < link->fromnode->locx + offsetx) {
-                  output_locx = link->fromnode->locx + offsetx;
-                }
-                output_locy += link->fromnode->locy;
-              }
-            }
-            else {
-              free_link = true;
-            }
-          }
-
-          if (free_link) {
-            nodeRemLink(ntree, link);
-          }
-        }
-
-        if (num_inputs > 0) {
-          input_locy /= num_inputs;
-          input_node->locx = input_locx;
-          input_node->locy = input_locy;
-        }
-        if (num_outputs > 0) {
-          output_locy /= num_outputs;
-          output_node->locx = output_locx;
-          output_node->locy = output_locy;
-        }
-
-        /* clear do_versions flags */
-        ntree->flag &= ~(NTREE_DO_VERSIONS_CUSTOMNODES_GROUP |
-                         NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE);
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   /* verify all group user nodes */
   for (bNodeTree *ntree = main->nodetrees.first; ntree; ntree = ntree->id.next) {
     ntreeVerifyNodes(main, &ntree->id);
@@ -9645,6 +9452,8 @@ static void do_versions_after_linking(Main *main)
   //  printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->name : main->name,
   //         main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
 
+  do_versions_after_linking_250(main);
+  do_versions_after_linking_260(main);
   do_versions_after_linking_270(main);
   do_versions_after_linking_280(main);
 }
@@ -9929,8 +9738,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
   BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
-  /* Before static overrides, which needs typeinfo. */
-  lib_verify_nodetree(bfd->main, true);
+  /* After all data has been read and versioned. */
+  lib_verify_nodetree(bfd->main);
 
   /* Now that all our data-blocks are loaded, we can re-generate overrides from their references. */
   if (fd->memfile == NULL) {
@@ -11701,7 +11510,7 @@ static void library_link_end(Main *mainl,
 
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
-  lib_verify_nodetree(mainvar, false);
+  lib_verify_nodetree(mainvar);
   fix_relpaths_library(BKE_main_blendfile_path(mainvar),
                        mainvar); /* make all relative paths, relative to the open blend file */
 

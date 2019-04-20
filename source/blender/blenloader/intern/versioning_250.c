@@ -2030,12 +2030,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      /* XXX The external group node sockets needs to adjust their own_index to point at
-       * associated ntree inputs/outputs internal sockets. However, this can only happen
-       * after lib-linking (needs access to internal node group tree)!
-       * Setting a temporary flag here, actual do_versions happens in lib_verify_nodetree.
-       */
-      ntree->flag |= NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2;
+      /* Externl group node socket need to adjust their own_index to point at
+       * associated ntree inputs/outputs internal sockets. This happens in
+       * do_versions_after_linking_250, after lib linking. */
     }
   }
 
@@ -2294,5 +2291,61 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         part->time_flag &= ~PART_TIME_AUTOSF;
       }
     }
+  }
+}
+
+/* updates group node socket identifier so that
+ * external links to/from the group node are preserved.
+ */
+static void lib_node_do_versions_group_indices(bNode *gnode)
+{
+  bNodeTree *ngroup = (bNodeTree *)gnode->id;
+  bNodeSocket *sock;
+  bNodeLink *link;
+
+  for (sock = gnode->outputs.first; sock; sock = sock->next) {
+    int old_index = sock->to_index;
+
+    for (link = ngroup->links.first; link; link = link->next) {
+      if (link->tonode == NULL && link->fromsock->own_index == old_index) {
+        strcpy(sock->identifier, link->fromsock->identifier);
+        /* deprecated */
+        sock->own_index = link->fromsock->own_index;
+        sock->to_index = 0;
+        sock->groupsock = NULL;
+      }
+    }
+  }
+  for (sock = gnode->inputs.first; sock; sock = sock->next) {
+    int old_index = sock->to_index;
+
+    for (link = ngroup->links.first; link; link = link->next) {
+      if (link->fromnode == NULL && link->tosock->own_index == old_index) {
+        strcpy(sock->identifier, link->tosock->identifier);
+        /* deprecated */
+        sock->own_index = link->tosock->own_index;
+        sock->to_index = 0;
+        sock->groupsock = NULL;
+      }
+    }
+  }
+}
+
+void do_versions_after_linking_250(Main *bmain)
+{
+  if (bmain->versionfile < 256 || (bmain->versionfile == 256 && bmain->subversionfile < 2)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      /* updates external links for all group nodes in a tree */
+      bNode *node;
+      for (node = ntree->nodes.first; node; node = node->next) {
+        if (node->type == NODE_GROUP) {
+          bNodeTree *ngroup = (bNodeTree *)node->id;
+          if (ngroup) {
+            lib_node_do_versions_group_indices(node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }

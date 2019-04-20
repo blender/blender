@@ -67,6 +67,7 @@
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 
+#include "NOD_common.h"
 #include "NOD_texture.h"
 
 #include "BLO_readfile.h"
@@ -1949,28 +1950,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /* Set flag for delayed do_versions in lib_verify_nodetree.
-   * It needs valid typeinfo pointers ... */
-  {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      /* XXX This should be kept without version check for now!
-       * As long as USE_NODE_COMPAT_CUSTOMNODES is active, files will write links
-       * to tree interface sockets for forward compatibility. These links need to be removed again
-       * on file load in new versions.
-       * Once forward compatibility is not required any longer, make a subversion bump
-       * and only execute this for older versions.
-       */
-      ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP;
-
-      /* Only add interface nodes once.
-       * In old Blender versions they will be removed automatically due to undefined type */
-      if (MAIN_VERSION_OLDER(bmain, 266, 2)) {
-        ntree->flag |= NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE;
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   if (MAIN_VERSION_OLDER(bmain, 266, 3)) {
     {
       /* Fix for a very old issue:
@@ -2569,5 +2548,111 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+}
+
+void do_versions_after_linking_260(Main *bmain)
+{
+  /* Convert the previously used ntree->inputs/ntree->outputs lists to interface nodes.
+   * Pre 2.56.2 node trees automatically have all unlinked sockets exposed already,
+   * see do_versions_after_linking_250.
+   *
+   * This assumes valid typeinfo pointers, as set in lib_link_ntree.
+   *
+   * Note: theoretically only needed in node groups (main->nodetree),
+   * but due to a temporary bug such links could have been added in all trees,
+   * so have to clean up all of them ...
+   *
+   * Note: this always runs, without it links with NULL fromnode and tonode remain
+   * which causes problems.
+   */
+  {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      bNode *input_node = NULL, *output_node = NULL;
+      int num_inputs = 0, num_outputs = 0;
+      bNodeLink *link, *next_link;
+      /* Only create new interface nodes for actual older files.
+       * New file versions already have input/output nodes with duplicate links,
+       * in that case just remove the invalid links.
+       */
+      const bool create_io_nodes = MAIN_VERSION_OLDER(bmain, 266, 2);
+
+      float input_locx = 1000000.0f, input_locy = 0.0f;
+      float output_locx = -1000000.0f, output_locy = 0.0f;
+      /* rough guess, not nice but we don't have access to UI constants here ... */
+      static const float offsetx = 42 + 3 * 20 + 20;
+      /*static const float offsety = 0.0f;*/
+
+      if (create_io_nodes) {
+        if (ntree->inputs.first) {
+          input_node = nodeAddStaticNode(NULL, ntree, NODE_GROUP_INPUT);
+        }
+
+        if (ntree->outputs.first) {
+          output_node = nodeAddStaticNode(NULL, ntree, NODE_GROUP_OUTPUT);
+        }
+      }
+
+      /* Redirect links from/to the node tree interface to input/output node.
+       * If the fromnode/tonode pointers are NULL, this means a link from/to
+       * the ntree interface sockets, which need to be redirected to new interface nodes.
+       */
+      for (link = ntree->links.first; link; link = next_link) {
+        bool free_link = false;
+        next_link = link->next;
+
+        if (link->fromnode == NULL) {
+          if (input_node) {
+            link->fromnode = input_node;
+            link->fromsock = node_group_input_find_socket(input_node, link->fromsock->identifier);
+            ++num_inputs;
+
+            if (link->tonode) {
+              if (input_locx > link->tonode->locx - offsetx) {
+                input_locx = link->tonode->locx - offsetx;
+              }
+              input_locy += link->tonode->locy;
+            }
+          }
+          else {
+            free_link = true;
+          }
+        }
+
+        if (link->tonode == NULL) {
+          if (output_node) {
+            link->tonode = output_node;
+            link->tosock = node_group_output_find_socket(output_node, link->tosock->identifier);
+            ++num_outputs;
+
+            if (link->fromnode) {
+              if (output_locx < link->fromnode->locx + offsetx) {
+                output_locx = link->fromnode->locx + offsetx;
+              }
+              output_locy += link->fromnode->locy;
+            }
+          }
+          else {
+            free_link = true;
+          }
+        }
+
+        if (free_link) {
+          nodeRemLink(ntree, link);
+        }
+      }
+
+      if (num_inputs > 0) {
+        input_locy /= num_inputs;
+        input_node->locx = input_locx;
+        input_node->locy = input_locy;
+      }
+      if (num_outputs > 0) {
+        output_locy /= num_outputs;
+        output_node->locx = output_locx;
+        output_node->locy = output_locy;
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }
