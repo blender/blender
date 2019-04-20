@@ -167,10 +167,6 @@
 #include "BKE_subsurf.h"
 #include "BKE_workspace.h"
 
-#ifdef USE_NODE_COMPAT_CUSTOMNODES
-#  include "NOD_socket.h" /* for sock->default_value data */
-#endif
-
 #include "BLO_blend_defs.h"
 #include "BLO_blend_validate.h"
 #include "BLO_readfile.h"
@@ -958,32 +954,8 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
   write_curvemapping_curves(wd, cumap);
 }
 
-static void write_node_socket(WriteData *wd,
-                              bNodeTree *UNUSED(ntree),
-                              bNode *node,
-                              bNodeSocket *sock)
+static void write_node_socket(WriteData *wd, bNodeSocket *sock)
 {
-#ifdef USE_NODE_COMPAT_CUSTOMNODES
-  /* forward compatibility code, so older blenders still open (not for undo) */
-  if (wd->use_memfile == false) {
-    sock->stack_type = 1;
-
-    if (node->type == NODE_GROUP) {
-      bNodeTree *ngroup = (bNodeTree *)node->id;
-      if (ngroup) {
-        /* for node groups: look up the deprecated groupsock pointer */
-        sock->groupsock = ntreeFindSocketInterface(ngroup, sock->in_out, sock->identifier);
-        BLI_assert(sock->groupsock != NULL);
-
-        /* node group sockets now use the generic identifier string to verify group nodes,
-         * old blender uses the own_index.
-         */
-        sock->own_index = sock->groupsock->own_index;
-      }
-    }
-  }
-#endif
-
   /* actual socket writing */
   writestruct(wd, DATA, bNodeSocket, 1, sock);
 
@@ -995,18 +967,8 @@ static void write_node_socket(WriteData *wd,
     writedata(wd, DATA, MEM_allocN_len(sock->default_value), sock->default_value);
   }
 }
-static void write_node_socket_interface(WriteData *wd, bNodeTree *UNUSED(ntree), bNodeSocket *sock)
+static void write_node_socket_interface(WriteData *wd, bNodeSocket *sock)
 {
-#ifdef USE_NODE_COMPAT_CUSTOMNODES
-  /* forward compatibility code, so older blenders still open */
-  sock->stack_type = 1;
-
-  /* Reconstruct the deprecated default_value structs in socket interface DNA. */
-  if (sock->default_value == NULL && sock->typeinfo) {
-    node_socket_init_default_value(sock);
-  }
-#endif
-
   /* actual socket writing */
   writestruct(wd, DATA, bNodeSocket, 1, sock);
 
@@ -1039,10 +1001,10 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
     }
 
     for (sock = node->inputs.first; sock; sock = sock->next) {
-      write_node_socket(wd, ntree, node, sock);
+      write_node_socket(wd, sock);
     }
     for (sock = node->outputs.first; sock; sock = sock->next) {
-      write_node_socket(wd, ntree, node, sock);
+      write_node_socket(wd, sock);
     }
 
     for (link = node->internal_links.first; link; link = link->next) {
@@ -1126,10 +1088,10 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
   }
 
   for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    write_node_socket_interface(wd, ntree, sock);
+    write_node_socket_interface(wd, sock);
   }
   for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    write_node_socket_interface(wd, ntree, sock);
+    write_node_socket_interface(wd, sock);
   }
 }
 
@@ -3163,76 +3125,6 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
   }
 }
 
-#ifdef USE_NODE_COMPAT_CUSTOMNODES
-static void customnodes_add_deprecated_data(Main *mainvar)
-{
-  FOREACH_NODETREE_BEGIN (mainvar, ntree, id) {
-    bNodeLink *link, *last_link = ntree->links.last;
-
-    /* only do this for node groups */
-    if (id != &ntree->id) {
-      continue;
-    }
-
-    /* Forward compatibility for group nodes: add links to node tree interface sockets.
-     * These links are invalid by new rules (missing node pointer)!
-     * They will be removed again in customnodes_free_deprecated_data,
-     * cannot do this directly lest bNodeLink pointer mapping becomes ambiguous.
-     * When loading files with such links in a new Blender version
-     * they will be removed as well.
-     */
-    for (link = ntree->links.first; link; link = link->next) {
-      bNode *fromnode = link->fromnode, *tonode = link->tonode;
-      bNodeSocket *fromsock = link->fromsock, *tosock = link->tosock;
-
-      /* check both sides of the link, to handle direct input-to-output links */
-      if (fromnode->type == NODE_GROUP_INPUT) {
-        fromnode = NULL;
-        fromsock = ntreeFindSocketInterface(ntree, SOCK_IN, fromsock->identifier);
-      }
-      /* only the active output node defines links */
-      if (tonode->type == NODE_GROUP_OUTPUT && (tonode->flag & NODE_DO_OUTPUT)) {
-        tonode = NULL;
-        tosock = ntreeFindSocketInterface(ntree, SOCK_OUT, tosock->identifier);
-      }
-
-      if (!fromnode || !tonode) {
-        /* Note: not using nodeAddLink here, it asserts existing node pointers */
-        bNodeLink *tlink = MEM_callocN(sizeof(bNodeLink), "group node link");
-        tlink->fromnode = fromnode;
-        tlink->fromsock = fromsock;
-        tlink->tonode = tonode;
-        tlink->tosock = tosock;
-        tosock->link = tlink;
-        tlink->flag |= NODE_LINK_VALID;
-        BLI_addtail(&ntree->links, tlink);
-      }
-
-      /* don't check newly created compatibility links */
-      if (link == last_link) {
-        break;
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-static void customnodes_free_deprecated_data(Main *mainvar)
-{
-  FOREACH_NODETREE_BEGIN (mainvar, ntree, id) {
-    bNodeLink *link, *next_link;
-
-    for (link = ntree->links.first; link; link = next_link) {
-      next_link = link->next;
-      if (link->fromnode == NULL || link->tonode == NULL) {
-        nodeRemLink(ntree, link);
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-#endif
-
 static void write_brush(WriteData *wd, Brush *brush)
 {
   if (brush->id.us > 0 || wd->use_memfile) {
@@ -3867,14 +3759,6 @@ static bool write_file_handle(Main *mainvar,
 
   wd = mywrite_begin(ww, compare, current);
 
-#ifdef USE_NODE_COMPAT_CUSTOMNODES
-  /* don't write compatibility data on undo */
-  if (!current) {
-    /* deprecated forward compat data is freed again below */
-    customnodes_add_deprecated_data(mainvar);
-  }
-#endif
-
   sprintf(buf,
           "BLENDER%c%c%.3d",
           (sizeof(void *) == 8) ? '-' : '_',
@@ -4066,17 +3950,6 @@ static bool write_file_handle(Main *mainvar,
    * Note that we *borrow* the pointer to 'DNAstr',
    * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
   writedata(wd, DNA1, wd->sdna->data_len, wd->sdna->data);
-
-#ifdef USE_NODE_COMPAT_CUSTOMNODES
-  /* compatibility data not created on undo */
-  if (!current) {
-    /* Ugly, forward compatibility code generates deprecated data during writing,
-     * this has to be freed again. Can not be done directly after writing, otherwise
-     * the data pointers could be reused and not be mapped correctly.
-     */
-    customnodes_free_deprecated_data(mainvar);
-  }
-#endif
 
   /* end of file */
   memset(&bhead, 0, sizeof(BHead));

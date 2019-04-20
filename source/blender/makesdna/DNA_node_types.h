@@ -42,12 +42,6 @@ struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
 
-/* In writefile.c: write deprecated DNA data,
- * to ensure forward compatibility in 2.6x versions.
- * Will be removed eventually.
- */
-#define USE_NODE_COMPAT_CUSTOMNODES
-
 #define NODE_MAXSTR 64
 
 typedef struct bNodeStack {

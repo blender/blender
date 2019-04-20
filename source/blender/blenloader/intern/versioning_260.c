@@ -2566,7 +2566,7 @@ void do_versions_after_linking_260(Main *bmain)
    * Note: this always runs, without it links with NULL fromnode and tonode remain
    * which causes problems.
    */
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 266, 3)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       bNode *input_node = NULL, *output_node = NULL;
       int num_inputs = 0, num_outputs = 0;
@@ -2651,6 +2651,23 @@ void do_versions_after_linking_260(Main *bmain)
         output_locy /= num_outputs;
         output_node->locx = output_locx;
         output_node->locy = output_locy;
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 59)) {
+    /* From this point we no longer write incomplete links for forward
+     * compatibility with 2.66, we have to clean them up for all previous
+     * versions. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      bNodeLink *link, *next_link;
+
+      for (link = ntree->links.first; link; link = next_link) {
+        next_link = link->next;
+        if (link->fromnode == NULL || link->tonode == NULL) {
+          nodeRemLink(ntree, link);
+        }
       }
     }
     FOREACH_NODETREE_END;
