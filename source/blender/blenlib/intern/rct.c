@@ -700,6 +700,9 @@ bool BLI_rcti_clamp_pt_v(const rcti *rect, int xy[2])
 /**
  * Clamp \a rect within \a rect_bounds, setting \a r_xy to the offset.
  *
+ * Keeps the top left corner within the bounds, which for user interface
+ * elements is typically where the most important information is.
+ *
  * \return true if a change is made.
  */
 bool BLI_rctf_clamp(rctf *rect, const rctf *rect_bounds, float r_xy[2])
@@ -709,16 +712,16 @@ bool BLI_rctf_clamp(rctf *rect, const rctf *rect_bounds, float r_xy[2])
   r_xy[0] = 0.0f;
   r_xy[1] = 0.0f;
 
-  if (rect->xmin < rect_bounds->xmin) {
-    float ofs = rect_bounds->xmin - rect->xmin;
+  if (rect->xmax > rect_bounds->xmax) {
+    float ofs = rect_bounds->xmax - rect->xmax;
     rect->xmin += ofs;
     rect->xmax += ofs;
     r_xy[0] += ofs;
     changed = true;
   }
 
-  if (rect->xmax > rect_bounds->xmax) {
-    float ofs = rect_bounds->xmax - rect->xmax;
+  if (rect->xmin < rect_bounds->xmin) {
+    float ofs = rect_bounds->xmin - rect->xmin;
     rect->xmin += ofs;
     rect->xmax += ofs;
     r_xy[0] += ofs;
@@ -751,16 +754,16 @@ bool BLI_rcti_clamp(rcti *rect, const rcti *rect_bounds, int r_xy[2])
   r_xy[0] = 0;
   r_xy[1] = 0;
 
-  if (rect->xmin < rect_bounds->xmin) {
-    int ofs = rect_bounds->xmin - rect->xmin;
+  if (rect->xmax > rect_bounds->xmax) {
+    int ofs = rect_bounds->xmax - rect->xmax;
     rect->xmin += ofs;
     rect->xmax += ofs;
     r_xy[0] += ofs;
     changed = true;
   }
 
-  if (rect->xmax > rect_bounds->xmax) {
-    int ofs = rect_bounds->xmax - rect->xmax;
+  if (rect->xmin < rect_bounds->xmin) {
+    int ofs = rect_bounds->xmin - rect->xmin;
     rect->xmin += ofs;
     rect->xmax += ofs;
     r_xy[0] += ofs;
