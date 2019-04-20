@@ -51,8 +51,7 @@ class NODE_HT_header(Header):
         id_from = snode.id_from
         tool_settings = context.tool_settings
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         # Now expanded via the 'ui_type'
         # layout.prop(snode, "tree_type", text="")

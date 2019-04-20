@@ -31,8 +31,7 @@ class TEXT_HT_header(Header):
         st = context.space_data
         text = st.text
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         TEXT_MT_editor_menus.draw_collapsible(context, layout)
 

@@ -26,8 +26,7 @@ class PROPERTIES_HT_header(Header):
     def draw(self, _context):
         layout = self.layout
 
-        row = layout.row()
-        row.template_header()
+        layout.template_header()
 
 
 class PROPERTIES_PT_navigation_bar(Panel):

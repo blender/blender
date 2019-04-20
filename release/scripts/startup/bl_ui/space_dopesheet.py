@@ -210,8 +210,7 @@ class DOPESHEET_HT_header(Header):
 
         st = context.space_data
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         if st.mode == 'TIMELINE':
             from .space_time import (

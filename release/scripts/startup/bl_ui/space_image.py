@@ -513,7 +513,7 @@ class IMAGE_HT_tool_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        layout.row(align=True).template_header()
+        layout.template_header()
 
         self.draw_tool_settings(context)
 
@@ -644,7 +644,7 @@ class IMAGE_HT_header(Header):
         show_maskedit = sima.show_maskedit
 
         if not sima.show_region_tool_header:
-            layout.row(align=True).template_header()
+            layout.template_header()
 
         if sima.mode != 'UV':
             layout.prop(sima, "ui_mode", text="")

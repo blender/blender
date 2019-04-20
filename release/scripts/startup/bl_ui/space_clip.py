@@ -267,8 +267,7 @@ class CLIP_HT_header(Header):
 
         sc = context.space_data
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         layout.prop(sc, "mode", text="")
         if sc.mode == 'TRACKING':

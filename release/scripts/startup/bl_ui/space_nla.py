@@ -33,8 +33,7 @@ class NLA_HT_header(Header):
 
         st = context.space_data
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         NLA_MT_editor_menus.draw_collapsible(context, layout)
 

@@ -32,8 +32,7 @@ class OUTLINER_HT_header(Header):
         scene = context.scene
         ks = context.scene.keying_sets.active
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         layout.prop(space, "display_mode", icon_only=True)
 

@@ -83,8 +83,7 @@ class SEQUENCER_HT_header(Header):
         st = context.space_data
         scene = context.scene
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         layout.prop(st, "view_type", text="")
 

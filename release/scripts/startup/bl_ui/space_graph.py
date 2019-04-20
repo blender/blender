@@ -34,8 +34,7 @@ class GRAPH_HT_header(Header):
 
         st = context.space_data
 
-        row = layout.row(align=True)
-        row.template_header()
+        layout.template_header()
 
         # Now a exposed as a sub-space type
         # layout.prop(st, "mode", text="")
