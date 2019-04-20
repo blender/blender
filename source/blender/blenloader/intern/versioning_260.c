@@ -2656,7 +2656,7 @@ void do_versions_after_linking_260(Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 280, 59)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 60)) {
     /* From this point we no longer write incomplete links for forward
      * compatibility with 2.66, we have to clean them up for all previous
      * versions. */
