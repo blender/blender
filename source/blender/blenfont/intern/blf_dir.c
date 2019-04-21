@@ -55,8 +55,9 @@ static DirBLF *blf_dir_find(const char *path)
 
   p = global_font_dir.first;
   while (p) {
-    if (BLI_path_cmp(p->path, path) == 0)
+    if (BLI_path_cmp(p->path, path) == 0) {
       return p;
+    }
     p = p->next;
   }
   return NULL;
@@ -67,8 +68,9 @@ void BLF_dir_add(const char *path)
   DirBLF *dir;
 
   dir = blf_dir_find(path);
-  if (dir) /* already in the list ? just return. */
+  if (dir) { /* already in the list ? just return. */
     return;
+  }
 
   dir = (DirBLF *)MEM_callocN(sizeof(DirBLF), "BLF_dir_add");
   dir->path = BLI_strdup(path);
@@ -95,8 +97,9 @@ char **BLF_dir_get(int *ndir)
   int i, count;
 
   count = BLI_listbase_count(&global_font_dir);
-  if (!count)
+  if (!count) {
     return NULL;
+  }
 
   dirs = (char **)MEM_callocN(sizeof(char *) * count, "BLF_dir_get");
   p = global_font_dir.first;
@@ -138,8 +141,9 @@ char *blf_dir_search(const char *file)
 
   if (!s) {
     /* check the current directory, why not ? */
-    if (BLI_exists(file))
+    if (BLI_exists(file)) {
       s = BLI_strdup(file);
+    }
   }
 
   return s;
@@ -166,14 +170,16 @@ char *blf_dir_metrics_search(const char *filename)
     s[2] = 'm';
 
     /* first check .afm */
-    if (BLI_exists(mfile))
+    if (BLI_exists(mfile)) {
       return mfile;
+    }
 
     /* and now check .pfm */
     s[0] = 'p';
 
-    if (BLI_exists(mfile))
+    if (BLI_exists(mfile)) {
       return mfile;
+    }
   }
   MEM_freeN(mfile);
   return NULL;

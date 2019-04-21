@@ -86,8 +86,9 @@ int blf_mono_font_render = -1;
 
 static FontBLF *blf_get(int fontid)
 {
-  if (fontid >= 0 && fontid < BLF_MAX_FONT)
+  if (fontid >= 0 && fontid < BLF_MAX_FONT) {
     return global_font[fontid];
+  }
   return NULL;
 }
 
@@ -95,8 +96,9 @@ int BLF_init(void)
 {
   int i;
 
-  for (i = 0; i < BLF_MAX_FONT; i++)
+  for (i = 0; i < BLF_MAX_FONT; i++) {
     global_font[i] = NULL;
+  }
 
   global_font_points = 11;
   global_font_dpi = 72;
@@ -151,8 +153,9 @@ static int blf_search(const char *name)
 
   for (i = 0; i < BLF_MAX_FONT; i++) {
     font = global_font[i];
-    if (font && (STREQ(font->name, name)))
+    if (font && (STREQ(font->name, name))) {
       return i;
+    }
   }
 
   return -1;
@@ -162,9 +165,11 @@ static int blf_search_available(void)
 {
   int i;
 
-  for (i = 0; i < BLF_MAX_FONT; i++)
-    if (!global_font[i])
+  for (i = 0; i < BLF_MAX_FONT; i++) {
+    if (!global_font[i]) {
       return i;
+    }
+  }
 
   return -1;
 }
@@ -378,26 +383,32 @@ void BLF_position(int fontid, float x, float y, float z)
 
     remainder = x - floorf(x);
     if (remainder > 0.4f && remainder < 0.6f) {
-      if (remainder < 0.5f)
+      if (remainder < 0.5f) {
         x -= 0.1f * xa;
-      else
+      }
+      else {
         x += 0.1f * xa;
+      }
     }
 
     remainder = y - floorf(y);
     if (remainder > 0.4f && remainder < 0.6f) {
-      if (remainder < 0.5f)
+      if (remainder < 0.5f) {
         y -= 0.1f * ya;
-      else
+      }
+      else {
         y += 0.1f * ya;
+      }
     }
 
     remainder = z - floorf(z);
     if (remainder > 0.4f && remainder < 0.6f) {
-      if (remainder < 0.5f)
+      if (remainder < 0.5f) {
         z -= 0.1f * za;
-      else
+      }
+      else {
         z += 0.1f * za;
+      }
     }
 
     font->pos[0] = x;
@@ -554,27 +565,32 @@ static void blf_draw_gl__start(FontBLF *font)
   /* always bind the texture for the first glyph */
   font->tex_bind_state = 0;
 
-  if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0)
+  if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0) {
     return; /* glyphs will be translated individually and batched. */
+  }
 
   GPU_matrix_push();
 
-  if (font->flags & BLF_MATRIX)
+  if (font->flags & BLF_MATRIX) {
     GPU_matrix_mul(font->m);
+  }
 
   GPU_matrix_translate_3fv(font->pos);
 
-  if (font->flags & BLF_ASPECT)
+  if (font->flags & BLF_ASPECT) {
     GPU_matrix_scale_3fv(font->aspect);
+  }
 
-  if (font->flags & BLF_ROTATION)
+  if (font->flags & BLF_ROTATION) {
     GPU_matrix_rotate_2d(RAD2DEG(font->angle));
+  }
 }
 
 static void blf_draw_gl__end(FontBLF *font)
 {
-  if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) != 0)
+  if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) != 0) {
     GPU_matrix_pop();
+  }
 }
 
 void BLF_draw_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)

@@ -63,8 +63,9 @@ KerningCacheBLF *blf_kerning_cache_find(FontBLF *font)
 
   p = (KerningCacheBLF *)font->kerning_caches.first;
   while (p) {
-    if (p->mode == font->kerning_mode)
+    if (p->mode == font->kerning_mode) {
       return p;
+    }
     p = p->next;
   }
   return NULL;
@@ -120,8 +121,9 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned i
 
   p = (GlyphCacheBLF *)font->cache.first;
   while (p) {
-    if (p->size == size && p->dpi == dpi)
+    if (p->size == size && p->dpi == dpi) {
       return p;
+    }
     p = p->next;
   }
   return NULL;
@@ -254,8 +256,9 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
   key = blf_hash(c);
   p = gc->bucket[key].first;
   while (p) {
-    if (p->c == c)
+    if (p->c == c) {
       return p;
+    }
     p = p->next;
   }
   return NULL;
@@ -271,8 +274,9 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
   unsigned int key;
 
   g = blf_glyph_search(font->glyph_cache, c);
-  if (g)
+  if (g) {
     return g;
+  }
 
   /* glyphs are dynamically created as needed by font rendering. this means that
    * to make font rendering thread safe we have to do locking here. note that this
@@ -388,8 +392,9 @@ void blf_glyph_free(GlyphBLF *g)
   /* don't need free the texture, the GlyphCache already
    * have a list of all the texture and free it.
    */
-  if (g->bitmap)
+  if (g->bitmap) {
     MEM_freeN(g->bitmap);
+  }
   MEM_freeN(g);
 }
 
@@ -480,14 +485,16 @@ static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y
 
 void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 {
-  if ((!g->width) || (!g->height))
+  if ((!g->width) || (!g->height)) {
     return;
+  }
 
   if (g->build_tex == 0) {
     GlyphCacheBLF *gc = font->glyph_cache;
 
-    if (font->tex_size_max == -1)
+    if (font->tex_size_max == -1) {
       font->tex_size_max = GPU_max_texture_size();
+    }
 
     if (gc->texture_current == BLF_TEXTURE_UNSET) {
       blf_glyph_cache_texture(font, gc);
