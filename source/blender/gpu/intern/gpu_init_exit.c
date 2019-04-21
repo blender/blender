@@ -42,8 +42,9 @@ static bool initialized = false;
 void GPU_init(void)
 {
   /* can't avoid calling this multiple times, see wm_window_ghostwindow_add */
-  if (initialized)
+  if (initialized) {
     return;
+  }
 
   initialized = true;
 
@@ -52,8 +53,9 @@ void GPU_init(void)
   gpu_codegen_init();
   gpu_framebuffer_module_init();
 
-  if (G.debug & G_DEBUG_GPU)
+  if (G.debug & G_DEBUG_GPU) {
     gpu_debug_init();
+  }
 
   gpu_batch_init();
 
@@ -72,8 +74,9 @@ void GPU_exit(void)
 
   gpu_batch_exit();
 
-  if (G.debug & G_DEBUG_GPU)
+  if (G.debug & G_DEBUG_GPU) {
     gpu_debug_exit();
+  }
 
   gpu_framebuffer_module_exit();
   gpu_codegen_exit();

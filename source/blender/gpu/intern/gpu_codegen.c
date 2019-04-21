@@ -81,8 +81,9 @@ static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, GPUVertAtt
       BLI_hash_mm2a_add(&hm2a, (uchar *)name, strlen(name));
     }
   }
-  if (defs)
+  if (defs) {
     BLI_hash_mm2a_add(&hm2a, (uchar *)defs, strlen(defs));
+  }
 
   return BLI_hash_mm2a_end(&hm2a);
 }
@@ -180,8 +181,9 @@ static GPUShader *FUNCTION_LIB = NULL;
 static int gpu_str_prefix(const char *str, const char *prefix)
 {
   while (*str && *prefix) {
-    if (*str != *prefix)
+    if (*str != *prefix) {
       return 0;
+    }
 
     str++;
     prefix++;
@@ -196,8 +198,9 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 
   /* skip a variable/function name */
   while (*str) {
-    if (ELEM(*str, ' ', '(', ')', ',', ';', '\t', '\n', '\r'))
+    if (ELEM(*str, ' ', '(', ')', ',', ';', '\t', '\n', '\r')) {
       break;
+    }
     else {
       if (token && len < max - 1) {
         *token = *str;
@@ -208,16 +211,19 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
     }
   }
 
-  if (token)
+  if (token) {
     *token = '\0';
+  }
 
   /* skip the next special characters:
    * note the missing ')' */
   while (*str) {
-    if (ELEM(*str, ' ', '(', ',', ';', '\t', '\n', '\r'))
+    if (ELEM(*str, ' ', '(', ',', ';', '\t', '\n', '\r')) {
       str++;
-    else
+    }
+    else {
       break;
+    }
   }
 
   return str;
@@ -240,12 +246,15 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
     while (*code && *code != ')') {
       /* test if it's an input or output */
       qual = FUNCTION_QUAL_IN;
-      if (gpu_str_prefix(code, "out "))
+      if (gpu_str_prefix(code, "out ")) {
         qual = FUNCTION_QUAL_OUT;
-      if (gpu_str_prefix(code, "inout "))
+      }
+      if (gpu_str_prefix(code, "inout ")) {
         qual = FUNCTION_QUAL_INOUT;
-      if ((qual != FUNCTION_QUAL_IN) || gpu_str_prefix(code, "in "))
+      }
+      if ((qual != FUNCTION_QUAL_IN) || gpu_str_prefix(code, "in ")) {
         code = gpu_str_skip_token(code, NULL, 0);
+      }
 
       /* test for type */
       type = GPU_NONE;
@@ -368,8 +377,9 @@ void gpu_codegen_exit(void)
 {
   extern Material defmaterial; /* render module abuse... */
 
-  if (defmaterial.gpumaterial.first)
+  if (defmaterial.gpumaterial.first) {
     GPU_material_free(&defmaterial.gpumaterial);
+  }
 
   if (FUNCTION_HASH) {
     BLI_ghash_free(FUNCTION_HASH, NULL, MEM_freeN);
@@ -407,46 +417,62 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
     BLI_dynstr_append(ds, name);
   }
   else if (to == GPU_FLOAT) {
-    if (from == GPU_VEC4)
+    if (from == GPU_VEC4) {
       BLI_dynstr_appendf(ds, "convert_rgba_to_float(%s)", name);
-    else if (from == GPU_VEC3)
+    }
+    else if (from == GPU_VEC3) {
       BLI_dynstr_appendf(ds, "(%s.r + %s.g + %s.b) / 3.0", name, name, name);
-    else if (from == GPU_VEC2)
+    }
+    else if (from == GPU_VEC2) {
       BLI_dynstr_appendf(ds, "%s.r", name);
+    }
   }
   else if (to == GPU_VEC2) {
-    if (from == GPU_VEC4)
+    if (from == GPU_VEC4) {
       BLI_dynstr_appendf(ds, "vec2((%s.r + %s.g + %s.b) / 3.0, %s.a)", name, name, name, name);
-    else if (from == GPU_VEC3)
+    }
+    else if (from == GPU_VEC3) {
       BLI_dynstr_appendf(ds, "vec2((%s.r + %s.g + %s.b) / 3.0, 1.0)", name, name, name);
-    else if (from == GPU_FLOAT)
+    }
+    else if (from == GPU_FLOAT) {
       BLI_dynstr_appendf(ds, "vec2(%s, 1.0)", name);
+    }
   }
   else if (to == GPU_VEC3) {
-    if (from == GPU_VEC4)
+    if (from == GPU_VEC4) {
       BLI_dynstr_appendf(ds, "%s.rgb", name);
-    else if (from == GPU_VEC2)
+    }
+    else if (from == GPU_VEC2) {
       BLI_dynstr_appendf(ds, "vec3(%s.r, %s.r, %s.r)", name, name, name);
-    else if (from == GPU_FLOAT)
+    }
+    else if (from == GPU_FLOAT) {
       BLI_dynstr_appendf(ds, "vec3(%s, %s, %s)", name, name, name);
+    }
   }
   else if (to == GPU_VEC4) {
-    if (from == GPU_VEC3)
+    if (from == GPU_VEC3) {
       BLI_dynstr_appendf(ds, "vec4(%s, 1.0)", name);
-    else if (from == GPU_VEC2)
+    }
+    else if (from == GPU_VEC2) {
       BLI_dynstr_appendf(ds, "vec4(%s.r, %s.r, %s.r, %s.g)", name, name, name, name);
-    else if (from == GPU_FLOAT)
+    }
+    else if (from == GPU_FLOAT) {
       BLI_dynstr_appendf(ds, "vec4(%s, %s, %s, 1.0)", name, name, name);
+    }
   }
   else if (to == GPU_CLOSURE) {
-    if (from == GPU_VEC4)
+    if (from == GPU_VEC4) {
       BLI_dynstr_appendf(ds, "closure_emission(%s.rgb)", name);
-    else if (from == GPU_VEC3)
+    }
+    else if (from == GPU_VEC3) {
       BLI_dynstr_appendf(ds, "closure_emission(%s.rgb)", name);
-    else if (from == GPU_VEC2)
+    }
+    else if (from == GPU_VEC2) {
       BLI_dynstr_appendf(ds, "closure_emission(%s.rrr)", name);
-    else if (from == GPU_FLOAT)
+    }
+    else if (from == GPU_FLOAT) {
       BLI_dynstr_appendf(ds, "closure_emission(vec3(%s, %s, %s))", name, name, name);
+    }
   }
   else {
     BLI_dynstr_append(ds, name);
@@ -461,69 +487,96 @@ static void codegen_print_datatype(DynStr *ds, const eGPUType type, float *data)
 
   for (i = 0; i < type; i++) {
     BLI_dynstr_appendf(ds, "%.12f", data[i]);
-    if (i == type - 1)
+    if (i == type - 1) {
       BLI_dynstr_append(ds, ")");
-    else
+    }
+    else {
       BLI_dynstr_append(ds, ", ");
+    }
   }
 }
 
 static int codegen_input_has_texture(GPUInput *input)
 {
-  if (input->link)
+  if (input->link) {
     return 0;
-  else
+  }
+  else {
     return (input->source == GPU_SOURCE_TEX);
+  }
 }
 
 const char *GPU_builtin_name(eGPUBuiltin builtin)
 {
-  if (builtin == GPU_VIEW_MATRIX)
+  if (builtin == GPU_VIEW_MATRIX) {
     return "unfviewmat";
-  else if (builtin == GPU_OBJECT_MATRIX)
+  }
+  else if (builtin == GPU_OBJECT_MATRIX) {
     return "unfobmat";
-  else if (builtin == GPU_INVERSE_VIEW_MATRIX)
+  }
+  else if (builtin == GPU_INVERSE_VIEW_MATRIX) {
     return "unfinvviewmat";
-  else if (builtin == GPU_INVERSE_OBJECT_MATRIX)
+  }
+  else if (builtin == GPU_INVERSE_OBJECT_MATRIX) {
     return "unfinvobmat";
-  else if (builtin == GPU_INVERSE_NORMAL_MATRIX)
+  }
+  else if (builtin == GPU_INVERSE_NORMAL_MATRIX) {
     return "unfinvnormat";
-  else if (builtin == GPU_LOC_TO_VIEW_MATRIX)
+  }
+  else if (builtin == GPU_LOC_TO_VIEW_MATRIX) {
     return "unflocaltoviewmat";
-  else if (builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+  }
+  else if (builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX) {
     return "unfinvlocaltoviewmat";
-  else if (builtin == GPU_VIEW_POSITION)
+  }
+  else if (builtin == GPU_VIEW_POSITION) {
     return "varposition";
-  else if (builtin == GPU_VIEW_NORMAL)
+  }
+  else if (builtin == GPU_VIEW_NORMAL) {
     return "varnormal";
-  else if (builtin == GPU_OBCOLOR)
+  }
+  else if (builtin == GPU_OBCOLOR) {
     return "unfobcolor";
-  else if (builtin == GPU_AUTO_BUMPSCALE)
+  }
+  else if (builtin == GPU_AUTO_BUMPSCALE) {
     return "unfobautobumpscale";
-  else if (builtin == GPU_CAMERA_TEXCO_FACTORS)
+  }
+  else if (builtin == GPU_CAMERA_TEXCO_FACTORS) {
     return "unfcameratexfactors";
-  else if (builtin == GPU_PARTICLE_SCALAR_PROPS)
+  }
+  else if (builtin == GPU_PARTICLE_SCALAR_PROPS) {
     return "unfparticlescalarprops";
-  else if (builtin == GPU_PARTICLE_LOCATION)
+  }
+  else if (builtin == GPU_PARTICLE_LOCATION) {
     return "unfparticleco";
-  else if (builtin == GPU_PARTICLE_VELOCITY)
+  }
+  else if (builtin == GPU_PARTICLE_VELOCITY) {
     return "unfparticlevel";
-  else if (builtin == GPU_PARTICLE_ANG_VELOCITY)
+  }
+  else if (builtin == GPU_PARTICLE_ANG_VELOCITY) {
     return "unfparticleangvel";
-  else if (builtin == GPU_OBJECT_INFO)
+  }
+  else if (builtin == GPU_OBJECT_INFO) {
     return "unfobjectinfo";
-  else if (builtin == GPU_VOLUME_DENSITY)
+  }
+  else if (builtin == GPU_VOLUME_DENSITY) {
     return "sampdensity";
-  else if (builtin == GPU_VOLUME_FLAME)
+  }
+  else if (builtin == GPU_VOLUME_FLAME) {
     return "sampflame";
-  else if (builtin == GPU_VOLUME_TEMPERATURE)
+  }
+  else if (builtin == GPU_VOLUME_TEMPERATURE) {
     return "unftemperature";
-  else if (builtin == GPU_BARYCENTRIC_TEXCO)
+  }
+  else if (builtin == GPU_BARYCENTRIC_TEXCO) {
     return "unfbarycentrictex";
-  else if (builtin == GPU_BARYCENTRIC_DIST)
+  }
+  else if (builtin == GPU_BARYCENTRIC_DIST) {
     return "unfbarycentricdist";
-  else
+  }
+  else {
     return "";
+  }
 }
 
 /* assign only one texid per buffer to avoid sampling the same texture twice */
@@ -706,32 +759,45 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
       }
       else if (input->source == GPU_SOURCE_BUILTIN) {
         /* TODO(fclem) get rid of that. */
-        if (input->builtin == GPU_INVERSE_VIEW_MATRIX)
+        if (input->builtin == GPU_INVERSE_VIEW_MATRIX) {
           BLI_dynstr_append(ds, "viewinv");
-        else if (input->builtin == GPU_VIEW_MATRIX)
+        }
+        else if (input->builtin == GPU_VIEW_MATRIX) {
           BLI_dynstr_append(ds, "viewmat");
-        else if (input->builtin == GPU_CAMERA_TEXCO_FACTORS)
+        }
+        else if (input->builtin == GPU_CAMERA_TEXCO_FACTORS) {
           BLI_dynstr_append(ds, "camtexfac");
-        else if (input->builtin == GPU_LOC_TO_VIEW_MATRIX)
+        }
+        else if (input->builtin == GPU_LOC_TO_VIEW_MATRIX) {
           BLI_dynstr_append(ds, "localtoviewmat");
-        else if (input->builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+        }
+        else if (input->builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX) {
           BLI_dynstr_append(ds, "invlocaltoviewmat");
-        else if (input->builtin == GPU_BARYCENTRIC_DIST)
+        }
+        else if (input->builtin == GPU_BARYCENTRIC_DIST) {
           BLI_dynstr_append(ds, "barycentricDist");
-        else if (input->builtin == GPU_BARYCENTRIC_TEXCO)
+        }
+        else if (input->builtin == GPU_BARYCENTRIC_TEXCO) {
           BLI_dynstr_append(ds, "barytexco");
-        else if (input->builtin == GPU_OBJECT_MATRIX)
+        }
+        else if (input->builtin == GPU_OBJECT_MATRIX) {
           BLI_dynstr_append(ds, "objmat");
-        else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX)
+        }
+        else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX) {
           BLI_dynstr_append(ds, "objinv");
-        else if (input->builtin == GPU_INVERSE_NORMAL_MATRIX)
+        }
+        else if (input->builtin == GPU_INVERSE_NORMAL_MATRIX) {
           BLI_dynstr_append(ds, "norinv");
-        else if (input->builtin == GPU_VIEW_POSITION)
+        }
+        else if (input->builtin == GPU_VIEW_POSITION) {
           BLI_dynstr_append(ds, "viewposition");
-        else if (input->builtin == GPU_VIEW_NORMAL)
+        }
+        else if (input->builtin == GPU_VIEW_NORMAL) {
           BLI_dynstr_append(ds, "facingnormal");
-        else
+        }
+        else {
           BLI_dynstr_append(ds, GPU_builtin_name(input->builtin));
+        }
       }
       else if (input->source == GPU_SOURCE_STRUCT) {
         BLI_dynstr_appendf(ds, "strct%d", input->id);
@@ -751,8 +817,9 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 
     for (output = node->outputs.first; output; output = output->next) {
       BLI_dynstr_appendf(ds, "tmp%d", output->id);
-      if (output->next)
+      if (output->next) {
         BLI_dynstr_append(ds, ", ");
+      }
     }
 
     BLI_dynstr_append(ds, ");\n");
@@ -778,11 +845,13 @@ static char *code_generate_fragment(GPUMaterial *material,
   codegen_set_unique_ids(nodes);
   *rbuiltins = builtins = codegen_process_uniforms_functions(material, ds, nodes);
 
-  if (builtins & GPU_BARYCENTRIC_TEXCO)
+  if (builtins & GPU_BARYCENTRIC_TEXCO) {
     BLI_dynstr_append(ds, "in vec2 barycentricTexCo;\n");
+  }
 
-  if (builtins & GPU_BARYCENTRIC_DIST)
+  if (builtins & GPU_BARYCENTRIC_DIST) {
     BLI_dynstr_append(ds, "flat in vec3 barycentricDist;\n");
+  }
 
   BLI_dynstr_append(ds, "Closure nodetree_exec(void)\n{\n");
 
@@ -798,26 +867,36 @@ static char *code_generate_fragment(GPUMaterial *material,
     BLI_dynstr_append(ds, "#endif\n");
   }
   /* TODO(fclem) get rid of that. */
-  if (builtins & GPU_VIEW_MATRIX)
+  if (builtins & GPU_VIEW_MATRIX) {
     BLI_dynstr_append(ds, "\t#define viewmat ViewMatrix\n");
-  if (builtins & GPU_CAMERA_TEXCO_FACTORS)
+  }
+  if (builtins & GPU_CAMERA_TEXCO_FACTORS) {
     BLI_dynstr_append(ds, "\t#define camtexfac CameraTexCoFactors\n");
-  if (builtins & GPU_OBJECT_MATRIX)
+  }
+  if (builtins & GPU_OBJECT_MATRIX) {
     BLI_dynstr_append(ds, "\t#define objmat ModelMatrix\n");
-  if (builtins & GPU_INVERSE_OBJECT_MATRIX)
+  }
+  if (builtins & GPU_INVERSE_OBJECT_MATRIX) {
     BLI_dynstr_append(ds, "\t#define objinv ModelMatrixInverse\n");
-  if (builtins & GPU_INVERSE_NORMAL_MATRIX)
+  }
+  if (builtins & GPU_INVERSE_NORMAL_MATRIX) {
     BLI_dynstr_append(ds, "\t#define norinv NormalMatrixInverse\n");
-  if (builtins & GPU_INVERSE_VIEW_MATRIX)
+  }
+  if (builtins & GPU_INVERSE_VIEW_MATRIX) {
     BLI_dynstr_append(ds, "\t#define viewinv ViewMatrixInverse\n");
-  if (builtins & GPU_LOC_TO_VIEW_MATRIX)
+  }
+  if (builtins & GPU_LOC_TO_VIEW_MATRIX) {
     BLI_dynstr_append(ds, "\t#define localtoviewmat ModelViewMatrix\n");
-  if (builtins & GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+  }
+  if (builtins & GPU_INVERSE_LOC_TO_VIEW_MATRIX) {
     BLI_dynstr_append(ds, "\t#define invlocaltoviewmat ModelViewMatrixInverse\n");
-  if (builtins & GPU_VIEW_NORMAL)
+  }
+  if (builtins & GPU_VIEW_NORMAL) {
     BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
-  if (builtins & GPU_VIEW_POSITION)
+  }
+  if (builtins & GPU_VIEW_POSITION) {
     BLI_dynstr_append(ds, "\t#define viewposition viewPosition\n");
+  }
 
   codegen_declare_tmps(ds, nodes);
   codegen_call_functions(ds, nodes, output);
@@ -1267,8 +1346,9 @@ void GPU_code_generate_glsl_lib(void)
   DynStr *ds;
 
   /* only initialize the library once */
-  if (glsl_material_library)
+  if (glsl_material_library) {
     return;
+  }
 
   ds = BLI_dynstr_new();
 
@@ -1293,8 +1373,9 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 
   BLI_listbase_clear(inputs);
 
-  if (!shader)
+  if (!shader) {
     return;
+  }
 
   for (node = nodes->first; node; node = node->next) {
     int z = 0;
@@ -1308,8 +1389,9 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
         continue;
       }
 
-      if (input->source == GPU_SOURCE_TEX)
+      if (input->source == GPU_SOURCE_TEX) {
         BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
+      }
       else {
         BLI_snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
       }
@@ -1340,12 +1422,14 @@ static void gpu_node_link_free(GPUNodeLink *link)
 {
   link->users--;
 
-  if (link->users < 0)
+  if (link->users < 0) {
     fprintf(stderr, "GPU_node_link_free: negative refcount\n");
+  }
 
   if (link->users == 0) {
-    if (link->output)
+    if (link->output) {
       link->output->link = NULL;
+    }
     MEM_freeN(link);
   }
 }
@@ -1374,8 +1458,9 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
 
     if ((STR_ELEM(name, "set_value", "set_rgb", "set_rgba")) && (input->type == type)) {
       input = MEM_dupallocN(outnode->inputs.first);
-      if (input->link)
+      if (input->link) {
         input->link->users++;
+      }
       BLI_addtail(&node->inputs, input);
       return;
     }
@@ -1540,8 +1625,9 @@ void GPU_inputs_free(ListBase *inputs)
   GPUInput *input;
 
   for (input = inputs->first; input; input = input->next) {
-    if (input->link)
+    if (input->link) {
       gpu_node_link_free(input->link);
+    }
   }
 
   BLI_freelistN(inputs);
@@ -1553,11 +1639,12 @@ static void gpu_node_free(GPUNode *node)
 
   GPU_inputs_free(&node->inputs);
 
-  for (output = node->outputs.first; output; output = output->next)
+  for (output = node->outputs.first; output; output = output->next) {
     if (output->link) {
       output->link->output = NULL;
       gpu_node_link_free(output->link);
     }
+  }
 
   BLI_freelistN(&node->outputs);
   MEM_freeN(node);
@@ -1755,19 +1842,23 @@ bool GPU_stack_link(GPUMaterial *material,
         linkptr = va_arg(params, GPUNodeLink **);
         gpu_node_output(node, function->paramtype[i], linkptr);
       }
-      else
+      else {
         totout--;
+      }
     }
     else {
       if (totin == 0) {
         link = va_arg(params, GPUNodeLink *);
-        if (link->socket)
+        if (link->socket) {
           gpu_node_input_socket(NULL, NULL, node, link->socket, -1);
-        else
+        }
+        else {
           gpu_node_input_link(node, link, function->paramtype[i]);
+        }
       }
-      else
+      else {
         totin--;
+      }
     }
   }
   va_end(params);
@@ -1792,25 +1883,30 @@ static void gpu_nodes_tag(GPUNodeLink *link)
   GPUNode *node;
   GPUInput *input;
 
-  if (!link->output)
+  if (!link->output) {
     return;
+  }
 
   node = link->output->node;
-  if (node->tag)
+  if (node->tag) {
     return;
+  }
 
   node->tag = true;
-  for (input = node->inputs.first; input; input = input->next)
-    if (input->link)
+  for (input = node->inputs.first; input; input = input->next) {
+    if (input->link) {
       gpu_nodes_tag(input->link);
+    }
+  }
 }
 
 void GPU_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 {
   GPUNode *node, *next;
 
-  for (node = nodes->first; node; node = node->next)
+  for (node = nodes->first; node; node = node->next) {
     node->tag = false;
+  }
 
   gpu_nodes_tag(outlink);
 
@@ -2069,8 +2165,9 @@ void GPU_pass_cache_garbage_collect(void)
   const int shadercollectrate = 60; /* hardcoded for now. */
   int ctime = (int)PIL_check_seconds_timer();
 
-  if (ctime < shadercollectrate + lasttime)
+  if (ctime < shadercollectrate + lasttime) {
     return;
+  }
 
   lasttime = ctime;
 

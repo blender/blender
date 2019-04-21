@@ -112,10 +112,12 @@ static GLenum convert_buffer_bits_to_gl(eGPUFrameBufferBits bits)
 
 static GPUTexture *framebuffer_get_depth_tex(GPUFrameBuffer *fb)
 {
-  if (fb->attachments[GPU_FB_DEPTH_ATTACHMENT].tex)
+  if (fb->attachments[GPU_FB_DEPTH_ATTACHMENT].tex) {
     return fb->attachments[GPU_FB_DEPTH_ATTACHMENT].tex;
-  else
+  }
+  else {
     return fb->attachments[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex;
+  }
 }
 
 static GPUTexture *framebuffer_get_color_tex(GPUFrameBuffer *fb, int slot)
@@ -409,10 +411,12 @@ static void gpu_framebuffer_update_attachments(GPUFrameBuffer *fb)
 
   /* Update draw buffers (color targets)
    * This state is saved in the FBO */
-  if (numslots)
+  if (numslots) {
     glDrawBuffers(numslots, gl_attachments);
-  else
+  }
+  else {
     glDrawBuffer(GL_NONE);
+  }
 }
 
 /**
@@ -497,11 +501,13 @@ static GPUFrameBuffer *gpuPopFrameBuffer(void)
 
 void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 {
-  if (fb->object == 0)
+  if (fb->object == 0) {
     gpu_framebuffer_init(fb);
+  }
 
-  if (GPU_framebuffer_active_get() != fb)
+  if (GPU_framebuffer_active_get() != fb) {
     glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+  }
 
   gpu_framebuffer_current_set(fb);
 
@@ -523,8 +529,9 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
   }
 #endif
 
-  if (fb->multisample)
+  if (fb->multisample) {
     glEnable(GL_MULTISAMPLE);
+  }
 
   glViewport(0, 0, fb->width, fb->height);
 }
@@ -544,8 +551,9 @@ bool GPU_framebuffer_bound(GPUFrameBuffer *fb)
 
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 {
-  if (!GPU_framebuffer_bound(fb))
+  if (!GPU_framebuffer_bound(fb)) {
     GPU_framebuffer_bind(fb);
+  }
 
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -768,8 +776,9 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
     glViewport(0, 0, current_dim[0], current_dim[1]);
     callback(userData, i);
 
-    if (current_dim[0] == 1 && current_dim[1] == 1)
+    if (current_dim[0] == 1 && current_dim[1] == 1) {
       break;
+    }
   }
 
   for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; ++type) {
@@ -844,12 +853,15 @@ GPUOffScreen *GPU_offscreen_create(
 
 void GPU_offscreen_free(GPUOffScreen *ofs)
 {
-  if (ofs->fb)
+  if (ofs->fb) {
     GPU_framebuffer_free(ofs->fb);
-  if (ofs->color)
+  }
+  if (ofs->color) {
     GPU_texture_free(ofs->color);
-  if (ofs->depth)
+  }
+  if (ofs->depth) {
     GPU_texture_free(ofs->depth);
+  }
 
   MEM_freeN(ofs);
 }

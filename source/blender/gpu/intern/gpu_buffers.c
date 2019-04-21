@@ -231,8 +231,9 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
               buffers->mloop[lt->tri[2]].v,
           };
 
-          if (paint_is_face_hidden(lt, mvert, buffers->mloop))
+          if (paint_is_face_hidden(lt, mvert, buffers->mloop)) {
             continue;
+          }
 
           /* Face normal and mask */
           if (lt->poly != mpoly_prev) {
@@ -291,8 +292,9 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
   /* Count the number of visible triangles */
   for (i = 0, tottri = 0; i < face_indices_len; ++i) {
     const MLoopTri *lt = &looptri[face_indices[i]];
-    if (!paint_is_face_hidden(lt, mvert, mloop))
+    if (!paint_is_face_hidden(lt, mvert, mloop)) {
       tottri++;
+    }
   }
 
   if (tottri == 0) {
@@ -325,8 +327,9 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
       const MLoopTri *lt = &looptri[face_indices[i]];
 
       /* Skip hidden faces */
-      if (paint_is_face_hidden(lt, mvert, mloop))
+      if (paint_is_face_hidden(lt, mvert, mloop)) {
         continue;
+      }
 
       GPU_indexbuf_add_tri_verts(&elb, UNPACK3(face_vert_indices[i]));
 
@@ -347,8 +350,9 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
       const MLoopTri *lt = &looptri[face_indices[i]];
 
       /* Skip hidden faces */
-      if (paint_is_face_hidden(lt, mvert, mloop))
+      if (paint_is_face_hidden(lt, mvert, mloop)) {
         continue;
+      }
 
       /* TODO skip "non-real" edges. */
       GPU_indexbuf_add_line_verts(&elb_lines, i * 3 + 0, i * 3 + 1);
@@ -706,13 +710,15 @@ static int gpu_bmesh_vert_visible_count(GSet *bm_unique_verts, GSet *bm_other_ve
 
   GSET_ITER (gs_iter, bm_unique_verts) {
     BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       totvert++;
+    }
   }
   GSET_ITER (gs_iter, bm_other_verts) {
     BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       totvert++;
+    }
   }
 
   return totvert;
@@ -727,8 +733,9 @@ static int gpu_bmesh_face_visible_count(GSet *bm_faces)
   GSET_ITER (gh_iter, bm_faces) {
     BMFace *f = BLI_gsetIterator_getKey(&gh_iter);
 
-    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN))
+    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       totface++;
+    }
   }
 
   return totface;
@@ -966,10 +973,12 @@ void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 /* debug function, draws the pbvh BB */
 void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf, uint pos)
 {
-  if (leaf)
+  if (leaf) {
     immUniformColor4f(0.0, 1.0, 0.0, 0.5);
-  else
+  }
+  else {
     immUniformColor4f(1.0, 0.0, 0.0, 0.5);
+  }
 
   /* TODO(merwin): revisit this after we have mutable VertexBuffers
    * could keep a static batch & index buffer, change the VBO contents per draw

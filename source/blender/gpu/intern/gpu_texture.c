@@ -490,8 +490,9 @@ static float *GPU_texture_rescale_3d(
             nfpixels[offset * 4 + 2] = fpixels[offset_orig * 4 + 2];
             nfpixels[offset * 4 + 3] = fpixels[offset_orig * 4 + 3];
           }
-          else
+          else {
             nfpixels[offset] = fpixels[offset_orig];
+          }
         }
       }
     }
@@ -511,32 +512,37 @@ static bool gpu_texture_check_capacity(
      * So manually check the maximum size and maximum number of layers. */
     switch (proxy) {
       case GL_PROXY_TEXTURE_2D_ARRAY:
-        if ((tex->d < 0) || (tex->d > GPU_max_texture_layers()))
+        if ((tex->d < 0) || (tex->d > GPU_max_texture_layers())) {
           return false;
+        }
         break;
 
       case GL_PROXY_TEXTURE_1D_ARRAY:
-        if ((tex->h < 0) || (tex->h > GPU_max_texture_layers()))
+        if ((tex->h < 0) || (tex->h > GPU_max_texture_layers())) {
           return false;
+        }
         break;
     }
 
     switch (proxy) {
       case GL_PROXY_TEXTURE_3D:
-        if ((tex->d < 0) || (tex->d > GPU_max_texture_size()))
+        if ((tex->d < 0) || (tex->d > GPU_max_texture_size())) {
           return false;
+        }
         ATTR_FALLTHROUGH;
 
       case GL_PROXY_TEXTURE_2D:
       case GL_PROXY_TEXTURE_2D_ARRAY:
-        if ((tex->h < 0) || (tex->h > GPU_max_texture_size()))
+        if ((tex->h < 0) || (tex->h > GPU_max_texture_size())) {
           return false;
+        }
         ATTR_FALLTHROUGH;
 
       case GL_PROXY_TEXTURE_1D:
       case GL_PROXY_TEXTURE_1D_ARRAY:
-        if ((tex->w < 0) || (tex->w > GPU_max_texture_size()))
+        if ((tex->w < 0) || (tex->w > GPU_max_texture_size())) {
           return false;
+        }
         ATTR_FALLTHROUGH;
     }
 
@@ -592,12 +598,15 @@ static bool gpu_texture_try_alloc(GPUTexture *tex,
       tex->d /= 2;
 
       /* really unlikely to happen but keep this just in case */
-      if (tex->w == 0)
+      if (tex->w == 0) {
         break;
-      if (tex->h == 0 && proxy != GL_PROXY_TEXTURE_1D)
+      }
+      if (tex->h == 0 && proxy != GL_PROXY_TEXTURE_1D) {
         break;
-      if (tex->d == 0 && proxy == GL_PROXY_TEXTURE_3D)
+      }
+      if (tex->d == 0 && proxy == GL_PROXY_TEXTURE_3D) {
         break;
+      }
 
       ret = gpu_texture_check_capacity(tex, proxy, internalformat, data_format, data_type);
     } while (ret == false);
@@ -654,16 +663,20 @@ GPUTexture *GPU_texture_create_nD(int w,
   tex->format_flag = 0;
 
   if (n == 2) {
-    if (d == 0)
+    if (d == 0) {
       tex->target_base = tex->target = GL_TEXTURE_2D;
-    else
+    }
+    else {
       tex->target_base = tex->target = GL_TEXTURE_2D_ARRAY;
+    }
   }
   else if (n == 1) {
-    if (h == 0)
+    if (h == 0) {
       tex->target_base = tex->target = GL_TEXTURE_1D;
-    else
+    }
+    else {
       tex->target_base = tex->target = GL_TEXTURE_1D_ARRAY;
+    }
   }
   else if (n == 3) {
     tex->target_base = tex->target = GL_TEXTURE_3D;
@@ -676,8 +689,9 @@ GPUTexture *GPU_texture_create_nD(int w,
 
   gpu_validate_data_format(tex_format, gpu_data_format);
 
-  if (samples && n == 2 && d == 0)
+  if (samples && n == 2 && d == 0) {
     tex->target = GL_TEXTURE_2D_MULTISAMPLE;
+  }
 
   GLenum internalformat = gpu_get_gl_internalformat(tex_format);
   GLenum data_format = gpu_get_gl_dataformat(tex_format, &tex->format_flag);
@@ -703,14 +717,17 @@ GPUTexture *GPU_texture_create_nD(int w,
   GLenum proxy = GL_PROXY_TEXTURE_2D;
 
   if (n == 2) {
-    if (d > 1)
+    if (d > 1) {
       proxy = GL_PROXY_TEXTURE_2D_ARRAY;
+    }
   }
   else if (n == 1) {
-    if (h == 0)
+    if (h == 0) {
       proxy = GL_PROXY_TEXTURE_1D;
-    else
+    }
+    else {
       proxy = GL_PROXY_TEXTURE_1D_ARRAY;
+    }
   }
   else if (n == 3) {
     proxy = GL_PROXY_TEXTURE_3D;
@@ -761,8 +778,9 @@ GPUTexture *GPU_texture_create_nD(int w,
       tex->target == GL_TEXTURE_1D_ARRAY) {
     if (samples) {
       glTexImage2DMultisample(tex->target, samples, internalformat, tex->w, tex->h, true);
-      if (pix)
+      if (pix) {
         glTexSubImage2D(tex->target, 0, 0, 0, tex->w, tex->h, data_format, data_type, pix);
+      }
     }
     else {
       glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pix);
@@ -776,8 +794,9 @@ GPUTexture *GPU_texture_create_nD(int w,
         tex->target, 0, internalformat, tex->w, tex->h, tex->d, 0, data_format, data_type, pix);
   }
 
-  if (rescaled_pixels)
+  if (rescaled_pixels) {
     MEM_freeN(rescaled_pixels);
+  }
 
   /* Texture Parameters */
   if (GPU_texture_stencil(tex) || /* Does not support filtering */
@@ -1029,10 +1048,12 @@ GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
 
     GLenum gettarget;
 
-    if (textarget == GL_TEXTURE_2D)
+    if (textarget == GL_TEXTURE_2D) {
       gettarget = GL_TEXTURE_2D;
-    else
+    }
+    else {
       gettarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    }
 
     glBindTexture(textarget, tex->bindcode);
     glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_WIDTH, &w);
@@ -1050,8 +1071,9 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
   GPUTexture *tex = prv->gputexture[0];
   GLuint bindcode = 0;
 
-  if (tex)
+  if (tex) {
     bindcode = tex->bindcode;
+  }
 
   /* this binds a texture, so that's why we restore it to 0 */
   if (bindcode == 0) {
@@ -1524,12 +1546,15 @@ void GPU_invalid_tex_bind(int mode)
 
 void GPU_invalid_tex_free(void)
 {
-  if (GG.invalid_tex_1D)
+  if (GG.invalid_tex_1D) {
     GPU_texture_free(GG.invalid_tex_1D);
-  if (GG.invalid_tex_2D)
+  }
+  if (GG.invalid_tex_2D) {
     GPU_texture_free(GG.invalid_tex_2D);
-  if (GG.invalid_tex_3D)
+  }
+  if (GG.invalid_tex_3D) {
     GPU_texture_free(GG.invalid_tex_3D);
+  }
 }
 
 void GPU_texture_bind(GPUTexture *tex, int number)
@@ -1555,18 +1580,21 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 
   glActiveTexture(GL_TEXTURE0 + number);
 
-  if (tex->bindcode != 0)
+  if (tex->bindcode != 0) {
     glBindTexture(tex->target, tex->bindcode);
-  else
+  }
+  else {
     GPU_invalid_tex_bind(tex->target_base);
+  }
 
   tex->number = number;
 }
 
 void GPU_texture_unbind(GPUTexture *tex)
 {
-  if (tex->number == -1)
+  if (tex->number == -1) {
     return;
+  }
 
   glActiveTexture(GL_TEXTURE0 + tex->number);
   glBindTexture(tex->target, 0);
@@ -1617,8 +1645,9 @@ void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare)
   WARN_NOT_BOUND(tex);
 
   /* Could become an assertion ? (fclem) */
-  if (!GPU_texture_depth(tex))
+  if (!GPU_texture_depth(tex)) {
     return;
+  }
 
   GLenum mode = (use_compare) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
 
@@ -1665,10 +1694,12 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
 
   glActiveTexture(GL_TEXTURE0 + tex->number);
   glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, repeat);
-  if (tex->target_base != GL_TEXTURE_1D)
+  if (tex->target_base != GL_TEXTURE_1D) {
     glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, repeat);
-  if (tex->target_base == GL_TEXTURE_3D)
+  }
+  if (tex->target_base == GL_TEXTURE_3D) {
     glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, repeat);
+  }
 }
 
 static GLenum gpu_get_gl_filterfunction(eGPUFilterFunction filter)
@@ -1703,8 +1734,9 @@ void GPU_texture_free(GPUTexture *tex)
 {
   tex->refcount--;
 
-  if (tex->refcount < 0)
+  if (tex->refcount < 0) {
     fprintf(stderr, "GPUTexture: negative refcount\n");
+  }
 
   if (tex->refcount == 0) {
     for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
@@ -1713,8 +1745,9 @@ void GPU_texture_free(GPUTexture *tex)
       }
     }
 
-    if (tex->bindcode)
+    if (tex->bindcode) {
       GPU_tex_free(tex->bindcode);
+    }
 
     gpu_texture_memory_footprint_remove(tex);
 

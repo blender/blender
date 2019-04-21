@@ -266,20 +266,26 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
 {
   /* some useful defines to detect GPU type */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     strcat(defines, "#define GPU_ATI\n");
-  else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
+  }
+  else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     strcat(defines, "#define GPU_NVIDIA\n");
-  else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
+  }
+  else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     strcat(defines, "#define GPU_INTEL\n");
+  }
 
   /* some useful defines to detect OS type */
-  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_WIN, GPU_DRIVER_ANY))
+  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_WIN, GPU_DRIVER_ANY)) {
     strcat(defines, "#define OS_WIN\n");
-  else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY))
+  }
+  else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
     strcat(defines, "#define OS_MAC\n");
-  else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_ANY))
+  }
+  else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
     strcat(defines, "#define OS_UNIX\n");
+  }
 
   return;
 }
@@ -371,12 +377,15 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
   /* At least a vertex shader and a fragment shader are required. */
   BLI_assert((fragcode != NULL) && (vertexcode != NULL));
 
-  if (vertexcode)
+  if (vertexcode) {
     shader->vertex = glCreateShader(GL_VERTEX_SHADER);
-  if (fragcode)
+  }
+  if (fragcode) {
     shader->fragment = glCreateShader(GL_FRAGMENT_SHADER);
-  if (geocode)
+  }
+  if (geocode) {
     shader->geometry = glCreateShader(GL_GEOMETRY_SHADER);
+  }
 
   shader->program = glCreateProgram();
 
@@ -400,8 +409,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
-    if (defines)
+    if (defines) {
       source[num_source++] = defines;
+    }
     source[num_source++] = vertexcode;
 
     gpu_dump_shaders(source, num_source, DEBUG_SHADER_VERTEX);
@@ -430,10 +440,12 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
-    if (defines)
+    if (defines) {
       source[num_source++] = defines;
-    if (libcode)
+    }
+    if (libcode) {
       source[num_source++] = libcode;
+    }
     source[num_source++] = fragcode;
 
     gpu_dump_shaders(source, num_source, DEBUG_SHADER_FRAGMENT);
@@ -462,8 +474,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
-    if (defines)
+    if (defines) {
       source[num_source++] = defines;
+    }
     source[num_source++] = geocode;
 
     gpu_dump_shaders(source, num_source, DEBUG_SHADER_GEOMETRY);
@@ -495,14 +508,18 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
   if (!status) {
     glGetProgramInfoLog(shader->program, sizeof(log), &length, log);
     /* print attached shaders in pipeline order */
-    if (vertexcode)
+    if (vertexcode) {
       shader_print_errors("linking", log, &vertexcode, 1);
-    if (geocode)
+    }
+    if (geocode) {
       shader_print_errors("linking", log, &geocode, 1);
-    if (libcode)
+    }
+    if (libcode) {
       shader_print_errors("linking", log, &libcode, 1);
-    if (fragcode)
+    }
+    if (fragcode) {
       shader_print_errors("linking", log, &fragcode, 1);
+    }
 
     GPU_shader_free(shader);
     return NULL;
@@ -637,17 +654,22 @@ void GPU_shader_free(GPUShader *shader)
 #endif
   BLI_assert(shader);
 
-  if (shader->vertex)
+  if (shader->vertex) {
     glDeleteShader(shader->vertex);
-  if (shader->geometry)
+  }
+  if (shader->geometry) {
     glDeleteShader(shader->geometry);
-  if (shader->fragment)
+  }
+  if (shader->fragment) {
     glDeleteShader(shader->fragment);
-  if (shader->program)
+  }
+  if (shader->program) {
     glDeleteProgram(shader->program);
+  }
 
-  if (shader->interface)
+  if (shader->interface) {
     GPU_shaderinterface_discard(shader->interface);
+  }
 
   MEM_freeN(shader);
 }
@@ -693,8 +715,9 @@ int GPU_shader_get_program(GPUShader *shader)
 
 void GPU_shader_uniform_float(GPUShader *UNUSED(shader), int location, float value)
 {
-  if (location == -1)
+  if (location == -1) {
     return;
+  }
 
   glUniform1f(location, value);
 }
@@ -702,43 +725,56 @@ void GPU_shader_uniform_float(GPUShader *UNUSED(shader), int location, float val
 void GPU_shader_uniform_vector(
     GPUShader *UNUSED(shader), int location, int length, int arraysize, const float *value)
 {
-  if (location == -1 || value == NULL)
+  if (location == -1 || value == NULL) {
     return;
+  }
 
-  if (length == 1)
+  if (length == 1) {
     glUniform1fv(location, arraysize, value);
-  else if (length == 2)
+  }
+  else if (length == 2) {
     glUniform2fv(location, arraysize, value);
-  else if (length == 3)
+  }
+  else if (length == 3) {
     glUniform3fv(location, arraysize, value);
-  else if (length == 4)
+  }
+  else if (length == 4) {
     glUniform4fv(location, arraysize, value);
-  else if (length == 9)
+  }
+  else if (length == 9) {
     glUniformMatrix3fv(location, arraysize, 0, value);
-  else if (length == 16)
+  }
+  else if (length == 16) {
     glUniformMatrix4fv(location, arraysize, 0, value);
+  }
 }
 
 void GPU_shader_uniform_vector_int(
     GPUShader *UNUSED(shader), int location, int length, int arraysize, const int *value)
 {
-  if (location == -1)
+  if (location == -1) {
     return;
+  }
 
-  if (length == 1)
+  if (length == 1) {
     glUniform1iv(location, arraysize, value);
-  else if (length == 2)
+  }
+  else if (length == 2) {
     glUniform2iv(location, arraysize, value);
-  else if (length == 3)
+  }
+  else if (length == 3) {
     glUniform3iv(location, arraysize, value);
-  else if (length == 4)
+  }
+  else if (length == 4) {
     glUniform4iv(location, arraysize, value);
+  }
 }
 
 void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
 {
-  if (location == -1)
+  if (location == -1) {
     return;
+  }
 
   glUniform1i(location, value);
 }
@@ -764,8 +800,9 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
     return;
   }
 
-  if (location == -1)
+  if (location == -1) {
     return;
+  }
 
   glUniform1i(location, number);
 }

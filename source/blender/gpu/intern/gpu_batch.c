@@ -194,8 +194,9 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 #endif
       batch->verts[v] = verts;
       /* TODO: mark dirty so we can keep attribute bindings up-to-date */
-      if (own_vbo)
+      if (own_vbo) {
         batch->owns_flag |= (1 << v);
+      }
       return v;
     }
   }
@@ -211,14 +212,18 @@ static GLuint batch_vao_get(GPUBatch *batch)
 {
   /* Search through cache */
   if (batch->is_dynamic_vao_count) {
-    for (int i = 0; i < batch->dynamic_vaos.count; ++i)
-      if (batch->dynamic_vaos.interfaces[i] == batch->interface)
+    for (int i = 0; i < batch->dynamic_vaos.count; ++i) {
+      if (batch->dynamic_vaos.interfaces[i] == batch->interface) {
         return batch->dynamic_vaos.vao_ids[i];
+      }
+    }
   }
   else {
-    for (int i = 0; i < GPU_BATCH_VAO_STATIC_LEN; ++i)
-      if (batch->static_vaos.interfaces[i] == batch->interface)
+    for (int i = 0; i < GPU_BATCH_VAO_STATIC_LEN; ++i) {
+      if (batch->static_vaos.interfaces[i] == batch->interface) {
         return batch->static_vaos.vao_ids[i];
+      }
+    }
   }
 
   /* Set context of this batch.
@@ -239,9 +244,11 @@ static GLuint batch_vao_get(GPUBatch *batch)
   GLuint new_vao = 0;
   if (!batch->is_dynamic_vao_count) {
     int i; /* find first unused slot */
-    for (i = 0; i < GPU_BATCH_VAO_STATIC_LEN; ++i)
-      if (batch->static_vaos.vao_ids[i] == 0)
+    for (i = 0; i < GPU_BATCH_VAO_STATIC_LEN; ++i) {
+      if (batch->static_vaos.vao_ids[i] == 0) {
         break;
+      }
+    }
 
     if (i < GPU_BATCH_VAO_STATIC_LEN) {
       batch->static_vaos.interfaces[i] = batch->interface;
@@ -267,9 +274,11 @@ static GLuint batch_vao_get(GPUBatch *batch)
 
   if (batch->is_dynamic_vao_count) {
     int i; /* find first unused slot */
-    for (i = 0; i < batch->dynamic_vaos.count; ++i)
-      if (batch->dynamic_vaos.vao_ids[i] == 0)
+    for (i = 0; i < batch->dynamic_vaos.count; ++i) {
+      if (batch->dynamic_vaos.vao_ids[i] == 0) {
         break;
+      }
+    }
 
     if (i == batch->dynamic_vaos.count) {
       /* Not enough place, realloc the array. */
@@ -362,8 +371,9 @@ static void create_bindings(GPUVertBuf *verts,
     for (uint n_idx = 0; n_idx < a->name_len; ++n_idx) {
       const GPUShaderInput *input = GPU_shaderinterface_attr(interface, a->name[n_idx]);
 
-      if (input == NULL)
+      if (input == NULL) {
         continue;
+      }
 
       if (a->comp_len == 16 || a->comp_len == 12 || a->comp_len == 8) {
 #if TRUST_NO_ONE
@@ -540,10 +550,12 @@ static void primitive_restart_enable(const GPUIndexBuf *el)
   GLuint restart_index = (GLuint)0xFFFFFFFF;
 
 #if GPU_TRACK_INDEX_RANGE
-  if (el->index_type == GPU_INDEX_U8)
+  if (el->index_type == GPU_INDEX_U8) {
     restart_index = (GLuint)0xFF;
-  else if (el->index_type == GPU_INDEX_U16)
+  }
+  else if (el->index_type == GPU_INDEX_U16) {
     restart_index = (GLuint)0xFFFF;
+  }
 #endif
 
   glPrimitiveRestartIndex(restart_index);
@@ -557,13 +569,16 @@ static void primitive_restart_disable(void)
 static void *elem_offset(const GPUIndexBuf *el, int v_first)
 {
 #if GPU_TRACK_INDEX_RANGE
-  if (el->index_type == GPU_INDEX_U8)
+  if (el->index_type == GPU_INDEX_U8) {
     return (GLubyte *)0 + v_first;
-  else if (el->index_type == GPU_INDEX_U16)
+  }
+  else if (el->index_type == GPU_INDEX_U16) {
     return (GLushort *)0 + v_first;
-  else
+  }
+  else {
 #endif
     return (GLuint *)0 + v_first;
+  }
 }
 
 void GPU_batch_draw(GPUBatch *batch)

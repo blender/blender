@@ -258,6 +258,7 @@ void GPU_string_marker(const char *buf)
 
 void GPU_print_error_debug(const char *str)
 {
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     fprintf(stderr, "GPU: %s\n", str);
+  }
 }

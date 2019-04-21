@@ -98,8 +98,9 @@ static int smaller_power_of_2_limit(int num)
   int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, GPU_max_texture_size()) :
                                        GPU_max_texture_size();
   /* take texture clamping into account */
-  if (num > reslimit)
+  if (num > reslimit) {
     return reslimit;
+  }
 
   return power_of_2_min_i(num);
 }
@@ -149,10 +150,12 @@ static GLenum gpu_get_mipmap_filter(bool mag)
   /* linearmipmap is off by default *when mipmapping is off,
    * use unfiltered display */
   if (mag) {
-    if (GTS.domipmap)
+    if (GTS.domipmap) {
       return GL_LINEAR;
-    else
+    }
+    else {
       return GL_NEAREST;
+    }
   }
   else {
     if (GTS.domipmap) {
@@ -177,8 +180,9 @@ void GPU_set_anisotropic(Main *bmain, float value)
 
     /* Clamp value to the maximum value the graphics card supports */
     const float max = GPU_max_texture_anisotropy();
-    if (value > max)
+    if (value > max) {
       value = max;
+    }
 
     GTS.anisotropic = value;
   }
@@ -193,10 +197,12 @@ float GPU_get_anisotropic(void)
 
 static GPUTexture **gpu_get_image_gputexture(Image *ima, GLenum textarget)
 {
-  if (textarget == GL_TEXTURE_2D)
+  if (textarget == GL_TEXTURE_2D) {
     return &ima->gputexture[TEXTARGET_TEXTURE_2D];
-  else if (textarget == GL_TEXTURE_CUBE_MAP)
+  }
+  else if (textarget == GL_TEXTURE_CUBE_MAP) {
     return &ima->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+  }
 
   return NULL;
 }
@@ -324,15 +330,18 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 
   /* mark as non-color data texture */
   if (bindcode) {
-    if (is_data)
+    if (is_data) {
       ima->gpuflag |= IMA_GPU_IS_DATA;
-    else
+    }
+    else {
       ima->gpuflag &= ~IMA_GPU_IS_DATA;
+    }
   }
 
   /* clean up */
-  if (srgb_frect)
+  if (srgb_frect) {
     MEM_freeN(srgb_frect);
+  }
 
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
@@ -348,13 +357,15 @@ static void **gpu_gen_cube_map(
   int h = recth / 2;
   int w = rectw / 3;
 
-  if ((use_high_bit_depth && frect == NULL) || (!use_high_bit_depth && rect == NULL) || w != h)
+  if ((use_high_bit_depth && frect == NULL) || (!use_high_bit_depth && rect == NULL) || w != h) {
     return sides;
+  }
 
   /* PosX, NegX, PosY, NegY, PosZ, NegZ */
   sides = MEM_mallocN(sizeof(void *) * 6, "");
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 6; i++) {
     sides[i] = MEM_mallocN(block_size * w * h, "");
+  }
 
   /* divide image into six parts */
   /* ______________________
@@ -402,10 +413,12 @@ static void **gpu_gen_cube_map(
 static void gpu_del_cube_map(void **cube_map)
 {
   int i;
-  if (cube_map == NULL)
+  if (cube_map == NULL) {
     return;
-  for (i = 0; i < 6; i++)
+  }
+  for (i = 0; i < 6; i++) {
     MEM_freeN(cube_map[i]);
+  }
   MEM_freeN(cube_map);
 }
 
@@ -459,8 +472,9 @@ void GPU_create_gl_tex(uint *bind,
     if (GPU_get_mipmap() && mipmap) {
       glGenerateMipmap(GL_TEXTURE_2D);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
-      if (ima)
+      if (ima) {
         ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+      }
     }
     else {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -474,8 +488,8 @@ void GPU_create_gl_tex(uint *bind,
       GLenum informat = use_high_bit_depth ? GL_RGBA16F : GL_RGBA8;
       GLenum type = use_high_bit_depth ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
-      if (cube_map)
-        for (int i = 0; i < 6; i++)
+      if (cube_map) {
+        for (int i = 0; i < 6; i++) {
           glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                        0,
                        informat,
@@ -485,6 +499,8 @@ void GPU_create_gl_tex(uint *bind,
                        GL_RGBA,
                        type,
                        cube_map[i]);
+        }
+      }
 
       glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
@@ -492,8 +508,9 @@ void GPU_create_gl_tex(uint *bind,
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 
-        if (ima)
+        if (ima) {
           ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+        }
       }
       else {
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -509,13 +526,15 @@ void GPU_create_gl_tex(uint *bind,
     }
   }
 
-  if (GLEW_EXT_texture_filter_anisotropic)
+  if (GLEW_EXT_texture_filter_anisotropic) {
     glTexParameterf(textarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
+  }
 
   glBindTexture(textarget, 0);
 
-  if (ibuf)
+  if (ibuf) {
     IMB_freeImBuf(ibuf);
+  }
 }
 
 /**
@@ -533,12 +552,15 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
   height = ibuf->y;
 
   if (GLEW_EXT_texture_compression_s3tc) {
-    if (ibuf->dds_data.fourcc == FOURCC_DXT1)
+    if (ibuf->dds_data.fourcc == FOURCC_DXT1) {
       format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-    else if (ibuf->dds_data.fourcc == FOURCC_DXT3)
+    }
+    else if (ibuf->dds_data.fourcc == FOURCC_DXT3) {
       format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-    else if (ibuf->dds_data.fourcc == FOURCC_DXT5)
+    }
+    else if (ibuf->dds_data.fourcc == FOURCC_DXT5) {
       format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+    }
   }
 
   if (format == 0) {
@@ -556,15 +578,18 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
-  if (GLEW_EXT_texture_filter_anisotropic)
+  if (GLEW_EXT_texture_filter_anisotropic) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
+  }
 
   blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
   for (i = 0; i < ibuf->dds_data.nummipmaps && (width || height); ++i) {
-    if (width == 0)
+    if (width == 0) {
       width = 1;
-    if (height == 0)
+    }
+    if (height == 0) {
       height = 1;
+    }
 
     size = ((width + 3) / 4) * ((height + 3) / 4) * blocksize;
 
@@ -612,8 +637,9 @@ void GPU_create_gl_tex_compressed(
  * re-uploaded to OpenGL */
 void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
 {
-  if (!GTS.domipmap)
+  if (!GTS.domipmap) {
     return;
+  }
 
   GTS.texpaint = !mipmap;
 
@@ -628,11 +654,13 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
             GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
           }
         }
-        else
+        else {
           GPU_free_image(ima);
+        }
       }
-      else
+      else {
         ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+      }
     }
   }
   else {
@@ -645,8 +673,9 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
           GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
         }
       }
-      else
+      else {
         ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+      }
     }
   }
 }
@@ -672,10 +701,12 @@ static bool gpu_check_scaled_image(
     y *= yratio;
 
     /* ...but take back if we are over the limit! */
-    if (rectw + x > x_limit)
+    if (rectw + x > x_limit) {
       rectw--;
-    if (recth + y > y_limit)
+    }
+    if (recth + y > y_limit) {
       recth--;
+    }
 
     GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
 
@@ -1028,28 +1059,34 @@ static GPUTexture *create_flame_texture(SmokeDomainSettings *sds, int highres)
 void GPU_free_smoke(SmokeModifierData *smd)
 {
   if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
-    if (smd->domain->tex)
+    if (smd->domain->tex) {
       GPU_texture_free(smd->domain->tex);
+    }
     smd->domain->tex = NULL;
 
-    if (smd->domain->tex_shadow)
+    if (smd->domain->tex_shadow) {
       GPU_texture_free(smd->domain->tex_shadow);
+    }
     smd->domain->tex_shadow = NULL;
 
-    if (smd->domain->tex_flame)
+    if (smd->domain->tex_flame) {
       GPU_texture_free(smd->domain->tex_flame);
+    }
     smd->domain->tex_flame = NULL;
 
-    if (smd->domain->tex_flame_coba)
+    if (smd->domain->tex_flame_coba) {
       GPU_texture_free(smd->domain->tex_flame_coba);
+    }
     smd->domain->tex_flame_coba = NULL;
 
-    if (smd->domain->tex_coba)
+    if (smd->domain->tex_coba) {
       GPU_texture_free(smd->domain->tex_coba);
+    }
     smd->domain->tex_coba = NULL;
 
-    if (smd->domain->tex_field)
+    if (smd->domain->tex_field) {
       GPU_texture_free(smd->domain->tex_field);
+    }
     smd->domain->tex_field = NULL;
   }
 }
@@ -1143,14 +1180,17 @@ void GPU_create_smoke_velocity(SmokeModifierData *smd)
 void GPU_free_smoke_velocity(SmokeModifierData *smd)
 {
   if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
-    if (smd->domain->tex_velocity_x)
+    if (smd->domain->tex_velocity_x) {
       GPU_texture_free(smd->domain->tex_velocity_x);
+    }
 
-    if (smd->domain->tex_velocity_y)
+    if (smd->domain->tex_velocity_y) {
       GPU_texture_free(smd->domain->tex_velocity_y);
+    }
 
-    if (smd->domain->tex_velocity_z)
+    if (smd->domain->tex_velocity_z) {
       GPU_texture_free(smd->domain->tex_velocity_z);
+    }
 
     smd->domain->tex_velocity_x = NULL;
     smd->domain->tex_velocity_y = NULL;
@@ -1169,8 +1209,9 @@ static void gpu_queue_image_for_free(Image *ima)
 
 void GPU_free_unused_buffers(Main *bmain)
 {
-  if (!BLI_thread_is_main())
+  if (!BLI_thread_is_main()) {
     return;
+  }
 
   BLI_thread_lock(LOCK_OPENGL);
 
@@ -1179,8 +1220,9 @@ void GPU_free_unused_buffers(Main *bmain)
     Image *ima = node->link;
 
     /* check in case it was freed in the meantime */
-    if (bmain && BLI_findindex(&bmain->images, ima) != -1)
+    if (bmain && BLI_findindex(&bmain->images, ima) != -1) {
       GPU_free_image(ima);
+    }
   }
 
   BLI_linklist_free(image_free_queue, NULL);
@@ -1242,12 +1284,14 @@ void GPU_free_images_old(Main *bmain)
    * Run garbage collector once for every collecting period of time
    * if textimeout is 0, that's the option to NOT run the collector
    */
-  if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime)
+  if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime) {
     return;
+  }
 
   /* of course not! */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return;
+  }
 
   lasttime = ctime;
 
@@ -1280,8 +1324,9 @@ static void gpu_disable_multisample(void)
     int samples = 0;
     glGetIntegerv(GL_SAMPLES, &samples);
 
-    if (samples == 0)
+    if (samples == 0) {
       toggle_ok = false;
+    }
   }
 
   if (toggle_ok) {

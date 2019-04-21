@@ -163,8 +163,9 @@ GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
 
 static void gpu_material_ramp_texture_build(GPUMaterial *mat)
 {
-  if (mat->coba_builder == NULL)
+  if (mat->coba_builder == NULL) {
     return;
+  }
 
   GPUColorBandBuilder *builder = mat->coba_builder;
 
@@ -523,8 +524,9 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material,
                                                       int sample_len,
                                                       GPUTexture **tex_profile)
 {
-  if (!material->sss_enabled)
+  if (!material->sss_enabled) {
     return NULL;
+  }
 
   if (material->sss_dirty || (material->sss_samples != sample_len)) {
     GPUSssKernelData kd;
@@ -577,8 +579,9 @@ void GPU_material_vertex_attrs(GPUMaterial *material, GPUVertAttrLayers *r_attrs
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link)
 {
-  if (!material->outlink)
+  if (!material->outlink) {
     material->outlink = link;
+  }
 }
 
 void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
@@ -596,8 +599,9 @@ eGPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 
 bool GPU_material_do_color_management(GPUMaterial *mat)
 {
-  if (!BKE_scene_check_color_management_enabled(mat->scene))
+  if (!BKE_scene_check_color_management_enabled(mat->scene)) {
     return false;
+  }
 
   return true;
 }
@@ -768,11 +772,13 @@ void GPU_materials_free(Main *bmain)
   World *wo;
   extern Material defmaterial;
 
-  for (ma = bmain->materials.first; ma; ma = ma->id.next)
+  for (ma = bmain->materials.first; ma; ma = ma->id.next) {
     GPU_material_free(&ma->gpumaterial);
+  }
 
-  for (wo = bmain->worlds.first; wo; wo = wo->id.next)
+  for (wo = bmain->worlds.first; wo; wo = wo->id.next) {
     GPU_material_free(&wo->gpumaterial);
+  }
 
   GPU_material_free(&defmaterial.gpumaterial);
 }

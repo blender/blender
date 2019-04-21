@@ -110,8 +110,9 @@ void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, 
 bool GPU_select_load_id(uint id)
 {
   /* if no selection mode active, ignore */
-  if (!g_select_state.select_is_active)
+  if (!g_select_state.select_is_active) {
     return true;
+  }
 
   switch (g_select_state.algorithm) {
     case ALGO_GL_QUERY: {

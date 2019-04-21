@@ -500,8 +500,9 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 {
   DefaultFramebufferList *dfbl = viewport->fbl;
 
-  if (dfbl->default_fb == NULL)
+  if (dfbl->default_fb == NULL) {
     return;
+  }
 
   DefaultTextureList *dtxl = viewport->txl;
 

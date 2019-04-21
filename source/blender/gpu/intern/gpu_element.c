@@ -180,12 +180,15 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
   uint max_value = values[0];
   for (uint i = 1; i < value_len; ++i) {
     const uint value = values[i];
-    if (value == GPU_PRIM_RESTART)
+    if (value == GPU_PRIM_RESTART) {
       continue;
-    else if (value < min_value)
+    }
+    else if (value < min_value) {
       min_value = value;
-    else if (value > max_value)
+    }
+    else if (value > max_value) {
       max_value = value;
+    }
   }
   *min_out = min_value;
   *max_out = max_value;

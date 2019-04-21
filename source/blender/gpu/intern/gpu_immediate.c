@@ -141,8 +141,9 @@ void immBindProgram(GLuint program, const GPUShaderInterface *shaderface)
   imm.bound_program = program;
   imm.shader_interface = shaderface;
 
-  if (!imm.vertex_format.packed)
+  if (!imm.vertex_format.packed) {
     VertexFormat_pack(&imm.vertex_format);
+  }
 
   glUseProgram(program);
   get_attr_locations(&imm.vertex_format, &imm.attr_binding, shaderface);
