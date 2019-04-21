@@ -118,8 +118,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(c
   Mesh *result;
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
 
-  if (!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
+  if (!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG))) {
     return mesh;
+  }
 
   result = doEdgeSplit(mesh, emd);
 

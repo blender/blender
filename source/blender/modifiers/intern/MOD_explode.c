@@ -129,8 +129,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
       for (i = 0; i < totvert; i++, dvert++) {
         float val = BLI_rng_get_float(rng);
         val = (1.0f - emd->protect) * val + emd->protect * 0.5f;
-        if (val < defvert_find_weight(dvert, defgrp_index))
+        if (val < defvert_find_weight(dvert, defgrp_index)) {
           vertpa[i] = -1;
+        }
       }
     }
   }
@@ -716,8 +717,9 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   BLI_edgehashIterator_free(ehi);
 
   /* count new faces due to splitting */
-  for (i = 0, fs = facesplit; i < totface; i++, fs++)
+  for (i = 0, fs = facesplit; i < totface; i++, fs++) {
     totfsplit += add_faces[*fs];
+  }
 
   split_m = BKE_mesh_new_nomain_from_template(mesh, totesplit, 0, totface + totfsplit, 0, 0);
 
@@ -1031,12 +1033,15 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
     if (facepa[i] != totpart) {
       pa = pars + facepa[i];
 
-      if (pa->alive == PARS_UNBORN && (emd->flag & eExplodeFlag_Unborn) == 0)
+      if (pa->alive == PARS_UNBORN && (emd->flag & eExplodeFlag_Unborn) == 0) {
         continue;
-      if (pa->alive == PARS_ALIVE && (emd->flag & eExplodeFlag_Alive) == 0)
+      }
+      if (pa->alive == PARS_ALIVE && (emd->flag & eExplodeFlag_Alive) == 0) {
         continue;
-      if (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0)
+      }
+      if (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0) {
         continue;
+      }
     }
 
     source = mesh->mface[i];

@@ -62,22 +62,30 @@ static void freeData(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
-  if (mmd->bindinfluences)
+  if (mmd->bindinfluences) {
     MEM_freeN(mmd->bindinfluences);
-  if (mmd->bindoffsets)
+  }
+  if (mmd->bindoffsets) {
     MEM_freeN(mmd->bindoffsets);
-  if (mmd->bindcagecos)
+  }
+  if (mmd->bindcagecos) {
     MEM_freeN(mmd->bindcagecos);
-  if (mmd->dyngrid)
+  }
+  if (mmd->dyngrid) {
     MEM_freeN(mmd->dyngrid);
-  if (mmd->dyninfluences)
+  }
+  if (mmd->dyninfluences) {
     MEM_freeN(mmd->dyninfluences);
-  if (mmd->dynverts)
+  }
+  if (mmd->dynverts) {
     MEM_freeN(mmd->dynverts);
-  if (mmd->bindweights)
+  }
+  if (mmd->bindweights) {
     MEM_freeN(mmd->bindweights); /* deprecated */
-  if (mmd->bindcos)
+  }
+  if (mmd->bindcos) {
     MEM_freeN(mmd->bindcos); /* deprecated */
+  }
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -87,22 +95,30 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   modifier_copyData_generic(md, target, flag);
 
-  if (mmd->bindinfluences)
+  if (mmd->bindinfluences) {
     tmmd->bindinfluences = MEM_dupallocN(mmd->bindinfluences);
-  if (mmd->bindoffsets)
+  }
+  if (mmd->bindoffsets) {
     tmmd->bindoffsets = MEM_dupallocN(mmd->bindoffsets);
-  if (mmd->bindcagecos)
+  }
+  if (mmd->bindcagecos) {
     tmmd->bindcagecos = MEM_dupallocN(mmd->bindcagecos);
-  if (mmd->dyngrid)
+  }
+  if (mmd->dyngrid) {
     tmmd->dyngrid = MEM_dupallocN(mmd->dyngrid);
-  if (mmd->dyninfluences)
+  }
+  if (mmd->dyninfluences) {
     tmmd->dyninfluences = MEM_dupallocN(mmd->dyninfluences);
-  if (mmd->dynverts)
+  }
+  if (mmd->dynverts) {
     tmmd->dynverts = MEM_dupallocN(mmd->dynverts);
-  if (mmd->bindweights)
+  }
+  if (mmd->bindweights) {
     tmmd->bindweights = MEM_dupallocN(mmd->bindweights); /* deprecated */
-  if (mmd->bindcos)
+  }
+  if (mmd->bindcos) {
     tmmd->bindcos = MEM_dupallocN(mmd->bindcos); /* deprecated */
+  }
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -256,9 +272,11 @@ static void meshdeform_vert_task(void *__restrict userdata,
   float co[3];
   float weight, totweight, fac = 1.0f;
 
-  if (mmd->flag & MOD_MDEF_DYNAMIC_BIND)
-    if (!mmd->dynverts[iter])
+  if (mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+    if (!mmd->dynverts[iter]) {
       return;
+    }
+  }
 
   if (dvert) {
     fac = defvert_find_weight(&dvert[iter], defgrp_index);
@@ -293,10 +311,12 @@ static void meshdeform_vert_task(void *__restrict userdata,
   if (totweight > 0.0f) {
     mul_v3_fl(co, fac / totweight);
     mul_m3_v3(data->icagemat, co);
-    if (G.debug_value != 527)
+    if (G.debug_value != 527) {
       add_v3_v3(vertexCos[iter], co);
-    else
+    }
+    else {
       copy_v3_v3(vertexCos[iter], co);
+    }
   }
 }
 
@@ -319,8 +339,9 @@ static void meshdeformModifier_do(ModifierData *md,
 
   static int recursive_bind_sentinel = 0;
 
-  if (mmd->object == NULL || (mmd->bindcagecos == NULL && mmd->bindfunc == NULL))
+  if (mmd->object == NULL || (mmd->bindcagecos == NULL && mmd->bindfunc == NULL)) {
     return;
+  }
 
   /* Get cage mesh.
    *
@@ -467,8 +488,9 @@ void modifier_mdef_compact_influences(ModifierData *md)
   int totinfluence, totvert, totcagevert, a, b;
 
   weights = mmd->bindweights;
-  if (!weights)
+  if (!weights) {
     return;
+  }
 
   totvert = mmd->totvert;
   totcagevert = mmd->totcagevert;
@@ -478,8 +500,9 @@ void modifier_mdef_compact_influences(ModifierData *md)
     for (a = 0; a < totcagevert; a++) {
       weight = weights[a + b * totcagevert];
 
-      if (weight > MESHDEFORM_MIN_INFLUENCE)
+      if (weight > MESHDEFORM_MIN_INFLUENCE) {
         mmd->totinfluence++;
+      }
     }
   }
 
@@ -499,8 +522,9 @@ void modifier_mdef_compact_influences(ModifierData *md)
     for (a = 0; a < totcagevert; a++) {
       weight = weights[a + b * totcagevert];
 
-      if (weight > MESHDEFORM_MIN_INFLUENCE)
+      if (weight > MESHDEFORM_MIN_INFLUENCE) {
         totweight += weight;
+      }
     }
 
     /* assign weights normalized */

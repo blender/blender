@@ -141,8 +141,9 @@ static void deformVerts(ModifierData *md,
     }
 
     /* check if mesh has changed */
-    if (collmd->x && (mvert_num != collmd->mvert_num))
+    if (collmd->x && (mvert_num != collmd->mvert_num)) {
       freeData((ModifierData *)collmd);
+    }
 
     if (collmd->time_xnew == -1000) { /* first time */
 

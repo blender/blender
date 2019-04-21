@@ -59,8 +59,9 @@ static void initData(ModifierData *md)
   clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
 
   /* check for alloc failing */
-  if (!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache)
+  if (!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache) {
     return;
+  }
 
   cloth_init(clmd);
 }
@@ -79,8 +80,9 @@ static void deformVerts(ModifierData *md,
   if (!clmd->sim_parms || !clmd->coll_parms) {
     initData(md);
 
-    if (!clmd->sim_parms || !clmd->coll_parms)
+    if (!clmd->sim_parms || !clmd->coll_parms) {
       return;
+    }
   }
 
   if (mesh == NULL) {
@@ -156,13 +158,15 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   ClothModifierData *tclmd = (ClothModifierData *)target;
 
   if (tclmd->sim_parms) {
-    if (tclmd->sim_parms->effector_weights)
+    if (tclmd->sim_parms->effector_weights) {
       MEM_freeN(tclmd->sim_parms->effector_weights);
+    }
     MEM_freeN(tclmd->sim_parms);
   }
 
-  if (tclmd->coll_parms)
+  if (tclmd->coll_parms) {
     MEM_freeN(tclmd->coll_parms);
+  }
 
   BKE_ptcache_free_list(&tclmd->ptcaches);
   if (flag & LIB_ID_CREATE_NO_MAIN) {
@@ -177,8 +181,9 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   }
 
   tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
-  if (clmd->sim_parms->effector_weights)
+  if (clmd->sim_parms->effector_weights) {
     tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);
+  }
   tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
   tclmd->clothObject = NULL;
   tclmd->hairdata = NULL;
@@ -202,12 +207,14 @@ static void freeData(ModifierData *md)
     cloth_free_modifier_extern(clmd);
 
     if (clmd->sim_parms) {
-      if (clmd->sim_parms->effector_weights)
+      if (clmd->sim_parms->effector_weights) {
         MEM_freeN(clmd->sim_parms->effector_weights);
+      }
       MEM_freeN(clmd->sim_parms);
     }
-    if (clmd->coll_parms)
+    if (clmd->coll_parms) {
       MEM_freeN(clmd->coll_parms);
+    }
 
     if (md->flag & eModifierFlag_SharedCaches) {
       BLI_listbase_clear(&clmd->ptcaches);
@@ -217,11 +224,13 @@ static void freeData(ModifierData *md)
     }
     clmd->point_cache = NULL;
 
-    if (clmd->hairdata)
+    if (clmd->hairdata) {
       MEM_freeN(clmd->hairdata);
+    }
 
-    if (clmd->solver_result)
+    if (clmd->solver_result) {
       MEM_freeN(clmd->solver_result);
+    }
   }
 }
 

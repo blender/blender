@@ -59,8 +59,9 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   flag = smd->flag & (MOD_SMOOTH_X | MOD_SMOOTH_Y | MOD_SMOOTH_Z);
 
   /* disable if modifier is off for X, Y and Z or if factor is 0 */
-  if ((smd->fac == 0.0f) || flag == 0)
+  if ((smd->fac == 0.0f) || flag == 0) {
     return 1;
+  }
 
   return 0;
 }
@@ -88,12 +89,14 @@ static void smoothModifier_do(
   float *ftmp, fac, facm;
 
   ftmp = (float *)MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "smoothmodifier_f");
-  if (!ftmp)
+  if (!ftmp) {
     return;
+  }
   uctmp = (unsigned char *)MEM_calloc_arrayN(numVerts, sizeof(unsigned char), "smoothmodifier_uc");
   if (!uctmp) {
-    if (ftmp)
+    if (ftmp) {
       MEM_freeN(ftmp);
+    }
     return;
   }
 
@@ -150,23 +153,28 @@ static void smoothModifier_do(
         fp = &ftmp[i * 3];
 
         f = defvert_find_weight(dv, defgrp_index);
-        if (f <= 0.0f)
+        if (f <= 0.0f) {
           continue;
+        }
 
         f *= fac;
         fm = 1.0f - f;
 
         /* fp is the sum of uctmp[i] verts, so must be averaged */
         facw = 0.0f;
-        if (uctmp[i])
+        if (uctmp[i]) {
           facw = f / (float)uctmp[i];
+        }
 
-        if (flag & MOD_SMOOTH_X)
+        if (flag & MOD_SMOOTH_X) {
           v[0] = fm * v[0] + facw * fp[0];
-        if (flag & MOD_SMOOTH_Y)
+        }
+        if (flag & MOD_SMOOTH_Y) {
           v[1] = fm * v[1] + facw * fp[1];
-        if (flag & MOD_SMOOTH_Z)
+        }
+        if (flag & MOD_SMOOTH_Z) {
           v[2] = fm * v[2] + facw * fp[2];
+        }
       }
     }
     else { /* no vertex group */
@@ -179,15 +187,19 @@ static void smoothModifier_do(
 
         /* fp is the sum of uctmp[i] verts, so must be averaged */
         facw = 0.0f;
-        if (uctmp[i])
+        if (uctmp[i]) {
           facw = fac / (float)uctmp[i];
+        }
 
-        if (flag & MOD_SMOOTH_X)
+        if (flag & MOD_SMOOTH_X) {
           v[0] = facm * v[0] + facw * fp[0];
-        if (flag & MOD_SMOOTH_Y)
+        }
+        if (flag & MOD_SMOOTH_Y) {
           v[1] = facm * v[1] + facw * fp[1];
-        if (flag & MOD_SMOOTH_Z)
+        }
+        if (flag & MOD_SMOOTH_Z) {
           v[2] = facm * v[2] + facw * fp[2];
+        }
       }
     }
 

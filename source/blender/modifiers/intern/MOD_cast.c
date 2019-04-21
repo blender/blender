@@ -62,8 +62,9 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 
   flag = cmd->flag & (MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z);
 
-  if ((cmd->fac == 0.0f) || flag == 0)
+  if ((cmd->fac == 0.0f) || flag == 0) {
     return true;
+  }
 
   return false;
 }
@@ -120,8 +121,9 @@ static void sphere_do(CastModifierData *cmd,
   flag = cmd->flag;
   type = cmd->type; /* projection type: sphere or cylinder */
 
-  if (type == MOD_CAST_TYPE_CYLINDER)
+  if (type == MOD_CAST_TYPE_CYLINDER) {
     flag &= ~MOD_CAST_Z;
+  }
 
   ctrl_ob = cmd->object;
 
@@ -144,8 +146,9 @@ static void sphere_do(CastModifierData *cmd,
   /* 1) (flag was checked in the "if (ctrl_ob)" block above) */
   /* 2) cmd->radius > 0.0f: only the vertices within this radius from
    * the center of the effect should be deformed */
-  if (cmd->radius > FLT_EPSILON)
+  if (cmd->radius > FLT_EPSILON) {
     has_radius = 1;
+  }
 
   /* 3) if we were given a vertex group name,
    * only those vertices should be affected */
@@ -164,8 +167,9 @@ static void sphere_do(CastModifierData *cmd,
     }
     len /= numVerts;
 
-    if (len == 0.0f)
+    if (len == 0.0f) {
       len = 10.0f;
+    }
   }
 
   for (i = 0; i < numVerts; i++) {
@@ -183,12 +187,14 @@ static void sphere_do(CastModifierData *cmd,
 
     copy_v3_v3(vec, tmp_co);
 
-    if (type == MOD_CAST_TYPE_CYLINDER)
+    if (type == MOD_CAST_TYPE_CYLINDER) {
       vec[2] = 0.0f;
+    }
 
     if (has_radius) {
-      if (len_v3(vec) > cmd->radius)
+      if (len_v3(vec) > cmd->radius) {
         continue;
+      }
     }
 
     if (dvert) {
@@ -203,12 +209,15 @@ static void sphere_do(CastModifierData *cmd,
 
     normalize_v3(vec);
 
-    if (flag & MOD_CAST_X)
+    if (flag & MOD_CAST_X) {
       tmp_co[0] = fac * vec[0] * len + facm * tmp_co[0];
-    if (flag & MOD_CAST_Y)
+    }
+    if (flag & MOD_CAST_Y) {
       tmp_co[1] = fac * vec[1] * len + facm * tmp_co[1];
-    if (flag & MOD_CAST_Z)
+    }
+    if (flag & MOD_CAST_Z) {
       tmp_co[2] = fac * vec[2] * len + facm * tmp_co[2];
+    }
 
     if (ctrl_ob) {
       if (flag & MOD_CAST_USE_OB_TRANSFORM) {
@@ -252,8 +261,9 @@ static void cuboid_do(CastModifierData *cmd,
   /* 1) (flag was checked in the "if (ctrl_ob)" block above) */
   /* 2) cmd->radius > 0.0f: only the vertices within this radius from
    * the center of the effect should be deformed */
-  if (cmd->radius > FLT_EPSILON)
+  if (cmd->radius > FLT_EPSILON) {
     has_radius = 1;
+  }
 
   /* 3) if we were given a vertex group name,
    * only those vertices should be affected */
@@ -309,12 +319,15 @@ static void cuboid_do(CastModifierData *cmd,
     }
 
     /* we want a symmetric bound box around the origin */
-    if (fabsf(min[0]) > fabsf(max[0]))
+    if (fabsf(min[0]) > fabsf(max[0])) {
       max[0] = fabsf(min[0]);
-    if (fabsf(min[1]) > fabsf(max[1]))
+    }
+    if (fabsf(min[1]) > fabsf(max[1])) {
       max[1] = fabsf(min[1]);
-    if (fabsf(min[2]) > fabsf(max[2]))
+    }
+    if (fabsf(min[2]) > fabsf(max[2])) {
       max[2] = fabsf(min[2]);
+    }
     min[0] = -max[0];
     min[1] = -max[1];
     min[2] = -max[2];
@@ -371,12 +384,15 @@ static void cuboid_do(CastModifierData *cmd,
 
     /* find in which octant this vertex is in */
     octant = 0;
-    if (tmp_co[0] > 0.0f)
+    if (tmp_co[0] > 0.0f) {
       octant += 1;
-    if (tmp_co[1] > 0.0f)
+    }
+    if (tmp_co[1] > 0.0f) {
       octant += 2;
-    if (tmp_co[2] > 0.0f)
+    }
+    if (tmp_co[2] > 0.0f) {
       octant += 4;
+    }
 
     /* apex is the bb's vertex at the chosen octant */
     copy_v3_v3(apex, bb[octant]);
@@ -400,20 +416,24 @@ static void cuboid_do(CastModifierData *cmd,
 
     /* ok, now we know which coordinate of the vertex to use */
 
-    if (fabsf(tmp_co[coord]) < FLT_EPSILON) /* avoid division by zero */
+    if (fabsf(tmp_co[coord]) < FLT_EPSILON) { /* avoid division by zero */
       continue;
+    }
 
     /* finally, this is the factor we wanted, to project the vertex
      * to its bounding box (bb) */
     fbb = apex[coord] / tmp_co[coord];
 
     /* calculate the new vertex position */
-    if (flag & MOD_CAST_X)
+    if (flag & MOD_CAST_X) {
       tmp_co[0] = facm * tmp_co[0] + fac * tmp_co[0] * fbb;
-    if (flag & MOD_CAST_Y)
+    }
+    if (flag & MOD_CAST_Y) {
       tmp_co[1] = facm * tmp_co[1] + fac * tmp_co[1] * fbb;
-    if (flag & MOD_CAST_Z)
+    }
+    if (flag & MOD_CAST_Z) {
       tmp_co[2] = facm * tmp_co[2] + fac * tmp_co[2] * fbb;
+    }
 
     if (ctrl_ob) {
       if (flag & MOD_CAST_USE_OB_TRANSFORM) {

@@ -323,8 +323,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
     /* if new mesh returned, return it; otherwise there was
      * an error, so delete the modifier object */
-    if (result == NULL)
+    if (result == NULL) {
       modifier_setError(md, "Cannot execute boolean operation");
+    }
   }
 
   return result;

@@ -250,8 +250,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   const char mpoly_flag = (ltmd->flag & MOD_SCREW_SMOOTH_SHADING) ? ME_SMOOTH : 0;
 
   /* don't do anything? */
-  if (!totvert)
+  if (!totvert) {
     return BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0);
+  }
 
   switch (ltmd->axis) {
     case 0:
@@ -350,8 +351,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f)) {
     close = 1;
     step_tot--;
-    if (step_tot < 3)
+    if (step_tot < 3) {
       step_tot = 3;
+    }
 
     maxVerts = totvert * step_tot;    /* -1 because we're joining back up */
     maxEdges = (totvert * step_tot) + /* these are the edges between new verts */
@@ -362,8 +364,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
   else {
     close = 0;
-    if (step_tot < 3)
+    if (step_tot < 3) {
       step_tot = 3;
+    }
 
     maxVerts = totvert * step_tot;          /* -1 because we're joining back up */
     maxEdges = (totvert * (step_tot - 1)) + /* these are the edges between new verts */
@@ -690,8 +693,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
               ed_loop_flip = !ed_loop_flip;
 #endif
 
-            if (angle < 0.0f)
+            if (angle < 0.0f) {
               ed_loop_flip = !ed_loop_flip;
+            }
 
             /* if its closed, we only need 1 loop */
             for (j = ed_loop_closed; j < 2; j++) {
@@ -704,8 +708,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
               /* If this is the vert off the best vert and
                * the best vert has 2 edges connected too it
                * then swap the flip direction */
-              if (j == 1 && SV_IS_VALID(vc_tmp->v[0]) && SV_IS_VALID(vc_tmp->v[1]))
+              if (j == 1 && SV_IS_VALID(vc_tmp->v[0]) && SV_IS_VALID(vc_tmp->v[1])) {
                 ed_loop_flip = !ed_loop_flip;
+              }
 
               while (lt_iter.v_poin && lt_iter.v_poin->flag != 2) {
                 /*printf("\tOrdering Vert V %i\n", lt_iter.v);*/
@@ -812,8 +817,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         }
 
         /* we won't be looping on this data again so copy normals here */
-        if ((angle < 0.0f) != do_flip)
+        if ((angle < 0.0f) != do_flip) {
           negate_v3(vc->no);
+        }
 
         normalize_v3(vc->no);
         normal_float_to_short_v3(mvert_new[i].no, vc->no);
@@ -849,8 +855,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
     copy_m4_m3(mat, mat3);
 
-    if (screw_ofs)
+    if (screw_ofs) {
       madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)step / (float)(step_tot - 1)));
+    }
 
     /* copy a slice */
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)varray_stride, (int)totvert);

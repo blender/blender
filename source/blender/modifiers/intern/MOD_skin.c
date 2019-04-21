@@ -148,14 +148,16 @@ static bool is_quad_symmetric(BMVert *quad[4], const SkinModifierData *smd)
       if (len_squared_v3v3(a, quad[1]->co) < threshold_squared) {
         copy_v3_v3(a, quad[2]->co);
         a[axis] = -a[axis];
-        if (len_squared_v3v3(a, quad[3]->co) < threshold_squared)
+        if (len_squared_v3v3(a, quad[3]->co) < threshold_squared) {
           return 1;
+        }
       }
       else if (len_squared_v3v3(a, quad[3]->co) < threshold_squared) {
         copy_v3_v3(a, quad[2]->co);
         a[axis] = -a[axis];
-        if (len_squared_v3v3(a, quad[1]->co) < threshold_squared)
+        if (len_squared_v3v3(a, quad[1]->co) < threshold_squared) {
           return 1;
+        }
       }
     }
   }
@@ -174,13 +176,16 @@ static bool quad_crosses_symmetry_plane(BMVert *quad[4], const SkinModifierData 
       int i;
 
       for (i = 0; i < 4; i++) {
-        if (quad[i]->co[axis] < 0.0f)
+        if (quad[i]->co[axis] < 0.0f) {
           left = true;
-        else if (quad[i]->co[axis] > 0.0f)
+        }
+        else if (quad[i]->co[axis] > 0.0f) {
           right = true;
+        }
 
-        if (left && right)
+        if (left && right) {
           return true;
+        }
       }
     }
   }
@@ -196,13 +201,16 @@ static bool skin_frame_find_contained_faces(const Frame *frame, BMFace *fill_fac
 
   /* See if the frame is bisected by a diagonal edge */
   diag = BM_edge_exists(frame->verts[0], frame->verts[2]);
-  if (!diag)
+  if (!diag) {
     diag = BM_edge_exists(frame->verts[1], frame->verts[3]);
+  }
 
-  if (diag)
+  if (diag) {
     return BM_edge_face_pair(diag, &fill_faces[0], &fill_faces[1]);
-  else
+  }
+  else {
     return false;
+  }
 }
 
 /* Returns true if hull is successfully built, false otherwise */
@@ -242,8 +250,9 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
   /* Apply face attributes to hull output */
   BMO_ITER (f, &oiter, op.slots_out, "geom.out", BM_FACE) {
     BM_face_normal_update(f);
-    if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
+    if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING) {
       BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
+    }
     f->mat_nr = so->mat_nr;
   }
 
@@ -292,8 +301,9 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
         BM_elem_flag_enable(fill_faces[0], BM_ELEM_TAG);
         BM_elem_flag_enable(fill_faces[1], BM_ELEM_TAG);
       }
-      else
+      else {
         frame->detached = true;
+      }
     }
   }
 
@@ -307,8 +317,9 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
         break;
       }
     }
-    if (is_wire)
+    if (is_wire) {
       BM_elem_flag_enable(e, BM_ELEM_TAG);
+    }
   }
 
   BMO_op_finish(bm, &op);
@@ -341,8 +352,9 @@ static void merge_frame_corners(Frame **frames, int totframe)
     for (j = 0; j < 4; j++) {
 
       /* Ensure the merge target is not itself a merge target */
-      if (frames[i]->merge[j].frame)
+      if (frames[i]->merge[j].frame) {
         continue;
+      }
 
       for (k = i + 1; k < totframe; k++) {
         BLI_assert(frames[i] != frames[k]);
@@ -352,8 +364,9 @@ static void merge_frame_corners(Frame **frames, int totframe)
 
         /* Compare with each corner of all other frames... */
         for (l = 0; l < 4; l++) {
-          if (frames[k]->merge[l].frame || frames[k]->merge[l].is_target)
+          if (frames[k]->merge[l].frame || frames[k]->merge[l].is_target) {
             continue;
+          }
 
           /* Some additional concerns that could be checked
            * further:
@@ -406,10 +419,12 @@ static Frame **collect_hull_frames(
     const MEdge *e = &medge[emap[v].indices[nbr]];
     f = &frames[BKE_mesh_edge_other_vert(e, v)];
     /* Can't have adjacent branch nodes yet */
-    if (f->totframe)
+    if (f->totframe) {
       hull_frames[i++] = &f->frames[0];
-    else
+    }
+    else {
       (*tothullframe)--;
+    }
   }
 
   return hull_frames;
@@ -425,8 +440,9 @@ static void node_frames_init(SkinNode *nf, int totframe)
   memset(nf->frames, 0, sizeof(nf->frames));
 
   nf->flag = 0;
-  for (i = 0; i < 2; i++)
+  for (i = 0; i < 2; i++) {
     nf->seam_edges[i] = -1;
+  }
 }
 
 static void create_frame(
@@ -451,8 +467,9 @@ static void create_frame(
   sub_v3_v3v3(frame->co[0], frame->co[0], rz);
 
   mul_v3_v3fl(rx, mat[0], offset);
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < 4; i++) {
     add_v3_v3v3(frame->co[i], frame->co[i], rx);
+  }
 }
 
 static float half_v2(const float v[2])
@@ -492,15 +509,17 @@ static void end_node_frames(int v,
 
     /* Use incoming edge for orientation */
     copy_m3_m3(mat, emat[emap[v].indices[0]].mat);
-    if (emat[emap[v].indices[0]].origin != v)
+    if (emat[emap[v].indices[0]].origin != v) {
       negate_v3(mat[0]);
+    }
 
     /* End frame */
     create_frame(&skin_nodes[v].frames[0], mvert[v].co, rad, mat, 0);
   }
 
-  if (nodes[v].flag & MVERT_SKIN_ROOT)
+  if (nodes[v].flag & MVERT_SKIN_ROOT) {
     skin_nodes[v].flag |= ROOT;
+  }
 }
 
 /* Returns 1 for seam, 0 otherwise */
@@ -520,8 +539,9 @@ static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, 
     copy_m3_m3(ine, e2->mat);
     copy_m3_m3(oute, e1->mat);
   }
-  else
+  else {
     return 1;
+  }
 
   /* Get axis and angle to rotate frame by */
   angle = angle_normalized_v3v3(ine[0], oute[0]) / 2.0f;
@@ -560,14 +580,16 @@ static void connection_node_frames(int v,
     skin_nodes[v].flag |= SEAM_FRAME;
 
     copy_m3_m3(mat, e1->mat);
-    if (e1->origin != v)
+    if (e1->origin != v) {
       negate_v3(mat[0]);
+    }
     create_frame(&skin_nodes[v].frames[0], mvert[v].co, rad, mat, avg);
     skin_nodes[v].seam_edges[0] = emap[v].indices[0];
 
     copy_m3_m3(mat, e2->mat);
-    if (e2->origin != v)
+    if (e2->origin != v) {
       negate_v3(mat[0]);
+    }
     create_frame(&skin_nodes[v].frames[1], mvert[v].co, rad, mat, avg);
     skin_nodes[v].seam_edges[1] = emap[v].indices[1];
 
@@ -588,10 +610,12 @@ static SkinNode *build_frames(
   skin_nodes = MEM_calloc_arrayN(totvert, sizeof(SkinNode), "build_frames.skin_nodes");
 
   for (v = 0; v < totvert; v++) {
-    if (emap[v].count <= 1)
+    if (emap[v].count <= 1) {
       end_node_frames(v, skin_nodes, mvert, nodes, emap, emat);
-    else if (emap[v].count == 2)
+    }
+    else if (emap[v].count == 2) {
       connection_node_frames(v, skin_nodes, mvert, nodes, emap, emat);
+    }
     else {
       /* Branch node generates no frames */
     }
@@ -654,8 +678,9 @@ static void build_emats_stack(BLI_Stack *stack,
   e = stack_elem.e;
 
   /* Skip if edge already visited */
-  if (BLI_BITMAP_TEST(visited_e, e))
+  if (BLI_BITMAP_TEST(visited_e, e)) {
     return;
+  }
 
   /* Mark edge as visited */
   BLI_BITMAP_ENABLE(visited_e, e);
@@ -766,10 +791,12 @@ static int calc_edge_subdivisions(const MVert *mvert,
    * the edge (or subdivide just twice if both are branches) */
   if ((v1_branch && (evs[0]->flag & MVERT_SKIN_LOOSE)) ||
       (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE))) {
-    if (v1_branch && v2_branch)
+    if (v1_branch && v2_branch) {
       return 2;
-    else
+    }
+    else {
       return 0;
+    }
   }
 
   avg_radius = half_v2(evs[0]->radius) + half_v2(evs[1]->radius);
@@ -792,8 +819,9 @@ static int calc_edge_subdivisions(const MVert *mvert,
 
   /* If both ends are branch nodes, two intermediate nodes are
    * required */
-  if (num_subdivisions < 2 && v1_branch && v2_branch)
+  if (num_subdivisions < 2 && v1_branch && v2_branch) {
     num_subdivisions = 2;
+  }
 
   return num_subdivisions;
 
@@ -907,8 +935,9 @@ static Mesh *subdivide_base(Mesh *orig)
         vg = &vgroups[k];
         weight = interpf(vg->w2, vg->w1, t);
 
-        if (weight > 0)
+        if (weight > 0) {
           defvert_add_index_notest(&outdvert[v], vg->def_nr, weight);
+        }
       }
 
       outedge->v1 = u;
@@ -916,8 +945,9 @@ static Mesh *subdivide_base(Mesh *orig)
       u = v;
     }
 
-    if (vgroups)
+    if (vgroups) {
       MEM_freeN(vgroups);
+    }
 
     /* Link up to final vertex */
     outedge->v1 = u;
@@ -945,8 +975,9 @@ static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert 
 
   f = BM_face_create_verts(so->bm, verts, v4 ? 4 : 3, NULL, BM_CREATE_NO_DOUBLE, true);
   BM_face_normal_update(f);
-  if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
+  if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING) {
     BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
+  }
   f->mat_nr = so->mat_nr;
 }
 
@@ -994,10 +1025,12 @@ static void connect_frames(SkinOutput *so, BMVert *frame1[4], BMVert *frame2[4])
 #endif
 
   for (i = 0; i < 4; i++) {
-    if (swap)
+    if (swap) {
       add_poly(so, q[i][3], q[i][2], q[i][1], q[i][0]);
-    else
+    }
+    else {
       add_poly(so, q[i][0], q[i][1], q[i][2], q[i][3]);
+    }
   }
 }
 
@@ -1048,8 +1081,9 @@ static int isect_ray_poly(const float ray_start[3],
   bool hit = false;
 
   BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
-    if (!v_first)
+    if (!v_first) {
       v_first = v;
+    }
     else if (v_prev != v_first) {
       float dist;
       bool curhit;
@@ -1079,8 +1113,9 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n, BMVert **orig_
 
   BLI_assert(n >= 3);
   BLI_assert(f->len > n);
-  if (f->len <= n)
+  if (f->len <= n) {
     return f;
+  }
 
   /* Collapse shortest edge for now */
   while (f->len > n) {
@@ -1176,10 +1211,11 @@ static BMFace *skin_hole_target_face(BMesh *bm, Frame *frame)
   }
 
   f = isect_target_face;
-  if (!f || best_center_dist < best_isect_dist / 2)
+  if (!f || best_center_dist < best_isect_dist / 2) {
     f = center_target_face;
+  }
 
-    /* This case is unlikely now, but could still happen. Should look
+  /* This case is unlikely now, but could still happen. Should look
      * into splitting edges to make new faces. */
 #if PRINT_HOLE_INFO
   if (!f) {
@@ -1210,8 +1246,9 @@ static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4], int best_o
     float len = 0;
 
     /* Get total edge length for this configuration */
-    for (j = 0; j < 4; j++)
+    for (j = 0; j < 4; j++) {
       len += len_squared_v3v3(a[j]->co, b[orders[i][j]]->co);
+    }
 
     if (len < shortest_len) {
       shortest_len = len;
@@ -1288,8 +1325,9 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
   /* Done with dynamic array, split_face must now be a quad */
   BLI_array_free(vert_buf);
   BLI_assert(split_face->len == 4);
-  if (split_face->len != 4)
+  if (split_face->len != 4) {
     return;
+  }
 
   /* Get split face's verts */
   // BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face, (void **)verts, 4);
@@ -1316,8 +1354,9 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
 
   /* Get/count attached frame corners */
   for (i = 0; i < 4; i++) {
-    if (!frame->inside_hull[i])
+    if (!frame->inside_hull[i]) {
       attached[totattached++] = i;
+    }
   }
 
   /* Detach everything */
@@ -1409,10 +1448,12 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
         if (quad_crosses_symmetry_plane(quad, smd)) {
           /* Increase score if the triangles form a
            * symmetric quad, otherwise don't use it */
-          if (is_quad_symmetric(quad, smd))
+          if (is_quad_symmetric(quad, smd)) {
             score *= 10;
-          else
+          }
+          else {
             continue;
+          }
         }
 
         /* Don't use the quad if it's concave */
@@ -1506,8 +1547,9 @@ static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes, int totvert)
         skin_hole_detach_partially_attached_frame(bm, f);
 
         target_face = skin_hole_target_face(bm, f);
-        if (target_face)
+        if (target_face) {
           skin_fix_hole_no_good_verts(bm, f, target_face);
+        }
       }
     }
   }
@@ -1525,8 +1567,9 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int totv
       int i, order[4];
 
       skin_choose_quad_bridge_order(sn->frames[0].verts, sn->frames[1].verts, order);
-      for (i = 0; i < 4; i++)
+      for (i = 0; i < 4; i++) {
         v_order[i] = sn->frames[1].verts[order[i]];
+      }
       connect_frames(so, sn->frames[0].verts, v_order);
     }
     else if (sn->totframe == 2) {
@@ -1577,14 +1620,17 @@ static void skin_output_connections(SkinOutput *so,
         BMVert *v_order[4];
         int i, order[4];
 
-        if ((a->flag & SEAM_FRAME) && (e != a->seam_edges[0]))
+        if ((a->flag & SEAM_FRAME) && (e != a->seam_edges[0])) {
           fr[0]++;
-        if ((b->flag & SEAM_FRAME) && (e != b->seam_edges[0]))
+        }
+        if ((b->flag & SEAM_FRAME) && (e != b->seam_edges[0])) {
           fr[1]++;
+        }
 
         skin_choose_quad_bridge_order(fr[0]->verts, fr[1]->verts, order);
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < 4; i++) {
           v_order[i] = fr[1]->verts[order[i]];
+        }
         connect_frames(so, fr[0]->verts, v_order);
       }
       else {
@@ -1603,8 +1649,9 @@ static void skin_smooth_hulls(BMesh *bm,
   BMVert *v;
   int i, j, k, skey;
 
-  if (smd->branch_smoothing == 0)
+  if (smd->branch_smoothing == 0) {
     return;
+  }
 
   /* Mark all frame vertices */
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
@@ -1612,8 +1659,9 @@ static void skin_smooth_hulls(BMesh *bm,
     for (j = 0; j < skin_nodes[i].totframe; j++) {
       Frame *frame = &skin_nodes[i].frames[j];
 
-      for (k = 0; k < 4; k++)
+      for (k = 0; k < 4; k++) {
         BM_elem_flag_enable(frame->verts[k], BM_ELEM_TAG);
+      }
     }
   }
 
@@ -1633,8 +1681,9 @@ static void skin_smooth_hulls(BMesh *bm,
     float weight = smd->branch_smoothing;
     int totv = 1;
 
-    if (BM_elem_flag_test(v, BM_ELEM_TAG))
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
       weight *= 0.5f;
+    }
 
     copy_v3_v3(avg, v->co);
     BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
@@ -1670,8 +1719,9 @@ static bool skin_output_branch_hulls(
       int tothullframe;
 
       hull_frames = collect_hull_frames(v, skin_nodes, emap, medge, &tothullframe);
-      if (!build_hull(so, hull_frames, tothullframe))
+      if (!build_hull(so, hull_frames, tothullframe)) {
         result = false;
+      }
 
       MEM_freeN(hull_frames);
     }
@@ -1703,8 +1753,9 @@ static BMesh *build_skin(SkinNode *skin_nodes,
   BMO_push(so.bm, NULL);
   bmesh_edit_begin(so.bm, 0);
 
-  if (input_dvert)
+  if (input_dvert) {
     BM_data_layer_add(so.bm, &so.bm->vdata, CD_MDEFORMVERT);
+  }
 
   /* Check for mergeable frame corners around hulls before
    * outputting vertices */
@@ -1712,15 +1763,17 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 
   /* Write out all frame vertices to the mesh */
   for (v = 0; v < totvert; ++v) {
-    if (skin_nodes[v].totframe)
+    if (skin_nodes[v].totframe) {
       output_frames(so.bm, &skin_nodes[v], input_dvert ? &input_dvert[v] : NULL);
+    }
   }
 
   /* Update vertex pointers for merged frame corners */
   skin_update_merged_vertices(skin_nodes, totvert);
 
-  if (!skin_output_branch_hulls(&so, skin_nodes, totvert, emap, medge))
+  if (!skin_output_branch_hulls(&so, skin_nodes, totvert, emap, medge)) {
     modifier_setError(&smd->modifier, "Hull error");
+  }
 
   /* Merge triangles here in the hope of providing better target
    * faces for skin_fix_hull_topology() to connect to */
@@ -1807,8 +1860,9 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd)
         "No valid root vertex found (you need one per mesh island you want to skin)");
   }
 
-  if (!bm)
+  if (!bm) {
     return NULL;
+  }
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
   BM_mesh_free(bm);
@@ -1825,8 +1879,9 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh)
   Mesh *result;
 
   /* Skin node layer is required */
-  if (!CustomData_get_layer(&mesh->vdata, CD_MVERT_SKIN))
+  if (!CustomData_get_layer(&mesh->vdata, CD_MVERT_SKIN)) {
     return mesh;
+  }
 
   mesh = subdivide_base(mesh);
   result = base_skin(mesh, smd);
@@ -1853,8 +1908,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(c
 {
   Mesh *result;
 
-  if (!(result = final_skin((SkinModifierData *)md, mesh)))
+  if (!(result = final_skin((SkinModifierData *)md, mesh))) {
     return mesh;
+  }
   return result;
 }
 

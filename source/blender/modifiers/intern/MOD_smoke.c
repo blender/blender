@@ -83,11 +83,13 @@ static void requiredDataMask(Object *UNUSED(ob),
   if (smd && (smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
     if (smd->flow->source == MOD_SMOKE_FLOW_SOURCE_MESH) {
       /* vertex groups */
-      if (smd->flow->vgroup_density)
+      if (smd->flow->vgroup_density) {
         r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+      }
       /* uv layer */
-      if (smd->flow->texture_type == MOD_SMOKE_FLOW_TEXTURE_MAP_UV)
+      if (smd->flow->texture_type == MOD_SMOKE_FLOW_TEXTURE_MAP_UV) {
         r_cddata_masks->fmask |= CD_MASK_MTFACE;
+      }
     }
   }
 }

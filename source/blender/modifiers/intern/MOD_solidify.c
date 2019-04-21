@@ -534,10 +534,12 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         const unsigned int i = do_shell_align ? i_orig : new_vert_arr[i_orig];
         if (dvert) {
           MDeformVert *dv = &dvert[i];
-          if (defgrp_invert)
+          if (defgrp_invert) {
             scalar_short_vgroup = 1.0f - defvert_find_weight(dv, defgrp_index);
-          else
+          }
+          else {
             scalar_short_vgroup = defvert_find_weight(dv, defgrp_index);
+          }
           scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) *
                                 scalar_short;
         }
@@ -568,10 +570,12 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         const unsigned int i = do_shell_align ? i_orig : new_vert_arr[i_orig];
         if (dvert) {
           MDeformVert *dv = &dvert[i];
-          if (defgrp_invert)
+          if (defgrp_invert) {
             scalar_short_vgroup = 1.0f - defvert_find_weight(dv, defgrp_index);
-          else
+          }
+          else {
             scalar_short_vgroup = defvert_find_weight(dv, defgrp_index);
+          }
           scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) *
                                 scalar_short;
         }
@@ -735,8 +739,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     MEM_freeN(vert_angles);
   }
 
-  if (vert_nors)
+  if (vert_nors) {
     MEM_freeN(vert_nors);
+  }
 
   /* must recalculate normals with vgroups since they can displace unevenly [#26888] */
   if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || (smd->flag & MOD_SOLIDIFY_RIM) || dvert) {
@@ -948,11 +953,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     MEM_freeN(edge_order);
   }
 
-  if (old_vert_arr)
+  if (old_vert_arr) {
     MEM_freeN(old_vert_arr);
+  }
 
-  if (poly_nors)
+  if (poly_nors) {
     MEM_freeN(poly_nors);
+  }
 
   if (numPolys == 0 && numEdges != 0) {
     modifier_setError(md, "Faces needed for useful output");

@@ -178,16 +178,18 @@ static void warpModifier_do(WarpModifierData *wmd,
 
   float(*tex_co)[3] = NULL;
 
-  if (!(wmd->object_from && wmd->object_to))
+  if (!(wmd->object_from && wmd->object_to)) {
     return;
+  }
 
   MOD_get_vgroup(ob, mesh, wmd->defgrp_name, &dvert, &defgrp_index);
   if (dvert == NULL) {
     defgrp_index = -1;
   }
 
-  if (wmd->curfalloff == NULL) /* should never happen, but bad lib linking could cause it */
+  if (wmd->curfalloff == NULL) { /* should never happen, but bad lib linking could cause it */
     wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  }
 
   if (wmd->curfalloff) {
     curvemapping_initialize(wmd->curfalloff);

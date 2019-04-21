@@ -158,10 +158,12 @@ void MOD_previous_vcos_store(ModifierData *md, float (*vertexCos)[3])
 {
   while ((md = md->next) && md->type == eModifierType_Armature) {
     ArmatureModifierData *amd = (ArmatureModifierData *)md;
-    if (amd->multi && amd->prevCos == NULL)
+    if (amd->multi && amd->prevCos == NULL) {
       amd->prevCos = MEM_dupallocN(vertexCos);
-    else
+    }
+    else {
       break;
+    }
   }
   /* lattice/mesh modifier too */
 }
@@ -235,10 +237,12 @@ void MOD_get_vgroup(
   *dvert = NULL;
 
   if (*defgrp_index != -1) {
-    if (ob->type == OB_LATTICE)
+    if (ob->type == OB_LATTICE) {
       *dvert = BKE_lattice_deform_verts_get(ob);
-    else if (mesh)
+    }
+    else if (mesh) {
       *dvert = mesh->dvert;
+    }
   }
 }
 

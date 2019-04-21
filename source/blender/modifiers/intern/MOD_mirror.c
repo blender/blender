@@ -283,12 +283,13 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
     CustomData_copy_data(
         &result->ldata, &result->ldata, mp->loopstart, mp->loopstart + maxLoops, 1);
 
-    for (j = 1; j < mp->totloop; j++)
+    for (j = 1; j < mp->totloop; j++) {
       CustomData_copy_data(&result->ldata,
                            &result->ldata,
                            mp->loopstart + j,
                            mp->loopstart + maxLoops + mp->totloop - j,
                            1);
+    }
 
     ml2 = ml + mp->loopstart + maxLoops;
     e = ml2[0].e;
@@ -321,10 +322,12 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
       int j = maxLoops;
       dmloopuv += j; /* second set of loops only */
       for (; j-- > 0; dmloopuv++) {
-        if (do_mirr_u)
+        if (do_mirr_u) {
           dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0] + mmd->uv_offset[0];
-        if (do_mirr_v)
+        }
+        if (do_mirr_v) {
           dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1] + mmd->uv_offset[1];
+        }
         dmloopuv->uv[0] += mmd->uv_offset_copy[0];
         dmloopuv->uv[1] += mmd->uv_offset_copy[1];
       }
@@ -342,10 +345,12 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
     if (flip_map) {
       for (i = 0; i < maxVerts; dvert++, i++) {
         /* merged vertices get both groups, others get flipped */
-        if (do_vtargetmap && (vtargetmap[i] != -1))
+        if (do_vtargetmap && (vtargetmap[i] != -1)) {
           defvert_flip_merged(dvert, flip_map, flip_map_len);
-        else
+        }
+        else {
           defvert_flip(dvert, flip_map, flip_map_len);
+        }
       }
 
       MEM_freeN(flip_map);

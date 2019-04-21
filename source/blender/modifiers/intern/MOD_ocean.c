@@ -481,8 +481,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   result = doOcean(md, ctx, mesh);
 
-  if (result != mesh)
+  if (result != mesh) {
     result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  }
 
   return result;
 }

@@ -182,10 +182,12 @@ static void waveModifier_do(WaveModifierData *md,
     if (x > wmd->lifetime) {
       lifefac = x - wmd->lifetime;
 
-      if (lifefac > wmd->damp)
+      if (lifefac > wmd->damp) {
         lifefac = 0.0;
-      else
+      }
+      else {
         lifefac = (float)(wmd->height * (1.0f - sqrtf(lifefac / wmd->damp)));
+      }
     }
   }
 

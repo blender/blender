@@ -226,12 +226,15 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     if (mcmd->flip_axis) {
       float tmat[3][3];
       unit_m3(tmat);
-      if (mcmd->flip_axis & (1 << 0))
+      if (mcmd->flip_axis & (1 << 0)) {
         tmat[0][0] = -1.0f;
-      if (mcmd->flip_axis & (1 << 1))
+      }
+      if (mcmd->flip_axis & (1 << 1)) {
         tmat[1][1] = -1.0f;
-      if (mcmd->flip_axis & (1 << 2))
+      }
+      if (mcmd->flip_axis & (1 << 2)) {
         tmat[2][2] = -1.0f;
+      }
       mul_m3_m3m3(mat, tmat, mat);
 
       use_matrix = true;

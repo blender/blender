@@ -121,12 +121,15 @@ static int svert_sum_cmp(const void *e1, const void *e2)
   const SortVertsElem *sv1 = e1;
   const SortVertsElem *sv2 = e2;
 
-  if (sv1->sum_co > sv2->sum_co)
+  if (sv1->sum_co > sv2->sum_co) {
     return 1;
-  else if (sv1->sum_co < sv2->sum_co)
+  }
+  else if (sv1->sum_co < sv2->sum_co) {
     return -1;
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 static void svert_from_mvert(SortVertsElem *sv,
@@ -441,10 +444,12 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     float obinv[4][4];
     float result_mat[4][4];
 
-    if (ctx->object)
+    if (ctx->object) {
       invert_m4_m4(obinv, ctx->object->obmat);
-    else
+    }
+    else {
       unit_m4(obinv);
+    }
 
     mul_m4_series(result_mat, offset, obinv, amd->offset_ob->obmat);
     copy_m4_m4(offset, result_mat);
@@ -482,8 +487,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
   }
 
-  if (count < 1)
+  if (count < 1) {
     count = 1;
+  }
 
   /* The number of verts, edges, loops, polys, before eventually merging doubles */
   result_nverts = chunk_nverts * count + start_cap_nverts + end_cap_nverts;

@@ -105,8 +105,9 @@ static bool dependsOnTime(ModifierData *md)
 {
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
-  if (wmd->mask_texture)
+  if (wmd->mask_texture) {
     return BKE_texture_dependsOnTime(wmd->mask_texture);
+  }
   return false;
 }
 

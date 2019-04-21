@@ -730,8 +730,9 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
                        bool UNUSED(useRenderParams))
 {
   LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
-  if (lmd->anchor_grp_name[0])
+  if (lmd->anchor_grp_name[0]) {
     return 0;
+  }
   return 1;
 }
 

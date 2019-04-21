@@ -284,10 +284,12 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   float local_mat[4][4] = {{0}};
   const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
 
-  if (dmd->texture == NULL && dmd->direction == MOD_DISP_DIR_RGB_XYZ)
+  if (dmd->texture == NULL && dmd->direction == MOD_DISP_DIR_RGB_XYZ) {
     return;
-  if (dmd->strength == 0.0f)
+  }
+  if (dmd->strength == 0.0f) {
     return;
+  }
 
   mvert = mesh->mvert;
   MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);

@@ -80,12 +80,14 @@ static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRend
   ParticleSystem *psys;
   ModifierData *ob_md;
 
-  if (!pimd->ob)
+  if (!pimd->ob) {
     return true;
+  }
 
   psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
-  if (psys == NULL)
+  if (psys == NULL) {
     return true;
+  }
 
   /* If the psys modifier is disabled we cannot use its data.
    * First look up the psys modifier from the object, then check if it is enabled.
@@ -96,13 +98,16 @@ static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRend
       if (psmd->psys == psys) {
         int required_mode;
 
-        if (useRenderParams)
+        if (useRenderParams) {
           required_mode = eModifierMode_Render;
-        else
+        }
+        else {
           required_mode = eModifierMode_Realtime;
+        }
 
-        if (!modifier_isEnabled(scene, ob_md, required_mode))
+        if (!modifier_isEnabled(scene, ob_md, required_mode)) {
           return true;
+        }
 
         break;
       }
@@ -145,12 +150,15 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   }
 
   if (pa) {
-    if (pa->alive == PARS_UNBORN && (pimd->flag & eParticleInstanceFlag_Unborn) == 0)
+    if (pa->alive == PARS_UNBORN && (pimd->flag & eParticleInstanceFlag_Unborn) == 0) {
       return true;
-    if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0)
+    }
+    if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0) {
       return true;
-    if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0)
+    }
+    if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) {
       return true;
+    }
   }
 
   if (pimd->particle_amount == 1.0f) {
@@ -219,8 +227,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   if (pimd->ob) {
     psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
-    if (psys == NULL || psys->totpart == 0)
+    if (psys == NULL || psys->totpart == 0) {
       return mesh;
+    }
   }
   else {
     return mesh;
@@ -229,13 +238,16 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   part_start = use_parents ? 0 : psys->totpart;
 
   part_end = 0;
-  if (use_parents)
+  if (use_parents) {
     part_end += psys->totpart;
-  if (use_children)
+  }
+  if (use_children) {
     part_end += psys->totchild;
+  }
 
-  if (part_end == 0)
+  if (part_end == 0) {
     return mesh;
+  }
 
   sim.depsgraph = ctx->depsgraph;
   sim.scene = scene;
@@ -249,8 +261,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     si = size = MEM_calloc_arrayN(part_end, sizeof(float), "particle size array");
 
     if (pimd->flag & eParticleInstanceFlag_Parents) {
-      for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++)
+      for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++) {
         *si = pa->size;
+      }
     }
 
     if (pimd->flag & eParticleInstanceFlag_Children) {
@@ -289,8 +302,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   maxedge = 0;
 
   for (p = part_start; p < part_end; p++) {
-    if (particle_skip(pimd, psys, p))
+    if (particle_skip(pimd, psys, p)) {
       continue;
+    }
 
     maxvert += totvert;
     maxpoly += totpoly;
@@ -336,8 +350,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     float p_random = psys_frand(psys, 77091 + 283 * p);
 
     /* skip particle? */
-    if (particle_skip(pimd, psys, p))
+    if (particle_skip(pimd, psys, p)) {
       continue;
+    }
 
     /* set vertices coordinates */
     for (k = 0; k < totvert; k++) {
@@ -377,8 +392,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         else {
           state.time = (mv->co[axis] - min_co) / (max_co - min_co) * pimd->position * (1.0f - ran);
 
-          if (trackneg)
+          if (trackneg) {
             state.time = 1.0f - state.time;
+          }
 
           mv->co[axis] = 0.0;
         }
@@ -392,8 +408,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
           float hairmat[4][4];
           float mat[3][3];
 
-          if (p < psys->totpart)
+          if (p < psys->totpart) {
             pa = psys->particles + p;
+          }
           else {
             ChildParticle *cpa = psys->child + (p - psys->totpart);
             pa = psys->particles + (between ? cpa->pa[0] : cpa->parent);
@@ -454,8 +471,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       }
 
       mul_qt_v3(state.rot, mv->co);
-      if (pimd->flag & eParticleInstanceFlag_UseSize)
+      if (pimd->flag & eParticleInstanceFlag_UseSize) {
         mul_v3_fl(mv->co, size[p]);
+      }
       add_v3_v3(mv->co, state.co);
 
       mul_m4_v3(spacemat, mv->co);
@@ -509,8 +527,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     psys->lattice_deform_data = NULL;
   }
 
-  if (size)
+  if (size) {
     MEM_freeN(size);
+  }
 
   MEM_SAFE_FREE(vert_part_index);
   MEM_SAFE_FREE(vert_part_value);

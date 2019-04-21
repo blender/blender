@@ -152,8 +152,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, str
     MEdge *medge, *me;
     uintptr_t hash_num;
 
-    if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE)
+    if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
       BLI_array_randomize(edgeMap, sizeof(*edgeMap), numEdge_src, bmd->seed);
+    }
 
     /* get the set of all vert indices that will be in the final mesh,
      * mapped to the new indices

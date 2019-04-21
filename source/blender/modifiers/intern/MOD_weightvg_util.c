@@ -135,8 +135,9 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
   int i;
 
   /* If influence factor is null, nothing to do! */
-  if (fact == 0.0f)
+  if (fact == 0.0f) {
     return;
+  }
 
   /* If we want to mask vgroup weights from a texture. */
   if (texture != NULL) {

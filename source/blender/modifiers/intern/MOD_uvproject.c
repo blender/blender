@@ -68,8 +68,9 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
   int i;
 
-  for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
+  for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i) {
     walk(userData, ob, &umd->projectors[i], IDWALK_CB_NOP);
+  }
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -129,13 +130,15 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
   }
 
-  if (num_projectors == 0)
+  if (num_projectors == 0) {
     return mesh;
+  }
 
   /* make sure there are UV Maps available */
 
-  if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV))
+  if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
     return mesh;
+  }
 
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
@@ -204,13 +207,16 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   coords = BKE_mesh_vertexCos_get(mesh, &numVerts);
 
   /* convert coords to world space */
-  for (i = 0, co = coords; i < numVerts; ++i, ++co)
+  for (i = 0, co = coords; i < numVerts; ++i, ++co) {
     mul_m4_v3(ob->obmat, *co);
+  }
 
   /* if only one projector, project coords to UVs */
-  if (num_projectors == 1 && projectors[0].uci == NULL)
-    for (i = 0, co = coords; i < numVerts; ++i, ++co)
+  if (num_projectors == 1 && projectors[0].uci == NULL) {
+    for (i = 0, co = coords; i < numVerts; ++i, ++co) {
       mul_project_m4_v3(projectors[0].projmat, *co);
+    }
+  }
 
   mpoly = mesh->mpoly;
   mloop = mesh->mloop;

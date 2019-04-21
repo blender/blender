@@ -501,8 +501,9 @@ static bool is_disabled(const struct Scene *UNUSED(scene),
   flag = smd->flag & (MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z);
 
   /* disable if modifier is off for X, Y and Z or if factor is 0 */
-  if (flag == 0)
+  if (flag == 0) {
     return 1;
+  }
 
   return 0;
 }
@@ -527,8 +528,9 @@ static void deformVerts(ModifierData *md,
 {
   Mesh *mesh_src;
 
-  if (numVerts == 0)
+  if (numVerts == 0) {
     return;
+  }
 
   mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
@@ -549,8 +551,9 @@ static void deformVertsEM(ModifierData *md,
 {
   Mesh *mesh_src;
 
-  if (numVerts == 0)
+  if (numVerts == 0) {
     return;
+  }
 
   mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
