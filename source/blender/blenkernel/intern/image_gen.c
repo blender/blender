@@ -123,8 +123,9 @@ static void image_buf_fill_checker_slice(
     dark = powf(-1.0f, floorf(y / checkerwidth));
 
     for (x = 0; x < width; x++) {
-      if (x % checkerwidth == 0)
+      if (x % checkerwidth == 0) {
         dark = -dark;
+      }
 
       if (rect_float) {
         if (dark > 0) {
@@ -182,10 +183,12 @@ static void image_buf_fill_checker_slice(
         }
       }
 
-      if (rect_float)
+      if (rect_float) {
         rect_float += 4;
-      if (rect)
+      }
+      if (rect) {
         rect += 4;
+      }
     }
   }
 }
@@ -234,8 +237,9 @@ static void checker_board_color_fill(
   hsv[1] = 1.0;
 
   hue_step = power_of_2_max_i(width / 8);
-  if (hue_step < 8)
+  if (hue_step < 8) {
     hue_step = 8;
+  }
 
   for (y = offset; y < height + offset; y++) {
 
@@ -345,10 +349,12 @@ static void checker_board_grid_fill(
         }
       }
       else {
-        if (rect_float)
+        if (rect_float) {
           rect_float += 4;
-        if (rect)
+        }
+        if (rect) {
           rect += 4;
+        }
       }
     }
   }

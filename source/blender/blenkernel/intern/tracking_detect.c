@@ -56,8 +56,9 @@ static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
     if ((points[i].y < y && points[prev].y >= y) || (points[prev].y < y && points[i].y >= y)) {
       float fac = (y - points[i].y) / (points[prev].y - points[i].y);
 
-      if (points[i].x + fac * (points[prev].x - points[i].x) < x)
+      if (points[i].x + fac * (points[prev].x - points[i].x) < x) {
         count++;
+      }
     }
 
     prev = i;
@@ -75,8 +76,9 @@ static bool check_point_in_layer(bGPDlayer *layer, float x, float y)
     bGPDstroke *stroke = frame->strokes.first;
 
     while (stroke) {
-      if (check_point_in_stroke(stroke, x, y))
+      if (check_point_in_stroke(stroke, x, y)) {
         return true;
+      }
 
       stroke = stroke->next;
     }
@@ -113,8 +115,9 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking,
     xu = (x + 0.5) / width;
     yu = (y + 0.5) / height;
 
-    if (layer)
+    if (layer) {
       ok = check_point_in_layer(layer, xu, yu) != place_outside_layer;
+    }
 
     if (ok) {
       track = BKE_tracking_track_add(tracking, tracksbase, xu, yu, framenr, width, height);

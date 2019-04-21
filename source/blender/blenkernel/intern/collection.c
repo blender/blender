@@ -602,8 +602,9 @@ Collection *BKE_collection_object_find(Main *bmain,
   }
 
   while (collection) {
-    if (BKE_collection_has_object(collection, ob))
+    if (BKE_collection_has_object(collection, ob)) {
       return collection;
+    }
     collection = collection_next_find(bmain, scene, collection);
   }
   return NULL;
@@ -1217,8 +1218,9 @@ static void scene_collections_array(Scene *scene, Collection ***collections_arra
   BLI_assert(collection != NULL);
   scene_collection_callback(collection, scene_collections_count, tot);
 
-  if (*tot == 0)
+  if (*tot == 0) {
     return;
+  }
 
   *collections_array = array = MEM_mallocN(sizeof(Collection *) * (*tot), "CollectionArray");
   scene_collection_callback(collection, scene_collections_build_array, &array);

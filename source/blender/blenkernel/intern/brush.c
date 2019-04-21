@@ -212,8 +212,9 @@ typedef enum eGPCurveMappingPreset {
 
 static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
 {
-  if (cuma->curve)
+  if (cuma->curve) {
     MEM_freeN(cuma->curve);
+  }
 
   cuma->totpoint = tot;
   cuma->curve = MEM_callocN(cuma->totpoint * sizeof(CurveMapPoint), __func__);
@@ -572,8 +573,9 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
   Brush *brush;
 
   for (brush = bmain->brushes.first; brush; brush = brush->id.next) {
-    if (brush->ob_mode & ob_mode)
+    if (brush->ob_mode & ob_mode) {
       return brush;
+    }
   }
   return NULL;
 }
@@ -869,8 +871,9 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
 {
   CurveMap *cm = NULL;
 
-  if (!b->curve)
+  if (!b->curve) {
     b->curve = curvemapping_add(1, 0, 0, 1, 1);
+  }
 
   cm = b->curve->cm;
   cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
@@ -1156,10 +1159,12 @@ void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float c
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
-  if (ups->flag & UNIFIED_PAINT_COLOR)
+  if (ups->flag & UNIFIED_PAINT_COLOR) {
     copy_v3_v3(ups->rgb, color);
-  else
+  }
+  else {
     copy_v3_v3(brush->rgb, color);
+  }
 }
 
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
@@ -1169,10 +1174,12 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
   /* make sure range is sane */
   CLAMP(size, 1, MAX_BRUSH_PIXEL_RADIUS);
 
-  if (ups->flag & UNIFIED_PAINT_SIZE)
+  if (ups->flag & UNIFIED_PAINT_SIZE) {
     ups->size = size;
-  else
+  }
+  else {
     brush->size = size;
+  }
 }
 
 int BKE_brush_size_get(const Scene *scene, const Brush *brush)
@@ -1228,10 +1235,12 @@ void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojec
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
-  if (ups->flag & UNIFIED_PAINT_SIZE)
+  if (ups->flag & UNIFIED_PAINT_SIZE) {
     ups->unprojected_radius = unprojected_radius;
-  else
+  }
+  else {
     brush->unprojected_radius = unprojected_radius;
+  }
 }
 
 float BKE_brush_unprojected_radius_get(const Scene *scene, const Brush *brush)
@@ -1245,10 +1254,12 @@ void BKE_brush_alpha_set(Scene *scene, Brush *brush, float alpha)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
-  if (ups->flag & UNIFIED_PAINT_ALPHA)
+  if (ups->flag & UNIFIED_PAINT_ALPHA) {
     ups->alpha = alpha;
-  else
+  }
+  else {
     brush->alpha = alpha;
+  }
 }
 
 float BKE_brush_alpha_get(const Scene *scene, const Brush *brush)
@@ -1269,10 +1280,12 @@ void BKE_brush_weight_set(const Scene *scene, Brush *brush, float value)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
-  if (ups->flag & UNIFIED_PAINT_WEIGHT)
+  if (ups->flag & UNIFIED_PAINT_WEIGHT) {
     ups->weight = value;
-  else
+  }
+  else {
     brush->weight = value;
+  }
 }
 
 /* scale unprojected radius to reflect a change in the brush's 2D size */
@@ -1282,8 +1295,9 @@ void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
 {
   float scale = new_brush_size;
   /* avoid division by zero */
-  if (old_brush_size != 0)
+  if (old_brush_size != 0) {
     scale /= (float)old_brush_size;
+  }
   (*unprojected_radius) *= scale;
 }
 
@@ -1294,8 +1308,9 @@ void BKE_brush_scale_size(int *r_brush_size,
 {
   float scale = new_unprojected_radius;
   /* avoid division by zero */
-  if (old_unprojected_radius != 0)
+  if (old_unprojected_radius != 0) {
     scale /= new_unprojected_radius;
+  }
   (*r_brush_size) = (int)((float)(*r_brush_size) * scale);
 }
 
@@ -1342,10 +1357,12 @@ float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 {
   float strength;
 
-  if (p >= len)
+  if (p >= len) {
     return 0;
-  else
+  }
+  else {
     p = p / len;
+  }
 
   strength = curvemapping_evaluateF(br->curve, 0, p);
 

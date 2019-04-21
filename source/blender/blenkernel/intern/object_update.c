@@ -142,10 +142,12 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
    * do not need to worry about relcalculating it. */
   invert_m4_m4(ob->imat, ob->obmat);
   /* Set negative scale flag in object. */
-  if (is_negative_m4(ob->obmat))
+  if (is_negative_m4(ob->obmat)) {
     ob->transflag |= OB_NEG_SCALE;
-  else
+  }
+  else {
     ob->transflag &= ~OB_NEG_SCALE;
+  }
 }
 
 void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
@@ -233,8 +235,9 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         psys_free(ob, psys);
         psys = tpsys;
       }
-      else
+      else {
         psys = psys->next;
+      }
     }
   }
   BKE_object_eval_boundbox(depsgraph, ob);

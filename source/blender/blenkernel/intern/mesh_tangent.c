@@ -530,10 +530,12 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
     *rcalc_act = true;
     *rcalc_ren = true;
     for (int i = 0; i < tangent_names_count; i++) {
-      if (STREQ(ract_uv_name, tangent_names[i]))
+      if (STREQ(ract_uv_name, tangent_names[i])) {
         *rcalc_act = false;
-      if (STREQ(rren_uv_name, tangent_names[i]))
+      }
+      if (STREQ(rren_uv_name, tangent_names[i])) {
         *rcalc_ren = false;
+      }
     }
   }
   *rtangent_mask = 0;
@@ -552,12 +554,14 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
                  (*rcalc_ren && rren_uv_name[0] && STREQ(rren_uv_name, name)))) {
       add = true;
     }
-    if (add)
+    if (add) {
       *rtangent_mask |= (short)(1 << n);
+    }
   }
 
-  if (uv_layer_num == 0)
+  if (uv_layer_num == 0) {
     *rtangent_mask |= DM_TANGENT_MASK_ORCO;
+  }
 }
 
 /**
@@ -605,20 +609,25 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
   if ((tangent_mask_curr | tangent_mask) != tangent_mask_curr) {
     /* Check we have all the needed layers */
     /* Allocate needed tangent layers */
-    for (int i = 0; i < tangent_names_len; i++)
-      if (tangent_names[i][0])
+    for (int i = 0; i < tangent_names_len; i++) {
+      if (tangent_names[i][0]) {
         BKE_mesh_add_loop_tangent_named_layer_for_uv(
             loopdata, loopdata_out, (int)loopdata_out_len, tangent_names[i]);
+      }
+    }
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
-        CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1)
+        CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
           loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
-    if (calc_act && act_uv_name[0])
+    }
+    if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
           loopdata, loopdata_out, (int)loopdata_out_len, act_uv_name);
-    if (calc_ren && ren_uv_name[0])
+    }
+    if (calc_ren && ren_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
           loopdata, loopdata_out, (int)loopdata_out_len, ren_uv_name);
+    }
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
     int num_face_as_quad_map;
@@ -681,8 +690,9 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
         /* Fill the resulting tangent_mask */
         if (!mesh2tangent->mloopuv) {
           mesh2tangent->orco = vert_orco;
-          if (!mesh2tangent->orco)
+          if (!mesh2tangent->orco) {
             continue;
+          }
 
           tangent_mask_curr |= DM_TANGENT_MASK_ORCO;
         }

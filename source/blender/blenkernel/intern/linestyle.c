@@ -136,14 +136,18 @@ void BKE_linestyle_free(FreestyleLineStyle *linestyle)
     linestyle->nodetree = NULL;
   }
 
-  while ((m = (LineStyleModifier *)linestyle->color_modifiers.first))
+  while ((m = (LineStyleModifier *)linestyle->color_modifiers.first)) {
     BKE_linestyle_color_modifier_remove(linestyle, m);
-  while ((m = (LineStyleModifier *)linestyle->alpha_modifiers.first))
+  }
+  while ((m = (LineStyleModifier *)linestyle->alpha_modifiers.first)) {
     BKE_linestyle_alpha_modifier_remove(linestyle, m);
-  while ((m = (LineStyleModifier *)linestyle->thickness_modifiers.first))
+  }
+  while ((m = (LineStyleModifier *)linestyle->thickness_modifiers.first)) {
     BKE_linestyle_thickness_modifier_remove(linestyle, m);
-  while ((m = (LineStyleModifier *)linestyle->geometry_modifiers.first))
+  }
+  while ((m = (LineStyleModifier *)linestyle->geometry_modifiers.first)) {
     BKE_linestyle_geometry_modifier_remove(linestyle, m);
+  }
 }
 
 /**
@@ -426,8 +430,9 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
 
 int BKE_linestyle_color_modifier_remove(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
-  if (BLI_findindex(&linestyle->color_modifiers, m) == -1)
+  if (BLI_findindex(&linestyle->color_modifiers, m) == -1) {
     return -1;
+  }
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
       MEM_freeN(((LineStyleColorModifier_AlongStroke *)m)->color_ramp);
@@ -601,8 +606,9 @@ LineStyleModifier *BKE_linestyle_alpha_modifier_copy(FreestyleLineStyle *linesty
           m;
       LineStyleAlphaModifier_DistanceFromObject *q = (LineStyleAlphaModifier_DistanceFromObject *)
           new_m;
-      if (p->target)
+      if (p->target) {
         id_us_plus(&p->target->id);
+      }
       q->target = p->target;
       q->curve = curvemapping_copy(p->curve);
       q->flags = p->flags;
@@ -663,8 +669,9 @@ LineStyleModifier *BKE_linestyle_alpha_modifier_copy(FreestyleLineStyle *linesty
 
 int BKE_linestyle_alpha_modifier_remove(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
-  if (BLI_findindex(&linestyle->alpha_modifiers, m) == -1)
+  if (BLI_findindex(&linestyle->alpha_modifiers, m) == -1) {
     return -1;
+  }
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
       curvemapping_free(((LineStyleAlphaModifier_AlongStroke *)m)->curve);
@@ -835,8 +842,9 @@ LineStyleModifier *BKE_linestyle_thickness_modifier_copy(FreestyleLineStyle *lin
   LineStyleModifier *new_m;
 
   new_m = alloc_thickness_modifier(m->name, m->type);
-  if (!new_m)
+  if (!new_m) {
     return NULL;
+  }
   new_m->influence = m->influence;
   new_m->flags = m->flags;
   new_m->blend = m->blend;
@@ -950,8 +958,9 @@ LineStyleModifier *BKE_linestyle_thickness_modifier_copy(FreestyleLineStyle *lin
 
 int BKE_linestyle_thickness_modifier_remove(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
-  if (BLI_findindex(&linestyle->thickness_modifiers, m) == -1)
+  if (BLI_findindex(&linestyle->thickness_modifiers, m) == -1) {
     return -1;
+  }
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
       curvemapping_free(((LineStyleThicknessModifier_AlongStroke *)m)->curve);
@@ -1290,8 +1299,9 @@ LineStyleModifier *BKE_linestyle_geometry_modifier_copy(FreestyleLineStyle *line
 
 int BKE_linestyle_geometry_modifier_remove(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
-  if (BLI_findindex(&linestyle->geometry_modifiers, m) == -1)
+  if (BLI_findindex(&linestyle->geometry_modifiers, m) == -1) {
     return -1;
+  }
   BLI_freelinkN(&linestyle->geometry_modifiers, m);
   return 0;
 }
@@ -1364,36 +1374,44 @@ char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand 
   for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next) {
     switch (m->type) {
       case LS_MODIFIER_ALONG_STROKE:
-        if (color_ramp == ((LineStyleColorModifier_AlongStroke *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_AlongStroke *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-        if (color_ramp == ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-        if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_MATERIAL:
-        if (color_ramp == ((LineStyleColorModifier_Material *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_Material *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_TANGENT:
-        if (color_ramp == ((LineStyleColorModifier_Tangent *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_Tangent *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_NOISE:
-        if (color_ramp == ((LineStyleColorModifier_Noise *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_Noise *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_CREASE_ANGLE:
-        if (color_ramp == ((LineStyleColorModifier_CreaseAngle *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_CreaseAngle *)m)->color_ramp) {
           found = true;
+        }
         break;
       case LS_MODIFIER_CURVATURE_3D:
-        if (color_ramp == ((LineStyleColorModifier_Curvature_3D *)m)->color_ramp)
+        if (color_ramp == ((LineStyleColorModifier_Curvature_3D *)m)->color_ramp) {
           found = true;
+        }
         break;
     }
 

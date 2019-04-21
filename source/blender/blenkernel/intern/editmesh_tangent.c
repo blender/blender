@@ -322,15 +322,18 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
       }
     }
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
-        CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1)
+        CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
           loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
-    if (calc_act && act_uv_name[0])
+    }
+    if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
           &bm->ldata, loopdata_out, (int)loopdata_out_len, act_uv_name);
-    if (calc_ren && ren_uv_name[0])
+    }
+    if (calc_ren && ren_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
           &bm->ldata, loopdata_out, (int)loopdata_out_len, ren_uv_name);
+    }
     int totface = em->tottri;
 #ifdef USE_LOOPTRI_DETECT_QUADS
     int num_face_as_quad_map;
@@ -389,8 +392,9 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         int htype_index = BM_LOOP;
         if (mesh2tangent->cd_loop_uv_offset == -1) {
           mesh2tangent->orco = vert_orco;
-          if (!mesh2tangent->orco)
+          if (!mesh2tangent->orco) {
             continue;
+          }
           /* needed for orco lookups */
           htype_index |= BM_VERT;
           tangent_mask_curr |= DM_TANGENT_MASK_ORCO;

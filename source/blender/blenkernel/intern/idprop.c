@@ -120,11 +120,13 @@ static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user)
 
   BLI_assert(prop->type == IDP_IDPARRAY);
 
-  for (i = 0; i < prop->len; i++)
+  for (i = 0; i < prop->len; i++) {
     IDP_FreeProperty_ex(GETPROP(prop, i), do_id_user);
+  }
 
-  if (prop->data.pointer)
+  if (prop->data.pointer) {
     MEM_freeN(prop->data.pointer);
+  }
 }
 
 /* shallow copies item */
@@ -134,8 +136,9 @@ void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 
   BLI_assert(prop->type == IDP_IDPARRAY);
 
-  if (index >= prop->len || index < 0)
+  if (index >= prop->len || index < 0) {
     return;
+  }
 
   old = GETPROP(prop, index);
   if (item != old) {
@@ -171,8 +174,9 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
     if (newlen < prop->len && prop->totallen - newlen < IDP_ARRAY_REALLOC_LIMIT) {
       int i;
 
-      for (i = newlen; i < prop->len; i++)
+      for (i = newlen; i < prop->len; i++) {
         IDP_FreeProperty(GETPROP(prop, i));
+      }
 
       prop->len = newlen;
       return;
@@ -210,8 +214,9 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 /* ----------- Numerical Array Type ----------- */
 static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 {
-  if (prop->subtype != IDP_GROUP)
+  if (prop->subtype != IDP_GROUP) {
     return;
+  }
 
   if (newlen >= prop->len) {
     /* bigger */
@@ -260,14 +265,16 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
   newsize = newlen;
   newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
 
-  if (is_grow == false)
+  if (is_grow == false) {
     idp_resize_group_array(prop, newlen, prop->data.pointer);
+  }
 
   prop->data.pointer = MEM_recallocN(prop->data.pointer,
                                      idp_size_table[(int)prop->subtype] * (size_t)newsize);
 
-  if (is_grow == true)
+  if (is_grow == true) {
     idp_resize_group_array(prop, newlen, prop->data.pointer);
+  }
 
   prop->len = newlen;
   prop->totallen = newsize;
@@ -305,8 +312,9 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
       IDProperty **array = newp->data.pointer;
       int a;
 
-      for (a = 0; a < prop->len; a++)
+      for (a = 0; a < prop->len; a++) {
         array[a] = IDP_CopyProperty_ex(array[a], flag);
+      }
     }
   }
   newp->len = prop->len;
@@ -344,8 +352,9 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
     /* include null terminator '\0' */
     int stlen = (int)strlen(st) + 1;
 
-    if (maxlen > 0 && maxlen < stlen)
+    if (maxlen > 0 && maxlen < stlen) {
       stlen = maxlen;
+    }
 
     prop->data.pointer = MEM_mallocN((size_t)stlen, "id property string 2");
     prop->len = prop->totallen = stlen;
@@ -365,8 +374,9 @@ static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
   BLI_assert(prop->type == IDP_STRING);
   newp = idp_generic_copy(prop, flag);
 
-  if (prop->data.pointer)
+  if (prop->data.pointer) {
     newp->data.pointer = MEM_dupallocN(prop->data.pointer);
+  }
   newp->len = prop->len;
   newp->subtype = prop->subtype;
   newp->totallen = prop->totallen;
@@ -380,8 +390,9 @@ void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 
   BLI_assert(prop->type == IDP_STRING);
   stlen = (int)strlen(st);
-  if (maxlen > 0 && maxlen < stlen)
+  if (maxlen > 0 && maxlen < stlen) {
     stlen = maxlen;
+  }
 
   if (prop->subtype == IDP_STRING_SUB_BYTE) {
     IDP_ResizeArray(prop, stlen);
@@ -424,8 +435,9 @@ void IDP_FreeString(IDProperty *prop)
 {
   BLI_assert(prop->type == IDP_STRING);
 
-  if (prop->data.pointer)
+  if (prop->data.pointer) {
     MEM_freeN(prop->data.pointer);
+  }
 }
 /** \} */
 
@@ -778,8 +790,9 @@ IDProperty *IDP_CopyProperty(const IDProperty *prop)
 /* TODO Nuke this once its only user has been correctly converted to use generic ID management from BKE_library! */
 void IDP_RelinkProperty(struct IDProperty *prop)
 {
-  if (!prop)
+  if (!prop) {
     return;
+  }
 
   switch (prop->type) {
     case IDP_GROUP: {
@@ -836,12 +849,15 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
  * \param is_strict: When false treat missing items as a match */
 bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is_strict)
 {
-  if (prop1 == NULL && prop2 == NULL)
+  if (prop1 == NULL && prop2 == NULL) {
     return true;
-  else if (prop1 == NULL || prop2 == NULL)
+  }
+  else if (prop1 == NULL || prop2 == NULL) {
     return is_strict ? false : true;
-  else if (prop1->type != prop2->type)
+  }
+  else if (prop1->type != prop2->type) {
     return false;
+  }
 
   switch (prop1->type) {
     case IDP_INT:
@@ -881,14 +897,16 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
     case IDP_GROUP: {
       IDProperty *link1, *link2;
 
-      if (is_strict && prop1->len != prop2->len)
+      if (is_strict && prop1->len != prop2->len) {
         return false;
+      }
 
       for (link1 = prop1->data.group.first; link1; link1 = link1->next) {
         link2 = IDP_GetPropertyFromGroup(prop2, link1->name);
 
-        if (!IDP_EqualsProperties_ex(link1, link2, is_strict))
+        if (!IDP_EqualsProperties_ex(link1, link2, is_strict)) {
           return false;
+        }
       }
 
       return true;
@@ -898,12 +916,14 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
       IDProperty *array2 = IDP_IDPArray(prop2);
       int i;
 
-      if (prop1->len != prop2->len)
+      if (prop1->len != prop2->len) {
         return false;
+      }
 
       for (i = 0; i < prop1->len; i++) {
-        if (!IDP_EqualsProperties_ex(&array1[i], &array2[i], is_strict))
+        if (!IDP_EqualsProperties_ex(&array1[i], &array2[i], is_strict)) {
           return false;
+        }
       }
       return true;
     }

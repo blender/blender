@@ -664,10 +664,12 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
 
   BLI_edgehash_free(ehash, NULL);
 
-  if (poly_map != NULL)
+  if (poly_map != NULL) {
     MEM_freeN(poly_map);
-  if (poly_map_mem != NULL)
+  }
+  if (poly_map_mem != NULL) {
     MEM_freeN(poly_map_mem);
+  }
 
   BKE_id_free(NULL, mesh);
 

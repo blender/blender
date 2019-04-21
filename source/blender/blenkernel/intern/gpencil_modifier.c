@@ -553,11 +553,13 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
              eGpencilModifierMode_Expanded;
   md->flag = eGpencilModifierFlag_StaticOverride_Local;
 
-  if (mti->flags & eGpencilModifierTypeFlag_EnableInEditmode)
+  if (mti->flags & eGpencilModifierTypeFlag_EnableInEditmode) {
     md->mode |= eGpencilModifierMode_Editmode;
+  }
 
-  if (mti->initData)
+  if (mti->initData) {
     mti->initData(md);
+  }
 
   return md;
 }
@@ -587,10 +589,12 @@ void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
     }
   }
 
-  if (mti->freeData)
+  if (mti->freeData) {
     mti->freeData(md);
-  if (md->error)
+  }
+  if (md->error) {
     MEM_freeN(md->error);
+  }
 
   MEM_freeN(md);
 }
@@ -695,9 +699,11 @@ GpencilModifierData *BKE_gpencil_modifiers_findByType(Object *ob, GpencilModifie
 {
   GpencilModifierData *md = ob->greasepencil_modifiers.first;
 
-  for (; md; md = md->next)
-    if (md->type == type)
+  for (; md; md = md->next) {
+    if (md->type == type) {
       break;
+    }
+  }
 
   return md;
 }
@@ -727,8 +733,9 @@ void BKE_gpencil_modifiers_foreachTexLink(Object *ob, GreasePencilTexWalkFunc wa
   for (; md; md = md->next) {
     const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
-    if (mti->foreachTexLink)
+    if (mti->foreachTexLink) {
       mti->foreachTexLink(md, ob, walk, userData);
+    }
   }
 }
 

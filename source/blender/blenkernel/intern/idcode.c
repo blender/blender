@@ -116,9 +116,11 @@ static IDType *idtype_from_code(short idcode)
 {
   int i = ARRAY_SIZE(idtypes);
 
-  while (i--)
-    if (idcode == idtypes[i].code)
+  while (i--) {
+    if (idcode == idtypes[i].code) {
       return &idtypes[i];
+    }
+  }
 
   return NULL;
 }

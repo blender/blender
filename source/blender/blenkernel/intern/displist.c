@@ -64,14 +64,18 @@ static void boundbox_displist_object(Object *ob);
 void BKE_displist_elem_free(DispList *dl)
 {
   if (dl) {
-    if (dl->verts)
+    if (dl->verts) {
       MEM_freeN(dl->verts);
-    if (dl->nors)
+    }
+    if (dl->nors) {
       MEM_freeN(dl->nors);
-    if (dl->index)
+    }
+    if (dl->index) {
       MEM_freeN(dl->index);
-    if (dl->bevel_split)
+    }
+    if (dl->bevel_split) {
       MEM_freeN(dl->bevel_split);
+    }
     MEM_freeN(dl);
   }
 }
@@ -91,8 +95,9 @@ DispList *BKE_displist_find_or_create(ListBase *lb, int type)
 
   dl = lb->first;
   while (dl) {
-    if (dl->type == type)
+    if (dl->type == type) {
       return dl;
+    }
     dl = dl->next;
   }
 
@@ -109,8 +114,9 @@ DispList *BKE_displist_find(ListBase *lb, int type)
 
   dl = lb->first;
   while (dl) {
-    if (dl->type == type)
+    if (dl->type == type) {
       return dl;
+    }
     dl = dl->next;
   }
 
@@ -184,8 +190,9 @@ void BKE_displist_normals_add(ListBase *lb)
 
         for (a = 0; a < dl->parts; a++) {
 
-          if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4) == 0)
+          if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4) == 0) {
             break;
+          }
 
           v1 = vdata + 3 * p1;
           n1 = ndata + 3 * p1;
@@ -322,10 +329,12 @@ static void curve_to_displist(Curve *cu,
   nu = nubase->first;
   while (nu) {
     if (nu->hide == 0 || editmode == false) {
-      if (use_render_resolution && cu->resolu_ren != 0)
+      if (use_render_resolution && cu->resolu_ren != 0) {
         resolu = cu->resolu_ren;
-      else
+      }
+      else {
         resolu = nu->resolu;
+      }
 
       if (!BKE_nurb_check_valid_u(nu)) {
         /* pass */
@@ -334,22 +343,27 @@ static void curve_to_displist(Curve *cu,
         /* count */
         len = 0;
         a = nu->pntsu - 1;
-        if (nu->flagu & CU_NURB_CYCLIC)
+        if (nu->flagu & CU_NURB_CYCLIC) {
           a++;
+        }
 
         prevbezt = nu->bezt;
         bezt = prevbezt + 1;
         while (a--) {
-          if (a == 0 && (nu->flagu & CU_NURB_CYCLIC))
+          if (a == 0 && (nu->flagu & CU_NURB_CYCLIC)) {
             bezt = nu->bezt;
+          }
 
-          if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT)
+          if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
             len++;
-          else
+          }
+          else {
             len += resolu;
+          }
 
-          if (a == 0 && (nu->flagu & CU_NURB_CYCLIC) == 0)
+          if (a == 0 && (nu->flagu & CU_NURB_CYCLIC) == 0) {
             len++;
+          }
 
           prevbezt = bezt;
           bezt++;
@@ -380,8 +394,9 @@ static void curve_to_displist(Curve *cu,
         bezt = prevbezt + 1;
 
         while (a--) {
-          if (a == 0 && dl->type == DL_POLY)
+          if (a == 0 && dl->type == DL_POLY) {
             bezt = nu->bezt;
+          }
 
           if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
             copy_v3_v3(data, prevbezt->vec[1]);
@@ -423,10 +438,12 @@ static void curve_to_displist(Curve *cu,
         dl->charidx = nu->charidx;
 
         data = dl->verts;
-        if (nu->flagu & CU_NURB_CYCLIC)
+        if (nu->flagu & CU_NURB_CYCLIC) {
           dl->type = DL_POLY;
-        else
+        }
+        else {
           dl->type = DL_SEGM;
+        }
         BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, 3 * sizeof(float));
       }
       else if (nu->type == CU_POLY) {
@@ -481,10 +498,12 @@ void BKE_displist_fill(ListBase *dispbase,
   const int scanfill_flag = BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_POLYS |
                             BLI_SCANFILL_CALC_HOLES;
 
-  if (dispbase == NULL)
+  if (dispbase == NULL) {
     return;
-  if (BLI_listbase_is_empty(dispbase))
+  }
+  if (BLI_listbase_is_empty(dispbase)) {
     return;
+  }
 
   sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
 
@@ -499,8 +518,9 @@ void BKE_displist_fill(ListBase *dispbase,
     dl = dispbase->first;
     while (dl) {
       if (dl->type == DL_POLY) {
-        if (charidx < dl->charidx)
+        if (charidx < dl->charidx) {
           cont = 1;
+        }
         else if (charidx == dl->charidx) { /* character with needed index */
           if (colnr == dl->col) {
 
@@ -517,8 +537,9 @@ void BKE_displist_fill(ListBase *dispbase,
               sf_vert = BLI_scanfill_vert_add(&sf_ctx, f1);
               totvert++;
 
-              if (sf_vert_last == NULL)
+              if (sf_vert_last == NULL) {
                 sf_vert_new = sf_vert;
+              }
               else {
                 BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
               }
@@ -574,8 +595,9 @@ void BKE_displist_fill(ListBase *dispbase,
           index[1] = sf_tri->v2->tmp.i;
           index[2] = sf_tri->v3->tmp.i;
 
-          if (flipnormal)
+          if (flipnormal) {
             SWAP(int, index[0], index[2]);
+          }
 
           index += 3;
         }
@@ -674,8 +696,9 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 
 static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dispbase)
 {
-  if (!CU_DO_2DFILL(cu))
+  if (!CU_DO_2DFILL(cu)) {
     return;
+  }
 
   if (dispbase->first && ((DispList *)dispbase->first)->type == DL_SURF) {
     bevels_to_filledpoly(cu, dispbase);
@@ -695,8 +718,9 @@ static float displist_calc_taper(Depsgraph *depsgraph, Scene *scene, Object *tap
 {
   DispList *dl;
 
-  if (taperobj == NULL || taperobj->type != OB_CURVE)
+  if (taperobj == NULL || taperobj->type != OB_CURVE) {
     return 1.0;
+  }
 
   dl = taperobj->runtime.curve_cache ? taperobj->runtime.curve_cache->disp.first : NULL;
   if (dl == NULL) {
@@ -718,8 +742,9 @@ static float displist_calc_taper(Depsgraph *depsgraph, Scene *scene, Object *tap
           if (a > 0) {
             float fac1 = (fp[-3] - minx) / dx;
             float fac2 = (fp[0] - minx) / dx;
-            if (fac1 != fac2)
+            if (fac1 != fac2) {
               return fp[1] * (fac1 - fac) / (fac1 - fac2) + fp[-2] * (fac - fac2) / (fac1 - fac2);
+            }
           }
           return fp[1];
         }
@@ -741,8 +766,9 @@ float BKE_displist_calc_taper(
 
 void BKE_displist_make_mball(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  if (!ob || ob->type != OB_MBALL)
+  if (!ob || ob->type != OB_MBALL) {
     return;
+  }
 
   if (ob == BKE_mball_basis_find(scene, ob)) {
     if (ob->runtime.curve_cache) {
@@ -783,22 +809,27 @@ static ModifierData *curve_get_tessellate_point(Scene *scene,
   ModifierData *pretessellatePoint;
   int required_mode;
 
-  if (use_render_resolution)
+  if (use_render_resolution) {
     required_mode = eModifierMode_Render;
-  else
+  }
+  else {
     required_mode = eModifierMode_Realtime;
+  }
 
-  if (editmode)
+  if (editmode) {
     required_mode |= eModifierMode_Editmode;
+  }
 
   pretessellatePoint = NULL;
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-    if (!modifier_isEnabled(scene, md, required_mode))
+    if (!modifier_isEnabled(scene, md, required_mode)) {
       continue;
-    if (mti->type == eModifierTypeType_Constructive)
+    }
+    if (mti->type == eModifierTypeType_Constructive) {
       return pretessellatePoint;
+    }
 
     if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
       pretessellatePoint = md;
@@ -837,21 +868,24 @@ static void curve_calc_modifiers_pre(Depsgraph *depsgraph,
 
   modifiers_clearErrors(ob);
 
-  if (editmode)
+  if (editmode) {
     app_flag |= MOD_APPLY_USECACHE;
+  }
   if (use_render_resolution) {
     app_flag |= MOD_APPLY_RENDER;
     required_mode = eModifierMode_Render;
   }
-  else
+  else {
     required_mode = eModifierMode_Realtime;
+  }
 
   const ModifierEvalContext mectx = {depsgraph, ob, app_flag};
 
   pretessellatePoint = curve_get_tessellate_point(scene, ob, use_render_resolution, editmode);
 
-  if (editmode)
+  if (editmode) {
     required_mode |= eModifierMode_Editmode;
+  }
 
   if (!editmode) {
     keyVerts = BKE_key_evaluate_object(ob, &numElems);
@@ -872,10 +906,12 @@ static void curve_calc_modifiers_pre(Depsgraph *depsgraph,
     for (; md; md = md->next) {
       const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-      if (!modifier_isEnabled(scene, md, required_mode))
+      if (!modifier_isEnabled(scene, md, required_mode)) {
         continue;
-      if (mti->type != eModifierTypeType_OnlyDeform)
+      }
+      if (mti->type != eModifierTypeType_OnlyDeform) {
         continue;
+      }
 
       if (!deformedVerts) {
         deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
@@ -883,8 +919,9 @@ static void curve_calc_modifiers_pre(Depsgraph *depsgraph,
 
       mti->deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
 
-      if (md == pretessellatePoint)
+      if (md == pretessellatePoint) {
         break;
+      }
     }
   }
 
@@ -892,11 +929,13 @@ static void curve_calc_modifiers_pre(Depsgraph *depsgraph,
     BK_curve_nurbs_vertexCos_apply(nurb, deformedVerts);
     MEM_freeN(deformedVerts);
   }
-  if (keyVerts) /* these are not passed through modifier stack */
+  if (keyVerts) { /* these are not passed through modifier stack */
     BKE_curve_nurbs_keyVertexTilts_apply(nurb, keyVerts);
+  }
 
-  if (keyVerts)
+  if (keyVerts) {
     MEM_freeN(keyVerts);
+  }
 }
 
 static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
@@ -906,8 +945,9 @@ static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
 
   *totvert = 0;
 
-  for (dl = dispbase->first; dl; dl = dl->next)
+  for (dl = dispbase->first; dl; dl = dl->next) {
     *totvert += (dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr;
+  }
 
   allverts = MEM_mallocN((*totvert) * sizeof(float) * 3, "displist_get_allverts allverts");
   fp = (float *)allverts;
@@ -957,8 +997,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
     app_flag |= MOD_APPLY_RENDER;
     required_mode = eModifierMode_Render;
   }
-  else
+  else {
     required_mode = eModifierMode_Realtime;
+  }
 
   const ModifierEvalContext mectx_deform = {
       depsgraph, ob, editmode ? app_flag | MOD_APPLY_USECACHE : app_flag};
@@ -967,8 +1008,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   pretessellatePoint = curve_get_tessellate_point(scene, ob, use_render_resolution, editmode);
 
-  if (editmode)
+  if (editmode) {
     required_mode |= eModifierMode_Editmode;
+  }
 
   if (pretessellatePoint) {
     md = pretessellatePoint->next;
@@ -981,8 +1023,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-    if (!modifier_isEnabled(scene, md, required_mode))
+    if (!modifier_isEnabled(scene, md, required_mode)) {
       continue;
+    }
 
     /* If we need normals, no choice, have to convert to mesh now. */
     if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md) && modified == NULL) {
@@ -1060,8 +1103,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       if (mesh_applied) {
         /* Modifier returned a new derived mesh */
 
-        if (modified && modified != mesh_applied) /* Modifier  */
+        if (modified && modified != mesh_applied) { /* Modifier  */
           BKE_id_free(NULL, modified);
+        }
         modified = mesh_applied;
       }
     }
@@ -1132,8 +1176,9 @@ static void displist_surf_indices(DispList *dl)
 
   for (a = 0; a < dl->parts; a++) {
 
-    if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4) == 0)
+    if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4) == 0) {
       break;
+    }
 
     for (; b < dl->nr; b++, index += 4) {
       index[0] = p1;
@@ -1177,10 +1222,12 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 
   orco = MEM_callocN(sizeof(float) * 3 * totvert, "dm orco");
 
-  if (orcodm->getNumVerts(orcodm) == totvert)
+  if (orcodm->getNumVerts(orcodm) == totvert) {
     orcodm->getVertCos(orcodm, orco);
-  else
+  }
+  else {
     dm->getVertCos(dm, orco);
+  }
 
   for (a = 0; a < totvert; a++) {
     float *co = orco[a];
@@ -1193,8 +1240,9 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
     memcpy(layerorco, orco, sizeof(float) * totvert);
     MEM_freeN(orco);
   }
-  else
+  else {
     DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
+  }
 }
 #endif
 
@@ -1223,15 +1271,17 @@ static void curve_calc_orcodm(Depsgraph *depsgraph,
     app_flag |= MOD_APPLY_RENDER;
     required_mode = eModifierMode_Render;
   }
-  else
+  else {
     required_mode = eModifierMode_Realtime;
+  }
 
   const ModifierEvalContext mectx = {depsgraph, ob, app_flag};
 
   pretessellatePoint = curve_get_tessellate_point(scene, ob, use_render_resolution, editmode);
 
-  if (editmode)
+  if (editmode) {
     required_mode |= eModifierMode_Editmode;
+  }
 
   if (pretessellatePoint) {
     md = pretessellatePoint->next;
@@ -1251,10 +1301,12 @@ static void curve_calc_orcodm(Depsgraph *depsgraph,
 
     md->scene = scene;
 
-    if (!modifier_isEnabled(scene, md, required_mode))
+    if (!modifier_isEnabled(scene, md, required_mode)) {
       continue;
-    if (mti->type != eModifierTypeType_Constructive)
+    }
+    if (mti->type != eModifierTypeType_Constructive) {
       continue;
+    }
 
     ndm = modwrap_applyModifier(md, &mectx, orcodm);
 
@@ -1297,18 +1349,21 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
     BKE_nurbList_duplicate(&nubase, &cu->nurb);
   }
 
-  if (!for_orco)
+  if (!for_orco) {
     curve_calc_modifiers_pre(depsgraph, scene, ob, &nubase, for_render, use_render_resolution);
+  }
 
   for (nu = nubase.first; nu; nu = nu->next) {
     if ((for_render || nu->hide == 0) && BKE_nurb_check_valid_uv(nu)) {
       int resolu = nu->resolu, resolv = nu->resolv;
 
       if (use_render_resolution) {
-        if (cu->resolu_ren)
+        if (cu->resolu_ren) {
           resolu = cu->resolu_ren;
-        if (cu->resolv_ren)
+        }
+        if (cu->resolv_ren) {
           resolv = cu->resolv_ren;
+        }
       }
 
       if (nu->pntsv == 1) {
@@ -1328,10 +1383,12 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
         dl->rt = nu->flag & ~CU_2D;
 
         data = dl->verts;
-        if (nu->flagu & CU_NURB_CYCLIC)
+        if (nu->flagu & CU_NURB_CYCLIC) {
           dl->type = DL_POLY;
-        else
+        }
+        else {
           dl->type = DL_SEGM;
+        }
 
         BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, 3 * sizeof(float));
       }
@@ -1354,10 +1411,12 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
 
         dl->parts = (nu->pntsu * resolu); /* in reverse, because makeNurbfaces works that way */
         dl->nr = (nu->pntsv * resolv);
-        if (nu->flagv & CU_NURB_CYCLIC)
+        if (nu->flagv & CU_NURB_CYCLIC) {
           dl->flag |= DL_CYCL_U; /* reverse too! */
-        if (nu->flagu & CU_NURB_CYCLIC)
+        }
+        if (nu->flagu & CU_NURB_CYCLIC) {
           dl->flag |= DL_CYCL_V;
+        }
 
         BKE_nurb_makeFaces(nu, data, 0, resolu, resolv);
 
@@ -1610,8 +1669,9 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
   Curve *cu = ob->data;
 
   /* we do allow duplis... this is only displist on curve level */
-  if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT))
+  if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
     return;
+  }
 
   if (ob->type == OB_SURF) {
     BKE_displist_make_surf(
@@ -1628,8 +1688,9 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
      * was needed before and only not needed for orco calculation.
      */
     if (!for_orco) {
-      if (ob->runtime.curve_cache->path)
+      if (ob->runtime.curve_cache->path) {
         free_path(ob->runtime.curve_cache->path);
+      }
       ob->runtime.curve_cache->path = NULL;
     }
 
@@ -1640,8 +1701,9 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
       BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
     }
 
-    if (!for_orco)
+    if (!for_orco) {
       curve_calc_modifiers_pre(depsgraph, scene, ob, &nubase, for_render, use_render_resolution);
+    }
 
     BKE_curve_bevelList_make(ob, &nubase, use_render_resolution);
 
@@ -1672,13 +1734,16 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
             dl->verts = MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
             BLI_addtail(dispbase, dl);
 
-            if (bl->poly != -1)
+            if (bl->poly != -1) {
               dl->type = DL_POLY;
-            else
+            }
+            else {
               dl->type = DL_SEGM;
+            }
 
-            if (dl->type == DL_SEGM)
+            if (dl->type == DL_SEGM) {
               dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
+            }
 
             dl->parts = 1;
             dl->nr = bl->nr;
@@ -1767,21 +1832,26 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
                   if (cu->flag & CU_MAP_TAPER) {
                     len = (steps - 3) + firstblend + lastblend;
 
-                    if (a == 0)
+                    if (a == 0) {
                       taper_fac = 0.0f;
-                    else if (a == steps - 1)
+                    }
+                    else if (a == steps - 1) {
                       taper_fac = 1.0f;
-                    else
+                    }
+                    else {
                       taper_fac = ((float)a - (1.0f - firstblend)) / len;
+                    }
                   }
                   else {
                     len = bl->nr - 1;
                     taper_fac = (float)i / len;
 
-                    if (a == 0)
+                    if (a == 0) {
                       taper_fac += (1.0f - firstblend) / len;
-                    else if (a == steps - 1)
+                    }
+                    else if (a == steps - 1) {
                       taper_fac -= (1.0f - lastblend) / len;
+                    }
                   }
 
                   fac = displist_calc_taper(depsgraph, scene, cu->taperobj, taper_fac);
@@ -1867,8 +1937,9 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   /* The same check for duplis as in do_makeDispListCurveTypes.
    * Happens when curve used for constraint/bevel was converted to mesh.
    * check there is still needed for render displist and orco displists. */
-  if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT))
+  if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
     return;
+  }
 
   BKE_object_free_derived_caches(ob);
 
@@ -1957,8 +2028,9 @@ static void boundbox_displist_object(Object *ob)
      */
 
     /* object's BB is calculated from final displist */
-    if (ob->runtime.bb == NULL)
+    if (ob->runtime.bb == NULL) {
       ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+    }
 
     if (ob->runtime.mesh_eval) {
       BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);

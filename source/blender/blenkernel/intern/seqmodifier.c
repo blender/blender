@@ -107,18 +107,22 @@ static void modifier_init_handle(void *handle_v, int start_line, int tot_line, v
   handle->apply_callback = init_data->apply_callback;
   handle->user_data = init_data->user_data;
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     handle->rect = (unsigned char *)ibuf->rect + offset;
+  }
 
-  if (ibuf->rect_float)
+  if (ibuf->rect_float) {
     handle->rect_float = ibuf->rect_float + offset;
+  }
 
   if (mask) {
-    if (mask->rect)
+    if (mask->rect) {
       handle->mask_rect = (unsigned char *)mask->rect + offset;
+    }
 
-    if (mask->rect_float)
+    if (mask->rect_float) {
       handle->mask_rect_float = mask->rect_float + offset;
+    }
   }
   else {
     handle->mask_rect = NULL;
@@ -450,10 +454,12 @@ static void hue_correct_apply_threaded(int width,
       float pixel[3], result[3], mask[3] = {1.0f, 1.0f, 1.0f};
       float hsv[3], f;
 
-      if (rect_float)
+      if (rect_float) {
         copy_v3_v3(pixel, rect_float + pixel_index);
-      else
+      }
+      else {
         rgb_uchar_to_float(pixel, rect + pixel_index);
+      }
 
       rgb_to_hsv(pixel[0], pixel[1], pixel[2], hsv, hsv + 1, hsv + 2);
 
@@ -475,19 +481,23 @@ static void hue_correct_apply_threaded(int width,
       /* convert back to rgb */
       hsv_to_rgb(hsv[0], hsv[1], hsv[2], result, result + 1, result + 2);
 
-      if (mask_rect_float)
+      if (mask_rect_float) {
         copy_v3_v3(mask, mask_rect_float + pixel_index);
-      else if (mask_rect)
+      }
+      else if (mask_rect) {
         rgb_uchar_to_float(mask, mask_rect + pixel_index);
+      }
 
       result[0] = pixel[0] * (1.0f - mask[0]) + result[0] * mask[0];
       result[1] = pixel[1] * (1.0f - mask[1]) + result[1] * mask[1];
       result[2] = pixel[2] * (1.0f - mask[2]) + result[2] * mask[2];
 
-      if (rect_float)
+      if (rect_float) {
         copy_v3_v3(rect_float + pixel_index, result);
-      else
+      }
+      else {
         rgb_float_to_uchar(rect + pixel_index, result);
+      }
     }
   }
 }
@@ -584,8 +594,9 @@ static void brightcontrast_apply_threaded(int width,
 
             pixel[c] = pixel[c] * (1.0f - m[c]) + v * m[c];
           }
-          else
+          else {
             pixel[c] = v;
+          }
         }
       }
     }
@@ -625,11 +636,13 @@ static void maskmodifier_apply_threaded(int width,
 {
   int x, y;
 
-  if (rect && !mask_rect)
+  if (rect && !mask_rect) {
     return;
+  }
 
-  if (rect_float && !mask_rect_float)
+  if (rect_float && !mask_rect_float) {
     return;
+  }
 
   for (y = 0; y < height; y++) {
     for (x = 0; x < width; x++) {
@@ -655,8 +668,9 @@ static void maskmodifier_apply_threaded(int width,
         /* float buffers are premultiplied, so need to premul color
          * as well to make it easy to alpha-over masted strip.
          */
-        for (c = 0; c < 4; c++)
+        for (c = 0; c < 4; c++) {
           pixel[c] = pixel[c] * mask;
+        }
       }
     }
   }
@@ -928,25 +942,29 @@ SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name,
   smd->type = type;
   smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
 
-  if (!name || !name[0])
+  if (!name || !name[0]) {
     BLI_strncpy(smd->name, smti->name, sizeof(smd->name));
-  else
+  }
+  else {
     BLI_strncpy(smd->name, name, sizeof(smd->name));
+  }
 
   BLI_addtail(&seq->modifiers, smd);
 
   BKE_sequence_modifier_unique_name(seq, smd);
 
-  if (smti->init_data)
+  if (smti->init_data) {
     smti->init_data(smd);
+  }
 
   return smd;
 }
 
 bool BKE_sequence_modifier_remove(Sequence *seq, SequenceModifierData *smd)
 {
-  if (BLI_findindex(&seq->modifiers, smd) == -1)
+  if (BLI_findindex(&seq->modifiers, smd) == -1) {
     return false;
+  }
 
   BLI_remlink(&seq->modifiers, smd);
   BKE_sequence_modifier_free(smd);
@@ -1011,12 +1029,14 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
     const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
     /* could happen if modifier is being removed or not exists in current version of blender */
-    if (!smti)
+    if (!smti) {
       continue;
+    }
 
     /* modifier is muted, do nothing */
-    if (smd->flag & SEQUENCE_MODIFIER_MUTE)
+    if (smd->flag & SEQUENCE_MODIFIER_MUTE) {
       continue;
+    }
 
     if (smti->apply) {
       int frame_offset;
@@ -1029,13 +1049,15 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
 
       ImBuf *mask = modifier_mask_get(smd, context, cfra, frame_offset, ibuf->rect_float != NULL);
 
-      if (processed_ibuf == ibuf)
+      if (processed_ibuf == ibuf) {
         processed_ibuf = IMB_dupImBuf(ibuf);
+      }
 
       smti->apply(smd, processed_ibuf, mask);
 
-      if (mask)
+      if (mask) {
         IMB_freeImBuf(mask);
+      }
     }
   }
 
@@ -1056,8 +1078,9 @@ void BKE_sequence_modifier_list_copy(Sequence *seqn, Sequence *seq)
 
     smdn = MEM_dupallocN(smd);
 
-    if (smti && smti->copy_data)
+    if (smti && smti->copy_data) {
       smti->copy_data(smdn, smd);
+    }
 
     smdn->next = smdn->prev = NULL;
     BLI_addtail(&seqn->modifiers, smdn);

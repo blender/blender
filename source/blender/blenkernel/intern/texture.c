@@ -101,24 +101,30 @@ void BKE_texture_mapping_init(TexMapping *texmap)
     zero_m4(proj);
     proj[3][3] = 1.0f;
 
-    if (texmap->projx != PROJ_N)
+    if (texmap->projx != PROJ_N) {
       proj[texmap->projx - 1][0] = 1.0f;
-    if (texmap->projy != PROJ_N)
+    }
+    if (texmap->projy != PROJ_N) {
       proj[texmap->projy - 1][1] = 1.0f;
-    if (texmap->projz != PROJ_N)
+    }
+    if (texmap->projz != PROJ_N) {
       proj[texmap->projz - 1][2] = 1.0f;
+    }
 
     /* scale */
     copy_v3_v3(size, texmap->size);
 
     if (ELEM(texmap->type, TEXMAP_TYPE_TEXTURE, TEXMAP_TYPE_NORMAL)) {
       /* keep matrix invertible */
-      if (fabsf(size[0]) < 1e-5f)
+      if (fabsf(size[0]) < 1e-5f) {
         size[0] = signf(size[0]) * 1e-5f;
-      if (fabsf(size[1]) < 1e-5f)
+      }
+      if (fabsf(size[1]) < 1e-5f) {
         size[1] = signf(size[1]) * 1e-5f;
-      if (fabsf(size[2]) < 1e-5f)
+      }
+      if (fabsf(size[2]) < 1e-5f) {
         size[2] = signf(size[2]) * 1e-5f;
+      }
     }
 
     size_to_mat4(smat, texmap->size);
@@ -464,8 +470,9 @@ Tex *BKE_texture_localize(Tex *tex)
 
   /* image texture: BKE_texture_free also doesn't decrease */
 
-  if (texn->coba)
+  if (texn->coba) {
     texn->coba = MEM_dupallocN(texn->coba);
+  }
 
   texn->preview = NULL;
 
@@ -492,8 +499,9 @@ Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
 
   if (linestyle) {
     mtex = linestyle->mtex[(int)(linestyle->texact)];
-    if (mtex)
+    if (mtex) {
       tex = mtex->tex;
+    }
   }
 
   return tex;
@@ -503,8 +511,9 @@ void set_current_linestyle_texture(FreestyleLineStyle *linestyle, Tex *newtex)
 {
   int act = linestyle->texact;
 
-  if (linestyle->mtex[act] && linestyle->mtex[act]->tex)
+  if (linestyle->mtex[act] && linestyle->mtex[act]->tex) {
     id_us_min(&linestyle->mtex[act]->tex->id);
+  }
 
   if (newtex) {
     if (!linestyle->mtex[act]) {
@@ -526,18 +535,21 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
   switch (GS(id->name)) {
     case ID_LS:
       *mtex_ar = ((FreestyleLineStyle *)id)->mtex;
-      if (act)
+      if (act) {
         *act = (((FreestyleLineStyle *)id)->texact);
+      }
       break;
     case ID_PA:
       *mtex_ar = ((ParticleSettings *)id)->mtex;
-      if (act)
+      if (act) {
         *act = (((ParticleSettings *)id)->texact);
+      }
       break;
     default:
       *mtex_ar = NULL;
-      if (act)
+      if (act) {
         *act = 0;
+      }
       return false;
   }
 
@@ -546,10 +558,12 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 
 void set_active_mtex(ID *id, short act)
 {
-  if (act < 0)
+  if (act < 0) {
     act = 0;
-  else if (act >= MAX_MTEX)
+  }
+  else if (act >= MAX_MTEX) {
     act = MAX_MTEX - 1;
+  }
 
   switch (GS(id->name)) {
     case ID_LS:
@@ -570,8 +584,9 @@ Tex *give_current_brush_texture(Brush *br)
 
 void set_current_brush_texture(Brush *br, Tex *newtex)
 {
-  if (br->mtex.tex)
+  if (br->mtex.tex) {
     id_us_min(&br->mtex.tex->id);
+  }
 
   if (newtex) {
     br->mtex.tex = newtex;
@@ -584,12 +599,14 @@ Tex *give_current_particle_texture(ParticleSettings *part)
   MTex *mtex = NULL;
   Tex *tex = NULL;
 
-  if (!part)
+  if (!part) {
     return NULL;
+  }
 
   mtex = part->mtex[(int)(part->texact)];
-  if (mtex)
+  if (mtex) {
     tex = mtex->tex;
+  }
 
   return tex;
 }
@@ -598,8 +615,9 @@ void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
 {
   int act = part->texact;
 
-  if (part->mtex[act] && part->mtex[act]->tex)
+  if (part->mtex[act] && part->mtex[act]->tex) {
     id_us_min(&part->mtex[act]->tex->id);
+  }
 
   if (newtex) {
     if (!part->mtex[act]) {

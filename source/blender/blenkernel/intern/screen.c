@@ -99,8 +99,9 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
   SpaceType *st;
 
   for (st = spacetypes.first; st; st = st->next) {
-    if (st->spaceid == spaceid)
+    if (st->spaceid == spaceid) {
       return st;
+    }
   }
   return NULL;
 }
@@ -109,9 +110,11 @@ ARegionType *BKE_regiontype_from_id_or_first(SpaceType *st, int regionid)
 {
   ARegionType *art;
 
-  for (art = st->regiontypes.first; art; art = art->next)
-    if (art->regionid == regionid)
+  for (art = st->regiontypes.first; art; art = art->next) {
+    if (art->regionid == regionid) {
       return art;
+    }
+  }
 
   printf(
       "Error, region type %d missing in - name:\"%s\", id:%d\n", regionid, st->name, st->spaceid);
@@ -166,13 +169,15 @@ void BKE_spacedata_freelist(ListBase *lb)
     SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
     /* free regions for pushed spaces */
-    for (ar = sl->regionbase.first; ar; ar = ar->next)
+    for (ar = sl->regionbase.first; ar; ar = ar->next) {
       BKE_area_region_free(st, ar);
+    }
 
     BLI_freelistN(&sl->regionbase);
 
-    if (st && st->free)
+    if (st && st->free) {
       st->free(sl);
+    }
   }
 
   BLI_freelistN(lb);
@@ -235,8 +240,9 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
     }
   }
 
-  if (ar->v2d.tab_offset)
+  if (ar->v2d.tab_offset) {
     newar->v2d.tab_offset = MEM_dupallocN(ar->v2d.tab_offset);
+  }
 
   panel_list_copy(&newar->panels, &ar->panels);
 
@@ -291,10 +297,12 @@ void BKE_spacedata_draw_locks(int set)
     ARegionType *art;
 
     for (art = st->regiontypes.first; art; art = art->next) {
-      if (set)
+      if (set) {
         art->do_lock = art->lock;
-      else
+      }
+      else {
         art->do_lock = false;
+      }
     }
   }
 }
@@ -398,14 +406,17 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
   if (st) {
     ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
 
-    if (art && art->free)
+    if (art && art->free) {
       art->free(ar);
+    }
 
-    if (ar->regiondata)
+    if (ar->regiondata) {
       printf("regiondata free error\n");
+    }
   }
-  else if (ar->type && ar->type->free)
+  else if (ar->type && ar->type->free) {
     ar->type->free(ar);
+  }
 
   if (ar->v2d.tab_offset) {
     MEM_freeN(ar->v2d.tab_offset);
@@ -447,8 +458,9 @@ void BKE_screen_area_free(ScrArea *sa)
   SpaceType *st = BKE_spacetype_from_id(sa->spacetype);
   ARegion *ar;
 
-  for (ar = sa->regionbase.first; ar; ar = ar->next)
+  for (ar = sa->regionbase.first; ar; ar = ar->next) {
     BKE_area_region_free(st, ar);
+  }
 
   MEM_SAFE_FREE(sa->global);
   BLI_freelistN(&sa->regionbase);
@@ -477,8 +489,9 @@ void BKE_screen_free(bScreen *sc)
 
   /* No animdata here. */
 
-  for (ar = sc->regionbase.first; ar; ar = ar->next)
+  for (ar = sc->regionbase.first; ar; ar = ar->next) {
     BKE_area_region_free(NULL, ar);
+  }
 
   BLI_freelistN(&sc->regionbase);
 
@@ -543,24 +556,30 @@ void BKE_screen_remove_double_scrverts(bScreen *sc)
   /* replace pointers in edges and faces */
   se = sc->edgebase.first;
   while (se) {
-    if (se->v1->newv)
+    if (se->v1->newv) {
       se->v1 = se->v1->newv;
-    if (se->v2->newv)
+    }
+    if (se->v2->newv) {
       se->v2 = se->v2->newv;
+    }
     /* edges changed: so.... */
     BKE_screen_sort_scrvert(&(se->v1), &(se->v2));
     se = se->next;
   }
   sa = sc->areabase.first;
   while (sa) {
-    if (sa->v1->newv)
+    if (sa->v1->newv) {
       sa->v1 = sa->v1->newv;
-    if (sa->v2->newv)
+    }
+    if (sa->v2->newv) {
       sa->v2 = sa->v2->newv;
-    if (sa->v3->newv)
+    }
+    if (sa->v3->newv) {
       sa->v3 = sa->v3->newv;
-    if (sa->v4->newv)
+    }
+    if (sa->v4->newv) {
       sa->v4 = sa->v4->newv;
+    }
     sa = sa->next;
   }
 
@@ -606,25 +625,33 @@ void BKE_screen_remove_unused_scredges(bScreen *sc)
   sa = sc->areabase.first;
   while (sa) {
     se = BKE_screen_find_edge(sc, sa->v1, sa->v2);
-    if (se == NULL)
+    if (se == NULL) {
       printf("error: area %d edge 1 doesn't exist\n", a);
-    else
+    }
+    else {
       se->flag = 1;
+    }
     se = BKE_screen_find_edge(sc, sa->v2, sa->v3);
-    if (se == NULL)
+    if (se == NULL) {
       printf("error: area %d edge 2 doesn't exist\n", a);
-    else
+    }
+    else {
       se->flag = 1;
+    }
     se = BKE_screen_find_edge(sc, sa->v3, sa->v4);
-    if (se == NULL)
+    if (se == NULL) {
       printf("error: area %d edge 3 doesn't exist\n", a);
-    else
+    }
+    else {
       se->flag = 1;
+    }
     se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
-    if (se == NULL)
+    if (se == NULL) {
       printf("error: area %d edge 4 doesn't exist\n", a);
-    else
+    }
+    else {
       se->flag = 1;
+    }
     sa = sa->next;
     a++;
   }
@@ -682,8 +709,9 @@ ARegion *BKE_area_find_region_type(const ScrArea *sa, int region_type)
 {
   if (sa) {
     for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar->regiontype == region_type)
+      if (ar->regiontype == region_type) {
         return ar;
+      }
     }
   }
 
@@ -793,8 +821,9 @@ void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
       for (ar = v3d->regionbase.first; ar; ar = ar->next) {
         if (ar->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d = ar->regiondata;
-          if (rv3d->persp == RV3D_CAMOB)
+          if (rv3d->persp == RV3D_CAMOB) {
             rv3d->persp = RV3D_PERSP;
+          }
         }
       }
     }

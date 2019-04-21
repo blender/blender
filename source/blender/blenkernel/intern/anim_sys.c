@@ -120,8 +120,9 @@ bool id_type_can_have_animdata(const short id_type)
 bool id_can_have_animdata(const ID *id)
 {
   /* sanity check */
-  if (id == NULL)
+  if (id == NULL) {
     return false;
+  }
 
   return id_type_can_have_animdata(GS(id->name));
 }
@@ -140,8 +141,9 @@ AnimData *BKE_animdata_from_id(ID *id)
     IdAdtTemplate *iat = (IdAdtTemplate *)id;
     return iat->adt;
   }
-  else
+  else {
     return NULL;
+  }
 }
 
 /* Add AnimData to the given ID-block. In order for this to work, we assume that
@@ -170,8 +172,9 @@ AnimData *BKE_animdata_add_id(ID *id)
 
     return iat->adt;
   }
-  else
+  else {
     return NULL;
+  }
 }
 
 /* Action Setter --------------------------------------- */
@@ -198,8 +201,9 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
   }
 
   /* manage usercount for current action */
-  if (adt->action)
+  if (adt->action) {
     id_us_min((ID *)adt->action);
+  }
 
   /* assume that AnimData's action can in fact be edited... */
   if (act) {
@@ -247,11 +251,13 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
     if (adt) {
       if (do_id_user) {
         /* unlink action (don't free, as it's in its own list) */
-        if (adt->action)
+        if (adt->action) {
           id_us_min(&adt->action->id);
+        }
         /* same goes for the temporarily displaced action */
-        if (adt->tmpact)
+        if (adt->tmpact) {
           id_us_min(&adt->tmpact->id);
+        }
       }
 
       /* free nla data */
@@ -288,8 +294,9 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
   const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
 
   /* sanity check before duplicating struct */
-  if (adt == NULL)
+  if (adt == NULL) {
     return NULL;
+  }
   dadt = MEM_dupallocN(adt);
 
   /* make a copy of action - at worst, user has to delete copies... */
@@ -325,8 +332,9 @@ bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 {
   AnimData *adt;
 
-  if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
+  if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name))) {
     return false;
+  }
 
   BKE_animdata_free(id_to, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 
@@ -364,8 +372,9 @@ void BKE_animdata_merge_copy(
   AnimData *dst = BKE_animdata_from_id(dst_id);
 
   /* sanity checks */
-  if (ELEM(NULL, dst, src))
+  if (ELEM(NULL, dst, src)) {
     return;
+  }
 
   // TODO: we must unset all "tweakmode" flags
   if ((src->flag & ADT_NLA_EDIT_ON) || (dst->flag & ADT_NLA_EDIT_ON)) {
@@ -501,10 +510,12 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
       /* perform the migration now */
       action_groups_remove_channel(srcAct, fcu);
 
-      if (agrp)
+      if (agrp) {
         action_groups_add_channel(dstAct, agrp, fcu);
-      else
+      }
+      else {
         BLI_addtail(&dstAct->curves, fcu);
+      }
     }
   }
 
@@ -520,10 +531,12 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
         /* if group is empty and tagged, then we can remove as this operation
          * moved out all the channels that were formerly here
          */
-        if (BLI_listbase_is_empty(&agrp->channels))
+        if (BLI_listbase_is_empty(&agrp->channels)) {
           BLI_freelinkN(&srcAct->groups, agrp);
-        else
+        }
+        else {
           agrp->flag &= ~AGRP_TEMP;
+        }
       }
     }
   }
@@ -540,8 +553,9 @@ void BKE_animdata_separate_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
 
   /* sanity checks */
   if (ELEM(NULL, srcID, dstID)) {
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG, "no source or destination ID to separate AnimData with");
+    }
     return;
   }
 
@@ -550,8 +564,9 @@ void BKE_animdata_separate_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
   dstAdt = BKE_animdata_add_id(dstID);
 
   if (ELEM(NULL, srcAdt, dstAdt)) {
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG, "no AnimData for this pair of ID's");
+    }
     return;
   }
 
@@ -868,8 +883,9 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
 
   /* if no action, no need to proceed */
   if (ELEM(NULL, owner_id, old_path)) {
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       CLOG_WARN(&LOG, "early abort");
+    }
     return old_path;
   }
 
@@ -892,11 +908,13 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
   }
 
   /* fix given path */
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     printf("%s | %s  | oldpath = %p ", oldN, newN, old_path);
+  }
   result = rna_path_rename_fix(owner_id, prefix, oldN, newN, old_path, verify_paths);
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     printf("path rename result = %p\n", result);
+  }
 
   /* free the temp names */
   MEM_freeN(oldN);
@@ -926,8 +944,9 @@ void BKE_action_fix_paths_rename(ID *owner_id,
   char *oldN, *newN;
 
   /* if no action, no need to proceed */
-  if (ELEM(NULL, owner_id, act))
+  if (ELEM(NULL, owner_id, act)) {
     return;
+  }
 
   /* Name sanitation logic - copied from BKE_animdata_fix_paths_rename() */
   if ((oldName != NULL) && (newName != NULL)) {
@@ -1031,8 +1050,9 @@ static bool fcurves_path_remove_fix(const char *prefix, ListBase *curves)
 {
   FCurve *fcu, *fcn;
   bool any_removed = false;
-  if (!prefix)
+  if (!prefix) {
     return any_removed;
+  }
 
   /* we need to check every curve... */
   for (fcu = curves->first; fcu; fcu = fcn) {
@@ -1394,8 +1414,9 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
   KS_Path *ksp;
 
   /* sanity checks */
-  if (ELEM(NULL, ks, rna_path, id))
+  if (ELEM(NULL, ks, rna_path, id)) {
     return NULL;
+  }
 
   /* loop over paths in the current KeyingSet, finding the first one where all settings match
    * (i.e. the first one where none of the checks fail and equal 0)
@@ -1404,16 +1425,19 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
     short eq_id = 1, eq_path = 1, eq_index = 1, eq_group = 1;
 
     /* id */
-    if (id != ksp->id)
+    if (id != ksp->id) {
       eq_id = 0;
+    }
 
     /* path */
-    if ((ksp->rna_path == NULL) || !STREQ(rna_path, ksp->rna_path))
+    if ((ksp->rna_path == NULL) || !STREQ(rna_path, ksp->rna_path)) {
       eq_path = 0;
+    }
 
     /* index - need to compare whole-array setting too... */
-    if (ksp->array_index != array_index)
+    if (ksp->array_index != array_index) {
       eq_index = 0;
+    }
 
     /* group */
     if (group_name) {
@@ -1421,8 +1445,9 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
     }
 
     /* if all aspects are ok, return */
-    if (eq_id && eq_path && eq_index && eq_group)
+    if (eq_id && eq_path && eq_index && eq_group) {
       return ksp;
+    }
   }
 
   /* none found */
@@ -1490,8 +1515,9 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
 
   /* don't add if there is already a matching KS_Path in the KeyingSet */
   if (BKE_keyingset_find_path(ks, id, group_name, rna_path, array_index, groupmode)) {
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG, "destination already exists in Keying Set");
+    }
     return NULL;
   }
 
@@ -1500,14 +1526,17 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
 
   /* just store absolute info */
   ksp->id = id;
-  if (group_name)
+  if (group_name) {
     BLI_strncpy(ksp->group, group_name, sizeof(ksp->group));
-  else
+  }
+  else {
     ksp->group[0] = '\0';
+  }
 
   /* store additional info for relative paths (just in case user makes the set relative) */
-  if (id)
+  if (id) {
     ksp->idtype = GS(id->name);
+  }
 
   /* just copy path info */
   /* TODO: should array index be checked too? */
@@ -1529,12 +1558,14 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
 void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
 {
   /* sanity check */
-  if (ELEM(NULL, ks, ksp))
+  if (ELEM(NULL, ks, ksp)) {
     return;
+  }
 
   /* free RNA-path info */
-  if (ksp->rna_path)
+  if (ksp->rna_path) {
     MEM_freeN(ksp->rna_path);
+  }
 
   /* free path itself */
   BLI_freelinkN(&ks->paths, ksp);
@@ -1551,8 +1582,9 @@ void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
   for (ksn = newlist->first; ksn; ksn = ksn->next) {
     BLI_duplicatelist(&ksn->paths, &ksn->paths);
 
-    for (kspn = ksn->paths.first; kspn; kspn = kspn->next)
+    for (kspn = ksn->paths.first; kspn; kspn = kspn->next) {
       kspn->rna_path = MEM_dupallocN(kspn->rna_path);
+    }
   }
 }
 
@@ -1564,8 +1596,9 @@ void BKE_keyingset_free(KeyingSet *ks)
   KS_Path *ksp, *kspn;
 
   /* sanity check */
-  if (ks == NULL)
+  if (ks == NULL) {
     return;
+  }
 
   /* free each path as we go to avoid looping twice */
   for (ksp = ks->paths.first; ksp; ksp = kspn) {
@@ -1580,8 +1613,9 @@ void BKE_keyingsets_free(ListBase *list)
   KeyingSet *ks, *ksn;
 
   /* sanity check */
-  if (list == NULL)
+  if (list == NULL) {
     return;
+  }
 
   /* loop over KeyingSets freeing them
    * - BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
@@ -1874,8 +1908,9 @@ static void animsys_evaluate_drivers(PointerRNA *ptr, AnimData *adt, float ctime
         }
 
         /* set error-flag if evaluation failed */
-        if (ok == 0)
+        if (ok == 0) {
           driver->flag |= DRIVER_FLAG_INVALID;
+        }
       }
     }
   }
@@ -1893,10 +1928,12 @@ static void action_idcode_patch_check(ID *id, bAction *act)
   int idcode = 0;
 
   /* just in case */
-  if (ELEM(NULL, id, act))
+  if (ELEM(NULL, id, act)) {
     return;
-  else
+  }
+  else {
     idcode = GS(id->name);
+  }
 
   /* the actual checks... hopefully not too much of a performance hit in the long run... */
   if (act->idroot == 0) {
@@ -1927,14 +1964,16 @@ void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *
   FCurve *fcu;
 
   /* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
-  if (ELEM(NULL, act, agrp))
+  if (ELEM(NULL, act, agrp)) {
     return;
+  }
 
   action_idcode_patch_check(ptr->id.data, act);
 
   /* if group is muted, don't evaluated any of the F-Curve */
-  if (agrp->flag & AGRP_MUTED)
+  if (agrp->flag & AGRP_MUTED) {
     return;
+  }
 
   /* calculate then execute each curve */
   for (fcu = agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu = fcu->next) {
@@ -1956,8 +1995,9 @@ static void animsys_evaluate_action_ex(Depsgraph *depsgraph,
                                        float ctime)
 {
   /* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
-  if (act == NULL)
+  if (act == NULL) {
     return;
+  }
 
   action_idcode_patch_check(ptr->id.data, act);
 
@@ -2013,8 +2053,9 @@ static void nlastrip_evaluate_controls(Depsgraph *depsgraph, NlaStrip *strip, fl
    * - we do this after the F-Curves have been evaluated to override the effects of those
    *   in case the override has been turned off.
    */
-  if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
+  if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0) {
     strip->influence = nlastrip_get_influence(strip, ctime);
+  }
 
   /* Bypass evaluation time computation if time mapping is disabled. */
   if ((strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) != 0) {
@@ -2022,16 +2063,18 @@ static void nlastrip_evaluate_controls(Depsgraph *depsgraph, NlaStrip *strip, fl
     return;
   }
 
-  if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
+  if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0) {
     strip->strip_time = nlastrip_get_frame(strip, ctime, NLATIME_CONVERT_EVAL);
+  }
 
   /* if user can control the evaluation time (using F-Curves), consider the option which allows this time to be clamped
    * to lie within extents of the action-clip, so that a steady changing rate of progress through several cycles of the clip
    * can be achieved easily
    */
   /* NOTE: if we add any more of these special cases, we better group them up nicely... */
-  if ((strip->flag & NLASTRIP_FLAG_USR_TIME) && (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC))
+  if ((strip->flag & NLASTRIP_FLAG_USR_TIME) && (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC)) {
     strip->strip_time = fmod(strip->strip_time - strip->actstart, strip->actend - strip->actstart);
+  }
 }
 
 /* gets the strip active at the current time for a list of strips for evaluation purposes */
@@ -2057,8 +2100,9 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
     if (ctime < strip->start) {
       if (strip == strips->first) {
         /* before first strip - only try to use it if it extends backwards in time too */
-        if (strip->extendmode == NLASTRIP_EXTEND_HOLD)
+        if (strip->extendmode == NLASTRIP_EXTEND_HOLD) {
           estrip = strip;
+        }
 
         /* side is 'before' regardless of whether there's a useful strip */
         side = NES_TIME_BEFORE;
@@ -2071,8 +2115,9 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
          */
         strip = strip->prev;
 
-        if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+        if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
           estrip = strip;
+        }
         side = NES_TIME_AFTER;
       }
       break;
@@ -2082,8 +2127,9 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
     if (ctime > strip->end) {
       /* only if this is the last strip should we do anything, and only if that is being held */
       if (strip == strips->last) {
-        if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+        if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
           estrip = strip;
+        }
 
         side = NES_TIME_AFTER;
         break;
@@ -2096,8 +2142,9 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
   /* check if a valid strip was found
    * - must not be muted (i.e. will have contribution
    */
-  if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED))
+  if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED)) {
     return NULL;
+  }
 
   /* if ctime was not within the boundaries of the strip, clamp! */
   switch (side) {
@@ -2115,8 +2162,9 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
    */
   /* TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on... */
   nlastrip_evaluate_controls(depsgraph, estrip, ctime);
-  if (estrip->influence <= 0.0f)
+  if (estrip->influence <= 0.0f) {
     return NULL;
+  }
 
   /* check if strip has valid data to evaluate,
    * and/or perform any additional type-specific actions
@@ -2124,13 +2172,15 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
   switch (estrip->type) {
     case NLASTRIP_TYPE_CLIP:
       /* clip must have some action to evaluate */
-      if (estrip->act == NULL)
+      if (estrip->act == NULL) {
         return NULL;
+      }
       break;
     case NLASTRIP_TYPE_TRANSITION:
       /* there must be strips to transition from and to (i.e. prev and next required) */
-      if (ELEM(NULL, estrip->prev, estrip->next))
+      if (ELEM(NULL, estrip->prev, estrip->next)) {
         return NULL;
+      }
 
       /* evaluate controls for the relevant extents of the bordering strips... */
       nlastrip_evaluate_controls(depsgraph, estrip->prev, estrip->start);
@@ -2146,8 +2196,9 @@ NlaEvalStrip *nlastrips_ctime_get_strip(
   nes->track_index = index;
   nes->strip_time = estrip->strip_time;
 
-  if (list)
+  if (list) {
     BLI_addtail(list, nes);
+  }
 
   return nes;
 }
@@ -2948,10 +2999,12 @@ static void nlaeval_fmodifiers_split_stacks(ListBase *list1, ListBase *list2)
   FModifier *fcm1, *fcm2;
 
   /* if list1/2 is invalid... just skip */
-  if (ELEM(NULL, list1, list2))
+  if (ELEM(NULL, list1, list2)) {
     return;
-  if (ELEM(NULL, list1->first, list2->first))
+  }
+  if (ELEM(NULL, list1->first, list2->first)) {
     return;
+  }
 
   /* get endpoints */
   fcm1 = list1->last;
@@ -2977,8 +3030,9 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
   float evaltime;
 
   /* sanity checks for action */
-  if (strip == NULL)
+  if (strip == NULL) {
     return;
+  }
 
   if (strip->act == NULL) {
     CLOG_ERROR(&LOG, "NLA-Strip Eval Error: Strip '%s' has no Action", strip->name);
@@ -3009,10 +3063,12 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
     float value = 0.0f;
 
     /* check if this curve should be skipped */
-    if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))
+    if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
       continue;
-    if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED))
+    }
+    if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) {
       continue;
+    }
 
     /* evaluate the F-Curve's value for the time given in the strip
      * NOTE: we use the modified time here, since strip's F-Curve Modifiers are applied on top of this
@@ -3156,8 +3212,9 @@ void nlastrip_evaluate(Depsgraph *depsgraph,
    * several levels deep inside it), we tag the current strip as being evaluated, and clear this when we leave
    */
   /* TODO: be careful with this flag, since some edit tools may be running and have set this while animplayback was running */
-  if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED)
+  if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED) {
     return;
+  }
   strip->flag |= NLASTRIP_FLAG_EDIT_TOUCHED;
 
   /* actions to take depend on the type of strip */
@@ -3187,8 +3244,9 @@ void nladata_flush_channels(Depsgraph *depsgraph,
                             NlaEvalSnapshot *snapshot)
 {
   /* sanity checks */
-  if (channels == NULL)
+  if (channels == NULL) {
     return;
+  }
 
   const bool is_active_depsgraph = DEG_is_active(depsgraph);
 
@@ -3226,10 +3284,12 @@ static void nla_eval_domain_action(PointerRNA *ptr,
 
   for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
     /* check if this curve should be skipped */
-    if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))
+    if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
       continue;
-    if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED))
+    }
+    if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) {
       continue;
+    }
 
     NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
 
@@ -3282,14 +3342,16 @@ static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, 
     /* solo and muting are mutually exclusive... */
     if (adt->flag & ADT_NLA_SOLO_TRACK) {
       /* skip if there is a solo track, but this isn't it */
-      if ((nlt->flag & NLATRACK_SOLO) == 0)
+      if ((nlt->flag & NLATRACK_SOLO) == 0) {
         continue;
+      }
       /* else - mute doesn't matter */
     }
     else {
       /* no solo tracks - skip track if muted */
-      if (nlt->flag & NLATRACK_MUTED)
+      if (nlt->flag & NLATRACK_MUTED) {
         continue;
+      }
     }
 
     nla_eval_domain_strips(ptr, channels, &nlt->strips, touched_actions);
@@ -3330,32 +3392,37 @@ static bool animsys_evaluate_nla(Depsgraph *depsgraph,
   /* 1. get the stack of strips to evaluate at current time (influence calculated here) */
   for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next, track_index++) {
     /* stop here if tweaking is on and this strip is the tweaking track (it will be the first one that's 'disabled')... */
-    if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED))
+    if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED)) {
       break;
+    }
 
     /* solo and muting are mutually exclusive... */
     if (adt->flag & ADT_NLA_SOLO_TRACK) {
       /* skip if there is a solo track, but this isn't it */
-      if ((nlt->flag & NLATRACK_SOLO) == 0)
+      if ((nlt->flag & NLATRACK_SOLO) == 0) {
         continue;
+      }
       /* else - mute doesn't matter */
     }
     else {
       /* no solo tracks - skip track if muted */
-      if (nlt->flag & NLATRACK_MUTED)
+      if (nlt->flag & NLATRACK_MUTED) {
         continue;
+      }
     }
 
     /* if this track has strips (but maybe they won't be suitable), set has_strips
      * - used for mainly for still allowing normal action evaluation...
      */
-    if (nlt->strips.first)
+    if (nlt->strips.first) {
       has_strips = true;
+    }
 
     /* otherwise, get strip to evaluate for this channel */
     nes = nlastrips_ctime_get_strip(depsgraph, &estrips, &nlt->strips, track_index, ctime);
-    if (nes)
+    if (nes) {
       nes->track = nlt;
+    }
   }
 
   /* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
@@ -3442,12 +3509,14 @@ static bool animsys_evaluate_nla(Depsgraph *depsgraph,
   }
 
   /* only continue if there are strips to evaluate */
-  if (BLI_listbase_is_empty(&estrips))
+  if (BLI_listbase_is_empty(&estrips)) {
     return true;
+  }
 
   /* 2. for each strip, evaluate then accumulate on top of existing channels, but don't set values yet */
-  for (nes = estrips.first; nes; nes = nes->next)
+  for (nes = estrips.first; nes; nes = nes->next) {
     nlastrip_evaluate(depsgraph, ptr, echannels, NULL, nes, &echannels->eval_snapshot);
+  }
 
   /* 3. free temporary evaluation data that's not used elsewhere */
   BLI_freelistN(&estrips);
@@ -3478,8 +3547,9 @@ static void animsys_calculate_nla(Depsgraph *depsgraph,
   else {
     /* special case - evaluate as if there isn't any NLA data */
     /* TODO: this is really just a stop-gap measure... */
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       CLOG_WARN(&LOG, "NLA Eval: Stopgap for active action on NLA Stack - no strips case");
+    }
 
     animsys_evaluate_action(depsgraph, ptr, adt->action, ctime);
   }
@@ -3716,8 +3786,9 @@ void BKE_animsys_evaluate_animdata(
   PointerRNA id_ptr;
 
   /* sanity checks */
-  if (ELEM(NULL, id, adt))
+  if (ELEM(NULL, id, adt)) {
     return;
+  }
 
   /* get pointer to ID-block for RNA to use */
   RNA_id_pointer_create(id, &id_ptr);
@@ -3736,8 +3807,9 @@ void BKE_animsys_evaluate_animdata(
       animsys_calculate_nla(depsgraph, &id_ptr, adt, ctime);
     }
     /* evaluate Active Action only */
-    else if (adt->action)
+    else if (adt->action) {
       animsys_evaluate_action_ex(depsgraph, &id_ptr, adt->action, ctime);
+    }
   }
 
   /* recalculate drivers
@@ -3779,10 +3851,11 @@ void BKE_animsys_evaluate_all_animation(Main *main,
 {
   ID *id;
 
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     printf("Evaluate all animation - %f\n", ctime);
+  }
 
-    /* macros for less typing
+  /* macros for less typing
      * - only evaluate animation data for id if it has users (and not just fake ones)
      * - whether animdata exists is checked for by the evaluation function, though taking
      *   this outside of the function may make things slightly faster?
@@ -3796,7 +3869,7 @@ void BKE_animsys_evaluate_all_animation(Main *main,
   } \
   (void)0
 
-    /* another macro for the "embedded" nodetree cases
+  /* another macro for the "embedded" nodetree cases
      * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
      *   (i.e. scene/material/texture->nodetree) which we need a special exception
      *   for, otherwise they'd get skipped
@@ -3826,8 +3899,9 @@ void BKE_animsys_evaluate_all_animation(Main *main,
    * set correctly, so this optimization must be skipped in that case...
    */
   if (BLI_listbase_is_empty(&main->actions) && BLI_listbase_is_empty(&main->curves)) {
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       printf("\tNo Actions, so no animation needs to be evaluated...\n");
+    }
 
     return;
   }

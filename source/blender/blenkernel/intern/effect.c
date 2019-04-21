@@ -171,8 +171,9 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
     Curve *cu = eff->ob->data;
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime.curve_cache == NULL || eff->ob->runtime.curve_cache->path == NULL ||
-          eff->ob->runtime.curve_cache->path->data == NULL)
+          eff->ob->runtime.curve_cache->path->data == NULL) {
         BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false, false, NULL);
+      }
 
       if (eff->ob->runtime.curve_cache->path && eff->ob->runtime.curve_cache->path->data) {
         where_on_path(
@@ -184,11 +185,13 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
   }
   else if (eff->pd->shape == PFIELD_SHAPE_SURFACE) {
     eff->surmd = (SurfaceModifierData *)modifiers_findByType(eff->ob, eModifierType_Surface);
-    if (eff->ob->type == OB_CURVE)
+    if (eff->ob->type == OB_CURVE) {
       eff->flag |= PE_USE_NORMAL_DATA;
+    }
   }
-  else if (eff->psys)
+  else if (eff->psys) {
     psys_update_particle_tree(eff->psys, ctime);
+  }
 }
 
 static void add_effector_relation(ListBase *relations,
@@ -356,11 +359,13 @@ void pd_point_from_particle(ParticleSimulationData *sim,
   point->size = pa->size;
   point->charge = 0.0f;
 
-  if (part->pd && part->pd->forcefield == PFIELD_CHARGE)
+  if (part->pd && part->pd->forcefield == PFIELD_CHARGE) {
     point->charge += part->pd->f_strength;
+  }
 
-  if (part->pd2 && part->pd2->forcefield == PFIELD_CHARGE)
+  if (part->pd2 && part->pd2->forcefield == PFIELD_CHARGE) {
     point->charge += part->pd2->f_strength;
+  }
 
   point->vel_to_sec = 1.0f;
   point->vel_to_frame = psys_get_timestep(sim);
@@ -371,8 +376,9 @@ void pd_point_from_particle(ParticleSimulationData *sim,
     point->ave = state->ave;
     point->rot = state->rot;
   }
-  else
+  else {
     point->ave = point->rot = NULL;
+  }
 
   point->psys = sim->psys;
 }
@@ -482,8 +488,9 @@ static float eff_calc_visibility(ListBase *colliders,
     }
   }
 
-  if (!colliders)
+  if (!colliders) {
     BKE_collider_cache_free(&colls);
+  }
 
   return visibility;
 }
@@ -511,14 +518,17 @@ static float falloff_func(
     float fac, int usemin, float mindist, int usemax, float maxdist, float power)
 {
   /* first quick checks */
-  if (usemax && fac > maxdist)
+  if (usemax && fac > maxdist) {
     return 0.0f;
+  }
 
-  if (usemin && fac < mindist)
+  if (usemin && fac < mindist) {
     return 1.0f;
+  }
 
-  if (!usemin)
+  if (!usemin) {
     mindist = 0.0;
+  }
 
   return pow((double)(1.0f + fac - mindist), (double)(-power));
 }
@@ -554,10 +564,12 @@ float effector_falloff(EffectorCache *eff,
 
   fac = dot_v3v3(efd->nor, efd->vec_to_point2);
 
-  if (eff->pd->zdir == PFIELD_Z_POS && fac < 0.0f)
+  if (eff->pd->zdir == PFIELD_Z_POS && fac < 0.0f) {
     falloff = 0.0f;
-  else if (eff->pd->zdir == PFIELD_Z_NEG && fac > 0.0f)
+  }
+  else if (eff->pd->zdir == PFIELD_Z_NEG && fac > 0.0f) {
     falloff = 0.0f;
+  }
   else {
     switch (eff->pd->falloff) {
       case PFIELD_FALL_SPHERE:
@@ -566,8 +578,9 @@ float effector_falloff(EffectorCache *eff,
 
       case PFIELD_FALL_TUBE:
         falloff *= falloff_func_dist(eff->pd, ABS(fac));
-        if (falloff == 0.0f)
+        if (falloff == 0.0f) {
           break;
+        }
 
         madd_v3_v3v3fl(temp, efd->vec_to_point2, efd->nor, -fac);
         r_fac = len_v3(temp);
@@ -575,8 +588,9 @@ float effector_falloff(EffectorCache *eff,
         break;
       case PFIELD_FALL_CONE:
         falloff *= falloff_func_dist(eff->pd, ABS(fac));
-        if (falloff == 0.0f)
+        if (falloff == 0.0f) {
           break;
+        }
 
         r_fac = RAD2DEGF(saacos(fac / len_v3(efd->vec_to_point2)));
         falloff *= falloff_func_rad(eff->pd, r_fac);
@@ -737,8 +751,9 @@ int get_effector_data(EffectorCache *eff,
     efd->distance = len_v3(efd->vec_to_point);
 
     /* rest length for harmonic effector, will have to see later if this could be extended to other effectors */
-    if (eff->pd && eff->pd->forcefield == PFIELD_HARMONIC && eff->pd->f_size)
+    if (eff->pd && eff->pd->forcefield == PFIELD_HARMONIC && eff->pd->f_size) {
       mul_v3_fl(efd->vec_to_point, (efd->distance - eff->pd->f_size) / efd->distance);
+    }
 
     if (eff->flag & PE_USE_NORMAL_DATA) {
       copy_v3_v3(efd->vec_to_point2, efd->vec_to_point);
@@ -810,8 +825,9 @@ static void do_texture_effector(EffectorCache *eff,
   short mode = eff->pd->tex_mode;
   bool scene_color_manage;
 
-  if (!eff->pd->tex)
+  if (!eff->pd->tex) {
     return;
+  }
 
   result[0].nor = result[1].nor = result[2].nor = result[3].nor = NULL;
 
@@ -822,8 +838,9 @@ static void do_texture_effector(EffectorCache *eff,
   if (eff->pd->flag & PFIELD_TEX_OBJECT) {
     mul_m4_v3(eff->ob->imat, tex_co);
 
-    if (eff->pd->flag & PFIELD_TEX_2D)
+    if (eff->pd->flag & PFIELD_TEX_2D) {
       tex_co[2] = 0.0f;
+    }
   }
   else if (eff->pd->flag & PFIELD_TEX_2D) {
     float fac = -dot_v3v3(tex_co, efd->nor);
@@ -955,11 +972,13 @@ static void do_physical_effector(EffectorCache *eff,
       }
       break;
     case PFIELD_MAGNET:
-      if (ELEM(eff->pd->shape, PFIELD_SHAPE_POINT, PFIELD_SHAPE_LINE))
+      if (ELEM(eff->pd->shape, PFIELD_SHAPE_POINT, PFIELD_SHAPE_LINE)) {
         /* magnetic field of a moving charge */
         cross_v3_v3v3(temp, efd->nor, efd->vec_to_point);
-      else
+      }
+      else {
         copy_v3_v3(temp, efd->nor);
+      }
 
       normalize_v3(temp);
       mul_v3_fl(temp, strength * efd->falloff);

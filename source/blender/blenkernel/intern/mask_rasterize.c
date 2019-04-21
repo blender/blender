@@ -488,14 +488,18 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
           /* this should _almost_ never happen but since it can in extreme cases,
            * we have to clamp the values or we overrun the buffer and crash */
-          if (xi_min >= layer->buckets_x)
+          if (xi_min >= layer->buckets_x) {
             xi_min = layer->buckets_x - 1;
-          if (xi_max >= layer->buckets_x)
+          }
+          if (xi_max >= layer->buckets_x) {
             xi_max = layer->buckets_x - 1;
-          if (yi_min >= layer->buckets_y)
+          }
+          if (yi_min >= layer->buckets_y) {
             yi_min = layer->buckets_y - 1;
-          if (yi_max >= layer->buckets_y)
+          }
+          if (yi_max >= layer->buckets_y) {
             yi_max = layer->buckets_y - 1;
+          }
 
           for (yi = yi_min; yi <= yi_max; yi++) {
             unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
@@ -979,8 +983,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       /* --- end inefficient code --- */
 
       /* main scan-fill */
-      if ((masklay->flag & MASK_LAYERFLAG_FILL_DISCRETE) == 0)
+      if ((masklay->flag & MASK_LAYERFLAG_FILL_DISCRETE) == 0) {
         scanfill_flag |= BLI_SCANFILL_CALC_HOLES;
+      }
 
       sf_tri_tot = (unsigned int)BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, zvec);
 

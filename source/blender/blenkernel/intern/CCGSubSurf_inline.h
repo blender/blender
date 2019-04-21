@@ -144,18 +144,22 @@ BLI_INLINE float *ccg_face_getIFNo(
 BLI_INLINE int ccg_face_getVertIndex(CCGFace *f, CCGVert *v)
 {
   int i;
-  for (i = 0; i < f->numVerts; i++)
-    if (FACE_getVerts(f)[i] == v)
+  for (i = 0; i < f->numVerts; i++) {
+    if (FACE_getVerts(f)[i] == v) {
       return i;
+    }
+  }
   return -1;
 }
 
 BLI_INLINE int ccg_face_getEdgeIndex(CCGFace *f, CCGEdge *e)
 {
   int i;
-  for (i = 0; i < f->numVerts; i++)
-    if (FACE_getEdges(f)[i] == e)
+  for (i = 0; i < f->numVerts; i++) {
+    if (FACE_getEdges(f)[i] == e) {
       return i;
+    }
+  }
   return -1;
 }
 
@@ -214,8 +218,9 @@ BLI_INLINE int VertDataEqual(const float a[], const float b[], const CCGSubSurf 
 {
   int i;
   for (i = 0; i < ss->meshIFC.numLayers; i++) {
-    if (a[i] != b[i])
+    if (a[i] != b[i]) {
       return 0;
+    }
   }
   return 1;
 }
@@ -228,29 +233,33 @@ BLI_INLINE void VertDataZero(float v[], const CCGSubSurf *ss)
 BLI_INLINE void VertDataCopy(float dst[], const float src[], const CCGSubSurf *ss)
 {
   int i;
-  for (i = 0; i < ss->meshIFC.numLayers; i++)
+  for (i = 0; i < ss->meshIFC.numLayers; i++) {
     dst[i] = src[i];
+  }
 }
 
 BLI_INLINE void VertDataAdd(float a[], const float b[], const CCGSubSurf *ss)
 {
   int i;
-  for (i = 0; i < ss->meshIFC.numLayers; i++)
+  for (i = 0; i < ss->meshIFC.numLayers; i++) {
     a[i] += b[i];
+  }
 }
 
 BLI_INLINE void VertDataSub(float a[], const float b[], const CCGSubSurf *ss)
 {
   int i;
-  for (i = 0; i < ss->meshIFC.numLayers; i++)
+  for (i = 0; i < ss->meshIFC.numLayers; i++) {
     a[i] -= b[i];
+  }
 }
 
 BLI_INLINE void VertDataMulN(float v[], float f, const CCGSubSurf *ss)
 {
   int i;
-  for (i = 0; i < ss->meshIFC.numLayers; i++)
+  for (i = 0; i < ss->meshIFC.numLayers; i++) {
     v[i] *= f;
+  }
 }
 
 BLI_INLINE void VertDataAvg4(float v[],
@@ -261,8 +270,9 @@ BLI_INLINE void VertDataAvg4(float v[],
                              const CCGSubSurf *ss)
 {
   int i;
-  for (i = 0; i < ss->meshIFC.numLayers; i++)
+  for (i = 0; i < ss->meshIFC.numLayers; i++) {
     v[i] = (a[i] + b[i] + c[i] + d[i]) * 0.25f;
+  }
 }
 
 #endif /* __CCGSUBSURF_INLINE_H__ */

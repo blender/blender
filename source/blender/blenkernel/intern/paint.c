@@ -84,13 +84,16 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const
   Paint *p = BKE_paint_get_active(scene, view_layer);
   Brush *br = p->brush;
 
-  if (!br)
+  if (!br) {
     return;
+  }
 
-  if (br->mtex.tex == tex)
+  if (br->mtex.tex == tex) {
     overlay_flags |= PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY;
-  if (br->mask_mtex.tex == tex)
+  }
+  if (br->mask_mtex.tex == tex) {
     overlay_flags |= PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY;
+  }
 }
 
 void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
@@ -98,8 +101,9 @@ void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, Cu
   Paint *p = BKE_paint_get_active(scene, view_layer);
   Brush *br = p->brush;
 
-  if (br && br->curve == curve)
+  if (br && br->curve == curve) {
     overlay_flags |= PAINT_OVERLAY_INVALID_CURVE;
+  }
 }
 
 void BKE_paint_invalidate_overlay_all(void)
@@ -116,12 +120,15 @@ eOverlayControlFlags BKE_paint_get_overlay_flags(void)
 void BKE_paint_set_overlay_override(eOverlayFlags flags)
 {
   if (flags & BRUSH_OVERLAY_OVERRIDE_MASK) {
-    if (flags & BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE)
+    if (flags & BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE) {
       overlay_flags |= PAINT_OVERLAY_OVERRIDE_CURSOR;
-    if (flags & BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE)
+    }
+    if (flags & BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE) {
       overlay_flags |= PAINT_OVERLAY_OVERRIDE_PRIMARY;
-    if (flags & BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE)
+    }
+    if (flags & BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE) {
       overlay_flags |= PAINT_OVERLAY_OVERRIDE_SECONDARY;
+    }
   }
   else {
     overlay_flags &= ~(PAINT_OVERRIDE_MASK);
@@ -222,8 +229,9 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
         case OB_MODE_PAINT_GPENCIL:
           return &ts->gp_paint->paint;
         case OB_MODE_EDIT:
-          if (ts->use_uv_sculpt)
+          if (ts->use_uv_sculpt) {
             return &ts->uvsculpt->paint;
+          }
           return &ts->imapaint.paint;
         default:
           break;
@@ -247,15 +255,18 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
     ToolSettings *ts = sce->toolsettings;
     Object *obact = NULL;
 
-    if (view_layer->basact && view_layer->basact->object)
+    if (view_layer->basact && view_layer->basact->object) {
       obact = view_layer->basact->object;
+    }
 
     if ((sima = CTX_wm_space_image(C)) != NULL) {
       if (obact && obact->mode == OB_MODE_EDIT) {
-        if (sima->mode == SI_MODE_PAINT)
+        if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
-        else if (ts->use_uv_sculpt)
+        }
+        else if (ts->use_uv_sculpt) {
           return &ts->uvsculpt->paint;
+        }
       }
       else {
         return &ts->imapaint.paint;
@@ -279,15 +290,18 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
     ToolSettings *ts = sce->toolsettings;
     Object *obact = NULL;
 
-    if (view_layer->basact && view_layer->basact->object)
+    if (view_layer->basact && view_layer->basact->object) {
       obact = view_layer->basact->object;
+    }
 
     if ((sima = CTX_wm_space_image(C)) != NULL) {
       if (obact && obact->mode == OB_MODE_EDIT) {
-        if (sima->mode == SI_MODE_PAINT)
+        if (sima->mode == SI_MODE_PAINT) {
           return PAINT_MODE_TEXTURE_2D;
-        else if (ts->use_uv_sculpt)
+        }
+        else if (ts->use_uv_sculpt) {
           return PAINT_MODE_SCULPT_UV;
+        }
       }
       else {
         return PAINT_MODE_TEXTURE_2D;
@@ -304,8 +318,9 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         case OB_MODE_TEXTURE_PAINT:
           return PAINT_MODE_TEXTURE_3D;
         case OB_MODE_EDIT:
-          if (ts->use_uv_sculpt)
+          if (ts->use_uv_sculpt) {
             return PAINT_MODE_SCULPT_UV;
+          }
           return PAINT_MODE_TEXTURE_2D;
         default:
           return PAINT_MODE_TEXTURE_2D;
@@ -599,8 +614,9 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 {
   CurveMap *cm = NULL;
 
-  if (!p->cavity_curve)
+  if (!p->cavity_curve) {
     p->cavity_curve = curvemapping_add(1, 0, 0, 1, 1);
+  }
 
   cm = p->cavity_curve->cm;
   cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
@@ -712,8 +728,9 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
   ups->last_stroke_valid = false;
   zero_v3(ups->average_stroke_accum);
   ups->average_stroke_counter = 0;
-  if (!paint->cavity_curve)
+  if (!paint->cavity_curve) {
     BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
+  }
 }
 
 void BKE_paint_free(Paint *paint)
@@ -805,15 +822,19 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level, unsigned x
 
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
 {
-  if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE)
+  if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) {
     ups->brush_rotation = rotation;
-  else
+  }
+  else {
     ups->brush_rotation = 0.0f;
+  }
 
-  if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)
+  if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE) {
     ups->brush_rotation_sec = rotation;
-  else
+  }
+  else {
     ups->brush_rotation_sec = 0.0f;
+  }
 }
 
 bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
@@ -899,8 +920,9 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
       BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
         BM_elem_flag_set(efa, BM_ELEM_SMOOTH, ss->bm_smooth_shading);
       }
-      if (reorder)
+      if (reorder) {
         BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
+      }
       BM_mesh_bm_to_me(NULL,
                        ss->bm,
                        ob->data,
@@ -958,28 +980,36 @@ void BKE_sculptsession_free(Object *ob)
       BM_mesh_free(ss->bm);
     }
 
-    if (ss->pbvh)
+    if (ss->pbvh) {
       BKE_pbvh_free(ss->pbvh);
+    }
     MEM_SAFE_FREE(ss->pmap);
     MEM_SAFE_FREE(ss->pmap_mem);
-    if (ss->bm_log)
+    if (ss->bm_log) {
       BM_log_free(ss->bm_log);
+    }
 
-    if (ss->texcache)
+    if (ss->texcache) {
       MEM_freeN(ss->texcache);
+    }
 
-    if (ss->tex_pool)
+    if (ss->tex_pool) {
       BKE_image_pool_free(ss->tex_pool);
+    }
 
-    if (ss->layer_co)
+    if (ss->layer_co) {
       MEM_freeN(ss->layer_co);
+    }
 
-    if (ss->orig_cos)
+    if (ss->orig_cos) {
       MEM_freeN(ss->orig_cos);
-    if (ss->deform_cos)
+    }
+    if (ss->deform_cos) {
       MEM_freeN(ss->deform_cos);
-    if (ss->deform_imats)
+    }
+    if (ss->deform_imats) {
       MEM_freeN(ss->deform_imats);
+    }
 
     BKE_sculptsession_free_vwpaint_data(ob->sculpt);
 
@@ -1011,13 +1041,16 @@ MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
     if (md->type == eModifierType_Multires) {
       MultiresModifierData *mmd = (MultiresModifierData *)md;
 
-      if (!modifier_isEnabled(scene, md, eModifierMode_Realtime))
+      if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
         continue;
+      }
 
-      if (mmd->sculptlvl > 0)
+      if (mmd->sculptlvl > 0) {
         return mmd;
-      else
+      }
+      else {
         return NULL;
+      }
     }
   }
 
@@ -1032,27 +1065,33 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   VirtualModifierData virtualModifierData;
 
-  if (mmd || ob->sculpt->bm)
+  if (mmd || ob->sculpt->bm) {
     return false;
+  }
 
   /* non-locked shape keys could be handled in the same way as deformed mesh */
-  if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && me->key && ob->shapenr)
+  if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && me->key && ob->shapenr) {
     return true;
+  }
 
   md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
   /* exception for shape keys because we can edit those */
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-    if (!modifier_isEnabled(scene, md, eModifierMode_Realtime))
+    if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
       continue;
-    if (ELEM(md->type, eModifierType_ShapeKey, eModifierType_Multires))
+    }
+    if (ELEM(md->type, eModifierType_ShapeKey, eModifierType_Multires)) {
       continue;
+    }
 
-    if (mti->type == eModifierTypeType_OnlyDeform)
+    if (mti->type == eModifierTypeType_OnlyDeform) {
       return true;
-    else if ((sd->flags & SCULPT_ONLY_DEFORM) == 0)
+    }
+    else if ((sd->flags & SCULPT_ONLY_DEFORM) == 0) {
       return true;
+    }
   }
 
   return false;

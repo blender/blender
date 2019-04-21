@@ -68,8 +68,9 @@ static bFaceMap *fmap_duplicate(bFaceMap *infmap)
 {
   bFaceMap *outfmap;
 
-  if (!infmap)
+  if (!infmap) {
     return NULL;
+  }
 
   outfmap = MEM_callocN(sizeof(bFaceMap), "copy facemap");
 
@@ -109,8 +110,9 @@ bFaceMap *BKE_object_facemap_add_name(Object *ob, const char *name)
 {
   bFaceMap *fmap;
 
-  if (!ob || ob->type != OB_MESH)
+  if (!ob || ob->type != OB_MESH) {
     return NULL;
+  }
 
   fmap = MEM_callocN(sizeof(bFaceMap), __func__);
 
@@ -151,10 +153,12 @@ static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_sel
             map = BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset);
 
             if (map) {
-              if (*map == fmap_nr)
+              if (*map == fmap_nr) {
                 *map = -1;
-              else if (*map > fmap_nr)
+              }
+              else if (*map > fmap_nr) {
                 *map -= 1;
+              }
             }
           }
         }
@@ -170,8 +174,9 @@ static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_sel
         }
       }
 
-      if (ob->actfmap == BLI_listbase_count(&ob->fmaps))
+      if (ob->actfmap == BLI_listbase_count(&ob->fmaps)) {
         ob->actfmap--;
+      }
 
       BLI_remlink(&ob->fmaps, fmap);
       MEM_freeN(fmap);
@@ -192,16 +197,19 @@ static void object_fmap_remove_object_mode(Object *ob, bFaceMap *fmap, bool purg
 
       if (map) {
         for (i = 0; i < me->totpoly; i++) {
-          if (map[i] == fmap_nr)
+          if (map[i] == fmap_nr) {
             map[i] = -1;
-          else if (purge && map[i] > fmap_nr)
+          }
+          else if (purge && map[i] > fmap_nr) {
             map[i]--;
+          }
         }
       }
     }
 
-    if (ob->actfmap == BLI_listbase_count(&ob->fmaps))
+    if (ob->actfmap == BLI_listbase_count(&ob->fmaps)) {
       ob->actfmap--;
+    }
 
     BLI_remlink(&ob->fmaps, fmap);
     MEM_freeN(fmap);
@@ -210,10 +218,12 @@ static void object_fmap_remove_object_mode(Object *ob, bFaceMap *fmap, bool purg
 
 static void fmap_remove_exec(Object *ob, bFaceMap *fmap, const bool is_edit_mode, const bool purge)
 {
-  if (is_edit_mode)
+  if (is_edit_mode) {
     object_fmap_remove_edit_mode(ob, fmap, false, purge);
-  else
+  }
+  else {
     object_fmap_remove_object_mode(ob, fmap, purge);
+  }
 }
 
 void BKE_object_facemap_remove(Object *ob, bFaceMap *fmap)

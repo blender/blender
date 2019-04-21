@@ -450,8 +450,9 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
 
     for (node = scene->nodetree->nodes.first; node; node = node->next) {
       if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
-        if (node->custom1 == index)
+        if (node->custom1 == index) {
           BLI_strncpy(node->name, view_layer->name, NODE_MAXSTR);
+        }
       }
     }
   }

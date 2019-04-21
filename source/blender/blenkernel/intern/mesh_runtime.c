@@ -190,14 +190,18 @@ bool BKE_mesh_runtime_clear_edit_data(Mesh *mesh)
     return false;
   }
 
-  if (mesh->runtime.edit_data->polyCos != NULL)
+  if (mesh->runtime.edit_data->polyCos != NULL) {
     MEM_freeN((void *)mesh->runtime.edit_data->polyCos);
-  if (mesh->runtime.edit_data->polyNos != NULL)
+  }
+  if (mesh->runtime.edit_data->polyNos != NULL) {
     MEM_freeN((void *)mesh->runtime.edit_data->polyNos);
-  if (mesh->runtime.edit_data->vertexCos != NULL)
+  }
+  if (mesh->runtime.edit_data->vertexCos != NULL) {
     MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
-  if (mesh->runtime.edit_data->vertexNos != NULL)
+  }
+  if (mesh->runtime.edit_data->vertexNos != NULL) {
     MEM_freeN((void *)mesh->runtime.edit_data->vertexNos);
+  }
 
   MEM_SAFE_FREE(mesh->runtime.edit_data);
   return true;

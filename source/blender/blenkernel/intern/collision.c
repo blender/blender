@@ -446,13 +446,15 @@ static void collision_compute_barycentric(
 
   w1[0] = (float)((e * c - b * f) / d);
 
-  if (w1[0] < 0)
+  if (w1[0] < 0) {
     w1[0] = 0;
+  }
 
   w2[0] = (float)((f - b * (double)w1[0]) / c);
 
-  if (w2[0] < 0)
+  if (w2[0] < 0) {
     w2[0] = 0;
+  }
 
   w3[0] = 1.0f - w1[0] - w2[0];
 
@@ -637,16 +639,19 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
 
       for (int j = 0; j < 3; j++) {
         if (cloth1->verts[collpair->ap1].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap1].impulse[j]) < ABS(i1[j]))
+            ABS(cloth1->verts[collpair->ap1].impulse[j]) < ABS(i1[j])) {
           cloth1->verts[collpair->ap1].impulse[j] = i1[j];
+        }
 
         if (cloth1->verts[collpair->ap2].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap2].impulse[j]) < ABS(i2[j]))
+            ABS(cloth1->verts[collpair->ap2].impulse[j]) < ABS(i2[j])) {
           cloth1->verts[collpair->ap2].impulse[j] = i2[j];
+        }
 
         if (cloth1->verts[collpair->ap3].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap3].impulse[j]) < ABS(i3[j]))
+            ABS(cloth1->verts[collpair->ap3].impulse[j]) < ABS(i3[j])) {
           cloth1->verts[collpair->ap3].impulse[j] = i3[j];
+        }
       }
     }
   }
@@ -816,16 +821,19 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
       for (int j = 0; j < 3; j++) {
         if (cloth1->verts[collpair->ap1].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap1].impulse[j]) < ABS(i1[j]))
+            ABS(cloth1->verts[collpair->ap1].impulse[j]) < ABS(i1[j])) {
           cloth1->verts[collpair->ap1].impulse[j] = i1[j];
+        }
 
         if (cloth1->verts[collpair->ap2].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap2].impulse[j]) < ABS(i2[j]))
+            ABS(cloth1->verts[collpair->ap2].impulse[j]) < ABS(i2[j])) {
           cloth1->verts[collpair->ap2].impulse[j] = i2[j];
+        }
 
         if (cloth1->verts[collpair->ap3].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap3].impulse[j]) < ABS(i3[j]))
+            ABS(cloth1->verts[collpair->ap3].impulse[j]) < ABS(i3[j])) {
           cloth1->verts[collpair->ap3].impulse[j] = i3[j];
+        }
       }
     }
   }
@@ -974,8 +982,9 @@ static void add_collision_object(ListBase *relations,
 
   /* only get objects with collision modifier */
   if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) ||
-      (modifier_type != eModifierType_Collision))
+      (modifier_type != eModifierType_Collision)) {
     cmd = (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
+  }
 
   if (cmd) {
     CollisionRelation *relation = MEM_callocN(sizeof(CollisionRelation), "CollisionRelation");
@@ -1279,8 +1288,9 @@ int cloth_bvh_collision(
   uint coll_count_self = 0;
   BVHTreeOverlap *overlap_self = NULL;
 
-  if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || cloth_bvh == NULL)
+  if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || cloth_bvh == NULL) {
     return 0;
+  }
 
   verts = cloth->verts;
   mvert_num = cloth->mvert_num;
@@ -1500,16 +1510,18 @@ static CollPair *cloth_point_collpair(float p1[3],
   float facenor[3], v1p1[3], v1p2[3];
   float w[3];
 
-  if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, w))
+  if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, w)) {
     return collpair;
+  }
 
   sub_v3_v3v3(v1p1, p1, co1);
   //  distance1 = dot_v3v3(v1p1, facenor);
   sub_v3_v3v3(v1p2, p2, co1);
   distance2 = dot_v3v3(v1p2, facenor);
   //  if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
-  if (distance2 > epsilon)
+  if (distance2 > epsilon) {
     return collpair;
+  }
 
   collpair->face1 = index_cloth; /* XXX actually not a face, but equivalent index for point */
   collpair->face2 = index_coll;
@@ -1642,8 +1654,9 @@ void cloth_find_point_contacts(Depsgraph *depsgraph,
     Object *collob = collobjs[i];
     CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(
         collob, eModifierType_Collision);
-    if (!collmd->bvhtree)
+    if (!collmd->bvhtree) {
       continue;
+    }
 
     /* move object to position (step) in time */
     collision_move_object(collmd, step + dt, step);
@@ -1666,8 +1679,9 @@ void cloth_find_point_contacts(Depsgraph *depsgraph,
     ct->collisions = NULL;
     ct->totcollisions = 0;
 
-    if (!collmd->bvhtree)
+    if (!collmd->bvhtree) {
       continue;
+    }
 
     /* search for overlapping collision pairs */
     overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
@@ -1686,8 +1700,9 @@ void cloth_find_point_contacts(Depsgraph *depsgraph,
       //          ret += cloth_points_objcollisions_resolve(clmd, collmd, collob->pd, collisions[i], collisions_index[i], dt);
     }
 
-    if (overlap)
+    if (overlap) {
       MEM_freeN(overlap);
+    }
   }
 
   BKE_collision_objects_free(collobjs);

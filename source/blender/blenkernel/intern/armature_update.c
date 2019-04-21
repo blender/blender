@@ -88,18 +88,21 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
       ikData = con->data;
 
       /* target can only be curve */
-      if ((ikData->tar == NULL) || (ikData->tar->type != OB_CURVE))
+      if ((ikData->tar == NULL) || (ikData->tar->type != OB_CURVE)) {
         continue;
+      }
       /* skip if disabled */
-      if ((con->enforce == 0.0f) || (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)))
+      if ((con->enforce == 0.0f) || (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))) {
         continue;
+      }
 
       /* otherwise, constraint is ok... */
       break;
     }
   }
-  if (con == NULL)
+  if (con == NULL) {
     return;
+  }
 
   /* find the root bone and the chain of bones from the root to the tip
    * NOTE: this assumes that the bones are connected, but that may not be true... */
@@ -113,10 +116,12 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
     totLength += boneLengths[segcount];
   }
 
-  if (segcount == 0)
+  if (segcount == 0) {
     return;
-  else
+  }
+  else {
     pchanRoot = pchanChain[segcount - 1];
+  }
 
   /* perform binding step if required */
   if ((ikData->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
@@ -124,8 +129,9 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
     int i;
 
     /* setup new empty array for the points list */
-    if (ikData->points)
+    if (ikData->points) {
       MEM_freeN(ikData->points);
+    }
     ikData->numpoints = ikData->chainlen + 1;
     ikData->points = MEM_mallocN(sizeof(float) * ikData->numpoints, "Spline IK Binding");
 
@@ -195,8 +201,9 @@ static void splineik_init_tree(Scene *scene, Object *ob, float UNUSED(ctime))
 
   /* find the tips of Spline IK chains, which are simply the bones which have been tagged as such */
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-    if (pchan->constflag & PCHAN_HAS_SPLINEIK)
+    if (pchan->constflag & PCHAN_HAS_SPLINEIK) {
       splineik_init_tree_from_pchan(scene, ob, pchan);
+    }
   }
 }
 
@@ -293,8 +300,9 @@ static void splineik_evaluate_bone(
       /* apply curve's object-mode transforms to the position
        * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root)
        */
-      if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0)
+      if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0) {
         mul_m4_v3(ikData->tar->obmat, vec);
+      }
 
       /* convert the position to pose-space, then store it */
       mul_m4_v3(ob->imat, vec);
@@ -309,8 +317,9 @@ static void splineik_evaluate_bone(
       /* apply curve's object-mode transforms to the position
        * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root)
        */
-      if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0)
+      if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0) {
         mul_m4_v3(ikData->tar->obmat, vec);
+      }
 
       /* store the position, and convert it to pose space */
       mul_m4_v3(ob->imat, vec);
@@ -412,8 +421,9 @@ static void splineik_evaluate_bone(
           /* NOTE: these should be fine for now, but should get sanitised in future */
           CLAMP(scale, 0.0001f, 100000.0f);
         }
-        else
+        else {
           scale = 1.0f;
+        }
 
         /* apply the scaling */
         mul_v3_fl(poseMat[0], scale);
@@ -549,8 +559,9 @@ static void splineik_execute_tree(
     }
 
     /* free the tree info specific to SplineIK trees now */
-    if (tree->chain)
+    if (tree->chain) {
       MEM_freeN(tree->chain);
+    }
 
     /* free this tree */
     BLI_freelinkN(&pchan_root->siktree, tree);

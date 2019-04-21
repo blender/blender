@@ -67,8 +67,9 @@ static CLG_LogRef LOG = {"bke.anim"};
 void animviz_settings_init(bAnimVizSettings *avs)
 {
   /* sanity check */
-  if (avs == NULL)
+  if (avs == NULL) {
     return;
+  }
 
   /* path settings */
   avs->path_bc = avs->path_ac = 10;
@@ -89,12 +90,14 @@ void animviz_settings_init(bAnimVizSettings *avs)
 void animviz_free_motionpath_cache(bMotionPath *mpath)
 {
   /* sanity check */
-  if (mpath == NULL)
+  if (mpath == NULL) {
     return;
+  }
 
   /* free the path if necessary */
-  if (mpath->points)
+  if (mpath->points) {
     MEM_freeN(mpath->points);
+  }
 
   GPU_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
   GPU_BATCH_DISCARD_SAFE(mpath->batch_line);
@@ -111,8 +114,9 @@ void animviz_free_motionpath_cache(bMotionPath *mpath)
 void animviz_free_motionpath(bMotionPath *mpath)
 {
   /* sanity check */
-  if (mpath == NULL)
+  if (mpath == NULL) {
     return;
+  }
 
   /* free the cache first */
   animviz_free_motionpath_cache(mpath);
@@ -128,8 +132,9 @@ bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
 {
   bMotionPath *mpath_dst;
 
-  if (mpath_src == NULL)
+  if (mpath_src == NULL) {
     return NULL;
+  }
 
   mpath_dst = MEM_dupallocN(mpath_src);
   mpath_dst->points = MEM_dupallocN(mpath_src->points);
@@ -161,8 +166,9 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   bMotionPath *mpath, **dst;
 
   /* sanity checks */
-  if (ELEM(NULL, scene, ob))
+  if (ELEM(NULL, scene, ob)) {
     return NULL;
+  }
 
   /* get destination data */
   if (pchan) {
@@ -221,10 +227,12 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
 
   mpath->length = mpath->end_frame - mpath->start_frame;
 
-  if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS)
+  if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS) {
     mpath->flag |= MOTIONPATH_FLAG_BHEAD;
-  else
+  }
+  else {
     mpath->flag &= ~MOTIONPATH_FLAG_BHEAD;
+  }
 
   /* set default custom values */
   mpath->color[0] = 1.0; /* Red */
@@ -253,8 +261,9 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
  */
 void free_path(Path *path)
 {
-  if (path->data)
+  if (path->data) {
     MEM_freeN(path->data);
+  }
   MEM_freeN(path);
 }
 
@@ -279,8 +288,9 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
     return;
   }
 
-  if (ob->runtime.curve_cache->path)
+  if (ob->runtime.curve_cache->path) {
     free_path(ob->runtime.curve_cache->path);
+  }
   ob->runtime.curve_cache->path = NULL;
 
   /* weak! can only use first curve */
@@ -312,10 +322,12 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
   *fp = 0.0f;
   for (a = 0; a < tot; a++) {
     fp++;
-    if (cycl && a == tot - 1)
+    if (cycl && a == tot - 1) {
       sub_v3_v3v3(xyz, bevpfirst->vec, bevp->vec);
-    else
+    }
+    else {
       sub_v3_v3v3(xyz, (bevp + 1)->vec, bevp->vec);
+    }
 
     *fp = *(fp - 1) + len_v3(xyz);
     bevp++;
@@ -346,8 +358,9 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
     if (LIKELY(tot > 0)) {
       while ((fp < maxdist) && (d >= *fp)) {
         fp++;
-        if (bevp < bevplast)
+        if (bevp < bevplast) {
           bevp++;
+        }
         bevpn = bevp + 1;
         if (UNLIKELY(bevpn > bevplast)) {
           bevpn = cycl ? bevpfirst : bevplast;
@@ -381,10 +394,12 @@ static int interval_test(const int min, const int max, int p1, const int cycl)
     p1 = mod_i(p1 - min, (max - min + 1)) + min;
   }
   else {
-    if (p1 < min)
+    if (p1 < min) {
       p1 = min;
-    else if (p1 > max)
+    }
+    else if (p1 > max) {
       p1 = max;
+    }
   }
   return p1;
 }
@@ -414,8 +429,9 @@ int where_on_path(Object *ob,
   int cycl = 0, s0, s1, s2, s3;
   ListBase *nurbs;
 
-  if (ob == NULL || ob->type != OB_CURVE)
+  if (ob == NULL || ob->type != OB_CURVE) {
     return 0;
+  }
   cu = ob->data;
   if (ob->runtime.curve_cache == NULL || ob->runtime.curve_cache->path == NULL ||
       ob->runtime.curve_cache->path->data == NULL) {
@@ -427,12 +443,15 @@ int where_on_path(Object *ob,
 
   /* test for cyclic */
   bl = ob->runtime.curve_cache->bev.first;
-  if (!bl)
+  if (!bl) {
     return 0;
-  if (!bl->nr)
+  }
+  if (!bl->nr) {
     return 0;
-  if (bl->poly > -1)
+  }
+  if (bl->poly > -1) {
     cycl = 1;
+  }
 
   /* values below zero for non-cyclic curves give strange results */
   BLI_assert(cycl || ctime >= 0.0f);
@@ -470,19 +489,24 @@ int where_on_path(Object *ob,
   //}
 
   nurbs = BKE_curve_editNurbs_get(cu);
-  if (!nurbs)
+  if (!nurbs) {
     nurbs = &cu->nurb;
+  }
   nu = nurbs->first;
 
   /* make sure that first and last frame are included in the vectors here  */
-  if (nu->type == CU_POLY)
+  if (nu->type == CU_POLY) {
     key_curve_position_weights(1.0f - fac, data, KEY_LINEAR);
-  else if (nu->type == CU_BEZIER)
+  }
+  else if (nu->type == CU_BEZIER) {
     key_curve_position_weights(1.0f - fac, data, KEY_LINEAR);
-  else if (s0 == s1 || p2 == p3)
+  }
+  else if (s0 == s1 || p2 == p3) {
     key_curve_position_weights(1.0f - fac, data, KEY_CARDINAL);
-  else
+  }
+  else {
     key_curve_position_weights(1.0f - fac, data, KEY_BSPLINE);
+  }
 
   vec[0] = data[0] * p0->vec[0] + data[1] * p1->vec[0] + data[2] * p2->vec[0] +
            data[3] * p3->vec[0]; /* X */
@@ -497,31 +521,39 @@ int where_on_path(Object *ob,
     float totfac, q1[4], q2[4];
 
     totfac = data[0] + data[3];
-    if (totfac > FLT_EPSILON)
+    if (totfac > FLT_EPSILON) {
       interp_qt_qtqt(q1, p0->quat, p3->quat, data[3] / totfac);
-    else
+    }
+    else {
       copy_qt_qt(q1, p1->quat);
+    }
 
     totfac = data[1] + data[2];
-    if (totfac > FLT_EPSILON)
+    if (totfac > FLT_EPSILON) {
       interp_qt_qtqt(q2, p1->quat, p2->quat, data[2] / totfac);
-    else
+    }
+    else {
       copy_qt_qt(q2, p3->quat);
+    }
 
     totfac = data[0] + data[1] + data[2] + data[3];
-    if (totfac > FLT_EPSILON)
+    if (totfac > FLT_EPSILON) {
       interp_qt_qtqt(quat, q1, q2, (data[1] + data[2]) / totfac);
-    else
+    }
+    else {
       copy_qt_qt(quat, q2);
+    }
   }
 
-  if (radius)
+  if (radius) {
     *radius = data[0] * p0->radius + data[1] * p1->radius + data[2] * p2->radius +
               data[3] * p3->radius;
+  }
 
-  if (weight)
+  if (weight) {
     *weight = data[0] * p0->weight + data[1] * p1->weight + data[2] * p2->weight +
               data[3] * p3->weight;
+  }
 
   return 1;
 }

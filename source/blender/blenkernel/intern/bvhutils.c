@@ -204,10 +204,12 @@ static void mesh_faces_spherecast(void *userdata,
 
   do {
     float dist;
-    if (ray->radius == 0.0f)
+    if (ray->radius == 0.0f) {
       dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
-    else
+    }
+    else {
       dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, t0, t1, t2);
+    }
 
     if (dist >= 0 && dist < hit->dist) {
       hit->index = index;
@@ -239,10 +241,12 @@ static void mesh_looptri_spherecast(void *userdata,
   };
   float dist;
 
-  if (ray->radius == 0.0f)
+  if (ray->radius == 0.0f) {
     dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
-  else
+  }
+  else {
     dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, UNPACK3(vtri_co));
+  }
 
   if (dist >= 0 && dist < hit->dist) {
     hit->index = index;
@@ -269,10 +273,12 @@ static void editmesh_looptri_spherecast(void *userdata,
 
   {
     float dist;
-    if (ray->radius == 0.0f)
+    if (ray->radius == 0.0f) {
       dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
-    else
+    }
+    else {
       dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, t0, t1, t2);
+    }
 
     if (dist >= 0 && dist < hit->dist) {
       hit->index = index;
@@ -816,8 +822,9 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
           copy_v3_v3(co[0], vert[face[i].v1].co);
           copy_v3_v3(co[1], vert[face[i].v2].co);
           copy_v3_v3(co[2], vert[face[i].v3].co);
-          if (face[i].v4)
+          if (face[i].v4) {
             copy_v3_v3(co[3], vert[face[i].v4].co);
+          }
 
           BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
         }

@@ -338,38 +338,49 @@ static float colorband_hue_interp(
 
   switch (ipotype_hue) {
     case COLBAND_HUE_NEAR: {
-      if ((h1 < h2) && (h2 - h1) > +0.5f)
+      if ((h1 < h2) && (h2 - h1) > +0.5f) {
         mode = 1;
-      else if ((h1 > h2) && (h2 - h1) < -0.5f)
+      }
+      else if ((h1 > h2) && (h2 - h1) < -0.5f) {
         mode = 2;
-      else
+      }
+      else {
         mode = 0;
+      }
       break;
     }
     case COLBAND_HUE_FAR: {
       /* Do full loop in Hue space in case both stops are the same... */
-      if (h1 == h2)
+      if (h1 == h2) {
         mode = 1;
-      else if ((h1 < h2) && (h2 - h1) < +0.5f)
+      }
+      else if ((h1 < h2) && (h2 - h1) < +0.5f) {
         mode = 1;
-      else if ((h1 > h2) && (h2 - h1) > -0.5f)
+      }
+      else if ((h1 > h2) && (h2 - h1) > -0.5f) {
         mode = 2;
-      else
+      }
+      else {
         mode = 0;
+      }
       break;
     }
     case COLBAND_HUE_CCW: {
-      if (h1 > h2)
+      if (h1 > h2) {
         mode = 2;
-      else
+      }
+      else {
         mode = 0;
+      }
       break;
     }
     case COLBAND_HUE_CW: {
-      if (h1 < h2)
+      if (h1 < h2) {
         mode = 1;
-      else
+      }
+      else {
         mode = 0;
+      }
       break;
     }
   }
@@ -403,8 +414,9 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
   int ipotype;
   int a;
 
-  if (coba == NULL || coba->tot == 0)
+  if (coba == NULL || coba->tot == 0) {
     return false;
+  }
 
   cbd1 = coba->data;
 
@@ -480,14 +492,18 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
         /* ipo from right to left: 3 2 1 0 */
         float t[4];
 
-        if (a >= coba->tot - 1)
+        if (a >= coba->tot - 1) {
           cbd0 = cbd1;
-        else
+        }
+        else {
           cbd0 = cbd1 + 1;
-        if (a < 2)
+        }
+        if (a < 2) {
           cbd3 = cbd2;
-        else
+        }
+        else {
           cbd3 = cbd2 - 1;
+        }
 
         CLAMP(fac, 0.0f, 1.0f);
 
@@ -561,18 +577,21 @@ void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int
   *size = CM_TABLE + 1;
   *array = MEM_callocN(sizeof(float) * (*size) * 4, "ColorBand");
 
-  for (a = 0; a < *size; a++)
+  for (a = 0; a < *size; a++) {
     BKE_colorband_evaluate(coba, (float)a / (float)CM_TABLE, &(*array)[a * 4]);
+  }
 }
 
 static int vergcband(const void *a1, const void *a2)
 {
   const CBData *x1 = a1, *x2 = a2;
 
-  if (x1->pos > x2->pos)
+  if (x1->pos > x2->pos) {
     return 1;
-  else if (x1->pos < x2->pos)
+  }
+  else if (x1->pos < x2->pos) {
     return -1;
+  }
   return 0;
 }
 
@@ -580,11 +599,13 @@ void BKE_colorband_update_sort(ColorBand *coba)
 {
   int a;
 
-  if (coba->tot < 2)
+  if (coba->tot < 2) {
     return;
+  }
 
-  for (a = 0; a < coba->tot; a++)
+  for (a = 0; a < coba->tot; a++) {
     coba->data[a].cur = a;
+  }
 
   qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
 
@@ -627,17 +648,20 @@ int BKE_colorband_element_remove(struct ColorBand *coba, int index)
 {
   int a;
 
-  if (coba->tot < 2)
+  if (coba->tot < 2) {
     return 0;
+  }
 
-  if (index < 0 || index >= coba->tot)
+  if (index < 0 || index >= coba->tot) {
     return 0;
+  }
 
   coba->tot--;
   for (a = index; a < coba->tot; a++) {
     coba->data[a] = coba->data[a + 1];
   }
-  if (coba->cur)
+  if (coba->cur) {
     coba->cur--;
+  }
   return 1;
 }

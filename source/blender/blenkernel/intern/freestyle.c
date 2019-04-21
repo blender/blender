@@ -145,8 +145,9 @@ static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig
 
 bool BKE_freestyle_module_delete(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 {
-  if (BLI_findindex(&config->modules, module_conf) == -1)
+  if (BLI_findindex(&config->modules, module_conf) == -1) {
     return false;
+  }
   BLI_freelinkN(&config->modules, module_conf);
   return true;
 }
@@ -214,8 +215,9 @@ FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain,
 
 bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lineset)
 {
-  if (BLI_findindex(&config->linesets, lineset) == -1)
+  if (BLI_findindex(&config->linesets, lineset) == -1) {
     return false;
+  }
   if (lineset->group) {
     id_us_min(&lineset->group->id);
   }
@@ -233,8 +235,9 @@ FreestyleLineSet *BKE_freestyle_lineset_get_active(FreestyleConfig *config)
   FreestyleLineSet *lineset;
 
   for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
-    if (lineset->flags & FREESTYLE_LINESET_CURRENT)
+    if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
       return lineset;
+    }
   }
   return NULL;
 }
@@ -246,8 +249,9 @@ short BKE_freestyle_lineset_get_active_index(FreestyleConfig *config)
 
   for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
        lineset = lineset->next, i++) {
-    if (lineset->flags & FREESTYLE_LINESET_CURRENT)
+    if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
       return i;
+    }
   }
   return 0;
 }
@@ -259,9 +263,11 @@ void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index
 
   for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
        lineset = lineset->next, i++) {
-    if (i == index)
+    if (i == index) {
       lineset->flags |= FREESTYLE_LINESET_CURRENT;
-    else
+    }
+    else {
       lineset->flags &= ~FREESTYLE_LINESET_CURRENT;
+    }
   }
 }

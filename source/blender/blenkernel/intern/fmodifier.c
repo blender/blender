@@ -104,8 +104,9 @@ static void fcm_generator_free(FModifier *fcm)
   FMod_Generator *data = (FMod_Generator *)fcm->data;
 
   /* free polynomial coefficients array */
-  if (data->coefficients)
+  if (data->coefficients) {
     MEM_freeN(data->coefficients);
+  }
 }
 
 static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
@@ -114,8 +115,9 @@ static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
   FMod_Generator *ogen = (FMod_Generator *)src->data;
 
   /* copy coefficients array? */
-  if (ogen->coefficients)
+  if (ogen->coefficients) {
     gen->coefficients = MEM_dupallocN(ogen->coefficients);
+  }
 }
 
 static void fcm_generator_new_data(void *mdata)
@@ -181,27 +183,33 @@ static void fcm_generator_evaluate(
        */
       for (i = 0; i < data->arraysize; i++) {
         /* first entry is x^0 = 1, otherwise, calculate based on previous */
-        if (i)
+        if (i) {
           powers[i] = powers[i - 1] * evaltime;
-        else
+        }
+        else {
           powers[0] = 1;
+        }
       }
 
       /* for each coefficient, add to value, which we'll write to *cvalue in one go */
-      for (i = 0; i < data->arraysize; i++)
+      for (i = 0; i < data->arraysize; i++) {
         value += data->coefficients[i] * powers[i];
+      }
 
       /* only if something changed, write *cvalue in one go */
       if (data->poly_order) {
-        if (data->flag & FCM_GENERATOR_ADDITIVE)
+        if (data->flag & FCM_GENERATOR_ADDITIVE) {
           *cvalue += value;
-        else
+        }
+        else {
           *cvalue = value;
+        }
       }
 
       /* cleanup */
-      if (powers)
+      if (powers) {
         MEM_freeN(powers);
+      }
       break;
     }
     case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial */
@@ -211,15 +219,18 @@ static void fcm_generator_evaluate(
 
       /* for each coefficient pair, solve for that bracket before accumulating in value by multiplying */
       for (cp = data->coefficients, i = 0; (cp) && (i < (unsigned int)data->poly_order);
-           cp += 2, i++)
+           cp += 2, i++) {
         value *= (cp[0] * evaltime + cp[1]);
+      }
 
       /* only if something changed, write *cvalue in one go */
       if (data->poly_order) {
-        if (data->flag & FCM_GENERATOR_ADDITIVE)
+        if (data->flag & FCM_GENERATOR_ADDITIVE) {
           *cvalue += value;
-        else
+        }
+        else {
           *cvalue = value;
+        }
       }
       break;
     }
@@ -269,10 +280,12 @@ static void fcm_fn_generator_new_data(void *mdata)
  */
 static double sinc(double x)
 {
-  if (fabs(x) < 0.0001)
+  if (fabs(x) < 0.0001) {
     return 1.0;
-  else
+  }
+  else {
     return sin(M_PI * x) / (M_PI * x);
+  }
 }
 
 static void fcm_fn_generator_evaluate(
@@ -302,11 +315,13 @@ static void fcm_fn_generator_evaluate(
     {
       /* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
       if (IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0)) {
-        if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+        if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0) {
           *cvalue = 0.0f; /* no value possible here */
+        }
       }
-      else
+      else {
         fn = tan;
+      }
       break;
     }
     case FCM_GENERATOR_FN_LN: /* natural log */
@@ -316,8 +331,9 @@ static void fcm_fn_generator_evaluate(
         fn = log;
       }
       else {
-        if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+        if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0) {
           *cvalue = 0.0f; /* no value possible here */
+        }
       }
       break;
     }
@@ -328,8 +344,9 @@ static void fcm_fn_generator_evaluate(
         fn = sqrt;
       }
       else {
-        if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+        if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0) {
           *cvalue = 0.0f; /* no value possible here */
+        }
       }
       break;
     }
@@ -342,10 +359,12 @@ static void fcm_fn_generator_evaluate(
   if (fn) {
     float value = (float)(data->amplitude * (float)fn(arg) + data->value_offset);
 
-    if (data->flag & FCM_GENERATOR_ADDITIVE)
+    if (data->flag & FCM_GENERATOR_ADDITIVE) {
       *cvalue += value;
-    else
+    }
+    else {
       *cvalue = value;
+    }
   }
 }
 
@@ -372,8 +391,9 @@ static void fcm_envelope_free(FModifier *fcm)
   FMod_Envelope *env = (FMod_Envelope *)fcm->data;
 
   /* free envelope data array */
-  if (env->data)
+  if (env->data) {
     MEM_freeN(env->data);
+  }
 }
 
 static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
@@ -382,8 +402,9 @@ static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
   FMod_Envelope *oenv = (FMod_Envelope *)src->data;
 
   /* copy envelope data array */
-  if (oenv->data)
+  if (oenv->data) {
     env->data = MEM_dupallocN(oenv->data);
+  }
 }
 
 static void fcm_envelope_new_data(void *mdata)
@@ -414,8 +435,9 @@ static void fcm_envelope_evaluate(
   int a;
 
   /* get pointers */
-  if (env->data == NULL)
+  if (env->data == NULL) {
     return;
+  }
   prevfed = env->data;
   fed = prevfed + 1;
   lastfed = prevfed + (env->totvert - 1);
@@ -636,8 +658,9 @@ static float fcm_cycles_time(
     lastkey[0] = lastfpt->vec[0];
     lastkey[1] = lastfpt->vec[1];
   }
-  else
+  else {
     return evaltime;
+  }
 
   /* check if modifier will do anything
    * 1) if in data range, definitely don't do anything
@@ -659,8 +682,9 @@ static float fcm_cycles_time(
       ofs = lastkey[0];
     }
   }
-  if ((ELEM(0, side, mode)))
+  if ((ELEM(0, side, mode))) {
     return evaltime;
+  }
 
   /* find relative place within a cycle */
   {
@@ -672,8 +696,9 @@ static float fcm_cycles_time(
     cycdy = lastkey[1] - prevkey[1];
 
     /* check if cycle is infinitely small, to be point of being impossible to use */
-    if (cycdx == 0)
+    if (cycdx == 0) {
       return evaltime;
+    }
 
     /* calculate the 'number' of the cycle */
     cycle = ((float)side * (evaltime - ofs) / cycdx);
@@ -696,10 +721,12 @@ static float fcm_cycles_time(
 
     /* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
     if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
-      if (side < 0)
+      if (side < 0) {
         cycyofs = (float)floor((evaltime - ofs) / cycdx);
-      else
+      }
+      else {
         cycyofs = (float)ceil((evaltime - ofs) / cycdx);
+      }
       cycyofs *= cycdy;
     }
 
@@ -707,8 +734,9 @@ static float fcm_cycles_time(
     if (cyct == 0.0f) {
       evaltime = (side == 1 ? lastkey[0] : prevkey[0]);
 
-      if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2))
+      if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2)) {
         evaltime = (side == 1 ? prevkey[0] : lastkey[0]);
+      }
     }
     /* calculate where in the cycle we are (overwrite evaltime to reflect this) */
     else if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle + 1) % 2)) {
@@ -716,17 +744,20 @@ static float fcm_cycles_time(
        * - for 'before' extrapolation, we need to flip in a different way, otherwise values past
        *   then end of the curve get referenced (result of fmod will be negative, and with different phase)
        */
-      if (side < 0)
+      if (side < 0) {
         evaltime = prevkey[0] - cyct;
-      else
+      }
+      else {
         evaltime = lastkey[0] - cyct;
+      }
     }
     else {
       /* the cycle is played normally... */
       evaltime = prevkey[0] + cyct;
     }
-    if (evaltime < prevkey[0])
+    if (evaltime < prevkey[0]) {
       evaltime += cycdx;
+    }
   }
 
   /* store temp data if needed */
@@ -895,10 +926,12 @@ static float fcm_limits_time(FCurve *UNUSED(fcu),
   FMod_Limits *data = (FMod_Limits *)fcm->data;
 
   /* check for the time limits */
-  if ((data->flag & FCM_LIMIT_XMIN) && (evaltime < data->rect.xmin))
+  if ((data->flag & FCM_LIMIT_XMIN) && (evaltime < data->rect.xmin)) {
     return data->rect.xmin;
-  if ((data->flag & FCM_LIMIT_XMAX) && (evaltime > data->rect.xmax))
+  }
+  if ((data->flag & FCM_LIMIT_XMAX) && (evaltime > data->rect.xmax)) {
     return data->rect.xmax;
+  }
 
   /* modifier doesn't change time */
   return evaltime;
@@ -913,10 +946,12 @@ static void fcm_limits_evaluate(FCurve *UNUSED(fcu),
   FMod_Limits *data = (FMod_Limits *)fcm->data;
 
   /* value limits now */
-  if ((data->flag & FCM_LIMIT_YMIN) && (*cvalue < data->rect.ymin))
+  if ((data->flag & FCM_LIMIT_YMIN) && (*cvalue < data->rect.ymin)) {
     *cvalue = data->rect.ymin;
-  if ((data->flag & FCM_LIMIT_YMAX) && (*cvalue > data->rect.ymax))
+  }
+  if ((data->flag & FCM_LIMIT_YMAX) && (*cvalue > data->rect.ymax)) {
     *cvalue = data->rect.ymax;
+  }
 }
 
 static FModifierTypeInfo FMI_LIMITS = {
@@ -958,12 +993,14 @@ static float fcm_stepped_time(FCurve *UNUSED(fcu),
 
   /* check range clamping to see if we should alter the timing to achieve the desired results */
   if (data->flag & FCM_STEPPED_NO_BEFORE) {
-    if (evaltime < data->start_frame)
+    if (evaltime < data->start_frame) {
       return evaltime;
+    }
   }
   if (data->flag & FCM_STEPPED_NO_AFTER) {
-    if (evaltime > data->end_frame)
+    if (evaltime > data->end_frame) {
       return evaltime;
+    }
   }
 
   /* we snap to the start of the previous closest block of 'step_size' frames
@@ -1048,10 +1085,12 @@ const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
 const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
 {
   /* only return typeinfo for valid modifiers */
-  if (fcm)
+  if (fcm) {
     return get_fmodifier_typeinfo(fcm->type);
-  else
+  }
+  else {
     return NULL;
+  }
 }
 
 /* API --------------------------- */
@@ -1063,8 +1102,9 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   FModifier *fcm;
 
   /* sanity checks */
-  if (ELEM(NULL, modifiers, fmi))
+  if (ELEM(NULL, modifiers, fmi)) {
     return NULL;
+  }
 
   /* special checks for whether modifier can be added */
   if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
@@ -1085,19 +1125,22 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   BLI_addtail(modifiers, fcm);
 
   /* tag modifier as "active" if no other modifiers exist in the stack yet */
-  if (BLI_listbase_is_single(modifiers))
+  if (BLI_listbase_is_single(modifiers)) {
     fcm->flag |= FMODIFIER_FLAG_ACTIVE;
+  }
 
   /* add modifier's data */
   fcm->data = MEM_callocN(fmi->size, fmi->structName);
 
   /* init custom settings if necessary */
-  if (fmi->new_data)
+  if (fmi->new_data) {
     fmi->new_data(fcm->data);
+  }
 
   /* update the fcurve if the Cycles modifier is added */
-  if ((owner_fcu) && (type == FMODIFIER_TYPE_CYCLES))
+  if ((owner_fcu) && (type == FMODIFIER_TYPE_CYCLES)) {
     calchandles_fcurve(owner_fcu);
+  }
 
   /* return modifier for further editing */
   return fcm;
@@ -1110,8 +1153,9 @@ FModifier *copy_fmodifier(const FModifier *src)
   FModifier *dst;
 
   /* sanity check */
-  if (src == NULL)
+  if (src == NULL) {
     return NULL;
+  }
 
   /* copy the base data, clearing the links */
   dst = MEM_dupallocN(src);
@@ -1122,8 +1166,9 @@ FModifier *copy_fmodifier(const FModifier *src)
   dst->data = MEM_dupallocN(src->data);
 
   /* only do specific constraints if required */
-  if (fmi && fmi->copy_data)
+  if (fmi && fmi->copy_data) {
     fmi->copy_data(dst, src);
+  }
 
   /* return the new modifier */
   return dst;
@@ -1134,8 +1179,9 @@ void copy_fmodifiers(ListBase *dst, const ListBase *src)
 {
   FModifier *fcm, *srcfcm;
 
-  if (ELEM(NULL, dst, src))
+  if (ELEM(NULL, dst, src)) {
     return;
+  }
 
   BLI_listbase_clear(dst);
   BLI_duplicatelist(dst, src);
@@ -1149,8 +1195,9 @@ void copy_fmodifiers(ListBase *dst, const ListBase *src)
     fcm->curve = NULL;
 
     /* only do specific constraints if required */
-    if (fmi && fmi->copy_data)
+    if (fmi && fmi->copy_data) {
       fmi->copy_data(fcm, srcfcm);
+    }
   }
 }
 
@@ -1160,16 +1207,18 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
   /* sanity check */
-  if (fcm == NULL)
+  if (fcm == NULL) {
     return false;
+  }
 
   /* removing the cycles modifier requires a handle update */
   FCurve *update_fcu = (fcm->type == FMODIFIER_TYPE_CYCLES) ? fcm->curve : NULL;
 
   /* free modifier's special data (stored inside fcm->data) */
   if (fcm->data) {
-    if (fmi && fmi->free_data)
+    if (fmi && fmi->free_data) {
       fmi->free_data(fcm);
+    }
 
     /* free modifier's data (fcm->data) */
     MEM_freeN(fcm->data);
@@ -1180,8 +1229,9 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
     BLI_freelinkN(modifiers, fcm);
 
     /* update the fcurve if the Cycles modifier is removed */
-    if (update_fcu)
+    if (update_fcu) {
       calchandles_fcurve(update_fcu);
+    }
 
     return true;
   }
@@ -1199,8 +1249,9 @@ void free_fmodifiers(ListBase *modifiers)
   FModifier *fcm, *fmn;
 
   /* sanity check */
-  if (modifiers == NULL)
+  if (modifiers == NULL) {
     return;
+  }
 
   /* free each modifier in order - modifier is unlinked from list and freed */
   for (fcm = modifiers->first; fcm; fcm = fmn) {
@@ -1215,13 +1266,15 @@ FModifier *find_active_fmodifier(ListBase *modifiers)
   FModifier *fcm;
 
   /* sanity checks */
-  if (ELEM(NULL, modifiers, modifiers->first))
+  if (ELEM(NULL, modifiers, modifiers->first)) {
     return NULL;
+  }
 
   /* loop over modifiers until 'active' one is found */
   for (fcm = modifiers->first; fcm; fcm = fcm->next) {
-    if (fcm->flag & FMODIFIER_FLAG_ACTIVE)
+    if (fcm->flag & FMODIFIER_FLAG_ACTIVE) {
       return fcm;
+    }
   }
 
   /* no modifier is active */
@@ -1234,16 +1287,19 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
   FModifier *fm;
 
   /* sanity checks */
-  if (ELEM(NULL, modifiers, modifiers->first))
+  if (ELEM(NULL, modifiers, modifiers->first)) {
     return;
+  }
 
   /* deactivate all, and set current one active */
-  for (fm = modifiers->first; fm; fm = fm->next)
+  for (fm = modifiers->first; fm; fm = fm->next) {
     fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+  }
 
   /* make given modifier active */
-  if (fcm)
+  if (fcm) {
     fcm->flag |= FMODIFIER_FLAG_ACTIVE;
+  }
 }
 
 /* Do we have any modifiers which match certain criteria
@@ -1255,12 +1311,14 @@ bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
   FModifier *fcm;
 
   /* if there are no specific filtering criteria, just skip */
-  if ((mtype == 0) && (acttype == 0))
+  if ((mtype == 0) && (acttype == 0)) {
     return (modifiers && modifiers->first);
+  }
 
   /* sanity checks */
-  if (ELEM(NULL, modifiers, modifiers->first))
+  if (ELEM(NULL, modifiers, modifiers->first)) {
     return false;
+  }
 
   /* find the first mdifier fitting these criteria */
   for (fcm = modifiers->first; fcm; fcm = fcm->next) {
@@ -1268,14 +1326,17 @@ bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
     short mOk = 1, aOk = 1; /* by default 1, so that when only one test, won't fail */
 
     /* check if applicable ones are fulfilled */
-    if (mtype)
+    if (mtype) {
       mOk = (fcm->type == mtype);
-    if (acttype > -1)
+    }
+    if (acttype > -1) {
       aOk = (fmi->acttype == acttype);
+    }
 
     /* if both are ok, we've found a hit */
-    if (mOk && aOk)
+    if (mOk && aOk) {
       return true;
+    }
   }
 
   /* no matches */
@@ -1312,16 +1373,19 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
   float influence;
 
   /* sanity check */
-  if (fcm == NULL)
+  if (fcm == NULL) {
     return 0.0f;
+  }
 
   /* should we use influence stored in modifier or not
    * NOTE: this is really just a hack so that we don't need to version patch old files ;)
    */
-  if (fcm->flag & FMODIFIER_FLAG_USEINFLUENCE)
+  if (fcm->flag & FMODIFIER_FLAG_USEINFLUENCE) {
     influence = fcm->influence;
-  else
+  }
+  else {
     influence = 1.0f;
+  }
 
   /* restricted range or full range? */
   if (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) {
@@ -1365,11 +1429,13 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
                                float evaltime)
 {
   /* sanity checks */
-  if (ELEM(NULL, modifiers, modifiers->last))
+  if (ELEM(NULL, modifiers, modifiers->last)) {
     return evaltime;
+  }
 
-  if (fcu && fcu->flag & FCURVE_MOD_OFF)
+  if (fcu && fcu->flag & FCURVE_MOD_OFF) {
     return evaltime;
+  }
 
   /* Starting from the end of the stack, calculate the time effects of various stacked modifiers
    * on the time the F-Curve should be evaluated at.
@@ -1385,8 +1451,9 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
   for (FModifier *fcm = modifiers->last; fcm; fcm = fcm->prev, fcm_index--) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
-    if (fmi == NULL)
+    if (fmi == NULL) {
       continue;
+    }
 
     /* if modifier cannot be applied on this frame (whatever scale it is on, it won't affect the results)
      * hence we shouldn't bother seeing what it would do given the chance
@@ -1424,19 +1491,22 @@ void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
   FModifier *fcm;
 
   /* sanity checks */
-  if (ELEM(NULL, modifiers, modifiers->first))
+  if (ELEM(NULL, modifiers, modifiers->first)) {
     return;
+  }
 
-  if (fcu->flag & FCURVE_MOD_OFF)
+  if (fcu->flag & FCURVE_MOD_OFF) {
     return;
+  }
 
   /* evaluate modifiers */
   uint fcm_index = 0;
   for (fcm = modifiers->first; fcm; fcm = fcm->next, fcm_index++) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
-    if (fmi == NULL)
+    if (fmi == NULL) {
       continue;
+    }
 
     /* only evaluate if there's a callback for this, and if F-Modifier can be evaluated on this frame */
     if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||

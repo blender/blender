@@ -161,8 +161,9 @@ static void library_foreach_idproperty_ID_link(LibraryForeachIDData *data,
                                                IDProperty *prop,
                                                int flag)
 {
-  if (!prop)
+  if (!prop) {
     return;
+  }
 
   switch (prop->type) {
     case IDP_GROUP: {

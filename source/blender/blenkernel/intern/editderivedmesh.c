@@ -61,10 +61,12 @@
 static void axis_from_enum_v3(float v[3], const char axis)
 {
   zero_v3(v);
-  if (axis < 3)
+  if (axis < 3) {
     v[axis] = 1.0f;
-  else
+  }
+  else {
     v[axis - 3] = -1.0f;
+  }
 }
 
 static void statvis_calc_overhang(BMEditMesh *em,

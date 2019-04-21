@@ -85,11 +85,13 @@ ShaderFxData *BKE_shaderfx_new(int type)
   fx->mode = eShaderFxMode_Realtime | eShaderFxMode_Render | eShaderFxMode_Expanded;
   fx->flag = eShaderFxFlag_StaticOverride_Local;
 
-  if (fxi->flags & eShaderFxTypeFlag_EnableInEditmode)
+  if (fxi->flags & eShaderFxTypeFlag_EnableInEditmode) {
     fx->mode |= eShaderFxMode_Editmode;
+  }
 
-  if (fxi->initData)
+  if (fxi->initData) {
     fxi->initData(fx);
+  }
 
   return fx;
 }
@@ -118,10 +120,12 @@ void BKE_shaderfx_free_ex(ShaderFxData *fx, const int flag)
     }
   }
 
-  if (fxi->freeData)
+  if (fxi->freeData) {
     fxi->freeData(fx);
-  if (fx->error)
+  }
+  if (fx->error) {
     MEM_freeN(fx->error);
+  }
 
   MEM_freeN(fx);
 }
@@ -219,9 +223,11 @@ ShaderFxData *BKE_shaderfx_findByType(Object *ob, ShaderFxType type)
 {
   ShaderFxData *fx = ob->shader_fx.first;
 
-  for (; fx; fx = fx->next)
-    if (fx->type == type)
+  for (; fx; fx = fx->next) {
+    if (fx->type == type) {
       break;
+    }
+  }
 
   return fx;
 }
@@ -233,8 +239,9 @@ void BKE_shaderfx_foreachIDLink(Object *ob, ShaderFxIDWalkFunc walk, void *userD
   for (; fx; fx = fx->next) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfxType_getInfo(fx->type);
 
-    if (fxi->foreachIDLink)
+    if (fxi->foreachIDLink) {
       fxi->foreachIDLink(fx, ob, walk, userData);
+    }
     else if (fxi->foreachObjectLink) {
       /* each Object can masquerade as an ID, so this should be OK */
       ShaderFxObjectWalkFunc fp = (ShaderFxObjectWalkFunc)walk;

@@ -200,10 +200,12 @@ void tracking_configure_tracker(const MovieTrackingTrack *track,
   options->minimum_correlation = track->minimum_correlation;
   options->sigma = 0.9;
 
-  if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0)
+  if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0) {
     options->image1_mask = mask;
-  else
+  }
+  else {
     options->image1_mask = NULL;
+  }
 }
 
 /* Perform tracking from a reference_marker to destination_ibuf.
@@ -256,8 +258,9 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf,
   tracking_get_marker_coords_for_tracking(
       frame_width, frame_height, marker, dst_pixel_x, dst_pixel_y);
 
-  if (patch_new == NULL || reference_search_area == NULL)
+  if (patch_new == NULL || reference_search_area == NULL) {
     return false;
+  }
 
   /* run the tracker! */
   tracked = libmv_trackRegion(&options,
@@ -289,10 +292,12 @@ static bool refine_marker_reference_frame_get(MovieTrackingTrack *track,
 
   while (reference >= first_marker && reference <= last_marker &&
          (reference->flag & MARKER_DISABLED) != 0) {
-    if (backwards)
+    if (backwards) {
       reference++;
-    else
+    }
+    else {
       reference--;
+    }
   }
 
   if (reference < first_marker || reference > last_marker) {
@@ -357,8 +362,9 @@ void BKE_tracking_refine_marker(MovieClip *clip,
       reference_ibuf, track, reference_marker, &search_area_width, &search_area_height);
 
   /* If needed, compute track's mask. */
-  if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0)
+  if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0) {
     mask = BKE_tracking_track_get_mask(frame_width, frame_height, track, marker);
+  }
 
   /* Run the tracker from reference frame to current one. */
   tracked = configure_and_run_tracker(destination_ibuf,
@@ -381,8 +387,9 @@ void BKE_tracking_refine_marker(MovieClip *clip,
 
   /* Free memory used for refining */
   MEM_freeN(search_area);
-  if (mask)
+  if (mask) {
     MEM_freeN(mask);
+  }
   IMB_freeImBuf(reference_ibuf);
   IMB_freeImBuf(destination_ibuf);
 }

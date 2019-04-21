@@ -64,8 +64,9 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
 
   if (psys->part->childtype) {
     psys->totchild = tot;
-    if (psys->totchild)
+    if (psys->totchild) {
       psys->child = MEM_callocN(psys->totchild * sizeof(ChildParticle), "child_particles");
+    }
   }
 }
 
@@ -238,31 +239,37 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
             bool intersects_tri = isect_ray_tri_watertight_v3(
                 co1, &isect_precalc, v1, v2, v3, &lambda, NULL);
             if (intersects_tri) {
-              if (from == PART_FROM_FACE)
+              if (from == PART_FROM_FACE) {
                 (pa + (int)(lambda * size[a]) * a0mul)->flag &= ~PARS_UNEXIST;
-              else /* store number of intersections */
+              }
+              else { /* store number of intersections */
                 (pa + (int)(lambda * size[a]) * a0mul)->hair_index++;
+              }
             }
 
             if (mface->v4 && (!intersects_tri || from == PART_FROM_VOLUME)) {
               copy_v3_v3(v4, mvert[mface->v4].co);
 
               if (isect_ray_tri_watertight_v3(co1, &isect_precalc, v1, v3, v4, &lambda, NULL)) {
-                if (from == PART_FROM_FACE)
+                if (from == PART_FROM_FACE) {
                   (pa + (int)(lambda * size[a]) * a0mul)->flag &= ~PARS_UNEXIST;
-                else
+                }
+                else {
                   (pa + (int)(lambda * size[a]) * a0mul)->hair_index++;
+                }
               }
             }
           }
 
           if (from == PART_FROM_VOLUME) {
             int in = pa->hair_index % 2;
-            if (in)
+            if (in) {
               pa->hair_index++;
+            }
             for (i = 0; i < size[0]; i++) {
-              if (in || (pa + i * a0mul)->hair_index % 2)
+              if (in || (pa + i * a0mul)->hair_index % 2) {
                 (pa + i * a0mul)->flag &= ~PARS_UNEXIST;
+              }
               /* odd intersections == in->out / out->in */
               /* even intersections -> in stays same */
               in = (in + (pa + i * a0mul)->hair_index) % 2;
@@ -277,8 +284,9 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
     for (i = 0, p = 0, pa = psys->particles; i < res; i++) {
       for (j = 0; j < res; j++) {
         for (k = 0; k < res; k++, p++, pa++) {
-          if (j % 2)
+          if (j % 2) {
             pa->fuv[0] += d / 2.f;
+          }
 
           if (k % 2) {
             pa->fuv[0] += d / 2.f;
@@ -303,8 +311,9 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   if (psys->part->grid_rand > 0.f) {
     float rfac = d * psys->part->grid_rand;
     for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
-      if (pa->flag & PARS_UNEXIST)
+      if (pa->flag & PARS_UNEXIST) {
         continue;
+      }
 
       pa->fuv[0] += rfac * (psys_frand(psys, p + 31) - 0.5f);
       pa->fuv[1] += rfac * (psys_frand(psys, p + 32) - 0.5f);
@@ -340,8 +349,9 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
   float *jit2, x, rad1, rad2, rad3;
   int i, num2;
 
-  if (num == 0)
+  if (num == 0) {
     return;
+  }
 
   rad1 = (float)(1.0f / sqrtf((float)num));
   rad2 = (float)(1.0f / ((float)num));
@@ -378,10 +388,12 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
   float vert[4][3], co[3];
 
   if (!quad) {
-    if (u + v > 1.0f)
+    if (u + v > 1.0f) {
       v = 1.0f - v;
-    else
+    }
+    else {
       u = 1.0f - u;
+    }
   }
 
   vert[0][0] = 0.0f;
@@ -415,20 +427,24 @@ static int distribute_binary_search(float *sum, int n, float value)
 {
   int mid, low = 0, high = n - 1;
 
-  if (high == low)
+  if (high == low) {
     return low;
+  }
 
-  if (sum[low] >= value)
+  if (sum[low] >= value) {
     return low;
+  }
 
-  if (sum[high - 1] < value)
+  if (sum[high - 1] < value) {
     return high;
+  }
 
   while (low < high) {
     mid = (low + high) / 2;
 
-    if ((sum[mid] >= value) && (sum[mid - 1] < value))
+    if ((sum[mid] >= value) && (sum[mid - 1] < value)) {
       return mid;
+    }
 
     if (sum[mid] > value) {
       high = mid - 1;
@@ -521,10 +537,12 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
   switch (distr) {
     case PART_DISTR_JIT:
       if (ctx->jitlevel == 1) {
-        if (mface->v4)
+        if (mface->v4) {
           psys_uv_to_w(0.5f, 0.5f, mface->v4, pa->fuv);
-        else
+        }
+        else {
           psys_uv_to_w(1.0f / 3.0f, 1.0f / 3.0f, mface->v4, pa->fuv);
+        }
       }
       else {
         float offset = fmod(ctx->jitoff[i] + (float)p, (float)ctx->jitlevel);
@@ -569,10 +587,12 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   switch (distr) {
     case PART_DISTR_JIT:
       if (ctx->jitlevel == 1) {
-        if (mface->v4)
+        if (mface->v4) {
           psys_uv_to_w(0.5f, 0.5f, mface->v4, pa->fuv);
-        else
+        }
+        else {
           psys_uv_to_w(1.0f / 3.0f, 1.0f / 3.0f, mface->v4, pa->fuv);
+        }
       }
       else {
         float offset = fmod(ctx->jitoff[i] + (float)p, (float)ctx->jitlevel);
@@ -604,8 +624,9 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   intersect = 0;
 
   for (i = 0, mface = mesh->mface; i < tot; i++, mface++) {
-    if (i == pa->num)
+    if (i == pa->num) {
       continue;
+    }
 
     v1 = mvert[mface->v1].co;
     v2 = mvert[mface->v2].co;
@@ -630,8 +651,9 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
       }
     }
   }
-  if (intersect == 0)
+  if (intersect == 0) {
     pa->foffset = 0.0;
+  }
   else {
     switch (distr) {
       case PART_DISTR_JIT:
@@ -736,8 +758,9 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     cpa->parent = cpa->pa[0];
   }
 
-  if (rng_skip_tot > 0) /* should never be below zero */
+  if (rng_skip_tot > 0) { /* should never be below zero */
     BLI_rng_skip(thread->rng, rng_skip_tot);
+  }
 }
 
 static void exec_distribute_parent(TaskPool *__restrict UNUSED(pool),
@@ -754,16 +777,19 @@ static void exec_distribute_parent(TaskPool *__restrict UNUSED(pool),
   pa = psys->particles + task->begin;
   switch (psys->part->from) {
     case PART_FROM_FACE:
-      for (p = task->begin; p < task->end; ++p, ++pa)
+      for (p = task->begin; p < task->end; ++p, ++pa) {
         distribute_from_faces_exec(task, pa, p);
+      }
       break;
     case PART_FROM_VOLUME:
-      for (p = task->begin; p < task->end; ++p, ++pa)
+      for (p = task->begin; p < task->end; ++p, ++pa) {
         distribute_from_volume_exec(task, pa, p);
+      }
       break;
     case PART_FROM_VERT:
-      for (p = task->begin; p < task->end; ++p, ++pa)
+      for (p = task->begin; p < task->end; ++p, ++pa) {
         distribute_from_verts_exec(task, pa, p);
+      }
       break;
   }
 }
@@ -794,20 +820,25 @@ static int distribute_compare_orig_index(const void *p1, const void *p2, void *u
   int index1 = orig_index[*(const int *)p1];
   int index2 = orig_index[*(const int *)p2];
 
-  if (index1 < index2)
+  if (index1 < index2) {
     return -1;
+  }
   else if (index1 == index2) {
     /* this pointer comparison appears to make qsort stable for glibc,
      * and apparently on solaris too, makes the renders reproducible */
-    if (p1 < p2)
+    if (p1 < p2) {
       return -1;
-    else if (p1 == p2)
+    }
+    else if (p1 == p2) {
       return 0;
-    else
+    }
+    else {
       return 1;
+    }
   }
-  else
+  else {
     return 1;
+  }
 }
 
 static void distribute_invalid(ParticleSimulationData *sim, int from)
@@ -864,13 +895,15 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   float cur, maxweight = 0.0, tweight, totweight, inv_totweight, co[3], nor[3], orco[3];
   RNG *rng = NULL;
 
-  if (ELEM(NULL, ob, psys, psys->part))
+  if (ELEM(NULL, ob, psys, psys->part)) {
     return 0;
+  }
 
   part = psys->part;
   totpart = psys->totpart;
-  if (totpart == 0)
+  if (totpart == 0) {
     return 0;
+  }
 
   if (!final_mesh->runtime.deformed_only &&
       !CustomData_get_layer(&final_mesh->fdata, CD_ORIGINDEX)) {
@@ -949,10 +982,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     rng = BLI_rng_new_srandom(31415926 + psys->seed);
 
-    if (psys->part->use_modifier_stack)
+    if (psys->part->use_modifier_stack) {
       mesh = final_mesh;
-    else
+    }
+    else {
       BKE_id_copy_ex(NULL, ob->data, (ID **)&mesh, LIB_ID_COPY_LOCALIZE);
+    }
 
     BKE_mesh_tessface_ensure(mesh);
 
@@ -976,8 +1011,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
           copy_v3_v3(co, orcodata[p]);
           BKE_mesh_orco_verts_transform(ob->data, &co, 1, 1);
         }
-        else
+        else {
           copy_v3_v3(co, mv[p].co);
+        }
         BLI_kdtree_3d_insert(tree, p, co);
       }
 
@@ -991,11 +1027,13 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   if (totelem == 0) {
     distribute_invalid(sim, children ? PART_FROM_CHILD : 0);
 
-    if (G.debug & G_DEBUG)
+    if (G.debug & G_DEBUG) {
       fprintf(stderr, "Particle distribution error: Nothing to emit from!\n");
+    }
 
-    if (mesh != final_mesh)
+    if (mesh != final_mesh) {
       BKE_id_free(NULL, mesh);
+    }
 
     BLI_kdtree_3d_free(tree);
     BLI_rng_free(rng);
@@ -1046,22 +1084,25 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
       cur = mf->v4 ? area_quad_v3(co1, co2, co3, co4) : area_tri_v3(co1, co2, co3);
 
-      if (cur > maxweight)
+      if (cur > maxweight) {
         maxweight = cur;
+      }
 
       element_weight[i] = cur;
       totarea += cur;
     }
 
-    for (i = 0; i < totelem; i++)
+    for (i = 0; i < totelem; i++) {
       element_weight[i] /= totarea;
+    }
 
     maxweight /= totarea;
   }
   else {
     float min = 1.0f / (float)(MIN2(totelem, totpart));
-    for (i = 0; i < totelem; i++)
+    for (i = 0; i < totelem; i++) {
       element_weight[i] = min;
+    }
     maxweight = min;
   }
 
@@ -1070,8 +1111,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
   if (vweight) {
     if (from == PART_FROM_VERT) {
-      for (i = 0; i < totelem; i++)
+      for (i = 0; i < totelem; i++) {
         element_weight[i] *= vweight[i];
+      }
     }
     else { /* PART_FROM_FACE / PART_FROM_VOLUME */
       for (i = 0; i < totelem; i++) {
@@ -1127,8 +1169,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   int *element_map = MEM_mallocN(sizeof(*element_map) * totmapped, __func__);
   int i_mapped = 0;
 
-  for (i = 0; i < totelem && element_weight[i] == 0.0f; i++)
+  for (i = 0; i < totelem && element_weight[i] == 0.0f; i++) {
     ;
+  }
   element_sum[i_mapped] = element_weight[i] * inv_totweight;
   element_map[i_mapped] = i;
   i_mapped++;
@@ -1171,8 +1214,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
                                   step * 0.5; /* We choose the smaller step. */
 
     for (i = 0, p = 0; p < totpart; p++, pos += step) {
-      for (; (i < totmapped - 1) && (pos > (double)element_sum[i]); i++)
+      for (; (i < totmapped - 1) && (pos > (double)element_sum[i]); i++) {
         ;
+      }
 
       particle_element[p] = element_map[i];
 
@@ -1189,12 +1233,14 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     int *orig_index = NULL;
 
     if (from == PART_FROM_VERT) {
-      if (mesh->totvert)
+      if (mesh->totvert) {
         orig_index = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX);
+      }
     }
     else {
-      if (mesh->totface)
+      if (mesh->totface) {
         orig_index = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
+      }
     }
 
     if (orig_index) {
@@ -1209,10 +1255,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     if (jitlevel == 0) {
       jitlevel = totpart / totelem;
-      if (part->flag & PART_EDISTR)
+      if (part->flag & PART_EDISTR) {
         jitlevel *= 2; /* looks better in general, not very scientific */
-      if (jitlevel < 3)
+      }
+      if (jitlevel < 3) {
         jitlevel = 3;
+      }
     }
 
     jit = MEM_callocN((2 + jitlevel * 2) * sizeof(float), "jit");
@@ -1220,10 +1268,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     /* for small amounts of particles we use regular jitter since it looks
      * a bit better, for larger amounts we switch to hammersley sequence
      * because it is much faster */
-    if (jitlevel < 25)
+    if (jitlevel < 25) {
       init_mv_jit(jit, jitlevel, psys->seed, part->jitfac);
-    else
+    }
+    else {
       hammersley_create(jit, jitlevel + 1, psys->seed, part->jitfac);
+    }
     BLI_array_randomize(
         jit, 2 * sizeof(float), jitlevel, psys->seed); /* for custom jit or even distribution */
   }
@@ -1271,8 +1321,9 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
   int i, totpart, numtasks;
 
   /* create a task pool for distribution tasks */
-  if (!psys_thread_context_init_distribute(&ctx, sim, from))
+  if (!psys_thread_context_init_distribute(&ctx, sim, from)) {
     return;
+  }
 
   task_scheduler = BLI_task_scheduler_get();
   task_pool = BLI_task_pool_create(task_scheduler, &ctx);
@@ -1283,10 +1334,12 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
     ParticleTask *task = &tasks[i];
 
     psys_task_init_distribute(task, sim);
-    if (from == PART_FROM_CHILD)
+    if (from == PART_FROM_CHILD) {
       BLI_task_pool_push(task_pool, exec_distribute_child, task, false, TASK_PRIORITY_LOW);
-    else
+    }
+    else {
       BLI_task_pool_push(task_pool, exec_distribute_parent, task, false, TASK_PRIORITY_LOW);
+    }
   }
   BLI_task_pool_work_and_wait(task_pool);
 
@@ -1294,8 +1347,9 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 
   psys_calc_dmcache(sim->ob, final_mesh, sim->psmd->mesh_original, sim->psys);
 
-  if (ctx.mesh != final_mesh)
+  if (ctx.mesh != final_mesh) {
     BKE_id_free(NULL, ctx.mesh);
+  }
 
   psys_tasks_free(tasks, numtasks);
 
@@ -1316,13 +1370,16 @@ void distribute_particles(ParticleSimulationData *sim, int from)
   int distr_error = 0;
 
   if (psmd) {
-    if (psmd->mesh_final)
+    if (psmd->mesh_final) {
       distribute_particles_on_dm(sim, from);
-    else
+    }
+    else {
       distr_error = 1;
+    }
   }
-  else
+  else {
     distribute_particles_on_shape(sim, from);
+  }
 
   if (distr_error) {
     distribute_invalid(sim, from);

@@ -140,11 +140,13 @@ void cloth_init(ClothModifierData *clmd)
 
   clmd->sim_parms->bending_model = CLOTH_BENDING_ANGULAR;
 
-  if (!clmd->sim_parms->effector_weights)
+  if (!clmd->sim_parms->effector_weights) {
     clmd->sim_parms->effector_weights = BKE_effector_add_weights(NULL);
+  }
 
-  if (clmd->point_cache)
+  if (clmd->point_cache) {
     clmd->point_cache->step = 1;
+  }
 }
 
 static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
@@ -155,20 +157,23 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
   ClothVertex *verts;
   const MVertTri *vt;
 
-  if (!clmd)
+  if (!clmd) {
     return NULL;
+  }
 
   cloth = clmd->clothObject;
 
-  if (!cloth)
+  if (!cloth) {
     return NULL;
+  }
 
   verts = cloth->verts;
   vt = cloth->tri;
 
   /* in the moment, return zero if no faces there */
-  if (!cloth->tri_num)
+  if (!cloth->tri_num) {
     return NULL;
+  }
 
   /* create quadtree with k=26 */
   bvhtree = BLI_bvhtree_new(cloth->tri_num, epsilon, 4, 26);
@@ -205,8 +210,9 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
     bvhtree = cloth->bvhtree;
   }
 
-  if (!bvhtree)
+  if (!bvhtree) {
     return;
+  }
 
   vt = cloth->tri;
 
@@ -254,8 +260,9 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
   BKE_ptcache_id_from_cloth(&pid, ob, clmd);
 
   // don't do anything as long as we're in editmode!
-  if (pid.cache->edit && ob->mode & OB_MODE_PARTICLE_EDIT)
+  if (pid.cache->edit && ob->mode & OB_MODE_PARTICLE_EDIT) {
     return;
+  }
 
   BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);
 }
@@ -317,8 +324,9 @@ static int do_step_cloth(
 
   effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights);
 
-  if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)
+  if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH) {
     cloth_update_verts(ob, clmd, result);
+  }
 
   /* Support for dynamic vertex groups, changing from frame to frame */
   cloth_apply_vgroup(clmd, result);
@@ -387,8 +395,9 @@ void clothModifier_do(ClothModifierData *clmd,
   }
 
   /* initialize simulation data if it didn't exist already */
-  if (!do_init_cloth(ob, clmd, mesh, framenr))
+  if (!do_init_cloth(ob, clmd, mesh, framenr)) {
     return;
+  }
 
   if (framenr == startframe) {
     BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
@@ -412,8 +421,9 @@ void clothModifier_do(ClothModifierData *clmd,
 
     BKE_ptcache_validate(cache, framenr);
 
-    if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+    if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED) {
       BKE_ptcache_write(&pid, framenr);
+    }
 
     clmd->clothObject->last_frame = framenr;
 
@@ -431,8 +441,10 @@ void clothModifier_do(ClothModifierData *clmd,
   }
 
   /* if on second frame, write cache for first frame */
-  if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0))
+  if (cache->simframe == startframe &&
+      (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
     BKE_ptcache_write(&pid, startframe);
+  }
 
   clmd->sim_parms->timescale *= framenr - cache->simframe;
 
@@ -442,8 +454,9 @@ void clothModifier_do(ClothModifierData *clmd,
   if (!do_step_cloth(depsgraph, ob, clmd, mesh, framenr)) {
     BKE_ptcache_invalidate(cache);
   }
-  else
+  else {
     BKE_ptcache_write(&pid, framenr);
+  }
 
   cloth_to_object(ob, clmd, vertexCos);
   clmd->clothObject->last_frame = framenr;
@@ -454,8 +467,9 @@ void cloth_free_modifier(ClothModifierData *clmd)
 {
   Cloth *cloth = NULL;
 
-  if (!clmd)
+  if (!clmd) {
     return;
+  }
 
   cloth = clmd->clothObject;
 
@@ -463,8 +477,9 @@ void cloth_free_modifier(ClothModifierData *clmd)
     BPH_cloth_solver_free(clmd);
 
     // Free the verts.
-    if (cloth->verts != NULL)
+    if (cloth->verts != NULL) {
       MEM_freeN(cloth->verts);
+    }
 
     cloth->verts = NULL;
     cloth->mvert_num = 0;
@@ -490,18 +505,22 @@ void cloth_free_modifier(ClothModifierData *clmd)
     cloth->numsprings = 0;
 
     // free BVH collision tree
-    if (cloth->bvhtree)
+    if (cloth->bvhtree) {
       BLI_bvhtree_free(cloth->bvhtree);
+    }
 
-    if (cloth->bvhselftree)
+    if (cloth->bvhselftree) {
       BLI_bvhtree_free(cloth->bvhselftree);
+    }
 
     // we save our faces for collision objects
-    if (cloth->tri)
+    if (cloth->tri) {
       MEM_freeN(cloth->tri);
+    }
 
-    if (cloth->edgeset)
+    if (cloth->edgeset) {
       BLI_edgeset_free(cloth->edgeset);
+    }
 
 #if 0
     if (clmd->clothObject->facemarks) {
@@ -521,8 +540,9 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     printf("cloth_free_modifier_extern\n");
   }
 
-  if (!clmd)
+  if (!clmd) {
     return;
+  }
 
   cloth = clmd->clothObject;
 
@@ -534,8 +554,9 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     BPH_cloth_solver_free(clmd);
 
     // Free the verts.
-    if (cloth->verts != NULL)
+    if (cloth->verts != NULL) {
       MEM_freeN(cloth->verts);
+    }
 
     cloth->verts = NULL;
     cloth->mvert_num = 0;
@@ -561,18 +582,22 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     cloth->numsprings = 0;
 
     // free BVH collision tree
-    if (cloth->bvhtree)
+    if (cloth->bvhtree) {
       BLI_bvhtree_free(cloth->bvhtree);
+    }
 
-    if (cloth->bvhselftree)
+    if (cloth->bvhselftree) {
       BLI_bvhtree_free(cloth->bvhselftree);
+    }
 
     // we save our faces for collision objects
-    if (cloth->tri)
+    if (cloth->tri) {
       MEM_freeN(cloth->tri);
+    }
 
-    if (cloth->edgeset)
+    if (cloth->edgeset) {
       BLI_edgeset_free(cloth->edgeset);
+    }
 
 #if 0
     if (clmd->clothObject->facemarks) {
@@ -631,8 +656,9 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
   /* float goalfac = 0; */ /* UNUSED */
   ClothVertex *verts = NULL;
 
-  if (!clmd || !mesh)
+  if (!clmd || !mesh) {
     return;
+  }
 
   clothObj = clmd->clothObject;
 
@@ -644,10 +670,12 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
     for (i = 0; i < mvert_num; i++, verts++) {
 
       /* Reset Goal values to standard */
-      if (clmd->sim_parms->vgroup_mass > 0)
+      if (clmd->sim_parms->vgroup_mass > 0) {
         verts->goal = clmd->sim_parms->defgoal;
-      else
+      }
+      else {
         verts->goal = 0.0f;
+      }
 
       /* Compute base cloth shrink weight */
       verts->shrink_factor = 0.0f;
@@ -668,8 +696,9 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
             // ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
 
             verts->goal = pow4f(verts->goal);
-            if (verts->goal >= SOFTGOALSNAP)
+            if (verts->goal >= SOFTGOALSNAP) {
               verts->flags |= CLOTH_VERT_FLAG_PINNED;
+            }
           }
 
           if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_struct - 1)) {
@@ -746,8 +775,9 @@ static int cloth_from_object(
   }
 
   // mesh input objects need Mesh
-  if (!mesh)
+  if (!mesh) {
     return 0;
+  }
 
   cloth_from_mesh(clmd, mesh);
 
@@ -756,8 +786,9 @@ static int cloth_from_object(
   clmd->clothObject->numsprings = -1;
 
   if (clmd->sim_parms->shapekey_rest &&
-      !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH))
+      !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)) {
     shapekey_rest = CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO);
+  }
 
   mvert = mesh->mvert;
 
@@ -774,18 +805,21 @@ static int cloth_from_object(
         copy_v3_v3(verts->xrest, shapekey_rest[i]);
         mul_m4_v3(ob->obmat, verts->xrest);
       }
-      else
+      else {
         copy_v3_v3(verts->xrest, verts->x);
+      }
     }
 
     /* no GUI interface yet */
     verts->mass = clmd->sim_parms->mass;
     verts->impulse_count = 0;
 
-    if (clmd->sim_parms->vgroup_mass > 0)
+    if (clmd->sim_parms->vgroup_mass > 0) {
       verts->goal = clmd->sim_parms->defgoal;
-    else
+    }
+    else {
       verts->goal = 0.0f;
+    }
 
     verts->shrink_factor = 0.0f;
 
@@ -813,8 +847,9 @@ static int cloth_from_object(
   // init our solver
   BPH_cloth_solver_init(ob, clmd);
 
-  if (!first)
+  if (!first) {
     BKE_cloth_solver_set_positions(clmd);
+  }
 
   clmd->clothObject->bvhtree = bvhtree_build_from_cloth(clmd, clmd->coll_parms->epsilon);
   clmd->clothObject->bvhselftree = bvhtree_build_from_cloth(clmd, clmd->coll_parms->selfepsilon);
@@ -854,8 +889,9 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
   /* Free the springs since they can't be correct if the vertices
    * changed.
    */
-  if (clmd->clothObject->springs != NULL)
+  if (clmd->clothObject->springs != NULL) {
     MEM_freeN(clmd->clothObject->springs);
+  }
 }
 
 /***************************************************************************************
@@ -960,8 +996,9 @@ static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
   float hair_frame[3][3], dir_old[3], dir_new[3];
   int prev_mn; /* to find hair chains */
 
-  if (!clmd->hairdata)
+  if (!clmd->hairdata) {
     return;
+  }
 
   /* XXX Note: we need to propagate frames from the root up,
    * but structural hair springs are stored in reverse order.
@@ -1017,8 +1054,9 @@ static void cloth_hair_update_bending_rest_targets(ClothModifierData *clmd)
   float hair_frame[3][3], dir_old[3], dir_new[3];
   int prev_mn; /* to find hair roots */
 
-  if (!clmd->hairdata)
+  if (!clmd->hairdata) {
     return;
+  }
 
   /* XXX Note: we need to propagate frames from the root up,
    * but structural hair springs are stored in reverse order.
@@ -1358,8 +1396,9 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   BendSpringRef *spring_ref = NULL;
 
   // error handling
-  if (numedges == 0)
+  if (numedges == 0) {
     return 0;
+  }
 
   /* NOTE: handling ownership of springs and edgeset is quite sloppy
    * currently they are never initialized but assert just to be sure */
@@ -1434,13 +1473,15 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     }
   }
 
-  if (struct_springs_real > 0)
+  if (struct_springs_real > 0) {
     clmd->sim_parms->avg_spring_len /= struct_springs_real;
+  }
 
   for (int i = 0; i < mvert_num; i++) {
-    if (cloth->verts[i].spring_count > 0)
+    if (cloth->verts[i].spring_count > 0) {
       cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f /
                                        ((float)cloth->verts[i].spring_count);
+    }
   }
 
   edgeset = BLI_edgeset_new_ex(__func__, numedges);

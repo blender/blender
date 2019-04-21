@@ -70,8 +70,9 @@ void BKE_mball_free(MetaBall *mb)
   MEM_SAFE_FREE(mb->mat);
 
   BLI_freelistN(&mb->elems);
-  if (mb->disp.first)
+  if (mb->disp.first) {
     BKE_displist_free(&mb->disp);
+  }
 }
 
 void BKE_mball_init(MetaBall *mb)
@@ -206,8 +207,9 @@ void BKE_mball_texspace_calc(Object *ob)
   dl = ob->runtime.curve_cache->disp.first;
   while (dl) {
     tot = dl->nr;
-    if (tot)
+    if (tot) {
       do_it = true;
+    }
     data = dl->verts;
     while (tot--) {
       /* Also weird... but longer. From utildefines. */

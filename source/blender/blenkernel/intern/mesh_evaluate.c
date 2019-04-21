@@ -165,8 +165,9 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
     return;
   }
 
-  if (!pnors)
+  if (!pnors) {
     pnors = MEM_calloc_arrayN((size_t)numPolys, sizeof(float[3]), __func__);
+  }
   /* if (!fnors) fnors = MEM_calloc_arrayN(numFaces, sizeof(float[3]), "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
 
   if (only_face_normals == false) {
@@ -199,8 +200,9 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
     }
   }
 
-  if (pnors != r_polyNors)
+  if (pnors != r_polyNors) {
     MEM_freeN(pnors);
+  }
   /* if (fnors != r_faceNors) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
 
   fnors = pnors = NULL;
@@ -462,11 +464,13 @@ void BKE_mesh_calc_normals_tessface(
     float *n4 = (mf->v4) ? tnorms[mf->v4] : NULL;
     const float *c4 = (mf->v4) ? mverts[mf->v4].co : NULL;
 
-    if (mf->v4)
+    if (mf->v4) {
       normal_quad_v3(
           f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
-    else
+    }
+    else {
       normal_tri_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
+    }
 
     accumulate_vertex_normals_v3(tnorms[mf->v1],
                                  tnorms[mf->v2],
@@ -494,8 +498,9 @@ void BKE_mesh_calc_normals_tessface(
 cleanup:
   MEM_freeN(tnorms);
 
-  if (fnors != r_faceNors)
+  if (fnors != r_faceNors) {
     MEM_freeN(fnors);
+  }
 }
 
 void BKE_mesh_calc_normals_looptri(MVert *mverts,
@@ -550,8 +555,9 @@ void BKE_mesh_calc_normals_looptri(MVert *mverts,
 cleanup:
   MEM_freeN(tnorms);
 
-  if (fnors != r_tri_nors)
+  if (fnors != r_tri_nors) {
     MEM_freeN(fnors);
+  }
 }
 
 void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
@@ -2590,8 +2596,9 @@ static bool mesh_calc_center_centroid_ex(const MVert *mverts,
 
   zero_v3(r_center);
 
-  if (looptri_num == 0)
+  if (looptri_num == 0) {
     return false;
+  }
 
   totweight = 0.0f;
   for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
@@ -2606,8 +2613,9 @@ static bool mesh_calc_center_centroid_ex(const MVert *mverts,
     madd_v3_v3fl(r_center, v3->co, area);
     totweight += area;
   }
-  if (totweight == 0.0f)
+  if (totweight == 0.0f) {
     return false;
+  }
 
   mul_v3_fl(r_center, 1.0f / (3.0f * totweight));
 
@@ -2633,16 +2641,20 @@ void BKE_mesh_calc_volume(const MVert *mverts,
   float totvol;
   int i;
 
-  if (r_volume)
+  if (r_volume) {
     *r_volume = 0.0f;
-  if (r_center)
+  }
+  if (r_center) {
     zero_v3(r_center);
+  }
 
-  if (looptri_num == 0)
+  if (looptri_num == 0) {
     return;
+  }
 
-  if (!mesh_calc_center_centroid_ex(mverts, mverts_num, looptri, looptri_num, mloop, center))
+  if (!mesh_calc_center_centroid_ex(mverts, mverts_num, looptri, looptri_num, mloop, center)) {
     return;
+  }
 
   totvol = 0.0f;
 
@@ -2675,8 +2687,9 @@ void BKE_mesh_calc_volume(const MVert *mverts,
     /* Note: Factor 1/3 is applied once for all vertices here.
      * This also automatically negates the vector if totvol is negative.
      */
-    if (totvol != 0.0f)
+    if (totvol != 0.0f) {
       mul_v3_fl(r_center, (1.0f / 3.0f) / totvol);
+    }
   }
 }
 
@@ -2877,17 +2890,21 @@ void BKE_mesh_tangent_loops_to_tessdata(CustomData *fdata,
   const int *pidx;
   unsigned int(*lidx)[4];
 
-  if (layer_name)
+  if (layer_name) {
     ltangents = CustomData_get_layer_named(ldata, CD_TANGENT, layer_name);
-  else
+  }
+  else {
     ltangents = CustomData_get_layer(ldata, CD_TANGENT);
+  }
 
   if (ltangents) {
     /* need to do for all uv maps at some point */
-    if (layer_name)
+    if (layer_name) {
       ftangents = CustomData_get_layer_named(fdata, CD_TANGENT, layer_name);
-    else
+    }
+    else {
       ftangents = CustomData_get_layer(fdata, CD_TANGENT);
+    }
     if (ftangents) {
       for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
            pidx++, lidx++, findex++) {
@@ -3398,8 +3415,9 @@ static void bm_corners_to_loops_ex(ID *id,
         ld->totdisp = side_sq;
         ld->level = (int)(logf((float)side - 1.0f) / (float)M_LN2) + 1;
 
-        if (ld->disps)
+        if (ld->disps) {
           MEM_freeN(ld->disps);
+        }
 
         ld->disps = MEM_malloc_arrayN((size_t)side_sq, sizeof(float[3]), "converted loop mdisps");
         if (fd->disps) {
@@ -3727,8 +3745,9 @@ void BKE_mesh_flush_hidden_from_verts_ex(const MVert *mvert,
     MPoly *p = &mpoly[i];
     p->flag &= (char)~ME_HIDE;
     for (j = 0; j < p->totloop; j++) {
-      if (mvert[mloop[p->loopstart + j].v].flag & ME_HIDE)
+      if (mvert[mloop[p->loopstart + j].v].flag & ME_HIDE) {
         p->flag |= ME_HIDE;
+      }
     }
   }
 }

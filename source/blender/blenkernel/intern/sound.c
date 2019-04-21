@@ -97,14 +97,16 @@ bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, b
 
     if (BLI_path_cmp(strtest, str) == 0) {
       id_us_plus(&sound->id); /* officially should not, it doesn't link here! */
-      if (r_exists)
+      if (r_exists) {
         *r_exists = true;
+      }
       return sound;
     }
   }
 
-  if (r_exists)
+  if (r_exists) {
     *r_exists = false;
+  }
   return BKE_sound_new_file(bmain, filepath);
 }
 
@@ -190,8 +192,9 @@ static const char *force_device = NULL;
 static void sound_sync_callback(void *data, int mode, float time)
 {
   // Ugly: Blender doesn't like it when the animation is played back during rendering
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return;
+  }
 
   struct Main *bmain = (struct Main *)data;
   struct Scene *scene;
@@ -199,12 +202,15 @@ static void sound_sync_callback(void *data, int mode, float time)
   scene = bmain->scenes.first;
   while (scene) {
     if (scene->audio.flag & AUDIO_SYNC) {
-      if (mode)
+      if (mode) {
         BKE_sound_play_scene(scene);
-      else
+      }
+      else {
         BKE_sound_stop_scene(scene);
-      if (scene->playback_handle)
+      }
+      if (scene->playback_handle) {
         AUD_Handle_setPosition(scene->playback_handle, time);
+      }
     }
     scene = scene->id.next;
   }
@@ -256,23 +262,29 @@ void BKE_sound_init(struct Main *bmain)
       }
     }
   }
-  else
+  else {
     device_name = force_device;
+  }
 
-  if (buffersize < 128)
+  if (buffersize < 128) {
     buffersize = 1024;
+  }
 
-  if (specs.rate < AUD_RATE_8000)
+  if (specs.rate < AUD_RATE_8000) {
     specs.rate = AUD_RATE_48000;
+  }
 
-  if (specs.format <= AUD_FORMAT_INVALID)
+  if (specs.format <= AUD_FORMAT_INVALID) {
     specs.format = AUD_FORMAT_S16;
+  }
 
-  if (specs.channels <= AUD_CHANNELS_INVALID)
+  if (specs.channels <= AUD_CHANNELS_INVALID) {
     specs.channels = AUD_CHANNELS_STEREO;
+  }
 
-  if (!(sound_device = AUD_init(device_name, specs, buffersize, "Blender")))
+  if (!(sound_device = AUD_init(device_name, specs, buffersize, "Blender"))) {
     sound_device = AUD_init("Null", specs, buffersize, "Blender");
+  }
 
   BKE_sound_init_main(bmain);
 }
@@ -280,8 +292,9 @@ void BKE_sound_init(struct Main *bmain)
 void BKE_sound_init_main(struct Main *bmain)
 {
 #  ifdef WITH_JACK
-  if (sound_device)
+  if (sound_device) {
     AUD_setSynchronizerCallback(sound_sync_callback, bmain);
+  }
 #  else
   (void)bmain; /* unused */
 #  endif
@@ -353,14 +366,17 @@ bSound *BKE_sound_new_limiter(struct Main *bmain, bSound *source, float start, f
 void BKE_sound_cache(bSound *sound)
 {
   sound->flags |= SOUND_FLAGS_CACHING;
-  if (sound->cache)
+  if (sound->cache) {
     AUD_Sound_free(sound->cache);
+  }
 
   sound->cache = AUD_Sound_cache(sound->handle);
-  if (sound->cache)
+  if (sound->cache) {
     sound->playback_handle = sound->cache;
-  else
+  }
+  else {
     sound->playback_handle = sound->handle;
+  }
 }
 
 void BKE_sound_delete_cache(bSound *sound)
@@ -405,23 +421,27 @@ void BKE_sound_load(struct Main *bmain, bSound *sound)
       BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 
       /* but we need a packed file then */
-      if (pf)
+      if (pf) {
         sound->handle = AUD_Sound_bufferFile((unsigned char *)pf->data, pf->size);
-      /* or else load it from disk */
-      else
+      }
+      else {
+        /* or else load it from disk */
         sound->handle = AUD_Sound_file(fullpath);
+      }
     }
 /* XXX unused currently */
 #  if 0
       break;
     }
     case SOUND_TYPE_BUFFER:
-      if (sound->child_sound && sound->child_sound->handle)
+      if (sound->child_sound && sound->child_sound->handle) {
         sound->handle = AUD_bufferSound(sound->child_sound->handle);
+      }
       break;
     case SOUND_TYPE_LIMITER:
-      if (sound->child_sound && sound->child_sound->handle)
+      if (sound->child_sound && sound->child_sound->handle) {
         sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
+      }
       break;
   }
 #  endif
@@ -435,10 +455,12 @@ void BKE_sound_load(struct Main *bmain, bSound *sound)
       sound->cache = AUD_Sound_cache(sound->handle);
     }
 
-    if (sound->cache)
+    if (sound->cache) {
       sound->playback_handle = sound->cache;
-    else
+    }
+    else {
       sound->playback_handle = sound->handle;
+    }
 
     BKE_sound_update_sequencer(bmain, sound);
   }
@@ -452,8 +474,9 @@ AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int st
 void BKE_sound_create_scene(struct Scene *scene)
 {
   /* should be done in version patch, but this gets called before */
-  if (scene->r.frs_sec_base == 0)
+  if (scene->r.frs_sec_base == 0) {
     scene->r.frs_sec_base = 1;
+  }
 
   scene->sound_scene = AUD_Sequence_create(FPS, scene->audio.flag & AUDIO_MUTE);
   AUD_Sequence_setSpeedOfSound(scene->sound_scene, scene->audio.speed_of_sound);
@@ -466,14 +489,18 @@ void BKE_sound_create_scene(struct Scene *scene)
 
 void BKE_sound_destroy_scene(struct Scene *scene)
 {
-  if (scene->playback_handle)
+  if (scene->playback_handle) {
     AUD_Handle_stop(scene->playback_handle);
-  if (scene->sound_scrub_handle)
+  }
+  if (scene->sound_scrub_handle) {
     AUD_Handle_stop(scene->sound_scrub_handle);
-  if (scene->sound_scene)
+  }
+  if (scene->sound_scene) {
     AUD_Sequence_free(scene->sound_scene);
-  if (scene->speaker_handles)
+  }
+  if (scene->speaker_handles) {
     AUD_destroySet(scene->speaker_handles);
+  }
 }
 
 void BKE_sound_reset_scene_specs(struct Scene *scene)
@@ -488,14 +515,16 @@ void BKE_sound_reset_scene_specs(struct Scene *scene)
 
 void BKE_sound_mute_scene(struct Scene *scene, int muted)
 {
-  if (scene->sound_scene)
+  if (scene->sound_scene) {
     AUD_Sequence_setMuted(scene->sound_scene, muted);
+  }
 }
 
 void BKE_sound_update_fps(struct Scene *scene)
 {
-  if (scene->sound_scene)
+  if (scene->sound_scene) {
     AUD_Sequence_setFPS(scene->sound_scene, FPS);
+  }
 
   BKE_sequencer_refresh_sound_length(scene);
 }
@@ -633,13 +662,15 @@ void BKE_sound_update_sequencer(struct Main *main, bSound *sound)
 
 static void sound_start_play_scene(struct Scene *scene)
 {
-  if (scene->playback_handle)
+  if (scene->playback_handle) {
     AUD_Handle_stop(scene->playback_handle);
+  }
 
   BKE_sound_reset_scene_specs(scene);
 
-  if ((scene->playback_handle = AUD_Device_play(sound_device, scene->sound_scene, 1)))
+  if ((scene->playback_handle = AUD_Device_play(sound_device, scene->sound_scene, 1))) {
     AUD_Handle_setLoopCount(scene->playback_handle, -1);
+  }
 }
 
 void BKE_sound_play_scene(struct Scene *scene)
@@ -666,8 +697,9 @@ void BKE_sound_play_scene(struct Scene *scene)
     AUD_Handle_resume(scene->playback_handle);
   }
 
-  if (scene->audio.flag & AUDIO_SYNC)
+  if (scene->audio.flag & AUDIO_SYNC) {
     AUD_playSynchronizer();
+  }
 
   AUD_Device_unlock(sound_device);
 }
@@ -677,8 +709,9 @@ void BKE_sound_stop_scene(struct Scene *scene)
   if (scene->playback_handle) {
     AUD_Handle_pause(scene->playback_handle);
 
-    if (scene->audio.flag & AUDIO_SYNC)
+    if (scene->audio.flag & AUDIO_SYNC) {
       AUD_stopSynchronizer();
+    }
   }
 }
 
@@ -749,14 +782,17 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
 float BKE_sound_sync_scene(struct Scene *scene)
 {
   // Ugly: Blender doesn't like it when the animation is played back during rendering
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return NAN_FLT;
+  }
 
   if (scene->playback_handle) {
-    if (scene->audio.flag & AUDIO_SYNC)
+    if (scene->audio.flag & AUDIO_SYNC) {
       return AUD_getSynchronizerPosition(scene->playback_handle);
-    else
+    }
+    else {
       return AUD_Handle_getPosition(scene->playback_handle);
+    }
   }
   return NAN_FLT;
 }
@@ -764,13 +800,16 @@ float BKE_sound_sync_scene(struct Scene *scene)
 int BKE_sound_scene_playing(struct Scene *scene)
 {
   // Ugly: Blender doesn't like it when the animation is played back during rendering
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return -1;
+  }
 
-  if (scene->audio.flag & AUDIO_SYNC)
+  if (scene->audio.flag & AUDIO_SYNC) {
     return AUD_isSynchronizerPlaying();
-  else
+  }
+  else {
     return -1;
+  }
 }
 
 void BKE_sound_free_waveform(bSound *sound)

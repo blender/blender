@@ -111,8 +111,9 @@ static bool seqcache_hashcmp(const void *a_, const void *b_)
 
 void BKE_sequencer_cache_destruct(void)
 {
-  if (moviecache)
+  if (moviecache) {
     IMB_moviecache_free(moviecache);
+  }
 
   preprocessed_cache_destruct();
 }
@@ -138,8 +139,9 @@ static bool seqcache_key_check_seq(ImBuf *UNUSED(ibuf), void *userkey, void *use
 
 void BKE_sequencer_cache_cleanup_sequence(Sequence *seq)
 {
-  if (moviecache)
+  if (moviecache) {
     IMB_moviecache_cleanup(moviecache, seqcache_key_check_seq, seq);
+  }
 }
 
 struct ImBuf *BKE_sequencer_cache_get(const SeqRenderData *context,
@@ -187,8 +189,9 @@ void BKE_sequencer_preprocessed_cache_cleanup(void)
 {
   SeqPreprocessCacheElem *elem;
 
-  if (!preprocess_cache)
+  if (!preprocess_cache) {
     return;
+  }
 
   for (elem = preprocess_cache->elems.first; elem; elem = elem->next) {
     IMB_freeImBuf(elem->ibuf);
@@ -200,8 +203,9 @@ void BKE_sequencer_preprocessed_cache_cleanup(void)
 
 static void preprocessed_cache_destruct(void)
 {
-  if (!preprocess_cache)
+  if (!preprocess_cache) {
     return;
+  }
 
   BKE_sequencer_preprocessed_cache_cleanup();
 
@@ -216,21 +220,26 @@ ImBuf *BKE_sequencer_preprocessed_cache_get(const SeqRenderData *context,
 {
   SeqPreprocessCacheElem *elem;
 
-  if (!preprocess_cache)
+  if (!preprocess_cache) {
     return NULL;
+  }
 
-  if (preprocess_cache->cfra != cfra)
+  if (preprocess_cache->cfra != cfra) {
     return NULL;
+  }
 
   for (elem = preprocess_cache->elems.first; elem; elem = elem->next) {
-    if (elem->seq != seq)
+    if (elem->seq != seq) {
       continue;
+    }
 
-    if (elem->type != type)
+    if (elem->type != type) {
       continue;
+    }
 
-    if (seq_cmp_render_data(&elem->context, context) != 0)
+    if (seq_cmp_render_data(&elem->context, context) != 0) {
       continue;
+    }
 
     IMB_refImBuf(elem->ibuf);
     return elem->ibuf;
@@ -248,8 +257,9 @@ void BKE_sequencer_preprocessed_cache_put(
     preprocess_cache = MEM_callocN(sizeof(SeqPreprocessCache), "sequencer preprocessed cache");
   }
   else {
-    if (preprocess_cache->cfra != cfra)
+    if (preprocess_cache->cfra != cfra) {
       BKE_sequencer_preprocessed_cache_cleanup();
+    }
   }
 
   elem = MEM_callocN(sizeof(SeqPreprocessCacheElem), "sequencer preprocessed cache element");
@@ -270,8 +280,9 @@ void BKE_sequencer_preprocessed_cache_cleanup_sequence(Sequence *seq)
 {
   SeqPreprocessCacheElem *elem, *elem_next;
 
-  if (!preprocess_cache)
+  if (!preprocess_cache) {
     return;
+  }
 
   for (elem = preprocess_cache->elems.first; elem; elem = elem_next) {
     elem_next = elem->next;

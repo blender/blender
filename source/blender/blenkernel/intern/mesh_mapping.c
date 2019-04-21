@@ -67,12 +67,15 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
 
   /* generate UvMapVert array */
   mp = mpoly;
-  for (a = 0; a < totpoly; a++, mp++)
-    if (!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL)))
+  for (a = 0; a < totpoly; a++, mp++) {
+    if (!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL))) {
       totuv += mp->totloop;
+    }
+  }
 
-  if (totuv == 0)
+  if (totuv == 0) {
     return NULL;
+  }
 
   vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
   buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * (size_t)totuv, "UvMapVert");
@@ -142,15 +145,18 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
 
         if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
             (!use_winding || winding[iterv->poly_index] == winding[v->poly_index])) {
-          if (lastv)
+          if (lastv) {
             lastv->next = next;
-          else
+          }
+          else {
             vlist = next;
+          }
           iterv->next = newvlist;
           newvlist = iterv;
         }
-        else
+        else {
           lastv = iterv;
+        }
 
         iterv = next;
       }
@@ -178,10 +184,12 @@ UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v)
 void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
 {
   if (vmap) {
-    if (vmap->vert)
+    if (vmap->vert) {
       MEM_freeN(vmap->vert);
-    if (vmap->buf)
+    }
+    if (vmap->buf) {
       MEM_freeN(vmap->buf);
+    }
     MEM_freeN(vmap);
   }
 }
@@ -212,8 +220,9 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
   for (i = 0; i < totpoly; i++) {
     const MPoly *p = &mpoly[i];
 
-    for (j = 0; j < p->totloop; j++)
+    for (j = 0; j < p->totloop; j++) {
       map[mloop[p->loopstart + j].v].count++;
+    }
   }
 
   /* Assign indices mem */

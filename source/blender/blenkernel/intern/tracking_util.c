@@ -76,8 +76,9 @@ TracksMap *tracks_map_new(const char *object_name,
 
   map->tracks = MEM_callocN(sizeof(MovieTrackingTrack) * num_tracks, "TrackingsMap tracks");
 
-  if (customdata_size)
+  if (customdata_size) {
     map->customdata = MEM_callocN(customdata_size * num_tracks, "TracksMap customdata");
+  }
 
   map->hash = BLI_ghash_ptr_new("TracksMap hash");
 
@@ -98,8 +99,9 @@ void tracks_map_get_indexed_element(TracksMap *map,
 {
   *track = &map->tracks[index];
 
-  if (map->customdata)
+  if (map->customdata) {
     *customdata = &map->customdata[index * map->customdata_size];
+  }
 }
 
 void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *customdata)
@@ -110,8 +112,9 @@ void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *customda
 
   map->tracks[map->ptr] = new_track;
 
-  if (customdata)
+  if (customdata) {
     memcpy(&map->customdata[map->ptr * map->customdata_size], customdata, map->customdata_size);
+  }
 
   BLI_ghash_insert(map->hash, &map->tracks[map->ptr], track);
 
@@ -223,14 +226,16 @@ void tracks_map_free(TracksMap *map, void (*customdata_free)(void *customdata))
   BLI_ghash_free(map->hash, NULL, NULL);
 
   for (i = 0; i < map->num_tracks; i++) {
-    if (map->customdata && customdata_free)
+    if (map->customdata && customdata_free) {
       customdata_free(&map->customdata[i * map->customdata_size]);
+    }
 
     BKE_tracking_track_free(&map->tracks[i]);
   }
 
-  if (map->customdata)
+  if (map->customdata) {
     MEM_freeN(map->customdata);
+  }
 
   MEM_freeN(map->tracks);
 
@@ -420,13 +425,16 @@ void tracking_marker_insert_disabled(MovieTrackingTrack *track,
   marker_new.flag &= ~MARKER_TRACKED;
   marker_new.flag |= MARKER_DISABLED;
 
-  if (before)
+  if (before) {
     marker_new.framenr--;
-  else
+  }
+  else {
     marker_new.framenr++;
+  }
 
-  if (overwrite || !BKE_tracking_track_has_marker_at_frame(track, marker_new.framenr))
+  if (overwrite || !BKE_tracking_track_has_marker_at_frame(track, marker_new.framenr)) {
     BKE_tracking_marker_insert(track, &marker_new);
+  }
 }
 
 /* Fill in Libmv C-API camera intrinsics options from tracking structure. */
@@ -511,8 +519,9 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
     MovieTrackingMarker *cur_marker = &track->markers[a];
     MovieTrackingMarker *next_marker = NULL;
 
-    if (next >= 0 && next < track->markersnr)
+    if (next >= 0 && next < track->markersnr) {
       next_marker = &track->markers[next];
+    }
 
     if ((cur_marker->flag & MARKER_DISABLED) == 0) {
       /* If it'll happen so we didn't find a real keyframe marker,
@@ -531,8 +540,9 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
         }
       }
       else if (next_marker->flag & MARKER_DISABLED) {
-        if (marker_keyed_fallback == NULL)
+        if (marker_keyed_fallback == NULL) {
           marker_keyed_fallback = cur_marker;
+        }
       }
 
       is_keyframed |= (cur_marker->flag & MARKER_TRACKED) == 0;
@@ -547,8 +557,9 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
     a = next;
   }
 
-  if (marker_keyed == NULL)
+  if (marker_keyed == NULL) {
     marker_keyed = marker_keyed_fallback;
+  }
 
   return marker_keyed;
 }

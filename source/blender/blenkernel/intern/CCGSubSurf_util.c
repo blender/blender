@@ -51,8 +51,9 @@ EHash *ccg_ehash_new(int estimatedNumEntries,
   eh->allocator = allocator;
   eh->numEntries = 0;
   eh->curSizeIdx = 0;
-  while (kHashSizes[eh->curSizeIdx] < estimatedNumEntries)
+  while (kHashSizes[eh->curSizeIdx] < estimatedNumEntries) {
     eh->curSizeIdx++;
+  }
   eh->curSize = kHashSizes[eh->curSizeIdx];
   eh->buckets = EHASH_alloc(eh, eh->curSize * sizeof(*eh->buckets));
   memset(eh->buckets, 0, eh->curSize * sizeof(*eh->buckets));
@@ -133,8 +134,9 @@ void *ccg_ehash_lookup(EHash *eh, void *key)
   EHEntry *entry;
 
   for (entry = eh->buckets[hash]; entry; entry = entry->next) {
-    if (entry->key == key)
+    if (entry->key == key) {
       break;
+    }
   }
 
   return entry;
@@ -151,8 +153,9 @@ void ccg_ehashIterator_init(EHash *eh, EHashIterator *ehi)
 
   while (!ehi->curEntry) {
     ehi->curBucket++;
-    if (ehi->curBucket == ehi->eh->curSize)
+    if (ehi->curBucket == ehi->eh->curSize) {
       break;
+    }
     ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
   }
 }
@@ -168,8 +171,9 @@ void ccg_ehashIterator_next(EHashIterator *ehi)
     ehi->curEntry = ehi->curEntry->next;
     while (!ehi->curEntry) {
       ehi->curBucket++;
-      if (ehi->curBucket == ehi->eh->curSize)
+      if (ehi->curBucket == ehi->eh->curSize) {
         break;
+      }
       ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
     }
   }

@@ -274,10 +274,12 @@ static int search_closest_marker_index(MovieTrackingTrack *track, int ref_frame)
 
   i = MAX2(0, i);
   i = MIN2(i, end - 1);
-  for (; i < end - 1 && markers[i].framenr <= ref_frame; ++i)
+  for (; i < end - 1 && markers[i].framenr <= ref_frame; ++i) {
     ;
-  for (; 0 < i && markers[i].framenr > ref_frame; --i)
+  }
+  for (; 0 < i && markers[i].framenr > ref_frame; --i) {
     ;
+  }
 
   track->last_marker = i;
   return i;
@@ -1374,32 +1376,39 @@ ImBuf *BKE_tracking_stabilize_frame(
   interpolation_func interpolation = NULL;
   int ibuf_flags;
 
-  if (translation)
+  if (translation) {
     copy_v2_v2(tloc, translation);
+  }
 
-  if (scale)
+  if (scale) {
     tscale = *scale;
+  }
 
   /* Perform early output if no stabilization is used. */
   if ((stab->flag & TRACKING_2D_STABILIZATION) == 0) {
-    if (translation)
+    if (translation) {
       zero_v2(translation);
+    }
 
-    if (scale)
+    if (scale) {
       *scale = 1.0f;
+    }
 
-    if (angle)
+    if (angle) {
       *angle = 0.0f;
+    }
 
     return ibuf;
   }
 
   /* Allocate frame for stabilization result. */
   ibuf_flags = 0;
-  if (ibuf->rect)
+  if (ibuf->rect) {
     ibuf_flags |= IB_rect;
-  if (ibuf->rect_float)
+  }
+  if (ibuf->rect_float) {
     ibuf_flags |= IB_rectfloat;
+  }
 
   tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);
 
@@ -1413,15 +1422,19 @@ ImBuf *BKE_tracking_stabilize_frame(
    * thus we need the inverse of the transformation to apply. */
   invert_m4(mat);
 
-  if (filter == TRACKING_FILTER_NEAREST)
+  if (filter == TRACKING_FILTER_NEAREST) {
     interpolation = nearest_interpolation;
-  else if (filter == TRACKING_FILTER_BILINEAR)
+  }
+  else if (filter == TRACKING_FILTER_BILINEAR) {
     interpolation = bilinear_interpolation;
-  else if (filter == TRACKING_FILTER_BICUBIC)
+  }
+  else if (filter == TRACKING_FILTER_BICUBIC) {
     interpolation = bicubic_interpolation;
-  else
+  }
+  else {
     /* fallback to default interpolation method */
     interpolation = nearest_interpolation;
+  }
 
   TrackingStabilizeFrameInterpolationData data = {
       .ibuf = ibuf,
@@ -1436,17 +1449,21 @@ ImBuf *BKE_tracking_stabilize_frame(
   BLI_task_parallel_range(
       0, tmpibuf->y, &data, tracking_stabilize_frame_interpolation_cb, &settings);
 
-  if (tmpibuf->rect_float)
+  if (tmpibuf->rect_float) {
     tmpibuf->userflags |= IB_RECT_INVALID;
+  }
 
-  if (translation)
+  if (translation) {
     copy_v2_v2(translation, tloc);
+  }
 
-  if (scale)
+  if (scale) {
     *scale = tscale;
+  }
 
-  if (angle)
+  if (angle) {
     *angle = tangle;
+  }
 
   return tmpibuf;
 }

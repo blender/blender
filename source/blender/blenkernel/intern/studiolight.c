@@ -658,8 +658,9 @@ static float studiolight_spherical_harmonics_lambda_get(float *sh, float max_lap
 
 static void studiolight_spherical_harmonics_apply_windowing(float (*sh)[3], float max_laplacian)
 {
-  if (max_laplacian <= 0.0f)
+  if (max_laplacian <= 0.0f) {
     return;
+  }
 
   float sh_r[STUDIOLIGHT_SH_COEFS_LEN];
   float sh_g[STUDIOLIGHT_SH_COEFS_LEN];

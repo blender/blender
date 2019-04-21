@@ -393,124 +393,154 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 
   switch ((ID_Type)GS(id->name)) {
     case ID_SCE:
-      if (!test)
+      if (!test) {
         BKE_scene_make_local(bmain, (Scene *)id, lib_local);
+      }
       return true;
     case ID_OB:
-      if (!test)
+      if (!test) {
         BKE_object_make_local(bmain, (Object *)id, lib_local);
+      }
       return true;
     case ID_ME:
-      if (!test)
+      if (!test) {
         BKE_mesh_make_local(bmain, (Mesh *)id, lib_local);
+      }
       return true;
     case ID_CU:
-      if (!test)
+      if (!test) {
         BKE_curve_make_local(bmain, (Curve *)id, lib_local);
+      }
       return true;
     case ID_MB:
-      if (!test)
+      if (!test) {
         BKE_mball_make_local(bmain, (MetaBall *)id, lib_local);
+      }
       return true;
     case ID_MA:
-      if (!test)
+      if (!test) {
         BKE_material_make_local(bmain, (Material *)id, lib_local);
+      }
       return true;
     case ID_TE:
-      if (!test)
+      if (!test) {
         BKE_texture_make_local(bmain, (Tex *)id, lib_local);
+      }
       return true;
     case ID_IM:
-      if (!test)
+      if (!test) {
         BKE_image_make_local(bmain, (Image *)id, lib_local);
+      }
       return true;
     case ID_LT:
-      if (!test)
+      if (!test) {
         BKE_lattice_make_local(bmain, (Lattice *)id, lib_local);
+      }
       return true;
     case ID_LA:
-      if (!test)
+      if (!test) {
         BKE_light_make_local(bmain, (Light *)id, lib_local);
+      }
       return true;
     case ID_CA:
-      if (!test)
+      if (!test) {
         BKE_camera_make_local(bmain, (Camera *)id, lib_local);
+      }
       return true;
     case ID_SPK:
-      if (!test)
+      if (!test) {
         BKE_speaker_make_local(bmain, (Speaker *)id, lib_local);
+      }
       return true;
     case ID_LP:
-      if (!test)
+      if (!test) {
         BKE_lightprobe_make_local(bmain, (LightProbe *)id, lib_local);
+      }
       return true;
     case ID_WO:
-      if (!test)
+      if (!test) {
         BKE_world_make_local(bmain, (World *)id, lib_local);
+      }
       return true;
     case ID_VF:
-      if (!test)
+      if (!test) {
         BKE_vfont_make_local(bmain, (VFont *)id, lib_local);
+      }
       return true;
     case ID_TXT:
-      if (!test)
+      if (!test) {
         BKE_text_make_local(bmain, (Text *)id, lib_local);
+      }
       return true;
     case ID_SO:
-      if (!test)
+      if (!test) {
         BKE_sound_make_local(bmain, (bSound *)id, lib_local);
+      }
       return true;
     case ID_GR:
-      if (!test)
+      if (!test) {
         BKE_collection_make_local(bmain, (Collection *)id, lib_local);
+      }
       return true;
     case ID_AR:
-      if (!test)
+      if (!test) {
         BKE_armature_make_local(bmain, (bArmature *)id, lib_local);
+      }
       return true;
     case ID_AC:
-      if (!test)
+      if (!test) {
         BKE_action_make_local(bmain, (bAction *)id, lib_local);
+      }
       return true;
     case ID_NT:
-      if (!test)
+      if (!test) {
         ntreeMakeLocal(bmain, (bNodeTree *)id, true, lib_local);
+      }
       return true;
     case ID_BR:
-      if (!test)
+      if (!test) {
         BKE_brush_make_local(bmain, (Brush *)id, lib_local);
+      }
       return true;
     case ID_PA:
-      if (!test)
+      if (!test) {
         BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, lib_local);
+      }
       return true;
     case ID_GD:
-      if (!test)
+      if (!test) {
         BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
+      }
       return true;
     case ID_MC:
-      if (!test)
+      if (!test) {
         BKE_movieclip_make_local(bmain, (MovieClip *)id, lib_local);
+      }
       return true;
     case ID_MSK:
-      if (!test)
+      if (!test) {
         BKE_mask_make_local(bmain, (Mask *)id, lib_local);
+      }
       return true;
     case ID_LS:
-      if (!test)
+      if (!test) {
         BKE_linestyle_make_local(bmain, (FreestyleLineStyle *)id, lib_local);
+      }
       return true;
     case ID_PAL:
-      if (!test)
+      if (!test) {
         BKE_palette_make_local(bmain, (Palette *)id, lib_local);
+      }
       return true;
     case ID_PC:
-      if (!test)
+      if (!test) {
         BKE_paint_curve_make_local(bmain, (PaintCurve *)id, lib_local);
+      }
       return true;
     case ID_CF:
-      if (!test)
+      if (!test) {
         BKE_cachefile_make_local(bmain, (CacheFile *)id, lib_local);
+      }
       return true;
     case ID_WS:
     case ID_SCR:
@@ -1004,13 +1034,15 @@ void BKE_main_id_flag_listbase(ListBase *lb, const int flag, const bool value)
 {
   ID *id;
   if (value) {
-    for (id = lb->first; id; id = id->next)
+    for (id = lb->first; id; id = id->next) {
       id->tag |= flag;
+    }
   }
   else {
     const int nflag = ~flag;
-    for (id = lb->first; id; id = id->next)
+    for (id = lb->first; id; id = id->next) {
       id->tag &= nflag;
+    }
   }
 }
 
@@ -1452,8 +1484,9 @@ void *BKE_libblock_copy_for_localize(const ID *id)
 
 void BKE_library_free(Library *lib)
 {
-  if (lib->packedfile)
+  if (lib->packedfile) {
     freePackedFile(lib->packedfile);
+  }
 }
 
 /* ***************** ID ************************ */
@@ -1501,8 +1534,9 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
       /* do not test alphabetic! */
       /* optimized */
       if (idtest->name[2] == name[0]) {
-        if (STREQ(name, idtest->name + 2))
+        if (STREQ(name, idtest->name + 2)) {
           break;
+        }
       }
     }
   }
@@ -1537,8 +1571,9 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
     idtest = is_dupid(lb, id, name);
 
     /* if there is no double, done */
-    if (idtest == NULL)
+    if (idtest == NULL) {
       return false;
+    }
 
     /* we have a dup; need to make a new name */
     /* quick check so we can reuse one of first MAX_IN_USE - 1 ids if vacant */
@@ -1567,10 +1602,12 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
           STREQLEN(name, idtest->name + 2, left_len) &&
           (BLI_split_name_num(leftest, &nrtest, idtest->name + 2, '.') == left_len)) {
         /* will get here at least once, otherwise is_dupid call above would have returned NULL */
-        if (nrtest < MAX_IN_USE)
+        if (nrtest < MAX_IN_USE) {
           in_use[nrtest] = true; /* mark as used */
-        if (nr <= nrtest)
+        }
+        if (nr <= nrtest) {
           nr = nrtest + 1; /* track largest unused */
+        }
       }
     }
     /* At this point, 'nr' will typically be at least 1. (but not always) */
@@ -1578,9 +1615,10 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 
     /* decide which value of nr to use */
     for (a = 0; a < MAX_IN_USE; a++) {
-      if (a >= nr)
+      if (a >= nr) {
         break; /* stop when we've checked up to biggest */ /* redundant check */
-      if (!in_use[a]) {                                    /* found an unused value */
+      }
+      if (!in_use[a]) { /* found an unused value */
         nr = a;
         /* can only be zero if all potential duplicate names had
          * nonzero numeric suffixes, which means name itself has
@@ -1610,8 +1648,9 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
         name[len--] = '\0';
         idtest = is_dupid(lb, id, name);
       }
-      if (idtest == NULL)
+      if (idtest == NULL) {
         return true;
+      }
       /* otherwise just continue and use a number suffix */
     }
 
@@ -1644,13 +1683,15 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
   char name[MAX_ID_NAME - 2];
 
   /* if library, don't rename */
-  if (ID_IS_LINKED(id))
+  if (ID_IS_LINKED(id)) {
     return false;
+  }
 
   /* if no name given, use name of current ID
    * else make a copy (tname args can be const) */
-  if (tname == NULL)
+  if (tname == NULL) {
     tname = id->name + 2;
+  }
 
   BLI_strncpy(name, tname, sizeof(name));
 
@@ -2090,8 +2131,9 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
   ID *idtest;
 
   lb = which_libbase(bmain, GS(name));
-  if (lb == NULL)
+  if (lb == NULL) {
     return;
+  }
 
   /* search for id */
   idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);

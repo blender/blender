@@ -115,8 +115,9 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
     looptris = em->looptris;
   }
   else {
-    if (em->looptris)
+    if (em->looptris) {
       MEM_freeN(em->looptris);
+    }
     looptris = MEM_mallocN(sizeof(*looptris) * looptris_tot, __func__);
   }
 
@@ -160,19 +161,23 @@ void BKE_editmesh_free(BMEditMesh *em)
 
   BKE_editmesh_color_free(em);
 
-  if (em->looptris)
+  if (em->looptris) {
     MEM_freeN(em->looptris);
+  }
 
-  if (em->bm)
+  if (em->bm) {
     BM_mesh_free(em->bm);
+  }
 }
 
 void BKE_editmesh_color_free(BMEditMesh *em)
 {
-  if (em->derivedVertColor)
+  if (em->derivedVertColor) {
     MEM_freeN(em->derivedVertColor);
-  if (em->derivedFaceColor)
+  }
+  if (em->derivedFaceColor) {
     MEM_freeN(em->derivedFaceColor);
+  }
   em->derivedVertColor = NULL;
   em->derivedFaceColor = NULL;
 

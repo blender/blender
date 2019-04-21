@@ -163,8 +163,9 @@ static void filepath_avi(char *string, RenderData *rd, bool preview, const char 
 {
   int sfra, efra;
 
-  if (string == NULL)
+  if (string == NULL) {
     return;
+  }
 
   if (preview) {
     sfra = rd->psfra;
@@ -219,10 +220,12 @@ static int start_avi(void *context_v,
   quality = rd->im_format.quality;
   framerate = (double)rd->frs_sec / (double)rd->frs_sec_base;
 
-  if (rd->im_format.imtype != R_IMF_IMTYPE_AVIJPEG)
+  if (rd->im_format.imtype != R_IMF_IMTYPE_AVIJPEG) {
     format = AVI_FORMAT_AVI_RGB;
-  else
+  }
+  else {
     format = AVI_FORMAT_MJPEG;
+  }
 
   if (AVI_open_compress(name, avi, 1, format) != AVI_ERROR_NONE) {
     BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file");
@@ -256,8 +259,9 @@ static int append_avi(void *context_v,
   char *cp, rt;
   AviMovie *avi = context_v;
 
-  if (avi == NULL)
+  if (avi == NULL) {
     return 0;
+  }
 
   /* note that libavi free's the buffer... stupid interface - zr */
   rectot = MEM_mallocN(rectx * recty * sizeof(int), "rectot");
@@ -289,8 +293,9 @@ static void end_avi(void *context_v)
 {
   AviMovie *avi = context_v;
 
-  if (avi == NULL)
+  if (avi == NULL) {
     return;
+  }
 
   AVI_close_compress(avi);
 }

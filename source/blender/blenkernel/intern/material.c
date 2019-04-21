@@ -424,10 +424,12 @@ void BKE_material_append_id(Main *bmain, ID *id, Material *ma)
   if ((matar = give_matarar_id(id))) {
     short *totcol = give_totcolp_id(id);
     Material **mat = MEM_callocN(sizeof(void *) * ((*totcol) + 1), "newmatar");
-    if (*totcol)
+    if (*totcol) {
       memcpy(mat, *matar, sizeof(void *) * (*totcol));
-    if (*matar)
+    }
+    if (*matar) {
       MEM_freeN(*matar);
+    }
 
     *matar = mat;
     (*matar)[(*totcol)++] = ma;
@@ -457,10 +459,11 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
         *matar = NULL;
       }
       else {
-        if (index + 1 != (*totcol))
+        if (index + 1 != (*totcol)) {
           memmove((*matar) + index,
                   (*matar) + (index + 1),
                   sizeof(void *) * ((*totcol) - (index + 1)));
+        }
 
         (*totcol)--;
         *matar = MEM_reallocN(*matar, sizeof(void *) * (*totcol));
@@ -510,17 +513,20 @@ Material **give_current_material_p(Object *ob, short act)
   Material ***matarar, **ma_p;
   const short *totcolp;
 
-  if (ob == NULL)
+  if (ob == NULL) {
     return NULL;
+  }
 
   /* if object cannot have material, (totcolp == NULL) */
   totcolp = give_totcolp(ob);
-  if (totcolp == NULL || ob->totcol == 0)
+  if (totcolp == NULL || ob->totcol == 0) {
     return NULL;
+  }
 
   /* return NULL for invalid 'act', can happen for mesh face indices */
-  if (act > ob->totcol)
+  if (act > ob->totcol) {
     return NULL;
+  }
   else if (act <= 0) {
     if (act < 0) {
       CLOG_ERROR(&LOG, "Negative material index!");
@@ -534,10 +540,12 @@ Material **give_current_material_p(Object *ob, short act)
   else { /* in data */
 
     /* check for inconsistency */
-    if (*totcolp < ob->totcol)
+    if (*totcolp < ob->totcol) {
       ob->totcol = *totcolp;
-    if (act > ob->totcol)
+    }
+    if (act > ob->totcol) {
       act = ob->totcol;
+    }
 
     matarar = give_matarar(ob);
 
@@ -578,8 +586,9 @@ Material *give_node_material(Material *ma)
   if (ma && ma->use_nodes && ma->nodetree) {
     bNode *node = nodeGetActiveID(ma->nodetree, ID_MA);
 
-    if (node)
+    if (node) {
       return (Material *)node->id;
+    }
   }
 
   return NULL;
@@ -620,10 +629,12 @@ void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, boo
   /* XXX, why not realloc on shrink? - campbell */
 
   ob->totcol = totcol;
-  if (ob->totcol && ob->actcol == 0)
+  if (ob->totcol && ob->actcol == 0) {
     ob->actcol = 1;
-  if (ob->actcol > ob->totcol)
+  }
+  if (ob->actcol > ob->totcol) {
     ob->actcol = ob->totcol;
+  }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
@@ -665,18 +676,21 @@ void assign_material_id(Main *bmain, ID *id, Material *ma, short act)
   Material *mao, **matar, ***matarar;
   short *totcolp;
 
-  if (act > MAXMAT)
+  if (act > MAXMAT) {
     return;
-  if (act < 1)
+  }
+  if (act < 1) {
     act = 1;
+  }
 
   /* test arraylens */
 
   totcolp = give_totcolp_id(id);
   matarar = give_matarar_id(id);
 
-  if (totcolp == NULL || matarar == NULL)
+  if (totcolp == NULL || matarar == NULL) {
     return;
+  }
 
   if (act > *totcolp) {
     matar = MEM_callocN(sizeof(void *) * act, "matarray1");
@@ -692,12 +706,14 @@ void assign_material_id(Main *bmain, ID *id, Material *ma, short act)
 
   /* in data */
   mao = (*matarar)[act - 1];
-  if (mao)
+  if (mao) {
     id_us_min(&mao->id);
+  }
   (*matarar)[act - 1] = ma;
 
-  if (ma)
+  if (ma) {
     id_us_plus(&ma->id);
+  }
 
   test_all_objects_materials(bmain, id);
 }
@@ -708,23 +724,27 @@ void assign_material(Main *bmain, Object *ob, Material *ma, short act, int assig
   short *totcolp;
   char bit = 0;
 
-  if (act > MAXMAT)
+  if (act > MAXMAT) {
     return;
-  if (act < 1)
+  }
+  if (act < 1) {
     act = 1;
+  }
 
   /* prevent crashing when using accidentally */
   BLI_assert(!ID_IS_LINKED(ob));
-  if (ID_IS_LINKED(ob))
+  if (ID_IS_LINKED(ob)) {
     return;
+  }
 
   /* test arraylens */
 
   totcolp = give_totcolp(ob);
   matarar = give_matarar(ob);
 
-  if (totcolp == NULL || matarar == NULL)
+  if (totcolp == NULL || matarar == NULL) {
     return;
+  }
 
   if (act > *totcolp) {
     matar = MEM_callocN(sizeof(void *) * act, "matarray1");
@@ -775,21 +795,24 @@ void assign_material(Main *bmain, Object *ob, Material *ma, short act, int assig
   ob->matbits[act - 1] = bit;
   if (bit == 1) { /* in object */
     mao = ob->mat[act - 1];
-    if (mao)
+    if (mao) {
       id_us_min(&mao->id);
+    }
     ob->mat[act - 1] = ma;
     test_object_materials(bmain, ob, ob->data);
   }
   else { /* in data */
     mao = (*matarar)[act - 1];
-    if (mao)
+    if (mao) {
       id_us_min(&mao->id);
+    }
     (*matarar)[act - 1] = ma;
     test_all_objects_materials(bmain, ob->data); /* Data may be used by several objects... */
   }
 
-  if (ma)
+  if (ma) {
     id_us_plus(&ma->id);
+  }
 }
 
 void BKE_material_remap_object(Object *ob, const unsigned int *remap)
@@ -887,11 +910,13 @@ void assign_matarar(Main *bmain, struct Object *ob, struct Material ***matar, sh
   }
 
   /* now we have the right number of slots */
-  for (i = 0; i < totcol; i++)
+  for (i = 0; i < totcol; i++) {
     assign_material(bmain, ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
+  }
 
-  if (actcol_orig > ob->totcol)
+  if (actcol_orig > ob->totcol) {
     actcol_orig = ob->totcol;
+  }
 
   ob->actcol = actcol_orig;
 }
@@ -901,29 +926,36 @@ short BKE_object_material_slot_find_index(Object *ob, Material *ma)
   Material ***matarar;
   short a, *totcolp;
 
-  if (ma == NULL)
+  if (ma == NULL) {
     return 0;
+  }
 
   totcolp = give_totcolp(ob);
   matarar = give_matarar(ob);
 
-  if (totcolp == NULL || matarar == NULL)
+  if (totcolp == NULL || matarar == NULL) {
     return 0;
+  }
 
-  for (a = 0; a < *totcolp; a++)
-    if ((*matarar)[a] == ma)
+  for (a = 0; a < *totcolp; a++) {
+    if ((*matarar)[a] == ma) {
       break;
-  if (a < *totcolp)
+    }
+  }
+  if (a < *totcolp) {
     return a + 1;
+  }
   return 0;
 }
 
 bool BKE_object_material_slot_add(Main *bmain, Object *ob)
 {
-  if (ob == NULL)
+  if (ob == NULL) {
     return false;
-  if (ob->totcol >= MAXMAT)
+  }
+  if (ob->totcol >= MAXMAT) {
     return false;
+  }
 
   assign_material(bmain, ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
   ob->actcol = ob->totcol;
@@ -969,11 +1001,13 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
   /* we delete the actcol */
   mao = (*matarar)[ob->actcol - 1];
-  if (mao)
+  if (mao) {
     id_us_min(&mao->id);
+  }
 
-  for (a = ob->actcol; a < ob->totcol; a++)
+  for (a = ob->actcol; a < ob->totcol; a++) {
     (*matarar)[a - 1] = (*matarar)[a];
+  }
   (*totcolp)--;
 
   if (*totcolp == 0) {
@@ -991,16 +1025,18 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
       }
       /* WATCH IT: do not use actcol from ob or from obt (can become zero) */
       mao = obt->mat[actcol - 1];
-      if (mao)
+      if (mao) {
         id_us_min(&mao->id);
+      }
 
       for (a = actcol; a < obt->totcol; a++) {
         obt->mat[a - 1] = obt->mat[a];
         obt->matbits[a - 1] = obt->matbits[a];
       }
       obt->totcol--;
-      if (obt->actcol > obt->totcol)
+      if (obt->actcol > obt->totcol) {
         obt->actcol = obt->totcol;
+      }
 
       if (obt->totcol == 0) {
         MEM_freeN(obt->mat);
@@ -1102,8 +1138,9 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
   int count = 0;
   int index = 0;
 
-  if (!ma)
+  if (!ma) {
     return;
+  }
 
   /* COW needed when adding texture slot on an object with no materials. */
   DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
@@ -1190,18 +1227,24 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       r_col[2] = 1.0f - (facm + fac * (1.0f - col[2])) * (1.0f - r_col[2]);
       break;
     case MA_RAMP_OVERLAY:
-      if (r_col[0] < 0.5f)
+      if (r_col[0] < 0.5f) {
         r_col[0] *= (facm + 2.0f * fac * col[0]);
-      else
+      }
+      else {
         r_col[0] = 1.0f - (facm + 2.0f * fac * (1.0f - col[0])) * (1.0f - r_col[0]);
-      if (r_col[1] < 0.5f)
+      }
+      if (r_col[1] < 0.5f) {
         r_col[1] *= (facm + 2.0f * fac * col[1]);
-      else
+      }
+      else {
         r_col[1] = 1.0f - (facm + 2.0f * fac * (1.0f - col[1])) * (1.0f - r_col[1]);
-      if (r_col[2] < 0.5f)
+      }
+      if (r_col[2] < 0.5f) {
         r_col[2] *= (facm + 2.0f * fac * col[2]);
-      else
+      }
+      else {
         r_col[2] = 1.0f - (facm + 2.0f * fac * (1.0f - col[2])) * (1.0f - r_col[2]);
+      }
       break;
     case MA_RAMP_SUB:
       r_col[0] -= fac * col[0];
@@ -1209,12 +1252,15 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       r_col[2] -= fac * col[2];
       break;
     case MA_RAMP_DIV:
-      if (col[0] != 0.0f)
+      if (col[0] != 0.0f) {
         r_col[0] = facm * (r_col[0]) + fac * (r_col[0]) / col[0];
-      if (col[1] != 0.0f)
+      }
+      if (col[1] != 0.0f) {
         r_col[1] = facm * (r_col[1]) + fac * (r_col[1]) / col[1];
-      if (col[2] != 0.0f)
+      }
+      if (col[2] != 0.0f) {
         r_col[2] = facm * (r_col[2]) + fac * (r_col[2]) / col[2];
+      }
       break;
     case MA_RAMP_DIFF:
       r_col[0] = facm * (r_col[0]) + fac * fabsf(r_col[0] - col[0]);
@@ -1228,75 +1274,99 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       break;
     case MA_RAMP_LIGHT:
       tmp = fac * col[0];
-      if (tmp > r_col[0])
+      if (tmp > r_col[0]) {
         r_col[0] = tmp;
+      }
       tmp = fac * col[1];
-      if (tmp > r_col[1])
+      if (tmp > r_col[1]) {
         r_col[1] = tmp;
+      }
       tmp = fac * col[2];
-      if (tmp > r_col[2])
+      if (tmp > r_col[2]) {
         r_col[2] = tmp;
+      }
       break;
     case MA_RAMP_DODGE:
       if (r_col[0] != 0.0f) {
         tmp = 1.0f - fac * col[0];
-        if (tmp <= 0.0f)
+        if (tmp <= 0.0f) {
           r_col[0] = 1.0f;
-        else if ((tmp = (r_col[0]) / tmp) > 1.0f)
+        }
+        else if ((tmp = (r_col[0]) / tmp) > 1.0f) {
           r_col[0] = 1.0f;
-        else
+        }
+        else {
           r_col[0] = tmp;
+        }
       }
       if (r_col[1] != 0.0f) {
         tmp = 1.0f - fac * col[1];
-        if (tmp <= 0.0f)
+        if (tmp <= 0.0f) {
           r_col[1] = 1.0f;
-        else if ((tmp = (r_col[1]) / tmp) > 1.0f)
+        }
+        else if ((tmp = (r_col[1]) / tmp) > 1.0f) {
           r_col[1] = 1.0f;
-        else
+        }
+        else {
           r_col[1] = tmp;
+        }
       }
       if (r_col[2] != 0.0f) {
         tmp = 1.0f - fac * col[2];
-        if (tmp <= 0.0f)
+        if (tmp <= 0.0f) {
           r_col[2] = 1.0f;
-        else if ((tmp = (r_col[2]) / tmp) > 1.0f)
+        }
+        else if ((tmp = (r_col[2]) / tmp) > 1.0f) {
           r_col[2] = 1.0f;
-        else
+        }
+        else {
           r_col[2] = tmp;
+        }
       }
       break;
     case MA_RAMP_BURN:
       tmp = facm + fac * col[0];
 
-      if (tmp <= 0.0f)
+      if (tmp <= 0.0f) {
         r_col[0] = 0.0f;
-      else if ((tmp = (1.0f - (1.0f - (r_col[0])) / tmp)) < 0.0f)
+      }
+      else if ((tmp = (1.0f - (1.0f - (r_col[0])) / tmp)) < 0.0f) {
         r_col[0] = 0.0f;
-      else if (tmp > 1.0f)
+      }
+      else if (tmp > 1.0f) {
         r_col[0] = 1.0f;
-      else
+      }
+      else {
         r_col[0] = tmp;
+      }
 
       tmp = facm + fac * col[1];
-      if (tmp <= 0.0f)
+      if (tmp <= 0.0f) {
         r_col[1] = 0.0f;
-      else if ((tmp = (1.0f - (1.0f - (r_col[1])) / tmp)) < 0.0f)
+      }
+      else if ((tmp = (1.0f - (1.0f - (r_col[1])) / tmp)) < 0.0f) {
         r_col[1] = 0.0f;
-      else if (tmp > 1.0f)
+      }
+      else if (tmp > 1.0f) {
         r_col[1] = 1.0f;
-      else
+      }
+      else {
         r_col[1] = tmp;
+      }
 
       tmp = facm + fac * col[2];
-      if (tmp <= 0.0f)
+      if (tmp <= 0.0f) {
         r_col[2] = 0.0f;
-      else if ((tmp = (1.0f - (1.0f - (r_col[2])) / tmp)) < 0.0f)
+      }
+      else if ((tmp = (1.0f - (1.0f - (r_col[2])) / tmp)) < 0.0f) {
         r_col[2] = 0.0f;
-      else if (tmp > 1.0f)
+      }
+      else if (tmp > 1.0f) {
         r_col[2] = 1.0f;
-      else
+      }
+      else {
         r_col[2] = tmp;
+      }
       break;
     case MA_RAMP_HUE: {
       float rH, rS, rV;
@@ -1361,18 +1431,24 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       break;
     }
     case MA_RAMP_LINEAR:
-      if (col[0] > 0.5f)
+      if (col[0] > 0.5f) {
         r_col[0] = r_col[0] + fac * (2.0f * (col[0] - 0.5f));
-      else
+      }
+      else {
         r_col[0] = r_col[0] + fac * (2.0f * (col[0]) - 1.0f);
-      if (col[1] > 0.5f)
+      }
+      if (col[1] > 0.5f) {
         r_col[1] = r_col[1] + fac * (2.0f * (col[1] - 0.5f));
-      else
+      }
+      else {
         r_col[1] = r_col[1] + fac * (2.0f * (col[1]) - 1.0f);
-      if (col[2] > 0.5f)
+      }
+      if (col[2] > 0.5f) {
         r_col[2] = r_col[2] + fac * (2.0f * (col[2] - 0.5f));
-      else
+      }
+      else {
         r_col[2] = r_col[2] + fac * (2.0f * (col[2]) - 1.0f);
+      }
       break;
   }
 }
@@ -1404,8 +1480,9 @@ void free_matcopybuf(void)
 
 void copy_matcopybuf(Main *bmain, Material *ma)
 {
-  if (matcopied)
+  if (matcopied) {
     free_matcopybuf();
+  }
 
   memcpy(&matcopybuf, ma, sizeof(Material));
 
@@ -1423,8 +1500,9 @@ void paste_matcopybuf(Main *bmain, Material *ma)
 {
   ID id;
 
-  if (matcopied == 0)
+  if (matcopied == 0) {
     return;
+  }
 
   /* Free gpu material before the ntree */
   GPU_material_free(&ma->gpumaterial);

@@ -74,8 +74,9 @@ void free_texttools(void)
 
 void texttool_text_set_active(Text *text)
 {
-  if (activeToolText == text)
+  if (activeToolText == text) {
     return;
+  }
   texttool_text_clear();
   activeToolText = text;
 }
@@ -123,14 +124,16 @@ void texttool_suggest_add(const char *name, char type)
       /* Newitem comes after this item, insert here */
       if (cmp >= 0) {
         newitem->prev = item;
-        if (item->next)
+        if (item->next) {
           item->next->prev = newitem;
+        }
         newitem->next = item->next;
         item->next = newitem;
 
         /* At last item, set last pointer here */
-        if (item == suggestions.last)
+        if (item == suggestions.last) {
           suggestions.last = newitem;
+        }
         break;
       }
     }
@@ -150,8 +153,9 @@ void texttool_suggest_prefix(const char *prefix, const int prefix_len)
   SuggItem *match, *first, *last;
   int cmp, top = 0;
 
-  if (!suggestions.first)
+  if (!suggestions.first) {
     return;
+  }
   if (prefix_len == 0) {
     suggestions.selected = suggestions.firstmatch = suggestions.first;
     suggestions.lastmatch = suggestions.last;
@@ -176,8 +180,9 @@ void texttool_suggest_prefix(const char *prefix, const int prefix_len)
     top++;
   }
   if (first) {
-    if (!last)
+    if (!last) {
       last = suggestions.last;
+    }
     suggestions.firstmatch = first;
     suggestions.lastmatch = last;
     suggestions.selected = first;
@@ -228,8 +233,9 @@ void texttool_docs_show(const char *docs)
 {
   int len;
 
-  if (!docs)
+  if (!docs) {
     return;
+  }
 
   len = strlen(docs);
 

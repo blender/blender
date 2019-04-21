@@ -142,17 +142,21 @@ void defvert_mirror_subset(MDeformVert *dvert_dst,
 void defvert_copy(MDeformVert *dvert_dst, const MDeformVert *dvert_src)
 {
   if (dvert_dst->totweight == dvert_src->totweight) {
-    if (dvert_src->totweight)
+    if (dvert_src->totweight) {
       memcpy(dvert_dst->dw, dvert_src->dw, dvert_src->totweight * sizeof(MDeformWeight));
+    }
   }
   else {
-    if (dvert_dst->dw)
+    if (dvert_dst->dw) {
       MEM_freeN(dvert_dst->dw);
+    }
 
-    if (dvert_src->totweight)
+    if (dvert_src->totweight) {
       dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
-    else
+    }
+    else {
       dvert_dst->dw = NULL;
+    }
 
     dvert_dst->totweight = dvert_src->totweight;
   }
@@ -198,10 +202,12 @@ void defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const bo
     MDeformWeight *dw_src;
     for (i = 0, dw_src = dvert_src->dw; i < dvert_src->totweight; i++, dw_src++) {
       MDeformWeight *dw_dst;
-      if (use_verify)
+      if (use_verify) {
         dw_dst = defvert_verify_index(dvert_dst, dw_src->def_nr);
-      else
+      }
+      else {
         dw_dst = defvert_find_index(dvert_dst, dw_src->def_nr);
+      }
 
       if (dw_dst) {
         dw_dst->weight = dw_src->weight;
@@ -225,10 +231,12 @@ void defvert_sync_mapped(MDeformVert *dvert_dst,
     for (i = 0, dw_src = dvert_src->dw; i < dvert_src->totweight; i++, dw_src++) {
       if (dw_src->def_nr < flip_map_len) {
         MDeformWeight *dw_dst;
-        if (use_verify)
+        if (use_verify) {
           dw_dst = defvert_verify_index(dvert_dst, flip_map[dw_src->def_nr]);
-        else
+        }
+        else {
           dw_dst = defvert_find_index(dvert_dst, flip_map[dw_src->def_nr]);
+        }
 
         if (dw_dst) {
           dw_dst->weight = dw_src->weight;
@@ -514,8 +522,9 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, const bool use_default)
       if (map[i] == -1) { /* may be calculated previously */
 
         /* in case no valid value is found, use this */
-        if (use_default)
+        if (use_default) {
           map[i] = i;
+        }
 
         BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
 
@@ -687,8 +696,9 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
   }
 
   dw_new = defvert_find_index(dvert, defgroup);
-  if (dw_new)
+  if (dw_new) {
     return dw_new;
+  }
 
   dw_new = MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "deformWeight");
   if (dvert->dw) {
@@ -864,8 +874,9 @@ void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int copyco
   /* Assumes dst is already set up */
   int i;
 
-  if (!src || !dst)
+  if (!src || !dst) {
     return;
+  }
 
   memcpy(dst, src, copycount * sizeof(MDeformVert));
 
@@ -884,13 +895,15 @@ void BKE_defvert_array_free_elems(MDeformVert *dvert, int totvert)
    * vert data */
   int i;
 
-  if (!dvert)
+  if (!dvert) {
     return;
+  }
 
   /* Free any special data from the verts */
   for (i = 0; i < totvert; i++) {
-    if (dvert[i].dw)
+    if (dvert[i].dw) {
       MEM_freeN(dvert[i].dw);
+    }
   }
 }
 
@@ -899,8 +912,9 @@ void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
   /* Instead of freeing the verts directly,
    * call this function to delete any special
    * vert data */
-  if (!dvert)
+  if (!dvert) {
     return;
+  }
 
   /* Free any special data from the verts */
   BKE_defvert_array_free_elems(dvert, totvert);
@@ -1109,8 +1123,9 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 
       /* Find last source actually used! */
       idx_src = num_layers_src;
-      while (idx_src-- && !use_layers_src[idx_src])
+      while (idx_src-- && !use_layers_src[idx_src]) {
         ;
+      }
       idx_src++;
 
       if (idx_dst < idx_src) {

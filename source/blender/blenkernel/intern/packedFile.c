@@ -117,17 +117,23 @@ int countPackedFiles(Main *bmain)
   int count = 0;
 
   /* let's check if there are packed files... */
-  for (ima = bmain->images.first; ima; ima = ima->id.next)
-    if (BKE_image_has_packedfile(ima))
+  for (ima = bmain->images.first; ima; ima = ima->id.next) {
+    if (BKE_image_has_packedfile(ima)) {
       count++;
+    }
+  }
 
-  for (vf = bmain->fonts.first; vf; vf = vf->id.next)
-    if (vf->packedfile)
+  for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
+    if (vf->packedfile) {
       count++;
+    }
+  }
 
-  for (sound = bmain->sounds.first; sound; sound = sound->id.next)
-    if (sound->packedfile)
+  for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
+    if (sound->packedfile) {
       count++;
+    }
+  }
 
   return count;
 }
@@ -138,8 +144,9 @@ void freePackedFile(PackedFile *pf)
     MEM_freeN(pf->data);
     MEM_freeN(pf);
   }
-  else
+  else {
     printf("freePackedFile: Trying to free a NULL pointer\n");
+  }
 }
 
 PackedFile *dupPackedFile(const PackedFile *pf_src)
@@ -170,8 +177,9 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 
   /* render result has no filename and can be ignored
    * any other files with no name can be ignored too */
-  if (filename[0] == '\0')
+  if (filename[0] == '\0') {
     return NULL;
+  }
 
   //XXX waitcursor(1);
 
@@ -251,10 +259,12 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
     }
   }
 
-  if (tot > 0)
+  if (tot > 0) {
     BKE_reportf(reports, RPT_INFO, "Packed %d files", tot);
-  else if (verbose)
+  }
+  else if (verbose) {
     BKE_report(reports, RPT_INFO, "No new files have been packed");
+  }
 }
 
 int writePackedFile(ReportList *reports,
@@ -650,18 +660,22 @@ void packLibraries(Main *bmain, ReportList *reports)
   Library *lib;
 
   /* test for relativenss */
-  for (lib = bmain->libraries.first; lib; lib = lib->id.next)
-    if (!BLI_path_is_rel(lib->name))
+  for (lib = bmain->libraries.first; lib; lib = lib->id.next) {
+    if (!BLI_path_is_rel(lib->name)) {
       break;
+    }
+  }
 
   if (lib) {
     BKE_reportf(reports, RPT_ERROR, "Cannot pack absolute file: '%s'", lib->name);
     return;
   }
 
-  for (lib = bmain->libraries.first; lib; lib = lib->id.next)
-    if (lib->packedfile == NULL)
+  for (lib = bmain->libraries.first; lib; lib = lib->id.next) {
+    if (lib->packedfile == NULL) {
       lib->packedfile = newPackedFile(reports, lib->name, BKE_main_blendfile_path(bmain));
+    }
+  }
 }
 
 void unpackAll(Main *bmain, ReportList *reports, int how)
@@ -670,17 +684,23 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
   VFont *vf;
   bSound *sound;
 
-  for (ima = bmain->images.first; ima; ima = ima->id.next)
-    if (BKE_image_has_packedfile(ima))
+  for (ima = bmain->images.first; ima; ima = ima->id.next) {
+    if (BKE_image_has_packedfile(ima)) {
       unpackImage(bmain, reports, ima, how);
+    }
+  }
 
-  for (vf = bmain->fonts.first; vf; vf = vf->id.next)
-    if (vf->packedfile)
+  for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
+    if (vf->packedfile) {
       unpackVFont(bmain, reports, vf, how);
+    }
+  }
 
-  for (sound = bmain->sounds.first; sound; sound = sound->id.next)
-    if (sound->packedfile)
+  for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
+    if (sound->packedfile) {
       unpackSound(bmain, reports, sound, how);
+    }
+  }
 }
 
 /* ID should be not NULL, return 1 if there's a packed file */

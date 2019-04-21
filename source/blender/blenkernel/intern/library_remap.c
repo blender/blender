@@ -720,8 +720,9 @@ static int id_relink_to_newid_looper(void *UNUSED(user_data),
  */
 void BKE_libblock_relink_to_newid(ID *id)
 {
-  if (ID_IS_LINKED(id))
+  if (ID_IS_LINKED(id)) {
     return;
+  }
 
   BKE_library_foreach_ID_link(NULL, id, id_relink_to_newid_looper, NULL, 0);
 }
@@ -826,8 +827,9 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_particlesettings_free((ParticleSettings *)id);
       break;
     case ID_WM:
-      if (free_windowmanager_cb)
+      if (free_windowmanager_cb) {
         free_windowmanager_cb(NULL, (wmWindowManager *)id);
+      }
       break;
     case ID_GD:
       BKE_gpencil_free((bGPdata *)id, true);

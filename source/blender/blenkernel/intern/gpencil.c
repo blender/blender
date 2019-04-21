@@ -124,8 +124,9 @@ void BKE_gpencil_free_stroke(bGPDstroke *gps)
     BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->dvert);
   }
-  if (gps->triangles)
+  if (gps->triangles) {
     MEM_freeN(gps->triangles);
+  }
 
   MEM_freeN(gps);
 }
@@ -170,8 +171,9 @@ void BKE_gpencil_free_frames(bGPDlayer *gpl)
   bGPDframe *gpf_next;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   /* free frames */
   for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf_next) {
@@ -190,8 +192,9 @@ void BKE_gpencil_free_layers(ListBase *list)
   bGPDlayer *gpl_next;
 
   /* error checking */
-  if (list == NULL)
+  if (list == NULL) {
     return;
+  }
 
   /* delete layers */
   for (bGPDlayer *gpl = list->first; gpl; gpl = gpl_next) {
@@ -232,8 +235,9 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
   short state = 0;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return NULL;
+  }
 
   /* allocate memory for this frame */
   gpf = MEM_callocN(sizeof(bGPDframe), "bGPDframe");
@@ -339,8 +343,9 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
   bGPDlayer *gpl_active = NULL;
 
   /* check that list is ok */
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return NULL;
+  }
 
   /* allocate memory for frame and add to end of list */
   gpl = MEM_callocN(sizeof(bGPDlayer), "bGPDlayer");
@@ -387,8 +392,9 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
                  sizeof(gpl->info));
 
   /* make this one the active one */
-  if (setactive)
+  if (setactive) {
     BKE_gpencil_layer_setactive(gpd, gpl);
+  }
 
   /* return layer */
   return gpl;
@@ -606,8 +612,9 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
     BLI_addtail(&gpl_dst->frames, gpf_dst);
 
     /* if source frame was the current layer's 'active' frame, reassign that too */
-    if (gpf_src == gpl_dst->actframe)
+    if (gpf_src == gpl_dst->actframe) {
       gpl_dst->actframe = gpf_dst;
+    }
   }
 
   /* return new layer */
@@ -693,8 +700,9 @@ void BKE_gpencil_stroke_sync_selection(bGPDstroke *gps)
   int i;
 
   /* error checking */
-  if (gps == NULL)
+  if (gps == NULL) {
     return;
+  }
 
   /* we'll stop when we find the first selected point,
    * so initially, we must deselect
@@ -719,8 +727,9 @@ void BKE_gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
   int cfra = (gpf) ? gpf->framenum : 0; /* assume that the current frame was not locked */
 
   /* error checking */
-  if (ELEM(NULL, gpf, gps))
+  if (ELEM(NULL, gpf, gps)) {
     return;
+  }
 
   /* free the stroke and its data */
   if (gps->points) {
@@ -747,8 +756,9 @@ void BKE_gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 bool gpencil_layer_is_editable(const bGPDlayer *gpl)
 {
   /* Sanity check */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return false;
+  }
 
   /* Layer must be: Visible + Editable */
   if ((gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) == 0) {
@@ -791,8 +801,9 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
   short found = 0;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return NULL;
+  }
 
   /* check if there is already an active frame */
   if (gpl->actframe) {
@@ -801,11 +812,13 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
     /* do not allow any changes to layer's active frame if layer is locked from changes
      * or if the layer has been set to stay on the current frame
      */
-    if (gpl->flag & GP_LAYER_FRAMELOCK)
+    if (gpl->flag & GP_LAYER_FRAMELOCK) {
       return gpf;
+    }
     /* do not allow any changes to actframe if frame has painting tag attached to it */
-    if (gpf->flag & GP_FRAME_PAINT)
+    if (gpf->flag & GP_FRAME_PAINT) {
       return gpf;
+    }
 
     /* try to find matching frame */
     if (gpf->framenum < cframe) {
@@ -822,17 +835,22 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
 
       /* set the appropriate frame */
       if (addnew) {
-        if ((found) && (gpf->framenum == cframe))
+        if ((found) && (gpf->framenum == cframe)) {
           gpl->actframe = gpf;
-        else if (addnew == GP_GETFRAME_ADD_COPY)
+        }
+        else if (addnew == GP_GETFRAME_ADD_COPY) {
           gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
-        else
+        }
+        else {
           gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+        }
       }
-      else if (found)
+      else if (found) {
         gpl->actframe = gpf;
-      else
+      }
+      else {
         gpl->actframe = gpl->frames.last;
+      }
     }
     else {
       for (; gpf; gpf = gpf->prev) {
@@ -844,17 +862,22 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
 
       /* set the appropriate frame */
       if (addnew) {
-        if ((found) && (gpf->framenum == cframe))
+        if ((found) && (gpf->framenum == cframe)) {
           gpl->actframe = gpf;
-        else if (addnew == GP_GETFRAME_ADD_COPY)
+        }
+        else if (addnew == GP_GETFRAME_ADD_COPY) {
           gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
-        else
+        }
+        else {
           gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+        }
       }
-      else if (found)
+      else if (found) {
         gpl->actframe = gpf;
-      else
+      }
+      else {
         gpl->actframe = gpl->frames.first;
+      }
     }
   }
   else if (gpl->frames.first) {
@@ -883,13 +906,16 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
 
     /* set the appropriate frame */
     if (addnew) {
-      if ((found) && (gpf->framenum == cframe))
+      if ((found) && (gpf->framenum == cframe)) {
         gpl->actframe = gpf;
-      else
+      }
+      else {
         gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+      }
     }
-    else if (found)
+    else if (found) {
       gpl->actframe = gpf;
+    }
     else {
       /* unresolved errogenous situation! */
       CLOG_STR_ERROR(&LOG, "cannot find appropriate gp-frame");
@@ -898,8 +924,9 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
   }
   else {
     /* currently no frames (add if allowed to) */
-    if (addnew)
+    if (addnew) {
       gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+    }
     else {
       /* don't do anything... this may be when no frames yet! */
       /* gpl->actframe should still be NULL */
@@ -916,14 +943,16 @@ bool BKE_gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
   bool changed = false;
 
   /* error checking */
-  if (ELEM(NULL, gpl, gpf))
+  if (ELEM(NULL, gpl, gpf)) {
     return false;
+  }
 
   /* if this frame was active, make the previous frame active instead
    * since it's tricky to set active frame otherwise
    */
-  if (gpl->actframe == gpf)
+  if (gpl->actframe == gpf) {
     gpl->actframe = gpf->prev;
+  }
 
   /* free the frame and its data */
   changed = BKE_gpencil_free_strokes(gpf);
@@ -938,13 +967,15 @@ bGPDlayer *BKE_gpencil_layer_getactive(bGPdata *gpd)
   bGPDlayer *gpl;
 
   /* error checking */
-  if (ELEM(NULL, gpd, gpd->layers.first))
+  if (ELEM(NULL, gpd, gpd->layers.first)) {
     return NULL;
+  }
 
   /* loop over layers until found (assume only one active) */
   for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    if (gpl->flag & GP_LAYER_ACTIVE)
+    if (gpl->flag & GP_LAYER_ACTIVE) {
       return gpl;
+    }
   }
 
   /* no active layer found */
@@ -957,8 +988,9 @@ void BKE_gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
   bGPDlayer *gpl;
 
   /* error checking */
-  if (ELEM(NULL, gpd, gpd->layers.first, active))
+  if (ELEM(NULL, gpd, gpd->layers.first, active)) {
     return;
+  }
 
   /* loop over layers deactivating all */
   for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -979,8 +1011,9 @@ void BKE_gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 void BKE_gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
 {
   /* error checking */
-  if (ELEM(NULL, gpd, gpl))
+  if (ELEM(NULL, gpd, gpl)) {
     return;
+  }
 
   /* free layer */
   BKE_gpencil_free_frames(gpl);
@@ -1142,8 +1175,9 @@ Material *BKE_gpencil_object_material_ensure_active(Main *bmain, Object *ob)
   Material *ma = NULL;
 
   /* sanity checks */
-  if (ELEM(NULL, bmain, ob))
+  if (ELEM(NULL, bmain, ob)) {
     return NULL;
+  }
 
   ma = BKE_gpencil_object_material_ensure_from_active_input_material(bmain, ob);
   if (ma->gp_style == NULL) {
@@ -1169,8 +1203,9 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
   int i;
   bool changed = false;
 
-  if (ELEM(NULL, gps, r_min, r_max))
+  if (ELEM(NULL, gps, r_min, r_max)) {
     return false;
+  }
 
   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
     if ((use_select == false) || (pt->flag & GP_SPOINT_SELECT)) {
@@ -1188,8 +1223,9 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
 
   INIT_MINMAX(r_min, r_max);
 
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return changed;
+  }
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     bGPDframe *gpf = gpl->actframe;
@@ -1254,8 +1290,9 @@ static void boundbox_gpencil(Object *ob)
 /* get bounding box */
 BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 {
-  if (ELEM(NULL, ob, ob->data))
+  if (ELEM(NULL, ob, ob->data)) {
     return NULL;
+  }
 
   bGPdata *gpd = (bGPdata *)ob->data;
   if ((ob->runtime.bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
@@ -1272,8 +1309,9 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 
 void BKE_gpencil_transform(bGPdata *gpd, float mat[4][4])
 {
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return;
+  }
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     /* FIXME: For now, we just skip parented layers.
@@ -1610,8 +1648,9 @@ void BKE_gpencil_material_index_remove(bGPdata *gpd, int index)
             BKE_gpencil_free_stroke_weights(gps);
             MEM_freeN(gps->dvert);
           }
-          if (gps->triangles)
+          if (gps->triangles) {
             MEM_freeN(gps->triangles);
+          }
           BLI_freelinkN(&gpf->strokes, gps);
         }
         else {

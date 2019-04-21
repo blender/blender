@@ -69,10 +69,12 @@ typedef struct ConvDMStorage {
 static OpenSubdiv_SchemeType conv_dm_get_type(const OpenSubdiv_Converter *converter)
 {
   ConvDMStorage *storage = converter->user_data;
-  if (storage->ss->meshIFC.simpleSubdiv)
+  if (storage->ss->meshIFC.simpleSubdiv) {
     return OSD_SCHEME_BILINEAR;
-  else
+  }
+  else {
     return OSD_SCHEME_CATMARK;
+  }
 }
 
 static OpenSubdiv_VtxBoundaryInterpolation conv_dm_get_vtx_boundary_interpolation(

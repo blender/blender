@@ -178,8 +178,9 @@ static void cdDM_getVertCos(DerivedMesh *dm, float (*r_cos)[3])
   MVert *mv = CDDM_get_verts(dm);
   int i;
 
-  for (i = 0; i < dm->numVertData; i++, mv++)
+  for (i = 0; i < dm->numVertData; i++, mv++) {
     copy_v3_v3(r_cos[i], mv->co);
+  }
 }
 
 static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
@@ -248,8 +249,9 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
     return NULL;
   }
 
-  if (!ob->sculpt)
+  if (!ob->sculpt) {
     return NULL;
+  }
 
   if (ob->sculpt->pbvh) {
     cddm->pbvh = ob->sculpt->pbvh;
@@ -335,8 +337,9 @@ static void cdDM_foreachMappedVert(DerivedMesh *dm,
     for (i = 0; i < dm->numVertData; i++, mv++) {
       const short *no = (flag & DM_FOREACH_USE_NORMAL) ? mv->no : NULL;
       const int orig = *index++;
-      if (orig == ORIGINDEX_NONE)
+      if (orig == ORIGINDEX_NONE) {
         continue;
+      }
       func(userData, orig, mv->co, NULL, no);
     }
   }
@@ -361,12 +364,14 @@ static void cdDM_foreachMappedEdge(
   for (i = 0; i < dm->numEdgeData; i++, med++) {
     if (index) {
       orig = *index++;
-      if (orig == ORIGINDEX_NONE)
+      if (orig == ORIGINDEX_NONE) {
         continue;
+      }
       func(userData, orig, mv[med->v1].co, mv[med->v2].co);
     }
-    else
+    else {
       func(userData, i, mv[med->v1].co, mv[med->v2].co);
+    }
   }
 }
 
@@ -423,8 +428,9 @@ static void cdDM_foreachMappedFaceCenter(
 
     if (index) {
       orig = *index++;
-      if (orig == ORIGINDEX_NONE)
+      if (orig == ORIGINDEX_NONE) {
         continue;
+      }
     }
     else {
       orig = i;
@@ -489,10 +495,12 @@ void CDDM_recalc_looptri(DerivedMesh *dm)
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
 {
-  if (cddm->pmap)
+  if (cddm->pmap) {
     MEM_freeN(cddm->pmap);
-  if (cddm->pmap_mem)
+  }
+  if (cddm->pmap_mem) {
     MEM_freeN(cddm->pmap_mem);
+  }
 }
 
 static void cdDM_release(DerivedMesh *dm)
@@ -829,11 +837,13 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm,
 
     mv->flag = BM_vert_flag_to_mflag(eve);
 
-    if (cd_vert_bweight_offset != -1)
+    if (cd_vert_bweight_offset != -1) {
       mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+    }
 
-    if (add_orig)
+    if (add_orig) {
       *index++ = i;
+    }
 
     CustomData_from_bmesh_block(&bm->vdata, &dm->vertData, eve->head.data, i);
   }
@@ -858,14 +868,17 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm,
       }
     }
 
-    if (cd_edge_crease_offset != -1)
+    if (cd_edge_crease_offset != -1) {
       med->crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
-    if (cd_edge_bweight_offset != -1)
+    }
+    if (cd_edge_bweight_offset != -1) {
       med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
+    }
 
     CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
-    if (add_orig)
+    if (add_orig) {
       *index++ = i;
+    }
   }
   bm->elem_index_dirty &= ~BM_EDGE;
 
@@ -923,8 +936,9 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm,
 
     CustomData_from_bmesh_block(&bm->pdata, &dm->polyData, efa->head.data, i);
 
-    if (add_orig)
+    if (add_orig) {
       *index++ = i;
+    }
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
@@ -1029,12 +1043,15 @@ DerivedMesh *CDDM_from_template_ex(DerivedMesh *source,
   CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_CALLOC, NULL, numLoops);
   CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_CALLOC, NULL, numPolys);
 
-  if (!CustomData_get_layer(&dm->vertData, CD_ORIGINDEX))
+  if (!CustomData_get_layer(&dm->vertData, CD_ORIGINDEX)) {
     CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
-  if (!CustomData_get_layer(&dm->edgeData, CD_ORIGINDEX))
+  }
+  if (!CustomData_get_layer(&dm->edgeData, CD_ORIGINDEX)) {
     CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
-  if (!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX))
+  }
+  if (!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX)) {
     CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numTessFaces);
+  }
 
   cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
   cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
@@ -1061,8 +1078,9 @@ void CDDM_apply_vert_coords(DerivedMesh *dm, float (*vertCoords)[3])
   vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
   cddm->mvert = vert;
 
-  for (i = 0; i < dm->numVertData; ++i, ++vert)
+  for (i = 0; i < dm->numVertData; ++i, ++vert) {
     copy_v3_v3(vert->co, vertCoords[i]);
+  }
 
   cddm->dm.dirty |= DM_DIRTY_NORMALS;
 }
@@ -1077,8 +1095,9 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
   vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
   cddm->mvert = vert;
 
-  for (i = 0; i < dm->numVertData; ++i, ++vert)
+  for (i = 0; i < dm->numVertData; ++i, ++vert) {
     copy_v3_v3_short(vert->no, vertNormals[i]);
+  }
 
   cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
@@ -1306,8 +1325,9 @@ void CDDM_calc_loop_normals_spacearr(DerivedMesh *dm,
 void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 {
   BLI_assert(numVerts >= 0);
-  if (numVerts < dm->numVertData)
+  if (numVerts < dm->numVertData) {
     CustomData_free_elem(&dm->vertData, numVerts, dm->numVertData - numVerts);
+  }
 
   dm->numVertData = numVerts;
 }
@@ -1315,8 +1335,9 @@ void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 {
   BLI_assert(numEdges >= 0);
-  if (numEdges < dm->numEdgeData)
+  if (numEdges < dm->numEdgeData) {
     CustomData_free_elem(&dm->edgeData, numEdges, dm->numEdgeData - numEdges);
+  }
 
   dm->numEdgeData = numEdges;
 }
@@ -1324,8 +1345,9 @@ void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 void CDDM_lower_num_tessfaces(DerivedMesh *dm, int numTessFaces)
 {
   BLI_assert(numTessFaces >= 0);
-  if (numTessFaces < dm->numTessFaceData)
+  if (numTessFaces < dm->numTessFaceData) {
     CustomData_free_elem(&dm->faceData, numTessFaces, dm->numTessFaceData - numTessFaces);
+  }
 
   dm->numTessFaceData = numTessFaces;
 }
@@ -1333,8 +1355,9 @@ void CDDM_lower_num_tessfaces(DerivedMesh *dm, int numTessFaces)
 void CDDM_lower_num_loops(DerivedMesh *dm, int numLoops)
 {
   BLI_assert(numLoops >= 0);
-  if (numLoops < dm->numLoopData)
+  if (numLoops < dm->numLoopData) {
     CustomData_free_elem(&dm->loopData, numLoops, dm->numLoopData - numLoops);
+  }
 
   dm->numLoopData = numLoops;
 }
@@ -1342,8 +1365,9 @@ void CDDM_lower_num_loops(DerivedMesh *dm, int numLoops)
 void CDDM_lower_num_polys(DerivedMesh *dm, int numPolys)
 {
   BLI_assert(numPolys >= 0);
-  if (numPolys < dm->numPolyData)
+  if (numPolys < dm->numPolyData) {
     CustomData_free_elem(&dm->polyData, numPolys, dm->numPolyData - numPolys);
+  }
 
   dm->numPolyData = numPolys;
 }
@@ -1406,8 +1430,9 @@ void CDDM_set_mvert(DerivedMesh *dm, MVert *mvert)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (!CustomData_has_layer(&dm->vertData, CD_MVERT))
+  if (!CustomData_has_layer(&dm->vertData, CD_MVERT)) {
     CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, mvert, dm->numVertData);
+  }
 
   cddm->mvert = mvert;
 }
@@ -1416,8 +1441,9 @@ void CDDM_set_medge(DerivedMesh *dm, MEdge *medge)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (!CustomData_has_layer(&dm->edgeData, CD_MEDGE))
+  if (!CustomData_has_layer(&dm->edgeData, CD_MEDGE)) {
     CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, medge, dm->numEdgeData);
+  }
 
   cddm->medge = medge;
 }
@@ -1426,8 +1452,9 @@ void CDDM_set_mface(DerivedMesh *dm, MFace *mface)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (!CustomData_has_layer(&dm->faceData, CD_MFACE))
+  if (!CustomData_has_layer(&dm->faceData, CD_MFACE)) {
     CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, mface, dm->numTessFaceData);
+  }
 
   cddm->mface = mface;
 }
@@ -1436,8 +1463,9 @@ void CDDM_set_mloop(DerivedMesh *dm, MLoop *mloop)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (!CustomData_has_layer(&dm->loopData, CD_MLOOP))
+  if (!CustomData_has_layer(&dm->loopData, CD_MLOOP)) {
     CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_ASSIGN, mloop, dm->numLoopData);
+  }
 
   cddm->mloop = mloop;
 }
@@ -1446,8 +1474,9 @@ void CDDM_set_mpoly(DerivedMesh *dm, MPoly *mpoly)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (!CustomData_has_layer(&dm->polyData, CD_MPOLY))
+  if (!CustomData_has_layer(&dm->polyData, CD_MPOLY)) {
     CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_ASSIGN, mpoly, dm->numPolyData);
+  }
 
   cddm->mpoly = mpoly;
 }

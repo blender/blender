@@ -77,8 +77,9 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
   int a, *index;
 
   dl = lb->first;
-  if (dl == NULL)
+  if (dl == NULL) {
     return;
+  }
 
   if (dl->type == DL_INDEX4) {
     mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, dl->nr);
@@ -109,8 +110,9 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
       mloop[0].v = index[0];
       mloop[1].v = index[1];
       mloop[2].v = index[2];
-      if (count == 4)
+      if (count == 4) {
         mloop[3].v = index[3];
+      }
 
       mpoly->totloop = count;
       mpoly->loopstart = (int)(mloop - allloop);
@@ -307,8 +309,9 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
       totpoly, 4 * sizeof(MLoop), "nurbs_init mloop");  // totloop
   *r_allpoly = mpoly = MEM_calloc_arrayN(totpoly, sizeof(MPoly), "nurbs_init mloop");
 
-  if (r_alluv)
+  if (r_alluv) {
     *r_alluv = mloopuv = MEM_calloc_arrayN(totpoly, 4 * sizeof(MLoopUV), "nurbs_init mloopuv");
+  }
 
   /* verts and faces */
   vertcount = 0;
@@ -355,10 +358,12 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
           ofs = a * dl->nr;
           for (b = 0; b < dl->nr; b++) {
             medge->v1 = startvert + ofs + b;
-            if (b == dl->nr - 1)
+            if (b == dl->nr - 1) {
               medge->v2 = startvert + ofs;
-            else
+            }
+            else {
               medge->v2 = startvert + ofs + b + 1;
+            }
             medge->flag = ME_LOOSEEDGE | ME_EDGERENDER | ME_EDGEDRAW;
             medge++;
           }
@@ -395,8 +400,9 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
           }
         }
 
-        if (is_smooth)
+        if (is_smooth) {
           mpoly->flag |= ME_SMOOTH;
+        }
         mpoly++;
         mloop += 3;
         index += 3;
@@ -415,8 +421,9 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
 
       for (a = 0; a < dl->parts; a++) {
 
-        if ((dl->flag & DL_CYCL_V) == 0 && a == dl->parts - 1)
+        if ((dl->flag & DL_CYCL_V) == 0 && a == dl->parts - 1) {
           break;
+        }
 
         if (dl->flag & DL_CYCL_U) {    /* p2 -> p1 -> */
           p1 = startvert + dl->nr * a; /* p4 -> p3 -> */
@@ -454,8 +461,9 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
             /* exception as handled in convertblender.c too */
             if (dl->flag & DL_CYCL_U) {
               orco_sizeu++;
-              if (dl->flag & DL_CYCL_V)
+              if (dl->flag & DL_CYCL_V) {
                 orco_sizev++;
+              }
             }
             else if (dl->flag & DL_CYCL_V) {
               orco_sizev++;
@@ -469,15 +477,18 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
               mloopuv->uv[1] = (v % dl->nr) / (float)orco_sizeu;
 
               /* cyclic correction */
-              if ((i == 1 || i == 2) && mloopuv->uv[0] == 0.0f)
+              if ((i == 1 || i == 2) && mloopuv->uv[0] == 0.0f) {
                 mloopuv->uv[0] = 1.0f;
-              if ((i == 0 || i == 1) && mloopuv->uv[1] == 0.0f)
+              }
+              if ((i == 0 || i == 1) && mloopuv->uv[1] == 0.0f) {
                 mloopuv->uv[1] = 1.0f;
+              }
             }
           }
 
-          if (is_smooth)
+          if (is_smooth) {
             mpoly->flag |= ME_SMOOTH;
+          }
           mpoly++;
           mloop += 4;
 
@@ -974,8 +985,9 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
       }
 
       /* if getting the original caged mesh, delete object modifiers */
-      if (cage)
+      if (cage) {
         BKE_object_free_modifiers(tmpobj, LIB_ID_CREATE_NO_USER_REFCOUNT);
+      }
 
       /* copies the data, but *not* the shapekeys. */
       BKE_id_copy_ex(NULL, object_for_eval.data, (ID **)&copycu, LIB_ID_COPY_LOCALIZE);
@@ -1182,8 +1194,9 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
   Key *key = mesh_src->key;
   int i;
 
-  if (!mesh_src->key)
+  if (!mesh_src->key) {
     return;
+  }
 
   /* ensure we can use mesh vertex count for derived mesh custom data */
   if (mesh_src->totvert != mesh_dest->totvert) {
@@ -1253,8 +1266,9 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     BKE_id_copy_ex(NULL, &me->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
     BKE_mesh_apply_vert_coords(result, deformedVerts);
 
-    if (build_shapekey_layers)
+    if (build_shapekey_layers) {
       add_shapekey_layers(result, me);
+    }
 
     MEM_freeN(deformedVerts);
   }
@@ -1262,8 +1276,9 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     Mesh *mesh_temp;
     BKE_id_copy_ex(NULL, &me->id, (ID **)&mesh_temp, LIB_ID_COPY_LOCALIZE);
 
-    if (build_shapekey_layers)
+    if (build_shapekey_layers) {
       add_shapekey_layers(mesh_temp, me);
+    }
 
     result = mti->applyModifier(md, &mectx, mesh_temp);
     ASSERT_IS_VALID_MESH(result);
@@ -1282,8 +1297,9 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
   KeyBlock *kb;
   int i, j, tot;
 
-  if (!mesh_dst->key)
+  if (!mesh_dst->key) {
     return;
+  }
 
   tot = CustomData_number_of_layers(&mesh_src->vdata, CD_SHAPEKEY);
   for (i = 0; i < tot; i++) {
@@ -1292,8 +1308,9 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
     float(*cos)[3], (*kbcos)[3];
 
     for (kb = mesh_dst->key->block.first; kb; kb = kb->next) {
-      if (kb->uid == layer->uid)
+      if (kb->uid == layer->uid) {
         break;
+      }
     }
 
     if (!kb) {
@@ -1301,8 +1318,9 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
       kb->uid = layer->uid;
     }
 
-    if (kb->data)
+    if (kb->data) {
       MEM_freeN(kb->data);
+    }
 
     cos = CustomData_get_layer_n(&mesh_src->vdata, CD_SHAPEKEY, i);
     kb->totelem = mesh_src->totvert;
@@ -1324,8 +1342,9 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 
   for (kb = mesh_dst->key->block.first; kb; kb = kb->next) {
     if (kb->totelem != mesh_src->totvert) {
-      if (kb->data)
+      if (kb->data) {
         MEM_freeN(kb->data);
+      }
 
       kb->totelem = mesh_src->totvert;
       kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), __func__);
@@ -1504,8 +1523,9 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
     return;
   }
 
-  if (kb->data)
+  if (kb->data) {
     MEM_freeN(kb->data);
+  }
   kb->data = MEM_malloc_arrayN(mesh_dst->key->elemsize, mesh_dst->totvert, "kb->data");
   kb->totelem = totvert;
 

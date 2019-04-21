@@ -356,8 +356,9 @@ static const bUnitDef *unit_best_fit(double value,
 
   for (unit = unit_start ? unit_start : usys->units; unit->name; unit++) {
 
-    if (suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
+    if (suppress && (unit->flag & B_UNIT_DEF_SUPPRESS)) {
       continue;
+    }
 
     /* scale down scalar so 1cm doesn't convert to 10mm because of float error */
     if (UNLIKELY(unit->flag & B_UNIT_DEF_TENTH)) {
@@ -385,10 +386,12 @@ static void unit_dual_convert(double value,
                               const bUnitDef *main_unit)
 {
   const bUnitDef *unit;
-  if (main_unit)
+  if (main_unit) {
     unit = main_unit;
-  else
+  }
+  else {
     unit = unit_best_fit(value, usys, NULL, 1);
+  }
 
   *r_value_a = (value < 0.0 ? ceil : floor)(value / unit->scalar) * unit->scalar;
   *r_value_b = value - (*r_value_a);
@@ -458,8 +461,9 @@ static size_t unit_as_string(char *str,
   }
 
   /* terminate no matter what's done with padding above */
-  if (i >= len_max)
+  if (i >= len_max) {
     i = len_max - 1;
+  }
 
   str[i] = '\0';
   return i;
@@ -532,8 +536,9 @@ static bool is_valid_unit_collection(const bUnitCollection *usys)
 static const bUnitDef *get_preferred_display_unit_if_used(int type, PreferredUnits units)
 {
   const bUnitCollection *usys = unit_get_system(units.system, type);
-  if (!is_valid_unit_collection(usys))
+  if (!is_valid_unit_collection(usys)) {
     return NULL;
+  }
 
   int max_offset = usys->length - 1;
 
@@ -541,22 +546,27 @@ static const bUnitDef *get_preferred_display_unit_if_used(int type, PreferredUni
     case B_UNIT_LENGTH:
     case B_UNIT_AREA:
     case B_UNIT_VOLUME:
-      if (units.length == USER_UNIT_ADAPTIVE)
+      if (units.length == USER_UNIT_ADAPTIVE) {
         return NULL;
+      }
       return usys->units + MIN2(units.length, max_offset);
     case B_UNIT_MASS:
-      if (units.mass == USER_UNIT_ADAPTIVE)
+      if (units.mass == USER_UNIT_ADAPTIVE) {
         return NULL;
+      }
       return usys->units + MIN2(units.mass, max_offset);
     case B_UNIT_TIME:
-      if (units.time == USER_UNIT_ADAPTIVE)
+      if (units.time == USER_UNIT_ADAPTIVE) {
         return NULL;
+      }
       return usys->units + MIN2(units.time, max_offset);
     case B_UNIT_ROTATION:
-      if (units.rotation == 0)
+      if (units.rotation == 0) {
         return usys->units + 0;
-      else if (units.rotation == USER_UNIT_ROT_RADIANS)
+      }
+      else if (units.rotation == USER_UNIT_ROT_RADIANS) {
         return usys->units + 3;
+      }
       break;
     default:
       break;
@@ -587,8 +597,9 @@ static size_t unit_as_string_main(char *str,
   if (split && unit_should_be_split(type)) {
     int length = unit_as_string_splitted(str, len_max, value, prec, usys, main_unit);
     /* failed when length is negative, fallback to no split */
-    if (length >= 0)
+    if (length >= 0) {
       return length;
+    }
   }
 
   return unit_as_string(str, len_max, value, prec, usys, main_unit, pad ? ' ' : '\0');
@@ -630,10 +641,12 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
     while (true) {
       /* Unit detection is case insensitive. */
       const char *str_found;
-      if (case_sensitive)
+      if (case_sensitive) {
         str_found = strstr(str, substr);
-      else
+      }
+      else {
         str_found = BLI_strcasestr(str, substr);
+      }
 
       if (str_found) {
         /* Previous char cannot be a letter. */
@@ -649,8 +662,9 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
           }
         }
         /* If str_found is not a valid unit, we have to check further in the string... */
-        for (str_found++; isalpha_or_utf8(*str_found); str_found++)
+        for (str_found++; isalpha_or_utf8(*str_found); str_found++) {
           ;
+        }
         str = str_found;
       }
       else {
@@ -716,8 +730,9 @@ static int unit_scale_str(char *str,
     len_num = BLI_snprintf(
         str_tmp, TEMP_STR_SIZE, "*%.9g" SEP_STR, unit->scalar / scale_pref); /* # removed later */
 
-    if (len_num > len_max)
+    if (len_num > len_max) {
       len_num = len_max;
+    }
 
     if (found_ofs + len_num + len_move > len_max) {
       /* can't move the whole string, move just as much as will fit */
@@ -766,14 +781,18 @@ static int unit_replace(
 static bool unit_find(const char *str, const bUnitDef *unit)
 {
   const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
-  if (unit_find_str(str, unit->name_short, case_sensitive))
+  if (unit_find_str(str, unit->name_short, case_sensitive)) {
     return true;
-  if (unit_find_str(str, unit->name_plural, false))
+  }
+  if (unit_find_str(str, unit->name_plural, false)) {
     return true;
-  if (unit_find_str(str, unit->name_alt, case_sensitive))
+  }
+  if (unit_find_str(str, unit->name_alt, case_sensitive)) {
     return true;
-  if (unit_find_str(str, unit->name, false))
+  }
+  if (unit_find_str(str, unit->name, false)) {
     return true;
+  }
 
   return false;
 }
@@ -789,15 +808,17 @@ static const bUnitDef *unit_detect_from_str(const bUnitCollection *usys,
 
   /* see which units the new value has */
   for (unit = usys->units; unit->name; unit++) {
-    if (unit_find(str, unit))
+    if (unit_find(str, unit)) {
       break;
+    }
   }
   /* Else, try to infer the default unit from the previous string. */
   if (str_prev && (unit == NULL || unit->name == NULL)) {
     /* see which units the original value had */
     for (unit = usys->units; unit->name; unit++) {
-      if (unit_find(str_prev, unit))
+      if (unit_find(str_prev, unit)) {
         break;
+      }
     }
   }
   /* Else, fall back to default unit. */
@@ -812,8 +833,9 @@ bool bUnit_ContainsUnit(const char *str, int type)
 {
   for (int system = 0; system < UNIT_SYSTEM_TOT; system++) {
     const bUnitCollection *usys = unit_get_system(system, type);
-    if (!is_valid_unit_collection(usys))
+    if (!is_valid_unit_collection(usys)) {
       continue;
+    }
 
     for (int i = 0; i < usys->length; i++) {
       if (unit_find(str, usys->units + i)) {
@@ -828,10 +850,12 @@ double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int t
 {
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
   const bUnitDef *unit = get_preferred_display_unit_if_used(type, units);
-  if (unit)
+  if (unit) {
     return unit->scalar;
-  else
+  }
+  else {
     return bUnit_BaseScalar(units.system, type);
+  }
 }
 
 /* make a copy of the string that replaces the units with numbers
@@ -853,8 +877,9 @@ bool bUnit_ReplaceString(
     char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
-  if (!is_valid_unit_collection(usys))
+  if (!is_valid_unit_collection(usys)) {
     return false;
+  }
 
   const bUnitDef *unit = NULL, *default_unit;
   double scale_pref_base = scale_pref;
@@ -880,8 +905,9 @@ bool bUnit_ReplaceString(
 
   for (unit = usys->units; unit->name; unit++) {
     /* in case there are multiple instances */
-    while (unit_replace(str, len_max, str_tmp, scale_pref_base, unit))
+    while (unit_replace(str, len_max, str_tmp, scale_pref_base, unit)) {
       changed = true;
+    }
   }
   unit = NULL;
 
@@ -901,8 +927,10 @@ bool bUnit_ReplaceString(
           for (unit = usys_iter->units; unit->name; unit++) {
             int ofs = 0;
             /* in case there are multiple instances */
-            while ((ofs = unit_replace(str + ofs, len_max - ofs, str_tmp, scale_pref_base, unit)))
+            while (
+                (ofs = unit_replace(str + ofs, len_max - ofs, str_tmp, scale_pref_base, unit))) {
               changed = true;
+            }
           }
         }
       }
@@ -964,10 +992,12 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
         len_max -= offset;
 
         /* print the alt_name */
-        if (unit->name_alt)
+        if (unit->name_alt) {
           len_name = BLI_strncpy_rlen(str, unit->name_alt, len_max);
-        else
+        }
+        else {
           len_name = 0;
+        }
 
         len_name = (len_name < len_max ? len_name : len_max);
         str += len_name;
@@ -985,12 +1015,14 @@ double bUnit_ClosestScalar(double value, int system, int type)
   const bUnitCollection *usys = unit_get_system(system, type);
   const bUnitDef *unit;
 
-  if (usys == NULL)
+  if (usys == NULL) {
     return -1;
+  }
 
   unit = unit_best_fit(value, usys, NULL, 1);
-  if (unit == NULL)
+  if (unit == NULL) {
     return -1;
+  }
 
   return unit->scalar;
 }
@@ -998,10 +1030,12 @@ double bUnit_ClosestScalar(double value, int system, int type)
 double bUnit_BaseScalar(int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
-  if (usys)
+  if (usys) {
     return unit_default(usys)->scalar;
-  else
+  }
+  else {
     return 1.0;
+  }
 }
 
 /* external access */

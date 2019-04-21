@@ -86,12 +86,14 @@ static int modifiers_disable_subsurf_temporary(Object *ob)
   ModifierData *md;
   int disabled = 0;
 
-  for (md = ob->modifiers.first; md; md = md->next)
-    if (md->type == eModifierType_Subsurf)
+  for (md = ob->modifiers.first; md; md = md->next) {
+    if (md->type == eModifierType_Subsurf) {
       if (md->mode & eModifierMode_OnCage) {
         md->mode ^= eModifierMode_DisableTemporary;
         disabled = 1;
       }
+    }
+  }
 
   return disabled;
 }
@@ -199,8 +201,9 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
   MPoly *mp;
 
   mvert = me->mvert;
-  for (i = 0; i < me->totvert; i++, mvert++)
+  for (i = 0; i < me->totvert; i++, mvert++) {
     mvert->flag &= ~ME_VERT_TMP_TAG;
+  }
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
   mvert = me->mvert;
@@ -277,8 +280,9 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   for (i = 0; md && i <= cageIndex; i++, md = md->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-    if (!editbmesh_modifier_is_enabled(scene, md, me != NULL))
+    if (!editbmesh_modifier_is_enabled(scene, md, me != NULL)) {
       continue;
+    }
 
     if (mti->type == eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
       if (!defmats) {
@@ -293,18 +297,23 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
         deformedVerts = editbmesh_get_vertex_cos(em, &numVerts);
         defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 
-        for (a = 0; a < numVerts; a++)
+        for (a = 0; a < numVerts; a++) {
           unit_m3(defmats[a]);
+        }
       }
       mti->deformMatricesEM(md, &mectx, em, me, deformedVerts, defmats, numVerts);
     }
-    else
+    else {
       break;
+    }
   }
 
-  for (; md && i <= cageIndex; md = md->next, i++)
-    if (editbmesh_modifier_is_enabled(scene, md, me != NULL) && modifier_isCorrectableDeformed(md))
+  for (; md && i <= cageIndex; md = md->next, i++) {
+    if (editbmesh_modifier_is_enabled(scene, md, me != NULL) &&
+        modifier_isCorrectableDeformed(md)) {
       numleft++;
+    }
+  }
 
   if (me) {
     BKE_id_free(NULL, me);
@@ -365,8 +374,9 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-    if (!modifier_isEnabled(scene, md, eModifierMode_Realtime))
+    if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
       continue;
+    }
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
       if (!defmats) {
@@ -377,26 +387,30 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
         deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
         defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
 
-        for (a = 0; a < numVerts; a++)
+        for (a = 0; a < numVerts; a++) {
           unit_m3(defmats[a]);
+        }
       }
 
       if (mti->deformMatrices) {
         mti->deformMatrices(md, &mectx, me_eval, deformedVerts, defmats, numVerts);
       }
-      else
+      else {
         break;
+      }
     }
   }
 
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-    if (!modifier_isEnabled(scene, md, eModifierMode_Realtime))
+    if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
       continue;
+    }
 
-    if (mti->type == eModifierTypeType_OnlyDeform)
+    if (mti->type == eModifierTypeType_OnlyDeform) {
       numleft++;
+    }
   }
 
   if (me_eval) {
@@ -436,14 +450,16 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     for (; md; md = md->next) {
       const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-      if (!modifier_isEnabled(scene, md, eModifierMode_Realtime))
+      if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
         continue;
+      }
 
       if (mti->type == eModifierTypeType_OnlyDeform) {
         /* skip leading modifiers which have been already
          * handled in sculpt_get_first_deform_matrices */
-        if (mti->deformMatrices && !deformed)
+        if (mti->deformMatrices && !deformed) {
           continue;
+        }
 
         mti->deformVerts(md, &mectx, NULL, deformedVerts, mesh->totvert);
         deformed = 1;
@@ -473,7 +489,8 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     *deformcos = BKE_mesh_vertexCos_get(mesh, &numVerts);
     *deformmats = MEM_callocN(sizeof(*(*deformmats)) * numVerts, "defmats");
 
-    for (a = 0; a < numVerts; a++)
+    for (a = 0; a < numVerts; a++) {
       unit_m3((*deformmats)[a]);
+    }
   }
 }

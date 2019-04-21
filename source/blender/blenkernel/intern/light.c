@@ -144,8 +144,9 @@ Light *BKE_light_localize(Light *la)
 
   lan->curfalloff = curvemapping_copy(la->curfalloff);
 
-  if (la->nodetree)
+  if (la->nodetree) {
     lan->nodetree = ntreeLocalize(la->nodetree);
+  }
 
   lan->preview = NULL;
 

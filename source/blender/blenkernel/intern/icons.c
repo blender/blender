@@ -147,16 +147,19 @@ static int get_next_free_id(void)
   int startId = gFirstIconId;
 
   /* if we haven't used up the int number range, we just return the next int */
-  if (gNextIconId >= gFirstIconId)
+  if (gNextIconId >= gFirstIconId) {
     return gNextIconId++;
+  }
 
   /* now we try to find the smallest icon id not stored in the gIcons hash */
-  while (BLI_ghash_lookup(gIcons, POINTER_FROM_INT(startId)) && startId >= gFirstIconId)
+  while (BLI_ghash_lookup(gIcons, POINTER_FROM_INT(startId)) && startId >= gFirstIconId) {
     startId++;
+  }
 
   /* if we found a suitable one that isn't used yet, return it */
-  if (startId >= gFirstIconId)
+  if (startId >= gFirstIconId) {
     return startId;
+  }
 
   /* fail */
   return 0;
@@ -243,8 +246,9 @@ void BKE_previewimg_freefunc(void *link)
       if (prv->rect[i]) {
         MEM_freeN(prv->rect[i]);
       }
-      if (prv->gputexture[i])
+      if (prv->gputexture[i]) {
         GPU_texture_free(prv->gputexture[i]);
+      }
     }
 
     MEM_freeN(prv);
@@ -519,8 +523,9 @@ void BKE_icon_changed(const int icon_id)
 
   Icon *icon = NULL;
 
-  if (!icon_id || G.background)
+  if (!icon_id || G.background) {
     return;
+  }
 
   icon = BLI_ghash_lookup(gIcons, POINTER_FROM_INT(icon_id));
 
@@ -582,8 +587,9 @@ int BKE_icon_id_ensure(struct ID *id)
     return 0;
   }
 
-  if (id->icon_id)
+  if (id->icon_id) {
     return id->icon_id;
+  }
 
   id->icon_id = get_next_free_id();
 
@@ -626,8 +632,9 @@ int BKE_icon_gplayer_color_ensure(bGPDlayer *gpl)
     return 0;
   }
 
-  if (gpl->runtime.icon_id)
+  if (gpl->runtime.icon_id) {
     return gpl->runtime.icon_id;
+  }
 
   gpl->runtime.icon_id = get_next_free_id();
 
@@ -644,8 +651,9 @@ int BKE_icon_gplayer_color_ensure(bGPDlayer *gpl)
  */
 int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 {
-  if (!preview || G.background)
+  if (!preview || G.background) {
     return 0;
+  }
 
   if (id) {
     BLI_assert(BKE_previewimg_id_ensure(id) == preview);
@@ -720,8 +728,9 @@ static void icon_add_to_deferred_delete_queue(int icon_id)
 void BKE_icon_id_delete(struct ID *id)
 {
   const int icon_id = id->icon_id;
-  if (!icon_id)
+  if (!icon_id) {
     return; /* no icon defined for library object */
+  }
   id->icon_id = 0;
 
   if (!BLI_thread_is_main()) {

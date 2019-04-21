@@ -316,8 +316,9 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree,
   struct RayCastUserData bmcb_data;
   const float dist = r_dist ? *r_dist : FLT_MAX;
 
-  if (bmtree->cos_cage)
+  if (bmtree->cos_cage) {
     BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
+  }
 
   hit.dist = dist;
   hit.index = -1;
@@ -380,8 +381,9 @@ BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *bmtree,
   bmcb_data_filter.filter_cb = filter_cb;
   bmcb_data_filter.filter_userdata = filter_userdata;
 
-  if (bmtree->cos_cage)
+  if (bmtree->cos_cage) {
     BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
+  }
 
   hit.dist = dist;
   hit.index = -1;
@@ -445,8 +447,9 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
   struct VertSearchUserData bmcb_data;
   const float dist_max_sq = dist_max * dist_max;
 
-  if (bmtree->cos_cage)
+  if (bmtree->cos_cage) {
     BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
+  }
 
   hit.dist_sq = dist_max_sq;
   hit.index = -1;
@@ -505,8 +508,9 @@ struct BMFace *BKE_bmbvh_find_face_closest(BMBVHTree *bmtree,
   struct FaceSearchUserData bmcb_data;
   const float dist_max_sq = dist_max * dist_max;
 
-  if (bmtree->cos_cage)
+  if (bmtree->cos_cage) {
     BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
+  }
 
   hit.dist_sq = dist_max_sq;
   hit.index = -1;

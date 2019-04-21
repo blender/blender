@@ -177,8 +177,9 @@ bActionGroup *get_active_actiongroup(bAction *act)
 
   if (act && act->groups.first) {
     for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-      if (agrp->flag & AGRP_ACTIVE)
+      if (agrp->flag & AGRP_ACTIVE) {
         break;
+      }
     }
   }
 
@@ -191,15 +192,18 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
   bActionGroup *grp;
 
   /* sanity checks */
-  if (act == NULL)
+  if (act == NULL) {
     return;
+  }
 
   /* Deactivate all others */
   for (grp = act->groups.first; grp; grp = grp->next) {
-    if ((grp == agrp) && (select))
+    if ((grp == agrp) && (select)) {
       grp->flag |= AGRP_ACTIVE;
-    else
+    }
+    else {
       grp->flag &= ~AGRP_ACTIVE;
+    }
   }
 }
 
@@ -240,8 +244,9 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
   bActionGroup *agrp;
 
   /* sanity check: must have action and name */
-  if (ELEM(NULL, act, name))
+  if (ELEM(NULL, act, name)) {
     return NULL;
+  }
 
   /* allocate a new one */
   agrp = MEM_callocN(sizeof(bActionGroup), "bActionGroup");
@@ -266,8 +271,9 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 {
   /* sanity checks */
-  if (ELEM(NULL, act, agrp, fcurve))
+  if (ELEM(NULL, act, agrp, fcurve)) {
     return;
+  }
 
   /* if no channels anywhere, just add to two lists at the same time */
   if (BLI_listbase_is_empty(&act->curves)) {
@@ -285,8 +291,9 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
      * then set the F-Curve as the last for the action first so that
      * the lists will be in sync after linking
      */
-    if (agrp->channels.last == act->curves.last)
+    if (agrp->channels.last == act->curves.last) {
       act->curves.last = fcurve;
+    }
 
     /* link in the given F-Curve after the last F-Curve in the group,
      * which means that it should be able to fit in with the rest of the
@@ -320,8 +327,9 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
      * since group is (effectively) the first group. Thus, the existing first F-Curve becomes the
      * second in the chain, etc. etc.
      */
-    if (grp == NULL)
+    if (grp == NULL) {
       BLI_insertlinkbefore(&act->curves, act->curves.first, fcurve);
+    }
   }
 
   /* set the F-Curve's new group */
@@ -332,8 +340,9 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void action_groups_remove_channel(bAction *act, FCurve *fcu)
 {
   /* sanity checks */
-  if (ELEM(NULL, act, fcu))
+  if (ELEM(NULL, act, fcu)) {
     return;
+  }
 
   /* check if any group used this directly */
   if (fcu->grp) {
@@ -345,16 +354,20 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
       }
     }
     else if (agrp->channels.first == fcu) {
-      if ((fcu->next) && (fcu->next->grp == agrp))
+      if ((fcu->next) && (fcu->next->grp == agrp)) {
         agrp->channels.first = fcu->next;
-      else
+      }
+      else {
         agrp->channels.first = NULL;
+      }
     }
     else if (agrp->channels.last == fcu) {
-      if ((fcu->prev) && (fcu->prev->grp == agrp))
+      if ((fcu->prev) && (fcu->prev->grp == agrp)) {
         agrp->channels.last = fcu->prev;
-      else
+      }
+      else {
         agrp->channels.last = NULL;
+      }
     }
 
     fcu->grp = NULL;
@@ -368,8 +381,9 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
 bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
 {
   /* sanity checks */
-  if (ELEM(NULL, act, act->groups.first, name) || (name[0] == 0))
+  if (ELEM(NULL, act, act->groups.first, name) || (name[0] == 0)) {
     return NULL;
+  }
 
   /* do string comparisons */
   return BLI_findstring(&act->groups, name, offsetof(bActionGroup, name));
@@ -381,12 +395,14 @@ void action_groups_clear_tempflags(bAction *act)
   bActionGroup *agrp;
 
   /* sanity checks */
-  if (ELEM(NULL, act, act->groups.first))
+  if (ELEM(NULL, act, act->groups.first)) {
     return;
+  }
 
   /* flag clearing loop */
-  for (agrp = act->groups.first; agrp; agrp = agrp->next)
+  for (agrp = act->groups.first; agrp; agrp = agrp->next) {
     agrp->flag &= ~AGRP_TEMP;
+  }
 }
 
 /* *************** Pose channels *************** */
@@ -397,11 +413,13 @@ void action_groups_clear_tempflags(bAction *act)
  */
 bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
 {
-  if (ELEM(NULL, pose, name) || (name[0] == '\0'))
+  if (ELEM(NULL, pose, name) || (name[0] == '\0')) {
     return NULL;
+  }
 
-  if (pose->chanhash)
+  if (pose->chanhash) {
     return BLI_ghash_lookup(pose->chanhash, (const void *)name);
+  }
 
   return BLI_findstring(&((const bPose *)pose)->chanbase, name, offsetof(bPoseChannel, name));
 }
@@ -418,8 +436,9 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 {
   bPoseChannel *chan;
 
-  if (pose == NULL)
+  if (pose == NULL) {
     return NULL;
+  }
 
   /* See if this channel exists */
   chan = BKE_pose_channel_find_name(pose, name);
@@ -490,8 +509,9 @@ bPoseChannel *BKE_pose_channel_active(Object *ob)
 
   /* find active */
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-    if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))
+    if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer)) {
       return pchan;
+    }
   }
 
   return NULL;
@@ -657,15 +677,17 @@ static bool pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
       bKinematicConstraint *data = con->data;
       if ((data->rootbone == 0) || (data->rootbone > level)) {
-        if ((data->flag & CONSTRAINT_IK_AUTO) == 0)
+        if ((data->flag & CONSTRAINT_IK_AUTO) == 0) {
           return true;
+        }
       }
     }
   }
   for (bone = pchan->bone->childbase.first; bone; bone = bone->next) {
     pchan = BKE_pose_channel_find_name(ob->pose, bone->name);
-    if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
+    if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1)) {
       return true;
+    }
   }
   return false;
 }
@@ -685,8 +707,9 @@ void BKE_pose_channels_hash_make(bPose *pose)
     bPoseChannel *pchan;
 
     pose->chanhash = BLI_ghash_str_new("make_pose_chan gh");
-    for (pchan = pose->chanbase.first; pchan; pchan = pchan->next)
+    for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
       BLI_ghash_insert(pose->chanhash, pchan->name, pchan);
+    }
   }
 }
 
@@ -742,23 +765,27 @@ void BKE_pose_channels_remove(Object *ob,
               }
             }
 
-            if (cti->flush_constraint_targets)
+            if (cti->flush_constraint_targets) {
               cti->flush_constraint_targets(con, &targets, 0);
+            }
           }
         }
 
         if (pchan->bbone_prev) {
-          if (filter_fn(pchan->bbone_prev->name, user_data))
+          if (filter_fn(pchan->bbone_prev->name, user_data)) {
             pchan->bbone_prev = NULL;
+          }
         }
         if (pchan->bbone_next) {
-          if (filter_fn(pchan->bbone_next->name, user_data))
+          if (filter_fn(pchan->bbone_next->name, user_data)) {
             pchan->bbone_next = NULL;
+          }
         }
 
         if (pchan->custom_tx) {
-          if (filter_fn(pchan->custom_tx->name, user_data))
+          if (filter_fn(pchan->custom_tx->name, user_data)) {
             pchan->custom_tx = NULL;
+          }
         }
       }
     }
@@ -833,8 +860,9 @@ void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
   bPoseChannel *pchan;
 
   if (pose->chanbase.first) {
-    for (pchan = pose->chanbase.first; pchan; pchan = pchan->next)
+    for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
       BKE_pose_channel_free_ex(pchan, do_id_user);
+    }
 
     BLI_freelistN(&pose->chanbase);
   }
@@ -855,15 +883,17 @@ void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
   BKE_pose_channels_free_ex(pose, do_id_user);
 
   /* free pose-groups */
-  if (pose->agroups.first)
+  if (pose->agroups.first) {
     BLI_freelistN(&pose->agroups);
+  }
 
   /* free IK solver state */
   BIK_clear_data(pose);
 
   /* free IK solver param */
-  if (pose->ikparam)
+  if (pose->ikparam) {
     MEM_freeN(pose->ikparam);
+  }
 }
 
 void BKE_pose_free_data(bPose *pose)
@@ -965,22 +995,26 @@ void BKE_pose_update_constraint_flags(bPose *pose)
 
         pchan->constflag |= PCHAN_HAS_IK;
 
-        if (data->tar == NULL || (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0))
+        if (data->tar == NULL || (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0)) {
           pchan->constflag |= PCHAN_HAS_TARGET;
+        }
 
         /* negative rootbone = recalc rootbone index. used in do_versions */
         if (data->rootbone < 0) {
           data->rootbone = 0;
 
-          if (data->flag & CONSTRAINT_IK_TIP)
+          if (data->flag & CONSTRAINT_IK_TIP) {
             parchan = pchan;
-          else
+          }
+          else {
             parchan = pchan->parent;
+          }
 
           while (parchan) {
             data->rootbone++;
-            if ((parchan->bone->flag & BONE_CONNECTED) == 0)
+            if ((parchan->bone->flag & BONE_CONNECTED) == 0) {
               break;
+            }
             parchan = parchan->parent;
           }
         }
@@ -994,13 +1028,16 @@ void BKE_pose_update_constraint_flags(bPose *pose)
         /* if we have a valid target, make sure that this will get updated on frame-change
          * (needed for when there is no anim-data for this pose)
          */
-        if ((data->tar) && (data->tar->type == OB_CURVE))
+        if ((data->tar) && (data->tar->type == OB_CURVE)) {
           pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
+        }
       }
-      else if (con->type == CONSTRAINT_TYPE_SPLINEIK)
+      else if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
         pchan->constflag |= PCHAN_HAS_SPLINEIK;
-      else
+      }
+      else {
         pchan->constflag |= PCHAN_HAS_CONST;
+      }
     }
   }
   pose->flag &= ~POSE_CONSTRAINTS_NEED_UPDATE_FLAGS;
@@ -1027,8 +1064,9 @@ void framechange_poses_clear_unkeyed(Main *bmain)
     /* we only need to do this on objects with a pose */
     if ((pose = ob->pose)) {
       for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-        if (pchan->bone)
+        if (pchan->bone) {
           pchan->bone->flag &= ~BONE_UNKEYED;
+        }
       }
     }
   }
@@ -1073,10 +1111,12 @@ void BKE_pose_remove_group(bPose *pose, bActionGroup *grp, const int index)
    * - also, make sure that those after this item get corrected
    */
   for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-    if (pchan->agrp_index == idx)
+    if (pchan->agrp_index == idx) {
       pchan->agrp_index = 0;
-    else if (pchan->agrp_index > idx)
+    }
+    else if (pchan->agrp_index > idx) {
       pchan->agrp_index--;
+    }
   }
 
   /* now, remove it from the pose */
@@ -1115,8 +1155,9 @@ bool action_has_motion(const bAction *act)
   /* return on the first F-Curve that has some keyframes/samples defined */
   if (act) {
     for (fcu = act->curves.first; fcu; fcu = fcu->next) {
-      if (fcu->totvert)
+      if (fcu->totvert) {
         return true;
+      }
     }
   }
 
@@ -1176,10 +1217,12 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
           {
             FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
 
-            if (fmd->before_mode != FCM_EXTRAPOLATE_NONE)
+            if (fmd->before_mode != FCM_EXTRAPOLATE_NONE) {
               min = MINAFRAMEF;
-            if (fmd->after_mode != FCM_EXTRAPOLATE_NONE)
+            }
+            if (fmd->after_mode != FCM_EXTRAPOLATE_NONE) {
               max = MAXFRAMEF;
+            }
             break;
           }
             /* TODO: function modifier may need some special limits */
@@ -1197,8 +1240,9 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 
   if (foundvert || foundmod) {
     /* ensure that action is at least 1 frame long (for NLA strips to have a valid length) */
-    if (min == max)
+    if (min == max) {
       max += 1.0f;
+    }
 
     *start = min;
     *end = max;
@@ -1220,17 +1264,21 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
   short flags = 0;
 
   /* build PointerRNA from provided data to obtain the paths to use */
-  if (pchan)
+  if (pchan) {
     RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
-  else if (ob)
+  }
+  else if (ob) {
     RNA_id_pointer_create((ID *)ob, &ptr);
-  else
+  }
+  else {
     return 0;
+  }
 
   /* get the basic path to the properties of interest */
   basePath = RNA_path_from_ID_to_struct(&ptr);
-  if (basePath == NULL)
+  if (basePath == NULL) {
     return 0;
+  }
 
   /* search F-Curves for the given properties
    * - we cannot use the groups, since they may not be grouped in that way...
@@ -1239,12 +1287,14 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
     const char *bPtr = NULL, *pPtr = NULL;
 
     /* if enough flags have been found, we can stop checking unless we're also getting the curves */
-    if ((flags == ACT_TRANS_ALL) && (curves == NULL))
+    if ((flags == ACT_TRANS_ALL) && (curves == NULL)) {
       break;
+    }
 
     /* just in case... */
-    if (fcu->rna_path == NULL)
+    if (fcu->rna_path == NULL) {
       continue;
+    }
 
     /* step 1: check for matching base path */
     bPtr = strstr(fcu->rna_path, basePath);
@@ -1267,8 +1317,9 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
         if (pPtr) {
           flags |= ACT_TRANS_LOC;
 
-          if (curves)
+          if (curves) {
             BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
           continue;
         }
       }
@@ -1278,8 +1329,9 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
         if (pPtr) {
           flags |= ACT_TRANS_SCALE;
 
-          if (curves)
+          if (curves) {
             BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
           continue;
         }
       }
@@ -1289,8 +1341,9 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
         if (pPtr) {
           flags |= ACT_TRANS_ROT;
 
-          if (curves)
+          if (curves) {
             BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
           continue;
         }
       }
@@ -1301,8 +1354,9 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
         if (pPtr) {
           flags |= ACT_TRANS_BBONE;
 
-          if (curves)
+          if (curves) {
             BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
           continue;
         }
       }
@@ -1315,8 +1369,9 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
         if (pPtr) {
           flags |= ACT_TRANS_PROP;
 
-          if (curves)
+          if (curves) {
             BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
           continue;
         }
       }
@@ -1337,8 +1392,9 @@ void BKE_pose_rest(bPose *pose)
 {
   bPoseChannel *pchan;
 
-  if (!pose)
+  if (!pose) {
     return;
+  }
 
   memset(pose->stride_offset, 0, sizeof(pose->stride_offset));
   memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));

@@ -188,8 +188,9 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
     tracknr++;
   }
 
-  if (reconstruction->cameras)
+  if (reconstruction->cameras) {
     MEM_freeN(reconstruction->cameras);
+  }
 
   reconstruction->camnr = 0;
   reconstruction->cameras = NULL;
@@ -205,8 +206,9 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
       float error = libmv_reprojectionErrorForImage(libmv_reconstruction, a);
 
       for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++)
+        for (j = 0; j < 4; j++) {
           mat[i][j] = matd[i][j];
+        }
       }
 
       /* Ensure first camera has got zero rotation and transform.
@@ -248,8 +250,9 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   if (origin_set) {
     track = tracksbase->first;
     while (track) {
-      if (track->flag & TRACK_HAS_BUNDLE)
+      if (track->flag & TRACK_HAS_BUNDLE) {
         mul_v3_m4v3(track->bundle_pos, imat, track->bundle_pos);
+      }
 
       track = track->next;
     }
@@ -276,20 +279,25 @@ static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking,
   int refine = tracking->settings.refine_camera_intrinsics;
   int flags = 0;
 
-  if ((object->flag & TRACKING_OBJECT_CAMERA) == 0)
+  if ((object->flag & TRACKING_OBJECT_CAMERA) == 0) {
     return 0;
+  }
 
-  if (refine & REFINE_FOCAL_LENGTH)
+  if (refine & REFINE_FOCAL_LENGTH) {
     flags |= LIBMV_REFINE_FOCAL_LENGTH;
+  }
 
-  if (refine & REFINE_PRINCIPAL_POINT)
+  if (refine & REFINE_PRINCIPAL_POINT) {
     flags |= LIBMV_REFINE_PRINCIPAL_POINT;
+  }
 
-  if (refine & REFINE_RADIAL_DISTORTION_K1)
+  if (refine & REFINE_RADIAL_DISTORTION_K1) {
     flags |= LIBMV_REFINE_RADIAL_DISTORTION_K1;
+  }
 
-  if (refine & REFINE_RADIAL_DISTORTION_K2)
+  if (refine & REFINE_RADIAL_DISTORTION_K2) {
     flags |= LIBMV_REFINE_RADIAL_DISTORTION_K2;
+  }
 
   return flags;
 }
@@ -397,11 +405,13 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
       last_marker--;
     }
 
-    if (first <= track->markersnr - 1)
+    if (first <= track->markersnr - 1) {
       sfra = min_ii(sfra, first_marker->framenr);
+    }
 
-    if (last >= 0)
+    if (last >= 0) {
       efra = max_ii(efra, last_marker->framenr);
+    }
 
     tracks_map_insert(context->tracks_map, track, NULL);
 
@@ -422,8 +432,9 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 /* Free memory used by a reconstruction process. */
 void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 {
-  if (context->reconstruction)
+  if (context->reconstruction) {
     libmv_reconstructionDestroy(context->reconstruction);
+  }
 
   libmv_tracksDestroy(context->tracks);
 
@@ -532,10 +543,12 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
 
   object = BKE_tracking_object_get_named(tracking, context->object_name);
 
-  if (context->is_camera)
+  if (context->is_camera) {
     reconstruction = &tracking->reconstruction;
-  else
+  }
+  else {
     reconstruction = &object->reconstruction;
+  }
 
   /* update keyframe in the interface */
   if (context->select_keyframes) {
@@ -546,8 +559,9 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
   reconstruction->error = context->reprojection_error;
   reconstruction->flag |= TRACKING_RECONSTRUCTED;
 
-  if (!reconstruct_retrieve_libmv(context, tracking))
+  if (!reconstruct_retrieve_libmv(context, tracking)) {
     return false;
+  }
 
   return true;
 }

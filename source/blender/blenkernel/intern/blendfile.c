@@ -278,8 +278,9 @@ static void setup_app_data(bContext *C,
     wmWindow *win = CTX_wm_window(C);
 
     /* in case we don't even have a local scene, add one */
-    if (!bmain->scenes.first)
+    if (!bmain->scenes.first) {
       BKE_scene_add(bmain, "Empty");
+    }
 
     CTX_data_scene_set(C, bmain->scenes.first);
     win->scene = CTX_data_scene(C);
@@ -304,8 +305,9 @@ static void setup_app_data(bContext *C,
 
   /* FIXME: this version patching should really be part of the file-reading code,
    * but we still get too many unrelated data-corruption crashes otherwise... */
-  if (bmain->versionfile < 250)
+  if (bmain->versionfile < 250) {
     do_versions_ipos_to_animato(bmain);
+  }
 
   bmain->recovered = 0;
 
@@ -320,8 +322,9 @@ static void setup_app_data(bContext *C,
     bmain->recovered = 1;
 
     /* these are the same at times, should never copy to the same location */
-    if (bmain->name != filepath)
+    if (bmain->name != filepath) {
       BLI_strncpy(bmain->name, filepath, FILE_MAX);
+    }
   }
 
   /* baseflags, groups, make depsgraph, etc */
@@ -399,8 +402,9 @@ int BKE_blendfile_read(bContext *C,
       setup_app_data(C, bfd, filepath, params->is_startup, reports);
     }
   }
-  else
+  else {
     BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
+  }
 
   return (bfd ? retval : BKE_BLENDFILE_READ_FAIL);
 }
@@ -416,8 +420,9 @@ bool BKE_blendfile_read_from_memory(bContext *C,
 
   bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
   if (bfd) {
-    if (update_defaults)
+    if (update_defaults) {
       BLO_update_defaults_startup_blend(bfd->main, NULL);
+    }
     setup_app_data(C, bfd, "<memory2>", params->is_startup, reports);
   }
   else {
@@ -440,10 +445,12 @@ bool BKE_blendfile_read_from_memfile(bContext *C,
       bmain, BKE_main_blendfile_path(bmain), memfile, params->skip_flags, reports);
   if (bfd) {
     /* remove the unused screens and wm */
-    while (bfd->main->wm.first)
+    while (bfd->main->wm.first) {
       BKE_id_free(bfd->main, bfd->main->wm.first);
-    while (bfd->main->screens.first)
+    }
+    while (bfd->main->screens.first) {
       BKE_id_free(bfd->main, bfd->main->screens.first);
+    }
 
     setup_app_data(C, bfd, "<memory1>", params->is_startup, reports);
   }
@@ -636,11 +643,13 @@ static void blendfile_write_partial_cb(void *UNUSED(handle), Main *UNUSED(bmain)
   if (vid) {
     ID *id = vid;
     /* only tag for need-expand if not done, prevents eternal loops */
-    if ((id->tag & LIB_TAG_DOIT) == 0)
+    if ((id->tag & LIB_TAG_DOIT) == 0) {
       id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
+    }
 
-    if (id->lib && (id->lib->id.tag & LIB_TAG_DOIT) == 0)
+    if (id->lib && (id->lib->id.tag & LIB_TAG_DOIT) == 0) {
       id->lib->id.tag |= LIB_TAG_DOIT;
+    }
   }
 }
 

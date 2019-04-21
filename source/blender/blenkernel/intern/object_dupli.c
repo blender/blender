@@ -103,10 +103,12 @@ static void init_context(
 
   r_ctx->object = ob;
   r_ctx->obedit = OBEDIT_FROM_OBACT(ob);
-  if (space_mat)
+  if (space_mat) {
     copy_m4_m4(r_ctx->space_mat, space_mat);
-  else
+  }
+  else {
     unit_m4(r_ctx->space_mat);
+  }
   r_ctx->level = 0;
 
   r_ctx->gen = get_dupli_generator(r_ctx);
@@ -121,12 +123,14 @@ static void copy_dupli_context(
   *r_ctx = *ctx;
 
   /* XXX annoying, previously was done by passing an ID* argument, this at least is more explicit */
-  if (ctx->gen->type == OB_DUPLICOLLECTION)
+  if (ctx->gen->type == OB_DUPLICOLLECTION) {
     r_ctx->collection = ctx->object->instance_collection;
+  }
 
   r_ctx->object = ob;
-  if (mat)
+  if (mat) {
     mul_m4_m4m4(r_ctx->space_mat, (float(*)[4])ctx->space_mat, mat);
+  }
   r_ctx->persistent_id[r_ctx->level] = index;
   ++r_ctx->level;
 
@@ -159,17 +163,20 @@ static DupliObject *make_dupli(const DupliContext *ctx, Object *ob, float mat[4]
    * dupli object between frames, which is needed for motion blur. last level
    * goes first in the array. */
   dob->persistent_id[0] = index;
-  for (i = 1; i < ctx->level + 1; i++)
+  for (i = 1; i < ctx->level + 1; i++) {
     dob->persistent_id[i] = ctx->persistent_id[ctx->level - i];
+  }
   /* fill rest of values with INT_MAX which index will never have as value */
-  for (; i < MAX_DUPLI_RECUR; i++)
+  for (; i < MAX_DUPLI_RECUR; i++) {
     dob->persistent_id[i] = INT_MAX;
+  }
 
   /* metaballs never draw in duplis, they are instead merged into one by the basis
    * mball outside of the group. this does mean that if that mball is not in the
    * scene, they will not show up at all, limitation that should be solved once. */
-  if (ob->type == OB_MBALL)
+  if (ob->type == OB_MBALL) {
     dob->no_draw = true;
+  }
 
   /* random number */
   /* the logic here is designed to match Cycles */
@@ -217,8 +224,9 @@ static bool is_child(const Object *ob, const Object *parent)
 {
   const Object *ob_parent = ob->parent;
   while (ob_parent) {
-    if (ob_parent == parent)
+    if (ob_parent == parent) {
       return true;
+    }
     ob_parent = ob_parent->parent;
   }
   return false;
@@ -257,8 +265,9 @@ static void make_child_duplis(const DupliContext *ctx,
         copy_dupli_context(&pctx, ctx, ctx->object, NULL, baseid);
 
         /* metaballs have a different dupli handling */
-        if (ob->type != OB_MBALL)
+        if (ob->type != OB_MBALL) {
           ob->flag |= OB_DONE; /* doesn't render */
+        }
 
         make_child_duplis_cb(&pctx, userdata, ob);
       }
@@ -275,8 +284,9 @@ static void make_duplis_collection(const DupliContext *ctx)
   Collection *collection;
   float collection_mat[4][4];
 
-  if (ob->instance_collection == NULL)
+  if (ob->instance_collection == NULL) {
     return;
+  }
   collection = ob->instance_collection;
 
   /* combine collection offset and obmat */
@@ -338,8 +348,9 @@ static void get_duplivert_transform(const float co[3],
     nor_f[2] = (float)-no[2];
     vec_to_quat(quat, nor_f, axis, upflag);
   }
-  else
+  else {
     unit_qt(quat);
+  }
 
   loc_quat_size_to_mat4(mat, co, quat, size);
 }
@@ -367,8 +378,9 @@ static void vertex_dupli(const VertexDupliData *vdd,
 
   dob = make_dupli(vdd->ctx, vdd->inst_ob, obmat, index);
 
-  if (vdd->orco)
+  if (vdd->orco) {
     copy_v3_v3(dob->orco, vdd->orco[index]);
+  }
 
   /* recursion */
   make_recursive_duplis(vdd->ctx, vdd->inst_ob, space_mat, index);
@@ -483,8 +495,9 @@ static void make_duplis_font(const DupliContext *ctx)
   bool text_free = false;
 
   /* font dupliverts not supported inside collections */
-  if (ctx->collection)
+  if (ctx->collection) {
     return;
+  }
 
   copy_m4_m4(pmat, par->obmat);
 
@@ -585,8 +598,9 @@ static void get_dupliface_transform(
     float area = BKE_mesh_calc_poly_area(mpoly, mloop, mvert);
     scale = sqrtf(area) * scale_fac;
   }
-  else
+  else {
     scale = 1.0f;
+  }
   size[0] = size[1] = size[2] = scale;
 
   loc_quat_size_to_mat4(mat, loc, quat, size);
@@ -612,8 +626,9 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
     MLoop *loopstart = mloop + mp->loopstart;
     float space_mat[4][4], obmat[4][4];
 
-    if (UNLIKELY(mp->totloop < 3))
+    if (UNLIKELY(mp->totloop < 3)) {
       continue;
+    }
 
     /* obmat is transform to face */
     get_dupliface_transform(
@@ -727,19 +742,23 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
   int no_draw_flag = PARS_UNEXIST;
 
-  if (psys == NULL)
+  if (psys == NULL) {
     return;
+  }
 
   part = psys->part;
 
-  if (part == NULL)
+  if (part == NULL) {
     return;
+  }
 
-  if (!psys_check_enabled(par, psys, for_render))
+  if (!psys_check_enabled(par, psys, for_render)) {
     return;
+  }
 
-  if (!for_render)
+  if (!for_render) {
     no_draw_flag |= PARS_NO_DISP;
+  }
 
   ctime = DEG_get_ctime(
       ctx->depsgraph); /* NOTE: in old animsys, used parent object's timeoffset... */
@@ -760,17 +779,20 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
     /* first check for loops (particle system object used as dupli object) */
     if (part->ren_as == PART_DRAW_OB) {
-      if (ELEM(part->instance_object, NULL, par))
+      if (ELEM(part->instance_object, NULL, par)) {
         return;
+      }
     }
     else { /*PART_DRAW_GR */
-      if (part->instance_collection == NULL)
+      if (part->instance_collection == NULL) {
         return;
+      }
 
       const ListBase dup_collection_objects = BKE_collection_object_cache_get(
           part->instance_collection);
-      if (BLI_listbase_is_empty(&dup_collection_objects))
+      if (BLI_listbase_is_empty(&dup_collection_objects)) {
         return;
+      }
 
       if (BLI_findptr(&dup_collection_objects, par, offsetof(Base, object))) {
         return;
@@ -779,10 +801,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
     /* if we have a hair particle system, use the path cache */
     if (part->type == PART_HAIR) {
-      if (psys->flag & PSYS_HAIR_DONE)
+      if (psys->flag & PSYS_HAIR_DONE) {
         hair = (totchild == 0 || psys->childcache) && psys->pathcache;
-      if (!hair)
+      }
+      if (!hair) {
         return;
+      }
 
       /* we use cache, update totchild according to cached data */
       totchild = psys->totchildcache;
@@ -851,16 +875,19 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       ob = part->instance_object;
     }
 
-    if (totchild == 0 || part->draw & PART_DRAW_PARENT)
+    if (totchild == 0 || part->draw & PART_DRAW_PARENT) {
       a = 0;
-    else
+    }
+    else {
       a = totpart;
+    }
 
     for (pa = psys->particles; a < totpart + totchild; a++, pa++) {
       if (a < totpart) {
         /* handle parent particle */
-        if (pa->flag & no_draw_flag)
+        if (pa->flag & no_draw_flag) {
           continue;
+        }
 
         /* pa_num = pa->num; */ /* UNUSED */
         size = pa->size;
@@ -882,14 +909,17 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
       if (part->ren_as == PART_DRAW_GR) {
         /* prevent divide by zero below [#28336] */
-        if (totcollection == 0)
+        if (totcollection == 0) {
           continue;
+        }
 
         /* for collections, pick the object based on settings */
-        if (part->draw & PART_DRAW_RAND_GR)
+        if (part->draw & PART_DRAW_RAND_GR) {
           b = BLI_rng_get_int(rng) % totcollection;
-        else
+        }
+        else {
           b = a % totcollection;
+        }
 
         ob = oblist[b];
       }
@@ -972,8 +1002,9 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
           obmat[3][3] = 1.0f;
 
           /* add scaling if requested */
-          if ((part->draw & PART_DRAW_NO_SCALE_OB) == 0)
+          if ((part->draw & PART_DRAW_NO_SCALE_OB) == 0) {
             mul_m4_m4m4(obmat, obmat, size_mat);
+          }
         }
         else if (part->draw & PART_DRAW_NO_SCALE_OB) {
           /* remove scaling */
@@ -991,8 +1022,9 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
         copy_m4_m4(mat, tmat);
 
-        if (part->draw & PART_DRAW_GLOBAL_OB)
+        if (part->draw & PART_DRAW_GLOBAL_OB) {
           add_v3_v3v3(mat[3], mat[3], vec);
+        }
 
         dob = make_dupli(ctx, ob, mat, a);
         dob->particle_system = psys;
@@ -1004,8 +1036,9 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
   }
 
   /* clean up */
-  if (oblist)
+  if (oblist) {
     MEM_freeN(oblist);
+  }
 
   if (psys->lattice_deform_data) {
     end_latt_deform(psys->lattice_deform_data);
@@ -1040,13 +1073,15 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   int transflag = ctx->object->transflag;
   int restrictflag = ctx->object->restrictflag;
 
-  if ((transflag & OB_DUPLI) == 0)
+  if ((transflag & OB_DUPLI) == 0) {
     return NULL;
+  }
 
   /* Should the dupli's be generated for this object? - Respect restrict flags */
   if (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER ? (restrictflag & OB_RESTRICT_RENDER) :
-                                                        (restrictflag & OB_RESTRICT_VIEW))
+                                                        (restrictflag & OB_RESTRICT_VIEW)) {
     return NULL;
+  }
 
   if (transflag & OB_DUPLIPARTS) {
     return &gen_dupli_particles;
@@ -1060,8 +1095,9 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     }
   }
   else if (transflag & OB_DUPLIFACES) {
-    if (ctx->object->type == OB_MESH)
+    if (ctx->object->type == OB_MESH) {
       return &gen_dupli_faces;
+    }
   }
   else if (transflag & OB_DUPLICOLLECTION) {
     return &gen_dupli_collection;

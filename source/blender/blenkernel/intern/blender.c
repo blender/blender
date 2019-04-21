@@ -156,8 +156,9 @@ static void keymap_item_free(wmKeyMapItem *kmi)
     IDP_FreeProperty(kmi->properties);
     MEM_freeN(kmi->properties);
   }
-  if (kmi->ptr)
+  if (kmi->ptr) {
     MEM_freeN(kmi->ptr);
+  }
 }
 
 void BKE_blender_userdef_data_swap(UserDef *userdef_a, UserDef *userdef_b)
