@@ -908,7 +908,7 @@ static ShaderNode *add_node(Scene *scene,
 
 static bool node_use_modified_socket_name(ShaderNode *node)
 {
-  if (node->special_type == SHADER_SPECIAL_TYPE_SCRIPT)
+  if (node->special_type == SHADER_SPECIAL_TYPE_OSL)
     return false;
 
   return true;

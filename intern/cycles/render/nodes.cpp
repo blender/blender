@@ -5718,7 +5718,7 @@ void SetNormalNode::compile(OSLCompiler &compiler)
 
 OSLNode::OSLNode() : ShaderNode(new NodeType(NodeType::SHADER))
 {
-  special_type = SHADER_SPECIAL_TYPE_SCRIPT;
+  special_type = SHADER_SPECIAL_TYPE_OSL;
 }
 
 OSLNode::~OSLNode()

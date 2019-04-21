@@ -721,6 +721,13 @@ void ShaderGraph::compute_displacement_hash()
       int link_id = (input->link) ? input->link->parent->id : 0;
       md5.append((uint8_t *)&link_id, sizeof(link_id));
     }
+
+    if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
+      /* Hash takes into account socket values, to detect changes
+       * in the code of the node we need an exception. */
+      OSLNode *oslnode = static_cast<OSLNode *>(node);
+      md5.append(oslnode->bytecode_hash);
+    }
   }
 
   displacement_hash = md5.get_hex();
