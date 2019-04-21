@@ -853,8 +853,9 @@ void do_versions_after_linking_280(Main *bmain)
   /* Update Curve object Shape Key data layout to include the Radius property */
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 23)) {
     for (Curve *cu = bmain->curves.first; cu; cu = cu->id.next) {
-      if (!cu->key || cu->key->elemsize != sizeof(float[4]))
+      if (!cu->key || cu->key->elemsize != sizeof(float[4])) {
         continue;
+      }
 
       cu->key->elemstr[0] = 3; /*KEYELEM_ELEM_SIZE_CURVE*/
       cu->key->elemsize = sizeof(float[3]);
@@ -865,8 +866,9 @@ void do_versions_after_linking_280(Main *bmain)
         int old_count = block->totelem;
         void *old_data = block->data;
 
-        if (!old_data || old_count <= 0)
+        if (!old_data || old_count <= 0) {
           continue;
+        }
 
         block->totelem = new_count;
         block->data = MEM_callocN(sizeof(float[3]) * new_count, __func__);

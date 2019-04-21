@@ -99,8 +99,9 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 
   fprintf(fp, "[\n");
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (bhead->code == ENDB)
+    if (bhead->code == ENDB) {
       break;
+    }
     else {
       const short *sp = fd->filesdna->structs[bhead->SDNAnr];
       const char *name = fd->filesdna->types[sp[0]];
@@ -150,8 +151,9 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
       BLI_linklist_prepend(&names, strdup(idname + 2));
       tot++;
     }
-    else if (bhead->code == ENDB)
+    else if (bhead->code == ENDB) {
       break;
+    }
   }
 
   *tot_names = tot;

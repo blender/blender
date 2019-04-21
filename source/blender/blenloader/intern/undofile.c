@@ -81,10 +81,12 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
         fc->is_identical = true;
       }
     }
-    if (fc)
+    if (fc) {
       fc = fc->next;
-    if (sc)
+    }
+    if (sc) {
       sc = sc->next;
+    }
   }
 
   BLO_memfile_free(first);

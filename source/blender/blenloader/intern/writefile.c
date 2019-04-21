@@ -2776,8 +2776,9 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
             writestruct(wd, DATA, BoundBox, 1, rv3d->clipbb);
           }
         }
-        else
+        else {
           printf("regiondata write missing!\n");
+        }
         break;
       default:
         printf("regiondata write missing!\n");

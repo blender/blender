@@ -324,12 +324,15 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
                   node_cmp_rlayers_sock_to_pass(pass_index),
                   sizeof(sockdata->pass_name));
 
-      if (pass_index == 0)
+      if (pass_index == 0) {
         sockname = "Image";
-      else if (pass_index == 1)
+      }
+      else if (pass_index == 1) {
         sockname = "Alpha";
-      else
+      }
+      else {
         sockname = node_cmp_rlayers_sock_to_pass(pass_index);
+      }
       BLI_strncpy(sock->name, sockname, sizeof(sock->name));
     }
   }
@@ -359,10 +362,12 @@ static char *replace_bbone_easing_rnapath(char *old_path)
   /* NOTE: This will break paths for any bones/custom-properties
    * which happen be named after the bbone property id's
    */
-  if (strstr(old_path, "bbone_in"))
+  if (strstr(old_path, "bbone_in")) {
     new_path = BLI_str_replaceN(old_path, "bbone_in", "bbone_easein");
-  else if (strstr(old_path, "bbone_out"))
+  }
+  else if (strstr(old_path, "bbone_out")) {
     new_path = BLI_str_replaceN(old_path, "bbone_out", "bbone_easeout");
+  }
 
   if (new_path) {
     MEM_freeN(old_path);
@@ -658,8 +663,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     Brush *br;
     for (br = bmain->brushes.first; br; br = br->id.next) {
       if ((br->ob_mode & OB_MODE_SCULPT) &&
-          ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK))
+          ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK)) {
         br->alpha = 1.0f;
+      }
     }
   }
 
@@ -729,10 +735,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 273, 3)) {
     ParticleSettings *part;
     for (part = bmain->particles.first; part; part = part->id.next) {
-      if (part->clumpcurve)
+      if (part->clumpcurve) {
         part->child_flag |= PART_CHILD_USE_CLUMP_CURVE;
-      if (part->roughcurve)
+      }
+      if (part->roughcurve) {
         part->child_flag |= PART_CHILD_USE_ROUGH_CURVE;
+      }
     }
   }
 
@@ -918,10 +926,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
         if (seq->strip && seq->strip->proxy && !seq->strip->proxy->storage) {
-          if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)
+          if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
             seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
-          if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)
+          }
+          if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
             seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
+          }
         }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
@@ -1193,10 +1203,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
 
-      if (enabled)
+      if (enabled) {
         gpd->flag |= GP_DATA_SHOW_ONIONSKINS;
-      else
+      }
+      else {
         gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
+      }
     }
   }
   if (!MAIN_VERSION_ATLEAST(bmain, 276, 5)) {
@@ -1437,14 +1449,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
               copy_v4_v4(palcolor->color, gpl->color);
               copy_v4_v4(palcolor->fill, gpl->fill);
 
-              if (gpl->flag & GP_LAYER_HIDE)
+              if (gpl->flag & GP_LAYER_HIDE) {
                 palcolor->flag |= PC_COLOR_HIDE;
-              if (gpl->flag & GP_LAYER_LOCKED)
+              }
+              if (gpl->flag & GP_LAYER_LOCKED) {
                 palcolor->flag |= PC_COLOR_LOCKED;
-              if (gpl->flag & GP_LAYER_ONIONSKIN)
+              }
+              if (gpl->flag & GP_LAYER_ONIONSKIN) {
                 palcolor->flag |= PC_COLOR_ONIONSKIN;
-              if (gpl->flag & GP_LAYER_VOLUMETRIC)
+              }
+              if (gpl->flag & GP_LAYER_VOLUMETRIC) {
                 palcolor->flag |= PC_COLOR_VOLUMETRIC;
+              }
 
               /* set layer opacity to 1 */
               gpl->opacity = 1.0f;
