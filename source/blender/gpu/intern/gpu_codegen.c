@@ -824,7 +824,8 @@ static char *code_generate_fragment(GPUMaterial *material,
 
   BLI_dynstr_append(ds, "}\n");
 
-  /* XXX This cannot go into gpu_shader_material.glsl because main() would be parsed and generate error */
+  /* XXX This cannot go into gpu_shader_material.glsl because main()
+   * would be parsed and generate error */
   /* Old glsl mode compat. */
   BLI_dynstr_append(ds, "#ifndef NODETREE_EXEC\n");
   BLI_dynstr_append(ds, "out vec4 fragColor;\n");

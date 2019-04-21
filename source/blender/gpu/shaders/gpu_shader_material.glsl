@@ -1190,7 +1190,8 @@ void convert_metallic_to_specular_tinted(vec3 basecol,
 vec3 principled_sheen(float NV, vec3 basecol_tint, float sheen_tint)
 {
   float f = 1.0 - NV;
-  /* Temporary fix for T59784. Normal map seems to contain NaNs for tangent space normal maps, therefore we need to clamp value. */
+  /* Temporary fix for T59784. Normal map seems to contain NaNs for tangent space normal maps,
+   * therefore we need to clamp value. */
   f = clamp(f, 0.0, 1.0);
   /* Empirical approximation (manual curve fitting). Can be refined. */
   float sheen = f * f * f * 0.077 + f * 0.01 + 0.00026;

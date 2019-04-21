@@ -8,7 +8,8 @@ uniform vec2 viewport_size;
 /* Width of the generated 'line'. */
 uniform float width; /* in pixels, screen space. */
 
-/* Uniforms from fragment shader, used here to optimize out useless computation in case of solid line. */
+/* Uniforms from fragment shader,
+ * used here to optimize out useless computation in case of solid line. */
 uniform float dash_factor; /* if > 1.0, solid line. */
 uniform int colors_len;    /* Enabled if > 0, 1 for solid line. */
 

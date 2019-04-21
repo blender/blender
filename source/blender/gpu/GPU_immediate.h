@@ -47,9 +47,10 @@ void immBegin(GPUPrimType, uint vertex_len);
 void immBeginAtMost(GPUPrimType, uint max_vertex_len);
 void immEnd(void); /* finishes and draws. */
 
-/* ImmBegin a batch, then use standard immFunctions as usual. */
-/* ImmEnd will finalize the batch instead of drawing. */
-/* Then you can draw it as many times as you like! Partially replaces the need for display lists. */
+/* immBegin a batch, then use standard immFunctions as usual. */
+/* immEnd will finalize the batch instead of drawing. */
+/* Then you can draw it as many times as you like!
+ * Partially replaces the need for display lists. */
 GPUBatch *immBeginBatch(GPUPrimType, uint vertex_len);
 GPUBatch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 

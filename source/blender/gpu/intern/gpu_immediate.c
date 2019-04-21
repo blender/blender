@@ -634,7 +634,9 @@ static void immEndVertex(void) /* and move on to the next vertex */
       if ((imm.unassigned_attr_bits >> a_idx) & 1) {
         const GPUVertAttr *a = &imm.vertex_format.attrs[a_idx];
 
-        /*              printf("copying %s from vertex %u to %u\n", a->name, imm.vertex_idx - 1, imm.vertex_idx); */
+#if 0
+        printf("copying %s from vertex %u to %u\n", a->name, imm.vertex_idx - 1, imm.vertex_idx);
+#endif
 
         GLubyte *data = imm.vertex_data + a->offset;
         memcpy(data, data - imm.vertex_format.stride, a->sz);

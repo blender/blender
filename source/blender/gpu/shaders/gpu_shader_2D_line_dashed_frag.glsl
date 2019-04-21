@@ -1,6 +1,7 @@
 
 /*
- * Fragment Shader for dashed lines, with uniform multi-color(s), or any single-color, and any thickness.
+ * Fragment Shader for dashed lines, with uniform multi-color(s),
+ * or any single-color, and any thickness.
  *
  * Dashed is performed in screen space.
  */
@@ -10,7 +11,8 @@ uniform float dash_width;
 /* Simple mode, discarding non-dash parts (so no need for blending at all). */
 uniform float dash_factor; /* if > 1.0, solid line. */
 
-/* More advanced mode, allowing for complex, multi-colored patterns. Enabled when colors_len > 0. */
+/* More advanced mode, allowing for complex, multi-colored patterns.
+ * Enabled when colors_len > 0. */
 /* Note: max number of steps/colors in pattern is 32! */
 uniform int colors_len; /* Enabled if > 0, 1 for solid line. */
 uniform vec4 colors[32];

@@ -73,7 +73,8 @@ void get_attr_locations(const GPUVertFormat *format,
       const GPUShaderInput *input = GPU_shaderinterface_attr(shaderface, a->name[n_idx]);
 #if TRUST_NO_ONE
       assert(input != NULL);
-      /* TODO: make this a recoverable runtime error? indicates mismatch between vertex format and program */
+      /* TODO: make this a recoverable runtime error?
+       * indicates mismatch between vertex format and program. */
 #endif
       write_attr_location(binding, a_idx, input->location);
     }

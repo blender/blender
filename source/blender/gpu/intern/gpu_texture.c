@@ -43,8 +43,8 @@
 #include "gpu_context_private.h"
 
 static struct GPUTextureGlobal {
-  GPUTexture *
-      invalid_tex_1D; /* texture used in place of invalid textures (not loaded correctly, missing) */
+  /** Texture used in place of invalid textures (not loaded correctly, missing). */
+  GPUTexture *invalid_tex_1D;
   GPUTexture *invalid_tex_2D;
   GPUTexture *invalid_tex_3D;
 } GG = {NULL, NULL, NULL};
@@ -1598,7 +1598,8 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
   if (GPU_texture_depth(tex)) {
     /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
      * In this case we just create a complete texture with mipmaps manually without downsampling.
-     * You must initialize the texture levels using other methods like GPU_framebuffer_recursive_downsample(). */
+     * You must initialize the texture levels using other methods like
+     * GPU_framebuffer_recursive_downsample(). */
     int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));
     eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex->format);
     for (int i = 1; i < levels; ++i) {

@@ -420,7 +420,8 @@ static void batch_update_program_bindings(GPUBatch *batch, uint v_first)
 void GPU_batch_program_use_begin(GPUBatch *batch)
 {
   /* NOTE: use_program & done_using_program are fragile, depend on staying in sync with
-   *       the GL context's active program. use_program doesn't mark other programs as "not used". */
+   *       the GL context's active program.
+   *       use_program doesn't mark other programs as "not used". */
   /* TODO: make not fragile (somehow) */
 
   if (!batch->program_in_use) {

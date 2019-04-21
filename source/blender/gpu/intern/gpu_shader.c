@@ -557,10 +557,10 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
  * Example:
  * \code{.c}
  * sh = GPU_shader_create_from_arrays({
- *         .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
- *         .geom = (const char *[]){shader_geom_glsl, NULL},
- *         .frag = (const char *[]){shader_frag_glsl, NULL},
- *         .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
+ *     .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
+ *     .geom = (const char *[]){shader_geom_glsl, NULL},
+ *     .frag = (const char *[]){shader_frag_glsl, NULL},
+ *     .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
  * });
  * \endcode
  */
@@ -1297,7 +1297,8 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
       }
     }
     else if (shader == GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR) {
-      /* Dashed need geometry shader, which are not supported by legacy OpenGL, fallback to solid lines. */
+      /* Dashed need geometry shader, which are not supported by legacy OpenGL,
+       * fallback to solid lines. */
       /* TODO: remove after switch to core profile (maybe) */
       if (!GLEW_VERSION_3_2) {
         stages_legacy.vert = datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl;

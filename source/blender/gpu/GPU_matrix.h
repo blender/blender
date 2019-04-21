@@ -123,7 +123,8 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 void GPU_matrix_bind(const struct GPUShaderInterface *);
 bool GPU_matrix_dirty_get(void); /* since last bind */
 
-/* Python API needs to be able to inspect the stack so errors raise exceptions instead of crashing. */
+/* Python API needs to be able to inspect the stack so errors raise exceptions
+ * instead of crashing. */
 #ifdef USE_GPU_PY_MATRIX_API
 int GPU_matrix_stack_level_get_model_view(void);
 int GPU_matrix_stack_level_get_projection(void);

@@ -1,7 +1,7 @@
 
 /*
- * Vertex Shader for dashed lines with 3D coordinates, with uniform multi-colors or uniform single-color,
- * and unary thickness.
+ * Vertex Shader for dashed lines with 3D coordinates,
+ * with uniform multi-colors or uniform single-color, and unary thickness.
  *
  * Legacy version, without geometry shader support, always produce solid lines!
  */
@@ -19,7 +19,8 @@ void main()
 {
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-  /* Hack - prevent stupid GLSL compiler to optimize out unused viewport_size uniform, which gives crash! */
+  /* Hack - prevent stupid GLSL compiler to optimize out unused viewport_size uniform,
+   * which gives crash! */
   distance_along_line = viewport_size.x * 0.000001f - viewport_size.x * 0.0000009f;
 
   color_geom = color;

@@ -1,6 +1,7 @@
 
 /*
- * Geometry Shader for dashed lines, with uniform multi-color(s), or any single-color, and unary thickness.
+ * Geometry Shader for dashed lines, with uniform multi-color(s),
+ * or any single-color, and unary thickness.
  *
  * Dashed is performed in screen space.
  */
@@ -9,7 +10,8 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 viewport_size;
 
-/* Uniforms from fragment shader, used here to optimize out useless computation in case of solid line. */
+/* Uniforms from fragment shader,
+ * used here to optimize out useless computation in case of solid line. */
 uniform float dash_factor; /* if > 1.0, solid line. */
 uniform int colors_len;    /* Enabled if > 0, 1 for solid line. */
 
@@ -58,6 +60,6 @@ void main()
 
   EndPrimitive();
 
-  /* Note: we could also use similar approach as diag_stripes_frag, but this would give us dashed 'anchored'
-   * to the screen, and not to one end of the line... */
+  /* Note: we could also use similar approach as diag_stripes_frag,
+   * but this would give us dashed 'anchored' to the screen, and not to one end of the line... */
 }

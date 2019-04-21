@@ -717,7 +717,8 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
 
 /**
  * Use this if you need to custom downsample your texture and use the previous mip level as input.
- * This function only takes care of the correct texture handling. It execute the callback for each texture level.
+ * This function only takes care of the correct texture handling.
+ * It execute the callback for each texture level.
  */
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
                                           int max_lvl,

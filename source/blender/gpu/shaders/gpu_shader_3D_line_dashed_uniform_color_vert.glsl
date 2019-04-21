@@ -1,7 +1,7 @@
 
 /*
- * Vertex Shader for dashed lines with 3D coordinates, with uniform multi-colors or uniform single-color,
- * and unary thickness.
+ * Vertex Shader for dashed lines with 3D coordinates,
+ * with uniform multi-colors or uniform single-color, and unary thickness.
  *
  * Dashed is performed in screen space.
  */
