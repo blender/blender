@@ -1255,7 +1255,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
     uiLayoutSetContextFromBut(layout, but);
 
     /* Populate Panel - With a combination of the contents of the Driven and Driver panels */
-    if (fcu) {
+    if (fcu && fcu->driver) {
       ID *id = ptr.id.data;
 
       /* Driven Property Settings */

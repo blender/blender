@@ -899,10 +899,21 @@ static bool add_driver_button_poll(bContext *C)
   PointerRNA ptr = {{NULL}};
   PropertyRNA *prop = NULL;
   int index;
+  bool driven, special;
 
   /* this operator can only run if there's a property button active, and it can be animated */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
-  return (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop));
+
+  if (!(ptr.id.data && ptr.data && prop)) {
+    return false;
+  }
+  if (!RNA_property_animateable(&ptr, prop)) {
+    return false;
+  }
+
+  /* Don't do anything if there is an fcurve for animation without a driver. */
+  FCurve *fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
+  return (fcu == NULL || fcu->driver);
 }
 
 /* Wrapper for creating a driver without knowing what the targets will be yet (i.e. "manual/add later") */
